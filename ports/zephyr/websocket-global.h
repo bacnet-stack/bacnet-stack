@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief API for encoding/decoding of BACnet/SC BVLC messages
+ * @brief Global websocket functions
  * @author Kirill Neznamov
  * @date May 2022
  * @section LICENSE

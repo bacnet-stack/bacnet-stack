@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implementation of websocket client interface.
+ * @brief Implementation of global websocket functions.
  * @author Kirill Neznamov
  * @date May 2022
  * @section LICENSE
@@ -12,7 +12,7 @@
  */
 
 #include <zephyr/kernel.h>
-#include "websocket-mutex.h"
+#include "websocket-global.h"
 
 static K_MUTEX_DEFINE(websocket_mutex);
 static K_MUTEX_DEFINE(websocket_dispatch_mutex);
