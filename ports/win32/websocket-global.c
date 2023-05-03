@@ -65,7 +65,7 @@ void bws_dispatch_unlock(void)
   bsc_mutex_unlock(&websocket_dispatch_mutex);
 }
 
-static bool bsc_websocket_log_initialized = false;
+static BOOL bsc_websocket_log_initialized = FALSE;
 
 void bsc_websocket_init_log(void)
 {
