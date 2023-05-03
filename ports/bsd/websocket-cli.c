@@ -449,9 +449,7 @@ static void *bws_cli_worker(void *arg)
             if (conn->want_send_data) {
                 DEBUG_PRINTF(
                     "bws_cli_worker() process request for sending data\n");
-                bsc_websocket_global_lock();
                 lws_callback_on_writable(conn->ws);
-                bsc_websocket_global_unlock();
             }
         } else if (conn->state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
             DEBUG_PRINTF("bws_cli_worker() process disconnecting event\n");
@@ -512,12 +510,12 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     void *dispatch_func_user_param,
     BSC_WEBSOCKET_HANDLE *out_handle)
 {
-    struct lws_context_creation_info info = { 0 };
+    struct lws_context_creation_info info;
     char tmp_url[BSC_WSURL_MAX_LEN];
     const char *prot = NULL, *addr = NULL, *path = NULL;
     int port = -1;
     BSC_WEBSOCKET_HANDLE h;
-    struct lws_client_connect_info cinfo = { 0 };
+    struct lws_client_connect_info cinfo;
     pthread_t thread_id;
     size_t len;
     pthread_attr_t attr;
@@ -539,20 +537,14 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
         return BSC_WEBSOCKET_BAD_PARAM;
     }
 
+    memset(&info, 0, sizeof(info));
+    memset(&cinfo, 0, sizeof(cinfo));
+
     len = strlen(url) >= sizeof(tmp_url) ? sizeof(tmp_url) - 1 : strlen(url);
     memcpy(tmp_url, url, len);
     tmp_url[len] = 0;
 
-    bsc_websocket_global_lock();
-#if DEBUG_ENABLED == 1
-    lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG |
-            LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_LATENCY |
-            LLL_USER | LLL_THREAD,
-        NULL);
-#else
-    lws_set_log_level(0, NULL);
-#endif
-    bsc_websocket_global_unlock();
+    bsc_websocket_init_log();
     pthread_mutex_lock(&bws_cli_mutex);
 
     if (lws_parse_uri(tmp_url, &prot, &addr, &port, &path) != 0 ||
@@ -576,6 +568,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
             "bws_cli_connect() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
+    bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_CONNECTING;
     bws_cli_conn[h].fragment_buffer = NULL;
     bws_cli_conn[h].fragment_buffer_len = 0;
     bws_cli_conn[h].fragment_buffer_size = 0;
@@ -617,6 +610,33 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
 
+    bws_cli_conn[h].ws = NULL;
+    cinfo.context = bws_cli_conn[h].ctx;
+    cinfo.address = addr;
+    cinfo.origin = cinfo.address;
+    cinfo.host = cinfo.address;
+    cinfo.port = port;
+    cinfo.path = path;
+    cinfo.pwsi = &bws_cli_conn[h].ws;
+    cinfo.alpn = "h2;http/1.1";
+    bws_retry.secs_since_valid_ping = 3;
+    bws_retry.secs_since_valid_hangup = 10;
+    cinfo.retry_and_idle_policy = &bws_retry;
+    cinfo.ssl_connection = LCCSCF_USE_SSL |
+        LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_SELFSIGNED;
+
+    if (proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
+        cinfo.protocol = bws_hub_protocol;
+    } else {
+        cinfo.protocol = bws_direct_protocol;
+    }
+
+    bws_cli_conn[h].err_code = ERROR_CODE_SUCCESS;
+    *out_handle = h;
+    pthread_mutex_unlock(&bws_cli_mutex);
+    bsc_websocket_global_lock();
+    lws_client_connect_via_info(&cinfo);
+    bsc_websocket_global_unlock();
     r = pthread_attr_init(&attr);
 
     if(!r) {
@@ -643,7 +663,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
                    lws_context_destroy() from some parallel thread it is
                    protected by global websocket mutex.
         */
-        pthread_mutex_unlock(&bws_cli_mutex);
+        //pthread_mutex_unlock(&bws_cli_mutex);
         bsc_websocket_global_lock();
         lws_context_destroy(bws_cli_conn[h].ctx);
         bsc_websocket_global_unlock();
@@ -654,36 +674,8 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
             "bws_cli_connect() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
+
     pthread_attr_destroy(&attr);
-    bws_cli_conn[h].ws = NULL;
-    cinfo.context = bws_cli_conn[h].ctx;
-    cinfo.address = addr;
-    cinfo.origin = cinfo.address;
-    cinfo.host = cinfo.address;
-    cinfo.port = port;
-    cinfo.path = path;
-    cinfo.pwsi = &bws_cli_conn[h].ws;
-    cinfo.alpn = "h2;http/1.1";
-    bws_retry.secs_since_valid_ping = 3;
-    bws_retry.secs_since_valid_hangup = 10;
-    cinfo.retry_and_idle_policy = &bws_retry;
-    cinfo.ssl_connection = LCCSCF_USE_SSL |
-        LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_SELFSIGNED;
-
-    if (proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
-        cinfo.protocol = bws_hub_protocol;
-    } else {
-        cinfo.protocol = bws_direct_protocol;
-    }
-
-    bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_CONNECTING;
-    bws_cli_conn[h].err_code = ERROR_CODE_SUCCESS;
-    *out_handle = h;
-    bsc_websocket_global_lock();
-    lws_client_connect_via_info(&cinfo);
-    bsc_websocket_global_unlock();
-    pthread_mutex_unlock(&bws_cli_mutex);
-
     DEBUG_PRINTF("bws_cli_connect() <<< ret = %d\n", BSC_WEBSOCKET_SUCCESS);
     return BSC_WEBSOCKET_SUCCESS;
 }
@@ -694,14 +686,13 @@ void bws_cli_disconnect(BSC_WEBSOCKET_HANDLE h)
 
     if (h >= 0 && h < BSC_CLIENT_WEBSOCKETS_MAX_NUM) {
         pthread_mutex_lock(&bws_cli_mutex);
-
+        DEBUG_PRINTF("bws_cli_disconnect() state = %d\n", bws_cli_conn[h].state);
         if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTING ||
             bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED) {
             /* tell worker to process change of connection state */
             bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_DISCONNECTING;
             lws_cancel_service(bws_cli_conn[h].ctx);
         }
-
         pthread_mutex_unlock(&bws_cli_mutex);
     }
 
@@ -757,10 +748,8 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
 
-    bsc_websocket_global_lock();
     written =
         lws_write(bws_cli_conn[h].ws, payload, payload_size, LWS_WRITE_BINARY);
-    bsc_websocket_global_unlock();
 
     DEBUG_PRINTF("bws_cli_dispatch_send() %d bytes is sent\n", written);
 
