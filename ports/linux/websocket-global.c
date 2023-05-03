@@ -20,19 +20,28 @@
 #include "websocket-global.h"
 #include "bacnet/basic/sys/debug.h"
 
+#if LWS_MAX_SMP <= 1
+#warning "Libwebsockets must be built with LWS_MAX_SMP > 1 (otherwise it does not support thread syncronization)"
+#endif
+
 static pthread_mutex_t websocket_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static pthread_mutex_t websocket_dispatch_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+
 
 #if (BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED != 1)
 
 void bsc_websocket_global_lock(void)
 {
+#if LWS_MAX_SMP <= 1
   pthread_mutex_lock(&websocket_mutex);
+#endif
 }
 
 void bsc_websocket_global_unlock(void)
 {
+#if LWS_MAX_SMP <= 1
   pthread_mutex_unlock(&websocket_mutex);
+#endif
 }
 
 void bws_dispatch_lock(void)
@@ -51,22 +60,26 @@ static int volatile websocket_dispatch_mutex_cnt = 0;
 
 void bsc_websocket_global_lock_dbg(char *f, int line)
 {
+#if LWS_MAX_SMP <= 1
   printf("bsc_websocket_global_lock_dbg() >>> %s:%d lock_cnt %d tid = %ld\n", f, line, websocket_mutex_cnt, pthread_self());
   websocket_mutex_cnt++;
   fflush(stdout);
   pthread_mutex_lock(&websocket_mutex);
   printf("bsc_websocket_global_lock_dbg() <<< lock_cnt %d tid = %ld\n", websocket_mutex_cnt, pthread_self());
   fflush(stdout);
+#endif
 }
 
 void bsc_websocket_global_unlock_dbg(char *f, int line)
 {
+#if LWS_MAX_SMP <= 1
   printf("bsc_websocket_global_unlock_dbg() >>> %s:%d lock_cnt %d tid = %ld\n", f, line, websocket_mutex_cnt, pthread_self());
   websocket_mutex_cnt--;
   fflush(stdout);
   pthread_mutex_unlock(&websocket_mutex);
   printf("bsc_websocket_global_unlock_dbg() <<< lock_cnt %d tid = %ld\n", websocket_mutex_cnt, pthread_self());
   fflush(stdout);
+#endif
 }
 
 void bws_dispatch_lock_dbg(char *f, int line)
