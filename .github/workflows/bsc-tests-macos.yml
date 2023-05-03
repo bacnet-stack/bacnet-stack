@@ -1,6 +1,6 @@
 name: BACNet/SC macos/bsd tests
 
-on: [pull_request]
+on: [push, pull_request]
 
 jobs:
   job_bsc_tests_macos:

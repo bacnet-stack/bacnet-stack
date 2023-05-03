@@ -520,7 +520,6 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     size_t len;
     pthread_attr_t attr;
     int r;
-
     DEBUG_PRINTF("bws_cli_connect() >>> proto = %d, url = %s\n", proto, url);
 
     if (!ca_cert || !ca_cert_size || !cert || !cert_size || !key || !key_size ||
