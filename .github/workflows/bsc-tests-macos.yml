@@ -9,7 +9,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Create Build Environment
       run: |
-        brew install cmake
+        brew install openssl
         git clone https://libwebsockets.org/repo/libwebsockets
         bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
         sudo bash -c 'cd libwebsockets;cd build;make install'
