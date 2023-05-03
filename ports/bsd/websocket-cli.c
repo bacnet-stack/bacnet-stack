@@ -662,7 +662,6 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
                    lws_context_destroy() from some parallel thread it is
                    protected by global websocket mutex.
         */
-        //pthread_mutex_unlock(&bws_cli_mutex);
         bsc_websocket_global_lock();
         lws_context_destroy(bws_cli_conn[h].ctx);
         bsc_websocket_global_unlock();
