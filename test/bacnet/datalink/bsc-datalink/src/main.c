@@ -1182,6 +1182,31 @@ static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
     }
 }
 
+static void wait_for_failed_request(node_ev_t *ev,
+     BACNET_SC_VMAC_ADDRESS* vmac, BACNET_SC_UUID* uuid, BACNET_ERROR_CODE err)
+{
+    int cnt;
+    BACNET_SC_FAILED_CONNECTION_REQUEST *r;
+    call_maintenance_timer(1, 0);
+    while (1) {
+        bsc_event_timedwait(ev->e, WAIT_EVENT_MS);
+        call_maintenance_timer(0, WAIT_EVENT_MS);
+        for(int i = 0; i < Network_Port_SC_Failed_Connection_Requests_Count( Network_Port_Index_To_Instance(0)); i++)
+        {
+             r = Network_Port_SC_Failed_Connection_Requests_Get(
+                     Network_Port_Index_To_Instance(0), i);
+             if(r) {
+                if((memcmp(r->Peer_VMAC, &vmac->address[0], BVLC_SC_VMAC_SIZE) == 0) &&
+                   (memcmp(r[i].Peer_UUID.uuid.uuid128, &uuid->uuid[0], BVLC_SC_UUID_SIZE) == 0) &&
+                   r->Error == err)
+                {
+                    return;
+                }
+             }
+        }
+    }
+}
+
 static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
     call_maintenance_timer(1, 0);
@@ -2044,8 +2069,6 @@ static void test_sc_datalink_failed_requests(void)
     BSC_SC_RET ret;
     BSC_NODE *node2;
 
-    BACNET_SC_FAILED_CONNECTION_REQUEST *r;
-
     memset(&uuid1, 0x41, sizeof(uuid1));
     memset(&vmac1, 0x42, sizeof(vmac1));
     memset(&uuid2, 0x43, sizeof(uuid2));
@@ -2128,25 +2151,7 @@ static void test_sc_datalink_failed_requests(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
     wait_for_connection_to_hub(&node_ev2, node2);
-    wait_sec(1);
-    debug_printf("failed requests num %d\n", Network_Port_SC_Failed_Connection_Requests_Count(Network_Port_Index_To_Instance(0)));
-//    zassert_equal(Network_Port_SC_Failed_Connection_Requests_Count(Network_Port_Index_To_Instance(0)) >=2, true, 0);
-
-    r = Network_Port_SC_Failed_Connection_Requests_Get(
-        Network_Port_Index_To_Instance(0), 0);
-    zassert_equal(r != NULL, true, 0);
-    zassert_equal(
-        memcmp(r->Peer_VMAC, &failed_vmac.address[0], BVLC_SC_VMAC_SIZE) == 0,
-        true, NULL);
-
-#if DEBUG_ENABLED
-    debug_printf("r->Peer_UUID.uuid.uuid128 = %s\n", bsc_uuid_to_string((BACNET_SC_UUID *)r->Peer_UUID.uuid.uuid128));
-    debug_printf("failed_uuid.uuid[0] = %s\n", bsc_uuid_to_string(&failed_uuid));
-#endif
-
-    zassert_equal(memcmp(r->Peer_UUID.uuid.uuid128, &failed_uuid.uuid[0],
-                      BVLC_SC_UUID_SIZE) == 0,
-        true, NULL);
+    wait_for_failed_request(&node_ev2, &failed_vmac, &failed_uuid, ERROR_CODE_NODE_DUPLICATE_VMAC );
     bsc_cleanup();
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
