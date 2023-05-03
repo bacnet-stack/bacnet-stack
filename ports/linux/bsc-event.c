@@ -97,10 +97,7 @@ void bsc_event_wait(BSC_EVENT *ev)
     DEBUG_PRINTF("bsc_event_wait() before counter %zu\n", ev->counter);
     ev->counter--;
     DEBUG_PRINTF("bsc_event_wait() counter %zu\n", ev->counter);
-    if(timedout) {
-        DEBUG_PRINTF("bsc_event_timedwait() timedout, do nothing\n");
-    } 
-    else if (!ev->counter) {
+    if (!ev->counter) {
         ev->v = false;
         DEBUG_PRINTF("bsc_event_wait() reset ev\n");
     }
@@ -153,6 +150,9 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
     }
     ret = !timedout;
     DEBUG_PRINTF("bsc_event_timedwait() <<< ret = %d, ev = %p\n", ret, ev);
+    if(ret) {
+        printf("bsc_event_timedwait() ret = true\n");
+    }
     pthread_mutex_unlock(&ev->mutex);
     return ret;
 }
