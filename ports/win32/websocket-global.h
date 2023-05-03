@@ -19,5 +19,5 @@ void bsc_mutex_lock(volatile HANDLE* m);
 void bsc_mutex_unlock(volatile HANDLE* m);
 void bsc_websocket_global_lock(void);
 void bsc_websocket_global_unlock(void);
-
+void bsc_websocket_init_log(void);
 #endif

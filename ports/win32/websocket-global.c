@@ -11,11 +11,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 
+#include <libwebsockets.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-#include <libwebsockets.h>
 #include "websocket-global.h"
 
 static HANDLE websocket_mutex = NULL;
