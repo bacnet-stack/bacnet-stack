@@ -137,7 +137,10 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
     DEBUG_PRINTF("bsc_event_timedwait() before counter %zu\n", ev->counter);
     ev->counter--;
     DEBUG_PRINTF("bsc_event_timedwait() counter %zu\n", ev->counter);
-    if (!timedout && !ev->counter) {
+    if(timedout) {
+        printf("bsc_event_timedwait() timedout, do nothing\n");
+    } 
+    else if (!ev->counter) {
         ev->v = false;
         DEBUG_PRINTF("bsc_event_timedwait() reset ev\n");
     }
