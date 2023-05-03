@@ -2128,7 +2128,7 @@ static void test_sc_datalink_failed_requests(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
     wait_for_connection_to_hub(&node_ev2, node2);
-    wait_sec(3);
+    wait_sec(1);
     debug_printf("failed requests num %d\n", Network_Port_SC_Failed_Connection_Requests_Count(Network_Port_Index_To_Instance(0)));
 //    zassert_equal(Network_Port_SC_Failed_Connection_Requests_Count(Network_Port_Index_To_Instance(0)) >=2, true, 0);
 

@@ -492,6 +492,11 @@ static void bsc_update_failed_requests(void)
         Network_Port_SC_Failed_Connection_Requests_Delete_All(instance);
         for (i = 0; i < cnt; i++) {
             if (r[i].Peer_Address.host[0] != 0) {
+                printf("failed request record %d, host %s, vmac %s, uuid %s, error %d, details = %s\n",
+                    i, r[i].Peer_Address.host, 
+                    bsc_vmac_to_string((BACNET_SC_VMAC_ADDRESS *) r[i].Peer_VMAC),
+                    bsc_uuid_to_string((BACNET_SC_UUID *)r[i].Peer_UUID.uuid.uuid128),
+                    r[i].Error, r[i].Error_Details);
                 Network_Port_SC_Failed_Connection_Requests_Add(instance,
                     &r[i].Timestamp, &r[i].Peer_Address, r[i].Peer_VMAC,
                     r[i].Peer_UUID.uuid.uuid128, r[i].Error,
