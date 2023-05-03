@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <libwebsockets.h>
-#include "websocket-mutex.h"
+#include "websocket-global.h"
 #include "bacnet/basic/sys/debug.h"
 
 static pthread_mutex_t websocket_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
