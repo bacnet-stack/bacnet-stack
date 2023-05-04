@@ -1133,9 +1133,12 @@ static bool wait_hubc_ev(hubc_ev_t *ev,
     while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
         call_maintenance_timer(0, WAIT_EVENT_MS);
     }
+    bws_dispatch_lock();
     if (ev->ev == wait_ev && ev->h == wait_h) {
+        bws_dispatch_unlock();
         return true;
     } else {
+        bws_dispatch_unlock();
         return false;
     }
 }
@@ -1187,9 +1190,12 @@ static bool wait_hubf_ev(hubf_ev_t *ev,
         call_maintenance_timer(0, WAIT_EVENT_MS);
     }
 
+    bws_dispatch_lock();
     if (ev->ev == wait_ev && ev->h == wait_h) {
+        bws_dispatch_unlock();
         return true;
     } else {
+        bws_dispatch_unlock();
         return false;
     }
 }
@@ -1218,16 +1224,16 @@ static void hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
     size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    debug_printf("hub_connector_event() ev = %d, h = %p, user_arg = %p, pdu = "
+    printf("hub_connector_event() ev = %p, ev->e = %p, ev->ev = %d, h = %p, user_arg = %p, pdu = "
                  "%p, pdu_len = %d\n",
-        ev, h, user_arg, pdu, pdu_len);
+        &hubc, hubc.e, ev, h, user_arg, pdu, pdu_len);
     signal_hubc_ev(&hubc, ev, h, user_arg, pdu, pdu_len);
 }
 
 static void hub_function_event(
     BSC_HUB_FUNCTION_EVENT ev, BSC_HUB_FUNCTION_HANDLE h, void *user_arg)
 {
-    debug_printf("hub_function_event() ev = %d, h = %p, user_arg = %p\n", ev, h,
+    printf("hub_function_event()  ev = %p, ev->e = %p, ev->ev = %d, h = %p, user_arg = %p\n",&hubf, hubf.e, ev, h,
         user_arg);
     signal_hubf_ev(&hubf, ev, h, user_arg);
 }
