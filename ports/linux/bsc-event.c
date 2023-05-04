@@ -100,10 +100,9 @@ void bsc_event_wait(BSC_EVENT *ev)
     if (!ev->counter) {
         ev->v = false;
         DEBUG_PRINTF("bsc_event_wait() reset ev\n");
-    }
-    else {
-       DEBUG_PRINTF("bsc_event_wait() wake up other waiting threads\n");
-       pthread_cond_broadcast(&ev->cond);
+    } else {
+        DEBUG_PRINTF("bsc_event_wait() wake up other waiting threads\n");
+        pthread_cond_broadcast(&ev->cond);
     }
     DEBUG_PRINTF("bsc_event_wait() <<< ev = %p\n", ev);
     pthread_mutex_unlock(&ev->mutex);
@@ -162,23 +161,24 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
     to.tv_sec += to.tv_nsec / 1000000000;
     to.tv_nsec %= 1000000000;
 
-    printf("bsc_event_timedwait() >>> before lock ev = %p ev->v = %d\n", ev, ev->v);
+    DEBUG_PRINTF("bsc_event_timedwait() >>> before lock ev = %p ev->v = %d\n",
+        ev, ev->v);
     pthread_mutex_lock(&ev->mutex);
-    printf("bsc_event_timedwait() >>> after lock ev = %p ev->v = %d\n", ev, ev->v);
+    DEBUG_PRINTF(
+        "bsc_event_timedwait() >>> after lock ev = %p ev->v = %d\n", ev, ev->v);
 
     while (!ev->v) {
         r = pthread_cond_timedwait(&ev->cond, &ev->mutex, &to);
-        if(r == ETIMEDOUT) {
+        if (r == ETIMEDOUT) {
             break;
         }
     }
-    if(r!=0 && r!=ETIMEDOUT) {
-        printf("pthread_cond_timedwait err = %d\n", r);
-    }
-    if(r==0) {
+    if (r == 0) {
         ev->v = false;
     }
-    printf("bsc_event_timedwait() <<< ret = %d, ev = %p ev->v = %d r = %d\n", r == 0, ev, ev->v, r);
+    DEBUG_PRINTF(
+        "bsc_event_timedwait() <<< ret = %d, ev = %p ev->v = %d r = %d\n",
+        r == 0, ev, ev->v, r);
     pthread_mutex_unlock(&ev->mutex);
     return r == 0;
 }
@@ -188,10 +188,10 @@ void bsc_event_signal(BSC_EVENT *ev)
 {
     DEBUG_PRINTF("bsc_event_signal() >>> ev = %p\n", ev);
     pthread_mutex_lock(&ev->mutex);
-    printf("bsc_event_signal() >>> ev = %p\n", ev);
+    DEBUG_PRINTF("bsc_event_signal() >>> ev = %p\n", ev);
     ev->v = true;
     pthread_cond_broadcast(&ev->cond);
-    printf("bsc_event_signal() <<< ev = %p\n", ev);
+    DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
     pthread_mutex_unlock(&ev->mutex);
     DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
 }
