@@ -172,10 +172,10 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
         }
     }
     if(r!=0 && r!=ETIMEDOUT) {
-        DEBUG_PRINTF("pthread_cond_timedwait err = %d\n", r);
+        printf("pthread_cond_timedwait err = %d\n", r);
     }
     ev->v = false;
-    DEBUG_PRINTF("bsc_event_timedwait() <<< ret = %d, ev = %p ev->v = %d r = %d\n", r == 0, ev, ev->v, r);
+    printf("bsc_event_timedwait() <<< ret = %d, ev = %p ev->v = %d r = %d\n", r == 0, ev, ev->v, r);
     pthread_mutex_unlock(&ev->mutex);
     return r == 0;
 }
@@ -185,10 +185,10 @@ void bsc_event_signal(BSC_EVENT *ev)
 {
     DEBUG_PRINTF("bsc_event_signal() >>> ev = %p\n", ev);
     pthread_mutex_lock(&ev->mutex);
-    //printf("bsc_event_signal() >>> ev = %p\n", ev);
+    printf("bsc_event_signal() >>> ev = %p\n", ev);
     ev->v = true;
     pthread_cond_broadcast(&ev->cond);
-    //printf("bsc_event_signal() <<< ev = %p\n", ev);
+    printf("bsc_event_signal() <<< ev = %p\n", ev);
     pthread_mutex_unlock(&ev->mutex);
     DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
 }
