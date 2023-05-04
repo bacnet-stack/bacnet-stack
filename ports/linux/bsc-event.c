@@ -20,7 +20,7 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
-#define DEBUG_BSC_EVENT 0
+#define DEBUG_BSC_EVENT 1
 
 #if DEBUG_BSC_EVENT == 1
 #define DEBUG_PRINTF printf
@@ -112,7 +112,7 @@ void bsc_event_wait(BSC_EVENT *ev)
 bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
 {
     struct timespec to;
-    int r;
+    int r = 0;
 
     clock_gettime(CLOCK_REALTIME, &to);
     to.tv_sec = to.tv_sec + ms_timeout / 1000;
