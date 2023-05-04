@@ -109,6 +109,7 @@ void bsc_event_wait(BSC_EVENT *ev)
     pthread_mutex_unlock(&ev->mutex);
 }
 
+#if 0
 bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
 {
     struct timespec to;
@@ -149,7 +150,37 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
     pthread_mutex_unlock(&ev->mutex);
     return r == 0;
 }
+#else
+bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
+{
+    struct timespec to;
+    int r = 0;
 
+    clock_gettime(CLOCK_REALTIME, &to);
+    to.tv_sec = to.tv_sec + ms_timeout / 1000;
+    to.tv_nsec = to.tv_nsec + (ms_timeout % 1000) * 1000000;
+    to.tv_sec += to.tv_nsec / 1000000000;
+    to.tv_nsec %= 1000000000;
+
+    pthread_mutex_lock(&ev->mutex);
+    DEBUG_PRINTF("bsc_event_timedwait() >>> ev = %p\n", ev);
+
+    while (!ev->v) {
+        r = pthread_cond_timedwait(&ev->cond, &ev->mutex, &to);
+        if(r == ETIMEDOUT) {
+            break;
+        }
+    }
+    if(r!=0 && r!=ETIMEDOUT) {
+        printf("pthread_cond_timedwait err = %d\n", r);
+    }
+
+    DEBUG_PRINTF("bsc_event_timedwait() <<< ret = %d, ev = %p\n", r == 0, ev);
+    pthread_mutex_unlock(&ev->mutex);
+    return r == 0;
+}
+
+#endif
 void bsc_event_signal(BSC_EVENT *ev)
 {
     DEBUG_PRINTF("bsc_event_signal() >>> ev = %p\n", ev);
