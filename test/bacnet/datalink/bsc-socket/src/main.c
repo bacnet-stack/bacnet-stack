@@ -1144,14 +1144,14 @@ static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
         call_maintenance_timer(0, 100);
     }
     bws_dispatch_lock();
-    debug_printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
+    debug_printf("wait_sock_ev ev = %p ev->ev = %p awaited_ev %d received_ev %d\n", ev, ev->ev,
         wait_ev, ev->ev_code);
     if (ev->ev_code == wait_ev) {
         ev->ev_code = -1;
         bws_dispatch_unlock();
         return true;
     } else {
-        debug_printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
+        printf("wait_sock_ev ev = %p ev->ev = %p awaited_ev %d received_ev %d\n", ev, ev->ev,
             wait_ev, ev->ev_code);
         ev->ev_code = -1;
         bws_dispatch_unlock();
@@ -1207,7 +1207,7 @@ static void wait_specific_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
 static void signal_sock_ev(
     sock_ev_t *ev, BSC_SOCKET_EVENT s_ev, BACNET_ERROR_CODE err)
 {
-    debug_printf("signal_sock_ev %p s_ev %d\n", ev, s_ev);
+    printf("signal_sock_ev %p ev->ev %p  s_ev %d\n", ev, ev->ev, s_ev);
     ev->ev_code = s_ev;
     ev->err = err;
     bsc_event_signal(ev->ev);
@@ -1310,7 +1310,7 @@ static void cli_simple_socket_event2(BSC_SOCKET *c,
     size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    debug_printf("cli2 ev = %d, reason = %d, ev = %p\n", ev, reason, &cli_ev2);
+    printf("cli2 ev = %d, reason = %d, ev = %p\n", ev, reason, &cli_ev2);
 
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         memcpy(recv_buf, pdu, pdu_len);
@@ -1327,7 +1327,7 @@ static void srv_simple_socket_event(BSC_SOCKET *c,
     size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    debug_printf("srv ev = %d, reason = %d, ev = %p\n", ev, reason, &srv_ev);
+    printf("srv ev = %d, reason = %d, ev = %p\n", ev, reason, &srv_ev);
     srv_sock = c;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         memcpy(recv_buf, pdu, pdu_len);
