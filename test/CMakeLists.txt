@@ -81,8 +81,8 @@ list(APPEND testdirs
 
 # bacnet/basic/*
 list(APPEND testdirs
-  # basic/object/binding
   bacnet/basic/binding/address
+  bacnet/basic/bbmd6
   # basic/object
   bacnet/basic/object/acc
   bacnet/basic/object/access_credential

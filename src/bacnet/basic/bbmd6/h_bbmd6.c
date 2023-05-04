@@ -48,15 +48,27 @@ static bool BVLC6_Debug;
 #if PRINT_ENABLED
 #include <stdarg.h>
 #include <stdio.h>
-#define PRINTF(...)                   \
-    if (BVLC6_Debug) {                \
-        fprintf(stderr, __VA_ARGS__); \
-        fflush(stderr);               \
-    }
-#else
-#define PRINTF(...)
-#endif
+static int printf_stderr(const char *format, ...)
+{
+    int length = 0;
+    va_list ap;
 
+    if (BVLC6_Debug) {
+        va_start(ap, format);
+        length = vfprintf(stderr, format, ap);
+        va_end(ap);
+        fflush(stderr);
+    }
+
+    return length;
+}
+#else
+static int printf_stderr(const char *format, ...) {
+    (void)format;
+    return 0;
+}
+#endif
+#define PRINTF printf_stderr
 /** result from a client request */
 static uint16_t BVLC6_Result_Code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
 /** incoming function */
@@ -115,6 +127,8 @@ void bvlc6_maintenance_timer(uint16_t seconds)
             }
         }
     }
+#else
+    (void)seconds;    
 #endif
 }
 
@@ -174,39 +188,60 @@ static bool bbmd6_address_to_vmac(
  *
  * @param device_id - device ID used as the key-pair
  * @param addr - IPv6 source address
- *
- * @return true if the VMAC address was added
  */
-static bool bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
+static void bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
 {
-    bool status = false;
+    bool found = false;
+    uint32_t list_device_id = 0;
     struct vmac_data *vmac;
     struct vmac_data new_vmac;
     unsigned i = 0;
 
-    if (addr) {
-        vmac = VMAC_Find_By_Key(device_id);
-        if (vmac) {
-            /* already exists - replace? */
-            PRINTF("VMAC existing %u [", (unsigned int)device_id);
-            for (i = 0; i < vmac->mac_len; i++) {
-                PRINTF("%02X", vmac->mac[i]);
+    if (bbmd6_address_to_vmac(&new_vmac, addr)) {
+        if (VMAC_Find_By_Data(&new_vmac, &list_device_id)) {
+            if (list_device_id == device_id) {
+                /* valid VMAC entry exists. */
+                found = true;
+            } else {
+                /* VMAC exists, but device ID changed */
+                VMAC_Delete(list_device_id);
+                PRINTF("BVLC6: VMAC existed for %u [", 
+                    (unsigned int)list_device_id);
+                for (i = 0; i < new_vmac.mac_len; i++) {
+                    PRINTF("%02X", new_vmac.mac[i]);
+                }
+                PRINTF("]\n");
+                PRINTF("BVLC6: Removed VMAC for %lu.\n", 
+                    (unsigned long)list_device_id);
             }
-            PRINTF("]\n");
-            PRINTF("VMAC ignoring %u [", (unsigned int)device_id);
-            for (i = 0; i < IP6_ADDRESS_MAX; i++) {
-                PRINTF("%02X", addr->address[i]);
+        }
+        if (!found) {
+            vmac = VMAC_Find_By_Key(device_id);
+            if (vmac) {
+                /* device ID already exists. Update MAC. */
+                memmove(vmac, &new_vmac, sizeof(struct vmac_data));
+                PRINTF("BVLC6: VMAC for %u [", 
+                    (unsigned int)device_id);
+                for (i = 0; i < new_vmac.mac_len; i++) {
+                    PRINTF("%02X", new_vmac.mac[i]);
+                }
+                PRINTF("]\n");
+                PRINTF("BVLC6: Updated VMAC for %lu.\n", 
+                    (unsigned long)device_id);
+            } else {
+                /* new entry - add it! */
+                VMAC_Add(device_id, &new_vmac);
+                PRINTF("BVLC6: VMAC for %u [", 
+                    (unsigned int)device_id);
+                for (i = 0; i < new_vmac.mac_len; i++) {
+                    PRINTF("%02X", new_vmac.mac[i]);
+                }
+                PRINTF("]\n");
+                PRINTF("BVLC6: Added VMAC for %lu.\n", 
+                    (unsigned long)device_id);
             }
-            PRINTF("%04X", addr->port);
-            PRINTF("]\n");
-        } else if (bbmd6_address_to_vmac(&new_vmac, addr)) {
-            /* new entry - add it! */
-            status = VMAC_Add(device_id, &new_vmac);
-            PRINTF("BVLC6: Adding VMAC %lu.\n", (unsigned long)device_id);
         }
     }
-
-    return status;
 }
 
 /**
@@ -218,7 +253,7 @@ static bool bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
  */
 static bool bbmd6_address_match_self(BACNET_IP6_ADDRESS *addr)
 {
-    BACNET_IP6_ADDRESS my_addr = { { 0 } };
+    BACNET_IP6_ADDRESS my_addr = { 0 };
     bool status = false;
 
     if (bip6_get_addr(&my_addr)) {
@@ -282,7 +317,7 @@ int bvlc6_send_pdu(BACNET_ADDRESS *dest,
     uint8_t *pdu,
     unsigned pdu_len)
 {
-    BACNET_IP6_ADDRESS bvlc_dest = { { 0 } };
+    BACNET_IP6_ADDRESS bvlc_dest = { 0 };
     uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
     uint32_t vmac_src = 0;
@@ -348,7 +383,7 @@ int bvlc6_send_pdu(BACNET_ADDRESS *dest,
  */
 static void bbmd6_send_pdu_bdt(uint8_t *mtu, unsigned int mtu_len)
 {
-    BACNET_IP6_ADDRESS my_addr = { { 0 } };
+    BACNET_IP6_ADDRESS my_addr = { 0 };
     unsigned i = 0; /* loop counter */
 
     if (mtu) {
@@ -375,7 +410,7 @@ static void bbmd6_send_pdu_bdt(uint8_t *mtu, unsigned int mtu_len)
  */
 static void bbmd6_send_pdu_fdt(uint8_t *mtu, unsigned int mtu_len)
 {
-    BACNET_IP6_ADDRESS my_addr = { { 0 } };
+    BACNET_IP6_ADDRESS my_addr = { 0 };
     unsigned i = 0; /* loop counter */
 
     if (mtu) {
@@ -655,7 +690,7 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
     uint16_t npdu_len = 0;
     bool send_result = false;
     uint16_t offset = 0;
-    BACNET_IP6_ADDRESS fwd_address = { { 0 } };
+    BACNET_IP6_ADDRESS fwd_address = { 0 };
 
     header_len =
         bvlc6_decode_header(mtu, mtu_len, &message_type, &message_length);
