@@ -172,9 +172,11 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
         }
     }
     if(r!=0 && r!=ETIMEDOUT) {
-        printf("pthread_cond_timedwait err = %d\n", r);
+        DEBUG_PRINTF("pthread_cond_timedwait err = %d\n", r);
     }
-    ev->v = false;
+    if(r==0) {
+        ev->v = false;
+    }
     printf("bsc_event_timedwait() <<< ret = %d, ev = %p ev->v = %d r = %d\n", r == 0, ev, ev->v, r);
     pthread_mutex_unlock(&ev->mutex);
     return r == 0;
