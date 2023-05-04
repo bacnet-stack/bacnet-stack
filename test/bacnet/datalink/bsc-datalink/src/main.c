@@ -1217,6 +1217,11 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
     if (ev->ev == wait_ev && ev->node == node) {
         debug_printf("got event %d\n", ev->ev);
         ev->ev = -1;
+        // reset event if it was signalled while we were blocked in call bws_dispatch_lock().
+        // (in that case ev->ev contains code of last event.)
+        // that's tricky but that allows to avoid using mutexes which are platform specific in 
+        // test code
+        bsc_event_timedwait(ev->e, 1);
         bws_dispatch_unlock();
         return true;
     } else {
@@ -1237,6 +1242,11 @@ static void wait_specific_node_ev(
         if (ev->ev == wait_ev && ev->node == node) {
             debug_printf("got event %d\n", ev->ev);
             ev->ev = -1;
+        // reset event if it was signalled while we were blocked in call bws_dispatch_lock().
+        // (in that case ev->ev contains code of last event.)
+        // that's tricky but that allows to avoid using mutexes which are platform specific in 
+        // test code
+        bsc_event_timedwait(ev->e, 1);
             bws_dispatch_unlock();
             break;
         } else {

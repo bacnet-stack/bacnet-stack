@@ -1135,7 +1135,7 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
     }
     bws_dispatch_lock();
     if (ev->ev == wait_ev && ev->node == node) {
-        printf("wait_node_ev() got event %d and reset ev %p ev->e %p\n", ev->ev, ev, ev->e);
+        debug_printf("wait_node_ev() got event %d and reset ev %p ev->e %p\n", ev->ev, ev, ev->e);
         ev->ev = -1;
         // reset event if it was signalled while we were blocked in call bws_dispatch_lock().
         // (in that case ev->ev contains code of last event.)
@@ -1146,9 +1146,9 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
         debug_printf("wait_node_ev() <<< ret = true, ev = %p ev->ev = %d wait_ev = %d, node = %p\n", ev, ev->ev, wait_ev, node);
         return true;
     } else {
-        printf("wait_node_ev() got event %d but wait for %d\n", ev->ev, wait_ev);
+        debug_printf("wait_node_ev() got event %d but wait for %d\n", ev->ev, wait_ev);
         bws_dispatch_unlock();
-        printf("wait_node_ev() <<< ret = false,  ev = %p ev->e %p ev->ev = %d wait_ev = %d, node = %p\n", ev, ev->e, ev->ev, wait_ev, node);
+        debug_printf("wait_node_ev() <<< ret = false,  ev = %p ev->e %p ev->ev = %d wait_ev = %d, node = %p\n", ev, ev->e, ev->ev, wait_ev, node);
         return false;
     }
 }
@@ -1164,7 +1164,7 @@ static void wait_specific_node_ev(
         }
         bws_dispatch_lock();
         if (ev->ev == wait_ev && ev->node == node) {
-            printf("wait_specific_node_ev() got event %d and reset ev %p ev->e %p\n", ev->ev, ev, ev->e);
+            debug_printf("wait_specific_node_ev() got event %d and reset ev %p ev->e %p\n", ev->ev, ev, ev->e);
             ev->ev = -1;
             // reset event if it was signalled while we were blocked in call bws_dispatch_lock().
             // (in that case ev->ev contains code of last event.)
@@ -1253,7 +1253,7 @@ static void node_event(BSC_NODE *node,
     size_t pdu_len)
 {
     bws_dispatch_lock();
-    printf(
+    debug_printf(
         "node_event() ev = %p, ev->ev = %d ev->e = %p node = %p\n", &node_ev, ev, node_ev.e, node);
     signal_node_ev(&node_ev, ev, node, dest, pdu, pdu_len);
     bws_dispatch_unlock();
@@ -1266,7 +1266,7 @@ static void node_event2(BSC_NODE *node,
     size_t pdu_len)
 {
     bws_dispatch_lock();
-    printf(
+    debug_printf(
         "node_event2() ev = %p, ev->ev = %d ev->e = %p node = %p\n", &node_ev2, ev, node_ev2.e, node);
     signal_node_ev(&node_ev2, ev, node, dest, pdu, pdu_len);
     bws_dispatch_unlock();
@@ -1279,7 +1279,7 @@ static void node_event3(BSC_NODE *node,
     size_t pdu_len)
 {
     bws_dispatch_lock();
-    printf(
+    debug_printf(
         "node_event3() ev = %p, ev->ev = %d ev->e = %p node = %p\n", &node_ev3, ev, node_ev3.e, node);
     signal_node_ev(&node_ev3, ev, node, dest, pdu, pdu_len);
     bws_dispatch_unlock();
