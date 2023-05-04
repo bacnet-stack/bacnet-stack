@@ -1135,7 +1135,7 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
     }
     bws_dispatch_lock();
     if (ev->ev == wait_ev && ev->node == node) {
-        debug_printf("wait_node_ev() got event %d\n", ev->ev);
+        printf("wait_node_ev() got event %d and reset ev %p ev->e %p\n", ev->ev, ev, ev->e);
         ev->ev = -1;
         bws_dispatch_unlock();
         debug_printf("wait_node_ev() <<< ret = true, ev = %p ev->ev = %d wait_ev = %d, node = %p\n", ev, ev->ev, wait_ev, node);
@@ -1159,7 +1159,7 @@ static void wait_specific_node_ev(
         }
         bws_dispatch_lock();
         if (ev->ev == wait_ev && ev->node == node) {
-            debug_printf("wait_specific_node_ev() got event %d\n", ev->ev);
+            printf("wait_specific_node_ev() got event %d and reset ev %p ev->e %p\n", ev->ev, ev, ev->e);
             ev->ev = -1;
             bws_dispatch_unlock();
             break;
