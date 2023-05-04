@@ -162,9 +162,9 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
     to.tv_sec += to.tv_nsec / 1000000000;
     to.tv_nsec %= 1000000000;
 
-    printf("bsc_event_timedwait() >>> before lock ev = %p\n", ev);
+    printf("bsc_event_timedwait() >>> before lock ev = %p ev->v = %d\n", ev, ev->v);
     pthread_mutex_lock(&ev->mutex);
-    printf("bsc_event_timedwait() >>> after lock ev = %p\n", ev);
+    printf("bsc_event_timedwait() >>> after lock ev = %p ev->v = %d\n", ev, ev->v);
 
     while (!ev->v) {
         r = pthread_cond_timedwait(&ev->cond, &ev->mutex, &to);
