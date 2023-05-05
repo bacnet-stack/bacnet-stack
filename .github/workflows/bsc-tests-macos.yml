@@ -53,6 +53,15 @@ jobs:
         cmake .. -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
         make
         ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
     - name: Build and run bsc-node test
       run: |
         cd ./test/bacnet/datalink/bsc-node
@@ -60,6 +69,16 @@ jobs:
         cd build
         cmake .. -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
         make
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
         ./test_bsc-node
         ./test_bsc-node
         ./test_bsc-node
