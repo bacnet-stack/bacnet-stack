@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <errno.h>
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
 #define DEBUG_BSC_EVENT 0
@@ -25,7 +26,7 @@
 #define DEBUG_PRINTF printf
 #else
 #undef DEBUG_ENABLED
-#define DEBUG_PRINTF(...)
+#define DEBUG_PRINTF debug_printf_disabled
 #endif
 
 struct BSC_Event {
@@ -119,32 +120,40 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
     to.tv_sec += to.tv_nsec / 1000000000;
     to.tv_nsec %= 1000000000;
 
+    DEBUG_PRINTF("bsc_event_timedwait() >>> before lock ev = %p ev->v = %d\n",
+        ev, ev->v);
+
     pthread_mutex_lock(&ev->mutex);
-    DEBUG_PRINTF("bsc_event_timedwait() >>> ev = %p\n", ev);
-    DEBUG_PRINTF("bsc_event_timedwait() counter before %zu\n", ev->counter);
+
+    DEBUG_PRINTF(
+        "bsc_event_timedwait() >>> after lock ev = %p ev->v = %d\n", ev, ev->v);
+
     ev->counter++;
     DEBUG_PRINTF("bsc_event_timedwait() counter %zu\n", ev->counter);
 
     while (!ev->v) {
         r = pthread_cond_timedwait(&ev->cond, &ev->mutex, &to);
-        if(r == ETIMEDOUT) {
+        if (r != 0) {
             break;
         }
     }
 
-    DEBUG_PRINTF("bsc_event_timedwait() ev = %p r = %d\n", ev, r);
-    DEBUG_PRINTF("bsc_event_timedwait() before counter %zu\n", ev->counter);
     ev->counter--;
     DEBUG_PRINTF("bsc_event_timedwait() counter %zu\n", ev->counter);
+
     if (!ev->counter) {
+        DEBUG_PRINTF(
+            "bsc_event_timedwait() event is reset, err = %d\n", r);
         ev->v = false;
-        DEBUG_PRINTF("bsc_event_timedwait() reset ev\n");
     }
     else {
        DEBUG_PRINTF("bsc_event_timedwait() wake up other waiting threads\n");
        pthread_cond_broadcast(&ev->cond);
     }
-    DEBUG_PRINTF("bsc_event_timedwait() <<< ret = %d, ev = %p\n", r == 0, ev);
+
+    DEBUG_PRINTF(
+        "bsc_event_timedwait() <<< ret = %d, ev = %p ev->v = %d r = %d\n",
+        r == 0, ev, ev->v, r);
     pthread_mutex_unlock(&ev->mutex);
     return r == 0;
 }
@@ -153,8 +162,10 @@ void bsc_event_signal(BSC_EVENT *ev)
 {
     DEBUG_PRINTF("bsc_event_signal() >>> ev = %p\n", ev);
     pthread_mutex_lock(&ev->mutex);
+    DEBUG_PRINTF("bsc_event_signal() >>> ev = %p\n", ev);
     ev->v = true;
     pthread_cond_broadcast(&ev->cond);
+    DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
     pthread_mutex_unlock(&ev->mutex);
     DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
 }
