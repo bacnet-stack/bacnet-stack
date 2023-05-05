@@ -1135,6 +1135,12 @@ static bool wait_hubc_ev(hubc_ev_t *ev,
     }
     bws_dispatch_lock();
     if (ev->ev == wait_ev && ev->h == wait_h) {
+        // reset event if it was signalled while we were blocked in call
+        // bws_dispatch_lock().
+        // (in that case ev->ev contains code of last event.)
+        // that's tricky but that allows to avoid using mutexes which are
+        // platform specific in test code
+        bsc_event_timedwait(ev->ev, 1);
         bws_dispatch_unlock();
         return true;
     } else {
@@ -1165,8 +1171,10 @@ static void signal_hubc_ev(hubc_ev_t *e,
 
 static void reset_hubc_ev(hubc_ev_t *ev)
 {
+    bws_dispatch_lock();
     ev->ev = -1;
     ev->h = NULL;
+    bws_dispatch_unlock();
 }
 
 static void init_hubf_ev(hubf_ev_t *ev)
@@ -1192,6 +1200,12 @@ static bool wait_hubf_ev(hubf_ev_t *ev,
 
     bws_dispatch_lock();
     if (ev->ev == wait_ev && ev->h == wait_h) {
+        // reset event if it was signalled while we were blocked in call
+        // bws_dispatch_lock().
+        // (in that case ev->ev contains code of last event.)
+        // that's tricky but that allows to avoid using mutexes which are
+        // platform specific in test code
+        bsc_event_timedwait(ev->ev, 1);
         bws_dispatch_unlock();
         return true;
     } else {
@@ -1213,8 +1227,10 @@ static void signal_hubf_ev(hubf_ev_t *e,
 
 static void reset_hubf_ev(hubf_ev_t *ev)
 {
+    bws_dispatch_lock();
     ev->ev = -1;
     ev->h = NULL;
+    bws_dispatch_unlock();
 }
 
 static void hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
@@ -1224,20 +1240,24 @@ static void hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
     size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
+    bws_dispatch_lock();
     debug_printf("hub_connector_event() ev = %p, ev->e = %p, ev->ev = %d, h = "
                  "%p, user_arg = %p, pdu = "
                  "%p, pdu_len = %d\n",
         &hubc, hubc.e, ev, h, user_arg, pdu, pdu_len);
     signal_hubc_ev(&hubc, ev, h, user_arg, pdu, pdu_len);
+    bws_dispatch_unlock();
 }
 
 static void hub_function_event(
     BSC_HUB_FUNCTION_EVENT ev, BSC_HUB_FUNCTION_HANDLE h, void *user_arg)
 {
+    bws_dispatch_lock();
     debug_printf("hub_function_event()  ev = %p, ev->e = %p, ev->ev = %d, h = "
                  "%p, user_arg = %p\n",
         &hubf, hubf.e, ev, h, user_arg);
     signal_hubf_ev(&hubf, ev, h, user_arg);
+    bws_dispatch_unlock();
 }
 
 static void test_hub_connector_url(bool primary)
