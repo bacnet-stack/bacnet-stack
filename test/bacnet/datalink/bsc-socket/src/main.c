@@ -1144,15 +1144,22 @@ static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
         call_maintenance_timer(0, 100);
     }
     bws_dispatch_lock();
-    debug_printf("wait_sock_ev ev = %p ev->ev = %p awaited_ev %d received_ev %d\n", ev, ev->ev,
-        wait_ev, ev->ev_code);
+    debug_printf(
+        "wait_sock_ev ev = %p ev->ev = %p awaited_ev %d received_ev %d\n", ev,
+        ev->ev, wait_ev, ev->ev_code);
     if (ev->ev_code == wait_ev) {
         ev->ev_code = -1;
+        // reset event if it was signalled while we were blocked in call
+        // bws_dispatch_lock(). (in that case ev->ev contains code of last
+        // event.) that's tricky but that allows to avoid using mutexes which
+        // are platform specific in test code
+        bsc_event_timedwait(ev->ev, 1);
         bws_dispatch_unlock();
         return true;
     } else {
-        printf("wait_sock_ev ev = %p ev->ev = %p awaited_ev %d received_ev %d\n", ev, ev->ev,
-            wait_ev, ev->ev_code);
+        debug_printf(
+            "wait_sock_ev ev = %p ev->ev = %p awaited_ev %d received_ev %d\n",
+            ev, ev->ev, wait_ev, ev->ev_code);
         ev->ev_code = -1;
         bws_dispatch_unlock();
         return false;
@@ -1191,6 +1198,11 @@ static void wait_specific_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
             ev, wait_ev, ev->ev_code);
         if (ev->ev_code == wait_ev) {
             ev->ev_code = -1;
+            // reset event if it was signalled while we were blocked in call
+            // bws_dispatch_lock(). (in that case ev->ev contains code of last
+            // event.) that's tricky but that allows to avoid using mutexes
+            // which are platform specific in test code
+            bsc_event_timedwait(ev->ev, 1);
             bws_dispatch_unlock();
             break;
         } else {
@@ -1207,7 +1219,7 @@ static void wait_specific_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
 static void signal_sock_ev(
     sock_ev_t *ev, BSC_SOCKET_EVENT s_ev, BACNET_ERROR_CODE err)
 {
-    printf("signal_sock_ev %p ev->ev %p  s_ev %d\n", ev, ev->ev, s_ev);
+    debug_printf("signal_sock_ev %p ev->ev %p  s_ev %d\n", ev, ev->ev, s_ev);
     ev->ev_code = s_ev;
     ev->err = err;
     bsc_event_signal(ev->ev);
@@ -1310,13 +1322,15 @@ static void cli_simple_socket_event2(BSC_SOCKET *c,
     size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    printf("cli2 ev = %d, reason = %d, ev = %p\n", ev, reason, &cli_ev2);
+    debug_printf("cli2 ev = %d, reason = %d, ev = %p\n", ev, reason, &cli_ev2);
+    bws_dispatch_lock();
 
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         memcpy(recv_buf, pdu, pdu_len);
         recv_buf_len = pdu_len;
     }
     signal_sock_ev(&cli_ev2, ev, reason);
+    bws_dispatch_unlock();
 }
 
 static void srv_simple_socket_event(BSC_SOCKET *c,
@@ -1327,28 +1341,36 @@ static void srv_simple_socket_event(BSC_SOCKET *c,
     size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    printf("srv ev = %d, reason = %d, ev = %p\n", ev, reason, &srv_ev);
+    debug_printf("srv ev = %d, reason = %d, ev = %p\n", ev, reason, &srv_ev);
+    bws_dispatch_lock();
     srv_sock = c;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         memcpy(recv_buf, pdu, pdu_len);
         recv_buf_len = pdu_len;
     }
     signal_sock_ev(&srv_ev, ev, reason);
+    bws_dispatch_unlock();
 }
 
 static void cli_simple_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
+    bws_dispatch_lock();
     signal_ctx_ev(&cli_ctx_ev, ev);
+    bws_dispatch_unlock();
 }
 
 static void cli_simple_context_event2(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
+    bws_dispatch_lock();
     signal_ctx_ev(&cli_ctx_ev2, ev);
+    bws_dispatch_unlock();
 }
 
 static void srv_simple_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
+    bws_dispatch_lock();
     signal_ctx_ev(&srv_ctx_ev, ev);
+    bws_dispatch_unlock();
 }
 
 static void test_simple(void)
