@@ -1183,7 +1183,9 @@ static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
 }
 
 static void wait_for_failed_request(node_ev_t *ev,
-     BACNET_SC_VMAC_ADDRESS* vmac, BACNET_SC_UUID* uuid, BACNET_ERROR_CODE err)
+    BACNET_SC_VMAC_ADDRESS *vmac,
+    BACNET_SC_UUID *uuid,
+    BACNET_ERROR_CODE err)
 {
     int cnt;
     BACNET_SC_FAILED_CONNECTION_REQUEST *r;
@@ -1191,18 +1193,20 @@ static void wait_for_failed_request(node_ev_t *ev,
     while (1) {
         bsc_event_timedwait(ev->e, WAIT_EVENT_MS);
         call_maintenance_timer(0, WAIT_EVENT_MS);
-        for(int i = 0; i < Network_Port_SC_Failed_Connection_Requests_Count( Network_Port_Index_To_Instance(0)); i++)
-        {
-             r = Network_Port_SC_Failed_Connection_Requests_Get(
-                     Network_Port_Index_To_Instance(0), i);
-             if(r) {
-                if((memcmp(r->Peer_VMAC, &vmac->address[0], BVLC_SC_VMAC_SIZE) == 0) &&
-                   (memcmp(r[i].Peer_UUID.uuid.uuid128, &uuid->uuid[0], BVLC_SC_UUID_SIZE) == 0) &&
-                   r->Error == err)
-                {
+        for (int i = 0; i < Network_Port_SC_Failed_Connection_Requests_Count(
+                                Network_Port_Index_To_Instance(0));
+             i++) {
+            r = Network_Port_SC_Failed_Connection_Requests_Get(
+                Network_Port_Index_To_Instance(0), i);
+            if (r) {
+                if ((memcmp(r->Peer_VMAC, &vmac->address[0],
+                         BVLC_SC_VMAC_SIZE) == 0) &&
+                    (memcmp(r[i].Peer_UUID.uuid.uuid128, &uuid->uuid[0],
+                         BVLC_SC_UUID_SIZE) == 0) &&
+                    r->Error == err) {
                     return;
                 }
-             }
+            }
         }
     }
 }
@@ -1217,10 +1221,10 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
     if (ev->ev == wait_ev && ev->node == node) {
         debug_printf("got event %d\n", ev->ev);
         ev->ev = -1;
-        // reset event if it was signalled while we were blocked in call bws_dispatch_lock().
-        // (in that case ev->ev contains code of last event.)
-        // that's tricky but that allows to avoid using mutexes which are platform specific in 
-        // test code
+        // reset event if it was signalled while we were blocked in call
+        // bws_dispatch_lock(). (in that case ev->ev contains code of last
+        // event.) that's tricky but that allows to avoid using mutexes which
+        // are platform specific in test code
         bsc_event_timedwait(ev->e, 1);
         bws_dispatch_unlock();
         return true;
@@ -1242,11 +1246,11 @@ static void wait_specific_node_ev(
         if (ev->ev == wait_ev && ev->node == node) {
             debug_printf("got event %d\n", ev->ev);
             ev->ev = -1;
-        // reset event if it was signalled while we were blocked in call bws_dispatch_lock().
-        // (in that case ev->ev contains code of last event.)
-        // that's tricky but that allows to avoid using mutexes which are platform specific in 
-        // test code
-        bsc_event_timedwait(ev->e, 1);
+            // reset event if it was signalled while we were blocked in call
+            // bws_dispatch_lock(). (in that case ev->ev contains code of last
+            // event.) that's tricky but that allows to avoid using mutexes
+            // which are platform specific in test code
+            bsc_event_timedwait(ev->e, 1);
             bws_dispatch_unlock();
             break;
         } else {
@@ -2161,7 +2165,8 @@ static void test_sc_datalink_failed_requests(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
     wait_for_connection_to_hub(&node_ev2, node2);
-    wait_for_failed_request(&node_ev2, &failed_vmac, &failed_uuid, ERROR_CODE_NODE_DUPLICATE_VMAC );
+    wait_for_failed_request(
+        &node_ev2, &failed_vmac, &failed_uuid, ERROR_CODE_NODE_DUPLICATE_VMAC);
     bsc_cleanup();
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);

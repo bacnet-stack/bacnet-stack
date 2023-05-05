@@ -1128,27 +1128,36 @@ static void deinit_node_ev(node_ev_t *ev)
 
 static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
-    debug_printf("wait_node_ev() >>> ev = %p ev->e = %p ev->ev = %d wait_ev = %d, node = %p\n", ev, ev->e, ev->ev, wait_ev, node);
+    debug_printf("wait_node_ev() >>> ev = %p ev->e = %p ev->ev = %d wait_ev = "
+                 "%d, node = %p\n",
+        ev, ev->e, ev->ev, wait_ev, node);
     call_maintenance_timer(1, 0);
     while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
         call_maintenance_timer(0, WAIT_EVENT_MS);
     }
     bws_dispatch_lock();
     if (ev->ev == wait_ev && ev->node == node) {
-        debug_printf("wait_node_ev() got event %d and reset ev %p ev->e %p\n", ev->ev, ev, ev->e);
+        debug_printf("wait_node_ev() got event %d and reset ev %p ev->e %p\n",
+            ev->ev, ev, ev->e);
         ev->ev = -1;
-        // reset event if it was signalled while we were blocked in call bws_dispatch_lock().
+        // reset event if it was signalled while we were blocked in call
+        // bws_dispatch_lock().
         // (in that case ev->ev contains code of last event.)
-        // that's tricky but that allows to avoid using mutexes which are platform specific in 
-        // test code
+        // that's tricky but that allows to avoid using mutexes which are
+        // platform specific in test code
         bsc_event_timedwait(ev->e, 1);
         bws_dispatch_unlock();
-        debug_printf("wait_node_ev() <<< ret = true, ev = %p ev->ev = %d wait_ev = %d, node = %p\n", ev, ev->ev, wait_ev, node);
+        debug_printf("wait_node_ev() <<< ret = true, ev = %p ev->ev = %d "
+                     "wait_ev = %d, node = %p\n",
+            ev, ev->ev, wait_ev, node);
         return true;
     } else {
-        debug_printf("wait_node_ev() got event %d but wait for %d\n", ev->ev, wait_ev);
+        debug_printf(
+            "wait_node_ev() got event %d but wait for %d\n", ev->ev, wait_ev);
         bws_dispatch_unlock();
-        debug_printf("wait_node_ev() <<< ret = false,  ev = %p ev->e %p ev->ev = %d wait_ev = %d, node = %p\n", ev, ev->e, ev->ev, wait_ev, node);
+        debug_printf("wait_node_ev() <<< ret = false,  ev = %p ev->e %p ev->ev "
+                     "= %d wait_ev = %d, node = %p\n",
+            ev, ev->e, ev->ev, wait_ev, node);
         return false;
     }
 }
@@ -1156,7 +1165,8 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 static void wait_specific_node_ev(
     node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
-    debug_printf("wait_specific_node_ev() >>> ev = %p, wait_ev %d, node = %p\n", ev, wait_ev, node);
+    debug_printf("wait_specific_node_ev() >>> ev = %p, wait_ev %d, node = %p\n",
+        ev, wait_ev, node);
     call_maintenance_timer(1, 0);
     while (1) {
         while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
@@ -1164,12 +1174,14 @@ static void wait_specific_node_ev(
         }
         bws_dispatch_lock();
         if (ev->ev == wait_ev && ev->node == node) {
-            debug_printf("wait_specific_node_ev() got event %d and reset ev %p ev->e %p\n", ev->ev, ev, ev->e);
+            debug_printf("wait_specific_node_ev() got event %d and reset ev %p "
+                         "ev->e %p\n",
+                ev->ev, ev, ev->e);
             ev->ev = -1;
-            // reset event if it was signalled while we were blocked in call bws_dispatch_lock().
-            // (in that case ev->ev contains code of last event.)
-            // that's tricky but that allows to avoid using mutexes which are platform specific in 
-            // test code
+            // reset event if it was signalled while we were blocked in call
+            // bws_dispatch_lock(). (in that case ev->ev contains code of last
+            // event.) that's tricky but that allows to avoid using mutexes
+            // which are platform specific in test code
             bsc_event_timedwait(ev->e, 1);
             bws_dispatch_unlock();
             break;
@@ -1178,7 +1190,8 @@ static void wait_specific_node_ev(
             debug_printf("wait_specific_node_ev() skip event %d\n", ev->ev);
         }
     }
-    debug_printf("wait_specific_node_ev() <<< ev = %p, wait_ev %d, node = %p\n", ev, wait_ev, node);
+    debug_printf("wait_specific_node_ev() <<< ev = %p, wait_ev %d, node = %p\n",
+        ev, wait_ev, node);
 }
 
 static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
@@ -1225,7 +1238,8 @@ static void signal_node_ev(node_ev_t *e,
     uint8_t *pdu,
     size_t pdu_len)
 {
-    debug_printf("signal_node_ev() >>> e = %p, ev %d, node = %p\n", e, ev, node);
+    debug_printf(
+        "signal_node_ev() >>> e = %p, ev %d, node = %p\n", e, ev, node);
     e->ev = ev;
     e->node = node;
 
@@ -1243,7 +1257,8 @@ static void signal_node_ev(node_ev_t *e,
     }
 
     bsc_event_signal(e->e);
-    debug_printf("signal_node_ev() <<< e = %p. ev %d, node = %p\n", e, ev, node);
+    debug_printf(
+        "signal_node_ev() <<< e = %p. ev %d, node = %p\n", e, ev, node);
 }
 
 static void node_event(BSC_NODE *node,
@@ -1253,8 +1268,8 @@ static void node_event(BSC_NODE *node,
     size_t pdu_len)
 {
     bws_dispatch_lock();
-    debug_printf(
-        "node_event() ev = %p, ev->ev = %d ev->e = %p node = %p\n", &node_ev, ev, node_ev.e, node);
+    debug_printf("node_event() ev = %p, ev->ev = %d ev->e = %p node = %p\n",
+        &node_ev, ev, node_ev.e, node);
     signal_node_ev(&node_ev, ev, node, dest, pdu, pdu_len);
     bws_dispatch_unlock();
 }
@@ -1266,8 +1281,8 @@ static void node_event2(BSC_NODE *node,
     size_t pdu_len)
 {
     bws_dispatch_lock();
-    debug_printf(
-        "node_event2() ev = %p, ev->ev = %d ev->e = %p node = %p\n", &node_ev2, ev, node_ev2.e, node);
+    debug_printf("node_event2() ev = %p, ev->ev = %d ev->e = %p node = %p\n",
+        &node_ev2, ev, node_ev2.e, node);
     signal_node_ev(&node_ev2, ev, node, dest, pdu, pdu_len);
     bws_dispatch_unlock();
 }
@@ -1279,25 +1294,25 @@ static void node_event3(BSC_NODE *node,
     size_t pdu_len)
 {
     bws_dispatch_lock();
-    debug_printf(
-        "node_event3() ev = %p, ev->ev = %d ev->e = %p node = %p\n", &node_ev3, ev, node_ev3.e, node);
+    debug_printf("node_event3() ev = %p, ev->ev = %d ev->e = %p node = %p\n",
+        &node_ev3, ev, node_ev3.e, node);
     signal_node_ev(&node_ev3, ev, node, dest, pdu, pdu_len);
     bws_dispatch_unlock();
 }
 
 static void test_node_start_stop(void)
 {
-    BACNET_SC_UUID node_uuid = {0};
-    BACNET_SC_VMAC_ADDRESS node_vmac = {0};
-    BSC_NODE_CONF conf = {0};
+    BACNET_SC_UUID node_uuid = { 0 };
+    BACNET_SC_VMAC_ADDRESS node_vmac = { 0 };
+    BSC_NODE_CONF conf = { 0 };
     BSC_SC_RET ret;
     BSC_NODE *node = NULL;
     BSC_NODE *node1 = NULL;
     BSC_NODE *node2 = NULL;
     BSC_NODE *node3 = NULL;
 
-    char primary_url[128] = {0};
-    char secondary_url[128] = {0};
+    char primary_url[128] = { 0 };
+    char secondary_url[128] = { 0 };
 
     sprintf(primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
     sprintf(secondary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
@@ -2836,18 +2851,18 @@ static void test_node_bad_cases(void)
 {
     BSC_SC_RET ret;
     BSC_NODE *node = NULL;
-    BSC_NODE_CONF conf = {0};
-    BACNET_SC_UUID node_uuid = {0};
-    BACNET_SC_VMAC_ADDRESS node_vmac= {0};
-    char node_primary_url[128] = {0};
-    char node_secondary_url[128]= {0};
-    char big_url[2 * BSC_WSURL_MAX_LEN]= {0};
+    BSC_NODE_CONF conf = { 0 };
+    BACNET_SC_UUID node_uuid = { 0 };
+    BACNET_SC_VMAC_ADDRESS node_vmac = { 0 };
+    char node_primary_url[128] = { 0 };
+    char node_secondary_url[128] = { 0 };
+    char big_url[2 * BSC_WSURL_MAX_LEN] = { 0 };
     BSC_ADDRESS_RESOLUTION *r = NULL;
     char *url[1] = { node_primary_url };
-    char t[2 * BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK] = {0};
+    char t[2 * BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK] = { 0 };
     char *long_url[1] = { t };
-    BSC_NODE_SWITCH_HANDLE sh[4] = {0};
-    BSC_SC_RET res[4] = {0};
+    BSC_NODE_SWITCH_HANDLE sh[4] = { 0 };
+    BSC_SC_RET res[4] = { 0 };
     int i = 0;
 
     memset(&node_uuid, 0x1, sizeof(node_uuid));
