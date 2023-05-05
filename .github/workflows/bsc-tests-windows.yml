@@ -16,7 +16,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
       with:
         msbuild-architecture: x64
-    - name: Build and run bvlc-sc test
+    - name: Build and run bsc_event test
       run: |
         cd ./test/ports/win32/bsc_event
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
