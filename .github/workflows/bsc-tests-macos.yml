@@ -45,6 +45,60 @@ jobs:
         cmake ..
         make
         ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
+        ./test_bsc-socket
     - name: Build and run hub-sc test
       run: |
         cd ./test/bacnet/datalink/hub-sc
@@ -52,6 +106,46 @@ jobs:
         cd build
         cmake .. -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
         make
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
+        ./test_hub-sc
         ./test_hub-sc
         ./test_hub-sc
         ./test_hub-sc
@@ -84,6 +178,41 @@ jobs:
         ./test_bsc-node
         ./test_bsc-node
         ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
     - name: Build and run bsc-datalink test
       run: |
         cd ./test/bacnet/datalink/bsc-datalink
@@ -92,3 +221,53 @@ jobs:
         cmake .. -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
         make
         ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        
