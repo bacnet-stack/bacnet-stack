@@ -1140,7 +1140,7 @@ static bool wait_hubc_ev(hubc_ev_t *ev,
         // (in that case ev->ev contains code of last event.)
         // that's tricky but that allows to avoid using mutexes which are
         // platform specific in test code
-        bsc_event_timedwait(ev->ev, 1);
+        bsc_event_timedwait(ev->e, 1);
         bws_dispatch_unlock();
         return true;
     } else {
@@ -1205,7 +1205,7 @@ static bool wait_hubf_ev(hubf_ev_t *ev,
         // (in that case ev->ev contains code of last event.)
         // that's tricky but that allows to avoid using mutexes which are
         // platform specific in test code
-        bsc_event_timedwait(ev->ev, 1);
+        bsc_event_timedwait(ev->e, 1);
         bws_dispatch_unlock();
         return true;
     } else {
