@@ -140,10 +140,58 @@ static void test_bsc_event2(void)
     bsc_event_deinit(event);
 }
 
+typedef struct 
+{
+    BSC_EVENT *event;
+    bool result;
+} test_param_t;
+
+static void *thread_func2(void* arg)
+{
+    test_param_t *p = (test_param_t *)arg;
+    zassert_not_null(p->event, NULL);
+    // use some big timeout value, 24 hours seems to be enough
+    p->result = bsc_event_timedwait(p->event, 24*60*60*1000);
+    return NULL;
+}
+
+static void test_bsc_event3(void)
+{
+    BSC_EVENT *event;
+    pthread_t tid[MULTIPLE_WAIT_THREADS_NUM];
+    test_param_t results[MULTIPLE_WAIT_THREADS_NUM];
+    int i;
+
+    event = bsc_event_init();
+    zassert_not_null(event, NULL);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        results[i].event = event;
+        results[i].result = false;
+        zassert_equal(
+            pthread_create(&tid[i], NULL, &thread_func2, &results[i]), 0, NULL);
+    }
+
+    bsc_wait(1);
+    bsc_event_signal(event);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+       pthread_join(tid[i], NULL);
+    }
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        zassert_equal(results[i].result == true, true, NULL);
+    }
+
+    bsc_event_deinit(event);
+}
+
 void test_main(void)
 {
     ztest_test_suite(bsc_event_test1, ztest_unit_test(test_bsc_event1));
     ztest_test_suite(bsc_event_test2, ztest_unit_test(test_bsc_event2));
+    ztest_test_suite(bsc_event_test3, ztest_unit_test(test_bsc_event3));
     ztest_run_test_suite(bsc_event_test1);
     ztest_run_test_suite(bsc_event_test2);
+    ztest_run_test_suite(bsc_event_test3);
 }
