@@ -153,10 +153,67 @@ static void test_bsc_event2(void)
     bsc_event_deinit(event);
 }
 
+typedef struct 
+{
+    BSC_EVENT *event;
+    BOOL result;
+} test_param_t;
+
+DWORD WINAPI thread_func2( LPVOID lpParam )
+{
+    BSC_EVENT *event = (BSC_EVENT *)lpParam;
+    zassert_not_null(event, NULL);
+    // use some big timeout value, 24 hours seems to be enough
+    p->result = bsc_event_timedwait(p->event, 24*60*60*1000);
+    return 0;
+}
+
+static void test_bsc_event3(void)
+{
+    int i;
+    BSC_EVENT *event;
+    DWORD tid[MULTIPLE_WAIT_THREADS_NUM];
+    HANDLE thread[MULTIPLE_WAIT_THREADS_NUM];
+    test_param_t results[MULTIPLE_WAIT_THREADS_NUM];
+
+    event = bsc_event_init();
+    zassert_not_null(event, NULL);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        results[i].event = event;
+        results[i].result = FALSE;
+        thread[i] = CreateThread(
+                         NULL,       // default security attributes
+                         0,          // default stack size
+                         (LPTHREAD_START_ROUTINE) thread_func2,
+                         &results[i],
+                         0,          // default creation flags
+                         &tid[i]); // receive thread identifier
+        zassert_not_null(thread[i], NULL);
+
+    }
+
+    bsc_wait(1);
+    bsc_event_signal(event);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+       WaitForSingleObject(thread[i], INFINITE);
+       CloseHandle(thread[i]);
+    }
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        zassert_equal(results[i].result == true, true, NULL);
+    }
+
+    bsc_event_deinit(event);
+}
+
 void test_main(void)
 {
     ztest_test_suite(bsc_event_test1, ztest_unit_test(test_bsc_event1));
     ztest_test_suite(bsc_event_test2, ztest_unit_test(test_bsc_event2));
+    ztest_test_suite(bsc_event_test3, ztest_unit_test(test_bsc_event3));
     ztest_run_test_suite(bsc_event_test1);
     ztest_run_test_suite(bsc_event_test2);
+    ztest_run_test_suite(bsc_event_test3);
 }
