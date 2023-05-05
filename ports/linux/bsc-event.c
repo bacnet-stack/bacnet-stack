@@ -33,7 +33,6 @@ struct BSC_Event {
     pthread_mutex_t mutex;
     pthread_cond_t cond;
     bool v;
-    size_t counter;
 };
 
 BSC_EVENT *bsc_event_init(void)
@@ -72,7 +71,6 @@ BSC_EVENT *bsc_event_init(void)
     }
 
     ev->v = false;
-    ev->counter = 0;
     return ev;
 }
 
@@ -87,69 +85,16 @@ void bsc_event_wait(BSC_EVENT *ev)
 {
     pthread_mutex_lock(&ev->mutex);
     DEBUG_PRINTF("bsc_event_wait() >>> ev = %p\n", ev);
-    DEBUG_PRINTF("bsc_event_wait() counter before %zu\n", ev->counter);
-    ev->counter++;
-    DEBUG_PRINTF("bsc_event_wait() counter %zu\n", ev->counter);
     while (!ev->v) {
         pthread_cond_wait(&ev->cond, &ev->mutex);
     }
-    DEBUG_PRINTF("bsc_event_wait() ev = %p\n", ev);
-    DEBUG_PRINTF("bsc_event_wait() before counter %zu\n", ev->counter);
-    ev->counter--;
-    DEBUG_PRINTF("bsc_event_wait() counter %zu\n", ev->counter);
-    if (!ev->counter) {
-        ev->v = false;
-        DEBUG_PRINTF("bsc_event_wait() reset ev\n");
-    } else {
-        DEBUG_PRINTF("bsc_event_wait() wake up other waiting threads\n");
-        pthread_cond_broadcast(&ev->cond);
-    }
+    DEBUG_PRINTF("bsc_event_wait() ev = %p, ev->v = %d\n", ev, ev->v);
+    ev->v = false;
+    DEBUG_PRINTF("bsc_event_wait() reset ev\n");
     DEBUG_PRINTF("bsc_event_wait() <<< ev = %p\n", ev);
     pthread_mutex_unlock(&ev->mutex);
 }
 
-#if 0
-bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
-{
-    struct timespec to;
-    int r = 0;
-
-    clock_gettime(CLOCK_REALTIME, &to);
-    to.tv_sec = to.tv_sec + ms_timeout / 1000;
-    to.tv_nsec = to.tv_nsec + (ms_timeout % 1000) * 1000000;
-    to.tv_sec += to.tv_nsec / 1000000000;
-    to.tv_nsec %= 1000000000;
-
-    pthread_mutex_lock(&ev->mutex);
-    DEBUG_PRINTF("bsc_event_timedwait() >>> ev = %p\n", ev);
-    DEBUG_PRINTF("bsc_event_timedwait() counter before %zu\n", ev->counter);
-    ev->counter++;
-    DEBUG_PRINTF("bsc_event_timedwait() counter %zu\n", ev->counter);
-
-    while (!ev->v) {
-        r = pthread_cond_timedwait(&ev->cond, &ev->mutex, &to);
-        if(r == ETIMEDOUT) {
-            break;
-        }
-    }
-
-    DEBUG_PRINTF("bsc_event_timedwait() ev = %p r = %d\n", ev, r);
-    DEBUG_PRINTF("bsc_event_timedwait() before counter %zu\n", ev->counter);
-    ev->counter--;
-    DEBUG_PRINTF("bsc_event_timedwait() counter %zu\n", ev->counter);
-    if (!ev->counter) {
-        ev->v = false;
-        DEBUG_PRINTF("bsc_event_timedwait() reset ev\n");
-    }
-    else {
-       DEBUG_PRINTF("bsc_event_timedwait() wake up other waiting threads\n");
-       pthread_cond_broadcast(&ev->cond);
-    }
-    DEBUG_PRINTF("bsc_event_timedwait() <<< ret = %d, ev = %p\n", r == 0, ev);
-    pthread_mutex_unlock(&ev->mutex);
-    return r == 0;
-}
-#else
 bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
 {
     struct timespec to;
@@ -173,7 +118,9 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
             break;
         }
     }
-    if (r == 0) {
+    if (r != ETIMEDOUT) {
+        DEBUG_PRINTF(
+            "bsc_event_timedwait() got err %d, event is reset\n", r);
         ev->v = false;
     }
     DEBUG_PRINTF(
@@ -183,7 +130,6 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
     return r == 0;
 }
 
-#endif
 void bsc_event_signal(BSC_EVENT *ev)
 {
     DEBUG_PRINTF("bsc_event_signal() >>> ev = %p\n", ev);
