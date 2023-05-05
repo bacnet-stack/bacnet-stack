@@ -161,8 +161,8 @@ typedef struct
 
 DWORD WINAPI thread_func2( LPVOID lpParam )
 {
-    BSC_EVENT *event = (BSC_EVENT *)lpParam;
-    zassert_not_null(event, NULL);
+    test_param_t *p = (test_param_t *)lpParam;
+    zassert_not_null(p->event, NULL);
     // use some big timeout value, 24 hours seems to be enough
     p->result = bsc_event_timedwait(p->event, 24*60*60*1000);
     return 0;
