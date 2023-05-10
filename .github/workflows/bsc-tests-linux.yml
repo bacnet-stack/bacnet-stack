@@ -33,16 +33,8 @@ jobs:
         cmake ..
         make
         ./test_bvlc-sc
-    - name: Build and run websockets test
+    - name: failed request
       run: |
-        cd ./test/bacnet/datalink/websockets
-        mkdir build
-        cd build
-        cmake ..
-        make
-        ./test_websockets
-    - name: failed requests test
-     run: |
         cd ./test/bacnet/datalink/bsc-datalink
         mkdir build
         cd build
@@ -63,41 +55,14 @@ jobs:
         ./test_bsc-datalink
         ./test_bsc-datalink
         ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
+    - name: Build and run websockets test
+      run: |
+        cd ./test/bacnet/datalink/websockets
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_websockets
     - name: Build and run bsc-socket test
       run: |
         cd ./test/bacnet/datalink/bsc-socket
