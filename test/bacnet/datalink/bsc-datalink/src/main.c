@@ -2137,11 +2137,15 @@ static void test_sc_datalink_failed_requests(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_start(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    printf("1\n");
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2);
+    printf("2\n");
     wait_for_connection_to_hub(&node_ev2, node2);
+    printf("3\n");
     bsc_cleanup();
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    printf("5\n");
     ret = bsc_node_deinit(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
 
@@ -2161,13 +2165,18 @@ static void test_sc_datalink_failed_requests(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_start(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    printf("6\n");
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2);
+    printf("7\n");
     wait_for_connection_to_hub(&node_ev2, node2);
+    printf("8\n");
     wait_for_failed_request(
         &node_ev2, &failed_vmac, &failed_uuid, ERROR_CODE_NODE_DUPLICATE_VMAC);
+    printf("9\n");
     bsc_cleanup();
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    printf("10\n");
     ret = bsc_node_deinit(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     deinit_node_ev(&node_ev2);
