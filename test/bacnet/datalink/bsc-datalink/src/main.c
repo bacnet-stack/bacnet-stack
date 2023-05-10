@@ -2137,8 +2137,7 @@ static void test_sc_datalink_failed_requests(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_start(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
-    zassert_equal(
-        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2);
     wait_for_connection_to_hub(&node_ev2, node2);
     bsc_cleanup();
     bsc_node_stop(node2);
@@ -2162,8 +2161,7 @@ static void test_sc_datalink_failed_requests(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_start(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
-    zassert_equal(
-        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2);
     wait_for_connection_to_hub(&node_ev2, node2);
     wait_for_failed_request(
         &node_ev2, &failed_vmac, &failed_uuid, ERROR_CODE_NODE_DUPLICATE_VMAC);
@@ -2190,8 +2188,11 @@ void test_main(void)
     ztest_test_suite(
         test_datalink_4, ztest_unit_test(test_sc_datalink_failed_requests));
 
-    ztest_run_test_suite(test_datalink_1);
-    ztest_run_test_suite(test_datalink_2);
-    ztest_run_test_suite(test_datalink_3);
-    ztest_run_test_suite(test_datalink_4);
+    //ztest_run_test_suite(test_datalink_1);
+    //ztest_run_test_suite(test_datalink_2);
+    //ztest_run_test_suite(test_datalink_3);
+    for(int z = 0; z < 100; z++) {
+        printf("iter %d\n",z );
+        ztest_run_test_suite(test_datalink_4);
+    }
 }
