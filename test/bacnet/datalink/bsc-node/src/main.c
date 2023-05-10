@@ -1516,18 +1516,14 @@ static void test_node_duplicated_vmac(void)
     memset(&node_vmac2, 0x2, sizeof(node_vmac2));
 
     sprintf(
-        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
-    sprintf(node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
-    sprintf(
         url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT);
     sprintf(
         url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT);
 
-    conf.primaryURL = node_primary_url;
-    conf.failoverURL = node_secondary_url;
-    conf2.primaryURL = node_primary_url;
-    conf2.failoverURL = node_secondary_url;
+    conf.primaryURL = NULL;
+    conf.failoverURL = NULL;
+    conf2.primaryURL = NULL;
+    conf2.failoverURL = NULL;
 
     ret = bsc_node_init(&conf, &node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
