@@ -1062,6 +1062,7 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define MAX_NDPU_LEN 1500
 #define MAX_SERVER_SOCKETS BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
 #define MAX_CLIENT_SOCKETS BSC_CONF_CLIENT_CONNECTIONS_NUM
+#define WAIT_EVENT_MS 100
 
 typedef struct {
     BSC_SOCKET_EVENT ev_code;
@@ -1140,8 +1141,8 @@ static void wait_sec(int seconds)
 static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
 {
     call_maintenance_timer(1, 0);
-    while (!bsc_event_timedwait(ev->ev, 100)) {
-        call_maintenance_timer(0, 100);
+    while (!bsc_event_timedwait(ev->ev, WAIT_EVENT_MS)) {
+        call_maintenance_timer(0, WAIT_EVENT_MS);
     }
     bws_dispatch_lock();
     debug_printf(
@@ -1172,8 +1173,8 @@ static void wait_for_srv_specific_socket_state(
     int i;
     call_maintenance_timer(1, 0);
     while (1) {
-        bsc_wait_ms(100);
-        call_maintenance_timer(0, 100);
+        bsc_wait_ms(WAIT_EVENT_MS);
+        call_maintenance_timer(0, WAIT_EVENT_MS);
         bws_dispatch_lock();
         for (i = 0; i < MAX_SERVER_SOCKETS; i++) {
             if (&srv_socks[i] == s && srv_socks[i].state == st) {
@@ -1189,8 +1190,8 @@ static void wait_specific_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
 {
     call_maintenance_timer(1, 0);
     while (1) {
-        while (!bsc_event_timedwait(ev->ev, 100)) {
-            call_maintenance_timer(0, 100);
+        while (!bsc_event_timedwait(ev->ev, WAIT_EVENT_MS)) {
+            call_maintenance_timer(0, WAIT_EVENT_MS);
         }
         bws_dispatch_lock();
         debug_printf("wait_specific: wait_sock_ev ev = %p awaited_ev %d "
@@ -1228,8 +1229,8 @@ static void signal_sock_ev(
 static bool wait_ctx_ev(ctx_ev_t *ev, BSC_CTX_EVENT wait_ev)
 {
     call_maintenance_timer(1, 0);
-    while (!bsc_event_timedwait(ev->ev, 100)) {
-        call_maintenance_timer(0, 100);
+    while (!bsc_event_timedwait(ev->ev, WAIT_EVENT_MS)) {
+        call_maintenance_timer(0, WAIT_EVENT_MS);
     }
 
     bws_dispatch_lock();

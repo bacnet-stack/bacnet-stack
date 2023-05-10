@@ -1095,7 +1095,7 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 
 #define SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS \
     "SC_Direct_Connect_Accept_URI1 SC_Direct_Connect_Accept_URI2"
-#define WAIT_EVENT_MS 10
+#define WAIT_EVENT_MS 500
 
 typedef struct {
     BSC_NODE_EVENT ev;
