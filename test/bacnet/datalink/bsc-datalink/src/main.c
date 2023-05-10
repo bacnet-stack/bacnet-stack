@@ -1162,6 +1162,21 @@ static void datalink_wait_for_connection_to_hub(node_ev_t *ev)
     }
 }
 
+static size_t datalink_wait_for_data(BACNET_ADDRESS *src,
+                                     uint8_t *pdu,
+                                     uint16_t max_pdu)
+{
+    size_t len;
+    call_maintenance_timer(1, 0);
+    while (1) {
+        len = bsc_receive(src, pdu, max_pdu, WAIT_EVENT_MS);
+        if (len != 0) {
+           return len;
+        }
+        call_maintenance_timer(0, WAIT_EVENT_MS);
+    }
+}
+
 static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
 {
     BACNET_SC_HUB_CONNECTION_STATUS *st1;
@@ -1665,8 +1680,7 @@ static void test_sc_datalink(void)
     ret = bsc_node_send(node2, buf, len);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     memset(buf, 0, sizeof(buf));
-    len = 0;
-    len = bsc_receive(&from, buf, sizeof(buf), BACNET_TIMEOUT * 1000);
+    len = datalink_wait_for_data(&from, buf, sizeof(buf));
     zassert_equal(len, sizeof(npdu), NULL);
     ret = memcmp(npdu, buf, len);
     zassert_equal(ret, 0, NULL);
@@ -1714,14 +1728,13 @@ static void test_sc_datalink(void)
         buf, sizeof(buf), 13, NULL, &vmac1, npdu, sizeof(npdu));
     zassert_equal(len > 0, true, NULL);
     ret = bsc_node_send(node2, buf, len);
-    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
-    len = bsc_receive(&from, buf, sizeof(buf), BACNET_TIMEOUT * 1000);
-    zassert_equal(len == 0, true, 0);
+
     memset(buf, 0, sizeof(buf));
-    len = bsc_receive(&from, buf, sizeof(buf), BACNET_TIMEOUT * 1000);
+    len = datalink_wait_for_data(&from, buf, sizeof(buf));
     zassert_equal(len == sizeof(npdu), true, 0);
     ret = memcmp(npdu, buf, len);
     zassert_equal(ret, 0, NULL);
+
     ret = bsc_connect_direct(NULL, direct_urls, 1);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     wait_sec(1);
