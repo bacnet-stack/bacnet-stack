@@ -140,7 +140,7 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
 
     if(ev->v) {
         if(r!=0) {
-            printf("Fired!!! r = %d\n", r);
+            DEBUG_PRINTF("Fired!!! r = %d\n", r);
         }
         r = 0;
     }
