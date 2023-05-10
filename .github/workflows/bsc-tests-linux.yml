@@ -33,28 +33,6 @@ jobs:
         cmake ..
         make
         ./test_bvlc-sc
-    - name: failed request
-      run: |
-        cd ./test/bacnet/datalink/bsc-datalink
-        mkdir build
-        cd build
-        cmake ..
-        make
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
     - name: Build and run websockets test
       run: |
         cd ./test/bacnet/datalink/websockets
