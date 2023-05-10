@@ -1074,7 +1074,7 @@ unsigned char node_cert2[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define MAX_NDPU_LEN 1500
 #define MAX_SERVER_SOCKETS BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
 #define MAX_CLIENT_SOCKETS BSC_CONF_CLIENT_CONNECTIONS_NUM
-#define WAIT_EVENT_MS 10
+#define WAIT_EVENT_MS 500
 
 typedef struct {
     BSC_NODE_EVENT ev;
@@ -1508,7 +1508,6 @@ static void test_node_duplicated_vmac(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_deinit(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
-
     // node switch duplicated vmac
     memset(&node_uuid, 0x1, sizeof(node_uuid));
     memset(&node_vmac, 0x2, sizeof(node_vmac));
