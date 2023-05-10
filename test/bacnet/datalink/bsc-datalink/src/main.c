@@ -2066,7 +2066,7 @@ static void test_sc_datalink_properties(void)
     Network_Port_Cleanup();
     bacfile_cleanup();
 }
-
+#if 0
 static void test_sc_datalink_failed_requests(void)
 {
     BSC_NODE_CONF conf2;
@@ -2184,7 +2184,126 @@ static void test_sc_datalink_failed_requests(void)
     Network_Port_Cleanup();
     bacfile_cleanup();
 }
+#else
+static void test_sc_datalink_failed_requests(void)
+{
+    BSC_NODE_CONF conf2;
+    BACNET_SC_UUID uuid1;
+    BACNET_SC_VMAC_ADDRESS vmac1;
+    BACNET_SC_UUID uuid2;
+    BACNET_SC_VMAC_ADDRESS vmac2;
+    BACNET_SC_UUID failed_uuid;
+    BACNET_SC_VMAC_ADDRESS failed_vmac;
+    char primary_url1[128];
+    char secondary_url1[128];
+    char primary_url2[128];
+    char secondary_url2[128];
+    BSC_SC_RET ret;
+    BSC_NODE *node2;
 
+    memset(&uuid1, 0x41, sizeof(uuid1));
+    memset(&vmac1, 0x42, sizeof(vmac1));
+    memset(&uuid2, 0x43, sizeof(uuid2));
+    memset(&vmac2, 0x42, sizeof(vmac2));
+
+    sprintf(primary_url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    sprintf(secondary_url2, "wss://%s:%d", BACNET_LOCALHOST,
+        SC_NETPORT_HUB_SERVER_PORT);
+    sprintf(primary_url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    sprintf(secondary_url1, "wss://%s:%d", BACNET_LOCALHOST,
+        SC_NETPORT_HUB_SERVER_PORT);
+
+    bacfile_init();
+    netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
+        server_cert, sizeof(server_cert), server_key, sizeof(server_key),
+        BSC_DATALINK_HUB_IFACE, BSC_DATALINK_DIRECT_IFACE, &uuid1, &vmac1,
+        NULL, NULL, true, true, true);
+
+    init_node_ev(&node_ev2);
+    zassert_equal(bsc_init(NULL), true, NULL);
+
+    conf2.ca_cert_chain = ca_cert;
+    conf2.ca_cert_chain_size = sizeof(ca_cert);
+    conf2.cert_chain = client_cert;
+    conf2.cert_chain_size = sizeof(client_cert);
+    conf2.key = client_key;
+    conf2.key_size = sizeof(client_key);
+    conf2.local_uuid = &uuid2;
+    conf2.local_vmac = &vmac2;
+    conf2.max_local_bvlc_len = MAX_BVLC_LEN;
+    conf2.max_local_npdu_len = MAX_NDPU_LEN;
+    conf2.connect_timeout_s = BACNET_TIMEOUT;
+    conf2.heartbeat_timeout_s = BACNET_TIMEOUT;
+    conf2.disconnect_timeout_s = BACNET_TIMEOUT;
+    conf2.reconnnect_timeout_s = BACNET_TIMEOUT;
+    conf2.address_resolution_timeout_s = BACNET_TIMEOUT;
+    conf2.address_resolution_freshness_timeout_s = BACNET_TIMEOUT;
+    conf2.primaryURL = primary_url2;
+    conf2.failoverURL = secondary_url2;
+    conf2.hub_server_port = 0;
+    conf2.direct_server_port = 0;
+    conf2.direct_iface = BSC_NETWORK_IFACE;
+    conf2.hub_iface = BSC_NETWORK_IFACE;
+    conf2.direct_connect_accept_enable = false;
+    conf2.direct_connect_initiate_enable = true;
+    conf2.hub_function_enabled = false;
+    conf2.direct_connection_accept_uris = NULL;
+    conf2.direct_connection_accept_uris_len = 0;
+    conf2.event_func = node_event2;
+
+    ret = bsc_node_init(&conf2, &node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    printf("1\n");
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2);
+    printf("2\n");
+    wait_for_connection_to_hub(&node_ev2, node2);
+    printf("3\n");
+    bsc_cleanup();
+    bsc_node_stop(node2);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    printf("5\n");
+    ret = bsc_node_deinit(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+
+    memset(&uuid1, 0x51, sizeof(uuid1));
+    memset(&vmac1, 0x52, sizeof(vmac1));
+    memset(&failed_uuid, 0x53, sizeof(failed_uuid));
+    memset(&failed_vmac, 0x52, sizeof(failed_vmac));
+    memset(&uuid2, 0x53, sizeof(uuid2));
+    memset(&vmac2, 0x52, sizeof(vmac2));
+
+    netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
+        server_cert, sizeof(server_cert), server_key, sizeof(server_key),
+        BSC_DATALINK_HUB_IFACE, BSC_DATALINK_DIRECT_IFACE, &uuid1, &vmac1,
+        NULL, NULL, true, true, true);
+    zassert_equal(bsc_init(NULL), true, NULL);
+    ret = bsc_node_init(&conf2, &node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    printf("6\n");
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2);
+    printf("7\n");
+    wait_for_connection_to_hub(&node_ev2, node2);
+    printf("8\n");
+    wait_for_failed_request(
+        &node_ev2, &failed_vmac, &failed_uuid, ERROR_CODE_NODE_DUPLICATE_VMAC);
+    printf("9\n");
+    bsc_cleanup();
+    bsc_node_stop(node2);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    printf("10\n");
+    ret = bsc_node_deinit(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    deinit_node_ev(&node_ev2);
+
+    Network_Port_Cleanup();
+    bacfile_cleanup();
+}
+
+#endif
 void test_main(void)
 {
     setbuf(stdout, NULL);
