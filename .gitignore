@@ -111,3 +111,5 @@ apps/piface/libpifacedigital/
 /apps/mstpcap/mstpcap
 /apps/mstpcrc/mstpcrc
 /apps/sc-hub/bacschub
+/apps/add-list-element/bacale
+/apps/remove-list-element/bacrle

@@ -3084,3 +3084,73 @@ int decode_context_bacnet_address(
     }
     return len;
 }
+
+/**
+ * @brief Encode a BACnetARRAY property value
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 for the array size
+ *    1 to n for individual array members
+ *    BACNET_ARRAY_ALL for the full array to be read.
+ * @param encoder [in] function to encode one property array element
+ * @param array_size [in] number of elements in the array
+ * @param apdu [out] Buffer in which the APDU contents are built.
+ * @param max_apdu [in] Max length of the APDU buffer.
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for an invalid array index
+ *   BACNET_STATUS_ABORT for abort message.
+ */
+int bacnet_array_encode(uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_encode_function encoder,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    int max_apdu)
+{
+    int apdu_len = 0, len = 0;
+    BACNET_ARRAY_INDEX index;
+
+    if (array_index == 0) {
+        /* Array element zero is the number of objects in the list */
+        len = encode_application_unsigned(NULL, array_size);
+        if (len > max_apdu) {
+            apdu_len = BACNET_STATUS_ABORT;
+        } else {
+            len = encode_application_unsigned(NULL, array_size);
+            apdu_len = len;
+        }
+    } else if (array_index == BACNET_ARRAY_ALL) {
+        /* if no index was specified, then try to encode the entire list */
+        /* into one packet. */
+        for (index = 0; index < array_size; index++) {
+            len += encoder(object_instance, index, NULL);
+        }
+        if (len > max_apdu) {
+            /* encoded size is larger than APDU size */
+            apdu_len = BACNET_STATUS_ABORT;
+        } else {
+            for (index = 1; index < array_size; index++) {
+                len = encoder(object_instance, index, apdu);
+                if (apdu) {
+                    apdu += len;
+                }
+                apdu_len += len;
+            }
+        }
+    } else if (array_index <= array_size) {
+        /* index was specified; encode a single array element */
+        index = array_index - 1;
+        len = encoder(object_instance, index, NULL);
+        if (len > max_apdu) {
+            apdu_len = BACNET_STATUS_ABORT;
+        } else {
+            len = encoder(object_instance, index, apdu);
+            apdu_len = len;
+        }
+    } else {
+        /* array_index was specified out of range */
+        apdu_len = BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}

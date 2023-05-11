@@ -82,6 +82,10 @@ abort:
 ack-alarm:
 	$(MAKE) -s -C apps $@
 
+.PHONY: add-list-element
+add-list-element:
+	$(MAKE) -s -C apps $@
+
 .PHONY: dcc
 dcc:
 	$(MAKE) -s -C apps $@
@@ -120,6 +124,10 @@ readbdt:
 
 .PHONY: readfdt
 readfdt:
+	$(MAKE) -s -C apps $@
+
+.PHONY: remove-list-element
+remove-list-element:
 	$(MAKE) -s -C apps $@
 
 .PHONY: writebdt

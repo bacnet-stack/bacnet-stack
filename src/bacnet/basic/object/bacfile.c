@@ -105,6 +105,20 @@ void BACfile_Property_Lists(
 }
 
 /**
+ * @brief duplicate a string (replacement for POSIX strdup)
+ * @param  s - string to duplicate
+ * @return a pointer to a new string on success, or a null pointer
+ */
+static char *bacfile_strdup(const char *s) {
+    size_t size = strlen(s) + 1;
+    char *p = malloc(size);
+    if (p != NULL) {
+        memcpy(p, s, size);
+    }
+    return p;
+}
+
+/**
  * @brief For a given object instance-number, returns the pathname
  * @param  object_instance - object-instance number of the object
  * @return  internal file system path and name, or NULL if not set
@@ -138,7 +152,7 @@ void bacfile_pathname_set(uint32_t object_instance, const char *pathname)
         if (pObject->Pathname) {
             free(pObject->Pathname);
         }
-        pObject->Pathname = strdup(pathname);
+        pObject->Pathname = bacfile_strdup(pathname);
     }
 }
 
@@ -453,10 +467,10 @@ void bacfile_file_type_set(
         if (pObject->File_Type) {
             if (strcmp(pObject->File_Type, mime_type) != 0) {
                 free(pObject->File_Type);
-                pObject->File_Type = strdup(mime_type);
+                pObject->File_Type = bacfile_strdup(mime_type);
             }
         } else {
-            pObject->File_Type = strdup(mime_type);
+            pObject->File_Type = bacfile_strdup(mime_type);
         }
     }
 }

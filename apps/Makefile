@@ -66,6 +66,20 @@ BACNET_DEFINES += -DWEAK_FUNC=
 BACNET_DEFINES += $(MAKE_DEFINE)
 
 # Choose a BACnet Ports Directory for the example applications target OS
+ifeq (${BACNET_PORT},)
+	ifeq ($(OS),Windows_NT)
+		BACNET_PORT = win32
+	else
+		UNAME_S := $(shell uname -s)
+		ifeq ($(UNAME_S),Linux)
+			BACNET_PORT = linux
+		endif
+		ifeq ($(UNAME_S),Darwin)
+			BACNET_PORT = bsd
+		endif
+	endif
+endif
+
 # linux, win32, bsd
 BACNET_PORT ?= linux
 
@@ -170,7 +184,7 @@ endif
 SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
-	server-client
+	server-client add-list-element remove-list-element
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -214,6 +228,10 @@ abort: $(BACNET_LIB_TARGET)
 .PHONY: ack-alarm
 ack-alarm: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
+
+.PHONY: add-list-element
+add-list-element: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@ clean all
 
 .PHONY: dcc
 dcc: $(BACNET_LIB_TARGET)
@@ -294,6 +312,10 @@ readrange: $(BACNET_LIB_TARGET)
 .PHONY: reinit
 reinit: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
+
+.PHONY: remove-list-element
+remove-list-element: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@ clean all
 
 .PHONY: scov
 scov: $(BACNET_LIB_TARGET)

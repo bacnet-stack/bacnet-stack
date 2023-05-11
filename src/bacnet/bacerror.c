@@ -73,7 +73,7 @@ int bacerror_decode_error_class_and_code(uint8_t *apdu,
     uint32_t len_value_type = 0;
     uint32_t decoded_value = 0;
 
-    if (apdu_len) {
+    if (apdu && apdu_len) {
         /* error class */
         len += decode_tag_number_and_value(
             &apdu[len], &tag_number, &len_value_type);
@@ -109,15 +109,17 @@ int bacerror_decode_service_request(uint8_t *apdu,
 {
     int len = 0;
 
-    if (apdu_len > 2) {
+    if (apdu && apdu_len > 2) {
         if (invoke_id) {
             *invoke_id = apdu[0];
         }
         if (service) {
             *service = (BACNET_CONFIRMED_SERVICE)apdu[1];
         }
+	len += 2;
+
         /* decode the application class and code */
-        len = bacerror_decode_error_class_and_code(
+        len += bacerror_decode_error_class_and_code(
             &apdu[2], apdu_len - 2, error_class, error_code);
     }
 

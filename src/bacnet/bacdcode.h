@@ -35,6 +35,19 @@
 #include "bacnet/bacreal.h"
 #include "bacnet/bits.h"
 
+/**
+ * @brief Encode a BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+typedef int (*bacnet_array_property_element_encode_function)(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -614,6 +627,15 @@ extern "C" {
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_ADDRESS * destination);
+
+    BACNET_STACK_EXPORT
+    int bacnet_array_encode(
+        uint32_t object_instance,
+        BACNET_ARRAY_INDEX array_index,
+        bacnet_array_property_element_encode_function encoder,
+        BACNET_UNSIGNED_INTEGER array_size,
+        uint8_t *apdu,
+        int max_apdu);
 
 /* from clause 20.2.1.2 Tag Number */
 /* true if extended tag numbering is used */

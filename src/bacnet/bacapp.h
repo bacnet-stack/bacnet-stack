@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
+#include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
@@ -100,6 +101,7 @@ typedef struct BACnet_Application_Data_Value {
             Device_Object_Reference;
         BACNET_OBJECT_PROPERTY_REFERENCE
             Object_Property_Reference;
+        BACNET_DESTINATION Destination;
 #endif
 #if defined (BACDL_BSC)
         BACNET_CUSTOM_VALUE Custom_Value;
