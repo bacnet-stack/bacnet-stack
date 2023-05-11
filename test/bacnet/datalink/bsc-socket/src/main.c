@@ -2043,7 +2043,6 @@ static void test_bad_params(void)
         NULL, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
 
-    reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
