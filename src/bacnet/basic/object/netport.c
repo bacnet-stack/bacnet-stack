@@ -966,8 +966,7 @@ uint8_t Network_Port_MSTP_Max_Master(uint32_t object_instance)
  *
  * @return  true if values are within range and property is set.
  */
-bool Network_Port_MSTP_Max_Master_Set(uint32_t object_instance,
-    BACNET_UNSIGNED_INTEGER value)
+bool Network_Port_MSTP_Max_Master_Set(uint32_t object_instance, uint8_t value)
 {
     bool status = false;
     unsigned index = 0;
@@ -979,7 +978,7 @@ bool Network_Port_MSTP_Max_Master_Set(uint32_t object_instance,
                 if (Object_List[index].Network.MSTP.Max_Master != value) {
                     Object_List[index].Changes_Pending = true;
                 }
-                Object_List[index].Network.MSTP.Max_Master = (uint8_t)value;
+                Object_List[index].Network.MSTP.Max_Master = value;
                 status = true;
             }
         }
@@ -2335,7 +2334,7 @@ uint8_t Network_Port_MSTP_Max_Info_Frames(uint32_t object_instance)
  * @return  true if values are within range and property is set.
  */
 bool Network_Port_MSTP_Max_Info_Frames_Set(
-    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+    uint32_t object_instance, uint8_t value)
 {
     bool status = false;
     unsigned index = 0;
@@ -2346,7 +2345,7 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
             if (Object_List[index].Network.MSTP.Max_Info_Frames != value) {
                 Object_List[index].Changes_Pending = true;
             }
-            Object_List[index].Network.MSTP.Max_Info_Frames = (uint8_t)value;
+            Object_List[index].Network.MSTP.Max_Info_Frames = value;
             status = true;
         }
     }

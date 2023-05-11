@@ -117,14 +117,13 @@ bool Network_Port_APDU_Length_Set(uint32_t object_instance, uint16_t value);
 BACNET_STACK_EXPORT
 uint8_t Network_Port_MSTP_Max_Master(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Network_Port_MSTP_Max_Master_Set(
-    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
+bool Network_Port_MSTP_Max_Master_Set(uint32_t object_instance, uint8_t value);
 
 BACNET_STACK_EXPORT
 uint8_t Network_Port_MSTP_Max_Info_Frames(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_MSTP_Max_Info_Frames_Set(
-    uint32_t object_instance, BACNET_UNSIGNED_INTEGER  value);
+    uint32_t object_instance, uint8_t value);
 
 BACNET_STACK_EXPORT
 float Network_Port_Link_Speed(uint32_t object_instance);
