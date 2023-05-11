@@ -1445,7 +1445,6 @@ static void wait_for_failed_request(node_ev_t *ev,
     BACNET_SC_UUID *uuid,
     BACNET_ERROR_CODE err)
 {
-    //int cnt;
     BACNET_SC_FAILED_CONNECTION_REQUEST *r;
     call_maintenance_timer(1, 0);
     while (1) {

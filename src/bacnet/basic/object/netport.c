@@ -2817,6 +2817,19 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
+static bool Network_Port_MSTP_Max_Master_setter(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    return Network_Port_MSTP_Max_Master_Set(object_instance, (uint8_t)value);
+}
+
+static bool Network_Port_MSTP_Max_Info_Frames_setter(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    return Network_Port_MSTP_Max_Info_Frames_Set(
+        object_instance, (uint8_t)value);
+}
+
 /**
  * WriteProperty handler for this object.  For the given WriteProperty
  * data, the application_data is loaded or the error flags are set.
@@ -2862,11 +2875,11 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     switch (wp_data->object_property) {
         case PROP_MAX_MASTER:
             write_property_unsigned_decode(wp_data, &value, 
-                Network_Port_MSTP_Max_Master_Set, 255);
+                Network_Port_MSTP_Max_Master_setter, 255);
             break;
         case PROP_MAX_INFO_FRAMES:
             write_property_unsigned_decode(wp_data, &value, 
-                Network_Port_MSTP_Max_Info_Frames_Set, 255);
+                Network_Port_MSTP_Max_Info_Frames_setter, 255);
             break;
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_NAME:

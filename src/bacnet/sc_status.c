@@ -375,11 +375,6 @@ int bacapp_encode_context_SCHubFunctionConnection(uint8_t *apdu,
         }
         apdu_len += len;
         len = encode_closing_tag(apdu, tag_number);
-        /* Not need set position after last element
-        if (apdu) {
-            apdu += len;
-        }
-        */
         apdu_len += len;
     }
 
@@ -999,7 +994,6 @@ int bacapp_snprintf_SCFailedConnectionRequest(char *str, size_t str_len,
     POSITION_MOVE();
     slen = snprintf(str, str_len, "}");
     ret_val += slen;
-    //POSITION_MOVE();
     return ret_val;
  }
 
@@ -1029,7 +1023,6 @@ int  bacapp_snprintf_SCHubFunctionConnection(char *str, size_t str_len,
     POSITION_MOVE();
     slen = snprintf(str, str_len, "}");
     ret_val += slen;
-    //POSITION_MOVE();
     return ret_val;
 }
 
@@ -1060,7 +1053,6 @@ int bacapp_snprintf_SCDirectConnection(char *str, size_t str_len,
     POSITION_MOVE();
     slen = snprintf(str, str_len, "}");
     ret_val += slen;
-    //POSITION_MOVE();
     return ret_val;
 }
 
@@ -1084,6 +1076,5 @@ int bacapp_snprintf_SCHubConnection(char *str, size_t str_len,
     POSITION_MOVE();
     slen = snprintf(str, str_len, "}");
     ret_val += slen;
-    //POSITION_MOVE();
     return ret_val;
 }

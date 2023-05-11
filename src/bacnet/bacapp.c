@@ -1952,16 +1952,6 @@ int bacapp_snprintf_timestamp(char *str, size_t str_len, BACNET_DATE_TIME *ts)
 
     slen = bacapp_snprintf_time(str, str_len, &ts->time);
     ret_val += slen;
-    /* Not need set position after last element
-    if (is_real_str) {
-        str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
-    }
-    */
 
     return ret_val;
 }
