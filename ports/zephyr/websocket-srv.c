@@ -20,7 +20,7 @@
 #include <zephyr/logging/log_ctrl.h>
 #include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/basic/sys/debug.h"
-#include "websocket-mutex.h"
+#include "websocket-global.h"
 
 LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 

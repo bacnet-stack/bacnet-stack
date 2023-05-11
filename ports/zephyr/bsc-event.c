@@ -126,3 +126,8 @@ void bsc_wait(int seconds)
 {
     k_msleep(seconds * 1000);
 }
+
+void bsc_wait_ms(int mseconds)
+{
+    k_msleep(mseconds);
+}
