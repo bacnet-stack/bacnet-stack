@@ -54,6 +54,7 @@
 #include "bacnet/bacstr.h"
 #include "bacnet/lighting.h"
 #include "bacnet/hostnport.h"
+#include "bacnet/sc_status.h"
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/basic/sys/platform.h"
 #if defined(BACDL_BSC)

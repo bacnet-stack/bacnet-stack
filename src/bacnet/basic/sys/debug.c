@@ -79,7 +79,7 @@ void debug_printf(const char *format, ...)
 void debug_dump_buffer(const char *message, const uint8_t *buffer, size_t len)
 {
     int i;
-    printf("%s [%zd bytes] ", message, len);
+    printf("%s [%d bytes] ", message, (int)len);
     if (len > 0)
         printf(" %02x", buffer[0]);
     for (i = 1; i < len; ++i)
