@@ -87,6 +87,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdest.c
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
@@ -152,6 +153,7 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdest.c
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
@@ -244,6 +246,7 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdest.c
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
