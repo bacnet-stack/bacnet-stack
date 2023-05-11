@@ -54,6 +54,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/wp.c
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/dailyschedule.c
+	${SRC_DIR}/bacnet/sc_status.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

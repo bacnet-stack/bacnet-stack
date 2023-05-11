@@ -50,18 +50,23 @@ static struct fs_mount_t mnt = {
     .mnt_point = MNTP,
 };
 
-#include "ca_cert_pem.h"        // uint8_t Ca_Certificate[]
-#include "node_cert_pem.h"      // uint8_t Certificate[]
-#include "node_priv_key_der.h"  // uint8_t Key[]
+static const uint8_t Ca_Certificate[] = {
+    #include "ca_cert.pem.inc"
+};
+static const uint8_t Certificate[] = {
+    #include "client_cert.pem.inc"
+};
+static const uint8_t Key[] = {
+    #include "client_key.der.inc"
+};
 
-//#define SERVER_URL "wss://127.0.0.1:50000"
 #define SERVER_URL "wss://192.0.2.2:50000"
 
 #define DEVICE_INSTANCE 123
 #define DEVICE_NAME "Fred"
 #define FILENAME_CA_CERT    MNTP"/ca_cert.pem"
-#define FILENAME_CERT       MNTP"/node_cert.pem"
-#define FILENAME_KEY        MNTP"/node_priv.key.pem"
+#define FILENAME_CERT       MNTP"/client_cert.pem"
+#define FILENAME_KEY        MNTP"/client_key.pem"
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
@@ -190,7 +195,8 @@ static int test_statvfs(char *str)
     return 0;
 }
 
-static bool file_save(const char *name, uint8_t *buffer, uint32_t buffer_size)
+static bool file_save(const char *name, const uint8_t *buffer,
+    uint32_t buffer_size)
 {
     struct fs_file_t file = {0};
     ssize_t brw;
@@ -198,7 +204,8 @@ static bool file_save(const char *name, uint8_t *buffer, uint32_t buffer_size)
 
     status = fs_open(&file, name, FS_O_CREATE | FS_O_WRITE);
     if (status < 0) {
-        LOG_INF("Failed opening file: %s, flag %d, errno=%d", name, FS_O_CREATE | FS_O_WRITE, status);
+        LOG_INF("Failed opening file: %s, flag %d, errno=%d", name,
+            FS_O_CREATE | FS_O_WRITE, status);
         test_statvfs("error open");
         return false;
     }
@@ -219,7 +226,7 @@ static bool init_bsc(void)
 
     rc = littlefs_flash_erase((uintptr_t)mnt.storage_dev);
     if (rc < 0) {
-        return rc;
+        return false;
     }
 
     rc = fs_mount(&mnt);
@@ -238,7 +245,8 @@ static bool init_bsc(void)
     setenv("BACNET_SC_FAILOVER_HUB_URI", SERVER_URL, 1);
     setenv("BACNET_SC_ISSUER_1_CERTIFICATE_FILE", FILENAME_CA_CERT, 1);
     setenv("BACNET_SC_OPERATIONAL_CERTIFICATE_FILE", FILENAME_CERT, 1);
-    setenv("BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE", FILENAME_KEY, 1);
+    setenv("BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE", FILENAME_KEY,
+        1);
 
     return true;
 }

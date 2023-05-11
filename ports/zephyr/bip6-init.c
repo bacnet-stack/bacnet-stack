@@ -439,13 +439,13 @@ void bip6_set_interface(char *ifname)
         for(x=0; x<NET_IF_MAX_IPV6_ADDR; x++)
         {
             inet6_ntoa(&interface->config.ip.ipv6->unicast[x].address.in6_addr );
-            LOG_INF("  unicast[%d]: %s", x, log_strdup(ipv6_addr_str));
+            LOG_INF("  unicast[%d]: %s", x, ipv6_addr_str);
         }
 
         for(x=0; x<NET_IF_MAX_IPV6_MADDR; x++)
         {
             inet6_ntoa(&interface->config.ip.ipv6->mcast[x].address.in6_addr );
-            LOG_INF(" multicast[%d]: %s", x, log_strdup(ipv6_addr_str));
+            LOG_INF(" multicast[%d]: %s", x, ipv6_addr_str);
         }
 
         if(CONFIG_BACDL_BIP6_ADDRESS_INDEX >= NET_IF_MAX_IPV6_ADDR)
@@ -468,8 +468,8 @@ void bip6_set_interface(char *ifname)
         bip6_set_addr(&unicast);
         bip6_set_broadcast_addr(&multicast);
 
-        LOG_INF("   Unicast: %s", log_strdup(inet6_ntoa((struct in6_addr*)&unicast.address)));
-        LOG_INF(" Multicast: %s", log_strdup(inet6_ntoa((struct in6_addr*)&multicast.address)));
+        LOG_INF("   Unicast: %s", inet6_ntoa((struct in6_addr*)&unicast.address));
+        LOG_INF(" Multicast: %s", inet6_ntoa((struct in6_addr*)&multicast.address));
     }
     else
     {
@@ -490,7 +490,8 @@ bool bip6_init(char *ifname)
     bip6_set_interface(ifname);
 
     if (BIP6_Address.s6_addr == 0) {
-        LOG_ERR("%s:%d - Failed to get an IPv6 address on interface: %s\n", THIS_FILE, __LINE__, log_strdup(ifname ? ifname : "[default]"));
+        LOG_ERR("%s:%d - Failed to get an IPv6 address on interface: %s\n",
+            THIS_FILE, __LINE__, fname ? ifname : "[default]");
         return false;
     }
 

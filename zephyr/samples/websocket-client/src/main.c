@@ -9,14 +9,14 @@
  * @brief Echo-loop server with websockets protocol
  */
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
 
 #include <stdlib.h>
-#include <string.h> 
+#include <string.h>
 #include <stdio.h>
-#include <kernel.h>
+#include <zephyr/kernel.h>
 #include "bacnet/basic/sys/mstimer.h"
 #include <bacnet/datalink/bsc/websocket.h>
 
@@ -1073,7 +1073,8 @@ K_MUTEX_DEFINE(mutex);
 struct k_condvar cond;
 
 void cli_dispatch(BSC_WEBSOCKET_HANDLE h, BSC_WEBSOCKET_EVENT ev,
-                 uint8_t* buf, size_t bufsize, void* user_param)
+                  BACNET_ERROR_CODE ws_reason, char* ws_reason_desc,
+                  uint8_t* buf, size_t bufsize, void* user_param)
 {
     BSC_WEBSOCKET_RET ret;
     size_t len;

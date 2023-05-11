@@ -91,6 +91,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/dailyschedule.h
     ${BACNETSTACK_SRC}/bacnet/weeklyschedule.c
     ${BACNETSTACK_SRC}/bacnet/weeklyschedule.h
+    ${BACNETSTACK_SRC}/bacnet/sc_status.c
+    ${BACNETSTACK_SRC}/bacnet/sc_status.h
     $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd/h_bbmd.c>
     $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/h_bbmd6.c>
@@ -528,6 +530,7 @@ list(
 
 
 add_subdirectory(subsys)
+add_subdirectory(modules)
 
 
 #
@@ -550,6 +553,8 @@ zephyr_library_compile_definitions(
   $<$<BOOL:${CONFIG_BACAPP_SNPRINTF_ENABLED}>:BACAPP_SNPRINTF_ENABLED=1>
   $<$<BOOL:${CONFIG_BACNET_ADDRESS_CACHE_FILE}>:BACNET_ADDRESS_CACHE_FILE=1>
   BSC_CONF_WSURL_MAX_LEN=127
+  BACNET_PORT=zephyr
+  MG_ARCH=MG_ARCH_CUSTOM
   )
 
 zephyr_library_sources(
@@ -579,4 +584,6 @@ target_compile_definitions(
   BACNET_STACK_STATIC_DEFINE
   PRINT_ENABLED=1
   BSC_CONF_WSURL_MAX_LEN=127
+  BACNET_PORT=zephyr
+  MG_ARCH=MG_ARCH_CUSTOM
   )

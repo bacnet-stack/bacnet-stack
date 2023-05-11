@@ -65,7 +65,8 @@ PORT_BSC_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-util.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bvlc-sc.c \
 	$(BACNET_OBJECT_DIR)/sc_netport.c \
-	$(BACNET_OBJECT_DIR)/bacfile.c
+	$(BACNET_OBJECT_DIR)/bacfile.c \
+	$(BACNET_SRC_DIR)/bacnet/sc_status.c
 
 PORT_ALL_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c \

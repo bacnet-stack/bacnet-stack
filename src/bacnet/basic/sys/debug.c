@@ -76,10 +76,27 @@ void debug_printf(const char *format, ...)
     return;
 }
 #endif
+void debug_dump_buffer(const char *message, const uint8_t *buffer, size_t len)
+{
+    int i;
+    printf("%s [%zd bytes] ", message, len);
+    if (len > 0)
+        printf(" %02x", buffer[0]);
+    for (i = 1; i < len; ++i)
+        printf(":%02x", buffer[i]);
+    printf("\n");
+    fflush(stdout);
+}
 #else
 void debug_printf(const char *format, ...)
 {
     (void)format;
+}
+void debug_dump_buffer(const char *message, const uint8_t *buffer, size_t len)
+{
+    (void)message;
+    (void)buffer;
+    (void)len;
 }
 #endif
 

@@ -9,7 +9,7 @@
  */
 
 #include <zephyr/kernel.h>
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 
 typedef enum {
@@ -27,9 +27,13 @@ static TEST_STAGE test_stage = STAGE_NONE;
 #define TIMEOUT_SLEEP   2
 #define WAITTIME_MIN    (TIMEOUT_SLEEP * MSEC_PER_SEC - 20)
 #define WAITTIME_MAX    (TIMEOUT_SLEEP * MSEC_PER_SEC + 20)
+#define MULTIPLE_WAIT_THREADS_NUM 50
 
 #define STACKSIZE 128
 K_KERNEL_STACK_DEFINE(child_stack, STACKSIZE);
+K_KERNEL_STACK_ARRAY_DEFINE(
+    child_stacks, MULTIPLE_WAIT_THREADS_NUM, STACKSIZE);
+
 
 static void child_func(void *p1, void *p2, void *p3)
 {
@@ -59,7 +63,7 @@ static void child_func(void *p1, void *p2, void *p3)
     bsc_event_signal(event);
 }
 
-static void test_bsc_event(void)
+static void test_bsc_event1(void)
 {
     BSC_EVENT *event;
     k_tid_t tid_child;
@@ -81,7 +85,6 @@ static void test_bsc_event(void)
     test_stage = STAGE_WAIT_1;
     bsc_event_wait(event);
 
-    bsc_event_reset(event);
     test_stage = STAGE_WAIT_2;
     bsc_event_wait(event);
 
@@ -104,8 +107,43 @@ static void test_bsc_event(void)
     bsc_event_deinit(event);
 }
 
+static void thread_func(void *p1, void *p2, void *p3)
+{
+    BSC_EVENT *event = (BSC_EVENT *)p1;
+    zassert_not_null(event, NULL);
+    bsc_event_wait(event);
+}
+
+static void test_bsc_event2(void)
+{
+    BSC_EVENT *event;
+    k_tid_t tid_child[MULTIPLE_WAIT_THREADS_NUM];
+    struct k_thread thread[MULTIPLE_WAIT_THREADS_NUM];
+    int i;
+
+    event = bsc_event_init();
+    zassert_not_null(event, NULL);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        tid_child[i] = k_thread_create(&thread[i], child_stacks[i], STACKSIZE, &thread_func,
+            event, NULL, NULL, -1, K_USER | K_INHERIT_PERMS, K_NO_WAIT);
+        zassert_not_null(tid_child[i], NULL);
+    }
+
+    bsc_wait(1);
+    bsc_event_signal(event);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        k_thread_join(&thread[i], K_FOREVER);
+    }
+
+    bsc_event_deinit(event);
+}
+
 void test_main(void)
 {
-    ztest_test_suite(bsc_event_test, ztest_unit_test(test_bsc_event));
-    ztest_run_test_suite(bsc_event_test);
+    ztest_test_suite(bsc_event_test1, ztest_unit_test(test_bsc_event1));
+    ztest_test_suite(bsc_event_test2, ztest_unit_test(test_bsc_event2));
+    ztest_run_test_suite(bsc_event_test1);
+    ztest_run_test_suite(bsc_event_test2);
 }

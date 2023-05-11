@@ -63,6 +63,11 @@ extern "C" {
     void debug_printf_disabled(
         const char *format,
         ...);
+    BACNET_STACK_EXPORT
+    void debug_dump_buffer(
+        const char *message,
+        const uint8_t *buffer,
+        size_t len);
 #if DEBUG_ENABLED
     /* Nothing more here */
 #else

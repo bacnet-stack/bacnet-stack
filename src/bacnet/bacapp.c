@@ -39,7 +39,7 @@
 #include <ctype.h> /* for isalnum */
 #include <errno.h>
 #include <math.h>
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <wchar.h>
 #include <wctype.h>
 #endif
@@ -56,7 +56,7 @@
 #include "bacnet/hostnport.h"
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/basic/sys/platform.h"
-#ifdef BACDL_BSC
+#if defined(BACDL_BSC)
 #include "bacnet/basic/object/sc_netport.h"
 #endif
 
@@ -201,9 +201,27 @@ int bacapp_encode_application_data(
                 break;
             case BACNET_APPLICATION_TAG_DESTINATION:
                 /* BACnetDestination */
-                apdu_len = bacnet_destination_encode(
-                    apdu, &value->type.Destination);
+                apdu_len =
+                    bacnet_destination_encode(apdu, &value->type.Destination);
                 break;
+#if defined(BACDL_BSC)
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                apdu_len = bacapp_encode_SCFailedConnectionRequest(
+                    apdu, &value->type.SC_Failed_Req);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCHubFunctionConnection(
+                    apdu, &value->type.SC_Hub_Function_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCDirectConnection(
+                    apdu, &value->type.SC_Direct_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCHubConnection(
+                    apdu, &value->type.SC_Hub_Status);
+                break;
+#endif /* BACDL_BSC */
 #endif
             default:
                 break;
@@ -354,8 +372,24 @@ int bacapp_decode_data(uint8_t *apdu,
                 break;
             case BACNET_APPLICATION_TAG_DESTINATION:
                 /* BACnetDestination */
-                len = bacnet_destination_decode(apdu, len_value_type,
-                    &value->type.Destination);
+                len = bacnet_destination_decode(
+                    apdu, len_value_type, &value->type.Destination);
+                break;
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                len = bacapp_decode_SCFailedConnectionRequest(
+                    apdu, len_value_type, &value->type.SC_Failed_Req);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                len = bacapp_decode_SCHubFunctionConnection(
+                    apdu, len_value_type, &value->type.SC_Hub_Function_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                len = bacapp_decode_SCDirectConnection(
+                    apdu, len_value_type, &value->type.SC_Direct_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                len = bacapp_decode_SCHubConnection(
+                    apdu, len_value_type, &value->type.SC_Hub_Status);
                 break;
 #endif
             default:
@@ -687,10 +721,26 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 break;
             case BACNET_APPLICATION_TAG_DESTINATION:
                 /* BACnetDestination */
-                apdu_len = bacnet_destination_context_encode(apdu,
-                    context_tag_number, &value->type.Destination);
+                apdu_len = bacnet_destination_context_encode(
+                    apdu, context_tag_number, &value->type.Destination);
                 break;
-#endif
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                apdu_len = bacapp_encode_context_SCFailedConnectionRequest(
+                    apdu, context_tag_number, &value->type.SC_Failed_Req);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_context_SCHubFunctionConnection(apdu,
+                    context_tag_number, &value->type.SC_Hub_Function_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_context_SCDirectConnection(
+                    apdu, context_tag_number, &value->type.SC_Direct_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_context_SCHubConnection(
+                    apdu, context_tag_number, &value->type.SC_Hub_Status);
+                break;
+#endif /* BACAPP_TYPES_EXTRA */
             default:
                 break;
         }
@@ -1165,6 +1215,19 @@ int bacapp_known_property_tag(
         case PROP_ACTION:
             return -1;
 
+        case PROP_SC_FAILED_CONNECTION_REQUESTS:
+            return BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST;
+
+        case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS;
+
+        case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS;
+
+        case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
+        case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS;
+
         default:
             return -1;
     }
@@ -1304,17 +1367,28 @@ int bacapp_decode_known_property(uint8_t *apdu,
             len = bacnet_weeklyschedule_decode(
                 apdu, max_apdu_len, &value->type.Weekly_Schedule);
             break;
-#ifdef BACDL_BSC
+
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
+            len = bacapp_decode_SCFailedConnectionRequest(
+                apdu, max_apdu_len, &value->type.SC_Failed_Req);
+            break;
+
         case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            len = bacapp_decode_SCHubFunctionConnection(
+                apdu, max_apdu_len, &value->type.SC_Hub_Function_Status);
+            break;
+
         case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
+            len = bacapp_decode_SCDirectConnection(
+                apdu, max_apdu_len, &value->type.SC_Direct_Status);
+            break;
+
         case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
         case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
-            value->type.Custom_Value.len = max_apdu_len;
-            value->type.Custom_Value.data = apdu;
-            len = max_apdu_len;
+            len = bacapp_decode_SCHubConnection(
+                apdu, max_apdu_len, &value->type.SC_Hub_Status);
             break;
-#endif /* BACDL_BSC */
+
         case PROP_RECIPIENT_LIST:
             len = bacnet_destination_decode(
                 apdu, max_apdu_len, &value->type.Destination);
@@ -1602,9 +1676,9 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
     /* false positive cppcheck - snprintf allows null pointers */
     /* cppcheck-suppress nullPointer */
     /* cppcheck-suppress ctunullpointer */
-    slen = snprintf(str, str_len, "%s, %s",
-        bactext_day_of_week_name(bdate->wday),
-        bactext_month_name(bdate->month));
+    slen =
+        snprintf(str, str_len, "%s, %s", bactext_day_of_week_name(bdate->wday),
+            bactext_month_name(bdate->month));
     if (str) {
         str += slen;
         if (str_len >= slen) {
@@ -1847,6 +1921,47 @@ static int bacapp_snprintf_weeklyschedule(char *str,
 }
 #endif
 
+int bacapp_snprintf_timestamp(char *str, size_t str_len, BACNET_DATE_TIME *ts)
+{
+    int ret_val = 0;
+    int slen;
+
+    slen = bacapp_snprintf_date(str, str_len, &ts->date);
+    ret_val += slen;
+    if (str) {
+        str += slen;
+        if (str_len >= slen) {
+            str_len -= slen;
+        } else {
+            str_len = 0;
+        }
+    }
+
+    slen = snprintf(str, str_len, " ");
+    ret_val += slen;
+    if (str) {
+        str += slen;
+        if (str_len >= slen) {
+            str_len -= slen;
+        } else {
+            str_len = 0;
+        }
+    }
+
+    slen = bacapp_snprintf_time(str, str_len, &ts->time);
+    ret_val += slen;
+    if (str) {
+        str += slen;
+        if (str_len >= slen) {
+            str_len -= slen;
+        } else {
+            str_len = 0;
+        }
+    }
+
+    return ret_val;
+}
+
 /**
  * @brief Extract the value into a text string
  * @param str - the buffer to store the extracted value, or NULL for length
@@ -1868,7 +1983,7 @@ int bacapp_snprintf_value(
 #if defined(BACAPP_OCTET_STRING) || defined(BACAPP_TYPES_EXTRA)
     uint8_t *octet_str;
 #endif
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
     /* Wide character (decoded from multi-byte character). */
     wchar_t wc;
     /* Wide character length in bytes. */
@@ -1948,7 +2063,7 @@ int bacapp_snprintf_value(
                     }
                 }
                 ret_val += slen;
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
                 if (characterstring_encoding(&value->type.Character_String) ==
                     CHARACTER_UTF8) {
                     while (len > 0) {
@@ -2196,14 +2311,16 @@ int bacapp_snprintf_value(
                 break;
             case BACNET_APPLICATION_TAG_TIMESTAMP:
                 /*ISO 8601 format */
-                slen = snprintf(str, str_len, "%04u-%02u-%02uT%02u:%02u:%02u.%03u",
-                    (unsigned) value->type.Time_Stamp.value.dateTime.date.year,
-                    (unsigned) value->type.Time_Stamp.value.dateTime.date.month,
-                    (unsigned) value->type.Time_Stamp.value.dateTime.date.day,
-                    (unsigned) value->type.Time_Stamp.value.dateTime.time.hour,
-                    (unsigned) value->type.Time_Stamp.value.dateTime.time.min,
-                    (unsigned) value->type.Time_Stamp.value.dateTime.time.sec,
-                    (unsigned) value->type.Time_Stamp.value.dateTime.time.hundredths);
+                slen = snprintf(str, str_len,
+                    "%04u-%02u-%02uT%02u:%02u:%02u.%03u",
+                    (unsigned)value->type.Time_Stamp.value.dateTime.date.year,
+                    (unsigned)value->type.Time_Stamp.value.dateTime.date.month,
+                    (unsigned)value->type.Time_Stamp.value.dateTime.date.day,
+                    (unsigned)value->type.Time_Stamp.value.dateTime.time.hour,
+                    (unsigned)value->type.Time_Stamp.value.dateTime.time.min,
+                    (unsigned)value->type.Time_Stamp.value.dateTime.time.sec,
+                    (unsigned)
+                        value->type.Time_Stamp.value.dateTime.time.hundredths);
                 ret_val += slen;
                 break;
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
@@ -2274,7 +2391,8 @@ int bacapp_snprintf_value(
                 break;
             case BACNET_APPLICATION_TAG_DESTINATION:
                 /* BACnetWeeklySchedule */
-                ret_val = bacnet_destination_to_ascii(&value->type.Destination, str, str_len);
+                ret_val = bacnet_destination_to_ascii(
+                    &value->type.Destination, str, str_len);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 if (value->type.Host_Address.host_ip_address) {
@@ -2321,19 +2439,29 @@ int bacapp_snprintf_value(
                     ret_val += slen;
                 }
                 break;
+
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                ret_val = bacapp_snprintf_SCFailedConnectionRequest(
+                    str, str_len, &value->type.SC_Failed_Req);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCHubFunctionConnection(
+                    str, str_len, &value->type.SC_Hub_Function_Status);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCDirectConnection(
+                    str, str_len, &value->type.SC_Direct_Status);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCHubConnection(
+                    str, str_len, &value->type.SC_Hub_Status);
+                break;
+
 #endif
             default:
-#ifdef BACDL_BSC
-                if (property == PROP_SC_FAILED_CONNECTION_REQUESTS ||
-                    property == PROP_SC_HUB_FUNCTION_CONNECTION_STATUS ||
-                    property == PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS ||
-                    property == PROP_SC_PRIMARY_HUB_CONNECTION_STATUS ||
-                    property == PROP_SC_FAILOVER_HUB_CONNECTION_STATUS)
-                {
-                    ret_val = Network_Port_SC_snprintf_value(
-                        str, str_len, object_value);
-                } else
-#endif /* BACDL_BSC */
                 ret_val =
                     snprintf(str, str_len, "UnknownType(tag=%d)", value->tag);
                 break;
@@ -2809,8 +2937,8 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                 }
                 break;
             case BACNET_APPLICATION_TAG_DESTINATION:
-                status = bacnet_destination_from_ascii(&value->type.Destination,
-                    argv);
+                status = bacnet_destination_from_ascii(
+                    &value->type.Destination, argv);
                 break;
 #endif
             default:
@@ -2928,7 +3056,8 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
 #endif
 #if defined(BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                if (!islessgreater(test_value->type.Double,value->type.Double)) {
+                if (!islessgreater(
+                        test_value->type.Double, value->type.Double)) {
                     status = true;
                 }
                 break;

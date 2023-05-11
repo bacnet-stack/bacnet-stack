@@ -121,5 +121,6 @@ config BACNET_USE_SECTION_ITERABLE_OBJECT_TABLE
 		Use the Section Iterable for the Object Table
 
 rsource "subsys/Kconfig"
+rsource "modules/Kconfig"
 
 endif # BACNETSTACK

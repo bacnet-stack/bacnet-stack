@@ -20,6 +20,11 @@ get_filename_component(BACNET_NAME ${BACNET_BASE} NAME)
 # Update include path for this module
 list(APPEND BACNET_INCLUDE ${BACNET_BASE}/src)
 
+add_compile_definitions(
+  BIG_ENDIAN=0
+  BSC_CONF_TX_PRE=0
+  )
+
 if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
   list(APPEND INCLUDE ${BACNET_INCLUDE})
@@ -87,6 +92,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/object/schedule.c
     ${BACNET_SRC}/basic/object/trendlog.c
     ${BACNET_SRC}/hostnport.c
+    ${BACNET_SRC}/sc_status.c
     ${BACNET_SRC}/basic/service/h_apdu.c
     ${BACNET_SRC}/basic/service/h_cov.c
     ${BACNET_SRC}/basic/service/h_wp.c

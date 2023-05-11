@@ -63,6 +63,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/npdu.c
     ${BACNET_SRC}/abort.c
     ${BACNET_SRC}/bacerror.c
+    ${BACNET_SRC}/sc_status.c
     )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")

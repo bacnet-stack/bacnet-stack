@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <kernel.h>
+#include <zephyr/kernel.h>
 #include <stdint.h>
 
 #include "bacnet/config.h"
@@ -32,7 +32,7 @@
 #endif /* defined(INTRINSIC_REPORTING) */
 
 /* Logging module registration is already done in ports/zephyr/main.c */
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 
 /** Buffer used for receiving */

@@ -1,0 +1,8 @@
+common:
+  tags: bacnet
+tests:
+  bacnet.datalink.hub-sc.unit:
+    type: unit
+    skip: true
+  bacnet.datalink.hub-sc:
+    tags: bacnet

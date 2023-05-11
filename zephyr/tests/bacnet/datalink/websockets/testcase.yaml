@@ -6,4 +6,3 @@ tests:
     skip: true
   bacnet.datalink.websockets:
     tags: bacnet
-    skip: true
