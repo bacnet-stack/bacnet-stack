@@ -1,3 +1,7 @@
+# Export the variables defined here to all subprocesses
+# (see http://www.gnu.org/software/automake/manual/make/Special-Targets.html)
+.EXPORT_ALL_VARIABLES:
+
 # tools - only if you need them.
 # Most platforms have this already defined
 # CC = gcc
@@ -9,13 +13,12 @@
 
 # Passing parameters via command line or from Makefile export to this one
 BACNET_DEFINES ?=
-BACNET_LIB ?=
 
 # BACnet Library
 BACNET_LIB_DIR = $(realpath lib)
 BACNET_LIB_NAME = bacnet
 BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
-BACNET_LIB=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+BACNET_LIB ?= -L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 
 # choose a datalink to build the example applications
 # Use BACDL=mstp or BACDL=bip and BBMD=server when invoking make
@@ -98,6 +101,9 @@ TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
 endif
 ifeq (${BACNET_PORT},win32)
+# winget install --id=MSYS2.MSYS2  -e
+# pacman -Syu
+# pacman -Sy base-devel mingw-w64-i686-toolchain
 TARGET_EXT = .exe
 SYSTEM_LIB=-lws2_32,-lgcc,-lm,-liphlpapi,-lwinmm
 BACNET_DEFINES += -D_NO_OLDNAMES
@@ -124,12 +130,12 @@ CSTANDARD ?= -std=gnu89
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
 DEBUGGING ?=
-WARNING_ALL := -Wall -Wextra -Wall -Wfloat-equal -Wconversion -Wparentheses
+WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion -Wparentheses
 WARNING_ALL += -pedantic -Wunused-parameter -Wunused-variable -Wreturn-type
 WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
 WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
 WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
-WARNING_ALL += -Wno-long-long
+WARNING_ALL += -Wno-long-long -Wno-implicit-fallthrough -Wno-attributes
 #WARNING_ALL += -Wredundant-decls
 #WARNING_ALL += -Werror
 WARNINGS ?= $(WARNING_ALL)
