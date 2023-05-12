@@ -18,7 +18,6 @@
 
 #undef errno
 extern int errno;
-extern int __io_putchar(int ch);
 
 register char * stack_ptr asm("sp");
 
@@ -45,6 +44,16 @@ void _exit (int status)
 	_kill(status, -1);
 	while (1) {}		/* Make sure we hang here */
 }
+
+#ifdef __GNUC__
+ #warning "Do not forget to override __io_putchar() in your code if you want to have working printf()/fprintf()/debug_printf()/etc functions!!!!"
+__attribute__((weak)) int __io_putchar(int ch)
+{
+  return ch;
+}
+#else
+extern int __io_putchar(int ch);
+#endif
 
 int _write(int file, char *ptr, int len)
 {

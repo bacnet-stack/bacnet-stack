@@ -83,8 +83,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c \
-	${BACNET_CORE}/sc_status.c
-
+	$(BACNET_CORE)/sc_status.c
 
 STM32_SRC = \
 	$(LIBRARY_STM32)/stm32f10x_adc.c \
@@ -150,7 +149,6 @@ BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
 # if called from root Makefile, PRINT was already defined
 BACNET_FLAGS += -UPRINT_ENABLED
 BACNET_FLAGS += -DPRINT_ENABLED=0
-BACNET_FLAGS += -DDEBUG_ENABLED=0
 
 CFLAGS += $(MCU_FLAGS)
 CFLAGS += $(OPTIMIZE_FLAGS)
