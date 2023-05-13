@@ -87,7 +87,7 @@ static void debug_print_ipv4(const char *str,
 /**
  * @brief Return the active BIP socket.
  * @return The active BIP socket, or INVALID_SOCKET if uninitialized.
- * @note Strictly, the return type should be SOCKET, however in practice 
+ * @note Strictly, the return type should be SOCKET, however in practice
  *  Windows never returns values large enough that truncation is an issue.
  * @see bip_get_broadcast_socket
  */
@@ -348,6 +348,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
  */
 bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 {
+    (void)addr;
     /* not something we do here within this application */
     return false;
 }
@@ -374,6 +375,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  */
 bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
 {
+    (void)addr;
     /* not something we do within this application */
     return false;
 }
@@ -399,6 +401,7 @@ bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
  */
 bool bip_set_subnet_prefix(uint8_t prefix)
 {
+    (void)prefix;
     /* not something we do within this application */
     return false;
 }
@@ -487,7 +490,7 @@ uint16_t bip_receive(
     int max = 0;
     struct timeval select_timeout;
     struct sockaddr_in sin = { 0 };
-    BACNET_IP_ADDRESS addr = { { 0 } };
+    BACNET_IP_ADDRESS addr = { 0 };
     socklen_t sin_len = sizeof(sin);
     int received_bytes = 0;
     int offset = 0;
@@ -756,7 +759,7 @@ void bip_set_interface(char *ifname)
     }
 }
 
-static int createSocket(struct sockaddr_in *sin)
+static SOCKET createSocket(struct sockaddr_in *sin)
 {
     int rv = 0; /* return from socket lib calls */
     int value = 1;
@@ -764,7 +767,7 @@ static int createSocket(struct sockaddr_in *sin)
 
     /* assumes that the driver has already been initialized */
     sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock_fd < 0) {
+    if (sock_fd == INVALID_SOCKET) {
         print_last_error("failed to allocate a socket");
         return sock_fd;
     }
@@ -772,7 +775,7 @@ static int createSocket(struct sockaddr_in *sin)
     /* This makes sure that the src port is correct when sending */
     rv = setsockopt(
         sock_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&value, sizeof(value));
-    if (rv < 0) {
+    if (rv == SOCKET_ERROR) {
         print_last_error("failed to set REUSEADDR socket option");
         closesocket(sock_fd);
         return rv;
@@ -780,14 +783,14 @@ static int createSocket(struct sockaddr_in *sin)
     /* Enables transmission and receipt of broadcast messages on the socket. */
     rv = setsockopt(
         sock_fd, SOL_SOCKET, SO_BROADCAST, (char *)&value, sizeof(value));
-    if (rv < 0) {
+    if (rv == SOCKET_ERROR) {
         print_last_error("failed to set BROADCAST socket option");
         closesocket(sock_fd);
         return rv;
     }
 
     rv = bind(sock_fd, (const struct sockaddr *)sin, sizeof(struct sockaddr));
-    if (rv < 0) {
+    if (rv == SOCKET_ERROR) {
         print_last_error("failed to bind");
         closesocket(sock_fd);
         return rv;
@@ -814,7 +817,7 @@ static int createSocket(struct sockaddr_in *sin)
  */
 bool bip_init(char *ifname)
 {
-    struct sockaddr_in sin = { -1 };
+    struct sockaddr_in sin;
     SOCKET sock_fd = INVALID_SOCKET;
 
     bip_init_windows();
@@ -837,12 +840,10 @@ bool bip_init(char *ifname)
             ntohs(BIP_Port));
         fflush(stderr);
     }
-
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
     sin.sin_port = BIP_Port;
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
-
     sin.sin_addr.s_addr = BIP_Address.s_addr;
     if (BIP_Debug) {
         fprintf(stderr, "BIP: bind %s:%hu\n", inet_ntoa(sin.sin_addr),
@@ -851,10 +852,9 @@ bool bip_init(char *ifname)
     }
     sock_fd = createSocket(&sin);
     BIP_Socket = sock_fd;
-    if (sock_fd < 0) {
+    if (sock_fd == INVALID_SOCKET) {
         return false;
     }
-
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     if (BIP_Debug) {
         fprintf(stderr, "BIP: broadcast bind %s:%hu\n", inet_ntoa(sin.sin_addr),
@@ -863,10 +863,9 @@ bool bip_init(char *ifname)
     }
     sock_fd = createSocket(&sin);
     BIP_Broadcast_Socket = sock_fd;
-    if (sock_fd < 0) {
+    if (sock_fd == INVALID_SOCKET) {
         return false;
     }
-
     bvlc_init();
 
     return true;
