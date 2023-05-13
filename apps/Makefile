@@ -1,7 +1,3 @@
-# Export the variables defined here to all subprocesses
-# (see http://www.gnu.org/software/automake/manual/make/Special-Targets.html)
-.EXPORT_ALL_VARIABLES:
-
 # tools - only if you need them.
 # Most platforms have this already defined
 # CC = gcc
@@ -15,7 +11,7 @@
 BACNET_DEFINES ?=
 
 # BACnet Library
-BACNET_LIB_DIR = $(realpath lib)
+BACNET_LIB_DIR = $(realpath ./lib)
 BACNET_LIB_NAME = bacnet
 BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 BACNET_LIB ?= -L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
@@ -102,8 +98,8 @@ SYSTEM_LIB=-lc,-lm
 endif
 ifeq (${BACNET_PORT},win32)
 # winget install --id=MSYS2.MSYS2  -e
-# pacman -Syu
-# pacman -Sy base-devel mingw-w64-i686-toolchain
+# pacman -Syu mingw-w64-i686-toolchain
+# add alias make=mingw32-make.exe to .bashrc
 TARGET_EXT = .exe
 SYSTEM_LIB=-lws2_32,-lgcc,-lm,-liphlpapi,-lwinmm
 BACNET_DEFINES += -D_NO_OLDNAMES
@@ -173,6 +169,8 @@ LFLAGS += -Wl,-dead_strip
 else
 LFLAGS += -Wl,--gc-sections
 endif
+# Debug linker commands
+# LFLAGS += -Wl,-v
 
 .EXPORT_ALL_VARIABLES:
 
