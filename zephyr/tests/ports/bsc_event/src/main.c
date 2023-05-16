@@ -125,8 +125,9 @@ static void test_bsc_event2(void)
     zassert_not_null(event, NULL);
 
     for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
-        tid_child[i] = k_thread_create(&thread[i], child_stacks[i], STACKSIZE, &thread_func,
-            event, NULL, NULL, -1, K_USER | K_INHERIT_PERMS, K_NO_WAIT);
+        tid_child[i] = k_thread_create(&thread[i], child_stacks[i], STACKSIZE,
+            &thread_func, event, NULL, NULL, -1, K_USER | K_INHERIT_PERMS,
+            K_NO_WAIT);
         zassert_not_null(tid_child[i], NULL);
     }
 
@@ -140,10 +141,60 @@ static void test_bsc_event2(void)
     bsc_event_deinit(event);
 }
 
+typedef struct
+{
+    BSC_EVENT *event;
+    bool result;
+} test_param_t;
+
+static void thread_func2(void *p1, void *p2, void *p3)
+{
+    test_param_t *p = (test_param_t *)p1;
+    zassert_not_null(p->event, NULL);
+    // use some big timeout value, 24 hours seems to be enough
+    p->result = bsc_event_timedwait(p->event, 24*60*60*1000);
+}
+
+static void test_bsc_event3(void)
+{
+    BSC_EVENT *event;
+    k_tid_t tid[MULTIPLE_WAIT_THREADS_NUM];
+    struct k_thread thread[MULTIPLE_WAIT_THREADS_NUM];
+    test_param_t results[MULTIPLE_WAIT_THREADS_NUM];
+    int i;
+
+    event = bsc_event_init();
+    zassert_not_null(event, NULL);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        results[i].event = event;
+        results[i].result = false;
+        tid[i] = k_thread_create(&thread[i], child_stacks[i], STACKSIZE,
+            &thread_func2, &results[i], NULL, NULL, -1,
+            K_USER | K_INHERIT_PERMS, K_NO_WAIT);
+        zassert_not_null(tid[i], NULL);
+    }
+
+    bsc_wait(1);
+    bsc_event_signal(event);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        k_thread_join(&thread[i], K_FOREVER);
+    }
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        zassert_equal(results[i].result == true, true, NULL);
+    }
+
+    bsc_event_deinit(event);
+}
+
 void test_main(void)
 {
     ztest_test_suite(bsc_event_test1, ztest_unit_test(test_bsc_event1));
     ztest_test_suite(bsc_event_test2, ztest_unit_test(test_bsc_event2));
+    ztest_test_suite(bsc_event_test3, ztest_unit_test(test_bsc_event3));
     ztest_run_test_suite(bsc_event_test1);
     ztest_run_test_suite(bsc_event_test2);
+    ztest_run_test_suite(bsc_event_test3);
 }

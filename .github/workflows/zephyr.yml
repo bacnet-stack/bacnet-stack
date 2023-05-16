@@ -33,8 +33,9 @@ jobs:
       - name: Twister Tests BSC native_posix
         working-directory: bacnet-stack
         run: |
-          rm -rf twister-out.unit_testing &&
+          rm -rf twister-out.native_posix &&
           ../zephyr/scripts/twister -O twister-out.native_posix -p native_posix -T zephyr/tests/bacnet/datalink &&
+          ../zephyr/scripts/twister -O twister-out.native_posix -p native_posix -T zephyr/tests/ports &&
           for file in CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
             do
               find twister-out.native_posix -name $file -exec rm -rf {} \; || true

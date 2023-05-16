@@ -121,11 +121,13 @@ int bacapp_decode_SCHubConnection(uint8_t *apdu,
     int apdu_len = 0;
     int len;
     BACNET_CHARACTER_STRING str;
+    uint32_t ui32;
 
-    if ((len = decode_context_enumerated(&apdu[apdu_len], 0, &value->State)) ==
-        -1) {
+    if ((len = decode_context_enumerated(&apdu[apdu_len], 0, &ui32)) == -1) {
         return -1;
     }
+    value->State = (BACNET_SC_CONNECTION_STATE)ui32;
+
     apdu_len += len;
 
     if ((len = bacapp_decode_context_datetime(
@@ -140,8 +142,8 @@ int bacapp_decode_SCHubConnection(uint8_t *apdu,
     }
     apdu_len += len;
 
-    if ((len = decode_context_enumerated(&apdu[apdu_len], 3, &value->Error)) >
-        0) {
+    if ((len = decode_context_enumerated(&apdu[apdu_len], 3, &ui32)) > 0) {
+        value->Error = (BACNET_ERROR_CODE)ui32;
         apdu_len += len;
     } else {
         value->Error = ERROR_CODE_OTHER;
@@ -294,11 +296,12 @@ int bacapp_decode_SCHubFunctionConnection(uint8_t *apdu,
     BACNET_CHARACTER_STRING str;
     BACNET_OCTET_STRING octet;
     BACNET_HOST_N_PORT hp;
+    uint32_t ui32;
 
-    if ((len = decode_context_enumerated(&apdu[apdu_len], 0, &value->State)) ==
-        -1) {
+    if ((len = decode_context_enumerated(&apdu[apdu_len], 0, &ui32)) == -1) {
         return -1;
     }
+    value->State = (BACNET_SC_CONNECTION_STATE)ui32;
     apdu_len += len;
 
     if ((len = bacapp_decode_context_datetime(
@@ -332,8 +335,8 @@ int bacapp_decode_SCHubFunctionConnection(uint8_t *apdu,
         sizeof(value->Peer_UUID.uuid.uuid128), &octet);
     apdu_len += len;
 
-    if ((len = decode_context_enumerated(&apdu[apdu_len], 6, &value->Error)) >
-        0) {
+    if ((len = decode_context_enumerated(&apdu[apdu_len], 6, &ui32)) > 0) {
+        value->Error = (BACNET_ERROR_CODE)ui32;
         apdu_len += len;
     } else {
         value->Error = ERROR_CODE_OTHER;
@@ -487,6 +490,7 @@ int bacapp_decode_SCFailedConnectionRequest(uint8_t *apdu,
     BACNET_CHARACTER_STRING str;
     BACNET_OCTET_STRING octet;
     BACNET_HOST_N_PORT hp;
+    uint32_t ui32;
 
     if ((len = bacapp_decode_context_datetime(
              &apdu[0], 0, &value->Timestamp)) == -1) {
@@ -513,8 +517,8 @@ int bacapp_decode_SCFailedConnectionRequest(uint8_t *apdu,
         sizeof(value->Peer_UUID.uuid.uuid128), &octet);
     apdu_len += len;
 
-    if ((len = decode_context_enumerated(&apdu[apdu_len], 4, &value->Error)) >
-        0) {
+    if ((len = decode_context_enumerated(&apdu[apdu_len], 4, &ui32)) > 0) {
+        value->Error = (BACNET_ERROR_CODE)ui32;
         apdu_len += len;
     } else {
         value->Error = ERROR_CODE_OTHER;
@@ -647,6 +651,7 @@ int bacapp_decode_RouterEntry(uint8_t *apdu, BACNET_ROUTER_ENTRY *value)
     int len;
     BACNET_OCTET_STRING octet;
     BACNET_UNSIGNED_INTEGER v;
+    uint32_t ui32;
 
     if ((len = decode_context_unsigned(&apdu[0], 0, &v)) == -1) {
         return -1;
@@ -661,10 +666,10 @@ int bacapp_decode_RouterEntry(uint8_t *apdu, BACNET_ROUTER_ENTRY *value)
         value->Mac_Address, sizeof(value->Mac_Address), &octet);
     apdu_len += len;
 
-    if ((len = decode_context_enumerated(&apdu[apdu_len], 2, &value->Status)) ==
-        -1) {
+    if ((len = decode_context_enumerated(&apdu[apdu_len], 2, &ui32)) == -1) {
         return -1;
     }
+    value->Status = ui32;
     apdu_len += len;
 
     if ((len = decode_context_unsigned(&apdu[apdu_len], 3, &v)) > 0) {
@@ -821,6 +826,7 @@ int bacapp_decode_SCDirectConnection(uint8_t *apdu,
     BACNET_CHARACTER_STRING str;
     BACNET_OCTET_STRING octet;
     BACNET_HOST_N_PORT hp;
+    uint32_t ui32;
 
     if ((len = decode_context_character_string(&apdu[apdu_len], 0, &str)) ==
         -1) {
@@ -829,10 +835,10 @@ int bacapp_decode_SCDirectConnection(uint8_t *apdu,
     snprintf(value->URI, sizeof(value->URI), "%s", characterstring_value(&str));
     apdu_len += len;
 
-    if ((len = decode_context_enumerated(&apdu[apdu_len], 1, &value->State)) ==
-        -1) {
+    if ((len = decode_context_enumerated(&apdu[apdu_len], 1, &ui32)) == -1) {
         return -1;
     }
+    value->State = (BACNET_SC_CONNECTION_STATE)ui32;
     apdu_len += len;
 
     if ((len = bacapp_decode_context_datetime(
@@ -866,8 +872,8 @@ int bacapp_decode_SCDirectConnection(uint8_t *apdu,
         sizeof(value->Peer_UUID.uuid.uuid128), &octet);
     apdu_len += len;
 
-    if ((len = decode_context_enumerated(&apdu[apdu_len], 7, &value->Error)) >
-        0) {
+    if ((len = decode_context_enumerated(&apdu[apdu_len], 7, &ui32)) > 0) {
+        value->Error = (BACNET_ERROR_CODE)ui32;
         apdu_len += len;
     } else {
         value->Error = ERROR_CODE_OTHER;
@@ -951,8 +957,12 @@ static int bacapp_snprintf_uuid(char *str, size_t str_len, BACNET_UUID *uuid)
 {
     struct guid *guid = &uuid->uuid.guid;
     uint8_t *p = guid->clock_seq_and_node;
-    return snprintf(str, str_len,
+    char *uuid_format[2] = {
         "%8.8x-%4.4x-%4.4x-%2.2x%2.2x-%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x, ",
+        "%8.8lx-%4.4x-%4.4x-%2.2x%2.2x-%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x, "
+    };
+
+    return snprintf(str, str_len, uuid_format[sizeof(unsigned int) == 4 ? 0 : 1],
         guid->time_low, guid->time_mid, guid->time_hi_and_version, p[0], p[1],
         p[2], p[3], p[4], p[5], p[6], p[7]);
 }
