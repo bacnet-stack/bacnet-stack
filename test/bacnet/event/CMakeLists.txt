@@ -35,13 +35,15 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/event.c
     # Support files and stubs (pathname alphabetical)
 	${SRC_DIR}/bacnet/authentication_factor.c
-	${SRC_DIR}/bacnet/bacdcode.c
+	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
+	${SRC_DIR}/bacnet/bacdcode.c
+	${SRC_DIR}/bacnet/bacdest.c
+	${SRC_DIR}/bacnet/bacdevobjpropref.c
 	${SRC_DIR}/bacnet/bacint.c
 	${SRC_DIR}/bacnet/bacreal.c
 	${SRC_DIR}/bacnet/bacstr.c
 	${SRC_DIR}/bacnet/bacpropstates.c
-	${SRC_DIR}/bacnet/bacdevobjpropref.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/basic/sys/days.c
