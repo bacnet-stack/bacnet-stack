@@ -42,14 +42,14 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/authentication_factor.c
     ${BACNET_SRC}/bacpropstates.c
     # Dependencies of bacapp.c
-    ${SRC_DIR}/bacnet/bactext.c
-    ${SRC_DIR}/bacnet/indtext.c
-    ${SRC_DIR}/bacnet/weeklyschedule.c
-    ${SRC_DIR}/bacnet/bactimevalue.c
-    ${SRC_DIR}/bacnet/dailyschedule.c
-    ${SRC_DIR}/bacnet/lighting.c
-    ${SRC_DIR}/bacnet/timestamp.c
-    ${SRC_DIR}/bacnet/hostnport.c    
+    ${BACNET_SRC}/bactext.c
+    ${BACNET_SRC}/indtext.c
+    ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/bactimevalue.c
+    ${BACNET_SRC}/dailyschedule.c
+    ${BACNET_SRC}/lighting.c
+    ${BACNET_SRC}/timestamp.c
+    ${BACNET_SRC}/hostnport.c    
   )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
