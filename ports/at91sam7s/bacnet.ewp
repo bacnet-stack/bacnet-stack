@@ -1128,6 +1128,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\bacdcode.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\bacdest.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\bacdevobjpropref.c</name>
         </file>
         <file>

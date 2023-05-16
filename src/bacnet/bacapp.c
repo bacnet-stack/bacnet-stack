@@ -196,6 +196,11 @@ int bacapp_encode_application_data(
                 apdu_len = bacapp_encode_obj_property_ref(
                     apdu, &value->type.Object_Property_Reference);
                 break;
+            case BACNET_APPLICATION_TAG_DESTINATION:
+                /* BACnetDestination */
+                apdu_len = bacnet_destination_encode(
+                    apdu, &value->type.Destination);
+                break;
 #endif
             default:
                 break;
@@ -343,6 +348,11 @@ int bacapp_decode_data(uint8_t *apdu,
                 /* BACnetObjectPropertyReference */
                 len = bacapp_decode_obj_property_ref(apdu, len_value_type,
                     &value->type.Object_Property_Reference);
+                break;
+            case BACNET_APPLICATION_TAG_DESTINATION:
+                /* BACnetDestination */
+                len = bacnet_destination_decode(apdu, len_value_type,
+                    &value->type.Destination);
                 break;
 #endif
             default:
@@ -671,6 +681,11 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 /* BACnetObjectPropertyReference */
                 apdu_len = bacapp_encode_context_obj_property_ref(apdu,
                     context_tag_number, &value->type.Object_Property_Reference);
+                break;
+            case BACNET_APPLICATION_TAG_DESTINATION:
+                /* BACnetDestination */
+                apdu_len = bacnet_destination_context_encode(apdu,
+                    context_tag_number, &value->type.Destination);
                 break;
 #endif
             default:
@@ -1129,8 +1144,8 @@ int bacapp_known_property_tag(
             return -1;
 
         case PROP_RECIPIENT_LIST:
-            /* FIXME: Properties using BACnetDestination */
-            return -1;
+            /* Properties using BACnetDestination */
+            return BACNET_APPLICATION_TAG_DESTINATION;
 
         case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
         case PROP_RESTART_NOTIFICATION_RECIPIENTS:
@@ -1287,6 +1302,11 @@ int bacapp_decode_known_property(uint8_t *apdu,
                 apdu, max_apdu_len, &value->type.Weekly_Schedule);
             break;
 
+        case PROP_RECIPIENT_LIST:
+            len = bacnet_destination_decode(
+                apdu, max_apdu_len, &value->type.Destination);
+            break;
+
             /* properties without a specific decoder - fall through to default
              */
 
@@ -1300,8 +1320,6 @@ int bacapp_decode_known_property(uint8_t *apdu,
             /* FIXME: BACnetCOVSubscription */
         case PROP_EFFECTIVE_PERIOD:
             /* FIXME: Properties using BACnetDateRange  (Schedule) */
-        case PROP_RECIPIENT_LIST:
-            /* FIXME: Properties using BACnetDestination */
         case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
         case PROP_RESTART_NOTIFICATION_RECIPIENTS:
         case PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
@@ -2242,6 +2260,10 @@ int bacapp_snprintf_value(
                 ret_val = bacapp_snprintf_weeklyschedule(str, str_len,
                     &value->type.Weekly_Schedule, object_value->array_index);
                 break;
+            case BACNET_APPLICATION_TAG_DESTINATION:
+                /* BACnetWeeklySchedule */
+                ret_val = bacnet_destination_to_ascii(&value->type.Destination, str, str_len);
+                break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 if (value->type.Host_Address.host_ip_address) {
                     octet_str = octetstring_value(
@@ -2762,6 +2784,10 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                 } else {
                     status = false;
                 }
+                break;
+            case BACNET_APPLICATION_TAG_DESTINATION:
+                status = bacnet_destination_from_ascii(&value->type.Destination,
+                    argv);
                 break;
 #endif
             default:
