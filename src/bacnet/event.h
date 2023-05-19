@@ -49,8 +49,6 @@ typedef enum {
 */
 
 
-// TODO make these configurable from env?
-
 /** Enable decoding of complex-event-type property-values. If set to 0, the values are decoded and discarded. */
 #ifndef BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS
 #define BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS 1

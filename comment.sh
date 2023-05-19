@@ -1,6 +1,7 @@
 #!/bin/bash
 # This script converts any C++ comments to C comments
 # using the ccmtcnvt tool from the liwc package
+# sudo apt install liwc
 
 CONVERTER=/usr/bin/ccmtcnvt
 # silent fail if the tool is not installed
