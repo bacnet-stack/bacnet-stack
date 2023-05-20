@@ -21,15 +21,6 @@ extern int errno;
 
 register char * stack_ptr asm("sp");
 
-#if 0
-char *__env[1] = { 0 };
-char **environ = __env;
-
-void initialise_monitor_handles()
-{
-}
-#endif
-
 int _getpid(void)
 {
 	return 1;
