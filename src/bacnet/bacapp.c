@@ -61,6 +61,22 @@
 #include "bacnet/basic/object/sc_netport.h"
 #endif
 
+#if defined(BACAPP_TYPES_EXTRA)
+#warning "!!! BACAPP_TYPES_EXTRA is set !!!"
+#else
+#warning "!!! BACAPP_TYPES_EXTRA is NOT set !!!"
+#endif
+#if defined(BACAPP_ALL)
+#warning "!!! BACAPP_ALL is set !!!"
+#else
+#warning "!!! BACAPP_ALL is NOT set !!!"
+#endif
+#if defined(BACAPP_MINIMAL)
+#warning "!!! BACAPP_MINIMAL is set !!!"
+#else
+#warning "!!! BACAPP_MINIMAL is NOT set !!!"
+#endif
+
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
 
 /**
