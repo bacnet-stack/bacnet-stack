@@ -16,12 +16,12 @@
 #include <sys/time.h>
 #include <sys/times.h>
 
-#if 0
 #undef errno
 extern int errno;
 
 register char * stack_ptr asm("sp");
 
+#if 0
 char *__env[1] = { 0 };
 char **environ = __env;
 
@@ -47,7 +47,6 @@ void _exit (int status)
 	while (1) {}		/* Make sure we hang here */
 }
 
-#if 0
 #ifdef __GNUC__
  #warning "Do not forget to override __io_putchar() in your code if you want to have working printf()/fprintf()/debug_printf()/etc functions!!!!"
 __attribute__((weak)) int __io_putchar(int ch)
@@ -56,7 +55,6 @@ __attribute__((weak)) int __io_putchar(int ch)
 }
 #else
 extern int __io_putchar(int ch);
-#endif
 #endif
 
 int _write(int file, char *ptr, int len)

@@ -151,6 +151,24 @@
 #define PRINT_ENABLED 0
 #endif
 
+#if defined(TEST_TEST) && defined(TEST_TEST2)
+#if defined(BACAPP_TYPES_EXTRA)
+#warning "!!! BACAPP_TYPES_EXTRA1 is set !!!"
+#else
+#warning "!!! BACAPP_TYPES_EXTRA1 is NOT set !!!"
+#endif
+#if defined(BACAPP_ALL)
+#warning "!!! BACAPP_ALL1 is set !!!"
+#else
+#warning "!!! BACAPP_ALL1 is NOT set !!!"
+#endif
+#if defined(BACAPP_MINIMAL)
+#warning "!!! BACAPP_MINIMAL2 is set !!!"
+#else
+#warning "!!! BACAPP_MINIMAL2 is NOT set !!!"
+#endif
+#endif
+
 /* BACAPP decodes WriteProperty service requests
    Choose the datatypes that your application supports */
 #if !(defined(BACAPP_ALL) || \

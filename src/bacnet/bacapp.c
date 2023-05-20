@@ -43,6 +43,9 @@
 #include <wchar.h>
 #include <wctype.h>
 #endif
+#if defined(TEST_TEST) 
+#define TEST_TEST2
+#endif
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
@@ -61,6 +64,7 @@
 #include "bacnet/basic/object/sc_netport.h"
 #endif
 
+#if defined(TEST_TEST)
 #if defined(BACAPP_TYPES_EXTRA)
 #warning "!!! BACAPP_TYPES_EXTRA is set !!!"
 #else
@@ -75,6 +79,7 @@
 #warning "!!! BACAPP_MINIMAL is set !!!"
 #else
 #warning "!!! BACAPP_MINIMAL is NOT set !!!"
+#endif
 #endif
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
