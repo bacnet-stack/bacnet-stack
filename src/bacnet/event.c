@@ -61,7 +61,7 @@ static int parse_complex_event_type_values(int len, unsigned apdu_len, uint8_t *
     }
     */
 
-    // TODO this is mostly copied from "cov_notify_decode_service_request" - extract to a common function?
+    /* TODO this is mostly copied from "cov_notify_decode_service_request" - extract to a common function? */
 
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
@@ -71,12 +71,12 @@ static int parse_complex_event_type_values(int len, unsigned apdu_len, uint8_t *
     int app_len = 0;
 
 #if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
+    BACNET_PROPERTY_VALUE *values;
+    BACNET_PROPERTY_VALUE *value;
     /* we want to extract the values */
-    BACNET_PROPERTY_VALUE *values = data->notificationParams.complexEventType.values;
+    values = data->notificationParams.complexEventType.values;
     bacapp_property_value_list_init(values, BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS);
-
-    BACNET_PROPERTY_VALUE *value = values;
-
+    value = values;
     for(;;) {
         /* tag 0 - propertyIdentifier */
         if (len >= (int)apdu_len) {
@@ -151,11 +151,12 @@ static int parse_complex_event_type_values(int len, unsigned apdu_len, uint8_t *
         }
     }
 #else
-    // we just want to discard the complex values
+    /* we just want to discard the complex values */
     BACNET_PROPERTY_VALUE dummyValue;
-    bacapp_property_value_list_init(&dummyValue, 1);
-    BACNET_PROPERTY_VALUE *value = &dummyValue;
+    BACNET_PROPERTY_VALUE *value;
 
+    bacapp_property_value_list_init(&dummyValue, 1);
+    value = &dummyValue;
     for(;;) {
         /* tag 0 - propertyIdentifier */
         if (len >= (int)apdu_len) {
