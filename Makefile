@@ -326,9 +326,8 @@ clean: ports-clean
 .PHONY: test
 test:
 	$(MAKE) -s -C test clean
-#	$(MAKE) -s -C test all
-	$(MAKE) V=1 VERBOSE=1 -C test all
+	$(MAKE) -s -j -C test all
 
 .PHONY: retest
 retest:
-	$(MAKE) -s -C test retest
+	$(MAKE) -s -j -C test retest
