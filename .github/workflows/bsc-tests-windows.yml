@@ -9,6 +9,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Create Build Environment
       run: |
+        rmdir /S /Q "C:\Program Files\OpenSSL"
         "set(VCPKG_BUILD_TYPE release)`n" >> c:\vcpkg\triplets\x64-windows.cmake
         vcpkg install vcpkg-cmake --triplet x64-windows
         vcpkg install vcpkg-cmake-config --triplet x64-windows
@@ -18,7 +19,6 @@ jobs:
         vcpkg install libuv --triplet x64-windows
         vcpkg install libwebsockets --triplet x64-windows
         git clone https://libwebsockets.org/repo/libwebsockets
-        rmdir /S "C:/Program Files/OpenSSL"
         cd libwebsockets
         mkdir build
         cd build
