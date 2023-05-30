@@ -22,7 +22,7 @@ jobs:
         cd libwebsockets
         mkdir build
         cd build
-        cmake ..  -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom -DCMAKE_INSTALL_PREFIX="./pkg" -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DLWS_WITH_LIBUV=1 -DLWS_HAVE_PTHREAD_H=1 -DLWS_EXT_PTHREAD_INCLUDE_DIR="C:\vcpkg\installed\x64-windows\include" -DLWS_EXT_PTHREAD_LIBRARIES="C:\vcpkg\installed\x64-windows\lib\pthreadVC3.lib"
+        cmake ..  -DOPENSSL_INCLUDE_DIR="C:\vcpkg\installed\x64-windows-custom\include\openssl" -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom -DCMAKE_INSTALL_PREFIX="./pkg" -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DLWS_WITH_LIBUV=1 -DLWS_HAVE_PTHREAD_H=1 -DLWS_EXT_PTHREAD_INCLUDE_DIR="C:\vcpkg\installed\x64-windows-custom\include" -DLWS_EXT_PTHREAD_LIBRARIES="C:\vcpkg\installed\x64-windows-custom\lib\pthreadVC3.lib"
         cmake --build . --config RELEASE
         cmake --install . --config RELEASE
         copy /Y .\pkg\bin c:\vcpkg\installed\x64-windows\bin
