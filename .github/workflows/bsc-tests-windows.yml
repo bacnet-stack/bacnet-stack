@@ -11,7 +11,7 @@ jobs:
       run: |
         rmdir 'C:\Program Files\OpenSSL' -Recurse -Force
         c:\vcpkg\vcpkg.exe upgrade
-        copy c:\vcpkg\triplets\x64-windows-static.cmake c:\vcpkg\triplets\x64-windows-custom.cmake
+        copy c:\vcpkg\triplets\x64-windows.cmake c:\vcpkg\triplets\x64-windows-custom.cmake
         "set(VCPKG_BUILD_TYPE release)`n" >> c:\vcpkg\triplets\x64-windows-custom.cmake
         c:\vcpkg\vcpkg.exe install vcpkg-cmake --triplet x64-windows-custom
         c:\vcpkg\vcpkg.exe install vcpkg-cmake-config --triplet x64-windows-custom
@@ -19,13 +19,13 @@ jobs:
         c:\vcpkg\vcpkg.exe install pthreads --triplet x64-windows-custom
         c:\vcpkg\vcpkg.exe install libuv --triplet x64-windows-custom
         c:\vcpkg\vcpkg.exe install openssl --triplet x64-windows-custom
-        c:\vcpkg\vcpkg.exe install libwebsockets --triplet x64-windows-custom
+        [Environment]::SetEnvironmentVariable("OPENSSL_INCLUDE_DIR", "c:\vcpkg\installed\x64-windows-custom\include", "Machine")
         Get-ChildItem -Path Env:
         git clone https://libwebsockets.org/repo/libwebsockets
         cd libwebsockets
         mkdir build
         cd build
-        cmake ..  -DOPENSSL_ROOT_DIR=C:\vcpkg\installed\x64-windows-custom -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom -DCMAKE_INSTALL_PREFIX="./pkg" -DLWS_WITH_MINIMAL_EXAMPLES=1 -DLWS_MAX_SMP=32 -DLWS_WITH_LIBUV=1 -DLWS_HAVE_PTHREAD_H=1 -DLWS_EXT_PTHREAD_INCLUDE_DIR="C:\vcpkg\installed\x64-windows-custom\include" -DLWS_EXT_PTHREAD_LIBRARIES="C:\vcpkg\installed\x64-windows-custom\lib\pthreadVC3.lib"
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom -DCMAKE_INSTALL_PREFIX="./pkg" -DLWS_WITH_MINIMAL_EXAMPLES=1 -DLWS_MAX_SMP=32 -DLWS_WITH_LIBUV=1 -DLWS_HAVE_PTHREAD_H=1 -DLWS_EXT_PTHREAD_INCLUDE_DIR="C:\vcpkg\installed\x64-windows-custom\include" -DLWS_EXT_PTHREAD_LIBRARIES="C:\vcpkg\installed\x64-windows-custom\lib\pthreadVC3.lib"
         cmake --build . --config RELEASE
         cmake --install . --config RELEASE
         copy /Y .\pkg\bin c:\vcpkg\installed\x64-windows\bin
