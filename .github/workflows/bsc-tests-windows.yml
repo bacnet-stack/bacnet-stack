@@ -11,7 +11,7 @@ jobs:
       run: |
         rmdir 'C:\Program Files\OpenSSL' -Recurse -Force
         c:\vcpkg\vcpkg.exe upgrade
-        set
+        Get-ChildItem -Path Env:
         copy c:\vcpkg\triplets\x64-windows.cmake c:\vcpkg\triplets\x64-windows-custom.cmake
         "set(VCPKG_BUILD_TYPE release)`n" >> c:\vcpkg\triplets\x64-windows-custom.cmake
         c:\vcpkg\vcpkg.exe install vcpkg-cmake --triplet x64-windows-custom
