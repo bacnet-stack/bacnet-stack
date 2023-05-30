@@ -1673,13 +1673,15 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
 {
     int ret_val = 0;
     int slen = 0;
+    const char *wday_text;
+    const char *month_text;
 
+    wday_text =  bactext_day_of_week_name(bdate->wday);
+    month_text = bactext_month_name(bdate->month);
     /* false positive cppcheck - snprintf allows null pointers */
     /* cppcheck-suppress nullPointer */
     /* cppcheck-suppress ctunullpointer */
-    slen =
-        snprintf(str, str_len, "%s, %s", bactext_day_of_week_name(bdate->wday),
-            bactext_month_name(bdate->month));
+    slen = snprintf(str, str_len, "%s, %s", wday_text, month_text);
     if (str) {
         str += slen;
         if (str_len >= slen) {
