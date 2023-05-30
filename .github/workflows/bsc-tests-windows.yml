@@ -18,6 +18,7 @@ jobs:
         vcpkg install libuv --triplet x64-windows
         vcpkg install libwebsockets --triplet x64-windows
         git clone https://libwebsockets.org/repo/libwebsockets
+        rmdir /S "C:/Program Files/OpenSSL"
         cd libwebsockets
         mkdir build
         cd build
