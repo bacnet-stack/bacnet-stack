@@ -10,14 +10,14 @@ jobs:
     - name: Create Build Environment
       run: |
         rmdir 'C:\Program Files\OpenSSL' -Recurse -Force
-        "set(VCPKG_BUILD_TYPE release)`n" >> c:\vcpkg\triplets\x64-windows.cmake
+#        "set(VCPKG_BUILD_TYPE release)`n" >> c:\vcpkg\triplets\x64-windows.cmake
         vcpkg install vcpkg-cmake --triplet x64-windows
         vcpkg install vcpkg-cmake-config --triplet x64-windows
         vcpkg install vcpkg-cmake-get-vars --triplet x64-windows
         vcpkg install openssl --triplet x64-windows
         vcpkg install pthreads --triplet x64-windows
         vcpkg install libuv --triplet x64-windows
-        vcpkg install libwebsockets --triplet x64-windows
+       # vcpkg install libwebsockets --triplet x64-windows
         vcpkg integrate install
         git clone https://libwebsockets.org/repo/libwebsockets
         cd libwebsockets
