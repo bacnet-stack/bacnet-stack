@@ -9,9 +9,25 @@ jobs:
     - uses: actions/checkout@v3
     - name: Create Build Environment
       run: |
-        copy c:\vcpkg\triplets\x64-windows.cmake c:\vcpkg\triplets\x64-windows-custom.cmake
-        "set(VCPKG_BUILD_TYPE release)`nset(VCPKG_C_FLAGS `"-DLWS_MAX_SMP=32`")`nset(VCPKG_CXX_FLAGS `"-DLWS_MAX_SMP=32`")`n" >> c:\vcpkg\triplets\x64-windows-custom.cmake
-        vcpkg install libwebsockets --triplet x64-windows-custom
+        "set(VCPKG_BUILD_TYPE release)`n" >> c:\vcpkg\triplets\x64-windows.cmake
+        vcpkg install vcpkg-cmake --triplet x64-windows
+        vcpkg install vcpkg-cmake-config --triplet x64-windows
+        vcpkg install vcpkg-cmake-get-vars --triplet x64-windows
+        vcpkg install libwebsockets --triplet x64-windows
+        git clone https://libwebsockets.org/repo/libwebsockets
+        cd libwebsockets
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DCMAKE_INSTALL_PREFIX="./pkg" -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DLWS_WITH_LIBUV=1 -DLWS_HAVE_PTHREAD_H=1 -DLWS_EXT_PTHREAD_INCLUDE_DIR="C:\vcpkg\installed\x64-windows\include" -DLWS_EXT_PTHREAD_LIBRARIES="C:\vcpkg\installed\x64-windows\lib\pthreadVC3.lib"
+        cmake --build . --config RELEASE
+        cmake --install . --config RELEASE
+        copy /Y .\pkg\bin c:\vcpkg\installed\x64-windows\bin
+        copy /Y .\pkg\include c:\vcpkg\installed\x64-windows\include
+        copy /Y .\pkg\lib c:\vcpkg\installed\x64-windows\lib
+        copy /Y .\pkg\share c:\vcpkg\installed\x64-windows\share
+        cd pkg
+        dir /S
+        cd ../../../
     - name: Setup MSBuild 
       uses: microsoft/setup-msbuild@v1.1
       with:
@@ -19,42 +35,42 @@ jobs:
     - name: Build and run bsc_event test
       run: |
         cd ./test/ports/win32/bsc_event
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
         msbuild build/test_bsc_event.sln /Property:Configuration=Release
         ./build/Release/test_bsc_event.exe
     - name: Build and run bvlc-sc test
       run: |
         cd ./test/bacnet/datalink/bvlc-sc
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
         msbuild build/test_bvlc-sc.sln /Property:Configuration=Release
         ./build/Release/test_bvlc-sc.exe
     - name: Build and run websockets test
       run: |
         cd ./test/bacnet/datalink/websockets
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
         msbuild build/test_websockets.sln /Property:Configuration=Release
         ./build/Release/test_websockets.exe
     - name: Build and run bsc-socket test
       run: |
         cd ./test/bacnet/datalink/bsc-socket
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
         msbuild build/test_bsc-socket.sln /Property:Configuration=Release
         ./build/Release/test_bsc-socket.exe
     - name: Build and run hub-sc test
       run: |
         cd ./test/bacnet/datalink/hub-sc
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
         msbuild build/test_hub-sc.sln /Property:Configuration=Release
         ./build/Release/test_hub-sc.exe
     - name: Build and run bsc-node test
       run: |
         cd ./test/bacnet/datalink/bsc-node
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
         msbuild build/test_bsc-node.sln /Property:Configuration=Release
         ./build/Release/test_bsc-node.exe
     - name: Build and run bsc-datalink test
       run: |
         cd ./test/bacnet/datalink/bsc-datalink
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
         msbuild build/test_bsc-datalink.sln /Property:Configuration=Release
         ./build/Release/test_bsc-datalink.exe
