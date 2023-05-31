@@ -58,7 +58,7 @@ To use QEMU for testing, follow the :ref:`networking_with_qemu` guide.
   for native_posix board:
     - run `sudo ./net-setup.sh` from `~/net-tools` in a concole
 
-2 Run the SC Hub, ex. :bacnet:`bin/sc-node`.
+2 Run the SC Hub, ex. :bacnet:`bin/sc-hub`.
   The SC Hub must binds to the network interface for QEMU (usualy "192.0.2.2")
   or binds to all network interface (see parameter
   `BACNET_SC_HUB_FUNCTION_BINDING`).
