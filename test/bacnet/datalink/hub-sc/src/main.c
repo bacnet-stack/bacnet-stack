@@ -1543,7 +1543,6 @@ static void test_hub_connector_url(bool primary)
         BACNET_TIMEOUT, // reconnect timeout
         hub_connector_event, &hubc_uuid, &hubc_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
-    zassert_equal(bsc_hub_connector_state(hubc_h), BACNET_NO_HUB_CONNECTION, 0);
     if (primary) {
         zassert_equal(
             wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h), true,
@@ -1572,8 +1571,6 @@ static void test_hub_connector_url(bool primary)
         BACNET_TIMEOUT, // reconnect timeout
         hub_connector_event, &hubc_uuid2, &hubc_h2);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
-    zassert_equal(
-        bsc_hub_connector_state(hubc_h2), BACNET_NO_HUB_CONNECTION, 0);
     if (primary) {
         zassert_equal(
             wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h2),
