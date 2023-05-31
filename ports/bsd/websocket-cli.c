@@ -454,9 +454,9 @@ static void *bws_cli_worker(void *arg)
         } else if (conn->state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
             DEBUG_PRINTF("bws_cli_worker() process disconnecting event\n");
             DEBUG_PRINTF("bws_cli_worker() destroy ctx %p\n", conn->ctx);
-            /* TRICKY: This is ridiculus but lws_context_destroy()
-                       does't seem to be
-                       thread safe. More over, on different platforms the
+            /* TRICKY: Libwebsockets API is not designed to be used from
+                       multipe service threads, as a result lws_context_destroy()
+                       is not thread safe. More over, on different platforms the
                        function behaves in different ways. Call of
                        lws_context_destroy() leads to several calls of
                        bws_cli_websocket_event() callback (LWS_CALLBACK_CLOSED,
@@ -647,9 +647,9 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     }
 
     if(r) {
-        /* TRICKY: This is ridiculus but lws_context_destroy()
-                   does't seem to be
-                   thread safe. More over, on different platforms the
+        /* TRICKY: Libwebsockets API is not designed to be used from
+                   multipe service threads, as a result lws_context_destroy()
+                   is not thread safe. More over, on different platforms the
                    function behaves in different ways. Call of
                    lws_context_destroy() leads to several calls of
                    bws_cli_websocket_event() callback (LWS_CALLBACK_CLOSED,
