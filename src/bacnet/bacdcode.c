@@ -3116,7 +3116,7 @@ int bacnet_array_encode(uint32_t object_instance,
         if (len > max_apdu) {
             apdu_len = BACNET_STATUS_ABORT;
         } else {
-            len = encode_application_unsigned(NULL, array_size);
+            len = encode_application_unsigned(apdu, array_size);
             apdu_len = len;
         }
     } else if (array_index == BACNET_ARRAY_ALL) {
