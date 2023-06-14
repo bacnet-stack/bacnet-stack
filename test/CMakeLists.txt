@@ -76,6 +76,7 @@ list(APPEND testdirs
   bacnet/whohas
   bacnet/whois
   bacnet/wp
+  bacnet/wpm
   bacnet/weeklyschedule
   )
 
