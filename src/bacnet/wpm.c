@@ -473,7 +473,7 @@ int wpm_error_ack_decode_apdu(
     }
     if (decode_is_opening_tag_number(apdu_offset, 0)) {
         len = 1;
-        apdu_len -= len;
+        apdu_len += len;
         if (apdu) {
             apdu_offset = &apdu[apdu_len];
             if (apdu_size > len) {
@@ -509,7 +509,7 @@ int wpm_error_ack_decode_apdu(
     }
     if (decode_is_closing_tag_number(apdu_offset, 0)) {
         len = 1;
-        apdu_len -= len;
+        apdu_len += len;
         if (apdu) {
             apdu_offset = &apdu[apdu_len];
             if (apdu_size > len) {
@@ -527,7 +527,7 @@ int wpm_error_ack_decode_apdu(
     }
     if (decode_is_opening_tag_number(apdu_offset, 1)) {
         len = 1;
-        apdu_len -= len;
+        apdu_len += len;
         if (apdu) {
             apdu_offset = &apdu[apdu_len];
             if (apdu_size > len) {
@@ -570,4 +570,23 @@ int wpm_error_ack_decode_apdu(
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Convert an array of BACnetWriteAccessData to linked list
+ * @param array pointer to element zero of the array
+ * @param size number of elements in the array
+*/
+void wpm_write_access_data_link_array(
+    BACNET_WRITE_ACCESS_DATA *array,
+    size_t size)
+{
+    size_t i = 0;
+
+    for (i = 0; i < size; i++) {
+        if (i > 0) {
+            array[i - 1].next = &array[i];
+        }
+        array[i].next = NULL;
+    }
 }
