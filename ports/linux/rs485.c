@@ -547,7 +547,9 @@ void RS485_Initialize(void)
     struct serial_struct newserial;
     float baud_error = 0.0;
 
-    printf("RS485: Initializing %s", RS485_Port_Name);
+#if PRINT_ENABLED
+    fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
+#endif
     /*
        Open device for reading and writing.
        Blocking mode - more CPU effecient
@@ -600,14 +602,17 @@ void RS485_Initialize(void)
                 76800);
         if ((newserial.custom_divisor == 0) || (baud_error > 0.02)) {
             /* bad divisor */
-            fprintf(stderr, "bad custom divisor %d, base baud %d\n",
+            fprintf(stderr, "RS485 bad custom divisor %d, base baud %d\n",
                 newserial.custom_divisor, newserial.baud_base);
             exit(EXIT_FAILURE);
         }
         /* if all goes well, set new divisor */
         ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
     }
-    printf(" at Baud Rate %u", RS485_Get_Baud_Rate());
+#if PRINT_ENABLED
+    fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Get_Baud_Rate());
+    fflush(stdout);
+#endif
     /* destructor */
     atexit(RS485_Cleanup);
     /* flush any data waiting */
@@ -615,7 +620,6 @@ void RS485_Initialize(void)
     tcflush(RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
     FIFO_Init(&Rx_FIFO, Rx_Buffer, sizeof(Rx_Buffer));
-    printf("=success!\n");
 }
 
 /* Print in a format for Wireshark ExtCap */
@@ -632,7 +636,7 @@ void RS485_Print_Ports(void)
     bool valid_port = false;
     struct serial_struct serinfo;
 
-    /* Scan through /sys/class/tty - 
+    /* Scan through /sys/class/tty -
        it contains all tty-devices in the system */
     n = scandir(sysdir, &namelist, NULL, NULL);
     if (n < 0) {
