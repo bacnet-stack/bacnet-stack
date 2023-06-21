@@ -30,17 +30,29 @@ if(BOARD STREQUAL unit_testing)
 
   get_filename_component(BACNET_SRC ${BACNET_SRC_PATH} PATH)
   list(APPEND SOURCES
+    ${BACNET_SRC}/bacaddr.c
+    ${BACNET_SRC}/bacapp.c
+    ${BACNET_SRC}/bacstr.c
     ${BACNET_SRC}/bacdcode.c
+    ${BACNET_SRC}/bacdest.c
     ${BACNET_SRC}/bacstr.c
     ${BACNET_SRC}/bacint.c
     ${BACNET_SRC}/bacreal.c
     ${BACNET_SRC}/datetime.c
-    ${BACNET_SRC}/timestamp.c
     ${BACNET_SRC}/basic/sys/days.c
     ${BACNET_SRC}/bacdevobjpropref.c
     ${BACNET_SRC}/authentication_factor.c
     ${BACNET_SRC}/bacpropstates.c
-    )
+    # Dependencies of bacapp.c
+    ${BACNET_SRC}/bactext.c
+    ${BACNET_SRC}/indtext.c
+    ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/bactimevalue.c
+    ${BACNET_SRC}/dailyschedule.c
+    ${BACNET_SRC}/lighting.c
+    ${BACNET_SRC}/timestamp.c
+    ${BACNET_SRC}/hostnport.c    
+  )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
   find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})

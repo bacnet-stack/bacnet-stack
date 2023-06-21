@@ -36,8 +36,10 @@ add_executable(${PROJECT_NAME}
     # Support files and stubs (pathname alphabetical)
 	${SRC_DIR}/bacnet/authentication_factor.c
 	${SRC_DIR}/bacnet/authentication_factor_format.c
+	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
+	${SRC_DIR}/bacnet/bacdest.c
 	${SRC_DIR}/bacnet/bacdevobjpropref.c
 	${SRC_DIR}/bacnet/bacint.c
 	${SRC_DIR}/bacnet/bacreal.c

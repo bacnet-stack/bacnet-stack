@@ -56,6 +56,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacdest.c \
 	$(BACNET_CORE)/bacdevobjpropref.c \
 	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacint.c \
@@ -158,13 +159,14 @@ CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin
 # place uninitialized global variables in the data section of the object file.
 CFLAGS += -fno-common
+WARNING_ALL := -Wall
 # enable all relevant warnings that find bugs
-WARNING_ALL := -Wall -Wextra -Wall -Wfloat-equal -Wconversion -Wparentheses
-WARNING_ALL += -pedantic -Wunused-parameter -Wunused-variable -Wreturn-type
-WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
-WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
-WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
-WARNING_ALL += -Wno-long-long
+#WARNING_ALL += -pedantic -Wextra -Wfloat-equal -Wconversion -Wparentheses
+#WARNING_ALL += -Wunused-parameter -Wunused-variable -Wreturn-type
+#WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
+#WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
+#WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+#WARNING_ALL += -Wno-long-long
 #WARNING_ALL += -Wredundant-decls
 #WARNING_ALL += -Werror
 CFLAGS += $(WARNING_ALL)
@@ -174,7 +176,8 @@ CFLAGS += -Wno-missing-braces
 CFLAGS += -Wno-missing-prototypes
 # don't warn about array subscript being char
 CFLAGS += -Wno-char-subscripts
-
+# FIXME later
+CFLAGS += -Wno-unused-parameter
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
 

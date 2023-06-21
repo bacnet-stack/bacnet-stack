@@ -47,7 +47,7 @@
 /* MS/TP specific */
 #include "bacnet/datalink/dlmstp.h"
 #include "rs485.h"
-//#include "nvdata.h"
+// #include "nvdata.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
 
@@ -369,6 +369,8 @@ bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)
             Object_List[0].Link_Speed = value;
             Object_List[0].Changes_Pending = true;
             status = true;
+            break;
+        default:
             break;
     }
 
