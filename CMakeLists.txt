@@ -173,6 +173,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/bv.h
     src/bacnet/basic/object/channel.c
     src/bacnet/basic/object/channel.h
+    src/bacnet/basic/object/calendar.c
+    src/bacnet/basic/object/calendar.h
     src/bacnet/basic/object/color_object.c
     src/bacnet/basic/object/color_object.h
     src/bacnet/basic/object/color_temperature.c
@@ -213,6 +215,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/piv.h
     src/bacnet/basic/object/schedule.c
     src/bacnet/basic/object/schedule.h
+    src/bacnet/basic/object/time_value.c
+    src/bacnet/basic/object/time_value.h
     src/bacnet/basic/object/trendlog.c
     src/bacnet/basic/object/trendlog.h
     src/bacnet/basic/service/h_alarm_ack.c
@@ -364,6 +368,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/bits.h
     src/bacnet/bytes.h
     src/bacnet/config.h
+    src/bacnet/calendar.c
+    src/bacnet/calendar.h
     src/bacnet/cov.c
     src/bacnet/cov.h
     src/bacnet/create_object.c

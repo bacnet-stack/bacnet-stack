@@ -68,6 +68,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/object/bi.c
     ${BACNET_SRC}/basic/object/bo.c
     ${BACNET_SRC}/basic/object/bv.c
+    ${BACNET_SRC}/basic/object/calendar.c
     ${BACNET_SRC}/basic/object/channel.c
     ${BACNET_SRC}/basic/object/color_object.c
     ${BACNET_SRC}/basic/object/color_temperature.c
@@ -84,6 +85,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/object/osv.c
     ${BACNET_SRC}/basic/object/piv.c
     ${BACNET_SRC}/basic/object/schedule.c
+    ${BACNET_SRC}/basic/object/time_value.c
     ${BACNET_SRC}/basic/object/trendlog.c
     ${BACNET_SRC}/hostnport.c
     ${BACNET_SRC}/basic/service/h_apdu.c

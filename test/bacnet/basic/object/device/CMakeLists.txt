@@ -54,6 +54,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/object/bi.c
 	${SRC_DIR}/bacnet/basic/object/bo.c
 	${SRC_DIR}/bacnet/basic/object/bv.c
+	${SRC_DIR}/bacnet/basic/object/calendar.c
 	${SRC_DIR}/bacnet/basic/object/channel.c
 	${SRC_DIR}/bacnet/basic/object/color_object.c
 	${SRC_DIR}/bacnet/basic/object/color_temperature.c
@@ -70,6 +71,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/object/osv.c
 	${SRC_DIR}/bacnet/basic/object/piv.c
 	${SRC_DIR}/bacnet/basic/object/schedule.c
+	${SRC_DIR}/bacnet/basic/object/time_value.c
 	${SRC_DIR}/bacnet/basic/object/trendlog.c
 	${SRC_DIR}/bacnet/basic/service/h_apdu.c
 	${SRC_DIR}/bacnet/basic/service/h_cov.c

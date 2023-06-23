@@ -110,6 +110,7 @@ list(APPEND testdirs
   bacnet/basic/object/bo
   bacnet/basic/object/bv
   bacnet/basic/object/channel
+  bacnet/basic/object/calendar
   bacnet/basic/object/color_object
   bacnet/basic/object/color_temperature
   bacnet/basic/object/command
@@ -128,6 +129,7 @@ list(APPEND testdirs
   bacnet/basic/object/osv
   bacnet/basic/object/piv
   bacnet/basic/object/schedule
+  bacnet/basic/object/time_value
   bacnet/basic/object/trendlog
   # basic/sys
   bacnet/basic/sys/color_rgb
