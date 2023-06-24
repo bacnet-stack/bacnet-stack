@@ -600,6 +600,8 @@ static void who_is_router_to_network_handler(uint16_t snet,
     uint16_t network = 0;
     uint16_t len = 0;
 
+    (void)src;
+    (void)npdu_data;
     if (npdu) {
         if (npdu_len >= 2) {
             len += decode_unsigned16(&npdu[len], &network);
@@ -1143,6 +1145,8 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
 
+    (void)argc;
+    (void)argv;
     printf("BACnet Simple MS/TP to IP Router Demo\n");
     printf("BACnet Stack Version %s\n", BACnet_Version);
     datalink_init();

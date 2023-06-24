@@ -68,7 +68,7 @@
 #define MSTP_HEADER_MAX (2 + 1 + 1 + 1 + 2 + 1)
 
 /* local port data - shared with RS-485 */
-static volatile struct mstp_port_struct_t MSTP_Port;
+static struct mstp_port_struct_t MSTP_Port;
 /* track the receive state to know when there is a broken packet */
 static MSTP_RECEIVE_STATE MSTP_Receive_State = MSTP_RECEIVE_STATE_IDLE;
 /* buffers needed by mstp port struct */
@@ -185,7 +185,7 @@ static void mstp_monitor_i_am(uint8_t mac, uint8_t *pdu, uint16_t pdu_len)
 }
 
 static void packet_statistics(
-    struct timeval *tv, volatile struct mstp_port_struct_t *mstp_port)
+    struct timeval *tv, struct mstp_port_struct_t *mstp_port)
 {
     static struct timeval old_tv = { 0 };
     static uint8_t old_frame = 255;
@@ -399,20 +399,20 @@ static void packet_statistics_clear(void)
     Invalid_Frame_Count = 0;
 }
 
-static uint32_t Timer_Silence(void *pArg)
+static uint32_t Timer_Silence(struct mstp_port_struct_t *mstp_port)
 {
-    (void)pArg;
+    (void)mstp_port;
     return mstimer_elapsed(&Silence_Timer);
 }
 
-static void Timer_Silence_Reset(void *pArg)
+static void Timer_Silence_Reset(struct mstp_port_struct_t *mstp_port)
 {
-    (void)pArg;
+    (void)mstp_port;
     mstimer_set(&Silence_Timer, 0);
 }
 
 /* functions used by the MS/TP state machine to put or get data */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     (void)mstp_port;
 
@@ -422,7 +422,7 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
@@ -430,7 +430,7 @@ uint16_t MSTP_Get_Send(
 }
 
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
@@ -585,7 +585,7 @@ static void write_global_header(const char *filename)
 }
 
 static void write_received_packet(
-    volatile struct mstp_port_struct_t *mstp_port, size_t header_len)
+    struct mstp_port_struct_t *mstp_port, size_t header_len)
 {
     uint32_t ts_sec = 0; /* timestamp seconds */
     uint32_t ts_usec = 0; /* timestamp microseconds */
@@ -732,7 +732,7 @@ static bool test_global_header(const char *filename)
     return true;
 }
 
-static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
+static bool read_received_packet(struct mstp_port_struct_t *mstp_port)
 {
     uint32_t ts_sec = 0; /* timestamp seconds */
     uint32_t ts_usec = 0; /* timestamp microseconds */
@@ -961,7 +961,7 @@ static void print_help(char *filename)
 }
 
 /* initialize some of the variables in the MS/TP Receive structure */
-static void mstp_structure_init(volatile struct mstp_port_struct_t *mstp_port)
+static void mstp_structure_init(struct mstp_port_struct_t *mstp_port)
 {
     if (mstp_port) {
         mstp_port->FrameType = FRAME_TYPE_PROPRIETARY_MAX;
@@ -981,7 +981,7 @@ static void mstp_structure_init(volatile struct mstp_port_struct_t *mstp_port)
 /* simple test to packetize the data and print it */
 int main(int argc, char *argv[])
 {
-    volatile struct mstp_port_struct_t *mstp_port;
+    struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
     uint32_t packet_count = 0;
     uint32_t header_len = 0;

@@ -75,7 +75,7 @@ static bool run_thread;
 
 /*RT_TASK Receive_Task, Fsm_Task;*/
 /* local MS/TP port data - shared with RS-485 */
-static volatile struct mstp_port_struct_t MSTP_Port;
+static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t TxBuffer[DLMSTP_MPDU_MAX];
 static uint8_t RxBuffer[DLMSTP_MPDU_MAX];
@@ -159,11 +159,12 @@ static void timespec_add_ns(struct timespec *ts, long ns)
     }
 }
 
-static uint32_t Timer_Silence(void *pArg)
+static uint32_t Timer_Silence(struct mstp_port_struct_t *mstp_port)
 {
     struct timespec now, diff;
     int32_t res;
 
+    (void)mstp_port;
     clock_gettime(CLOCK_MONOTONIC, &now);
     timespec_subtract(&diff, &now, &start);
     res = ((diff.tv_sec) * 1000 + (diff.tv_nsec) / 1000000);
@@ -171,8 +172,9 @@ static uint32_t Timer_Silence(void *pArg)
     return (res >= 0 ? res : 0);
 }
 
-static void Timer_Silence_Reset(void *pArg)
+static void Timer_Silence_Reset(struct mstp_port_struct_t *mstp_port)
 {
+    (void)mstp_port;
     clock_gettime(CLOCK_MONOTONIC, &start);
 }
 
@@ -192,14 +194,14 @@ void dlmstp_cleanup(void)
     pthread_mutex_lock(&Thread_Mutex);
     run_thread = false;
     pthread_mutex_unlock(&Thread_Mutex);
-    pthread_join (hThread, NULL);
+    pthread_join(hThread, NULL);
     pthread_cond_destroy(&Received_Frame_Flag);
     pthread_cond_destroy(&Receive_Packet_Flag);
     pthread_cond_destroy(&Master_Done_Flag);
     pthread_mutex_destroy(&Received_Frame_Mutex);
     pthread_mutex_destroy(&Receive_Packet_Mutex);
     pthread_mutex_destroy(&Master_Done_Mutex);
-    pthread_mutex_destroy (&Ring_Buffer_Mutex);
+    pthread_mutex_destroy(&Ring_Buffer_Mutex);
 }
 
 /* returns number of bytes sent on success, zero on failure */
@@ -211,7 +213,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     int bytes_sent = 0;
     struct mstp_pdu_packet *pkt;
     unsigned i = 0;
-    pthread_mutex_lock (&Ring_Buffer_Mutex);
+    pthread_mutex_lock(&Ring_Buffer_Mutex);
     pkt = (struct mstp_pdu_packet *)Ringbuf_Data_Peek(&PDU_Queue);
     if (pkt) {
         pkt->data_expecting_reply = npdu_data->data_expecting_reply;
@@ -229,7 +231,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
             bytes_sent = pdu_len;
         }
     }
-    pthread_mutex_unlock (&Ring_Buffer_Mutex);
+    pthread_mutex_unlock(&Ring_Buffer_Mutex);
 
     return bytes_sent;
 }
@@ -310,17 +312,18 @@ static void *dlmstp_master_fsm_task(void *pArg)
                 while (run_loop) {
                     /* do nothing while immediate transitioning */
                     run_loop = MSTP_Master_Node_FSM(&MSTP_Port);
-                    pthread_mutex_lock (&Thread_Mutex);
-                    if (!run_thread) run_loop = false;
-                    pthread_mutex_unlock (&Thread_Mutex);
+                    pthread_mutex_lock(&Thread_Mutex);
+                    if (!run_thread)
+                        run_loop = false;
+                    pthread_mutex_unlock(&Thread_Mutex);
                 }
             } else if (MSTP_Port.This_Station < 255) {
                 MSTP_Slave_Node_FSM(&MSTP_Port);
             }
         }
-        pthread_mutex_lock (&Thread_Mutex);
+        pthread_mutex_lock(&Thread_Mutex);
         thread_alive = run_thread;
-        pthread_mutex_unlock (&Thread_Mutex);
+        pthread_mutex_unlock(&Thread_Mutex);
     }
 
     return NULL;
@@ -350,7 +353,7 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     uint16_t pdu_len = 0;
 
@@ -381,17 +384,16 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
-uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
     uint8_t frame_type = 0;
     struct mstp_pdu_packet *pkt;
 
     (void)timeout;
-    pthread_mutex_lock (&Ring_Buffer_Mutex);
+    pthread_mutex_lock(&Ring_Buffer_Mutex);
     if (Ringbuf_Empty(&PDU_Queue)) {
-        pthread_mutex_unlock (&Ring_Buffer_Mutex);
+        pthread_mutex_unlock(&Ring_Buffer_Mutex);
         return 0;
     }
     pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
@@ -406,7 +408,7 @@ uint16_t MSTP_Get_Send(
             mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
             mstp_port->This_Station, (uint8_t *)&pkt->buffer[0], pkt->length);
     (void)Ringbuf_Pop(&PDU_Queue, NULL);
-    pthread_mutex_unlock (&Ring_Buffer_Mutex);
+    pthread_mutex_unlock(&Ring_Buffer_Mutex);
 
     return pdu_len;
 }
@@ -566,8 +568,7 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
 }
 
 /* Get the reply to a DATA_EXPECTING_REPLY frame, or nothing */
-uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0; /* return value */
     bool matched = false;
@@ -731,8 +732,8 @@ bool dlmstp_init(char *ifname)
         exit(1);
     }
 
-    pthread_mutex_init (&Ring_Buffer_Mutex, NULL);
-    pthread_mutex_init (&Thread_Mutex, NULL);
+    pthread_mutex_init(&Ring_Buffer_Mutex, NULL);
+    pthread_mutex_init(&Thread_Mutex, NULL);
 
     /* initialize PDU queue */
     Ringbuf_Init(&PDU_Queue, (uint8_t *)&PDU_Buffer,
@@ -826,4 +827,3 @@ int main(int argc, char *argv[])
     return 0;
 }
 #endif
-

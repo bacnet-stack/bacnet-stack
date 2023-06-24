@@ -2630,6 +2630,7 @@ bool Network_Port_Read_Range(
 #else
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            (void)pInfo;
 #endif
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
@@ -2640,6 +2641,7 @@ bool Network_Port_Read_Range(
 #else
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            (void)pInfo;
 #endif
             break;
         default:

@@ -130,6 +130,7 @@ list(APPEND testdirs
   bacnet/datalink/cobs
   bacnet/datalink/crc
   bacnet/datalink/bvlc
+  bacnet/datalink/mstp
   )
 
 enable_testing()

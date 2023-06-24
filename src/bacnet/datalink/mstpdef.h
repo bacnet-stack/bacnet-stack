@@ -32,8 +32,15 @@
 /*  The value 255 is used to denote broadcast when used as a */
 /* destination address but is not allowed as a value for a station. */
 /* Station addresses for master nodes can be 0-127.  */
-/* Station addresses for slave nodes can be 127-254.  */
+/* Station addresses for slave nodes can be 0-254.  */
 #define MSTP_BROADCAST_ADDRESS 255
+
+/* The zero-configuration nodes address range  */
+#define MSTP_ZERO_CONFIG_ADDRESS_MIN 64
+#define MSTP_ZERO_CONFIG_ADDRESS_MAX 127
+#define MSTP_ZERO_CONFIG_ADDRESS_RANGE \
+    (1+(MSTP_ZERO_CONFIG_ADDRESS_MAX - \
+    MSTP_ZERO_CONFIG_ADDRESS_MIN))
 
 /* MS/TP Frame Type */
 /* Frame Types 8 through 127 are reserved by ASHRAE. */
@@ -85,6 +92,17 @@ typedef enum {
     MSTP_MASTER_STATE_ANSWER_DATA_REQUEST = 8
 } MSTP_MASTER_STATE;
 
+/* MSTP zero config FSM states */
+typedef enum MSTP_Zero_Config_State {
+    MSTP_ZERO_CONFIG_STATE_INIT = 0,
+    MSTP_ZERO_CONFIG_STATE_IDLE = 1,
+    MSTP_ZERO_CONFIG_STATE_PFM = 2,
+    MSTP_ZERO_CONFIG_STATE_TOKEN = 3,
+    MSTP_ZERO_CONFIG_STATE_TESTING = 4,
+    MSTP_ZERO_CONFIG_STATE_CONFIRM = 5,
+    MSTP_ZERO_CONFIG_STATE_MONITOR = 6
+} MSTP_ZERO_CONFIG_STATE;
+
 /* The time without a DataAvailable or ReceiveError event before declaration */
 /* of loss of token: 500 milliseconds. */
 #define Tno_token 500
@@ -104,6 +122,10 @@ typedef enum {
 /* The number of tokens received or used before a Poll For Master cycle */
 /* is executed: 50. */
 #define Npoll 50
+
+/* The minimum number of polls received before a zero-config address */
+/* is claimed: 8. */
+#define Nmin_poll 8
 
 /* The number of retries on sending Token: 1. */
 #define Nretry_token 1
@@ -125,6 +147,10 @@ typedef enum {
 /* a Poll For Master frame before sending the first octet of a frame: */
 /* 15 milliseconds. */
 #define Tusage_delay 15
+
+/* The minimum number of DataAvailable or ReceiveError events that must be */
+/* seen by a receiving node in order to declare the line "active": 4. */
+#define Nmin_octets 4
 
 #define DEFAULT_MAX_INFO_FRAMES 1
 #define DEFAULT_MAX_MASTER 127
