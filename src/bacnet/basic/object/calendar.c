@@ -59,7 +59,8 @@ static const int Calendar_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_DATE_LIST,
     -1 };
 
-static const int Calendar_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int Calendar_Properties_Optional[] = { PROP_EVENT_STATE,
+    PROP_DESCRIPTION, -1 };
 
 static const int Calendar_Properties_Proprietary[] = { -1 };
 
@@ -189,6 +190,49 @@ bool Calendar_Present_Value_Set(uint32_t object_instance, bool value)
     return status;
 }
 
+/**
+ * For a given object instance-number, sets the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point Color
+ * @param  priority - priority-array index value 1..16
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Calendar_Present_Value_Write(uint32_t object_instance,
+    bool value,
+    uint8_t priority,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+    bool old_value = 0;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        (void)priority;
+        if (pObject->Write_Enabled) {
+            old_value = pObject->Present_Value;
+            pObject->Present_Value = value;
+            if (Calendar_Write_Present_Value_Callback) {
+                Calendar_Write_Present_Value_Callback(
+                    object_instance, old_value, value);
+            }
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
 
 BACNET_CALENDAR_ENTRY *Calendar_Date_List_Get(
     uint32_t object_instance, uint8_t index)
@@ -239,17 +283,14 @@ bool Calendar_Date_List_Delete_All(uint32_t object_instance)
     return true;
 }
 
-uint8_t Calendar_Date_List_Count(uint32_t object_instance)
+int Calendar_Date_List_Count(uint32_t object_instance)
 {
-    uint8_t count = 0;
     struct object_data *pObject;
     pObject = Keylist_Data(Object_List, object_instance);
     if (!pObject)
         return 0;
 
-    count = Keylist_Count(pObject->Date_List);
-
-    return count;
+    return Keylist_Count(pObject->Date_List);
 }
 
 int Calendar_Date_List_Encode(
@@ -395,30 +436,6 @@ bool Calendar_Description_Set(uint32_t object_instance, char *new_name)
     return status;
 }
 
-static int Calendar_Date_List_Encode(
-    uint32_t object_instance, uint8_t *apdu, int max_apdu)
-{
-    BACNET_CALENDAR_ENTRY *entry = NULL;
-    int apdu_len = 0;
-    unsigned index = 0;
-    unsigned size = 0;
-
-    size = Calendar_Date_List_Count(object_instance);
-    for (index = 0; index < size; index++) {
-        entry = Calendar_Date_List_Get(object_instance, index);
-        apdu_len += bacapp_encode_CalendarEntry(NULL, entry);
-    }
-    if (apdu_len > max_apdu) {
-        return BACNET_STATUS_ABORT;
-    }
-    apdu_len = 0;
-    for (index = 0; index < size; index++) {
-        entry = Calendar_Date_List_Get(object_instance, index);
-        apdu_len += bacapp_encode_CalendarEntry(&apdu[apdu_len], entry);
-    }
-
-    return apdu_len;
-}
 /**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
@@ -434,8 +451,8 @@ int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
+    int apdu_max = 0;
     bool value = false;
-    BACNET_COLOR_COMMAND Calendar_command = { 0 };
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -443,6 +460,7 @@ int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
 
     apdu = rpdata->application_data;
+    apdu_max = rpdata->application_data_len;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -464,12 +482,16 @@ int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_DATE_LIST:
             apdu_len = Calendar_Date_List_Encode(
-                rpdata->object_instance, apdu, apdu_size);
+                rpdata->object_instance, apdu, apdu_max);
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
                 &char_string, Calendar_Description(rpdata->object_instance));
             apdu_len = encode_application_character_string(apdu, &char_string);
+            break;
+        case PROP_EVENT_STATE:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -504,8 +526,6 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     int iOffset;
-    uint8_t idx;
-    int len = 0;
     BACNET_CALENDAR_ENTRY entry;
 
     /* decode the some of the request */
@@ -531,14 +551,15 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(wp_data, &value,
                 BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                Calendar_Present_Value_Set(wp_data->object_instance,
-                    value.type.Boolean);
+                status = Calendar_Present_Value_Write(
+                    wp_data->object_instance, value.type.Boolean,
+                    wp_data->priority, &wp_data->error_class,
+                    &wp_data->error_code);
             }
             break;
             
         case PROP_DATE_LIST:
             Calendar_Date_List_Delete_All(wp_data->object_instance);
-            idx = 0;
             iOffset = 0;
             /* decode all packed */
             while (iOffset < wp_data->application_data_len) {
@@ -552,7 +573,7 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     return false;
                 }
                 iOffset += len;
-                Calendar_Date_List_Add(wp_data->object_instance, &value);
+                Calendar_Date_List_Add(wp_data->object_instance, &entry);
             }
             break;
             
@@ -560,6 +581,7 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_OBJECT_TYPE:
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
+        case PROP_EVENT_STATE:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
@@ -577,9 +599,55 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * @param cb - callback used to provide indications
  */
 void Calendar_Write_Present_Value_Callback_Set(
-    Calendar_write_present_value_callback cb)
+    calendar_write_present_value_callback cb)
 {
     Calendar_Write_Present_Value_Callback = cb;
+}
+
+/**
+ * @brief Determines a object write-enabled flag state
+ * @param object_instance - object-instance number of the object
+ * @return  write-enabled status flag
+ */
+bool Calendar_Write_Enabled(uint32_t object_instance)
+{
+    bool value = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Write_Enabled;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Calendar_Write_Enable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = true;
+    }
+}
+
+/**
+ * @brief For a given object instance-number, clears the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Calendar_Write_Disable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = false;
+    }
 }
 
 /**

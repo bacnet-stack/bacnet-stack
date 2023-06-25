@@ -34,12 +34,11 @@
 /**
  * @brief Callback for gateway write present value request
  * @param  object_instance - object-instance number of the object
- * @param  old_value - BACnetCalendarEntry value prior to write
- * @param  value - BACnetCalendarEntry value of the write
+ * @param  old_value - bool value prior to write
+ * @param  value - bool value of the write
  */
 typedef void (*calendar_write_present_value_callback)(uint32_t object_instance,
-    BACNET_CALENDAR_ENTRY *old_value,
-    BACNET_CALENDAR_ENTRY *value);
+    bool old_value, bool value);
 
 
 #ifdef __cplusplus
@@ -73,7 +72,7 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 BACNET_STACK_EXPORT
 bool Calendar_Present_Value_Set(uint32_t object_instance, bool value);
 BACNET_STACK_EXPORT
-bool Calendar_Present_Value(uint32_t object_instance, bool value);
+bool Calendar_Present_Value(uint32_t object_instance, bool *value);
 BACNET_STACK_EXPORT
 void Calendar_Write_Present_Value_Callback_Set(
     calendar_write_present_value_callback cb);
@@ -96,6 +95,13 @@ BACNET_STACK_EXPORT
 char *Calendar_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Calendar_Description_Set(uint32_t object_instance, char *new_name);
+
+BACNET_STACK_EXPORT
+bool Calendar_Write_Enabled(uint32_t instance);
+BACNET_STACK_EXPORT
+void Calendar_Write_Enable(uint32_t instance);
+BACNET_STACK_EXPORT
+void Calendar_Write_Disable(uint32_t instance);
 
 BACNET_STACK_EXPORT
 bool Calendar_Create(uint32_t object_instance);

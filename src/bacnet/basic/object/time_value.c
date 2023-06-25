@@ -53,7 +53,7 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 /* callback for present value writes */
-static time_write_present_value_callback Time_Value_Write_Present_Value_Callback;
+static time_value_write_present_value_callback Time_Value_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Time_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -61,7 +61,7 @@ static const int Time_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     -1 };
 
 static const int Time_Value_Properties_Optional[] = { PROP_DESCRIPTION,
-    PROP_OUT_OF_SERVICE -1 };
+    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1 };
 
 static const int Time_Value_Properties_Proprietary[] = { -1 };
 
@@ -191,6 +191,50 @@ bool Time_Value_Present_Value_Set(uint32_t object_instance, BACNET_TIME *value)
     return status;
 }
 
+/**
+ * For a given object instance-number, sets the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point Color
+ * @param  priority - priority-array index value 1..16
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Time_Value_Present_Value_Write(uint32_t object_instance,
+    BACNET_TIME *value,
+    uint8_t priority,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+    BACNET_TIME old_value = {0};
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        (void)priority;
+        if (pObject->Write_Enabled) {
+            old_value = pObject->Present_Value;
+            pObject->Present_Value = *value;
+            if (Time_Value_Write_Present_Value_Callback) {
+                Time_Value_Write_Present_Value_Callback(
+                    object_instance, &old_value, value);
+            }
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
 bool Time_Value_Out_Of_Service(uint32_t object_instance)
 {
     bool status = false;
@@ -299,7 +343,7 @@ bool Time_Value_Name_Set(uint32_t object_instance, char *new_name)
  *
  * @return description text or NULL if not found
  */
-char *Time_Description(uint32_t object_instance)
+char *Time_Value_Description(uint32_t object_instance)
 {
     char *name = NULL;
     struct object_data *pObject;
@@ -338,30 +382,6 @@ bool Time_Value_Description_Set(uint32_t object_instance, char *new_name)
     return status;
 }
 
-static int Time_Value_Date_List_Encode(
-    uint32_t object_instance, uint8_t *apdu, int max_apdu)
-{
-    BACNET_CALENDAR_ENTRY *entry = NULL;
-    int apdu_len = 0;
-    unsigned index = 0;
-    unsigned size = 0;
-
-    size = Time_Value_Date_List_Count(object_instance);
-    for (index = 0; index < size; index++) {
-        entry = Time_Value_Date_List_Get(object_instance, index);
-        apdu_len += bacapp_encode_CalendarEntry(NULL, entry);
-    }
-    if (apdu_len > max_apdu) {
-        return BACNET_STATUS_ABORT;
-    }
-    apdu_len = 0;
-    for (index = 0; index < size; index++) {
-        entry = Time_Value_Date_List_Get(object_instance, index);
-        apdu_len += bacapp_encode_CalendarEntry(&apdu[apdu_len], entry);
-    }
-
-    return apdu_len;
-}
 /**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
@@ -375,10 +395,10 @@ static int Time_Value_Date_List_Encode(
 int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
+    BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
-    bool value = false;
-    BACNET_COLOR_COMMAND Time_Value_command = { 0 };
+    BACNET_TIME value;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -401,18 +421,32 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
         case PROP_PRESENT_VALUE:
-            if (Time_Present_Value(rpdata->object_instance, &value)) {
-                apdu_len = encode_application_boolean(apdu, value);
+            if (Time_Value_Present_Value(rpdata->object_instance, &value)) {
+                apdu_len = encode_application_time(apdu, &value);
             }
             break;
-        case PROP_DATE_LIST:
-            apdu_len = Time_Value_Date_List_Encode(
-                rpdata->object_instance, apdu, apdu_size);
+
+        case PROP_STATUS_FLAGS:
+            bitstring_init(&bit_string);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+                Time_Value_Out_Of_Service(rpdata->object_instance));
+            apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
+            break;
+        case PROP_OUT_OF_SERVICE:
+            apdu_len = encode_application_boolean(&apdu[0],
+                Time_Value_Out_Of_Service(rpdata->object_instance));
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
                 &char_string, Time_Value_Description(rpdata->object_instance));
             apdu_len = encode_application_character_string(apdu, &char_string);
+            break;
+        case PROP_EVENT_STATE:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -444,12 +478,8 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
-    int iOffset;
-    uint8_t idx;
     int len = 0;
-    BACNET_CALENDAR_ENTRY entry;
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -472,35 +502,21 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+                BACNET_APPLICATION_TAG_TIME);
             if (status) {
-                Time_Value_Present_Value_Set(wp_data->object_instance,
-                    value.type.Boolean);
+                status = Time_Value_Present_Value_Write(wp_data->object_instance,
+                    &value.type.Time, wp_data->priority,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
-            
-        case PROP_DATE_LIST:
-            Time_Value_Date_List_Delete_All(wp_data->object_instance);
-            idx = 0;
-            iOffset = 0;
-            /* decode all packed */
-            while (iOffset < wp_data->application_data_len) {
-                len = bacapp_decode_CalendarEntry(
-                    &wp_data->application_data[iOffset], &entry);
-                if (len == BACNET_STATUS_REJECT) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                    return false;
-                }
-                iOffset += len;
-                Time_Value_Date_List_Add(wp_data->object_instance, &value);
-            }
-            break;
-            
+        
+        
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_TYPE:
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
+        case PROP_STATUS_FLAGS:
+        case PROP_EVENT_STATE:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
@@ -518,9 +534,55 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * @param cb - callback used to provide indications
  */
 void Time_Value_Write_Present_Value_Callback_Set(
-    Time_Value_write_present_value_callback cb)
+    time_value_write_present_value_callback cb)
 {
     Time_Value_Write_Present_Value_Callback = cb;
+}
+
+/**
+ * @brief Determines a object write-enabled flag state
+ * @param object_instance - object-instance number of the object
+ * @return  write-enabled status flag
+ */
+bool Time_Value_Write_Enabled(uint32_t object_instance)
+{
+    bool value = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Write_Enabled;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Time_Value_Write_Enable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = true;
+    }
+}
+
+/**
+ * @brief For a given object instance-number, clears the write-enabled flag
+ * @param object_instance - object-instance number of the object
+ */
+void Time_Value_Write_Disable(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Write_Enabled = false;
+    }
 }
 
 /**
@@ -539,8 +601,7 @@ bool Time_Value_Create(uint32_t object_instance)
         if (pObject) {
             pObject->Object_Name = NULL;
             pObject->Description = NULL;
-            pObject->Present_Value  = false;
-            pObject->Date_List = Keylist_Create();
+            memset(&pObject->Present_Value, 0, sizeof(pObject->Present_Value));
             pObject->Changed = false;
             pObject->Write_Enabled = false;
             /* add to list */
@@ -602,6 +663,6 @@ void Time_Value_Init(void)
 {
     Object_List = Keylist_Create();
     if (Object_List) {
-        atexit(Time_Cleanup);
+        atexit(Time_Value_Cleanup);
     }
 }

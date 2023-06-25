@@ -37,7 +37,7 @@
  * @param  old_value - BACNET_TIME value prior to write
  * @param  value - BACNET_TIME value of the write
  */
-typedef void (*time_write_present_value_callback)(uint32_t object_instance,
+typedef void (*time_value_write_present_value_callback)(uint32_t object_instance,
     BACNET_TIME *old_value,
     BACNET_TIME *value);
 
@@ -76,7 +76,7 @@ BACNET_STACK_EXPORT
 bool Time_Value_Present_Value(uint32_t object_instance, BACNET_TIME *value);
 BACNET_STACK_EXPORT
 void Time_Value_Write_Present_Value_Callback_Set(
-    time_write_present_value_callback cb);
+    time_value_write_present_value_callback cb);
 
 //BACNET_STACK_EXPORT
 //bool Time_Value_Status_Flags_Set(uint32_t object_instance, BACNET_TIME *time);
@@ -92,6 +92,13 @@ BACNET_STACK_EXPORT
 char *Time_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Time_Value_Description_Set(uint32_t object_instance, char *new_name);
+
+BACNET_STACK_EXPORT
+bool Time_Value_Write_Enabled(uint32_t instance);
+BACNET_STACK_EXPORT
+void Time_Value_Write_Enable(uint32_t instance);
+BACNET_STACK_EXPORT
+void Time_Value_Write_Disable(uint32_t instance);
 
 BACNET_STACK_EXPORT
 bool Time_Value_Create(uint32_t object_instance);
