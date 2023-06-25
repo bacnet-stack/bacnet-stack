@@ -539,6 +539,20 @@ void Time_Value_Write_Present_Value_Callback_Set(
     Time_Value_Write_Present_Value_Callback = cb;
 }
 
+uint8_t Time_Value_Status_Flags(uint32_t object_instance)
+{
+    BACNET_BIT_STRING bit_string;
+ 
+    bitstring_init(&bit_string);
+    bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
+    bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+        Time_Value_Out_Of_Service(object_instance));
+
+    return bitstring_octet(&bit_string, 0);
+}
+
 /**
  * @brief Determines a object write-enabled flag state
  * @param object_instance - object-instance number of the object

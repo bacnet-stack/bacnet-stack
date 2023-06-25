@@ -78,8 +78,6 @@ BACNET_STACK_EXPORT
 void Time_Value_Write_Present_Value_Callback_Set(
     time_value_write_present_value_callback cb);
 
-//BACNET_STACK_EXPORT
-//bool Time_Value_Status_Flags_Set(uint32_t object_instance, BACNET_TIME *time);
 BACNET_STACK_EXPORT
 uint8_t Time_Value_Status_Flags(uint32_t object_instance);
 
