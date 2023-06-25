@@ -209,32 +209,24 @@ struct mstp_port_struct_t {
        not to exceed 100 milliseconds.)
        At 9600 baud, 60 bit times would be about 6.25 milliseconds */
     /* const uint16_t Tframe_abort = 1 + ((1000 * 60) / 9600); */
-#ifndef Tframe_abort
     uint8_t Tframe_abort;
-#endif
 
     /* The maximum time a node may wait after reception of a frame that expects
        a reply before sending the first octet of a reply or Reply Postponed
       frame: 250 milliseconds. */
-#ifndef Treply_delay
     uint8_t Treply_delay;
-#endif
 
     /* The minimum time without a DataAvailable or ReceiveError event
        that a node must wait for a station to begin replying to a
        confirmed request: 255 milliseconds. (Implementations may use
        larger values for this timeout, not to exceed 300 milliseconds.) */
-#ifndef Treply_timeout
     uint16_t Treply_timeout;
-#endif
 
     /* The minimum time without a DataAvailable or ReceiveError event that a
        node must wait for a remote node to begin using a token or replying to
        a Poll For Master frame: 20 milliseconds. (Implementations may use
        larger values for this timeout, not to exceed 100 milliseconds.) */
-#ifndef Tusage_timeout
     uint8_t Tusage_timeout;
-#endif
 
     /*Platform-specific port data */
     void *UserData;

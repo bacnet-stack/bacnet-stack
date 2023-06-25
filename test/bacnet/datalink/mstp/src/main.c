@@ -108,6 +108,7 @@ static void testReceiveNodeFSM(void)
     size_t i; /* used to loop through the message bytes */
     uint8_t buffer[MAX_MPDU] = { 0 };
     uint8_t data[MAX_PDU] = { 0 };
+
     mstp_port.InputBuffer = &RxBuffer[0];
     mstp_port.InputBufferSize = sizeof(RxBuffer);
     mstp_port.OutputBuffer = &TxBuffer[0];
@@ -148,7 +149,7 @@ static void testReceiveNodeFSM(void)
     zassert_true(mstp_port.EventCount == EventCount, NULL);
     zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_PREAMBLE, NULL);
     /* force the timeout */
-    SilenceTime = Tframe_abort + 1;
+    SilenceTime = mstp_port.Tframe_abort + 1;
     MSTP_Receive_Frame_FSM(&mstp_port);
     zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
     /* check for good packet header preamble, but receive error */
@@ -232,7 +233,7 @@ static void testReceiveNodeFSM(void)
     zassert_true(mstp_port.HeaderCRC == 0xFF, NULL);
     zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_HEADER, NULL);
     /* force the timeout */
-    SilenceTime = Tframe_abort + 1;
+    SilenceTime = mstp_port.Tframe_abort + 1;
     MSTP_Receive_Frame_FSM(&mstp_port);
     zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
     zassert_true(mstp_port.ReceivedInvalidFrame == true, NULL);
@@ -462,11 +463,20 @@ static void testMasterNodeFSM(void)
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    MSTP_Port.This_Station = my_mac;
+
     MSTP_Port.Nmax_info_frames = 1;
     MSTP_Port.Nmax_master = 127;
+
+    MSTP_Port.Tframe_abort = DEFAULT_Tframe_abort;
+    MSTP_Port.Treply_delay = DEFAULT_Treply_delay;
+    MSTP_Port.Treply_timeout = DEFAULT_Treply_timeout;
+    MSTP_Port.Tusage_timeout = DEFAULT_Tusage_timeout;
+
     MSTP_Port.SilenceTimer = Timer_Silence;
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
+
+    MSTP_Port.This_Station = my_mac;
+
     MSTP_Init(&MSTP_Port);
     zassert_true(MSTP_Port.master_state == MSTP_MASTER_STATE_INITIALIZE, NULL);
     /* FIXME: write a unit test for the Master Node State Machine */
@@ -474,10 +484,199 @@ static void testMasterNodeFSM(void)
 
 static void testSlaveNodeFSM(void)
 {
+    struct mstp_port_struct_t MSTP_Port = { 0 }; /* port data */
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+
+    MSTP_Port.InputBuffer = &RxBuffer[0];
+    MSTP_Port.InputBufferSize = sizeof(RxBuffer);
+    MSTP_Port.OutputBuffer = &TxBuffer[0];
+    MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
+
+    MSTP_Port.Nmax_info_frames = 0;
+    MSTP_Port.Nmax_master = 0;
+
+    MSTP_Port.Tframe_abort = DEFAULT_Tframe_abort;
+    MSTP_Port.Treply_delay = DEFAULT_Treply_delay;
+    MSTP_Port.Treply_timeout = DEFAULT_Treply_timeout;
+    MSTP_Port.Tusage_timeout = DEFAULT_Tusage_timeout;
+
+    MSTP_Port.SilenceTimer = Timer_Silence;
+    MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
+
+    MSTP_Port.This_Station = 128;
+
+    MSTP_Init(&MSTP_Port);
+    MSTP_Slave_Node_FSM(&MSTP_Port);
+    zassert_true(MSTP_Port.master_state == MSTP_MASTER_STATE_IDLE, NULL);
+}
+
+static void testZeroConfigNode_Init(struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+
+    mstp_port->InputBuffer = &RxBuffer[0];
+    mstp_port->InputBufferSize = sizeof(RxBuffer);
+    mstp_port->OutputBuffer = &TxBuffer[0];
+    mstp_port->OutputBufferSize = sizeof(TxBuffer);
+
+    mstp_port->Nmax_info_frames = 1;
+    mstp_port->Nmax_master = 127;
+
+    mstp_port->Tframe_abort = DEFAULT_Tframe_abort;
+    mstp_port->Treply_delay = DEFAULT_Treply_delay;
+    mstp_port->Treply_timeout = DEFAULT_Treply_timeout;
+    mstp_port->Tusage_timeout = DEFAULT_Tusage_timeout;
+
+    mstp_port->SilenceTimer = Timer_Silence;
+    mstp_port->SilenceTimerReset = Timer_Silence_Reset;
+
+    /* configure for Zero Config */
+    mstp_port->This_Station = 255;
+
+    MSTP_Init(mstp_port);
+    zassert_true(mstp_port->master_state == MSTP_MASTER_STATE_INITIALIZE, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_INIT, NULL);
+    zassert_true(mstp_port->Tframe_abort == DEFAULT_Tframe_abort, NULL);
+    zassert_true(mstp_port->Treply_delay == DEFAULT_Treply_delay, NULL);
+    zassert_true(mstp_port->Treply_timeout == DEFAULT_Treply_timeout, NULL);
+    zassert_true(mstp_port->Tusage_timeout == DEFAULT_Tusage_timeout, NULL);
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
+    zassert_true(mstp_port->Poll_Count == 0, NULL);
+    zassert_true(mstp_port->Zero_Config_Station == 64, NULL);
+    zassert_true(mstp_port->Npoll_priority >= 1, NULL);
+    zassert_true(mstp_port->Npoll_priority <= 64, NULL);
+    slots = 128 + mstp_port->Npoll_priority;
+    silence = Tno_token + Tslot * slots;
+    zassert_true(mstp_port->Zero_Config_Silence == silence, NULL);
+    non_zero = false;
+    for (i = 0; i < MSTP_UUID_SIZE; i++) {
+        if (mstp_port->UUID[i] > 0) {
+            non_zero = true;
+        }
+    }
+    zassert_true(non_zero, NULL);
+    zassert_true(mstp_port->Zero_Config_Max_Master == 0, NULL);
+}
+
+static void testZeroConfigNode_No_Events_Timeout(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+
+    SilenceTime = mstp_port->Zero_Config_Silence + 1;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_CONFIRM, NULL);
+}
+
+static void testZeroConfigNode_Test_Request_Unsupported(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+
+    /* test case: remote node does not support Test-Request; timeout */
+    SilenceTime = mstp_port->Treply_timeout + 1;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_true(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_MONITOR, NULL);
+    zassert_true(
+        mstp_port->This_Station == mstp_port->Zero_Config_Station, NULL);
+}
+
+static void testZeroConfigNode_Test_Request_Supported(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+
+    /* test case: remote node supports Test-Request */
+    SilenceTime = 0;
+
+    mstp_port->ReceivedValidFrameNotForUs = true;
+    mstp_port->DestinationAddress = mstp_port->Zero_Config_Station;
+    mstp_port->SourceAddress = 0;
+    mstp_port->FrameType = FRAME_TYPE_TEST_RESPONSE;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_true(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_MONITOR, NULL);
+    zassert_true(
+        mstp_port->This_Station == mstp_port->Zero_Config_Station, NULL);
+}
+
+static void testZeroConfigNode_Test_IDLE_InvalidFrame(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+
+    /* test case: waiting for a invalid frame */
+    SilenceTime = 0;
+    mstp_port->ReceivedInvalidFrame = true;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_PFM, NULL);
+    zassert_true(mstp_port->ReceivedInvalidFrame == true, NULL);
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_PFM, NULL);
+    zassert_true(mstp_port->ReceivedInvalidFrame == false, NULL);
+}
+
+static void testZeroConfigNode_Test_IDLE_ValidFrameTimeout(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+
+    /* test case: get a valid frame, followed by timeout  */
+    SilenceTime = 0;
+    mstp_port->SourceAddress = 0;
+    mstp_port->DestinationAddress = 1;
+    mstp_port->ReceivedValidFrame = true;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_PFM, NULL);
+    zassert_true(mstp_port->ReceivedValidFrame == true, NULL);
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_PFM, NULL);
+    zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
+    SilenceTime = mstp_port->Zero_Config_Silence + 1;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
 }
 
 static void testZeroConfigNodeFSM(void)
 {
+    struct mstp_port_struct_t MSTP_Port = { 0 }; /* port data */
+
+    /* test case: timeout event */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_No_Events_Timeout(&MSTP_Port);
+    testZeroConfigNode_Test_Request_Unsupported(&MSTP_Port);
+    /* test case: invalid frame event */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_Test_IDLE_InvalidFrame(&MSTP_Port);
+    /* test case: valid frame event and timeout */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_Test_IDLE_ValidFrameTimeout(&MSTP_Port);
 }
 
 /**

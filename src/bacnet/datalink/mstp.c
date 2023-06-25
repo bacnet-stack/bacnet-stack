@@ -279,9 +279,7 @@ void MSTP_Create_And_Send_Frame(struct mstp_port_struct_t *mstp_port,
 void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
 {
     MSTP_RECEIVE_STATE receive_state = mstp_port->receive_state;
-#ifndef Tframe_abort
-    uint32_t Tframe_abort = mstp_port->Tframe_abort;
-#endif
+
     printf_receive(
         "MSTP Rx: State=%s Data=%02X hCRC=%02X Index=%u EC=%u DateLen=%u "
         "Silence=%u\n",
@@ -319,7 +317,8 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
             /* In the PREAMBLE state, the node waits for
                the second octet of the preamble. */
             /* Timeout */
-            if (mstp_port->SilenceTimer((void *)mstp_port) > Tframe_abort) {
+            if (mstp_port->SilenceTimer((void *)mstp_port) >
+                mstp_port->Tframe_abort) {
                 /* a correct preamble has not been received */
                 /* wait for the start of a frame. */
                 mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
@@ -355,7 +354,8 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
             /* In the HEADER state, the node waits for
                the fixed message header. */
             /* Timeout */
-            if (mstp_port->SilenceTimer((void *)mstp_port) > Tframe_abort) {
+            if (mstp_port->SilenceTimer((void *)mstp_port) >
+                mstp_port->Tframe_abort) {
                 /* indicate that an error has occurred during the reception of a
                  * frame */
                 mstp_port->ReceivedInvalidFrame = true;
@@ -363,7 +363,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                 mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 printf_receive_error("MSTP: Rx Header: SilenceTimer %u > %d\n",
                     (unsigned)mstp_port->SilenceTimer((void *)mstp_port),
-                    Tframe_abort);
+                    mstp_port->Tframe_abort);
             } else if (mstp_port->ReceiveError == true) {
                 /* Error */
                 mstp_port->ReceiveError = false;
@@ -490,7 +490,8 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
         case MSTP_RECEIVE_STATE_SKIP_DATA:
             /* In the DATA and SKIP DATA states, the node waits for the
                data portion of a frame. */
-            if (mstp_port->SilenceTimer((void *)mstp_port) > Tframe_abort) {
+            if (mstp_port->SilenceTimer((void *)mstp_port) >
+                mstp_port->Tframe_abort) {
                 /* Timeout */
                 /* indicate that an error has occurred during the reception of a
                  * frame */
@@ -498,7 +499,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                 printf_receive_error(
                     "MSTP: Rx Data: SilenceTimer %ums > %dms\n",
                     (unsigned)mstp_port->SilenceTimer((void *)mstp_port),
-                    Tframe_abort);
+                    mstp_port->Tframe_abort);
                 /* wait for the start of the next frame. */
                 mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
             } else if (mstp_port->ReceiveError == true) {
@@ -590,15 +591,6 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
     /* transition immediately to the next state */
     bool transition_now = false;
     MSTP_MASTER_STATE master_state = mstp_port->master_state;
-#ifndef Treply_timeout
-    uint32_t Treply_timeout = mstp_port->Treply_timeout;
-#endif
-#ifndef Tusage_timeout
-    uint32_t Tusage_timeout = mstp_port->Tusage_timeout;
-#endif
-#ifndef Treply_delay
-    uint32_t Treply_delay = mstp_port->Treply_delay;
-#endif
 
     /* some calculations that several states need */
     next_poll_station =
@@ -790,7 +782,8 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
             /* In the WAIT_FOR_REPLY state, the node waits for  */
             /* a reply from another node. */
-            if (mstp_port->SilenceTimer((void *)mstp_port) >= Treply_timeout) {
+            if (mstp_port->SilenceTimer((void *)mstp_port) >=
+                mstp_port->Treply_timeout) {
                 /* ReplyTimeout */
                 /* assume that the request has failed */
                 mstp_port->FrameCount = mstp_port->Nmax_info_frames;
@@ -944,7 +937,8 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         case MSTP_MASTER_STATE_PASS_TOKEN:
             /* The PASS_TOKEN state listens for a successor to begin using */
             /* the token that this node has just attempted to pass. */
-            if (mstp_port->SilenceTimer((void *)mstp_port) <= Tusage_timeout) {
+            if (mstp_port->SilenceTimer((void *)mstp_port) <=
+                mstp_port->Tusage_timeout) {
                 if (mstp_port->EventCount > Nmin_octets) {
                     /* SawTokenUser */
                     /* Assume that a frame has been sent by the new token user.
@@ -1071,7 +1065,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 }
                 mstp_port->ReceivedValidFrame = false;
             } else if ((mstp_port->SilenceTimer((void *)mstp_port) >
-                           Tusage_timeout) ||
+                           mstp_port->Tusage_timeout) ||
                 (mstp_port->ReceivedInvalidFrame == true)) {
                 if (mstp_port->SoleMaster == true) {
                     /* SoleMaster */
@@ -1142,7 +1136,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 /* clear our flag we were holding for comparison */
                 mstp_port->ReceivedValidFrame = false;
             } else if (mstp_port->SilenceTimer((void *)mstp_port) >
-                Treply_delay) {
+                mstp_port->Treply_delay) {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
                 /* within Treply_delay after the reception of the */
@@ -1187,9 +1181,6 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
 void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
 {
     unsigned length = 0;
-#ifndef Treply_delay
-    uint32_t Treply_delay = mstp_port->Treply_delay;
-#endif
 
     mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
     if (mstp_port->ReceivedInvalidFrame == true) {
@@ -1221,7 +1212,7 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
                         /* clear our flag we were holding for comparison */
                         mstp_port->ReceivedValidFrame = false;
                     } else if (mstp_port->SilenceTimer((void *)mstp_port) >
-                        Treply_delay) {
+                        mstp_port->Treply_delay) {
                         /* If no reply will be available from the higher layers
                            within Treply_delay after the reception of the final
                            octet of the requesting frame (the mechanism used to
@@ -1308,9 +1299,6 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
     bool match = false;
     uint8_t station, frame, src, dst;
     uint32_t slots;
-#ifndef Treply_timeout
-    uint32_t Treply_timeout = mstp_port->Treply_timeout;
-#endif
 
     switch (mstp_port->zero_config_state) {
         case MSTP_ZERO_CONFIG_STATE_INIT:
@@ -1319,7 +1307,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
             mstp_port->Poll_Count = 0;
             mstp_port->Zero_Config_Station = MSTP_ZERO_CONFIG_ADDRESS_MIN;
             mstp_port->Npoll_priority =
-                rand() % (MSTP_ZERO_CONFIG_ADDRESS_RANGE);
+                1 + (rand() % MSTP_ZERO_CONFIG_ADDRESS_RANGE);
             /* basic silence timeout is the dropped token time plus
                one Tslot after the last master node. Add one Tslot of
                silence timeout per zero config priority slot */
@@ -1496,7 +1484,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                     mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_PFM;
                 }
             } else if (mstp_port->SilenceTimer((void *)mstp_port) >=
-                Treply_timeout) {
+                mstp_port->Treply_timeout) {
                 /* ConfirmationTimeout */
                 /* In case validating device doesn't support Test Request */
                 /* no response and no collision */
@@ -1536,32 +1524,28 @@ void MSTP_Init(struct mstp_port_struct_t *mstp_port)
         /* FIXME: these are adjustable, so you must set these in dlmstp */
         mstp_port->Nmax_info_frames = DEFAULT_MAX_INFO_FRAMES;
         mstp_port->Nmax_master = DEFAULT_MAX_MASTER;
+        mstp_port->Tframe_abort = DEFAULT_Tframe_abort;
+        mstp_port->Treply_delay = DEFAULT_Treply_delay;
+        mstp_port->Treply_timeout = DEFAULT_Treply_timeout;
+        mstp_port->Tusage_timeout = DEFAULT_Tusage_timeout;
         /* FIXME: point to functions */
         mstp_port->SilenceTimer = Timer_Silence;
         mstp_port->SilenceTimerReset = Timer_Silence_Reset;
 #endif
-#ifndef Tframe_abort
         if ((mstp_port->Tframe_abort < 6) || (mstp_port->Tframe_abort > 100)) {
-            mstp_port->Tframe_abort = 95;
+            mstp_port->Tframe_abort = DEFAULT_Tframe_abort;
         }
-#endif
-#ifndef Treply_delay
         if (mstp_port->Treply_delay > 250) {
-            mstp_port->Treply_delay = 245;
+            mstp_port->Treply_delay = DEFAULT_Treply_delay;
         }
-#endif
-#ifndef Treply_timeout
         if ((mstp_port->Treply_timeout < 20) ||
             (mstp_port->Treply_timeout > 300)) {
-            mstp_port->Treply_timeout = 255;
+            mstp_port->Treply_timeout = DEFAULT_Treply_timeout;
         }
-#endif
-#ifndef Tusage_timeout
         if ((mstp_port->Tusage_timeout < 20) ||
             (mstp_port->Tusage_timeout > 100)) {
-            mstp_port->Tusage_timeout = 35;
+            mstp_port->Tusage_timeout = DEFAULT_Tusage_timeout;
         }
-#endif
         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
         mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
         mstp_port->ReceiveError = false;
@@ -1581,9 +1565,11 @@ void MSTP_Init(struct mstp_port_struct_t *mstp_port)
         mstp_port->ReceivedValidFrame = false;
         mstp_port->ReceivedValidFrameNotForUs = false;
         mstp_port->RetryCount = 0;
-        mstp_port->SilenceTimerReset((void *)mstp_port);
+        mstp_port->SilenceTimerReset(mstp_port);
         mstp_port->SoleMaster = false;
         mstp_port->SourceAddress = 0;
         mstp_port->TokenCount = 0;
+        /* zero config */
+        mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_INIT;
     }
 }

@@ -1,26 +1,26 @@
 /**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+ *
+ * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *********************************************************************/
 #ifndef MSTPDEF_H
 #define MSTPDEF_H
 
@@ -39,8 +39,7 @@
 #define MSTP_ZERO_CONFIG_ADDRESS_MIN 64
 #define MSTP_ZERO_CONFIG_ADDRESS_MAX 127
 #define MSTP_ZERO_CONFIG_ADDRESS_RANGE \
-    (1+(MSTP_ZERO_CONFIG_ADDRESS_MAX - \
-    MSTP_ZERO_CONFIG_ADDRESS_MIN))
+    (1 + (MSTP_ZERO_CONFIG_ADDRESS_MAX - MSTP_ZERO_CONFIG_ADDRESS_MIN))
 
 /* MS/TP Frame Type */
 /* Frame Types 8 through 127 are reserved by ASHRAE. */
@@ -116,7 +115,7 @@ typedef enum MSTP_Zero_Config_State {
 /* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
 /* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
 /* 40 bits is 4 octets including a start and stop bit with each octet */
-#define Tturnaround  (40UL)
+#define Tturnaround (40UL)
 /* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
 
 /* The number of tokens received or used before a Poll For Master cycle */
@@ -152,6 +151,11 @@ typedef enum MSTP_Zero_Config_State {
 /* seen by a receiving node in order to declare the line "active": 4. */
 #define Nmin_octets 4
 
+#define DEFAULT_Tframe_abort 95
+#define DEFAULT_Treply_delay 245
+#define DEFAULT_Treply_timeout 250
+#define DEFAULT_Tusage_timeout 35
+
 #define DEFAULT_MAX_INFO_FRAMES 1
 #define DEFAULT_MAX_MASTER 127
 #define DEFAULT_MAC_ADDRESS 127
@@ -159,7 +163,6 @@ typedef enum MSTP_Zero_Config_State {
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 #ifdef __cplusplus
 }
