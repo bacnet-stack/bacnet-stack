@@ -35,12 +35,6 @@
 /* Station addresses for slave nodes can be 0-254.  */
 #define MSTP_BROADCAST_ADDRESS 255
 
-/* The zero-configuration nodes address range  */
-#define MSTP_ZERO_CONFIG_ADDRESS_MIN 64
-#define MSTP_ZERO_CONFIG_ADDRESS_MAX 127
-#define MSTP_ZERO_CONFIG_ADDRESS_RANGE \
-    (1 + (MSTP_ZERO_CONFIG_ADDRESS_MAX - MSTP_ZERO_CONFIG_ADDRESS_MIN))
-
 /* MS/TP Frame Type */
 /* Frame Types 8 through 127 are reserved by ASHRAE. */
 #define FRAME_TYPE_TOKEN 0
@@ -125,6 +119,18 @@ typedef enum MSTP_Zero_Config_State {
 /* The minimum number of polls received before a zero-config address */
 /* is claimed: 8. */
 #define Nmin_poll 8
+
+/* The first zero-config address: 64 */
+#define Nmin_poll_station 64
+
+/* The last zero-config address: 127 */
+#define Nmax_poll_station 127
+
+/* The number of zero-config station poll slots: 64 */
+#define Nmax_poll_slot 64
+
+/* The last master node address: 127 */
+#define Nmax_master_station 127
 
 /* The number of retries on sending Token: 1. */
 #define Nretry_token 1

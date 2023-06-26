@@ -549,9 +549,9 @@ static void testZeroConfigNode_Init(struct mstp_port_struct_t *mstp_port)
         mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
     zassert_true(mstp_port->Poll_Count == 0, NULL);
     zassert_true(mstp_port->Zero_Config_Station == 64, NULL);
-    zassert_true(mstp_port->Npoll_priority >= 1, NULL);
-    zassert_true(mstp_port->Npoll_priority <= 64, NULL);
-    slots = 128 + mstp_port->Npoll_priority;
+    zassert_true(mstp_port->Npoll_slot >= 1, NULL);
+    zassert_true(mstp_port->Npoll_slot <= 64, NULL);
+    slots = 128 + mstp_port->Npoll_slot;
     silence = Tno_token + Tslot * slots;
     zassert_true(mstp_port->Zero_Config_Silence == silence, NULL);
     non_zero = false;
@@ -709,11 +709,10 @@ static void testZeroConfigNode_Test_LURK_AddressInUse(
     /* test case: src emits a token from each MAC in the zero-config range */
     SilenceTime = 0;
     mstp_port->FrameType = FRAME_TYPE_TOKEN;
-    for (src = MSTP_ZERO_CONFIG_ADDRESS_MIN;
-        src <= MSTP_ZERO_CONFIG_ADDRESS_MAX; src++) {
+    for (src = Nmin_poll_station; src <= Nmax_poll_station; src++) {
         mstp_port->ReceivedValidFrame = true;
         mstp_port->SourceAddress = src;
-        dst = (src + 1) % (127 + 1);
+        dst = (src + 1) % (Nmax_master_station + 1);
         mstp_port->DestinationAddress = dst;
         zassert_true(mstp_port->Zero_Config_Station == src, NULL);
         transition_now = MSTP_Master_Node_FSM(mstp_port);
@@ -737,7 +736,7 @@ static void testZeroConfigNode_Test_LURK_LearnMaxMaster(
     SilenceTime = 0;
     mstp_port->SourceAddress = 0;
     mstp_port->FrameType = FRAME_TYPE_POLL_FOR_MASTER;
-    for (dst = 1; dst <= 127; dst++) {
+    for (dst = 1; dst <= Nmax_master_station; dst++) {
         mstp_port->ReceivedValidFrame = true;
         mstp_port->DestinationAddress = dst;
         transition_now = MSTP_Master_Node_FSM(mstp_port);
@@ -746,6 +745,36 @@ static void testZeroConfigNode_Test_LURK_LearnMaxMaster(
             mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
         zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
         zassert_true(mstp_port->Zero_Config_Max_Master == dst, NULL);
+    }
+}
+
+static void testZeroConfigNode_Test_LURK_ClaimAddress(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+    uint8_t src, dst, count, count_max;
+
+    /* test case: src emits a token from each MAC in the zero-config range */
+    SilenceTime = 0;
+    mstp_port->SourceAddress = 0;
+    mstp_port->FrameType = FRAME_TYPE_POLL_FOR_MASTER;
+    count_max = Nmin_poll + mstp_port->Npoll_slot;
+    for (count = 0; count <= count_max; count++) {
+        for (dst = Nmin_poll_station; dst <= Nmax_master_station; dst++) {
+            mstp_port->ReceivedValidFrame = true;
+            mstp_port->DestinationAddress = dst;
+            transition_now = MSTP_Master_Node_FSM(mstp_port);
+            zassert_false(transition_now, NULL);
+            zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
+            if (count == count_max) {
+            zassert_true(
+                mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_TOKEN, NULL);
+            } else {
+            zassert_true(
+                mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
+            }
+        }
     }
 }
 

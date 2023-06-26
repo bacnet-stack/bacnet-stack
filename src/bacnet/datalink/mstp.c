@@ -1297,7 +1297,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
 {
     bool take_address = false;
     bool match = false;
-    uint8_t station, frame, src, dst;
+    uint8_t count, frame, src, dst;
     uint32_t slots;
 
     switch (mstp_port->zero_config_state) {
@@ -1305,13 +1305,12 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
             /* The ZERO_CONFIGURATION_INIT state is entered when
                ZeroConfigurationMode is TRUE. */
             mstp_port->Poll_Count = 0;
-            mstp_port->Zero_Config_Station = MSTP_ZERO_CONFIG_ADDRESS_MIN;
-            mstp_port->Npoll_priority =
-                1 + (rand() % MSTP_ZERO_CONFIG_ADDRESS_RANGE);
+            mstp_port->Zero_Config_Station = Nmin_poll_station;
+            mstp_port->Npoll_slot = 1 + (rand() % Nmax_poll_slot);
             /* basic silence timeout is the dropped token time plus
                one Tslot after the last master node. Add one Tslot of
                silence timeout per zero config priority slot */
-            slots = 128 + mstp_port->Npoll_priority;
+            slots = 128 + mstp_port->Npoll_slot;
             mstp_port->Zero_Config_Silence = Tno_token + Tslot * slots;
             MSTP_Zero_Config_UUID_Init(mstp_port);
             mstp_port->Zero_Config_Max_Master = 0;
@@ -1368,18 +1367,16 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                     /* AddressInUse */
                     /* monitor PFM from the next address */
                     mstp_port->Zero_Config_Station++;
-                    if (mstp_port->Zero_Config_Station >
-                        MSTP_ZERO_CONFIG_ADDRESS_MAX) {
+                    if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
                         /* start again from first */
-                        mstp_port->Zero_Config_Station =
-                            MSTP_ZERO_CONFIG_ADDRESS_MIN;
+                        mstp_port->Zero_Config_Station = Nmin_poll_station;
                     }
                 } else if ((frame == FRAME_TYPE_POLL_FOR_MASTER) &&
                     (dst == mstp_port->Zero_Config_Station)) {
                     mstp_port->Poll_Count++;
-                    station = MSTP_ZERO_CONFIG_ADDRESS_MIN +
-                        mstp_port->Npoll_priority;
-                    if (mstp_port->Poll_Count == station) {
+                    /* calculate this node poll count priority */
+                    count = Nmin_poll + mstp_port->Npoll_slot;
+                    if (mstp_port->Poll_Count == count) {
                         /* ClaimAddress */
                         MSTP_Create_And_Send_Frame(mstp_port,
                             FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER, src,
@@ -1414,11 +1411,9 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                     /* AddressInUse */
                     /* monitor PFM from the next address */
                     mstp_port->Zero_Config_Station++;
-                    if (mstp_port->Zero_Config_Station >
-                        MSTP_ZERO_CONFIG_ADDRESS_MAX) {
+                    if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
                         /* start again from first */
-                        mstp_port->Zero_Config_Station =
-                            MSTP_ZERO_CONFIG_ADDRESS_MIN;
+                        mstp_port->Zero_Config_Station = Nmin_poll_station;
                     }
                     mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_LURK;
                 }
@@ -1476,11 +1471,9 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                     /* AddressInUse */
                     /* monitor PFM from the next address */
                     mstp_port->Zero_Config_Station++;
-                    if (mstp_port->Zero_Config_Station >
-                        MSTP_ZERO_CONFIG_ADDRESS_MAX) {
+                    if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
                         /* start again from first */
-                        mstp_port->Zero_Config_Station =
-                            MSTP_ZERO_CONFIG_ADDRESS_MIN;
+                        mstp_port->Zero_Config_Station = Nmin_poll_station;
                     }
                     mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_LURK;
                 }

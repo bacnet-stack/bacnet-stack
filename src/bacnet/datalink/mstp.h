@@ -186,12 +186,12 @@ struct mstp_port_struct_t {
        that are not in-use.*/
     uint8_t Zero_Config_Station;
     /* Used to count the number of received poll-for-master frames
-    This is used in the detection of addresses not in-use. */
+       This is used in the detection of addresses not in-use. */
     uint8_t Poll_Count;
-    /* This parameter is random value 1..64 */
-    uint8_t Npoll_priority;
+    /* This parameter is random value 1..64, used to choose the poll slot */
+    uint8_t Npoll_slot;
     /* UUID for storing the unique identifier for this node
-    used to send and validate a unique test request and response */
+       used to send and validate a unique test request and response */
     uint8_t UUID[MSTP_UUID_SIZE];
     /* amount of silence time to wait, in milliseconds */
     uint32_t Zero_Config_Silence;
