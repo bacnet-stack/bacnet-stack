@@ -239,6 +239,7 @@ static bool weekofmonth_match(BACNET_DATE *date, uint8_t weekofmonth)
         st = true;
         break;
     default:
+        break;
     }
     return st;
 }
