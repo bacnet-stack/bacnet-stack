@@ -588,7 +588,7 @@ static void testZeroConfigNode_Test_Request_Unsupported(
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_true(transition_now, NULL);
     zassert_true(
-        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_MONITOR, NULL);
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_USE, NULL);
     zassert_true(
         mstp_port->This_Station == mstp_port->Zero_Config_Station, NULL);
 }
@@ -609,7 +609,7 @@ static void testZeroConfigNode_Test_Request_Supported(
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_true(transition_now, NULL);
     zassert_true(
-        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_MONITOR, NULL);
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_USE, NULL);
     zassert_true(
         mstp_port->This_Station == mstp_port->Zero_Config_Station, NULL);
 }
@@ -626,12 +626,12 @@ static void testZeroConfigNode_Test_IDLE_InvalidFrame(
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(
-        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_PFM, NULL);
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
     zassert_true(mstp_port->ReceivedInvalidFrame == true, NULL);
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(
-        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_PFM, NULL);
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
     zassert_true(mstp_port->ReceivedInvalidFrame == false, NULL);
 }
 
@@ -649,18 +649,104 @@ static void testZeroConfigNode_Test_IDLE_ValidFrameTimeout(
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(
-        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_PFM, NULL);
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == true, NULL);
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(
-        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_PFM, NULL);
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
     SilenceTime = mstp_port->Zero_Config_Silence + 1;
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(
         mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
+}
+
+static void testZeroConfigNode_Test_IDLE_ValidFrame(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+
+    /* test case: get a valid frame, followed by timeout  */
+    SilenceTime = 0;
+    mstp_port->SourceAddress = 0;
+    mstp_port->DestinationAddress = 1;
+    mstp_port->ReceivedValidFrame = true;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
+    zassert_true(mstp_port->ReceivedValidFrame == true, NULL);
+}
+
+static void testZeroConfigNode_Test_IDLE_ValidFrameNotForUs(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+
+    /* test case: get a valid frame, followed by timeout  */
+    SilenceTime = 0;
+    mstp_port->SourceAddress = 0;
+    mstp_port->DestinationAddress = 1;
+    mstp_port->ReceivedValidFrameNotForUs = true;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(
+        mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
+    zassert_true(mstp_port->ReceivedValidFrameNotForUs == true, NULL);
+}
+
+static void testZeroConfigNode_Test_LURK_AddressInUse(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+    uint8_t src, dst;
+
+    /* test case: src emits a token from each MAC in the zero-config range */
+    SilenceTime = 0;
+    mstp_port->FrameType = FRAME_TYPE_TOKEN;
+    for (src = MSTP_ZERO_CONFIG_ADDRESS_MIN;
+        src <= MSTP_ZERO_CONFIG_ADDRESS_MAX; src++) {
+        mstp_port->ReceivedValidFrame = true;
+        mstp_port->SourceAddress = src;
+        dst = (src + 1) % (127 + 1);
+        mstp_port->DestinationAddress = dst;
+        zassert_true(mstp_port->Zero_Config_Station == src, NULL);
+        transition_now = MSTP_Master_Node_FSM(mstp_port);
+        zassert_false(transition_now, NULL);
+        zassert_true(
+            mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
+        zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
+        zassert_true(mstp_port->Zero_Config_Station != src, "src=%u zc=%u",
+            src, mstp_port->Zero_Config_Station);
+    }
+}
+
+static void testZeroConfigNode_Test_LURK_LearnMaxMaster(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+    uint8_t src, dst;
+
+    /* test case: src emits a token from each MAC in the zero-config range */
+    SilenceTime = 0;
+    mstp_port->SourceAddress = 0;
+    mstp_port->FrameType = FRAME_TYPE_POLL_FOR_MASTER;
+    for (dst = 1; dst <= 127; dst++) {
+        mstp_port->ReceivedValidFrame = true;
+        mstp_port->DestinationAddress = dst;
+        transition_now = MSTP_Master_Node_FSM(mstp_port);
+        zassert_false(transition_now, NULL);
+        zassert_true(
+            mstp_port->zero_config_state == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
+        zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
+        zassert_true(mstp_port->Zero_Config_Max_Master == dst, NULL);
+    }
 }
 
 static void testZeroConfigNodeFSM(void)
@@ -677,6 +763,14 @@ static void testZeroConfigNodeFSM(void)
     /* test case: valid frame event and timeout */
     testZeroConfigNode_Init(&MSTP_Port);
     testZeroConfigNode_Test_IDLE_ValidFrameTimeout(&MSTP_Port);
+    /* test case: valid frame event LURK Tokens: AddressInUse */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_AddressInUse(&MSTP_Port);
+    /* test case: valid frame event LURK PFMs: LearnMaxMaster */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_LearnMaxMaster(&MSTP_Port);
 }
 
 /**

@@ -1326,7 +1326,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                 (mstp_port->ReceivedInvalidFrame)) {
                 /* next state will clear the flags */
                 /* MonitorPFM */
-                mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_PFM;
+                mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_LURK;
             } else if (mstp_port->Zero_Config_Silence > 0) {
                 if (mstp_port->SilenceTimer((void *)mstp_port) >
                     mstp_port->Zero_Config_Silence) {
@@ -1345,7 +1345,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                 }
             }
             break;
-        case MSTP_ZERO_CONFIG_STATE_PFM:
+        case MSTP_ZERO_CONFIG_STATE_LURK:
             /* The ZERO_CONFIGURATION_IDLE state is entered when
                ZeroConfigurationMode is TRUE, and a node is
                counting a Poll For Master frames to Zero_Config_Station
@@ -1360,6 +1360,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                 if (frame == FRAME_TYPE_POLL_FOR_MASTER) {
                     if ((dst > mstp_port->Zero_Config_Max_Master) &&
                         (dst <= DEFAULT_MAX_MASTER)) {
+                        /* LearnMaxMaster */
                         mstp_port->Zero_Config_Max_Master = dst;
                     }
                 }
@@ -1419,7 +1420,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                         mstp_port->Zero_Config_Station =
                             MSTP_ZERO_CONFIG_ADDRESS_MIN;
                     }
-                    mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_PFM;
+                    mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_LURK;
                 }
                 if (frame == FRAME_TYPE_TOKEN) {
                     if (dst == mstp_port->Zero_Config_Station) {
@@ -1481,7 +1482,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                         mstp_port->Zero_Config_Station =
                             MSTP_ZERO_CONFIG_ADDRESS_MIN;
                     }
-                    mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_PFM;
+                    mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_LURK;
                 }
             } else if (mstp_port->SilenceTimer((void *)mstp_port) >=
                 mstp_port->Treply_timeout) {
@@ -1492,13 +1493,13 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
             }
             if (take_address) {
                 mstp_port->This_Station = mstp_port->Zero_Config_Station;
-                mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_MONITOR;
+                mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_USE;
             } else {
                 /* ConfirmationFailed */
                 mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_IDLE;
             }
             break;
-        case MSTP_ZERO_CONFIG_STATE_MONITOR:
+        case MSTP_ZERO_CONFIG_STATE_USE:
             break;
         default:
             break;
