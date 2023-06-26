@@ -70,9 +70,7 @@ BACNET_STACK_EXPORT
 bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
-bool Calendar_Present_Value_Set(uint32_t object_instance, bool value);
-BACNET_STACK_EXPORT
-bool Calendar_Present_Value(uint32_t object_instance, bool *value);
+bool Calendar_Present_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
 void Calendar_Write_Present_Value_Callback_Set(
     calendar_write_present_value_callback cb);

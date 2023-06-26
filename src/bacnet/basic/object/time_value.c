@@ -159,11 +159,16 @@ bool Time_Value_Present_Value(uint32_t object_instance, BACNET_TIME *value)
 {
     bool status = false;
     struct object_data *pObject;
+    BACNET_DATE date;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        *value = pObject->Present_Value;
-        status = true;
+        if (pObject->Out_Of_Service) {
+            *value = pObject->Present_Value;
+            status = true;
+        } else {
+            status = datetime_local(&date, value, NULL, NULL);
+        }
     }
 
     return status;
@@ -501,12 +506,18 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_TIME);
-            if (status) {
-                status = Time_Value_Present_Value_Write(wp_data->object_instance,
-                    &value.type.Time, wp_data->priority,
-                    &wp_data->error_class, &wp_data->error_code);
+            if (Time_Value_Out_Of_Service(wp_data->object_instance)) {
+                status = write_property_type_valid(wp_data, &value,
+                    BACNET_APPLICATION_TAG_TIME);
+                if (status) {
+                    status = Time_Value_Present_Value_Write(
+                        wp_data->object_instance,
+                        &value.type.Time, wp_data->priority,
+                        &wp_data->error_class, &wp_data->error_code);
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
             break;
         
@@ -516,6 +527,7 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
         case PROP_STATUS_FLAGS:
+        case PROP_OUT_OF_SERVICE:
         case PROP_EVENT_STATE:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

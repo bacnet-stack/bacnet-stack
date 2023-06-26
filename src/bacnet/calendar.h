@@ -38,6 +38,12 @@
     }
 */
 
+typedef enum BACnet_CalendarEntry_Tags {
+    BACNET_CALENDAR_DATE = 0,
+    BACNET_CALENDAR_DATE_RANGE = 1,
+    BACNET_CALENDAR_WEEK_N_DAY = 2
+} BACNET_CALENDAR_ENTRY_TAGS;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -69,6 +75,10 @@ BACNET_STACK_EXPORT
 int bacapp_decode_context_CalendarEntry(
     uint8_t *apdu, uint32_t len_value, uint8_t tag_number,
     BACNET_CALENDAR_ENTRY *value);
+
+BACNET_STACK_EXPORT
+bool bacapp_date_in_calendar_entry(BACNET_DATE *date,
+    BACNET_CALENDAR_ENTRY *entry);
 
 #ifdef __cplusplus
 }

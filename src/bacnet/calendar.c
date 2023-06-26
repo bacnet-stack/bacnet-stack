@@ -37,12 +37,7 @@ License.
 #include "bacnet/bacdcode.h"
 #include "bacnet/bactimevalue.h"
 #include "bacnet/datetime.h"
-
-typedef enum BACnet_CalendarEntry_Tags {
-    BACNET_CALENDAR_DATE = 0,
-    BACNET_CALENDAR_DATE_RANGE = 1,
-    BACNET_CALENDAR_WEEK_N_DAY = 2
-} BACNET_CALENDAR_ENTRY_TAGS;
+#include "bacnet/basic/sys/days.h"
 
 int bacapp_encode_CalendarEntry(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value)
 {
@@ -212,3 +207,71 @@ int bacapp_decode_context_CalendarEntry(uint8_t *apdu, uint32_t len_value,
     }
     return apdu_len;
 }
+
+static bool month_match(BACNET_DATE *date, uint8_t month)
+{
+    return (month == 0xff) || (month == date->month) ||
+        ((month == 13) && (date->month % 2 == 1))  ||
+        ((month == 14) && (date->month % 2 == 0));
+}
+
+static bool weekofmonth_match(BACNET_DATE *date, uint8_t weekofmonth)
+{
+    bool st = false;
+    uint8_t day_to_end_month =
+        days_per_month(date->year, date->month) - date->day;
+
+    switch (weekofmonth) {
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+        st = (weekofmonth == (date->day - 1) % 7 + 1);
+        break;
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+        st = ((weekofmonth - 6) == day_to_end_month % 7);
+        break;
+    case 0xff:
+        st = true;
+        break;
+    default:
+    }
+    return st;
+}
+
+static bool dayofweek_match(BACNET_DATE *date, uint8_t dayofweek)
+{
+    return (dayofweek == 0xff) || (dayofweek == date->wday);
+}
+
+bool bacapp_date_in_calendar_entry(BACNET_DATE *date,
+    BACNET_CALENDAR_ENTRY *entry)
+ {
+    switch (entry->tag) {
+    case BACNET_CALENDAR_DATE:
+        if (datetime_compare_date(date, &entry->type.Date) == 0)
+            return true;
+        break;
+    case BACNET_CALENDAR_DATE_RANGE:
+        if ((datetime_compare_date(
+                &entry->type.DateRange.startdate, date) <= 0) &&
+            (datetime_compare_date(
+                date, &entry->type.DateRange.enddate) <= 0))
+            return true;
+    case BACNET_CALENDAR_WEEK_N_DAY:
+        if (month_match(date, entry->type.WeekNDay.month) &&
+            weekofmonth_match(date, entry->type.WeekNDay.weekofmonth) &&
+            dayofweek_match(date, entry->type.WeekNDay.dayofweek))
+            return true;
+        break;
+    default:
+    /* do nothing */
+        break;
+    }
+    return false;
+}
+

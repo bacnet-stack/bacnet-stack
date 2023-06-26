@@ -30,6 +30,8 @@ static void testTimeValue(void)
     const uint32_t instance = 1;
 
     Time_Value_Init();
+    zassert_true(Time_Value_Create(instance), NULL);
+
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_TIME_VALUE;
@@ -52,6 +54,7 @@ static void testTimeValue(void)
         }
         required_property++;
     }
+    zassert_true(Time_Value_Delete(instance), NULL);
 }
 /**
  * @}

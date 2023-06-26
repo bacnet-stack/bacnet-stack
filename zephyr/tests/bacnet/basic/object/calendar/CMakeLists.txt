@@ -26,6 +26,7 @@ if(BOARD STREQUAL unit_testing)
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
+    ${BACNET_TEST_PATH}/stubs.c
     ${BACNET_TEST_PATH}/../mock/device_mock.c
     )
 

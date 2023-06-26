@@ -148,49 +148,6 @@ unsigned Calendar_Instance_To_Index(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, determines the present-value
- *
- * @param  object_instance - object-instance number of the object
- *
- * @return  present-value of the object
- */
-bool Calendar_Present_Value(uint32_t object_instance, bool *value)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        *value = pObject->Present_Value;
-        status = true;
-    }
-
-    return status;
-}
-
-/**
- * For a given object instance-number, sets the present-value
- *
- * @param  object_instance - object-instance number of the object
- * @param  value - indicator of 'present value'
- *
- * @return  true if values are within range and present-value is set.
- */
-bool Calendar_Present_Value_Set(uint32_t object_instance, bool value)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        pObject->Present_Value = value;
-        status = true;
-    }
-
-    return status;
-}
-
-/**
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
@@ -202,6 +159,7 @@ bool Calendar_Present_Value_Set(uint32_t object_instance, bool value)
  * @return  true if values are within range and present-value is set.
  */
 static bool Calendar_Present_Value_Write(uint32_t object_instance,
+    bool old_value,
     bool value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
@@ -209,7 +167,6 @@ static bool Calendar_Present_Value_Write(uint32_t object_instance,
 {
     bool status = false;
     struct object_data *pObject;
-    bool old_value = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -316,6 +273,26 @@ int Calendar_Date_List_Encode(
     }
 
     return apdu_len;
+}
+
+bool Calendar_Present_Value(uint32_t object_instance)
+{
+    BACNET_DATE date;
+    BACNET_TIME time;
+    BACNET_CALENDAR_ENTRY *entry = NULL;
+    unsigned size = 0;
+    int index;
+
+    datetime_local(&date, &time, NULL, NULL);
+
+    size = Calendar_Date_List_Count(object_instance);
+    for (index = 0; index < size; index++) {
+        entry = Calendar_Date_List_Get(object_instance, index);
+        if (bacapp_date_in_calendar_entry(&date, entry))
+            return true;
+    }
+
+    return false;
 }
 
 /**
@@ -476,9 +453,8 @@ int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
         case PROP_PRESENT_VALUE:
-            if (Calendar_Present_Value(rpdata->object_instance, &value)) {
-                apdu_len = encode_application_boolean(apdu, value);
-            }
+            value = Calendar_Present_Value(rpdata->object_instance);
+            apdu_len = encode_application_boolean(apdu, value);
             break;
         case PROP_DATE_LIST:
             apdu_len = Calendar_Date_List_Encode(
@@ -527,6 +503,8 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
     int iOffset;
     BACNET_CALENDAR_ENTRY entry;
+    bool pv_old;
+    bool pv;
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -547,18 +525,9 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
-        case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
-            if (status) {
-                status = Calendar_Present_Value_Write(
-                    wp_data->object_instance, value.type.Boolean,
-                    wp_data->priority, &wp_data->error_class,
-                    &wp_data->error_code);
-            }
-            break;
-            
         case PROP_DATE_LIST:
+            pv_old = Calendar_Present_Value(wp_data->object_instance);
+
             Calendar_Date_List_Delete_All(wp_data->object_instance);
             iOffset = 0;
             /* decode all packed */
@@ -575,6 +544,10 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 iOffset += len;
                 Calendar_Date_List_Add(wp_data->object_instance, &entry);
             }
+            pv = Calendar_Present_Value(wp_data->object_instance);
+            status = Calendar_Present_Value_Write(wp_data->object_instance,
+                pv_old, pv, wp_data->priority, &wp_data->error_class,
+                &wp_data->error_code);
             break;
             
         case PROP_OBJECT_IDENTIFIER:
@@ -582,6 +555,7 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
         case PROP_EVENT_STATE:
+        case PROP_PRESENT_VALUE:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
