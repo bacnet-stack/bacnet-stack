@@ -7,7 +7,7 @@
  * @section DESCRIPTION
  *
  * The Calendar object is an object with a present-value that
- * uses an x,y color single precision floating point data type.
+ * uses an enum of Date, Date Range or specific date.
  *
  * @section LICENSE
  *
@@ -151,7 +151,8 @@ unsigned Calendar_Instance_To_Index(uint32_t object_instance)
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point Color
+ * @param  old_value - boolean, previous value of the Present Value property
+ * @param  value - boolean, new value of the Present Value property
  * @param  priority - priority-array index value 1..16
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
@@ -261,7 +262,7 @@ int Calendar_Date_List_Encode(
     size = Calendar_Date_List_Count(object_instance);
     for (index = 0; index < size; index++) {
         entry = Calendar_Date_List_Get(object_instance, index);
-        apdu_len += bacapp_encode_CalendarEntry(NULL, entry);
+        apdu_len += bacnet_calendar_entry_encode(NULL, entry);
     }
     if (apdu_len > max_apdu) {
         return BACNET_STATUS_ABORT;
@@ -269,7 +270,7 @@ int Calendar_Date_List_Encode(
     apdu_len = 0;
     for (index = 0; index < size; index++) {
         entry = Calendar_Date_List_Get(object_instance, index);
-        apdu_len += bacapp_encode_CalendarEntry(&apdu[apdu_len], entry);
+        apdu_len += bacnet_calendar_entry_encode(&apdu[apdu_len], entry);
     }
 
     return apdu_len;
@@ -349,7 +350,7 @@ bool Calendar_Name_Set(uint32_t object_instance, char *new_name)
         characterstring_init_ansi(&object_name, new_name);
         if (Device_Valid_Object_Name(
                 &object_name, &found_type, &found_instance)) {
-            if ((found_type == OBJECT_COLOR) &&
+            if ((found_type == OBJECT_CALENDAR) &&
                 (found_instance == object_instance)) {
                 /* writing same name to same object */
                 status = true;
@@ -532,7 +533,7 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             iOffset = 0;
             /* decode all packed */
             while (iOffset < wp_data->application_data_len) {
-                len = bacapp_decode_CalendarEntry(
+                len = bacnet_calendar_entry_decode(
                     &wp_data->application_data[iOffset],
                     wp_data->application_data_len - iOffset,
                     &entry);

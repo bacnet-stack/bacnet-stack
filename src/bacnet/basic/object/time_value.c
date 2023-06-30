@@ -1,13 +1,13 @@
 /**
  * @file
  * @author Steve Karg
- * @date June 2022
- * @brief Calendar objects, customize for your use
+ * @date June 2023
+ * @brief Time Value objects, customize for your use
  *
  * @section DESCRIPTION
  *
- * The Calendar object is an object with a present-value that
- * uses an x,y color single precision floating point data type.
+ * The Time Value object is an object with a present-value that
+ * uses an bacnet time data type.
  *
  * @section LICENSE
  *
@@ -93,7 +93,7 @@ void Time_Value_Property_Lists(
 }
 
 /**
- * Determines if a given Calendar instance is valid
+ * Determines if a given Time Value instance is valid
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -112,9 +112,9 @@ bool Time_Value_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * Determines the number of Calendar objects
+ * Determines the number of Time Value objects
  *
- * @return  Number of Calendar objects
+ * @return  Number of Time Value objects
  */
 unsigned Time_Value_Count(void)
 {
@@ -123,7 +123,7 @@ unsigned Time_Value_Count(void)
 
 /**
  * Determines the object instance-number for a given 0..N index
- * of Calendar objects where N is Time_Value_Count().
+ * of Time Value objects where N is Time_Value_Count().
  *
  * @param  index - 0..N where N is Time_Value_Count()
  *
@@ -136,7 +136,7 @@ uint32_t Time_Value_Index_To_Instance(unsigned index)
 
 /**
  * For a given object instance-number, determines a 0..N index
- * of Calendar objects where N is Time_Value_Count().
+ * of Time Value objects where N is Time_Value_Count().
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -200,7 +200,7 @@ bool Time_Value_Present_Value_Set(uint32_t object_instance, BACNET_TIME *value)
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point Color
+ * @param  value - Bacnet time data object
  * @param  priority - priority-array index value 1..16
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
@@ -284,7 +284,7 @@ bool Time_Value_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[16] = "CALENDAR-4194303";
+    char name_text[16] = "Time-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -292,7 +292,7 @@ bool Time_Value_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "CALENDAR-%u", object_instance);
+            snprintf(name_text, sizeof(name_text), "Time-%u", object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -323,7 +323,7 @@ bool Time_Value_Name_Set(uint32_t object_instance, char *new_name)
         characterstring_init_ansi(&object_name, new_name);
         if (Device_Valid_Object_Name(
                 &object_name, &found_type, &found_instance)) {
-            if ((found_type == OBJECT_COLOR) &&
+            if ((found_type == OBJECT_TIME_VALUE) &&
                 (found_instance == object_instance)) {
                 /* writing same name to same object */
                 status = true;
@@ -385,6 +385,16 @@ bool Time_Value_Description_Set(uint32_t object_instance, char *new_name)
     }
 
     return status;
+}
+
+static bool Time_Value_BACnetARRAY_Property(BACNET_PROPERTY_ID object_property)
+{
+    return (object_property == PROP_EVENT_TIME_STAMPS) ||
+        (object_property == PROP_EVENT_MESSAGE_TEXTS) ||
+        (object_property == PROP_EVENT_MESSAGE_TEXTS_CONFIG) ||
+        (object_property == PROP_VALUE_SOURCE_ARRAY) ||
+        (object_property == PROP_COMMAND_TIME_ARRAY) ||
+        (object_property == PROP_TAGS);
 }
 
 /**
@@ -460,8 +470,8 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
-        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
+    if ((apdu_len >= 0) &&
+        (!Time_Value_BACnetARRAY_Property(rpdata->object_property)) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -496,8 +506,7 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
+    if ((!Time_Value_BACnetARRAY_Property(wp_data->object_property)) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -612,7 +621,7 @@ void Time_Value_Write_Disable(uint32_t object_instance)
 }
 
 /**
- * Creates a Calendar object
+ * Creates a Time Value object
  * @param object_instance - object-instance number of the object
  */
 bool Time_Value_Create(uint32_t object_instance)
@@ -643,7 +652,7 @@ bool Time_Value_Create(uint32_t object_instance)
 }
 
 /**
- * Deletes an Calendar object
+ * Deletes an Time Value object
  * @param object_instance - object-instance number of the object
  * @return true if the object is deleted
  */
@@ -663,7 +672,7 @@ bool Time_Value_Delete(uint32_t object_instance)
 }
 
 /**
- * Deletes all the Calendars and their data
+ * Deletes all the Time Values and their data
  */
 void Time_Value_Cleanup(void)
 {
@@ -683,7 +692,7 @@ void Time_Value_Cleanup(void)
 }
 
 /**
- * Initializes the Calendar object data
+ * Initializes the Time Value object data
  */
 void Time_Value_Init(void)
 {

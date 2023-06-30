@@ -2,13 +2,12 @@
  * @file
  * @author Mikhail Antropov
  * @date June 2023
- * @brief Color object, customize for your use
+ * @brief Time Value object, customize for your use
  *
  * @section DESCRIPTION
  *
- * The Calendar object type defines a standardized object used to describe a
- * list of calendar dates, which might be thought of as "holidays," "special
- * events," or simply as a list of dates.
+ * The Time Value object is an object with a present-value that
+ * uses an bacnet time data type.
  *
  * @section LICENSE
  *
@@ -24,7 +23,6 @@
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
-#include "bacnet/calendar.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/rp.h"

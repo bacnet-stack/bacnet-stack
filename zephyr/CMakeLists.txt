@@ -238,8 +238,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/config.h
     ${BACNETSTACK_SRC}/bacnet/cov.c
     ${BACNETSTACK_SRC}/bacnet/cov.h
-    ${BACNETSTACK_SRC}/bacnet/calendar.c
-    ${BACNETSTACK_SRC}/bacnet/calendar.h
+    ${BACNETSTACK_SRC}/bacnet/calendar_entry.c
+    ${BACNETSTACK_SRC}/bacnet/calendar_entry.h
     ${BACNETSTACK_SRC}/bacnet/credential_authentication_factor.c
     ${BACNETSTACK_SRC}/bacnet/credential_authentication_factor.h
     ${BACNETSTACK_SRC}/bacnet/datalink/arcnet.h

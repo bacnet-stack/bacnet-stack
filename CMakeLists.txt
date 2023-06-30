@@ -368,8 +368,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/bits.h
     src/bacnet/bytes.h
     src/bacnet/config.h
-    src/bacnet/calendar.c
-    src/bacnet/calendar.h
+    src/bacnet/calendar_entry.c
+    src/bacnet/calendar_entry.h
     src/bacnet/cov.c
     src/bacnet/cov.h
     src/bacnet/create_object.c

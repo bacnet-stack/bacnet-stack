@@ -47,7 +47,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/sys/keylist.c
     ${BACNET_SRC}/bacdevobjpropref.c
     ${BACNET_SRC}/bactext.c
-    ${BACNET_SRC}/calendar.c
+    ${BACNET_SRC}/calendar_entry.c
     ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/lighting.c
     ${BACNET_SRC}/wp.c

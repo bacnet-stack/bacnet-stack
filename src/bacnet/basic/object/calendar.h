@@ -2,7 +2,7 @@
  * @file
  * @author Mikhail Antropov
  * @date June 2023
- * @brief Color object, customize for your use
+ * @brief Calendar object, customize for your use
  *
  * @section DESCRIPTION
  *
@@ -24,7 +24,7 @@
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
-#include "bacnet/calendar.h"
+#include "bacnet/calendar_entry.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/rp.h"

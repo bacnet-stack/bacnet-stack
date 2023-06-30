@@ -33,69 +33,97 @@ License.
 ####COPYRIGHTEND####*/
 
 #include <stdint.h>
-#include "bacnet/calendar.h"
+#include "bacnet/calendar_entry.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bactimevalue.h"
 #include "bacnet/datetime.h"
 #include "bacnet/basic/sys/days.h"
 
-int bacapp_encode_CalendarEntry(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value)
+/** @file calendar_entry.c  Manipulate BACnet calendar entry values */
+
+/*
+ * @brief Encode the BACnetCalendarEntry complex data
+ *
+ * BACnetCalendarEntry ::= CHOICE {
+ *     date [0] Date,
+ *     date-range [1] BACnetDateRange,
+ *     weekNDay [2] BACnetWeekNDay
+ * }
+ *
+ * @param apdu  Pointer to the buffer for encoding.
+ * @param value Pointer to the property data to be encoded.
+ * @return bytes encoded or zero on error.
+ */
+int bacnet_calendar_entry_encode(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value)
 {
     int len = 0;
     int apdu_len = 0;
-    uint8_t *apdu_offset = NULL;
 
     len = encode_opening_tag(apdu, value->tag);
     apdu_len += len;
     if (apdu) {
-        apdu_offset = &apdu[apdu_len];
+        apdu += len;
     }
 
     switch (value->tag) {
     case BACNET_CALENDAR_DATE:
-        len = encode_bacnet_date(apdu_offset, &value->type.Date);
+        len = encode_bacnet_date(apdu, &value->type.Date);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         break;
     case BACNET_CALENDAR_DATE_RANGE:
-        len = encode_bacnet_date(apdu_offset, &value->type.DateRange.startdate);
+        len = encode_bacnet_date(apdu, &value->type.DateRange.startdate);
         apdu_len += len;
         if (apdu) {
-            apdu_offset = &apdu[apdu_len];
+            apdu += len;
         }
-        len = encode_bacnet_date(apdu_offset, &value->type.DateRange.enddate);
+        len = encode_bacnet_date(apdu, &value->type.DateRange.enddate);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         break;
     case BACNET_CALENDAR_WEEK_N_DAY:
-        len = encode_bacnet_unsigned(apdu_offset, value->type.WeekNDay.month);
+        len = encode_bacnet_unsigned(apdu, value->type.WeekNDay.month);
         apdu_len += len;
         if (apdu) {
-            apdu_offset = &apdu[apdu_len];
+            apdu += len;
         }
-        len = encode_bacnet_unsigned(
-            apdu_offset, value->type.WeekNDay.weekofmonth);
+        len = encode_bacnet_unsigned(apdu, value->type.WeekNDay.weekofmonth);
         apdu_len += len;
         if (apdu) {
-            apdu_offset = &apdu[apdu_len];
+            apdu += len;
         }
-        len = encode_bacnet_unsigned(
-            apdu_offset, value->type.WeekNDay.dayofweek);
+        len = encode_bacnet_unsigned(apdu, value->type.WeekNDay.dayofweek);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         break;
     default:
         /* do nothing */
         break;
     }
 
-    if (apdu) {
-        apdu_offset = &apdu[apdu_len];
-    }
-    len = encode_closing_tag(apdu_offset, value->tag);
+    len = encode_closing_tag(apdu, value->tag);
     apdu_len += len;
 
     return apdu_len;
 }
 
-int bacapp_encode_context_CalendarEntry(
+/**
+ * Encodes into bytes from the calendar-entry structure
+ * a context tagged chunk (opening and closing tag)
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param tag_number - tag number to encode this chunk
+ * @param value - calendar entry value to encode
+ *
+ * @return  number of bytes encoded, or 0 if unable to encode.
+ */
+int bacnet_calendar_entry_encode_context(
     uint8_t *apdu, uint8_t tag_number, BACNET_CALENDAR_ENTRY *value)
 {
     int len = 0;
@@ -105,7 +133,7 @@ int bacapp_encode_context_CalendarEntry(
         len = encode_opening_tag(&apdu[apdu_len], tag_number);
         apdu_len += len;
 
-        len = bacapp_encode_CalendarEntry(&apdu[apdu_len], value);
+        len = bacnet_calendar_entry_encode(&apdu[apdu_len], value);
         apdu_len += len;
 
         len = encode_closing_tag(&apdu[apdu_len], tag_number);
@@ -114,50 +142,66 @@ int bacapp_encode_context_CalendarEntry(
     return apdu_len;
 }
 
-int bacapp_decode_CalendarEntry(uint8_t *apdu, uint32_t len_value,
+/**
+ * Decodes from bytes into the calendar-entry structure
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_max_len - number of bytes in the buffer to decode
+ * @param value - calendar entry value to place the decoded values
+ *
+ * @return  number of bytes decoded
+ */
+int bacnet_calendar_entry_decode(uint8_t *apdu, uint32_t apdu_max_len,
     BACNET_CALENDAR_ENTRY *value)
 {
     int apdu_len;
     int len = 0;
     BACNET_UNSIGNED_INTEGER v;
 
+    if (!apdu) {
+        return BACNET_STATUS_REJECT;
+    }
+    if (!value) {
+        return BACNET_STATUS_REJECT;
+    }
+
     apdu_len = decode_tag_number(apdu, &value->tag);
 
     switch (value->tag) {
     case BACNET_CALENDAR_DATE:
         if ( -1 == (len = decode_date(&apdu[apdu_len], &value->type.Date))) {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
         break;
     case BACNET_CALENDAR_DATE_RANGE:
         if ( -1 == (len =
             decode_date(&apdu[apdu_len], &value->type.DateRange.startdate))) {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
         if ( -1 == (len =
             decode_date(&apdu[apdu_len], &value->type.DateRange.enddate))) {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
         break;
     case BACNET_CALENDAR_WEEK_N_DAY:
         if ( -1 == (len =
-            decode_unsigned(&apdu[apdu_len], len_value - apdu_len, &v))) {
-            return -1;
+            decode_unsigned(&apdu[apdu_len], apdu_max_len - apdu_len, &v))) {
+            return BACNET_STATUS_ERROR;
         }
         value->type.WeekNDay.month = v;
         apdu_len += len;
         if ( -1 == (len =
-            decode_unsigned(&apdu[apdu_len], len_value - apdu_len, &v))) {
-            return -1;
+            decode_unsigned(&apdu[apdu_len], apdu_max_len - apdu_len, &v))) {
+            return BACNET_STATUS_ERROR;
         }
         value->type.WeekNDay.weekofmonth = v;
         apdu_len += len;
         if ( -1 == (len =
-            decode_unsigned(&apdu[apdu_len], len_value - apdu_len, &v))) {
-            return -1;
+            decode_unsigned(&apdu[apdu_len], apdu_max_len - apdu_len, &v))) {
+            return BACNET_STATUS_ERROR;
         }
         value->type.WeekNDay.dayofweek = v;
         apdu_len += len;
@@ -171,14 +215,25 @@ int bacapp_decode_CalendarEntry(uint8_t *apdu, uint32_t len_value,
         return BACNET_STATUS_REJECT;
     }
 
-    if (apdu_len > len_value) {
+    if (apdu_len > apdu_max_len) {
         return BACNET_STATUS_REJECT;
     }
 
     return apdu_len;
 }
 
-int bacapp_decode_context_CalendarEntry(uint8_t *apdu, uint32_t len_value,
+/**
+ * Decodes from bytes into the calendar-entry structure
+ * a context tagged chunk (opening and closing tag)
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_max_len - number of bytes in the buffer to decode
+ * @param tag_number - tag number to encode this chunk
+ * @param value - calendar entry value to place the decoded values
+ *
+ * @return  number of bytes decoded
+ */
+int bacnet_calendar_entry_decode_context(uint8_t *apdu, uint32_t apdu_max_len,
     uint8_t tag_number, BACNET_CALENDAR_ENTRY *value)
 {
     int apdu_len = 0;
@@ -190,8 +245,8 @@ int bacapp_decode_context_CalendarEntry(uint8_t *apdu, uint32_t len_value,
         return -1;
     }
 
-    if (-1 == (len = bacapp_decode_CalendarEntry(&apdu[apdu_len],
-                                    len_value - apdu_len, value))) {
+    if (-1 == (len = bacnet_calendar_entry_decode(&apdu[apdu_len],
+                                    apdu_max_len - apdu_len, value))) {
         return -1;
     } else {
         apdu_len += len;
@@ -202,7 +257,7 @@ int bacapp_decode_context_CalendarEntry(uint8_t *apdu, uint32_t len_value,
     } else {
         return -1;
     }
-    if (apdu_len > len_value) {
+    if (apdu_len > apdu_max_len) {
         return -1;
     }
     return apdu_len;
