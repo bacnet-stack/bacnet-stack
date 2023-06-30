@@ -3129,7 +3129,7 @@ int bacnet_array_encode(uint32_t object_instance,
             /* encoded size is larger than APDU size */
             apdu_len = BACNET_STATUS_ABORT;
         } else {
-            for (index = 1; index < array_size; index++) {
+            for (index = 0; index < array_size; index++) {
                 len = encoder(object_instance, index, apdu);
                 if (apdu) {
                     apdu += len;
