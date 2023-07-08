@@ -14,6 +14,10 @@ The git repositories are hosted at the following sites:
 
 ## [Unreleased]
 
+- Fix segfault on mstp cleanup on linux port (#445)
+- Fix minimal config by adding bitstring (#443)
+- Fix WhoIs app APDU timeout (#444)
+
 ## [1.1.1] - 2023-06-30
 
 ### Fixed
