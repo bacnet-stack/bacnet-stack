@@ -293,6 +293,11 @@ bool apdu_confirmed_simple_ack_service(
     return status;
 }
 
+/** 
+ * @brief Set the the BACnet Simple Ack Service handler
+ * @param service_choice [in] BACnet confirmed service choice
+ * @param pFunction [in] handler for the service
+ */
 void apdu_set_confirmed_simple_ack_handler(
     BACNET_CONFIRMED_SERVICE service_choice,
     confirmed_simple_ack_function pFunction)
@@ -302,11 +307,18 @@ void apdu_set_confirmed_simple_ack_handler(
     }
 }
 
+/** 
+ * @brief Set the the BACnet Confirmed Ack Service handler
+ * @param service_choice [in] BACnet confirmed service choice
+ * @param pFunction [in] handler for the service
+ */
 void apdu_set_confirmed_ack_handler(
     BACNET_CONFIRMED_SERVICE service_choice, confirmed_ack_function pFunction)
 {
     if (!apdu_confirmed_simple_ack_service(service_choice)) {
-        Confirmed_ACK_Function[service_choice].complex = pFunction;
+        if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
+            Confirmed_ACK_Function[service_choice].complex = pFunction;
+        }
     }
 }
 
@@ -640,11 +652,13 @@ void apdu_handler(BACNET_ADDRESS *src,
                 service_request = &apdu[len];
                 service_request_len = apdu_len - (uint16_t)len;
                 if (!apdu_confirmed_simple_ack_service(service_choice)) {
-                    if (Confirmed_ACK_Function[service_choice]
+                    if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
+                        if (Confirmed_ACK_Function[service_choice]
                             .complex != NULL) {
-                        Confirmed_ACK_Function[service_choice].complex(
-                            service_request, service_request_len, src,
-                            &service_ack_data);
+                            Confirmed_ACK_Function[service_choice].complex(
+                                service_request, service_request_len, src,
+                                &service_ack_data);
+                        }
                     }
                     tsm_free_invoke_id(invoke_id);
                 }
