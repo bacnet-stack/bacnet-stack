@@ -303,7 +303,9 @@ void apdu_set_confirmed_simple_ack_handler(
     confirmed_simple_ack_function pFunction)
 {
     if (apdu_confirmed_simple_ack_service(service_choice)) {
-        Confirmed_ACK_Function[service_choice].simple = pFunction;
+        if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
+            Confirmed_ACK_Function[service_choice].simple = pFunction;
+        }
     }
 }
 
@@ -379,7 +381,7 @@ void apdu_set_error_handler(
 void apdu_set_complex_error_handler(
     BACNET_CONFIRMED_SERVICE service_choice, complex_error_function pFunction)
 {
-    if (apdu_complex_error(service_choice)) {
+    if (apdu_complex_error(service_choice) && service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
         Error_Function[service_choice].complex = pFunction;
     }
 }
@@ -626,12 +628,14 @@ void apdu_handler(BACNET_ADDRESS *src,
                 invoke_id = apdu[1];
                 service_choice = apdu[2];
                 if (apdu_confirmed_simple_ack_service(service_choice)) {
-                    if (Confirmed_ACK_Function[service_choice].simple !=
-                        NULL) {
-                        Confirmed_ACK_Function[service_choice].simple(
-                            src, invoke_id);
+                    if (service_choice < MAX_BACNET_CONFIRMEDD_SERVICE) {
+                        if (Confirmed_ACK_Function[service_choice].simple !=
+                            NULL) {
+                            Confirmed_ACK_Function[service_choice].simple(
+                                src, invoke_id);
+                        }
+                        tsm_free_invoke_id(invoke_id);
                     }
-                    tsm_free_invoke_id(invoke_id);
                 }
                 break;
             case PDU_TYPE_COMPLEX_ACK:
@@ -675,10 +679,12 @@ void apdu_handler(BACNET_ADDRESS *src,
                 invoke_id = apdu[1];
                 service_choice = apdu[2];
                 if (apdu_complex_error(service_choice)) {
-                    if (Error_Function[service_choice].complex) {
-                        Error_Function[service_choice].complex(src,
-                            invoke_id, service_choice, &apdu[3],
-                            apdu_len - 3);
+                    if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
+                        if (Error_Function[service_choice].complex) {
+                            Error_Function[service_choice].complex(src,
+                                invoke_id, service_choice, &apdu[3],
+                                apdu_len - 3);
+                        }
                     }
                 } else if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
                     len = bacerror_decode_error_class_and_code(
