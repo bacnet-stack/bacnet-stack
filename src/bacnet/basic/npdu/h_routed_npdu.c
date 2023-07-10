@@ -281,7 +281,7 @@ void routing_npdu_handler(
 
     /* only handle the version that we know how to handle */
     if (pdu[0] == BACNET_PROTOCOL_VERSION) {
-        apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
+        apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
         if (apdu_offset <= 0) {
             debug_printf("NPDU: Decoding failed; Discarded!\n");
         } else if (npdu_data.network_layer_message) {
