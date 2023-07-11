@@ -901,7 +901,7 @@ static void routed_apdu_handler(uint16_t snet,
             datalink_send_pdu(port->net, &remote_dest, npdu, &Tx_Buffer[0],
                 npdu_len + apdu_len);
         }
-    } else if (dest->net) {
+    } else if (port && dest->net) {
         debug_printf("Routing to Unknown Route %u\n", (unsigned)dest->net);
         /* Case 3: a global broadcast is required. */
         dest->mac_len = 0;
