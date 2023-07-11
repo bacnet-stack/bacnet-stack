@@ -662,7 +662,8 @@ static void network_control_handler(uint16_t snet,
         case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
             /* add its DNETs to our routing table */
             fprintf(stderr, "for Networks: ");
-            while (npdu_len) {
+            len = 2;
+            while (npdu_len >= len) {
                 len = decode_unsigned16(&npdu[npdu_offset], &dnet);
                 fprintf(stderr, "%hu", dnet);
                 dnet_add(snet, dnet, src);
