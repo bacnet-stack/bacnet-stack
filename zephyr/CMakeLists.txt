@@ -358,7 +358,7 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/osv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/piv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/schedule.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c
+    #${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_alarm_ack.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf_a.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf.c
@@ -421,6 +421,7 @@ list(
       ${BACNETSTACK_PORT}/ai.c
       ${BACNETSTACK_PORT}/av.c
       ${BACNETSTACK_PORT}/event.c
+      ${BACNETSTACK_PORT}/trendlog.c
   )
 
 

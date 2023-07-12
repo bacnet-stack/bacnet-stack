@@ -17,7 +17,7 @@
 #include <zephyr/storage/flash_map.h>
 #include <zephyr/fs/nvs.h>
 
-static struct nvs_fs fs;
+static struct nvs_fs trend_log_fs;
 void trend_log_fs_set(struct nvs_fs *fs);
 
 #endif
@@ -195,9 +195,7 @@ static uint32_t log_count(int instance)
 static void testLogs(void)
 {
     const uint32_t instance = 1;
-    BACNET_LOG_STATUS eStatus;
     int len = 0;
-    bool b;
     uint8_t apdu1[MAX_APDU] = { 0 };
     uint8_t apdu2[MAX_APDU] = { 0 };
 
@@ -228,15 +226,12 @@ static void testLogs(void)
 
 void init_trend_log_fs(struct nvs_fs *fs)
 {
-    int rc = 0, cnt = 0, cnt_his = 0;
-    char buf[16];
-    uint8_t key[8], longarray[128];
-    uint32_t reboot_counter = 0U, reboot_counter_his;
+    int rc = 0;
     struct flash_pages_info info;
 
     fs->flash_device = NVS_PARTITION_DEVICE;
     if (!device_is_ready(fs->flash_device)) {
-        printf("Flash device %s is not ready\n", fs.flash_device->name);
+        printf("Flash device %s is not ready\n", fs->flash_device->name);
         return;
     }
     fs->offset = NVS_PARTITION_OFFSET;
@@ -246,7 +241,7 @@ void init_trend_log_fs(struct nvs_fs *fs)
         return;
     }
     fs->sector_size = info.size;
-    fs->sector_count = 3U;
+    fs->sector_count = 256U;
 
     rc = nvs_mount(fs);
     if (rc) {

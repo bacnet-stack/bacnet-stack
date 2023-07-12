@@ -180,11 +180,11 @@ static bool GetLogInfo(TL_LOG_INFO *rec, unsigned index)
     return 0 == nvs_read(trend_log_fs, index, rec, sizeof(TL_LOG_INFO));
 }
 
-static bool SetLogInfo(TL_LOG_INFO *rec, unsigned index,)
+static bool SetLogInfo(TL_LOG_INFO *rec, unsigned index)
 {
     if (index >= MAX_TREND_LOGS || trend_log_fs == NULL)
         return false;
-    return 0 == nvs_write(trend_log_fs, index,, rec, sizeof(TL_LOG_INFO));
+    return 0 == nvs_write(trend_log_fs, index, rec, sizeof(TL_LOG_INFO));
 }
 
 #else
@@ -213,7 +213,7 @@ static bool GetLogInfo(TL_LOG_INFO *rec, unsigned index)
     return true;
 }
 
-static bool SetLogInfo(TL_LOG_INFO *rec, unsigned index,)
+static bool SetLogInfo(TL_LOG_INFO *rec, unsigned index)
 {
     if (index >= MAX_TREND_LOGS)
         return false;
@@ -275,8 +275,7 @@ void Trend_Log_Init(void)
             month = iLog + 1;
             datetime_set_values(&bdatetime, 2009, month, 1, 0, 0, 0, 0);
             tClock = datetime_seconds_since_epoch(&bdatetime);
-            logs.ucRecType = TL_TYPE_REAL;
-            logDatum.fReal = (float)(iEntry + (iLog * TL_MAX_ENTRIES));
+            log.ucRecType = TL_TYPE_REAL;
             /* Put status flags with every second log */
             if ((iLog & 1) == 0) {
                 log.ucStatus = 128;
@@ -286,6 +285,7 @@ void Trend_Log_Init(void)
 
             for (iEntry = 0; iEntry < TL_MAX_ENTRIES; iEntry++) {
                 log.tTimeStamp = tClock;
+                log.Datum.fReal = (float)(iEntry + (iLog * TL_MAX_ENTRIES));
                 /* advance 15 minutes, in seconds */
                 SetLog(&log, iLog, iEntry);
                 tClock += 900;
@@ -951,7 +951,7 @@ void TL_Insert_Status_Rec(int iLog, BACNET_LOG_STATUS eStatus, bool bState)
             break;
     }
 
-    SetLogs(&TempRec, iLog, CurrentLog.iIndex++);
+    SetLog(&TempRec, iLog, CurrentLog.iIndex++);
     if (CurrentLog.iIndex >= TL_MAX_ENTRIES) {
         CurrentLog.iIndex = 0;
     }
@@ -1273,7 +1273,7 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         }
     } else { /* There are wrap arounds to contend with */
         /* First check for non overlap condition as it is common to all */
-        if ((uiBegin > CurrentLog->ulTotalRecordCount) &&
+        if ((uiBegin > CurrentLog.ulTotalRecordCount) &&
             (uiEnd < uiFirstSeq)) {
             return (0);
         }
@@ -1689,7 +1689,7 @@ static void TL_fetch_property(int iLog)
     TempRec.ucStatus = 0;
 
     iLen = local_read_property(
-        ValueBuf, StatusBuf, &LogInfo[iLog].Source, &error_class, &error_code);
+        ValueBuf, StatusBuf, &CurrentLog.Source, &error_class, &error_code);
     if (iLen < 0) {
         /* Insert error code into log */
         TempRec.Datum.Error.usClass = error_class;
@@ -1847,7 +1847,7 @@ void trend_log_timer(uint16_t uSeconds)
 
                 CurrentLog.bTrigger = false; /* Clear this every time */
                 GetLogInfo(&CurrentLog, iCount);
-            } else if (CurrentLog->LoggingType == LOGGING_TYPE_TRIGGERED) {
+            } else if (CurrentLog.LoggingType == LOGGING_TYPE_TRIGGERED) {
                 /* Triggered logs take a reading when the trigger is set and
                  * then reset the trigger to wait for the next event
                  */

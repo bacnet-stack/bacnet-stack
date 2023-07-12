@@ -31,6 +31,8 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 
+#if __ZEPHYR__ != 1
+
 void datetime_init(void)
 {
 }
@@ -47,6 +49,8 @@ bool datetime_local(
 
     return true;
 }
+
+#endif
 
 void bip_get_my_address(BACNET_ADDRESS * my_address)
 {
