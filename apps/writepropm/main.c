@@ -280,6 +280,7 @@ int main(int argc, char *argv[])
     char *value_string = NULL;
     bool status = false;
     long property_tag;
+    long priority;
     uint8_t context_tag = 0;
     unsigned object_type = 0;
     unsigned property_id = 0;
@@ -394,8 +395,12 @@ int main(int argc, char *argv[])
                     return 1;
                 }
                 /* Priority */
-                wpm_property->priority =
-                    (uint8_t)strtol(argv[tag_value_arg], NULL, 0);
+                priority = strtol(argv[tag_value_arg], NULL, 0);
+                if ((priority < BACNET_MIN_PRIORITY) ||
+                    (priority > BACNET_MAX_PRIORITY)) {
+                    priority = BACNET_NO_PRIORITY;
+                }
+                wpm_property->priority = priority;
                 tag_value_arg++;
                 args_remaining--;
                 if (Verbose) {

@@ -250,6 +250,7 @@ int main(int argc, char *argv[])
     bool status = false;
     int args_remaining = 0, tag_value_arg = 0, i = 0;
     long property_tag;
+    long priority;
     uint8_t context_tag = 0;
     int argi = 0;
 
@@ -288,7 +289,12 @@ int main(int argc, char *argv[])
         return 1;
     }
     Target_Object_Property = object_property;
-    Target_Object_Property_Priority = (uint8_t)strtol(argv[5], NULL, 0);
+    priority = strtol(argv[5], NULL, 0);
+    if ((priority < BACNET_MIN_PRIORITY) ||
+        (priority > BACNET_MAX_PRIORITY)) {
+        priority = BACNET_NO_PRIORITY;
+    }
+    Target_Object_Property_Priority = priority;
     Target_Object_Property_Index = strtol(argv[6], NULL, 0);
     if (Target_Object_Property_Index == -1) {
         Target_Object_Property_Index = BACNET_ARRAY_ALL;
