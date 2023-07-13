@@ -150,7 +150,7 @@ int bacnet_calendar_entry_encode_context(
  * @param apdu_max_len - number of bytes in the buffer to decode
  * @param entry - calendar entry value to place the decoded values
  *
- * @return  number of bytes decoded
+ * @return number of bytes decoded, or BACNET_STATUS_REJECT
  */
 int bacnet_calendar_entry_decode(uint8_t *apdu, uint32_t apdu_max_len,
     BACNET_CALENDAR_ENTRY *entry)
@@ -263,7 +263,7 @@ int bacnet_calendar_entry_decode(uint8_t *apdu, uint32_t apdu_max_len,
  * @param tag_number - tag number to encode this chunk
  * @param value - calendar entry value to place the decoded values
  *
- * @return  number of bytes decoded
+ * @return number of bytes decoded, or BACNET_STATUS_REJECT
  */
 int bacnet_calendar_entry_decode_context(uint8_t *apdu, uint32_t apdu_max_len,
     uint8_t tag_number, BACNET_CALENDAR_ENTRY *value)
@@ -274,12 +274,13 @@ int bacnet_calendar_entry_decode_context(uint8_t *apdu, uint32_t apdu_max_len,
     if (decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
         apdu_len++;
     } else {
-        return -1;
+        return BACNET_STATUS_REJECT;
     }
 
-    if (-1 == (len = bacnet_calendar_entry_decode(&apdu[apdu_len],
+    if (BACNET_STATUS_REJECT ==
+        (len = bacnet_calendar_entry_decode(&apdu[apdu_len],
                                     apdu_max_len - apdu_len, value))) {
-        return -1;
+        return BACNET_STATUS_REJECT;
     } else {
         apdu_len += len;
     }
@@ -287,10 +288,10 @@ int bacnet_calendar_entry_decode_context(uint8_t *apdu, uint32_t apdu_max_len,
     if (decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
         apdu_len++;
     } else {
-        return -1;
+        return BACNET_STATUS_REJECT;
     }
     if (apdu_len > apdu_max_len) {
-        return -1;
+        return BACNET_STATUS_REJECT;
     }
     return apdu_len;
 }

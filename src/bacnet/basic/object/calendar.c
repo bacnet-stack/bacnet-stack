@@ -715,6 +715,7 @@ bool Calendar_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        free(pObject->Date_List);
         free(pObject);
         status = true;
         Device_Inc_Database_Revision();
@@ -734,6 +735,7 @@ void Calendar_Cleanup(void)
         do {
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
+                free(pObject->Date_List);
                 free(pObject);
                 Device_Inc_Database_Revision();
             }
