@@ -902,7 +902,7 @@ static void routed_apdu_handler(uint16_t snet,
             datalink_send_pdu(port->net, &remote_dest, npdu, &Tx_Buffer[0],
                 npdu_len + apdu_len);
         }
-    } else if (port && dest->net) {
+    } else if (dest->net) {
         debug_printf("Routing to Unknown Route %u\n", (unsigned)dest->net);
         /* Case 3: a global broadcast is required. */
         dest->mac_len = 0;
@@ -911,8 +911,15 @@ static void routed_apdu_handler(uint16_t snet,
         routed_src_address(&router_src, snet, src);
         npdu_len = npdu_encode_pdu(&Tx_Buffer[0], dest, &router_src, npdu);
         memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-        datalink_send_pdu(
-            port->net, dest, npdu, &Tx_Buffer[0], npdu_len + apdu_len);
+        /* send to all other ports */
+        port = Router_Table_Head;
+        while (port != NULL) {
+            if (port->net != snet) {
+                datalink_send_pdu(port->net, dest, npdu, &Tx_Buffer[0], 
+                	npdu_len + apdu_len);
+            }
+            port = port->next;
+        }
         /*  If the next router is unknown, an attempt shall be made to
             identify it using a Who-Is-Router-To-Network message. */
         send_who_is_router_to_network(0, dest->net);
