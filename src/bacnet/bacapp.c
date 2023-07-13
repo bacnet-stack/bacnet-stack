@@ -1521,13 +1521,13 @@ int bacapp_data_len(
     uint8_t opening_tag_number_counter = 0;
     uint32_t value = 0;
 
-    if (IS_OPENING_TAG(apdu[0])) {
+    if (apdu_len_max > 0 && IS_OPENING_TAG(apdu[0])) {
         len = bacnet_tag_number_and_value_decode(
             &apdu[apdu_len], apdu_len_max - apdu_len, &tag_number, &value);
         apdu_len += len;
         opening_tag_number = tag_number;
         opening_tag_number_counter = 1;
-        while (opening_tag_number_counter) {
+        while (apdu_len < apdu_len_max && opening_tag_number_counter) {
             if (IS_OPENING_TAG(apdu[apdu_len])) {
                 len = bacnet_tag_number_and_value_decode(&apdu[apdu_len],
                     apdu_len_max - apdu_len, &tag_number, &value);

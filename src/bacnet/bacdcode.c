@@ -548,7 +548,7 @@ int bacnet_tag_number_and_value_decode(
     int len = 0;
 
     len = bacnet_tag_number_decode(&apdu[0], apdu_len_max, tag_number);
-    if (len > 0) {
+    if (len > 0 && apdu_len_max > len) {
         apdu_len_max -= len;
         if (IS_EXTENDED_VALUE(apdu[0])) {
             /* tagged as uint32_t */
