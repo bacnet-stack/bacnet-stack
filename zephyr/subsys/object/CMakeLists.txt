@@ -23,6 +23,7 @@ if(CONFIG_BACNET_USE_DYNAMIC_DESCRIPTION)
     ai.c
     ao.c
     av.c
+    auditlog.c
     bacfile.c
     bi.c
     bo.c
