@@ -108,6 +108,7 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/ai.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/ao.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/av.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/auditlog.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/bi.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/bo.h
@@ -332,6 +333,7 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_zone.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/acc.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/ao.c
+    #${BACNETSTACK_SRC}/bacnet/basic/object/auditlog.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bi.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bo.c
@@ -420,6 +422,7 @@ list(
       ${BACNETSTACK_PORT}/mstimer-init.c
       ${BACNETSTACK_PORT}/ai.c
       ${BACNETSTACK_PORT}/av.c
+      ${BACNETSTACK_PORT}/auditlog.c
       ${BACNETSTACK_PORT}/event.c
   )
 

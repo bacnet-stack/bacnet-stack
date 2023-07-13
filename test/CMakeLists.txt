@@ -105,6 +105,7 @@ list(APPEND testdirs
   bacnet/basic/object/ai
   bacnet/basic/object/ao
   bacnet/basic/object/av
+  bacnet/basic/object/auditlog
   bacnet/basic/object/bacfile
   bacnet/basic/object/bi
   bacnet/basic/object/bo

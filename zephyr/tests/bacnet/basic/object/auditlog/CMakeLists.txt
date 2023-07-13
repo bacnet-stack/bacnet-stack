@@ -48,56 +48,23 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/lighting.c
     ${BACNET_SRC}/wp.c
-    ${BACNET_SRC}/cov.c
-    ${BACNET_SRC}/dcc.c
-    ${BACNET_SRC}/indtext.c
-    ${BACNET_SRC}/lighting.c
-    ${BACNET_SRC}/memcopy.c
-    ${BACNET_SRC}/npdu.c
     ${BACNET_SRC}/proplist.c
-    ${BACNET_SRC}/reject.c
-    ${BACNET_SRC}/abort.c
-    ${BACNET_SRC}/bacaddr.c
-    ${BACNET_SRC}/bactimevalue.c
-    ${BACNET_SRC}/bacerror.c
-    ${BACNET_SRC}/basic/binding/address.c
-    ${BACNET_SRC}/basic/object/acc.c
-    ${BACNET_SRC}/basic/object/ai.c
-    ${BACNET_SRC}/basic/object/ao.c
-    ${BACNET_SRC}/basic/object/av.c
-    ${BACNET_SRC}/basic/object/auditlog.c
-    ${BACNET_SRC}/basic/object/bi.c
-    ${BACNET_SRC}/basic/object/bo.c
-    ${BACNET_SRC}/basic/object/bv.c
-    ${BACNET_SRC}/basic/object/channel.c
-    ${BACNET_SRC}/basic/object/color_object.c
-    ${BACNET_SRC}/basic/object/color_temperature.c
-    ${BACNET_SRC}/basic/object/command.c
-    ${BACNET_SRC}/basic/object/csv.c
-    ${BACNET_SRC}/basic/object/iv.c
-    ${BACNET_SRC}/basic/object/lc.c
-    ${BACNET_SRC}/basic/object/lo.c
-    ${BACNET_SRC}/basic/object/lsp.c
-    ${BACNET_SRC}/basic/object/ms-input.c
-    ${BACNET_SRC}/basic/object/mso.c
-    ${BACNET_SRC}/basic/object/msv.c
-    ${BACNET_SRC}/basic/object/netport.c
-    ${BACNET_SRC}/basic/object/osv.c
-    ${BACNET_SRC}/basic/object/piv.c
-    ${BACNET_SRC}/basic/object/schedule.c
-    ${BACNET_SRC}/basic/object/trendlog.c
-    ${BACNET_SRC}/hostnport.c
-    ${BACNET_SRC}/basic/service/h_apdu.c
-    ${BACNET_SRC}/basic/service/h_cov.c
-    ${BACNET_SRC}/basic/service/h_wp.c
-    ${BACNET_SRC}/basic/sys/bigend.c
-    ${BACNET_SRC}/basic/sys/keylist.c
-    ${BACNET_SRC}/basic/tsm/tsm.c
     ${BACNET_SRC}/datalink/bvlc.c
+    ${BACNET_SRC}/hostnport.c
     ${BACNET_SRC}/dailyschedule.c
     ${BACNET_SRC}/weeklyschedule.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
+    ${BACNET_SRC}/basic/object/client/device-client.c
+    ${BACNET_SRC}/basic/object/netport.c
+    ${BACNET_SRC}/proplist.c
+    ${BACNET_SRC}/basic/service/h_apdu.c
+    ${BACNET_SRC}/datalink/bvlc.c
+    ${BACNET_SRC}/basic/binding/address.c
+    ${BACNET_SRC}/basic/tsm/tsm.c
+    ${BACNET_SRC}/dcc.c
+    ${BACNET_SRC}/bacerror.c
+    ${BACNET_SRC}/npdu.c
     )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
@@ -110,6 +77,6 @@ else()
   target_include_directories(app PRIVATE ${BACNET_INCLUDE})
   target_sources(app PRIVATE
     ${BACNET_TEST_PATH}/src/main.c
-    #${BACNET_TEST_PATH}/stubs.c
+    ${BACNET_TEST_PATH}/stubs.c
     )
 endif()
