@@ -69,7 +69,7 @@ int bacnet_calendar_entry_encode_context(
 
 BACNET_STACK_EXPORT
 int bacnet_calendar_entry_decode(
-    uint8_t *apdu, uint32_t apdu_max_len, BACNET_CALENDAR_ENTRY *value);
+    uint8_t *apdu, uint32_t apdu_max_len, BACNET_CALENDAR_ENTRY *entry);
 
 BACNET_STACK_EXPORT
 int bacnet_calendar_entry_decode_context(

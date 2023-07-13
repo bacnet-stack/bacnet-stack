@@ -7,7 +7,8 @@
  * @section DESCRIPTION
  *
  * The Calendar object is an object with a present-value that
- * uses an enum of Date, Date Range or specific date.
+ * uses a BOOLEAN data type, and features a Date_List
+ * that is a BACnetLIST of BACnetCalendarEntry.
  *
  * @section LICENSE
  *
@@ -59,8 +60,7 @@ static const int Calendar_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_DATE_LIST,
     -1 };
 
-static const int Calendar_Properties_Optional[] = { PROP_EVENT_STATE,
-    PROP_DESCRIPTION, -1 };
+static const int Calendar_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
 static const int Calendar_Properties_Proprietary[] = { -1 };
 
@@ -192,6 +192,14 @@ static bool Calendar_Present_Value_Write(uint32_t object_instance,
     return status;
 }
 
+/**
+ * For a given object instance-number, returns the Calendar entity by index.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  index - index of entity
+ *
+ * @return Calendar entity.
+ */
 BACNET_CALENDAR_ENTRY *Calendar_Date_List_Get(
     uint32_t object_instance, uint8_t index)
 {
@@ -206,6 +214,14 @@ BACNET_CALENDAR_ENTRY *Calendar_Date_List_Get(
     return entry;
 }
 
+/**
+ * For a given object instance-number, adds a Calendar entity to entities list.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  entity - Calendar entity
+ *
+ * @return  true if the entity is add successfully.
+ */
 bool Calendar_Date_List_Add(uint32_t object_instance,
     BACNET_CALENDAR_ENTRY *value)
 {
@@ -214,12 +230,14 @@ bool Calendar_Date_List_Add(uint32_t object_instance,
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject)
+    if (!pObject) {
         return false;
+    }
      
     entry = calloc(1, sizeof(BACNET_CALENDAR_ENTRY));
-    if (!entry)
+    if (!entry) {
         return false;
+    }
 
     *entry = *value;
     st = Keylist_Data_Add(
@@ -228,12 +246,20 @@ bool Calendar_Date_List_Add(uint32_t object_instance,
     return st;
 }
 
+/**
+ * For a given object instance-number, clears to entities list.
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  true if entities list is clear successfully.
+ */
 bool Calendar_Date_List_Delete_All(uint32_t object_instance)
 {
     struct object_data *pObject;
     pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject)
+    if (!pObject) {
         return false;
+    }
 
     Keylist_Delete(pObject->Date_List);
     pObject->Date_List = Keylist_Create();
@@ -241,16 +267,33 @@ bool Calendar_Date_List_Delete_All(uint32_t object_instance)
     return true;
 }
 
+/**
+ * For a given object instance-number, returns the entities list length.
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  size of entities list.
+ */
 int Calendar_Date_List_Count(uint32_t object_instance)
 {
     struct object_data *pObject;
     pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject)
+    if (!pObject) {
         return 0;
+    }
 
     return Keylist_Count(pObject->Date_List);
 }
 
+/**
+ * @brief Encode a Calendar entity list complex data type
+ *
+ * @param object_instance - object-instance number of the object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - size of the apdu buffer.
+ *
+ * @return bytes encoded or zero on error.
+ */
 int Calendar_Date_List_Encode(
     uint32_t object_instance, uint8_t *apdu, int max_apdu)
 {
@@ -276,6 +319,13 @@ int Calendar_Date_List_Encode(
     return apdu_len;
 }
 
+/**
+ * For a given object instance-number, determines the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  present-value of the object
+ */
 bool Calendar_Present_Value(uint32_t object_instance)
 {
     BACNET_DATE date;
@@ -289,8 +339,9 @@ bool Calendar_Present_Value(uint32_t object_instance)
     size = Calendar_Date_List_Count(object_instance);
     for (index = 0; index < size; index++) {
         entry = Calendar_Date_List_Get(object_instance, index);
-        if (bacapp_date_in_calendar_entry(&date, entry))
+        if (bacapp_date_in_calendar_entry(&date, entry)) {
             return true;
+        }
     }
 
     return false;
@@ -406,7 +457,7 @@ bool Calendar_Description_Set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Description = new_name;
     }
@@ -466,10 +517,6 @@ int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &char_string, Calendar_Description(rpdata->object_instance));
             apdu_len = encode_application_character_string(apdu, &char_string);
             break;
-        case PROP_EVENT_STATE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
-            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -478,7 +525,7 @@ int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
-        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (rpdata->object_property != PROP_TAGS) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -518,7 +565,7 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (wp_data->object_property != PROP_TAGS) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -555,7 +602,6 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_OBJECT_TYPE:
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-        case PROP_EVENT_STATE:
         case PROP_PRESENT_VALUE:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

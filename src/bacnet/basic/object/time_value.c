@@ -240,6 +240,13 @@ static bool Time_Value_Present_Value_Write(uint32_t object_instance,
     return status;
 }
 
+/**
+ * For a given object instance-number, returns the Out-of-service value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  Out-of-service value of the object
+ */
 bool Time_Value_Out_Of_Service(uint32_t object_instance)
 {
     bool status = false;
@@ -253,6 +260,14 @@ bool Time_Value_Out_Of_Service(uint32_t object_instance)
     return status;
 }
 
+/**
+ * For a given object instance-number, sets the Out-of-service value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - indicator of 'Out-of-service'
+ *
+ * @return  true if Out-of-service value is set.
+ */
 bool Time_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     bool status = false;
@@ -379,7 +394,7 @@ bool Time_Value_Description_Set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Description = new_name;
     }
