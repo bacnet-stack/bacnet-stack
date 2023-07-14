@@ -69,31 +69,50 @@ int bacerror_decode_error_class_and_code(uint8_t *apdu,
     BACNET_ERROR_CODE *error_code)
 {
     int len = 0;
+    int tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     uint32_t decoded_value = 0;
 
     if (apdu && apdu_len) {
         /* error class */
-        len += decode_tag_number_and_value(
-            &apdu[len], &tag_number, &len_value_type);
-        if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED) {
-            return 0;
+        tag_len = bacnet_tag_number_and_value_decode(
+            apdu, apdu_len, &tag_number, &len_value_type);
+        if (tag_len == 0) {
+            return BACNET_STATUS_ERROR;
         }
-        len += decode_enumerated(&apdu[len], len_value_type, &decoded_value);
+        if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED) {
+            return BACNET_STATUS_ERROR;
+        }
+        len += tag_len;
+        tag_len = bacnet_enumerated_decode(
+            apdu, apdu_len - len, len_value_type, &decoded_value);
+        if (tag_len == 0) {
+            return BACNET_STATUS_ERROR;
+        }
         if (error_class) {
             *error_class = (BACNET_ERROR_CLASS)decoded_value;
         }
+        len += tag_len;
         /* error code */
-        len += decode_tag_number_and_value(
+        tag_len = bacnet_tag_number_and_value_decode(
             &apdu[len], &tag_number, &len_value_type);
+        if (tag_len == 0) {
+            return BACNET_STATUS_ERROR;
+        }
         if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED) {
             return 0;
         }
-        len += decode_enumerated(&apdu[len], len_value_type, &decoded_value);
+        len += tag_len;
+        tag_len = bacnet_enumerated_decode(
+            apdu, apdu_len - len, len_value_type, &decoded_value);
+        if (tag_len == 0) {
+            return BACNET_STATUS_ERROR;
+        }
         if (error_code) {
             *error_code = (BACNET_ERROR_CODE)decoded_value;
         }
+        len += tag_len;
     }
 
     return len;
@@ -116,7 +135,7 @@ int bacerror_decode_service_request(uint8_t *apdu,
         if (service) {
             *service = (BACNET_CONFIRMED_SERVICE)apdu[1];
         }
-	len += 2;
+        len += 2;
 
         /* decode the application class and code */
         len += bacerror_decode_error_class_and_code(

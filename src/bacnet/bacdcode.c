@@ -188,7 +188,7 @@ int decode_max_segs(uint8_t octet)
 /**
  * Decode the given octed into a maximum APDU value.
  *
- * @param octed  From clause 20.1.2.4 max-segments-accepted
+ * @param octet  From clause 20.1.2.4 max-segments-accepted
  *               and clause 20.1.2.5 max-APDU-length-accepted
  *
  * @return  Returns the maximum APDU value.

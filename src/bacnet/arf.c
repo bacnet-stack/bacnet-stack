@@ -262,32 +262,42 @@ int arf_ack_decode_service_request(
 
     /* check for value pointers */
     if (apdu_len && data) {
-        len =
-            decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
+        tag_len = bacnet_tag_number_and_value_decode(
+            apdu, apdu_len, &tag_number, &len_value_type);
+        if (tag_len == 0) {
+            return BACNET_STATUS_ERROR;
+        }
         if (tag_number != BACNET_APPLICATION_TAG_BOOLEAN) {
             return BACNET_STATUS_ERROR;
         }
         data->endOfFile = decode_boolean(len_value_type);
+        len = tag_len;
         if (decode_is_opening_tag_number(&apdu[len], 0)) {
             data->access = FILE_STREAM_ACCESS;
             /* a tag number is not extended so only one octet */
             len++;
             /* fileStartPosition */
-            tag_len = decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            len += tag_len;
+            tag_len = bacnet_tag_number_and_value_decode(
+                &apdu[len], apdu_len - len, &tag_number, &len_value_type);
+            if (tag_len == 0) {
+                return BACNET_STATUS_ERROR;
+            }
             if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
                 return BACNET_STATUS_ERROR;
             }
+            len += tag_len;
             len += decode_signed(&apdu[len], len_value_type,
                 &data->type.stream.fileStartPosition);
             /* fileData */
-            tag_len = decode_tag_number_and_value(
+            tag_len = bacnet_tag_number_and_value_decode(
                 &apdu[len], &tag_number, &len_value_type);
-            len += tag_len;
+            if (tag_len == 0) {
+                return BACNET_STATUS_ERROR;
+            }
             if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
                 return BACNET_STATUS_ERROR;
             }
+            len += tag_len;
             decoded_len = decode_octet_string(
                 &apdu[len], len_value_type, &data->fileData[0]);
             if ((uint32_t)decoded_len != len_value_type) {

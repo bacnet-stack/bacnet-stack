@@ -265,9 +265,11 @@ int awf_ack_decode_service_request(
 
     /* check for value pointers */
     if (apdu_len && data) {
-        len =
-            decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
-        if (tag_number == 0) {
+        len = bacnet_tag_number_and_value_decode(
+            apdu, apdu_len, &tag_number, &len_value_type);
+        if (len == 0) {
+            return BACNET_STATUS_ERROR;
+        } else if (tag_number == 0) {
             data->access = FILE_STREAM_ACCESS;
             len += decode_signed(&apdu[len], len_value_type,
                 &data->type.stream.fileStartPosition);

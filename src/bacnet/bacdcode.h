@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/platform.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/datetime.h"
 #include "bacnet/bacstr.h"
@@ -82,6 +83,7 @@ extern "C" {
         uint32_t apdu_len_remaining,
         uint8_t * tag_number);
 
+    BACNET_STACK_DEPRECATED("Use bacnet_tag_number_and_value_decode() instead")
     BACNET_STACK_EXPORT
     int decode_tag_number_and_value(
         uint8_t * apdu,

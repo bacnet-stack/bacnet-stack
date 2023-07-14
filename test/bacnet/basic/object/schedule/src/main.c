@@ -38,7 +38,8 @@ static void testSchedule(void)
     rpdata.array_index = BACNET_ARRAY_ALL;
     len = Schedule_Read_Property(&rpdata);
     zassert_not_equal(len, 0, NULL);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
+    len = bacnet_decode_tag_number_and_value(
+        apdu, sizeof(apdu), &tag_number, &len_value);
     zassert_equal(tag_number, BACNET_APPLICATION_TAG_OBJECT_ID, NULL);
     len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
     zassert_equal(decoded_type, rpdata.object_type, NULL);
@@ -50,12 +51,9 @@ static void testSchedule(void)
  * @}
  */
 
-
 void test_main(void)
 {
-    ztest_test_suite(schedule_tests,
-     ztest_unit_test(testSchedule)
-     );
+    ztest_test_suite(schedule_tests, ztest_unit_test(testSchedule));
 
     ztest_run_test_suite(schedule_tests);
 }
