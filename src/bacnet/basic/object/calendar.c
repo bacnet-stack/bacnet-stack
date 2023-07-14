@@ -192,6 +192,15 @@ static bool Calendar_Present_Value_Write(uint32_t object_instance,
     return status;
 }
 
+static void Calendar_Date_List_Clean(OS_Keylist list)
+{
+    void *data;
+    while (Keylist_Count(list) > 0) {
+        data = Keylist_Data_Pop(list);
+        free(data);
+    }
+}
+
 /**
  * For a given object instance-number, returns the Calendar entity by index.
  *
@@ -261,8 +270,7 @@ bool Calendar_Date_List_Delete_All(uint32_t object_instance)
         return false;
     }
 
-    Keylist_Delete(pObject->Date_List);
-    pObject->Date_List = Keylist_Create();
+    Calendar_Date_List_Clean(pObject->Date_List);
 
     return true;
 }
@@ -715,7 +723,8 @@ bool Calendar_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        free(pObject->Date_List);
+        Calendar_Date_List_Clean(pObject->Date_List);
+        Keylist_Delete(pObject->Date_List);
         free(pObject);
         status = true;
         Device_Inc_Database_Revision();
@@ -735,7 +744,8 @@ void Calendar_Cleanup(void)
         do {
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
-                free(pObject->Date_List);
+                Calendar_Date_List_Clean(pObject->Date_List);
+                Keylist_Delete(pObject->Date_List);
                 free(pObject);
                 Device_Inc_Database_Revision();
             }
