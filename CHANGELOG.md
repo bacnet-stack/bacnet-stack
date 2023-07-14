@@ -14,6 +14,13 @@ The git repositories are hosted at the following sites:
 
 ## [Unreleased]
 
+### Security
+
+- Fix [bug#80] npdu_decode via deprecation (#447)
+- Fix [bug#79] out of bounds jump in h_apdu.c:apdu_handler (#446)
+
+### Fixed
+
 - Fix segfault on mstp cleanup on linux port (#445)
 - Fix minimal config by adding bitstring (#443)
 - Fix WhoIs app APDU timeout (#444)
