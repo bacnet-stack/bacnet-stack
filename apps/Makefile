@@ -177,7 +177,7 @@ endif
 SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
-	server-client add-list-element remove-list-element
+	server-client add-list-element remove-list-element fuzz-libfuzzer fuzz-afl
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -195,6 +195,30 @@ endif
 ifeq (${BACNET_PORT},win32)
 	SUBDIRS += mstpcap mstpcrc
 endif
+
+
+#####
+# Define target-specific fuzzing flags
+#####
+
+# AFL
+fuzz-afl: CC=afl-gcc 
+fuzz-afl: FUZZ_FLAGS=-DFUZZING=1
+fuzz-afl: LFLAGS += $(FUZZ_FLAGS)
+fuzz-afl: CFLAGS += $(FUZZ_FLAGS)
+fuzz-afl: export AFL_USE_ASAN=1
+
+# LIBFUZZER
+fuzz-libfuzzer: CC=clang 
+fuzz-libfuzzer: FUZZ_FLAGS=-DFUZZING=1 -fsanitize=fuzzer,address -g3 -Og -fno-optimize-sibling-calls -fno-omit-frame-pointer
+fuzz-libfuzzer: LFLAGS += $(FUZZ_FLAGS)
+fuzz-libfuzzer: CFLAGS += $(FUZZ_FLAGS)
+
+
+#####
+# Fuzz setup end
+#####
+
 
 .PHONY: all clean
 TARGETS = all clean
@@ -352,6 +376,14 @@ router-ipv6: $(BACNET_LIB_TARGET)
 
 .PHONY: router-mstp
 router-mstp: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: fuzz-libfuzzer
+fuzz-libfuzzer: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: fuzz-afl
+fuzz-afl: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: writepropm
