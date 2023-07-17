@@ -1136,6 +1136,9 @@ static void control_c_hooks(void)
 }
 #endif
 
+
+#ifndef FUZZING
+
 /**
  * Main function of simple router demo.
  *
@@ -1199,3 +1202,6 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+
+#endif // FUZZING
