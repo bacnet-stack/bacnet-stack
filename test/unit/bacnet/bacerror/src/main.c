@@ -461,7 +461,7 @@ static void test_bacerror_decode_error_class_and_code(void)
 
             .expected_call_history =
                 (void *[]) {
-                    decode_tag_number_and_value, NULL, /* mark end of array */
+                    bacnet_enumerated_application_decode, NULL, /* mark end of array */
                 },
 
             .decode_tag_number_and_value_custom_fake_contexts_len = 2,

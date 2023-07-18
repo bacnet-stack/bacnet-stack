@@ -64,58 +64,44 @@ int bacerror_encode_apdu(uint8_t *apdu,
 #if !BACNET_SVC_SERVER
 /* decode the application class and code */
 int bacerror_decode_error_class_and_code(uint8_t *apdu,
-    unsigned apdu_len,
+    unsigned apdu_size,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
-    int len = 0;
+    int apdu_len = 0;
     int tag_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
     uint32_t decoded_value = 0;
 
-    if (apdu && apdu_len) {
+    if (apdu) {
         /* error class */
-        tag_len = bacnet_tag_number_and_value_decode(
-            apdu, apdu_len, &tag_number, &len_value_type);
-        if (tag_len == 0) {
+        if (apdu_size <= apdu_len) {
             return BACNET_STATUS_ERROR;
         }
-        if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED) {
-            return BACNET_STATUS_ERROR;
-        }
-        len += tag_len;
-        tag_len = bacnet_enumerated_decode(
-            apdu, apdu_len - len, len_value_type, &decoded_value);
-        if (tag_len == 0) {
+        tag_len = bacnet_enumerated_application_decode(
+            apdu, apdu_size, &decoded_value);
+        if (tag_len == BACNET_STATUS_ERROR) {
             return BACNET_STATUS_ERROR;
         }
         if (error_class) {
             *error_class = (BACNET_ERROR_CLASS)decoded_value;
         }
-        len += tag_len;
+        apdu_len += tag_len;
         /* error code */
-        tag_len = bacnet_tag_number_and_value_decode(
-            &apdu[len], &tag_number, &len_value_type);
-        if (tag_len == 0) {
+        if (apdu_size <= apdu_len) {
             return BACNET_STATUS_ERROR;
         }
-        if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED) {
-            return 0;
-        }
-        len += tag_len;
-        tag_len = bacnet_enumerated_decode(
-            apdu, apdu_len - len, len_value_type, &decoded_value);
-        if (tag_len == 0) {
+        tag_len = bacnet_enumerated_application_decode(
+            apdu + apdu_len, apdu_size - apdu_len, &decoded_value);
+        if (tag_len == BACNET_STATUS_ERROR) {
             return BACNET_STATUS_ERROR;
         }
         if (error_code) {
             *error_code = (BACNET_ERROR_CODE)decoded_value;
         }
-        len += tag_len;
+        apdu_len += tag_len;
     }
 
-    return len;
+    return apdu_len;
 }
 
 /* decode the service request only */

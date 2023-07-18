@@ -80,94 +80,93 @@ int arf_encode_apdu(
 
 /* decode the service request only */
 int arf_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len_max, BACNET_ATOMIC_READ_FILE_DATA *data)
+    uint8_t *apdu, unsigned apdu_size, BACNET_ATOMIC_READ_FILE_DATA *data)
 {
-    int len = 0;
+    int tag_len = 0;
     int apdu_len = BACNET_STATUS_ERROR;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
 
     /* check for value pointers */
-    if ((apdu_len_max == 0) || (!data)) {
+    if ((apdu_size == 0) || (!data)) {
         return BACNET_STATUS_ERROR;
     }
-    len = bacnet_object_id_application_decode(
-        &apdu[0], apdu_len_max, &object_type, &object_instance);
-    if (len <= 0) {
+    tag_len = bacnet_object_id_application_decode(
+        &apdu[0], apdu_size, &object_type, &object_instance);
+    if (tag_len == BACNET_STATUS_ERROR) {
         return BACNET_STATUS_ERROR;
     }
     data->object_type = (BACNET_OBJECT_TYPE)object_type;
     data->object_instance = object_instance;
-    apdu_len = len;
-    if (apdu_len < apdu_len_max) {
-        if (decode_is_opening_tag_number(&apdu[apdu_len], 0)) {
-            data->access = FILE_STREAM_ACCESS;
-            /* tag number 0 is not extended so only one octet */
-            apdu_len++;
-            /* fileStartPosition */
-            if (apdu_len >= apdu_len_max) {
-                return BACNET_STATUS_ERROR;
-            }
-            len = bacnet_signed_application_decode(&apdu[apdu_len],
-                apdu_len_max - apdu_len, &data->type.stream.fileStartPosition);
-            if (len <= 0) {
-                return BACNET_STATUS_ERROR;
-            }
-            apdu_len += len;
-            /* requestedOctetCount */
-            if (apdu_len >= apdu_len_max) {
-                return BACNET_STATUS_ERROR;
-            }
-            len = bacnet_unsigned_application_decode(&apdu[apdu_len],
-                apdu_len_max, &data->type.stream.requestedOctetCount);
-            if (len <= 0) {
-                return BACNET_STATUS_ERROR;
-            }
-            apdu_len += len;
-            /* closing tag */
-            if (apdu_len >= apdu_len_max) {
-                return BACNET_STATUS_ERROR;
-            }
-            if (!decode_is_closing_tag_number(&apdu[apdu_len], 0)) {
-                return BACNET_STATUS_ERROR;
-            }
-            /* tag number 0 is not extended so only one octet */
-            apdu_len++;
-        } else if (decode_is_opening_tag_number(&apdu[len], 1)) {
-            data->access = FILE_RECORD_ACCESS;
-            /* tag number 1 is not extended so only one octet */
-            apdu_len++;
-            if (apdu_len >= apdu_len_max) {
-                return BACNET_STATUS_ERROR;
-            }
-            /* fileStartRecord */
-            len = bacnet_signed_application_decode(&apdu[apdu_len],
-                apdu_len_max - apdu_len, &data->type.record.fileStartRecord);
-            if (len <= 0) {
-                return BACNET_STATUS_ERROR;
-            }
-            apdu_len += len;
-            if (apdu_len >= apdu_len_max) {
-                return BACNET_STATUS_ERROR;
-            }
-            /* RecordCount */
-            len = bacnet_unsigned_application_decode(
-                &apdu[apdu_len], apdu_len_max, &data->type.record.RecordCount);
-            if (len <= 0) {
-                return BACNET_STATUS_ERROR;
-            }
-            apdu_len += len;
-            if (apdu_len >= apdu_len_max) {
-                return BACNET_STATUS_ERROR;
-            }
-            if (!decode_is_closing_tag_number(&apdu[apdu_len], 1)) {
-                return BACNET_STATUS_ERROR;
-            }
-            /* tag number 1 is not extended so only one octet */
-            apdu_len++;
-        } else {
+    apdu_len = tag_len;
+    if (apdu_size <= apdu_len) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &tag_len)) {
+        data->access = FILE_STREAM_ACCESS;
+        apdu_len += tag_len;
+        /* fileStartPosition */
+        if (apdu_size <= apdu_len) {
             return BACNET_STATUS_ERROR;
         }
+        tag_len = bacnet_signed_application_decode(&apdu[apdu_len],
+            apdu_size - apdu_len, &data->type.stream.fileStartPosition);
+        if (tag_len == BACNET_STATUS_ERROR) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += tag_len;
+        /* requestedOctetCount */
+        if (apdu_size <= apdu_len) {
+            return BACNET_STATUS_ERROR;
+        }
+        tag_len = bacnet_unsigned_application_decode(&apdu[apdu_len],
+            apdu_size - apdu_len, &data->type.stream.requestedOctetCount);
+        if (tag_len == BACNET_STATUS_ERROR) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += tag_len;
+        /* closing tag */
+        if (apdu_size <= apdu_len) {
+            return BACNET_STATUS_ERROR;
+        }
+        if (!bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 0, &tag_len)) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += tag_len;
+    } else if (bacnet_is_opening_tag_number(
+                   &apdu[apdu_len], apdu_size - apdu_len, 1, &tag_len)) {
+        data->access = FILE_RECORD_ACCESS;
+        apdu_len += tag_len;
+        if (apdu_size <= apdu_len) {
+            return BACNET_STATUS_ERROR;
+        }
+        /* fileStartRecord */
+        tag_len = bacnet_signed_application_decode(&apdu[apdu_len],
+            apdu_size - apdu_len, &data->type.record.fileStartRecord);
+        if (tag_len == BACNET_STATUS_ERROR) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += tag_len;
+        if (apdu_size <= apdu_len) {
+            return BACNET_STATUS_ERROR;
+        }
+        /* RecordCount */
+        tag_len = bacnet_unsigned_application_decode(&apdu[apdu_len],
+            apdu_size - apdu_len, &data->type.record.RecordCount);
+        if (tag_len == BACNET_STATUS_ERROR) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += tag_len;
+        if (apdu_size <= apdu_len) {
+            return BACNET_STATUS_ERROR;
+        }
+        if (!bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 1, &tag_len)) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += tag_len;
     } else {
         return BACNET_STATUS_ERROR;
     }
@@ -251,9 +250,9 @@ int arf_ack_encode_apdu(
 
 /* decode the service request only */
 int arf_ack_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_ATOMIC_READ_FILE_DATA *data)
+    uint8_t *apdu, unsigned apdu_size, BACNET_ATOMIC_READ_FILE_DATA *data)
 {
-    int len = 0;
+    int apdu_len = 0;
     int tag_len = 0;
     int decoded_len = 0;
     uint8_t tag_number = 0;
@@ -261,102 +260,96 @@ int arf_ack_decode_service_request(
     uint32_t i = 0;
 
     /* check for value pointers */
-    if (apdu_len && data) {
-        tag_len = bacnet_tag_number_and_value_decode(
-            apdu, apdu_len, &tag_number, &len_value_type);
-        if (tag_len == 0) {
+    if (apdu_size && data) {
+        tag_len =
+            bacnet_boolean_application_decode(apdu, apdu_size, &data->endOfFile);
+        if (tag_len == BACNET_STATUS_ERROR) {
             return BACNET_STATUS_ERROR;
         }
-        if (tag_number != BACNET_APPLICATION_TAG_BOOLEAN) {
-            return BACNET_STATUS_ERROR;
-        }
-        data->endOfFile = decode_boolean(len_value_type);
-        len = tag_len;
-        if (decode_is_opening_tag_number(&apdu[len], 0)) {
+        apdu_len = tag_len;
+        if (bacnet_is_opening_tag_number(&apdu[apdu_len],apdu_size-apdu_len, 0, &tag_len)) {
             data->access = FILE_STREAM_ACCESS;
-            /* a tag number is not extended so only one octet */
-            len++;
+            apdu_len += tag_len;
             /* fileStartPosition */
-            tag_len = bacnet_tag_number_and_value_decode(
-                &apdu[len], apdu_len - len, &tag_number, &len_value_type);
-            if (tag_len == 0) {
+            if (apdu_size <= apdu_len) {
                 return BACNET_STATUS_ERROR;
             }
-            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
+            tag_len = bacnet_signed_application_decode(&apdu[apdu_len],
+                apdu_size - apdu_len, &data->type.stream.fileStartPosition);
+            if (tag_len == BACNET_STATUS_ERROR) {
                 return BACNET_STATUS_ERROR;
             }
-            len += tag_len;
-            len += decode_signed(&apdu[len], len_value_type,
-                &data->type.stream.fileStartPosition);
+            apdu_len += tag_len;
             /* fileData */
-            tag_len = bacnet_tag_number_and_value_decode(
-                &apdu[len], &tag_number, &len_value_type);
-            if (tag_len == 0) {
+            if (apdu_size <= apdu_len) {
                 return BACNET_STATUS_ERROR;
             }
-            if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
+            tag_len = bacnet_octet_string_application_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, &data->fileData[0]);
+            if (tag_len == BACNET_STATUS_ERROR) {
                 return BACNET_STATUS_ERROR;
             }
-            len += tag_len;
-            decoded_len = decode_octet_string(
-                &apdu[len], len_value_type, &data->fileData[0]);
-            if ((uint32_t)decoded_len != len_value_type) {
+            apdu_len += tag_len;
+            if (apdu_size <= apdu_len) {
                 return BACNET_STATUS_ERROR;
             }
-            len += decoded_len;
-            if (!decode_is_closing_tag_number(&apdu[len], 0)) {
+            if (!bacnet_is_closing_tag_number(
+                    &apdu[apdu_len], apdu_size - apdu_len, 0, &tag_len)) {
                 return BACNET_STATUS_ERROR;
             }
-            /* a tag number is not extended so only one octet */
-            len++;
-        } else if (decode_is_opening_tag_number(&apdu[len], 1)) {
+            apdu_len += tag_len;
+        } else if (bacnet_is_opening_tag_number(&apdu[apdu_len],apdu_size-apdu_len, 1, &tag_len)) {
             data->access = FILE_RECORD_ACCESS;
-            /* a tag number is not extended so only one octet */
-            len++;
+            apdu_len += tag_len;
             /* fileStartRecord */
-            tag_len = decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
+            if (apdu_size <= apdu_len) {
                 return BACNET_STATUS_ERROR;
             }
-            len += decode_signed(
-                &apdu[len], len_value_type, &data->type.record.fileStartRecord);
+            tag_len = bacnet_signed_application_decode(&apdu[apdu_len],
+                apdu_size - apdu_len, &data->type.record.fileStartRecord);
+            if (tag_len == BACNET_STATUS_ERROR) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += tag_len;
             /* returnedRecordCount */
-            tag_len = decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            if (apdu_size <= apdu_len) {
                 return BACNET_STATUS_ERROR;
             }
-            len += decode_unsigned(
-                &apdu[len], len_value_type, &data->type.record.RecordCount);
+            tag_len = bacnet_unsigned_application_decode(&apdu[apdu_len],
+                apdu_size - apdu_len, &data->type.record.RecordCount);
+            if (tag_len == BACNET_STATUS_ERROR) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += tag_len;
+            if (apdu_size <= apdu_len) {
+                return BACNET_STATUS_ERROR;
+            }
+            if (data->type.record.RecordCount > BACNET_READ_FILE_RECORD_COUNT) {
+                return BACNET_STATUS_ERROR;
+            }
             for (i = 0; i < data->type.record.RecordCount; i++) {
                 /* fileData */
-                tag_len = decode_tag_number_and_value(
-                    &apdu[len], &tag_number, &len_value_type);
-                len += tag_len;
-                if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
+                tag_len = bacnet_octet_string_application_decode(
+                    &apdu[apdu_len], apdu_size - apdu_len, &data->fileData[i]);
+                if (tag_len == BACNET_STATUS_ERROR) {
                     return BACNET_STATUS_ERROR;
                 }
-                decoded_len = decode_octet_string(
-                    &apdu[len], len_value_type, &data->fileData[i]);
-                if ((uint32_t)decoded_len != len_value_type) {
+                apdu_len += tag_len;
+                if (apdu_size <= apdu_len) {
                     return BACNET_STATUS_ERROR;
                 }
-                len += decoded_len;
             }
-            if (!decode_is_closing_tag_number(&apdu[len], 1)) {
+            if (!bacnet_is_closing_tag_number(
+                    &apdu[apdu_len], apdu_size - apdu_len, 1, &tag_len)) {
                 return BACNET_STATUS_ERROR;
             }
-            /* a tag number is not extended so only one octet */
-            len++;
+            apdu_len += tag_len;
         } else {
             return BACNET_STATUS_ERROR;
         }
     }
 
-    return len;
+    return apdu_len;
 }
 
 int arf_ack_decode_apdu(uint8_t *apdu,
