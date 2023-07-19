@@ -28,15 +28,18 @@ static void testAccessPoint(void)
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = {0};
     const int *required_property = NULL;
-    const uint32_t instance = 1;
+    unsigned count = 0;
+    uint32_t object_instance = 0;
 
     Access_Point_Init();
+    count = Access_Point_Count();
+    zassert_true(count > 0, NULL);
+    object_instance = Access_Point_Index_To_Instance(0);
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_ACCESS_POINT;
-    rpdata.object_instance = 1;
+    rpdata.object_instance = object_instance;
     rpdata.array_index = BACNET_ARRAY_ALL;
-
     Access_Point_Property_Lists(&required_property, NULL, NULL);
     while ((*required_property) >= 0) {
         rpdata.object_property = *required_property;

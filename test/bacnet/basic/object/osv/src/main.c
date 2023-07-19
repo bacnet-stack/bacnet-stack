@@ -1,13 +1,11 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
+/**
+ * @file
+ * @brief Unit test for object
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date July 2023
  *
  * SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/osv.h>
 #include <bacnet/bactext.h>
@@ -53,6 +51,9 @@ static void testOctetString_Value(void)
                 len = test_len;
             }
             zassert_equal(len, test_len, NULL);
+        } else {
+            printf("property '%s': failed to read!\n",
+                bactext_property_name(rpdata.object_property));
         }
         required_property++;
     }
