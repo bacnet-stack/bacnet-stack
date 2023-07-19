@@ -99,11 +99,14 @@ list(APPEND testdirs
   bacnet/basic/object/bi
   bacnet/basic/object/bo
   bacnet/basic/object/bv
+  bacnet/basic/object/channel
   bacnet/basic/object/color_object
   bacnet/basic/object/color_temperature
   bacnet/basic/object/command
   bacnet/basic/object/credential_data_input
+  bacnet/basic/object/csv
   bacnet/basic/object/device
+  bacnet/basic/object/iv
   #bacnet/basic/object/lc		#Tests skipped, redesign to use only API
   bacnet/basic/object/lo
   bacnet/basic/object/lsp
@@ -115,6 +118,7 @@ list(APPEND testdirs
   bacnet/basic/object/osv
   bacnet/basic/object/piv
   bacnet/basic/object/schedule
+  bacnet/basic/object/trendlog
   # basic/sys
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
