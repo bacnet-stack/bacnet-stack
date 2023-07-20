@@ -429,9 +429,6 @@ int bacnet_recipient_encode(uint8_t *apdu, BACNET_RECIPIENT *recipient)
         len = encode_context_object_id(apdu, 0, OBJECT_DEVICE,
             recipient->type.device.instance);
         apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
     } else if (recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) {
         /* opening tag 1 */
         len = encode_opening_tag(apdu, 1);
@@ -447,9 +444,6 @@ int bacnet_recipient_encode(uint8_t *apdu, BACNET_RECIPIENT *recipient)
         /* closing tag 1 */
         len = encode_closing_tag(apdu, 1);
         apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
     }
 
     return apdu_len;
@@ -505,6 +499,8 @@ int bacnet_recipient_decode(
 {
     int len = 0, apdu_len = 0;
 
+    (void)apdu_size;
+
     if (!apdu) {
         return BACNET_STATUS_REJECT;
     }
@@ -524,7 +520,6 @@ int bacnet_recipient_decode(
             return BACNET_STATUS_REJECT;
         }
         apdu_len += len;
-        apdu += len;
     } else if (decode_is_opening_tag_number(
                    apdu, BACNET_RECIPIENT_TAG_ADDRESS)) {
         /* address [1] BACnetAddress */
@@ -544,7 +539,6 @@ int bacnet_recipient_decode(
             /* closing tag [1] is len 1 */
             len = 1;
             apdu_len += len;
-            apdu += len;
         } else {
             return BACNET_STATUS_REJECT;
         }
