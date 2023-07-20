@@ -158,65 +158,75 @@ static uint16_t log_id(unsigned index, unsigned number)
 static bool GetLog(TL_DATA_REC *rec, unsigned index, unsigned number)
 {
     if (index >= MAX_TREND_LOGS || number >= TL_MAX_ENTRIES ||
-        trend_log_fs == NULL)
+        trend_log_fs == NULL) {
         return false;
-    return 0 == nvs_read(
+    }
+
+    return 0 < nvs_read(
         trend_log_fs, log_id(index, number), rec, sizeof(TL_DATA_REC));
 }
 
 static bool SetLog(TL_DATA_REC *rec, unsigned index, unsigned number)
 {
     if (index >= MAX_TREND_LOGS || number >= TL_MAX_ENTRIES ||
-        trend_log_fs == NULL)
+        trend_log_fs == NULL) {
         return false;
-    return 0 == nvs_write(
+    }
+
+    return 0 < nvs_write(
         trend_log_fs, log_id(index, number), rec, sizeof(TL_DATA_REC));
 }
 
 static bool GetLogInfo(TL_LOG_INFO *rec, unsigned index)
 {
-    if (index >= MAX_TREND_LOGS || trend_log_fs == NULL)
+    if (index >= MAX_TREND_LOGS || trend_log_fs == NULL) {
         return false;
-    return 0 == nvs_read(trend_log_fs, index, rec, sizeof(TL_LOG_INFO));
+    }
+    return 0 < nvs_read(trend_log_fs, index, rec, sizeof(TL_LOG_INFO));
 }
 
 static bool SetLogInfo(TL_LOG_INFO *rec, unsigned index)
 {
-    if (index >= MAX_TREND_LOGS || trend_log_fs == NULL)
+    if (index >= MAX_TREND_LOGS || trend_log_fs == NULL) {
         return false;
-    return 0 == nvs_write(trend_log_fs, index, rec, sizeof(TL_LOG_INFO));
+    }
+    return 0 < nvs_write(trend_log_fs, index, rec, sizeof(TL_LOG_INFO));
 }
 
 #else
 
 static bool GetLog(TL_DATA_REC *rec, unsigned index, unsigned number)
 {
-    if (index >= MAX_TREND_LOGS || number >= TL_MAX_ENTRIES)
+    if (index >= MAX_TREND_LOGS || number >= TL_MAX_ENTRIES) {
         return false;
+    }
     *rec = Logs[index][number];
     return true;
 }
 
 static bool SetLog(TL_DATA_REC *rec, unsigned index, unsigned number)
 {
-    if (index >= MAX_TREND_LOGS || number >= TL_MAX_ENTRIES)
+    if (index >= MAX_TREND_LOGS || number >= TL_MAX_ENTRIES) {
         return false;
+    }
     Logs[index][number] = *rec;
     return true;
 }
 
 static bool GetLogInfo(TL_LOG_INFO *rec, unsigned index)
 {
-    if (index >= MAX_TREND_LOGS)
+    if (index >= MAX_TREND_LOGS) {
         return false;
+    }
     *rec = LogInfo[index];
     return true;
 }
 
 static bool SetLogInfo(TL_LOG_INFO *rec, unsigned index)
 {
-    if (index >= MAX_TREND_LOGS)
+    if (index >= MAX_TREND_LOGS) {
         return false;
+    }
     LogInfo[index] = *rec;
     return true;
 }
