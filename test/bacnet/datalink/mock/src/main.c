@@ -32,7 +32,11 @@ void bvlc6_maintenance_timer(uint16_t seconds)
  * @brief Test datalink
  */
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datalink_tests, test_datalink_arcnet)
+#else
 static void test_datalink_arcnet(void)
+#endif
 {
     char *iface = "bla-bla-bla";
     char *iface2 = "bla-bla-bla2";
@@ -109,7 +113,11 @@ static void test_datalink_arcnet(void)
     datalink_maintenance_timer(42);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datalink_tests, test_datalink_bip)
+#else
 static void test_datalink_bip(void)
+#endif
 {
     char *iface = "bla-bla-bla";
     char *iface2 = "bla-bla-bla2";
@@ -189,7 +197,11 @@ static void test_datalink_bip(void)
     zassert_equal(z_cleanup_mock(), 0, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datalink_tests, test_datalink_bip6)
+#else
 static void test_datalink_bip6(void)
+#endif
 {
     char *iface = "bla-bla-bla";
     char *iface2 = "bla-bla-bla2";
@@ -268,7 +280,11 @@ static void test_datalink_bip6(void)
     zassert_equal(z_cleanup_mock(), 0, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datalink_tests, test_datalink_dlmstp)
+#else
 static void test_datalink_dlmstp(void)
+#endif
 {
     char *iface = "bla-bla-bla";
     char *iface2 = "bla-bla-bla2";
@@ -345,7 +361,11 @@ static void test_datalink_dlmstp(void)
     datalink_maintenance_timer(42);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datalink_tests, )
+#else
 static void test_datalink_ethernet(void)
+#endif
 {
     char *iface = "bla-bla-bla";
     char *iface2 = "bla-bla-bla2";
@@ -427,6 +447,9 @@ static void test_datalink_ethernet(void)
  * @}
  */
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(datalink_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(datalink_tests,
@@ -439,3 +462,4 @@ void test_main(void)
 
     ztest_run_test_suite(datalink_tests);
 }
+#endif

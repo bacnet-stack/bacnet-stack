@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(access_point_tests, testAccessPoint)
+#else
 static void testAccessPoint(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -51,6 +55,9 @@ static void testAccessPoint(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(access_point_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(access_point_tests,
@@ -59,3 +66,4 @@ void test_main(void)
 
     ztest_run_test_suite(access_point_tests);
 }
+#endif

@@ -20,7 +20,11 @@
 /**
  * @brief Test Binary Input handling
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bi_tests, testBinaryInput)
+#else
 static void testBinaryInput(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
@@ -58,6 +62,9 @@ static void testBinaryInput(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bi_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bi_tests,
@@ -66,3 +73,4 @@ void test_main(void)
 
     ztest_run_test_suite(bi_tests);
 }
+#endif

@@ -58,7 +58,11 @@ static void testAtomicWriteFileAccess(BACNET_ATOMIC_WRITE_FILE_DATA *data)
             octetstring_length(&test_data.fileData[0])), 0, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(awf_tests, testAtomicWriteFile)
+#else
 static void testAtomicWriteFile(void)
+#endif
 {
     BACNET_ATOMIC_WRITE_FILE_DATA data = { 0 };
     uint8_t test_octet_string[32] = "Joshua-Mary-Anna-Christopher";
@@ -118,7 +122,11 @@ static void testAtomicWriteFileAckAccess(
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(awf_tests, testAtomicWriteFileAck)
+#else
 static void testAtomicWriteFileAck(void)
+#endif
 {
     BACNET_ATOMIC_WRITE_FILE_DATA data = { 0 };
 
@@ -133,7 +141,11 @@ static void testAtomicWriteFileAck(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(awf_tests, testAtomicWriteFileMalformed)
+#else
 static void testAtomicWriteFileMalformed(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     /* payloads with malformation */
@@ -170,6 +182,9 @@ static void testAtomicWriteFileMalformed(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(awf_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(awf_tests,
@@ -180,3 +195,4 @@ void test_main(void)
 
     ztest_run_test_suite(awf_tests);
 }
+#endif

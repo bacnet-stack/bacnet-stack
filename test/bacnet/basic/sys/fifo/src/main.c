@@ -20,7 +20,11 @@
 /**
  * @brief Unit Test for the FIFO buffer
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(fifo_tests, testFIFOBuffer)
+#else
 static void testFIFOBuffer(void)
+#endif
 {
     /* FIFO data structure */
     FIFO_BUFFER test_buffer = { 0 };
@@ -137,6 +141,9 @@ static void testFIFOBuffer(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(fifo_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(fifo_tests,
@@ -145,3 +152,4 @@ void test_main(void)
 
     ztest_run_test_suite(fifo_tests);
 }
+#endif

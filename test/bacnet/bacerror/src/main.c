@@ -46,7 +46,11 @@ static int bacerror_decode_apdu(uint8_t *apdu,
 /**
  * @brief Test BACnet error type encode/decode
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacerror_tests, testBACError)
+#else
 static void testBACError(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -134,6 +138,9 @@ static void testBACError(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacerror_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacerror_tests,
@@ -142,3 +149,4 @@ void test_main(void)
 
     ztest_run_test_suite(bacerror_tests);
 }
+#endif

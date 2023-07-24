@@ -19,7 +19,11 @@
 /**
  * @brief Test encode/decode API for unsigned 16b integers
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetUnsigned16)
+#else
 static void testBACnetUnsigned16(void)
+#endif
 {
     uint8_t apdu[32] = { 0 };
     uint16_t value = 0, test_value = 0;
@@ -50,7 +54,11 @@ static void testBACnetUnsigned16(void)
 /**
  * @brief Test encode/decode API for unsigned 24b integers
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetUnsigned24)
+#else
 static void testBACnetUnsigned24(void)
+#endif
 {
     uint8_t apdu[32] = { 0 };
     uint32_t value = 0, test_value = 0;
@@ -81,7 +89,11 @@ static void testBACnetUnsigned24(void)
 /**
  * @brief Test encode/decode API for unsigned 32b integers
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetUnsigned32)
+#else
 static void testBACnetUnsigned32(void)
+#endif
 {
     uint8_t apdu[32] = { 0 };
     uint32_t value = 0, test_value = 0;
@@ -112,7 +124,11 @@ static void testBACnetUnsigned32(void)
 /**
  * @brief Test encode/decode API for unsigned 40b integers (if 64b supported)
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetUnsigned40)
+#else
 static void testBACnetUnsigned40(void)
+#endif
 {
 #ifdef UINT64_MAX
     uint8_t apdu[64] = { 0 };
@@ -149,7 +165,11 @@ static void testBACnetUnsigned40(void)
 /**
  * @brief Test encode/decode API for unsigned 48b integers (if 64b supported)
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetUnsigned48)
+#else
 static void testBACnetUnsigned48(void)
+#endif
 {
 #ifdef UINT64_MAX
     uint8_t apdu[64] = { 0 };
@@ -186,7 +206,11 @@ static void testBACnetUnsigned48(void)
 /**
  * @brief Test encode/decode API for unsigned 56b integers (if 64b supported)
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetUnsigned56)
+#else
 static void testBACnetUnsigned56(void)
+#endif
 {
 #ifdef UINT64_MAX
     uint8_t apdu[64] = { 0 };
@@ -223,7 +247,11 @@ static void testBACnetUnsigned56(void)
 /**
  * @brief Test encode/decode API for unsigned 64b integers (if 64b supported)
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetUnsigned64)
+#else
 static void testBACnetUnsigned64(void)
+#endif
 {
 #ifdef UINT64_MAX
     uint8_t apdu[64] = { 0 };
@@ -260,7 +288,11 @@ static void testBACnetUnsigned64(void)
 /**
  * @brief Test calculation of unsigned length
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetUnsignedLength)
+#else
 static void testBACnetUnsignedLength(void)
+#endif
 {
     BACNET_UNSIGNED_INTEGER value = 0;
     int len = 0;
@@ -278,7 +310,11 @@ static void testBACnetUnsignedLength(void)
 /**
  * @brief Test encode/decode API for signed 8b integers
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetSigned8)
+#else
 static void testBACnetSigned8(void)
+#endif
 {
     uint8_t apdu[32] = { 0 };
     int32_t value = 0, test_value = 0;
@@ -311,7 +347,11 @@ static void testBACnetSigned8(void)
 /**
  * @brief Test encode/decode API for signed 16b integers
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetSigned16)
+#else
 static void testBACnetSigned16(void)
+#endif
 {
     uint8_t apdu[32] = { 0 };
     int32_t value = 0, test_value = 0;
@@ -344,7 +384,11 @@ static void testBACnetSigned16(void)
 /**
  * @brief Test encode/decode API for signed 24b integers
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetSigned24)
+#else
 static void testBACnetSigned24(void)
+#endif
 {
     uint8_t apdu[32] = { 0 };
     int32_t value = 0, test_value = 0;
@@ -375,7 +419,11 @@ static void testBACnetSigned24(void)
 /**
  * @brief Test encode/decode API for signed 32b integers
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacint_tests, testBACnetSigned32)
+#else
 static void testBACnetSigned32(void)
+#endif
 {
     uint8_t apdu[32] = { 0 };
     int32_t value = 0, test_value = 0;
@@ -414,6 +462,9 @@ static void testBACnetSigned32(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacint_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacint_tests,
@@ -433,3 +484,4 @@ void test_main(void)
 
     ztest_run_test_suite(bacint_tests);
 }
+#endif

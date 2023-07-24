@@ -20,7 +20,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(acc_tests, test_Accumulator)
+#else
 static void test_Accumulator(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -77,6 +81,9 @@ static void test_Accumulator(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(acc_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(acc_tests,
@@ -85,3 +92,4 @@ void test_main(void)
 
     ztest_run_test_suite(acc_tests);
 }
+#endif

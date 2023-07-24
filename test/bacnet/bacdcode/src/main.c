@@ -90,7 +90,11 @@ static void print_apdu(uint8_t *pBlock, uint32_t num)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeTags)
+#else
 static void testBACDCodeTags(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t tag_number = 0, test_tag_number = 0;
@@ -142,7 +146,11 @@ static void testBACDCodeTags(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeEnumerated)
+#else
 static void testBACDCodeEnumerated(void)
+#endif
 {
     uint8_t array[5] = { 0 };
     uint8_t encoded_array[5] = { 0 };
@@ -188,7 +196,11 @@ static void testBACDCodeEnumerated(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeReal)
+#else
 static void testBACDCodeReal(void)
+#endif
 {
     uint8_t real_array[4] = { 0 };
     uint8_t encoded_array[4] = { 0 };
@@ -222,7 +234,11 @@ static void testBACDCodeReal(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeDouble)
+#else
 static void testBACDCodeDouble(void)
+#endif
 {
     uint8_t double_array[8] = { 0 };
     uint8_t encoded_array[8] = { 0 };
@@ -289,7 +305,11 @@ static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
     zassert_false(IS_CONTEXT_SPECIFIC(apdu[0]), NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeUnsigned)
+#else
 static void testBACDCodeUnsigned(void)
+#endif
 {
 #ifdef UINT64_MAX
     const unsigned max_bits = 64;
@@ -309,7 +329,11 @@ static void testBACDCodeUnsigned(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACnetUnsigned)
+#else
 static void testBACnetUnsigned(void)
+#endif
 {
     uint8_t apdu[32] = { 0 };
     BACNET_UNSIGNED_INTEGER value = 1, test_value = 0;
@@ -378,7 +402,11 @@ static void testBACDCodeSignedValue(int32_t value)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeSigned)
+#else
 static void testBACDCodeSigned(void)
+#endif
 {
     int value = 1;
     int i = 0;
@@ -402,7 +430,11 @@ static void testBACDCodeSigned(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACnetSigned)
+#else
 static void testBACnetSigned(void)
+#endif
 {
     uint8_t apdu[32] = { 0 };
     int32_t value = 0, test_value = 0;
@@ -431,7 +463,11 @@ static void testBACnetSigned(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeOctetString)
+#else
 static void testBACDCodeOctetString(void)
+#endif
 {
     uint8_t array[MAX_APDU] = { 0 };
     uint8_t encoded_array[MAX_APDU] = { 0 };
@@ -486,7 +522,11 @@ static void testBACDCodeOctetString(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeCharacterString)
+#else
 static void testBACDCodeCharacterString(void)
+#endif
 {
     uint8_t array[MAX_APDU] = { 0 };
     uint8_t encoded_array[MAX_APDU] = { 0 };
@@ -541,7 +581,11 @@ static void testBACDCodeCharacterString(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeObject)
+#else
 static void testBACDCodeObject(void)
+#endif
 {
     uint8_t object_array[32] = { 0 };
     uint8_t encoded_array[32] = { 0 };
@@ -611,7 +655,11 @@ static void testBACDCodeObject(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeMaxSegsApdu)
+#else
 static void testBACDCodeMaxSegsApdu(void)
+#endif
 {
     int max_segs[8] = { 0, 2, 4, 8, 16, 32, 64, 65 };
     int max_apdu[6] = { 50, 128, 206, 480, 1024, 1476 };
@@ -629,7 +677,11 @@ static void testBACDCodeMaxSegsApdu(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACDCodeBitString)
+#else
 static void testBACDCodeBitString(void)
+#endif
 {
     uint8_t bit = 0;
     BACNET_BIT_STRING bit_string;
@@ -680,7 +732,11 @@ static void testBACDCodeBitString(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testUnsignedContextDecodes)
+#else
 static void testUnsignedContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int inLen = 0;
@@ -791,7 +847,11 @@ static void testUnsignedContextDecodes(void)
     zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testSignedContextDecodes)
+#else
 static void testSignedContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU];
     int inLen;
@@ -886,7 +946,11 @@ static void testSignedContextDecodes(void)
     zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testEnumeratedContextDecodes)
+#else
 static void testEnumeratedContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int inLen = 0;
@@ -980,7 +1044,11 @@ static void testEnumeratedContextDecodes(void)
     zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testFloatContextDecodes)
+#else
 static void testFloatContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU];
     int inLen;
@@ -1026,7 +1094,11 @@ static void testFloatContextDecodes(void)
     zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testDoubleContextDecodes)
+#else
 static void testDoubleContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU];
     int inLen;
@@ -1072,7 +1144,11 @@ static void testDoubleContextDecodes(void)
     zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testObjectIDContextDecodes)
+#else
 static void testObjectIDContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU];
     int inLen;
@@ -1111,7 +1187,11 @@ static void testObjectIDContextDecodes(void)
     zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testCharacterStringContextDecodes)
+#else
 static void testCharacterStringContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU];
     int inLen;
@@ -1146,7 +1226,11 @@ static void testCharacterStringContextDecodes(void)
     zassert_equal(strcmp(in.value, out.value), 0, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBitStringContextDecodes)
+#else
 static void testBitStringContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU];
     int inLen;
@@ -1184,7 +1268,11 @@ static void testBitStringContextDecodes(void)
     zassert_equal(memcmp(in.value, out.value, MAX_BITSTRING_BYTES), 0, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testOctetStringContextDecodes)
+#else
 static void testOctetStringContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU];
     int inLen;
@@ -1218,7 +1306,11 @@ static void testOctetStringContextDecodes(void)
     zassert_true(octetstring_value_same(&in, &out), NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testTimeContextDecodes)
+#else
 static void testTimeContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU];
     int inLen;
@@ -1257,7 +1349,11 @@ static void testTimeContextDecodes(void)
     zassert_equal(in.sec, out.sec, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testDateContextDecodes)
+#else
 static void testDateContextDecodes(void)
+#endif
 {
     uint8_t apdu[MAX_APDU];
     int inLen;
@@ -1319,7 +1415,11 @@ static int bacnet_array_property_element_encode(
     return apdu_len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, test_bacnet_array_encode)
+#else
 static void test_bacnet_array_encode(void)
+#endif
 {
     uint32_t object_instance = 0;
     BACNET_ARRAY_INDEX array_index = 0;
@@ -1383,6 +1483,9 @@ static void test_bacnet_array_encode(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacdcode_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacdcode_tests,
@@ -1415,3 +1518,4 @@ void test_main(void)
 
     ztest_run_test_suite(bacdcode_tests);
 }
+#endif
