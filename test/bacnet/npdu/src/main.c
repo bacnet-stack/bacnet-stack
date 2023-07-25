@@ -42,7 +42,7 @@ static void test_NPDU_Network(void)
     len = npdu_encode_pdu(&pdu[0], &dest, &src, &npdu_data);
     zassert_not_equal(len, 0, NULL);
     /* can we get the info back? */
-    npdu_len = npdu_decode(&pdu[0], &npdu_dest, &npdu_src, &npdu_data);
+    npdu_len = bacnet_npdu_decode(pdu, sizeof(pdu), &npdu_dest, &npdu_src, &npdu_data);
     zassert_not_equal(npdu_len, 0, NULL);
     zassert_equal(npdu_data.data_expecting_reply, data_expecting_reply, NULL);
     zassert_equal(npdu_data.network_layer_message, network_layer_message, NULL);
@@ -95,7 +95,7 @@ static void testNPDU2(void)
     len = npdu_encode_pdu(&pdu[0], &dest, &src, &npdu_data);
     zassert_not_equal(len, 0, NULL);
     /* can we get the info back? */
-    npdu_len = npdu_decode(&pdu[0], &npdu_dest, &npdu_src, &npdu_data);
+    npdu_len = bacnet_npdu_decode(pdu, sizeof(pdu), &npdu_dest, &npdu_src, &npdu_data);
     zassert_not_equal(npdu_len, 0, NULL);
     zassert_equal(npdu_data.data_expecting_reply, data_expecting_reply, NULL);
     zassert_equal(npdu_data.network_layer_message, network_layer_message, NULL);
@@ -160,7 +160,7 @@ static void testNPDU1(void)
     len = npdu_encode_pdu(&pdu[0], &dest, &src, &npdu_data);
     zassert_not_equal(len, 0, NULL);
     /* can we get the info back? */
-    npdu_len = npdu_decode(&pdu[0], &npdu_dest, &npdu_src, &npdu_data);
+    npdu_len = bacnet_npdu_decode(pdu, sizeof(pdu), &npdu_dest, &npdu_src, &npdu_data);
     zassert_not_equal(npdu_len, 0, NULL);
     zassert_equal(npdu_data.data_expecting_reply, data_expecting_reply, NULL);
     zassert_equal(npdu_data.network_layer_message, network_layer_message, NULL);

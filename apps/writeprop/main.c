@@ -249,7 +249,8 @@ int main(int argc, char *argv[])
     char *value_string = NULL;
     bool status = false;
     int args_remaining = 0, tag_value_arg = 0, i = 0;
-    BACNET_APPLICATION_TAG property_tag;
+    long property_tag;
+    long priority;
     uint8_t context_tag = 0;
     int argi = 0;
 
@@ -288,7 +289,12 @@ int main(int argc, char *argv[])
         return 1;
     }
     Target_Object_Property = object_property;
-    Target_Object_Property_Priority = (uint8_t)strtol(argv[5], NULL, 0);
+    priority = strtol(argv[5], NULL, 0);
+    if ((priority < BACNET_MIN_PRIORITY) ||
+        (priority > BACNET_MAX_PRIORITY)) {
+        priority = BACNET_NO_PRIORITY;
+    }
+    Target_Object_Property_Priority = priority;
     Target_Object_Property_Index = strtol(argv[6], NULL, 0);
     if (Target_Object_Property_Index == -1) {
         Target_Object_Property_Index = BACNET_ARRAY_ALL;
@@ -341,7 +347,7 @@ int main(int argc, char *argv[])
             property_tag = bacapp_known_property_tag(
                 Target_Object_Type, Target_Object_Property);
         } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-            fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
+            fprintf(stderr, "Error: tag=%ld - it must be less than %u\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
@@ -354,11 +360,9 @@ int main(int argc, char *argv[])
                 return 1;
             }
         } else {
-            /* FIXME: show the expected entry format for the tag */
             fprintf(stderr,
-                "Error: unable to parse the known property"
-                " \"%s\"\r\n",
-                value_string);
+                "Error: parser for property %s is not implemented\n",
+                bactext_property_name(Target_Object_Property));
             return 1;
         }
 

@@ -308,8 +308,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = (uint16_t)npdu_decode(
-        &request_pdu[0], NULL, &request.address, &request.npdu_data);
+    offset = (uint16_t)bacnet_npdu_decode(request_pdu, request_pdu_len, NULL,
+        &request.address, &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -325,8 +325,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
         request.service_choice = request_pdu[offset + 3];
     /* decode the reply data */
     bacnet_address_copy(&reply.address, dest_address);
-    offset = (uint16_t)npdu_decode(
-        &reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
+    offset = (uint16_t)bacnet_npdu_decode(
+        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }

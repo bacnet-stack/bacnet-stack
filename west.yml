@@ -21,7 +21,7 @@
 #     <workspace>
 
 manifest:
-  version: 0.7  # This file uses syntax from west 0.7
+  version: 0.13
 
   remotes:
     - name: bacnet-stack
@@ -41,7 +41,9 @@ manifest:
       revision: v3.3.0
       remote: zephyrproject-rtos
       west-commands: scripts/west-commands.yml
-      import: true
+      import:
+        name-allowlist:
+        - picolibc
     - name: mongoose
       revision: '7.9'
       path: modules/lib/mongoose

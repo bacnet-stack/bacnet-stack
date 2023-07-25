@@ -3116,7 +3116,7 @@ int bacnet_array_encode(uint32_t object_instance,
         if (len > max_apdu) {
             apdu_len = BACNET_STATUS_ABORT;
         } else {
-            len = encode_application_unsigned(NULL, array_size);
+            len = encode_application_unsigned(apdu, array_size);
             apdu_len = len;
         }
     } else if (array_index == BACNET_ARRAY_ALL) {
@@ -3129,7 +3129,7 @@ int bacnet_array_encode(uint32_t object_instance,
             /* encoded size is larger than APDU size */
             apdu_len = BACNET_STATUS_ABORT;
         } else {
-            for (index = 1; index < array_size; index++) {
+            for (index = 0; index < array_size; index++) {
                 len = encoder(object_instance, index, apdu);
                 if (apdu) {
                     apdu += len;

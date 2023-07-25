@@ -1295,6 +1295,89 @@ static void testDateContextDecodes(void)
     zassert_equal(in.wday, out.wday, NULL);
     zassert_equal(in.year, out.year, NULL);
 }
+
+/**
+ * @brief Encode a BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int bacnet_array_property_element_encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+
+    if (array_index < 1) {
+        apdu_len = encode_application_object_id(apdu, OBJECT_DEVICE,
+            object_instance);
+    }
+
+    return apdu_len;
+}
+
+static void test_bacnet_array_encode(void)
+{
+    uint32_t object_instance = 0;
+    BACNET_ARRAY_INDEX array_index = 0;
+    BACNET_UNSIGNED_INTEGER array_size = 1;
+    uint8_t apdu[480] = { 0 };
+    int apdu_len, len;
+    uint8_t tag_number = 0;
+    uint32_t len_value = 0;
+    BACNET_UNSIGNED_INTEGER decoded_value = 0;
+
+    /* element zero returns the array size */
+    apdu_len = bacnet_array_encode(object_instance, array_index, 
+        bacnet_array_property_element_encode,
+        array_size, apdu, sizeof(apdu));
+    zassert_true(apdu_len > 0, NULL);
+    len = decode_tag_number_and_value(apdu, &tag_number, &len_value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(tag_number, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    len = decode_unsigned(&apdu[len], len_value, &decoded_value);
+    zassert_equal(decoded_value, array_size, NULL);
+    /* element zero - APDU too small */
+    apdu_len = bacnet_array_encode(object_instance, array_index, 
+        bacnet_array_property_element_encode,
+        array_size, apdu, 1);
+    zassert_true(apdu_len == BACNET_STATUS_ABORT, NULL);
+    /* element 1 returns the first element */
+    array_index = 1;
+    apdu_len = bacnet_array_encode(object_instance, array_index, 
+        bacnet_array_property_element_encode,
+        array_size, apdu, sizeof(apdu));
+    zassert_true(apdu_len > 0, NULL);
+    len = decode_tag_number_and_value(apdu, &tag_number, &len_value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(tag_number, BACNET_APPLICATION_TAG_OBJECT_ID, NULL);
+    /* element 1 - APDU too small */
+    apdu_len = bacnet_array_encode(object_instance, array_index, 
+        bacnet_array_property_element_encode,
+        array_size, apdu, 1);
+    zassert_true(apdu_len == BACNET_STATUS_ABORT, NULL);
+    /* element 2, in this test case, returns an error */
+    array_index = 2;
+    apdu_len = bacnet_array_encode(object_instance, array_index, 
+        bacnet_array_property_element_encode,
+        array_size, apdu, sizeof(apdu));
+    zassert_true(apdu_len < 0, NULL);
+    /* ALL - fits in APDU */
+    array_index = BACNET_ARRAY_ALL;
+    apdu_len = bacnet_array_encode(object_instance, array_index, 
+        bacnet_array_property_element_encode,
+        array_size, apdu, sizeof(apdu));
+    zassert_true(apdu_len == 5, "len=%d", apdu_len);
+    /* ALL - APDU too small */
+    apdu_len = bacnet_array_encode(object_instance, array_index, 
+        bacnet_array_property_element_encode,
+        array_size, apdu, 4);
+    zassert_true(apdu_len == BACNET_STATUS_ABORT, NULL);
+}
+
 /**
  * @}
  */
@@ -1326,7 +1409,8 @@ void test_main(void)
      ztest_unit_test(testTimeContextDecodes),
      ztest_unit_test(testDateContextDecodes),
      ztest_unit_test(testOctetStringContextDecodes),
-     ztest_unit_test(testBACDCodeDouble)
+     ztest_unit_test(testBACDCodeDouble),
+     ztest_unit_test(test_bacnet_array_encode)
      );
 
     ztest_run_test_suite(bacdcode_tests);

@@ -182,6 +182,14 @@ router-ipv6:
 router-mstp:
 	$(MAKE) -s -C apps $@
 
+.PHONY: fuzz-libfuzzer
+fuzz-libfuzzer:
+	$(MAKE) -s -C apps $@
+
+.PHONY: fuzz-afl
+fuzz-afl:
+	$(MAKE) -s -C apps $@
+
 # Add "ports" to the build, if desired
 .PHONY: ports
 ports:	atmega168 bdk-atxx4-mstp at91sam7s stm32f10x stm32f4xx
@@ -319,6 +327,8 @@ clean: ports-clean
 	$(MAKE) -s -C apps/router-mstp clean
 	$(MAKE) -s -C apps/gateway clean
 	$(MAKE) -s -C apps/sc-hub clean
+	$(MAKE) -s -C apps/fuzz-afl clean
+	$(MAKE) -s -C apps/fuzz-libfuzzer clean
 	$(MAKE) -s -C ports/lwip clean
 	$(MAKE) -s -C test clean
 	rm -rf ./build
