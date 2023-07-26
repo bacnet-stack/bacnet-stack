@@ -61,6 +61,13 @@ extern "C" {
         bool context_specific,
         uint32_t len_value_type);
 
+BACNET_STACK_EXPORT
+bool bacnet_is_opening_tag(uint8_t *apdu, uint32_t apdu_size);
+BACNET_STACK_EXPORT
+bool bacnet_is_closing_tag(uint8_t *apdu, uint32_t apdu_size);
+BACNET_STACK_EXPORT
+bool bacnet_is_context_specific(uint8_t *apdu, uint32_t apdu_size);
+
 /* from clause 20.2.1.3.2 Constructed Data */
 /* returns the number of apdu bytes consumed */
     BACNET_STACK_EXPORT

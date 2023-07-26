@@ -458,6 +458,27 @@ bool decode_is_opening_tag(uint8_t *apdu)
 }
 
 /**
+ * @brief Returns true if an opening tag has been found.
+ *
+ * @param apdu  Pointer to the tag number.
+ * @param apdu_size Number of bytes available to decode
+ *
+ * @return true if an opening tag has been found.
+ */
+bool bacnet_is_opening_tag(uint8_t *apdu, uint32_t apdu_size)
+{
+    bool tag = false;
+
+    if (apdu_size > 0) {
+        if (IS_OPENING_TAG(apdu[0])) {
+            tag = true;
+        }
+    }
+
+    return tag;
+}
+
+/**
  * @brief Returns if at the given pointer a
  * closing tag has been found.
  *
@@ -469,6 +490,49 @@ bool decode_is_closing_tag(uint8_t *apdu)
 {
     return (bool)((apdu[0] & 0x07) == 7);
 }
+
+/**
+ * @brief Returns true if a closing tag has been found.
+ *
+ * @param apdu  Pointer to the tag number.
+ * @param apdu_size Number of bytes available to decode
+ *
+ * @return true if a closing tag has been found.
+ */
+bool bacnet_is_closing_tag(uint8_t *apdu, uint32_t apdu_size)
+{
+    bool tag = false;
+
+    if (apdu_size > 0) {
+        if (IS_CLOSING_TAG(apdu[0])) {
+            tag = true;
+        }
+    }
+
+    return tag;
+}
+
+/**
+ * @brief Returns true if a context specific tag has been found.
+ *
+ * @param apdu  Pointer to the tag number.
+ * @param apdu_size Number of bytes available to decode
+ *
+ * @return true if an opening tag has been found.
+ */
+bool bacnet_is_context_specific(uint8_t *apdu, uint32_t apdu_size)
+{
+    bool tag = false;
+
+    if (apdu_size > 0) {
+        if (IS_CONTEXT_SPECIFIC(apdu[0])) {
+            tag = true;
+        }
+    }
+
+    return tag;
+}
+
 
 /**
  * @brief Decodes the tag number and the value,
@@ -547,30 +611,28 @@ int bacnet_tag_number_and_value_decode(
 {
     int len = 0;
 
-    len = bacnet_tag_number_decode(&apdu[0], apdu_len_max, tag_number);
-    if (len > 0 && apdu_len_max > len) {
-        apdu_len_max -= len;
-        if (IS_EXTENDED_VALUE(apdu[0])) {
-            /* tagged as uint32_t */
+    len = bacnet_tag_number_decode(apdu, apdu_len_max, tag_number);
+    if (len > 0) {
+        if (IS_EXTENDED_VALUE(apdu[0]) && (apdu_len_max > len)) {
+            apdu_len_max -= len;
             if ((apdu[len] == 255) && (apdu_len_max >= 5)) {
+                /* tagged as uint32_t */
                 uint32_t value32;
                 len++;
                 len += decode_unsigned32(&apdu[len], &value32);
                 if (value) {
                     *value = value32;
                 }
-            }
-            /* tagged as uint16_t */
-            else if ((apdu[len] == 254) && (apdu_len_max >= 3)) {
+            } else if ((apdu[len] == 254) && (apdu_len_max >= 3)) {
+                /* tagged as uint16_t */
                 uint16_t value16;
                 len++;
                 len += decode_unsigned16(&apdu[len], &value16);
                 if (value) {
                     *value = value16;
                 }
-            }
-            /* no tag - must be uint8_t */
-            else if ((apdu[len] < 254) && (apdu_len_max >= 1)) {
+            } else if ((apdu[len] < 254) && (apdu_len_max >= 1)) {
+                /* no tag - must be uint8_t */
                 if (value) {
                     *value = apdu[len];
                 }
