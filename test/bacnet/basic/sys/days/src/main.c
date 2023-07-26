@@ -42,7 +42,11 @@ static void test_epoch_conversion_date(
 /**
  * Unit Test for the epoch
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(days_tests, test_days_epoch_conversion)
+#else
 static void test_days_epoch_conversion(void)
+#endif
 {
     const uint16_t epoch_year = 2000;
 
@@ -73,7 +77,11 @@ static void test_days_of_year_to_month_day_date(
 /**
  * Unit Test for the days and year to month date year
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(days_tests, test_days_of_year_to_md)
+#else
 static void test_days_of_year_to_md(void)
+#endif
 {
     test_days_of_year_to_month_day_date(2029, 145, 5, 25);
     test_days_of_year_to_month_day_date(2000, 260, 9, 16);
@@ -101,7 +109,11 @@ static void test_date_is_valid_day(
 /**
 * Unit Test for the days, checking the date to see if it is a valid date
 */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(days_tests, test_days_date_is_valid)
+#else
 static void test_days_date_is_valid(void)
+#endif
 {
     /* first month */
     test_date_is_valid_day(0, 1);
@@ -133,7 +145,11 @@ static void test_days_date_is_valid(void)
 /**
 * Unit Test for days apart, checking the dates to see how many days apart
 */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(days_tests, test_days_apart)
+#else
 static void test_days_apart(void)
+#endif
 {
     zassert_equal(days_apart(2000, 1, 1, 2000, 1, 1), 0, NULL);
     zassert_equal(days_apart(2000, 1, 1, 2000, 1, 2), 1, NULL);
@@ -148,6 +164,9 @@ static void test_days_apart(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(days_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(days_tests,
@@ -159,3 +178,4 @@ void test_main(void)
 
     ztest_run_test_suite(days_tests);
 }
+#endif

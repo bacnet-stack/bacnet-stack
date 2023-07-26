@@ -48,7 +48,11 @@ static int rd_decode_apdu(uint8_t *apdu,
     return len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(rd_tests, test_ReinitializeDevice)
+#else
 static void test_ReinitializeDevice(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -80,6 +84,9 @@ static void test_ReinitializeDevice(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(rd_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(rd_tests,
@@ -88,3 +95,4 @@ void test_main(void)
 
     ztest_run_test_suite(rd_tests);
 }
+#endif

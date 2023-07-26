@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bv_tests, testBinary_Value)
+#else
 static void testBinary_Value(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
@@ -61,6 +65,9 @@ static void testBinary_Value(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bv_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bv_tests,
@@ -69,3 +76,4 @@ void test_main(void)
 
     ztest_run_test_suite(bv_tests);
 }
+#endif

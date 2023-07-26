@@ -49,7 +49,11 @@ static void test_color_rgb_xy_unit(
 /**
  * Unit Test for sRGB to CIE xy
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(color_rgb_tests, test_color_rgb_xy)
+#else
 static void test_color_rgb_xy(void)
+#endif
 {
     test_color_rgb_xy_unit(0, 0, 0, 0.0, 0.0, 0);
     test_color_rgb_xy_unit(255, 255, 255, 0.323, 0.329, 255);
@@ -62,7 +66,11 @@ static void test_color_rgb_xy(void)
 /**
 * Unit Test for sRGB to CIE xy
 */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(color_rgb_tests, test_color_rgb_ascii)
+#else
 static void test_color_rgb_ascii(void)
+#endif
 {
     unsigned count = color_rgb_count();
     zassert_true(count > 0, NULL);
@@ -93,6 +101,9 @@ static void test_color_rgb_ascii(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(color_rgb_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(color_rgb_tests,
@@ -102,3 +113,4 @@ void test_main(void)
 
     ztest_run_test_suite(color_rgb_tests);
 }
+#endif

@@ -39,7 +39,11 @@ static int wpm_decode_apdu(uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id)
     return len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyMultiple)
+#else
 static void testWritePropertyMultiple(void)
+#endif
 {
     BACNET_WRITE_ACCESS_DATA write_access_data[3] = { 0 };
     BACNET_WRITE_ACCESS_DATA test_write_access_data[3] = { 0 };
@@ -145,9 +149,13 @@ static void testWritePropertyMultiple(void)
  * @}
  */
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(wp_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(wp_tests, ztest_unit_test(testWritePropertyMultiple));
 
     ztest_run_test_suite(wp_tests);
 }
+#endif

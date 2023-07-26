@@ -22,7 +22,11 @@
 static INDTEXT_DATA data_list[] = { { 1, "Joshua" }, { 2, "Mary" },
     { 3, "Anna" }, { 4, "Christopher" }, { 5, "Patricia" }, { 0, NULL } };
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(indtext_tests, testIndexText)
+#else
 static void testIndexText(void)
+#endif
 {
     unsigned i; /*counter */
     const char *pString;
@@ -60,6 +64,9 @@ static void testIndexText(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(indtext_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(indtext_tests,
@@ -68,3 +75,4 @@ void test_main(void)
 
     ztest_run_test_suite(indtext_tests);
 }
+#endif

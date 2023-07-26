@@ -202,7 +202,11 @@ bool bacapp_same_value(
  * @brief Test
  */
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_Load_Control_Count)
+#else
 static void test_Load_Control_Count(void)
+#endif
 {
     /* Verify the same value is returned on successive calls without init */
     zassert_equal(Load_Control_Count(), MAX_LOAD_CONTROLS, NULL);
@@ -381,7 +385,11 @@ static void Load_Control_WriteProperty_Start_Time(
     zassert_true(status, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, testLoadControlStateMachine)
+#else
 static void testLoadControlStateMachine(void)
+#endif
 {
 //TODO:    unsigned i = 0, j = 0;
     uint8_t level = 0;
@@ -528,7 +536,11 @@ static void testLoadControlStateMachine(void)
 #define MAX_LOAD_CONTROLS (4)
 #endif
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_api_stubs)
+#else
 static void test_api_stubs(void)
+#endif
 {
     BACNET_CHARACTER_STRING object_name_st = { 0 };
 
@@ -555,7 +567,11 @@ static void test_api_stubs(void)
     zassert_true(characterstring_printable(&object_name_st), NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_Load_Control_Read_Write_Property)
+#else
 static void test_Load_Control_Read_Write_Property(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -640,7 +656,11 @@ static bool init_wp_data_and_value(
     return status;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedInactive_gets_RcvShedRequests)
+#else
 static void test_ShedInactive_gets_RcvShedRequests(void)
+#endif
 {
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
@@ -675,77 +695,121 @@ static void test_ShedInactive_gets_RcvShedRequests(void)
     // default returns error
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedReqPending_gets_ReconfigPending)
+#else
 static void test_ShedReqPending_gets_ReconfigPending(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedReqPending_gets_CancelShed)
+#else
 static void test_ShedReqPending_gets_CancelShed(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedReqPending_gets_CannotMeetShed)
+#else
 static void test_ShedReqPending_gets_CannotMeetShed(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedReqPending_gets_PrepareToShed)
+#else
 static void test_ShedReqPending_gets_PrepareToShed(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedReqPending_gets_AbleToMeetShed)
+#else
 static void test_ShedReqPending_gets_AbleToMeetShed(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedNonCommpliant_gets_UnsuccessfulShedReconfig)
+#else
 static void test_ShedNonCommpliant_gets_UnsuccessfulShedReconfig(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedNonCommpliant_gets_FinishedUnsuccessfulShed)
+#else
 static void test_ShedNonCommpliant_gets_FinishedUnsuccessfulShed(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedNonCommpliant_gets_CanNowComplyWithShed)
+#else
 static void test_ShedNonCommpliant_gets_CanNowComplyWithShed(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedCommpliant_gets_FinishedSuccessfulShed)
+#else
 static void test_ShedCommpliant_gets_FinishedSuccessfulShed(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedCommpliant_gets_SuccessfulShedReconfig)
+#else
 static void test_ShedCommpliant_gets_SuccessfulShedReconfig(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_ShedCommpliant_gets_CanNoLongerComplyWithShed)
+#else
 static void test_ShedCommpliant_gets_CanNoLongerComplyWithShed(void)
+#endif
 {
 #ifndef UNIT_TESTING
     ztest_test_skip();
@@ -757,6 +821,9 @@ static void test_ShedCommpliant_gets_CanNoLongerComplyWithShed(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(lc_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(lc_tests,
@@ -780,3 +847,4 @@ void test_main(void)
 
     ztest_run_test_suite(lc_tests);
 }
+#endif

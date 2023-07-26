@@ -68,7 +68,11 @@ static void testBACnetRecipientData(
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_destination_tests, testBACnetDestination)
+#else
 static void testBACnetDestination(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_DESTINATION destination = { 0 }, test_destination = { 0 };
@@ -115,7 +119,11 @@ static void testBACnetDestination(void)
 /**
 * Unit Test for ASCII conversion
 */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_destination_tests, test_BACnetDestination_ASCII)
+#else
 static void test_BACnetDestination_ASCII(void)
+#endif
 {
     BACNET_DESTINATION destination = { 0 }, test_destination = { 0 };
     int len = 0, test_len = 0;
@@ -149,6 +157,9 @@ static void test_BACnetDestination_ASCII(void)
 
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacnet_destination_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacnet_destination_tests,
@@ -158,3 +169,4 @@ void test_main(void)
 
     ztest_run_test_suite(bacnet_destination_tests);
 }
+#endif

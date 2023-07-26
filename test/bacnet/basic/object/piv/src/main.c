@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(piv_tests, testPositiveInteger_Value)
+#else
 static void testPositiveInteger_Value(void)
+#endif
 {
     BACNET_READ_PROPERTY_DATA rpdata;
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -51,6 +55,9 @@ static void testPositiveInteger_Value(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(piv_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(piv_tests,
@@ -59,3 +66,4 @@ void test_main(void)
 
     ztest_run_test_suite(piv_tests);
 }
+#endif

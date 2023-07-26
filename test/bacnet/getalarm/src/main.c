@@ -86,7 +86,11 @@ static int get_alarm_summary_ack_decode_apdu(uint8_t *apdu,
     return len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(getalarm_tests, testGetAlarmSummaryAck)
+#else
 static void testGetAlarmSummaryAck(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -135,7 +139,11 @@ static void testGetAlarmSummaryAck(void)
     zassert_equal(alarm_data.alarmState, test_alarm_data.alarmState, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(getalarm_tests, testGetAlarmSummary)
+#else
 static void testGetAlarmSummary(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -158,6 +166,9 @@ static void testGetAlarmSummary(void)
 /**
  * Main entry point for testing
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(getalarm_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(getalarm_tests,
@@ -167,3 +178,4 @@ void test_main(void)
 
     ztest_run_test_suite(getalarm_tests);
 }
+#endif

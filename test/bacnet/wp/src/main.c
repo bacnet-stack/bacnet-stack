@@ -123,7 +123,11 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWriteProperty)
+#else
 static void testWriteProperty(void)
+#endif
 {
     BACNET_APPLICATION_DATA_VALUE value;
 
@@ -203,6 +207,9 @@ static void testWriteProperty(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(wp_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(wp_tests,
@@ -211,3 +218,4 @@ void test_main(void)
 
     ztest_run_test_suite(wp_tests);
 }
+#endif
