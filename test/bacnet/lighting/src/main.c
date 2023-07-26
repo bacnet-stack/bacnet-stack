@@ -42,7 +42,11 @@ static void testBACnetLightingCommand(BACNET_LIGHTING_COMMAND *data)
     status = lighting_command_same(&test_data, data);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lighting_tests, testBACnetLightingCommandAll)
+#else
 static void testBACnetLightingCommandAll(void)
+#endif
 {
     BACNET_LIGHTING_COMMAND data;
 
@@ -97,7 +101,11 @@ static void testBACnetColorCommand(BACNET_COLOR_COMMAND *data)
     status = color_command_same(&test_data, data);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lighting_tests, testBACnetColorCommandAll)
+#else
 static void testBACnetColorCommandAll(void)
+#endif
 {
     BACNET_COLOR_COMMAND data = { 0 };
 
@@ -111,7 +119,11 @@ static void testBACnetColorCommandAll(void)
     testBACnetColorCommand(&data);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lighting_tests, testBACnetXYColor)
+#else
 static void testBACnetXYColor(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_XY_COLOR value = { 0 };
@@ -141,6 +153,9 @@ static void testBACnetXYColor(void)
     zassert_true(status, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(lighting_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(lighting_tests,
@@ -151,3 +166,4 @@ void test_main(void)
 
     ztest_run_test_suite(lighting_tests);
 }
+#endif

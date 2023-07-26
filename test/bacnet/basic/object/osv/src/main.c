@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(osv_tests, testOctetString_Value)
+#else
 static void testOctetString_Value(void)
+#endif
 {
     BACNET_READ_PROPERTY_DATA rpdata;
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -51,6 +55,9 @@ static void testOctetString_Value(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(osv_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(osv_tests,
@@ -59,3 +66,4 @@ void test_main(void)
 
     ztest_run_test_suite(osv_tests);
 }
+#endif

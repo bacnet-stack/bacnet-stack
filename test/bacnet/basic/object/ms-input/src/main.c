@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ms_input_tests, testMultistateInput)
+#else
 static void testMultistateInput(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -51,6 +55,9 @@ static void testMultistateInput(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(ms_input_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(ms_input_tests,
@@ -59,3 +66,4 @@ void test_main(void)
 
     ztest_run_test_suite(ms_input_tests);
 }
+#endif

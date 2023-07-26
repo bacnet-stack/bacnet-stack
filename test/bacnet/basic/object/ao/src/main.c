@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ao_tests, testAnalogOutput)
+#else
 static void testAnalogOutput(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
@@ -68,6 +72,9 @@ static void testAnalogOutput(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(ao_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(ao_tests,
@@ -76,3 +83,4 @@ void test_main(void)
 
     ztest_run_test_suite(ao_tests);
 }
+#endif

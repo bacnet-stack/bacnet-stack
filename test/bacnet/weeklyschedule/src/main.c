@@ -29,7 +29,11 @@
 /**
  * @brief Test encode/decode API
  */
-static void test_BACnetWeeklySchedule()
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(BACnetWeeklySchedule_tests, test_BACnetWeeklySchedule)
+#else
+static void test_BACnetWeeklySchedule(void)
+#endif
 {
     int len, apdu_len;
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -93,6 +97,10 @@ static void test_BACnetWeeklySchedule()
 /**
  * @}
  */
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(BACnetWeeklySchedule_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(BACnetWeeklySchedule_tests,
@@ -101,3 +109,4 @@ void test_main(void)
 
     ztest_run_test_suite(BACnetWeeklySchedule_tests);
 }
+#endif

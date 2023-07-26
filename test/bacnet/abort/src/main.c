@@ -75,7 +75,11 @@ static void testAbortAPDU(
 /**
  * @brief Test encode/decode API for strings
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(abort_tests, testAbortEncodeDecode)
+#else
 static void testAbortEncodeDecode(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -125,7 +129,11 @@ static void testAbortEncodeDecode(void)
 /**
  * @brief Test Abort Error
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(abort_tests, testAbortError)
+#else
 static void testAbortError(void)
+#endif
 {
     int i;
     BACNET_ERROR_CODE error_code;
@@ -149,6 +157,9 @@ static void testAbortError(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(abort_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(abort_tests,
@@ -158,3 +169,4 @@ void test_main(void)
 
     ztest_run_test_suite(abort_tests);
 }
+#endif
