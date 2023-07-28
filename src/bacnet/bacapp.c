@@ -1520,6 +1520,7 @@ int bacapp_data_len(
     uint8_t opening_tag_number = 0;
     uint8_t opening_tag_number_counter = 0;
     uint32_t value = 0;
+    bool data_len_enable = false;
 
     if (!apdu) {
         return BACNET_STATUS_ERROR;
@@ -1528,57 +1529,58 @@ int bacapp_data_len(
         /* error: exceeding our buffer limit */
         return BACNET_STATUS_ERROR;
     }
-    if (bacnet_is_opening_tag(apdu, apdu_size)) {
-        len = bacnet_tag_number_and_value_decode(
-            apdu, apdu_size - apdu_len, &tag_number, &value);
-        apdu_len += len;
-        if (apdu_size <= apdu_len) {
-            /* error: exceeding our buffer limit */
-            return BACNET_STATUS_ERROR;
-        }
-        apdu += len;
-        opening_tag_number = tag_number;
-        opening_tag_number_counter = 1;
-        while (opening_tag_number_counter) {
-            if (bacnet_is_opening_tag(apdu, apdu_size)) {
-                len = bacnet_tag_number_and_value_decode(apdu,
-                    apdu_size - apdu_len, &tag_number, &value);
-                if (tag_number == opening_tag_number) {
-                    opening_tag_number_counter++;
-                }
-            } else if (bacnet_is_closing_tag(apdu, apdu_size)) {
-                len = bacnet_tag_number_and_value_decode(apdu,
-                    apdu_size - apdu_len, &tag_number, &value);
-                if (tag_number == opening_tag_number) {
+    do {
+        if (bacnet_is_opening_tag(apdu, apdu_size)) {
+            len = bacnet_tag_number_and_value_decode(apdu,
+                apdu_size - apdu_len, &tag_number, &value);
+            if (opening_tag_number_counter == 0) {
+                opening_tag_number = tag_number;
+                opening_tag_number_counter = 1;
+                data_len_enable = false;
+            } else if (tag_number == opening_tag_number) {
+                data_len_enable = true;
+                opening_tag_number_counter++;
+            }
+        } else if (bacnet_is_closing_tag(apdu, apdu_size)) {
+            len = bacnet_tag_number_and_value_decode(apdu,
+                apdu_size - apdu_len, &tag_number, &value);
+            if (tag_number == opening_tag_number) {
+                if (opening_tag_number_counter > 0) {
                     opening_tag_number_counter--;
                 }
-            } else if (bacnet_is_context_specific(apdu, apdu_size)) {
+            }
+            data_len_enable = true;
+        } else if (bacnet_is_context_specific(apdu, apdu_size)) {
 #if defined(BACAPP_TYPES_EXTRA)
-                /* context-specific tagged data */
-                len = bacapp_decode_context_data_len(
-                    apdu, apdu_size - apdu_len, property);
+            /* context-specific tagged data */
+            len = bacapp_decode_context_data_len(
+                apdu, apdu_size - apdu_len, property);
+            data_len_enable = true;
 #endif
-            } else {
-                /* application tagged data */
-                len = bacapp_decode_application_data_len(
-                    apdu, apdu_size - apdu_len);
-            }
-            if (opening_tag_number_counter) {
-                if (len > 0) {
-                    data_len += len;
-                } else {
-                    /* error: len is not incrementing */
-                    return BACNET_STATUS_ERROR;
-                }
-                apdu_len += len;
-                if (apdu_size <= apdu_len) {
-                    /* error: exceeding our buffer limit */
-                    return BACNET_STATUS_ERROR;
-                }
-                apdu += len;
-            }
+        } else {
+            /* application tagged data */
+            len = bacapp_decode_application_data_len(
+                apdu, apdu_size - apdu_len);
+            data_len_enable = true;
         }
-    }
+        if (opening_tag_number_counter > 0) {
+            if (len > 0) {
+                if (data_len_enable) {
+                    data_len += len;
+                }
+            } else {
+                /* error: len is not incrementing */
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
+            if (apdu_size <= apdu_len) {
+                /* error: exceeding our buffer limit */
+                return BACNET_STATUS_ERROR;
+            }
+            apdu += len;
+        }
+    } while (opening_tag_number_counter > 0);
+
 
     return data_len;
 }
