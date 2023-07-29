@@ -518,7 +518,7 @@ bool bacnet_is_closing_tag(uint8_t *apdu, uint32_t apdu_size)
  * @param apdu  Pointer to the tag number.
  * @param apdu_size Number of bytes available to decode
  *
- * @return true if an opening tag has been found.
+ * @return true if a context specific tag has been found.
  */
 bool bacnet_is_context_specific(uint8_t *apdu, uint32_t apdu_size)
 {
