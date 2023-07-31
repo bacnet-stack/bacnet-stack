@@ -149,6 +149,9 @@ void USART6_IRQHandler(void)
     }
     /* check for errors and clear them */
     if (USART_GetFlagStatus(USART6, USART_FLAG_ORE) == SET) {
+        /* note: enabling RXNE interrupt also enables the ORE interrupt! */
+        /* dummy read to clear error state */
+        data_byte = USART_ReceiveData(USART6);
         USART_ClearFlag(USART6, USART_FLAG_ORE);
     }
     if (USART_GetFlagStatus(USART6, USART_FLAG_NE) == SET) {

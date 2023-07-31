@@ -18,7 +18,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_command, test_object_command)
+#else
 static void test_object_command(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -88,10 +92,16 @@ static void test_object_command(void)
  * @}
  */
 
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(tests_object_command, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(
-        tests_object_command, ztest_unit_test(test_object_command));
+    ztest_test_suite(tests_object_command,
+     ztest_unit_test(test_object_command)
+     );
 
     ztest_run_test_suite(tests_object_command);
 }
+#endif

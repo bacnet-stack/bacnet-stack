@@ -20,7 +20,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(credential_data_input_tests, testCredentialDataInput)
+#else
 static void testCredentialDataInput(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -86,10 +90,16 @@ static void testCredentialDataInput(void)
  * @}
  */
 
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(credential_data_input_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(
-        credential_data_input_tests, ztest_unit_test(testCredentialDataInput));
+    ztest_test_suite(credential_data_input_tests,
+     ztest_unit_test(testCredentialDataInput)
+     );
 
     ztest_run_test_suite(credential_data_input_tests);
 }
+#endif

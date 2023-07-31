@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_access_door, test_object_access_door)
+#else
 static void test_object_access_door(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -73,6 +77,10 @@ static void test_object_access_door(void)
  * @}
  */
 
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(tests_object_access_door, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(
@@ -80,3 +88,4 @@ void test_main(void)
 
     ztest_run_test_suite(tests_object_access_door);
 }
+#endif

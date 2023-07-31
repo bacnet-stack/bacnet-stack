@@ -67,7 +67,11 @@ static void testAtomicReadFileAckAccess(
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(arf_tests, testAtomicReadFileAck)
+#else
 static void testAtomicReadFileAck(void)
+#endif
 {
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     uint8_t test_octet_string[32] = "Joshua-Mary-Anna-Christopher";
@@ -127,7 +131,11 @@ static void testAtomicReadFileAccess(BACNET_ATOMIC_READ_FILE_DATA *data)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(arf_tests, testAtomicReadFile)
+#else
 static void testAtomicReadFile(void)
+#endif
 {
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
 
@@ -148,7 +156,11 @@ static void testAtomicReadFile(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(arf_tests, testAtomicReadFileMalformed)
+#else
 static void testAtomicReadFileMalformed(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     /* payloads with malformation */
@@ -183,6 +195,9 @@ static void testAtomicReadFileMalformed(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(arf_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(arf_tests,
@@ -193,3 +208,4 @@ void test_main(void)
 
     ztest_run_test_suite(arf_tests);
 }
+#endif

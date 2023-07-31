@@ -20,7 +20,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(msv_tests, testMultistateValue)
+#else
 static void testMultistateValue(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -91,9 +95,16 @@ static void testMultistateValue(void)
  * @}
  */
 
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(msv_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(msv_tests, ztest_unit_test(testMultistateValue));
+    ztest_test_suite(msv_tests,
+     ztest_unit_test(testMultistateValue)
+     );
 
     ztest_run_test_suite(msv_tests);
 }
+#endif

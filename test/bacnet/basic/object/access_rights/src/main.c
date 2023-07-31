@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(access_rights_tests, testAccessRights)
+#else
 static void testAccessRights(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
@@ -48,9 +52,16 @@ static void testAccessRights(void)
  * @}
  */
 
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(access_rights_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(access_rights_tests, ztest_unit_test(testAccessRights));
+    ztest_test_suite(access_rights_tests,
+     ztest_unit_test(testAccessRights)
+     );
 
     ztest_run_test_suite(access_rights_tests);
 }
+#endif

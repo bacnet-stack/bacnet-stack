@@ -20,7 +20,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacfile_tests, test_BACnet_File_Object)
+#else
 static void test_BACnet_File_Object(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
@@ -65,6 +69,9 @@ static void test_BACnet_File_Object(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacfile_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacfile_tests,
@@ -73,3 +80,4 @@ void test_main(void)
 
     ztest_run_test_suite(bacfile_tests);
 }
+#endif

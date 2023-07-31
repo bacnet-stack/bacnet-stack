@@ -64,7 +64,11 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
  * @{
  */
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_decode_application_data)
+#else
 static void test_bacapp_decode_application_data(void)
+#endif
 {
     uint8_t apdu[128] = { 0 };
     //unsigned max_apdu_len = sizeof(apdu);
@@ -76,7 +80,11 @@ static void test_bacapp_decode_application_data(void)
 }
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_decode_data_len)
+#else
 static void test_bacapp_decode_data_len(void)
+#endif
 {
     uint8_t apdu[3] = { 0 };
     uint32_t len_value_type = 0;
@@ -136,7 +144,11 @@ static void test_bacapp_decode_data_len(void)
     zassert_equal(bacapp_decode_data_len(apdu, BACNET_APPLICATION_TAG_OBJECT_ID, len_value_type), expected_value, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_copy)
+#else
 static void test_bacapp_copy(void)
+#endif
 {
     int i = 0;
 
@@ -180,7 +192,11 @@ static void test_bacapp_copy(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_value_list_init)
+#else
 static void test_bacapp_value_list_init(void)
+#endif
 {
     BACNET_APPLICATION_DATA_VALUE value[2] = { { 0 } };
     size_t max_count = 0;
@@ -208,7 +224,11 @@ static void test_bacapp_value_list_init(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_property_value_list_init)
+#else
 static void test_bacapp_property_value_list_init(void)
+#endif
 {
     BACNET_PROPERTY_VALUE value[2] = { { 0 } };
     size_t max_count = 0;
@@ -237,7 +257,11 @@ static void test_bacapp_property_value_list_init(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_same_value)
+#else
 static void test_bacapp_same_value(void)
+#endif
 {
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
@@ -448,7 +472,11 @@ static void test_bacapp_same_value(void)
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, testBACnetApplicationData_Safe)
+#else
 static void testBACnetApplicationData_Safe(void)
+#endif
 {
     int i;
     uint8_t apdu[MAX_APDU];
@@ -581,7 +609,11 @@ static void testBACnetApplicationData_Safe(void)
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, testBACnetApplicationDataLength)
+#else
 static void testBACnetApplicationDataLength(void)
+#endif
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0; /* total length of the apdu, return value */
@@ -770,7 +802,11 @@ static bool verifyBACnetComplexDataValue(
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, testBACnetApplicationData)
+#else
 static void testBACnetApplicationData(void)
+#endif
 {
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     bool status = false;
@@ -1026,7 +1062,11 @@ static void testBACnetApplicationData(void)
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_context_data)
+#else
 static void test_bacapp_context_data(void)
+#endif
 {
     const uint8_t context_tag_number = 1;
     uint8_t apdu[480] = { 0 };
@@ -1052,7 +1092,11 @@ static void test_bacapp_context_data(void)
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_sprintf_data)
+#else
 static void test_bacapp_sprintf_data(void)
+#endif
 {
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_OBJECT_PROPERTY_VALUE object_value = { 0 };
@@ -1081,6 +1125,9 @@ static void test_bacapp_sprintf_data(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacapp_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacapp_tests,
@@ -1099,3 +1146,4 @@ void test_main(void)
 
     ztest_run_test_suite(bacapp_tests);
 }
+#endif

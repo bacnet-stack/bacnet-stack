@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lsp_tests, testLifeSafetyPoint)
+#else
 static void testLifeSafetyPoint(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
@@ -48,9 +52,16 @@ static void testLifeSafetyPoint(void)
  * @}
  */
 
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(lsp_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(lsp_tests, ztest_unit_test(testLifeSafetyPoint));
+    ztest_test_suite(lsp_tests,
+     ztest_unit_test(testLifeSafetyPoint)
+     );
 
     ztest_run_test_suite(lsp_tests);
 }
+#endif

@@ -513,6 +513,28 @@ bool bacnet_is_closing_tag(uint8_t *apdu, uint32_t apdu_size)
 }
 
 /**
+ * @brief Returns true if a context specific tag has been found.
+ *
+ * @param apdu  Pointer to the tag number.
+ * @param apdu_size Number of bytes available to decode
+ *
+ * @return true if a context specific tag has been found.
+ */
+bool bacnet_is_context_specific(uint8_t *apdu, uint32_t apdu_size)
+{
+    bool tag = false;
+
+    if (apdu_size > 0) {
+        if (IS_CONTEXT_SPECIFIC(apdu[0])) {
+            tag = true;
+        }
+    }
+
+    return tag;
+}
+
+
+/**
  * @brief Decodes the tag number and the value,
  * that the APDU pointer is addressing.
  * (From clause 20.2.1.3.2 Constructed Data)
@@ -578,41 +600,39 @@ int decode_tag_number_and_value(
  * as defined in clause 20.2.1.3.2 Constructed Data
  *
  * @param apdu - buffer of data to be decoded
- * @param apdu_size - number of bytes in the buffer
+ * @param apdu_len_max - number of bytes in the buffer
  * @param tag_number - decoded tag number, if decoded
  * @param value - decoded value, if decoded
  *
  * @return the number of apdu bytes consumed
  */
 int bacnet_tag_number_and_value_decode(
-    uint8_t *apdu, uint32_t apdu_size, uint8_t *tag_number, uint32_t *value)
+    uint8_t *apdu, uint32_t apdu_len_max, uint8_t *tag_number, uint32_t *value)
 {
     int len = 0;
 
-    len = bacnet_tag_number_decode(&apdu[0], apdu_size, tag_number);
+    len = bacnet_tag_number_decode(&apdu[0], apdu_len_max, tag_number);
     if (len > 0) {
-        apdu_size -= len;
-        if (IS_EXTENDED_VALUE(apdu[0])) {
-            /* tagged as uint32_t */
-            if ((apdu[len] == 255) && (apdu_size >= 5)) {
+        if (IS_EXTENDED_VALUE(apdu[0]) && (apdu_len_max > len)) {
+            apdu_len_max -= len;
+            if ((apdu[len] == 255) && (apdu_len_max >= 5)) {
+                /* tagged as uint32_t */
                 uint32_t value32;
                 len++;
                 len += decode_unsigned32(&apdu[len], &value32);
                 if (value) {
                     *value = value32;
                 }
-            }
-            /* tagged as uint16_t */
-            else if ((apdu[len] == 254) && (apdu_size >= 3)) {
+            } else if ((apdu[len] == 254) && (apdu_len_max >= 3)) {
+                /* tagged as uint16_t */
                 uint16_t value16;
                 len++;
                 len += decode_unsigned16(&apdu[len], &value16);
                 if (value) {
                     *value = value16;
                 }
-            }
-            /* no tag - must be uint8_t */
-            else if ((apdu[len] < 254) && (apdu_size >= 1)) {
+            } else if ((apdu[len] < 254) && (apdu_len_max >= 1)) {
+                /* no tag - must be uint8_t */
                 if (value) {
                     *value = apdu[len];
                 }
@@ -3747,19 +3767,19 @@ int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
 int encode_context_bacnet_address(
     uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *destination)
 {
-    int apdu_len = 0;
+    int len = 0;
+    uint8_t *apdu_offset = NULL;
 
-    apdu_len += encode_opening_tag(apdu, tag_number);
+    len += encode_opening_tag(apdu, tag_number);
     if (apdu) {
-        apdu += apdu_len;
+        apdu_offset = &apdu[len];
     }
-    apdu_len += encode_bacnet_address(apdu, destination);
+    len += encode_bacnet_address(apdu_offset, destination);
     if (apdu) {
-        apdu += apdu_len;
+        apdu_offset = &apdu[len];
     }
-    apdu_len += encode_closing_tag(apdu, tag_number);
-
-    return apdu_len;
+    len += encode_closing_tag(apdu_offset, tag_number);
+    return len;
 }
 
 /* BACnetAddress */

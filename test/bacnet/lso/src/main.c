@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lso_tests, testLSO)
+#else
 static void testLSO(void)
+#endif
 {
     uint8_t apdu[1000];
     int len;
@@ -54,6 +58,9 @@ static void testLSO(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(lso_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(lso_tests,
@@ -62,3 +69,4 @@ void test_main(void)
 
     ztest_run_test_suite(lso_tests);
 }
+#endif

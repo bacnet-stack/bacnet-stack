@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_tests, test_NPDU_Network)
+#else
 static void test_NPDU_Network(void)
+#endif
 {
     uint8_t pdu[480] = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -54,7 +58,11 @@ static void test_NPDU_Network(void)
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_tests, testNPDU2)
+#else
 static void testNPDU2(void)
+#endif
 {
     uint8_t pdu[480] = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -118,7 +126,11 @@ static void testNPDU2(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_tests, testNPDU1)
+#else
 static void testNPDU1(void)
+#endif
 {
     uint8_t pdu[480] = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -177,6 +189,9 @@ static void testNPDU1(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(npdu_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(npdu_tests,
@@ -187,3 +202,4 @@ void test_main(void)
 
     ztest_run_test_suite(npdu_tests);
 }
+#endif

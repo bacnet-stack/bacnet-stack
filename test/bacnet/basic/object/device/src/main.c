@@ -88,7 +88,11 @@ static void test_Device_ReadProperty(void)
 /**
  * @brief Test basic API
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, testDevice)
+#else
 static void testDevice(void)
+#endif
 {
     bool status = false;
     const char *name = "Patricia";
@@ -123,6 +127,9 @@ static void testDevice(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(device_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(device_tests,
@@ -132,3 +139,4 @@ void test_main(void)
 
     ztest_run_test_suite(device_tests);
 }
+#endif

@@ -42,7 +42,11 @@ static int reject_decode_apdu(uint8_t *apdu,
     return len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(reject_tests, testRejectEncodeDecode)
+#else
 static void testRejectEncodeDecode(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -92,7 +96,11 @@ static void testRejectEncodeDecode(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(reject_tests, testRejectErrorCode)
+#else
 static void testRejectErrorCode(void)
+#endif
 {
     int i;
     BACNET_ERROR_CODE error_code;
@@ -116,6 +124,9 @@ static void testRejectErrorCode(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(reject_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(reject_tests,
@@ -125,3 +136,4 @@ void test_main(void)
 
     ztest_run_test_suite(reject_tests);
 }
+#endif
