@@ -3044,19 +3044,19 @@ int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
 int encode_context_bacnet_address(
     uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *destination)
 {
-    int apdu_len = 0;
+    int len = 0;
+    uint8_t *apdu_offset = NULL;
 
-    apdu_len += encode_opening_tag(apdu, tag_number);
+    len += encode_opening_tag(apdu, tag_number);
     if (apdu) {
-        apdu += apdu_len;
+        apdu_offset = &apdu[len];
     }
-    apdu_len += encode_bacnet_address(apdu, destination);
+    len += encode_bacnet_address(apdu_offset, destination);
     if (apdu) {
-        apdu += apdu_len;
+        apdu_offset = &apdu[len];
     }
-    apdu_len += encode_closing_tag(apdu, tag_number);
-
-    return apdu_len;
+    len += encode_closing_tag(apdu_offset, tag_number);
+    return len;
 }
 
 /* BACnetAddress */
