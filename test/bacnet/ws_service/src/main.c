@@ -1282,8 +1282,10 @@ BACNET_WS_SERVICE_RET test_test_handler(BACNET_WS_SERVICE_METHOD m,
   char date[32];
 
   t = time(NULL);
+
+//  printf("test_test_handler method %d\n", m);
   
-  snprintf((char*)out, *out_len, "<html>"
+  *out_len = snprintf((char*)out, *out_len, "<html>"
         "<head><meta charset=utf-8 "
         "http-equiv=\"Content-Language\" "
         "content=\"en\"/></head><body>"
@@ -1297,7 +1299,7 @@ BACNET_WS_SERVICE_RET test_test_handler(BACNET_WS_SERVICE_METHOD m,
 //static BACNET_WS_SERVICE test_s = { "test/test", BACNET_WS_SERVICE_METHOD_POST, test_test_handler};
 //static BACNET_WS_SERVICE *test = &test_s;
 
-BACNET_WS_DECLARE_SERVICE(test, "test/test", BACNET_WS_SERVICE_METHOD_POST, test_test_handler);
+BACNET_WS_DECLARE_SERVICE(test, "test/test", BACNET_WS_SERVICE_METHOD_GET, test_test_handler);
 
 static void test1(void)
 {
@@ -1315,7 +1317,10 @@ static void test1(void)
                          sizeof(server_key),
                          DEFAULT_TIMEOUT);
 
+  zassert_equal(ret, 0, NULL);
+
    ret =  ws_service_registry(test);
+   zassert_equal(ret, 0, NULL);
 
    bsc_wait_ms(30*10000);
    ws_server_stop();

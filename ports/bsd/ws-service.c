@@ -468,7 +468,7 @@ BACNET_WS_SERVICE_RET ws_server_start(uint16_t http_port,
     }
 
     if (!r) {
-        r = pthread_create(&thread_id, &attr, &ws_service_srv_worker, &ctx);
+        r = pthread_create(&thread_id, &attr, &ws_service_srv_worker, ctx);
     }
 
     if (r) {

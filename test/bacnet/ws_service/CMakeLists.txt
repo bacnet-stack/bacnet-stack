@@ -53,8 +53,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(PkgConfig)
   pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
   add_executable(${PROJECT_NAME}
-    ${PORTS_DIR}/linux/websocket-cli.c
-    ${PORTS_DIR}/linux/websocket-srv.c
+    ${PORTS_DIR}/linux/ws-service.c
     ${PORTS_DIR}/linux/websocket-global.c
     ${PORTS_DIR}/linux/bsc-event.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c

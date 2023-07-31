@@ -46,10 +46,11 @@ typedef struct
   const char *uri; /* null terminated string without leading and trailing '/' */
   unsigned int ws_method_mask;
   BACNET_WS_SERVICE_CALLBACK func;
+  void *next;
 } BACNET_WS_SERVICE;
 
 #define BACNET_WS_DECLARE_SERVICE(service, uri, methods, callback) \
-   static BACNET_WS_SERVICE service##_s = { 0, uri, (unsigned int) methods, callback}; \
+   static BACNET_WS_SERVICE service##_s = { 0, uri, (unsigned int) methods, callback, NULL}; \
    static BACNET_WS_SERVICE *service = &service##_s
 
 typedef void* BACNET_WS_SERVER;
