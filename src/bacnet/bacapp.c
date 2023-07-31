@@ -1529,6 +1529,10 @@ int bacapp_data_len(
         /* error: exceeding our buffer limit */
         return BACNET_STATUS_ERROR;
     }
+    if (!bacnet_is_opening_tag(apdu, apdu_len_max)) {
+        /* error: opening tag is missing */
+        return BACNET_STATUS_ERROR;
+    }
     do {
         if (bacnet_is_opening_tag(apdu, apdu_len_max)) {
             len = bacnet_tag_number_and_value_decode(apdu,
