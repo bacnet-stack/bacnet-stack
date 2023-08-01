@@ -656,3 +656,9 @@ int ws_http_parameter_get(void *context, char *name, char *buffer, size_t len)
     struct lws *wsi = (struct lws *)context;
     return lws_get_urlarg_by_name_safe(wsi, name, buffer, len - 1);
 }
+
+#ifdef CONFIG_ZTEST
+BACNET_WS_SERVICE *service_root_get(void) {
+    return ws_srv.services;
+}
+#endif
