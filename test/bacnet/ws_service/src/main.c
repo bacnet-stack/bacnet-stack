@@ -1274,32 +1274,47 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define DEFAULT_TIMEOUT 10
 #define DEFAULT_WAIT_TIMEOUT_MS 100
 
+// https://localhost:9001/test/test?z=10&k=15
+char body[256] = {0}; 
+
 BACNET_WS_SERVICE_RET test_test_handler(BACNET_WS_SERVICE_METHOD m,
                                         uint8_t* in, size_t in_len,
-                                        uint8_t* out, size_t *out_len)
+                                        uint8_t* out, size_t *out_len,
+                                        void *context)
 {
   time_t t;
   char date[32];
+  char buf1[10] = {0};
+  char buf2[10] = {0};
 
   t = time(NULL);
 
 //  printf("test_test_handler method %d\n", m);
+  ws_http_parameter_get(context, "z", buf1, sizeof(buf1));
+  ws_http_parameter_get(context, "k", buf2, sizeof(buf2));
   
   *out_len = snprintf((char*)out, *out_len, "<html>"
         "<head><meta charset=utf-8 "
         "http-equiv=\"Content-Language\" "
         "content=\"en\"/></head><body>"
-        "<br>content for /test/test"
+        "<br>content for /test/test z=%s, k=%s<br>"
+        "Request body = %s<br>"
         "<br>Time: %s<br><br>"
-        "</body></html>", ctime_r(&t, date));
+        "</body></html>", buf1, buf2, body, ctime_r(&t, date));
 
   return BACNET_WS_SERVICE_SUCCESS;
 }
 
-//static BACNET_WS_SERVICE test_s = { "test/test", BACNET_WS_SERVICE_METHOD_POST, test_test_handler};
-//static BACNET_WS_SERVICE *test = &test_s;
+BACNET_WS_SERVICE_RET test_test_set_body(uint8_t* in, size_t in_len)
+{
+  snprintf(body, sizeof(body), "len:%ld '%s'", in_len, in);
 
-BACNET_WS_DECLARE_SERVICE(test, "test/test", BACNET_WS_SERVICE_METHOD_GET, test_test_handler);
+  return BACNET_WS_SERVICE_SUCCESS;
+}
+
+BACNET_WS_DECLARE_SERVICE(test, "test/test",
+    BACNET_WS_SERVICE_METHOD_GET | BACNET_WS_SERVICE_METHOD_POST,
+    test_test_handler, test_test_set_body);
 
 static void test1(void)
 {

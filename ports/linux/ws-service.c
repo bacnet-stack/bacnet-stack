@@ -103,7 +103,7 @@ typedef struct {
     BACNET_WS_SERVICE *services;
 } WS_SERVER;
 
-static pthread_mutex_t ws_srv_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+static pthread_mutex_t ws_srv_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static WS_SERVER ws_srv = { NULL, &ws_srv_mutex, false, false, NULL };
 
 static const char *const param_names[] = { "z", "send", NULL, NULL, NULL };
@@ -656,3 +656,10 @@ int ws_http_parameter_get(void *context, char *name, char *buffer, size_t len)
     struct lws *wsi = (struct lws *)context;
     return lws_get_urlarg_by_name_safe(wsi, name, buffer, len - 1);
 }
+
+
+#ifdef CONFIG_ZTEST
+BACNET_WS_SERVICE *service_root_get(void) {
+    return ws_srv.services;
+}
+#endif
