@@ -117,20 +117,20 @@ int bacapp_encode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
 {
     int len = 0; /* length of each encoding */
 
-    if (value && apdu) {
+    if (value) {
         switch (value->tag) {
             case TIME_STAMP_TIME:
-                len = encode_context_time(&apdu[0], 0, &value->value.time);
+                len = encode_context_time(apdu, value->tag, &value->value.time);
                 break;
 
             case TIME_STAMP_SEQUENCE:
                 len = encode_context_unsigned(
-                    &apdu[0], 1, value->value.sequenceNum);
+                    apdu, value->tag, value->value.sequenceNum);
                 break;
 
             case TIME_STAMP_DATETIME:
                 len = bacapp_encode_context_datetime(
-                    &apdu[0], 2, &value->value.dateTime);
+                    apdu, value->tag, &value->value.dateTime);
                 break;
 
             default:
@@ -160,110 +160,142 @@ int bacapp_encode_context_timestamp(
     int len = 0; /* length of each encoding */
     int apdu_len = 0;
 
-    if (value && apdu) {
-        len = encode_opening_tag(&apdu[apdu_len], tag_number);
+    if (value) {
+        len = encode_opening_tag(apdu, tag_number);
         apdu_len += len;
-        len = bacapp_encode_timestamp(&apdu[apdu_len], value);
+        if (apdu) {
+            apdu += len;
+        }
+        len = bacapp_encode_timestamp(apdu, value);
         apdu_len += len;
-        len = encode_closing_tag(&apdu[apdu_len], tag_number);
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_number);
         apdu_len += len;
     }
     return apdu_len;
 }
 
-/** Decode a time stamp from the given buffer.
- *
+/**
+ * @brief Decode a time stamp from the given buffer.
  * @param apdu  Pointer to the APDU buffer.
+ * @param apdu_size - the APDU buffer length
  * @param value  Pointer to the variable that shall
  *               take the time stamp values.
- *
- * @return Bytes decoded or -1 on error.
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
  */
-int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
+int bacnet_timestamp_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_TIMESTAMP *value)
 {
     int len = 0;
-    int section_len;
-    uint32_t len_value_type;
-    BACNET_UNSIGNED_INTEGER unsigned_value;
+    int apdu_len = 0;
+    uint32_t len_value_type = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
-    if (apdu && value) {
-        section_len = decode_tag_number_and_value(
-            &apdu[len], &value->tag, &len_value_type);
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (!value) {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_tag_number_and_value_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &value->tag, &len_value_type);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    switch (value->tag) {
+        case TIME_STAMP_TIME:
+            len = bacnet_time_context_decode(&apdu[apdu_len],
+                apdu_size - apdu_len, value->tag, &value->value.time);
+            if (len <= 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
+            break;
 
-        if (-1 == section_len) {
-            return -1;
-        }
-        switch (value->tag) {
-            case TIME_STAMP_TIME:
-                if ((section_len = decode_context_bacnet_time(&apdu[len],
-                         TIME_STAMP_TIME, &value->value.time)) == -1) {
-                    return -1;
-                } else {
-                    len += section_len;
-                }
-                break;
-
-            case TIME_STAMP_SEQUENCE:
-                if ((section_len = decode_context_unsigned(&apdu[len],
-                         TIME_STAMP_SEQUENCE, &unsigned_value)) == -1) {
-                    return -1;
-                } else {
-                    if (unsigned_value <= 0xffff) {
-                        len += section_len;
-                        value->value.sequenceNum = (uint16_t)unsigned_value;
-                    } else {
-                        return -1;
-                    }
-                }
-                break;
-
-            case TIME_STAMP_DATETIME:
-                if ((section_len = bacapp_decode_context_datetime(&apdu[len],
-                         TIME_STAMP_DATETIME, &value->value.dateTime)) == -1) {
-                    return -1;
-                } else {
-                    len += section_len;
-                }
-                break;
-
-            default:
-                return -1;
-        }
+        case TIME_STAMP_SEQUENCE:
+            len = bacnet_unsigned_context_decode(&apdu[apdu_len],
+                apdu_size - apdu_len, value->tag, &unsigned_value);
+            if (len <= 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
+            if (unsigned_value <= UINT16_MAX) {
+                value->value.sequenceNum = (uint16_t)unsigned_value;
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
+            break;
+        case TIME_STAMP_DATETIME:
+            len = bacnet_datetime_context_decode(&apdu[apdu_len],
+                apdu_size - apdu_len, value->tag, &value->value.dateTime);
+            if (len <= 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
+            break;
+        default:
+            return BACNET_STATUS_ERROR;
     }
 
-    return len;
+    return apdu_len;
+}
+
+int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
+{
+    return bacnet_timestamp_decode(apdu, MAX_APDU, value);
 }
 
 /** Decode a time stamp and check for
  * opening and closing tags.
  *
  * @param apdu  Pointer to the APDU buffer.
+ * @param apdu_size - the APDU buffer length
  * @param tag_number  The tag number that shall
  *                    hold the time stamp.
  * @param value  Pointer to the variable that shall
  *               take the time stamp values.
  *
- * @return Bytes decoded or -1 on error.
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
  */
+int bacnet_timestamp_context_decode(uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_TIMESTAMP *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (apdu_len > apdu_size) {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_timestamp_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (apdu_len > apdu_size) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
 int bacapp_decode_context_timestamp(
     uint8_t *apdu, uint8_t tag_number, BACNET_TIMESTAMP *value)
 {
-    int len = 0;
-    int section_len;
-
-    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
-        len++;
-        section_len = bacapp_decode_timestamp(&apdu[len], value);
-        if (section_len > 0) {
-            len += section_len;
-            if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
-                len++;
-            } else {
-                return -1;
-            }
-        }
-    }
-    return len;
+    return bacnet_timestamp_context_decode(apdu, MAX_APDU, tag_number, value);
 }
 
 /**
@@ -334,9 +366,9 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
         }
     }
     if (!status) {
-        count = sscanf(ascii, "%4d", &sequence);
+        count = sscanf(ascii, "%5d", &sequence);
         if (count == 1) {
-            timestamp->tag = TIME_STAMP_DATETIME;
+            timestamp->tag = TIME_STAMP_SEQUENCE;
             timestamp->value.sequenceNum = (uint16_t)sequence;
             status = true;
         }

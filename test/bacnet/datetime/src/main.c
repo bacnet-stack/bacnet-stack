@@ -539,8 +539,10 @@ static void testDatetimeCodec(void)
     datetimeIn.time.sec = 7;
     datetimeIn.time.hundredths = 8;
 
+    inLen = bacapp_encode_context_datetime(NULL, 10, &datetimeIn);
+    zassert_true(inLen <= sizeof(apdu), NULL);
     inLen = bacapp_encode_context_datetime(apdu, 10, &datetimeIn);
-    outLen = bacapp_decode_context_datetime(apdu, 10, &datetimeOut);
+    outLen = bacnet_datetime_context_decode(apdu, inLen, 10, &datetimeOut);
 
     zassert_equal(inLen, outLen, NULL);
 

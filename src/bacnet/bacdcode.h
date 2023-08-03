@@ -421,18 +421,7 @@ int encode_bacnet_time(uint8_t *apdu, BACNET_TIME *btime);
 BACNET_STACK_EXPORT
 int encode_application_time(uint8_t *apdu, BACNET_TIME *btime);
 BACNET_STACK_EXPORT
-int decode_bacnet_time(uint8_t *apdu, BACNET_TIME *btime);
-BACNET_STACK_EXPORT
-int decode_bacnet_time_safe(
-    uint8_t *apdu, uint32_t len_value, BACNET_TIME *btime);
-BACNET_STACK_EXPORT
 int encode_context_time(uint8_t *apdu, uint8_t tag_number, BACNET_TIME *btime);
-BACNET_STACK_EXPORT
-int decode_application_time(uint8_t *apdu, BACNET_TIME *btime);
-BACNET_STACK_EXPORT
-int decode_context_bacnet_time(
-    uint8_t *apdu, uint8_t tag_number, BACNET_TIME *btime);
-
 BACNET_STACK_EXPORT
 int bacnet_time_decode(uint8_t *apdu,
     uint32_t apdu_len_max,
@@ -447,15 +436,21 @@ BACNET_STACK_EXPORT
 int bacnet_time_application_decode(
     uint8_t *apdu, uint32_t apdu_len_max, BACNET_TIME *value);
 
-/* BACnet Date */
-/* year = years since 1900 */
-/* month 1=Jan */
-/* day = day of month */
-/* wday 1=Monday...7=Sunday */
+BACNET_STACK_DEPRECATED("Use bacnet_time_decode() instead")
+BACNET_STACK_EXPORT
+int decode_bacnet_time(uint8_t *apdu, BACNET_TIME *btime);
+BACNET_STACK_DEPRECATED("Use bacnet_time_decode() instead")
+BACNET_STACK_EXPORT
+int decode_bacnet_time_safe(
+    uint8_t *apdu, uint32_t len_value, BACNET_TIME *btime);
+BACNET_STACK_DEPRECATED("Use bacnet_time_application_decode() instead")
+BACNET_STACK_EXPORT
+int decode_application_time(uint8_t *apdu, BACNET_TIME *btime);
+BACNET_STACK_DEPRECATED("Use bacnet_time_context_decode() instead")
+BACNET_STACK_EXPORT
+int decode_context_bacnet_time(
+    uint8_t *apdu, uint8_t tag_number, BACNET_TIME *btime);
 
-/* from clause 20.2.12 Encoding of a Date Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
 BACNET_STACK_EXPORT
 int encode_bacnet_date(uint8_t *apdu, BACNET_DATE *bdate);
 BACNET_STACK_EXPORT
@@ -463,11 +458,29 @@ int encode_application_date(uint8_t *apdu, BACNET_DATE *bdate);
 BACNET_STACK_EXPORT
 int encode_context_date(uint8_t *apdu, uint8_t tag_number, BACNET_DATE *bdate);
 BACNET_STACK_EXPORT
+int bacnet_date_decode(uint8_t *apdu,
+    uint32_t apdu_len_max,
+    uint32_t len_value,
+    BACNET_DATE *value);
+BACNET_STACK_EXPORT
+int bacnet_date_application_decode(
+    uint8_t *apdu, uint32_t apdu_len_max, BACNET_DATE *value);
+BACNET_STACK_EXPORT
+int bacnet_date_context_decode(uint8_t *apdu,
+    uint32_t apdu_len_max,
+    uint8_t tag_value,
+    BACNET_DATE *value);
+
+BACNET_STACK_DEPRECATED("Use bacnet_date_decode() instead")
+BACNET_STACK_EXPORT
 int decode_date(uint8_t *apdu, BACNET_DATE *bdate);
+BACNET_STACK_DEPRECATED("Use bacnet_date_decode() instead")
 BACNET_STACK_EXPORT
 int decode_date_safe(uint8_t *apdu, uint32_t len_value, BACNET_DATE *bdate);
+BACNET_STACK_DEPRECATED("Use bacnet_date_application_decode() instead")
 BACNET_STACK_EXPORT
 int decode_application_date(uint8_t *apdu, BACNET_DATE *bdate);
+BACNET_STACK_DEPRECATED("Use bacnet_date_context_decode() instead")
 BACNET_STACK_EXPORT
 int decode_context_date(uint8_t *apdu, uint8_t tag_number, BACNET_DATE *bdate);
 

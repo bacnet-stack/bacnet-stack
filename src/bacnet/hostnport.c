@@ -87,7 +87,7 @@ int host_n_port_encode(uint8_t *apdu, BACNET_HOST_N_PORT *address)
 /**
  * @brief Encode a BACnetHostNPort complex data type
  * @param apdu - the APDU buffer
- * @param tag_number - the APDU buffer size
+ * @param tag_number - context tag number to be encoded
  * @param address - IP address and port number
  * @return length of the APDU buffer, or 0 if not able to encode
  */
@@ -118,14 +118,14 @@ int host_n_port_context_encode(
 }
 
 /**
- * @brief Decode the BACnetHostNPort complex data
+ * @brief Determine if there will be a buffer overflow 
  * @param apdu_len - number of bytes used in the APDU buffer
  * @param apdu_size - the APDU buffer length
  * @param error_code - error or reject or abort when error occurs
  * @return true if the buffer has overflowed
  */
 static bool apdu_size_buffer_overlow(
-    uint16_t apdu_len, uint16_t apdu_size, BACNET_ERROR_CODE *error_code)
+    uint16_t apdu_len, uint32_t apdu_size, BACNET_ERROR_CODE *error_code)
 {
     if (apdu_len > apdu_size) {
         if (error_code) {
@@ -160,7 +160,7 @@ static bool apdu_size_buffer_overlow(
  * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
  */
 int host_n_port_decode(uint8_t *apdu,
-    uint16_t apdu_size,
+    uint32_t apdu_size,
     BACNET_ERROR_CODE *error_code,
     BACNET_HOST_N_PORT *address)
 {

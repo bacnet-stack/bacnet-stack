@@ -3522,7 +3522,7 @@ int decode_context_bacnet_time(
 }
 
 /**
- * @brief Encode a Date Value
+ * @brief Encode a BACnetDateTime value
  *  From clause 20.2.12 Encoding of a Date Value
  *  and clause 20.2.1 General Rules for Encoding BACnet Tags.
  *
@@ -3609,6 +3609,122 @@ int encode_context_date(uint8_t *apdu, uint8_t tag_number, BACNET_DATE *bdate)
     len += encode_bacnet_date(apdu_offset, bdate);
 
     return len;
+}
+
+/**
+ * @brief Decodes from bytes into a BACnet Date Value
+ *  From clause 20.2.12 Encoding of a Date Value
+ *  and clause 20.2.1 General Rules for Encoding BACnet Tags.
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_size - number of bytes in the buffer to decode
+ * @param len_value - number of bytes encoded
+ * @param value - the unsigned value decoded
+ *
+ * @return  number of bytes decoded, or zero if errors occur
+ */
+int bacnet_date_decode(
+    uint8_t *apdu, uint32_t apdu_size, uint32_t len_value, BACNET_DATE *value)
+{
+    int len = 0;
+
+    if (value && (len_value <= apdu_size) && (len_value == 4)) {
+        /* length of date is 4 octets, as per 20.2.12 */
+        value->year = (uint16_t)apdu[0] + 1900;
+        value->month = apdu[1];
+        value->day = apdu[2];
+        value->wday = apdu[3];
+        len = (int)len_value;
+    }
+
+    return len;
+}
+
+/**
+ * @brief Decodes from bytes into a BACnet Date Value context encoded
+ *  From clause 20.2.12 Encoding of a Date Value
+ *  and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_size - number of bytes in the buffer to decode
+ * @param tag_value - context tag number expected
+ * @param value - the unsigned value decoded
+ *
+ * @return  number of bytes decoded, zero if wrong tag number,
+ * or error (-1) if malformed
+ */
+int bacnet_date_context_decode(
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_value, BACNET_DATE *value)
+{
+    int apdu_len = 0;
+    unsigned len = 0;
+    uint8_t tag_number = 0;
+    uint32_t len_value_type = 0;
+
+    if (apdu_size) {
+        if (decode_is_context_tag(&apdu[apdu_len], tag_value) &&
+            !decode_is_closing_tag(&apdu[apdu_len])) {
+            len = bacnet_tag_number_and_value_decode(&apdu[apdu_len],
+                apdu_size - apdu_len, &tag_number, &len_value_type);
+            if (len > 0) {
+                apdu_len += len;
+                if (apdu_len < apdu_size) {
+                    len = bacnet_date_decode(&apdu[apdu_len],
+                        apdu_size - apdu_len, len_value_type, value);
+                    if (len > 0) {
+                        apdu_len += len;
+                    } else {
+                        return BACNET_STATUS_ERROR;
+                    }
+                } else {
+                    return BACNET_STATUS_ERROR;
+                }
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes from bytes into a BACnet Date Value application encoded
+ *  From clause 20.2.12 Encoding of a Date Value
+ *  and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - decoded value, if decoded
+ *
+ * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
+ */
+int bacnet_date_application_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_DATE *value)
+{
+    int len = 0;
+    int apdu_len = BACNET_STATUS_ERROR;
+    uint8_t tag_number;
+    uint32_t len_value_type = 0;
+
+    len = bacnet_tag_number_and_value_decode(
+        &apdu[len], apdu_size, &tag_number, &len_value_type);
+    if ((len > 0) && (tag_number == BACNET_APPLICATION_TAG_DATE)) {
+        apdu_len = len;
+        if (apdu_len < apdu_size) {
+            len = bacnet_date_decode(
+                &apdu[len], apdu_size - apdu_len, len_value_type, value);
+            if (len > 0) {
+                apdu_len += len;
+            } else {
+                apdu_len = BACNET_STATUS_ERROR;
+            }
+        } else {
+            apdu_len = BACNET_STATUS_ERROR;
+        }
+    }
+
+    return apdu_len;
 }
 
 /* from clause 20.2.12 Encoding of a Date Value */
