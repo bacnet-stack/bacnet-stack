@@ -7,6 +7,12 @@ project(Unit_Tests)
 # add definitions
 add_definitions(-fprofile-arcs -ftest-coverage)
 
+option(BACNET_STACK_DEPRECATED_DISABLE "Disable deprecation compile warnings" ON)
+
+if(BACNET_STACK_DEPRECATED_DISABLE)
+  add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
+endif()
+
 # Set the compiler options
 if (NOT MSVC)
     add_compile_options(-Wall -g -O0 -W -fprofile-arcs -ftest-coverage)

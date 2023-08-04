@@ -25,7 +25,9 @@
 #endif
 
 /* marking some code as 'deprecated' */
-# if defined(_MSC_VER)
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+#   define BACNET_STACK_DEPRECATED(message)
+#elif defined(_MSC_VER)
 #   define BACNET_STACK_DEPRECATED(message) __declspec(deprecated(message))
 #elif defined(__GNUC__)
 #   define BACNET_STACK_DEPRECATED(message) __attribute__((deprecated(message)))
