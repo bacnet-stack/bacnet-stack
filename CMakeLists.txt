@@ -369,6 +369,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/service/s_wp.h
     src/bacnet/basic/service/s_wpm.c
     src/bacnet/basic/service/s_wpm.h
+    src/bacnet/basic/service/ws_restful/ws-service.h
+    src/bacnet/basic/service/ws_restful/info.c
     src/bacnet/basic/services.h
     src/bacnet/basic/sys/bigend.c
     src/bacnet/basic/sys/bigend.h
