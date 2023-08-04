@@ -1210,7 +1210,7 @@ int bacnet_bitstring_application_decode(
         if (apdu_len < apdu_size) {
             /* note: enumerated is encoded as UNSIGNED INT */
             len = bacnet_bitstring_decode(
-                &apdu[len], apdu_size - apdu_len, len_value_type, &value);
+                &apdu[len], apdu_size - apdu_len, len_value_type, value);
             if (len > 0) {
                 apdu_len += len;
             } else {
@@ -2032,7 +2032,7 @@ int bacnet_character_string_application_decode(
         if (apdu_len < apdu_size) {
             /* note: enumerated is encoded as UNSIGNED INT */
             len = bacnet_character_string_decode(
-                &apdu[len], apdu_size - apdu_len, len_value_type, &value);
+                &apdu[len], apdu_size - apdu_len, len_value_type, value);
             if (len > 0) {
                 apdu_len += len;
             } else {

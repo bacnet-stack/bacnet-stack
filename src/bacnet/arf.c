@@ -254,9 +254,6 @@ int arf_ack_decode_service_request(
 {
     int apdu_len = 0;
     int tag_len = 0;
-    int decoded_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
     uint32_t i = 0;
 
     /* check for value pointers */

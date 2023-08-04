@@ -164,7 +164,7 @@ int host_n_port_decode(uint8_t *apdu,
     BACNET_ERROR_CODE *error_code,
     BACNET_HOST_N_PORT *address)
 {
-    int apdu_len, len = 0;
+    int apdu_len = 0, len = 0;
     BACNET_OCTET_STRING octet_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
     uint8_t tag_number = 0;
