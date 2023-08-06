@@ -21,13 +21,15 @@
 static BACNET_WS_SERVICE_RET info_vendor_id_handler(BACNET_WS_CONNECT_CTX *ctx,
     uint8_t* in, size_t in_len, uint8_t* out, size_t *out_len)
 {
+    (void)in;
+    (void)in_len;
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
         *out_len = snprintf((char*)out, *out_len, "%d",
             Device_Vendor_Identifier());
     } else {
         *out_len = snprintf((char*)out, *out_len, "{ \"vendor-id\": %d }",
             Device_Vendor_Identifier());
-    } else {
     }
 
     return BACNET_WS_SERVICE_SUCCESS;
@@ -37,6 +39,9 @@ static BACNET_WS_SERVICE_RET info_vendor_name_handler(
     BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t* out,
     size_t *out_len)
 {
+    (void)in;
+    (void)in_len;
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
         *out_len = snprintf((char*)out, *out_len, "%s", Device_Vendor_Name());
     } else {
@@ -50,6 +55,9 @@ static BACNET_WS_SERVICE_RET info_vendor_name_handler(
 static BACNET_WS_SERVICE_RET info_model_name_handler(BACNET_WS_CONNECT_CTX *ctx,
     uint8_t* in, size_t in_len, uint8_t* out, size_t *out_len)
 {
+    (void)in;
+    (void)in_len;
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
         *out_len = snprintf((char*)out, *out_len, "%s", Device_Model_Name());
     } else {
@@ -64,6 +72,9 @@ static BACNET_WS_SERVICE_RET info_software_version_handler(
     BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t* out,
     size_t *out_len)
 {
+    (void)in;
+    (void)in_len;
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
         *out_len = snprintf((char*)out, *out_len, "%s",
             Device_Application_Software_Version());
@@ -80,6 +91,9 @@ static BACNET_WS_SERVICE_RET info_protocol_version_handler(
     BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t* out,
     size_t *out_len)
 {
+    (void)in;
+    (void)in_len;
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
         *out_len = snprintf((char*)out, *out_len, "%d",
             Device_Protocol_Version());
@@ -96,6 +110,9 @@ static BACNET_WS_SERVICE_RET info_protocol_revision_handler(
     BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t* out,
     size_t *out_len)
 {
+    (void)in;
+    (void)in_len;
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
         *out_len = snprintf((char*)out, *out_len, "%d",
             Device_Protocol_Revision());
@@ -111,6 +128,9 @@ static BACNET_WS_SERVICE_RET info_protocol_revision_handler(
 static BACNET_WS_SERVICE_RET info_max_uri_handler(BACNET_WS_CONNECT_CTX *ctx,
     uint8_t* in, size_t in_len, uint8_t* out, size_t *out_len)
 {
+    (void)in;
+    (void)in_len;
+
     // todo get max-uri from LWS
 
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {

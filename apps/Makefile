@@ -429,3 +429,9 @@ writepropm: $(BACNET_LIB_TARGET)
 .PHONY: sc-hub
 sc-hub: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
+
+ifeq (${BACNET_PORT},linux)
+.PHONY: rest-server
+rest-server: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+endif

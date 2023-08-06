@@ -22,7 +22,7 @@
 #include "bacnet/basic/sys/debug.h"
 #include "websocket-global.h"
 
-#define DEBUG_BACNET_WS_SERVICE 1
+#define DEBUG_BACNET_WS_SERVICE 0
 
 #if DEBUG_BACNET_WS_SERVICE == 1
 #define DEBUG_PRINTF printf
@@ -154,7 +154,7 @@ static BACNET_WS_ALT ws_alt_get(struct lws *wsi)
         return BACNET_WS_ALT_JSON;
     }
 
-    for (int i = 0; i < LWS_ARRAY_SIZE(alt_values); ++i) {
+    for (i = 0; i < LWS_ARRAY_SIZE(alt_values); ++i) {
         if (strcmp(alt_values[i], alt) == 0) {
             return (BACNET_WS_ALT)i;
         }
@@ -174,7 +174,7 @@ static char* alt_header[] =
             alt_header[BACNET_WS_ALT_PLAIN], 0,  &p, end)) {        \
         return 1;                                                   \
     }                                                               \
-    lws_finalize_write_http_header(wsi, start, &p, end);
+    (void)lws_finalize_write_http_header(wsi, start, &p, end);
 
 
 static int ws_http_event(struct lws *wsi,
@@ -386,7 +386,7 @@ static int ws_http_event(struct lws *wsi,
     }
 
     out_len = lws_ptr_diff_size_t(end, p);
-    BACNET_WS_SERVICE_RET ret = pss->s->func(pss, in, len, p, &out_len);
+    ret = pss->s->func(pss, in, len, p, &out_len);
     if ((ret != BACNET_WS_SERVICE_SUCCESS) &&
         (ret != BACNET_WS_SERVICE_HAS_DATA)) {
         printf("Error: callback return %d\n", ret);
@@ -465,7 +465,6 @@ BACNET_WS_SERVICE_RET ws_server_start(uint16_t http_port,
 {
     pthread_t thread_id;
     struct lws_context_creation_info info;
-    int ret;
     WS_SERVER *ctx = &ws_srv;
     pthread_attr_t attr;
     int r;
@@ -629,7 +628,7 @@ BACNET_WS_SERVICE_RET ws_service_registry(BACNET_WS_SERVICE* s)
   BACNET_WS_SERVICE_RET ret = BACNET_WS_SERVICE_SUCCESS;
   BACNET_WS_SERVICE* srv;
 
-  DEBUG_PRINTF("ws_service_registry() >>> s = %p\n", s);
+  DEBUG_PRINTF("ws_service_registry() >>> s = %p\n", (void*)s);
   pthread_mutex_lock(ctx->mutex);
   if(!ctx->used || !ctx->ctx) {
     ret = BACNET_WS_SERVICE_INVALID_OPERATION;

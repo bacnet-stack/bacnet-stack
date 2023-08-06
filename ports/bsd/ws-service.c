@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-#define _GNU_SOURCE
 #include <libwebsockets.h>
 #include <string.h>
 #include <stdio.h>
@@ -22,7 +21,7 @@
 #include "bacnet/basic/sys/debug.h"
 #include "websocket-global.h"
 
-#define DEBUG_BACNET_WS_SERVICE 1
+#define DEBUG_BACNET_WS_SERVICE 0
 
 #if DEBUG_BACNET_WS_SERVICE == 1
 #define DEBUG_PRINTF printf
@@ -31,12 +30,8 @@
 #define DEBUG_PRINTF debug_printf_disabled
 #endif
 
-struct pss {
-    BACNET_WS_SERVICE *s;
-    BACNET_WS_SERVICE_METHOD m;
-};
 
-BACNET_WS_DECLARE_SERVICE(root_service, "", 0x0f, NULL, NULL);
+BACNET_WS_DECLARE_SERVICE(root_service, "", 0x0f, false, NULL, NULL);
 
 static int ws_http_event(struct lws *wsi,
     enum lws_callback_reasons reason,
@@ -45,10 +40,10 @@ static int ws_http_event(struct lws *wsi,
     size_t len);
 
 static const struct lws_protocols ws_http_protocol = { "http", ws_http_event,
-    sizeof(struct pss), 0, 0, NULL, 0 };
+    sizeof(BACNET_WS_CONNECT_CTX), 0, 0, NULL, 0 };
 
 static const struct lws_protocols ws_https_protocol = { "https", ws_http_event,
-    sizeof(struct pss), 0, 0, NULL, 0 };
+    sizeof(BACNET_WS_CONNECT_CTX), 0, 0, NULL, 0 };
 
 static const struct lws_protocols *ws_protocols[] = { &ws_http_protocol,
     &ws_https_protocol, NULL };
@@ -145,13 +140,49 @@ static uint8_t ws_get_method(struct lws *wsi)
     return 0;
 }
 
+/*
+ * Retreive an alt parameter, see BacNET spec Clause W.8.1
+ */
+static BACNET_WS_ALT ws_alt_get(struct lws *wsi)
+{
+    const char* alt_values[] = {"xml", "json", "plain", "media" };
+    char alt[10] = {0};
+    int i;
+
+    if (ws_http_parameter_get(wsi, "alt", alt, sizeof(alt)) <= 0) {
+        return BACNET_WS_ALT_JSON;
+    }
+
+    for (i = 0; i < LWS_ARRAY_SIZE(alt_values); ++i) {
+        if (strcmp(alt_values[i], alt) == 0) {
+            return (BACNET_WS_ALT)i;
+        }
+    }
+
+    return BACNET_WS_ALT_ERROR;
+}
+
+/*
+ * Note! If any endpoint use media content then it must set
+ */
+static char* alt_header[] =
+    {"application/xml", "application/json", "text/html", "media" };
+
+#define WS_HTTP_RESPONCE_ERROR(http_error_code)                     \
+    if (lws_add_http_common_headers(wsi, http_error_code,           \
+            alt_header[BACNET_WS_ALT_PLAIN], 0,  &p, end)) {        \
+        return 1;                                                   \
+    }                                                               \
+    (void)lws_finalize_write_http_header(wsi, start, &p, end);
+
+
 static int ws_http_event(struct lws *wsi,
     enum lws_callback_reasons reason,
     void *user,
     void *in,
     size_t len)
 {
-    struct pss *pss = (struct pss *)user;
+    BACNET_WS_CONNECT_CTX *pss = (BACNET_WS_CONNECT_CTX*)user;
     char path[128];
     uint8_t buf[LWS_PRE + 2048], *start = &buf[LWS_PRE], *p = start,
       *end = &buf[sizeof(buf) - 1];
@@ -180,6 +211,7 @@ static int ws_http_event(struct lws *wsi,
 
   switch (reason) {
   case LWS_CALLBACK_HTTP:
+    pss->context = wsi;
 
     /*
      * If you want to know the full url path used, you can get it
@@ -195,41 +227,32 @@ static int ws_http_event(struct lws *wsi,
     pss->s = ws_service_get(path);
     if (pss->s == NULL) {
         printf("Error: unknown service %s\n", path);
+        WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
         return 1;
     }
 
-//    lws_get_peer_simple(wsi, (char *)buf, sizeof(buf));
-//    printf("%s: HTTP: connection %s, path %s\n", __func__,
-//        (const char *)buf, (char*)in);
-
-//      for (m = 0; m < (int)LWS_ARRAY_SIZE(methods); m++)
-//        if (lws_hdr_total_length(wsi, methods[m]) >=
-//            len) {
-//         printf("%s\n", methods_names[m]);
-//          break;
-//        }
+    if (pss->s->https_only) {
+        if (lws_get_protocol(wsi) != &ws_https_protocol) {
+            printf("Error: https only\n");
+            WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
+            return 1;
+        }
+    }
 
     pss->m = ws_get_method(wsi);
     if ((pss->m & pss->s->ws_method_mask) == 0) {
         printf("Error: method %d is not allow\n", pss->m);
+        WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
         return 1;
     }
 
-#if 0
-    /*
-     * Demonstrates how to retreive a urlarg x=value
-     */
-
-    {
-      char value[100];
-      int z = lws_get_urlarg_by_name_safe(wsi, "x", value,
-             sizeof(value) - 1);
-
-      if (z >= 0)
-        lwsl_hexdump_notice(value, (size_t)z);
+    pss->alt = ws_alt_get(wsi);
+    if (pss->alt == BACNET_WS_ALT_ERROR) {
+        printf("Error: ALT is WS_ERR_PARAM_OUT_OF_RANGE\n");
+        WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
+        return 1;
     }
-    #endif
-//#if 0
+
     /*
      * prepare and write http headers... with regards to content-
      * length, there are three approaches:
@@ -249,7 +272,7 @@ static int ws_http_event(struct lws *wsi,
      * at header-time makes life easier at the server.
      */
     if (lws_add_http_common_headers(wsi, HTTP_STATUS_OK,
-        "text/html",
+        alt_header[pss->alt],
         LWS_ILLEGAL_HTTP_CONTENT_LEN, /* no content len */
         &p, end))
       return 1;
@@ -258,28 +281,10 @@ static int ws_http_event(struct lws *wsi,
 
     /* write the body separately */
     lws_callback_on_writable(wsi);
-//#endif
+
     return 0;
 
 #if 0
-  case LWS_CALLBACK_HTTP_BODY:
-    printf("LWS_CALLBACK_HTTP_BODY\n");
-    /* create the POST argument parser if not already existing */
-
-    if (!ctx->spa) {
-      ctx->spa = lws_spa_create(wsi, param_names,
-          LWS_ARRAY_SIZE(param_names), 1024,
-          NULL, NULL); /* no file upload */
-      if (!ctx->spa)
-        return -1;
-    }
-
-    /* let it parse the POST data */
-    printf("in = %s\n", in);
-    if (lws_spa_process(ctx->spa, in, (int)len))
-      return -1;
-    break;
-
   case LWS_CALLBACK_CLOSED_CLIENT_HTTP:
       printf("LWS_CALLBACK_CLOSED_CLIENT_HTTP\n");
 
@@ -321,6 +326,23 @@ static int ws_http_event(struct lws *wsi,
 #endif
 
   case LWS_CALLBACK_HTTP_BODY:
+#if 0
+    printf("LWS_CALLBACK_HTTP_BODY\n");
+    /* create the POST argument parser if not already existing */
+
+    if (!ctx->spa) {
+      ctx->spa = lws_spa_create(wsi, param_names,
+          LWS_ARRAY_SIZE(param_names), 1024,
+          NULL, NULL); /* no file upload */
+      if (!ctx->spa)
+        return -1;
+    }
+
+    /* let it parse the POST data */
+    printf("in = %s\n", in);
+    if (lws_spa_process(ctx->spa, in, (int)len))
+      return -1;
+#endif
     if (!pss || pss->s == NULL)
         break;
 
@@ -363,7 +385,7 @@ static int ws_http_event(struct lws *wsi,
     }
 
     out_len = lws_ptr_diff_size_t(end, p);
-    BACNET_WS_SERVICE_RET ret = pss->s->func(pss->m, in, len, p, &out_len, wsi);
+    ret = pss->s->func(pss, in, len, p, &out_len);
     if ((ret != BACNET_WS_SERVICE_SUCCESS) &&
         (ret != BACNET_WS_SERVICE_HAS_DATA)) {
         printf("Error: callback return %d\n", ret);
@@ -371,27 +393,6 @@ static int ws_http_event(struct lws *wsi,
     }
 
     p += out_len;
-#if 0
-      t = time(NULL);
-      /*
-       * to work with http/2, we must take care about LWS_PRE
-       * valid behind the buffer we will send.
-       */
-      p += lws_snprintf((char *)p, lws_ptr_diff_size_t(end, p), "<html>"
-        "<head><meta charset=utf-8 "
-        "http-equiv=\"Content-Language\" "
-        "content=\"en\"/></head><body>"
-        "<img src=\"/libwebsockets.org-logo.svg\">"
-        "<br>Dynamic content for '%s' from mountpoint."
-        "<br>Time: %s<br><br>"
-        "</body></html>", NULL,
-#if defined(LWS_HAVE_CTIME_R)
-        ctime_r(&t, date)
-#else
-        ctime(&t)
-#endif
-        );
-#endif
 
     n = (ret == BACNET_WS_SERVICE_SUCCESS) ?
         LWS_WRITE_HTTP_FINAL :
@@ -463,7 +464,6 @@ BACNET_WS_SERVICE_RET ws_server_start(uint16_t http_port,
 {
     pthread_t thread_id;
     struct lws_context_creation_info info;
-    int ret;
     WS_SERVER *ctx = &ws_srv;
     pthread_attr_t attr;
     int r;
@@ -627,7 +627,7 @@ BACNET_WS_SERVICE_RET ws_service_registry(BACNET_WS_SERVICE* s)
   BACNET_WS_SERVICE_RET ret = BACNET_WS_SERVICE_SUCCESS;
   BACNET_WS_SERVICE* srv;
 
-  DEBUG_PRINTF("ws_service_registry() >>> s = %p\n", s);
+  DEBUG_PRINTF("ws_service_registry() >>> s = %p\n", (void*)s);
   pthread_mutex_lock(ctx->mutex);
   if(!ctx->used || !ctx->ctx) {
     ret = BACNET_WS_SERVICE_INVALID_OPERATION;
