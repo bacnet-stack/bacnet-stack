@@ -731,6 +731,73 @@ static void MSTP_Receive_Frame_FSM(void)
     return;
 }
 
+static void MSTP_Slave_Node_FSM(void)
+{
+    /* destination address */
+    uint8_t destination;
+    /* source address */
+    uint8_t source;
+    /* any data to be sent - may be null */
+    uint8_t *data;
+    /* amount of data to be sent - may be 0 */
+    uint16_t data_len;
+    /* packet from the PDU Queue */
+    struct dlmstp_packet *pkt;
+
+    if (MSTP_Flag.ReceivedInvalidFrame) {
+        /* ReceivedInvalidFrame */
+        /* invalid frame was received */
+        MSTP_Flag.ReceivedInvalidFrame = false;
+    } else if (MSTP_Flag.ReceivedValidFrame) {
+        switch (FrameType) {
+            case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
+                if (DestinationAddress != MSTP_BROADCAST_ADDRESS) {
+                    /* The ANSWER_DATA_REQUEST state is entered when a  */
+                    /* BACnet Data Expecting Reply, a Test_Request, or  */
+                    /* a proprietary frame that expects a reply is received. */
+                    pkt = (struct dlmstp_packet *)Ringbuf_Peek(&PDU_Queue);
+                    if (pkt != NULL) {
+                        MSTP_Send_Frame(pkt->frame_type, pkt->address.mac[0],
+                            This_Station, (uint8_t *)&pkt->pdu[0],
+                            pkt->pdu_len);
+                        Master_State = MSTP_MASTER_STATE_IDLE;
+                        /* clear our flag we were holding for comparison */
+                        MSTP_Flag.ReceivedValidFrame = false;
+                        /* clear the queue */
+                        (void)Ringbuf_Pop(&PDU_Queue, NULL);
+                    } else if (rs485_silence_elapsed(Treply_delay)) {
+                        /* If no reply will be available from the higher layers
+                           within Treply_delay after the reception of the final
+                           octet of the requesting frame (the mechanism used
+                           to determine this is a local matter), then no reply
+                           is possible. */
+                        MSTP_Flag.ReceivedValidFrame = false;
+                    }
+                } else {
+                    /* no reply when addressed as Broadcast */
+                    MSTP_Flag.ReceivedValidFrame = false;
+                }
+                break;
+            case FRAME_TYPE_TEST_REQUEST:
+                MSTP_Flag.ReceivedValidFrame = false;
+                destination = SourceAddress;
+                source = This_Station;
+                data = &InputBuffer[0];
+                data_len = DataLength;
+                MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE, destination, source,
+                    data, data_len);
+                break;
+            case FRAME_TYPE_TOKEN:
+            case FRAME_TYPE_POLL_FOR_MASTER:
+            case FRAME_TYPE_TEST_RESPONSE:
+            case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+            default:
+                MSTP_Flag.ReceivedValidFrame = false;
+                break;
+        }
+    }
+}
+
 /* returns true if we need to transition immediately */
 static bool MSTP_Master_Node_FSM(void)
 {
@@ -1566,9 +1633,13 @@ uint16_t dlmstp_receive(BACNET_ADDRESS *src, /* source address */
                 This_Station = 255;
             }
         } else {
-            while (MSTP_Master_Node_FSM()) {
-                /* do nothing while some states fast transition */
-            };
+            if ((This_Station > 127) && (This_Station < 255)) {
+                MSTP_Slave_Node_FSM();
+            } else if (This_Station <= 127) {
+                while (MSTP_Master_Node_FSM()) {
+                    /* do nothing while some states fast transition */
+                };
+            }
         }
     }
     if (This_Station != 255) {
