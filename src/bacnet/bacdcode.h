@@ -499,17 +499,6 @@ BACNET_STACK_EXPORT
 int encode_simple_ack(uint8_t *apdu, uint8_t invoke_id, uint8_t service_choice);
 
 BACNET_STACK_EXPORT
-int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination);
-BACNET_STACK_EXPORT
-int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination);
-BACNET_STACK_EXPORT
-int encode_context_bacnet_address(
-    uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *destination);
-BACNET_STACK_EXPORT
-int decode_context_bacnet_address(
-    uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *destination);
-
-BACNET_STACK_EXPORT
 int bacnet_array_encode(uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
     bacnet_array_property_element_encode_function encoder,

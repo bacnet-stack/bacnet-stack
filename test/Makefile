@@ -32,6 +32,10 @@ retest:
 report:
 	[ -d $(BUILD_DIR) ] && cat $(BUILD_DIR)/Testing/Temporary/LastTest*.log
 
+.PHONY: rebuild
+rebuild:
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . --clean-first && cd ..
+
 .PHONY: clean
 clean:
 	-rm -rf $(BUILD_DIR)
