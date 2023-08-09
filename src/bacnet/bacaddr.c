@@ -269,16 +269,15 @@ bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
  *      network-number Unsigned16, -- A value of 0 indicates the local network
  *      mac-address OCTET STRING -- A string of length 0 indicates a broadcast
  *  }
- * 
+ *
  * @param apdu - buffer of data to be decoded
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded (if not NULL)
  *
  * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
  */
-int bacnet_address_decode(uint8_t *apdu, 
-    uint32_t apdu_size, 
-    BACNET_ADDRESS *value)
+int bacnet_address_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_ADDRESS *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -342,7 +341,8 @@ int bacnet_address_context_decode(uint8_t *apdu,
     int len = 0;
     int apdu_len = 0;
 
-    if (!bacnet_is_opening_tag_number(&apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
@@ -357,7 +357,8 @@ int bacnet_address_context_decode(uint8_t *apdu,
     if (apdu_len > apdu_size) {
         return BACNET_STATUS_ERROR;
     }
-    if (!bacnet_is_closing_tag_number(&apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
