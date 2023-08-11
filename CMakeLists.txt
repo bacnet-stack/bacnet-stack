@@ -67,7 +67,10 @@ option(
 set(BACNET_PROTOCOL_REVISION 19)
 
 if(APPLE)
-  unset(BACDL_MSTP)
+option(
+  BACDL_MSTP
+  "compile with mstp support - unsupportedfor APPLE"
+  OFF)
 endif()
 
 
