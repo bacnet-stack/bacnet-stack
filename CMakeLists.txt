@@ -532,6 +532,7 @@ elseif(WIN32)
 elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+
   unset(BACDL_MSTP)
 
   target_sources(${PROJECT_NAME} PRIVATE
