@@ -105,6 +105,8 @@ extern "C" {
 BACNET_STACK_EXPORT
 void routed_get_my_address(
     BACNET_ADDRESS * my_address);
+#  define datalink_get_my_address bip_get_my_address
+#  define datalink_maintenance_timer(s) bvlc_maintenance_timer(s)
 #ifdef __cplusplus
 }
 #endif
