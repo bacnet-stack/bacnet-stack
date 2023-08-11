@@ -8,7 +8,7 @@ project(
 #
 # options
 #
-
+# <INSERT_CMAKE_INSTALL_PREFIX_HERE>
 option(
   BACNET_STACK_BUILD_APPS
   "build apps"
@@ -17,7 +17,7 @@ option(
 option(
   BAC_ROUTING
   "enable bac routing"
-  ON)
+  OFF)
 
 option(
   BACNET_PROPERTY_LISTS
@@ -27,6 +27,11 @@ option(
 option(
   BACNET_BUILD_PIFACE_APP
   "compile the piface app"
+  OFF)
+
+option(
+  BACDL_ALL
+  "compile with all datalink support"
   OFF)
 
 option(
@@ -40,9 +45,14 @@ option(
   OFF)
 
 option(
+   BACDL_MSTP
+   "compile with mstp support"
+   OFF)
+
+option(
   BACDL_MSTP
   "compile with mstp support"
-  OFF)
+  ON)
 
 option(
   BACDL_ARCNET
@@ -57,14 +67,39 @@ option(
 option(
   BACDL_BIP6
   "compile with ipv6 support"
-  OFF)
+  ON)
 
 option(
   BACDL_NONE
   "compile without datalink"
   OFF)
 
-set(BACNET_PROTOCOL_REVISION 19)
+set(BACNET_PROTOCOL_REVISION 24)
+set(BUILD_SHARED_LIBS 1)
+set(BACDL_ALL ON)
+set(BACDL_ARCNET ON)
+set(BACDL_BIP ON)
+set(BACDL_BIP6 ON)
+set(BACDL_ETHERNET ON)
+if(APPLE)
+  set(BACDL_MSTP OFF)
+  set(BACDL_ARCNET OFF)
+  set(BACDL_ETHERNET OFF)
+  set(BACDL_BIP6 OFF)
+  set(BACDL_ALL OFF)
+elseif(WIN32)
+  set(BACDL_ETHERNET OFF)
+  set(BACDL_BIP6 OFF)
+  set(BACDL_ALL OFF)
+else()
+  set(BACDL_MSTP ON)
+endif()
+
+set(BAC_ROUTING OFF)
+set(BACNET_STACK_BUILD_APPS OFF)
+#set(BACNET_VENDOR_NAME "@Schneider Electric@" CACHE STRINGi "Vendor ID")
+# set(OPT2 "Default" CACHE STRING "Helpstring")
+# set(CMAKE_INSTALL_PREFIX "/usr/")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -140,10 +175,10 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/binding/address.h
     src/bacnet/basic/npdu/h_npdu.c
     src/bacnet/basic/npdu/h_npdu.h
-    src/bacnet/basic/npdu/h_routed_npdu.c
-    src/bacnet/basic/npdu/h_routed_npdu.h
-    src/bacnet/basic/npdu/s_router.c
-    src/bacnet/basic/npdu/s_router.h
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.c>
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.h>
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/s_router.c>
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/s_router.h>
     src/bacnet/basic/object/access_credential.c
     src/bacnet/basic/object/access_credential.h
     src/bacnet/basic/object/access_door.c
@@ -454,10 +489,18 @@ if(BUILD_SHARED_LIBS)
     PROPERTIES
       C_VISIBILITY_PRESET hidden)
 endif()
+
+if(APPLE)
+  unset(BACDL_MSTP)
+endif()
+
 target_compile_definitions(
   ${PROJECT_NAME}
   PUBLIC
   BACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
+  BACNET_VENDOR_NAME="Schneider Electric"
+  BBMD_ENABLED=0
+  BBMD_CLIENT_ENABLED=1
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
   $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
   $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
@@ -466,9 +509,12 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
+  $<$<BOOL:${BACDL_ALL}>:BACDL_ALL>
+  #  $<$<NOT:$<BOOL:${BAC_ROUTING}>>:BAC_ROUTING>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
   PRINT_ENABLED=1)
+
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
 add_library(
@@ -497,7 +543,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
-    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
+    #$<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
     # ports/linux/rx_fsm.c
@@ -607,11 +653,13 @@ if(BACNET_STACK_BUILD_APPS)
   endif(BACNET_BUILD_BACPOLL_APP)
 
   if(NOT BACDL_ETHERNET)
+    if(BAC_ROUTING)
     add_executable(readbdt apps/readbdt/main.c)
     target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
 
     add_executable(readfdt apps/readfdt/main.c)
     target_link_libraries(readfdt PRIVATE ${PROJECT_NAME})
+    endif()
   endif()
 
   add_executable(readfile apps/readfile/main.c)
@@ -766,3 +814,4 @@ message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")
 message(STATUS "BACNET: BACDL_NONE:.....................\"${BACDL_NONE}\"")
+message(STATUS "BACNET: BAC_ROUTING:....................\"${BAC_ROUTING}\"")
