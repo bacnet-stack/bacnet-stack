@@ -77,14 +77,15 @@ static bool BVLC_NAT_Handling = false;
 static BACNET_IP_ADDRESS Remote_BBMD;
 /** if we are a foreign device, store the Time-To-Live Seconds here */
 static uint16_t Remote_BBMD_TTL_Seconds;
-#if BBMD_ENABLED
+#if BBMD_ENABLED || BBMD_CLIENT_ENABLED
 /* local buffer & length for sending */
 static uint8_t BVLC_Buffer[BIP_MPDU_MAX];
 static uint16_t BVLC_Buffer_Len;
+#endif
+#if BBMD_ENABLED
 /* Broadcast Distribution Table */
 #ifndef MAX_BBMD_ENTRIES
 #define MAX_BBMD_ENTRIES 128
-#endif
 static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY
     BBMD_Table[MAX_BBMD_ENTRIES];
 /* Foreign Device Table */
@@ -92,6 +93,7 @@ static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY
 #define MAX_FD_ENTRIES 128
 #endif
 static BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
+#endif /* BBMD_ENABLED */
 #endif
 
 /**
