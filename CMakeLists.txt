@@ -39,10 +39,10 @@ option(
   "compile with ethernet support"
   OFF)
 
-option(
-  BACDL_MSTP
-  "compile with mstp support"
-  OFF)
+# option(
+#   BACDL_MSTP
+#   "compile with mstp support"
+#   OFF)
 
 option(
   BACDL_ARCNET
@@ -64,14 +64,10 @@ option(
   "compile without datalink"
   OFF)
 
-set(BACNET_PROTOCOL_REVISION 19)
+cmake_dependent_option(BACDL_MSTP "Use Foo" ON "APPLE" OFF)
 
-if(APPLE)
-option(
-  BACDL_MSTP
-  "compile with mstp support - unsupportedfor APPLE"
-  OFF)
-endif()
+set(BACNET_PROTOCOL_REVISION 24)
+
 
 
 if(NOT CMAKE_BUILD_TYPE)
