@@ -65,6 +65,7 @@
 #define datalink_maintenance_timer(s)
 
 #elif defined(BACDL_BIP)
+#error "BACDL_BIP"
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
@@ -76,6 +77,7 @@
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #ifdef BAC_ROUTING
+#error "BAC_ROUTING"
 #ifdef __cplusplus
 extern "C" {
 #endif
