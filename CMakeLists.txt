@@ -45,6 +45,11 @@ option(
   OFF)
 
 option(
+   BACDL_MSTP
+   "compile with mstp support"
+   OFF)
+
+option(
   BACDL_MSTP
   "compile with mstp support"
   ON)
@@ -69,14 +74,27 @@ option(
   "compile without datalink"
   OFF)
 
-set(BACNET_PROTOCOL_REVISION 19)
+set(BACNET_PROTOCOL_REVISION 24)
 set(BUILD_SHARED_LIBS 1)
 set(BACDL_ALL ON)
 set(BACDL_ARCNET ON)
 set(BACDL_BIP ON)
 set(BACDL_BIP6 ON)
 set(BACDL_ETHERNET ON)
-set(BACDL_MSTP ON)
+if(APPLE)
+  set(BACDL_MSTP OFF)
+  set(BACDL_ARCNET OFF)
+  set(BACDL_ETHERNET OFF)
+  set(BACDL_BIP6 OFF)
+  set(BACDL_ALL OFF)
+elseif(WIN32)
+  set(BACDL_ETHERNET OFF)
+  set(BACDL_BIP6 OFF)
+  set(BACDL_ALL OFF)
+else()
+  set(BACDL_MSTP ON)
+endif()
+
 set(BAC_ROUTING OFF)
 set(BACNET_STACK_BUILD_APPS OFF)
 #set(BACNET_VENDOR_NAME "@Schneider Electric@" CACHE STRINGi "Vendor ID")
@@ -471,6 +489,11 @@ if(BUILD_SHARED_LIBS)
     PROPERTIES
       C_VISIBILITY_PRESET hidden)
 endif()
+
+if(APPLE)
+  unset(BACDL_MSTP)
+endif()
+
 target_compile_definitions(
   ${PROJECT_NAME}
   PUBLIC
