@@ -454,6 +454,11 @@ if(BUILD_SHARED_LIBS)
     PROPERTIES
       C_VISIBILITY_PRESET hidden)
 endif()
+
+if(APPLE)
+  unset(BACDL_MSTP)
+endif()
+
 target_compile_definitions(
   ${PROJECT_NAME}
   PUBLIC
@@ -532,8 +537,6 @@ elseif(WIN32)
 elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
-
-  unset(BACDL_MSTP)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
