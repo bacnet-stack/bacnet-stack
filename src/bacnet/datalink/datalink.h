@@ -99,7 +99,6 @@
 #endif
 
 #ifdef BAC_ROUTING
-#error "BAC_ROUTING"
 #ifdef __cplusplus
 extern "C" {
 #endif
