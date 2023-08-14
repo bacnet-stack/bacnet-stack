@@ -39,6 +39,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bvlc6.h"
+#include "bacnet/hostnport.h"
 
 /** Encode the BVLC header
  *
@@ -1570,4 +1571,30 @@ int bvlc6_decode_distribute_broadcast_to_network(uint8_t *pdu,
     }
 
     return bytes_consumed;
+}
+
+/**
+ * @brief Encode a BBMD Address for Network Port object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param ip6_address - IPv6 address and port number
+ * @return length of the APDU buffer
+ */
+int bvlc6_foreign_device_bbmd_host_address_encode(
+    uint8_t *apdu, uint16_t apdu_size, BACNET_IP6_ADDRESS *ip6_address)
+{
+    BACNET_HOST_N_PORT address = { 0 };
+    int apdu_len = 0;
+
+    address.host_ip_address = true;
+    address.host_name = false;
+    octetstring_init(
+        &address.host.ip_address, &ip6_address->address[0], IP6_ADDRESS_MAX);
+    address.port = ip6_address->port;
+    apdu_len = host_n_port_encode(NULL, &address);
+    if (apdu_len <= apdu_size) {
+        apdu_len = host_n_port_encode(apdu, &address);
+    }
+
+    return apdu_len;
 }

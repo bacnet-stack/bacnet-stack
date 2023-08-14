@@ -419,6 +419,11 @@ extern "C" {
         uint8_t * npdu,
         uint16_t npdu_size,
         uint16_t * npdu_len);
+    BACNET_STACK_EXPORT
+    int bvlc6_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP6_ADDRESS *ip6_address);
+
 
 #ifdef __cplusplus
 }
