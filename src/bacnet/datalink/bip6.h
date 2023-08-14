@@ -59,7 +59,7 @@ extern "C" {
 
     /* functions that are custom per port */
     BACNET_STACK_EXPORT
-    void bip6_set_interface(
+    int bip6_set_interface(
         char *ifname);
 
     BACNET_STACK_EXPORT
