@@ -43,8 +43,10 @@
 #include "bacnet/datalink/datalink.h"
 
 /** @file h_dcc.c  Handles Device Communication Control request. */
-
-static char My_Password[32] = "filister";
+/* Password as per 16.1.1.1.3 may be up to 20 characters long and is of CharacterString type without
+ * any further restrictions. It means that password may consist of 20 UTF-8 (max 4 bytes each) characters.
+ */
+static char My_Password[20*4+1] = "filister";
 
 /** Sets (non-volatile hold) the password to be used for DCC requests.
  * @param new_password [in] The new DCC password, of up to 31 characters.
