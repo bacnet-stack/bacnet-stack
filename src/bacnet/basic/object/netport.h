@@ -205,6 +205,14 @@ extern "C" {
         uint32_t object_instance,
         uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 
+    
+    BACNET_STACK_EXPORT
+    bool Network_Port_IP_DHCP_Enable(
+   	uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Network_Port_IP_DHCP_Enable_Set(
+	uint32_t object_instance, bool value);
+
     BACNET_STACK_EXPORT
     bool Network_Port_IP_DNS_Server(
         uint32_t object_instance,
@@ -352,6 +360,13 @@ extern "C" {
     bool Network_Port_IPv6_Gateway_Zone_Index_Set(
         uint32_t object_instance,
         char *zone_index);
+
+    BACNET_STACK_EXPORT
+    bool Network_Port_IPv6_Auto_Addressing_Enable(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Network_Port_IPv6_Auto_Addressing_Enable_Set(
+        uint32_t object_instance, bool value);
 
     BACNET_STACK_EXPORT
     uint16_t Network_Port_BIP6_Port(
