@@ -41,9 +41,8 @@ static void testTimestampSequence(void)
 
     zassert_equal(inLen, outLen, NULL);
     zassert_equal(testTimestampIn.tag, testTimestampOut.tag, NULL);
-    zassert_equal(
-        testTimestampIn.value.sequenceNum,
-            testTimestampOut.value.sequenceNum, NULL);
+    zassert_equal(testTimestampIn.value.sequenceNum,
+        testTimestampOut.value.sequenceNum, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -71,15 +70,14 @@ static void testTimestampTime(void)
 
     zassert_equal(inLen, outLen, NULL);
     zassert_equal(testTimestampIn.tag, testTimestampOut.tag, NULL);
-    zassert_equal(
-        testTimestampIn.value.time.hour, testTimestampOut.value.time.hour, NULL);
+    zassert_equal(testTimestampIn.value.time.hour,
+        testTimestampOut.value.time.hour, NULL);
     zassert_equal(
         testTimestampIn.value.time.min, testTimestampOut.value.time.min, NULL);
     zassert_equal(
         testTimestampIn.value.time.sec, testTimestampOut.value.time.sec, NULL);
-    zassert_equal(
-        testTimestampIn.value.time.hundredths,
-            testTimestampOut.value.time.hundredths, NULL);
+    zassert_equal(testTimestampIn.value.time.hundredths,
+        testTimestampOut.value.time.hundredths, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -89,70 +87,72 @@ static void testTimestampTimeDate(void)
 #endif
 {
     BACNET_TIMESTAMP testTimestampIn;
-    BACNET_TIMESTAMP testTimestampOut;
+    BACNET_TIMESTAMP testTimestampOut = { 0 };
+    uint8_t tag_number = 2;
     uint8_t buffer[MAX_APDU];
     int inLen;
     int outLen;
+    bool status;
 
-    testTimestampIn.tag = TIME_STAMP_DATETIME;
-    testTimestampIn.value.dateTime.time.hour = 1;
-    testTimestampIn.value.dateTime.time.min = 2;
-    testTimestampIn.value.dateTime.time.sec = 3;
-    testTimestampIn.value.dateTime.time.hundredths = 4;
-
-    testTimestampIn.value.dateTime.date.year = 1901;
-    testTimestampIn.value.dateTime.date.month = 1;
-    testTimestampIn.value.dateTime.date.wday = 2;
-    testTimestampIn.value.dateTime.date.day = 3;
-
-    memset(&testTimestampOut, 0, sizeof(testTimestampOut));
-
-    inLen = bacapp_encode_context_timestamp(buffer, 2, &testTimestampIn);
-    outLen = bacapp_decode_context_timestamp(buffer, 2, &testTimestampOut);
-
+    status =
+        bacapp_timestamp_init_ascii(&testTimestampIn, "1901/01/03-1:02:03");
+    zassert_true(status, NULL);
+    inLen = bacapp_encode_timestamp(NULL, &testTimestampIn);
+    outLen = bacapp_encode_timestamp(buffer, &testTimestampIn);
     zassert_equal(inLen, outLen, NULL);
+    outLen = bacnet_timestamp_decode(buffer, inLen, &testTimestampOut);
+    zassert_equal(inLen, outLen, NULL);
+    /* test ERROR when APDU is too short*/
+    while (inLen) {
+        inLen--;
+        outLen = bacnet_timestamp_decode(buffer, inLen, &testTimestampOut);
+        zassert_equal(outLen, BACNET_STATUS_ERROR, NULL);
+    }
+    inLen = bacapp_encode_context_timestamp(NULL, tag_number, &testTimestampIn);
+    inLen =
+        bacapp_encode_context_timestamp(buffer, tag_number, &testTimestampIn);
+    outLen = bacnet_timestamp_context_decode(
+        buffer, inLen, tag_number, &testTimestampOut);
+    zassert_equal(inLen, outLen, NULL);
+    /* test ERROR when APDU is too short*/
+    while (inLen) {
+        inLen--;
+        outLen = bacnet_timestamp_context_decode(
+            buffer, inLen, tag_number, &testTimestampOut);
+        zassert_equal(outLen, BACNET_STATUS_ERROR, NULL);
+    }
+    /* test for valid values */
     zassert_equal(testTimestampIn.tag, testTimestampOut.tag, NULL);
-    zassert_equal(
-        testTimestampIn.value.dateTime.time.hour,
-            testTimestampOut.value.dateTime.time.hour, NULL);
-    zassert_equal(
-        testTimestampIn.value.dateTime.time.min,
-            testTimestampOut.value.dateTime.time.min, NULL);
-    zassert_equal(
-        testTimestampIn.value.dateTime.time.sec,
-            testTimestampOut.value.dateTime.time.sec, NULL);
-    zassert_equal(
-        testTimestampIn.value.dateTime.time.hundredths,
-            testTimestampOut.value.dateTime.time.hundredths, NULL);
+    zassert_equal(testTimestampIn.value.dateTime.time.hour,
+        testTimestampOut.value.dateTime.time.hour, NULL);
+    zassert_equal(testTimestampIn.value.dateTime.time.min,
+        testTimestampOut.value.dateTime.time.min, NULL);
+    zassert_equal(testTimestampIn.value.dateTime.time.sec,
+        testTimestampOut.value.dateTime.time.sec, NULL);
+    zassert_equal(testTimestampIn.value.dateTime.time.hundredths,
+        testTimestampOut.value.dateTime.time.hundredths, NULL);
 
-    zassert_equal(
-        testTimestampIn.value.dateTime.date.year,
-            testTimestampOut.value.dateTime.date.year, NULL);
-    zassert_equal(
-        testTimestampIn.value.dateTime.date.month,
-            testTimestampOut.value.dateTime.date.month, NULL);
-    zassert_equal(
-        testTimestampIn.value.dateTime.date.wday,
-            testTimestampOut.value.dateTime.date.wday, NULL);
-    zassert_equal(
-        testTimestampIn.value.dateTime.date.day,
-            testTimestampOut.value.dateTime.date.day, NULL);
+    zassert_equal(testTimestampIn.value.dateTime.date.year,
+        testTimestampOut.value.dateTime.date.year, NULL);
+    zassert_equal(testTimestampIn.value.dateTime.date.month,
+        testTimestampOut.value.dateTime.date.month, NULL);
+    zassert_equal(testTimestampIn.value.dateTime.date.wday,
+        testTimestampOut.value.dateTime.date.wday, NULL);
+    zassert_equal(testTimestampIn.value.dateTime.date.day,
+        testTimestampOut.value.dateTime.date.day, NULL);
 }
 /**
  * @}
  */
-
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(timestamp_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(timestamp_tests,
-     ztest_unit_test(testTimestampSequence),
-     ztest_unit_test(testTimestampTime),
-     ztest_unit_test(testTimestampTimeDate)
-     );
+    ztest_test_suite(timestamp_tests, ztest_unit_test(testTimestampSequence),
+        ztest_unit_test(testTimestampTime),
+        ztest_unit_test(testTimestampTimeDate));
 
     ztest_run_test_suite(timestamp_tests);
 }

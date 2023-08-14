@@ -187,7 +187,7 @@ static void test_BACnetAddress_Codec(void)
 #endif
 {
     uint8_t apdu[MAX_APDU];
-    BACNET_ADDRESS value, test_value;
+    BACNET_ADDRESS value = { 0 }, test_value = { 0 };
     uint8_t tag_number, wrong_tag_number;
     int len, test_len;
 
@@ -211,11 +211,10 @@ static void test_BACnetAddress_Codec(void)
     zassert_equal(value.mac_len, 6, NULL);
     test_len = bacnet_address_decode(apdu, sizeof(apdu), NULL);
     zassert_equal(len, test_len, NULL);
-
     tag_number = 1;
     len = encode_context_bacnet_address(NULL, tag_number, &value);
     test_len = encode_context_bacnet_address(apdu, tag_number, &value);
-    zassert_true(len > 0, NULL); 
+    zassert_true(len > 0, NULL);
     zassert_true(test_len > 0, NULL);
     zassert_equal(len, test_len, NULL);
     test_len = bacnet_address_context_decode(
@@ -227,8 +226,8 @@ static void test_BACnetAddress_Codec(void)
     test_len = bacnet_address_context_decode(
         apdu, sizeof(apdu), tag_number, &test_value);
     /* negative tests - NULL value */
-    test_len = bacnet_address_context_decode(
-        apdu, sizeof(apdu), tag_number, NULL);
+    test_len =
+        bacnet_address_context_decode(apdu, sizeof(apdu), tag_number, NULL);
     zassert_equal(len, test_len, NULL);
     /* negative tests - wrong tag number */
     wrong_tag_number = 4;
@@ -236,24 +235,11 @@ static void test_BACnetAddress_Codec(void)
         apdu, sizeof(apdu), wrong_tag_number, &test_value);
     zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     /* negative tests - apdu too short */
-    test_len = bacnet_address_context_decode(
-        apdu, 0, tag_number, NULL);
-    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
-    test_len = bacnet_address_context_decode(
-        apdu, 1, tag_number, NULL);
-    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
-    test_len = bacnet_address_context_decode(
-        apdu, 2, tag_number, NULL);
-    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
-    test_len = bacnet_address_context_decode(
-        apdu, 4, tag_number, NULL);
-    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
-    test_len = bacnet_address_context_decode(
-        apdu, 5, tag_number, NULL);
-    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
-    test_len = bacnet_address_context_decode(
-        apdu, 6, tag_number, NULL);
-    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    while (len) {
+        len--;
+        test_len = bacnet_address_context_decode(apdu, len, tag_number, NULL);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    }
 }
 
 /**

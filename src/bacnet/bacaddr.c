@@ -300,9 +300,6 @@ int bacnet_address_decode(
         return BACNET_STATUS_REJECT;
     }
     apdu_len += len;
-    if (apdu_len > apdu_size) {
-        return BACNET_STATUS_ERROR;
-    }
     /* mac address as an octet-string */
     len = bacnet_octet_string_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &mac_addr);

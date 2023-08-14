@@ -1127,9 +1127,6 @@ int bacnet_datetime_decode(
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
-    if (apdu_len > apdu_size) {
-        return BACNET_STATUS_ERROR;
-    }
     len = bacnet_time_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &value->time);
     if (len < 0) {
@@ -1166,17 +1163,11 @@ int bacnet_datetime_context_decode(uint8_t *apdu,
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
-    if (apdu_len > apdu_size) {
-        return BACNET_STATUS_ERROR;
-    }
     len = bacnet_datetime_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
     if (len < 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
-    if (apdu_len > apdu_size) {
-        return BACNET_STATUS_ERROR;
-    }
     if (!bacnet_is_closing_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
         return BACNET_STATUS_ERROR;
