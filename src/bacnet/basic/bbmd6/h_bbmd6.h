@@ -84,6 +84,10 @@ extern "C" {
         void);
 
     BACNET_STACK_EXPORT
+    void bvlc6_set_last_result(
+        const uint16_t result_code);
+
+    BACNET_STACK_EXPORT
     uint8_t bvlc6_get_function_code(
         void);
 
