@@ -2839,6 +2839,9 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #endif
 #if (defined(BACDL_ALL) || defined(BACDL_BIP6))
               case PORT_TYPE_BIP6:
+                apdu_len = bvlc6_broadcast_distribution_table_encode(&apdu[0],
+                    rpdata->application_data_len,
+                    Network_Port_BBMD_IP6_BD_Table(rpdata->object_instance));
                 break;
 #endif
               default:
@@ -2859,6 +2862,9 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #endif
 #if (defined(BACDL_ALL) || defined(BACDL_BIP6))
               case PORT_TYPE_BIP6:
+                apdu_len = bvlc6_foreign_device_table_encode(&apdu[0],
+                    rpdata->application_data_len,
+                    Network_Port_BBMD_IP6_FD_Table(rpdata->object_instance));
                 break;
 #endif
               default:
