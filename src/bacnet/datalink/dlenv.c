@@ -466,7 +466,7 @@ void dlenv_network_port_init(void)
  */
 void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 {
-#if defined(BACDL_BIP) || defined(BACDL_BIP6)
+#if defined(BACDL_BIP) || defined(BACDL_BIP6) || defined(BACDL_ALL)
     if (BBMD_Timer_Seconds) {
         if (BBMD_Timer_Seconds <= elapsed_seconds) {
             BBMD_Timer_Seconds = 0;
@@ -481,6 +481,8 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
             BBMD_Timer_Seconds = (uint16_t)BBMD_TTL_Seconds;
         }
     }
+#else
+    (void) elapsed_seconds;
 #endif
 }
 
