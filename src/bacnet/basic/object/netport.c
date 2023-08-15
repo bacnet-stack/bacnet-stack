@@ -1835,7 +1835,7 @@ bool Network_Port_BBMD_IP6_FD_Table_Set(uint32_t object_instance, void *fdt_head
     return status;
 }
 
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6)) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
+#if (defined(BACDL_ALL) || defined(BACDL_BIP6)) && (BBMD_CLIENT_ENABLED)
 /**
  * For a given object instance-number, gets the ip-address and port
  * Note: depends on Network_Type being set for this object
@@ -2649,7 +2649,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #if (defined(BACDL_ALL) || defined(BACDL_BIP)) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
     BACNET_IP_ADDRESS ip_address;
 #endif
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6)) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
+#if (defined(BACDL_ALL) || defined(BACDL_BIP6)) && (BBMD_CLIENT_ENABLED)
     BACNET_IP6_ADDRESS ip6_address;
 #endif
     uint8_t *apdu = NULL;
@@ -2829,32 +2829,70 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance));
             break;
         case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
-            apdu_len = bvlc_broadcast_distribution_table_encode(&apdu[0],
-                rpdata->application_data_len,
-                Network_Port_BBMD_BD_Table(rpdata->object_instance));
+            switch(network_type) {
+#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+              case PORT_TYPE_BIP:
+                apdu_len = bvlc_broadcast_distribution_table_encode(&apdu[0],
+                    rpdata->application_data_len,
+                    Network_Port_BBMD_BD_Table(rpdata->object_instance));
+                break;
+#endif
+#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+              case PORT_TYPE_BIP6:
+                break;
+#endif
+              default:
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                apdu_len = BACNET_STATUS_ERROR;
+                break;
+            }
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-            apdu_len = bvlc_foreign_device_table_encode(&apdu[0],
-                rpdata->application_data_len,
-                Network_Port_BBMD_FD_Table(rpdata->object_instance));
-            break;
+            switch(network_type) {
+#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+              case PORT_TYPE_BIP:
+                apdu_len = bvlc_foreign_device_table_encode(&apdu[0],
+                    rpdata->application_data_len,
+                    Network_Port_BBMD_FD_Table(rpdata->object_instance));
+                break;
 #endif
+#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+              case PORT_TYPE_BIP6:
+                break;
+#endif
+              default:
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                apdu_len = BACNET_STATUS_ERROR;
+                break;
+            }
+#endif /* BBMD_ENABLED */
 #if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
-            if(network_type == PORT_TYPE_BIP) {
+            switch(network_type) {
+#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+              case PORT_TYPE_BIP:
               Network_Port_Remote_BBMD_IP_Address_And_Port(
                   rpdata->object_instance, &ip_address);
               apdu_len = bvlc_foreign_device_bbmd_host_address_encode(
                   &apdu[0], apdu_size, &ip_address);
-            }
+              break;
+#endif
 #if (defined(BACDL_ALL) || defined(BACDL_BIP6))
-            else if(network_type == PORT_TYPE_BIP6) {
+              case PORT_TYPE_BIP6:
               Network_Port_Remote_BBMD_IP6_Address_And_Port(
                   rpdata->object_instance, &ip6_address);
               apdu_len = bvlc6_foreign_device_bbmd_host_address_encode(
                   &apdu[0], apdu_size, &ip6_address);
-            }
+              break;
 #endif
+              default:
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                apdu_len = BACNET_STATUS_ERROR;
+              break;
+            }
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
             apdu_len = encode_application_unsigned(&apdu[0],
