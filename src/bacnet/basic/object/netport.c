@@ -2647,7 +2647,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #if (defined(BACDL_ALL) || defined(BACDL_BIP)) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
     BACNET_IP_ADDRESS ip_address;
 #endif
-#if (defined(BACDL_ALL) || defined(BACDL_BIP)) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
+#if (defined(BACDL_ALL) || defined(BACDL_BIP6)) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
     BACNET_IP6_ADDRESS ip6_address;
 #endif
     uint8_t *apdu = NULL;
