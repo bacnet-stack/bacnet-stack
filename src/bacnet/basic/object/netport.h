@@ -290,50 +290,6 @@ extern "C" {
         uint16_t value);
 
     BACNET_STACK_EXPORT
-    bool Network_Port_BBMD_IP6_Accept_FD_Registrations(
-        uint32_t object_instance);
-    BACNET_STACK_EXPORT
-    bool Network_Port_BBMD_IP6_Accept_FD_Registrations_Set(
-        uint32_t object_instance,
-        bool value);
-
-    BACNET_STACK_EXPORT
-    void *Network_Port_BBMD_IP6_BD_Table(uint32_t object_instance);
-    BACNET_STACK_EXPORT
-    bool Network_Port_BBMD_IP6_BD_Table_Set(
-        uint32_t object_instance,
-        void *bdt_head);
-    BACNET_STACK_EXPORT
-    void *Network_Port_BBMD_IP6_FD_Table(uint32_t object_instance);
-    BACNET_STACK_EXPORT
-    bool Network_Port_BBMD_IP6_FD_Table_Set(
-        uint32_t object_instance,
-        void *fdt_head);
-
-    BACNET_STACK_EXPORT
-    bool Network_Port_Remote_BBMD_IP6_Address(
-        uint32_t object_instance,
-        uint8_t *addr);
-    BACNET_STACK_EXPORT
-    bool Network_Port_Remote_BBMD_IP6_Address_Set(
-        uint32_t object_instance,
-        uint8_t *addr);
-    BACNET_STACK_EXPORT
-    uint16_t Network_Port_Remote_BBMD_BIP6_Port(
-        uint32_t object_instance);
-    BACNET_STACK_EXPORT
-    bool Network_Port_Remote_BBMD_BIP6_Port_Set(
-        uint32_t object_instance,
-        uint16_t value);
-    BACNET_STACK_EXPORT
-    uint16_t Network_Port_Remote_BBMD_BIP6_Lifetime(
-        uint32_t object_instance);
-    BACNET_STACK_EXPORT
-    bool Network_Port_Remote_BBMD_BIP6_Lifetime_Set(
-        uint32_t object_instance,
-        uint16_t value);
-
-    BACNET_STACK_EXPORT
     BACNET_IP_MODE Network_Port_BIP6_Mode(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
