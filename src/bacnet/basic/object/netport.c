@@ -1677,6 +1677,7 @@ bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(
 }
 
 /* IPv6 BBMD related getters and setters */
+#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
 
 /**
  * For a given object instance-number, returns the BBMD-Accept-FD-Registrations
@@ -2021,6 +2022,7 @@ bool Network_Port_Remote_BBMD_BIP6_Lifetime_Set(
 
     return status;
 }
+#endif
 
 /**
  * For a given object instance-number, gets the BACnet/IP UDP Port number
@@ -2663,6 +2665,10 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
 
+#if (!BBMD_CLIENT_ENABLED)
+    (void) network_type;
+#endif
+
     if ((index = Network_Port_Instance_To_Index(rpdata->object_instance)) < BACNET_NETWORK_PORTS_MAX) {
       network_type = Object_List[index].Network_Type;
     }
@@ -3079,6 +3085,8 @@ bool Network_Port_Read_Range(
 {
     /* return value */
     bool status = false;
+
+    (void) pInfo;
 
     switch (pRequest->object_property) {
         /* required properties */
