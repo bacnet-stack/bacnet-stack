@@ -2867,6 +2867,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = BACNET_STATUS_ERROR;
                 break;
             }
+            break;
 #endif /* BBMD_ENABLED */
 #if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
