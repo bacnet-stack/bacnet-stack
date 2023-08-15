@@ -1566,6 +1566,8 @@ bool Network_Port_Remote_BBMD_IP_Address_Set(
             Object_List[index].Network.IPv4.BBMD_IP_Address[1] = b;
             Object_List[index].Network.IPv4.BBMD_IP_Address[2] = c;
             Object_List[index].Network.IPv4.BBMD_IP_Address[3] = d;
+
+            status = true;
         }
     }
 
@@ -1913,6 +1915,7 @@ bool Network_Port_Remote_BBMD_IP6_Address_Set(
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
             memcpy(Object_List[index].Network.IPv6.BBMD_IP_Address, addr, IP6_ADDRESS_MAX);
+            status = true;
         }
     }
 
