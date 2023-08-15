@@ -2846,12 +2846,15 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                   rpdata->object_instance, &ip_address);
               apdu_len = bvlc_foreign_device_bbmd_host_address_encode(
                   &apdu[0], apdu_size, &ip_address);
-            } else if(network_type == PORT_TYPE_BIP6) {
+            }
+#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+            else if(network_type == PORT_TYPE_BIP6) {
               Network_Port_Remote_BBMD_IP6_Address_And_Port(
                   rpdata->object_instance, &ip6_address);
               apdu_len = bvlc6_foreign_device_bbmd_host_address_encode(
                   &apdu[0], apdu_size, &ip6_address);
             }
+#endif
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
             apdu_len = encode_application_unsigned(&apdu[0],
