@@ -2895,8 +2895,25 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
-            apdu_len = encode_application_unsigned(&apdu[0],
-                Network_Port_Remote_BBMD_BIP6_Lifetime(rpdata->object_instance));
+            switch(network_type) {
+#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+              case PORT_TYPE_BIP:
+                apdu_len = encode_application_unsigned(&apdu[0],
+                    Network_Port_Remote_BBMD_BIP_Lifetime(rpdata->object_instance));
+                break;
+#endif
+#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+              case PORT_TYPE_BIP6:
+                apdu_len = encode_application_unsigned(&apdu[0],
+                    Network_Port_Remote_BBMD_BIP6_Lifetime(rpdata->object_instance));
+                break;
+#endif
+              default:
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                apdu_len = BACNET_STATUS_ERROR;
+              break;
+            }
             break;
 #endif
 #endif
