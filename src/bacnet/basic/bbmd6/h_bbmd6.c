@@ -70,7 +70,7 @@ static int printf_stderr(const char *format, ...) {
 #endif
 #define PRINTF printf_stderr
 /** result from a client request */
-static uint16_t BVLC6_Result_Code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
+static uint16_t BVLC6_Result_Code = BVLC6_RESULT_INVALID;
 /** incoming function */
 static uint8_t BVLC6_Function_Code = BVLC6_RESULT;
 
@@ -1113,6 +1113,18 @@ uint16_t bvlc6_remote_bbmd_lifetime(void)
 uint16_t bvlc6_get_last_result(void)
 {
     return BVLC6_Result_Code;
+}
+
+/** Sets the BVLL Result to a requested value.
+ * request we sent, or (if not a BBMD or Client), from trying to register
+ * as a foreign device.
+ *
+ * @return void
+ * @param result_code - result code to be put in BVLC6_Result_Code
+ */
+void bvlc6_set_last_result(const uint16_t result_code)
+{
+  BVLC6_Result_Code = result_code;
 }
 
 /** Returns the current BVLL Function Code we are processing.

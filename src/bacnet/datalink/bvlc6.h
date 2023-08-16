@@ -52,6 +52,7 @@
 #define BVLC6_RESULT_REGISTER_FOREIGN_DEVICE_NAK 0x0090U
 #define BVLC6_RESULT_DELETE_FOREIGN_DEVICE_NAK 0x00A0U
 #define BVLC6_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK 0x00C0U
+#define BVLC6_RESULT_INVALID 0xFFFFU
 /** @} */
 
 /**
@@ -419,6 +420,19 @@ extern "C" {
         uint8_t * npdu,
         uint16_t npdu_size,
         uint16_t * npdu_len);
+    BACNET_STACK_EXPORT
+    int bvlc6_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP6_ADDRESS *ip6_address);
+    BACNET_STACK_EXPORT
+    int bvlc6_broadcast_distribution_table_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+    BACNET_STACK_EXPORT
+    int bvlc6_foreign_device_table_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
+
 
 #ifdef __cplusplus
 }

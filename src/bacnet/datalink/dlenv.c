@@ -466,7 +466,7 @@ void dlenv_network_port_init(void)
  */
 void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 {
-#if defined(BACDL_BIP) || defined(BACDL_BIP6)
+#if defined(BACDL_BIP) || defined(BACDL_BIP6) || defined(BACDL_ALL)
     if (BBMD_Timer_Seconds) {
         if (BBMD_Timer_Seconds <= elapsed_seconds) {
             BBMD_Timer_Seconds = 0;
@@ -481,6 +481,8 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
             BBMD_Timer_Seconds = (uint16_t)BBMD_TTL_Seconds;
         }
     }
+#else
+    (void) elapsed_seconds;
 #endif
 }
 
@@ -546,7 +548,7 @@ void dlenv_init(void)
         datalink_set(NULL);
     }
 #endif
-#if defined(BACDL_BIP6)
+#if defined(BACDL_BIP6) && !defined(BACDL_ALL)
     BACNET_IP6_ADDRESS addr;
     pEnv = getenv("BACNET_BIP6_DEBUG");
     if (pEnv) {
@@ -570,7 +572,7 @@ void dlenv_init(void)
         bip6_set_port(0xBAC0);
     }
 #endif
-#if defined(BACDL_BIP)
+#if defined(BACDL_BIP) && !defined(BACDL_ALL)
     BACNET_IP_ADDRESS addr;
     pEnv = getenv("BACNET_IP_DEBUG");
     if (pEnv) {
