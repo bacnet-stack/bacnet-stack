@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(notification_class_tests, test_Notification_Class)
+#else
 static void test_Notification_Class(void)
+#endif
 {
     BACNET_READ_PROPERTY_DATA rpdata;
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -51,6 +55,9 @@ static void test_Notification_Class(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(notification_class_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(notification_class_tests,
@@ -59,3 +66,4 @@ void test_main(void)
 
     ztest_run_test_suite(notification_class_tests);
 }
+#endif

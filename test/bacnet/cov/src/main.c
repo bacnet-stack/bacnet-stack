@@ -204,7 +204,11 @@ static void testCCOVNotifyData(uint8_t invoke_id, BACNET_COV_DATA *data)
     testCOVNotifyData(data, &test_data);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(cov_tests, testCOVNotify)
+#else
 static void testCOVNotify(void)
+#endif
 {
     uint8_t invoke_id = 12;
     BACNET_COV_DATA data;
@@ -317,7 +321,11 @@ static void testCOVSubscribePropertyEncoding(
     testCOVSubscribePropertyData(data, &test_data);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(cov_tests, testCOVSubscribe)
+#else
 static void testCOVSubscribe(void)
+#endif
 {
     uint8_t invoke_id = 12;
     BACNET_SUBSCRIBE_COV_DATA data;
@@ -334,7 +342,11 @@ static void testCOVSubscribe(void)
     testCOVSubscribeEncoding(invoke_id, &data);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(cov_tests, testCOVSubscribeProperty)
+#else
 static void testCOVSubscribeProperty(void)
+#endif
 {
     uint8_t invoke_id = 12;
     BACNET_SUBSCRIBE_COV_DATA data;
@@ -364,6 +376,9 @@ static void testCOVSubscribeProperty(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(cov_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(cov_tests,
@@ -374,3 +389,4 @@ void test_main(void)
 
     ztest_run_test_suite(cov_tests);
 }
+#endif

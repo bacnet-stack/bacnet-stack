@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(timestamp_tests, testTimestampSequence)
+#else
 static void testTimestampSequence(void)
+#endif
 {
     BACNET_TIMESTAMP testTimestampIn;
     BACNET_TIMESTAMP testTimestampOut;
@@ -42,7 +46,11 @@ static void testTimestampSequence(void)
             testTimestampOut.value.sequenceNum, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(timestamp_tests, testTimestampTime)
+#else
 static void testTimestampTime(void)
+#endif
 {
     BACNET_TIMESTAMP testTimestampIn;
     BACNET_TIMESTAMP testTimestampOut;
@@ -74,7 +82,11 @@ static void testTimestampTime(void)
             testTimestampOut.value.time.hundredths, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(timestamp_tests, testTimestampTimeDate)
+#else
 static void testTimestampTimeDate(void)
+#endif
 {
     BACNET_TIMESTAMP testTimestampIn;
     BACNET_TIMESTAMP testTimestampOut;
@@ -131,6 +143,9 @@ static void testTimestampTimeDate(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(timestamp_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(timestamp_tests,
@@ -141,3 +156,4 @@ void test_main(void)
 
     ztest_run_test_suite(timestamp_tests);
 }
+#endif

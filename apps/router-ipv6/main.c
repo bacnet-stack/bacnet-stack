@@ -664,7 +664,8 @@ static void network_control_handler(uint16_t snet,
         case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
             /* add its DNETs to our routing table */
             fprintf(stderr, "for Networks: ");
-            while (npdu_len) {
+            len = 2;
+            while (npdu_len >= len) {
                 len = decode_unsigned16(&npdu[npdu_offset], &dnet);
                 fprintf(stderr, "%hu", dnet);
                 dnet_add(snet, dnet, src);
@@ -912,8 +913,15 @@ static void routed_apdu_handler(uint16_t snet,
         routed_src_address(&router_src, snet, src);
         npdu_len = npdu_encode_pdu(&Tx_Buffer[0], dest, &router_src, npdu);
         memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-        datalink_send_pdu(
-            port->net, dest, npdu, &Tx_Buffer[0], npdu_len + apdu_len);
+        /* send to all other ports */
+        port = Router_Table_Head;
+        while (port != NULL) {
+            if (port->net != snet) {
+                datalink_send_pdu(port->net, dest, npdu, &Tx_Buffer[0], 
+                	npdu_len + apdu_len);
+            }
+            port = port->next;
+        }
         /*  If the next router is unknown, an attempt shall be made to
             identify it using a Who-Is-Router-To-Network message. */
         send_who_is_router_to_network(0, dest->net);
@@ -945,7 +953,7 @@ static void my_routing_npdu_handler(
     if (!pdu) {
         /* no packet */
     } else if (pdu[0] == BACNET_PROTOCOL_VERSION) {
-        apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
+        apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
         if (apdu_offset <= 0) {
             fprintf(stderr, "NPDU: Decoding failed; Discarded!\n");
         } else if (npdu_data.network_layer_message) {

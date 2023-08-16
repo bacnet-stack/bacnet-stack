@@ -10,7 +10,11 @@
 #include <bacnet/bacdest.h>
 #include <bacnet/list_element.h>
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(list_element_tests, test_ListElement)
+#else
 static void test_ListElement(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_LIST_ELEMENT_DATA list_element = { 0 }, test_list_element = { 0 };
@@ -58,7 +62,11 @@ static void test_ListElement(void)
     zassert_equal(test_application_data_len, 0, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(list_element_tests, test_ListElementError)
+#else
 static void test_ListElementError(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_LIST_ELEMENT_DATA list_element = { 0 }, test_list_element = { 0 };
@@ -80,6 +88,9 @@ static void test_ListElementError(void)
         list_element.first_failed_element_number, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(list_element_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(list_element_tests, ztest_unit_test(test_ListElement),
@@ -87,3 +98,4 @@ void test_main(void)
 
     ztest_run_test_suite(list_element_tests);
 }
+#endif

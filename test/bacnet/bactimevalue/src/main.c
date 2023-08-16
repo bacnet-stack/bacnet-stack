@@ -66,7 +66,11 @@ static void test_BACnetTimeValue(BACNET_TIME_VALUE *value)
 /**
  * @brief Test encode/decode API
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(BACnetTimeValue_tests, test_BACnetTimeValues)
+#else
 static void test_BACnetTimeValues(void)
+#endif
 {
     BACNET_TIME_VALUE time_value = { 0 };
 
@@ -83,6 +87,10 @@ static void test_BACnetTimeValues(void)
 /**
  * @}
  */
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(BACnetTimeValue_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(BACnetTimeValue_tests,
@@ -91,3 +99,4 @@ void test_main(void)
 
     ztest_run_test_suite(BACnetTimeValue_tests);
 }
+#endif

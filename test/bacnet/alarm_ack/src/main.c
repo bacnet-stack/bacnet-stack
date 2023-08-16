@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(alarm_ack_tests, testAlarmAck)
+#else
 static void testAlarmAck(void)
+#endif
 {
     BACNET_ALARM_ACK_DATA testAlarmAckIn;
     BACNET_ALARM_ACK_DATA testAlarmAckOut;
@@ -93,6 +97,9 @@ static void testAlarmAck(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(alarm_ack_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(alarm_ack_tests,
@@ -101,3 +108,4 @@ void test_main(void)
 
     ztest_run_test_suite(alarm_ack_tests);
 }
+#endif

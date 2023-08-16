@@ -21,7 +21,7 @@
 #     <workspace>
 
 manifest:
-  version: 0.7  # This file uses syntax from west 0.7
+  version: 0.13
 
   remotes:
     - name: bacnet-stack
@@ -38,7 +38,10 @@ manifest:
   projects:
     - name: zephyr
       path: zephyr
-      revision: v3.2.0
+      revision: v3.4.0
       remote: zephyrproject-rtos
       west-commands: scripts/west-commands.yml
-      import: true
+      import:
+        name-allowlist:
+        - cmsis
+        - picolibc

@@ -14,7 +14,11 @@
  * @{
  */
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_address_tests, test_BACNET_ADDRESS)
+#else
 static void test_BACNET_ADDRESS(void)
+#endif
 {
     BACNET_ADDRESS src = { 0 }, dest = { 0 };
     BACNET_ADDRESS test_src = { 0 }, test_dest = { 0 };
@@ -97,7 +101,11 @@ static void test_BACNET_ADDRESS(void)
     zassert_false(status, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_address_tests, test_BACNET_MAC_ADDRESS)
+#else
 static void test_BACNET_MAC_ADDRESS(void)
+#endif
 {
     BACNET_MAC_ADDRESS dest = { 0 }, src = { 0 };
     uint8_t adr[MAX_MAC_LEN] = { 0 };
@@ -175,6 +183,9 @@ static void test_BACNET_MAC_ADDRESS(void)
 /**
  * @}
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacnet_address_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacnet_address_tests,
@@ -184,3 +195,4 @@ void test_main(void)
 
     ztest_run_test_suite(bacnet_address_tests);
 }
+#endif

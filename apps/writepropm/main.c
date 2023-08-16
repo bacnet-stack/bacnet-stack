@@ -279,7 +279,8 @@ int main(int argc, char *argv[])
     BACNET_PROPERTY_VALUE *wpm_property;
     char *value_string = NULL;
     bool status = false;
-    BACNET_APPLICATION_TAG property_tag;
+    long property_tag;
+    long priority;
     uint8_t context_tag = 0;
     unsigned object_type = 0;
     unsigned property_id = 0;
@@ -394,8 +395,12 @@ int main(int argc, char *argv[])
                     return 1;
                 }
                 /* Priority */
-                wpm_property->priority =
-                    (uint8_t)strtol(argv[tag_value_arg], NULL, 0);
+                priority = strtol(argv[tag_value_arg], NULL, 0);
+                if ((priority < BACNET_MIN_PRIORITY) ||
+                    (priority > BACNET_MAX_PRIORITY)) {
+                    priority = BACNET_NO_PRIORITY;
+                }
+                wpm_property->priority = priority;
                 tag_value_arg++;
                 args_remaining--;
                 if (Verbose) {
@@ -429,14 +434,15 @@ int main(int argc, char *argv[])
                 tag_value_arg++;
                 args_remaining--;
                 if (Verbose) {
-                    printf("tag=%u value=%s\n", property_tag, value_string);
+                    printf("tag=%ld value=%s\n", property_tag, value_string);
                 }
                 if (property_tag < 0) {
                     property_tag =
                         bacapp_known_property_tag(wpm_object->object_type,
                             wpm_property->propertyIdentifier);
                 } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-                    fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
+                    fprintf(stderr,
+                        "Error: tag=%ld - it must be less than %u\n",
                         property_tag, MAX_BACNET_APPLICATION_TAG);
                     return 1;
                 }
@@ -450,11 +456,10 @@ int main(int argc, char *argv[])
                         return 1;
                     }
                 } else {
-                    /* FIXME: show the expected entry format for the tag */
                     fprintf(stderr,
-                        "Error: unable to parse the known property"
-                        " \"%s\"\r\n",
-                        value_string);
+                        "Error: parser for property %s is not implemented\n",
+                        bactext_property_name(
+                        wpm_property->propertyIdentifier));
                     return 1;
                 }
                 wpm_property->value.next = NULL;
