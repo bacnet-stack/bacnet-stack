@@ -14,6 +14,14 @@ The git repositories are hosted at the following sites:
 
 ## [Unreleased]
 
+### Security
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.1.2] - 2023-08-18
 
 ### Security
@@ -27,7 +35,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
-- Added github.com to sf.net github workflow for releases
+- Added github.com to sf.net github workflow for releases (#471)
 - Added MSTP Slave Node option to stm32f10x port (#467)
 - Added AFL + Libfuzzer harnesses  (#455)
 
