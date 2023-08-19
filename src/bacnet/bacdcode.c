@@ -717,6 +717,39 @@ bool decode_is_opening_tag_number(uint8_t *apdu, uint8_t tag_number)
 
 /**
  * @brief Returns true if the tag does match and it
+ * is an opening tag as well.
+ * As defined in clause 20.2.1.3.2 Constructed Data.
+ *
+ * @param apdu  Pointer to the tag begin.
+ * @param apdu_size - number of bytes in the buffer
+ * @param tag_number  Tag number, that has been decoded before.
+ * @param tag_length  Pointer to a variable, or NULL.
+ *  Returns the length of the tag in bytes if not NULL.
+ *
+ * @return true on a match, false otherwise.
+ */
+bool bacnet_is_opening_tag_number(
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length)
+{
+    bool match = false;
+    uint8_t my_tag_number = 0;
+    int len;
+
+    len = bacnet_tag_number_decode(apdu, apdu_size, &my_tag_number);
+    if ((len > 0) && (my_tag_number == tag_number)) {
+        if (IS_OPENING_TAG(apdu[0])) {
+            match = true;
+            if (tag_length) {
+                *tag_length = len;
+            }
+        }
+    }
+
+    return match;
+}
+
+/**
+ * @brief Returns true if the tag does match and it
  * is an closing tag as well.
  * As defined in clause 20.2.1.3.2 Constructed Data.
  *
@@ -731,6 +764,39 @@ bool decode_is_closing_tag_number(uint8_t *apdu, uint8_t tag_number)
 
     decode_tag_number(apdu, &my_tag_number);
     return (bool)(IS_CLOSING_TAG(apdu[0]) && (my_tag_number == tag_number));
+}
+
+/**
+ * @brief Returns true if the tag does match and it
+ * is a closing tag as well.
+ * As defined in clause 20.2.1.3.2 Constructed Data.
+ *
+ * @param apdu  Pointer to the tag begin.
+ * @param apdu_size - number of bytes in the buffer
+ * @param tag_number  Tag number, that has been decoded before.
+ * @param tag_length  Pointer to a variable, or NULL.
+ *  Returns the length of the tag in bytes if not NULL.
+ *
+ * @return true on a match, false otherwise.
+ */
+bool bacnet_is_closing_tag_number(
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length)
+{
+    bool match = false;
+    uint8_t my_tag_number = 0;
+    int len;
+
+    len = bacnet_tag_number_decode(apdu, apdu_size, &my_tag_number);
+    if ((len > 0) && (my_tag_number == tag_number)) {
+        if (IS_CLOSING_TAG(apdu[0])) {
+            match = true;
+            if (tag_length) {
+                *tag_length = len;
+            }
+        }
+    }
+
+    return match;
 }
 
 /**

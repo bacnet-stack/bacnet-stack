@@ -96,6 +96,12 @@ bool bacnet_is_context_specific(uint8_t *apdu, uint32_t apdu_size);
         uint32_t * value);
 
     BACNET_STACK_EXPORT
+    bool bacnet_is_opening_tag_number(
+        uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length);
+    BACNET_STACK_EXPORT
+    bool bacnet_is_closing_tag_number(
+        uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length);
+    BACNET_STACK_EXPORT
     int bacnet_tag_number_and_value_decode(
         uint8_t * apdu,
         uint32_t apdu_len_remaining,
