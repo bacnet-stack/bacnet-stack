@@ -2868,6 +2868,200 @@ void bacapp_property_value_list_init(BACNET_PROPERTY_VALUE *value, size_t count)
     }
 }
 
+/**
+ * @brief Link an array of BACNET_PROPERTY_VALUE elements.
+ * The linked-list is used prior to encoding or decoding
+ * the APDU data into the structure.
+ *
+ * @param value_list - Pointer to the first BACNET_PROPERTY_VALUE element in
+ * an array
+ * @param count - number of BACNET_PROPERTY_VALUE elements to link
+ */
+void bacapp_property_value_list_link(
+    BACNET_PROPERTY_VALUE *value_list, size_t count)
+{
+    BACNET_PROPERTY_VALUE *current_value_list = NULL;
+
+    if (value_list) {
+        while (count) {
+            if (count > 1) {
+                current_value_list = value_list;
+                value_list++;
+                current_value_list->next = value_list;
+            } else {
+                value_list->next = NULL;
+            }
+            count--;
+        }
+    }
+}
+
+/**
+ * @brief Encode one BACnetPropertyValue value
+ *
+ *  BACnetPropertyValue ::= SEQUENCE {
+ *      property-identifier [0] BACnetPropertyIdentifier,
+ *      property-array-index [1] Unsigned OPTIONAL,
+ *      -- used only with array datatypes
+ *      -- if omitted with an array the entire array is referenced
+ *      property-value [2] ABSTRACT-SYNTAX.&Type,
+ *      -- any datatype appropriate for the specified property
+ *      priority [3] Unsigned (1..16) OPTIONAL
+ *      -- used only when property is commandable
+ *  }
+ *
+ * @param apdu Pointer to the buffer for encoded values, or NULL for length
+ * @param value Pointer to the service data used for encoding values
+ *
+ * @return Bytes encoded or zero on error.
+ */
+int bacapp_property_value_encode(
+    uint8_t *apdu, BACNET_PROPERTY_VALUE *value)
+{
+    int len = 0; /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
+    BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
+
+    if (value) {
+        /* tag 0 - propertyIdentifier */
+        len = encode_context_enumerated(
+            apdu, 0, value->propertyIdentifier);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* tag 1 - propertyArrayIndex OPTIONAL */
+        if (value->propertyArrayIndex != BACNET_ARRAY_ALL) {
+            len = encode_context_unsigned(
+                apdu, 1, value->propertyArrayIndex);
+            apdu_len += len;
+            if (apdu) {
+                apdu += len;
+            }
+        }
+        /* tag 2 - value */
+        /* abstract syntax gets enclosed in a context tag */
+        len = encode_opening_tag(apdu, 2);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        app_data = &value->value;
+        while (app_data != NULL) {
+            len = bacapp_encode_application_data(apdu, app_data);
+            apdu_len += len;
+            if (apdu) {
+                apdu += len;
+            }
+            app_data = app_data->next;
+        }
+        len = encode_closing_tag(apdu, 2);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* tag 3 - priority OPTIONAL */
+        if (value->priority != BACNET_NO_PRIORITY) {
+            len = encode_context_unsigned(
+                apdu, 3, value->priority);
+            apdu_len += len;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode one BACnetPropertyValue value
+ *
+ *  BACnetPropertyValue ::= SEQUENCE {
+ *      property-identifier [0] BACnetPropertyIdentifier,
+ *      property-array-index [1] Unsigned OPTIONAL,
+ *      -- used only with array datatypes
+ *      -- if omitted with an array the entire array is referenced
+ *      property-value [2] ABSTRACT-SYNTAX.&Type,
+ *      -- any datatype appropriate for the specified property
+ *      priority [3] Unsigned (1..16) OPTIONAL
+ *      -- used only when property is commandable
+ *  }
+ *
+ * @param apdu Pointer to the buffer of encoded value
+ * @param apdu_size Size of the buffer holding the encode value
+ * @param value Pointer to the service data used for encoding values
+ *
+ * @return Bytes decoded or BACNET_STATUS_ERROR on error.
+ */
+int bacapp_property_value_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_PROPERTY_VALUE *value)
+{
+    int len = 0;
+    int apdu_len = BACNET_STATUS_ERROR;
+    uint32_t enumerated_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
+
+    /* property-identifier [0] BACnetPropertyIdentifier */
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &enumerated_value);
+    if (len == BACNET_STATUS_ERROR) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        value->propertyIdentifier = enumerated_value;
+    }
+    apdu_len += len;
+    /* property-array-index [1] Unsigned OPTIONAL */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
+    if (len == BACNET_STATUS_ERROR) {
+        if (value) {
+            value->propertyArrayIndex = BACNET_ARRAY_ALL;
+        }
+    } else {
+        apdu_len += len;
+        value->propertyArrayIndex = unsigned_value;
+    }
+    /* property-value [2] ABSTRACT-SYNTAX.&Type */
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
+        apdu_len += len;
+        app_data = &value->value;
+        while (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
+            if (app_data == NULL) {
+                /* out of room to store more values */
+                return BACNET_STATUS_ERROR;
+            }
+            len = bacapp_decode_application_data(
+                &apdu[len], apdu_size - apdu_len, app_data);
+            if (len < 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
+            app_data = app_data->next;
+        }
+        /* closing tag */
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    /* priority [3] Unsigned (1..16) OPTIONAL */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 3, &unsigned_value);
+    if (len == BACNET_STATUS_ERROR) {
+        if (value) {
+            value->priority = BACNET_NO_PRIORITY;
+        }
+    } else if (unsigned_value > BACNET_MAX_PRIORITY) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        apdu_len += len;
+        value->priority = unsigned_value;
+    }
+
+    return apdu_len;
+}
+
 /* generic - can be used by other unit tests
    returns true if matching or same, false if different */
 bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,

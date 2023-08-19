@@ -50,83 +50,91 @@ Unconfirmed COV Notification
 */
 
 /**
- * Encode APDU for notification.
- *
- * @param apdu  Pointer to the buffer.
+ * @brief Encode APDU for COV Notification.
+ * @param apdu  Pointer to the buffer, or NULL for length
  * @param data  Pointer to the data to encode.
- *
  * @return bytes encoded or zero on error.
  */
-static int notify_encode_apdu(
-    uint8_t *apdu, unsigned max_apdu_len, BACNET_COV_DATA *data)
+int cov_notify_encode_apdu(
+    uint8_t *apdu, BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
     BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
-    BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
 
-    (void)max_apdu_len;
     if (apdu) {
         /* tag 0 - subscriberProcessIdentifier */
         len = encode_context_unsigned(
-            &apdu[apdu_len], 0, data->subscriberProcessIdentifier);
+            apdu, 0, data->subscriberProcessIdentifier);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         /* tag 1 - initiatingDeviceIdentifier */
-        len = encode_context_object_id(&apdu[apdu_len], 1, OBJECT_DEVICE,
+        len = encode_context_object_id(apdu, 1, OBJECT_DEVICE,
             data->initiatingDeviceIdentifier);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         /* tag 2 - monitoredObjectIdentifier */
-        len = encode_context_object_id(&apdu[apdu_len], 2,
+        len = encode_context_object_id(apdu, 2,
             data->monitoredObjectIdentifier.type,
             data->monitoredObjectIdentifier.instance);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         /* tag 3 - timeRemaining */
-        len = encode_context_unsigned(&apdu[apdu_len], 3, data->timeRemaining);
+        len = encode_context_unsigned(apdu, 3, data->timeRemaining);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         /* tag 4 - listOfValues */
-        len = encode_opening_tag(&apdu[apdu_len], 4);
+        len = encode_opening_tag(apdu, 4);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         /* the first value includes a pointer to the next value, etc */
-        /* FIXME: for small implementations, we might try a partial
-           approach like the rpm.c where the values are encoded with
-           a separate function */
         value = data->listOfValues;
         while (value != NULL) {
-            /* tag 0 - propertyIdentifier */
-            len = encode_context_enumerated(
-                &apdu[apdu_len], 0, value->propertyIdentifier);
+            len = bacapp_property_value_encode(apdu, value);
             apdu_len += len;
-            /* tag 1 - propertyArrayIndex OPTIONAL */
-            if (value->propertyArrayIndex != BACNET_ARRAY_ALL) {
-                len = encode_context_unsigned(
-                    &apdu[apdu_len], 1, value->propertyArrayIndex);
-                apdu_len += len;
-            }
-            /* tag 2 - value */
-            /* abstract syntax gets enclosed in a context tag */
-            len = encode_opening_tag(&apdu[apdu_len], 2);
-            apdu_len += len;
-            app_data = &value->value;
-            while (app_data != NULL) {
-                len = bacapp_encode_application_data(&apdu[apdu_len], app_data);
-                apdu_len += len;
-                app_data = app_data->next;
-            }
-
-            len = encode_closing_tag(&apdu[apdu_len], 2);
-            apdu_len += len;
-            /* tag 3 - priority OPTIONAL */
-            if (value->priority != BACNET_NO_PRIORITY) {
-                len = encode_context_unsigned(
-                    &apdu[apdu_len], 3, value->priority);
-                apdu_len += len;
+            if (apdu) {
+                apdu += len;
             }
             /* is there another one to encode? */
-            /* FIXME: check to see if there is room in the APDU */
             value = value->next;
         }
-        len = encode_closing_tag(&apdu[apdu_len], 4);
+        len = encode_closing_tag(apdu, 4);
         apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * Encode APDU for notification.
+ *
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the data to encode.
+ *
+ * @return bytes encoded or zero if unable to encode
+ */
+static int notify_encode_apdu(
+    uint8_t *apdu, unsigned apdu_size, BACNET_COV_DATA *data)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+
+    apdu_len = cov_notify_encode_apdu(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = cov_notify_encode_apdu(apdu, data);
     }
 
     return apdu_len;
@@ -158,7 +166,7 @@ int ccov_notify_encode_apdu(uint8_t *apdu,
         apdu_len = 4;
         len =
             notify_encode_apdu(&apdu[apdu_len], max_apdu_len - apdu_len, data);
-        if (len < 0) {
+        if (len <= 0) {
             /* return the error */
             apdu_len = len;
         } else {
@@ -190,7 +198,7 @@ int ucov_notify_encode_apdu(
         apdu_len = 2;
         len =
             notify_encode_apdu(&apdu[apdu_len], max_apdu_len - apdu_len, data);
-        if (len < 0) {
+        if (len <= 0) {
             /* return the error */
             apdu_len = len;
         } else {
