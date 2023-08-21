@@ -983,9 +983,19 @@ int bacnet_boolean_application_decode(
 }
 
 /**
- * @brief Decode the Boolean Value when application encoded
+ * @brief Decode the Boolean Value when context encoded
  * From clause 20.2.3 Encoding of a Boolean Value
  * and 20.2.1 General Rules for Encoding BACnet Tags
+ * 
+ * @note The Boolean datatype differs from the other datatypes 
+ * in that the encoding of a context-tagged Boolean value is not the
+ * same as the encoding of an application-tagged Boolean value. 
+ * This is done so that the application-tagged value may be encoded
+ * in a single octet, without a contents octet. While this same encoding 
+ * could have been used for the context-tagged case, doing
+ * so would require that the context be known in order to distinguish 
+ * between a length or a value in the length/value/type field.
+ * This was considered to be undesirable.
  *
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
@@ -999,27 +1009,29 @@ int bacnet_boolean_context_decode(
     uint8_t *apdu, uint32_t apdu_size, uint8_t tag_value, bool *boolean_value)
 {
     int apdu_len = 0;
-    unsigned len = 0;
+    int len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
 
-    if (apdu_size) {
-        if (decode_is_context_tag(&apdu[apdu_len], tag_value) &&
-            !decode_is_closing_tag(&apdu[apdu_len])) {
-            len = bacnet_tag_number_and_value_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, &tag_number, &len_value_type);
-            if (len > 0) {
-                apdu_len += len;
-                if (apdu_len < apdu_size) {
-                    if (boolean_value) {
-                        *boolean_value = decode_boolean(len_value_type);
+    if (bacnet_is_context_tag_number(
+            &apdu[apdu_len], apdu_size, tag_value, &len) &&
+        !bacnet_is_closing_tag(&apdu[apdu_len], apdu_size)) {
+        if (len > 0) {
+            apdu_len += len;
+            if (apdu_len < apdu_size) {
+                if (boolean_value) {
+                    if (apdu[apdu_len]) {
+                        *boolean_value = true;
+                    } else {
+                        *boolean_value = false;
                     }
-                } else {
-                    return BACNET_STATUS_ERROR;
                 }
+                apdu_len++;
             } else {
                 return BACNET_STATUS_ERROR;
             }
+        } else {
+            return BACNET_STATUS_ERROR;
         }
     }
 
