@@ -8,7 +8,7 @@ on:
   push:
     # Pattern matched against refs/tags
     tags:        
-      - 'bacnet-stack-[0-9]+-[0-9]+-[0-9]+'
+      - 'bacnet-stack-[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   release:
@@ -29,9 +29,9 @@ jobs:
     - name: Extract Version
       id: vars
       run: |
-        echo ::set-output name=version::$(echo ${{github.ref_name}} | sed -e 's/^vbacnet-stack-// -e 's/-/./')
-        echo ::set-output name=tool::$(echo ${{github.ref_name}} | sed -e 's/stack/tool/ -e 's/-/./')
-        echo ::set-output name=archive::$(echo ${{github.ref_name}} | sed 's/-/./')
+        echo ::set-output name=version::$(echo ${{github.ref_name}} | sed -e 's/^vbacnet-stack-//')
+        echo ::set-output name=tool::$(echo ${{github.ref_name}} | sed -e 's/stack/tool/')
+        echo ::set-output name=archive::$(echo ${{github.ref_name}})
     - name: ZIP Win32 Apps
       run: |
         zip -r ${{steps.vars.outputs.tool}} ./bin/*.exe ./bin/readme.txt ./apps/mstpcap/mstpcap.txt
