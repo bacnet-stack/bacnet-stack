@@ -177,6 +177,11 @@ int bacapp_encode_application_data(
                 apdu_len = bacnet_weeklyschedule_encode(
                     apdu, &value->type.Weekly_Schedule);
                 break;
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* BACnetCalendarEntry */
+                apdu_len = bacnet_calendar_entry_encode(
+                    apdu, &value->type.Calendar_Entry);
+                break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 /* BACnetHostNPort */
                 apdu_len = host_n_port_encode(apdu, &value->type.Host_Address);
@@ -329,6 +334,10 @@ int bacapp_decode_data(uint8_t *apdu,
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 len = bacnet_weeklyschedule_decode(
                     apdu, len_value_type, &value->type.Weekly_Schedule);
+                break;
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                len = bacnet_calendar_entry_decode(
+                    apdu, len_value_type, &value->type.Calendar_Entry);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 len = host_n_port_decode(
@@ -1307,6 +1316,12 @@ int bacapp_decode_known_property(uint8_t *apdu,
                 apdu, max_apdu_len, &value->type.Destination);
             break;
 
+        case PROP_DATE_LIST:
+            /* List of BACnetCalendarEntry */
+            len = bacnet_calendar_entry_decode(
+                apdu, max_apdu_len, &value->type.Calendar_Entry);
+            break;
+
             /* properties without a specific decoder - fall through to default
              */
 
@@ -1314,7 +1329,6 @@ int bacapp_decode_known_property(uint8_t *apdu,
             /* Properties using ReadAccessSpecification */
         case PROP_EXCEPTION_SCHEDULE:
             /* BACnetSpecialEvent (Schedule) */
-        case PROP_DATE_LIST:
             /* FIXME: Properties using : BACnetCalendarEntry */
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             /* FIXME: BACnetCOVSubscription */

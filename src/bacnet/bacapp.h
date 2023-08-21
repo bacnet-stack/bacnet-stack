@@ -38,6 +38,7 @@
 #include "bacnet/hostnport.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/weeklyschedule.h"
+#include "bacnet/calendar_entry.h"
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
@@ -97,6 +98,7 @@ typedef struct BACnet_Application_Data_Value {
         BACNET_OBJECT_PROPERTY_REFERENCE
             Object_Property_Reference;
         BACNET_DESTINATION Destination;
+        BACNET_CALENDAR_ENTRY Calendar_Entry;
 #endif
     } type;
     /* simple linked list if needed */
