@@ -34,7 +34,11 @@ jobs:
         echo ::set-output name=archive::$(echo ${{github.ref_name}})
     - name: ZIP Win32 Apps
       run: |
-        zip -r ${{steps.vars.outputs.tool}} ./bin/*.exe ./bin/readme.txt ./apps/mstpcap/mstpcap.txt
+        mkdir ./${{steps.vars.outputs.tool}}
+        cp ./bin/*.exe ./${{steps.vars.outputs.tool}}
+        cp ./bin/readme.txt ./${{steps.vars.outputs.tool}}
+        cp ./apps/mstpcap/mstpcap.txt ./${{steps.vars.outputs.tool}}
+        zip -r ${{steps.vars.outputs.tool}}.zip ./${{steps.vars.outputs.tool}}/*
     - name: ZIP Source Code
       run: |
         git archive --format zip --output ${{steps.vars.outputs.archive}}.zip ${{github.ref_name}}
