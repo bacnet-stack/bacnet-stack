@@ -62,6 +62,9 @@ extern "C" {
         uint32_t len_value_type);
 
 BACNET_STACK_EXPORT
+bool bacnet_is_context_tag_number(
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length);
+BACNET_STACK_EXPORT
 bool bacnet_is_opening_tag(uint8_t *apdu, uint32_t apdu_size);
 BACNET_STACK_EXPORT
 bool bacnet_is_closing_tag(uint8_t *apdu, uint32_t apdu_size);

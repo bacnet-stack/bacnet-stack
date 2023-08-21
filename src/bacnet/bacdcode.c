@@ -697,6 +697,39 @@ bool decode_is_context_tag_with_length(
 }
 
 /**
+ * @brief Returns true if the tag is context specific
+ * and matches, as defined in clause 20.2.1.3.2 Constructed
+ * Data. This function returns the tag length as well.
+ *
+ * @param apdu  Pointer to the tag begin.
+ * @param apdu_size - number of bytes in the buffer
+ * @param tag_number  Tag number, that has been decoded before.
+ * @param tag_length  Pointer to a variable, or NULL.
+ *  Returns the length of the tag in bytes if not NULL.
+ *
+ * @return true on a match, false otherwise.
+ */
+bool bacnet_is_context_tag_number(
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length)
+{
+    bool match = false;
+    uint8_t my_tag_number = 0;
+    int len;
+
+    len = bacnet_tag_number_decode(apdu, apdu_size, &my_tag_number);
+    if ((len > 0) && (my_tag_number == tag_number)) {
+        if (IS_CONTEXT_SPECIFIC(apdu[0])) {
+            if (tag_length) {
+                *tag_length = len;
+            }
+            match = true;
+        }
+    }
+
+    return match;
+}
+
+/**
  * @brief Returns true if the tag does match and it
  * is an opening tag as well.
  * As defined in clause 20.2.1.3.2 Constructed Data.
