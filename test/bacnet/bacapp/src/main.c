@@ -233,6 +233,9 @@ static void test_bacapp_property_value_list_init(void)
     BACNET_PROPERTY_VALUE value[2] = { { 0 } };
     size_t max_count = 0;
     size_t count = 0;
+    int len, test_len;
+    uint8_t apdu[480];
+    bool status;
 
     /* Verify NULL ptr is properly handled */
     bacapp_property_value_list_init(NULL, 1);
@@ -243,7 +246,7 @@ static void test_bacapp_property_value_list_init(void)
     zassert_equal(memcmp(&value[0], &value[1], sizeof(value[1])), 0, NULL);
 
     /* Verify one structure is initialized correctly */
-    for (max_count = 1; max_count < sizeof(value)/sizeof(value[0]); ++max_count) {
+    for (max_count = 1; max_count < ARRAY_SIZE(value); ++max_count) {
         memset(value, 0, sizeof(value));
         max_count = 1;
         bacapp_property_value_list_init(&value[0], max_count);
@@ -254,6 +257,29 @@ static void test_bacapp_property_value_list_init(void)
             zassert_equal(value[count].priority, BACNET_NO_PRIORITY, NULL);
             zassert_equal(value[count].next, ((count + 1 >= max_count) ? NULL : &value[count + 1]), NULL);
         }
+    }
+    bacapp_property_value_list_link(value, ARRAY_SIZE(value));
+    value[0].propertyIdentifier = 1;
+    value[0].propertyArrayIndex = 1;
+    value[0].priority = 1;
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_UNSIGNED_INT,
+        "1", &value[0].value);
+    zassert_true(status, NULL);
+    test_len = bacapp_property_value_encode(NULL, &value[0]);
+    zassert_true(test_len > 0, NULL);
+    len = bacapp_property_value_encode(apdu, &value[0]);
+    zassert_true(len > 0, NULL);
+    test_len = bacapp_property_value_decode(apdu, sizeof(apdu), &value[1]);
+    zassert_equal(len, test_len, "len=%d test_len=%d", len, test_len);
+    test_len = bacapp_property_value_decode(apdu, sizeof(apdu), NULL);
+    zassert_equal(len, test_len, "len=%d test_len=%d", len, test_len);
+    while (len) {
+        len--;
+        test_len = bacapp_property_value_decode(apdu, len, &value[1]);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+        test_len = bacapp_property_value_decode(apdu, len, NULL);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     }
 }
 

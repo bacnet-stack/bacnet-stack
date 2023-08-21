@@ -2995,9 +2995,11 @@ int bacapp_property_value_decode(
     uint8_t *apdu, uint32_t apdu_size, BACNET_PROPERTY_VALUE *value)
 {
     int len = 0;
-    int apdu_len = BACNET_STATUS_ERROR;
+    int apdu_len = 0;
+    int tag_len = 0;
     uint32_t enumerated_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_PROPERTY_ID property_identifier = PROP_ALL;
     BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
 
     /* property-identifier [0] BACnetPropertyIdentifier */
@@ -3007,7 +3009,8 @@ int bacapp_property_value_decode(
         return BACNET_STATUS_ERROR;
     }
     if (value) {
-        value->propertyIdentifier = enumerated_value;
+        property_identifier = enumerated_value;
+        value->propertyIdentifier = property_identifier;
     }
     apdu_len += len;
     /* property-array-index [1] Unsigned OPTIONAL */
@@ -3019,29 +3022,48 @@ int bacapp_property_value_decode(
         }
     } else {
         apdu_len += len;
-        value->propertyArrayIndex = unsigned_value;
+        if (value) {
+            value->propertyArrayIndex = unsigned_value;
+        }
     }
     /* property-value [2] ABSTRACT-SYNTAX.&Type */
     if (bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
-        apdu_len += len;
-        app_data = &value->value;
-        while (!bacnet_is_closing_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
-            if (app_data == NULL) {
-                /* out of room to store more values */
-                return BACNET_STATUS_ERROR;
-            }
-            len = bacapp_decode_application_data(
-                &apdu[len], apdu_size - apdu_len, app_data);
-            if (len < 0) {
-                return BACNET_STATUS_ERROR;
-            }
+        if (value) {
             apdu_len += len;
-            app_data = app_data->next;
+            app_data = &value->value;
+            while (app_data != NULL) {
+                len = bacapp_decode_application_data(
+                    &apdu[apdu_len], apdu_size - apdu_len, app_data);
+                if (len < 0) {
+                    return BACNET_STATUS_ERROR;
+                }
+                apdu_len += len;
+                if (bacnet_is_closing_tag_number(
+                    &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
+                    break;
+                }
+                app_data = app_data->next;
+            }
+        } else {
+            /* this len function needs to start at the opening tag
+               to match opening/closing tags like a stack.
+               However, it returns the len between the tags.
+               Therefore, store the length of the opening tag first */
+            tag_len = len;
+            len = bacapp_data_len(
+                &apdu[apdu_len], apdu_size - apdu_len,
+                    (BACNET_PROPERTY_ID)property_identifier);
+            apdu_len += len;
+            /* add the opening tag length to the totals */
+            apdu_len += tag_len;
         }
-        /* closing tag */
-        apdu_len += len;
+        if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
+            apdu_len += len;
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
     } else {
         return BACNET_STATUS_ERROR;
     }
@@ -3056,7 +3078,9 @@ int bacapp_property_value_decode(
         return BACNET_STATUS_ERROR;
     } else {
         apdu_len += len;
-        value->priority = unsigned_value;
+        if (value) {
+            value->priority = unsigned_value;
+        }
     }
 
     return apdu_len;
