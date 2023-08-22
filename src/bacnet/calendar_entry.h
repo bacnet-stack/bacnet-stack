@@ -80,6 +80,10 @@ BACNET_STACK_EXPORT
 bool bacapp_date_in_calendar_entry(BACNET_DATE *date,
     BACNET_CALENDAR_ENTRY *entry);
 
+BACNET_STACK_EXPORT
+bool bacnet_calendar_entry_same(
+    BACNET_CALENDAR_ENTRY *value1, BACNET_CALENDAR_ENTRY *value2);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

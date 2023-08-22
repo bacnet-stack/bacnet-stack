@@ -353,6 +353,7 @@ bool bacapp_date_in_calendar_entry(BACNET_DATE *date,
                 date, &entry->type.DateRange.enddate) <= 0)) {
             return true;
         }
+        break;
     case BACNET_CALENDAR_WEEK_N_DAY:
         if (month_match(date, entry->type.WeekNDay.month) &&
             weekofmonth_match(date, entry->type.WeekNDay.weekofmonth) &&
@@ -367,3 +368,37 @@ bool bacapp_date_in_calendar_entry(BACNET_DATE *date,
     return false;
 }
 
+bool bacnet_calendar_entry_same(
+    BACNET_CALENDAR_ENTRY *value1, BACNET_CALENDAR_ENTRY *value2)
+{
+    if (value1->tag != value2->tag) {
+    return false;
+    }
+
+    switch (value1->tag) {
+    case BACNET_CALENDAR_DATE:
+        if (datetime_compare_date(&value1->type.Date, &value2->type.Date) ==
+            0) {
+            return true;
+        }
+        break;
+    case BACNET_CALENDAR_DATE_RANGE:
+        if ((datetime_compare_date(&value1->type.DateRange.startdate,
+                 &value2->type.DateRange.startdate) == 0) &&
+            (datetime_compare_date(&value2->type.DateRange.enddate,
+                 &value2->type.DateRange.enddate) == 0)) {
+            return true;
+        }
+        break;
+    case BACNET_CALENDAR_WEEK_N_DAY:
+        return (value1->type.WeekNDay.month ==
+                   value2->type.WeekNDay.month) &&
+            (value1->type.WeekNDay.weekofmonth ==
+                value2->type.WeekNDay.weekofmonth) &&
+            (value1->type.WeekNDay.dayofweek ==
+                value2->type.WeekNDay.dayofweek);
+    default:
+        /* do nothing */
+        break;
+    }
+}
