@@ -14,17 +14,33 @@ BUILD_DIR=build
 CTEST_OPTIONS := --quiet --output-on-failure
 CTEST_OPTIONS += --output-junit test-results.xml
 
+ifeq ($(OS),Windows_NT)
+	JOBS = "-j %NUMBER_OF_PROCESSORS%"
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		JOBS = "-j $(nproc)"
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		JOBS = "-j $(sysctl -n hw.ncpu)"
+	endif
+	UNAME_BSD := $(shell uname -s | grep -o BSD)
+	ifeq ($(UNAME_BSD),BSD)
+		JOBS = "-j $(sysctl -n hw.ncpu)"
+	endif
+endif
+
 .PHONY: test
 test:
 	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake .. && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . --clean-first && cd ..
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest $(CTEST_OPTIONS)
 	[ -d $(BUILD_DIR) ] && $(MAKE) -C $(BUILD_DIR) lcov
 
 .PHONY: retest
 retest:
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . && cd ..
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) && cd ..
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest $(CTEST_OPTIONS)
 	[ -d $(BUILD_DIR) ] && $(MAKE) -C $(BUILD_DIR) lcov
 
