@@ -89,10 +89,13 @@ uint8_t Send_Create_Object_Request_Data(
            us and the destination, we won't know unless
            we have a way to check for that and update the
            max_apdu in the address binding table. */
-        if (((unsigned)pdu_len < max_apdu) && 
+        if (((unsigned)pdu_len < max_apdu) &&
             (pdu_len < sizeof(Handler_Transmit_Buffer))) {
+            /* shift back to the service portion of the buffer */
+            pdu_len -= len;
             len = create_object_encode_service_request(
                 &Handler_Transmit_Buffer[pdu_len], &data);
+            pdu_len += len;
             tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
                 &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
