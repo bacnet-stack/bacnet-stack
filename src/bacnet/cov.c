@@ -235,7 +235,6 @@ int cov_notify_decode_service_request(
     uint32_t decoded_instance = 0;
     BACNET_PROPERTY_ID property_identifier = PROP_ALL;
     BACNET_PROPERTY_VALUE *value = NULL;
-    BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
 
     /* subscriber-process-identifier [0] Unsigned32 */
     value_len = bacnet_unsigned_context_decode(
@@ -424,7 +423,7 @@ int cov_subscribe_decode_service_request(
     uint8_t *apdu, unsigned apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* return value */
-    int value_len = 0, tag_len = 0;
+    int value_len = 0;
     BACNET_UNSIGNED_INTEGER decoded_value = 0;
     BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE;
     uint32_t decoded_instance = 0;

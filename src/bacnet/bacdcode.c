@@ -979,8 +979,6 @@ int bacnet_boolean_context_decode(
 {
     int apdu_len = 0;
     int len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
 
     if (bacnet_is_context_tag_number(
             &apdu[apdu_len], apdu_size, tag_value, &len) &&
