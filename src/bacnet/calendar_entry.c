@@ -377,28 +377,21 @@ bool bacnet_calendar_entry_same(
 
     switch (value1->tag) {
     case BACNET_CALENDAR_DATE:
-        if (datetime_compare_date(&value1->type.Date, &value2->type.Date) ==
-            0) {
-            return true;
-        }
-        break;
+        return datetime_compare_date(&value1->type.Date, &value2->type.Date) ==
+            0;
     case BACNET_CALENDAR_DATE_RANGE:
-        if ((datetime_compare_date(&value1->type.DateRange.startdate,
-                 &value2->type.DateRange.startdate) == 0) &&
+        return (datetime_compare_date(&value1->type.DateRange.startdate,
+                    &value2->type.DateRange.startdate) == 0) &&
             (datetime_compare_date(&value2->type.DateRange.enddate,
-                 &value2->type.DateRange.enddate) == 0)) {
-            return true;
-        }
-        break;
+                 &value2->type.DateRange.enddate) == 0);
     case BACNET_CALENDAR_WEEK_N_DAY:
-        return (value1->type.WeekNDay.month ==
-                   value2->type.WeekNDay.month) &&
+        return (value1->type.WeekNDay.month == value2->type.WeekNDay.month) &&
             (value1->type.WeekNDay.weekofmonth ==
                 value2->type.WeekNDay.weekofmonth) &&
             (value1->type.WeekNDay.dayofweek ==
                 value2->type.WeekNDay.dayofweek);
     default:
-        /* do nothing */
-        break;
+        /* should be unreachable */
+        return false;
     }
 }
