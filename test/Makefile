@@ -14,8 +14,14 @@ BUILD_DIR=build
 CTEST_OPTIONS := --quiet --output-on-failure
 CTEST_OPTIONS += --output-junit test-results.xml
 
+JOBS = "-j"
 ifeq ($(OS),Windows_NT)
-	JOBS = "-j %NUMBER_OF_PROCESSORS%"
+	UNAME_MINGW := $(shell uname -s | grep -o MINGW)
+	ifeq ($(UNAME_MINGW),MINGW)
+		JOBS = "-j"
+	else
+		JOBS = "-j %NUMBER_OF_PROCESSORS%"
+	endif
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
