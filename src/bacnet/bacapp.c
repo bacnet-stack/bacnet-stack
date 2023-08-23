@@ -160,6 +160,9 @@ int bacapp_encode_application_data(
             case BACNET_APPLICATION_TAG_DATETIME:
                 apdu_len = bacapp_encode_datetime(apdu, &value->type.Date_Time);
                 break;
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                apdu_len = bacapp_daterange_encode(apdu, &value->type.Date_Range);
+                break;
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 /* BACnetLightingCommand */
                 apdu_len = lighting_command_encode(
@@ -318,6 +321,9 @@ int bacapp_decode_data(uint8_t *apdu,
 #if defined(BACAPP_TYPES_EXTRA)
             case BACNET_APPLICATION_TAG_DATETIME:
                 len = bacapp_decode_datetime(apdu, &value->type.Date_Time);
+                break;
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                len = bacapp_daterange_decode(apdu, &value->type.Date_Range);
                 break;
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 len = lighting_command_decode(
@@ -657,6 +663,10 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
             case BACNET_APPLICATION_TAG_DATETIME:
                 apdu_len = bacapp_encode_context_datetime(
                     apdu, context_tag_number, &value->type.Date_Time);
+                break;
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                apdu_len = bacapp_daterange_context_encode(
+                    apdu, context_tag_number, &value->type.Date_Range);
                 break;
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 apdu_len = lighting_command_encode_context(
@@ -1165,8 +1175,8 @@ int bacapp_known_property_tag(
             return -1;
 
         case PROP_EFFECTIVE_PERIOD:
-            /* FIXME: Properties using BACnetDateRange  (Schedule) */
-            return -1;
+            /* BACnetDateRange (Schedule) */
+            return BACNET_APPLICATION_TAG_DATERANGE;
 
         case PROP_RECIPIENT_LIST:
             /* Properties using BACnetDestination */
@@ -1344,6 +1354,13 @@ int bacapp_decode_known_property(uint8_t *apdu,
                 apdu, max_apdu_len, &value->type.Special_Event);
             break;
 
+        case PROP_EFFECTIVE_PERIOD:
+            /* BACnetDateRange  (Schedule) */
+            len = bacapp_daterange_decode(
+                apdu, &value->type.Date_Range);
+            break;
+
+
             /* properties without a specific decoder - fall through to default
              */
 
@@ -1351,8 +1368,6 @@ int bacapp_decode_known_property(uint8_t *apdu,
             /* Properties using ReadAccessSpecification */
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             /* FIXME: BACnetCOVSubscription */
-        case PROP_EFFECTIVE_PERIOD:
-            /* FIXME: Properties using BACnetDateRange  (Schedule) */
         case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
         case PROP_RESTART_NOTIFICATION_RECIPIENTS:
         case PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
@@ -2230,6 +2245,24 @@ int bacapp_snprintf_value(
                     }
                 }
                 slen = bacapp_snprintf_time(str, str_len, &value->type.Time);
+                ret_val += slen;
+                break;
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                slen = bacapp_snprintf_date(str, str_len, &value->type.Date_Range.startdate);
+                ret_val += slen;
+                if (str) {
+                    str += slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
+                }
+
+                slen = snprintf(str, str_len, "..");
+                ret_val += slen;
+
+                slen = bacapp_snprintf_date(str, str_len, &value->type.Date_Range.enddate);
                 ret_val += slen;
                 break;
             case BACNET_APPLICATION_TAG_TIMESTAMP:

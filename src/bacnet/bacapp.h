@@ -87,6 +87,7 @@ typedef struct BACnet_Application_Data_Value {
 #if defined (BACAPP_TYPES_EXTRA)
         BACNET_TIMESTAMP Time_Stamp;
         BACNET_DATE_TIME Date_Time;
+        BACNET_DATE_RANGE Date_Range;
         BACNET_LIGHTING_COMMAND Lighting_Command;
         BACNET_COLOR_COMMAND Color_Command;
         BACNET_XY_COLOR XY_Color;

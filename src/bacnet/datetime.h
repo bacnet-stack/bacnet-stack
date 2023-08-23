@@ -276,6 +276,50 @@ BACNET_STACK_EXPORT
 int bacapp_decode_context_datetime(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value);
 
+/**
+ * Encode daterange
+ *
+ * @param apdu - apdu buffer; NULL to only measure capacity needed
+ * @param value - value to encode
+ * @return number of bytes emitted, <= 0 on error
+ */
+BACNET_STACK_EXPORT
+int bacapp_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value);
+
+/**
+ * Decode daterange
+ *
+ * @param apdu - apdu buffer with data
+ * @param value - value to decode
+ * @return number of bytes consumed, <= 0 on error
+ */
+BACNET_STACK_EXPORT
+int bacapp_daterange_decode(uint8_t *apdu, BACNET_DATE_RANGE *value);
+
+/**
+ * Encode daterange with context tag
+ *
+ * @param apdu - apdu buffer; NULL to only measure capacity needed
+ * @param tag_number - context tag number
+ * @param value - value to encode
+ * @return number of bytes emitted, <= 0 on error
+ */
+BACNET_STACK_EXPORT
+int bacapp_daterange_context_encode(
+    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value);
+
+/**
+ * Decode daterange with context tag
+ *
+ * @param apdu - apdu buffer
+ * @param tag_number - context tag number to expect
+ * @param value - value to decode
+ * @return number of bytes consumed, <= 0 on error
+ */
+BACNET_STACK_EXPORT
+int bacapp_daterange_context_decode(
+    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value);
+
 /* implementation agnostic functions - create your own! */
 BACNET_STACK_EXPORT
 bool datetime_local(BACNET_DATE *bdate,
