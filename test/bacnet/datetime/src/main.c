@@ -638,6 +638,6 @@ void test_main(void)
         ztest_unit_test(testDatetimeCodec),
         ztest_unit_test(testWildcardDateTime));
 
-    ztest_run_test_suite(wp_tests);
+    ztest_run_test_suite(datetime_tests);
 }
 #endif

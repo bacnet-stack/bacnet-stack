@@ -353,6 +353,7 @@ bool bacapp_date_in_calendar_entry(BACNET_DATE *date,
                 date, &entry->type.DateRange.enddate) <= 0)) {
             return true;
         }
+        break;
     case BACNET_CALENDAR_WEEK_N_DAY:
         if (month_match(date, entry->type.WeekNDay.month) &&
             weekofmonth_match(date, entry->type.WeekNDay.weekofmonth) &&

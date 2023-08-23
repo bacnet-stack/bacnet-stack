@@ -1133,8 +1133,8 @@ int bacapp_known_property_tag(
             return -1;
 
         case PROP_DATE_LIST:
-            /* FIXME: Properties using : BACnetCalendarEntry */
-            return -1;
+            /* Properties using BACnetCalendarEntry */
+            return BACNET_APPLICATION_TAG_CALENDAR_ENTRY;
 
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             /* FIXME: BACnetCOVSubscription */
@@ -1309,6 +1309,12 @@ int bacapp_decode_known_property(uint8_t *apdu,
                 apdu, max_apdu_len, &value->type.Destination);
             break;
 
+        case PROP_DATE_LIST:
+            /* Properties using BACnetCalendarEntry */
+            len = bacnet_calendar_entry_decode(
+                apdu, max_apdu_len, &value->type.Calendar_Entry);
+            break;
+
             /* properties without a specific decoder - fall through to default
              */
 
@@ -1316,8 +1322,6 @@ int bacapp_decode_known_property(uint8_t *apdu,
             /* Properties using ReadAccessSpecification */
         case PROP_EXCEPTION_SCHEDULE:
             /* BACnetSpecialEvent (Schedule) */
-        case PROP_DATE_LIST:
-            /* FIXME: Properties using : BACnetCalendarEntry */
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             /* FIXME: BACnetCOVSubscription */
         case PROP_EFFECTIVE_PERIOD:

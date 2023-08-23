@@ -32,6 +32,7 @@
 #include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
+#include "bacnet/calendar_entry.h"
 #include "bacnet/datetime.h"
 #include "bacnet/lighting.h"
 #include "bacnet/bacdevobjpropref.h"
@@ -97,6 +98,7 @@ typedef struct BACnet_Application_Data_Value {
         BACNET_OBJECT_PROPERTY_REFERENCE
             Object_Property_Reference;
         BACNET_DESTINATION Destination;
+        BACNET_CALENDAR_ENTRY Calendar_Entry;
 #endif
     } type;
     /* simple linked list if needed */

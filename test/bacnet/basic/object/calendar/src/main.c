@@ -43,7 +43,7 @@ static void testCalendar(void)
         rpdata.object_property = *required_property;
         len = Calendar_Read_Property(&rpdata);
         zassert_true(len >= 0, NULL);
-        if (len >= 0) {
+        if (len > 0) {
             test_len = bacapp_decode_known_property(rpdata.application_data,
                 len, &value, rpdata.object_type, rpdata.object_property);
             if (len != test_len) {
