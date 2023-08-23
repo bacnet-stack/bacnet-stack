@@ -94,6 +94,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/wp.c
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/dailyschedule.c
+	${SRC_DIR}/bacnet/calendar_entry.c
+	${SRC_DIR}/bacnet/special_event.c
 	./stubs.c
     # Test and test library files
 	./src/main.c

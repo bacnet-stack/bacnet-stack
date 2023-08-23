@@ -224,7 +224,7 @@ bool bacnet_special_event_same(
         }
     }
 
-    // TODO extract shared code with `bacnet_weeklyschedule_same`
+    /* TODO extract shared code with `bacnet_weeklyschedule_same` */
     if (value1->timeValues.TV_Count != value2->timeValues.TV_Count) {
         return false;
     }

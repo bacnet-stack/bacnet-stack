@@ -47,7 +47,7 @@ extern "C" {
             BACNET_CALENDAR_ENTRY calendarEntry;
             BACNET_OBJECT_ID calendarReference;
         } period;
-        // We reuse the daily schedule struct and its encoding/decoding - it's identical
+        /* We reuse the daily schedule struct and its encoding/decoding - it's identical */
         BACNET_DAILY_SCHEDULE timeValues;
         uint8_t priority;
     } BACNET_SPECIAL_EVENT;

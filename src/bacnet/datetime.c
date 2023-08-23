@@ -1143,9 +1143,6 @@ int bacapp_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value)
         return -1;
     }
     apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
 
     return apdu_len;
 }
