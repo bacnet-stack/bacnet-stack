@@ -6,8 +6,8 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#ifndef HANDLER_CREATE_OBJECT_H
-#define HANDLER_CREATE_OBJECT_H
+#ifndef HANDLER_DELETE_OBJECT_H
+#define HANDLER_DELETE_OBJECT_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -21,7 +21,7 @@ extern "C" {
 #endif /* __cplusplus */
 
     BACNET_STACK_EXPORT
-    void handler_create_object(
+    void handler_delete_object(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,

@@ -1,13 +1,13 @@
 /**
  * @file
- * @brief CreateObject service initiation
+ * @brief DeleteObject service initiation
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
  *
  * SPDX-License-Identifier: MIT
  */
-#ifndef SEND_CREATE_OBJECT_H
-#define SEND_CREATE_OBJECT_H
+#ifndef SEND_DELETE_OBJECT_H
+#define SEND_DELETE_OBJECT_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -24,14 +24,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-uint8_t Send_Create_Object_Request_Data(
-    uint32_t device_id,
-    BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance,
-    BACNET_PROPERTY_VALUE *values);
-
-BACNET_STACK_EXPORT
-uint8_t Send_Create_Object_Request(
+uint8_t Send_Delete_Object_Request(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance);

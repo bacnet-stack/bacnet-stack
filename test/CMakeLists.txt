@@ -53,6 +53,7 @@ list(APPEND testdirs
   bacnet/bacstr
   bacnet/bactimevalue
   bacnet/cov
+  bacnet/create_object
   bacnet/datetime
   bacnet/dcc
   bacnet/event
@@ -62,6 +63,7 @@ list(APPEND testdirs
   bacnet/ihave
   bacnet/indtext
   bacnet/lighting
+  bacnet/list_element
   bacnet/lso
   bacnet/memcopy
   bacnet/npdu

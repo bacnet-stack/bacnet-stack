@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Application to send a BACnet CreateObject
+ * @brief Application to send a BACnet DeleteObject
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
  *
@@ -52,36 +52,12 @@ static bool Error_Detected = false;
 /* Used for verbose */
 static bool Verbose = false;
 
-static void MyCreateObjectErrorHandler(BACNET_ADDRESS *src,
-    uint8_t invoke_id,
-    uint8_t service_choice,
-    uint8_t *service_request,
-    uint16_t service_len)
-{
-    int len = 0;
-    BACNET_CREATE_OBJECT_DATA data;
-
-    (void)service_choice;
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
-        len = create_object_error_ack_decode(
-            service_request, service_len, &data);
-        if (len > 0) {
-            printf("BACnet Error: %s: %s [first-failed=%u]\n",
-                bactext_error_class_name((int)data.error_class),
-                bactext_error_code_name((int)data.error_code),
-                (unsigned)data.first_failed_element_number);
-        }
-        Error_Detected = true;
-    }
-}
-
-static void MyCreateObjectSimpleAckHandler(
+static void MyDeleteObjectSimpleAckHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("CreateObject Acknowledged!\n");
+        printf("DeleteObject Acknowledged!\n");
     }
 }
 
@@ -125,16 +101,14 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the ack or error coming back from confirmed request */
     apdu_set_confirmed_simple_ack_handler(
-        SERVICE_CONFIRMED_CREATE_OBJECT, MyCreateObjectSimpleAckHandler);
-    apdu_set_complex_error_handler(
-        SERVICE_CONFIRMED_CREATE_OBJECT, MyCreateObjectErrorHandler);
+        SERVICE_CONFIRMED_DELETE_OBJECT, MyDeleteObjectSimpleAckHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
 
 static void print_usage(char *filename)
 {
-    printf("Usage: %s device-instance object-type [object-instance]\n",
+    printf("Usage: %s device-instance object-type object-instance\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help][--verbose]\n");
@@ -152,20 +126,20 @@ static void print_help(char *filename)
            "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("object-type:\n"
-           "The object type is object that you are creating. It\n"
+           "The object type is object that you are deleting. It\n"
            "can be defined either as the object-type name string\n"
            "as defined in the BACnet specification, or as the\n"
            "integer value of the enumeration BACNET_OBJECT_TYPE\n"
            "in bacenum.h. For example if you were reading Analog\n"
            "Output 2, the object-type would be analog-output or 1.\n");
     printf("\n");
-    printf("object-instance (optional):\n"
+    printf("object-instance:\n"
            "This is the object instance number of the object that\n"
-           "you are creating.  For example, if you were writing\n"
+           "you are deleting.  For example, if you were deleting\n"
            "Analog Output 2, the object-instance would be 2.\n");
     printf("\n");
     printf("Example:\n"
-           "If you want to CreateObject of an Analog Input 1\n"
+           "If you want to DeleteObject an Analog Input 1\n"
            "send the following command:\n"
            "%s 123 0 1\n",
         filename);
@@ -298,10 +272,10 @@ int main(int argc, char *argv[])
             /* device is bound! */
             if (Request_Invoke_ID == 0) {
                 if (Verbose) {
-                    printf("Sending CreateObject to Device %u.\n",
+                    printf("Sending DeleteObject to Device %u.\n",
                         Target_Device_Object_Instance);
                 }
-                Request_Invoke_ID = Send_Create_Object_Request(
+                Request_Invoke_ID = Send_Delete_Object_Request(
                     Target_Device_Object_Instance, Target_Object_Type,
                     Target_Object_Instance);
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {

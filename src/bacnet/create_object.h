@@ -48,14 +48,6 @@ typedef struct BACnet_Create_Object_Data {
  */
 typedef bool (*create_object_function)(uint32_t object_instance);
 
-/**
- * @brief DeleteObject service handler for an object
- * @ingroup ObjHelpers
- * @param object_instance [in] instance number of the object to delete
- * @return true if the object instance is deleted
- */
-typedef bool (*delete_object_function)(uint32_t object_instance);
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

@@ -118,7 +118,7 @@ int create_object_decode_service_request(
     uint8_t *apdu, uint32_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 0;
-    int apdu_len = BACNET_STATUS_REJECT;
+    int apdu_len = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     uint32_t enumerated_value = 0;
@@ -136,7 +136,7 @@ int create_object_decode_service_request(
     /* object-identifier [1] BACnetObjectIdentifier */
     len = bacnet_object_id_context_decode(&apdu[apdu_len], apdu_size - apdu_len,
         1, &object_type, &object_instance);
-    if (len != BACNET_STATUS_ERROR) {
+    if ((len != BACNET_STATUS_ERROR) && (len != 0)) {
         if ((object_type >= MAX_BACNET_OBJECT_TYPE) ||
             (object_instance >= BACNET_MAX_INSTANCE)) {
             if (data) {
@@ -153,7 +153,7 @@ int create_object_decode_service_request(
         /* object-type [0] BACnetObjectType */
         len = bacnet_enumerated_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 0, &enumerated_value);
-        if (len != BACNET_STATUS_ERROR) {
+        if ((len != BACNET_STATUS_ERROR) && (len != 0)) {
             if (enumerated_value >= MAX_BACNET_OBJECT_TYPE) {
                 if (data) {
                     data->error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
@@ -264,7 +264,7 @@ int create_object_error_ack_encode(
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  size of the buffer for decoding.
  * @param data  Pointer to the property data to be encoded.
- * @return Bytes encoded or zero on error.
+ * @return Bytes encoded or BACNET_STATUS_REJECT on error.
  */
 int create_object_error_ack_decode(
     uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
@@ -275,7 +275,7 @@ int create_object_error_ack_decode(
     BACNET_UNSIGNED_INTEGER first_failed_element_number = 0;
 
     if (!apdu) {
-        return 0;
+        return BACNET_STATUS_REJECT;
     }
     if (data) {
         data->first_failed_element_number = 0;
@@ -283,7 +283,7 @@ int create_object_error_ack_decode(
         data->error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
     }
     if (apdu_size < apdu_len) {
-        return 0;
+        return BACNET_STATUS_REJECT;
     }
     /* Opening Context tag 0 - Error */
     if (decode_is_opening_tag_number(apdu, 0)) {
@@ -292,10 +292,10 @@ int create_object_error_ack_decode(
         apdu_len += len;
         apdu += len;
     } else {
-        return 0;
+        return BACNET_STATUS_REJECT;
     }
     if (apdu_size < apdu_len) {
-        return 0;
+        return BACNET_STATUS_REJECT;
     }
     len = bacerror_decode_error_class_and_code(
         apdu, apdu_size - apdu_len, &error_class, &error_code);
@@ -307,10 +307,10 @@ int create_object_error_ack_decode(
         apdu_len += len;
         apdu += len;
     } else {
-        return 0;
+        return BACNET_STATUS_REJECT;
     }
     if (apdu_size < apdu_len) {
-        return 0;
+        return BACNET_STATUS_REJECT;
     }
     /* Closing Context tag 0 - Error */
     if (decode_is_closing_tag_number(apdu, 0)) {
@@ -319,10 +319,10 @@ int create_object_error_ack_decode(
         apdu_len += len;
         apdu += len;
     } else {
-        return 0;
+        return BACNET_STATUS_REJECT;
     }
     if (apdu_size < apdu_len) {
-        return 0;
+        return BACNET_STATUS_REJECT;
     }
     len = bacnet_unsigned_context_decode(
         apdu, apdu_size - apdu_len, 1, &first_failed_element_number);
@@ -332,7 +332,7 @@ int create_object_error_ack_decode(
         }
         apdu_len += len;
     } else {
-        return 0;
+        return BACNET_STATUS_REJECT;
     }
 
     return apdu_len;
