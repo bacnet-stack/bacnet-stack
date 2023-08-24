@@ -1602,13 +1602,14 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
 {
     int ret_val = 0;
     int slen = 0;
+    char *weekday_text, *month_text;
 
+    weekday_text = bactext_day_of_week_name(bdate->wday);
+    month_text = bactext_month_name(bdate->month);
     /* false positive cppcheck - snprintf allows null pointers */
     /* cppcheck-suppress nullPointer */
     /* cppcheck-suppress ctunullpointer */
-    slen =
-        snprintf(str, str_len, "%s, %s", bactext_day_of_week_name(bdate->wday),
-            bactext_month_name(bdate->month));
+    slen = snprintf(str, str_len, "%s, %s", weekday_text, month_text);
     if (str) {
         str += slen;
         if (str_len >= slen) {
@@ -3006,8 +3007,8 @@ int bacapp_property_value_decode(
     if (len == BACNET_STATUS_ERROR) {
         return BACNET_STATUS_ERROR;
     }
+    property_identifier = enumerated_value;
     if (value) {
-        property_identifier = enumerated_value;
         value->propertyIdentifier = property_identifier;
     }
     apdu_len += len;
