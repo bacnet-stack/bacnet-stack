@@ -71,6 +71,7 @@ list(APPEND testdirs
   bacnet/reject
   bacnet/rp
   bacnet/rpm
+  bacnet/specialevent
   bacnet/timestamp
   bacnet/timesync
   bacnet/whohas
