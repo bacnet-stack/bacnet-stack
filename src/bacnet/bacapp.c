@@ -1602,7 +1602,7 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
 {
     int ret_val = 0;
     int slen = 0;
-    char *weekday_text, *month_text;
+    const char *weekday_text, *month_text;
 
     weekday_text = bactext_day_of_week_name(bdate->wday);
     month_text = bactext_month_name(bdate->month);

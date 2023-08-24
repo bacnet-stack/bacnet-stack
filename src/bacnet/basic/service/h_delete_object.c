@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief CreateObject and DeleteObject service application handlers
+ * @brief DeleteObject service application handlers
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
  *
