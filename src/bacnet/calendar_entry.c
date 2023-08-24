@@ -59,57 +59,29 @@ int bacnet_calendar_entry_encode(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value)
 {
     int len = 0;
     int apdu_len = 0;
-
-    len = encode_opening_tag(apdu, value->tag);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
+    BACNET_OCTET_STRING octetstring;
 
     switch (value->tag) {
     case BACNET_CALENDAR_DATE:
-        len = encode_bacnet_date(apdu, &value->type.Date);
+        len = encode_context_date(apdu, value->tag, &value->type.Date);
         apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
         break;
     case BACNET_CALENDAR_DATE_RANGE:
-        len = encode_bacnet_date(apdu, &value->type.DateRange.startdate);
+        len = bacapp_daterange_context_encode(apdu, value->tag, &value->type.DateRange);
         apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = encode_bacnet_date(apdu, &value->type.DateRange.enddate);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
         break;
     case BACNET_CALENDAR_WEEK_N_DAY:
-        len = encode_bacnet_unsigned(apdu, value->type.WeekNDay.month);
+        octetstring.value[0] = value->type.WeekNDay.month;
+        octetstring.value[1] = value->type.WeekNDay.weekofmonth;
+        octetstring.value[2] = value->type.WeekNDay.dayofweek;
+        octetstring.length = 3;
+        len = encode_context_octet_string(apdu, value->tag, &octetstring);
         apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = encode_bacnet_unsigned(apdu, value->type.WeekNDay.weekofmonth);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = encode_bacnet_unsigned(apdu, value->type.WeekNDay.dayofweek);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
         break;
     default:
         /* do nothing */
         break;
     }
-
-    len = encode_closing_tag(apdu, value->tag);
-    apdu_len += len;
 
     return apdu_len;
 }
@@ -155,99 +127,58 @@ int bacnet_calendar_entry_encode_context(
 int bacnet_calendar_entry_decode(uint8_t *apdu, uint32_t apdu_max_len,
     BACNET_CALENDAR_ENTRY *entry)
 {
-    int apdu_len;
-    int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    int apdu_len = 0;
+    int len;
+    BACNET_OCTET_STRING octet_string = { 0 };
 
-    if (!apdu) {
-        return BACNET_STATUS_REJECT;
-    }
-    if (!entry) {
+    if (!apdu || !entry) {
         return BACNET_STATUS_REJECT;
     }
 
-    apdu_len = decode_tag_number(apdu, &entry->tag);
-    if ((apdu_len == 0) || (apdu_len == BACNET_STATUS_ERROR)) {
+    len = decode_tag_number(apdu, &entry->tag);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    apdu += apdu_len;
-    apdu_max_len -= apdu_len;
 
     switch (entry->tag) {
     case BACNET_CALENDAR_DATE:
-        len = bacapp_decode_application_data(apdu, apdu_max_len, &value);
-        if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-            (value.tag != BACNET_APPLICATION_TAG_DATE)) {
+        len = decode_context_date(apdu, entry->tag, &entry->type.Date);
+        if (len <= 0) {
             return BACNET_STATUS_REJECT;
         }
-        datetime_copy_date(&entry->type.Date, &value.type.Date);
         apdu_len += len;
-        apdu += len;
-        apdu_max_len -= apdu_len;
         break;
+
     case BACNET_CALENDAR_DATE_RANGE:
-        len = bacapp_decode_application_data(apdu, apdu_max_len, &value);
-        if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-            (value.tag != BACNET_APPLICATION_TAG_DATE)) {
+        len = bacapp_daterange_context_decode(apdu, entry->tag, &entry->type.DateRange);
+        if (len <= 0) {
             return BACNET_STATUS_REJECT;
         }
-        datetime_copy_date(&entry->type.DateRange.startdate, &value.type.Date);
         apdu_len += len;
-        apdu += len;
-        apdu_max_len -= apdu_len;
-
-        len = bacapp_decode_application_data(apdu, apdu_max_len, &value);
-        if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-            (value.tag != BACNET_APPLICATION_TAG_DATE)) {
-            return BACNET_STATUS_REJECT;
-        }
-        datetime_copy_date(&entry->type.DateRange.enddate, &value.type.Date);
-        apdu_len += len;
-        apdu += len;
-        apdu_max_len -= apdu_len;
         break;
+
     case BACNET_CALENDAR_WEEK_N_DAY:
-        len = bacapp_decode_application_data(apdu, apdu_max_len, &value);
-        if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-            (value.tag != BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
-            return BACNET_STATUS_REJECT;
-        }
-        entry->type.WeekNDay.month = value.type.Unsigned_Int;
-        apdu_len += len;
-        apdu += len;
-        apdu_max_len -= apdu_len;
+        /* skip the tag */
+        apdu_len++;
+        apdu++;
+        /*apdu_max_len--;*/
 
-        len = bacapp_decode_application_data(apdu, apdu_max_len, &value);
-        if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-            (value.tag != BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
+        len = decode_context_octet_string(apdu, entry->tag, &octet_string);
+        if (len <= 0) {
             return BACNET_STATUS_REJECT;
         }
-        entry->type.WeekNDay.weekofmonth = value.type.Unsigned_Int;
         apdu_len += len;
-        apdu += len;
-        apdu_max_len -= apdu_len;
 
-        len = bacapp_decode_application_data(apdu, apdu_max_len, &value);
-        if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-            (value.tag != BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
-            return BACNET_STATUS_REJECT;
+        if (octet_string.length != 3) {
+            return BACNET_STATUS_ERROR;
         }
-        entry->type.WeekNDay.dayofweek = value.type.Unsigned_Int;
-        apdu_len += len;
-        apdu += len;
-        apdu_max_len -= apdu_len;
+
+        entry->type.WeekNDay.month = octet_string.value[0];
+        entry->type.WeekNDay.weekofmonth = octet_string.value[1];
+        entry->type.WeekNDay.dayofweek = octet_string.value[2];
         break;
     default:
        /* none */
-        return BACNET_STATUS_REJECT;
-    }
-
-    if (!decode_is_closing_tag_number(apdu, entry->tag)) {
-        return BACNET_STATUS_REJECT;
-    }
-    apdu_len += 1;
-
-    if (apdu_len > apdu_max_len) {
         return BACNET_STATUS_REJECT;
     }
 
