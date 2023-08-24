@@ -405,7 +405,7 @@ int cov_subscribe_encode_apdu(uint8_t *apdu,
 
 /**
  * @brief Decode the subscribe-service request only.
- * 
+ *
  *  SubscribeCOV-Request ::= SEQUENCE {
  *      subscriberProcessIdentifier  [0] Unsigned32,
  *      monitoredObjectIdentifier    [1] BACnetObjectIdentifier,
@@ -473,7 +473,9 @@ int cov_subscribe_decode_service_request(
             len += value_len;
         } else if (value_len == 0) {
             /* invalid tag */
-            data->issueConfirmedNotifications = false;
+            if (data) {
+                data->issueConfirmedNotifications = false;
+            }
         } else {
             if (data) {
                 data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
@@ -484,7 +486,9 @@ int cov_subscribe_decode_service_request(
         /* If both the 'Issue Confirmed Notifications' and
            'Lifetime' parameters are absent, then this shall
            indicate a cancellation request. */
-        data->cancellationRequest = true;
+        if (data) {
+            data->cancellationRequest = true;
+        }
     }
     if ((unsigned)len < apdu_size) {
         /* lifetime [3] Unsigned OPTIONAL */
@@ -502,7 +506,9 @@ int cov_subscribe_decode_service_request(
             return BACNET_STATUS_ERROR;
         }
     } else {
-        data->lifetime = 0;
+        if (data) {
+            data->lifetime = 0;
+        }
     }
 
     return len;

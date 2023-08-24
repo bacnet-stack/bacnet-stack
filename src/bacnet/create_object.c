@@ -122,6 +122,8 @@ int create_object_decode_service_request(
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     uint32_t enumerated_value = 0;
+    BACNET_PROPERTY_VALUE *list_of_initial_values = NULL;
+
 
     /* object-specifier [0] CHOICE */
     if (!bacnet_is_opening_tag_number(
@@ -184,8 +186,11 @@ int create_object_decode_service_request(
     if (bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
         apdu_len += len;
+        if (data) {
+            list_of_initial_values = data->list_of_initial_values;
+        }
         len = bacapp_property_value_decode(&apdu[apdu_len],
-            apdu_size - apdu_len, data->list_of_initial_values);
+            apdu_size - apdu_len, list_of_initial_values);
         if (len == BACNET_STATUS_ERROR) {
             if (data) {
                 data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
