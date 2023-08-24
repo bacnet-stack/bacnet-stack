@@ -5,8 +5,6 @@
  * @date August 2023
  * @section LICENSE
  *
- * Copyright (C) 2023 Steve Karg <skarg@users.sourceforge.net>
- *
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
@@ -63,7 +61,7 @@ int delete_object_decode_service_request(
     uint8_t *apdu, uint32_t apdu_size, BACNET_DELETE_OBJECT_DATA *data)
 {
     int len = 0;
-    int apdu_len = BACNET_STATUS_REJECT;
+    int apdu_len = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
 
@@ -77,7 +75,7 @@ int delete_object_decode_service_request(
         return BACNET_STATUS_REJECT;
     } else {
         if ((object_type >= MAX_BACNET_OBJECT_TYPE) ||
-            (object_instance >= BACNET_MAX_INSTANCE)) {
+            (object_instance > BACNET_MAX_INSTANCE)) {
             if (data) {
                 data->error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
             }

@@ -1,11 +1,9 @@
 /**
  * @file
- * @brief CreateObject and DeleteObject service encode and decode
+ * @brief CreateObject service encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
  * @section LICENSE
- *
- * Copyright (C) 2023 Steve Karg <skarg@users.sourceforge.net>
  *
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */

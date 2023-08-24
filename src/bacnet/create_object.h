@@ -1,11 +1,9 @@
 /**
  * @file
- * @brief API for CreateObject and DeleteObject service encode and decode
+ * @brief API for CreateObject service encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
  * @section LICENSE
- *
- * Copyright (C) 2023 Steve Karg <skarg@users.sourceforge.net>
  *
  * SPDX-License-Identifier: MIT
  */

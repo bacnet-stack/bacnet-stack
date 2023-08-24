@@ -4,9 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
  * @section LICENSE
- *
- * Copyright (C) 2023 Steve Karg <skarg@users.sourceforge.net>
- *
+  *
  * SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_DELETE_OBJECT_H

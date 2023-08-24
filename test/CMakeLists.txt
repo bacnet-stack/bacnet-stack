@@ -56,6 +56,7 @@ list(APPEND testdirs
   bacnet/create_object
   bacnet/datetime
   bacnet/dcc
+  bacnet/delete_object
   bacnet/event
   bacnet/getalarm
   bacnet/getevent
