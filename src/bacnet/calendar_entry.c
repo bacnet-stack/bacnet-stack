@@ -158,11 +158,6 @@ int bacnet_calendar_entry_decode(uint8_t *apdu, uint32_t apdu_max_len,
         break;
 
     case BACNET_CALENDAR_WEEK_N_DAY:
-        /* skip the tag */
-        apdu_len++;
-        apdu++;
-        /*apdu_max_len--;*/
-
         len = decode_context_octet_string(apdu, entry->tag, &octet_string);
         if (len <= 0) {
             return BACNET_STATUS_REJECT;
