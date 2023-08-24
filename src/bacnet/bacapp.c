@@ -177,6 +177,11 @@ int bacapp_encode_application_data(
                 apdu_len = bacnet_weeklyschedule_encode(
                     apdu, &value->type.Weekly_Schedule);
                 break;
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* BACnetCalendarEntry */
+                apdu_len = bacnet_calendar_entry_encode(
+                    apdu, &value->type.Calendar_Entry);
+                break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 /* BACnetHostNPort */
                 apdu_len = host_n_port_encode(apdu, &value->type.Host_Address);
@@ -330,6 +335,11 @@ int bacapp_decode_data(uint8_t *apdu,
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 len = bacnet_weeklyschedule_decode(
                     apdu, len_value_type, &value->type.Weekly_Schedule);
+                break;
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* BACnetCalendarEntry */
+                len = bacnet_calendar_entry_decode(
+                    apdu, len_value_type, &value->type.Calendar_Entry);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 len = host_n_port_decode(
@@ -657,6 +667,11 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 /* BACnetWeeklySchedule */
                 apdu_len = bacnet_weeklyschedule_context_encode(
                     apdu, context_tag_number, &value->type.Weekly_Schedule);
+                break;
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* BACnetCalendarEntry */
+                apdu_len = bacnet_calendar_entry_context_encode(apdu,
+                    context_tag_number, &value->type.Calendar_Entry);
                 break;
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
@@ -2290,7 +2305,12 @@ int bacapp_snprintf_value(
                 ret_val = bacnet_destination_to_ascii(
                     &value->type.Destination, str, str_len);
                 break;
-            case BACNET_APPLICATION_TAG_HOST_N_PORT:
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* FIXME: add printing for BACnetCalendarEntry */
+                ret_val =
+                    snprintf(str, str_len, "CalendarEntry(TODO)");
+                break;
+           case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 if (value->type.Host_Address.host_ip_address) {
                     octet_str = octetstring_value(
                         &value->type.Host_Address.host.ip_address);
@@ -2788,6 +2808,9 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 status = parse_weeklyschedule(argv, value);
                 break;
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* FIXME: add parsing for BACnetCalendarEntry */
+                break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 count = sscanf(argv, "%3u.%3u.%3u.%3u:%5u", &a[0], &a[1], &a[2],
                     &a[3], &p);
@@ -3248,6 +3271,12 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 status = host_n_port_same(
                     &value->type.Host_Address, &value->type.Host_Address);
+                break;
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* BACnetCalendarEntry */
+                status =
+                    bacnet_calendar_entry_same(&value->type.Calendar_Entry,
+                        &test_value->type.Calendar_Entry);
                 break;
 #endif
             default:
