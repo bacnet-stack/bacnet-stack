@@ -11,6 +11,7 @@
 #include <ctype.h>  /* For isprint */
 #include <zephyr/ztest.h>
 #include <bacnet/bacdcode.h>
+#include <memory.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -270,6 +271,103 @@ static void testBACDCodeDouble(void)
     zassert_equal(decoded_value, value, NULL);
 
     return;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACnetDateDecodes)
+#else
+static void testBACnetDateDecodes(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU];
+    uint8_t sample[10] = {0xa4, 0xff, 0xff, 0xff, 0xff};
+    int inLen;
+    int outLen;
+    int outLen2;
+
+    BACNET_DATE in;
+    BACNET_DATE out;
+
+    in.day = 3;
+    in.month = 10;
+    in.wday = 5;
+    in.year = 1945;
+
+    inLen = encode_application_date(apdu, &in);
+    outLen = decode_application_date(apdu, &out);
+
+    zassert_equal(inLen, outLen, NULL);
+    zassert_equal(in.day, out.day, NULL);
+    zassert_equal(in.month, out.month, NULL);
+    zassert_equal(in.wday, out.wday, NULL);
+    zassert_equal(in.year, out.year, NULL);
+
+    memset(&out, 0, sizeof(out));
+    outLen = decode_application_date(sample, &out);
+
+    /* try decoding sample data captured from a bacnet device - all wildcards */
+    zassert_equal(5, outLen, NULL);
+    zassert_equal(0xff, out.day, NULL);
+    zassert_equal(0xff, out.month, NULL);
+    zassert_equal(0xff, out.wday, NULL);
+    zassert_equal(2155, out.year, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testBACnetDateRangeDecodes)
+#else
+static void testBACnetDateRangeDecodes(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU];
+    uint8_t sample[10] = {0xa4, 0xff, 0xff, 0xff, 0xff, 0xa4, 0xff, 0xff, 0xff, 0xff};
+    int inLen;
+    int outLen;
+    int outLen2;
+
+    BACNET_DATE_RANGE in;
+    BACNET_DATE_RANGE out;
+
+    memset(&out, 0, sizeof(out));
+
+    in.startdate.day = 3;
+    in.startdate.month = 10;
+    in.startdate.wday = 5;
+    in.startdate.year = 1945;
+
+    in.enddate.day = 24;
+    in.enddate.month = 8;
+    in.enddate.wday = 4;
+    in.enddate.year = 2023;
+
+    inLen = bacapp_daterange_encode(apdu, &in);
+    outLen = bacapp_daterange_decode(apdu, &out);
+
+    zassert_equal(inLen, outLen, NULL);
+    zassert_equal(in.startdate.day, out.startdate.day, NULL);
+    zassert_equal(in.startdate.month, out.startdate.month, NULL);
+    zassert_equal(in.startdate.wday, out.startdate.wday, NULL);
+    zassert_equal(in.startdate.year, out.startdate.year, NULL);
+
+    zassert_equal(in.enddate.day, out.enddate.day, NULL);
+    zassert_equal(in.enddate.month, out.enddate.month, NULL);
+    zassert_equal(in.enddate.wday, out.enddate.wday, NULL);
+    zassert_equal(in.enddate.year, out.enddate.year, NULL);
+
+    memset(&out, 0, sizeof(out));
+    outLen = bacapp_daterange_decode(sample, &out);
+
+    /* try decoding sample data captured from a bacnet device - all wildcards */
+    zassert_equal(10, outLen, NULL);
+    zassert_equal(0xff, out.startdate.day, NULL);
+    zassert_equal(0xff, out.startdate.month, NULL);
+    zassert_equal(0xff, out.startdate.wday, NULL);
+    zassert_equal(2155, out.startdate.year, NULL);
+
+    zassert_equal(0xff, out.enddate.day, NULL);
+    zassert_equal(0xff, out.enddate.month, NULL);
+    zassert_equal(0xff, out.enddate.wday, NULL);
+    zassert_equal(2155, out.enddate.year, NULL);
 }
 
 static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
@@ -1385,11 +1483,54 @@ static void testDateContextDecodes(void)
     outLen = decode_context_date(apdu, large_context_tag, &out);
     outLen2 = decode_context_date(apdu, large_context_tag - 1, &out);
 
+    zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
     zassert_equal(inLen, outLen, NULL);
     zassert_equal(in.day, out.day, NULL);
     zassert_equal(in.month, out.month, NULL);
     zassert_equal(in.wday, out.wday, NULL);
     zassert_equal(in.year, out.year, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, testDateRangeContextDecodes)
+#else
+static void testDateRangeContextDecodes(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU];
+    int inLen;
+    int outLen;
+    int outLen2;
+
+    BACNET_DATE_RANGE in;
+    BACNET_DATE_RANGE out;
+    memset(&in, 0, sizeof(in));
+    memset(&out, 0, sizeof(out));
+
+    in.startdate.day = 3;
+    in.startdate.month = 10;
+    in.startdate.wday = 5;
+    in.startdate.year = 1945;
+
+    in.enddate.day = 24;
+    in.enddate.month = 8;
+    in.enddate.wday = 4;
+    in.enddate.year = 2023;
+
+    inLen = bacapp_daterange_context_encode(apdu, 10, &in);
+    outLen = bacapp_daterange_context_decode(apdu, 10, &out);
+    outLen2 = bacapp_daterange_context_decode(apdu, 9, &out);
+
+    zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(inLen, outLen, NULL);
+    zassert_equal(in.startdate.day, out.startdate.day, NULL);
+    zassert_equal(in.startdate.month, out.startdate.month, NULL);
+    zassert_equal(in.startdate.wday, out.startdate.wday, NULL);
+    zassert_equal(in.startdate.year, out.startdate.year, NULL);
+    zassert_equal(in.enddate.day, out.enddate.day, NULL);
+    zassert_equal(in.enddate.month, out.enddate.month, NULL);
+    zassert_equal(in.enddate.wday, out.enddate.wday, NULL);
+    zassert_equal(in.enddate.year, out.enddate.year, NULL);
 }
 
 /**
@@ -1495,6 +1636,8 @@ void test_main(void)
      ztest_unit_test(testBACnetUnsigned),
      ztest_unit_test(testBACDCodeSigned),
      ztest_unit_test(testBACnetSigned),
+     ztest_unit_test(testBACnetDateDecodes),
+     ztest_unit_test(testBACnetDateRangeDecodes),
      ztest_unit_test(testBACDCodeEnumerated),
      ztest_unit_test(testBACDCodeOctetString),
      ztest_unit_test(testBACDCodeCharacterString),
@@ -1511,6 +1654,7 @@ void test_main(void)
      ztest_unit_test(testBitStringContextDecodes),
      ztest_unit_test(testTimeContextDecodes),
      ztest_unit_test(testDateContextDecodes),
+     ztest_unit_test(testDateRangeContextDecodes),
      ztest_unit_test(testOctetStringContextDecodes),
      ztest_unit_test(testBACDCodeDouble),
      ztest_unit_test(test_bacnet_array_encode)
