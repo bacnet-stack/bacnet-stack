@@ -3,6 +3,7 @@
  * @brief CreateObject service initiation
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
+ * @section LICENSE
  *
  * SPDX-License-Identifier: MIT
  */
