@@ -14,27 +14,38 @@ BUILD_DIR=build
 CTEST_OPTIONS := --quiet --output-on-failure
 CTEST_OPTIONS += --output-junit test-results.xml
 
-JOBS = "-j"
 ifeq ($(OS),Windows_NT)
-	UNAME_MINGW := $(shell uname -s | grep -o MINGW)
-	ifeq ($(UNAME_MINGW),MINGW)
-		JOBS = "-j"
+	ifeq '$(findstring ;,$(PATH))' ';'
+		UNAME_S := Windows
 	else
-		JOBS = "-j %NUMBER_OF_PROCESSORS%"
+		UNAME_S := $(shell uname 2>/dev/null || echo Unknown)
+		UNAME_S := $(patsubst CYGWIN%,Cygwin,$(UNAME_S))
+		UNAME_S := $(patsubst MSYS%,MSYS,$(UNAME_S))
+		UNAME_S := $(patsubst MINGW%,MSYS,$(UNAME_S))
 	endif
 else
 	UNAME_S := $(shell uname -s)
+	UNAME_S := $(patsubst BSD%,BSD,$(UNAME_S))
+endif
+
+# unlimited parallel makefile jobs can 
+# overwhelm builders with limited resources
+# set job limits based on number of core processors
+ifeq (${JOBS},)
+	ifeq ($(UNAME_S),Windows)
+		JOBS = "-j %NUMBER_OF_PROCESSORS%"
+	endif
 	ifeq ($(UNAME_S),Linux)
 		JOBS = "-j $(nproc)"
 	endif
 	ifeq ($(UNAME_S),Darwin)
 		JOBS = "-j $(sysctl -n hw.ncpu)"
 	endif
-	UNAME_BSD := $(shell uname -s | grep -o BSD)
-	ifeq ($(UNAME_BSD),BSD)
+	ifeq ($(UNAME_S),BSD)
 		JOBS = "-j $(sysctl -n hw.ncpu)"
 	endif
 endif
+JOBS ?= "-j"
 
 .PHONY: test
 test:
