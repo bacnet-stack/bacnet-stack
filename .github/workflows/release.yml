@@ -30,11 +30,16 @@ jobs:
       id: vars
       run: |
         echo ::set-output name=version::$(echo ${{github.ref_name}} | sed -e 's/^vbacnet-stack-//')
-        echo ::set-output name=tool::$(echo ${{github.ref_name}} | sed -e 's/stack/tool/')
+        echo ::set-output name=tools::$(echo ${{github.ref_name}} | sed -e 's/stack/tools/')
         echo ::set-output name=archive::$(echo ${{github.ref_name}})
     - name: ZIP Win32 Apps
       run: |
-        zip -r ${{steps.vars.outputs.tool}} ./bin/*.exe ./bin/readme.txt ./apps/mstpcap/mstpcap.txt
+        mkdir ./${{steps.vars.outputs.tools}}
+        cp ./bin/*.exe ./${{steps.vars.outputs.tools}}
+        cp ./bin/bvlc.bat ./${{steps.vars.outputs.tools}}
+        cp ./bin/readme.txt ./${{steps.vars.outputs.tools}}
+        cp ./apps/mstpcap/mstpcap.txt ./${{steps.vars.outputs.tools}}
+        zip -r ${{steps.vars.outputs.tools}}.zip ./${{steps.vars.outputs.tools}}/*
     - name: ZIP Source Code
       run: |
         git archive --format zip --output ${{steps.vars.outputs.archive}}.zip ${{github.ref_name}}
@@ -49,19 +54,19 @@ jobs:
           default_posix: "default=mac&default=linux&default=bsd&default=solaris&default=others"
           accept: "Accept: application/json"
           url: "https://sourceforge.net/projects/bacnet/files"
-          url_tools: "$url/bacnet-tools/${{steps.vars.outputs.tool}}"
-          url_source: "$url/bacnet-tools/${{steps.vars.outputs.archive}}"
+          url_tools: "$url/bacnet-tools/${{steps.vars.outputs.tools}}"
+          url_source: "$url/bacnet-stack/${{steps.vars.outputs.archive}}"
         steps:
           - name: Upload tools to sf.net as default download for Windows
             run: |
               curl -H $accept -X PUT -d $default_win -d $api_key -d $url_tools
-              curl -H $accept -X PUT -d ${{steps.vars.outputs.tool}}.zip -d $api_key -d $url_tools
+              curl -H $accept -X PUT -d ${{steps.vars.outputs.tools}}.zip -d $api_key -d $url_tools
               curl -H $accept -X PUT -d ./bin/readme.txt -d $api_key -d $url_tools
           - name: Upload archive to sf.net as default download for POSIX
             run: |
-              curl -H $accept -X PUT -d $default_posix -d $api_key -d $url
-              curl -H $accept -X PUT -d ${{steps.vars.outputs.archive}}.zip -d $api_key -d $url_tools
-              curl -H $accept -X PUT -d ${{steps.vars.outputs.archive}}.tgz -d $api_key -d $url_tools
-              curl -H $accept -X PUT -d ./README.md -d $api_key -d $url_tools
-              curl -H $accept -X PUT -d ./SECURITY.md -d $api_key -d $url_tools
-              curl -H $accept -X PUT -d ./CHANGELOG.md -d $api_key -d $url_tools
+              curl -H $accept -X PUT -d $default_posix -d $api_key -d $url_source
+              curl -H $accept -X PUT -d ${{steps.vars.outputs.archive}}.zip -d $api_key -d $url_source
+              curl -H $accept -X PUT -d ${{steps.vars.outputs.archive}}.tgz -d $api_key -d $url_source
+              curl -H $accept -X PUT -d ./README.md -d $api_key -d $url_source
+              curl -H $accept -X PUT -d ./SECURITY.md -d $api_key -d $url_source
+              curl -H $accept -X PUT -d ./CHANGELOG.md -d $api_key -d $url_source
