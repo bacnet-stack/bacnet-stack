@@ -14,38 +14,41 @@ BUILD_DIR=build
 CTEST_OPTIONS := --quiet --output-on-failure
 CTEST_OPTIONS += --output-junit test-results.xml
 
+# determine the compile environment name
 ifeq ($(OS),Windows_NT)
-	ifeq '$(findstring ;,$(PATH))' ';'
-		UNAME_S := Windows
-	else
-		UNAME_S := $(shell uname 2>/dev/null || echo Unknown)
-		UNAME_S := $(patsubst CYGWIN%,Cygwin,$(UNAME_S))
-		UNAME_S := $(patsubst MSYS%,MSYS,$(UNAME_S))
-		UNAME_S := $(patsubst MINGW%,MSYS,$(UNAME_S))
-	endif
+SYS := $(shell gcc -dumpmachine)
+ifneq (, $(findstring mingw, $(SYS)))
+UNAME_S := MinGW
+else ifneq (, $(findstring cygwin, $(SYS)))
+UNAME_S := Cygwin
 else
-	UNAME_S := $(shell uname -s)
-	UNAME_S := $(patsubst BSD%,BSD,$(UNAME_S))
+UNAME_S := Windows
+endif
+else
+UNAME_S := $(shell uname -s)
+UNAME_S := $(patsubst BSD%,BSD,$(UNAME_S))
 endif
 
 # unlimited parallel makefile jobs can 
 # overwhelm builders with limited resources
 # set job limits based on number of core processors
 ifeq (${JOBS},)
-	ifeq ($(UNAME_S),Windows)
-		JOBS = "-j %NUMBER_OF_PROCESSORS%"
-	endif
-	ifeq ($(UNAME_S),Linux)
-		JOBS = "-j $(nproc)"
-	endif
-	ifeq ($(UNAME_S),Darwin)
-		JOBS = "-j $(sysctl -n hw.ncpu)"
-	endif
-	ifeq ($(UNAME_S),BSD)
-		JOBS = "-j $(sysctl -n hw.ncpu)"
-	endif
+  ifeq ($(UNAME_S),Windows)
+    JOBS = "-j %NUMBER_OF_PROCESSORS%"
+  endif
+  ifeq ($(UNAME_S),Linux)
+    JOBS = "-j $(nproc)"
+  endif
+  ifeq ($(UNAME_S),Darwin)
+    JOBS = "-j $(sysctl -n hw.ncpu)"
+  endif
+  ifeq ($(UNAME_S),BSD)
+    JOBS = "-j $(sysctl -n hw.ncpu)"
+  endif
+  ifeq ($(UNAME_S),MinGW)
+    JOBS = "-j"
+  endif
 endif
-JOBS ?= "-j"
 
 .PHONY: test
 test:
@@ -64,6 +67,13 @@ retest:
 .PHONY: report
 report:
 	[ -d $(BUILD_DIR) ] && cat $(BUILD_DIR)/Testing/Temporary/LastTest*.log
+
+.PHONY: env
+env:
+	@echo "Makefile environment variables"
+	@echo "UNAME_S=$(UNAME_S)"
+	@echo "JOBS=$(JOBS)"
+	@echo "BUILD_DIR=$(BUILD_DIR)"
 
 .PHONY: clean
 clean:
