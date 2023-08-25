@@ -64,7 +64,7 @@ BACNET_STACK_EXPORT
 int bacnet_calendar_entry_encode(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value);
 
 BACNET_STACK_EXPORT
-int bacnet_calendar_entry_encode_context(
+int bacnet_calendar_entry_context_encode(
     uint8_t *apdu, uint8_t tag_number, BACNET_CALENDAR_ENTRY *value);
 
 BACNET_STACK_EXPORT
@@ -72,7 +72,7 @@ int bacnet_calendar_entry_decode(
     uint8_t *apdu, uint32_t apdu_max_len, BACNET_CALENDAR_ENTRY *entry);
 
 BACNET_STACK_EXPORT
-int bacnet_calendar_entry_decode_context(
+int bacnet_calendar_entry_context_decode(
     uint8_t *apdu, uint32_t apdu_max_len, uint8_t tag_number,
     BACNET_CALENDAR_ENTRY *value);
 
@@ -88,3 +88,4 @@ bool bacnet_calendar_entry_same(
 }
 #endif /* __cplusplus */
 #endif /* CALENDAR_H */
+

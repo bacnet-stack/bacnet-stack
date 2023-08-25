@@ -684,7 +684,7 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 break;
             case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
                 /* BACnetWeeklySchedule */
-                apdu_len = bacnet_calendar_entry_encode_context(
+                apdu_len = bacnet_calendar_entry_context_encode(
                     apdu, context_tag_number, &value->type.Calendar_Entry);
                 break;
             case BACNET_APPLICATION_TAG_SPECIAL_EVENT:

@@ -45,7 +45,7 @@ int bacnet_special_event_decode(
     BACNET_UNSIGNED_INTEGER priority = 0;
 
     /* Try to decode calendar entry [0] */
-    len = bacnet_calendar_entry_decode_context(&apdu[apdu_len],
+    len = bacnet_calendar_entry_context_decode(&apdu[apdu_len],
         max_apdu_len - apdu_len, BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
         &value->period.calendarEntry);
     if (len >= 0) {
@@ -92,7 +92,7 @@ int bacnet_special_event_encode(uint8_t *apdu, BACNET_SPECIAL_EVENT *value)
     int len;
 
     if (value->periodTag == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY) {
-        len = bacnet_calendar_entry_encode_context(apdu,
+        len = bacnet_calendar_entry_context_encode(apdu,
             BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
             &value->period.calendarEntry);
         if (len < 0) {

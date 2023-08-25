@@ -96,7 +96,7 @@ int bacnet_calendar_entry_encode(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value)
  *
  * @return  number of bytes encoded, or 0 if unable to encode.
  */
-int bacnet_calendar_entry_encode_context(
+int bacnet_calendar_entry_context_encode(
     uint8_t *apdu, uint8_t tag_number, BACNET_CALENDAR_ENTRY *value)
 {
     int len = 0;
@@ -191,7 +191,7 @@ int bacnet_calendar_entry_decode(uint8_t *apdu, uint32_t apdu_max_len,
  *
  * @return number of bytes decoded, or BACNET_STATUS_REJECT
  */
-int bacnet_calendar_entry_decode_context(uint8_t *apdu, uint32_t apdu_max_len,
+int bacnet_calendar_entry_context_decode(uint8_t *apdu, uint32_t apdu_max_len,
     uint8_t tag_number, BACNET_CALENDAR_ENTRY *value)
 {
     int apdu_len = 0;
