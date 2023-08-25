@@ -139,11 +139,6 @@ bool bacnet_is_context_specific(uint8_t *apdu, uint32_t apdu_size);
     bool decode_is_closing_tag(
         uint8_t * apdu);
 
-    BACNET_STACK_EXPORT
-    int bacnet_boolean_context_decode(
-        uint8_t *apdu, uint32_t apdu_size, uint8_t tag_value, 
-        bool *boolean_value);
-
 /* from clause 20.2.2 Encoding of a Null Value */
     BACNET_STACK_EXPORT
     int encode_application_null(
