@@ -72,14 +72,18 @@ int create_object_ack_encode(
     uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data);
 
 BACNET_STACK_EXPORT
-int create_object_error_ack_encode(
+int create_object_error_ack_service_encode(
     uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
-int create_object_error_ack_decode(
+int create_object_error_ack_service_decode(
     uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
+int create_object_error_ack_encode(
+    uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data);
+
+BACNET_STACK_EXPORT
 int create_object_ack_encode(
-    uint8_t *apdu, uint8_t invoke_id, 
+    uint8_t *apdu, uint8_t invoke_id,
     BACNET_CREATE_OBJECT_DATA *data);
 
 #ifdef __cplusplus

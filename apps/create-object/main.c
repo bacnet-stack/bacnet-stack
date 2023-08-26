@@ -64,11 +64,12 @@ static void MyCreateObjectErrorHandler(BACNET_ADDRESS *src,
     (void)service_choice;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        len =
-            create_object_error_ack_decode(service_request, service_len, &data);
+        len = create_object_error_ack_service_decode(service_request,
+            service_len, &data);
         if (len > 0) {
-            printf("[{\"CreateObject\":{\"error-classs\":\"%s\",\"error-code\":"
-                   "\"%s\",\"first-failed-element-number\":%lu}]\n",
+            printf("[{\"CreateObject\":"
+                "{\"error-classs\":\"%s\",\"error-code\":"
+                "\"%s\",\"first-failed-element-number\":%lu}]\n",
                 bactext_error_class_name((int)data.error_class),
                 bactext_error_code_name((int)data.error_code),
                 (unsigned long)data.first_failed_element_number);

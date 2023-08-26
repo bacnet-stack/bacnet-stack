@@ -231,7 +231,7 @@ int create_object_ack_service_encode(
  *  CreateObject-ACK ::= BACnetObjectIdentifier
  *
  * @param apdu  Pointer to the buffer for encoding, or NULL for length
- * @param invoke_id original invoke id from request 
+ * @param invoke_id original invoke id from request
  * @param data  Pointer to the property data to be encoded.
  * @return number of bytes encoded
  */
@@ -242,11 +242,11 @@ int create_object_ack_encode(
 
     if (apdu) {
         /* service */
-        apdu[0] = PDU_TYPE_COMPLEX_ACK; 
+        apdu[0] = PDU_TYPE_COMPLEX_ACK;
         /* original invoke id from request */
-        apdu[1] = invoke_id; 
+        apdu[1] = invoke_id;
         /* service choice */
-        apdu[2] = SERVICE_CONFIRMED_CREATE_OBJECT; 
+        apdu[2] = SERVICE_CONFIRMED_CREATE_OBJECT;
         apdu += apdu_len;
     }
     apdu_len += create_object_ack_service_encode(apdu, data);
@@ -294,7 +294,7 @@ int create_object_ack_service_decode(
  * @param data  Pointer to the property data to be encoded.
  * @return Bytes encoded or zero on error.
  */
-int create_object_error_ack_encode(
+int create_object_error_ack_service_encode(
     uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 0; /* length of each encoding */
@@ -327,6 +327,28 @@ int create_object_error_ack_encode(
 }
 
 /**
+ * @brief Encode an Error acknowledge in the APDU.
+ * @param apdu [in] The APDU buffer.
+ * @param invoke_id [in] Invoked service ID.
+ * @param data [in] Data of the invoked property.
+ * @return number of bytes encoded
+ */
+int create_object_error_ack_encode(
+    uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data)
+{
+    int len = 3;
+
+    if (apdu) {
+        apdu[0] = PDU_TYPE_ERROR;
+        apdu[1] = invoke_id;
+        apdu[2] = SERVICE_CONFIRMED_CREATE_OBJECT;
+    }
+    len += create_object_error_ack_service_encode(apdu, data);
+
+    return len;
+}
+
+/**
  * @brief Decode a CreateObject-Error ACK APDU
  *
  * CreateObject-Error ::= SEQUENCE {
@@ -339,7 +361,7 @@ int create_object_error_ack_encode(
  * @param data  Pointer to the property data to be encoded.
  * @return Bytes encoded or BACNET_STATUS_REJECT on error.
  */
-int create_object_error_ack_decode(
+int create_object_error_ack_service_decode(
     uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 0, apdu_len = 0;

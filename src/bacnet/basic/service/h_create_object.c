@@ -101,7 +101,8 @@ void handler_create_object(uint8_t *service_request,
                 debug_perror("CreateObject: Sending ACK!\n");
             } else {
                 len = create_object_error_ack_encode(
-                    &Handler_Transmit_Buffer[pdu_len], &data);
+                    &Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, &data);
                 debug_perror("CreateObject: Sending Error!\n");
             }
         }

@@ -98,10 +98,10 @@ static void test_CreateObjectError(void)
     data.error_class = ERROR_CLASS_SERVICES;
     data.error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
     data.first_failed_element_number = 0;
-    null_len = create_object_error_ack_encode(NULL, &data);
-    apdu_len = create_object_error_ack_encode(apdu, &data);
+    null_len = create_object_error_ack_service_encode(NULL, &data);
+    apdu_len = create_object_error_ack_service_encode(apdu, &data);
     zassert_equal(apdu_len, null_len, NULL);
-    test_len = create_object_error_ack_decode(apdu, apdu_len, &test_data);
+    test_len = create_object_error_ack_service_decode(apdu, apdu_len, &test_data);
     zassert_equal(apdu_len, test_len, NULL);
     zassert_equal(test_data.error_class, data.error_class, NULL);
     zassert_equal(test_data.error_code, data.error_code, NULL);
@@ -109,7 +109,7 @@ static void test_CreateObjectError(void)
         data.first_failed_element_number, NULL);
     while (test_len) {
         test_len--;
-        len = create_object_error_ack_decode(apdu, test_len, &test_data);
+        len = create_object_error_ack_service_decode(apdu, test_len, &test_data);
         zassert_equal(
             len, BACNET_STATUS_REJECT, "len=%d test_len=%d", len, test_len);
     }
