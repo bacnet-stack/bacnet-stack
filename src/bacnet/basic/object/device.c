@@ -1931,6 +1931,7 @@ bool Device_Create_Object(
 {
     bool status = false;
     struct object_functions *pObject = NULL;
+    uint32_t object_instance;
 
     pObject = Device_Objects_Find_Functions(data->object_type);
     if (pObject != NULL) {
@@ -1956,12 +1957,15 @@ bool Device_Create_Object(
                 data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 /* and the object shall not be created */
             } else {
-                status = pObject->Object_Create(data->object_instance);
-                if (!status) {
+                object_instance = pObject->Object_Create(data->object_instance);
+                if (object_instance == BACNET_MAX_INSTANCE) {
                     /* The device cannot allocate the space needed 
                     for the new object.*/
                     data->error_class = ERROR_CLASS_RESOURCES;
                     data->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                } else {
+                    /* required by ACK */
+                    data->object_instance = object_instance;
                 }
             }
         }

@@ -41,10 +41,11 @@ typedef struct BACnet_Create_Object_Data {
 /**
  * @brief CreateObject service handler for an object
  * @ingroup ObjHelpers
- * @param object_instance [in] instance number of the object to create
- * @return true if the object instance is created
+ * @param object_instance [in] instance number of the object to create,
+ *  or BACNET_MAX_INSTANCE to create the next free object instance
+ * @return object instance number created, or BACNET_MAX_INSTANCE if not
  */
-typedef bool (*create_object_function)(uint32_t object_instance);
+typedef uint32_t (*create_object_function)(uint32_t object_instance);
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,11 +62,25 @@ int create_object_decode_service_request(
     uint8_t *apdu, uint32_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
 
 BACNET_STACK_EXPORT
+int create_object_ack_service_encode(
+    uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data);
+BACNET_STACK_EXPORT
+int create_object_ack_service_decode(
+    uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
+BACNET_STACK_EXPORT
+int create_object_ack_encode(
+    uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data);
+
+BACNET_STACK_EXPORT
 int create_object_error_ack_encode(
     uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
 int create_object_error_ack_decode(
     uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
+BACNET_STACK_EXPORT
+int create_object_ack_encode(
+    uint8_t *apdu, uint8_t invoke_id, 
+    BACNET_CREATE_OBJECT_DATA *data);
 
 #ifdef __cplusplus
 }

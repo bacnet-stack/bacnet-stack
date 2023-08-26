@@ -175,7 +175,7 @@ extern "C" {
         uint32_t buffer_size);
 
     BACNET_STACK_EXPORT
-    bool bacfile_create(
+    uint32_t bacfile_create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool bacfile_delete(

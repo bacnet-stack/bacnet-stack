@@ -122,7 +122,6 @@ int create_object_decode_service_request(
     uint32_t enumerated_value = 0;
     BACNET_PROPERTY_VALUE *list_of_initial_values = NULL;
 
-
     /* object-specifier [0] CHOICE */
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
@@ -187,8 +186,8 @@ int create_object_decode_service_request(
         if (data) {
             list_of_initial_values = data->list_of_initial_values;
         }
-        len = bacapp_property_value_decode(&apdu[apdu_len],
-            apdu_size - apdu_len, list_of_initial_values);
+        len = bacapp_property_value_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, list_of_initial_values);
         if (len == BACNET_STATUS_ERROR) {
             if (data) {
                 data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
@@ -204,6 +203,80 @@ int create_object_decode_service_request(
             return BACNET_STATUS_REJECT;
         }
         apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a CreateObject-ACK APDU service data
+ *
+ *  CreateObject-ACK ::= BACnetObjectIdentifier
+ *
+ * @param apdu  Pointer to the buffer for encoding, or NULL for length
+ * @param data  Pointer to the property data to be encoded.
+ * @return number of bytes encoded
+ */
+int create_object_ack_service_encode(
+    uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data)
+{
+    /* BACnetObjectIdentifier */
+    return encode_application_object_id(
+        apdu, data->object_type, data->object_instance);
+}
+
+/**
+ * @brief Encode a CreateObject-ACK APDU
+ *
+ *  CreateObject-ACK ::= BACnetObjectIdentifier
+ *
+ * @param apdu  Pointer to the buffer for encoding, or NULL for length
+ * @param invoke_id original invoke id from request 
+ * @param data  Pointer to the property data to be encoded.
+ * @return number of bytes encoded
+ */
+int create_object_ack_encode(
+    uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data)
+{
+    int apdu_len = 3; /* total length of the apdu, return value */
+
+    if (apdu) {
+        /* service */
+        apdu[0] = PDU_TYPE_COMPLEX_ACK; 
+        /* original invoke id from request */
+        apdu[1] = invoke_id; 
+        /* service choice */
+        apdu[2] = SERVICE_CONFIRMED_CREATE_OBJECT; 
+        apdu += apdu_len;
+    }
+    apdu_len += create_object_ack_service_encode(apdu, data);
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decoding for CreateObject-ACK APDU service data
+ *  CreateObject-ACK ::= BACnetObjectIdentifier
+ *
+ * @param apdu  Pointer to the buffer for decoding.
+ * @param apdu_size  size of the buffer for decoding.
+ * @param data  Pointer to the property data to be encoded.
+ * @return Bytes encoded or BACNET_STATUS_REJECT on error.
+ */
+int create_object_ack_service_decode(
+    uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
+{
+    int apdu_len = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t object_instance = 0;
+
+    apdu_len = bacnet_object_id_application_decode(
+        apdu, apdu_size, &object_type, &object_instance);
+    if (apdu_len > 0) {
+        if (data) {
+            data->object_instance = object_instance;
+            data->object_type = object_type;
+        }
     }
 
     return apdu_len;
@@ -254,15 +327,12 @@ int create_object_error_ack_encode(
 }
 
 /**
- * @brief Decoding for AddListElement or RemoveListElement Error Ack
- *  AddListElement-Error ::= SEQUENCE {
+ * @brief Decode a CreateObject-Error ACK APDU
+ *
+ * CreateObject-Error ::= SEQUENCE {
  *      error-type [0] Error,
- *      first-failed-element-number [1] UNSIGNED
- *  }
- *  RemoveListElement-Error ::= SEQUENCE {
- *      error-type [0] Error,
- *      first-failed-element-number [1] UNSIGNED
- *  }
+ *      first-failed-element-number [1] Unsigned
+ * }
  *
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  size of the buffer for decoding.

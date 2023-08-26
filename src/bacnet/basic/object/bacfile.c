@@ -977,18 +977,17 @@ bool bacfile_read_ack_record_data(
 
 
 /**
- * @brief Creates an object
+ * @brief Creates a File object
  * @param object_instance - object-instance number of the object
- * @return true if the object-instance was created
+ * @return the object-instance that was created, or BACNET_MAX_INSTANCE
  */
-bool bacfile_create(uint32_t object_instance)
+uint32_t bacfile_create(uint32_t object_instance)
 {
-    bool status = false;
     struct object_data *pObject = NULL;
     int index = 0;
 
     if (object_instance > BACNET_MAX_INSTANCE) {
-        return false;
+        return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {
         /* wildcard instance */
         /* the Object_Identifier property of the newly created object 
@@ -1012,13 +1011,17 @@ bool bacfile_create(uint32_t object_instance)
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index >= 0) {
-                status = true;
                 Device_Inc_Database_Revision();
+            } else {
+                free(pObject);
+                return BACNET_MAX_INSTANCE;
             }
+        } else {
+            return BACNET_MAX_INSTANCE;
         }
     }
 
-    return status;
+    return object_instance;
 }
 
 /**

@@ -84,21 +84,21 @@ void handler_create_object(uint8_t *service_request,
         }
         if (len <= 0) {
             /* bad decoding or something we didn't understand */
-            if (len  == BACNET_STATUS_ABORT) {
+            if (len == BACNET_STATUS_ABORT) {
                 len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     abort_convert_error_code(data.error_code), true);
             } else if (len == BACNET_STATUS_REJECT) {
-                len = reject_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id,
                     reject_convert_error_code(data.error_code));
             }
         } else {
             if (Device_Create_Object(&data)) {
-                len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_CREATE_OBJECT);
-                debug_perror("CreateObject: Sending Simple Ack!\n");
+                len =
+                    create_object_ack_encode(&Handler_Transmit_Buffer[pdu_len],
+                        service_data->invoke_id, &data);
+                debug_perror("CreateObject: Sending ACK!\n");
             } else {
                 len = create_object_error_ack_encode(
                     &Handler_Transmit_Buffer[pdu_len], &data);

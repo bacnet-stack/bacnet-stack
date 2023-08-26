@@ -64,24 +64,39 @@ static void MyCreateObjectErrorHandler(BACNET_ADDRESS *src,
     (void)service_choice;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        len = create_object_error_ack_decode(
-            service_request, service_len, &data);
+        len =
+            create_object_error_ack_decode(service_request, service_len, &data);
         if (len > 0) {
-            printf("BACnet Error: %s: %s [first-failed=%u]\n",
+            printf("[{\"CreateObject\":{\"error-classs\":\"%s\",\"error-code\":"
+                   "\"%s\",\"first-failed-element-number\":%lu}]\n",
                 bactext_error_class_name((int)data.error_class),
                 bactext_error_code_name((int)data.error_code),
-                (unsigned)data.first_failed_element_number);
+                (unsigned long)data.first_failed_element_number);
         }
         Error_Detected = true;
     }
 }
 
-static void MyCreateObjectSimpleAckHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id)
+static void MyCreateObjectAckHandler(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
+    BACNET_CREATE_OBJECT_DATA data;
+    int len = 0;
+
     if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
-        printf("CreateObject Acknowledged!\n");
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        len = create_object_decode_service_request(
+            service_request, service_len, &data);
+        if (len < 0) {
+            printf("[{\"CreateObject\":{\"error\":\"ACK decode failed\"}]\n");
+        } else {
+            printf("[{\"CreateObject\":{\"object-type\":\"%s\",\"object-"
+                   "instance\":%lu}}]\n",
+                bactext_object_type_name(data.object_type),
+                (unsigned long)data.object_instance);
+        }
     }
 }
 
@@ -91,8 +106,8 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf(
-            "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
+        printf("[{\"CreateObject\":{\"abort-reason\":\"%s\"}]\n",
+            bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
@@ -103,7 +118,7 @@ static void MyRejectHandler(
     /* FIXME: verify src and invoke id */
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
+        printf("[{\"CreateObject\":{\"reject-reason\":\"%s\"}]\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -124,8 +139,8 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the ack or error coming back from confirmed request */
-    apdu_set_confirmed_simple_ack_handler(
-        SERVICE_CONFIRMED_CREATE_OBJECT, MyCreateObjectSimpleAckHandler);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_CREATE_OBJECT, MyCreateObjectAckHandler);
     apdu_set_complex_error_handler(
         SERVICE_CONFIRMED_CREATE_OBJECT, MyCreateObjectErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
@@ -134,8 +149,8 @@ static void Init_Service_Handlers(void)
 
 static void print_usage(char *filename)
 {
-    printf("Usage: %s device-instance object-type [object-instance]\n",
-        filename);
+    printf(
+        "Usage: %s device-instance object-type [object-instance]\n", filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help][--verbose]\n");
 }
@@ -301,13 +316,13 @@ int main(int argc, char *argv[])
                     printf("Sending CreateObject to Device %u.\n",
                         Target_Device_Object_Instance);
                 }
-                Request_Invoke_ID = Send_Create_Object_Request(
-                    Target_Device_Object_Instance, Target_Object_Type,
-                    Target_Object_Instance);
+                Request_Invoke_ID =
+                    Send_Create_Object_Request(Target_Device_Object_Instance,
+                        Target_Object_Type, Target_Object_Instance);
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                fprintf(stderr, "\rError: TSM Timeout!\n");
+                printf("[{\"CreateObject\":{\"error\":\"TSM Timeout\"}]\n");
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
                 /* abort */
@@ -328,7 +343,7 @@ int main(int argc, char *argv[])
             tsm_timer_milliseconds(mstimer_interval(&maintenance_timer));
         }
         if (mstimer_expired(&apdu_timer)) {
-            printf("\rError: APDU Timeout!\n");
+            printf("[{\"CreateObject\":{\"error\":\"APDU Timeout\"}]\n");
             Error_Detected = true;
         }
         if (Error_Detected) {
