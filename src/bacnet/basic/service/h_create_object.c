@@ -88,10 +88,12 @@ void handler_create_object(uint8_t *service_request,
                 len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     abort_convert_error_code(data.error_code), true);
+                debug_perror("CreateObject: Sending Abort!\n");
             } else if (len == BACNET_STATUS_REJECT) {
                 len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     reject_convert_error_code(data.error_code));
+                debug_perror("CreateObject: Sending Reject!\n");
             }
         } else {
             if (Device_Create_Object(&data)) {
