@@ -48,6 +48,43 @@ static void test_CreateObject(void)
     test_CreateObjectCodec(&data);
 }
 
+static void test_CreateObjectAckCodec(BACNET_CREATE_OBJECT_DATA *data)
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_CREATE_OBJECT_DATA test_data = { 0 };
+    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
+
+    null_len = create_object_ack_service_encode(NULL, data);
+    apdu_len = create_object_ack_service_encode(apdu, data);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
+    null_len = create_object_ack_service_decode(apdu, apdu_len, NULL);
+    test_len = create_object_ack_service_decode(apdu, apdu_len, &test_data);
+    zassert_equal(test_len, null_len, NULL);
+    zassert_equal(
+        apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    while (test_len) {
+        test_len--;
+        len = create_object_ack_service_decode(apdu, test_len, &test_data);
+        zassert_equal(
+            len, BACNET_STATUS_REJECT, "len=%d test_len=%d", len, test_len);
+    }
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(create_object_tests, test_CreateObject)
+#else
+static void test_CreateObjectACK(void)
+#endif
+{
+    BACNET_CREATE_OBJECT_DATA data = { 0 };
+    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
+
+    test_CreateObjectCodec(&data);
+    data.object_instance = BACNET_MAX_INSTANCE;
+    test_CreateObjectCodec(&data);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(create_object_tests, test_CreateObjectError)
 #else
@@ -84,6 +121,7 @@ ZTEST_SUITE(create_object_tests, NULL, NULL, NULL, NULL, NULL);
 void test_main(void)
 {
     ztest_test_suite(create_object_tests, ztest_unit_test(test_CreateObject),
+        ztest_unit_test(test_CreateObjectACK),
         ztest_unit_test(test_CreateObjectError));
 
     ztest_run_test_suite(create_object_tests);
