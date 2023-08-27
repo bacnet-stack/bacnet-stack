@@ -1920,7 +1920,7 @@ void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
     }
 }
 
-/** 
+/**
  * @brief Creates a child object, if supported
  * @ingroup ObjHelpers
  * @param data - CreateObject data, including error codes if failures
@@ -1959,13 +1959,14 @@ bool Device_Create_Object(
             } else {
                 object_instance = pObject->Object_Create(data->object_instance);
                 if (object_instance == BACNET_MAX_INSTANCE) {
-                    /* The device cannot allocate the space needed 
+                    /* The device cannot allocate the space needed
                     for the new object.*/
                     data->error_class = ERROR_CLASS_RESOURCES;
                     data->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
                 } else {
                     /* required by ACK */
                     data->object_instance = object_instance;
+                    status = true;
                 }
             }
         }
@@ -1975,10 +1976,10 @@ bool Device_Create_Object(
         data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
     }
 
-    return status;    
+    return status;
 }
 
-/** 
+/**
  * @brief Deletes a child object, if supported
  * @ingroup ObjHelpers
  * @param data - DeleteObject data, including error codes if failures
@@ -1993,7 +1994,7 @@ bool Device_Delete_Object(
     pObject = Device_Objects_Find_Functions(data->object_type);
     if (pObject != NULL) {
         if (!pObject->Object_Delete) {
-            /*  The device supports the object type 
+            /*  The device supports the object type
                 but does not support the deletion of the
                 object for some reason.*/
             data->error_class = ERROR_CLASS_OBJECT;
@@ -2018,7 +2019,7 @@ bool Device_Delete_Object(
         data->error_code = ERROR_CODE_UNSUPPORTED_OBJECT_TYPE;
     }
 
-    return status;    
+    return status;
 }
 
 #if defined(INTRINSIC_REPORTING)
