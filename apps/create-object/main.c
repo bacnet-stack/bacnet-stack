@@ -68,7 +68,7 @@ static void MyCreateObjectErrorHandler(BACNET_ADDRESS *src,
             service_len, &data);
         if (len > 0) {
             printf("[{\"CreateObject\":"
-                "{\"error-classs\":\"%s\",\"error-code\":"
+                "{\"error-class\":\"%s\",\"error-code\":"
                 "\"%s\",\"first-failed-element-number\":%lu}]\n",
                 bactext_error_class_name((int)data.error_class),
                 bactext_error_code_name((int)data.error_code),
