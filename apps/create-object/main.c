@@ -81,14 +81,14 @@ static void MyCreateObjectErrorHandler(BACNET_ADDRESS *src,
 static void MyCreateObjectAckHandler(uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
-    BACNET_CONFIRMED_SERVICE_DATA *service_data)
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     BACNET_CREATE_OBJECT_DATA data;
     int len = 0;
 
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
-        len = create_object_decode_service_request(
+        len = create_object_ack_service_decode(
             service_request, service_len, &data);
         if (len < 0) {
             printf("[{\"CreateObject\":{\"error\":\"ACK decode failed\"}]\n");
@@ -144,7 +144,7 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the ack or error coming back from confirmed request */
-    apdu_set_confirmed_handler(
+    apdu_set_confirmed_ack_handler(
         SERVICE_CONFIRMED_CREATE_OBJECT, MyCreateObjectAckHandler);
     apdu_set_complex_error_handler(
         SERVICE_CONFIRMED_CREATE_OBJECT, MyCreateObjectErrorHandler);
