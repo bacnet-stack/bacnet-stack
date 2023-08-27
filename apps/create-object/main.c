@@ -98,6 +98,10 @@ static void MyCreateObjectAckHandler(uint8_t *service_request,
                 bactext_object_type_name(data.object_type),
                 (unsigned long)data.object_instance);
         }
+    } else {
+        if (Verbose) {
+            printf("CreateObjectAckHandler - not matched\n");
+        }
     }
 }
 
