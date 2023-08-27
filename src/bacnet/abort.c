@@ -86,6 +86,33 @@ BACNET_ABORT_REASON abort_convert_error_code(BACNET_ERROR_CODE error_code)
 }
 
 /**
+ * @brief Determine if a BACnet Error Code is a BACnet abort reason
+ * @param error_code #BACNET_ERROR_CODE enumeration
+ * @return true if the BACnet Error Code is a BACnet abort reason
+ */
+bool abort_valid_error_code(BACNET_ERROR_CODE error_code)
+{
+    bool status = false;
+
+    switch (error_code) {
+        case ERROR_CODE_ABORT_BUFFER_OVERFLOW:
+        case ERROR_CODE_ABORT_INVALID_APDU_IN_THIS_STATE:
+        case ERROR_CODE_ABORT_PREEMPTED_BY_HIGHER_PRIORITY_TASK:
+        case ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED:
+        case ERROR_CODE_ABORT_SECURITY_ERROR:
+        case ERROR_CODE_ABORT_INSUFFICIENT_SECURITY:
+        case ERROR_CODE_ABORT_PROPRIETARY:
+        case ERROR_CODE_ABORT_OTHER:
+            status = true;
+            break;
+        default:
+            break;
+    }
+
+    return status;
+}
+
+/**
  * @brief Convert error-code from abort-reason
  *
  * Helper function to avoid needing additional entries in service data

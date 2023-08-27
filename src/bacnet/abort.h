@@ -37,6 +37,9 @@ extern "C" {
     BACNET_ABORT_REASON abort_convert_error_code(
         BACNET_ERROR_CODE error_code);
     BACNET_STACK_EXPORT
+    bool abort_valid_error_code(
+        BACNET_ERROR_CODE error_code);
+    BACNET_STACK_EXPORT
     BACNET_ERROR_CODE abort_convert_to_error_code(
         BACNET_ABORT_REASON abort_code);
 
