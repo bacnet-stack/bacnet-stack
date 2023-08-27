@@ -30,6 +30,8 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/create_object.h"
 #include "bacnet/whois.h"
+#include "bacnet/abort.h"
+#include "bacnet/reject.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
 #include "bacnet/basic/sys/filename.h"
@@ -52,12 +54,37 @@ static bool Error_Detected = false;
 /* Used for verbose */
 static bool Verbose = false;
 
-static void MyDeleteObjectSimpleAckHandler(
+static void MyPrintHandler(
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
+{
+    printf("[{\"DeleteObject\":"
+        "{\"object-type\":\"%s\",\"object-instance\":%lu,"
+        "\"error-class\":\"%s\",\"error-code\":\"%s\"}]\n",
+        bactext_object_type_name(Target_Object_Type),
+        (unsigned long)Target_Object_Instance,
+        bactext_error_class_name((int)error_class),
+        bactext_error_code_name((int)error_code));
+}
+
+static void MyErrorHandler(BACNET_ADDRESS *src,
+    uint8_t invoke_id,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
+{
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        MyPrintHandler(error_class, error_code);
+        Error_Detected = true;
+    }
+}
+
+static void MySimpleAckHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("DeleteObject Acknowledged!\n");
+        MyPrintHandler(ERROR_CLASS_SERVICES, ERROR_CODE_SUCCESS);
     }
 }
 
@@ -67,8 +94,8 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf(
-            "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
+        MyPrintHandler(ERROR_CLASS_SERVICES,
+            abort_convert_to_error_code(abort_reason));
         Error_Detected = true;
     }
 }
@@ -76,11 +103,10 @@ static void MyAbortHandler(
 static void MyRejectHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    /* FIXME: verify src and invoke id */
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
-            bactext_reject_reason_name((int)reject_reason));
+        MyPrintHandler(ERROR_CLASS_SERVICES,
+            reject_convert_to_error_code(reject_reason));
         Error_Detected = true;
     }
 }
@@ -101,7 +127,8 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the ack or error coming back from confirmed request */
     apdu_set_confirmed_simple_ack_handler(
-        SERVICE_CONFIRMED_DELETE_OBJECT, MyDeleteObjectSimpleAckHandler);
+        SERVICE_CONFIRMED_DELETE_OBJECT, MySimpleAckHandler);
+    apdu_set_error_handler(SERVICE_CONFIRMED_DELETE_OBJECT, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }

@@ -93,12 +93,12 @@ void handler_delete_object(uint8_t *service_request,
             if (Device_Delete_Object(&data)) {
                 len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
-                    SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT);
+                    SERVICE_CONFIRMED_DELETE_OBJECT);
                 debug_perror("DeleteObject: Sending Simple Ack!\n");
             } else {
                 len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
-                    SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT,
+                    SERVICE_CONFIRMED_DELETE_OBJECT,
                     data.error_class, data.error_code);
                 debug_perror("DeleteObject: Sending Error!\n");
             }
