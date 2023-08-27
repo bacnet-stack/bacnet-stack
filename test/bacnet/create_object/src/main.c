@@ -53,6 +53,7 @@ static void test_CreateObjectAckCodec(BACNET_CREATE_OBJECT_DATA *data)
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_CREATE_OBJECT_DATA test_data = { 0 };
     int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
+    uint8_t invoke_id = 0;
 
     null_len = create_object_ack_service_encode(NULL, data);
     apdu_len = create_object_ack_service_encode(apdu, data);
@@ -67,8 +68,12 @@ static void test_CreateObjectAckCodec(BACNET_CREATE_OBJECT_DATA *data)
         test_len--;
         len = create_object_ack_service_decode(apdu, test_len, &test_data);
         zassert_equal(
-            len, BACNET_STATUS_REJECT, "len=%d test_len=%d", len, test_len);
+            len, BACNET_STATUS_ERROR, "len=%d test_len=%d", len, test_len);
     }
+    null_len = create_object_ack_encode(NULL, invoke_id, data);
+    apdu_len = create_object_ack_encode(apdu, invoke_id, data);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_true(apdu_len > 0, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -80,9 +85,9 @@ static void test_CreateObjectACK(void)
     BACNET_CREATE_OBJECT_DATA data = { 0 };
     int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
 
-    test_CreateObjectCodec(&data);
+    test_CreateObjectAckCodec(&data);
     data.object_instance = BACNET_MAX_INSTANCE;
-    test_CreateObjectCodec(&data);
+    test_CreateObjectAckCodec(&data);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -94,6 +99,7 @@ static void test_CreateObjectError(void)
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_CREATE_OBJECT_DATA data = { 0 }, test_data = { 0 };
     int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
+    uint8_t invoke_id = 0;
 
     data.error_class = ERROR_CLASS_SERVICES;
     data.error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
@@ -113,6 +119,10 @@ static void test_CreateObjectError(void)
         zassert_equal(
             len, BACNET_STATUS_REJECT, "len=%d test_len=%d", len, test_len);
     }
+    null_len = create_object_error_ack_encode(NULL, invoke_id, &data);
+    apdu_len = create_object_error_ack_encode(apdu, invoke_id, &data);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_true(apdu_len > 0, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)

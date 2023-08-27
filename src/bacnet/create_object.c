@@ -342,6 +342,7 @@ int create_object_error_ack_encode(
         apdu[0] = PDU_TYPE_ERROR;
         apdu[1] = invoke_id;
         apdu[2] = SERVICE_CONFIRMED_CREATE_OBJECT;
+        apdu += len;
     }
     len += create_object_error_ack_service_encode(apdu, data);
 
