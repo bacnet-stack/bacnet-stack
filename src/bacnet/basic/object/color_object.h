@@ -119,7 +119,7 @@ BACNET_STACK_EXPORT
 void Color_Write_Disable(uint32_t instance);
 
 BACNET_STACK_EXPORT
-bool Color_Create(uint32_t object_instance);
+uint32_t Color_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Color_Delete(uint32_t object_instance);
 BACNET_STACK_EXPORT

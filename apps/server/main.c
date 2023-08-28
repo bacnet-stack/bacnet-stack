@@ -144,6 +144,10 @@ static void Init_Service_Handlers(void)
 #if defined(BACNET_TIME_MASTER)
     handler_timesync_init();
 #endif
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_CREATE_OBJECT, handler_create_object);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DELETE_OBJECT, handler_delete_object);
 }
 
 static void print_usage(const char *filename)

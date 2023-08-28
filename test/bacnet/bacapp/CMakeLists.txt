@@ -7,7 +7,6 @@ project(test_${basename}
 	VERSION 1.0.0
 	LANGUAGES C)
 
-
 string(REGEX REPLACE
     "/test/bacnet/[a-zA-Z_/-]*$"
     "/src"
@@ -25,6 +24,7 @@ add_compile_definitions(
 	CONFIG_ZTEST=1
 	PRINT_ENABLED=1
 	BACAPP_ALL=1
+	BACAPP_PRINT_ENABLED=1
 	)
 
 include_directories(

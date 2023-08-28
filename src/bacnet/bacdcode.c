@@ -697,6 +697,39 @@ bool decode_is_context_tag_with_length(
 }
 
 /**
+ * @brief Returns true if the tag is context specific
+ * and matches, as defined in clause 20.2.1.3.2 Constructed
+ * Data. This function returns the tag length as well.
+ *
+ * @param apdu  Pointer to the tag begin.
+ * @param apdu_size - number of bytes in the buffer
+ * @param tag_number  Tag number, that has been decoded before.
+ * @param tag_length  Pointer to a variable, or NULL.
+ *  Returns the length of the tag in bytes if not NULL.
+ *
+ * @return true on a match, false otherwise.
+ */
+bool bacnet_is_context_tag_number(
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length)
+{
+    bool match = false;
+    uint8_t my_tag_number = 0;
+    int len;
+
+    len = bacnet_tag_number_decode(apdu, apdu_size, &my_tag_number);
+    if ((len > 0) && (my_tag_number == tag_number)) {
+        if (IS_CONTEXT_SPECIFIC(apdu[0])) {
+            if (tag_length) {
+                *tag_length = len;
+            }
+            match = true;
+        }
+    }
+
+    return match;
+}
+
+/**
  * @brief Returns true if the tag does match and it
  * is an opening tag as well.
  * As defined in clause 20.2.1.3.2 Constructed Data.
@@ -717,6 +750,39 @@ bool decode_is_opening_tag_number(uint8_t *apdu, uint8_t tag_number)
 
 /**
  * @brief Returns true if the tag does match and it
+ * is an opening tag as well.
+ * As defined in clause 20.2.1.3.2 Constructed Data.
+ *
+ * @param apdu  Pointer to the tag begin.
+ * @param apdu_size - number of bytes in the buffer
+ * @param tag_number  Tag number, that has been decoded before.
+ * @param tag_length  Pointer to a variable, or NULL.
+ *  Returns the length of the tag in bytes if not NULL.
+ *
+ * @return true on a match, false otherwise.
+ */
+bool bacnet_is_opening_tag_number(
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length)
+{
+    bool match = false;
+    uint8_t my_tag_number = 0;
+    int len;
+
+    len = bacnet_tag_number_decode(apdu, apdu_size, &my_tag_number);
+    if ((len > 0) && (my_tag_number == tag_number)) {
+        if (IS_OPENING_TAG(apdu[0])) {
+            match = true;
+            if (tag_length) {
+                *tag_length = len;
+            }
+        }
+    }
+
+    return match;
+}
+
+/**
+ * @brief Returns true if the tag does match and it
  * is an closing tag as well.
  * As defined in clause 20.2.1.3.2 Constructed Data.
  *
@@ -731,6 +797,39 @@ bool decode_is_closing_tag_number(uint8_t *apdu, uint8_t tag_number)
 
     decode_tag_number(apdu, &my_tag_number);
     return (bool)(IS_CLOSING_TAG(apdu[0]) && (my_tag_number == tag_number));
+}
+
+/**
+ * @brief Returns true if the tag does match and it
+ * is a closing tag as well.
+ * As defined in clause 20.2.1.3.2 Constructed Data.
+ *
+ * @param apdu  Pointer to the tag begin.
+ * @param apdu_size - number of bytes in the buffer
+ * @param tag_number  Tag number, that has been decoded before.
+ * @param tag_length  Pointer to a variable, or NULL.
+ *  Returns the length of the tag in bytes if not NULL.
+ *
+ * @return true on a match, false otherwise.
+ */
+bool bacnet_is_closing_tag_number(
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length)
+{
+    bool match = false;
+    uint8_t my_tag_number = 0;
+    int len;
+
+    len = bacnet_tag_number_decode(apdu, apdu_size, &my_tag_number);
+    if ((len > 0) && (my_tag_number == tag_number)) {
+        if (IS_CLOSING_TAG(apdu[0])) {
+            match = true;
+            if (tag_length) {
+                *tag_length = len;
+            }
+        }
+    }
+
+    return match;
 }
 
 /**
@@ -850,6 +949,60 @@ bool decode_boolean(uint32_t len_value)
     }
 
     return boolean_value;
+}
+
+/**
+ * @brief Decode the Boolean Value when context encoded
+ * From clause 20.2.3 Encoding of a Boolean Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ * 
+ * @note The Boolean datatype differs from the other datatypes 
+ * in that the encoding of a context-tagged Boolean value is not the
+ * same as the encoding of an application-tagged Boolean value. 
+ * This is done so that the application-tagged value may be encoded
+ * in a single octet, without a contents octet. While this same encoding 
+ * could have been used for the context-tagged case, doing
+ * so would require that the context be known in order to distinguish 
+ * between a length or a value in the length/value/type field.
+ * This was considered to be undesirable.
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_size - number of bytes in the buffer to decode
+ * @param tag_value - context tag number expected
+ * @param boolean_value - decoded Boolean Value, if decoded
+ *
+ * @return  number of bytes decoded, zero if wrong tag number,
+ * or #BACNET_STATUS_ERROR (-1) if malformed
+ */
+int bacnet_boolean_context_decode(
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_value, bool *boolean_value)
+{
+    int apdu_len = 0;
+    int len = 0;
+
+    if (bacnet_is_context_tag_number(
+            &apdu[apdu_len], apdu_size, tag_value, &len) &&
+        !bacnet_is_closing_tag(&apdu[apdu_len], apdu_size)) {
+        if (len > 0) {
+            apdu_len += len;
+            if (apdu_len < apdu_size) {
+                if (boolean_value) {
+                    if (apdu[apdu_len]) {
+                        *boolean_value = true;
+                    } else {
+                        *boolean_value = false;
+                    }
+                }
+                apdu_len++;
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+    }
+
+    return apdu_len;
 }
 
 /**
