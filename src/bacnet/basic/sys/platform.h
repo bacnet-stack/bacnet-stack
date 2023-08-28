@@ -18,10 +18,15 @@
 #ifndef BACNET_SYS_PLATFORM_H
 #define BACNET_SYS_PLATFORM_H
 
+#include <stddef.h>
 #include <math.h>
 
 #ifndef islessgreater
 #define islessgreater(x, y) ((x) < (y) || (x) > (y))
+#endif
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(array) ((size_t)(sizeof(array) / sizeof((array)[0])))
 #endif
 
 /* marking some code as 'deprecated' */

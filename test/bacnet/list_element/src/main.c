@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bacdest.h>
 #include <bacnet/list_element.h>
 

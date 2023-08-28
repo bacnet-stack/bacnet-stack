@@ -111,4 +111,6 @@ apps/piface/libpifacedigital/
 /apps/mstpcrc/mstpcrc
 /apps/add-list-element/bacale
 /apps/remove-list-element/bacrle
+/apps/create-object/bacco
+/apps/delete-object/bacdo
 

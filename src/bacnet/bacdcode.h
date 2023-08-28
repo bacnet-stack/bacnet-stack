@@ -64,6 +64,9 @@ BACNET_STACK_EXPORT
 int encode_closing_tag(uint8_t *apdu, uint8_t tag_number);
 
 BACNET_STACK_EXPORT
+bool bacnet_is_context_tag_number(
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length);
+BACNET_STACK_EXPORT
 bool bacnet_is_opening_tag(uint8_t *apdu, uint32_t apdu_size);
 BACNET_STACK_EXPORT
 bool bacnet_is_closing_tag(uint8_t *apdu, uint32_t apdu_size);
@@ -114,10 +117,59 @@ BACNET_STACK_DEPRECATED("Use bacnet_is_closing_tag() instead")
 BACNET_STACK_EXPORT
 bool decode_is_closing_tag(uint8_t *apdu);
 
-BACNET_STACK_EXPORT
-int encode_application_null(uint8_t *apdu);
-BACNET_STACK_EXPORT
-int encode_context_null(uint8_t *apdu, uint8_t tag_number);
+    BACNET_STACK_EXPORT
+    bool bacnet_is_opening_tag_number(
+        uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length);
+    BACNET_STACK_EXPORT
+    bool bacnet_is_closing_tag_number(
+        uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length);
+    BACNET_STACK_EXPORT
+    int bacnet_tag_number_and_value_decode(
+        uint8_t * apdu,
+        uint32_t apdu_len_remaining,
+        uint8_t * tag_number,
+        uint32_t * value);
+/* returns true if the tag is an opening tag and matches */
+    BACNET_STACK_EXPORT
+    bool decode_is_opening_tag_number(
+        uint8_t * apdu,
+        uint8_t tag_number);
+/* returns true if the tag is a closing tag and matches */
+    BACNET_STACK_EXPORT
+    bool decode_is_closing_tag_number(
+        uint8_t * apdu,
+        uint8_t tag_number);
+/* returns true if the tag is context specific and matches */
+    BACNET_STACK_EXPORT
+    bool decode_is_context_tag(
+        uint8_t * apdu,
+        uint8_t tag_number);
+    BACNET_STACK_EXPORT
+    bool decode_is_context_tag_with_length(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        int *tag_length);
+    /* returns true if the tag is an opening tag */
+    BACNET_STACK_EXPORT
+    bool decode_is_opening_tag(
+        uint8_t * apdu);
+    /* returns true if the tag is a closing tag */
+    BACNET_STACK_EXPORT
+    bool decode_is_closing_tag(
+        uint8_t * apdu);
+
+/* from clause 20.2.2 Encoding of a Null Value */
+    BACNET_STACK_EXPORT
+    int encode_application_null(
+        uint8_t * apdu);
+    BACNET_STACK_EXPORT
+    int encode_context_null(
+        uint8_t * apdu,
+        uint8_t tag_number);
+    BACNET_STACK_EXPORT
+    int encode_application_null(uint8_t *apdu);
+    BACNET_STACK_EXPORT
+    int encode_context_null(uint8_t *apdu, uint8_t tag_number);
 
 /* from clause 20.2.3 Encoding of a Boolean Value */
 BACNET_STACK_EXPORT
