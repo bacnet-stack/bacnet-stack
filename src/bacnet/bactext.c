@@ -1074,6 +1074,7 @@ INDTEXT_DATA bacnet_reject_reason_names[] = { { REJECT_REASON_OTHER, "Other" },
     { REJECT_REASON_TOO_MANY_ARGUMENTS, "Too Many Arguments" },
     { REJECT_REASON_UNDEFINED_ENUMERATION, "Undefined Enumeration" },
     { REJECT_REASON_UNRECOGNIZED_SERVICE, "Unrecognized Service" },
+    { REJECT_REASON_INVALID_DATA_ENCODING, "invalid-data-encoding" },
     { REJECT_REASON_PROPRIETARY_FIRST, "Proprietary" }, { 0, NULL } };
 
 const char *bactext_reject_reason_name(unsigned index)
@@ -1091,6 +1092,12 @@ INDTEXT_DATA bacnet_abort_reason_names[] = { { ABORT_REASON_OTHER, "Other" },
     { ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, "Segmentation Not Supported" },
     { ABORT_REASON_SECURITY_ERROR, "Security Error" },
     { ABORT_REASON_INSUFFICIENT_SECURITY, "Insufficient Security" },
+    { ABORT_REASON_WINDOW_SIZE_OUT_OF_RANGE, "window-size-out-of-range" },
+    { ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME,
+        "application-exceeded-reply-time" },
+    { ABORT_REASON_OUT_OF_RESOURCES, "out-of-resources" },
+    { ABORT_REASON_TSM_TIMEOUT, "tsm-timeout" },
+    { ABORT_REASON_APDU_TOO_LONG, "apdu-too-long" },
     { ABORT_REASON_PROPRIETARY_FIRST, "Proprietary" }, { 0, NULL } };
 
 const char *bactext_abort_reason_name(unsigned index)
@@ -1104,7 +1111,8 @@ INDTEXT_DATA bacnet_error_class_names[] = { { ERROR_CLASS_DEVICE, "device" },
     { ERROR_CLASS_OBJECT, "object" }, { ERROR_CLASS_PROPERTY, "property" },
     { ERROR_CLASS_RESOURCES, "resources" },
     { ERROR_CLASS_SECURITY, "security" }, { ERROR_CLASS_SERVICES, "services" },
-    { ERROR_CLASS_VT, "vt" }, { 0, NULL } };
+    { ERROR_CLASS_VT, "vt" }, { ERROR_CLASS_COMMUNICATION, "communication" },
+    { 0, NULL } };
 
 const char *bactext_error_class_name(unsigned index)
 {

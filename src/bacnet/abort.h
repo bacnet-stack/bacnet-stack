@@ -21,8 +21,8 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *********************************************************************/
-#ifndef ABORT_H
-#define ABORT_H
+#ifndef BACNET_ABORT_H
+#define BACNET_ABORT_H
 
 #include <stdint.h>
 #include <stdbool.h>

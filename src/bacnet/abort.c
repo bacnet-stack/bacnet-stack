@@ -73,6 +73,21 @@ BACNET_ABORT_REASON abort_convert_error_code(BACNET_ERROR_CODE error_code)
         case ERROR_CODE_ABORT_INSUFFICIENT_SECURITY:
             abort_code = ABORT_REASON_INSUFFICIENT_SECURITY;
             break;
+        case ERROR_CODE_ABORT_WINDOW_SIZE_OUT_OF_RANGE:
+            abort_code = ABORT_REASON_WINDOW_SIZE_OUT_OF_RANGE;
+            break;
+        case ERROR_CODE_ABORT_APPLICATION_EXCEEDED_REPLY_TIME:
+            abort_code = ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME;
+            break;
+        case ERROR_CODE_ABORT_OUT_OF_RESOURCES:
+            abort_code = ABORT_REASON_OUT_OF_RESOURCES;
+            break;
+        case ERROR_CODE_ABORT_TSM_TIMEOUT:
+            abort_code = ABORT_REASON_TSM_TIMEOUT;
+            break;
+        case ERROR_CODE_ABORT_APDU_TOO_LONG:
+            abort_code = ABORT_REASON_APDU_TOO_LONG;
+            break;
         case ERROR_CODE_ABORT_PROPRIETARY:
             abort_code = ABORT_REASON_PROPRIETARY_FIRST;
             break;
@@ -86,7 +101,7 @@ BACNET_ABORT_REASON abort_convert_error_code(BACNET_ERROR_CODE error_code)
 }
 
 /**
- * @brief Determine if a BACnet Error Code is a BACnet abort reason
+ * @brief Determine if a BACnetErrorCode is a BACnetAbortReason
  * @param error_code #BACNET_ERROR_CODE enumeration
  * @return true if the BACnet Error Code is a BACnet abort reason
  */
@@ -95,14 +110,19 @@ bool abort_valid_error_code(BACNET_ERROR_CODE error_code)
     bool status = false;
 
     switch (error_code) {
+        case ERROR_CODE_ABORT_OTHER:
         case ERROR_CODE_ABORT_BUFFER_OVERFLOW:
         case ERROR_CODE_ABORT_INVALID_APDU_IN_THIS_STATE:
         case ERROR_CODE_ABORT_PREEMPTED_BY_HIGHER_PRIORITY_TASK:
         case ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED:
         case ERROR_CODE_ABORT_SECURITY_ERROR:
         case ERROR_CODE_ABORT_INSUFFICIENT_SECURITY:
+        case ERROR_CODE_ABORT_WINDOW_SIZE_OUT_OF_RANGE:
+        case ERROR_CODE_ABORT_APPLICATION_EXCEEDED_REPLY_TIME:
+        case ERROR_CODE_ABORT_OUT_OF_RESOURCES:
+        case ERROR_CODE_ABORT_TSM_TIMEOUT:
+        case ERROR_CODE_ABORT_APDU_TOO_LONG:
         case ERROR_CODE_ABORT_PROPRIETARY:
-        case ERROR_CODE_ABORT_OTHER:
             status = true;
             break;
         default:
@@ -128,6 +148,9 @@ BACNET_ERROR_CODE abort_convert_to_error_code(BACNET_ABORT_REASON abort_code)
     BACNET_ERROR_CODE error_code = ERROR_CODE_ABORT_OTHER;
 
     switch (abort_code) {
+        case ABORT_REASON_OTHER:
+            error_code = ERROR_CODE_ABORT_OTHER;
+            break;
         case ABORT_REASON_BUFFER_OVERFLOW:
             error_code = ERROR_CODE_ABORT_BUFFER_OVERFLOW;
             break;
@@ -146,8 +169,20 @@ BACNET_ERROR_CODE abort_convert_to_error_code(BACNET_ABORT_REASON abort_code)
         case ABORT_REASON_INSUFFICIENT_SECURITY:
             error_code = ERROR_CODE_ABORT_INSUFFICIENT_SECURITY;
             break;
-        case ABORT_REASON_OTHER:
-            error_code = ERROR_CODE_ABORT_OTHER;
+        case ABORT_REASON_WINDOW_SIZE_OUT_OF_RANGE:
+            error_code = ERROR_CODE_ABORT_WINDOW_SIZE_OUT_OF_RANGE;
+            break;
+        case ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME:
+            error_code = ERROR_CODE_ABORT_APPLICATION_EXCEEDED_REPLY_TIME;
+            break;
+        case ABORT_REASON_OUT_OF_RESOURCES:
+            error_code = ERROR_CODE_ABORT_OUT_OF_RESOURCES;
+            break;
+        case ABORT_REASON_TSM_TIMEOUT:
+            error_code = ERROR_CODE_ABORT_TSM_TIMEOUT;
+            break;
+        case ABORT_REASON_APDU_TOO_LONG:
+            error_code = ERROR_CODE_ABORT_APDU_TOO_LONG;
             break;
         default:
             if ((abort_code >= ABORT_REASON_PROPRIETARY_FIRST) &&
