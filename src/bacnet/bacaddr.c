@@ -37,6 +37,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "bacnet/config.h"
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"

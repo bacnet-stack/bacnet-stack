@@ -1068,9 +1068,6 @@ int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value)
         }
         apdu_len += len;
         len = encode_application_time(apdu, &value->time);
-        if (apdu) {
-            apdu += len;
-        }
         apdu_len += len;
     }
 

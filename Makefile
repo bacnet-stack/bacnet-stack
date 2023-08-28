@@ -256,7 +256,7 @@ tidy:
 
 .PHONY: scan-build
 scan-build:
-	scan-build --status-bugs -analyze-headers make -j2 server
+	scan-build --status-bugs -analyze-headers make -j2 LEGACY=true server
 
 SPLINT_OPTIONS := -weak +posixlib +quiet \
 	-D__signed__=signed -D__gnuc_va_list=va_list \
