@@ -58,9 +58,10 @@ static void MyPrintHandler(
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    printf("[{\"DeleteObject\":"
-        "{\"object-type\":\"%s\",\"object-instance\":%lu,"
-        "\"error-class\":\"%s\",\"error-code\":\"%s\"}]\n",
+    printf("[{\n  \"%s\": {\n"
+        "    \"object-type\": \"%s\",\n    \"object-instance\": %lu,\n"
+        "    \"error-class\": \"%s\",\n    \"error-code\": \"%s\"\n  }\n}]\n",
+        bactext_confirmed_service_name(SERVICE_CONFIRMED_DELETE_OBJECT),
         bactext_object_type_name(Target_Object_Type),
         (unsigned long)Target_Object_Instance,
         bactext_error_class_name((int)error_class),
@@ -308,7 +309,8 @@ int main(int argc, char *argv[])
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                fprintf(stderr, "\rError: TSM Timeout!\n");
+                MyPrintHandler(ERROR_CLASS_COMMUNICATION,
+                    ERROR_CODE_ABORT_TSM_TIMEOUT);
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
                 /* abort */
@@ -329,7 +331,8 @@ int main(int argc, char *argv[])
             tsm_timer_milliseconds(mstimer_interval(&maintenance_timer));
         }
         if (mstimer_expired(&apdu_timer)) {
-            printf("\rError: APDU Timeout!\n");
+            MyPrintHandler(ERROR_CLASS_COMMUNICATION,
+                ERROR_CODE_ABORT_APPLICATION_EXCEEDED_REPLY_TIME);
             Error_Detected = true;
         }
         if (Error_Detected) {

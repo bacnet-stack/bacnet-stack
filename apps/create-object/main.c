@@ -29,6 +29,8 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/create_object.h"
+#include "bacnet/abort.h"
+#include "bacnet/reject.h"
 #include "bacnet/whois.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
@@ -52,6 +54,28 @@ static bool Error_Detected = false;
 /* Used for verbose */
 static bool Verbose = false;
 
+static void MyPrintHandler(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code,
+    uint32_t first_failed_element_number)
+{
+    printf("[{\n  \"%s\": {\n"
+        "    \"object-type\": \"%s\",\n    \"object-instance\": %lu,\n"
+        "    \"error-class\": \"%s\",\n    \"error-code\": \"%s\"",
+        bactext_confirmed_service_name(SERVICE_CONFIRMED_CREATE_OBJECT),
+        bactext_object_type_name(object_type),
+        (unsigned long)object_instance,
+        bactext_error_class_name((int)error_class),
+        bactext_error_code_name((int)error_code));
+    if (first_failed_element_number > 0) {
+        printf(",\n    \"first-failed-element-number\": %lu",
+            (unsigned long)first_failed_element_number);
+    }
+    printf("\n  }\n}]\n");
+}
+
 static void MyCreateObjectErrorHandler(BACNET_ADDRESS *src,
     uint8_t invoke_id,
     uint8_t service_choice,
@@ -67,12 +91,9 @@ static void MyCreateObjectErrorHandler(BACNET_ADDRESS *src,
         len = create_object_error_ack_service_decode(service_request,
             service_len, &data);
         if (len > 0) {
-            printf("[{\"CreateObject\":"
-                "{\"error-class\":\"%s\",\"error-code\":"
-                "\"%s\",\"first-failed-element-number\":%lu}]\n",
-                bactext_error_class_name((int)data.error_class),
-                bactext_error_code_name((int)data.error_code),
-                (unsigned long)data.first_failed_element_number);
+            MyPrintHandler(data.object_type, data.object_instance,
+                data.error_class, data.error_code,
+                data.first_failed_element_number);
         }
         Error_Detected = true;
     }
@@ -91,16 +112,15 @@ static void MyCreateObjectAckHandler(uint8_t *service_request,
         len = create_object_ack_service_decode(
             service_request, service_len, &data);
         if (len < 0) {
-            printf("[{\"CreateObject\":{\"error\":\"ACK decode failed\"}]\n");
+            MyPrintHandler(Target_Object_Type, Target_Object_Instance,
+                ERROR_CLASS_SERVICES, ERROR_CODE_REJECT_OTHER, 0);
         } else {
-            printf("[{\"CreateObject\":{\"object-type\":\"%s\",\"object-"
-                   "instance\":%lu}}]\n",
-                bactext_object_type_name(data.object_type),
-                (unsigned long)data.object_instance);
+            MyPrintHandler(data.object_type, data.object_instance,
+                ERROR_CLASS_SERVICES, ERROR_CODE_SUCCESS, 0);
         }
     } else {
         if (Verbose) {
-            printf("CreateObjectAckHandler - not matched\n");
+            printf("CreateObjectACK - not matched\n");
         }
     }
 }
@@ -111,8 +131,8 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("[{\"CreateObject\":{\"abort-reason\":\"%s\"}]\n",
-            bactext_abort_reason_name((int)abort_reason));
+        MyPrintHandler(Target_Object_Type, Target_Object_Instance,
+            ERROR_CLASS_SERVICES, abort_convert_to_error_code(abort_reason), 0);
         Error_Detected = true;
     }
 }
@@ -123,8 +143,9 @@ static void MyRejectHandler(
     /* FIXME: verify src and invoke id */
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("[{\"CreateObject\":{\"reject-reason\":\"%s\"}]\n",
-            bactext_reject_reason_name((int)reject_reason));
+        MyPrintHandler(Target_Object_Type, Target_Object_Instance,
+            ERROR_CLASS_SERVICES,
+            reject_convert_to_error_code(reject_reason), 0);
         Error_Detected = true;
     }
 }
@@ -327,7 +348,8 @@ int main(int argc, char *argv[])
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                printf("[{\"CreateObject\":{\"error\":\"TSM Timeout\"}]\n");
+                MyPrintHandler(Target_Object_Type, Target_Object_Instance,
+                    ERROR_CLASS_COMMUNICATION, ERROR_CODE_ABORT_TSM_TIMEOUT, 0);
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
                 /* abort */
@@ -348,7 +370,9 @@ int main(int argc, char *argv[])
             tsm_timer_milliseconds(mstimer_interval(&maintenance_timer));
         }
         if (mstimer_expired(&apdu_timer)) {
-            printf("[{\"CreateObject\":{\"error\":\"APDU Timeout\"}]\n");
+            MyPrintHandler(Target_Object_Type, Target_Object_Instance,
+                ERROR_CLASS_COMMUNICATION,
+                ERROR_CODE_ABORT_APPLICATION_EXCEEDED_REPLY_TIME, 0);
             Error_Detected = true;
         }
         if (Error_Detected) {
