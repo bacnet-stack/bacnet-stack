@@ -171,8 +171,9 @@ int arf_encode_apdu(
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  Count of valid bytes in the buffer.
  * @param data  Pointer to the property decoded data to be stored
+ *  or NULL for length
  *
- * @return Bytes decoded or BACNET_STATUS_ERROR on error.
+ * @return number of bytes decoded or BACNET_STATUS_ERROR on error.
  */
 int arf_decode_service_request(
     uint8_t *apdu, unsigned apdu_size, BACNET_ATOMIC_READ_FILE_DATA *data)
@@ -269,7 +270,8 @@ int arf_decode_service_request(
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  size of the buffer for decoding.
  * @param invoke_id [in] Invoked service ID.
- * @param data  Pointer to the property data values to be stored
+ * @param data  Pointer to the property data values to be stored,
+ *  or NULL for length
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
 int arf_decode_apdu(uint8_t *apdu,
@@ -447,85 +449,85 @@ int arf_ack_encode_apdu(
  *
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  size of the buffer for decoding.
- * @param data  Pointer to the property data to be encoded.
+ * @param data  Pointer to the property data to be encoded,
+ *  or NULL for length
  * @return Bytes encoded or BACNET_STATUS_ERROR on error.
  */
 int arf_ack_decode_service_request(
     uint8_t *apdu, unsigned apdu_size, BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     int apdu_len = 0;
-    int tag_len = 0;
+    int len = 0;
     bool endOfFile;
     int32_t signed_integer;
     BACNET_UNSIGNED_INTEGER record_count, i;
     BACNET_OCTET_STRING *octet_string = NULL;
 
-    /* check for value pointers */
-    tag_len = bacnet_boolean_application_decode(apdu, apdu_size, &endOfFile);
-    if (tag_len < 0) {
+    len = bacnet_boolean_application_decode(apdu, apdu_size, &endOfFile);
+    if (len < 0) {
         return BACNET_STATUS_ERROR;
     }
     if (data) {
         data->endOfFile = endOfFile;
     }
-    apdu_len += tag_len;
+    apdu_len += len;
     if (bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 0, &tag_len)) {
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
         if (data) {
             data->access = FILE_STREAM_ACCESS;
         }
-        apdu_len += tag_len;
+        apdu_len += len;
         /* fileStartPosition */
-        tag_len = bacnet_signed_application_decode(
+        len = bacnet_signed_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, &signed_integer);
-        if (tag_len < 0) {
+        if (len < 0) {
             return BACNET_STATUS_ERROR;
         }
         if (data) {
             data->type.stream.fileStartPosition = signed_integer;
         }
-        apdu_len += tag_len;
+        apdu_len += len;
         /* fileData */
         if (data) {
             octet_string = &data->fileData[0];
         }
-        tag_len = bacnet_octet_string_application_decode(
+        len = bacnet_octet_string_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, octet_string);
-        if (tag_len < 0) {
+        if (len < 0) {
             return BACNET_STATUS_ERROR;
         }
-        apdu_len += tag_len;
+        apdu_len += len;
         if (!bacnet_is_closing_tag_number(
-                &apdu[apdu_len], apdu_size - apdu_len, 0, &tag_len)) {
+                &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
             return BACNET_STATUS_ERROR;
         }
-        apdu_len += tag_len;
+        apdu_len += len;
     } else if (bacnet_is_opening_tag_number(
-                   &apdu[apdu_len], apdu_size - apdu_len, 1, &tag_len)) {
+                   &apdu[apdu_len], apdu_size - apdu_len, 1, &len)) {
         if (data) {
             data->access = FILE_RECORD_ACCESS;
         }
-        apdu_len += tag_len;
+        apdu_len += len;
         /* fileStartRecord */
-        tag_len = bacnet_signed_application_decode(
+        len = bacnet_signed_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, &signed_integer);
-        if (tag_len < 0) {
+        if (len < 0) {
             return BACNET_STATUS_ERROR;
         }
         if (data) {
             data->type.record.fileStartRecord = signed_integer;
         }
-        apdu_len += tag_len;
+        apdu_len += len;
         /* returnedRecordCount */
-        tag_len = bacnet_unsigned_application_decode(
+        len = bacnet_unsigned_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, &record_count);
-        if (tag_len < 0) {
+        if (len < 0) {
             return BACNET_STATUS_ERROR;
         }
         if (data) {
             data->type.record.RecordCount = record_count;
         }
-        apdu_len += tag_len;
+        apdu_len += len;
         for (i = 0; i < record_count; i++) {
             /* fileData */
             if (i >= BACNET_READ_FILE_RECORD_COUNT) {
@@ -535,18 +537,18 @@ int arf_ack_decode_service_request(
             } else {
                 octet_string = NULL;
             }
-            tag_len = bacnet_octet_string_application_decode(
+            len = bacnet_octet_string_application_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, octet_string);
-            if (tag_len < 0) {
+            if (len < 0) {
                 return BACNET_STATUS_ERROR;
             }
-            apdu_len += tag_len;
+            apdu_len += len;
         }
         if (!bacnet_is_closing_tag_number(
-                &apdu[apdu_len], apdu_size - apdu_len, 1, &tag_len)) {
+                &apdu[apdu_len], apdu_size - apdu_len, 1, &len)) {
             return BACNET_STATUS_ERROR;
         }
-        apdu_len += tag_len;
+        apdu_len += len;
     } else {
         return BACNET_STATUS_ERROR;
     }
@@ -559,7 +561,8 @@ int arf_ack_decode_service_request(
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  size of the buffer for decoding.
  * @param invoke_id [in] Invoked service ID.
- * @param data  Pointer to the property data values to be stored
+ * @param data  Pointer to the property data values to be stored,
+ *  or NULL for length
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
 int arf_ack_decode_apdu(uint8_t *apdu,
