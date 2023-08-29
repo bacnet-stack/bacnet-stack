@@ -1734,9 +1734,9 @@ int encode_context_octet_string(
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding, may be
  * zero
- * @param value - the unsigned value decoded
+ * @param value - the unsigned value decoded, or NULL for length
  *
- * @return  number of bytes decoded, or BACNET_STATUS_ERROR if errors occur
+ * @return  number of bytes decoded
  */
 int bacnet_octet_string_decode(uint8_t *apdu,
     uint32_t apdu_size,
@@ -1744,17 +1744,14 @@ int bacnet_octet_string_decode(uint8_t *apdu,
     BACNET_OCTET_STRING *value)
 {
     int len = BACNET_STATUS_ERROR;
-    bool status = false;
 
-    if (value && (len_value <= apdu_size)) {
+    if (len_value <= apdu_size) {
         if (len_value > 0) {
-            status = octetstring_init(value, &apdu[0], len_value);
+            (void)octetstring_init(value, &apdu[0], len_value);
         } else {
-            status = octetstring_init(value, NULL, 0);
+            (void)octetstring_init(value, NULL, 0);
         }
-        if (status) {
-            len = (int)len_value;
-        }
+        len = (int)len_value;
     }
 
     return len;
@@ -1823,7 +1820,7 @@ int bacnet_octet_string_application_decode(
         if (apdu_len < apdu_size) {
             len = bacnet_octet_string_decode(
                 &apdu[len], apdu_size - apdu_len, len_value_type, value);
-            if (len != BACNET_STATUS_ERROR) {
+            if (len > 0) {
                 apdu_len += len;
             } else {
                 apdu_len = BACNET_STATUS_ERROR;

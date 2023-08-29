@@ -107,7 +107,7 @@ int create_object_encode_service_request(
  *  }
  *
  * @param apdu  Pointer to the buffer for decoding.
- * @param apdu_len  Count of valid bytes in the buffer.
+ * @param apdu_size  Count of valid bytes in the buffer.
  * @param data  Pointer to the property decoded data to be stored
  *
  * @return Bytes decoded or BACNET_STATUS_REJECT on error.
@@ -327,7 +327,7 @@ int create_object_error_ack_service_encode(
 }
 
 /**
- * @brief Encode an Error acknowledge in the APDU.
+ * @brief Encode a CreateObject Error acknowledge in the APDU.
  * @param apdu [in] The APDU buffer.
  * @param invoke_id [in] Invoked service ID.
  * @param data [in] Data of the invoked property.
