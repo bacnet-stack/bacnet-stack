@@ -604,7 +604,7 @@ int decode_tag_number_and_value(
  * @param tag_number - decoded tag number, if decoded
  * @param value - decoded value, if decoded
  *
- * @return the number of apdu bytes consumed
+ * @return the number of apdu bytes consumed, or zero if errors occur
  */
 int bacnet_tag_number_and_value_decode(
     uint8_t *apdu, uint32_t apdu_len_max, uint8_t *tag_number, uint32_t *value)
@@ -1736,7 +1736,7 @@ int encode_context_octet_string(
  * zero
  * @param value - the unsigned value decoded, or NULL for length
  *
- * @return  number of bytes decoded
+ * @return  number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
 int bacnet_octet_string_decode(uint8_t *apdu,
     uint32_t apdu_size,
@@ -1975,18 +1975,19 @@ int bacnet_character_string_decode(uint8_t *apdu,
     uint32_t len_value,
     BACNET_CHARACTER_STRING *char_string)
 {
-    bool status = false;
     char *string_value = NULL;
     int len = 0;
+    uint8_t encoding;
 
     /* check to see if the APDU is long enough */
     if (len_value <= apdu_size) {
-        if (len_value > 1) {
-            string_value = (char *)&apdu[1];
-        }
-        status = characterstring_init(
-            char_string, apdu[0], string_value, len_value - 1);
-        if (status) {
+        if (len_value > 0) {
+            encoding = apdu[0];
+            if (len_value > 1) {
+                string_value = (char *)&apdu[1];
+                (void)characterstring_init(
+                    char_string, encoding, string_value, len_value - 1);
+            }
             len = (int)len_value;
         }
     }

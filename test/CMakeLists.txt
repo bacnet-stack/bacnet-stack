@@ -66,6 +66,7 @@ list(APPEND testdirs
   bacnet/event
   bacnet/getalarm
   bacnet/getevent
+  bacnet/hostnport
   bacnet/iam
   bacnet/ihave
   bacnet/indtext
