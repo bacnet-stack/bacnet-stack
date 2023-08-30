@@ -49,6 +49,18 @@
 typedef int (*bacnet_array_property_element_encode_function)(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
 
+typedef struct BACnetTag {
+    uint8_t number;
+    bool application:1;
+    bool context:1;
+    bool opening:1;
+    bool closing:1;
+    uint32_t len_value_type;
+} BACNET_TAG;
+
+/* max size of a BACnet tag */
+#define BACNET_TAG_SIZE 7
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -62,10 +74,10 @@ BACNET_STACK_EXPORT
 int encode_opening_tag(uint8_t *apdu, uint8_t tag_number);
 BACNET_STACK_EXPORT
 int encode_closing_tag(uint8_t *apdu, uint8_t tag_number);
-
 BACNET_STACK_EXPORT
-bool bacnet_is_context_tag_number(
-    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length);
+int bacnet_tag_decode(uint8_t *apdu, uint32_t apdu_size, BACNET_TAG *tag);
+
+
 BACNET_STACK_EXPORT
 bool bacnet_is_opening_tag(uint8_t *apdu, uint32_t apdu_size);
 BACNET_STACK_EXPORT
@@ -102,10 +114,10 @@ bool decode_is_opening_tag_number(uint8_t *apdu, uint8_t tag_number);
 BACNET_STACK_DEPRECATED("Use bacnet_is_closing_tag_number() instead")
 BACNET_STACK_EXPORT
 bool decode_is_closing_tag_number(uint8_t *apdu, uint8_t tag_number);
-BACNET_STACK_DEPRECATED("Use bacnet_decode_is_context_tag_number() instead")
+BACNET_STACK_DEPRECATED("Use bacnet_is_context_tag_number() instead")
 BACNET_STACK_EXPORT
 bool decode_is_context_tag(uint8_t *apdu, uint8_t tag_number);
-BACNET_STACK_DEPRECATED("Use bacnet_decode_is_context_tag_number() instead")
+BACNET_STACK_DEPRECATED("Use bacnet_is_context_tag_number() instead")
 BACNET_STACK_EXPORT
 bool decode_is_context_tag_with_length(
     uint8_t *apdu, uint8_t tag_number, int *tag_length);
