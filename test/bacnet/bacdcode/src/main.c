@@ -90,6 +90,71 @@ static void print_apdu(uint8_t *pBlock, uint32_t num)
     return;
 }
 
+static void test_bacnet_tag_codec(
+    uint8_t tag_number, bool context_specific, uint32_t len_value_type)
+{
+    uint8_t apdu[BACNET_TAG_SIZE] = { 0 };
+    BACNET_TAG tag = { 0 };
+    int len = 0, test_len = 0, null_len = 0, tag_len = 0;
+    bool status;
+
+    null_len = encode_tag(NULL, tag_number, context_specific, len_value_type);
+    len = encode_tag(apdu, tag_number, context_specific, len_value_type);
+    zassert_equal(len, null_len, NULL);
+    test_len = bacnet_tag_decode(apdu, sizeof(apdu), &tag);
+    zassert_equal(len, test_len, NULL);
+    zassert_equal(tag.number, tag_number, NULL);
+    if (context_specific) {
+        zassert_true(tag.context, NULL);
+        zassert_false(tag.application, NULL);
+        status = bacnet_is_context_tag_number(
+            apdu, sizeof(apdu), tag_number, &tag_len);
+        zassert_true(status, NULL);
+        zassert_equal(tag_len, test_len, NULL);
+    } else {
+        zassert_false(tag.context, NULL);
+        zassert_true(tag.application, NULL);
+        status = bacnet_is_context_tag_number(
+            apdu, sizeof(apdu), tag_number, &tag_len);
+        zassert_false(status, NULL);
+    }
+    zassert_false(tag.closing, NULL);
+    zassert_false(tag.opening, NULL);
+    while (len) {
+        len--;
+        test_len = bacnet_tag_decode(apdu, len, &tag);
+        zassert_equal(test_len, 0, NULL);
+    }
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, test_BACnet_Tag_Codec)
+#else
+static void testBACnetTagCodec(void)
+#endif
+{
+    uint8_t tag_number = 0;
+    bool context_specific = false;
+    uint32_t len_value_type = 0;
+
+    test_bacnet_tag_codec(tag_number, context_specific, len_value_type);
+    context_specific = true;
+    test_bacnet_tag_codec(tag_number, context_specific, len_value_type);
+    context_specific = false;
+    for (tag_number = 1; tag_number != BIT(7); tag_number <<= 1) {
+        test_bacnet_tag_codec(tag_number, context_specific, len_value_type);
+        context_specific = true;
+        test_bacnet_tag_codec(tag_number, context_specific, len_value_type);
+        context_specific = false;
+    }
+    for (len_value_type = 1; len_value_type != BIT(31); len_value_type <<= 1) {
+        test_bacnet_tag_codec(tag_number, context_specific, len_value_type);
+        context_specific = true;
+        test_bacnet_tag_codec(tag_number, context_specific, len_value_type);
+        context_specific = false;
+    }
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacdcode_tests, testBACDCodeTags)
 #else
@@ -166,6 +231,14 @@ static void testBACDCodeEnumerated(void)
     for (i = 0; i < 31; i++) {
         apdu_len = encode_application_enumerated(&array[0], value);
         null_len = encode_application_enumerated(NULL, value);
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+        len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
+        len += decode_enumerated(&array[len], len_value, &decoded_value);
+        zassert_equal(decoded_value, value, NULL);
+        zassert_equal(tag_number, BACNET_APPLICATION_TAG_ENUMERATED, NULL);
+        zassert_equal(len, apdu_len, NULL);
+        zassert_equal(null_len, apdu_len, NULL);
+#endif
         len = bacnet_enumerated_application_decode(
             &array[0], apdu_len, &decoded_value);
         zassert_equal(decoded_value, value, NULL);
@@ -178,6 +251,12 @@ static void testBACDCodeEnumerated(void)
         /* an enumerated will take up to 4 octects */
         /* plus a one octet for the tag */
         apdu_len = encode_application_enumerated(&apdu[0], value);
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+        len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
+        zassert_equal(len, 1, NULL);
+        zassert_equal(tag_number, BACNET_APPLICATION_TAG_ENUMERATED, NULL);
+        zassert_false(IS_CONTEXT_SPECIFIC(apdu[0]), NULL);
+#endif
         len = bacnet_tag_decode(apdu, sizeof(apdu), &tag);
         zassert_true(len > 0, NULL);
         zassert_equal(tag.number, BACNET_APPLICATION_TAG_ENUMERATED, NULL);
@@ -217,10 +296,31 @@ static void testBACDCodeReal(void)
     uint8_t tag_number = 0;
     BACNET_TAG tag = { 0 };
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+    encode_bacnet_real(value, &real_array[0]);
+    decode_real(&real_array[0], &decoded_value);
+    zassert_equal(decoded_value, value, NULL);
+    encode_bacnet_real(value, &encoded_array[0]);
+    zassert_equal(
+        memcmp(&real_array, &encoded_array, sizeof(real_array)), 0, NULL);
+#endif
     /* a real will take up 4 octects plus a one octet tag */
     apdu_len = encode_application_real(&apdu[0], value);
     null_len = encode_application_real(NULL, value);
     zassert_equal(apdu_len, 5, NULL);
+    zassert_equal(apdu_len, null_len, NULL);
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+    /* len tells us how many octets were used for encoding the value */
+    uint32_t long_value = 0;
+    len = decode_tag_number_and_value(&apdu[0], &tag_number, &long_value);
+    zassert_equal(tag_number, BACNET_APPLICATION_TAG_REAL, NULL);
+    zassert_false(IS_CONTEXT_SPECIFIC(apdu[0]), NULL);
+    zassert_equal(len, 1, NULL);
+    zassert_equal(long_value, 4, NULL);
+    decode_real(&apdu[len], &decoded_value);
+    zassert_equal(decoded_value, value, NULL);
+#endif
+    null_len = bacnet_real_application_decode(apdu, apdu_len, NULL);
     zassert_equal(apdu_len, null_len, NULL);
     len = bacnet_real_application_decode(apdu, apdu_len, &decoded_value);
     zassert_equal(apdu_len, len, NULL);
@@ -230,6 +330,11 @@ static void testBACDCodeReal(void)
     zassert_true(tag.application, NULL);
     zassert_false(tag.context, NULL);
     zassert_equal(decoded_value, value, NULL);
+    while (apdu_len) {
+        apdu_len--;
+        len = bacnet_real_application_decode(apdu, apdu_len, NULL);
+        zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    }
 
     return;
 }
@@ -248,21 +353,47 @@ static void testBACDCodeDouble(void)
     int len = 0, apdu_len = 0, null_len = 0, tag_len = 0;
     BACNET_TAG tag = { 0 };
 
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+    encode_bacnet_double(value, &double_array[0]);
+    decode_double(&double_array[0], &decoded_value);
+    zassert_equal(decoded_value, value, NULL);
+    encode_bacnet_double(value, &encoded_array[0]);
+    zassert_equal(
+        memcmp(&double_array, &encoded_array, sizeof(double_array)), 0, NULL);
+#endif
     /* a double will take up 8 octects plus a one octet tag */
     apdu_len = encode_application_double(&apdu[0], value);
     null_len = encode_application_double(NULL, value);
     zassert_equal(apdu_len, 10, NULL);
     zassert_equal(apdu_len, null_len, NULL);
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+    uint8_t tag_number = 0;
+    uint32_t long_value = 0;
+    /* len tells us how many octets were used for encoding the value */
+    len = decode_tag_number_and_value(&apdu[0], &tag_number, &long_value);
+    zassert_equal(tag_number, BACNET_APPLICATION_TAG_DOUBLE, NULL);
+    zassert_false(IS_CONTEXT_SPECIFIC(apdu[0]), NULL);
+    zassert_equal(len, 2, NULL);
+    zassert_equal(long_value, 8, NULL);
+    decode_double(&apdu[len], &decoded_value);
+#endif
+    null_len = bacnet_double_application_decode(apdu, apdu_len, NULL);
+    zassert_equal(apdu_len, null_len, NULL);
     len = bacnet_double_application_decode(apdu, apdu_len, &decoded_value);
     zassert_equal(apdu_len, len, NULL);
     tag_len = bacnet_tag_decode(apdu, apdu_len, &tag);
-    zassert_true(tag_len>0, NULL);
+    zassert_true(tag_len > 0, NULL);
     zassert_equal(tag.number, BACNET_APPLICATION_TAG_DOUBLE, NULL);
     zassert_true(tag.application, NULL);
     zassert_false(tag.context, NULL);
     zassert_false(tag.closing, NULL);
     zassert_false(tag.opening, NULL);
     zassert_equal(decoded_value, value, NULL);
+    while (apdu_len) {
+        apdu_len--;
+        len = bacnet_double_application_decode(apdu, apdu_len, NULL);
+        zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    }
 
     return;
 }
@@ -272,12 +403,16 @@ static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
     uint8_t array[5] = { 0 };
     uint8_t encoded_array[5] = { 0 };
     BACNET_UNSIGNED_INTEGER decoded_value = 0;
-    int len = 0, null_len = 0;
+    int len = 0, null_len = 0, test_len = 0, apdu_len = 0, tag_len = 0;
     uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_TAG tag = { 0 };
+
+    null_len = encode_application_unsigned(NULL, value);
+    apdu_len = encode_application_unsigned(array, value);
+    zassert_equal(apdu_len, null_len, NULL);
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-
-    len_value = encode_application_unsigned(&array[0], value);
     len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
     len = decode_unsigned(&array[len], len_value, &decoded_value);
     zassert_equal(decoded_value, value, NULL);
@@ -298,6 +433,25 @@ static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
     zassert_equal(len, 1, NULL);
     zassert_equal(tag_number, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
     zassert_false(IS_CONTEXT_SPECIFIC(apdu[0]), NULL);
+#endif
+    null_len = bacnet_unsigned_application_decode(apdu, apdu_len, NULL);
+    zassert_equal(
+        apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
+    len = bacnet_unsigned_application_decode(apdu, apdu_len, &decoded_value);
+    zassert_equal(apdu_len, len, NULL);
+    tag_len = bacnet_tag_decode(apdu, apdu_len, &tag);
+    zassert_true(tag_len > 0, NULL);
+    zassert_equal(tag.number, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    zassert_true(tag.application, NULL);
+    zassert_false(tag.context, NULL);
+    zassert_false(tag.closing, NULL);
+    zassert_false(tag.opening, NULL);
+    zassert_equal(decoded_value, value, NULL);
+    while (apdu_len) {
+        apdu_len--;
+        len = bacnet_unsigned_application_decode(apdu, apdu_len, NULL);
+        zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    }
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -311,14 +465,14 @@ static void testBACDCodeUnsigned(void)
 #else
     const unsigned max_bits = 32;
 #endif
-    uint32_t value = 1;
+    uint32_t value;
     int i;
 
     for (i = 0; i < max_bits; i++) {
+        value = BIT(i);
         verifyBACDCodeUnsignedValue(value - 1);
         verifyBACDCodeUnsignedValue(value);
         verifyBACDCodeUnsignedValue(value + 1);
-        value |= (value << 1);
     }
 
     return;
@@ -331,8 +485,8 @@ static void testBACnetUnsigned(void)
 #endif
 {
     uint8_t apdu[32] = { 0 };
-    BACNET_UNSIGNED_INTEGER value = 1, test_value = 0;
-    int len = 0, test_len = 0, null_len = 0;
+    BACNET_UNSIGNED_INTEGER value = 0, test_value = 0;
+    int len_value = 0, apdu_len = 0, test_len = 0, null_len = 0;
     unsigned i;
 #ifdef UINT64_MAX
     const unsigned max_bits = 64;
@@ -341,13 +495,27 @@ static void testBACnetUnsigned(void)
 #endif
 
     for (i = 0; i < max_bits; i++) {
-        len = encode_bacnet_unsigned(&apdu[0], value);
+        value = BIT(i);
+        apdu_len = encode_bacnet_unsigned(&apdu[0], value);
         null_len = encode_bacnet_unsigned(NULL, value);
-        test_len = decode_unsigned(&apdu[0], len, &test_value);
-        zassert_equal(len, null_len, NULL);
-        zassert_equal(len, test_len, NULL);
+        zassert_equal(apdu_len, null_len, NULL);
+        len_value = apdu_len;
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+        test_len = decode_unsigned(&apdu[0], len_value, &test_value);
+        zassert_equal(apdu_len, test_len, NULL);
         zassert_equal(value, test_value, NULL);
-        value |= (value << 1);
+#endif
+        null_len = bacnet_unsigned_decode(apdu, apdu_len, len_value, NULL);
+        zassert_equal(apdu_len, null_len, "apdu_len=%d null_len=%d value=%u",
+            apdu_len, null_len, value);
+        test_len =
+            bacnet_unsigned_decode(apdu, apdu_len, len_value, &test_value);
+        zassert_equal(apdu_len, test_len, NULL);
+        while (apdu_len) {
+            apdu_len--;
+            test_len = bacnet_unsigned_decode(apdu, apdu_len, len_value, NULL);
+            zassert_equal(test_len, 0, NULL);
+        }
     }
 }
 
@@ -356,15 +524,17 @@ static void testBACDCodeSignedValue(int32_t value)
     uint8_t array[5] = { 0 };
     uint8_t encoded_array[5] = { 0 };
     int32_t decoded_value = 0;
-    int len = 0, null_len = 0;
+    int len = 0, null_len = 0, tag_len = 0, test_len = 0;
     uint8_t apdu[MAX_APDU] = { 0 };
-    uint8_t tag_number = 0;
-    uint32_t len_value = 0;
     int diff = 0;
+    BACNET_TAG tag = { 0 };
 
     len = encode_application_signed(&array[0], value);
     null_len = encode_application_signed(NULL, value);
     zassert_equal(null_len, len, NULL);
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+    uint8_t tag_number = 0;
+    uint32_t len_value = 0;
     len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
     len = decode_signed(&array[len], len_value, &decoded_value);
     zassert_equal(tag_number, BACNET_APPLICATION_TAG_SIGNED_INT, NULL);
@@ -374,6 +544,7 @@ static void testBACDCodeSignedValue(int32_t value)
             "value=%ld decoded_value=%ld\n", (long)value, (long)decoded_value);
         print_apdu(&array[0], sizeof(array));
     }
+#endif
     len = encode_application_signed(&encoded_array[0], decoded_value);
     null_len = encode_application_signed(NULL, decoded_value);
     zassert_equal(null_len, len, NULL);
@@ -390,9 +561,25 @@ static void testBACDCodeSignedValue(int32_t value)
     len = encode_application_signed(&apdu[0], value);
     null_len = encode_application_signed(NULL, value);
     zassert_equal(null_len, len, NULL);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+    tag_len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
     zassert_equal(tag_number, BACNET_APPLICATION_TAG_SIGNED_INT, NULL);
     zassert_false(IS_CONTEXT_SPECIFIC(apdu[0]), NULL);
+    zassert_true(tag_len > 0, NULL);
+#endif
+    tag_len = bacnet_tag_decode(apdu, len, &tag);
+    zassert_true(tag_len > 0, NULL);
+    zassert_equal(tag.number, BACNET_APPLICATION_TAG_SIGNED_INT, NULL);
+    zassert_true(tag.application, NULL);
+    zassert_false(tag.context, NULL);
+    zassert_false(tag.closing, NULL);
+    zassert_false(tag.opening, NULL);
+    zassert_equal(decoded_value, value, NULL);
+    while (len) {
+        len--;
+        test_len = bacnet_signed_application_decode(apdu, len, NULL);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    }
 
     return;
 }
@@ -957,6 +1144,42 @@ static void testSignedContextDecodes(void)
     zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
 }
 
+static void test_enumerated_context_codec(uint32_t value, uint8_t context_tag)
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0, test_len = 0, null_len = 0, match_len = 0;
+    uint32_t decoded_value = 0;
+
+    null_len = encode_context_enumerated(NULL, context_tag, value);
+    len = encode_context_enumerated(apdu, context_tag, value);
+    zassert_equal(null_len, len, NULL);
+    zassert_true(len > 0, NULL);
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+    test_len = decode_context_enumerated(apdu, context_tag, &decoded_value);
+    zassert_equal(test_len, len, NULL);
+    zassert_equal(value, decoded_value, NULL);
+    match_len =
+        decode_context_enumerated(apdu, context_tag - 1, &decoded_value);
+    zassert_equal(match_len, BACNET_STATUS_ERROR, NULL);
+#endif
+    null_len =
+        bacnet_enumerated_context_decode(apdu, sizeof(apdu), context_tag, NULL);
+    test_len = bacnet_enumerated_context_decode(
+        apdu, sizeof(apdu), context_tag, &decoded_value);
+    zassert_equal(null_len, test_len, NULL);
+    zassert_equal(test_len, len, NULL);
+    zassert_equal(value, decoded_value, NULL);
+    match_len = bacnet_enumerated_context_decode(
+        apdu, sizeof(apdu), context_tag - 1, &decoded_value);
+    zassert_equal(match_len, 0, NULL);
+    while (len) {
+        len--;
+        test_len =
+            bacnet_enumerated_context_decode(apdu, len, context_tag, NULL);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    }
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacdcode_tests, testEnumeratedContextDecodes)
 #else
@@ -964,95 +1187,41 @@ static void testEnumeratedContextDecodes(void)
 #endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
-    int inLen = 0;
-    int outLen = 0;
-    int outLen2 = 0;
-    uint8_t large_context_tag = 0xfe;
+    uint8_t context_tag = 10;
 
-    /* 32 bit number */
-    uint32_t in = 0xdeadbeef;
-    uint32_t out = 0;
+    /* 32-bit value */
+    uint32_t value = 0xdeadbeef;
+    test_enumerated_context_codec(value, context_tag);
+    context_tag = 0xfe;
+    test_enumerated_context_codec(value, context_tag);
 
-    outLen2 = decode_context_enumerated(apdu, 9, &out);
-    zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
+    /* 16 bit value */
+    value = 0xdead;
+    context_tag = 10;
+    test_enumerated_context_codec(value, context_tag);
+    context_tag = 0xfe;
+    test_enumerated_context_codec(value, context_tag);
 
-    in = 0xdeadbeef;
-    inLen = encode_context_enumerated(apdu, 10, in);
-    outLen = decode_context_enumerated(apdu, 10, &out);
-    outLen2 = decode_context_enumerated(apdu, 9, &out);
-
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in, out, NULL);
-    zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
-
-    inLen = encode_context_enumerated(apdu, large_context_tag, in);
-    outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-    outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
-
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in, out, NULL);
-    zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
-
-    /* 16 bit number */
-    in = 0xdead;
-    inLen = encode_context_enumerated(apdu, 10, in);
-    outLen = decode_context_enumerated(apdu, 10, &out);
-
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in, out, NULL);
-
-    inLen = encode_context_enumerated(apdu, large_context_tag, in);
-    outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-    outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
-
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in, out, NULL);
-    zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
     /* 8 bit number */
-    in = 0xde;
-    inLen = encode_context_enumerated(apdu, 10, in);
-    outLen = decode_context_enumerated(apdu, 10, &out);
+    value = 0xde;
+    context_tag = 10;
+    test_enumerated_context_codec(value, context_tag);
+    context_tag = 0xfe;
+    test_enumerated_context_codec(value, context_tag);
 
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in, out, NULL);
-
-    inLen = encode_context_enumerated(apdu, large_context_tag, in);
-    outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-    outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
-
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in, out, NULL);
-    zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
     /* 4 bit number */
-    in = 0xd;
-    inLen = encode_context_enumerated(apdu, 10, in);
-    outLen = decode_context_enumerated(apdu, 10, &out);
+    value = 0xd;
+    context_tag = 10;
+    test_enumerated_context_codec(value, context_tag);
+    context_tag = 0xfe;
+    test_enumerated_context_codec(value, context_tag);
 
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in, out, NULL);
-
-    inLen = encode_context_enumerated(apdu, large_context_tag, in);
-    outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-    outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
-
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in, out, NULL);
-    zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
     /* 2 bit number */
-    in = 0x2;
-    inLen = encode_context_enumerated(apdu, 10, in);
-    outLen = decode_context_enumerated(apdu, 10, &out);
-
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in, out, NULL);
-
-    inLen = encode_context_enumerated(apdu, large_context_tag, in);
-    outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-    outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
-
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in, out, NULL);
-    zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
+    value = 0x2;
+    context_tag = 10;
+    test_enumerated_context_codec(value, context_tag);
+    context_tag = 0xfe;
+    test_enumerated_context_codec(value, context_tag);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -1546,8 +1715,8 @@ ZTEST_SUITE(bacdcode_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacdcode_tests, ztest_unit_test(testBACDCodeTags),
-        ztest_unit_test(testBACDCodeReal),
+    ztest_test_suite(bacdcode_tests, ztest_unit_test(testBACnetTagCodec),
+        ztest_unit_test(testBACDCodeTags), ztest_unit_test(testBACDCodeReal),
         ztest_unit_test(testBACDCodeUnsigned),
         ztest_unit_test(testBACnetUnsigned),
         ztest_unit_test(testBACDCodeSigned), ztest_unit_test(testBACnetSigned),

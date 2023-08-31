@@ -959,8 +959,15 @@ int decode_context_boolean2(
     uint8_t *apdu, uint8_t tag_number, bool *boolean_value)
 {
     uint32_t apdu_size = BACNET_TAG_SIZE + 1;
-    return bacnet_boolean_context_decode(
+    int len;
+
+    len = bacnet_boolean_context_decode(
         apdu, apdu_size, tag_number, boolean_value);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 /**
@@ -1296,16 +1303,23 @@ int bacnet_bitstring_context_decode(uint8_t *apdu,
  * @param bit_string  Pointer to the bit string variable,
  *                    taking the decoded result.
  *
- * @return Returns the number of bytes dcoded or BACNET_STATUS_ERROR.
+ * @return number of bytes decoded or #BACNET_STATUS_ERROR (-1)
+ *  if wrong tag number or malformed
  * @deprecated Use bacnet_bitstring_context_decode() instead.
  */
 int decode_context_bitstring(
     uint8_t *apdu, uint8_t tag_number, BACNET_BIT_STRING *bit_string)
 {
+    int len = 0;
     const uint32_t apdu_size = MAX_APDU;
 
-    return bacnet_bitstring_context_decode(
+    len = bacnet_bitstring_context_decode(
         apdu, apdu_size, tag_number, bit_string);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 /**
@@ -1585,8 +1599,8 @@ int bacnet_object_id_context_decode(uint8_t *apdu,
  * @param object_type - decoded object type, if decoded
  * @param object_instance - decoded object instance, if decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
- * or #BACNET_STATUS_ERROR (-1) if malformed
+ * @return number of bytes decoded or #BACNET_STATUS_ERROR (-1)
+ *  if wrong tag number or malformed
  * @deprecated Use bacnet_object_id_context_decode() instead
  */
 int decode_context_object_id(uint8_t *apdu,
@@ -1594,10 +1608,16 @@ int decode_context_object_id(uint8_t *apdu,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {
+    int len = 0;
     uint32_t apdu_size = BACNET_TAG_SIZE + 4;
 
-    return bacnet_object_id_context_decode(
+    len = bacnet_object_id_context_decode(
         apdu, apdu_size, tag_number, object_type, object_instance);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 /**
@@ -1830,15 +1850,23 @@ int decode_octet_string(
  * @param tag_number - context tag number expected
  * @param value - decoded value, if decoded, or NULL for length
  *
- * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
+ * @return number of bytes decoded or #BACNET_STATUS_ERROR (-1)
+ *  if wrong tag number or malformed
  * @deprecated use bacnet_octet_string_context_decode() instead
  */
 int decode_context_octet_string(
     uint8_t *apdu, uint8_t tag_number, BACNET_OCTET_STRING *value)
 {
+    int len = 0;
     const uint32_t apdu_size = MAX_APDU;
-    return bacnet_octet_string_context_decode(
-        apdu, apdu_size, tag_number, value);
+
+    len =
+        bacnet_octet_string_context_decode(apdu, apdu_size, tag_number, value);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 /**
@@ -2189,8 +2217,8 @@ int bacnet_character_string_context_decode(uint8_t *apdu,
  * @param tag_value - context tag number expected
  * @param value - the character string value decoded
  *
- * @return  number of bytes decoded, #BACNET_STATUS_ERROR (-1) if
- * wrong tag number, or #BACNET_STATUS_ERROR (-1) if malformed
+ * @return number of bytes decoded or #BACNET_STATUS_ERROR (-1)
+ *  if wrong tag number or malformed
  * @deprecated use bacnet_character_string_context_decode() instead
  */
 int decode_context_character_string(
@@ -2201,7 +2229,7 @@ int decode_context_character_string(
 
     len = bacnet_character_string_context_decode(
         apdu, apdu_size, tag_value, value);
-    if (len == 0) {
+    if (len <= 0) {
         len = BACNET_STATUS_ERROR;
     }
 
@@ -2232,51 +2260,69 @@ int bacnet_unsigned_decode(uint8_t *apdu,
     uint64_t unsigned64_value = 0;
 #endif
 
-    if (value && (len_value <= apdu_size)) {
+    if (len_value <= apdu_size) {
         switch (len_value) {
             case 1:
-                *value = apdu[0];
-                len = (int)len_value;
+                if (value) {
+                    *value = apdu[0];
+                }
+                len = 1;
                 break;
             case 2:
-                decode_unsigned16(&apdu[0], &unsigned16_value);
-                *value = unsigned16_value;
-                len = (int)len_value;
+                if (value) {
+                    decode_unsigned16(&apdu[0], &unsigned16_value);
+                    *value = unsigned16_value;
+                }
+                len = 2;
                 break;
             case 3:
-                decode_unsigned24(&apdu[0], &unsigned32_value);
-                *value = unsigned32_value;
-                len = (int)len_value;
+                if (value) {
+                    decode_unsigned24(&apdu[0], &unsigned32_value);
+                    *value = unsigned32_value;
+                }
+                len = 3;
                 break;
             case 4:
-                decode_unsigned32(&apdu[0], &unsigned32_value);
-                *value = unsigned32_value;
-                len = (int)len_value;
+                if (value) {
+                    decode_unsigned32(&apdu[0], &unsigned32_value);
+                    *value = unsigned32_value;
+                }
+                len = 4;
                 break;
 #ifdef UINT64_MAX
             case 5:
-                decode_unsigned40(&apdu[0], &unsigned64_value);
-                *value = unsigned64_value;
-                len = (int)len_value;
+                if (value) {
+                    decode_unsigned40(&apdu[0], &unsigned64_value);
+                    *value = unsigned64_value;
+                }
+                len = 5;
                 break;
             case 6:
-                decode_unsigned48(&apdu[0], &unsigned64_value);
-                *value = unsigned64_value;
-                len = (int)len_value;
+                if (value) {
+                    decode_unsigned48(&apdu[0], &unsigned64_value);
+                    *value = unsigned64_value;
+                }
+                len = 6;
                 break;
             case 7:
-                decode_unsigned56(&apdu[0], &unsigned64_value);
-                *value = unsigned64_value;
-                len = (int)len_value;
+                if (value) {
+                    decode_unsigned56(&apdu[0], &unsigned64_value);
+                    *value = unsigned64_value;
+                }
+                len = 7;
                 break;
             case 8:
-                decode_unsigned64(&apdu[0], &unsigned64_value);
-                *value = unsigned64_value;
-                len = (int)len_value;
+                if (value) {
+                    decode_unsigned64(&apdu[0], &unsigned64_value);
+                    *value = unsigned64_value;
+                }
+                len = 8;
                 break;
 #endif
             default:
-                *value = 0;
+                if (value) {
+                    *value = 0;
+                }
                 break;
         }
     }
@@ -2397,22 +2443,22 @@ int decode_unsigned(
  * @param tag_value - context tag number expected
  * @param value - the unsigned value decoded
  *
- * @return  number of bytes decoded, #BACNET_STATUS_ERROR (-1) if
- * wrong tag number, or error (-1) if malformed
+ * @return number of bytes decoded or #BACNET_STATUS_ERROR (-1)
+ *  if wrong tag number or malformed
  * @deprecated use bacnet_unsigned_context_decode() instead
  */
 int decode_context_unsigned(
     uint8_t *apdu, uint8_t tag_value, BACNET_UNSIGNED_INTEGER *value)
 {
+    int len = 0; /* return value */
 #ifdef UINT64_MAX
     const uint32_t apdu_size = 3 + 8;
 #else
     const uint32_t apdu_size = 2 + 4;
 #endif
-    int len = 0;
 
     len = bacnet_unsigned_context_decode(apdu, apdu_size, tag_value, value);
-    if (len == 0) {
+    if (len <= 0) {
         len = BACNET_STATUS_ERROR;
     }
 
@@ -2441,21 +2487,17 @@ int encode_bacnet_unsigned(uint8_t *apdu, BACNET_UNSIGNED_INTEGER value)
             (void)encode_unsigned16(&apdu[0], (uint16_t)value);
         } else if (len == 3) {
             (void)encode_unsigned24(&apdu[0], (uint32_t)value);
-        } else {
+        } else if (len == 4) {
+            (void)encode_unsigned32(&apdu[0], (uint32_t)value);
 #ifdef UINT64_MAX
-            if (len == 4) {
-                (void)encode_unsigned32(&apdu[0], (uint32_t)value);
-            } else if (len == 5) {
-                (void)encode_unsigned40(&apdu[0], value);
-            } else if (len == 6) {
-                (void)encode_unsigned48(&apdu[0], value);
-            } else if (len == 7) {
-                (void)encode_unsigned56(&apdu[0], value);
-            } else {
-                len = encode_unsigned64(&apdu[0], value);
-            }
-#else
-            len = encode_unsigned32(&apdu[0], value);
+        } else if (len == 5) {
+            (void)encode_unsigned40(&apdu[0], value);
+        } else if (len == 6) {
+            (void)encode_unsigned48(&apdu[0], value);
+        } else if (len == 7) {
+            (void)encode_unsigned56(&apdu[0], value);
+        } else if (len == 8) {
+            (void)encode_unsigned64(&apdu[0], value);
 #endif
         }
     }
@@ -2525,7 +2567,7 @@ int encode_application_unsigned(uint8_t *apdu, BACNET_UNSIGNED_INTEGER value)
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding
- * @param value - the enumerated value decoded
+ * @param value - the enumerated value decoded, or NULL for length
  *
  * @return  number of bytes decoded, or zero if errors occur
  */
@@ -2537,7 +2579,9 @@ int bacnet_enumerated_decode(
 
     len = bacnet_unsigned_decode(apdu, apdu_size, len_value, &unsigned_value);
     if (len > 0) {
-        *value = unsigned_value;
+        if (value) {
+            *value = unsigned_value;
+        }
     }
 
     return len;
@@ -2656,8 +2700,8 @@ int bacnet_enumerated_context_decode(
  * @param tag_value - context tag number expected
  * @param value - the enumerated value decoded
  *
- * @return  number of bytes decoded, #BACNET_STATUS_ERROR (-1) if
- * wrong tag number, or error (-1) if malformed
+ * @return number of bytes decoded or #BACNET_STATUS_ERROR (-1)
+ *  if wrong tag number or malformed
  * @deprecated use bacnet_enumerated_context_decode() instead
  */
 int decode_context_enumerated(uint8_t *apdu, uint8_t tag_value, uint32_t *value)
@@ -2666,7 +2710,7 @@ int decode_context_enumerated(uint8_t *apdu, uint8_t tag_value, uint32_t *value)
     int len = 0;
 
     len = bacnet_enumerated_context_decode(apdu, apdu_size, tag_value, value);
-    if (len == 0) {
+    if (len <= 0) {
         len = BACNET_STATUS_ERROR;
     }
 
@@ -2897,7 +2941,7 @@ int decode_context_signed(uint8_t *apdu, uint8_t tag_value, int32_t *value)
     int len = 0;
 
     len = bacnet_signed_context_decode(apdu, apdu_size, tag_value, value);
-    if (len == 0) {
+    if (len <= 0) {
         len = BACNET_STATUS_ERROR;
     }
 
@@ -3148,15 +3192,21 @@ int bacnet_real_application_decode(
  * @param tag_value - context tag number expected
  * @param value - the signed value decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
- * or error (-1) if malformed
+ * @return number of bytes decoded or #BACNET_STATUS_ERROR (-1)
+ *  if wrong tag number or malformed
  * @deprecated use bacnet_real_context_decode() instead
  */
 int decode_context_real(uint8_t *apdu, uint8_t tag_value, float *real_value)
 {
+    int len = 0;
     const uint32_t apdu_size = BACNET_TAG_SIZE + 4;
 
-    return bacnet_real_context_decode(apdu, apdu_size, tag_value, real_value);
+    len = bacnet_real_context_decode(apdu, apdu_size, tag_value, real_value);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 #if BACNET_USE_DOUBLE
@@ -3321,15 +3371,21 @@ int bacnet_double_application_decode(
  * @param tag_number - context tag number expected
  * @param value - the signed value decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
- * or error (-1) if malformed
+ * @return number of bytes decoded or #BACNET_STATUS_ERROR (-1)
+ *  if wrong tag number or malformed
  * @deprecated use bacnet_double_context_decode() instead
  */
 int decode_context_double(uint8_t *apdu, uint8_t tag_number, double *value)
 {
+    int len = 0;
     const uint32_t apdu_size = BACNET_TAG_SIZE + 8;
 
-    return bacnet_double_context_decode(apdu, apdu_size, tag_number, value);
+    len = bacnet_double_context_decode(apdu, apdu_size, tag_number, value);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 #endif
 
@@ -3423,12 +3479,14 @@ int bacnet_time_decode(
 {
     int len = 0;
 
-    if (value && (len_value <= apdu_size) && (len_value == 4)) {
+    if ((apdu_size >= 4) && (len_value == 4)) {
         /* length of time is 4 octets, as per 20.2.13 */
-        value->hour = apdu[0];
-        value->min = apdu[1];
-        value->sec = apdu[2];
-        value->hundredths = apdu[3];
+        if (value) {
+            value->hour = apdu[0];
+            value->min = apdu[1];
+            value->sec = apdu[2];
+            value->hundredths = apdu[3];
+        }
         len = (int)len_value;
     }
 
@@ -3546,10 +3604,12 @@ int decode_bacnet_time_safe(
     uint8_t *apdu, uint32_t len_value, BACNET_TIME *btime)
 {
     if (len_value != 4) {
-        btime->hour = 0;
-        btime->hundredths = 0;
-        btime->min = 0;
-        btime->sec = 0;
+        if (btime) {
+            btime->hour = 0;
+            btime->hundredths = 0;
+            btime->min = 0;
+            btime->sec = 0;
+        }
         return (int)len_value;
     } else {
         return decode_bacnet_time(apdu, btime);
@@ -3564,15 +3624,21 @@ int decode_bacnet_time_safe(
  * @param apdu - buffer of data to be decoded
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
- * or #BACNET_STATUS_ERROR (-1) if malformed
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
+ *  or wrong tag number
  * @deprecated use bacnet_time_application_decode() instead
  */
 int decode_application_time(uint8_t *apdu, BACNET_TIME *value)
 {
+    int len = 0;
     const uint32_t apdu_size = BACNET_TAG_SIZE + 4;
 
-    return bacnet_time_application_decode(apdu, apdu_size, value);
+    len = bacnet_time_application_decode(apdu, apdu_size, value);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 /**
@@ -3585,16 +3651,22 @@ int decode_application_time(uint8_t *apdu, BACNET_TIME *value)
  * @param tag_number - context tag number expected
  * @param value - the unsigned value decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
- * or error (-1) if malformed
+ * @return number of bytes decoded or #BACNET_STATUS_ERROR (-1)
+ *  if wrong tag number or malformed
  * @deprecated use bacnet_time_context_decode() instead
  */
 int decode_context_bacnet_time(
     uint8_t *apdu, uint8_t tag_number, BACNET_TIME *value)
 {
+    int len = 0;
     const uint32_t apdu_size = BACNET_TAG_SIZE + 4;
 
-    return bacnet_time_context_decode(apdu, apdu_size, tag_number, value);
+    len = bacnet_time_context_decode(apdu, apdu_size, tag_number, value);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 /**
@@ -3704,12 +3776,14 @@ int bacnet_date_decode(
 {
     int len = 0;
 
-    if (value && (len_value <= apdu_size) && (len_value == 4)) {
+    if ((apdu_size >= 4) && (len_value == 4)) {
         /* length of date is 4 octets, as per 20.2.12 */
-        value->year = (uint16_t)apdu[0] + 1900;
-        value->month = apdu[1];
-        value->day = apdu[2];
-        value->wday = apdu[3];
+        if (value) {
+            value->year = (uint16_t)apdu[0] + 1900;
+            value->month = apdu[1];
+            value->day = apdu[2];
+            value->wday = apdu[3];
+        }
         len = (int)len_value;
     }
 
@@ -3839,15 +3913,21 @@ int decode_date_safe(uint8_t *apdu, uint32_t len_value, BACNET_DATE *bdate)
  * @param apdu - buffer of data to be decoded
  * @param value - decoded value, if decoded
  *
- * @return number of bytes decoded, zero if wrong tag number,
- * or #BACNET_STATUS_ERROR (-1) if malformed
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
+ *  or wrong tag number
  * @deprecated use bacnet_date_application_decode() instead
  */
 int decode_application_date(uint8_t *apdu, BACNET_DATE *value)
 {
+    int len = 0;
     const uint32_t apdu_size = BACNET_TAG_SIZE + 4;
 
-    return bacnet_date_application_decode(apdu, apdu_size, value);
+    len = bacnet_date_application_decode(apdu, apdu_size, value);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 /**
@@ -3860,15 +3940,21 @@ int decode_application_date(uint8_t *apdu, BACNET_DATE *value)
  * @param tag_value - context tag number expected
  * @param value - the unsigned value decoded
  *
- * @return  number of bytes decoded, zero if wrong tag number,
- * or error (-1) if malformed
+ * @return number of bytes decoded or #BACNET_STATUS_ERROR (-1)
+ *  if wrong tag number or malformed
  * @deprecated use bacnet_date_context_decode() instead
  */
 int decode_context_date(uint8_t *apdu, uint8_t tag_value, BACNET_DATE *value)
 {
+    int len = 0;
     const uint32_t apdu_size = BACNET_TAG_SIZE + 4;
 
-    return bacnet_date_context_decode(apdu, apdu_size, tag_value, value);
+    len = bacnet_date_context_decode(apdu, apdu_size, tag_value, value);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 /**
