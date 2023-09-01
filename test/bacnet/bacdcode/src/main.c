@@ -409,28 +409,25 @@ static void testBACDCodeDouble(void)
 
 static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
-    uint8_t encoded_apdu[5] = { 0 };
+    uint8_t array[5] = { 0 };
+    uint8_t encoded_array[5] = { 0 };
     BACNET_UNSIGNED_INTEGER decoded_value = 0;
-    int len = 0, null_len = 0, test_len = 0, apdu_len = 0, tag_len = 0;
-    BACNET_TAG tag = { 0 };
-
-    null_len = encode_application_unsigned(NULL, value);
-    apdu_len = encode_application_unsigned(apdu, value);
-    zassert_equal(apdu_len, null_len, NULL);
-#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+    int len = 0, null_len = 0;
+    uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    len = decode_unsigned(&apdu[len], len_value, &decoded_value);
+
+    len_value = encode_application_unsigned(&array[0], value);
+    len = decode_tag_number_and_value(&array[0], &tag_number, &len_value);
+    len = decode_unsigned(&array[len], len_value, &decoded_value);
     zassert_equal(decoded_value, value, NULL);
     if (decoded_value != value) {
         printf("value=%lu decoded_value=%lu\n", (unsigned long)value,
             (unsigned long)decoded_value);
-        print_apdu(&apdu[0], sizeof(apdu));
+        print_apdu(&array[0], sizeof(array));
     }
-    encode_application_unsigned(&encoded_apdu[0], decoded_value);
-    zassert_equal(memcmp(&apdu[0], &encoded_apdu[0], sizeof(apdu)), 0, NULL);
+    encode_application_unsigned(&encoded_array[0], decoded_value);
+    zassert_equal(memcmp(&array[0], &encoded_array[0], sizeof(array)), 0, NULL);
     /* an unsigned will take up to 4 octects */
     /* plus a one octet for the tag */
     len = encode_application_unsigned(&apdu[0], value);
@@ -441,12 +438,24 @@ static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
     zassert_equal(len, 1, NULL);
     zassert_equal(tag_number, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
     zassert_false(IS_CONTEXT_SPECIFIC(apdu[0]), NULL);
-#endif
+}
+
+static void test_bacnet_unsigned_value_codec(BACNET_UNSIGNED_INTEGER value)
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_UNSIGNED_INTEGER decoded_value = 0;
+    int null_len = 0, test_len = 0, apdu_len = 0, tag_len = 0;
+    BACNET_TAG tag = { 0 };
+
+    null_len = encode_application_unsigned(NULL, value);
+    apdu_len = encode_application_unsigned(apdu, value);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_true(apdu_len > 0, NULL);
     null_len = bacnet_unsigned_application_decode(apdu, apdu_len, NULL);
     zassert_equal(
         apdu_len, null_len, "apdu_len=%d null_len=%d", apdu_len, null_len);
-    len = bacnet_unsigned_application_decode(apdu, apdu_len, &decoded_value);
-    zassert_equal(apdu_len, len, NULL);
+    test_len = bacnet_unsigned_application_decode(apdu, apdu_len, &decoded_value);
+    zassert_equal(apdu_len, test_len, NULL);
     tag_len = bacnet_tag_decode(apdu, apdu_len, &tag);
     zassert_true(tag_len > 0, NULL);
     zassert_equal(tag.number, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
@@ -457,8 +466,8 @@ static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
     zassert_equal(decoded_value, value, NULL);
     while (apdu_len) {
         apdu_len--;
-        len = bacnet_unsigned_application_decode(apdu, apdu_len, NULL);
-        zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+        test_len = bacnet_unsigned_application_decode(apdu, apdu_len, NULL);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     }
 }
 
@@ -481,6 +490,10 @@ static void testBACDCodeUnsigned(void)
         verifyBACDCodeUnsignedValue(value - 1);
         verifyBACDCodeUnsignedValue(value);
         verifyBACDCodeUnsignedValue(value + 1);
+
+        test_bacnet_unsigned_value_codec(value-1);
+        test_bacnet_unsigned_value_codec(value);
+        test_bacnet_unsigned_value_codec(value+1);
     }
 
     return;
@@ -690,11 +703,9 @@ static void testBACDCodeOctetString(void)
         null_len = encode_application_octet_string(NULL, &octet_string);
         zassert_equal(apdu_len, null_len, NULL);
 #if defined(BACNET_STACK_DEPRECATED_DISABLE)
-        len = decode_tag_number_and_value(
-            &apdu[0], &tag_number, &len_value);
+        len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
         zassert_equal(tag_number, BACNET_APPLICATION_TAG_OCTET_STRING, NULL);
-        len += decode_octet_string(
-            &apdu[len], len_value, &test_octet_string);
+        len += decode_octet_string(&apdu[len], len_value, &test_octet_string);
         zassert_equal(apdu_len, len, "test octet string=#%d\n", i);
         diff = memcmp(octetstring_value(&octet_string), &test_value[0],
             octetstring_length(&octet_string));
