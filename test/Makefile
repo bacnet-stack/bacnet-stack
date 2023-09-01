@@ -37,7 +37,7 @@ ifeq (${JOBS},)
     JOBS = "-j %NUMBER_OF_PROCESSORS%"
   endif
   ifeq ($(UNAME_S),Linux)
-    JOBS = "-j $(nproc)"
+    JOBS = "-j $(shell nproc)"
   endif
   ifeq ($(UNAME_S),Darwin)
     JOBS = "-j $(sysctl -n hw.ncpu)"
@@ -77,6 +77,8 @@ env:
 	@echo "Makefile environment variables"
 	@echo "UNAME_S=$(UNAME_S)"
 	@echo "JOBS=$(JOBS)"
+	@echo "MAKEFLAGS=$(MAKEFLAGS)"
+	@echo "CTEST_OPTIONS=$(CTEST_OPTIONS)"
 	@echo "BUILD_DIR=$(BUILD_DIR)"
 
 .PHONY: clean
