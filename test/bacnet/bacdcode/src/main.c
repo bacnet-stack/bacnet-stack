@@ -691,10 +691,10 @@ static void testBACDCodeOctetString(void)
         zassert_equal(apdu_len, null_len, NULL);
 #if defined(BACNET_STACK_DEPRECATED_DISABLE)
         len = decode_tag_number_and_value(
-            &encoded_apdu[0], &tag_number, &len_value);
+            &apdu[0], &tag_number, &len_value);
         zassert_equal(tag_number, BACNET_APPLICATION_TAG_OCTET_STRING, NULL);
         len += decode_octet_string(
-            &encoded_apdu[len], len_value, &test_octet_string);
+            &apdu[len], len_value, &test_octet_string);
         zassert_equal(apdu_len, len, "test octet string=#%d\n", i);
         diff = memcmp(octetstring_value(&octet_string), &test_value[0],
             octetstring_length(&octet_string));
