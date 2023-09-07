@@ -101,7 +101,7 @@ static void testTimestampTimeDate(void)
     outLen = bacapp_encode_timestamp(buffer, &testTimestampIn);
     zassert_equal(inLen, outLen, NULL);
     outLen = bacnet_timestamp_decode(buffer, inLen, &testTimestampOut);
-    zassert_equal(inLen, outLen, NULL);
+    zassert_equal(inLen, outLen, "inLen=%d outLen=%d", inLen, outLen);
     /* test ERROR when APDU is too short*/
     while (inLen) {
         inLen--;

@@ -190,24 +190,28 @@ int bacnet_timestamp_decode(
 {
     int len = 0;
     int apdu_len = 0;
-    uint32_t len_value_type = 0;
+    BACNET_TAG tag = { 0 };
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_TIME *btime = NULL;
+    BACNET_DATE_TIME *bdatetime = NULL;
 
     if (!apdu) {
         return BACNET_STATUS_ERROR;
     }
-    if (!value) {
-        return BACNET_STATUS_ERROR;
-    }
-    len = bacnet_tag_number_and_value_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &value->tag, &len_value_type);
+    len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
-    switch (value->tag) {
+    if (value) {
+        value->tag = tag.number;
+    }
+    switch (tag.number) {
         case TIME_STAMP_TIME:
+            if (value) {
+                btime = &value->value.time;
+            }
             len = bacnet_time_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, value->tag, &value->value.time);
+                apdu_size - apdu_len, value->tag, btime);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
@@ -222,14 +226,19 @@ int bacnet_timestamp_decode(
             }
             apdu_len += len;
             if (unsigned_value <= UINT16_MAX) {
-                value->value.sequenceNum = (uint16_t)unsigned_value;
+                if (value) {
+                    value->value.sequenceNum = (uint16_t)unsigned_value;
+                }
             } else {
                 return BACNET_STATUS_ERROR;
             }
             break;
         case TIME_STAMP_DATETIME:
+            if (value) {
+                bdatetime = &value->value.dateTime;
+            }
             len = bacnet_datetime_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, value->tag, &value->value.dateTime);
+                apdu_size - apdu_len, value->tag, bdatetime);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
@@ -242,21 +251,27 @@ int bacnet_timestamp_decode(
     return apdu_len;
 }
 
+/**
+ * @brief Decode a time stamp from the given buffer.
+ * @param apdu  Pointer to the APDU buffer.
+ * @param value  Pointer to the variable that shall
+ *               take the time stamp values.
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
+ * @deprecated use bacnet_timestamp_decode() instead
+ */
 int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
 {
     return bacnet_timestamp_decode(apdu, MAX_APDU, value);
 }
 
-/** Decode a time stamp and check for
- * opening and closing tags.
- *
+/** 
+ * @brief Decode a time stamp and check for opening and closing tags.
  * @param apdu  Pointer to the APDU buffer.
  * @param apdu_size - the APDU buffer length
  * @param tag_number  The tag number that shall
  *                    hold the time stamp.
  * @param value  Pointer to the variable that shall
  *               take the time stamp values.
- *
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
  */
 int bacnet_timestamp_context_decode(uint8_t *apdu,
@@ -286,6 +301,16 @@ int bacnet_timestamp_context_decode(uint8_t *apdu,
     return apdu_len;
 }
 
+/** 
+ * @brief Decode a time stamp and check for opening and closing tags.
+ * @param apdu  Pointer to the APDU buffer.
+ * @param tag_number  The tag number that shall
+ *                    hold the time stamp.
+ * @param value  Pointer to the variable that shall
+ *               take the time stamp values.
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
+ * @deprecated use bacnet_timestamp_context_decode() instead
+ */
 int bacapp_decode_context_timestamp(
     uint8_t *apdu, uint8_t tag_number, BACNET_TIMESTAMP *value)
 {
