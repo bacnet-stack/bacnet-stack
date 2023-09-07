@@ -200,7 +200,7 @@ int awf_decode_service_request(
 
     len = bacnet_object_id_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &object_type, &object_instance);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     if (data) {
@@ -217,7 +217,7 @@ int awf_decode_service_request(
         /* fileStartPosition */
         len = bacnet_signed_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, &signed_integer);
-        if (len < 0) {
+        if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
         if (data) {
@@ -230,7 +230,7 @@ int awf_decode_service_request(
         }
         len = bacnet_octet_string_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, octet_string);
-        if (len < 0) {
+        if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
@@ -249,7 +249,7 @@ int awf_decode_service_request(
         /* fileStartRecord */
         len = bacnet_signed_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, &signed_integer);
-        if (len < 0) {
+        if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
         if (data) {
@@ -259,7 +259,7 @@ int awf_decode_service_request(
         /* returnedRecordCount */
         len = bacnet_unsigned_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, &unsigned_value);
-        if (len < 0) {
+        if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
         if (data) {
@@ -278,7 +278,7 @@ int awf_decode_service_request(
             }
             len = bacnet_octet_string_application_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, octet_string);
-            if (len < 0) {
+            if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
             apdu_len += len;
@@ -330,7 +330,7 @@ int awf_decode_apdu(uint8_t *apdu,
     apdu_len += len;
     len =
         awf_decode_service_request(&apdu[apdu_len], apdu_size - apdu_len, data);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
@@ -419,28 +419,41 @@ int awf_ack_decode_service_request(
 {
     int len = 0, apdu_len = 0;
     int32_t signed_integer;
+    BACNET_TAG tag = { 0 };
 
-    /* file-start-position [0] INTEGER */
-    len = bacnet_signed_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 0, &signed_integer);
-    if ((len != BACNET_STATUS_ERROR) && (len != 0)) {
-        if (data) {
-            data->access = FILE_STREAM_ACCESS;
-            data->type.stream.fileStartPosition = signed_integer;
-        }
-        apdu_len += len;
-    } else {
-        len = bacnet_signed_context_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, 1, &signed_integer);
-        if ((len != BACNET_STATUS_ERROR) && (len != 0)) {
-            if (data) {
-                data->access = FILE_RECORD_ACCESS;
-                data->type.record.fileStartRecord = signed_integer;
+    len = bacnet_tag_decode(apdu, apdu_size, &tag);
+    if ((len > 0) && tag.context) {
+        if (tag.number == 0) {
+            /* file-start-position [0] INTEGER */
+            len = bacnet_signed_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 0, &signed_integer);
+            if (len > 0) {
+                if (data) {
+                    data->access = FILE_STREAM_ACCESS;
+                    data->type.stream.fileStartPosition = signed_integer;
+                }
+                apdu_len += len;
+            } else {
+                return BACNET_STATUS_ERROR;
             }
-            apdu_len += len;
+        } else if (tag.number == 1) {
+            /* file-start-record [1] INTEGER */
+            len = bacnet_signed_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 1, &signed_integer);
+            if (len > 0) {
+                if (data) {
+                    data->access = FILE_RECORD_ACCESS;
+                    data->type.record.fileStartRecord = signed_integer;
+                }
+                apdu_len += len;
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
         } else {
             return BACNET_STATUS_ERROR;
         }
+    } else {
+        return BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -483,7 +496,7 @@ int awf_ack_decode_apdu(uint8_t *apdu,
     apdu_len += len;
     len = awf_ack_decode_service_request(
         &apdu[apdu_len], apdu_size - apdu_len, data);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
 

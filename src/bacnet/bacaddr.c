@@ -289,7 +289,7 @@ int bacnet_address_decode(
     /* network number */
     len = bacnet_unsigned_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &decoded_unsigned);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     if (decoded_unsigned <= UINT16_MAX) {
@@ -298,13 +298,13 @@ int bacnet_address_decode(
             value->net = (uint16_t)decoded_unsigned;
         }
     } else {
-        return BACNET_STATUS_REJECT;
+        return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
     /* mac address as an octet-string */
     len = bacnet_octet_string_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &mac_addr);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     if (value) {
@@ -344,17 +344,11 @@ int bacnet_address_context_decode(uint8_t *apdu,
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
-    if (apdu_len > apdu_size) {
-        return BACNET_STATUS_ERROR;
-    }
     len = bacnet_address_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
-    if (apdu_len > apdu_size) {
-        return BACNET_STATUS_ERROR;
-    }
     if (!bacnet_is_closing_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
         return BACNET_STATUS_ERROR;
@@ -399,6 +393,7 @@ int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
  * @param apdu  Receive buffer
  * @param value - parameter to store the value after decoding
  * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ * @deprecated use bacnet_address_decode() instead
  */
 int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *value)
 {
@@ -435,6 +430,7 @@ int encode_context_bacnet_address(
  * @param tag_number - context tag number to be encoded
  * @param value - parameter to store the value after decoding
  * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ * @deprecated use bacnet_address_context_decode() instead
  */
 int decode_context_bacnet_address(
     uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *value)

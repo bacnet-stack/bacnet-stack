@@ -66,12 +66,17 @@ int delete_object_decode_service_request(
     uint32_t object_instance = 0;
 
     /* object-identifier BACnetObjectIdentifier */
-    len = bacnet_object_id_application_decode(&apdu[apdu_len], 
-        apdu_size - apdu_len, &object_type, &object_instance);
+    len = bacnet_object_id_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &object_type, &object_instance);
     if (len == BACNET_STATUS_ERROR) {
-            if (data) {
-                data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
-            }
+        if (data) {
+            data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        }
+        return BACNET_STATUS_REJECT;
+    } else if (len == 0) {
+        if (data) {
+            data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
         return BACNET_STATUS_REJECT;
     } else {
         if ((object_type >= MAX_BACNET_OBJECT_TYPE) ||

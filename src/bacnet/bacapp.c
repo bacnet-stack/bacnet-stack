@@ -3019,7 +3019,7 @@ int bacapp_property_value_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 1, NULL)) {
         len = bacnet_unsigned_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
-        if (len == BACNET_STATUS_ERROR) {
+        if ((len == BACNET_STATUS_ERROR) || (len == 0)) {
             return BACNET_STATUS_ERROR;
         } else if (unsigned_value > UINT32_MAX) {
             return BACNET_STATUS_ERROR;
@@ -3079,7 +3079,7 @@ int bacapp_property_value_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 3, NULL)) {
         len = bacnet_unsigned_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 3, &unsigned_value);
-        if (len == BACNET_STATUS_ERROR) {
+        if ((len == BACNET_STATUS_ERROR) || (len == 0)) {
             return BACNET_STATUS_ERROR;
         } else if (unsigned_value > UINT8_MAX) {
             return BACNET_STATUS_ERROR;
