@@ -129,7 +129,7 @@ static void testBACError(void)
     zassert_not_equal(len, 0, NULL);
     len = bacerror_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
         &test_service, &test_error_class, &test_error_code);
-    zassert_not_equal(len, -1, NULL);
+    zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
     zassert_equal(test_invoke_id, invoke_id, NULL);
     zassert_equal(test_service, service, NULL);
     zassert_equal(test_error_class, error_class, NULL);

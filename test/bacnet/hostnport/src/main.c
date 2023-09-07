@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
+#include <bacnet/bacdcode.h>
 #include <bacnet/bacdest.h>
 #include <bacnet/hostnport.h>
 
@@ -17,6 +18,8 @@ static void test_HostNPortCodec(BACNET_HOST_N_PORT *data)
     BACNET_HOST_N_PORT test_data = { 0 };
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
+    uint8_t tag_number = 0;
+    bool status = false;
 
     null_len = host_n_port_encode(NULL, data);
     apdu_len = host_n_port_encode(apdu, data);
@@ -32,6 +35,30 @@ static void test_HostNPortCodec(BACNET_HOST_N_PORT *data)
         len = host_n_port_decode(apdu, test_len, NULL, NULL);
         zassert_true(len < 0, "len=%d test_len=%d", len, test_len);
     }
+
+    null_len = host_n_port_context_encode(NULL, tag_number, data);
+    apdu_len = host_n_port_context_encode(apdu, tag_number, data);
+    zassert_equal(apdu_len, null_len, NULL);
+    zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
+
+    status = bacnet_is_opening_tag_number(apdu, apdu_len, tag_number, &len);
+    zassert_true(status, NULL);
+    zassert_true(len > 0, "len=%d", len);
+
+    null_len = host_n_port_decode(&apdu[len], apdu_len-len, NULL, NULL);
+    test_len = host_n_port_decode(&apdu[len], apdu_len-len, &error_code, &test_data);
+    zassert_equal(test_len, null_len, NULL);
+    zassert_true(test_len > 0, "test_len=%d", len);
+    len += test_len;
+
+    status = bacnet_is_closing_tag_number(&apdu[len], apdu_len-len, tag_number, &len);
+    zassert_true(status, NULL);
+    zassert_true(len > 0, "len=%d", len);
+
+    status = host_n_port_copy(&test_data, data);
+    zassert_true(status, NULL);
+    status = host_n_port_same(&test_data, data);
+    zassert_true(status, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)

@@ -140,8 +140,7 @@ int host_n_port_decode(uint8_t *apdu,
     int apdu_len = 0, len = 0;
     BACNET_OCTET_STRING *octet_string = NULL;
     BACNET_CHARACTER_STRING *char_string = NULL;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
+    BACNET_TAG tag = { 0 };
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     /* default reject code */
@@ -157,8 +156,7 @@ int host_n_port_decode(uint8_t *apdu,
         return BACNET_STATUS_REJECT;
     }
     apdu_len += len;
-    len = bacnet_tag_number_and_value_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &tag_number, &len_value_type);
+    len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
     if (len <= 0) {
         if (error_code) {
             *error_code = ERROR_CODE_REJECT_INVALID_TAG;
@@ -166,13 +164,13 @@ int host_n_port_decode(uint8_t *apdu,
         return BACNET_STATUS_REJECT;
     }
     apdu_len += len;
-    if (tag_number == 0) {
+    if (tag.context && (tag.number == 0)) {
         /* CHOICE - none [0] NULL */
         if (address) {
             address->host_ip_address = false;
             address->host_name = false;
         }
-    } else if (tag_number == 1) {
+    } else if (tag.context && (tag.number == 1)) {
         /* CHOICE - ip-address [1] OCTET STRING */
         if (address) {
             address->host_ip_address = true;
@@ -180,7 +178,7 @@ int host_n_port_decode(uint8_t *apdu,
             octet_string = &address->host.ip_address;
         }
         len = bacnet_octet_string_decode(&apdu[apdu_len], apdu_size - apdu_len,
-            len_value_type, octet_string);
+            tag.len_value_type, octet_string);
         if (len < 0) {
             if (error_code) {
                 *error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
@@ -188,14 +186,14 @@ int host_n_port_decode(uint8_t *apdu,
             return BACNET_STATUS_REJECT;
         }
         apdu_len += len;
-    } else if (tag_number == 2) {
+    } else if (tag.context && (tag.number == 2)) {
         if (address) {
             address->host_ip_address = false;
             address->host_name = true;
             char_string = &address->host.name;
         }
-        len = bacnet_character_string_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, len_value_type, char_string);
+        len = bacnet_character_string_decode(&apdu[apdu_len],
+            apdu_size - apdu_len, tag.len_value_type, char_string);
         if (len == 0) {
             if (error_code) {
                 *error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
