@@ -1117,15 +1117,23 @@ int bacnet_datetime_decode(
 {
     int len = 0;
     int apdu_len = 0;
+    BACNET_DATE *bdate = NULL;
+    BACNET_TIME *btime = NULL;
 
+    if (value) {
+        bdate = &value->date;
+    }
     len = bacnet_date_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &value->date);
+        &apdu[apdu_len], apdu_size - apdu_len, bdate);
     if (len < 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
+    if (value) {
+        btime = &value->time;
+    }
     len = bacnet_time_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &value->time);
+        &apdu[apdu_len], apdu_size - apdu_len, btime);
     if (len < 0) {
         return BACNET_STATUS_ERROR;
     }

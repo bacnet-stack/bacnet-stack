@@ -211,7 +211,7 @@ int bacnet_timestamp_decode(
                 btime = &value->value.time;
             }
             len = bacnet_time_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, value->tag, btime);
+                apdu_size - apdu_len, tag.number, btime);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
@@ -220,7 +220,7 @@ int bacnet_timestamp_decode(
 
         case TIME_STAMP_SEQUENCE:
             len = bacnet_unsigned_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, value->tag, &unsigned_value);
+                apdu_size - apdu_len, tag.number, &unsigned_value);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
@@ -238,7 +238,7 @@ int bacnet_timestamp_decode(
                 bdatetime = &value->value.dateTime;
             }
             len = bacnet_datetime_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, value->tag, bdatetime);
+                apdu_size - apdu_len, tag.number, bdatetime);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
