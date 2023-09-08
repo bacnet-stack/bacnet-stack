@@ -78,17 +78,24 @@ int rd_encode_apdu(uint8_t *apdu,
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_REINITIALIZE_DEVICE;
-        apdu_len = 4;
-        len = encode_context_enumerated(&apdu[apdu_len], 0, state);
-        apdu_len += len;
-        /* optional password */
-        if (password) {
-            /* Must be at least 1 character, limited to 20 characters */
-            if ((password->length >= 1) && (password->length <= 20)) {
-                len = encode_context_character_string(
-                    &apdu[apdu_len], 1, password);
-                apdu_len += len;
-            }
+    }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_context_enumerated(apdu, 0, state);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* optional password */
+    if (password) {
+        /* Must be at least 1 character, limited to 20 characters */
+        if ((password->length >= 1) && (password->length <= 20)) {
+            len = encode_context_character_string(
+                apdu, 1, password);
+            apdu_len += len;
         }
     }
 
@@ -155,5 +162,5 @@ int rd_decode_service_request(uint8_t *apdu,
         }
     }
 
-    return (int)len;
+    return apdu_len;
 }
