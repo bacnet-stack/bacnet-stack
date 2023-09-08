@@ -38,6 +38,10 @@ improved unit test code coverage. (#481)
 
 ### Fixed
 
+- Fixed missing Link_Speeds property in network port objects when
+Link_Speed property is writable.
+- Fixed Microchip xmega xplained example project to build under GCC in pipeline.
+
 ## [1.1.2] - 2023-08-18
 
 ### Security
