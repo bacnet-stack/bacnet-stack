@@ -314,7 +314,15 @@ int bacnet_timestamp_context_decode(uint8_t *apdu,
 int bacapp_decode_context_timestamp(
     uint8_t *apdu, uint8_t tag_number, BACNET_TIMESTAMP *value)
 {
-    return bacnet_timestamp_context_decode(apdu, MAX_APDU, tag_number, value);
+    const uint32_t apdu_size = MAX_APDU;
+    int len;
+
+    len = bacnet_timestamp_context_decode(apdu, apdu_size, tag_number, value);
+    if (len <= 0) {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
 }
 
 /**

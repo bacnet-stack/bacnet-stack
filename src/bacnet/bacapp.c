@@ -3006,28 +3006,31 @@ int bacapp_property_value_decode(
     /* property-identifier [0] BACnetPropertyIdentifier */
     len = bacnet_enumerated_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &enumerated_value);
-    if (len == BACNET_STATUS_ERROR) {
+    if (len > 0) {
+        property_identifier = enumerated_value;
+        if (value) {
+            value->propertyIdentifier = property_identifier;
+        }
+        apdu_len += len;
+    } else {
         return BACNET_STATUS_ERROR;
     }
-    property_identifier = enumerated_value;
-    if (value) {
-        value->propertyIdentifier = property_identifier;
-    }
-    apdu_len += len;
     /* property-array-index [1] Unsigned OPTIONAL */
     if (bacnet_is_context_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 1, NULL)) {
         len = bacnet_unsigned_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
-        if ((len == BACNET_STATUS_ERROR) || (len == 0)) {
-            return BACNET_STATUS_ERROR;
-        } else if (unsigned_value > UINT32_MAX) {
-            return BACNET_STATUS_ERROR;
-        } else {
-            apdu_len += len;
-            if (value) {
-                value->propertyArrayIndex = unsigned_value;
+        if (len > 0) {
+            if (unsigned_value > UINT32_MAX) {
+                return BACNET_STATUS_ERROR;
+            } else {
+                apdu_len += len;
+                if (value) {
+                    value->propertyArrayIndex = unsigned_value;
+                }
             }
+        } else {
+            return BACNET_STATUS_ERROR;
         }
     } else {
         if (value) {
@@ -3079,15 +3082,17 @@ int bacapp_property_value_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 3, NULL)) {
         len = bacnet_unsigned_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 3, &unsigned_value);
-        if ((len == BACNET_STATUS_ERROR) || (len == 0)) {
-            return BACNET_STATUS_ERROR;
-        } else if (unsigned_value > UINT8_MAX) {
-            return BACNET_STATUS_ERROR;
-        } else {
-            apdu_len += len;
-            if (value) {
-                value->priority = unsigned_value;
+        if (len > 0) {
+            if (unsigned_value > UINT8_MAX) {
+                return BACNET_STATUS_ERROR;
+            } else {
+                apdu_len += len;
+                if (value) {
+                    value->priority = unsigned_value;
+                }
             }
+        } else {
+            return BACNET_STATUS_ERROR;
         }
     } else {
         if (value) {
