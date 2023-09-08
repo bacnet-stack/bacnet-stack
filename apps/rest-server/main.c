@@ -350,6 +350,7 @@ int main(int argc, char *argv[])
     }
     
     ws_service_info_registry();
+    ws_service_auth_registry();
     /* end run server */
 
     dlenv_init();

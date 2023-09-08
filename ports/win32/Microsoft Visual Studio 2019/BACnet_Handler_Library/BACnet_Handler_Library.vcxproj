@@ -204,7 +204,10 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_alarm_ack.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_arf.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_arf_a.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\ws_restful/auth.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\ws_restful/info.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\ws_restful/oauth_server.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\ws_restful/base64.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\datalink\dlenv.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

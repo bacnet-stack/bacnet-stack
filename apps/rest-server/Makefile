@@ -41,7 +41,10 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/credential_data_input.c \
 	$(BACNET_OBJECT_DIR)/acc.c \
 	$(BACNET_OBJECT_DIR)/bacfile.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/service/ws_restful/info.c
+	$(BACNET_SRC_DIR)/bacnet/basic/service/ws_restful/info.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/service/ws_restful/auth.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/service/ws_restful/oauth_server.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/service/ws_restful/base64.c
 
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
@@ -53,6 +56,7 @@ LFLAGS += /usr/local/lib/libwebsockets.a -lssl -lcrypto -lcap
 endif
 endif
 
+CFLAGS += -DDEBUG_LIBWEBSOCKETS_ENABLED=0
 OBJS += ${SRC:.c=.o}
 
 all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}

@@ -370,7 +370,12 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/service/s_wpm.c
     src/bacnet/basic/service/s_wpm.h
     src/bacnet/basic/service/ws_restful/ws-service.h
+    src/bacnet/basic/service/ws_restful/auth.c
     src/bacnet/basic/service/ws_restful/info.c
+    src/bacnet/basic/service/ws_restful/oauth_server.c
+    src/bacnet/basic/service/ws_restful/oauth_server.h
+    src/bacnet/basic/service/ws_restful/base64.c
+    src/bacnet/basic/service/ws_restful/base64.h
     src/bacnet/basic/services.h
     src/bacnet/basic/sys/bigend.c
     src/bacnet/basic/sys/bigend.h
