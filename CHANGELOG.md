@@ -16,9 +16,25 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+- Added or updated secure the BACnet primitive value decoders 
+named bacnet_x_decode(), bacnet_x_application_decode() and 
+bacnet_x_context_decode where x is one of the 13 BACnet primitive value names. 
+The updated API includes an APDU size to prevent over-reading of an APDU buffer. 
+Improved or added unit test code coverage for the primitive value decoders (#481)
+- marked the insecure decoding API as 'deprecated' which is defined in 
+src/bacnet/basic/sys/platform.h and can be disabled during a build. (#481)
+- secured decoders for BACnetTimeValue, BACnetHostNPort, BACnetTimeStamp, 
+BACnetAddress, and Weekly_Schedule and improved unit test code coverage. (#481)
+- secured AtomicReadFile and AtomicWriteFile service decoders and 
+improved unit test code coverage. (#481)
+- secured BACnet Error service decoder and improved unit test code coverage. (#481)
+- improved test code coverage for BACnet objects and properties. (#481)
+- fix ReinitializeDevice handler to clear password before decoding (#485)
+
 ### Added
 
 ### Changed
+
 
 ### Fixed
 
