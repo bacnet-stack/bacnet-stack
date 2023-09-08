@@ -46,12 +46,10 @@
 #include "bacnet/datetime.h"
 #include "bacnet/bacdcode.h"
 
-
 /* define our epic beginnings */
 #define BACNET_EPOCH_YEAR 1900
 /* 1/1/1900 is a Monday */
 #define BACNET_EPOCH_DOW BACNET_WEEKDAY_MONDAY
-
 
 /**
  * @addtogroup bacnet_tests
@@ -61,17 +59,12 @@
 /**
  * @brief Test encode/decode API for unsigned 16b integers
  */
-static void datetime_print(const char *title,
-    BACNET_DATE_TIME *bdatetime)
+static void datetime_print(const char *title, BACNET_DATE_TIME *bdatetime)
 {
-    printf("%s: %04u/%02u/%02u %02u:%02u:%02u.%03u\n",
-        title,
-        (unsigned int)bdatetime->date.year,
-        (unsigned int)bdatetime->date.month,
-        (unsigned int)bdatetime->date.wday,
-        (unsigned int)bdatetime->time.hour,
-        (unsigned int)bdatetime->time.min,
-        (unsigned int)bdatetime->time.sec,
+    printf("%s: %04u/%02u/%02u %02u:%02u:%02u.%03u\n", title,
+        (unsigned int)bdatetime->date.year, (unsigned int)bdatetime->date.month,
+        (unsigned int)bdatetime->date.wday, (unsigned int)bdatetime->time.hour,
+        (unsigned int)bdatetime->time.min, (unsigned int)bdatetime->time.sec,
         (unsigned int)bdatetime->time.hundredths);
 }
 
@@ -415,22 +408,24 @@ static void testDayOfYear(void)
 }
 #endif
 
-static void testDateEpochConversionCompare(
-    uint16_t year, uint8_t month, uint8_t day,
-    uint8_t hour, uint8_t minute, uint8_t second, uint8_t hundredth)
+static void testDateEpochConversionCompare(uint16_t year,
+    uint8_t month,
+    uint8_t day,
+    uint8_t hour,
+    uint8_t minute,
+    uint8_t second,
+    uint8_t hundredth)
 {
     uint64_t epoch_seconds = 0;
-    BACNET_DATE_TIME bdatetime = {0};
-    BACNET_DATE_TIME test_bdatetime = {0};
+    BACNET_DATE_TIME bdatetime = { 0 };
+    BACNET_DATE_TIME test_bdatetime = { 0 };
     int compare = 0;
 
     datetime_set_date(&bdatetime.date, year, month, day);
-    datetime_set_time(&bdatetime.time, hour, minute, second,
-        hundredth);
+    datetime_set_time(&bdatetime.time, hour, minute, second, hundredth);
     epoch_seconds = datetime_seconds_since_epoch(&bdatetime);
-    datetime_since_epoch_seconds(&test_bdatetime,
-        epoch_seconds);
-    compare = datetime_compare(&bdatetime,&test_bdatetime);
+    datetime_since_epoch_seconds(&test_bdatetime, epoch_seconds);
+    compare = datetime_compare(&bdatetime, &test_bdatetime);
     zassert_equal(compare, 0, NULL);
     if (compare != 0) {
         datetime_print("bdatetime", &bdatetime);
@@ -445,11 +440,9 @@ static void testDateEpochConversion(void)
 #endif
 {
     /* min */
-    testDateEpochConversionCompare(
-        BACNET_EPOCH_YEAR, 1, 1, 0, 0, 0, 0);
+    testDateEpochConversionCompare(BACNET_EPOCH_YEAR, 1, 1, 0, 0, 0, 0);
     /* middle */
-    testDateEpochConversionCompare(
-        2020, 6, 26, 12, 30, 30, 0);
+    testDateEpochConversionCompare(2020, 6, 26, 12, 30, 30, 0);
     /* max */
     testDateEpochConversionCompare(
         BACNET_EPOCH_YEAR + 0xFF - 1, 12, 31, 23, 59, 59, 0);
@@ -524,35 +517,48 @@ static void testDatetimeCodec(void)
 #endif
 {
     uint8_t apdu[MAX_APDU];
+    uint8_t tag_number = 10;
     BACNET_DATE_TIME datetimeIn;
     BACNET_DATE_TIME datetimeOut;
     int inLen;
     int outLen;
+    int diff;
+    bool status;
 
-    datetimeIn.date.day = 1;
-    datetimeIn.date.month = 2;
-    datetimeIn.date.wday = 3;
-    datetimeIn.date.year = 1904;
-
-    datetimeIn.time.hour = 5;
-    datetimeIn.time.min = 6;
-    datetimeIn.time.sec = 7;
-    datetimeIn.time.hundredths = 8;
-
-    inLen = bacapp_encode_context_datetime(apdu, 10, &datetimeIn);
-    outLen = bacapp_decode_context_datetime(apdu, 10, &datetimeOut);
-
+    status = datetime_date_init_ascii(&datetimeIn.date, "1904/2/1");
+    zassert_true(status, NULL);
+    status = datetime_time_init_ascii(&datetimeIn.time, "5:06:07.8");
+    zassert_true(status, NULL);
+    /* application */
+    inLen = bacapp_encode_datetime(NULL, &datetimeIn);
+    zassert_true(inLen <= sizeof(apdu), NULL);
+    inLen = bacapp_encode_datetime(apdu, &datetimeIn);
+    outLen = bacnet_datetime_decode(apdu, inLen, &datetimeOut);
     zassert_equal(inLen, outLen, NULL);
-
-    zassert_equal(datetimeIn.date.day, datetimeOut.date.day, NULL);
-    zassert_equal(datetimeIn.date.month, datetimeOut.date.month, NULL);
-    zassert_equal(datetimeIn.date.wday, datetimeOut.date.wday, NULL);
-    zassert_equal(datetimeIn.date.year, datetimeOut.date.year, NULL);
-
-    zassert_equal(datetimeIn.time.hour, datetimeOut.time.hour, NULL);
-    zassert_equal(datetimeIn.time.min, datetimeOut.time.min, NULL);
-    zassert_equal(datetimeIn.time.sec, datetimeOut.time.sec, NULL);
-    zassert_equal(datetimeIn.time.hundredths, datetimeOut.time.hundredths, NULL);
+    diff = datetime_compare(&datetimeOut, &datetimeIn);
+    zassert_equal(diff, 0, NULL);
+    /* ERROR too short APDU */
+    while (inLen) {
+        inLen--;
+        outLen = bacnet_datetime_decode(apdu, inLen, &datetimeOut);
+        zassert_equal(outLen, BACNET_STATUS_ERROR, NULL);
+    }
+    /* context */
+    inLen = bacapp_encode_context_datetime(NULL, tag_number, &datetimeIn);
+    zassert_true(inLen <= sizeof(apdu), NULL);
+    inLen = bacapp_encode_context_datetime(apdu, tag_number, &datetimeIn);
+    outLen =
+        bacnet_datetime_context_decode(apdu, inLen, tag_number, &datetimeOut);
+    zassert_equal(inLen, outLen, NULL);
+    /* ERROR too short APDU */
+    while (inLen) {
+        inLen--;
+        outLen = bacnet_datetime_context_decode(
+            apdu, inLen, tag_number, &datetimeOut);
+        zassert_equal(outLen, BACNET_STATUS_ERROR, NULL);
+    }
+    diff = datetime_compare(&datetimeOut, &datetimeIn);
+    zassert_equal(diff, 0, NULL);
 }
 
 #if 0 /*TODO: Change to use external methods */
@@ -613,7 +619,6 @@ static void testDatetimeConvertUTC(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(wp_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -624,17 +629,14 @@ void test_main(void)
      ztest_unit_test(testBACnetDateTimeSeconds),
      ztest_unit_test(testDayOfYear),
 #endif
-    ztest_test_suite(wp_tests,
-     ztest_unit_test(testBACnetDate),
-     ztest_unit_test(testBACnetTime),
-     ztest_unit_test(testBACnetDateTime),
-     ztest_unit_test(testBACnetDayOfWeek),
-     ztest_unit_test(testDateEpochConversion),
-     ztest_unit_test(testBACnetDateTimeAdd),
-     ztest_unit_test(testBACnetDateTimeWildcard),
-     ztest_unit_test(testDatetimeCodec),
-     ztest_unit_test(testWildcardDateTime)
-     );
+    ztest_test_suite(wp_tests, ztest_unit_test(testBACnetDate),
+        ztest_unit_test(testBACnetTime), ztest_unit_test(testBACnetDateTime),
+        ztest_unit_test(testBACnetDayOfWeek),
+        ztest_unit_test(testDateEpochConversion),
+        ztest_unit_test(testBACnetDateTimeAdd),
+        ztest_unit_test(testBACnetDateTimeWildcard),
+        ztest_unit_test(testDatetimeCodec),
+        ztest_unit_test(testWildcardDateTime));
 
     ztest_run_test_suite(wp_tests);
 }

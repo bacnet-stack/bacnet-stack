@@ -310,7 +310,8 @@ int bacapp_decode_data(uint8_t *apdu,
 #endif
 #if defined(BACAPP_TYPES_EXTRA)
             case BACNET_APPLICATION_TAG_DATETIME:
-                len = bacapp_decode_datetime(apdu, &value->type.Date_Time);
+                len = bacnet_datetime_decode(
+                    apdu, len_value_type, &value->type.Date_Time);
                 break;
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 len = lighting_command_decode(
@@ -1234,7 +1235,8 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_EXPIRATION_TIME:
         case PROP_LAST_USE_TIME:
             /* Properties using BACnetDateTime value */
-            len = bacapp_decode_datetime(apdu, &value->type.Date_Time);
+            len = bacnet_datetime_decode(
+                apdu, max_apdu_len, &value->type.Date_Time);
             break;
 
         case PROP_OBJECT_PROPERTY_REFERENCE:
@@ -3004,28 +3006,31 @@ int bacapp_property_value_decode(
     /* property-identifier [0] BACnetPropertyIdentifier */
     len = bacnet_enumerated_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &enumerated_value);
-    if (len == BACNET_STATUS_ERROR) {
+    if (len > 0) {
+        property_identifier = enumerated_value;
+        if (value) {
+            value->propertyIdentifier = property_identifier;
+        }
+        apdu_len += len;
+    } else {
         return BACNET_STATUS_ERROR;
     }
-    property_identifier = enumerated_value;
-    if (value) {
-        value->propertyIdentifier = property_identifier;
-    }
-    apdu_len += len;
     /* property-array-index [1] Unsigned OPTIONAL */
     if (bacnet_is_context_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, 1, NULL)) {
         len = bacnet_unsigned_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
-        if (len == BACNET_STATUS_ERROR) {
-            return BACNET_STATUS_ERROR;
-        } else if (unsigned_value > UINT32_MAX) {
-            return BACNET_STATUS_ERROR;
-        } else {
-            apdu_len += len;
-            if (value) {
-                value->propertyArrayIndex = unsigned_value;
+        if (len > 0) {
+            if (unsigned_value > UINT32_MAX) {
+                return BACNET_STATUS_ERROR;
+            } else {
+                apdu_len += len;
+                if (value) {
+                    value->propertyArrayIndex = unsigned_value;
+                }
             }
+        } else {
+            return BACNET_STATUS_ERROR;
         }
     } else {
         if (value) {
@@ -3077,15 +3082,17 @@ int bacapp_property_value_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 3, NULL)) {
         len = bacnet_unsigned_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, 3, &unsigned_value);
-        if (len == BACNET_STATUS_ERROR) {
-            return BACNET_STATUS_ERROR;
-        } else if (unsigned_value > UINT8_MAX) {
-            return BACNET_STATUS_ERROR;
-        } else {
-            apdu_len += len;
-            if (value) {
-                value->priority = unsigned_value;
+        if (len > 0) {
+            if (unsigned_value > UINT8_MAX) {
+                return BACNET_STATUS_ERROR;
+            } else {
+                apdu_len += len;
+                if (value) {
+                    value->priority = unsigned_value;
+                }
             }
+        } else {
+            return BACNET_STATUS_ERROR;
         }
     } else {
         if (value) {

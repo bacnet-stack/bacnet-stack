@@ -144,6 +144,11 @@ BACNET_DEFINES += -DBIP_DEBUG
 endif
 endif
 
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_DEFINES += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
+
 BACNET_DEFINES += -DPRINT_ENABLED=1
 BACNET_DEFINES += -DBACAPP_ALL
 BACNET_DEFINES += -DBACFILE
@@ -353,6 +358,10 @@ timesync: $(BACNET_LIB_TARGET)
 
 .PHONY: uevent
 uevent: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: uptransfer
+uptransfer: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: whois
