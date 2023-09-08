@@ -179,7 +179,7 @@ void usart_init_spi(USART_t *usart, const usart_spi_options_t *opt)
 	}
 #endif
 
-    if (sck_pin == UINT8_MAX) {
+	if (sck_pin == UINT8_MAX) {
 		return;
 	}
 	/* Configure the USART output pin */
