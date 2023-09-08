@@ -19,16 +19,18 @@
 #include <bacnet/basic/object/device.h>
 
 static BACNET_WS_SERVICE_RET info_vendor_id_handler(BACNET_WS_CONNECT_CTX *ctx,
-    uint8_t* in, size_t in_len, uint8_t* out, size_t *out_len)
+    uint8_t* in, size_t in_len, uint8_t** out, uint8_t *end)
 {
+    int len;
     (void)in;
     (void)in_len;
 
+    len = (int)(end - *out);
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
-        *out_len = snprintf((char*)out, *out_len, "%d",
-            Device_Vendor_Identifier());
+        *out += snprintf((char*)*out, len, "%d", Device_Vendor_Identifier());
     } else {
-        *out_len = snprintf((char*)out, *out_len, "{ \"vendor-id\": %d }",
+        *out += snprintf((char*)*out, len, "{ \"vendor-id\": %d }",
             Device_Vendor_Identifier());
     }
 
@@ -36,16 +38,19 @@ static BACNET_WS_SERVICE_RET info_vendor_id_handler(BACNET_WS_CONNECT_CTX *ctx,
 }
 
 static BACNET_WS_SERVICE_RET info_vendor_name_handler(
-    BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t* out,
-    size_t *out_len)
+    BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t** out,
+    uint8_t *end)
 {
+    int len;
     (void)in;
     (void)in_len;
 
+    len = (int)(end - *out);
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
-        *out_len = snprintf((char*)out, *out_len, "%s", Device_Vendor_Name());
+        *out += snprintf((char*)*out, len, "%s", Device_Vendor_Name());
     } else {
-        *out_len = snprintf((char*)out, *out_len, "{ \"vendor-name\": \"%s\" }",
+        *out += snprintf((char*)*out, len, "{ \"vendor-name\": \"%s\" }",
             Device_Vendor_Name());
     }
 
@@ -53,15 +58,18 @@ static BACNET_WS_SERVICE_RET info_vendor_name_handler(
 }
 
 static BACNET_WS_SERVICE_RET info_model_name_handler(BACNET_WS_CONNECT_CTX *ctx,
-    uint8_t* in, size_t in_len, uint8_t* out, size_t *out_len)
+    uint8_t* in, size_t in_len, uint8_t** out, uint8_t *end)
 {
+    int len;
     (void)in;
     (void)in_len;
 
+    len = (int)(end - *out);
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
-        *out_len = snprintf((char*)out, *out_len, "%s", Device_Model_Name());
+        *out += snprintf((char*)*out, len, "%s", Device_Model_Name());
     } else {
-        *out_len = snprintf((char*)out, *out_len, "{ \"model-name\": \"%s\" }",
+        *out += snprintf((char*)*out, len, "{ \"model-name\": \"%s\" }",
             Device_Model_Name());
     }
 
@@ -69,17 +77,20 @@ static BACNET_WS_SERVICE_RET info_model_name_handler(BACNET_WS_CONNECT_CTX *ctx,
 }
 
 static BACNET_WS_SERVICE_RET info_software_version_handler(
-    BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t* out,
-    size_t *out_len)
+    BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t** out,
+    uint8_t *end)
 {
+    int len;
     (void)in;
     (void)in_len;
 
+    len = (int)(end - *out);
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
-        *out_len = snprintf((char*)out, *out_len, "%s",
+        *out += snprintf((char*)*out, len, "%s",
             Device_Application_Software_Version());
     } else {
-        *out_len = snprintf((char*)out, *out_len,
+        *out += snprintf((char*)*out, len,
             "{ \"software-version\": \"%s\" }",
             Device_Application_Software_Version());
     }
@@ -88,18 +99,19 @@ static BACNET_WS_SERVICE_RET info_software_version_handler(
 }
 
 static BACNET_WS_SERVICE_RET info_protocol_version_handler(
-    BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t* out,
-    size_t *out_len)
+    BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t** out,
+    uint8_t *end)
 {
+    int len;
     (void)in;
     (void)in_len;
 
+    len = (int)(end - *out);
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
-        *out_len = snprintf((char*)out, *out_len, "%d",
-            Device_Protocol_Version());
+        *out += snprintf((char*)*out, len, "%d", Device_Protocol_Version());
     } else {
-        *out_len = snprintf((char*)out, *out_len,
-            "{ \"protocol-version\": %d }",
+        *out += snprintf((char*)*out, len, "{ \"protocol-version\": %d }",
             Device_Protocol_Version());
     }
 
@@ -107,61 +119,65 @@ static BACNET_WS_SERVICE_RET info_protocol_version_handler(
 }
 
 static BACNET_WS_SERVICE_RET info_protocol_revision_handler(
-    BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t* out,
-    size_t *out_len)
+    BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len, uint8_t** out,
+    uint8_t *end)
 {
+    int len;
     (void)in;
     (void)in_len;
 
+    len = (int)(end - *out);
+
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
-        *out_len = snprintf((char*)out, *out_len, "%d",
-            Device_Protocol_Revision());
+        *out += snprintf((char*)*out, len, "%d", Device_Protocol_Revision());
     } else {
-        *out_len = snprintf((char*)out, *out_len,
-            "{ \"protocol-revision\": %d }",
-            Device_Protocol_Revision());
+        *out += snprintf((char*)*out, len,
+            "{ \"protocol-revision\": %d }", Device_Protocol_Revision());
     }
 
     return BACNET_WS_SERVICE_SUCCESS;
 }
 
 static BACNET_WS_SERVICE_RET info_max_uri_handler(BACNET_WS_CONNECT_CTX *ctx,
-    uint8_t* in, size_t in_len, uint8_t* out, size_t *out_len)
+    uint8_t* in, size_t in_len, uint8_t** out, uint8_t *end)
 {
+    int len;
     (void)in;
     (void)in_len;
+
+    len = (int)(end - *out);
 
     // todo get max-uri from LWS
 
     if (ctx->alt == BACNET_WS_ALT_PLAIN) {
-        *out_len = snprintf((char*)out, *out_len, "%d", 255);
+        *out += snprintf((char*)*out, len, "%d", 255);
     } else {
-        *out_len = snprintf((char*)out, *out_len, "{ \"max-uri\": %d }", 255);
+        *out += snprintf((char*)*out, len, "{ \"max-uri\": %d }", 255);
     }
 
     return BACNET_WS_SERVICE_SUCCESS;
 }
 
 BACNET_WS_DECLARE_SERVICE(info_vendor_id, ".info/vendor-identifier",
-    BACNET_WS_SERVICE_METHOD_GET, false, info_vendor_id_handler, NULL);
+    BACNET_WS_SERVICE_METHOD_GET, false, info_vendor_id_handler);
 
 BACNET_WS_DECLARE_SERVICE(info_vendor_name, ".info/vendor-name",
-    BACNET_WS_SERVICE_METHOD_GET, false, info_vendor_name_handler, NULL);
+    BACNET_WS_SERVICE_METHOD_GET, false, info_vendor_name_handler);
 
 BACNET_WS_DECLARE_SERVICE(info_model_name, ".info/model-name",
-    BACNET_WS_SERVICE_METHOD_GET, false, info_model_name_handler, NULL);
+    BACNET_WS_SERVICE_METHOD_GET, false, info_model_name_handler);
 
 BACNET_WS_DECLARE_SERVICE(info_software_version, ".info/software-version",
-    BACNET_WS_SERVICE_METHOD_GET, false, info_software_version_handler, NULL);
+    BACNET_WS_SERVICE_METHOD_GET, false, info_software_version_handler);
 
 BACNET_WS_DECLARE_SERVICE(info_protocol_version, ".info/protocol-version",
-    BACNET_WS_SERVICE_METHOD_GET, false, info_protocol_version_handler, NULL);
+    BACNET_WS_SERVICE_METHOD_GET, false, info_protocol_version_handler);
 
 BACNET_WS_DECLARE_SERVICE(info_protocol_revision, ".info/protocol-revision",
-    BACNET_WS_SERVICE_METHOD_GET, false, info_protocol_revision_handler, NULL);
+    BACNET_WS_SERVICE_METHOD_GET, false, info_protocol_revision_handler);
 
 BACNET_WS_DECLARE_SERVICE(info_max_uri, ".info/max-uri",
-    BACNET_WS_SERVICE_METHOD_GET, false, info_max_uri_handler, NULL);
+    BACNET_WS_SERVICE_METHOD_GET, false, info_max_uri_handler);
 
 int ws_service_info_registry(void)
 {

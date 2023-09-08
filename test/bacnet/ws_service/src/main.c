@@ -1279,8 +1279,9 @@ char body[256] = {0};
 
 BACNET_WS_SERVICE_RET test_test_handler(BACNET_WS_CONNECT_CTX *ctx,
                                         uint8_t* in, size_t in_len,
-                                        uint8_t* out, size_t *out_len)
+                                        uint8_t** out, uint8_t *end)
 {
+    int len;
     time_t t;
     char date[32];
     char buf1[10] = {0};
@@ -1291,7 +1292,13 @@ BACNET_WS_SERVICE_RET test_test_handler(BACNET_WS_CONNECT_CTX *ctx,
     ws_http_parameter_get(ctx->context, "z", buf1, sizeof(buf1));
     ws_http_parameter_get(ctx->context, "k", buf2, sizeof(buf2));
       
-    *out_len = snprintf((char*)out, *out_len, "<html>"
+    snprintf(body, sizeof(body), "len:%ld '%s'",
+        ctx->body_data_size, ctx->body_data ? (char*)ctx->body_data : "NULL");
+
+    ctx->alt = BACNET_WS_ALT_PLAIN;
+    len = (int)(end - *out);
+
+    *out += snprintf((char*)*out, len, "<html>"
             "<head><meta charset=utf-8 "
             "http-equiv=\"Content-Language\" "
             "content=\"en\"/></head><body>"
@@ -1303,15 +1310,9 @@ BACNET_WS_SERVICE_RET test_test_handler(BACNET_WS_CONNECT_CTX *ctx,
     return BACNET_WS_SERVICE_SUCCESS;
 }
 
-BACNET_WS_SERVICE_RET test_test_set_body(uint8_t* in, size_t in_len)
-{
-    snprintf(body, sizeof(body), "len:%ld '%s'", in_len, in);
-    return BACNET_WS_SERVICE_SUCCESS;
-}
-
 BACNET_WS_DECLARE_SERVICE(test, "test/test",
     BACNET_WS_SERVICE_METHOD_GET | BACNET_WS_SERVICE_METHOD_POST, false,
-    test_test_handler, test_test_set_body);
+    test_test_handler);
 
 #define SERVICES_MAX    256
 
