@@ -544,8 +544,18 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
 
-    /* Note: you could use a mix of state and password to multiple things */
-    if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
+    /* From 16.4.1.1.2 Password
+        This optional parameter shall be a CharacterString of up to 
+        20 characters. For those devices that require the password as a
+        protection, the service request shall be denied if the parameter
+        is absent or if the password is incorrect. For those devices that
+        do not require a password, this parameter shall be ignored.*/
+    if (characterstring_length(&rd_data->password) > 20) {
+        rd_data->error_class = ERROR_CLASS_SERVICES;
+        rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+    } else if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
+        /* Note: you could use a mix of state and password to 
+           accomplish multiple things before restarting */
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
             case BACNET_REINIT_WARMSTART:

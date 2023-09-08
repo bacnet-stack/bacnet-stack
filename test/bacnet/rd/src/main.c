@@ -48,24 +48,20 @@ static int rd_decode_apdu(uint8_t *apdu,
     return len;
 }
 
-#if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(rd_tests, test_ReinitializeDevice)
-#else
-static void test_ReinitializeDevice(void)
-#endif
+static void Test_ReinitializeDevice_Service(
+    BACNET_REINITIALIZED_STATE state,
+    char *password_string)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
-    BACNET_REINITIALIZED_STATE state;
     BACNET_REINITIALIZED_STATE test_state;
     BACNET_CHARACTER_STRING password;
     BACNET_CHARACTER_STRING test_password;
 
-    state = BACNET_REINIT_WARMSTART;
-    characterstring_init_ansi(&password, "John 3:16");
+    characterstring_init_ansi(&password, password_string);
     len = rd_encode_apdu(&apdu[0], invoke_id, state, &password);
     zassert_not_equal(len, 0, NULL);
     apdu_len = len;
@@ -76,6 +72,31 @@ static void test_ReinitializeDevice(void)
     zassert_equal(test_invoke_id, invoke_id, NULL);
     zassert_equal(test_state, state, NULL);
     zassert_true(characterstring_same(&test_password, &password), NULL);
+
+}
+
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(rd_tests, test_ReinitializeDevice)
+#else
+static void test_ReinitializeDevice(void)
+#endif
+{
+
+    Test_ReinitializeDevice_Service(BACNET_REINIT_COLDSTART, "John 3:16");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_COLDSTART, "");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_WARMSTART, "Joshua95");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_WARMSTART, "");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_STARTBACKUP, "Mary98");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_STARTBACKUP, "");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_ENDBACKUP, "Anna99");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_ENDBACKUP, "");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_STARTRESTORE, "Chris04");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_STARTRESTORE, "");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_ENDRESTORE, "Steve66");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_ENDRESTORE, "");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_ABORTRESTORE, "Patricia66");
+    Test_ReinitializeDevice_Service(BACNET_REINIT_ABORTRESTORE, "");
 
     return;
 }

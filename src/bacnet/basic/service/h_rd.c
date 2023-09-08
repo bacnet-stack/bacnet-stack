@@ -69,11 +69,11 @@ void handler_reinitialize_device(uint8_t *service_request,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
-    BACNET_REINITIALIZE_DEVICE_DATA rd_data;
+    BACNET_REINITIALIZE_DEVICE_DATA rd_data = { 0 };
     int len = 0;
     int pdu_len = 0;
-    BACNET_NPDU_DATA npdu_data;
-    BACNET_ADDRESS my_address;
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    BACNET_ADDRESS my_address = { 0 };
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
@@ -98,8 +98,10 @@ void handler_reinitialize_device(uint8_t *service_request,
         service_request, service_len, &rd_data.state, &rd_data.password);
 #if PRINT_ENABLED
     if (len > 0) {
-        fprintf(stderr, "ReinitializeDevice: state=%u password=%s\n",
-            (unsigned)rd_data.state, characterstring_value(&rd_data.password));
+        fprintf(stderr, "ReinitializeDevice: state=%u password=%*s\n",
+            (unsigned)rd_data.state,
+            (int)characterstring_length(&rd_data.password),
+            characterstring_value(&rd_data.password));
     } else {
         fprintf(stderr, "ReinitializeDevice: Unable to decode request!\n");
     }
