@@ -615,8 +615,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
-    int apdu_len = 0;
     struct my_object_functions *pObject = NULL;
+    int apdu_max;
 
     if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
