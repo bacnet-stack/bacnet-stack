@@ -81,6 +81,7 @@ and globals in favor of more secure versions.  */
 #define snprintf _snprintf
 #endif
 
+BACNET_STACK_EXPORT
 extern int bip_get_local_netmask(
     struct in_addr *netmask);
 

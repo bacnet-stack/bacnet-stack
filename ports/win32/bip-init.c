@@ -59,9 +59,11 @@ static uint16_t BIP_Port;
 static struct in_addr BIP_Address;
 /* IP broadcast address - stored here in network byte order */
 static struct in_addr BIP_Broadcast_Addr;
-
+/* broadcast binding mechanism */
+static bool BIP_Broadcast_Binding_Address_Override;
+static struct in_addr BIP_Broadcast_Binding_Address;
 /* enable debugging */
-static bool BIP_Debug = false;
+static bool BIP_Debug;
 
 /**
  * @brief Print the IPv4 address with debug info
@@ -706,6 +708,20 @@ int bip_get_local_netmask(struct in_addr *netmask)
     return 0;
 }
 
+/**
+ * @brief Set the broadcast socket binding address
+ * @param baddr The broadcast socket binding address, in host order.
+ * @return 0 on success
+ */
+int bip_set_broadcast_binding(
+    const char *ip4_broadcast)
+{
+    BIP_Broadcast_Binding_Address.s_addr = inet_addr(ip4_broadcast);
+    BIP_Broadcast_Binding_Address_Override = true;
+
+    return 0;
+}
+
 static void set_broadcast_address(uint32_t net_address)
 {
 #ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
@@ -863,13 +879,17 @@ bool bip_init(char *ifname)
     if (sock_fd == INVALID_SOCKET) {
         return false;
     }
+    if (BIP_Broadcast_Binding_Address_Override) {
+        sin.sin_addr.s_addr = BIP_Broadcast_Binding_Address.s_addr;
+    } else {
 #if defined(BACNET_IP_BROADCAST_USE_INADDR_ANY)
-    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+        sin.sin_addr.s_addr = htonl(INADDR_ANY);
 #elif defined(BACNET_IP_BROADCAST_USE_INADDR_BROADCAST)
-    sin.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+        sin.sin_addr.s_addr = htonl(INADDR_BROADCAST);
 #else
-    sin.sin_addr.s_addr = BIP_Broadcast_Addr.s_addr;
+        sin.sin_addr.s_addr = BIP_Address.s_addr;
 #endif
+    }
     if (BIP_Debug) {
         fprintf(stderr, "BIP: broadcast bind %s:%hu\n", inet_ntoa(sin.sin_addr),
             ntohs(sin.sin_port));
