@@ -841,9 +841,11 @@ static int createSocket(struct sockaddr_in *sin)
         return status;
     }
     /* Bind to the proper interface to send without default gateway */
-    setsockopt(sock_fd, SOL_SOCKET, SO_BINDTODEVICE, BIP_Interface_Name,
-        strlen(BIP_Interface_Name));
-
+    status = setsockopt(sock_fd, SOL_SOCKET, SO_BINDTODEVICE,
+        BIP_Interface_Name, strlen(BIP_Interface_Name));
+    if (status < 0) {
+        perror("SO_BINDTODEVICE: ");
+    }
     /* bind the socket to the local port number and IP address */
     status =
         bind(sock_fd, (const struct sockaddr *)sin, sizeof(struct sockaddr));
