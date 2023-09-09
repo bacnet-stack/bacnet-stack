@@ -45,10 +45,6 @@
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacport.h"
 
-#ifndef USE_CLASSADDR
-#define USE_CLASSADDR 0
-#endif
-
 /* Windows sockets */
 static SOCKET BIP_Socket = INVALID_SOCKET;
 static SOCKET BIP_Broadcast_Socket = INVALID_SOCKET;
@@ -653,7 +649,7 @@ static long gethostaddr(void)
     return *(long *)host_ent->h_addr;
 }
 
-#if (USE_CLASSADDR == 0)
+#ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
 /* returns the subnet mask in network byte order */
 static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
 {
@@ -700,7 +696,7 @@ static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
 
 static void set_broadcast_address(uint32_t net_address)
 {
-#if USE_CLASSADDR
+#ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
     long broadcast_address = 0;
 
     if (IN_CLASSA(ntohl(net_address)))
@@ -855,7 +851,13 @@ bool bip_init(char *ifname)
     if (sock_fd == INVALID_SOCKET) {
         return false;
     }
+#ifdef BACNET_IP_BROADCAST_USE_INADDR_ANY
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
+#elif BACNET_IP_BROADCAST_USE_INADDR_BROADCAST
+    sin.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+#else
+    sin.sin_addr.s_addr = BIP_Broadcast_Addr.s_addr;
+#endif
     if (BIP_Debug) {
         fprintf(stderr, "BIP: broadcast bind %s:%hu\n", inet_ntoa(sin.sin_addr),
             ntohs(sin.sin_port));

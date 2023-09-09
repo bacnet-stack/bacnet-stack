@@ -572,6 +572,29 @@ void bip_set_interface(char *ifname)
         fflush(stderr);
     }
     /* setup local broadcast address */
+#ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
+    long broadcast_address;
+    long net_address;
+
+    broadcast_address = 0;
+    net_address = local_address.s_addr;
+    if (IN_CLASSA(ntohl(net_address))) {
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSA_HOST) | IN_CLASSA_HOST;
+    } else if (IN_CLASSB(ntohl(net_address))) {
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSB_HOST) | IN_CLASSB_HOST;
+    } else if (IN_CLASSC(ntohl(net_address))) {
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSC_HOST) | IN_CLASSC_HOST;
+    } else if (IN_CLASSD(ntohl(net_address))) {
+        broadcast_address =
+            (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
+    } else {
+        broadcast_address = INADDR_BROADCAST;
+    }
+    BIP_Broadcast_Addr.s_addr = htonl(broadcast_address);
+#else
     request = "broadaddr";
     rv = get_local_address(ifname, &broadcast_address, request);
     if (rv < 0) {
@@ -579,6 +602,7 @@ void bip_set_interface(char *ifname)
     } else {
         BIP_Broadcast_Addr.s_addr = broadcast_address.s_addr;
     }
+#endif
     if (BIP_Debug) {
         fprintf(stderr, "BIP: Broadcast Address: %s\n",
             inet_ntoa(BIP_Broadcast_Addr));
@@ -672,8 +696,13 @@ bool bip_init(char *ifname)
     if (sock_fd < 0) {
         return false;
     }
-
+#ifdef BACNET_IP_BROADCAST_USE_INADDR_ANY
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
+#elif BACNET_IP_BROADCAST_USE_INADDR_BROADCAST
+    sin.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+#else
+    sin.sin_addr.s_addr = BIP_Broadcast_Addr.s_addr;
+#endif
     sock_fd = createSocket(&sin);
     BIP_Broadcast_Socket = sock_fd;
     if (sock_fd < 0) {

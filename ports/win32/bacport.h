@@ -39,7 +39,7 @@
 #endif
 
 #include <windows.h>
-#if (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
+#ifndef BACNET_IP_BROADCAST_USE_CLASSADDR
 #include <iphlpapi.h>
 #if defined(_MSC_VER)
 #pragma comment(lib, "IPHLPAPI.lib")
