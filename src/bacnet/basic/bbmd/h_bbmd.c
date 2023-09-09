@@ -1168,12 +1168,14 @@ int bvlc_broadcast_handler(BACNET_IP_ADDRESS *addr,
     uint16_t message_length = 0;
     int header_len = 0;
 
+    debug_print_bip("Received Broadcast", addr);
     header_len =
         bvlc_decode_header(npdu, npdu_len, &message_type, &message_length);
     if (header_len == 4) {
         switch (message_type) {
             case BVLC_ORIGINAL_UNICAST_NPDU:
                 /* drop unicast when sent as a broadcast */
+                debug_print_bip("Dropped BVLC Original Unicast", addr);
                 break;
             default:
                 offset = bvlc_handler(addr, src, npdu, npdu_len);

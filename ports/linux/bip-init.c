@@ -409,9 +409,11 @@ uint16_t bip_receive(
     debug_print_ipv4(
         "Received MPDU->", &sin.sin_addr, sin.sin_port, received_bytes);
     /* pass the packet into the BBMD handler */
-    offset = socket == BIP_Socket ?
-        bvlc_handler(&addr, src, npdu, received_bytes) :
-        bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
+    if (socket == BIP_Socket) {
+        offset = bvlc_handler(&addr, src, npdu, received_bytes);
+    } else {
+        offset = bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
+    }
     if (offset > 0) {
         npdu_len = received_bytes - offset;
         debug_print_ipv4(
