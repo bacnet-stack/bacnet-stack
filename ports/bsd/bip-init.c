@@ -696,9 +696,9 @@ bool bip_init(char *ifname)
     if (sock_fd < 0) {
         return false;
     }
-#ifdef BACNET_IP_BROADCAST_USE_INADDR_ANY
+#if defined(BACNET_IP_BROADCAST_USE_INADDR_ANY)
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
-#elif BACNET_IP_BROADCAST_USE_INADDR_BROADCAST
+#elif defined(BACNET_IP_BROADCAST_USE_INADDR_BROADCAST)
     sin.sin_addr.s_addr = htonl(INADDR_BROADCAST);
 #else
     sin.sin_addr.s_addr = BIP_Broadcast_Addr.s_addr;
