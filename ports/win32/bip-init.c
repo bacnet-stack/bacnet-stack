@@ -700,7 +700,7 @@ static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
 int bip_get_local_netmask(struct in_addr *netmask)
 {
     if (netmask) {
-        *netmask = getIpMaskForIpAddress(BIP_Address.s_addr);
+        netmask->s_addr = getIpMaskForIpAddress(BIP_Address.s_addr);
     }
 
     return 0;
