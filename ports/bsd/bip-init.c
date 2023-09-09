@@ -191,6 +191,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
  */
 bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 {
+    (void)addr;
     /* not something we do within this driver */
     return false;
 }
@@ -217,6 +218,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  */
 bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
 {
+    (void)addr;
     /* not something we do within this driver */
     return false;
 }
@@ -242,6 +244,7 @@ bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
  */
 bool bip_set_subnet_prefix(uint8_t prefix)
 {
+    (void)prefix;
     /* not something we do within this driver */
     return false;
 }
@@ -324,7 +327,7 @@ uint16_t bip_receive(
     int max = 0;
     struct timeval select_timeout;
     struct sockaddr_in sin = { 0 };
-    BACNET_IP_ADDRESS addr = { { 0 } };
+    BACNET_IP_ADDRESS addr = { 0 };
     socklen_t sin_len = sizeof(sin);
     int received_bytes = 0;
     int offset = 0;
