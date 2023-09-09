@@ -58,7 +58,7 @@ static uint16_t BIP_Port;
 /* IP address - stored here in network byte order */
 static struct in_addr BIP_Address;
 /* IP broadcast address - stored here in network byte order */
-static struct in_addr BIP_Broadcast_Address;
+static struct in_addr BIP_Broadcast_Addr;
 
 /* enable debugging */
 static bool BIP_Debug = false;
@@ -324,7 +324,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 
     if (dest) {
         dest->mac_len = 6;
-        memcpy(&dest->mac[0], &BIP_Broadcast_Address.s_addr, 4);
+        memcpy(&dest->mac[0], &BIP_Broadcast_Addr.s_addr, 4);
         memcpy(&dest->mac[4], &BIP_Port, 2);
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0; /* no SLEN */
@@ -384,7 +384,7 @@ bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
 bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
-        memcpy(&addr->address[0], &BIP_Broadcast_Address.s_addr, 4);
+        memcpy(&addr->address[0], &BIP_Broadcast_Addr.s_addr, 4);
         addr->port = ntohs(BIP_Port);
     }
 
@@ -414,8 +414,8 @@ uint8_t bip_get_subnet_prefix(void)
     uint32_t mask = 0xFFFFFFFE;
     uint8_t prefix = 0;
 
-    address = BIP_Broadcast_Address.s_addr;
-    broadcast = BIP_Broadcast_Address.s_addr;
+    address = BIP_Broadcast_Addr.s_addr;
+    broadcast = BIP_Broadcast_Addr.s_addr;
     /* calculate the subnet prefix from the broadcast address */
     for (prefix = 1; prefix <= 32; prefix++) {
         test_broadcast = (address & mask) | (~mask);
@@ -649,7 +649,6 @@ static long gethostaddr(void)
     return *(long *)host_ent->h_addr;
 }
 
-#ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
 /* returns the subnet mask in network byte order */
 static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
 {
@@ -692,7 +691,20 @@ static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
 
     return ipMask;
 }
-#endif
+
+/**
+ * @brief Get the netmask of the BACnet/IP's interface via an ioctl() call.
+ * @param netmask [out] The netmask, in host order.
+ * @return 0 on success, else the error from the ioctl() call.
+ */
+int bip_get_local_netmask(struct in_addr *netmask)
+{
+    if (netmask) {
+        *netmask = getIpMaskForIpAddress(BIP_Address.s_addr);
+    }
+
+    return 0;
+}
 
 static void set_broadcast_address(uint32_t net_address)
 {
@@ -713,7 +725,7 @@ static void set_broadcast_address(uint32_t net_address)
             (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
     else
         broadcast_address = INADDR_BROADCAST;
-    BIP_Broadcast_Address.s_addr = htonl(broadcast_address);
+    BIP_Broadcast_Addr.s_addr = htonl(broadcast_address);
 #else
     /* these are network byte order variables */
     long broadcast_address = 0;
@@ -727,7 +739,7 @@ static void set_broadcast_address(uint32_t net_address)
         fflush(stderr);
     }
     broadcast_address = (net_address & net_mask) | (~net_mask);
-    BIP_Broadcast_Address.s_addr = broadcast_address;
+    BIP_Broadcast_Addr.s_addr = broadcast_address;
 #endif
 }
 
@@ -750,7 +762,7 @@ void bip_set_interface(char *ifname)
         fflush(stderr);
     }
     /* setup local broadcast address */
-    if (BIP_Broadcast_Address.s_addr == 0) {
+    if (BIP_Broadcast_Addr.s_addr == 0) {
         set_broadcast_address(BIP_Address.s_addr);
     }
 }
@@ -825,13 +837,13 @@ bool bip_init(char *ifname)
         BIP_Address.s_addr = gethostaddr();
     }
     /* has broadcast address been set? */
-    if (BIP_Broadcast_Address.s_addr == 0) {
+    if (BIP_Broadcast_Addr.s_addr == 0) {
         set_broadcast_address(BIP_Address.s_addr);
     }
     if (BIP_Debug) {
         fprintf(stderr, "BIP: Address: %s\n", inet_ntoa(BIP_Address));
         fprintf(stderr, "BIP: Broadcast Address: %s\n",
-            inet_ntoa(BIP_Broadcast_Address));
+            inet_ntoa(BIP_Broadcast_Addr));
         fprintf(stderr, "BIP: UDP Port: 0x%04X [%hu]\n", ntohs(BIP_Port),
             ntohs(BIP_Port));
         fflush(stderr);

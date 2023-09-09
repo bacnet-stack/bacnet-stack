@@ -81,6 +81,9 @@ and globals in favor of more secure versions.  */
 #define snprintf _snprintf
 #endif
 
+extern int bip_get_local_netmask(
+    struct in_addr *netmask);
+
 #define BACNET_OBJECT_TABLE(table_name, _type, _init, _count,               \
                             _index_to_instance, _valid_instance, _object_name, \
                             _read_property, _write_property, _RPM_list,     \
