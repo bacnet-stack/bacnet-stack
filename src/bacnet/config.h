@@ -44,10 +44,6 @@
 
 /* optional configuration for BACnet/IP datalink layer */
 #if (defined(BACDL_BIP) || defined(BACDL_ALL))
-/* other BIP defines (define as 1 to enable):
-    USE_INADDR - uses INADDR_BROADCAST for broadcast and binds using INADDR_ANY
-    USE_CLASSADDR = uses IN_CLASSx_HOST where x=A,B,C or D for broadcast
-*/
 #if !defined(BBMD_ENABLED)
 #define BBMD_ENABLED 1
 #endif

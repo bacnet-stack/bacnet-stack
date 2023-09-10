@@ -90,6 +90,8 @@ BACNET_BDT_MASK_1 - dotted IPv4 mask of the BBMD table
 
 BACNET_IP_NAT_ADDR - dotted IPv4 address of the public facing router
 
+BACNET_IP_BROADCAST_BIND_ADDR - dotted IPv4 address to bind broadcasts
+
 Example Usage
 -------------
 You can communicate with the virtual BACnet Device by using the other BACnet

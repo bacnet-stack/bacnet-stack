@@ -29,7 +29,7 @@ BACnetAddress, and Weekly_Schedule and improved unit test code coverage. (#481)
 improved unit test code coverage. (#481)
 - secured BACnet Error service decoder and improved unit test code coverage. (#481)
 - improved test code coverage for BACnet objects and properties. (#481)
-- fix ReinitializeDevice handler to clear password before decoding (#485)
+- fix ReinitializeDevice handler to clear password before decoding (#485) (#487)
 
 ### Added
 
@@ -39,8 +39,9 @@ improved unit test code coverage. (#481)
 ### Fixed
 
 - Fixed missing Link_Speeds property in network port objects when
-Link_Speed property is writable.
+Link_Speed property is writable (#488)
 - Fixed Microchip xmega xplained example project to build under GCC in pipeline.
+- Fixed BACnet/IP on OS to bind broadcast to specific port (#489)
 
 ## [1.1.2] - 2023-08-18
 

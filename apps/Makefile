@@ -73,6 +73,12 @@ ifeq (${BACNET_PORT},)
 		ifeq ($(UNAME_S),Darwin)
 			BACNET_PORT = bsd
 		endif
+		ifeq ($(UNAME_S),FreeBSD)
+			BACNET_PORT = bsd
+		endif
+		ifeq ($(UNAME_S),OpenBSD)
+			BACNET_PORT = bsd
+		endif
 	endif
 endif
 
@@ -95,6 +101,7 @@ ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
+CSTANDARD = -std=c99
 endif
 ifeq (${BACNET_PORT},win32)
 # winget install --id=MSYS2.MSYS2  -e
