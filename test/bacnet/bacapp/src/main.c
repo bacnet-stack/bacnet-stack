@@ -819,8 +819,10 @@ static void testBACnetApplicationDataLength(void)
     apdu_len += len;
     len = encode_opening_tag(&apdu[apdu_len], 0);
     apdu_len += len;
+    test_len += len;
     len = encode_closing_tag(&apdu[apdu_len], 0);
     apdu_len += len;
+    test_len += len;
     len = encode_closing_tag(&apdu[apdu_len], 3);
     apdu_len += len;
     /* verify the length of the data inside the opening/closing tags */
