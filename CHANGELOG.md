@@ -1,6 +1,6 @@
 # BACnet Stack ChangeLog
 
-BACnet open source protocol stack C library for embedded systems, 
+BACnet open source protocol stack C library for embedded systems,
 Linux, MacOS, BSD, and Windows
 
 All notable changes to this project will be documented in this file.
@@ -16,16 +16,16 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
-- Added or updated secure the BACnet primitive value decoders 
-named bacnet_x_decode(), bacnet_x_application_decode() and 
-bacnet_x_context_decode where x is one of the 13 BACnet primitive value names. 
-The updated API includes an APDU size to prevent over-reading of an APDU buffer. 
+- Added or updated secure the BACnet primitive value decoders
+named bacnet_x_decode(), bacnet_x_application_decode() and
+bacnet_x_context_decode where x is one of the 13 BACnet primitive value names.
+The updated API includes an APDU size to prevent over-reading of an APDU buffer.
 Improved or added unit test code coverage for the primitive value decoders (#481)
-- marked the insecure decoding API as 'deprecated' which is defined in 
+- marked the insecure decoding API as 'deprecated' which is defined in
 src/bacnet/basic/sys/platform.h and can be disabled during a build. (#481)
-- secured decoders for BACnetTimeValue, BACnetHostNPort, BACnetTimeStamp, 
+- secured decoders for BACnetTimeValue, BACnetHostNPort, BACnetTimeStamp,
 BACnetAddress, and Weekly_Schedule and improved unit test code coverage. (#481)
-- secured AtomicReadFile and AtomicWriteFile service decoders and 
+- secured AtomicReadFile and AtomicWriteFile service decoders and
 improved unit test code coverage. (#481)
 - secured BACnet Error service decoder and improved unit test code coverage. (#481)
 - improved test code coverage for BACnet objects and properties. (#481)
@@ -42,6 +42,7 @@ improved unit test code coverage. (#481)
 Link_Speed property is writable (#488)
 - Fixed Microchip xmega xplained example project to build under GCC in pipeline.
 - Fixed BACnet/IP on OS to bind broadcast to specific port (#489)
+- Fixed (bug#83) mstpcap.exe permission denied in Wireshark (#492)
 
 ## [1.1.2] - 2023-08-18
 
@@ -87,7 +88,7 @@ Link_Speed property is writable (#488)
 
 - Added minimim support for BACnet protocol-revision 0 through 24. See 
 BACNET_PROTOCOL_REVISION define in bacdef.h
-- Added example objects for color and color temperature, new for protocol-revision 24. 
+- Added example objects for color and color temperature, new for protocol-revision 24.
 - Added current-command-priority to output objects revision 17 or later.
 - Added demo apps ack-alarm, add-list-element, and event (#418)
 - Added UTC option to BACnet TimeSync app (#396)
@@ -95,7 +96,7 @@ BACNET_PROTOCOL_REVISION define in bacdef.h
 - Added --retry option for repeating Who-Is or I-Am C number of times (#199)
 - Added write BDT application (#170)
 - Added repeat option to Who-Is and I-Am app (#117)
-- Added UTF8 multibyte to wide char printing in ReadProperty and ReadPropertyMultiple 
+- Added UTF8 multibyte to wide char printing in ReadProperty and ReadPropertyMultiple
 apps if supported by the compiler and C library (#106).
 - Added IPv6 Foreign Device Registration and IPv6 support for BSD and macOS for apps
 - Added example of spawning 100 servers using a BBMD connection.
@@ -106,23 +107,23 @@ apps if supported by the compiler and C library (#106).
 
 ### Changed
 
-- Modified example objects to support CreateObject and DeleteObject API for 
-these objects: file, analog output, binary output, multi-state output, color, 
-color temperature). 
-- Unit tests and functional tests have been moved from the source C files 
-into their own test files under the test folder in a src/ mirrored folder 
-structure under test/.  
-- The testing framework was moved from ctest to ztest, using CMake, CTest, and LCOV.  
-It's now possible to visually view code coverage from the testing of each file 
-in the library. The tests are run in continuous integration.  Adding new tests 
-can be done by as copying an existing folder under test/ as a starting point, and 
-adding the new test folder name into the CMakeLists.txt under test/ folder, or 
+- Modified example objects to support CreateObject and DeleteObject API for
+these objects: file, analog output, binary output, multi-state output, color,
+color temperature).
+- Unit tests and functional tests have been moved from the source C files
+into their own test files under the test folder in a src/ mirrored folder
+structure under test/. 
+- The testing framework was moved from ctest to ztest, using CMake, CTest, and LCOV. 
+It's now possible to visually view code coverage from the testing of each file
+in the library. The tests are run in continuous integration.  Adding new tests
+can be done by as copying an existing folder under test/ as a starting point, and
+adding the new test folder name into the CMakeLists.txt under test/ folder, or
 editing the existing test C file and extending or fixing the existing test. 
-- Most (all?) of the primitive value encoders are now using a snprintf() 
-style API pattern, where passing NULL in the buffer parameter will 
-return the length that the buffer would use (i.e. returns the length that the 
-buffer needs to be).  This makes simple to write the parent encoders to check 
-the length versus their buffer before attempting the encoding at the expense of 
+- Most (all?) of the primitive value encoders are now using a snprintf()
+style API pattern, where passing NULL in the buffer parameter will
+return the length that the buffer would use (i.e. returns the length that the
+buffer needs to be).  This makes simple to write the parent encoders to check
+the length versus their buffer before attempting the encoding at the expense of
 an extra function call to get the length.
 - BACnetARRAY property types now have a helper function to use for encoding (see bacnet_array_encode) 
 
