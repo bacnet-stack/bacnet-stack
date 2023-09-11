@@ -22,6 +22,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+- Fixed (bug#83) mstpcap.exe permission denied in Wireshark (#492)
+
+
 ## [1.1.2] - 2023-08-18
 
 ### Security
