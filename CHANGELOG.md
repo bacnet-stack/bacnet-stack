@@ -16,25 +16,39 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
-- Added or updated secure the BACnet primitive value decoders
-named bacnet_x_decode(), bacnet_x_application_decode() and
-bacnet_x_context_decode where x is one of the 13 BACnet primitive value names.
-The updated API includes an APDU size to prevent over-reading of an APDU buffer.
-Improved or added unit test code coverage for the primitive value decoders (#481)
-- marked the insecure decoding API as 'deprecated' which is defined in
-src/bacnet/basic/sys/platform.h and can be disabled during a build. (#481)
+### Added
+
+### Changed
+
+### Fixed
+
+## [1.2.0] - 2023-09-11
+
+### Security
+
 - secured decoders for BACnetTimeValue, BACnetHostNPort, BACnetTimeStamp,
 BACnetAddress, and Weekly_Schedule and improved unit test code coverage. (#481)
 - secured AtomicReadFile and AtomicWriteFile service decoders and
 improved unit test code coverage. (#481)
 - secured BACnet Error service decoder and improved unit test code coverage. (#481)
-- improved test code coverage for BACnet objects and properties. (#481)
 - fix ReinitializeDevice handler to clear password before decoding (#485) (#487)
 
 ### Added
 
+- Added or updated the BACnet primitive value decoders named bacnet_x_decode(),
+bacnet_x_application_decode() and bacnet_x_context_decode where x is one of
+the 13 BACnet primitive value names. The decoders can accept a NULL data
+value pointer when only the length is needed. (#481)
+- Added bacnet_tag_decode() and BACNET_TAG data structure. (#481)
+- Added improved unit test code for the primitive value decoders (#481)
+- Added improved test code coverage for BACnet objects and properties. (#481)
+
 ### Changed
 
+- Changed the insecure decoding API decoration to 'deprecated' which is defined
+in src/bacnet/basic/sys/platform.h and can be disabled during a build. (#481)
+- Changed some of the BACnet primitive value encoders so that all of them can
+accept a NULL APDU buffer pointer when only the length is needed. (#481)
 
 ### Fixed
 
@@ -43,6 +57,11 @@ Link_Speed property is writable (#488)
 - Fixed Microchip xmega xplained example project to build under GCC in pipeline.
 - Fixed BACnet/IP on OS to bind broadcast to specific port (#489)
 - Fixed (bug#83) mstpcap.exe permission denied in Wireshark (#492)
+- Fixed wrong calculation of frame length in bacapp_data_len(). In cases
+when 2 sets of opening & closing tags (first opening tag context tag is 3,
+second is 0) were sent, one of the frames wasn't added, and the resulted
+sum was wrong. Added unit test for case with two sets of opening & closing
+tags. (#491)
 
 ## [1.1.2] - 2023-08-18
 
