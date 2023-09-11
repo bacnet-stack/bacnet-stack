@@ -1544,8 +1544,9 @@ int bacapp_data_len(
                 opening_tag_number_counter = 1;
                 total_len_enable = false;
             } else if (tag_number == opening_tag_number) {
-                total_len_enable = true;
                 opening_tag_number_counter++;
+            } else {
+                total_len_enable = true;
             }
         } else if (bacnet_is_closing_tag(apdu, apdu_len_max)) {
             len = bacnet_tag_number_and_value_decode(
