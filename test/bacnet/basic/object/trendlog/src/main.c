@@ -130,18 +130,11 @@ static void Enable_log(int instance)
     wp_data.object_property = PROP_START_TIME;
     value.context_specific = false;
     value.context_tag = 0;
-    value.tag = BACNET_APPLICATION_TAG_DATE;
-    value.type.Date = datetime.date;
+    value.tag = BACNET_APPLICATION_TAG_DATETIME;
+    value.type.Date_Time = datetime;
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     zassert_true(wp_data.application_data_len > 0, NULL);
-    len = wp_data.application_data_len;
-    value.tag = BACNET_APPLICATION_TAG_TIME;
-    value.type.Time = datetime.time;
-    wp_data.application_data_len =
-        bacapp_encode_data(&wp_data.application_data[len], &value);
-    zassert_true(wp_data.application_data_len > 0, NULL);
-    wp_data.application_data_len += len;
     status = Trend_Log_Write_Property(&wp_data);
     zassert_true(status, NULL);
     
@@ -149,18 +142,11 @@ static void Enable_log(int instance)
     wp_data.object_property = PROP_STOP_TIME;
     value.context_specific = false;
     value.context_tag = 0;
-    value.tag = BACNET_APPLICATION_TAG_DATE;
-    value.type.Date = datetime.date;
+    value.tag = BACNET_APPLICATION_TAG_DATETIME;
+    value.type.Date_Time = datetime;
     wp_data.application_data_len =
         bacapp_encode_data(&wp_data.application_data[0], &value);
     zassert_true(wp_data.application_data_len > 0, NULL);
-    len = wp_data.application_data_len;
-    value.tag = BACNET_APPLICATION_TAG_TIME;
-    value.type.Time = datetime.time;
-    wp_data.application_data_len =
-        bacapp_encode_data(&wp_data.application_data[len], &value);
-    zassert_true(wp_data.application_data_len > 0, NULL);
-    wp_data.application_data_len += len;
     status = Trend_Log_Write_Property(&wp_data);
     zassert_true(status, NULL);
 }

@@ -264,7 +264,6 @@ bool Trend_Log_Object_Name(
 int Trend_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    int len = 0; /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     TL_LOG_INFO *CurrentLog;
@@ -347,20 +346,11 @@ int Trend_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_START_TIME:
-            len =
-                encode_application_date(&apdu[0], &CurrentLog->StartTime.date);
-            apdu_len = len;
-            len = encode_application_time(
-                &apdu[apdu_len], &CurrentLog->StartTime.time);
-            apdu_len += len;
+            apdu_len = bacapp_encode_datetime(&apdu[0], &CurrentLog->StartTime);
             break;
 
         case PROP_STOP_TIME:
-            len = encode_application_date(&apdu[0], &CurrentLog->StopTime.date);
-            apdu_len = len;
-            len = encode_application_time(
-                &apdu[apdu_len], &CurrentLog->StopTime.time);
-            apdu_len += len;
+            apdu_len = bacapp_encode_datetime(&apdu[0], &CurrentLog->StopTime);
             break;
 
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
@@ -1518,6 +1508,7 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
 
 static int local_read_property(uint8_t *value,
     uint8_t *status,
+    int *iLenStatus,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Source,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -1547,8 +1538,8 @@ static int local_read_property(uint8_t *value,
         rpdata.application_data_len = MAX_APDU;
         rpdata.object_property = PROP_STATUS_FLAGS;
         rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Device_Read_Property(&rpdata);
-        if (len < 0) {
+        *iLenStatus = Device_Read_Property(&rpdata);
+        if (*iLenStatus < 0) {
             *error_class = rpdata.error_class;
             *error_code = rpdata.error_code;
         }
@@ -1569,12 +1560,11 @@ static void TL_fetch_property(int iLog)
                              of data */
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
     BACNET_ERROR_CODE error_code = ERROR_CODE_OTHER;
-    int iLen;
+    int iLen, iLenIn, iLenStatus;
     uint8_t ucCount;
     TL_LOG_INFO *CurrentLog;
     TL_DATA_REC TempRec;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
+    BACNET_TAG tag = {0};
     BACNET_BIT_STRING TempBits;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
@@ -1586,49 +1576,50 @@ static void TL_fetch_property(int iLog)
     CurrentLog->tLastDataTime = TempRec.tTimeStamp;
     TempRec.ucStatus = 0;
 
-    iLen = local_read_property(
-        ValueBuf, StatusBuf, &LogInfo[iLog].Source, &error_class, &error_code);
-    if (iLen < 0) {
+    iLenIn = local_read_property(ValueBuf, StatusBuf, &iLenStatus,
+        &LogInfo[iLog].Source, &error_class, &error_code);
+    if (iLenIn < 0) {
         /* Insert error code into log */
         TempRec.Datum.Error.usClass = error_class;
         TempRec.Datum.Error.usCode = error_code;
         TempRec.ucRecType = TL_TYPE_ERROR;
     } else {
         /* Decode data returned and see if we can fit it into the log */
-        iLen =
-            decode_tag_number_and_value(ValueBuf, &tag_number, &len_value_type);
-        switch (tag_number) {
+        iLen = bacnet_tag_decode(ValueBuf, iLenIn, &tag);
+
+        switch (tag.number) {
             case BACNET_APPLICATION_TAG_NULL:
                 TempRec.ucRecType = TL_TYPE_NULL;
                 break;
 
             case BACNET_APPLICATION_TAG_BOOLEAN:
                 TempRec.ucRecType = TL_TYPE_BOOL;
-                TempRec.Datum.ucBoolean = decode_boolean(len_value_type);
+                TempRec.Datum.ucBoolean = decode_boolean(tag.len_value_type);
                 break;
 
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                 TempRec.ucRecType = TL_TYPE_UNSIGN;
-                decode_unsigned(
-                    &ValueBuf[iLen], len_value_type, &unsigned_value);
+                bacnet_unsigned_decode(&ValueBuf[iLen], iLenIn - iLen,
+                    tag.len_value_type, &unsigned_value);
                 TempRec.Datum.ulUValue = unsigned_value;
                 break;
 
             case BACNET_APPLICATION_TAG_SIGNED_INT:
                 TempRec.ucRecType = TL_TYPE_SIGN;
-                decode_signed(
-                    &ValueBuf[iLen], len_value_type, &TempRec.Datum.lSValue);
+                bacnet_signed_decode(&ValueBuf[iLen], iLenIn - iLen,
+                    tag.len_value_type, &TempRec.Datum.lSValue);
                 break;
 
             case BACNET_APPLICATION_TAG_REAL:
                 TempRec.ucRecType = TL_TYPE_REAL;
                 decode_real_safe(
-                    &ValueBuf[iLen], len_value_type, &TempRec.Datum.fReal);
+                    &ValueBuf[iLen], tag.len_value_type, &TempRec.Datum.fReal);
                 break;
 
             case BACNET_APPLICATION_TAG_BIT_STRING:
                 TempRec.ucRecType = TL_TYPE_BITS;
-                decode_bitstring(&ValueBuf[iLen], len_value_type, &TempBits);
+                bacnet_bitstring_decode(&ValueBuf[iLen], iLenIn - iLen,
+                    tag.len_value_type, &TempBits);
                 /* We truncate any bitstrings at 32 bits to conserve space */
                 if (bitstring_bits_used(&TempBits) < 32) {
                     /* Store the bytes used and the bits free in the last byte
@@ -1655,8 +1646,8 @@ static void TL_fetch_property(int iLog)
 
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 TempRec.ucRecType = TL_TYPE_ENUM;
-                decode_enumerated(
-                    &ValueBuf[iLen], len_value_type, &TempRec.Datum.ulEnum);
+                bacnet_enumerated_decode(&ValueBuf[iLen], iLenIn - iLen,
+                    tag.len_value_type, &TempRec.Datum.ulEnum);
                 break;
 
             default:
@@ -1667,9 +1658,9 @@ static void TL_fetch_property(int iLog)
                 break;
         }
         /* Finally insert the status flags into the record */
-        iLen = decode_tag_number_and_value(
-            StatusBuf, &tag_number, &len_value_type);
-        decode_bitstring(&StatusBuf[iLen], len_value_type, &TempBits);
+        iLen = bacnet_tag_decode(StatusBuf, iLenStatus, &tag);
+        bacnet_bitstring_decode(&StatusBuf[iLen], iLenStatus - iLen,
+            tag.len_value_type, &TempBits);
         TempRec.ucStatus = 128 | bitstring_octet(&TempBits, 0);
     }
 

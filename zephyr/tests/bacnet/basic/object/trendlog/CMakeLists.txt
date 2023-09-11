@@ -26,7 +26,7 @@ if(BOARD STREQUAL unit_testing)
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
-    ${BACNET_TEST_PATH}/stubs.c
+    ${BACNET_TEST_PATH}/../mock/device_mock.c
     )
 
   get_filename_component(BACNET_OBJECT_SRC ${BACNET_SRC_PATH} PATH)
@@ -44,27 +44,15 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/timestamp.c
     ${BACNET_SRC}/basic/sys/days.c
     ${BACNET_SRC}/bacdevobjpropref.c
+    ${BACNET_SRC}/bactimevalue.c
     ${BACNET_SRC}/bactext.c
     ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/lighting.c
     ${BACNET_SRC}/wp.c
-    ${BACNET_SRC}/proplist.c
-    ${BACNET_SRC}/datalink/bvlc.c
     ${BACNET_SRC}/hostnport.c
     ${BACNET_SRC}/dailyschedule.c
     ${BACNET_SRC}/weeklyschedule.c
     ${BACNET_SRC}/basic/sys/bigend.c
-    ${BACNET_SRC}/bactimevalue.c
-    ${BACNET_SRC}/basic/object/client/device-client.c
-    ${BACNET_SRC}/basic/object/netport.c
-    ${BACNET_SRC}/proplist.c
-    ${BACNET_SRC}/basic/service/h_apdu.c
-    ${BACNET_SRC}/datalink/bvlc.c
-    ${BACNET_SRC}/basic/binding/address.c
-    ${BACNET_SRC}/basic/tsm/tsm.c
-    ${BACNET_SRC}/dcc.c
-    ${BACNET_SRC}/bacerror.c
-    ${BACNET_SRC}/npdu.c
     )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
@@ -77,6 +65,6 @@ else()
   target_include_directories(app PRIVATE ${BACNET_INCLUDE})
   target_sources(app PRIVATE
     ${BACNET_TEST_PATH}/src/main.c
-    ${BACNET_TEST_PATH}/stubs.c
+    #${BACNET_TEST_PATH}/../mock/device_mock.c
     )
 endif()
