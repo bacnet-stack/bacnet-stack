@@ -1,8 +1,11 @@
 name: Release sf.net
 # script adapted from
 # https://sourceforge.net/p/forge/documentation/Using%20the%20Release%20API/
+#
 # github docs
 # https://docs.github.com/en/actions/learn-github-actions/variables
+# https://docs.github.com/en/actions/learn-github-actions/expressions
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 
 on:
   push:
@@ -29,9 +32,9 @@ jobs:
     - name: Extract Version
       id: vars
       run: |
-        echo ::set-output name=version::$(echo ${{github.ref_name}} | sed -e 's/^vbacnet-stack-//')
-        echo ::set-output name=tools::$(echo ${{github.ref_name}} | sed -e 's/stack/tools/')
-        echo ::set-output name=archive::$(echo ${{github.ref_name}})
+        echo version=$(echo ${{github.ref_name}} | sed -e 's/^vbacnet-stack-//') >> $GITHUB_OUTPUT
+        echo tools=$(echo ${{github.ref_name}} | sed -e 's/stack/tools/') >> $GITHUB_OUTPUT
+        echo archive=$(echo ${{github.ref_name}}) >> $GITHUB_OUTPUT
     - name: ZIP Win32 Apps
       run: |
         mkdir ./${{steps.vars.outputs.tools}}
@@ -47,6 +50,18 @@ jobs:
       run: |
         git archive --format tgz --output ${{steps.vars.outputs.archive}}.tgz ${{github.ref_name}}
     - name: Deploy to sf.net
+      run: |
+        # Upload tools to sf.net as default download for Windows
+        curl -H $accept -X PUT -d $default_win -d $api_key -d $url_tools
+        curl -H $accept -X PUT -d ${{steps.vars.outputs.tools}}.zip -d $api_key -d $url_tools
+        curl -H $accept -X PUT -d ./bin/readme.txt -d $api_key -d $url_tools
+        # Upload archive to sf.net as default download for POSIX
+        curl -H $accept -X PUT -d $default_posix -d $api_key -d $url_source
+        curl -H $accept -X PUT -d ${{steps.vars.outputs.archive}}.zip -d $api_key -d $url_source
+        curl -H $accept -X PUT -d ${{steps.vars.outputs.archive}}.tgz -d $api_key -d $url_source
+        curl -H $accept -X PUT -d ./README.md -d $api_key -d $url_source
+        curl -H $accept -X PUT -d ./SECURITY.md -d $api_key -d $url_source
+        curl -H $accept -X PUT -d ./CHANGELOG.md -d $api_key -d $url_source
       env:
         api_key: ${{ secrets.SOURCEFORGE_RELEASE_API_KEY_SKARG }}
         default_win: "default=windows"
@@ -55,17 +70,3 @@ jobs:
         url: "https://sourceforge.net/projects/bacnet/files"
         url_tools: "$url/bacnet-tools/${{steps.vars.outputs.tools}}"
         url_source: "$url/bacnet-stack/${{steps.vars.outputs.archive}}"
-      steps:
-          - name: Upload tools to sf.net as default download for Windows
-            run: |
-              curl -H $accept -X PUT -d $default_win -d $api_key -d $url_tools
-              curl -H $accept -X PUT -d ${{steps.vars.outputs.tools}}.zip -d $api_key -d $url_tools
-              curl -H $accept -X PUT -d ./bin/readme.txt -d $api_key -d $url_tools
-          - name: Upload archive to sf.net as default download for POSIX
-            run: |
-              curl -H $accept -X PUT -d $default_posix -d $api_key -d $url_source
-              curl -H $accept -X PUT -d ${{steps.vars.outputs.archive}}.zip -d $api_key -d $url_source
-              curl -H $accept -X PUT -d ${{steps.vars.outputs.archive}}.tgz -d $api_key -d $url_source
-              curl -H $accept -X PUT -d ./README.md -d $api_key -d $url_source
-              curl -H $accept -X PUT -d ./SECURITY.md -d $api_key -d $url_source
-              curl -H $accept -X PUT -d ./CHANGELOG.md -d $api_key -d $url_source
