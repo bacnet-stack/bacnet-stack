@@ -7,7 +7,7 @@ name: Release sf.net
 on:
   push:
     # Pattern matched against refs/tags
-    tags:        
+    tags:
       - 'bacnet-stack-[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
@@ -47,16 +47,15 @@ jobs:
       run: |
         git archive --format tgz --output ${{steps.vars.outputs.archive}}.tgz ${{github.ref_name}}
     - name: Deploy to sf.net
-      run: |
-        env: 
-          api_key: ${{ secrets.SOURCEFORGE_RELEASE_API_KEY_SKARG }}
-          default_win: "default=windows"
-          default_posix: "default=mac&default=linux&default=bsd&default=solaris&default=others"
-          accept: "Accept: application/json"
-          url: "https://sourceforge.net/projects/bacnet/files"
-          url_tools: "$url/bacnet-tools/${{steps.vars.outputs.tools}}"
-          url_source: "$url/bacnet-stack/${{steps.vars.outputs.archive}}"
-        steps:
+      env:
+        api_key: ${{ secrets.SOURCEFORGE_RELEASE_API_KEY_SKARG }}
+        default_win: "default=windows"
+        default_posix: "default=mac&default=linux&default=bsd&default=solaris&default=others"
+        accept: "Accept: application/json"
+        url: "https://sourceforge.net/projects/bacnet/files"
+        url_tools: "$url/bacnet-tools/${{steps.vars.outputs.tools}}"
+        url_source: "$url/bacnet-stack/${{steps.vars.outputs.archive}}"
+      steps:
           - name: Upload tools to sf.net as default download for Windows
             run: |
               curl -H $accept -X PUT -d $default_win -d $api_key -d $url_tools
