@@ -1,5 +1,7 @@
 BACnet Stack - Win32
 
+2023-09-12 EKH: Please see README.md in this directory.
+
 This directory contains a demo program that compiles with a Win32 compiler.
 It was tested with the freely downloadable Borland C++ 5.5, as well as
 Borland C++ 5 and Visual C++ 6.0.

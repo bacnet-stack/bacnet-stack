@@ -114,3 +114,4 @@ apps/piface/libpifacedigital/
 /apps/create-object/bacco
 /apps/delete-object/bacdo
 
+*.vcxproj.user
