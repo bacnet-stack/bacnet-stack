@@ -22,6 +22,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+- fixed extraneous SO_BINDTODEVICE error message in Linux BIP
+
 ## [1.2.0] - 2023-09-11
 
 ### Security
