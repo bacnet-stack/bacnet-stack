@@ -163,7 +163,6 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */ },
-        NULL /* Add_List_Element */, NULL /* Remove_List_Element */ },
     { OBJECT_CALENDAR, Calendar_Init, Calendar_Count,
         Calendar_Index_To_Instance, Calendar_Valid_Instance,
         Calendar_Object_Name, Calendar_Read_Property,
