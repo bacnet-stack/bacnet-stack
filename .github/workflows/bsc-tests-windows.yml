@@ -17,7 +17,7 @@ jobs:
         c:\vcpkg\vcpkg.exe install libuv --triplet x64-windows-custom
         c:\vcpkg\vcpkg.exe install openssl --triplet x64-windows-custom
         c:\vcpkg\vcpkg.exe install libwebsockets --triplet x64-windows-custom
-        git clone https://libwebsockets.org/repo/libwebsockets
+        git clone https://github.com/warmcat/libwebsockets.git
         cd libwebsockets
         mkdir build
         cd build

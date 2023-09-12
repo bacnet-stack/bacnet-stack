@@ -10,7 +10,7 @@ jobs:
     - name: Create Build Environment
       run: |
         brew install openssl
-        git clone https://libwebsockets.org/repo/libwebsockets
+        git clone https://github.com/warmcat/libwebsockets.git
         bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_MINIMAL_EXAMPLES=0 -DOPENSSL_ROOT_DIR=$(brew --prefix openssl) -DLWS_MAX_SMP=32;make'
         sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build and run bsc_event test
