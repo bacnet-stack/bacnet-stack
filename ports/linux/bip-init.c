@@ -863,7 +863,9 @@ static int createSocket(struct sockaddr_in *sin)
     status = setsockopt(sock_fd, SOL_SOCKET, SO_BINDTODEVICE,
         BIP_Interface_Name, strlen(BIP_Interface_Name));
     if (status < 0) {
-        perror("SO_BINDTODEVICE: ");
+        if (BIP_Debug) {
+            perror("SO_BINDTODEVICE: ");
+	}
     }
     /* bind the socket to the local port number and IP address */
     status =
