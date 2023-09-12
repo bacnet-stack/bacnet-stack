@@ -629,8 +629,10 @@ void test_main(void)
      ztest_unit_test(testBACnetDateTimeSeconds),
      ztest_unit_test(testDayOfYear),
 #endif
-    ztest_test_suite(wp_tests, ztest_unit_test(testBACnetDate),
-        ztest_unit_test(testBACnetTime), ztest_unit_test(testBACnetDateTime),
+    ztest_test_suite(datetime_tests,
+        ztest_unit_test(testBACnetDate),
+        ztest_unit_test(testBACnetTime),
+        ztest_unit_test(testBACnetDateTime),
         ztest_unit_test(testBACnetDayOfWeek),
         ztest_unit_test(testDateEpochConversion),
         ztest_unit_test(testBACnetDateTimeAdd),
