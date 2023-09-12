@@ -105,7 +105,14 @@ void bacapp_timestamp_copy(BACNET_TIMESTAMP *dest, BACNET_TIMESTAMP *src)
     }
 }
 
-/** Encode a time stamp.
+/** 
+ * @brief Encode a time stamp.
+ *  
+ *  BACnetTimeStamp ::= CHOICE {
+ *      time [0] Time, -- deprecated in version 1 revision 21
+ *      sequence-number [1] Unsigned (0..65535),
+ *      datetime [2] BACnetDateTime
+ *  }
  *
  * @param apdu  Pointer to the APDU buffer.
  * @param value  Pointer to the variable that holds
@@ -179,6 +186,13 @@ int bacapp_encode_context_timestamp(
 
 /**
  * @brief Decode a time stamp from the given buffer.
+ *  
+ *  BACnetTimeStamp ::= CHOICE {
+ *      time [0] Time, -- deprecated in version 1 revision 21
+ *      sequence-number [1] Unsigned (0..65535),
+ *      datetime [2] BACnetDateTime
+ *  }
+ *
  * @param apdu  Pointer to the APDU buffer.
  * @param apdu_size - the APDU buffer length
  * @param value  Pointer to the variable that shall

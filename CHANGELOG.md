@@ -18,6 +18,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+Added [feature#14] EventTimeStamp decoding from ReadPropertyMultiple app
+
 ### Changed
 
 ### Fixed
