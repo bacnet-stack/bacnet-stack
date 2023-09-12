@@ -1125,7 +1125,7 @@ int bacnet_datetime_decode(
     }
     len = bacnet_date_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, bdate);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
@@ -1134,7 +1134,7 @@ int bacnet_datetime_decode(
     }
     len = bacnet_time_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, btime);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
