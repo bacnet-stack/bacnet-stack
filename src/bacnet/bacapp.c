@@ -896,6 +896,27 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     break;
             }
             break;
+        case PROP_EVENT_TIME_STAMPS:
+            /*  BACnetTimeStamp ::= CHOICE {
+                    time [0] Time, -- deprecated in version 1 revision 21
+                    sequence-number [1] Unsigned (0..65535),
+                    datetime [2] BACnetDateTime
+                } 
+            */
+            switch (tag_number) {
+                case TIME_STAMP_TIME:
+                    tag = BACNET_APPLICATION_TAG_TIMESTAMP;
+                    break;
+                case TIME_STAMP_SEQUENCE:
+                    tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+                    break;
+                case TIME_STAMP_DATETIME:
+                    tag = BACNET_APPLICATION_TAG_DATETIME;
+                    break;
+                default:
+                    break;
+            }
+            break;
         default:
             break;
     }

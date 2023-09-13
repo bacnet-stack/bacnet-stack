@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The git repositories are hosted at the following sites:
 * https://bacnet.sourceforge.net/
-* https://github.com/bacnet*stack
+* https://github.com/bacnet-stack/bacnet-stack/
 
 ## [Unreleased]
 
@@ -18,11 +18,14 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+Added [feature#14] EventTimeStamp decoding from ReadPropertyMultiple app
+
 ### Changed
 
 ### Fixed
 
-- fixed extraneous SO_BINDTODEVICE error message in Linux BIP
+- Fixed datetime decode of invalid application tag. (#495)
+- Fixed extraneous SO_BINDTODEVICE error message in Linux BIP
 
 ## [1.2.0] - 2023-09-11
 
