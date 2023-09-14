@@ -52,6 +52,7 @@ list(APPEND testdirs
   bacnet/bacapp
   bacnet/bacdcode
   bacnet/bacdevobjpropref
+  bacnet/bacdest
   bacnet/bacerror
   bacnet/bacint
   bacnet/bacpropstates
