@@ -148,7 +148,7 @@ int wp_encode_apdu(
  * @param apdu_size  Valid bytes in the buffer
  * @param wpdata  Pointer to the write property data.
  *
- * @return Bytes encoded or a negative value as error.
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR
  */
 int wp_decode_service_request(
     uint8_t *apdu, unsigned apdu_size, BACNET_WRITE_PROPERTY_DATA *wpdata)
@@ -202,13 +202,11 @@ int wp_decode_service_request(
         if (wpdata) {
             wpdata->array_index = unsigned_value;
         }
-    } else if (len == 0) {
+    } else {
         /* wrong tag - skip apdu_len increment and go to next field */
         if (wpdata) {
             wpdata->array_index = BACNET_ARRAY_ALL;
         }
-    } else {
-        return BACNET_STATUS_ERROR;
     }
     /* property-value [3] ABSTRACT-SYNTAX.&Type */
     if (!bacnet_is_opening_tag_number(

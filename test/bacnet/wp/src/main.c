@@ -17,33 +17,47 @@
  */
 
 /**
- * @brief Test encode/decode API for unsigned 16b integers
+ * @brief Decode stub for WriteProperty service
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR
  */
 static int wp_decode_apdu(uint8_t *apdu,
-    unsigned apdu_len,
+    unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int len = 0;
-    unsigned offset = 0;
+    int apdu_len = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
+    if (apdu_size < 4) {
+        return BACNET_STATUS_ERROR;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
-        return -1;
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
+        return BACNET_STATUS_ERROR;
+    }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
-    *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_WRITE_PROPERTY)
-        return -1;
-    offset = 4;
-
-    if (apdu_len > offset) {
+    if (invoke_id) {
+        *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
+    }
+    if (apdu[3] != SERVICE_CONFIRMED_WRITE_PROPERTY) {
+        return BACNET_STATUS_ERROR;
+    }
+    len = 4;
+    apdu_len += len;
+    if (apdu_len < apdu_size) {
         len =
-            wp_decode_service_request(&apdu[offset], apdu_len - offset, wpdata);
+            wp_decode_service_request(&apdu[apdu_len], apdu_size - apdu_len, wpdata);
+        if (len > 0) {
+            apdu_len += len;
+        } else {
+            apdu_len = len;
+        }
     }
 
-    return len;
+    return apdu_len;
 }
 
 static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
@@ -75,7 +89,24 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
     zassert_equal(test_data.object_instance, wpdata.object_instance, NULL);
     zassert_equal(test_data.object_property, wpdata.object_property, NULL);
     zassert_equal(test_data.array_index, wpdata.array_index, NULL);
+    /* test the OPTIONAL property-array-index */
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    len = wp_encode_apdu(&apdu[0], invoke_id, &wpdata);
+    apdu_len = wp_decode_apdu(&apdu[0], len, &test_invoke_id, &test_data);
+    zassert_equal(apdu_len, len, "apdu_len=%d len=%d", apdu_len, len);
+    zassert_true(len > 0, "len=%d", len);
+    wpdata.array_index = 0;
+    /* test the OPTIONAL priority */
+    wpdata.priority = BACNET_MAX_PRIORITY;
+    len = wp_encode_apdu(&apdu[0], invoke_id, &wpdata);
+    apdu_len = wp_decode_apdu(&apdu[0], len, &test_invoke_id, &test_data);
+    zassert_equal(apdu_len, len, "apdu_len=%d len=%d", apdu_len, len);
+    zassert_true(len > 0, "len=%d", len);
+    wpdata.priority = 0;
     /* decode the application value of the request */
+    len = wp_encode_apdu(&apdu[0], invoke_id, &wpdata);
+    apdu_len = wp_decode_apdu(&apdu[0], len, &test_invoke_id, &test_data);
+    apdu_len = len;
     len = bacapp_decode_application_data(test_data.application_data,
         test_data.application_data_len, &test_value);
     zassert_equal(test_value.tag, value->tag, NULL);
@@ -127,12 +158,6 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
             break;
         default:
             break;
-    }
-    /* test short APDU */
-    while (apdu_len) {
-        apdu_len--;
-        len = wp_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, NULL);
-        zassert_true(len <= 0, "len=%d", len);
     }
 }
 
