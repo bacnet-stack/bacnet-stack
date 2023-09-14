@@ -24,7 +24,8 @@ Added [feature#14] EventTimeStamp decoding from ReadPropertyMultiple app
 
 ### Fixed
 
-Fixed datetime decode of invalid application tag. (#495)
+- Fixed datetime decode of invalid application tag. (#495)
+- Fixed extraneous SO_BINDTODEVICE error message in Linux BIP
 
 ## [1.2.0] - 2023-09-11
 
