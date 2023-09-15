@@ -242,7 +242,7 @@ int host_n_port_decode(uint8_t *apdu,
     }
     apdu_len += len;
 
-    return len;
+    return apdu_len;
 }
 
 int host_n_port_context_decode(uint8_t *apdu,

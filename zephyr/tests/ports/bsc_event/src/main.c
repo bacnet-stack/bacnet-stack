@@ -63,7 +63,11 @@ static void child_func(void *p1, void *p2, void *p3)
     bsc_event_signal(event);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bsc_event_test1, test_bsc_event1)
+#else
 static void test_bsc_event1(void)
+#endif
 {
     BSC_EVENT *event;
     k_tid_t tid_child;
@@ -114,7 +118,11 @@ static void thread_func(void *p1, void *p2, void *p3)
     bsc_event_wait(event);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bsc_event_test2, test_bsc_event2)
+#else
 static void test_bsc_event2(void)
+#endif
 {
     BSC_EVENT *event;
     k_tid_t tid_child[MULTIPLE_WAIT_THREADS_NUM];
@@ -155,7 +163,11 @@ static void thread_func2(void *p1, void *p2, void *p3)
     p->result = bsc_event_timedwait(p->event, 24*60*60*1000);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bsc_event_test3, test_bsc_event3)
+#else
 static void test_bsc_event3(void)
+#endif
 {
     BSC_EVENT *event;
     k_tid_t tid[MULTIPLE_WAIT_THREADS_NUM];
@@ -189,6 +201,11 @@ static void test_bsc_event3(void)
     bsc_event_deinit(event);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bsc_event_test1, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(bsc_event_test2, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(bsc_event_test3, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bsc_event_test1, ztest_unit_test(test_bsc_event1));
@@ -198,3 +215,4 @@ void test_main(void)
     ztest_run_test_suite(bsc_event_test2);
     ztest_run_test_suite(bsc_event_test3);
 }
+#endif

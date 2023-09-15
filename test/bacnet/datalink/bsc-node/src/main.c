@@ -1791,7 +1791,7 @@ static void test_node_duplicated_vmac(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(test_node_3, test_node_send)
+ZTEST(node_test_3, test_node_send)
 #else
 static void test_node_send(void)
 #endif
@@ -2029,7 +2029,7 @@ static void test_node_send(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(test_node_4, test_node_local_hub_function)
+ZTEST(node_test_4, test_node_local_hub_function)
 #else
 static void test_node_local_hub_function(void)
 #endif
@@ -2209,7 +2209,7 @@ static void test_node_local_hub_function(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(test_node_5, test_node_direct_connection)
+ZTEST(node_test_5, test_node_direct_connection)
 #else
 static void test_node_direct_connection(void)
 #endif
@@ -2873,7 +2873,7 @@ static void test_node_direct_connection(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(test_node_6, test_node_direct_connection_unsupported)
+ZTEST(node_test_6, test_node_direct_connection_unsupported)
 #else
 static void test_node_direct_connection_unsupported(void)
 #endif
@@ -3092,7 +3092,7 @@ static void node_switch_event(BSC_NODE_SWITCH_EVENT ev,
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(test_node_7, test_node_bad_cases)
+ZTEST(node_test_7, test_node_bad_cases)
 #else
 static void test_node_bad_cases(void)
 #endif

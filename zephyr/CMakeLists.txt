@@ -10,6 +10,12 @@ else()
   message(FATAL_ERROR "ZEPHYR_BASE needs to be defined for Zephyr builds")
 endif()
 
+option(BACNET_STACK_DEPRECATED_DISABLE "Disable deprecation compile warnings" ON)
+
+if(BACNET_STACK_DEPRECATED_DISABLE)
+  add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
+endif()
+
 #
 # options managed through Kconfig and use names CONFIG_*
 #
