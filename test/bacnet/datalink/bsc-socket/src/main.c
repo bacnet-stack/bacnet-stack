@@ -1603,7 +1603,11 @@ static void srv_simple_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
     bws_dispatch_unlock();
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(socket_test_1, test_simple)
+#else
 static void test_simple(void)
+#endif
 {
     BSC_CONTEXT_CFG server_cfg;
     BSC_CONTEXT_CFG client_cfg;
@@ -1711,7 +1715,11 @@ static void test_simple(void)
     deinit_ctx_ev(&srv_ctx_ev);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(socket_test_2, test_duplicated_vmac_on_server)
+#else
 static void test_duplicated_vmac_on_server(void)
+#endif
 {
     BSC_CONTEXT_CFG server_cfg;
     BSC_CONTEXT_CFG client_cfg;
@@ -1816,7 +1824,11 @@ static void test_duplicated_vmac_on_server(void)
     deinit_ctx_ev(&srv_ctx_ev);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(socket_test_3, test_duplicated_vmac_on_server2)
+#else
 static void test_duplicated_vmac_on_server2(void)
+#endif
 {
     BSC_CONTEXT_CFG server_cfg;
     BSC_CONTEXT_CFG client_cfg;
@@ -1890,7 +1902,11 @@ static void test_duplicated_vmac_on_server2(void)
     deinit_ctx_ev(&srv_ctx_ev);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(socket_test_4, test_duplicated_uuid_on_server)
+#else
 static void test_duplicated_uuid_on_server(void)
+#endif
 {
     BSC_CONTEXT_CFG server_cfg;
     BSC_CONTEXT_CFG client_cfg;
@@ -1997,7 +2013,11 @@ static void test_duplicated_uuid_on_server(void)
     deinit_ctx_ev(&srv_ctx_ev);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(socket_test_5, test_bad_params)
+#else
 static void test_bad_params(void)
+#endif
 {
     BSC_SC_RET ret;
     BSC_SOCKET_CTX srv_ctx;
@@ -2126,7 +2146,11 @@ static void test_bad_params(void)
     deinit_ctx_ev(&cli_ctx_ev);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(socket_test_6, test_error_case1)
+#else
 static void test_error_case1(void)
+#endif
 {
     BSC_CONTEXT_CFG server_cfg;
     BSC_CONTEXT_CFG client_cfg;
@@ -2258,6 +2282,20 @@ static void test_error_case1(void)
     deinit_ctx_ev(&srv_ctx_ev);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+static void *suite_setup(void)
+{
+    setbuf(stdout, NULL);
+    return NULL;
+}
+
+ZTEST_SUITE(socket_test_1, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(socket_test_2, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(socket_test_3, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(socket_test_4, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(socket_test_5, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(socket_test_6, NULL, suite_setup, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     setbuf(stdout, NULL);
@@ -2279,3 +2317,4 @@ void test_main(void)
     ztest_run_test_suite(socket_test_5);
     ztest_run_test_suite(socket_test_6);
 }
+#endif

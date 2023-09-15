@@ -1680,7 +1680,11 @@ static void netport_object_init(uint32_t instance,
 #endif
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(test_datalink_1, test_sc_parameters)
+#else
 static void test_sc_parameters(void)
+#endif
 {
     BACNET_SC_UUID hubf_uuid;
     BACNET_SC_VMAC_ADDRESS hubf_vmac;
@@ -1773,7 +1777,11 @@ static void test_sc_parameters(void)
     bacfile_cleanup();
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(test_datalink_2, test_sc_datalink)
+#else
 static void test_sc_datalink(void)
+#endif
 {
     BSC_NODE_CONF conf2;
     BSC_NODE_CONF conf3;
@@ -2018,7 +2026,11 @@ static void test_sc_datalink(void)
     bacfile_cleanup();
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(test_datalink_3, test_sc_datalink_properties)
+#else
 static void test_sc_datalink_properties(void)
+#endif
 {
     BSC_NODE_CONF conf2;
     BSC_NODE_CONF conf3;
@@ -2339,7 +2351,11 @@ static void test_sc_datalink_properties(void)
     bacfile_cleanup();
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(test_datalink_4, test_sc_datalink_failed_requests)
+#else
 static void test_sc_datalink_failed_requests(void)
+#endif
 {
     BSC_NODE_CONF conf2;
     BACNET_SC_UUID uuid1;
@@ -2465,6 +2481,12 @@ static void test_sc_datalink_failed_requests(void)
     bacfile_cleanup();
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(test_datalink_1, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(test_datalink_2, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(test_datalink_3, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(test_datalink_4, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     setbuf(stdout, NULL);
@@ -2482,3 +2504,4 @@ void test_main(void)
     ztest_run_test_suite(test_datalink_3);
     ztest_run_test_suite(test_datalink_4);
 }
+#endif

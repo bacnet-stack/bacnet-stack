@@ -1525,7 +1525,11 @@ static void node_event3(BSC_NODE *node,
     bws_dispatch_unlock();
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(node_test_1, test_node_start_stop)
+#else
 static void test_node_start_stop(void)
+#endif
 {
     BACNET_SC_UUID node_uuid = { 0 };
     BACNET_SC_VMAC_ADDRESS node_vmac = { 0 };
@@ -1618,7 +1622,11 @@ static void test_node_start_stop(void)
     deinit_node_ev(&node_ev);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(node_test_2, test_node_duplicated_vmac)
+#else
 static void test_node_duplicated_vmac(void)
+#endif
 {
     BACNET_SC_UUID node_uuid;
     BACNET_SC_VMAC_ADDRESS node_vmac;
@@ -1782,7 +1790,11 @@ static void test_node_duplicated_vmac(void)
     deinit_node_ev(&node_ev2);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(test_node_3, test_node_send)
+#else
 static void test_node_send(void)
+#endif
 {
     BACNET_SC_UUID node_uuid;
     BACNET_SC_VMAC_ADDRESS node_vmac;
@@ -2016,7 +2028,11 @@ static void test_node_send(void)
     deinit_node_ev(&node_ev3);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(test_node_4, test_node_local_hub_function)
+#else
 static void test_node_local_hub_function(void)
+#endif
 {
     BACNET_SC_UUID node_uuid;
     BACNET_SC_VMAC_ADDRESS node_vmac;
@@ -2192,7 +2208,11 @@ static void test_node_local_hub_function(void)
     deinit_node_ev(&node_ev3);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(test_node_5, test_node_direct_connection)
+#else
 static void test_node_direct_connection(void)
+#endif
 {
     BACNET_SC_UUID node_uuid;
     BACNET_SC_VMAC_ADDRESS node_vmac;
@@ -2852,7 +2872,11 @@ static void test_node_direct_connection(void)
     deinit_node_ev(&node_ev3);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(test_node_6, test_node_direct_connection_unsupported)
+#else
 static void test_node_direct_connection_unsupported(void)
+#endif
 {
     BACNET_SC_UUID node_uuid;
     BACNET_SC_VMAC_ADDRESS node_vmac;
@@ -3067,7 +3091,11 @@ static void node_switch_event(BSC_NODE_SWITCH_EVENT ev,
 {
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(test_node_7, test_node_bad_cases)
+#else
 static void test_node_bad_cases(void)
+#endif
 {
     BSC_SC_RET ret;
     BSC_NODE *node = NULL;
@@ -3244,6 +3272,21 @@ static void test_node_bad_cases(void)
     deinit_node_ev(&node_ev);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+static void *suite_setup(void)
+{
+    setbuf(stdout, NULL);
+    return NULL;
+}
+
+ZTEST_SUITE(node_test_1, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(node_test_2, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(node_test_3, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(node_test_4, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(node_test_5, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(node_test_6, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(node_test_7, NULL, suite_setup, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     setbuf(stdout, NULL);
@@ -3266,3 +3309,4 @@ void test_main(void)
     ztest_run_test_suite(node_test_6);
     ztest_run_test_suite(node_test_7);
 }
+#endif

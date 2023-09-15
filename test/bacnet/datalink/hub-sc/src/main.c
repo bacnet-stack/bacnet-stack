@@ -1638,7 +1638,11 @@ static void test_hub_connector_url(bool primary)
     deinit_hubf_ev(&hubf);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_3, test_hub_connector_bad_primary_url)
+#else
 static void test_hub_connector_bad_primary_url(void)
+#endif
 {
     BSC_SC_RET ret;
     BACNET_SC_UUID hubf_uuid;
@@ -1711,7 +1715,11 @@ static void test_hub_connector_bad_primary_url(void)
     deinit_hubf_ev(&hubf);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_4, test_hub_bad_params)
+#else
 static void test_hub_bad_params(void)
+#endif
 {
     BSC_SC_RET ret;
     BACNET_SC_UUID hubc_uuid;
@@ -1839,17 +1847,29 @@ static void test_hub_bad_params(void)
     deinit_hubc_ev(&hubc);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_1, test_hub_connector_primary_url)
+#else
 static void test_hub_connector_primary_url(void)
+#endif
 {
     test_hub_connector_url(true);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_2, test_hub_connector_secondary_url)
+#else
 static void test_hub_connector_secondary_url(void)
+#endif
 {
     test_hub_connector_url(false);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_5, test_hub_connector_reconnect)
+#else
 static void test_hub_connector_reconnect(void)
+#endif
 {
     BSC_SC_RET ret;
     BACNET_SC_UUID hubf_uuid;
@@ -2000,7 +2020,11 @@ static void test_hub_connector_reconnect(void)
     deinit_hubf_ev(&hubf);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_6, test_hub_connector_duplicated_vmac)
+#else
 static void test_hub_connector_duplicated_vmac(void)
+#endif
 {
     BSC_SC_RET ret;
     BACNET_SC_UUID hubf_uuid;
@@ -2063,7 +2087,11 @@ static void test_hub_connector_duplicated_vmac(void)
     deinit_hubf_ev(&hubf);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_7, test_hub_function_bad_params)
+#else
 static void test_hub_function_bad_params(void)
+#endif
 {
     BSC_SC_RET ret;
     BACNET_SC_UUID hubf_uuid;
@@ -2135,7 +2163,11 @@ static void test_hub_function_bad_params(void)
     deinit_hubf_ev(&hubf);
 }
 
-void test_hub_function_duplicated_uuid(void)
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_8, test_hub_function_duplicated_uuid)
+#else
+static void test_hub_function_duplicated_uuid(void)
+#endif
 {
     BSC_SC_RET ret;
     BACNET_SC_UUID hubf_uuid;
@@ -2234,6 +2266,22 @@ void test_hub_function_duplicated_uuid(void)
     deinit_hubf_ev(&hubf);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+static void *suite_setup(void)
+{
+    setbuf(stdout, NULL);
+    return NULL;
+}
+
+ZTEST_SUITE(hub_test_1, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_2, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_3, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_4, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_5, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_6, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_7, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_8, NULL, suite_setup, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     setbuf(stdout, NULL);
@@ -2262,3 +2310,4 @@ void test_main(void)
     ztest_run_test_suite(hub_test_7);
     ztest_run_test_suite(hub_test_8);
 }
+#endif

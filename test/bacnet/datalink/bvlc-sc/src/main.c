@@ -1751,7 +1751,11 @@ static void test_options(uint8_t *pdu,
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_BVLC_RESULT)
+#else
 static void test_BVLC_RESULT(void)
+#endif
 {
     uint8_t sbuf[256 + BSC_PRE];
     uint8_t *buf = &sbuf[BSC_PRE];
@@ -2150,7 +2154,11 @@ static void test_BVLC_RESULT(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_ENCAPSULATED_NPDU)
+#else
 static void test_ENCAPSULATED_NPDU(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -2315,7 +2323,11 @@ static void test_ENCAPSULATED_NPDU(void)
     zassert_equal(ret, true, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_ADDRESS_RESOLUTION)
+#else
 static void test_ADDRESS_RESOLUTION(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -2437,7 +2449,11 @@ static void test_ADDRESS_RESOLUTION(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_ADDRESS_RESOLUTION_ACK)
+#else
 static void test_ADDRESS_RESOLUTION_ACK(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -2626,7 +2642,11 @@ static void test_ADDRESS_RESOLUTION_ACK(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_ADVERTISIMENT)
+#else
 static void test_ADVERTISIMENT(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -2834,7 +2854,11 @@ static void test_ADVERTISIMENT(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_ADVERTISIMENT_SOLICITATION)
+#else
 static void test_ADVERTISIMENT_SOLICITATION(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -2960,7 +2984,11 @@ static void test_ADVERTISIMENT_SOLICITATION(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_CONNECT_REQUEST)
+#else
 static void test_CONNECT_REQUEST(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -3054,7 +3082,11 @@ static void test_CONNECT_REQUEST(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_CONNECT_ACCEPT)
+#else
 static void test_CONNECT_ACCEPT(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -3148,7 +3180,11 @@ static void test_CONNECT_ACCEPT(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_DISCONNECT_REQUEST)
+#else
 static void test_DISCONNECT_REQUEST(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -3188,7 +3224,11 @@ static void test_DISCONNECT_REQUEST(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_DISCONNECT_ACK)
+#else
 static void test_DISCONNECT_ACK(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -3228,7 +3268,11 @@ static void test_DISCONNECT_ACK(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_HEARTBEAT_REQUEST)
+#else
 static void test_HEARTBEAT_REQUEST(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -3268,7 +3312,11 @@ static void test_HEARTBEAT_REQUEST(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_HEARTBEAT_ACK)
+#else
 static void test_HEARTBEAT_ACK(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -3320,7 +3368,11 @@ static void test_HEARTBEAT_ACK(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_PROPRIETARY_MESSAGE)
+#else
 static void test_PROPRIETARY_MESSAGE(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -3500,7 +3552,11 @@ static void test_PROPRIETARY_MESSAGE(void)
     zassert_equal(message.payload.proprietary.data, NULL, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_BAD_HEADER_OPTIONS)
+#else
 static void test_BAD_HEADER_OPTIONS(void)
+#endif
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
@@ -3718,7 +3774,11 @@ static void test_BAD_HEADER_OPTIONS(void)
     zassert_equal(len, 0, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_BAD_ENCODE_PARAMS)
+#else
 static void test_BAD_ENCODE_PARAMS(void)
+#endif
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
@@ -3866,7 +3926,11 @@ static void test_BAD_ENCODE_PARAMS(void)
     zassert_equal(len, 0, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_BAD_DECODE_PARAMS)
+#else
 static void test_BAD_DECODE_PARAMS(void)
+#endif
 {
     uint8_t buf[256];
     uint8_t npdu[256];
@@ -3900,7 +3964,11 @@ static void test_BAD_DECODE_PARAMS(void)
     memset(&message, 0, sizeof(message));
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_BROADCAST)
+#else
 static void test_BROADCAST(void)
+#endif
 {
     uint8_t buf[256];
     size_t len;
@@ -4021,6 +4089,9 @@ static void test_BROADCAST(void)
     zassert_equal(ret, true, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bvlc_sc_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bvlc_sc_tests, ztest_unit_test(test_BVLC_RESULT),
@@ -4043,3 +4114,4 @@ void test_main(void)
 
     ztest_run_test_suite(bvlc_sc_tests);
 }
+#endif

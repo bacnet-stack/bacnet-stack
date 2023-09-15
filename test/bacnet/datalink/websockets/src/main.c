@@ -1378,7 +1378,11 @@ static void fill_buf(uint8_t *buf, size_t bufsize, uint8_t shift)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(websocket_srv_test_1, test_simple)
+#else
 static void test_simple(void)
+#endif
 {
     BSC_WEBSOCKET_RET ret;
     static test_ctx_t cli_ctx;
@@ -1442,7 +1446,11 @@ static void test_simple(void)
     wait_for_event(&srv_ctx, BSC_WEBSOCKET_SERVER_STOPPED);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(websocket_srv_test_2, test_onoff)
+#else
 static void test_onoff(void)
+#endif
 {
     BSC_WEBSOCKET_RET ret;
     static test_ctx_t cli_ctx;
@@ -1476,6 +1484,10 @@ static void test_onoff(void)
     wait_for_event(&cli_ctx, BSC_WEBSOCKET_DISCONNECTED);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(websocket_srv_test_1, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(websocket_srv_test_2, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     // Tests must not be run in parallel threads!
@@ -1486,3 +1498,4 @@ void test_main(void)
     ztest_run_test_suite(websocket_srv_test_1);
     ztest_run_test_suite(websocket_srv_test_2);
 }
+#endif
