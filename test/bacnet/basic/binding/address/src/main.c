@@ -80,7 +80,11 @@ static void set_file_address(const char *pFilename,
 
 #ifdef BACNET_ADDRESS_CACHE_FILE
 /* Validate that the address data in the file */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(address_tests, testAddressFile)
+#else
 static void testAddressFile(void)
+#endif
 {
     BACNET_ADDRESS src = { 0 };
     uint32_t device_id = 0;
@@ -138,7 +142,11 @@ static void testAddressFile(void)
 }
 #endif
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(address_tests, testAddress)
+#else
 static void testAddress(void)
+#endif
 {
     unsigned i, count;
     BACNET_ADDRESS src;
@@ -191,6 +199,9 @@ static void testAddress(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(address_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
 #ifdef BACNET_ADDRESS_CACHE_FILE
@@ -209,3 +220,4 @@ void test_main(void)
 #endif
 
 }
+#endif

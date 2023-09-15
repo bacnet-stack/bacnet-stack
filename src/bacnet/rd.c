@@ -41,7 +41,22 @@
 /** @file rd.c  Encode/Decode Reinitialize Device APDUs */
 #if BACNET_SVC_RD_A
 
-/** Encode Reinitialize Device service
+/**
+ * @brief Encode Reinitialize Device service
+ *
+ *  ReinitializeDevice-Request ::= SEQUENCE {
+ *      reinitialized-state-of-device [0] ENUMERATED {
+ *          coldstart (0),
+ *          warmstart (1),
+ *          start-backup (2),
+ *          end-backup (3),
+ *          start-restore (4),
+ *          end-restore (5),
+ *          abort-restore (6),
+ *          activate-changes (7)
+ *      },
+ *      password [1] CharacterString (SIZE (1..20)) OPTIONAL
+ * }
  *
  * @param apdu  Pointer to the APDU buffer.
  * @param invoke_id Invoke-Id
@@ -63,17 +78,24 @@ int rd_encode_apdu(uint8_t *apdu,
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_REINITIALIZE_DEVICE;
-        apdu_len = 4;
-        len = encode_context_enumerated(&apdu[apdu_len], 0, state);
-        apdu_len += len;
-        /* optional password */
-        if (password) {
-            /* Must be at least 1 character, limited to 20 characters */
-            if ((password->length >= 1) && (password->length <= 20)) {
-                len = encode_context_character_string(
-                    &apdu[apdu_len], 1, password);
-                apdu_len += len;
-            }
+    }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_context_enumerated(apdu, 0, state);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* optional password */
+    if (password) {
+        /* Must be at least 1 character, limited to 20 characters */
+        if ((password->length >= 1) && (password->length <= 20)) {
+            len = encode_context_character_string(
+                apdu, 1, password);
+            apdu_len += len;
         }
     }
 
@@ -81,52 +103,64 @@ int rd_encode_apdu(uint8_t *apdu,
 }
 #endif
 
-/** Decode Reinitialize Device service
+/**
+ * @brief Decode Reinitialize Device service
+ *
+ *  ReinitializeDevice-Request ::= SEQUENCE {
+ *      reinitialized-state-of-device [0] ENUMERATED {
+ *          coldstart (0),
+ *          warmstart (1),
+ *          start-backup (2),
+ *          end-backup (3),
+ *          start-restore (4),
+ *          end-restore (5),
+ *          abort-restore (6),
+ *          activate-changes (7)
+ *      },
+ *      password [1] CharacterString (SIZE (1..20)) OPTIONAL
+ * }
  *
  * @param apdu  Pointer to the APDU buffer.
- * @param apdu_len Valid bytes in the buffer
+ * @param apdu_size Valid bytes in the buffer
  * @param state  Pointer to the Reinitialization state
  * @param password  Pointer to the pass phrase.
  *
- * @return Bytes encoded.
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR if malformed
  */
 int rd_decode_service_request(uint8_t *apdu,
-    unsigned apdu_len,
+    unsigned apdu_size,
     BACNET_REINITIALIZED_STATE *state,
     BACNET_CHARACTER_STRING *password)
 {
-    unsigned len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
+    int len = 0, apdu_len = 0;
     uint32_t value = 0;
 
     /* check for value pointers */
-    if ((apdu) && (apdu_len >= 2)) {
+    if (apdu) {
         /* Tag 0: reinitializedStateOfDevice */
-        if (!decode_is_context_tag(&apdu[len], 0)) {
-            return -1;
-        }
-        len += decode_tag_number_and_value(
-            &apdu[len], &tag_number, &len_value_type);
-        len += decode_enumerated(&apdu[len], len_value_type, &value);
-        if (state) {
-            *state = (BACNET_REINITIALIZED_STATE)value;
+        len = bacnet_enumerated_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &value);
+        if (len > 0) {
+            if (state) {
+                *state = (BACNET_REINITIALIZED_STATE)value;
+            }
+            apdu_len = len;
+        } else {
+            apdu_len = BACNET_STATUS_ERROR;
         }
         /* Tag 1: password - optional */
-        if (len < apdu_len) {
-            if (!decode_is_context_tag(&apdu[len], 1)) {
-                return -1;
+        if (apdu_len < apdu_size) {
+            len = bacnet_character_string_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 1, password);
+            if (len > 0) {
+                apdu_len += len;
+            } else {
+                apdu_len = BACNET_STATUS_ERROR;
             }
-            len += decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            if (len < apdu_len) {
-                if (password) {
-                    len += decode_character_string(
-                        &apdu[len], len_value_type, password);
-                }
-            }
+        } else {
+            characterstring_init_ansi(password, "");
         }
     }
 
-    return (int)len;
+    return apdu_len;
 }

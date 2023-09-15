@@ -40,7 +40,11 @@ static void testIHaveData(BACNET_I_HAVE_DATA *data)
         characterstring_same(&test_data.object_name, &data->object_name), NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ihave_tests, testIHave)
+#else
 static void testIHave(void)
+#endif
 {
     BACNET_I_HAVE_DATA data;
 
@@ -65,6 +69,9 @@ static void testIHave(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(ihave_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(ihave_tests,
@@ -73,3 +80,4 @@ void test_main(void)
 
     ztest_run_test_suite(ihave_tests);
 }
+#endif

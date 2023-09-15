@@ -870,8 +870,7 @@ float Network_Port_Link_Speed(uint32_t object_instance)
  * For a given object instance-number, sets the Link_Speed
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - APDU length 0..65535
- *
+ * @param  value Link_Speed value in bits-per-second
  * @return  true if values are within range and property is set.
  */
 bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)

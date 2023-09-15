@@ -66,7 +66,11 @@ static void testTimeSyncRecipientData(
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(timesync_tests, testTimeSyncRecipient)
+#else
 static void testTimeSyncRecipient(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -186,7 +190,11 @@ static void testTimeSyncData(BACNET_DATE *my_date, BACNET_TIME *my_time)
     zassert_equal(datetime_compare_date(my_date, &test_date), 0, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(timesync_tests, testTimeSync)
+#else
 static void testTimeSync(void)
+#endif
 {
     BACNET_DATE bdate;
     BACNET_TIME btime;
@@ -208,6 +216,9 @@ static void testTimeSync(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(timesync_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(timesync_tests,
@@ -217,3 +228,4 @@ void test_main(void)
 
     ztest_run_test_suite(timesync_tests);
 }
+#endif

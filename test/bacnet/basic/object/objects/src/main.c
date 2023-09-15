@@ -32,7 +32,11 @@ static void testBACnetObjectsCompare(
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(objects_tests, testBACnetObjects)
+#else
 static void testBACnetObjects(void)
+#endif
 {
     uint32_t device_id = 0;
     unsigned test_point = 0;
@@ -80,6 +84,9 @@ static void testBACnetObjects(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(objects_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(objects_tests,
@@ -88,3 +95,4 @@ void test_main(void)
 
     ztest_run_test_suite(objects_tests);
 }
+#endif

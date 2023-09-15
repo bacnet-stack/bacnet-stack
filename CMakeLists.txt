@@ -259,10 +259,14 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/service/h_awf.h
     src/bacnet/basic/service/h_ccov.c
     src/bacnet/basic/service/h_ccov.h
+    src/bacnet/basic/service/h_create_object.c
+    src/bacnet/basic/service/h_create_object.h
     src/bacnet/basic/service/h_cov.c
     src/bacnet/basic/service/h_cov.h
     src/bacnet/basic/service/h_dcc.c
     src/bacnet/basic/service/h_dcc.h
+    src/bacnet/basic/service/h_delete_object.c
+    src/bacnet/basic/service/h_delete_object.h
     src/bacnet/basic/service/h_gas_a.c
     src/bacnet/basic/service/h_gas_a.h
     src/bacnet/basic/service/h_get_alarm_sum.c
@@ -319,10 +323,14 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/service/s_awfs.h
     src/bacnet/basic/service/s_cevent.c
     src/bacnet/basic/service/s_cevent.h
+    src/bacnet/basic/service/s_create_object.c
+    src/bacnet/basic/service/s_create_object.h
     src/bacnet/basic/service/s_cov.c
     src/bacnet/basic/service/s_cov.h
     src/bacnet/basic/service/s_dcc.c
     src/bacnet/basic/service/s_dcc.h
+    src/bacnet/basic/service/s_delete_object.c
+    src/bacnet/basic/service/s_delete_object.h
     src/bacnet/basic/service/s_error.c
     src/bacnet/basic/service/s_error.h
     src/bacnet/basic/service/s_get_alarm_sum.c
@@ -390,6 +398,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/config.h
     src/bacnet/cov.c
     src/bacnet/cov.h
+    src/bacnet/create_object.c
+    src/bacnet/create_object.h
     src/bacnet/credential_authentication_factor.c
     src/bacnet/credential_authentication_factor.h
     src/bacnet/datalink/arcnet.h
@@ -419,6 +429,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/datetime.h
     src/bacnet/dcc.c
     src/bacnet/dcc.h
+    src/bacnet/delete_object.c
+    src/bacnet/delete_object.h
     src/bacnet/event.c
     src/bacnet/event.h
     src/bacnet/get_alarm_sum.c
@@ -626,8 +638,14 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(add-list-element apps/add-list-element/main.c)
   target_link_libraries(add-list-element PRIVATE ${PROJECT_NAME})
 
+  add_executable(create-object apps/create-object/main.c)
+  target_link_libraries(create-object PRIVATE ${PROJECT_NAME})
+
   add_executable(dcc apps/dcc/main.c)
   target_link_libraries(dcc PRIVATE ${PROJECT_NAME})
+
+  add_executable(delete-object apps/delete-object/main.c)
+  target_link_libraries(delete-object PRIVATE ${PROJECT_NAME})
 
   add_executable(epics apps/epics/main.c)
   target_link_libraries(epics PRIVATE ${PROJECT_NAME})

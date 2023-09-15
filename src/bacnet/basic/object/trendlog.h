@@ -31,6 +31,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/cov.h"
 #include "bacnet/datetime.h"
+#include "bacnet/readrange.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 

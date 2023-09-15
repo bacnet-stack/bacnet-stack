@@ -76,6 +76,12 @@ ifeq (${BACNET_PORT},)
 		ifeq ($(UNAME_S),Darwin)
 			BACNET_PORT = bsd
 		endif
+		ifeq ($(UNAME_S),FreeBSD)
+			BACNET_PORT = bsd
+		endif
+		ifeq ($(UNAME_S),OpenBSD)
+			BACNET_PORT = bsd
+		endif
 	endif
 endif
 
@@ -106,6 +112,7 @@ ifeq (${BACDL},bsc)
 # note: install libwebsocket libcrypto and libssl to build for BACnet/SC
 SYSTEM_LIB += /usr/local/lib/libwebsockets.a /usr/local/opt/openssl@3/lib/libcrypto.a /usr/local/opt/openssl@3/lib/libssl.a
 endif
+CSTANDARD = -std=c99
 endif
 ifeq (${BACNET_PORT},win32)
 # winget install --id=MSYS2.MSYS2  -e
@@ -155,6 +162,11 @@ BACNET_DEFINES += -DBIP_DEBUG
 endif
 endif
 
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_DEFINES += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
+
 BACNET_DEFINES += -DPRINT_ENABLED=1
 BACNET_DEFINES += -DBACAPP_ALL
 BACNET_DEFINES += -DBACFILE
@@ -188,7 +200,8 @@ endif
 SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
-	server-client add-list-element remove-list-element
+	server-client add-list-element remove-list-element create-object \
+	delete-object
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -261,7 +274,15 @@ ack-alarm: $(BACNET_LIB_TARGET)
 add-list-element: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@ clean all
 
+.PHONY: create-object
+dcc: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
 .PHONY: dcc
+dcc: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: delete-object
 dcc: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
@@ -363,6 +384,10 @@ timesync: $(BACNET_LIB_TARGET)
 
 .PHONY: uevent
 uevent: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: uptransfer
+uptransfer: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: whois

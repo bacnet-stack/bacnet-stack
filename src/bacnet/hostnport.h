@@ -56,7 +56,7 @@ extern "C" {
         BACNET_HOST_N_PORT *address);
     BACNET_STACK_EXPORT
     int host_n_port_decode(uint8_t *apdu,
-        uint16_t apdu_len,
+        uint32_t apdu_len,
         BACNET_ERROR_CODE *error_code,
         BACNET_HOST_N_PORT *address);
     BACNET_STACK_EXPORT

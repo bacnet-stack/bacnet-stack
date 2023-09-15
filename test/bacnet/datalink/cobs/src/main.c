@@ -21,7 +21,11 @@
 /**
  * @brief Test CRC8 from Annex G 1.0 of BACnet Standard
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(cobs_tests, test_COBS_Encode_Decode)
+#else
 static void test_COBS_Encode_Decode(void)
+#endif
 {
     uint8_t buffer[MAX_APDU] = { 0x55, 0xff, 0 };
     uint8_t encoded_buffer[COBS_ENCODED_SIZE(MAX_APDU)+
@@ -52,6 +56,9 @@ static void test_COBS_Encode_Decode(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(cobs_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(cobs_tests,
@@ -60,3 +67,4 @@ void test_main(void)
 
     ztest_run_test_suite(cobs_tests);
 }
+#endif

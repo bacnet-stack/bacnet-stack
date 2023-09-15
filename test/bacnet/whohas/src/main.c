@@ -70,7 +70,11 @@ static void testWhoHasData(BACNET_WHO_HAS_DATA *data)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(whohas_tests, testWhoHas)
+#else
 static void testWhoHas(void)
+#endif
 {
     BACNET_WHO_HAS_DATA data;
 
@@ -106,6 +110,9 @@ static void testWhoHas(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(whohas_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(whohas_tests,
@@ -114,3 +121,4 @@ void test_main(void)
 
     ztest_run_test_suite(whohas_tests);
 }
+#endif

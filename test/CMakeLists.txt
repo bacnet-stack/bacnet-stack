@@ -7,6 +7,12 @@ project(Unit_Tests)
 # add definitions
 add_definitions(-fprofile-arcs -ftest-coverage)
 
+option(BACNET_STACK_DEPRECATED_DISABLE "Disable deprecation compile warnings" ON)
+
+if(BACNET_STACK_DEPRECATED_DISABLE)
+  add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
+endif()
+
 # Set the compiler options
 if (NOT MSVC)
     add_compile_options(-Wall -g -O0 -W -fprofile-arcs -ftest-coverage)
@@ -33,7 +39,7 @@ add_custom_command(TARGET lcov
 #
 
 list(APPEND testdirs
-  unit/bacnet/bacerror
+  # unit/bacnet/bacerror
   unit/bacnet/bits
   )
 
@@ -53,15 +59,19 @@ list(APPEND testdirs
   bacnet/bacstr
   bacnet/bactimevalue
   bacnet/cov
+  bacnet/create_object
   bacnet/datetime
   bacnet/dcc
+  bacnet/delete_object
   bacnet/event
   bacnet/getalarm
   bacnet/getevent
+  bacnet/hostnport
   bacnet/iam
   bacnet/ihave
   bacnet/indtext
   bacnet/lighting
+  bacnet/list_element
   bacnet/lso
   bacnet/memcopy
   bacnet/npdu
@@ -99,11 +109,14 @@ list(APPEND testdirs
   bacnet/basic/object/bi
   bacnet/basic/object/bo
   bacnet/basic/object/bv
+  bacnet/basic/object/channel
   bacnet/basic/object/color_object
   bacnet/basic/object/color_temperature
   bacnet/basic/object/command
   bacnet/basic/object/credential_data_input
+  bacnet/basic/object/csv
   bacnet/basic/object/device
+  bacnet/basic/object/iv
   #bacnet/basic/object/lc		#Tests skipped, redesign to use only API
   bacnet/basic/object/lo
   bacnet/basic/object/lsp
@@ -115,6 +128,7 @@ list(APPEND testdirs
   bacnet/basic/object/osv
   bacnet/basic/object/piv
   bacnet/basic/object/schedule
+  bacnet/basic/object/trendlog
   # basic/sys
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days

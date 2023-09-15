@@ -16,11 +16,61 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
-- Fix [bug#80] npdu_decode via deprecation (#447)
-- Fix [bug#79] out of bounds jump in h_apdu.c:apdu_handler (#446)
+- Added or updated secure the BACnet primitive value decoders 
+named bacnet_x_decode(), bacnet_x_application_decode() and 
+bacnet_x_context_decode where x is one of the 13 BACnet primitive value names. 
+The updated API includes an APDU size to prevent over-reading of an APDU buffer. 
+Improved or added unit test code coverage for the primitive value decoders (#481)
+- marked the insecure decoding API as 'deprecated' which is defined in 
+src/bacnet/basic/sys/platform.h and can be disabled during a build. (#481)
+- secured decoders for BACnetTimeValue, BACnetHostNPort, BACnetTimeStamp, 
+BACnetAddress, and Weekly_Schedule and improved unit test code coverage. (#481)
+- secured AtomicReadFile and AtomicWriteFile service decoders and 
+improved unit test code coverage. (#481)
+- secured BACnet Error service decoder and improved unit test code coverage. (#481)
+- improved test code coverage for BACnet objects and properties. (#481)
+- fix ReinitializeDevice handler to clear password before decoding (#485) (#487)
+
+### Added
+
+### Changed
+
 
 ### Fixed
 
+- Fixed missing Link_Speeds property in network port objects when
+Link_Speed property is writable (#488)
+- Fixed Microchip xmega xplained example project to build under GCC in pipeline.
+- Fixed BACnet/IP on OS to bind broadcast to specific port (#489)
+
+## [1.1.2] - 2023-08-18
+
+### Security
+
+- Fix bacapp_data_len() + bacnet_tag_number_and_value_decode() (#453)
+- Fix router-mstp and router-ipv6 apps action for unknown dnet (#454)
+- Fix router-mstp app to p revent npdu_len from wrapping around at npdu_len=1 (#452)
+- Fix router app where port might be null (#451)
+- Fix [bug#80] npdu_decode via deprecation (#447)
+- Fix [bug#79] out of bounds jump in h_apdu.c:apdu_handler (#446)
+
+### Added
+
+- Added github.com to sf.net github workflow for releases (#471)
+- Added MSTP Slave Node option to stm32f10x port (#467)
+- Added AFL + Libfuzzer harnesses  (#455)
+
+### Changed
+
+- Improve router-mstp app usage (#470)
+- Updated zephyr to v3 4 0 in ci (#461) (#463)
+
+### Fixed
+
+- Fix encode_context_bacnet_address (#464)
+- Fix west.yml imported repository set (#460) (#462)
+- Fix spurious interrupts from STM32 ORE (#456)
+- Fix writeproperty app known property option and priority (#450)
 - Fix segfault on mstp cleanup on linux port (#445)
 - Fix minimal config by adding bitstring (#443)
 - Fix WhoIs app APDU timeout (#444)

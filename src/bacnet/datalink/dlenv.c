@@ -704,6 +704,7 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  *   - BACNET_BDT_MASK_1 - dotted IPv4 mask of the BBMD table
  *       entry 1..128 (optional)
  *   - BACNET_IP_NAT_ADDR - dotted IPv4 address of the public facing router
+ *   - BACNET_IP_BROADCAST_BIND_ADDR - dotted IPv4 address to bind broadcasts
  * - BACDL_MSTP: (BACnet MS/TP)
  *   - BACNET_MAX_INFO_FRAMES
  *   - BACNET_MAX_MASTER
@@ -789,6 +790,10 @@ void dlenv_init(void)
         if (bip_get_port() < 1024) {
             bip_set_port(0xBAC0);
         }
+    }
+    pEnv = getenv("BACNET_IP_BROADCAST_BIND_ADDR");
+    if (pEnv) {
+        bip_set_broadcast_binding(pEnv);
     }
     pEnv = getenv("BACNET_IP_NAT_ADDR");
     if (pEnv) {

@@ -61,11 +61,11 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
     wpdata.application_data_len =
         bacapp_encode_application_data(&wpdata.application_data[0], value);
     len = wp_encode_apdu(&apdu[0], invoke_id, &wpdata);
-    zassert_not_equal(len, 0, NULL);
+    zassert_not_equal(len, 0, "len=%d", len);
     /* decode the data */
     apdu_len = len;
     len = wp_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
-    zassert_not_equal(len, -1, NULL);
+    zassert_true(len > 0, "len=%d", len);
     zassert_equal(test_data.object_type, wpdata.object_type, NULL);
     zassert_equal(test_data.object_instance, wpdata.object_instance, NULL);
     zassert_equal(test_data.object_property, wpdata.object_property, NULL);
@@ -123,7 +123,11 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWriteProperty)
+#else
 static void testWriteProperty(void)
+#endif
 {
     BACNET_APPLICATION_DATA_VALUE value;
 
@@ -203,6 +207,9 @@ static void testWriteProperty(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(wp_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(wp_tests,
@@ -211,3 +218,4 @@ void test_main(void)
 
     ztest_run_test_suite(wp_tests);
 }
+#endif
