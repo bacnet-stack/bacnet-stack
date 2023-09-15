@@ -55,6 +55,8 @@ static int wp_decode_apdu(uint8_t *apdu,
         } else {
             apdu_len = len;
         }
+    } else {
+        return BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -159,6 +161,12 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
         default:
             break;
     }
+    /* test packets that are too short */
+    while (apdu_len) {
+        apdu_len--;
+        len = wp_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
+        zassert_true(len <= 0, "len=%d tag=%d", len, value->tag);
+    }
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -237,8 +245,6 @@ static void testWriteProperty(void)
     value.type.Object_Id.type = OBJECT_LIFE_SAFETY_ZONE;
     value.type.Object_Id.instance = BACNET_MAX_INSTANCE;
     testWritePropertyTag(&value);
-
-    return;
 }
 /**
  * @}
