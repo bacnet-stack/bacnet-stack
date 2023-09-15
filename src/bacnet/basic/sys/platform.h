@@ -26,7 +26,9 @@
 #endif
 
 #ifndef ARRAY_SIZE
-#define ARRAY_SIZE(array) ((size_t)(sizeof(array) / sizeof((array)[0])))
+# if !defined(__ZEPHYR__)
+#   define ARRAY_SIZE(array) ((size_t)(sizeof(array) / sizeof((array)[0])))
+# endif
 #endif
 
 /* marking some code as 'deprecated' */
