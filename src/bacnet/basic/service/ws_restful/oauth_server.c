@@ -101,3 +101,56 @@ int oauth_pri_cert_set(uint8_t *cert, size_t size)
     (void)size;
     return 0;
 }
+
+int oauth_pri_pubkey(uint8_t **key, size_t *size)
+{
+    (void)key;
+    *size = 0;
+    return 0;
+}
+
+int oauth_pri_pubkey_set(uint8_t *key, size_t size)
+{
+    (void)key;
+    (void)size;
+    return 0;
+}
+
+char *oauth_sec_uri(void)
+{
+    return NULL;
+}
+
+int oauth_sec_uri_set(char *uri)
+{
+    (void)uri;
+    return 0;
+}
+
+int oauth_sec_cert(uint8_t **cert, size_t *size)
+{
+    (void)cert;
+    *size = 0;
+    return 0;
+}
+
+int oauth_sec_cert_set(uint8_t *cert, size_t size)
+{
+    (void)cert;
+    (void)size;
+    return 0;
+}
+
+int oauth_sec_pubkey(uint8_t **key, size_t *size)
+{
+    (void)key;
+    *size = 0;
+    return 0;
+}
+
+int oauth_sec_pubkey_set(uint8_t *key, size_t size)
+{
+    (void)key;
+    (void)size;
+    return 0;
+}

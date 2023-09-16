@@ -89,6 +89,16 @@ int oauth_pri_uri_set(char *uri);
 
 int oauth_pri_cert(uint8_t **cert, size_t *size);
 int oauth_pri_cert_set(uint8_t *cert, size_t size);
+int oauth_pri_pubkey(uint8_t **key, size_t *size);
+int oauth_pri_pubkey_set(uint8_t *key, size_t size);
+
+char *oauth_sec_uri(void);
+int oauth_sec_uri_set(char *uri);
+
+int oauth_sec_cert(uint8_t **cert, size_t *size);
+int oauth_sec_cert_set(uint8_t *cert, size_t size);
+int oauth_sec_pubkey(uint8_t **key, size_t *size);
+int oauth_sec_pubkey_set(uint8_t *key, size_t size);
 // todo 
 
 
