@@ -1531,7 +1531,7 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE *dest_value,
  * @param apdu_len_max Bytes valid in the buffer
  * @param property ID of the property to get the length for.
  *
- * @return Length in bytes or BACNET_STATUS_ERROR.
+ * @return Length in bytes 0..N, or BACNET_STATUS_ERROR.
  */
 int bacapp_data_len(
     uint8_t *apdu, unsigned apdu_len_max, BACNET_PROPERTY_ID property)
