@@ -1421,7 +1421,15 @@ typedef enum {
     /* BACnetxyColor */
     BACNET_APPLICATION_TAG_XY_COLOR,
     /* BACnetColorCommand */
-    BACNET_APPLICATION_TAG_COLOR_COMMAND
+    BACNET_APPLICATION_TAG_COLOR_COMMAND,
+    /* BACNET_SC_FAILED_CONNECTION_REQUEST */
+    BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST,
+    /* BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS */
+    BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS,
+    /* BACNET_SC_DIRECT_CONNECTION_STATUS */
+    BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS,
+    /* BACNET_SC_HUB_CONNECTION_STATUS */
+    BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
@@ -2326,6 +2334,10 @@ typedef enum {
     PORT_TYPE_NON_BACNET = 8,
     PORT_TYPE_BIP6 = 9,
     PORT_TYPE_SERIAL = 10,
+    /*  For BACnet/SC network port implementations with
+        a Protocol_Revision 24 and higher, BACnet/SC network ports shall be
+        represented by a Network Port object at the BACNET_APPLICATION
+        protocol level with network type of SECURE_CONNECT. */
     PORT_TYPE_BSC = 11,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to the
@@ -2520,5 +2532,18 @@ typedef enum BACnetIPMode_T {
     BACNET_IP_MODE_FOREIGN = 1,
     BACNET_IP_MODE_BBMD = 2
 } BACNET_IP_MODE;
+
+typedef enum BACnetSCHubConnectorState_T {
+    BACNET_NO_HUB_CONNECTION = 0,
+    BACNET_CONNECTED_TO_PRIMARY = 1,
+    BACNET_CONNECTED_TO_FAILOVER = 2
+} BACNET_SC_HUB_CONNECTOR_STATE;
+
+typedef enum BACnetSCnetSCConnectionState_T {
+    BACNET_NOT_CONNECTED = 0,
+    BACNET_CONNECTED = 1,
+    BACNET_DISCONNECTED_WITH_ERRORS = 2,
+    BACNET_FAILED_TO_CONNECT = 3
+} BACNET_SC_CONNECTION_STATE;
 
 #endif /* end of BACENUM_H */

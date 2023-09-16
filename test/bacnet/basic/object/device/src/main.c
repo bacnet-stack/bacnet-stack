@@ -20,7 +20,11 @@
 /**
  * @brief Test ReadProperty API
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_ReadProperty)
+#else
 static void test_Device_ReadProperty(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -122,6 +126,7 @@ static void testDevice(void)
 
     return;
 }
+
 /**
  * @}
  */

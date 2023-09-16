@@ -41,9 +41,6 @@
 #include "bacnet/bacdevobjpropref.h"
 #include "bacnet/basic/object/trendlog.h"
 #include "bacnet/datetime.h"
-#if defined(BACFILE)
-#include "bacnet/basic/object/bacfile.h" /* object list dependency */
-#endif
 
 /* number of demo objects */
 #ifndef MAX_TREND_LOGS
@@ -1498,7 +1495,7 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
         case TL_TYPE_ANY:
             /* Should never happen as we don't support this at the moment */
             break;
-        
+
         default:
             break;
     }

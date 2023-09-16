@@ -23,6 +23,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
+	BSC_CONF_TX_PRE=0
 	)
 
 include_directories(
@@ -94,6 +95,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/wp.c
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/dailyschedule.c
+	${SRC_DIR}/bacnet/sc_status.c
 	./stubs.c
     # Test and test library files
 	./src/main.c

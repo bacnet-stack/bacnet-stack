@@ -38,10 +38,32 @@
 #include <stdlib.h> /* Standard Library */
 #include <stdarg.h>
 #include "bacnet/basic/sys/debug.h"
-
+#if DEBUG_PRINTF_WITH_TIMESTAMP
+#include "bacnet/datetime.h"
+#endif
 /** @file debug.c  Debug print function */
 
 #if DEBUG_ENABLED
+#if DEBUG_PRINTF_WITH_TIMESTAMP
+void debug_printf(const char *format, ...)
+{
+    va_list ap;
+    char stamp_str[64];
+    char buf[1024];
+    BACNET_DATE date;
+    BACNET_TIME time;
+    datetime_local(&date, &time, NULL, NULL);
+    sprintf(stamp_str, "[%02d:%02d:%02d.%03d ms]: ", time.hour, time.min,
+        time.sec, time.hundredths * 10);
+
+    va_start(ap, format);
+    vsprintf(buf, format, ap);
+    va_end(ap);
+    printf("%s%s", stamp_str, buf);
+    fflush(stdout);
+    return;
+}
+#else
 void debug_printf(const char *format, ...)
 {
     va_list ap;
@@ -53,10 +75,28 @@ void debug_printf(const char *format, ...)
 
     return;
 }
+#endif
+void debug_dump_buffer(const char *message, const uint8_t *buffer, size_t len)
+{
+    int i;
+    printf("%s [%d bytes] ", message, (int)len);
+    if (len > 0)
+        printf(" %02x", buffer[0]);
+    for (i = 1; i < len; ++i)
+        printf(":%02x", buffer[i]);
+    printf("\n");
+    fflush(stdout);
+}
 #else
 void debug_printf(const char *format, ...)
 {
     (void)format;
+}
+void debug_dump_buffer(const char *message, const uint8_t *buffer, size_t len)
+{
+    (void)message;
+    (void)buffer;
+    (void)len;
 }
 #endif
 
@@ -115,3 +155,9 @@ void debug_perror(const char *format, ...)
     (void)format;
 }
 #endif
+
+void debug_printf_disabled(const char *format, ...)
+{
+    (void)format;
+}
+

@@ -46,6 +46,14 @@ config BACDL_BIP
 	help
 	  Enable BACnet BIP datalink
 
+config BACDL_BSC
+	bool "BACnet Security Connect datalink"
+	select NET_CONTEXT_SNDTIMEO
+	select TLS_CREDENTIALS
+	select NETWORKING
+	help
+	  Enable Security Connect datalink
+
 config BACDL_NONE
 	bool "BACnet without datalink"
 	help
@@ -113,5 +121,6 @@ config BACNET_USE_SECTION_ITERABLE_OBJECT_TABLE
 		Use the Section Iterable for the Object Table
 
 rsource "subsys/Kconfig"
+rsource "modules/Kconfig"
 
 endif # BACNETSTACK

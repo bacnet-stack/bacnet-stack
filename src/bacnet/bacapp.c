@@ -54,8 +54,12 @@
 #include "bacnet/bacstr.h"
 #include "bacnet/lighting.h"
 #include "bacnet/hostnport.h"
+#include "bacnet/sc_status.h"
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/basic/sys/platform.h"
+#if defined(BACDL_BSC)
+#include "bacnet/basic/object/sc_netport.h"
+#endif
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
 
@@ -201,6 +205,24 @@ int bacapp_encode_application_data(
                 apdu_len =
                     bacnet_destination_encode(apdu, &value->type.Destination);
                 break;
+#if defined(BACDL_BSC)
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                apdu_len = bacapp_encode_SCFailedConnectionRequest(
+                    apdu, &value->type.SC_Failed_Req);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCHubFunctionConnection(
+                    apdu, &value->type.SC_Hub_Function_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCDirectConnection(
+                    apdu, &value->type.SC_Direct_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCHubConnection(
+                    apdu, &value->type.SC_Hub_Status);
+                break;
+#endif /* BACDL_BSC */
 #endif
             default:
                 break;
@@ -354,6 +376,22 @@ int bacapp_decode_data(uint8_t *apdu,
                 /* BACnetDestination */
                 len = bacnet_destination_decode(
                     apdu, len_value_type, &value->type.Destination);
+                break;
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                len = bacapp_decode_SCFailedConnectionRequest(
+                    apdu, len_value_type, &value->type.SC_Failed_Req);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                len = bacapp_decode_SCHubFunctionConnection(
+                    apdu, len_value_type, &value->type.SC_Hub_Function_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                len = bacapp_decode_SCDirectConnection(
+                    apdu, len_value_type, &value->type.SC_Direct_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                len = bacapp_decode_SCHubConnection(
+                    apdu, len_value_type, &value->type.SC_Hub_Status);
                 break;
 #endif
             default:
@@ -688,7 +726,23 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 apdu_len = bacnet_destination_context_encode(
                     apdu, context_tag_number, &value->type.Destination);
                 break;
-#endif
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                apdu_len = bacapp_encode_context_SCFailedConnectionRequest(
+                    apdu, context_tag_number, &value->type.SC_Failed_Req);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_context_SCHubFunctionConnection(apdu,
+                    context_tag_number, &value->type.SC_Hub_Function_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_context_SCDirectConnection(
+                    apdu, context_tag_number, &value->type.SC_Direct_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_context_SCHubConnection(
+                    apdu, context_tag_number, &value->type.SC_Hub_Status);
+                break;
+#endif /* BACAPP_TYPES_EXTRA */
             default:
                 break;
         }
@@ -1184,6 +1238,19 @@ int bacapp_known_property_tag(
         case PROP_ACTION:
             return -1;
 
+        case PROP_SC_FAILED_CONNECTION_REQUESTS:
+            return BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST;
+
+        case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS;
+
+        case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS;
+
+        case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
+        case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS;
+
         default:
             return -1;
     }
@@ -1325,11 +1392,31 @@ int bacapp_decode_known_property(uint8_t *apdu,
                 apdu, max_apdu_len, &value->type.Weekly_Schedule);
             break;
 
+        case PROP_SC_FAILED_CONNECTION_REQUESTS:
+            len = bacapp_decode_SCFailedConnectionRequest(
+                apdu, max_apdu_len, &value->type.SC_Failed_Req);
+            break;
+
+        case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            len = bacapp_decode_SCHubFunctionConnection(
+                apdu, max_apdu_len, &value->type.SC_Hub_Function_Status);
+            break;
+
+        case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
+            len = bacapp_decode_SCDirectConnection(
+                apdu, max_apdu_len, &value->type.SC_Direct_Status);
+            break;
+
+        case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
+        case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
+            len = bacapp_decode_SCHubConnection(
+                apdu, max_apdu_len, &value->type.SC_Hub_Status);
+            break;
+
         case PROP_RECIPIENT_LIST:
             len = bacnet_destination_decode(
                 apdu, max_apdu_len, &value->type.Destination);
             break;
-
             /* properties without a specific decoder - fall through to default
              */
 
@@ -1877,6 +1964,51 @@ static int bacapp_snprintf_weeklyschedule(char *str,
 }
 #endif
 
+#if defined(BACAPP_DATE) && defined(BACAPP_TIME)
+int bacapp_snprintf_timestamp(char *str, size_t str_len, BACNET_DATE_TIME *ts)
+{
+    int ret_val = 0;
+    int slen;
+    bool is_real_str = (str != NULL);
+
+    slen = bacapp_snprintf_date(str, str_len, &ts->date);
+    ret_val += slen;
+    if (is_real_str) {
+        str += slen;
+        if (str_len >= slen) {
+            str_len -= slen;
+        } else {
+            str_len = 0;
+        }
+    }
+
+    slen = snprintf(str, str_len, " ");
+    ret_val += slen;
+    if (is_real_str) {
+        str += slen;
+        if (str_len >= slen) {
+            str_len -= slen;
+        } else {
+            str_len = 0;
+        }
+    }
+
+    slen = bacapp_snprintf_time(str, str_len, &ts->time);
+    ret_val += slen;
+
+    return ret_val;
+}
+#else
+int bacapp_snprintf_timestamp(char *str, size_t str_len, BACNET_DATE_TIME *ts)
+{
+    (void)str;
+    (void)str_len;
+    (void)ts;
+
+    return 0;
+}
+#endif
+
 /**
  * @brief Extract the value into a text string
  * @param str - the buffer to store the extracted value, or NULL for length
@@ -2354,6 +2486,27 @@ int bacapp_snprintf_value(
                     ret_val += slen;
                 }
                 break;
+
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                ret_val = bacapp_snprintf_SCFailedConnectionRequest(
+                    str, str_len, &value->type.SC_Failed_Req);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCHubFunctionConnection(
+                    str, str_len, &value->type.SC_Hub_Function_Status);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCDirectConnection(
+                    str, str_len, &value->type.SC_Direct_Status);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCHubConnection(
+                    str, str_len, &value->type.SC_Hub_Status);
+                break;
+
 #endif
             default:
                 ret_val =

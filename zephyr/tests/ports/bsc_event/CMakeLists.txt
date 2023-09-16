@@ -17,23 +17,23 @@ string(REGEX REPLACE
   ${CMAKE_CURRENT_SOURCE_DIR})
 get_filename_component(BACNET_NAME ${BACNET_BASE} NAME)
 
-
 if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
   list(APPEND INCLUDE ${BACNET_INCLUDE})
   list(APPEND SOURCES
-    ${BACNET_SRC_PATH}.c
-    ${BACNET_TEST_PATH}/src/main.c
+    ${BACNET_BASE}/ports/zephyr/bsc-event.c
+    ${BACNET_SRC_PATH}/../debug.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
     )
 
-  find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})
+  include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
   project(${BACNET_NAME})
 else()
-  find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+  include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
   project(${BACNET_NAME})
 
   target_include_directories(app PRIVATE ${BACNET_BASE}/src)
   target_sources(app PRIVATE
-    ${BACNET_TEST_PATH}/src/main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
     )
 endif()

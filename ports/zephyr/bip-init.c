@@ -100,7 +100,7 @@ char* inet_ntoa(struct in_addr *a)
 static void debug_print_ipv4(const char *str, const struct in_addr *addr,
     const unsigned int port, const unsigned int count)
 {
-    LOG_DBG("%s %s:%hu (%u bytes)", log_strdup(str), log_strdup(inet_ntoa((struct in_addr*) &addr)),
+    LOG_DBG("%s %s:%hu (%u bytes)", str, inet_ntoa((struct in_addr*) &addr),
         ntohs(port), count);
 }
 
@@ -341,13 +341,13 @@ uint16_t bip_receive(
     }
     ZSOCK_FD_ZERO(&read_fds);
     ZSOCK_FD_SET(BIP_Socket, &read_fds);
-    FD_SET(BIP_Broadcast_Socket, &read_fds);
+    ZSOCK_FD_SET(BIP_Broadcast_Socket, &read_fds);
 
     max = BIP_Socket > BIP_Broadcast_Socket ? BIP_Socket : BIP_Broadcast_Socket;
 
     /* see if there is a packet for us */
     if (zsock_select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        socket = FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket :
+        socket = ZSOCK_FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket :
             BIP_Broadcast_Socket;
         received_bytes = zsock_recvfrom(socket, (char *)&npdu[0], max_npdu,
             0, (struct sockaddr *)&sin, &sin_len);
@@ -502,9 +502,9 @@ void bip_set_interface(char *ifname)
         bip_set_broadcast_addr(&broadcast);
 
         /* net_if -> net_if_config . net_if_ip . net_if_ipv4 -> net_if_addr . net_addr . in_addr . s4_addr[4] */
-        LOG_INF("   Unicast: %s", log_strdup(inet_ntoa(&interface->config.ip.ipv4->unicast->address.in_addr))); 
-        LOG_INF(" Broadcast: %s", log_strdup(inet_ntoa(&BIP_Broadcast_Addr)));
-        LOG_INF("   Netmask: %s", log_strdup(inet_ntoa(&interface->config.ip.ipv4->netmask)) );
+        LOG_INF("   Unicast: %s", inet_ntoa(&interface->config.ip.ipv4->unicast->address.in_addr));
+        LOG_INF(" Broadcast: %s", inet_ntoa(&BIP_Broadcast_Addr));
+        LOG_INF("   Netmask: %s", inet_ntoa(&interface->config.ip.ipv4->netmask));
     }
     else
     {
@@ -573,13 +573,14 @@ static int createSocket(struct sockaddr_in *sin)
  */
 bool bip_init(char *ifname)
 {
-    int sock_fd;
     struct sockaddr_in sin = { 0 };
+    int sock_fd;
 
     bip_set_interface(ifname);
 
     if (BIP_Address.s_addr == 0) {
-        LOG_ERR("%s:%d - Failed to get an IP address on interface: %s\n", THIS_FILE, __LINE__, log_strdup(ifname ? ifname : "[default]"));
+        LOG_ERR("%s:%d - Failed to get an IP address on interface: %s\n",
+            THIS_FILE, __LINE__, ifname ? ifname : "[default]");
         return false;
     }
 

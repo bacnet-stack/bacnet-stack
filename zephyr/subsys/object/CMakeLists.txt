@@ -6,7 +6,7 @@
 
 zephyr_compile_definitions(
   _POSIX_C_SOURCE=200809    # Expose `strdup()` for bacfile, ao, bo, mso
-  CONFIG_NEWLIB_LIBC        # Choose library providing `strdup()` impl.
+#  CONFIG_NEWLIB_LIBC=y        # Choose library providing `strdup()` impl.
   )
 
 zephyr_sources(device.c)
@@ -46,6 +46,7 @@ if(CONFIG_BACNET_USE_DYNAMIC_DESCRIPTION)
     )
 
   zephyr_sources_ifdef(CONFIG_BACDL_BIP netport.c)
+  zephyr_sources_ifdef(CONFIG_BACDL_BSC netport.c)
 
   zephyr_linker_sources(DATA_SECTIONS objects.ld)
 

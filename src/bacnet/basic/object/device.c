@@ -74,7 +74,7 @@
 #endif /* defined(INTRINSIC_REPORTING) */
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
-#endif /* defined(BACFILE) */
+#endif
 #if (BACNET_PROTOCOL_REVISION >= 24)
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
@@ -543,6 +543,7 @@ static const char *Reinit_Password = "filister";
 bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
+    int i;
 
     /* From 16.4.1.1.2 Password
         This optional parameter shall be a CharacterString of up to 
@@ -558,8 +559,19 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
            accomplish multiple things before restarting */
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                /* note: you probably want to restart *after* the
+                   simple ack has been sent from the return handler
+                   so just set a flag from here */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
             case BACNET_REINIT_WARMSTART:
                 dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Pending_Params_Apply(
+                        Network_Port_Index_To_Instance(i));
+                }
                 /* note: you probably want to restart *after* the
                    simple ack has been sent from the return handler
                    so just set a flag from here */
@@ -579,6 +591,14 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                     rd_data->error_code =
                         ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 }
+                break;
+            case BACNET_REINIT_ACTIVATE_CHANGES:
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Pending_Params_Apply(
+                        Network_Port_Index_To_Instance(i));
+                }
+                Reinitialize_State = rd_data->state;
+                status = true;
                 break;
             default:
                 rd_data->error_class = ERROR_CLASS_SERVICES;

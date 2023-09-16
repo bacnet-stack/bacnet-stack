@@ -22,6 +22,9 @@ BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
 BACNET_FLAGS += -DPRINT_ENABLED=0
 BACNET_FLAGS += -DMAX_APDU=480
 BACNET_FLAGS += -DCRC_USE_TABLE
+BACNET_FLAGS += -DBACAPP_MINIMAL
+BACNET_FLAGS += -DBACAPP_OCTET_STRING
+BACNET_FLAGS += -DBACAPP_BIT_STRING
 #BACNET_FLAGS += -DDLMSTP_TEST
 ifeq (${LEGACY},true)
 # disable deprecated function warnings for legacy builds
@@ -63,7 +66,8 @@ PORTSRC = main.c \
 	init.c \
 	blinker.c \
 	rs485.c \
-	dlmstp.c
+	dlmstp.c \
+	syscalls.c
 
 DEMOSRC = ai.c \
 	av.c \
@@ -117,7 +121,8 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/bactimevalue.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
-	$(BACNET_CORE)/wp.c
+	$(BACNET_CORE)/wp.c \
+	$(BACNET_CORE)/sc_status.c
 
 CSRC = $(PORTSRC) $(DEMOSRC)
 #CSRC = $(PORTSRC)

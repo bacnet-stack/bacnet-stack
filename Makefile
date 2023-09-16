@@ -17,6 +17,17 @@ bsd:
 win32:
 	$(MAKE) BACNET_PORT=win32 -s -C apps all
 
+.PHONY: mingw32
+mingw32:
+	i686-w64-mingw32-gcc --version
+	ORIGINAL_CC=$(CC) ; \
+	ORIGINAL_LD=$(LD) ; \
+	export CC=i686-w64-mingw32-gcc ; \
+	export LD=i686-w64-mingw32-ld ; \
+	$(MAKE) BACNET_PORT=win32 -s -C apps all ; \
+	export CC=$(ORIGINAL_CC) ; \
+	export LD=$(ORIGINAL_LD)
+
 .PHONY: mstpwin32
 mstpwin32:
 	$(MAKE) BACDL=mstp BACNET_PORT=win32 -s -C apps all
@@ -32,6 +43,12 @@ bip6-win32:
 .PHONY: bip6
 bip6:
 	$(MAKE) BACDL=bip6 -s -C apps all
+
+# note: requires additional libraries to be installed
+# see .github/workflows/gcc.yml
+.PHONY: bsc
+bsc:
+	$(MAKE) BACDL=bsc -s -C apps all
 
 .PHONY: ethernet
 ethernet:
@@ -128,6 +145,10 @@ netnumis:
 .PHONY: server
 server:
 	$(MAKE) -s -C apps $@
+
+.PHONY: sc-hub
+sc-hub:
+	$(MAKE) BACDL=bsc -s -C apps $@
 
 .PHONY: mstpcap
 mstpcap:
@@ -314,6 +335,7 @@ clean: ports-clean
 	$(MAKE) -s -C apps/router-ipv6 clean
 	$(MAKE) -s -C apps/router-mstp clean
 	$(MAKE) -s -C apps/gateway clean
+	$(MAKE) -s -C apps/sc-hub clean
 	$(MAKE) -s -C apps/fuzz-afl clean
 	$(MAKE) -s -C apps/fuzz-libfuzzer clean
 	$(MAKE) -s -C ports/lwip clean
@@ -324,3 +346,7 @@ clean: ports-clean
 test:
 	$(MAKE) -s -C test clean
 	$(MAKE) -s -j -C test all
+
+.PHONY: retest
+retest:
+	$(MAKE) -s -j -C test retest

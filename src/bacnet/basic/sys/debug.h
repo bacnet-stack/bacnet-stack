@@ -34,6 +34,10 @@
 #define DEBUG_ENABLED 0
 #endif
 
+#ifndef DEBUG_PRINTF_WITH_TIMESTAMP
+#define DEBUG_PRINTF_WITH_TIMESTAMP 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -55,6 +59,15 @@ extern "C" {
     void debug_perror(
         const char *format,
         ...);
+    BACNET_STACK_EXPORT
+    void debug_printf_disabled(
+        const char *format,
+        ...);
+    BACNET_STACK_EXPORT
+    void debug_dump_buffer(
+        const char *message,
+        const uint8_t *buffer,
+        size_t len);
 #if DEBUG_ENABLED
     /* Nothing more here */
 #else

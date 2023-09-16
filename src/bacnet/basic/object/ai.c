@@ -242,6 +242,8 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
     if (index < MAX_ANALOG_INPUTS) {
         state = AI_Descr[index].Event_State;
     }
+#else
+    (void)object_instance;
 #endif
 
     return state;
@@ -1119,6 +1121,8 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
             }
         }
     }
+#else
+    (void)object_instance;
 #endif /* defined(INTRINSIC_REPORTING) */
 }
 

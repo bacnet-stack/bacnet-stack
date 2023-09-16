@@ -63,6 +63,26 @@ jobs:
         make clean
         make gateway
 
+  bacnet-sc-hub:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Create BACnet/SC Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libuv1-dev
+        git clone https://github.com/warmcat/libwebsockets.git
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
+    - name: Build BACnet/SC Hub Demo
+      run: |
+        gcc --version
+        make clean
+        make sc-hub
+
   router:
     runs-on: ubuntu-latest
     steps:
@@ -71,6 +91,12 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libuv1-dev
+        git clone https://github.com/warmcat/libwebsockets.git
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Router Demo
       run: |
         gcc --version
@@ -113,7 +139,7 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
-    - name: Build BACnet/IPv6 Demos
+    - name: Build BACnet/IPv6 Demo Apps
       run: |
         gcc --version
         make clean
@@ -141,11 +167,32 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
     - name: Build Ethernet Demos
       run: |
         gcc --version
         make clean
         make ethernet
+
+  bacnet-sc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Create BACnet/SC Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libuv1-dev
+        git clone https://github.com/warmcat/libwebsockets.git
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
+    - name: Build BACnet Secure Connect Demo Apps
+      run: |
+        gcc --version
+        make clean
+        make bsc
 
   ports-arm:
     runs-on: ubuntu-latest
@@ -203,9 +250,10 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq build-essential
         sudo apt-get install -qq mingw-w64
-    - name: Build Win32 Demos
+    - name: Build Win32 Demo Apps
       run: |
         export CC=i686-w64-mingw32-gcc
         export LD=i686-w64-mingw32-ld
         i686-w64-mingw32-gcc --version
         make win32
+

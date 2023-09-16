@@ -22,11 +22,17 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  *********************************************************************/
+
+#if __ZEPHYR__
+#include <libc_extensions.h>
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "bacnet/config.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/bacdef.h"
@@ -122,6 +128,7 @@ const char *bacfile_pathname(uint32_t object_instance)
     struct object_data *pObject;
     const char *pathname = NULL;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pathname = pObject->Pathname;
@@ -139,6 +146,7 @@ void bacfile_pathname_set(uint32_t object_instance, const char *pathname)
 {
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Pathname) {
@@ -161,6 +169,7 @@ uint32_t bacfile_pathname_instance(
     int count = 0;
     int index = 0;
 
+    assert(Object_List);
     count = Keylist_Count(Object_List);
     while (count) {
         pObject = Keylist_Data_Index(Object_List, index);
@@ -191,6 +200,7 @@ bool bacfile_object_name(
     struct object_data *pObject;
     char name_text[32];
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Object_Name) {
@@ -223,6 +233,7 @@ bool bacfile_object_name_set(uint32_t object_instance, char *new_name)
     uint32_t found_instance = 0;
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject && new_name) {
         /* All the object names in a device must be unique */
@@ -256,6 +267,7 @@ bool bacfile_valid_instance(uint32_t object_instance)
 {
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         return true;
@@ -306,7 +318,7 @@ static long fsize(FILE *pFile)
 /**
  * @brief Read the entire file into a buffer
  * @param  object_instance - object-instance number of the object
- * @param  buffer - pointer to buffer pointer where heap data will be stored
+ * @param  buffer - data store from the file
  * @param  buffer_size - in bytes
  * @return  file size in bytes
  */
@@ -326,6 +338,35 @@ uint32_t bacfile_read(uint32_t object_instance, uint8_t *buffer,
                 if (fread(buffer, file_size, 1, pFile) == 0) {
                     file_size = 0;
                 }
+            }
+            fclose(pFile);
+        }
+    }
+
+    return (uint32_t)file_size;
+}
+
+/**
+ * @brief Write the entire file from a buffer
+ * @param  object_instance - object-instance number of the object
+ * @param  buffer - data store for the file
+ * @param  buffer_size - in bytes
+ * @return  file size in bytes
+ */
+uint32_t bacfile_write(uint32_t object_instance, uint8_t *buffer,
+    uint32_t buffer_size)
+{
+    const char *pFilename = NULL;
+    FILE *pFile = NULL;
+    long file_size = 0;
+
+    pFilename = bacfile_pathname(object_instance);
+    if (pFilename) {
+        /* open the file as a clean slate when starting at 0 */
+        pFile = fopen(pFilename, "wb");
+        if (pFile) {
+            if (fwrite(buffer, buffer_size, 1, pFile) == 1) {
+                file_size = buffer_size;
             }
             fclose(pFile);
         }
@@ -374,6 +415,7 @@ bool bacfile_file_size_set(
     bool status = false;
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->File_Access_Stream) {
@@ -397,6 +439,7 @@ const char * bacfile_file_type(
     struct object_data *pObject;
     const char * mime_type = "application/octet-stream";
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->File_Type) {
@@ -418,6 +461,7 @@ void bacfile_file_type_set(
 {
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->File_Type) {
@@ -448,6 +492,7 @@ bool bacfile_archive(
     bool status = false;
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = pObject->Archive;
@@ -473,6 +518,7 @@ bool bacfile_archive_set(
     bool status = false;
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pObject->Archive = archive;
@@ -493,6 +539,7 @@ bool bacfile_read_only(
     bool status = false;
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = pObject->Read_Only;
@@ -514,6 +561,7 @@ bool bacfile_read_only_set(
     bool status = false;
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pObject->Read_Only = read_only;
@@ -533,6 +581,7 @@ void bacfile_modification_date(
 {
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         datetime_copy(bdatetime, &pObject->Modification_Date);
@@ -550,6 +599,7 @@ bool bacfile_file_access_stream(
     bool status = false;
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = pObject->File_Access_Stream;
@@ -571,6 +621,7 @@ bool bacfile_file_access_stream_set(
     bool status = false;
     struct object_data *pObject;
 
+    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pObject->File_Access_Stream = access;
@@ -1034,6 +1085,7 @@ bool bacfile_delete(uint32_t object_instance)
     bool status = false;
     struct object_data *pObject = NULL;
 
+    assert(Object_List);
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
         free(pObject);
@@ -1055,6 +1107,7 @@ void bacfile_cleanup(void)
         do {
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
+                free(pObject->Pathname);
                 free(pObject);
                 Device_Inc_Database_Revision();
             }
@@ -1069,5 +1122,7 @@ void bacfile_cleanup(void)
  */
 void bacfile_init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }
