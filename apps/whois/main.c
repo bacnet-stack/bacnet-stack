@@ -365,7 +365,6 @@ int main(int argc, char *argv[])
     if (getenv("BACNET_DEBUG")) {
         BACnet_Debug_Enabled = true;
     }
-    timeout_milliseconds = apdu_timeout();
     /* decode any command line parameters */
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -481,6 +480,9 @@ int main(int argc, char *argv[])
     address_init();
     dlenv_init();
     atexit(datalink_cleanup);
+    if (timeout_milliseconds == 0) {
+        timeout_milliseconds = apdu_timeout() * apdu_retries();
+    }
     mstimer_set(&apdu_timer, timeout_milliseconds);
     mstimer_set(&datalink_timer, 1000);
     /* send the request */

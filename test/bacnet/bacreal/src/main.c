@@ -20,7 +20,11 @@
 /**
  * @brief Test BACnet real data type (single precision floating point)
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacreal_tests, testBACreal)
+#else
 static void testBACreal(void)
+#endif
 {
     float real_value = 3.14159F, test_real_value = 0.0;
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -36,7 +40,11 @@ static void testBACreal(void)
 /**
  * @brief Test BACnet double data type (double precision floating point)
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacreal_tests, testBACdouble)
+#else
 static void testBACdouble(void)
+#endif
 {
     double double_value = 3.1415927, test_double_value = 0.0;
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -53,6 +61,9 @@ static void testBACdouble(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacreal_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacreal_tests,
@@ -62,3 +73,4 @@ void test_main(void)
 
     ztest_run_test_suite(bacreal_tests);
 }
+#endif

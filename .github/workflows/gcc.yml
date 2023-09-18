@@ -12,7 +12,7 @@ jobs:
   bip-apps:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -38,7 +38,7 @@ jobs:
   bip-no-bbmd-apps:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -52,7 +52,7 @@ jobs:
   gateway:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -66,7 +66,7 @@ jobs:
   router:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -80,7 +80,7 @@ jobs:
   router-ipv6:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -94,7 +94,7 @@ jobs:
   router-mstp:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -108,7 +108,7 @@ jobs:
   bip6:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -122,7 +122,7 @@ jobs:
   mstp:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -136,7 +136,7 @@ jobs:
   ethernet:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -150,7 +150,7 @@ jobs:
   ports-arm:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -168,7 +168,7 @@ jobs:
   ports-avr:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -179,11 +179,12 @@ jobs:
         avr-gcc --version
         make atmega168
         make bdk-atxx4-mstp
+        make xplained
 
   ports-lwip:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -196,7 +197,7 @@ jobs:
   mingw:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq

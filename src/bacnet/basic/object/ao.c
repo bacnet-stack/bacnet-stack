@@ -1196,15 +1196,24 @@ void Analog_Output_Write_Present_Value_Callback_Set(
 /**
  * @brief Creates a Analog Value object
  * @param object_instance - object-instance number of the object
- * @return true if the object-instance was created
+ * @return the object-instance that was created, or BACNET_MAX_INSTANCE
  */
-bool Analog_Output_Create(uint32_t object_instance)
+uint32_t Analog_Output_Create(uint32_t object_instance)
 {
-    bool status = false;
     struct object_data *pObject = NULL;
     int index = 0;
     unsigned priority = 0;
 
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        /* wildcard instance */
+        /* the Object_Identifier property of the newly created object 
+            shall be initialized to a value that is unique within the 
+            responding BACnet-user device. The method used to generate 
+            the object identifier is a local matter.*/
+        object_instance = Keylist_Next_Empty_Key(Object_List, 1);
+    }
     pObject = Keylist_Data(Object_List, object_instance);
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
@@ -1227,13 +1236,17 @@ bool Analog_Output_Create(uint32_t object_instance)
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index >= 0) {
-                status = true;
                 Device_Inc_Database_Revision();
+            } else {
+                free(pObject);
+                return BACNET_MAX_INSTANCE;
             }
+        } else {
+            return BACNET_MAX_INSTANCE;
         }
     }
 
-    return status;
+    return object_instance;
 }
 
 /**

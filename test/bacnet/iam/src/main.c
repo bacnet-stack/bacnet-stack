@@ -41,7 +41,11 @@ static int iam_decode_apdu(uint8_t *apdu,
     return apdu_len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(iam_tests, testIAm)
+#else
 static void testIAm(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -72,6 +76,9 @@ static void testIAm(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(iam_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(iam_tests,
@@ -80,3 +87,4 @@ void test_main(void)
 
     ztest_run_test_suite(iam_tests);
 }
+#endif

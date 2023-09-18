@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(property_tests, testPropList)
+#else
 void testPropList(void)
+#endif
 {
     unsigned i = 0, j = 0;
     unsigned count = 0;
@@ -67,6 +71,9 @@ void testPropList(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(property_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(property_tests,
@@ -75,3 +82,4 @@ void test_main(void)
 
     ztest_run_test_suite(property_tests);
 }
+#endif

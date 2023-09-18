@@ -58,7 +58,11 @@ static void testDevObjPropRef(
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdevobjpropref_tests, testDevIdPropRef)
+#else
 static void testDevIdPropRef(void)
+#endif
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE inData;
 
@@ -96,7 +100,11 @@ static void testDevIdPropRef(void)
     testDevObjPropRef(&inData);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdevobjpropref_tests, testDevIdRef)
+#else
 static void testDevIdRef(void)
+#endif
 {
     BACNET_DEVICE_OBJECT_REFERENCE inData;
     BACNET_DEVICE_OBJECT_REFERENCE outData;
@@ -115,7 +123,11 @@ static void testDevIdRef(void)
         inData.deviceIdentifier.type, outData.deviceIdentifier.type, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdevobjpropref_tests, testObjPropRef)
+#else
 static void testObjPropRef(void)
+#endif
 {
     BACNET_OBJECT_PROPERTY_REFERENCE inData;
     BACNET_OBJECT_PROPERTY_REFERENCE outData;
@@ -167,6 +179,9 @@ static void testObjPropRef(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacdevobjpropref_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacdevobjpropref_tests,
@@ -177,3 +192,4 @@ void test_main(void)
 
     ztest_run_test_suite(bacdevobjpropref_tests);
 }
+#endif

@@ -65,6 +65,10 @@ extern "C" {
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_ATOMIC_READ_FILE_DATA * data);
+    BACNET_STACK_EXPORT
+    int arf_service_encode_apdu(
+        uint8_t *apdu, 
+        BACNET_ATOMIC_READ_FILE_DATA *data);
 
 /* decode the service request only */
     BACNET_STACK_EXPORT
@@ -88,6 +92,10 @@ extern "C" {
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_ATOMIC_READ_FILE_DATA * data);
+    BACNET_STACK_EXPORT
+    int arf_ack_service_encode_apdu(
+        uint8_t *apdu, 
+        BACNET_ATOMIC_READ_FILE_DATA *data);
 
 /* decode the service request only */
     BACNET_STACK_EXPORT

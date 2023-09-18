@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/platform.h"
 #include "bacnet/bacdef.h"
 
 #ifdef __cplusplus
@@ -45,13 +46,35 @@ bool bacnet_address_init(BACNET_ADDRESS *dest,
     BACNET_MAC_ADDRESS *adr);
 
 BACNET_STACK_EXPORT
-bool bacnet_address_mac_same(
-    BACNET_MAC_ADDRESS *dest, BACNET_MAC_ADDRESS *src);
+bool bacnet_address_mac_same(BACNET_MAC_ADDRESS *dest, BACNET_MAC_ADDRESS *src);
 BACNET_STACK_EXPORT
 void bacnet_address_mac_init(
     BACNET_MAC_ADDRESS *mac, uint8_t *adr, uint8_t len);
 BACNET_STACK_EXPORT
 bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg);
+
+BACNET_STACK_EXPORT
+int bacnet_address_decode(
+    uint8_t *apdu, uint32_t adpu_size, BACNET_ADDRESS *value);
+BACNET_STACK_EXPORT
+int bacnet_address_context_decode(uint8_t *apdu,
+    uint32_t adpu_size,
+    uint8_t tag_number,
+    BACNET_ADDRESS *value);
+
+BACNET_STACK_EXPORT
+int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination);
+BACNET_STACK_EXPORT
+int encode_context_bacnet_address(
+    uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *destination);
+
+BACNET_STACK_DEPRECATED("Use bacnet_address_decode() instead")
+BACNET_STACK_EXPORT
+int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination);
+BACNET_STACK_DEPRECATED("Use bacnet_address_context_decode() instead")
+BACNET_STACK_EXPORT
+int decode_context_bacnet_address(
+    uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *destination);
 
 #ifdef __cplusplus
 }

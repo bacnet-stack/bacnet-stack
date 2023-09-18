@@ -127,7 +127,11 @@ static int ptransfer_error_decode_apdu(uint8_t *apdu,
     return len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ptransfer_tests, test_Private_Transfer_Ack)
+#else
 static void test_Private_Transfer_Ack(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -172,7 +176,11 @@ static void test_Private_Transfer_Ack(void)
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ptransfer_tests, test_Private_Transfer_Error)
+#else
 static void test_Private_Transfer_Error(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -223,7 +231,11 @@ static void test_Private_Transfer_Error(void)
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ptransfer_tests, test_Private_Transfer_Request)
+#else
 static void test_Private_Transfer_Request(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     uint8_t test_value[480] = { 0 };
@@ -267,7 +279,11 @@ static void test_Private_Transfer_Request(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ptransfer_tests, test_Unconfirmed_Private_Transfer_Request)
+#else
 static void test_Unconfirmed_Private_Transfer_Request(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     uint8_t test_value[480] = { 0 };
@@ -313,6 +329,9 @@ static void test_Unconfirmed_Private_Transfer_Request(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(ptransfer_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(ptransfer_tests,
@@ -324,3 +343,4 @@ void test_main(void)
 
     ztest_run_test_suite(ptransfer_tests);
 }
+#endif

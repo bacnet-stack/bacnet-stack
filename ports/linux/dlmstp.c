@@ -192,14 +192,14 @@ void dlmstp_cleanup(void)
     pthread_mutex_lock(&Thread_Mutex);
     run_thread = false;
     pthread_mutex_unlock(&Thread_Mutex);
-    pthread_join (hThread, NULL);
+    pthread_join(hThread, NULL);
     pthread_cond_destroy(&Received_Frame_Flag);
     pthread_cond_destroy(&Receive_Packet_Flag);
     pthread_cond_destroy(&Master_Done_Flag);
     pthread_mutex_destroy(&Received_Frame_Mutex);
     pthread_mutex_destroy(&Receive_Packet_Mutex);
     pthread_mutex_destroy(&Master_Done_Mutex);
-    pthread_mutex_destroy (&Ring_Buffer_Mutex);
+    pthread_mutex_destroy(&Ring_Buffer_Mutex);
 }
 
 /* returns number of bytes sent on success, zero on failure */
@@ -211,7 +211,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     int bytes_sent = 0;
     struct mstp_pdu_packet *pkt;
     unsigned i = 0;
-    pthread_mutex_lock (&Ring_Buffer_Mutex);
+    pthread_mutex_lock(&Ring_Buffer_Mutex);
     pkt = (struct mstp_pdu_packet *)Ringbuf_Data_Peek(&PDU_Queue);
     if (pkt) {
         pkt->data_expecting_reply = npdu_data->data_expecting_reply;
@@ -229,7 +229,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
             bytes_sent = pdu_len;
         }
     }
-    pthread_mutex_unlock (&Ring_Buffer_Mutex);
+    pthread_mutex_unlock(&Ring_Buffer_Mutex);
 
     return bytes_sent;
 }
@@ -310,17 +310,18 @@ static void *dlmstp_master_fsm_task(void *pArg)
                 while (run_loop) {
                     /* do nothing while immediate transitioning */
                     run_loop = MSTP_Master_Node_FSM(&MSTP_Port);
-                    pthread_mutex_lock (&Thread_Mutex);
-                    if (!run_thread) run_loop = false;
-                    pthread_mutex_unlock (&Thread_Mutex);
+                    pthread_mutex_lock(&Thread_Mutex);
+                    if (!run_thread)
+                        run_loop = false;
+                    pthread_mutex_unlock(&Thread_Mutex);
                 }
             } else if (MSTP_Port.This_Station < 255) {
                 MSTP_Slave_Node_FSM(&MSTP_Port);
             }
         }
-        pthread_mutex_lock (&Thread_Mutex);
+        pthread_mutex_lock(&Thread_Mutex);
         thread_alive = run_thread;
-        pthread_mutex_unlock (&Thread_Mutex);
+        pthread_mutex_unlock(&Thread_Mutex);
     }
 
     return NULL;
@@ -389,9 +390,9 @@ uint16_t MSTP_Get_Send(
     struct mstp_pdu_packet *pkt;
 
     (void)timeout;
-    pthread_mutex_lock (&Ring_Buffer_Mutex);
+    pthread_mutex_lock(&Ring_Buffer_Mutex);
     if (Ringbuf_Empty(&PDU_Queue)) {
-        pthread_mutex_unlock (&Ring_Buffer_Mutex);
+        pthread_mutex_unlock(&Ring_Buffer_Mutex);
         return 0;
     }
     pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
@@ -406,7 +407,7 @@ uint16_t MSTP_Get_Send(
             mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
             mstp_port->This_Station, (uint8_t *)&pkt->buffer[0], pkt->length);
     (void)Ringbuf_Pop(&PDU_Queue, NULL);
-    pthread_mutex_unlock (&Ring_Buffer_Mutex);
+    pthread_mutex_unlock(&Ring_Buffer_Mutex);
 
     return pdu_len;
 }
@@ -438,8 +439,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = npdu_decode(
-        &request_pdu[0], NULL, &request.address, &request.npdu_data);
+    offset = bacnet_npdu_decode(request_pdu, request_pdu_len, NULL,
+        &request.address, &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
 #if PRINT_ENABLED
         fprintf(stderr,
@@ -467,7 +468,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the reply data */
     reply.address.mac[0] = dest_address;
     reply.address.mac_len = 1;
-    offset = npdu_decode(&reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
+    offset = bacnet_npdu_decode(
+        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
 #if PRINT_ENABLED
         fprintf(stderr,
@@ -720,7 +722,6 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS *dest)
 
 bool dlmstp_init(char *ifname)
 {
-    unsigned long hThread = 0;
     pthread_condattr_t attr;
     int rv = 0;
 
@@ -731,8 +732,8 @@ bool dlmstp_init(char *ifname)
         exit(1);
     }
 
-    pthread_mutex_init (&Ring_Buffer_Mutex, NULL);
-    pthread_mutex_init (&Thread_Mutex, NULL);
+    pthread_mutex_init(&Ring_Buffer_Mutex, NULL);
+    pthread_mutex_init(&Thread_Mutex, NULL);
 
     /* initialize PDU queue */
     Ringbuf_Init(&PDU_Queue, (uint8_t *)&PDU_Buffer,
@@ -773,6 +774,7 @@ bool dlmstp_init(char *ifname)
     fprintf(stderr, "MS/TP MAC: %02X\n", MSTP_Port.This_Station);
     fprintf(stderr, "MS/TP Max_Master: %02X\n", MSTP_Port.Nmax_master);
     fprintf(stderr, "MS/TP Max_Info_Frames: %u\n", MSTP_Port.Nmax_info_frames);
+    fflush(stderr);
 #endif
     /* start the threads */
     /*    rv = pthread_create(&hThread, NULL, dlmstp_receive_fsm_task, NULL); */
@@ -825,4 +827,3 @@ int main(int argc, char *argv[])
     return 0;
 }
 #endif
-

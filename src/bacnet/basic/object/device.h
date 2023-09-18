@@ -34,6 +34,8 @@
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
+#include "bacnet/create_object.h"
+#include "bacnet/delete_object.h"
 #include "bacnet/list_element.h"
 #include "bacnet/wp.h"
 #include "bacnet/rd.h"
@@ -168,6 +170,8 @@ typedef struct object_functions {
     object_intrinsic_reporting_function Object_Intrinsic_Reporting;
     list_element_function Object_Add_List_Element;
     list_element_function Object_Remove_List_Element;
+    create_object_function Object_Create;
+    delete_object_function Object_Delete;
 } object_functions_t;
 
 /* String Lengths - excluding any nul terminator */
@@ -315,6 +319,13 @@ extern "C" {
         uint32_t object_instance, 
         BACNET_ARRAY_INDEX array_index, 
         uint8_t *apdu);
+
+    BACNET_STACK_EXPORT
+    bool Device_Create_Object(
+        BACNET_CREATE_OBJECT_DATA *data);
+    BACNET_STACK_EXPORT
+    bool Device_Delete_Object(
+        BACNET_DELETE_OBJECT_DATA *data);
 
     BACNET_STACK_EXPORT
     unsigned Device_Count(

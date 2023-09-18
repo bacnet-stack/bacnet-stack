@@ -45,7 +45,8 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
     memmove(data, msg->data, sizeof(MSG_DATA));
 
-    apdu_offset = npdu_decode(data->pdu, &data->dest, NULL, &npdu_data);
+    apdu_offset = bacnet_npdu_decode(data->pdu, data->pdu_len, &data->dest,
+        NULL, &npdu_data);
     apdu_len = data->pdu_len - apdu_offset;
 
     srcport = find_snet(msg->origin);

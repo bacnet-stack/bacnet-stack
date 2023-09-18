@@ -156,6 +156,21 @@ extern "C" {
         size_t count);
 
     BACNET_STACK_EXPORT
+    void bacapp_property_value_list_link(
+        BACNET_PROPERTY_VALUE *value_list,
+        size_t count);
+
+    BACNET_STACK_EXPORT
+    int bacapp_property_value_encode(
+        uint8_t *apdu,
+        BACNET_PROPERTY_VALUE *value);
+    BACNET_STACK_EXPORT
+    int bacapp_property_value_decode(
+        uint8_t *apdu,
+        uint32_t apdu_size,
+        BACNET_PROPERTY_VALUE *value);
+
+    BACNET_STACK_EXPORT
     int bacapp_encode_data(
         uint8_t * apdu,
         BACNET_APPLICATION_DATA_VALUE * value);

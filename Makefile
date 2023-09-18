@@ -161,13 +161,22 @@ router-ipv6:
 router-mstp:
 	$(MAKE) -s -C apps $@
 
+.PHONY: fuzz-libfuzzer
+fuzz-libfuzzer:
+	$(MAKE) -s -C apps $@
+
+.PHONY: fuzz-afl
+fuzz-afl:
+	$(MAKE) -s -C apps $@
+
 # Add "ports" to the build, if desired
 .PHONY: ports
 ports:	atmega168 bdk-atxx4-mstp at91sam7s stm32f10x stm32f4xx
 	@echo "Built the ARM7 and AVR ports"
 
 .PHONY: ports-clean
-ports-clean: atmega168-clean bdk-atxx4-mstp-clean at91sam7s-clean stm32f10x-clean stm32f4xx-clean
+ports-clean: atmega168-clean bdk-atxx4-mstp-clean at91sam7s-clean \
+ stm32f10x-clean stm32f4xx-clean xplained-clean
 
 .PHONY: atmega168
 atmega168: ports/atmega168/Makefile
@@ -209,6 +218,14 @@ stm32f4xx: ports/stm32f4xx/Makefile
 stm32f4xx-clean: ports/stm32f4xx/Makefile
 	$(MAKE) -s -C ports/stm32f4xx clean
 
+.PHONY: xplained
+xplained: ports/xplained/Makefile
+	$(MAKE) -s -C ports/xplained clean all
+
+.PHONY: xplained-clean
+xplained-clean: ports/xplained/Makefile
+	$(MAKE) -s -C ports/xplained clean
+
 .PHONY: mstpsnap
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
@@ -248,7 +265,7 @@ tidy:
 
 .PHONY: scan-build
 scan-build:
-	scan-build --status-bugs -analyze-headers make -j2 server
+	scan-build --status-bugs -analyze-headers make -j2 LEGACY=true server
 
 SPLINT_OPTIONS := -weak +posixlib +quiet \
 	-D__signed__=signed -D__gnuc_va_list=va_list \
@@ -297,6 +314,8 @@ clean: ports-clean
 	$(MAKE) -s -C apps/router-ipv6 clean
 	$(MAKE) -s -C apps/router-mstp clean
 	$(MAKE) -s -C apps/gateway clean
+	$(MAKE) -s -C apps/fuzz-afl clean
+	$(MAKE) -s -C apps/fuzz-libfuzzer clean
 	$(MAKE) -s -C ports/lwip clean
 	$(MAKE) -s -C test clean
 	rm -rf ./build
