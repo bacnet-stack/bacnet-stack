@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "bacnet/basic/sys/keylist.h"
+#define HTTP_STATUS
 #include "bacnet/basic/service/ws_restful/ws-service.h"
 #include "bacnet/basic/sys/debug.h"
 #include "websocket-global.h"
@@ -31,29 +32,24 @@
 #endif
 
 
-BACNET_WS_DECLARE_SERVICE(root_service, "", 0x0f, false, NULL, NULL);
+BACNET_WS_DECLARE_SERVICE(root_service, "", 0x0f, false, NULL);
 
-static int ws_http_event(struct lws *wsi,
-    enum lws_callback_reasons reason,
-    void *user,
-    void *in,
-    size_t len);
+static int ws_http_event(struct lws *wsi, enum lws_callback_reasons reason,
+    void *user, void *in, size_t len);
+
+static int http_headers_write(struct lws *wsi, int http_retcode, int alt,
+    bool base64_hdr);
 
 static const struct lws_protocols ws_http_protocol = { "http", ws_http_event,
     sizeof(BACNET_WS_CONNECT_CTX), 0, 0, NULL, 0 };
-
-static const struct lws_protocols ws_https_protocol = { "https", ws_http_event,
-    sizeof(BACNET_WS_CONNECT_CTX), 0, 0, NULL, 0 };
-
-static const struct lws_protocols *ws_protocols[] = { &ws_http_protocol,
-    &ws_https_protocol, NULL };
+static const struct lws_protocols *ws_protocols[] = { &ws_http_protocol, NULL };
 
 static const struct lws_http_mount ws_mount_https = {
     /* .mount_next */ NULL, /* linked-list "next" */
     /* .mountpoint */ "/", /* mountpoint URL */
     /* .origin */ NULL, /* protocol */
     /* .def */ NULL,
-    /* .protocol */ "https",
+    /* .protocol */ "http",
     /* .cgienv */ NULL,
     /* .extra_mimetypes */ NULL,
     /* .interpret */ NULL,
@@ -98,12 +94,8 @@ typedef struct {
     BACNET_WS_SERVICE *services;
 } WS_SERVER;
 
-static pthread_mutex_t ws_srv_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+static pthread_mutex_t ws_srv_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static WS_SERVER ws_srv = { NULL, &ws_srv_mutex, false, false, NULL };
-
-static const char *const param_names[] = { "z", "send", NULL, NULL, NULL };
-
-enum enum_param_names { EPN_TEXT1, EPN_SEND };
 
 static uint32_t djb2_hash(uint8_t *str)
 {
@@ -162,11 +154,36 @@ static BACNET_WS_ALT ws_alt_get(struct lws *wsi)
     return BACNET_WS_ALT_ERROR;
 }
 
+static bool body_collect(BACNET_WS_CONNECT_CTX *ctx, uint8_t* in, size_t in_len)
+{
+    uint8_t *buf = NULL;
+
+    if (ctx->body_data == NULL) {
+        ctx->body_data = buf = calloc(1, in_len);
+    } else {
+        buf = calloc(1, in_len + ctx->body_data_size);
+        if (buf != NULL) {
+            memcpy(buf, ctx->body_data, ctx->body_data_size);
+            free(ctx->body_data);
+            ctx->body_data = buf;
+            buf += ctx->body_data_size;
+        }
+    }
+
+    if (buf == NULL) {
+        return false;
+    }
+    memcpy(buf, in, in_len);
+    ctx->body_data_size += in_len;
+
+    return true;
+}
+
 /*
  * Note! If any endpoint use media content then it must set
  */
 static char* alt_header[] =
-    {"application/xml", "application/json", "text/html", "media" };
+    {"application/xml", "application/json", "text/plain", "media" };
 
 #define WS_HTTP_RESPONCE_ERROR(http_error_code)                     \
     if (lws_add_http_common_headers(wsi, http_error_code,           \
@@ -187,239 +204,124 @@ static int ws_http_event(struct lws *wsi,
     uint8_t buf[LWS_PRE + 2048], *start = &buf[LWS_PRE], *p = start,
       *end = &buf[sizeof(buf) - 1];
     BACNET_WS_SERVICE_RET ret;
-    size_t out_len;
     enum lws_write_protocol n;
-//  time_t t;
-//  int m;
-    //WS_SERVICE_CTX* ctx = (WS_SERVICE_CTX *)lws_context_user(lws_get_context(wsi));
 
-/*    static const char * const methods_names[] = {
-      "GET", "POST","PUT", "DELETE"
-    };
+    switch (reason) {
+    case LWS_CALLBACK_HTTP:
+        pss->context = wsi;
+        pss->body_data = NULL;
+        pss->body_data_size = 0;
+        pss->endpoint_data = NULL;
+        pss->http_retcode = HTTP_STATUS_OK;
+        pss->base64_body = false;
+        pss->headers_written = false;
 
-    static const unsigned char methods[] = {
-      WSI_TOKEN_GET_URI,
-      WSI_TOKEN_POST_URI,
-      WSI_TOKEN_PUT_URI,
-      WSI_TOKEN_DELETE_URI
-    };
-
-#if defined(LWS_HAVE_CTIME_R)
-  char date[32];
-#endif
-*/
-
-  switch (reason) {
-  case LWS_CALLBACK_HTTP:
-    pss->context = wsi;
-
-    /*
-     * If you want to know the full url path used, you can get it
-     * like this
-     *
-     * n = lws_hdr_copy(wsi, buf, sizeof(buf), WSI_TOKEN_GET_URI);
-     *
-     * The base path is the first (n - strlen((const char *)in))
-     * chars in buf.
-     */
-
-    lws_snprintf(path, sizeof(path), "%s", (const char *)in);
-    pss->s = ws_service_get(path);
-    if (pss->s == NULL) {
-        printf("Error: unknown service %s\n", path);
-        WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
-        return 1;
-    }
-
-    if (pss->s->https_only) {
-        if (lws_get_protocol(wsi) != &ws_https_protocol) {
-            printf("Error: https only\n");
+        lws_snprintf(path, sizeof(path), "%s", (const char *)in);
+        pss->service = ws_service_get(path);
+        if (pss->service == NULL) {
+            DEBUG_PRINTF("Error: unknown service %s\n", path);
             WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
             return 1;
         }
-    }
 
-    pss->m = ws_get_method(wsi);
-    if ((pss->m & pss->s->ws_method_mask) == 0) {
-        printf("Error: method %d is not allow\n", pss->m);
-        WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
-        return 1;
-    }
+        if (pss->service->https_only) {
+            if (strncmp(lws_get_vhost_name(lws_get_vhost(wsi)),
+                        "https", 5)!=0) {
+                DEBUG_PRINTF("Error: https only\n");
+                WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
+                return 1;
+            }
+        }
 
-    pss->alt = ws_alt_get(wsi);
-    if (pss->alt == BACNET_WS_ALT_ERROR) {
-        printf("Error: ALT is WS_ERR_PARAM_OUT_OF_RANGE\n");
-        WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
-        return 1;
-    }
-
-    /*
-     * prepare and write http headers... with regards to content-
-     * length, there are three approaches:
-     *
-     *  - http/1.0 or connection:close: no need, but no pipelining
-     *  - http/1.1 or connected:keep-alive
-     *     (keep-alive is default for 1.1): content-length required
-     *  - http/2: no need, LWS_WRITE_HTTP_FINAL closes the stream
-     *
-     * giving the api below LWS_ILLEGAL_HTTP_CONTENT_LEN instead of
-     * a content length forces the connection response headers to
-     * send back "connection: close", disabling keep-alive.
-     *
-     * If you know the final content-length, it's always OK to give
-     * it and keep-alive can work then if otherwise possible.  But
-     * often you don't know it and avoiding having to compute it
-     * at header-time makes life easier at the server.
-     */
-    if (lws_add_http_common_headers(wsi, HTTP_STATUS_OK,
-        alt_header[pss->alt],
-        LWS_ILLEGAL_HTTP_CONTENT_LEN, /* no content len */
-        &p, end))
-      return 1;
-    if (lws_finalize_write_http_header(wsi, start, &p, end))
-      return 1;
-
-    /* write the body separately */
-    lws_callback_on_writable(wsi);
-
-    return 0;
-
-#if 0
-  case LWS_CALLBACK_CLOSED_CLIENT_HTTP:
-      printf("LWS_CALLBACK_CLOSED_CLIENT_HTTP\n");
-
-    if (ctx->spa && lws_spa_destroy(ctx->spa))
-      return -1;
-    break;
-
-  case LWS_CALLBACK_HTTP_BODY_COMPLETION:
-
-    /* inform the spa no more payload data coming */
-
-    printf("LWS_CALLBACK_HTTP_BODY_COMPLETION\n");
-
-    /* we just dump the decoded things to the log */
-
-    if (ctx->spa)
-    lws_spa_finalize(ctx->spa);
-      for (n = 0; n < (int)LWS_ARRAY_SIZE(param_names); n++) {
-        if (!lws_spa_get_string(ctx->spa, n))
-          printf("%s: undefined\n", param_names[n]);
-        else
-          printf("%s: (len %d) '%s'\n",
-              param_names[n],
-              lws_spa_get_length(ctx->spa, n),
-              lws_spa_get_string(ctx->spa, n));
-      }
-
-
-    break;
-
-  case LWS_CALLBACK_HTTP_DROP_PROTOCOL:
-  printf("LWS_CALLBACK_HTTP_DROP_PROTOCOL\n");
-    /* called when our wsi user_space is going to be destroyed */
-    if (ctx->spa) {
-      lws_spa_destroy(ctx->spa);
-      ctx->spa = NULL;
-    }
-    break;
-#endif
-
-  case LWS_CALLBACK_HTTP_BODY:
-#if 0
-    printf("LWS_CALLBACK_HTTP_BODY\n");
-    /* create the POST argument parser if not already existing */
-
-    if (!ctx->spa) {
-      ctx->spa = lws_spa_create(wsi, param_names,
-          LWS_ARRAY_SIZE(param_names), 1024,
-          NULL, NULL); /* no file upload */
-      if (!ctx->spa)
-        return -1;
-    }
-
-    /* let it parse the POST data */
-    printf("in = %s\n", in);
-    if (lws_spa_process(ctx->spa, in, (int)len))
-      return -1;
-#endif
-    if (!pss || pss->s == NULL)
-        break;
-
-    if (pss->s->set_body) {
-        BACNET_WS_SERVICE_RET ret = pss->s->set_body(in, len);
-        if (ret != BACNET_WS_SERVICE_SUCCESS) {
-            printf("Error: set_body return %d\n", ret);
+        pss->method = ws_get_method(wsi);
+        if ((pss->method & pss->service->ws_method_mask) == 0) {
+            DEBUG_PRINTF("Error: method %d is not allow\n", pss->method);
+            WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
             return 1;
         }
-    }
-    break;
+
+        pss->alt = ws_alt_get(wsi);
+        if (pss->alt == BACNET_WS_ALT_ERROR) {
+            DEBUG_PRINTF("Error: ALT is WS_ERR_PARAM_OUT_OF_RANGE\n");
+            WS_HTTP_RESPONCE_ERROR(HTTP_STATUS_FORBIDDEN);
+            return 1;
+        }
+
+        /* write the body separately */
+        lws_callback_on_writable(wsi);
+        return 0;
+
+    case LWS_CALLBACK_HTTP_BODY:
+        if (!pss || pss->service == NULL) {
+            break;
+        }
+
+        if (!body_collect(pss, in, len)) {
+            DEBUG_PRINTF("Error: set_body()\n");
+            return 1;
+        }
+        break;
 
   case LWS_CALLBACK_HTTP_WRITEABLE:
 
-    if (!pss || pss->s == NULL)
+        if (!pss || pss->service == NULL) {
+            break;
+        }
+
+        if (pss->service->handle_cb == NULL) {
+            return lws_callback_http_dummy(wsi, reason, user, in, len);
+        }
+
+        ret = pss->service->handle_cb(pss, in, len, &p, end);
+        if ((ret != BACNET_WS_SERVICE_SUCCESS) &&
+            (ret != BACNET_WS_SERVICE_HAS_DATA)) {
+            DEBUG_PRINTF("Error: callback return %d\n", ret);
+            return 1;
+        }
+
+        if (!pss->headers_written) {
+            if (http_headers_write(wsi, pss->http_retcode, pss->alt,
+                pss->base64_body)) {
+                return 1;
+            }
+            pss->headers_written = true;
+        }
+
+        n = (ret == BACNET_WS_SERVICE_SUCCESS) ?
+            LWS_WRITE_HTTP_FINAL :
+            LWS_WRITE_HTTP;
+
+        if (lws_write(wsi, (uint8_t *)start, lws_ptr_diff_size_t(p, start), n)
+            != lws_ptr_diff(p, start)) {
+            return 1;
+        }
+
+        /*
+         * HTTP/1.0 no keepalive: close network connection
+         * HTTP/1.1 or HTTP1.0 + KA: wait / process next transaction
+         * HTTP/2: stream ended, parent connection remains up
+         */
+        if (ret == BACNET_WS_SERVICE_SUCCESS) {
+            if (lws_http_transaction_completed(wsi)) {
+                return -1;
+            }
+        } else {
+          lws_callback_on_writable(wsi);
+        }
+
+        return 0;
+
+    case LWS_CALLBACK_HTTP_DROP_PROTOCOL:
+        /* called when our wsi user_space is going to be destroyed */
+        free(pss->body_data);
+        pss->body_data = NULL;
+        free(pss->endpoint_data);
+        pss->endpoint_data = NULL;
         break;
 
-    /*
-     * We send a large reply in pieces of around 2KB each.
-     *
-     * For http/1, it's possible to send a large buffer at once,
-     * but lws will malloc() up a temp buffer to hold any data
-     * that the kernel didn't accept in one go.  This is expensive
-     * in memory and cpu, so it's better to stage the creation of
-     * the data to be sent each time.
-     *
-     * For http/2, large data frames would block the whole
-     * connection, not just the stream and are not allowed.  Lws
-     * will call back on writable when the stream both has transmit
-     * credit and the round-robin fair access for sibling streams
-     * allows it.
-     *
-     * For http/2, we must send the last part with
-     * LWS_WRITE_HTTP_FINAL to close the stream representing
-     * this transaction.
-     */
-
-    if (pss->s->func == NULL) {
-        return lws_callback_http_dummy(wsi, reason, user, in, len);
+    default:
+        break;
     }
-
-    out_len = lws_ptr_diff_size_t(end, p);
-    ret = pss->s->func(pss, in, len, p, &out_len);
-    if ((ret != BACNET_WS_SERVICE_SUCCESS) &&
-        (ret != BACNET_WS_SERVICE_HAS_DATA)) {
-        printf("Error: callback return %d\n", ret);
-        return 1;
-    }
-
-    p += out_len;
-
-    n = (ret == BACNET_WS_SERVICE_SUCCESS) ?
-        LWS_WRITE_HTTP_FINAL :
-        LWS_WRITE_HTTP;
-
-    if (lws_write(wsi, (uint8_t *)start, lws_ptr_diff_size_t(p, start), n) !=
-        lws_ptr_diff(p, start))
-      return 1;
-
-    /*
-     * HTTP/1.0 no keepalive: close network connection
-     * HTTP/1.1 or HTTP1.0 + KA: wait / process next transaction
-     * HTTP/2: stream ended, parent connection remains up
-     */
-    if (ret == BACNET_WS_SERVICE_SUCCESS) {
-        if (lws_http_transaction_completed(wsi)) {
-            return -1;
-        }
-    } else {
-      lws_callback_on_writable(wsi);
-    }
-
-    return 0;
-
-  default:
-    break;
-  }
 
     return lws_callback_http_dummy(wsi, reason, user, in, len);
 }
@@ -500,7 +402,7 @@ BACNET_WS_SERVICE_RET ws_server_start(uint16_t http_port,
     memset(&info, 0, sizeof(info));
     info.pprotocols = ws_protocols;
     info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
-    info.options |= LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND;
+    /*info.options |= LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND;*/
     info.options |= LWS_SERVER_OPTION_EXPLICIT_VHOSTS;
     info.options |=
         LWS_SERVER_OPTION_HTTP_HEADERS_SECURITY_BEST_PRACTICES_ENFORCE;
@@ -521,7 +423,7 @@ BACNET_WS_SERVICE_RET ws_server_start(uint16_t http_port,
         return BACNET_WS_SERVICE_NO_RESOURCES;
     }
 
-    // http server setup
+    /* http server setup */
 
     info.gid = -1;
     info.uid = -1;
@@ -545,8 +447,7 @@ BACNET_WS_SERVICE_RET ws_server_start(uint16_t http_port,
         return BACNET_WS_SERVICE_NO_RESOURCES;
     }
 
-
-    // https server setup
+    /* https server setup */
 
     info.port = https_port;
     info.iface = https_iface;
@@ -558,6 +459,7 @@ BACNET_WS_SERVICE_RET ws_server_start(uint16_t http_port,
     info.server_ssl_ca_mem_len = ca_cert_size;
     info.server_ssl_private_key_mem = key;
     info.server_ssl_private_key_mem_len = key_size;
+    info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 
     //bsc_websocket_global_lock();
 
@@ -610,42 +512,40 @@ BACNET_WS_SERVICE_RET ws_server_start(uint16_t http_port,
 
 void ws_server_stop(void)
 {
-  WS_SERVER *ctx = &ws_srv;
-  DEBUG_PRINTF("ws_server_stop() >>>\n");
-  pthread_mutex_lock(ctx->mutex);
-  if(ctx->used && ctx->ctx) {
-      ctx->stop_worker = true;
-      lws_cancel_service(ctx->ctx);
-  }
-  pthread_mutex_unlock(ctx->mutex);
-  DEBUG_PRINTF("ws_server_stop() <<< \n");
+    WS_SERVER *ctx = &ws_srv;
+    DEBUG_PRINTF("ws_server_stop() >>>\n");
+    pthread_mutex_lock(ctx->mutex);
+    if(ctx->used && ctx->ctx) {
+        ctx->stop_worker = true;
+        lws_cancel_service(ctx->ctx);
+    }
+    pthread_mutex_unlock(ctx->mutex);
+    DEBUG_PRINTF("ws_server_stop() <<< \n");
 }
 
 BACNET_WS_SERVICE_RET ws_service_registry(BACNET_WS_SERVICE* s)
 {
-  WS_SERVER *ctx = &ws_srv;
-  BACNET_WS_SERVICE_RET ret = BACNET_WS_SERVICE_SUCCESS;
-  BACNET_WS_SERVICE* srv;
+    WS_SERVER *ctx = &ws_srv;
+    BACNET_WS_SERVICE_RET ret = BACNET_WS_SERVICE_SUCCESS;
+    BACNET_WS_SERVICE* srv;
 
-  DEBUG_PRINTF("ws_service_registry() >>> s = %p\n", (void*)s);
-  pthread_mutex_lock(ctx->mutex);
-  if(!ctx->used || !ctx->ctx) {
-    ret = BACNET_WS_SERVICE_INVALID_OPERATION;
-  }
-  else {
-    s->hash = djb2_hash((uint8_t*)s->uri);
-    if (ctx->services == NULL) {
-        ctx->services = s;
-    } 
-    else {
-        for(srv = ctx->services; srv->next != NULL; srv = srv->next)
-            ;
-        srv->next = s;
+    DEBUG_PRINTF("ws_service_registry() >>> s = %p\n", (void*)s);
+    pthread_mutex_lock(ctx->mutex);
+    if(!ctx->used || !ctx->ctx) {
+        ret = BACNET_WS_SERVICE_INVALID_OPERATION;
+    } else {
+        s->hash = djb2_hash((uint8_t*)s->uri);
+        if (ctx->services == NULL) {
+            ctx->services = s;
+        } else {
+            for(srv = ctx->services; srv->next != NULL; srv = srv->next)
+                ;
+          srv->next = s;
+        }
     }
-  }
-  pthread_mutex_unlock(ctx->mutex);
-  DEBUG_PRINTF("ws_service_registry() <<< ret = %d\n",ret);
-  return ret;
+    pthread_mutex_unlock(ctx->mutex);
+    DEBUG_PRINTF("ws_service_registry() <<< ret = %d\n",ret);
+    return ret;
 }
 
 /*
@@ -655,6 +555,58 @@ int ws_http_parameter_get(void *context, char *name, char *buffer, size_t len)
 {
     struct lws *wsi = (struct lws *)context;
     return lws_get_urlarg_by_name_safe(wsi, name, buffer, len - 1);
+}
+
+/*
+ * prepare http headers... with regards to content-
+ * length, there are three approaches:
+ *
+ *  - http/1.0 or connection:close: no need, but no pipelining
+ *  - http/1.1 or connected:keep-alive
+ *     (keep-alive is default for 1.1): content-length required
+ *  - http/2: no need, LWS_WRITE_HTTP_FINAL closes the stream
+ *
+ * giving the api below LWS_ILLEGAL_HTTP_CONTENT_LEN instead of
+ * a content length forces the connection response headers to
+ * send back "connection: close", disabling keep-alive.
+ *
+ * If you know the final content-length, it's always OK to give
+ * it and keep-alive can work then if otherwise possible.  But
+ * often you don't know it and avoiding having to compute it
+ * at header-time makes life easier at the server.
+ */
+static int http_headers_write(struct lws *wsi, int http_retcode, int alt,
+                                bool base64_hdr)
+{
+    uint8_t buf[LWS_PRE + 1024], *start = &buf[LWS_PRE], *p = start,
+      *end = &buf[sizeof(buf) - 1];
+    size_t len;
+
+    if (lws_add_http_common_headers(wsi, http_retcode, alt_header[alt],
+                                    LWS_ILLEGAL_HTTP_CONTENT_LEN, &p, end)) {
+        return 1;
+    }
+
+    if (base64_hdr) {
+        if (lws_add_http_header_by_name(wsi,
+                        (const uint8_t *)"Content-Transfer-Encoding:",
+                        (const uint8_t *)"base64",
+                        6, &p, end)) {
+            return 1;
+        }
+    }
+
+    if (lws_finalize_http_header(wsi, &p, end)) {
+        return 1;
+    }
+
+    len = lws_ptr_diff(p, start);
+
+    if (lws_write(wsi, start, len, LWS_WRITE_HTTP_HEADERS) != len) {        
+        return 1;
+    }
+
+    return 0;
 }
 
 #ifdef CONFIG_ZTEST

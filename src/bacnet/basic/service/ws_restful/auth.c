@@ -191,7 +191,7 @@ static BACNET_WS_SERVICE_RET auth_int_enable_handler(BACNET_WS_CONNECT_CTX *ctx,
 
 
 static BACNET_WS_SERVICE_RET file_sender(BACNET_WS_CONNECT_CTX *ctx,
-    uint8_t** out, uint8_t *end, (int)*get_data(uint8_t **, size_t*))
+    uint8_t** out, uint8_t *end, int (*get_data)(uint8_t **, size_t*))
 {
     int ret;
     uint8_t *data;
@@ -200,7 +200,7 @@ static BACNET_WS_SERVICE_RET file_sender(BACNET_WS_CONNECT_CTX *ctx,
     int len;
 
     if (sent == 0) {
-        ret = get_data(&data, &data_size);
+        ret = (*get_data)(&data, &data_size);
         if (ret != 0) {
             RESPONCE_ERROR(ctx, out, end, "internal error: %d", ret);
             return BACNET_WS_SERVICE_SUCCESS;
@@ -233,7 +233,7 @@ static BACNET_WS_SERVICE_RET file_sender(BACNET_WS_CONNECT_CTX *ctx,
 }
 
 static BACNET_WS_SERVICE_RET file_receiver(BACNET_WS_CONNECT_CTX *ctx,
-    uint8_t** out, uint8_t *end, (int)*set_data(uint8_t **, size_t*))
+    uint8_t** out, uint8_t *end, int (*set_data)(uint8_t *, size_t))
 {
     int ret;
     size_t data_size;
@@ -244,7 +244,7 @@ static BACNET_WS_SERVICE_RET file_receiver(BACNET_WS_CONNECT_CTX *ctx,
     }
 
     data_size = base64_inplace_decode(ctx->body_data, ctx->body_data_size);
-    ret = set_data(ctx->body_data, data_size);
+    ret = (*set_data)(ctx->body_data, data_size);
     if ( ret != 0) {
         RESPONCE_ERROR(ctx, out, end, "internal error: %d", ret);
     }
@@ -294,10 +294,10 @@ static BACNET_WS_SERVICE_RET auth_ext_pri_cert_handler(BACNET_WS_CONNECT_CTX *ct
     (void)in_len;
 
     if (ctx->method == BACNET_WS_SERVICE_METHOD_GET) {
-        return file_sender(ctx, out, end, oauth_pri_cert);
+        return file_sender(ctx, out, end, &oauth_pri_cert);
     }
 
-    return file_receiver(ctx, out, end, oauth_pri_cert_set);
+    return file_receiver(ctx, out, end, &oauth_pri_cert_set);
 }
 
 static BACNET_WS_SERVICE_RET auth_ext_pri_pubkey_handler(BACNET_WS_CONNECT_CTX *ctx,
@@ -307,10 +307,10 @@ static BACNET_WS_SERVICE_RET auth_ext_pri_pubkey_handler(BACNET_WS_CONNECT_CTX *
     (void)in_len;
 
     if (ctx->method == BACNET_WS_SERVICE_METHOD_GET) {
-        return file_sender(ctx, out, end, oauth_pri_pubkey);
+        return file_sender(ctx, out, end, &oauth_pri_pubkey);
     }
 
-    return file_receiver(ctx, out, end, oauth_pri_pubkey_set);
+    return file_receiver(ctx, out, end, &oauth_pri_pubkey_set);
 }
 
 static BACNET_WS_SERVICE_RET auth_ext_sec_uri_handler(BACNET_WS_CONNECT_CTX *ctx,
@@ -355,10 +355,10 @@ static BACNET_WS_SERVICE_RET auth_ext_sec_cert_handler(BACNET_WS_CONNECT_CTX *ct
     (void)in_len;
 
     if (ctx->method == BACNET_WS_SERVICE_METHOD_GET) {
-        return file_sender(ctx, out, end, oauth_sec_cert);
+        return file_sender(ctx, out, end, &oauth_sec_cert);
     }
 
-    return file_receiver(ctx, out, end, oauth_sec_cert_set);
+    return file_receiver(ctx, out, end, &oauth_sec_cert_set);
 }
 
 static BACNET_WS_SERVICE_RET auth_ext_sec_pubkey_handler(BACNET_WS_CONNECT_CTX *ctx,
@@ -368,10 +368,10 @@ static BACNET_WS_SERVICE_RET auth_ext_sec_pubkey_handler(BACNET_WS_CONNECT_CTX *
     (void)in_len;
 
     if (ctx->method == BACNET_WS_SERVICE_METHOD_GET) {
-        return file_sender(ctx, out, end, oauth_sec_pubkey);
+        return file_sender(ctx, out, end, &oauth_sec_pubkey);
     }
 
-    return file_receiver(ctx, out, end, oauth_sec_pubkey_set);
+    return file_receiver(ctx, out, end, &oauth_sec_pubkey_set);
 }
 BACNET_WS_DECLARE_SERVICE(auth_int_user, ".auth/int/user",
     BACNET_WS_SERVICE_METHOD_POST | BACNET_WS_SERVICE_METHOD_PUT, false,
