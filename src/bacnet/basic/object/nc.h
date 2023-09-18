@@ -71,6 +71,7 @@ void Notification_Class_Property_Lists(
 BACNET_STACK_EXPORT
 void Notification_Class_Init(void);
 
+BACNET_STACK_EXPORT
 bool Notification_Class_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
 unsigned Notification_Class_Count(void);
