@@ -17,7 +17,7 @@
 static const uint8_t base64_table[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-size_t base64_encode_size(size_t size)
+size_t data_base64_encode_size(size_t size)
 {
     size_t olen;
     olen = size * 4 / 3 + 4; /* 3-byte blocks to 4-byte */
@@ -25,7 +25,7 @@ size_t base64_encode_size(size_t size)
     return olen;
 }
 
-size_t base64_encode(const uint8_t *src, size_t len, uint8_t *out)
+size_t data_base64_encode(const uint8_t *src, size_t len, uint8_t *out)
 {
     uint8_t *pos;
     const uint8_t *end, *in;
@@ -69,17 +69,17 @@ size_t base64_encode(const uint8_t *src, size_t len, uint8_t *out)
 }
 
 // allign up to
-size_t base64_decode_size(size_t size)
+size_t data_base64_decode_size(size_t size)
 {
     return (size + 3) / 4 * 3;
 }
 
-size_t base64_inplace_decode(const uint8_t *src, size_t len)
+size_t data_base64_inplace_decode(const uint8_t *src, size_t len)
 {
-    return base64_decode(src, len, (uint8_t *)src);
+    return data_base64_decode(src, len, (uint8_t *)src);
 }
 
-size_t base64_decode(const uint8_t *src, size_t len, uint8_t *out)
+size_t data_base64_decode(const uint8_t *src, size_t len, uint8_t *out)
 {
     uint8_t dtable[256], *pos, block[4];
     size_t i, count, olen;

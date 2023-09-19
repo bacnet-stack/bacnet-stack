@@ -14,12 +14,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-size_t base64_encode_size(size_t size);
+size_t data_base64_encode_size(size_t size);
 
-size_t base64_encode(const uint8_t *src, size_t len, uint8_t *out);
+size_t data_base64_encode(const uint8_t *src, size_t len, uint8_t *out);
 
-size_t base64_decode_size(size_t size);
+size_t data_base64_decode_size(size_t size);
 
-size_t base64_inplace_decode(const uint8_t *src, size_t len);
+size_t data_base64_inplace_decode(const uint8_t *src, size_t len);
 
-size_t base64_decode(const uint8_t *src, size_t len, uint8_t *out);
+size_t data_base64_decode(const uint8_t *src, size_t len, uint8_t *out);

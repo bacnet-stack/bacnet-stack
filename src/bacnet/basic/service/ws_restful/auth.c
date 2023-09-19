@@ -206,7 +206,7 @@ static BACNET_WS_SERVICE_RET file_sender(BACNET_WS_CONNECT_CTX *ctx,
             return BACNET_WS_SERVICE_SUCCESS;
         }
 
-        ctx->body_data_size = base64_encode_size(data_size);
+        ctx->body_data_size = data_base64_encode_size(data_size);
         ctx->body_data = calloc(1, ctx->body_data_size);
         if (ret != 0) {
             RESPONCE_ERROR(ctx, out, end, "no memory: %d", ret);
@@ -214,7 +214,8 @@ static BACNET_WS_SERVICE_RET file_sender(BACNET_WS_CONNECT_CTX *ctx,
         }
 
         ctx->base64_body = true;
-        ctx->body_data_size = base64_encode(data, data_size, ctx->body_data);
+        ctx->body_data_size =
+            data_base64_encode(data, data_size, ctx->body_data);
     }
 
     len = (int)(end - *out);
@@ -243,7 +244,7 @@ static BACNET_WS_SERVICE_RET file_receiver(BACNET_WS_CONNECT_CTX *ctx,
         return BACNET_WS_SERVICE_SUCCESS;
     }
 
-    data_size = base64_inplace_decode(ctx->body_data, ctx->body_data_size);
+    data_size = data_base64_inplace_decode(ctx->body_data, ctx->body_data_size);
     ret = (*set_data)(ctx->body_data, data_size);
     if ( ret != 0) {
         RESPONCE_ERROR(ctx, out, end, "internal error: %d", ret);

@@ -25,8 +25,10 @@
 #define islessgreater(x, y) ((x) < (y) || (x) > (y))
 #endif
 
+#ifndef CONFIG_KERNEL_BIN_NAME  /* need comment! */
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(array) ((size_t)(sizeof(array) / sizeof((array)[0])))
+#endif
 #endif
 
 /* marking some code as 'deprecated' */
