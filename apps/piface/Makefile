@@ -7,7 +7,7 @@ TARGET = bacpiface
 # BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
-	$(BACNET_OBJECT_DIR)/device.c \
+	device.c \
 	$(BACNET_OBJECT_DIR)/netport.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
 	$(BACNET_OBJECT_DIR)/bo.c

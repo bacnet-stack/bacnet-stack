@@ -201,7 +201,7 @@ endif
 
 ifeq (${BACNET_PORT},linux)
 ifneq (${OSTYPE},cygwin)
-	SUBDIRS += mstpcap mstpcrc piface blinkt
+	SUBDIRS += mstpcap mstpcrc 
 endif
 endif
 

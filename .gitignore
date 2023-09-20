@@ -89,4 +89,6 @@ apps/**/*
 !apps/**/*.md
 !apps/**/Makefile
 !apps/**/CMakeLists.txt
+apps/piface/libmcp23s17/
+apps/piface/libpifacedigital/
 
