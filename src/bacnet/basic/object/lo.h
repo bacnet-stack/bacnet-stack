@@ -206,6 +206,12 @@ extern "C" {
         uint16_t milliseconds);
 
     BACNET_STACK_EXPORT
+    uint32_t Lighting_Output_Create(uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Lighting_Output_Delete(uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    void Lighting_Output_Cleanup(void);
+    BACNET_STACK_EXPORT
     void Lighting_Output_Init(
         void);
 

@@ -29,7 +29,7 @@
 #include "bacnet/wp.h"
 
 /**
- * @brief Callback for gateway write present value request
+ * @brief Callback for tracking value
  * @param  object_instance - object-instance number of the object
  * @param  old_value - BACnetXYColor value prior to write
  * @param  value - BACnetXYColor value of the write
@@ -117,6 +117,9 @@ BACNET_STACK_EXPORT
 void Color_Write_Enable(uint32_t instance);
 BACNET_STACK_EXPORT
 void Color_Write_Disable(uint32_t instance);
+
+BACNET_STACK_EXPORT
+void Color_Object_Timer(uint32_t object_instance, uint16_t milliseconds);
 
 BACNET_STACK_EXPORT
 uint32_t Color_Create(uint32_t object_instance);

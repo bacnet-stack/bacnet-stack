@@ -437,20 +437,16 @@ int xy_color_encode(uint8_t *apdu, BACNET_XY_COLOR *value)
 {
     int len = 0;
     int apdu_len = 0;
-    uint8_t *apdu_offset = NULL;
 
     if (value) {
         /* x-coordinate REAL */
-        if (apdu) {
-            apdu_offset = &apdu[apdu_len];
-        }
-        len = encode_bacnet_real(value->x_coordinate, apdu_offset);
+        len = encode_application_real(apdu, value->x_coordinate);
         apdu_len += len;
-        /* y-coordinate REAL */
         if (apdu) {
-            apdu_offset = &apdu[apdu_len];
+            apdu += len;
         }
-        len = encode_bacnet_real(value->y_coordinate, apdu_offset);
+        /* y-coordinate REAL */
+        len = encode_application_real(apdu, value->y_coordinate);
         apdu_len += len;
     }
 
@@ -497,7 +493,7 @@ int xy_color_context_encode(
  * @param apdu_size - the size of the data buffer
  * @param value - decoded BACnetxyColor, if decoded
  *
- * @return the number of apdu bytes consumed
+ * @return the number of apdu bytes consumed, or BACNET_STATUS_ERROR
  */
 int xy_color_decode(uint8_t *apdu, uint32_t apdu_size, BACNET_XY_COLOR *value)
 {
@@ -505,21 +501,26 @@ int xy_color_decode(uint8_t *apdu, uint32_t apdu_size, BACNET_XY_COLOR *value)
     int len = 0;
     int apdu_len = 0;
 
-    if (apdu && value && (apdu_size >= 8)) {
-        /* each REAL is encoded in 4 octets */
-        len = decode_real(&apdu[0], &real_value);
-        if (len == 4) {
+    if (apdu) {
+        len = bacnet_real_application_decode(&apdu[apdu_len], apdu_size,
+            &real_value);
+        if (len > 0) {
             if (value) {
                 value->x_coordinate = real_value;
             }
             apdu_len += len;
+        } else {
+            return BACNET_STATUS_ERROR;
         }
-        len = decode_real(&apdu[4], &real_value);
-        if (len == 4) {
+        len = bacnet_real_application_decode(&apdu[apdu_len], apdu_size,
+            &real_value);
+        if (len > 0) {
             if (value) {
                 value->y_coordinate = real_value;
             }
             apdu_len += len;
+        } else {
+            return BACNET_STATUS_ERROR;
         }
     }
 

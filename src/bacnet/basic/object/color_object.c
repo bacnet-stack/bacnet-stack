@@ -45,12 +45,22 @@
 struct object_data {
     bool Changed : 1;
     bool Write_Enabled : 1;
+    /* indicate the target color value for the color output */
     BACNET_XY_COLOR Present_Value;
+    /* indicates the components of the object's actual color output */
     BACNET_XY_COLOR Tracking_Value;
+    /* used to request specific behaviors */
     BACNET_COLOR_COMMAND Color_Command;
+    /* indicates that there may be processes in the color object that may
+        cause the Tracking_Value and Present_Value to differ temporarily. */
     BACNET_COLOR_OPERATION_IN_PROGRESS In_Progress;
+    /* the color to be used for the color output when the device is restarted
+       until such time as Present_Value or Color_Command are written */
     BACNET_XY_COLOR Default_Color;
+    /* indicates the amount of time in milliseconds over which changes
+       to the color output reflected in the Tracking_Value property */
     uint32_t Default_Fade_Time;
+    /* The transition may be NONE or FADE. */
     BACNET_COLOR_TRANSITION Transition;
     const char *Object_Name;
     const char *Description;
@@ -198,7 +208,7 @@ bool Color_Present_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
 }
 
 /**
- * For a given object instance-number, sets the present-value
+ * For a given object instance-number, writes to the present-value
  *
  * @param  object_instance - object-instance number of the object
  * @param  value - floating point Color
@@ -216,18 +226,20 @@ static bool Color_Present_Value_Write(uint32_t object_instance,
 {
     bool status = false;
     struct object_data *pObject;
-    BACNET_XY_COLOR old_value = { 0.0, 0.0 };
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
         if (pObject->Write_Enabled) {
-            xy_color_copy(&old_value, &pObject->Present_Value);
-            xy_color_copy(&pObject->Present_Value, value);
-            if (Color_Write_Present_Value_Callback) {
-                Color_Write_Present_Value_Callback(
-                    object_instance, &old_value, value);
+            if (pObject->Transition == BACNET_COLOR_TRANSITION_FADE) {
+                pObject->Color_Command.transit.fade_time =
+                    pObject->Default_Fade_Time;
+            } else {
+                pObject->Color_Command.transit.fade_time = 0;
             }
+            pObject->Color_Command.operation =
+                BACNET_COLOR_OPERATION_FADE_TO_COLOR;
+            xy_color_copy(&pObject->Color_Command.target.color, value);
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -327,6 +339,44 @@ bool Color_Command_Set(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
 }
 
 /**
+ * For a given object instance-number, writes to the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point Color
+ * @param  priority - priority-array index value 1..16
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Color_Command_Write(uint32_t object_instance,
+    BACNET_COLOR_COMMAND *value,
+    uint8_t priority,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        (void)priority;
+        if (pObject->Write_Enabled) {
+            color_command_copy(&pObject->Color_Command, value);
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, gets the property value
  *
  * @param object_instance - object-instance number of the object
@@ -414,10 +464,48 @@ bool Color_Default_Color_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
 }
 
 /**
+ * Handle a WriteProperty to a specific property.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point Color
+ * @param  priority - priority-array index value 1..16
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+bool Color_Default_Color_Write(uint32_t object_instance, BACNET_XY_COLOR *value,
+    uint8_t priority,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        (void)priority;
+        if (pObject->Write_Enabled) {
+            xy_color_copy(&pObject->Default_Color, value);
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, gets the property value
  *
  * @param object_instance - object-instance number of the object
- * @return property value
+ * @return the amount of time in milliseconds over which changes
+ *  to the Color reflected in the Tracking_Value property
  */
 uint32_t Color_Default_Fade_Time(uint32_t object_instance)
 {
@@ -436,7 +524,8 @@ uint32_t Color_Default_Fade_Time(uint32_t object_instance)
  * For a given object instance-number, sets the property value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - BACNET_COLOR_OPERATION_IN_PROGRESS
+ * @param  value - the amount of time in milliseconds over which changes
+ *  to the Color reflected in the Tracking_Value property
  * @return  true if values are within range and value is set.
  */
 bool Color_Default_Fade_Time_Set(uint32_t object_instance, uint32_t value)
@@ -619,6 +708,146 @@ bool Color_Description_Set(uint32_t object_instance, char *new_name)
 }
 
 /**
+* Linearly Interpolate the values between y1 and y3 based on x.
+*
+* @param  x1 - first x value, where x1 <= x2 <= x3 or x1 >= x2 >= x3
+* @param  x2 - intermediate x value, where x1 <= x2 <= x3 or x1 >= x2 >= x3
+* @param  x3 - last x value, where x1 <= x2 <= x3 or x1 >= x2 >= x3
+* @param  y1 - first y value, where y1 <= y2 <= y3 or y1 >= y2 >= y3
+* @param  y3 - last y value, where y1 <= y2 <= y3 or y1 >= y2 >= y3
+* @return y2 - an intermediate y value y1 <= y2 <= y3 or y1 >= y2 >= y3
+*         and the y value is linearly proportional to x1, x2, and x2.
+*/
+static float linear_interpolate(float x1,
+    float x2,
+    float x3,
+    float y1,
+    float y3)
+{
+    float y2;
+
+    if (y3 > y1) {
+        y2 = y1 + (((x2 - x1) * (y3 - y1)) / (x3 - x1));
+    } else {
+        y2 = y1 - (((x2 - x1) * (y1 - y3)) / (x3 - x1));
+    }
+
+    return y2;
+}
+
+/**
+ * Updates the color object tracking value while fading
+ *
+ * Transitioning from one color to another is supported by writing a
+ * FADE_TO_COLOR command to the property Color_Command.
+ * The current color is always indicated in the
+ * Tracking_Value property. If a color command is
+ * currently in progress and the Present_Value is written,
+ * the color command shall be halted.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param milliseconds - number of milliseconds elapsed
+ */
+static void Color_Object_Fade_To_Color_Handler(
+    uint32_t object_instance,
+    uint16_t milliseconds)
+{
+    uint32_t step_fade_time;
+    BACNET_XY_COLOR old_value;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (!pObject) {
+        return;
+    }
+    xy_color_copy(&old_value, &pObject->Tracking_Value);
+    if (milliseconds >= pObject->Color_Command.transit.fade_time) {
+        xy_color_copy(&pObject->Tracking_Value,
+            &pObject->Color_Command.target.color);
+        pObject->In_Progress =
+            BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
+        pObject->Color_Command.operation =
+            BACNET_COLOR_OPERATION_STOP;
+    } else {
+        step_fade_time =
+            pObject->Color_Command.transit.fade_time - milliseconds;
+        if (old_value.x_coordinate <
+            pObject->Color_Command.target.color.x_coordinate) {
+            pObject->Tracking_Value.x_coordinate =
+                linear_interpolate(
+                    pObject->Color_Command.transit.fade_time,
+                    step_fade_time,
+                    0.0F,
+                    old_value.x_coordinate,
+                    pObject->Color_Command.target.color.x_coordinate);
+        } else {
+            pObject->Tracking_Value.x_coordinate =
+                linear_interpolate(
+                    pObject->Color_Command.transit.fade_time,
+                    step_fade_time,
+                    pObject->Color_Command.target.color.x_coordinate,
+                    old_value.x_coordinate,
+                    1.0F);
+        }
+        if (old_value.y_coordinate <
+            pObject->Color_Command.target.color.y_coordinate) {
+            pObject->Tracking_Value.y_coordinate =
+                linear_interpolate(
+                    pObject->Color_Command.transit.fade_time,
+                    step_fade_time,
+                    0.0F,
+                    old_value.y_coordinate,
+                    pObject->Color_Command.target.color.y_coordinate);
+        } else {
+            pObject->Tracking_Value.y_coordinate =
+                linear_interpolate(
+                    pObject->Color_Command.transit.fade_time,
+                    step_fade_time,
+                    pObject->Color_Command.target.color.y_coordinate,
+                    old_value.y_coordinate,
+                    1.0F);
+        }
+        pObject->In_Progress =
+            BACNET_COLOR_OPERATION_IN_PROGRESS_FADE_ACTIVE;
+    }
+    if (Color_Write_Present_Value_Callback) {
+        Color_Write_Present_Value_Callback(
+            object_instance, &old_value, &pObject->Tracking_Value);
+    }
+}
+
+/**
+ * Updates the color object tracking value per ramp or fade
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param milliseconds - number of milliseconds elapsed
+ */
+void Color_Object_Timer(uint32_t object_instance, uint16_t milliseconds)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        switch (pObject->Color_Command.operation) {
+            case BACNET_COLOR_OPERATION_NONE:
+                pObject->In_Progress =
+                    BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
+                break;
+            case BACNET_COLOR_OPERATION_FADE_TO_COLOR:
+                Color_Object_Fade_To_Color_Handler(object_instance,
+                    milliseconds);
+                break;
+            case BACNET_COLOR_OPERATION_STOP:
+                pObject->In_Progress =
+                    BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -725,10 +954,14 @@ bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
+    int apdu_size = 0;
+    uint8_t *apdu = NULL;
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
+    apdu = wp_data->application_data;
+    apdu_size = wp_data->application_data_len;
+    len = bacapp_decode_known_property(apdu, apdu_size,
+        &value, wp_data->object_type, wp_data->object_property);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -746,18 +979,41 @@ bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_XY_COLOR);
             if (status) {
                 status = Color_Present_Value_Write(wp_data->object_instance,
                     &value.type.XY_Color, wp_data->priority,
                     &wp_data->error_class, &wp_data->error_code);
             }
             break;
+        case PROP_COLOR_COMMAND:
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_COLOR_COMMAND);
+            if (status) {
+                status = Color_Command_Write(wp_data->object_instance,
+                    &value.type.Color_Command, wp_data->priority,
+                    &wp_data->error_class, &wp_data->error_code);
+            }
+            break;
+        case PROP_DEFAULT_COLOR:
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_XY_COLOR);
+            if (status) {
+                status = Color_Default_Color_Write(wp_data->object_instance,
+                    &value.type.XY_Color, wp_data->priority,
+                    &wp_data->error_class, &wp_data->error_code);
+            }
+            break;
+        case PROP_DEFAULT_FADE_TIME:
+            break;
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_TYPE:
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
+        case PROP_TRACKING_VALUE:
+        case PROP_IN_PROGRESS:
+        case PROP_TRANSITION:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
@@ -840,9 +1096,9 @@ uint32_t Color_Create(uint32_t object_instance)
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {
         /* wildcard instance */
-        /* the Object_Identifier property of the newly created object 
-            shall be initialized to a value that is unique within the 
-            responding BACnet-user device. The method used to generate 
+        /* the Object_Identifier property of the newly created object
+            shall be initialized to a value that is unique within the
+            responding BACnet-user device. The method used to generate
             the object identifier is a local matter.*/
         object_instance = Keylist_Next_Empty_Key(Object_List, 1);
     }
@@ -859,7 +1115,7 @@ uint32_t Color_Create(uint32_t object_instance)
             pObject->In_Progress = BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
             pObject->Default_Color.x_coordinate = 1.0;
             pObject->Default_Color.y_coordinate = 1.0;
-            pObject->Default_Fade_Time = 0;
+            pObject->Default_Fade_Time = BACNET_COLOR_FADE_TIME_MIN;
             pObject->Transition = BACNET_COLOR_TRANSITION_NONE;
             pObject->Changed = false;
             pObject->Write_Enabled = false;
