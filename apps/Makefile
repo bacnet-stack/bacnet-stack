@@ -201,7 +201,7 @@ endif
 
 ifeq (${BACNET_PORT},linux)
 ifneq (${OSTYPE},cygwin)
-	SUBDIRS += mstpcap mstpcrc
+	SUBDIRS += mstpcap mstpcrc piface blinkt
 endif
 endif
 
@@ -263,6 +263,10 @@ ack-alarm: $(BACNET_LIB_TARGET)
 add-list-element: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@ clean all
 
+.PHONY: blinkt
+blinkt:
+	$(MAKE) -B -C $@
+
 .PHONY: dcc
 dcc: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
@@ -309,6 +313,10 @@ mstpcap:
 
 .PHONY: mstpcrc
 mstpcrc:
+	$(MAKE) -B -C $@
+
+.PHONY: piface
+piface:
 	$(MAKE) -B -C $@
 
 .PHONY: ptransfer
