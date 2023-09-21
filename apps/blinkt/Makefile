@@ -1,6 +1,6 @@
 ###############################################################################
 # Makefile for Project - BACnet Blinkt!
-# sudo apt install libpigpio-dev
+# sudo apt install libpigpio-dev libpigpiod-if-dev pigpiod
 ###############################################################################
 
 ## General Flags
