@@ -107,7 +107,7 @@ gateway-win32:
 
 .PHONY: piface
 piface:
-	$(MAKE) -s -C apps $@
+	$(MAKE) CSTANDARD="-std=gnu11" LEGACY=true -s -C apps $@
 
 .PHONY: readbdt
 readbdt:

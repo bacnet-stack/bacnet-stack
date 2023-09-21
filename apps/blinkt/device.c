@@ -62,6 +62,9 @@
 /* local forward (semi-private) and external prototypes */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
 bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
+extern int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
+extern bool Routed_Device_Write_Property_Local(
+    BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 /* may be overridden by outside table */
 static object_functions_t *Object_Table;
@@ -135,7 +138,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */ }
 };
 
 /** Glue function to let the Device object, when called by a handler,
@@ -1860,7 +1863,7 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
 void Device_Init(object_functions_t *object_table)
 {
     struct object_functions *pObject = NULL;
-    characterstring_init_ansi(&My_Object_Name, "SimpleServer");
+    characterstring_init_ansi(&My_Object_Name, "Blinkt! Server");
     datetime_init();
     if (object_table) {
         Object_Table = object_table;
@@ -1871,14 +1874,6 @@ void Device_Init(object_functions_t *object_table)
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
             pObject->Object_Init();
-        }
-        pObject++;
-    }
-    /* create some dynamically created objects as examples */
-    pObject = Object_Table;
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Create) {
-            pObject->Object_Create(BACNET_MAX_INSTANCE);
         }
         pObject++;
     }

@@ -24,6 +24,8 @@ PIFACE_INCLUDE = libpifacedigital/src
 PIFACE_LIB = libpifacedigital
 MCP23S17_LIB = libmcp23s17
 
+CFLAGS += -I$(PIFACE_INCLUDE)
+
 LDPIFACE = -Wl,-L$(PIFACE_LIB),-lpifacedigital,-L$(MCP23S17_LIB),-lmcp23s17
 LFLAGS += $(LDPIFACE)
 
