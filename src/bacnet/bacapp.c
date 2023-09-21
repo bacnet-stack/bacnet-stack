@@ -55,6 +55,7 @@
 #include "bacnet/lighting.h"
 #include "bacnet/hostnport.h"
 #include "bacnet/weeklyschedule.h"
+#include "bacnet/basic/sys/color_rgb.h"
 #include "bacnet/basic/sys/platform.h"
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
@@ -901,7 +902,7 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     time [0] Time, -- deprecated in version 1 revision 21
                     sequence-number [1] Unsigned (0..65535),
                     datetime [2] BACnetDateTime
-                } 
+                }
             */
             switch (tag_number) {
                 case TIME_STAMP_TIME:
@@ -2642,6 +2643,8 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
 #if defined(BACAPP_TYPES_EXTRA)
     unsigned a[4] = { 0 }, p = 0;
     float x, y;
+    uint8_t red, green, blue;
+    unsigned rgb_max;
 #endif
 
     if (value && (tag_number != MAX_BACNET_APPLICATION_TAG)) {
@@ -2798,7 +2801,15 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                     value->type.XY_Color.x_coordinate = x;
                     value->type.XY_Color.y_coordinate = y;
                 } else {
-                    status = false;
+                    rgb_max = color_rgb_count();
+                    count = color_rgb_from_ascii(&red, &green, &blue, argv);
+                    if (count < rgb_max) {
+                        color_rgb_to_xy(red, green, blue, &x, &y, 255);
+                        value->type.XY_Color.x_coordinate = x;
+                        value->type.XY_Color.y_coordinate = y;
+                    } else {
+                        status = false;
+                    }
                 }
                 break;
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:

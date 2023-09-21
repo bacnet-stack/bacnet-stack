@@ -139,6 +139,32 @@ static void blinkt_cleanup(void)
 /**
  * @brief Callback for tracking value
  * @param  object_instance - object-instance number of the object
+ * @param  old_value - Color temperature value prior to write
+ * @param  value - Color temperature value of the write
+ */
+static void Color_Temperature_Write_Value_Handler(
+    uint32_t object_instance,
+    uint32_t old_value,
+    uint32_t value)
+{
+    uint8_t red, green, blue;
+    uint8_t index = 255;
+
+    (void)old_value;
+    if (object_instance > 0) {
+        index = object_instance - 1;
+    }
+    if (index < blinkt_led_count()) {
+        color_rgb_from_temperature(value, &red, &green, &blue);
+        blinkt_set_pixel(index, red, green, blue);
+        printf("%u Kelvin RGB[%u]=%u,%u,%u\n", (unsigned)value,
+            (unsigned)index, (unsigned)red, (unsigned)green, (unsigned)blue);
+    }
+}
+
+/**
+ * @brief Callback for tracking value
+ * @param  object_instance - object-instance number of the object
  * @param  old_value - BACnetXYColor value prior to write
  * @param  value - BACnetXYColor value of the write
  */
@@ -147,7 +173,8 @@ static void Color_Write_Value_Handler(uint32_t object_instance,
     BACNET_XY_COLOR *value)
 {
     uint8_t red, green, blue;
-    uint8_t brightness = 255;
+    uint8_t brightness = 127;
+    float brightness_percent = 0.0;
     uint8_t index = 255;
 
     (void)old_value;
@@ -155,13 +182,15 @@ static void Color_Write_Value_Handler(uint32_t object_instance,
         index = object_instance - 1;
     }
     if (index < blinkt_led_count()) {
+        brightness_percent = brightness;
+        brightness_percent /= 255.0;
         color_rgb_from_xy(&red, &green, &blue,
             value->x_coordinate, value->y_coordinate,
             brightness);
         blinkt_set_pixel(index, red, green, blue);
-        blinkt_show();
-        printf("RGB[%u]=%u,%u,%u\n", (unsigned)index,
-            (unsigned)red, (unsigned)green, (unsigned)blue);
+        printf("x,y=%0.2f,%0.2f(%.1f%%) RGB[%u]=%u,%u,%u\n",
+            value->x_coordinate, value->y_coordinate, brightness_percent,
+            (unsigned)index, (unsigned)red, (unsigned)green, (unsigned)blue);
     }
 }
 
@@ -173,14 +202,27 @@ static void bacnet_output_init(void)
     unsigned i = 0;
     uint8_t led_max;
     uint32_t object_instance = 1;
+    BACNET_COLOR_COMMAND command = { 0 };
 
     led_max = blinkt_led_count();
     for (i = 0; i < led_max; i++) {
         Color_Create(object_instance);
         Color_Write_Enable(object_instance);
+        /* stop the color */
+        Color_Command(object_instance, &command);
+        command.operation = BACNET_COLOR_OPERATION_STOP;
+        Color_Command_Set(object_instance, &command);
+        /* fade the color temperature */
+        Color_Temperature_Command(object_instance, &command);
+        command.operation = BACNET_COLOR_OPERATION_FADE_TO_CCT;
+        Color_Temperature_Command_Set(object_instance, &command);
+        Color_Temperature_Create(object_instance);
+        Color_Temperature_Write_Enable(object_instance);
         object_instance++;
     }
     Color_Write_Present_Value_Callback_Set(Color_Write_Value_Handler);
+    Color_Temperature_Write_Present_Value_Callback_Set(
+        Color_Temperature_Write_Value_Handler);
 }
 
 /**
@@ -199,8 +241,10 @@ static void bacnet_output_task(void)
         led_max = blinkt_led_count();
         for (i = 0; i < led_max; i++) {
             Color_Object_Timer(object_instance, milliseconds);
+            Color_Temperature_Timer(object_instance, milliseconds);
             object_instance++;
         }
+        blinkt_show();
     }
 }
 

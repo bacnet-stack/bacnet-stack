@@ -86,6 +86,9 @@ typedef struct BACnetColorCommand {
 #define BACNET_COLOR_STEP_INCREMENT_MIN 1ul
 #define BACNET_COLOR_STEP_INCREMENT_MAX 30000ul
 
+#define BACNET_COLOR_TEMPERATURE_MIN 1000ul
+#define BACNET_COLOR_TEMPERATURE_MAX 30000ul
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
