@@ -155,6 +155,7 @@ void blinkt_stop(void)
 {
     /* Disconnect from local Pi. */
     pigpio_stop(Blinkt_Pi);
+    printf("PiGPIO stopped\n");
 }
 
 /**
@@ -168,14 +169,15 @@ int blinkt_init(void)
     /* Connect to local Pi. */
     Blinkt_Pi = pigpio_start(optHost, optPort);
     if (Blinkt_Pi < 0) {
+        perror("PiGPIO failed to start!");
         return -1;
     }
     set_mode(Blinkt_Pi, BLINKT_MOSI, PI_OUTPUT);
     gpio_write(Blinkt_Pi, BLINKT_MOSI, 0);
     set_mode(Blinkt_Pi, BLINKT_SCLK, PI_OUTPUT);
     gpio_write(Blinkt_Pi, BLINKT_SCLK, 0);
-
     blinkt_clear();
+    printf("PiGPIO started\n");
 
     return 0;
 }

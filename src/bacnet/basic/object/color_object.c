@@ -230,21 +230,18 @@ static bool Color_Present_Value_Write(uint32_t object_instance,
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
-        if (pObject->Write_Enabled) {
-            if (pObject->Transition == BACNET_COLOR_TRANSITION_FADE) {
-                pObject->Color_Command.transit.fade_time =
-                    pObject->Default_Fade_Time;
-            } else {
-                pObject->Color_Command.transit.fade_time = 0;
-            }
-            pObject->Color_Command.operation =
-                BACNET_COLOR_OPERATION_FADE_TO_COLOR;
-            xy_color_copy(&pObject->Color_Command.target.color, value);
-            status = true;
+        xy_color_copy(&pObject->Present_Value, value);
+        /* configure the color-command to perform the transition */
+        if (pObject->Transition == BACNET_COLOR_TRANSITION_FADE) {
+            pObject->Color_Command.transit.fade_time =
+                pObject->Default_Fade_Time;
         } else {
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            pObject->Color_Command.transit.fade_time = 0;
         }
+        pObject->Color_Command.operation =
+            BACNET_COLOR_OPERATION_FADE_TO_COLOR;
+        xy_color_copy(&pObject->Color_Command.target.color, value);
+        status = true;
     } else {
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;

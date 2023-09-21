@@ -47,6 +47,7 @@
 #include "bacport.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/color_rgb.h"
+#include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/version.h"
 /* include the device object */
@@ -158,6 +159,9 @@ static void Color_Write_Value_Handler(uint32_t object_instance,
             value->x_coordinate, value->y_coordinate,
             brightness);
         blinkt_set_pixel(index, red, green, blue);
+        blinkt_show();
+        printf("RGB[%u]=%u,%u,%u\n", (unsigned)index,
+            (unsigned)red, (unsigned)green, (unsigned)blue);
     }
 }
 
@@ -200,6 +204,38 @@ static void bacnet_output_task(void)
     }
 }
 
+/**
+ * @brief Print the terse usage info
+ * @param filename - this application file name
+ */
+static void print_usage(const char *filename)
+{
+    printf("Usage: %s [device-instance]\n", filename);
+    printf("       [--device N][--test]\n");
+    printf("       [--version][--help]\n");
+}
+
+/**
+ * @brief Print the verbose usage info
+ * @param filename - this application file name
+ */
+static void print_help(const char *filename)
+{
+    printf("BACnet Blinkt! server device.\n");
+    printf("device-instance:\n"
+           "--device N:\n"
+           "BACnet Device Object Instance number of this device.\n"
+           "This number will be used when other devices\n"
+           "try and bind with this device using Who-Is and\n"
+           "I-Am services.\n");
+    printf("\n");
+    printf("--test:\n"
+           "Test the Blinkt! RGB LEDs with a cycling pattern.\n");
+    printf("\n");
+    printf("Example:\n"
+           "%s 9009\n", filename);
+}
+
 /** Main function of server demo.
  *
  * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
@@ -218,11 +254,47 @@ int main(int argc, char *argv[])
     uint16_t pdu_len = 0;
     unsigned timeout_ms = 1;
     unsigned long seconds = 0;
+    bool blinkt_test = false;
+    unsigned int target_args = 0;
+    uint32_t device_id = BACNET_MAX_INSTANCE;
+    int argi = 0;
+    char *filename = NULL;
 
-    /* allow the device ID to be set */
-    if (argc > 1) {
-        Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
+    filename = filename_remove_path(argv[0]);
+    for (argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--help") == 0) {
+            print_usage(filename);
+            print_help(filename);
+            return 0;
+        }
+        if (strcmp(argv[argi], "--version") == 0) {
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2023 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            return 0;
+        }
+        if (strcmp(argv[argi], "--device") == 0) {
+            if (++argi < argc) {
+                device_id = strtol(argv[argi], NULL, 0);
+            }
+        } else if (strcmp(argv[argi], "--test") == 0) {
+            blinkt_test = true;
+        } else {
+            if (target_args == 0) {
+                device_id = strtol(argv[argi], NULL, 0);
+                target_args++;
+            }
+        }
     }
+    if (device_id > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "device=%u - it must be less than %u\n",
+            device_id, BACNET_MAX_INSTANCE);
+        return 1;
+    }
+    Device_Set_Object_Instance_Number(device_id);
     printf("BACnet Raspberry Pi Blinkt! Demo\n"
            "BACnet Stack Version %s\n"
            "BACnet Device ID: %u\n"
@@ -268,7 +340,11 @@ int main(int argc, char *argv[])
             address_cache_timer(seconds);
         }
         /* output/input */
-        bacnet_output_task();
+        if (blinkt_test) {
+            blinkt_test_task();
+        } else {
+            bacnet_output_task();
+        }
     }
 
     return 0;
