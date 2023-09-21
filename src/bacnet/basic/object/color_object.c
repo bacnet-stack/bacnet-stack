@@ -1107,15 +1107,22 @@ uint32_t Color_Create(uint32_t object_instance)
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
             pObject->Object_Name = NULL;
-            pObject->Present_Value.x_coordinate = 0.0;
-            pObject->Present_Value.y_coordinate = 0.0;
-            pObject->Tracking_Value.x_coordinate = 0.0;
-            pObject->Tracking_Value.y_coordinate = 0.0;
-            pObject->Color_Command.operation = BACNET_COLOR_OPERATION_NONE;
-            pObject->In_Progress = BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
-            pObject->Default_Color.x_coordinate = 1.0;
-            pObject->Default_Color.y_coordinate = 1.0;
+            /* color defaults */
+            xy_color_set(&pObject->Present_Value, 0.0, 0.0);
+            xy_color_set(&pObject->Tracking_Value, 0.0, 0.0);
+            xy_color_set(&pObject->Default_Color, 1.0, 1.0);
             pObject->Default_Fade_Time = BACNET_COLOR_FADE_TIME_MIN;
+            /* at powerup - fade to default color */
+            xy_color_copy(&pObject->Color_Command.target.color,
+                &pObject->Default_Color);
+            pObject->Color_Command.operation =
+                BACNET_COLOR_OPERATION_FADE_TO_COLOR;
+            pObject->Color_Command.operation =
+                BACNET_COLOR_OPERATION_FADE_TO_COLOR;
+            pObject->Color_Command.transit.fade_time =
+                pObject->Default_Fade_Time;
+            /* initialize all the status */
+            pObject->In_Progress = BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
             pObject->Transition = BACNET_COLOR_TRANSITION_NONE;
             pObject->Changed = false;
             pObject->Write_Enabled = false;

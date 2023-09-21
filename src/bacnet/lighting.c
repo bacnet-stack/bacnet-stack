@@ -572,6 +572,20 @@ int xy_color_context_decode(uint8_t *apdu,
 }
 
 /**
+ * @brief Set the BACnetxyColor complex data for x and y coordinates
+ * @param dst - destination BACNET_XY_COLOR structure
+ * @param x - x coordinate
+ * @param x - y coordinate
+ */
+void xy_color_set(BACNET_XY_COLOR *dst, float x, float y)
+{
+    if (dst) {
+        dst->x_coordinate = x;
+        dst->y_coordinate = y;
+    }
+}
+
+/**
  * @brief Copy the BACnetxyColor complex data from src to dst
  * @param dst - destination BACNET_XY_COLOR structure
  * @param src - source BACNET_XY_COLOR structure

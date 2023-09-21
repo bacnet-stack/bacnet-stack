@@ -140,6 +140,11 @@ extern "C" {
     bool xy_color_same(
         BACNET_XY_COLOR *value1,
         BACNET_XY_COLOR *value2);
+    BACNET_STACK_EXPORT
+    void xy_color_set(
+        BACNET_XY_COLOR *dst,
+        float x,
+        float y);
 
     BACNET_STACK_EXPORT
     int color_command_encode(
