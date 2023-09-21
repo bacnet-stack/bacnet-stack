@@ -2804,7 +2804,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                     rgb_max = color_rgb_count();
                     count = color_rgb_from_ascii(&red, &green, &blue, argv);
                     if (count < rgb_max) {
-                        color_rgb_to_xy(red, green, blue, &x, &y, 255);
+                        color_rgb_to_xy(red, green, blue, &x, &y, NULL);
                         value->type.XY_Color.x_coordinate = x;
                         value->type.XY_Color.y_coordinate = y;
                     } else {
