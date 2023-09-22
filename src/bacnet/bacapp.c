@@ -2801,13 +2801,16 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                     value->type.XY_Color.x_coordinate = x;
                     value->type.XY_Color.y_coordinate = y;
                 } else {
+#if defined(BACAPP_COLOR_RGB_CONVERSION_ENABLED)                    
                     rgb_max = color_rgb_count();
                     count = color_rgb_from_ascii(&red, &green, &blue, argv);
                     if (count < rgb_max) {
                         color_rgb_to_xy(red, green, blue, &x, &y, NULL);
                         value->type.XY_Color.x_coordinate = x;
                         value->type.XY_Color.y_coordinate = y;
-                    } else {
+                    } else 
+#endif
+                    {
                         status = false;
                     }
                 }
