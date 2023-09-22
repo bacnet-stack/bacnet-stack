@@ -847,43 +847,33 @@ static void Color_Object_Fade_To_Color_Handler(
     }
     xy_color_copy(&old_value, &pObject->Tracking_Value);
     if (milliseconds >= pObject->Color_Command.transit.fade_time) {
+        /* stop fading */
         xy_color_copy(&pObject->Tracking_Value,
             &pObject->Color_Command.target.color);
         pObject->In_Progress =
             BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
         pObject->Color_Command.operation =
             BACNET_COLOR_OPERATION_STOP;
+        pObject->Color_Command.transit.fade_time = 0;
     } else {
-        /* calculate new X coordinate */
-        if (old_value.x_coordinate <
-            pObject->Color_Command.target.color.x_coordinate) {
+        if (xy_color_same(&old_value, &pObject->Color_Command.target.color)) {
+            /* stop fading */
+            xy_color_copy(&pObject->Tracking_Value,
+                &pObject->Color_Command.target.color);
+            pObject->In_Progress =
+                BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
+            pObject->Color_Command.operation =
+                BACNET_COLOR_OPERATION_STOP;
+            pObject->Color_Command.transit.fade_time = 0;
+        } else {
+            /* fading */
             pObject->Tracking_Value.x_coordinate =
                 linear_interpolate(
-                    pObject->Color_Command.transit.fade_time,
-                    milliseconds,
-                    0,
-                    old_value.x_coordinate,
-                    pObject->Color_Command.target.color.x_coordinate);
-        } else {
-            pObject->Tracking_Value.x_coordinate =
-                linear_interpolate(
                     0,
                     milliseconds,
                     pObject->Color_Command.transit.fade_time,
                     old_value.x_coordinate,
                     pObject->Color_Command.target.color.x_coordinate);
-        }
-        /* calculate new Y coordinate */
-        if (old_value.y_coordinate <
-            pObject->Color_Command.target.color.y_coordinate) {
-            pObject->Tracking_Value.y_coordinate =
-                linear_interpolate(
-                    pObject->Color_Command.transit.fade_time,
-                    milliseconds,
-                    0,
-                    old_value.y_coordinate,
-                    pObject->Color_Command.target.color.y_coordinate);
-        } else {
             pObject->Tracking_Value.y_coordinate =
                 linear_interpolate(
                     0,
@@ -891,10 +881,10 @@ static void Color_Object_Fade_To_Color_Handler(
                     pObject->Color_Command.transit.fade_time,
                     old_value.y_coordinate,
                     pObject->Color_Command.target.color.y_coordinate);
+            pObject->Color_Command.transit.fade_time -= milliseconds;
+            pObject->In_Progress =
+                BACNET_COLOR_OPERATION_IN_PROGRESS_FADE_ACTIVE;
         }
-        pObject->Color_Command.transit.fade_time -= milliseconds;
-        pObject->In_Progress =
-            BACNET_COLOR_OPERATION_IN_PROGRESS_FADE_ACTIVE;
     }
     if (Color_Write_Present_Value_Callback) {
         Color_Write_Present_Value_Callback(
@@ -1216,7 +1206,8 @@ uint32_t Color_Create(uint32_t object_instance)
             /* at powerup - fade to default color */
             xy_color_copy(&pObject->Color_Command.target.color,
                 &pObject->Default_Color);
-            pObject->Color_Command.operation = BACNET_COLOR_OPERATION_NONE;
+            pObject->Color_Command.operation =
+                BACNET_COLOR_OPERATION_FADE_TO_COLOR;
             pObject->Color_Command.transit.fade_time =
                 pObject->Default_Fade_Time;
             /* initialize all the status */

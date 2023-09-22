@@ -206,18 +206,20 @@ static void bacnet_output_init(void)
 
     led_max = blinkt_led_count();
     for (i = 0; i < led_max; i++) {
+        /* color */
         Color_Create(object_instance);
         Color_Write_Enable(object_instance);
         /* stop the color */
         Color_Command(object_instance, &command);
         command.operation = BACNET_COLOR_OPERATION_STOP;
         Color_Command_Set(object_instance, &command);
+        /* color temperature */
+        Color_Temperature_Create(object_instance);
+        Color_Temperature_Write_Enable(object_instance);
         /* fade the color temperature */
         Color_Temperature_Command(object_instance, &command);
         command.operation = BACNET_COLOR_OPERATION_FADE_TO_CCT;
         Color_Temperature_Command_Set(object_instance, &command);
-        Color_Temperature_Create(object_instance);
-        Color_Temperature_Write_Enable(object_instance);
         object_instance++;
     }
     Color_Write_Present_Value_Callback_Set(Color_Write_Value_Handler);

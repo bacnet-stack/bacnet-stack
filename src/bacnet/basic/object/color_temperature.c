@@ -1098,7 +1098,7 @@ static void Color_Temperature_Fade_To_CCT_Handler(
         target_value = min_value;
     }
     if (milliseconds >= pObject->Color_Command.transit.fade_time) {
-        /* done fadiing */
+        /* done fading */
         pObject->Tracking_Value = target_value;
         pObject->In_Progress =
             BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
@@ -1106,32 +1106,23 @@ static void Color_Temperature_Fade_To_CCT_Handler(
             BACNET_COLOR_OPERATION_STOP;
         pObject->Color_Command.transit.fade_time = 0;
     } else {
-        if (old_value < target_value) {
-            /* fading up */
-            pObject->Tracking_Value =
-                linear_interpolate_int(
-                    0,
-                    milliseconds,
-                    pObject->Color_Command.transit.fade_time,
-                    old_value,
-                    target_value);
-        } else if (old_value < target_value) {
-            /* fading down */
-            pObject->Tracking_Value =
-                linear_interpolate_int(
-                    pObject->Color_Command.transit.fade_time,
-                    milliseconds,
-                    0,
-                    old_value,
-                    target_value);
-        } else {
-            /* stop fadiing */
+        if (old_value == target_value) {
+            /* stop fading */
             pObject->Tracking_Value = target_value;
             pObject->In_Progress =
                 BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
             pObject->Color_Command.operation =
                 BACNET_COLOR_OPERATION_STOP;
             pObject->Color_Command.transit.fade_time = 0;
+        } else {
+            /* fading */
+            pObject->Tracking_Value =
+                linear_interpolate_int(
+                    0,
+                    milliseconds,
+                    pObject->Color_Command.transit.fade_time,
+                    old_value,
+                    target_value);
         }
         pObject->Color_Command.transit.fade_time -= milliseconds;
         pObject->In_Progress =
@@ -1666,7 +1657,8 @@ uint32_t Color_Temperature_Create(uint32_t object_instance)
             pObject->Present_Value_Minimum = BACNET_COLOR_TEMPERATURE_MIN;
             pObject->Present_Value_Maximum = BACNET_COLOR_TEMPERATURE_MAX;
             /* configure to transition from power up values */
-            pObject->Color_Command.operation = BACNET_COLOR_OPERATION_NONE;
+            pObject->Color_Command.operation =
+                BACNET_COLOR_OPERATION_FADE_TO_CCT;
             pObject->Color_Command.transit.fade_time =
                 pObject->Default_Fade_Time;
             pObject->Color_Command.target.color_temperature =
