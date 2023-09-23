@@ -35,9 +35,14 @@ static void testColorObject(void)
     const uint32_t instance = 123;
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     bool status = false;
+    unsigned index;
 
     Color_Init();
     Color_Create(instance);
+    status = Color_Valid_Instance(instance);
+    zassert_true(status, NULL);
+    index = Color_Instance_To_Index(instance);
+    zassert_equal(index, 0, NULL);
 
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
@@ -114,6 +119,13 @@ static void testColorObject(void)
         }
         pOptional++;
     }
+    rpdata.object_property = PROP_ALL;
+    len = Color_Read_Property(&rpdata);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    status = Color_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    status = Color_Delete(instance);
+    zassert_true(status, NULL);
 
     return;
 }
