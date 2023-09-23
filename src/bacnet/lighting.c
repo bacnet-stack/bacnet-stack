@@ -161,8 +161,6 @@ int lighting_command_decode(
 {
     int len = 0;
     int apdu_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
     uint32_t enum_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     BACNET_LIGHTING_OPERATION operation = BACNET_LIGHTS_NONE;
@@ -653,6 +651,65 @@ bool xy_color_same(BACNET_XY_COLOR *value1, BACNET_XY_COLOR *value2)
         if (!islessgreater(value1->x_coordinate, value2->x_coordinate) &&
             !islessgreater(value1->y_coordinate, value2->y_coordinate)) {
             status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * Convert BACnetXYcolor to ASCII for printing
+ *
+ * @param value - struct to convert to ASCII
+ * @param buf - ASCII output buffer (or NULL for size)
+ * @param buf_size - ASCII output buffer capacity (or 0 for size)
+ *
+ * @return the number of characters which would be generated for the given
+ *  input, excluding the trailing null. negative is returned if the
+ *  capacity was not sufficient.
+ *
+ * @note buf and buf_size may be null and zero to return only the size
+ */
+int xy_color_to_ascii(
+    const BACNET_XY_COLOR *value,
+    char *buf,
+    size_t buf_size)
+{
+    return snprintf(buf, buf_size, "(%f,%f)",  value->x_coordinate,
+        value->x_coordinate);
+}
+
+/**
+ * @brief Parse an ASCII string for a BACnetXYcolor
+ * @param mac [out] BACNET_XY_COLOR structure to store the results
+ * @param arg [in] nul terminated ASCII string to parse
+ * @return true if the address was parsed
+ */
+bool xy_color_from_ascii(BACNET_XY_COLOR *value, const char *argv)
+{
+    bool status;
+    int count;
+    float x,y;
+
+    count = sscanf(argv, "%f,%f", &x, &y);
+    if (count == 2) {
+        value->x_coordinate = x;
+        value->y_coordinate = y;
+    } else {
+#if defined(BACAPP_COLOR_RGB_CONVERSION_ENABLED)
+        uint8_t red, green, blue;
+        unsigned rgb_max;
+
+        rgb_max = color_rgb_count();
+        count = color_rgb_from_ascii(&red, &green, &blue, argv);
+        if (count < rgb_max) {
+            color_rgb_to_xy(red, green, blue, &x, &y, NULL);
+            value->x_coordinate = x;
+            value->y_coordinate = y;
+        } else
+#endif
+        {
+            status = false;
         }
     }
 

@@ -55,7 +55,6 @@
 #include "bacnet/lighting.h"
 #include "bacnet/hostnport.h"
 #include "bacnet/weeklyschedule.h"
-#include "bacnet/basic/sys/color_rgb.h"
 #include "bacnet/basic/sys/platform.h"
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
@@ -2268,9 +2267,8 @@ int bacapp_snprintf_value(
                 break;
             case BACNET_APPLICATION_TAG_XY_COLOR:
                 /* BACnetxyColor */
-                ret_val = snprintf(str, str_len, "(%f,%f)",
-                    value->type.XY_Color.x_coordinate,
-                    value->type.XY_Color.x_coordinate);
+                ret_val = xy_color_to_ascii(&value->type.XY_Color, str,
+                    str_len);
                 break;
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
@@ -2642,9 +2640,6 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
     int count = 0;
 #if defined(BACAPP_TYPES_EXTRA)
     unsigned a[4] = { 0 }, p = 0;
-    float x, y;
-    uint8_t red, green, blue;
-    unsigned rgb_max;
 #endif
 
     if (value && (tag_number != MAX_BACNET_APPLICATION_TAG)) {
@@ -2796,24 +2791,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                 break;
             case BACNET_APPLICATION_TAG_XY_COLOR:
                 /* BACnetxyColor */
-                count = sscanf(argv, "%f,%f", &x, &y);
-                if (count == 2) {
-                    value->type.XY_Color.x_coordinate = x;
-                    value->type.XY_Color.y_coordinate = y;
-                } else {
-#if defined(BACAPP_COLOR_RGB_CONVERSION_ENABLED)                    
-                    rgb_max = color_rgb_count();
-                    count = color_rgb_from_ascii(&red, &green, &blue, argv);
-                    if (count < rgb_max) {
-                        color_rgb_to_xy(red, green, blue, &x, &y, NULL);
-                        value->type.XY_Color.x_coordinate = x;
-                        value->type.XY_Color.y_coordinate = y;
-                    } else 
-#endif
-                    {
-                        status = false;
-                    }
-                }
+                status = xy_color_from_ascii(&value->type.XY_Color, argv);
                 break;
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* FIXME: add parsing for BACnetColorCommand */

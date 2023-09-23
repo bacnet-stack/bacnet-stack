@@ -148,6 +148,15 @@ extern "C" {
         BACNET_XY_COLOR *dst,
         float x,
         float y);
+    BACNET_STACK_EXPORT
+    int xy_color_to_ascii(
+        const BACNET_XY_COLOR *value,
+        char *buf,
+        size_t buf_size);
+    BACNET_STACK_EXPORT
+    bool xy_color_from_ascii(
+        BACNET_XY_COLOR *value,
+        const char *arg);
 
     BACNET_STACK_EXPORT
     int color_command_encode(
