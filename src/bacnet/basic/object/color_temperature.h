@@ -29,7 +29,7 @@
 #include "bacnet/wp.h"
 
 /**
- * @brief Callback for gateway write present value request
+ * @brief Callback for write present value request
  * @param  object_instance - object-instance number of the object
  * @param  old_value - 32-bit value prior to write
  * @param  value - 32-bit value of the write

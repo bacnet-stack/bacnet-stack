@@ -2049,10 +2049,9 @@ typedef enum BACnetLightingInProgress {
 } BACNET_LIGHTING_IN_PROGRESS;
 
 typedef enum BACnetLightingTransition {
-    BACNET_LIGHTING_TRANSITION_IDLE = 0,
+    BACNET_LIGHTING_TRANSITION_NONE = 0,
     BACNET_LIGHTING_TRANSITION_FADE = 1,
     BACNET_LIGHTING_TRANSITION_RAMP = 2,
-    MAX_BACNET_LIGHTING_TRANSITION = 3,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to
        the procedures and constraints described in Clause 23. */

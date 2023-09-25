@@ -1689,14 +1689,14 @@ const char *bactext_life_safety_state_name(unsigned index)
         return indtext_by_index_default(
             life_safety_state_names, index, ASHRAE_Reserved_String);
     } else {
-        return "Invalid Safety State Message";
+        return "Invalid BACnetLifeSafetyState";
     }
 }
 
 INDTEXT_DATA lighting_in_progress[] = { { BACNET_LIGHTING_IDLE, "idle" },
     { BACNET_LIGHTING_FADE_ACTIVE, "fade" },
     { BACNET_LIGHTING_RAMP_ACTIVE, "ramp" },
-    { BACNET_LIGHTING_NOT_CONTROLLED, "not" },
+    { BACNET_LIGHTING_NOT_CONTROLLED, "not-controlled" },
     { BACNET_LIGHTING_OTHER, "other" },
     { BACNET_LIGHTING_TRIM_ACTIVE, "trim-active" }, { 0, NULL } };
 
@@ -1706,22 +1706,24 @@ const char *bactext_lighting_in_progress(unsigned index)
         return indtext_by_index_default(
             lighting_in_progress, index, ASHRAE_Reserved_String);
     } else {
-        return "Invalid Lighting In Progress Message";
+        return "Invalid BACnetLightingInProgress";
     }
 }
 
-INDTEXT_DATA lighting_transition[] = { { BACNET_LIGHTING_TRANSITION_IDLE,
-                                           "idle" },
+INDTEXT_DATA lighting_transition[] = {
+    { BACNET_LIGHTING_TRANSITION_NONE, "none" },
     { BACNET_LIGHTING_TRANSITION_FADE, "fade" },
     { BACNET_LIGHTING_TRANSITION_RAMP, "ramp" }, { 0, NULL } };
 
 const char *bactext_lighting_transition(unsigned index)
 {
-    if (index < MAX_BACNET_LIGHTING_TRANSITION) {
+    if (index < BACNET_LIGHTING_TRANSITION_PROPRIETARY_FIRST) {
         return indtext_by_index_default(
             lighting_transition, index, ASHRAE_Reserved_String);
+    } else if (index <= BACNET_LIGHTING_TRANSITION_PROPRIETARY_LAST) {
+        return Vendor_Proprietary_String;
     } else {
-        return "Invalid Lighting Transition Message";
+        return "Invalid BACnetLightingTransition";
     }
 }
 

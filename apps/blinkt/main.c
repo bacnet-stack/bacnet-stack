@@ -48,12 +48,12 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/color_rgb.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/linear.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/version.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/bi.h"
-#include "bacnet/basic/object/bo.h"
+#include "bacnet/basic/object/lo.h"
 #include "bacnet/basic/object/channel.h"
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
@@ -142,6 +142,37 @@ static void blinkt_cleanup(void)
  * @param  old_value - Color temperature value prior to write
  * @param  value - Color temperature value of the write
  */
+static void Lighting_Output_Write_Value_Handler(
+    uint32_t object_instance,
+    float old_value,
+    float value)
+{
+    uint8_t index = 255;
+    uint8_t brightness;
+
+    (void)old_value;
+    if (object_instance > 0) {
+        index = object_instance - 1;
+    }
+    if (index < blinkt_led_count()) {
+        /* brightness intensity from 0..31, 0=OFF, 1=dimmest, 31=brightest */
+        if (isgreaterequal(value, 1.0)) {
+            brightness = linear_interpolate(1.0, value, 100.0, 1, 31);
+        } else {
+            brightness = 0;
+        }
+        blinkt_set_pixel_brightness(index, brightness);
+        printf("LED[%u]=%.1f%% (%u)\n",
+            (unsigned)index, value, (unsigned)brightness);
+    }
+}
+
+/**
+ * @brief Callback for tracking value
+ * @param  object_instance - object-instance number of the object
+ * @param  old_value - Color temperature value prior to write
+ * @param  value - Color temperature value of the write
+ */
 static void Color_Temperature_Write_Value_Handler(
     uint32_t object_instance,
     uint32_t old_value,
@@ -173,8 +204,7 @@ static void Color_Write_Value_Handler(uint32_t object_instance,
     BACNET_XY_COLOR *value)
 {
     uint8_t red, green, blue;
-    uint8_t brightness = 127;
-    float brightness_percent = 0.0;
+    float brightness_percent = 100.0;
     uint8_t index = 255;
 
     (void)old_value;
@@ -182,11 +212,9 @@ static void Color_Write_Value_Handler(uint32_t object_instance,
         index = object_instance - 1;
     }
     if (index < blinkt_led_count()) {
-        brightness_percent = brightness;
-        brightness_percent /= 255.0;
         color_rgb_from_xy(&red, &green, &blue,
             value->x_coordinate, value->y_coordinate,
-            brightness);
+            brightness_percent);
         blinkt_set_pixel(index, red, green, blue);
         printf("x,y=%0.2f,%0.2f(%.1f%%) RGB[%u]=%u,%u,%u\n",
             value->x_coordinate, value->y_coordinate, brightness_percent,
@@ -203,28 +231,42 @@ static void bacnet_output_init(void)
     uint8_t led_max;
     uint32_t object_instance = 1;
     BACNET_COLOR_COMMAND command = { 0 };
+    BACNET_OBJECT_ID object_id;
 
     led_max = blinkt_led_count();
     for (i = 0; i < led_max; i++) {
         /* color */
         Color_Create(object_instance);
         Color_Write_Enable(object_instance);
-        /* stop the color */
+        /* fade to black */
         Color_Command(object_instance, &command);
-        command.operation = BACNET_COLOR_OPERATION_STOP;
+        command.operation = BACNET_COLOR_OPERATION_FADE_TO_COLOR;
+        command.target.color.x_coordinate = 0.0;
+        command.target.color.y_coordinate = 0.0;
+        command.transit.fade_time = 0;
         Color_Command_Set(object_instance, &command);
+
         /* color temperature */
         Color_Temperature_Create(object_instance);
         Color_Temperature_Write_Enable(object_instance);
-        /* fade the color temperature */
+        /* stop the color temperature */
         Color_Temperature_Command(object_instance, &command);
-        command.operation = BACNET_COLOR_OPERATION_FADE_TO_CCT;
+        command.operation = BACNET_COLOR_OPERATION_STOP;
         Color_Temperature_Command_Set(object_instance, &command);
+
+        /* lighting output */
+        Lighting_Output_Create(object_instance);
+        object_id.type = OBJECT_COLOR;
+        object_id.instance = object_instance;
+        Lighting_Output_Color_Reference_Set(object_instance, &object_id);
+
         object_instance++;
     }
     Color_Write_Present_Value_Callback_Set(Color_Write_Value_Handler);
     Color_Temperature_Write_Present_Value_Callback_Set(
         Color_Temperature_Write_Value_Handler);
+    Lighting_Output_Write_Present_Value_Callback_Set(
+        Lighting_Output_Write_Value_Handler);
 }
 
 /**
@@ -244,6 +286,7 @@ static void bacnet_output_task(void)
         for (i = 0; i < led_max; i++) {
             Color_Object_Timer(object_instance, milliseconds);
             Color_Temperature_Timer(object_instance, milliseconds);
+            Lighting_Output_Timer(object_instance, milliseconds);
             object_instance++;
         }
         blinkt_show();

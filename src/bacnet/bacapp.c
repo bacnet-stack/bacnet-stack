@@ -2155,6 +2155,16 @@ int bacapp_snprintf_value(
                         ret_val = snprintf(str, str_len, "%s",
                             bactext_node_type_name(value->type.Enumerated));
                         break;
+                    case PROP_TRANSITION:
+                        ret_val = snprintf(str, str_len, "%s",
+                            bactext_lighting_transition(
+                            value->type.Enumerated));
+                        break;
+                    case PROP_IN_PROGRESS:
+                        ret_val = snprintf(str, str_len, "%s",
+                            bactext_lighting_in_progress(
+                            value->type.Enumerated));
+                        break;
                     default:
                         ret_val = snprintf(str, str_len, "%lu",
                             (unsigned long)value->type.Enumerated);
