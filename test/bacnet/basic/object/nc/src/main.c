@@ -42,7 +42,8 @@ static void test_Notification_Class(void)
     rpdata.array_index = BACNET_ARRAY_ALL;
     len = Notification_Class_Read_Property(&rpdata);
     zassert_not_equal(len, 0, NULL);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
+    len = bacnet_decode_tag_number_and_value(
+        apdu, sizeof(apdu), &tag_number, &len_value);
     zassert_equal(tag_number, BACNET_APPLICATION_TAG_OBJECT_ID, NULL);
     len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
     zassert_equal(decoded_type, rpdata.object_type, NULL);

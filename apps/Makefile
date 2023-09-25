@@ -73,6 +73,12 @@ ifeq (${BACNET_PORT},)
 		ifeq ($(UNAME_S),Darwin)
 			BACNET_PORT = bsd
 		endif
+		ifeq ($(UNAME_S),FreeBSD)
+			BACNET_PORT = bsd
+		endif
+		ifeq ($(UNAME_S),OpenBSD)
+			BACNET_PORT = bsd
+		endif
 	endif
 endif
 
@@ -95,6 +101,7 @@ ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
+CSTANDARD = -std=c99
 endif
 ifeq (${BACNET_PORT},win32)
 # winget install --id=MSYS2.MSYS2  -e
@@ -142,6 +149,11 @@ DEBUGGING = -g -DDEBUG_ENABLED=1
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 BACNET_DEFINES += -DBIP_DEBUG
 endif
+endif
+
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_DEFINES += -DBACNET_STACK_DEPRECATED_DISABLE
 endif
 
 BACNET_DEFINES += -DPRINT_ENABLED=1
@@ -353,6 +365,10 @@ timesync: $(BACNET_LIB_TARGET)
 
 .PHONY: uevent
 uevent: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: uptransfer
+uptransfer: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: whois

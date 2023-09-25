@@ -811,6 +811,23 @@ static void testBACnetApplicationDataLength(void)
     /* verify the length of the data inside the opening/closing tags */
     len = bacapp_data_len(&apdu[0], apdu_len, PROP_REQUESTED_SHED_LEVEL);
     zassert_equal(test_len, len, NULL);
+
+    /* 7. context opening & closing tag */
+    test_len = 0;
+    apdu_len = 0;
+    len = encode_opening_tag(&apdu[apdu_len], 3);
+    apdu_len += len;
+    len = encode_opening_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+    test_len += len;
+    len = encode_closing_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+    test_len += len;
+    len = encode_closing_tag(&apdu[apdu_len], 3);
+    apdu_len += len;
+    /* verify the length of the data inside the opening/closing tags */
+    len = bacapp_data_len(&apdu[0], apdu_len, PROP_WEEKLY_SCHEDULE);
+    zassert_equal(test_len, len, NULL);
 }
 
 /**

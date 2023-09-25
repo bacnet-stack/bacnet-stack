@@ -1154,7 +1154,7 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
     }
     /* not using len at this time */
-    len = len;
+    (void)len;
 
     return status;
 }

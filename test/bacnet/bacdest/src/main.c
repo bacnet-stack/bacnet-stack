@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bacdest.h>
 
 /**

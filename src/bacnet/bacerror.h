@@ -44,7 +44,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     int bacerror_decode_service_request(
         uint8_t * apdu,
-        unsigned apdu_len,
+        unsigned apdu_size,
         uint8_t * invoke_id,
         BACNET_CONFIRMED_SERVICE * service,
         BACNET_ERROR_CLASS * error_class,
@@ -53,7 +53,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     int bacerror_decode_error_class_and_code(
         uint8_t * apdu,
-        unsigned apdu_len,
+        unsigned apdu_size,
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 

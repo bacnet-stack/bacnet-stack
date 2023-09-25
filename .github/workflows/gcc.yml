@@ -179,6 +179,7 @@ jobs:
         avr-gcc --version
         make atmega168
         make bdk-atxx4-mstp
+        make xplained
 
   ports-lwip:
     runs-on: ubuntu-latest
