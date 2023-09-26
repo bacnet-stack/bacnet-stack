@@ -314,6 +314,13 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_wp.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_wpm.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_wpm.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/ws-service.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/auth.c
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/info.c
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/oauth_server.c
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/oauth_server.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/base64.c
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/base64.h
     ${BACNETSTACK_SRC}/bacnet/basic/services.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/bigend.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/bigend.h
@@ -505,6 +512,11 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_upt.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_wp.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_wpm.c
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/ws-service.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/auth.c
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/info.c
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/oauth_server.c
+    ${BACNETSTACK_SRC}/bacnet/basic/service/ws_restful/base64.c
     )
 
 #

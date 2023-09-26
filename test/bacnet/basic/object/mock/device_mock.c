@@ -9,7 +9,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/device.h>
-
+#include <bacnet/version.h>
 
 bool Device_Valid_Object_Name(
     BACNET_CHARACTER_STRING * object_name,
@@ -54,3 +54,38 @@ int Device_Read_Property(
     return 0;
 }
 
+static char *Vendor_Name = BACNET_VENDOR_NAME;
+static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
+static char *Model_Name = "GNU";
+static char *Application_Software_Version = "1.0";
+static const char *BACnet_Version = BACNET_VERSION_TEXT;
+
+uint16_t Device_Vendor_Identifier(void)
+{
+    return Vendor_Identifier;
+}
+
+const char *Device_Vendor_Name(void)
+{
+    return Vendor_Name;
+}
+
+const char *Device_Model_Name(void)
+{
+    return Model_Name;
+}
+
+const char *Device_Application_Software_Version(void)
+{
+    return Application_Software_Version;
+}
+
+uint8_t Device_Protocol_Version(void)
+{
+    return BACNET_PROTOCOL_VERSION;
+}
+
+uint8_t Device_Protocol_Revision(void)
+{
+    return BACNET_PROTOCOL_REVISION;
+}

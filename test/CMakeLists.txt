@@ -88,6 +88,7 @@ list(APPEND testdirs
   bacnet/wp
   bacnet/wpm
   bacnet/weeklyschedule
+  bacnet/ws_service
   )
 
 # bacnet/basic/*
