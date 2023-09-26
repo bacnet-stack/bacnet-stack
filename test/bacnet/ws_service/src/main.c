@@ -14,6 +14,8 @@
 #include <time.h>
 #include <zephyr/ztest.h>
 #include <bacnet/basic/service/ws_restful/ws-service.h>
+#include <bacnet/basic/service/ws_restful/oauth_server.h>
+#include <bacnet/basic/service/ws_restful/base64.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 
 #define TEST_THREAD_NUM 10
@@ -1316,7 +1318,8 @@ BACNET_WS_DECLARE_SERVICE(test, "test/test",
 
 #define SERVICES_MAX    256
 
-BACNET_WS_SERVICE *service_root_get(void);
+BACNET_WS_SERVICE *ws_service_root_get(void);
+BACNET_WS_SERVICE *ws_service_get_debug(char *service_name);
 
 static bool services_hash_check(void)
 {
@@ -1325,7 +1328,7 @@ static bool services_hash_check(void)
     int i;
     BACNET_WS_SERVICE *s;
 
-    for (s = service_root_get(); s != NULL; s = s->next) {
+    for (s = ws_service_root_get(); s != NULL; s = s->next) {
         for (i = 0; i < n; i++) {
             if(hashes[i] == s->hash) {
                 PRINT("endpoint %s has doubled hash", s->uri);
@@ -1339,7 +1342,442 @@ static bool services_hash_check(void)
     return true;
 }
 
-static void test1(void)
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ws_service_test, testServicesHash)
+#else
+static void testServicesHash(void)
+#endif
+{
+    BACNET_WS_SERVICE_RET ret;
+    bool b;
+
+    ret = ws_service_registry(test);
+    zassert_equal(ret, 0, NULL);
+
+    b = services_hash_check();
+    zassert_true(b, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ws_service_test, testEndpointInfo)
+#else
+static void testEndpointInfo(void)
+#endif
+{
+    BACNET_WS_SERVICE *s;
+    BACNET_WS_CONNECT_CTX ctx;
+    BACNET_WS_SERVICE_RET ret;
+    uint8_t buf[2048];
+    uint8_t *out;
+    uint8_t *end = buf + sizeof(buf) - 1;
+
+    s = ws_service_get_debug(".info/vendor-identifier");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"vendor-id\""), NULL);
+
+    s = ws_service_get_debug(".info/vendor-name");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"vendor-name\""), NULL);
+
+    s = ws_service_get_debug(".info/model-name");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"model-name\""), NULL);
+
+    s = ws_service_get_debug(".info/software-version");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"software-version\""), NULL);
+
+    s = ws_service_get_debug(".info/protocol-version");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"protocol-version\""), NULL);
+
+    s = ws_service_get_debug(".info/protocol-revision");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"protocol-revision\""), NULL);
+
+    s = ws_service_get_debug(".info/max-uri");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"max-uri\""), NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ws_service_test, testEndpointAuth)
+#else
+static void testEndpointAuth(void)
+#endif
+{
+    BACNET_WS_SERVICE *s;
+    BACNET_WS_CONNECT_CTX ctx = {0};
+    BACNET_WS_SERVICE_RET ret;
+    uint8_t buf[2048];
+    uint8_t *out;
+    uint8_t *end = buf + sizeof(buf) - 1;
+    uint8_t *p;
+    size_t sz;
+
+    oauth_server_pri_init("http://primary_server", server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key));
+    oauth_server_sec_init("http://secondary_server", server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key));
+
+    sz = data_base64_encode(server_cert, sizeof(server_cert), buf);
+    sz = data_base64_inplace_decode(buf, sz);
+    zassert_equal(sz, sizeof(server_cert), NULL);
+    zassert_mem_equal(server_cert, buf, sizeof(server_cert), NULL);
+
+    s = ws_service_get_debug(".auth/int/user");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    s = ws_service_get_debug(".auth/int/pass");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+
+    s = ws_service_get_debug(".auth/int/id");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    s = ws_service_get_debug(".auth/int/secret");
+    zassert_not_null(s, NULL);
+
+    out = buf;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    s = ws_service_get_debug(".auth/int/enable");
+    zassert_not_null(s, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_GET;
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"oauth_enable\""), NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_POST;
+    out = buf;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_GET;
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"oauth_enable\""), NULL);
+    zassert_not_null(strstr((char*)buf, "false"), NULL);
+
+    s = ws_service_get_debug(".auth/ext/pri-uri");
+    zassert_not_null(s, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_GET;
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"PRI-URI\""), NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_POST;
+    out = buf;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    s = ws_service_get_debug(".auth/ext/pri-cert");
+    zassert_not_null(s, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_GET;
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_not_null(ctx.body_data, NULL);
+    zassert_true(ctx.body_data_size != 0, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_POST;
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    /* ctx.body_data is decoding into handle */
+    zassert_mem_equal(server_cert, ctx.body_data, sizeof(server_cert), NULL);
+    free(ctx.body_data);
+    ctx.body_data = NULL;
+    ctx.body_data_size = 0;
+    ctx.endpoint_data = NULL;
+
+    oauth_pri_cert(&p, &sz);
+    zassert_equal(sz, sizeof(server_cert), NULL);
+    zassert_mem_equal(server_cert, p, sizeof(server_cert), NULL);
+
+    s = ws_service_get_debug(".auth/ext/pri-pubkey");
+    zassert_not_null(s, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_GET;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    do {
+        out = buf;
+        ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+        zassert_true(
+            (ret == BACNET_WS_SERVICE_SUCCESS) ||
+            (ret == BACNET_WS_SERVICE_HAS_DATA), NULL);
+        zassert_true(out <= end, NULL);
+    } while (ret == BACNET_WS_SERVICE_SUCCESS);
+    zassert_not_null(ctx.body_data, NULL);
+    zassert_true(ctx.body_data_size != 0, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_POST;
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    /* ctx.body_data is decoding into handle */
+    zassert_mem_equal(server_key, ctx.body_data, sizeof(server_key), NULL);
+    free(ctx.body_data);
+    ctx.body_data = NULL;
+    ctx.body_data_size = 0;
+    ctx.endpoint_data = NULL;
+
+    oauth_pri_pubkey(&p, &sz);
+    zassert_equal(sz, sizeof(server_key), NULL);
+    zassert_mem_equal(server_key, p, sizeof(server_key), NULL);
+
+
+    s = ws_service_get_debug(".auth/ext/sec-uri");
+    zassert_not_null(s, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_GET;
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_JSON;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_equal((char)buf[0], '{', NULL);
+    zassert_not_null(strstr((char*)buf, "\"SEC-URI\""), NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_POST;
+    out = buf;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+
+    s = ws_service_get_debug(".auth/ext/sec-cert");
+    zassert_not_null(s, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_GET;
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    zassert_not_null(ctx.body_data, NULL);
+    zassert_true(ctx.body_data_size != 0, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_POST;
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    /* ctx.body_data is decoding into handle */
+    zassert_mem_equal(server_cert, ctx.body_data, sizeof(server_cert), NULL);
+    free(ctx.body_data);
+    ctx.body_data = NULL;
+    ctx.body_data_size = 0;
+    ctx.endpoint_data = NULL;
+
+    oauth_sec_cert(&p, &sz);
+    zassert_equal(sz, sizeof(server_cert), NULL);
+    zassert_mem_equal(server_cert, p, sizeof(server_cert), NULL);
+
+    s = ws_service_get_debug(".auth/ext/sec-pubkey");
+    zassert_not_null(s, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_GET;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    do {
+        out = buf;
+        ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+        zassert_true(
+            (ret == BACNET_WS_SERVICE_SUCCESS) ||
+            (ret == BACNET_WS_SERVICE_HAS_DATA), NULL);
+        zassert_true(out <= end, NULL);
+    } while (ret == BACNET_WS_SERVICE_SUCCESS);
+    zassert_not_null(ctx.body_data, NULL);
+    zassert_true(ctx.body_data_size != 0, NULL);
+
+    ctx.method = BACNET_WS_SERVICE_METHOD_POST;
+    out = buf;
+    ctx.alt = BACNET_WS_ALT_PLAIN;
+    ret = s->handle_cb(&ctx, NULL, 0, &out, end);
+    zassert_equal(ret, BACNET_WS_SERVICE_SUCCESS, NULL);
+    zassert_true(out <= end, NULL);
+    /* ctx.body_data is decoding into handle */
+    zassert_mem_equal(server_key, ctx.body_data, sizeof(server_key), NULL);
+    free(ctx.body_data);
+    ctx.body_data = NULL;
+    ctx.body_data_size = 0;
+    ctx.endpoint_data = NULL;
+
+    oauth_sec_pubkey(&p, &sz);
+    zassert_equal(sz, sizeof(server_key), NULL);
+    zassert_mem_equal(server_key, p, sizeof(server_key), NULL);
+}
+
+struct bacnet_http_parameter_mock
+{
+    char *name;
+    char *value;
+    size_t len;
+};
+
+static struct bacnet_http_parameter_mock mocks[] = {
+    {"Token", "Token_mock", 10},
+    {"User", "User1", 5},
+    {"Password", "Pass", 4},
+    {"ID", "123", 3},
+    {"secret", "secret", 6},
+    {"enable", "0", 1},
+    {"uri", "fake_uri", 8},
+    {0}
+};
+
+extern struct bacnet_http_parameter_mock *ws_http_parameter_mocks;
+
+static void *ws_service_test_setup(void)
 {
     bool ret;
 
@@ -1357,21 +1795,39 @@ static void test1(void)
 
     zassert_equal(ret, 0, NULL);
 
-    ret = ws_service_registry(test);
-    zassert_equal(ret, 0, NULL);
+    ws_service_info_registry();
+    ws_service_auth_registry();
 
-    ret = services_hash_check();
-    zassert_true(ret, NULL);
+    ws_http_parameter_mocks = mocks;
 
-    bsc_wait_ms(30*10000);
+    return NULL;
+}
+
+static void ws_service_test_teardown(void *f)
+{
+    (void)f;
+    //bsc_wait_ms(30*10000);
     ws_server_stop();
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(ws_service_test, NULL, ws_service_test_setup, NULL, NULL,
+            ws_service_test_teardown);
+#else
 void test_main(void)
 {
+    ws_service_test_setup();
+
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
 
-    ztest_test_suite(ws_service_test_1, ztest_unit_test(test1));
-    ztest_run_test_suite(ws_service_test_1);
+    ztest_test_suite(ws_service_test,
+        ztest_unit_test(testServicesHash),
+        ztest_unit_test(testEndpointInfo),
+        ztest_unit_test(testEndpointAuth));
+    ztest_run_test_suite(ws_service_test);
+
+
+    ws_service_test_teardown(NULL);
 }
+#endif

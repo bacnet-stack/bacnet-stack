@@ -550,11 +550,49 @@ BACNET_WS_SERVICE_RET ws_service_registry(BACNET_WS_SERVICE* s)
 }
 
 /*
+ * TODO ws_http_parameter_get_mock() must be removed after implement
+ * WS REST Client and rewrite rest endpoints tests
+ */
+#ifdef CONFIG_ZTEST
+
+struct bacnet_http_parameter_mock
+{
+    char *name;
+    char *value;
+    size_t len;
+};
+
+struct bacnet_http_parameter_mock *ws_http_parameter_mocks = NULL;
+
+static int ws_http_parameter_get_mock(
+    void *context, char *name, char *buffer, size_t len)
+{
+    struct bacnet_http_parameter_mock* mock;
+    (void)context;
+
+    for (mock = ws_http_parameter_mocks; mock->name != NULL; mock++) {
+        if (strcmp(mock->name, name) == 0) {
+            memcpy(buffer, mock->value, mock->len);
+            return mock->len;
+        }
+    }
+    return -1;
+}
+#endif
+
+/*
  * Retreive a urlarg x=value
  */
 int ws_http_parameter_get(void *context, char *name, char *buffer, size_t len)
 {
     struct lws *wsi = (struct lws *)context;
+
+#ifdef CONFIG_ZTEST
+    if (context == NULL) {
+        return ws_http_parameter_get_mock(context, name, buffer, len);
+    }
+#endif
+
     return lws_get_urlarg_by_name_safe(wsi, name, buffer, len - 1);
 }
 
@@ -611,7 +649,13 @@ static int http_headers_write(struct lws *wsi, int http_retcode, int alt,
 }
 
 #ifdef CONFIG_ZTEST
-BACNET_WS_SERVICE *service_root_get(void) {
+BACNET_WS_SERVICE *ws_service_root_get(void) {
     return ws_srv.services;
 }
+
+BACNET_WS_SERVICE *ws_service_get_debug(char *service_name)
+{
+    return ws_service_get(service_name);
+}
+
 #endif

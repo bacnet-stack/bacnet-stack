@@ -32,6 +32,7 @@ static bool token_check(BACNET_WS_CONNECT_CTX *ctx)
 {
     char token[TOKEN_LENGTH] = {0};
     int size;
+
     size = ws_http_parameter_get(ctx->context, "Token", token, sizeof(token));
     return oauth_token_check((uint8_t*)token, size);
 }
@@ -50,7 +51,7 @@ static BACNET_WS_SERVICE_RET auth_int_user_handler(BACNET_WS_CONNECT_CTX *ctx,
         return BACNET_WS_SERVICE_SUCCESS;
     }
 
-    ws_http_parameter_get(ctx->context, "User", user, sizeof(user));
+    (void)ws_http_parameter_get(ctx->context, "User", user, sizeof(user));
 
     ret = oauth_user_set(user);
     if ( ret != 0) {
@@ -77,7 +78,7 @@ static BACNET_WS_SERVICE_RET auth_int_pass_handler(BACNET_WS_CONNECT_CTX *ctx,
         return BACNET_WS_SERVICE_SUCCESS;
     }
 
-    ws_http_parameter_get(ctx->context, "Password", pass, sizeof(pass));
+    (void)ws_http_parameter_get(ctx->context, "Password", pass, sizeof(pass));
 
     ret = oauth_pass_set(pass);
     if ( ret != 0) {
@@ -104,7 +105,7 @@ static BACNET_WS_SERVICE_RET auth_int_id_handler(BACNET_WS_CONNECT_CTX *ctx,
         return BACNET_WS_SERVICE_SUCCESS;
     }
 
-    ws_http_parameter_get(ctx->context, "ID", id, sizeof(id));
+    (void)ws_http_parameter_get(ctx->context, "ID", id, sizeof(id));
 
     ret = oauth_id_set(id);
     if ( ret != 0) {
@@ -131,7 +132,7 @@ static BACNET_WS_SERVICE_RET auth_int_secret_handler(BACNET_WS_CONNECT_CTX *ctx,
         return BACNET_WS_SERVICE_SUCCESS;
     }
 
-    ws_http_parameter_get(ctx->context, "secret", secret, sizeof(secret));
+    (void)ws_http_parameter_get(ctx->context, "secret", secret, sizeof(secret));
 
     ret = oauth_secret_set(secret);
     if ( ret != 0) {
@@ -168,7 +169,7 @@ static BACNET_WS_SERVICE_RET auth_int_enable_handler(BACNET_WS_CONNECT_CTX *ctx,
         return BACNET_WS_SERVICE_SUCCESS;
         }
 
-        ws_http_parameter_get(ctx->context, "enable", enable, sizeof(enable));
+        (void)ws_http_parameter_get(ctx->context, "enable", enable, sizeof(enable));
 
         if (strncmp(enable, "true", 4) == 0 || enable[0] == '1') {
             oauth_enable();
@@ -278,7 +279,7 @@ static BACNET_WS_SERVICE_RET auth_ext_pri_uri_handler(BACNET_WS_CONNECT_CTX *ctx
             return BACNET_WS_SERVICE_SUCCESS;
         }
 
-        ws_http_parameter_get(ctx->context, "uri", uri, sizeof(uri));
+        (void)ws_http_parameter_get(ctx->context, "uri", uri, sizeof(uri));
         ret = oauth_pri_uri_set(uri);
         if ( ret != 0) {
             RESPONCE_ERROR(ctx, out, end, "internal error: %d", ret);
@@ -339,7 +340,7 @@ static BACNET_WS_SERVICE_RET auth_ext_sec_uri_handler(BACNET_WS_CONNECT_CTX *ctx
             return BACNET_WS_SERVICE_SUCCESS;
         }
 
-        ws_http_parameter_get(ctx->context, "uri", uri, sizeof(uri));
+        (void)ws_http_parameter_get(ctx->context, "uri", uri, sizeof(uri));
         ret = oauth_sec_uri_set(uri);
         if ( ret != 0) {
             RESPONCE_ERROR(ctx, out, end, "internal error: %d", ret);
@@ -374,6 +375,7 @@ static BACNET_WS_SERVICE_RET auth_ext_sec_pubkey_handler(BACNET_WS_CONNECT_CTX *
 
     return file_receiver(ctx, out, end, &oauth_sec_pubkey_set);
 }
+
 BACNET_WS_DECLARE_SERVICE(auth_int_user, ".auth/int/user",
     BACNET_WS_SERVICE_METHOD_POST | BACNET_WS_SERVICE_METHOD_PUT, false,
     auth_int_user_handler);
@@ -382,7 +384,7 @@ BACNET_WS_DECLARE_SERVICE(auth_int_pass, ".auth/int/pass",
     BACNET_WS_SERVICE_METHOD_POST | BACNET_WS_SERVICE_METHOD_PUT, false,
     auth_int_pass_handler);
 
-BACNET_WS_DECLARE_SERVICE(auth_int_id, ".auth/int/id`",
+BACNET_WS_DECLARE_SERVICE(auth_int_id, ".auth/int/id",
     BACNET_WS_SERVICE_METHOD_POST | BACNET_WS_SERVICE_METHOD_PUT, false,
     auth_int_id_handler);
 

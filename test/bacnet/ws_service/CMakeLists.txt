@@ -57,8 +57,13 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${PORTS_DIR}/linux/websocket-global.c
     ${PORTS_DIR}/linux/bsc-event.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/oauth_server.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/info.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/auth.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/base64.c
     # Test and test library files
     ./src/main.c
+    ../basic/object/mock/device_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
@@ -75,8 +80,13 @@ elseif(WIN32)
     ${PORTS_DIR}/win32/websocket-srv.c
     ${PORTS_DIR}/win32/websocket-global.c
     ${PORTS_DIR}/win32/bsc-event.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/oauth_server.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/info.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/base64.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/auth.c
     # Test and test library files
     ./src/main.c
+    ../basic/object/mock/device_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
@@ -122,8 +132,13 @@ elseif(APPLE)
     ${PORTS_DIR}/bsd/bsc-event.c
     ${PORTS_DIR}/bsd/websocket-global.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/oauth_server.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/info.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/auth.c
+    ${SRC_DIR}/bacnet/basic/service/ws_restful/base64.c
     # Test and test library files
     ./src/main.c
+    ../basic/object/mock/device_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )

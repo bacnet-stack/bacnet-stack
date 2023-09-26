@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#define HTTP_STATUS
 #include <bacnet/basic/service/ws_restful/ws-service.h>
 #include <bacnet/basic/object/device.h>
 

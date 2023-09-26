@@ -99,7 +99,11 @@ int oauth_sec_cert(uint8_t **cert, size_t *size);
 int oauth_sec_cert_set(uint8_t *cert, size_t size);
 int oauth_sec_pubkey(uint8_t **key, size_t *size);
 int oauth_sec_pubkey_set(uint8_t *key, size_t size);
-// todo 
+
+void oauth_server_pri_init(
+    char *uri, uint8_t *cert, size_t certSize, uint8_t *key, size_t keySize);
+void oauth_server_sec_init(
+    char *uri, uint8_t *cert, size_t certSize, uint8_t *key, size_t keySize);
 
 
 
