@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\apps\server\main.c" />
-    <ClCompile Include="..\..\..\src\bacnet\basic\npdu\h_npdu.c" />
+    <ClCompile Include="..\..\..\..\apps\server\main.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\bacnet-stack\bacnet-stack.vcxproj">
@@ -28,7 +28,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\bacnet\basic\npdu\h_npdu.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\npdu\h_npdu.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
