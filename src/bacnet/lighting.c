@@ -687,7 +687,7 @@ int xy_color_to_ascii(
  */
 bool xy_color_from_ascii(BACNET_XY_COLOR *value, const char *argv)
 {
-    bool status;
+    bool status = false;
     int count;
     float x,y;
 
@@ -695,6 +695,7 @@ bool xy_color_from_ascii(BACNET_XY_COLOR *value, const char *argv)
     if (count == 2) {
         value->x_coordinate = x;
         value->y_coordinate = y;
+        status = true;
     } else {
 #if defined(BACAPP_COLOR_RGB_CONVERSION_ENABLED)
         uint8_t red, green, blue;
@@ -706,11 +707,9 @@ bool xy_color_from_ascii(BACNET_XY_COLOR *value, const char *argv)
             color_rgb_to_xy(red, green, blue, &x, &y, NULL);
             value->x_coordinate = x;
             value->y_coordinate = y;
-        } else
-#endif
-        {
-            status = false;
+            status = true;
         }
+#endif
     }
 
     return status;
