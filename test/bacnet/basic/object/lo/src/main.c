@@ -44,19 +44,17 @@ static void testLightingOutput(void)
     while ((*required_property) >= 0) {
         rpdata.object_property = *required_property;
         len = Lighting_Output_Read_Property(&rpdata);
-        zassert_true(len >= 0, NULL);
+        zassert_true(len >= 0, "property '%s': failed to encode! len=%d\n",
+            bactext_property_name(rpdata.object_property), len);
         if (len >= 0) {
             test_len = bacapp_decode_known_property(rpdata.application_data,
                 len, &value, rpdata.object_type, rpdata.object_property);
-            if (len != test_len) {
-                printf("property '%s': failed to decode!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
             if (rpdata.object_property == PROP_PRIORITY_ARRAY) {
                 /* FIXME: known fail to decode */
                 len = test_len;
             }
-            zassert_equal(len, test_len, NULL);
+            zassert_equal(len, test_len, "property '%s': failed to decode!\n",
+                bactext_property_name(rpdata.object_property));
         }
         required_property++;
     }
