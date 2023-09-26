@@ -105,7 +105,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        Lighting_Output_Create, Lighting_Output_Delete},
     { OBJECT_CHANNEL, Channel_Init, Channel_Count, Channel_Index_To_Instance,
         Channel_Valid_Instance, Channel_Object_Name, Channel_Read_Property,
         Channel_Write_Property, Channel_Property_Lists,
