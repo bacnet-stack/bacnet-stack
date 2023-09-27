@@ -2487,7 +2487,4 @@ void Lighting_Output_Cleanup(void)
 void Lighting_Output_Init(void)
 {
     Object_List = Keylist_Create();
-    if (Object_List) {
-        atexit(Lighting_Output_Cleanup);
-    }
 }

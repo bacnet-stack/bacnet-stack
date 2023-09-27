@@ -41,7 +41,7 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/sys/linear.h"
 /* me! */
-#include "color_object.h"
+#include "bacnet/basic/object/color_object.h"
 
 struct object_data {
     bool Changed : 1;
@@ -1236,7 +1236,4 @@ void Color_Cleanup(void)
 void Color_Init(void)
 {
     Object_List = Keylist_Create();
-    if (Object_List) {
-        atexit(Color_Cleanup);
-    }
 }

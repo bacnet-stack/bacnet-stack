@@ -110,6 +110,14 @@ static void testColorTemperature(void)
         }
         pOptional++;
     }
+    rpdata.object_property = PROP_ALL;
+    len = Color_Temperature_Read_Property(&rpdata);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    wpdata.object_property = PROP_ALL;
+    status = Color_Temperature_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    status = Color_Temperature_Delete(instance);
+    zassert_true(status, NULL);
 
     return;
 }

@@ -61,11 +61,8 @@ static void testColorObject(void)
         if (len >= 0) {
             test_len = bacapp_decode_known_property(rpdata.application_data,
                 len, &value, rpdata.object_type, rpdata.object_property);
-            if (len != test_len) {
-                printf("property '%s': failed to decode!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-            zassert_equal(len, test_len, NULL);
+            zassert_equal(len, test_len, "property '%s': failed to decode!\n",
+                bactext_property_name(rpdata.object_property));
             /* check WriteProperty properties */
             wpdata.object_type = rpdata.object_type;
             wpdata.object_instance = rpdata.object_instance;
@@ -95,11 +92,8 @@ static void testColorObject(void)
         if (len > 0) {
             test_len = bacapp_decode_application_data(rpdata.application_data,
                 (uint8_t)rpdata.application_data_len, &value);
-            if (len != test_len) {
-                printf("property '%s': failed to decode!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-            zassert_equal(len, test_len, NULL);
+            zassert_equal(len, test_len, "property '%s': failed to decode!\n",
+                bactext_property_name(rpdata.object_property));
             /* check WriteProperty properties */
             wpdata.object_type = rpdata.object_type;
             wpdata.object_instance = rpdata.object_instance;
@@ -122,6 +116,7 @@ static void testColorObject(void)
     rpdata.object_property = PROP_ALL;
     len = Color_Read_Property(&rpdata);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    wpdata.object_property = PROP_ALL;
     status = Color_Write_Property(&wpdata);
     zassert_false(status, NULL);
     status = Color_Delete(instance);
