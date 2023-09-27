@@ -1700,7 +1700,7 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     BACNET_LIGHTING_COMMAND lighting_command;
 #if (BACNET_PROTOCOL_REVISION >= 24)
-    BACNET_OBJECT_ID object_id;
+    BACNET_OBJECT_ID object_id = { 0 };
 #endif
     float real_value = (float)1.414;
     uint32_t unsigned_value = 0;
@@ -1830,13 +1830,13 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Lighting_Output_Color_Override(rpdata->object_instance));
             break;
         case PROP_COLOR_REFERENCE:
-            Lighting_Output_Color_Reference(
+            (void)Lighting_Output_Color_Reference(
                 rpdata->object_instance, &object_id);
             apdu_len = encode_application_object_id(
                 &apdu[0], object_id.type, object_id.instance);
             break;
         case PROP_OVERRIDE_COLOR_REFERENCE:
-            Lighting_Output_Override_Color_Reference(
+            (void)Lighting_Output_Override_Color_Reference(
                 rpdata->object_instance, &object_id);
             apdu_len = encode_application_object_id(
                 &apdu[0], object_id.type, object_id.instance);

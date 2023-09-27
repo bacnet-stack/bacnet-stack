@@ -339,8 +339,6 @@ int main(int argc, char *argv[])
 #if defined(INTRINSIC_REPORTING)
         if (mstimer_expired(&BACnet_Notification_Timer)) {
             mstimer_reset(&BACnet_Notification_Timer);
-            elapsed_milliseconds = mstimer_interval(&BACnet_Notification_Timer);
-            elapsed_seconds = elapsed_milliseconds/1000;
             Notification_Class_find_recipient();
         }
 #endif
