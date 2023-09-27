@@ -232,7 +232,14 @@ static void bacnet_output_init(void)
     uint32_t object_instance = 1;
     BACNET_COLOR_COMMAND command = { 0 };
     BACNET_OBJECT_ID object_id;
+    uint32_t light_channel_instance = 1;
+    uint32_t color_channel_instance = 2;
+    uint32_t temp_channel_instance = 3;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member;
 
+    Channel_Create(light_channel_instance);
+    Channel_Create(color_channel_instance);
+    Channel_Create(temp_channel_instance);
     led_max = blinkt_led_count();
     for (i = 0; i < led_max; i++) {
         /* color */
@@ -246,6 +253,16 @@ static void bacnet_output_init(void)
         command.transit.fade_time = 0;
         Color_Command_Set(object_instance, &command);
 
+        /* configure channel members */
+        member.objectIdentifier.type = OBJECT_COLOR;
+        member.objectIdentifier.instance = object_instance;
+        member.propertyIdentifier = PROP_PRESENT_VALUE;
+        member.arrayIndex = BACNET_ARRAY_ALL;
+        member.deviceIdentifier.type = OBJECT_DEVICE;
+        member.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
+        Channel_Reference_List_Member_Element_Set(color_channel_instance, i,
+            &member);
+
         /* color temperature */
         Color_Temperature_Create(object_instance);
         Color_Temperature_Write_Enable(object_instance);
@@ -254,11 +271,33 @@ static void bacnet_output_init(void)
         command.operation = BACNET_COLOR_OPERATION_STOP;
         Color_Temperature_Command_Set(object_instance, &command);
 
+        /* configure channel members */
+        member.objectIdentifier.type = OBJECT_COLOR_TEMPERATURE;
+        member.objectIdentifier.instance = object_instance;
+        member.propertyIdentifier = PROP_PRESENT_VALUE;
+        member.arrayIndex = BACNET_ARRAY_ALL;
+        member.deviceIdentifier.type = OBJECT_DEVICE;
+        member.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
+        Channel_Reference_List_Member_Element_Set(temp_channel_instance, i,
+            &member);
+
         /* lighting output */
         Lighting_Output_Create(object_instance);
+
+        /* configure references */
         object_id.type = OBJECT_COLOR;
         object_id.instance = object_instance;
         Lighting_Output_Color_Reference_Set(object_instance, &object_id);
+
+        /* configure channel members */
+        member.objectIdentifier.type = OBJECT_LIGHTING_OUTPUT;
+        member.objectIdentifier.instance = object_instance;
+        member.propertyIdentifier = PROP_PRESENT_VALUE;
+        member.arrayIndex = BACNET_ARRAY_ALL;
+        member.deviceIdentifier.type = OBJECT_DEVICE;
+        member.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
+        Channel_Reference_List_Member_Element_Set(light_channel_instance, i,
+            &member);
 
         object_instance++;
     }

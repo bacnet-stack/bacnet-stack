@@ -114,16 +114,6 @@ typedef struct BACnet_Channel_Value_t {
     struct BACnet_Channel_Value_t *next;
 } BACNET_CHANNEL_VALUE;
 
-/**
- * @brief Callback for tracking value
- * @param  object_instance - object-instance number of the object
- * @param  old_value - BACNET_CHANNEL_VALUE value prior to write
- * @param  value - BACNET_CHANNEL_VALUE value of the write
- */
-typedef void (*channel_write_present_value_callback)(uint32_t object_instance,
-    BACNET_CHANNEL_VALUE *old_value,
-    BACNET_CHANNEL_VALUE *value);
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

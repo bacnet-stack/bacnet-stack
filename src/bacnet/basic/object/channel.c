@@ -75,9 +75,6 @@ struct object_data {
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
-/* callback for present value writes */
-static channel_write_present_value_callback
-    Channel_Write_Present_Value_Callback;
 
 /* These arrays are used by the ReadPropertyMultiple handler
    property-list property (as of protocol-revision 14) */
@@ -292,7 +289,6 @@ static int Channel_Reference_List_Member_Element_Encode(
     int apdu_len = BACNET_STATUS_ERROR;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value;
     unsigned count = 0;
-    struct object_data *pObject;
 
     count = Channel_Reference_List_Member_Count(object_instance);
     if (array_index < count) {
@@ -1298,7 +1294,7 @@ bool Channel_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
-    char name_text[16] = "CHANNEL-4194303";
+    char name_text[24] = "CHANNEL-4194303";
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -1367,16 +1363,13 @@ void Channel_Out_Of_Service_Set(uint32_t object_instance, bool value)
  */
 int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int len = 0;
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_CHANNEL_VALUE *cvalue = NULL;
     uint32_t unsigned_value = 0;
-    unsigned i = 0;
     unsigned count = 0;
     bool state = false;
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
     int apdu_size = 0;
     uint8_t *apdu = NULL;
 
@@ -1658,10 +1651,11 @@ uint32_t Channel_Create(uint32_t object_instance)
                     OBJECT_LIGHTING_OUTPUT;
                 pObject->Members[m].objectIdentifier.instance =
                     BACNET_MAX_INSTANCE;
-                pObject->Members[m].propertyIdentifier = PROP_LIGHTING_COMMAND;
+                pObject->Members[m].propertyIdentifier = PROP_PRESENT_VALUE;
                 pObject->Members[m].arrayIndex = BACNET_ARRAY_ALL;
                 pObject->Members[m].deviceIdentifier.type = OBJECT_DEVICE;
-                pObject->Members[m].deviceIdentifier.instance = 0;
+                pObject->Members[m].deviceIdentifier.instance =
+                    BACNET_MAX_INSTANCE;
             }
             pObject->Number = 0;
             for (g = 0; g < CONTROL_GROUPS_MAX; g++) {
