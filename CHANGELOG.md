@@ -19,6 +19,7 @@ The git repositories are hosted at the following sites:
 ### Added
 
 Added [feature#14] EventTimeStamp decoding from ReadPropertyMultiple app
+Added Color, Color Temperature, and Lighting output demo app
 
 ### Changed
 

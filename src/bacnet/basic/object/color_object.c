@@ -806,7 +806,7 @@ bool Color_Description_Set(uint32_t object_instance, char *new_name)
  * @param  object_instance - object-instance number of the object
  * @param milliseconds - number of milliseconds elapsed
  */
-static void Color_Object_Fade_To_Color_Handler(
+static void Color_Fade_To_Color_Handler(
     uint32_t object_instance, uint16_t milliseconds)
 {
     BACNET_XY_COLOR old_value;
@@ -859,7 +859,7 @@ static void Color_Object_Fade_To_Color_Handler(
  * @param  object_instance - object-instance number of the object
  * @param milliseconds - number of milliseconds elapsed
  */
-void Color_Object_Timer(uint32_t object_instance, uint16_t milliseconds)
+void Color_Timer(uint32_t object_instance, uint16_t milliseconds)
 {
     struct object_data *pObject;
 
@@ -870,7 +870,7 @@ void Color_Object_Timer(uint32_t object_instance, uint16_t milliseconds)
                 pObject->In_Progress = BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
                 break;
             case BACNET_COLOR_OPERATION_FADE_TO_COLOR:
-                Color_Object_Fade_To_Color_Handler(
+                Color_Fade_To_Color_Handler(
                     object_instance, milliseconds);
                 break;
             case BACNET_COLOR_OPERATION_STOP:

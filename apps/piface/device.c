@@ -71,7 +71,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */, NULL /* Add_List_Element */,
         NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
@@ -80,7 +80,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 #endif
     { OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count,
         Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance,
@@ -90,7 +90,7 @@ static object_functions_t My_Object_Table[] = {
         Binary_Input_Encode_Value_List, Binary_Input_Change_Of_Value,
         Binary_Input_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
     { OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
         Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
         Binary_Output_Object_Name, Binary_Output_Read_Property,
@@ -98,7 +98,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        Binary_Output_Create, Binary_Output_Delete},
+        Binary_Output_Create, Binary_Output_Delete, NULL /* Timer */},
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,
@@ -106,7 +106,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ }
+        NULL /* Create */, NULL /* Delete */ , NULL /* Timer */}
 };
 
 /** Glue function to let the Device object, when called by a handler,

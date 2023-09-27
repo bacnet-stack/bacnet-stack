@@ -78,7 +78,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */, NULL /* Add_List_Element */,
         NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
@@ -87,7 +87,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 #endif
     { OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
         Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
@@ -96,7 +96,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */ , NULL /* Timer */ },
 #if (BACNET_PROTOCOL_REVISION >= 14)
     { OBJECT_LIGHTING_OUTPUT, Lighting_Output_Init, Lighting_Output_Count,
         Lighting_Output_Index_To_Instance, Lighting_Output_Valid_Instance,
@@ -105,14 +105,14 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        Lighting_Output_Create, Lighting_Output_Delete},
+        Lighting_Output_Create, Lighting_Output_Delete, Lighting_Output_Timer},
     { OBJECT_CHANNEL, Channel_Init, Channel_Count, Channel_Index_To_Instance,
         Channel_Valid_Instance, Channel_Object_Name, Channel_Read_Property,
         Channel_Write_Property, Channel_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */  },
 #endif
 #if (BACNET_PROTOCOL_REVISION >= 24)
     { OBJECT_COLOR, Color_Init, Color_Count, Color_Index_To_Instance,
@@ -121,7 +121,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
         NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        Color_Create, Color_Delete},
+        Color_Create, Color_Delete, Color_Timer},
     { OBJECT_COLOR_TEMPERATURE, Color_Temperature_Init, Color_Temperature_Count,
         Color_Temperature_Index_To_Instance, Color_Temperature_Valid_Instance,
         Color_Temperature_Object_Name, Color_Temperature_Read_Property,
@@ -129,7 +129,8 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        Color_Temperature_Create, Color_Temperature_Delete},
+        Color_Temperature_Create, Color_Temperature_Delete, 
+        Color_Temperature_Timer},
 #endif
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
@@ -1916,4 +1917,32 @@ bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
     }
 
     return status;
+}
+
+/**
+ * @brief Updates all the object timers with elapsed milliseconds
+ * @param milliseconds - number of milliseconds elapsed
+ */
+void Device_Timer(
+    uint32_t milliseconds)
+{
+    struct object_functions *pObject;
+    unsigned count = 0;
+    uint32_t instance;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        if (pObject->Object_Count) {
+            count = pObject->Object_Count();
+        }
+        while (count) {
+            count--;
+            if ((pObject->Object_Timer) &&
+                (pObject->Object_Index_To_Instance)) {
+                instance = pObject->Object_Index_To_Instance(count);
+                pObject->Object_Timer(instance, milliseconds);
+            }
+        }
+        pObject++;
+    }
 }

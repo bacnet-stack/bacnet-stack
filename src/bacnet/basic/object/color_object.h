@@ -119,7 +119,7 @@ BACNET_STACK_EXPORT
 void Color_Write_Disable(uint32_t instance);
 
 BACNET_STACK_EXPORT
-void Color_Object_Timer(uint32_t object_instance, uint16_t milliseconds);
+void Color_Timer(uint32_t object_instance, uint16_t milliseconds);
 
 BACNET_STACK_EXPORT
 uint32_t Color_Create(uint32_t object_instance);

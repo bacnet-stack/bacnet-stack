@@ -76,8 +76,8 @@ static struct mstimer BACnet_Task_Timer;
 static struct mstimer BACnet_TSM_Timer;
 /* task timer for address binding timeouts */
 static struct mstimer BACnet_Address_Timer;
-/* task timer for fading colors */
-static struct mstimer BACnet_Fade_Timer;
+/* task timer for object functionality */
+static struct mstimer BACnet_Object_Timer;
 
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
@@ -125,7 +125,7 @@ static void Init_Service_Handlers(void)
     mstimer_set(&BACnet_Task_Timer, 1000UL);
     mstimer_set(&BACnet_TSM_Timer, 50UL);
     mstimer_set(&BACnet_Address_Timer, 60UL*1000UL);
-    mstimer_set(&BACnet_Fade_Timer, 100UL);
+    mstimer_set(&BACnet_Object_Timer, 100UL);
 }
 
 /**
@@ -270,30 +270,6 @@ static void bacnet_output_init(void)
 }
 
 /**
- * @brief Manage the cyclic tasks for BACnet objects
- */
-static void bacnet_output_task(void)
-{
-    unsigned i = 0;
-    uint8_t led_max;
-    uint32_t object_instance = 1;
-    unsigned long milliseconds;
-
-    if (mstimer_expired(&BACnet_Fade_Timer)) {
-        mstimer_reset(&BACnet_Fade_Timer);
-        milliseconds = mstimer_interval(&BACnet_Fade_Timer);
-        led_max = blinkt_led_count();
-        for (i = 0; i < led_max; i++) {
-            Color_Object_Timer(object_instance, milliseconds);
-            Color_Temperature_Timer(object_instance, milliseconds);
-            Lighting_Output_Timer(object_instance, milliseconds);
-            object_instance++;
-        }
-        blinkt_show();
-    }
-}
-
-/**
  * @brief Print the terse usage info
  * @param filename - this application file name
  */
@@ -343,6 +319,7 @@ int main(int argc, char *argv[])
     uint16_t pdu_len = 0;
     unsigned timeout_ms = 1;
     unsigned long seconds = 0;
+    unsigned long milliseconds;
     bool blinkt_test = false;
     unsigned int target_args = 0;
     uint32_t device_id = BACNET_MAX_INSTANCE;
@@ -432,7 +409,12 @@ int main(int argc, char *argv[])
         if (blinkt_test) {
             blinkt_test_task();
         } else {
-            bacnet_output_task();
+            if (mstimer_expired(&BACnet_Object_Timer)) {
+                mstimer_reset(&BACnet_Object_Timer);
+                milliseconds = mstimer_interval(&BACnet_Object_Timer);
+                Device_Timer(milliseconds);
+                blinkt_show();
+            }
         }
     }
 
