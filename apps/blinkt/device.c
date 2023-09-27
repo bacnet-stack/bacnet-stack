@@ -129,7 +129,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        Color_Temperature_Create, Color_Temperature_Delete, 
+        Color_Temperature_Create, Color_Temperature_Delete,
         Color_Temperature_Timer},
 #endif
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
@@ -139,7 +139,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ }
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */  }
 };
 
 /** Glue function to let the Device object, when called by a handler,
@@ -1924,7 +1924,7 @@ bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
  * @param milliseconds - number of milliseconds elapsed
  */
 void Device_Timer(
-    uint32_t milliseconds)
+    uint16_t milliseconds)
 {
     struct object_functions *pObject;
     unsigned count = 0;
