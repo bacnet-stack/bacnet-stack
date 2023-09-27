@@ -82,8 +82,10 @@ static struct mstimer BACnet_Task_Timer;
 static struct mstimer BACnet_TSM_Timer;
 /* task timer for address binding timeouts */
 static struct mstimer BACnet_Address_Timer;
+#if defined(INTRINSIC_REPORTING)
 /* task timer for notification recipient timeouts */
 static struct mstimer BACnet_Notification_Timer;
+#endif
 /* task timer for objects */
 static struct mstimer BACnet_Object_Timer;
 /** Buffer used for receiving */
@@ -170,7 +172,9 @@ static void Init_Service_Handlers(void)
     mstimer_set(&BACnet_TSM_Timer, 50UL);
     mstimer_set(&BACnet_Address_Timer, 60UL*1000UL);
     mstimer_set(&BACnet_Object_Timer, 100UL);
-    mstimer_set(&BACnet_Notification_Timer, NC_RESCAN_RECIPIENTS_SECS*1000UL);    
+#if defined(INTRINSIC_REPORTING)
+    mstimer_set(&BACnet_Notification_Timer, NC_RESCAN_RECIPIENTS_SECS*1000UL);
+#endif
 }
 
 static void print_usage(const char *filename)
