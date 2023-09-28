@@ -18,6 +18,15 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+### Changed
+
+### Fixed
+
+
+## [1.3.0] - 2023-09-28
+
+### Added
+
 - Added [feature#14] EventTimeStamp decoding from ReadPropertyMultiple app.
 - Added Channel, Color, Color Temperature, & Lighting Output demo app with Blinkt!
 - Added pipeline build of piface and blinkt apps with Raspberry Pi OS image.
