@@ -282,7 +282,8 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        Color_Temperature_Create, Color_Temperature_Delete, Color_Timer},
+        Color_Temperature_Create, Color_Temperature_Delete,
+        Color_Temperature_Timer},
 #endif
 #if defined(BACFILE)
     { OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
