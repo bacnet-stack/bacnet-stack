@@ -48,7 +48,6 @@ static void test_Channel_ReadProperty(void)
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_CHANNEL;
     rpdata.object_instance = Channel_Index_To_Instance(0);
-    ;
     status = Channel_Valid_Instance(rpdata.object_instance);
     zassert_true(status, NULL);
     Channel_Property_Lists(&pRequired, &pOptional, &pProprietary);
