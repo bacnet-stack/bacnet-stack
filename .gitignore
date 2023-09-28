@@ -92,3 +92,4 @@ apps/**/*
 apps/piface/libmcp23s17/
 apps/piface/libpifacedigital/
 
+*.vcxproj.user
