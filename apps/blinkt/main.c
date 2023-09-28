@@ -304,7 +304,6 @@ static void bacnet_output_init(void)
         Color_Temperature_Write_Value_Handler);
     Lighting_Output_Write_Present_Value_Callback_Set(
         Lighting_Output_Write_Value_Handler);
-    Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
 }
 
 /**
