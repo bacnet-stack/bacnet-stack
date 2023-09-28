@@ -44,12 +44,19 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
-/* include the OS specific */
+/* include the device object */
 #include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/bi.h"
-#include "bacnet/basic/object/bo.h"
+#include "bacnet/basic/object/lc.h"
+#if (BACNET_PROTOCOL_REVISION >= 14)
+#include "bacnet/basic/object/channel.h"
+#include "bacnet/basic/object/lo.h"
+#endif
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+#include "bacnet/basic/object/color_object.h"
+#include "bacnet/basic/object/color_temperature.h"
 #endif
 
 /* local forward (semi-private) and external prototypes */
@@ -79,23 +86,49 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 #endif
-    { OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count,
-        Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance,
-        Binary_Input_Object_Name, Binary_Input_Read_Property,
-        Binary_Input_Write_Property, Binary_Input_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */,
-        Binary_Input_Encode_Value_List, Binary_Input_Change_Of_Value,
-        Binary_Input_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
-        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
-    { OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
-        Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
-        Binary_Output_Object_Name, Binary_Output_Read_Property,
-        Binary_Output_Write_Property, Binary_Output_Property_Lists,
+    { OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
+        Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
+        Load_Control_Object_Name, Load_Control_Read_Property,
+        Load_Control_Write_Property, Load_Control_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        Binary_Output_Create, Binary_Output_Delete, NULL /* Timer */},
+        NULL /* Create */, NULL /* Delete */ , NULL /* Timer */ },
+#if (BACNET_PROTOCOL_REVISION >= 14)
+    { OBJECT_LIGHTING_OUTPUT, Lighting_Output_Init, Lighting_Output_Count,
+        Lighting_Output_Index_To_Instance, Lighting_Output_Valid_Instance,
+        Lighting_Output_Object_Name, Lighting_Output_Read_Property,
+        Lighting_Output_Write_Property, Lighting_Output_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Lighting_Output_Create, Lighting_Output_Delete, Lighting_Output_Timer},
+    { OBJECT_CHANNEL, Channel_Init, Channel_Count, Channel_Index_To_Instance,
+        Channel_Valid_Instance, Channel_Object_Name, Channel_Read_Property,
+        Channel_Write_Property, Channel_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Channel_Create, Channel_Delete, NULL /* Timer */  },
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    { OBJECT_COLOR, Color_Init, Color_Count, Color_Index_To_Instance,
+        Color_Valid_Instance, Color_Object_Name, Color_Read_Property,
+        Color_Write_Property, Color_Property_Lists, NULL /* ReadRangeInfo */,
+        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
+        NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Color_Create, Color_Delete, Color_Timer},
+    { OBJECT_COLOR_TEMPERATURE, Color_Temperature_Init, Color_Temperature_Count,
+        Color_Temperature_Index_To_Instance, Color_Temperature_Valid_Instance,
+        Color_Temperature_Object_Name, Color_Temperature_Read_Property,
+        Color_Temperature_Write_Property, Color_Temperature_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Color_Temperature_Create, Color_Temperature_Delete,
+        Color_Temperature_Timer},
+#endif
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,
@@ -103,7 +136,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ , NULL /* Timer */}
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */  }
 };
 
 /** Glue function to let the Device object, when called by a handler,
@@ -251,11 +284,11 @@ static BACNET_CHARACTER_STRING My_Object_Name;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
-static char Model_Name[MAX_DEV_MOD_LEN + 1] = "PiFace Digital";
+static char Model_Name[MAX_DEV_MOD_LEN + 1] = "GNU";
 static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.0";
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
-static char Description[MAX_DEV_DESC_LEN + 1] = "Raspberry PiFace Digital Demo";
+static char Description[MAX_DEV_DESC_LEN + 1] = "server";
 /* static uint8_t Protocol_Version = 1; - constant, not settable */
 /* static uint8_t Protocol_Revision = 4; - constant, not settable */
 /* Protocol_Services_Supported - dynamically generated */
@@ -294,7 +327,7 @@ static uint32_t Database_Revision = 0;
 /* Slave_Address_Binding */
 /* Profile_Name */
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
-static const char *Reinit_Password = "raspberry";
+static const char *Reinit_Password = "filister";
 
 /** Commands a Device re-initialization, to a given state.
  * The request's password must match for the operation to succeed.
@@ -1230,7 +1263,7 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         } else {
             rpdata->error_class = ERROR_CLASS_OBJECT;
             rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-            }
+        }
     } else {
         rpdata->error_class = ERROR_CLASS_OBJECT;
         rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -1583,7 +1616,7 @@ static bool Device_Write_Property_Object_Name(
  */
 bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false; /* Ever the pessamist! */
+    bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
     /* initialize the default return values */
@@ -1705,7 +1738,7 @@ bool Device_Encode_Value_List(BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE *value_list)
 {
-    bool status = false; /* Ever the pessamist! */
+    bool status = false; /* Ever the pessimist! */
     struct object_functions *pObject = NULL;
 
     pObject = Device_Objects_Find_Functions(object_type);
@@ -1902,7 +1935,7 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
 void Device_Init(object_functions_t *object_table)
 {
     struct object_functions *pObject = NULL;
-    characterstring_init_ansi(&My_Object_Name, "PiFace");
+    characterstring_init_ansi(&My_Object_Name, "Blinkt! Server");
     datetime_init();
     if (object_table) {
         Object_Table = object_table;
@@ -1916,6 +1949,9 @@ void Device_Init(object_functions_t *object_table)
         }
         pObject++;
     }
+#if (BACNET_PROTOCOL_REVISION >= 14)
+    Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
+#endif
 }
 
 bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
@@ -1955,4 +1991,32 @@ bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
     }
 
     return status;
+}
+
+/**
+ * @brief Updates all the object timers with elapsed milliseconds
+ * @param milliseconds - number of milliseconds elapsed
+ */
+void Device_Timer(
+    uint16_t milliseconds)
+{
+    struct object_functions *pObject;
+    unsigned count = 0;
+    uint32_t instance;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        if (pObject->Object_Count) {
+            count = pObject->Object_Count();
+        }
+        while (count) {
+            count--;
+            if ((pObject->Object_Timer) &&
+                (pObject->Object_Index_To_Instance)) {
+                instance = pObject->Object_Index_To_Instance(count);
+                pObject->Object_Timer(instance, milliseconds);
+            }
+        }
+        pObject++;
+    }
 }

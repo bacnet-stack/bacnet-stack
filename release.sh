@@ -3,6 +3,11 @@
 # https://sourceforge.net/p/forge/documentation/Using%20the%20Release%20API/
 # sudo apt-get update -qq
 # sudo apt-get install -qq build-essential mingw-w64 curl git
+#
+# Prior to running this script, be sure to:
+# a) update CHANGELOG and version.h with new version number, and commit changes.
+# b) git tag to bacnet-stack-x.y.z where x.y.z is the new version number
+# c) create long term branch as bacnet-stack-x.y if needed
 
 USERNAME='skarg'
 
