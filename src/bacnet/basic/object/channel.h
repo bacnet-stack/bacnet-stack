@@ -51,7 +51,8 @@
     defined(CHANNEL_CHARACTER_STRING) || defined(CHANNEL_BIT_STRING) || \
     defined(CHANNEL_ENUMERATED) || defined(CHANNEL_DATE) ||             \
     defined(CHANNEL_TIME) || defined(CHANNEL_OBJECT_ID) ||              \
-    defined(CHANNEL_LIGHTING_COMMAND))
+    defined(CHANNEL_LIGHTING_COMMAND) || defined(CHANNEL_XY_COLOR) ||   \
+    defined(CHANNEL_COLOR_COMMAND))
 #define CHANNEL_NUMERIC
 #endif
 
@@ -64,6 +65,8 @@
 #define CHANNEL_DOUBLE
 #define CHANNEL_ENUMERATED
 #define CHANNEL_LIGHTING_COMMAND
+#define CHANNEL_COLOR_COMMAND
+#define CHANNEL_XY_COLOR
 #endif
 
 typedef struct BACnet_Channel_Value_t {
@@ -108,6 +111,12 @@ typedef struct BACnet_Channel_Value_t {
 #endif
 #if defined(CHANNEL_LIGHTING_COMMAND)
         BACNET_LIGHTING_COMMAND Lighting_Command;
+#endif
+#if defined(CHANNEL_COLOR_COMMAND)
+        BACNET_COLOR_COMMAND Color_Command;
+#endif
+#if defined(CHANNEL_XY_COLOR)
+        BACNET_XY_COLOR XY_Color;
 #endif
     } type;
     /* simple linked list if needed */
@@ -187,12 +196,16 @@ int Channel_Value_Encode(
     uint8_t *apdu, int apdu_max, BACNET_CHANNEL_VALUE *value);
 BACNET_STACK_EXPORT
 int Channel_Coerce_Data_Encode(uint8_t *apdu,
-    unsigned max_apdu,
+    size_t apdu_size,
     BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_APPLICATION_TAG tag);
 BACNET_STACK_EXPORT
 bool Channel_Write_Member_Value(
     BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_APPLICATION_DATA_VALUE *value);
+
+BACNET_STACK_EXPORT
+void Channel_Write_Property_Internal_Callback_Set(
+    write_property_function cb);
 
 BACNET_STACK_EXPORT
 uint32_t Channel_Create(uint32_t object_instance);

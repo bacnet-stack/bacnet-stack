@@ -238,8 +238,11 @@ static void bacnet_output_init(void)
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member;
 
     Channel_Create(light_channel_instance);
+    Channel_Name_Set(light_channel_instance, "Lights");
     Channel_Create(color_channel_instance);
+    Channel_Name_Set(color_channel_instance, "Colors");
     Channel_Create(temp_channel_instance);
+    Channel_Name_Set(temp_channel_instance, "Color-Temperatures");
     led_max = blinkt_led_count();
     for (i = 0; i < led_max; i++) {
         /* color */
@@ -306,6 +309,7 @@ static void bacnet_output_init(void)
         Color_Temperature_Write_Value_Handler);
     Lighting_Output_Write_Present_Value_Callback_Set(
         Lighting_Output_Write_Value_Handler);
+    Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
 }
 
 /**
