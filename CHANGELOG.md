@@ -19,8 +19,8 @@ The git repositories are hosted at the following sites:
 ### Added
 
 - Added [feature#14] EventTimeStamp decoding from ReadPropertyMultiple app.
-- Added Color, Color Temperature, and Lighting output demo app with Blinkt!
-- Added pipeline build of piface and blinkt apps.
+- Added Channel, Color, Color Temperature, & Lighting Output demo app with Blinkt!
+- Added pipeline build of piface and blinkt apps with Raspberry Pi OS image.
 - Added linear interpolation library functions used in fading and ramping.
 
 ### Changed
@@ -29,6 +29,7 @@ The git repositories are hosted at the following sites:
 - Changed gitignore to ease the maintainenance of source files in app folder
 - Changed example server app device simulator to use mstimer instead of OS time.
 - Changed example channel object to be dynamically created or deleted
+- Changed example channel object to handle color & color temperature objects.
 
 ### Fixed
 
