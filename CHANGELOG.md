@@ -19,7 +19,7 @@ The git repositories are hosted at the following sites:
 ### Added
 
 - Added [feature#14] EventTimeStamp decoding from ReadPropertyMultiple app.
-- Added Color, Color Temperature, and Lighting output demo app.
+- Added Color, Color Temperature, and Lighting output demo app with Blinkt!
 - Added pipeline build of piface and blinkt apps.
 - Added linear interpolation library functions used in fading and ramping.
 
@@ -27,13 +27,14 @@ The git repositories are hosted at the following sites:
 
 - Added Device timer API to feed elapsed milliseconds to children objects.
 - Changed gitignore to ease the maintainenance of source files in app folder
-- Changed server app device simulator to use mstimer instead of OS time.
+- Changed example server app device simulator to use mstimer instead of OS time.
+- Changed example channel object to be dynamically created or deleted
 
 ### Fixed
 
 - Fixed datetime decode of invalid application tag. (#495)
 - Fixed extraneous SO_BINDTODEVICE error message in Linux BIP
-- Fixed Color, Color Temperature, and Lighting object fade, ramp, and step.
+- Fixed example Color, Color Temperature, and Lighting object fade, ramp, and step.
 - Fixed and secured BACnetXYcolor and ColorCommand codecs.
 
 ## [1.2.0] - 2023-09-11
