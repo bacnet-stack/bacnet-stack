@@ -259,8 +259,8 @@ static void bacnet_output_init(void)
         member.propertyIdentifier = PROP_PRESENT_VALUE;
         member.arrayIndex = BACNET_ARRAY_ALL;
         member.deviceIdentifier.type = OBJECT_DEVICE;
-        member.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
-        Channel_Reference_List_Member_Element_Set(color_channel_instance, i,
+        member.deviceIdentifier.instance = Device_Object_Instance_Number();
+        Channel_Reference_List_Member_Element_Set(color_channel_instance, 1+i,
             &member);
 
         /* color temperature */
@@ -277,8 +277,8 @@ static void bacnet_output_init(void)
         member.propertyIdentifier = PROP_PRESENT_VALUE;
         member.arrayIndex = BACNET_ARRAY_ALL;
         member.deviceIdentifier.type = OBJECT_DEVICE;
-        member.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
-        Channel_Reference_List_Member_Element_Set(temp_channel_instance, i,
+        member.deviceIdentifier.instance = Device_Object_Instance_Number();
+        Channel_Reference_List_Member_Element_Set(temp_channel_instance, 1+i,
             &member);
 
         /* lighting output */
@@ -295,8 +295,8 @@ static void bacnet_output_init(void)
         member.propertyIdentifier = PROP_PRESENT_VALUE;
         member.arrayIndex = BACNET_ARRAY_ALL;
         member.deviceIdentifier.type = OBJECT_DEVICE;
-        member.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
-        Channel_Reference_List_Member_Element_Set(light_channel_instance, i,
+        member.deviceIdentifier.instance = Device_Object_Instance_Number();
+        Channel_Reference_List_Member_Element_Set(light_channel_instance, 1+i,
             &member);
 
         object_instance++;

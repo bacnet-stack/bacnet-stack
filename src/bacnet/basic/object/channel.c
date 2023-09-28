@@ -330,22 +330,8 @@ static bool Channel_Reference_List_Member_Valid(
  */
 unsigned Channel_Reference_List_Member_Count(uint32_t object_instance)
 {
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
-    unsigned count = 0;
-    unsigned m = 0;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
-            pMember = &pObject->Members[m];
-            if (Channel_Reference_List_Member_Valid(pMember)) {
-                count++;
-            }
-        }
-    }
-
-    return count;
+    (void)object_instance;
+    return CHANNEL_MEMBERS_MAX;
 }
 
 /**
@@ -360,24 +346,17 @@ BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Channel_Reference_List_Member_Element(
     uint32_t object_instance, unsigned array_index)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
-    unsigned count = 0;
-    unsigned m = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
-            pMember = &pObject->Members[m];
-            if (Channel_Reference_List_Member_Valid(pMember)) {
-                count++;
-                if (count == array_index) {
-                    return pMember;
-                }
-            }
+    if (pObject && (array_index > 0)) {
+        array_index--;
+        if (array_index < CHANNEL_MEMBERS_MAX) {
+            pMember = &pObject->Members[array_index];
         }
     }
 
-    return NULL;
+    return pMember;
 }
 
 /**
@@ -393,24 +372,17 @@ bool Channel_Reference_List_Member_Element_Set(uint32_t object_instance,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
-    unsigned count = 0;
-    unsigned m = 0;
     bool status = false;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
-            pMember = &pObject->Members[m];
-            if (Channel_Reference_List_Member_Valid(pMember)) {
-                count++;
-                if (count == array_index) {
-                    memcpy(pMember, pMemberSrc,
-                        sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
-                    status = true;
-                    break;
-                }
-            }
+    if (pObject && (array_index > 0)) {
+        array_index--;
+        if (array_index < CHANNEL_MEMBERS_MAX) {
+            pMember = &pObject->Members[array_index];
+            memcpy(pMember, pMemberSrc,
+                sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
+            status = true;
         }
     }
 
@@ -430,7 +402,7 @@ unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
-    unsigned count = 0;
+    unsigned array_index = 0;
     unsigned m = 0;
     struct object_data *pObject;
 
@@ -438,11 +410,9 @@ unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
     if (pObject) {
         for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
             pMember = &pObject->Members[m];
-            if (Channel_Reference_List_Member_Valid(pMember)) {
-                count++;
-            } else {
+            if (!Channel_Reference_List_Member_Valid(pMember)) {
                 /* first empty slot */
-                count++;
+                array_index = 1 + m;
                 memcpy(pMember, pMemberSrc,
                     sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
                 break;
@@ -450,37 +420,7 @@ unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
         }
     }
 
-    return count;
-}
-
-/**
- * For a given object instance-number, adds a member element
- *
- * @param object_instance - object-instance number of the object
- * @param type - object type
- * @param instance - object instance number
- * @param propertyIdentifier - property identifier BACNET_PROPERTY_ID
- * @param  array_index - 1-based array index of object property
- *
- * @return array_index - 1-based array index value for added element, or
- * zero if not added
- */
-unsigned Channel_Reference_List_Member_Local_Add(uint32_t object_instance,
-    BACNET_OBJECT_TYPE type,
-    uint32_t instance,
-    BACNET_PROPERTY_ID propertyIdentifier,
-    uint32_t arrayIndex)
-{
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
-
-    member.objectIdentifier.type = type;
-    member.objectIdentifier.instance = instance;
-    member.propertyIdentifier = propertyIdentifier;
-    member.arrayIndex = arrayIndex;
-    member.deviceIdentifier.type = OBJECT_DEVICE;
-    member.deviceIdentifier.instance = Device_Object_Instance_Number();
-
-    return Channel_Reference_List_Member_Element_Add(object_instance, &member);
+    return array_index;
 }
 
 /**

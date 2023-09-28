@@ -174,12 +174,6 @@ BACNET_STACK_EXPORT
 unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc);
 BACNET_STACK_EXPORT
-unsigned Channel_Reference_List_Member_Local_Add(uint32_t object_instance,
-    BACNET_OBJECT_TYPE type,
-    uint32_t instance,
-    BACNET_PROPERTY_ID propertyIdentifier,
-    uint32_t arrayIndex);
-BACNET_STACK_EXPORT
 uint16_t Channel_Control_Groups_Element(
     uint32_t object_instance, int32_t array_index);
 BACNET_STACK_EXPORT
