@@ -2430,9 +2430,7 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Override_Color_Reference.instance = BACNET_MAX_INSTANCE;
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
-        if (index >= 0) {
-            Device_Inc_Database_Revision();
-        } else {
+        if (index < 0) {
             free(pObject);
             return BACNET_MAX_INSTANCE;
         }
@@ -2455,7 +2453,6 @@ bool Lighting_Output_Delete(uint32_t object_instance)
     if (pObject) {
         free(pObject);
         status = true;
-        Device_Inc_Database_Revision();
     }
 
     return status;
@@ -2473,7 +2470,6 @@ void Lighting_Output_Cleanup(void)
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
                 free(pObject);
-                Device_Inc_Database_Revision();
             }
         } while (pObject);
         Keylist_Delete(Object_List);

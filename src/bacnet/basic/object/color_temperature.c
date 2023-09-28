@@ -1618,9 +1618,7 @@ uint32_t Color_Temperature_Create(uint32_t object_instance)
             pObject->Write_Enabled = false;
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
-            if (index >= 0) {
-                Device_Inc_Database_Revision();
-            } else {
+            if (index < 0) {
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
@@ -1646,7 +1644,6 @@ bool Color_Temperature_Delete(uint32_t object_instance)
     if (pObject) {
         free(pObject);
         status = true;
-        Device_Inc_Database_Revision();
     }
 
     return status;
@@ -1664,7 +1661,6 @@ void Color_Temperature_Cleanup(void)
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
                 free(pObject);
-                Device_Inc_Database_Revision();
             }
         } while (pObject);
         Keylist_Delete(Object_List);

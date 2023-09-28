@@ -1208,9 +1208,9 @@ uint32_t Analog_Output_Create(uint32_t object_instance)
         return BACNET_MAX_INSTANCE;
     } else if (object_instance == BACNET_MAX_INSTANCE) {
         /* wildcard instance */
-        /* the Object_Identifier property of the newly created object 
-            shall be initialized to a value that is unique within the 
-            responding BACnet-user device. The method used to generate 
+        /* the Object_Identifier property of the newly created object
+            shall be initialized to a value that is unique within the
+            responding BACnet-user device. The method used to generate
             the object identifier is a local matter.*/
         object_instance = Keylist_Next_Empty_Key(Object_List, 1);
     }
@@ -1235,9 +1235,7 @@ uint32_t Analog_Output_Create(uint32_t object_instance)
             pObject->Max_Pres_Value = 100;
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
-            if (index >= 0) {
-                Device_Inc_Database_Revision();
-            } else {
+            if (index < 0) {
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
@@ -1263,7 +1261,6 @@ bool Analog_Output_Delete(uint32_t object_instance)
     if (pObject) {
         free(pObject);
         status = true;
-        Device_Inc_Database_Revision();
     }
 
     return status;
@@ -1281,7 +1278,6 @@ void Analog_Output_Cleanup(void)
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
                 free(pObject);
-                Device_Inc_Database_Revision();
             }
         } while (pObject);
         Keylist_Delete(Object_List);

@@ -545,7 +545,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
     bool status = false;
 
     /* From 16.4.1.1.2 Password
-        This optional parameter shall be a CharacterString of up to 
+        This optional parameter shall be a CharacterString of up to
         20 characters. For those devices that require the password as a
         protection, the service request shall be denied if the parameter
         is absent or if the password is incorrect. For those devices that
@@ -554,7 +554,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         rd_data->error_class = ERROR_CLASS_SERVICES;
         rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
     } else if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
-        /* Note: you could use a mix of state and password to 
+        /* Note: you could use a mix of state and password to
            accomplish multiple things before restarting */
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
@@ -1976,6 +1976,7 @@ bool Device_Create_Object(
                 } else {
                     /* required by ACK */
                     data->object_instance = object_instance;
+                    Device_Inc_Database_Revision();
                     status = true;
                 }
             }
@@ -2013,7 +2014,9 @@ bool Device_Delete_Object(
             pObject->Object_Valid_Instance(data->object_instance)) {
             /* The object being deleted must already exist */
             status = pObject->Object_Delete(data->object_instance);
-            if (!status) {
+            if (status) {
+                Device_Inc_Database_Revision();
+            } else {
                 /* The object exists but cannot be deleted. */
                 data->error_class = ERROR_CLASS_OBJECT;
                 data->error_code = ERROR_CODE_OBJECT_DELETION_NOT_PERMITTED;

@@ -1777,6 +1777,7 @@ bool Device_Create_Object(
                 } else {
                     /* required by ACK */
                     data->object_instance = object_instance;
+                    Device_Inc_Database_Revision();
                     status = true;
                 }
             }
@@ -1814,7 +1815,9 @@ bool Device_Delete_Object(
             pObject->Object_Valid_Instance(data->object_instance)) {
             /* The object being deleted must already exist */
             status = pObject->Object_Delete(data->object_instance);
-            if (!status) {
+            if (status) {
+                Device_Inc_Database_Revision();
+            } else {
                 /* The object exists but cannot be deleted. */
                 data->error_class = ERROR_CLASS_OBJECT;
                 data->error_code = ERROR_CODE_OBJECT_DELETION_NOT_PERMITTED;
