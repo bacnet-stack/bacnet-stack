@@ -1,33 +1,31 @@
 ###############################################################################
-# Makefile for Project - PiFace
+# Makefile for Project - BACnet Blinkt!
+# sudo apt install libpigpio-dev libpigpiod-if-dev pigpiod
 ###############################################################################
 
 ## General Flags
-TARGET = bacpiface
+TARGET = bacblinkt
 # BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
+	blinkt.c \
 	device.c \
 	$(BACNET_OBJECT_DIR)/netport.c \
-	$(BACNET_OBJECT_DIR)/bi.c \
-	$(BACNET_OBJECT_DIR)/bo.c
+	$(BACNET_OBJECT_DIR)/channel.c \
+	$(BACNET_OBJECT_DIR)/color_object.c \
+	$(BACNET_OBJECT_DIR)/color_temperature.c \
+	$(BACNET_OBJECT_DIR)/lc.c \
+	$(BACNET_OBJECT_DIR)/lo.c
 
 CFLAGS += -DMAX_TSM_TRANSACTIONS=1
-CFLAGS += -DMAX_BINARY_INPUTS=4
-CFLAGS += -DMAX_BINARY_OUTPUTS=8
 
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-# Source locations
-PIFACE_INCLUDE = libpifacedigital/src
-PIFACE_LIB = libpifacedigital
-MCP23S17_LIB = libmcp23s17
-
-CFLAGS += -I$(PIFACE_INCLUDE)
-
-LDPIFACE = -Wl,-L$(PIFACE_LIB),-lpifacedigital,-L$(MCP23S17_LIB),-lmcp23s17
-LFLAGS += $(LDPIFACE)
+# note: link to pigpio daemon so that our app can run without root
+# start pigio daemon with the command 'sudo pigpiod'
+LD_PIGPIO = -Wl,-pthread,-lpigpiod_if2
+LFLAGS += $(LD_PIGPIO)
 
 OBJS += ${SRC:.c=.o}
 

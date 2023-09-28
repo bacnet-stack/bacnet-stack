@@ -136,6 +136,7 @@ list(APPEND testdirs
   bacnet/basic/sys/fifo
   bacnet/basic/sys/filename
   bacnet/basic/sys/keylist
+  bacnet/basic/sys/linear
   bacnet/basic/sys/ringbuf
   bacnet/basic/sys/sbuf
   )

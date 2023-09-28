@@ -26,6 +26,7 @@ if(BOARD STREQUAL unit_testing)
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
+    ${BACNET_TEST_PATH}/../mock/device_mock.c
     )
 
   get_filename_component(BACNET_OBJECT_SRC ${BACNET_SRC_PATH} PATH)
@@ -51,6 +52,8 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/dailyschedule.c
     ${BACNET_SRC}/weeklyschedule.c
     ${BACNET_SRC}/basic/sys/bigend.c
+    ${BACNET_SRC}/basic/sys/linear.c
+    ${BACNET_SRC}/basic/sys/keylist.c
     ${BACNET_SRC}/bactimevalue.c
     )
 
