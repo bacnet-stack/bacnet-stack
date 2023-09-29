@@ -30,11 +30,15 @@ echo "Build Win32 Apps"
 export CC=i686-w64-mingw32-gcc
 export LD=i686-w64-mingw32-ld
 i686-w64-mingw32-gcc --version
+make clean
 make -s LEGACY=true win32
 
 echo "ZIP Win32 Tools"
 mkdir -p $tools
-zip -r $tools/$tools.zip ./bin/*.exe
+cp ./bin/*.exe $tools
+zip -r $tools.zip $tools
+rm $tools/*.exe
+mv $tools.zip $tools/$tools.zip
 cp ./bin/bvlc.bat $tools
 cp ./bin/readme.txt $tools
 cp ./apps/mstpcap/mstpcap.txt $tools
