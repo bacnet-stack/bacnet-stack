@@ -690,7 +690,7 @@ bool Color_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[16] = "COLOR-4194303";
+    char name_text[24] = "COLOR-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -708,8 +708,7 @@ bool Color_Object_Name(
 
 /**
  * For a given object instance-number, sets the object-name
- * Note that the object name must be unique within this device.
- *
+ * 
  * @param  object_instance - object-instance number of the object
  * @param  new_name - holds the object-name to be set
  *
@@ -718,30 +717,12 @@ bool Color_Object_Name(
 bool Color_Name_Set(uint32_t object_instance, char *new_name)
 {
     bool status = false; /* return value */
-    BACNET_CHARACTER_STRING object_name;
-    BACNET_OBJECT_TYPE found_type = 0;
-    uint32_t found_instance = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject && new_name) {
-        /* All the object names in a device must be unique */
-        characterstring_init_ansi(&object_name, new_name);
-        if (Device_Valid_Object_Name(
-                &object_name, &found_type, &found_instance)) {
-            if ((found_type == OBJECT_COLOR) &&
-                (found_instance == object_instance)) {
-                /* writing same name to same object */
-                status = true;
-            } else {
-                /* duplicate name! */
-                status = false;
-            }
-        } else {
-            status = true;
-            pObject->Object_Name = new_name;
-            Device_Inc_Database_Revision();
-        }
+        pObject->Object_Name = new_name;
+        status = true;
     }
 
     return status;

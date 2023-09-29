@@ -45,9 +45,6 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
 #include "bacnet/basic/sys/keylist.h"
-#if defined(CHANNEL_LIGHTING_COMMAND)
-#include "bacnet/basic/object/lo.h"
-#endif
 #if defined(CHANNEL_LIGHTING_COMMAND) || defined(CHANNEL_COLOR_COMMAND)
 #include "bacnet/lighting.h"
 #endif
