@@ -22,30 +22,45 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+## [1.3.1] - 2023-09-29
+
+### Added
+
+Added example Channel object WriteProperty callback into example Device objects. (#504)
+Added Microsoft Visual Studio 2022 Community Edition solution to ports/win32 (#502)
+Added details in apps/blinkt example about starting app with systemd (#505)
+
+### Fixed
+
+Refactored WriteProperty of object-name property rules into example device object (#504)
+
+### Changed
+
+Changed WriteProperty string property checker to ignore length check with zero option.(#504)
 
 ## [1.3.0] - 2023-09-28
 
 ### Added
 
-- Added [feature#14] EventTimeStamp decoding from ReadPropertyMultiple app.
-- Added Channel, Color, Color Temperature, & Lighting Output demo app with Blinkt!
-- Added pipeline build of piface and blinkt apps with Raspberry Pi OS image.
-- Added linear interpolation library functions used in fading and ramping.
+- Added [feature#14] EventTimeStamp decoding from ReadPropertyMultiple app. (#503)
+- Added Channel, Color, Color Temperature, & Lighting Output demo app with Blinkt! (#503)
+- Added pipeline build of piface and blinkt apps with Raspberry Pi OS image. (#503)
+- Added linear interpolation library functions used in fading and ramping. (#503)
 
 ### Changed
 
-- Added Device timer API to feed elapsed milliseconds to children objects.
-- Changed gitignore to ease the maintainenance of source files in app folder
-- Changed example server app device simulator to use mstimer instead of OS time.
-- Changed example channel object to be dynamically created or deleted
-- Changed example channel object to handle color & color temperature objects.
+- Added Device timer API to feed elapsed milliseconds to children objects. (#503)
+- Changed gitignore to ease the maintainenance of source files in app folder. (#503)
+- Changed example server app device simulator to use mstimer instead of OS time. (#503)
+- Changed example channel object to be dynamically created or deleted. (#503)
+- Changed example channel object to handle color & color temperature objects. (#503)
 
 ### Fixed
 
 - Fixed datetime decode of invalid application tag. (#495)
-- Fixed extraneous SO_BINDTODEVICE error message in Linux BIP
-- Fixed example Color, Color Temperature, and Lighting object fade, ramp, and step.
-- Fixed and secured BACnetXYcolor and ColorCommand codecs.
+- Fixed extraneous SO_BINDTODEVICE error message in Linux BIP. (#498)
+- Fixed example Color, Color Temperature, and Lighting object fade, ramp, and step. (#503)
+- Fixed and secured BACnetXYcolor and ColorCommand codecs. (#503)
 
 ## [1.2.0] - 2023-09-11
 
