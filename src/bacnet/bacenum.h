@@ -1039,7 +1039,7 @@ typedef enum {
     PROP_STATE_AUTHENTICATION_STATUS = 34
 } BACNET_PROPERTY_STATES;
 
-typedef enum {
+typedef enum BACnetReliability {
     RELIABILITY_NO_FAULT_DETECTED = 0,
     RELIABILITY_NO_SENSOR = 1,
     RELIABILITY_OVER_RANGE = 2,
@@ -2085,6 +2085,21 @@ typedef enum BACnetColorTransition {
     BACNET_COLOR_TRANSITION_RAMP = 2,
     BACNET_COLOR_TRANSITION_MAX = 3
 } BACNET_COLOR_TRANSITION;
+
+typedef enum BACnetBinaryLightingPV {
+    BACNET_BINARY_LIGHTING_OFF = 0,
+    BACNET_BINARY_LIGHTING_ON = 1,
+    BACNET_BINARY_LIGHTING_WARN = 2,
+    BACNET_BINARY_LIGHTING_WARN_OFF = 3,
+    BACNET_BINARY_LIGHTING_WARN_RELINQUISH = 4,
+    BACNET_BINARY_LIGHTING_STOP = 5,
+    BACNET_BINARY_LIGHTING_MAX = 6,
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-255 may be used by others subject to
+       the procedures and constraints described in Clause 23 */
+    BACNET_BINARY_LIGHTING_PROPRIETARY_FIRST = 64,
+    BACNET_BINARY_LIGHTING_PROPRIETARY_LAST = 255
+} BACNET_BINARY_LIGHTING_PV;
 
 /* NOTE: BACNET_DAYS_OF_WEEK is different than BACNET_WEEKDAY */
 /* 0=Monday-6=Sunday */

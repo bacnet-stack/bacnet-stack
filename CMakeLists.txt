@@ -176,6 +176,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/bacfile.h
     src/bacnet/basic/object/bi.c
     src/bacnet/basic/object/bi.h
+    src/bacnet/basic/object/blo.c
+    src/bacnet/basic/object/blo.h
     src/bacnet/basic/object/bo.c
     src/bacnet/basic/object/bo.h
     src/bacnet/basic/object/bv.c
