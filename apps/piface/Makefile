@@ -10,6 +10,7 @@ SRC = main.c \
 	device.c \
 	$(BACNET_OBJECT_DIR)/netport.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
+	$(BACNET_OBJECT_DIR)/blo.c \
 	$(BACNET_OBJECT_DIR)/bo.c
 
 CFLAGS += -DMAX_TSM_TRANSACTIONS=1
