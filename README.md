@@ -5,6 +5,26 @@ http://bacnet.sourceforge.net/
 
 Welcome to the wonderful world of BACnet and true device interoperability!
 
+
+
+
+This Branch !!
+--------------
+
+This branch of Steve Karg's BACnet stack is available for review and participation for developing a BACnet Diagnostic Object.
+When ready, we may propose to the BACnet committee that they include the new features in the standard.
+
+There is a discussion forum:        https://forum.bac-test.com/t/bacnet-diagnostic-object-properties-and-services/10
+
+Or contact me directly:             edward@bac-test.com
+
+Or LinkedIn:                        bacnet-developers
+
+Wiki:                               bacnetwiki.com
+
+
+
+
 Continuous Integration
 ----------------------
 
