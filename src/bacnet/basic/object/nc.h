@@ -39,7 +39,9 @@ extern "C" {
 #define NC_RESCAN_RECIPIENTS_SECS 60
 
 /* max "length" of recipient_list */
-#define NC_MAX_RECIPIENTS 10
+#if !defined(NC_MAX_RECIPIENTS)
+#  define NC_MAX_RECIPIENTS 10
+#endif
 
 #if defined(INTRINSIC_REPORTING)
 
