@@ -38,7 +38,7 @@ extern "C" {
 
     typedef enum BACnet_SpecialEventPeriod_Tags {
         BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY = 0,
-        BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE = 1,
+        BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE = 1
     } BACNET_SPECIAL_EVENT_PERIOD_TAG;
 
     typedef struct BACnet_Special_Event {

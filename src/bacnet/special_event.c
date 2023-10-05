@@ -210,7 +210,7 @@ bool bacnet_special_event_same(
 {
     BACNET_APPLICATION_DATA_VALUE adv1, adv2;
     BACNET_TIME_VALUE *tv1, *tv2;
-    int wi, ti;
+    int ti;
 
     if (value1->periodTag != value2->periodTag ||
         value1->priority != value2->priority) {

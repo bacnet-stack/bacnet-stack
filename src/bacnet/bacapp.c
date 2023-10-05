@@ -187,6 +187,11 @@ int bacapp_encode_application_data(
                 apdu_len = bacnet_calendar_entry_encode(
                     apdu, &value->type.Calendar_Entry);
                 break;
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* BACnetSpecialEvent */
+                apdu_len = bacnet_special_event_encode(
+                    apdu, &value->type.Special_Event);
+                break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 /* BACnetHostNPort */
                 apdu_len = host_n_port_encode(apdu, &value->type.Host_Address);

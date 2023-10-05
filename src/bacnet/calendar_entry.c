@@ -130,6 +130,7 @@ int bacnet_calendar_entry_decode(uint8_t *apdu, uint32_t apdu_max_len,
     int apdu_len = 0;
     int len;
     BACNET_OCTET_STRING octet_string = { 0 };
+    (void) apdu_max_len;
 
     if (!apdu || !entry) {
         return BACNET_STATUS_REJECT;
