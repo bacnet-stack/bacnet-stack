@@ -14,6 +14,11 @@ This Branch !!
 This branch of Steve Karg's BACnet stack is available for review and participation for developing a BACnet Diagnostic Object.
 When ready, we may propose to the BACnet committee that they include the new features in the standard.
 
+Current Status:
+
+    2023-10-03                      Putting placeholder files in place, not even compiled yet.
+    
+
 There is a discussion forum:        https://forum.bac-test.com/t/bacnet-diagnostic-object-properties-and-services/10
 
 Or contact me directly:             edward@bac-test.com

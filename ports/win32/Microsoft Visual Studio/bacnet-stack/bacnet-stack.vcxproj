@@ -145,6 +145,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\fifo.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\filename.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\keylist.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\linear.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\mstimer.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\sbuf.c" />
@@ -330,6 +331,7 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\filename.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\key.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\keylist.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\linear.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\mstimer.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\platform.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.h" />
