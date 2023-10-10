@@ -7,7 +7,7 @@ TARGET = bacpiface
 # BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
-	$(BACNET_OBJECT_DIR)/device.c \
+	device.c \
 	$(BACNET_OBJECT_DIR)/netport.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
 	$(BACNET_OBJECT_DIR)/bo.c
@@ -23,6 +23,8 @@ TARGET_BIN = ${TARGET}$(TARGET_EXT)
 PIFACE_INCLUDE = libpifacedigital/src
 PIFACE_LIB = libpifacedigital
 MCP23S17_LIB = libmcp23s17
+
+CFLAGS += -I$(PIFACE_INCLUDE)
 
 LDPIFACE = -Wl,-L$(PIFACE_LIB),-lpifacedigital,-L$(MCP23S17_LIB),-lmcp23s17
 LFLAGS += $(LDPIFACE)

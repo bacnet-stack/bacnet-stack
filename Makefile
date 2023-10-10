@@ -69,6 +69,10 @@ ack-alarm:
 add-list-element:
 	$(MAKE) -s -C apps $@
 
+.PHONY: blinkt
+blinkt:
+	$(MAKE) -s -C apps $@
+
 .PHONY: dcc
 dcc:
 	$(MAKE) -s -C apps $@
@@ -100,6 +104,10 @@ gateway:
 .PHONY: gateway-win32
 gateway-win32:
 	$(MAKE) BACNET_PORT=win32 -s -C apps gateway
+
+.PHONY: piface
+piface:
+	$(MAKE) CSTANDARD="-std=gnu11" LEGACY=true -s -C apps $@
 
 .PHONY: readbdt
 readbdt:

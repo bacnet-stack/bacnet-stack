@@ -901,7 +901,7 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     time [0] Time, -- deprecated in version 1 revision 21
                     sequence-number [1] Unsigned (0..65535),
                     datetime [2] BACnetDateTime
-                } 
+                }
             */
             switch (tag_number) {
                 case TIME_STAMP_TIME:
@@ -2155,6 +2155,16 @@ int bacapp_snprintf_value(
                         ret_val = snprintf(str, str_len, "%s",
                             bactext_node_type_name(value->type.Enumerated));
                         break;
+                    case PROP_TRANSITION:
+                        ret_val = snprintf(str, str_len, "%s",
+                            bactext_lighting_transition(
+                            value->type.Enumerated));
+                        break;
+                    case PROP_IN_PROGRESS:
+                        ret_val = snprintf(str, str_len, "%s",
+                            bactext_lighting_in_progress(
+                            value->type.Enumerated));
+                        break;
                     default:
                         ret_val = snprintf(str, str_len, "%lu",
                             (unsigned long)value->type.Enumerated);
@@ -2267,9 +2277,8 @@ int bacapp_snprintf_value(
                 break;
             case BACNET_APPLICATION_TAG_XY_COLOR:
                 /* BACnetxyColor */
-                ret_val = snprintf(str, str_len, "(%f,%f)",
-                    value->type.XY_Color.x_coordinate,
-                    value->type.XY_Color.x_coordinate);
+                ret_val = xy_color_to_ascii(&value->type.XY_Color, str,
+                    str_len);
                 break;
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
@@ -2641,7 +2650,6 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
     int count = 0;
 #if defined(BACAPP_TYPES_EXTRA)
     unsigned a[4] = { 0 }, p = 0;
-    float x, y;
 #endif
 
     if (value && (tag_number != MAX_BACNET_APPLICATION_TAG)) {
@@ -2793,13 +2801,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                 break;
             case BACNET_APPLICATION_TAG_XY_COLOR:
                 /* BACnetxyColor */
-                count = sscanf(argv, "%f,%f", &x, &y);
-                if (count == 2) {
-                    value->type.XY_Color.x_coordinate = x;
-                    value->type.XY_Color.y_coordinate = y;
-                } else {
-                    status = false;
-                }
+                status = xy_color_from_ascii(&value->type.XY_Color, argv);
                 break;
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* FIXME: add parsing for BACnetColorCommand */

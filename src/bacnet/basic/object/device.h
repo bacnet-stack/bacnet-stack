@@ -142,6 +142,14 @@ typedef void (
     *object_intrinsic_reporting_function) (
     uint32_t object_instance);
 
+/**
+ * @brief Updates the object with the elapsed milliseconds
+ * @param  object_instance - object-instance number of the object
+ * @param milliseconds - number of milliseconds elapsed
+ */
+typedef void (
+    *object_timer_function) (
+    uint32_t object_instance, uint16_t milliseconds);
 
 /** Defines the group of object helper functions for any supported Object.
  * @ingroup ObjHelpers
@@ -172,6 +180,7 @@ typedef struct object_functions {
     list_element_function Object_Remove_List_Element;
     create_object_function Object_Create;
     delete_object_function Object_Delete;
+    object_timer_function Object_Timer;
 } object_functions_t;
 
 /* String Lengths - excluding any nul terminator */
@@ -232,6 +241,10 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Device_Init(
         object_functions_t * object_table);
+
+    BACNET_STACK_EXPORT
+    void Device_Timer(
+        uint16_t milliseconds);
 
     BACNET_STACK_EXPORT
     bool Device_Reinitialize(

@@ -100,29 +100,42 @@ int bacapp_encode_device_obj_property_ref(
     int len;
     int apdu_len = 0;
 
+    if (!value) {
+        return apdu_len;
+    }
     /* object-identifier       [0] BACnetObjectIdentifier */
-    len = encode_context_object_id(&apdu[apdu_len], 0,
+    len = encode_context_object_id(apdu, 0,
         value->objectIdentifier.type, value->objectIdentifier.instance);
     apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
     /* property-identifier     [1] BACnetPropertyIdentifier */
     len = encode_context_enumerated(
-        &apdu[apdu_len], 1, value->propertyIdentifier);
+        apdu, 1, value->propertyIdentifier);
     apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
     /* property-array-index    [2] Unsigned OPTIONAL */
     /* Check if needed before inserting */
     if (value->arrayIndex != BACNET_ARRAY_ALL) {
-        len = encode_context_unsigned(&apdu[apdu_len], 2, value->arrayIndex);
+        len = encode_context_unsigned(apdu, 2, value->arrayIndex);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
     }
     /* device-identifier       [3] BACnetObjectIdentifier OPTIONAL */
     /* Likewise, device id is optional so see if needed
      * (set type to BACNET_NO_DEV_TYPE or something other than OBJECT_DEVICE to
      * omit */
     if (value->deviceIdentifier.type == OBJECT_DEVICE) {
-        len = encode_context_object_id(&apdu[apdu_len], 3,
+        len = encode_context_object_id(apdu, 3,
             value->deviceIdentifier.type, value->deviceIdentifier.instance);
         apdu_len += len;
     }
+
     return apdu_len;
 }
 
