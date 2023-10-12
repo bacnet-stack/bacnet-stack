@@ -551,10 +551,14 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         protection, the service request shall be denied if the parameter
         is absent or if the password is incorrect. For those devices that
         do not require a password, this parameter shall be ignored.*/
+#ifdef BAC_NO_PASSWORD
+    if (true) {
+#else
     if (characterstring_length(&rd_data->password) > 20) {
         rd_data->error_class = ERROR_CLASS_SERVICES;
         rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
     } else if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
+#endif
         /* Note: you could use a mix of state and password to
            accomplish multiple things before restarting */
         switch (rd_data->state) {

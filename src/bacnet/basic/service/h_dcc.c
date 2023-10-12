@@ -174,7 +174,11 @@ void handler_device_communication_control(uint8_t *service_request,
             goto DCC_ABORT;
 #endif
 
+#ifdef BAC_NO_PASSWORD
+        if (true) {
+#else
         if (characterstring_ansi_same(&password, My_Password)) {
+#endif
             len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id,
                 SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL);
