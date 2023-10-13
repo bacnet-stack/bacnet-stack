@@ -298,7 +298,6 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         apdu_len = BACNET_STATUS_ERROR;
     }
 
-    fprintf(stderr, "[%s %d %s] returning apdu_len = %d of apdu_max = %d\r\n", __FILE__, __LINE__, __func__, (int) apdu_len, (int) apdu_max);
     return apdu_len;
 }
 
