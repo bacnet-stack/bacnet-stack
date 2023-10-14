@@ -259,6 +259,26 @@ whether (TRUE) or not (FALSE) a reply service primitive
 is expected for the service being issued.
 */
 
+
+/* 2023-10-14 edward@bac-test.com
+ *
+ * I agree that this is a misnomer, but on two counts.
+ * Firtly, as below, this is not an encode function, but rather it populates the structure
+ * And the second, the structure in question is not the NPDU, but the NPCI
+ *
+ * NPDU = NPCI + NSDU
+ *  "Network-layer Protocol Data Unit" =
+ *      "Network Protocol Control Information" +
+ *      "Network Service Data Unit" (APDU for application messages, "Network Message" for network layer messages)
+ *
+ * See Figures 5-2 and 7-1 of the spec for justification
+ *
+ * I suggest we call this npdu_populate_npci_data()
+ *
+ * See my related comments by doing a global search for cr_182347104102483 (cr for "Code Review")
+ *
+ */
+
 /** Initialize an npdu_data structure to good defaults.
  * The name is a misnomer, as it doesn't do any actual encoding here.
  * @see npdu_encode_npdu_network if you need to set a network layer msg.

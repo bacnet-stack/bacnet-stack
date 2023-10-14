@@ -36,7 +36,28 @@
 #define HOP_COUNT_DEFAULT 255
 #endif
 
-/* an NPDU structure keeps the parameter stack to a minimum */
+
+/* 2023-10-14 edward@bac-test.com
+ * 
+ * This structure defines the NPCI (header part) of the NPDU. See Figures 5-2 and 7-1 of the spec for clarity
+ * 
+ * NPDU = NPCI + NSDU
+ *  "Network-layer Protocol Data Unit" =
+ *      "Network Protocol Control Information" +
+ *      "Network Service Data Unit" (APDU for application messages, "Network Message" for network layer messages)
+ * 
+ * Once everyone is onboard, and we are feeling brave, we could rename this for
+ * clarity (i.e. obsolete BACNET_NPDU_DATA below) 
+ *
+ * At least we should leave this (or a suitably modified) comment here to avoid
+ * confusion for when others are reviewing this code against the spec
+ *
+ * See my related comments by doing a global search for cr_182347104102483 (cr
+ * for "Code Review")
+ * 
+ */
+
+/* a NPCI structure keeps the parameter stack to a minimum */
 typedef struct bacnet_npdu_data_t {
     uint8_t protocol_version;
     /* parts of the control octet: */
@@ -47,7 +68,8 @@ typedef struct bacnet_npdu_data_t {
     BACNET_NETWORK_MESSAGE_TYPE network_message_type;   /* optional */
     uint16_t vendor_id; /* optional, if net message type is > 0x80 */
     uint8_t hop_count;
-} BACNET_NPDU_DATA;
+} BACNET_NPDU_DATA, BACNET_NPCI_DATA ;
+
 
 struct router_port_t;
 /** The info[] string has no agreed-upon purpose, hence it is useless.
