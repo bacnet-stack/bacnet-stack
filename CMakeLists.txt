@@ -45,11 +45,6 @@ option(
   OFF)
 
 option(
-   BACDL_MSTP
-   "compile with mstp support"
-   OFF)
-
-option(
   BACDL_MSTP
   "compile with mstp support"
   ON)
