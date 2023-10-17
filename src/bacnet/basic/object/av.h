@@ -52,6 +52,9 @@ extern "C" {
         float Prior_Value;
         float COV_Increment;
         bool Changed;
+        uint32_t Object_Instance;
+        BACNET_CHARACTER_STRING Object_Name;
+        BACNET_CHARACTER_STRING Description;
 #if defined(INTRINSIC_REPORTING)
         uint32_t Time_Delay;
         uint32_t Notification_Class;
@@ -92,7 +95,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Analog_Value_Object_Name(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING * object_name);
+        BACNET_CHARACTER_STRING *object_name);
     BACNET_STACK_EXPORT
     bool Analog_Value_Name_Set(
         uint32_t object_instance,
@@ -144,8 +147,8 @@ extern "C" {
         float value);
 
     BACNET_STACK_EXPORT
-    char *Analog_Value_Description(
-        uint32_t instance);
+    bool Analog_Value_Description(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
     BACNET_STACK_EXPORT
     bool Analog_Value_Description_Set(
         uint32_t instance,
@@ -210,6 +213,8 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Analog_Value_Init(
         void);
+    BACNET_STACK_EXPORT
+    int Analog_Value_Init_Nif(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 
 #ifdef __cplusplus
 }

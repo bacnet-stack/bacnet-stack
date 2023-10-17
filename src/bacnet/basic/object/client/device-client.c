@@ -28,6 +28,7 @@
  * Device-specific properties.  This Device instance is designed to
  * meet minimal functionality for simple clients. */
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h> /* for memmove */
@@ -269,6 +270,7 @@ uint32_t Device_Index_To_Instance(unsigned index)
  */
 uint32_t Device_Object_Instance_Number(void)
 {
+    printf("%s:%d: Device Object %d\r\n", __FILE__, __LINE__, (int)Object_Instance_Number);
 #ifdef BAC_ROUTING
     return Routed_Device_Object_Instance_Number();
 #else
@@ -278,6 +280,7 @@ uint32_t Device_Object_Instance_Number(void)
 
 bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
+    printf("%s:%d: Device_Set_Object_Instance_Number()\r\n", __FILE__, __LINE__);
     bool status = true; /* return value */
 
     if (object_id <= BACNET_MAX_INSTANCE) {
@@ -458,6 +461,7 @@ const char *Device_Description(void)
 bool Device_Set_Description(const char *name, size_t length)
 {
     bool status = false; /*return value */
+    PRINT("");
 
     if (length < sizeof(Description)) {
         memmove(Description, name, length);
@@ -1051,6 +1055,7 @@ void Device_Init(object_functions_t *object_table)
 {
     struct object_functions *pObject = NULL;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     characterstring_init_ansi(&My_Object_Name, "SimpleClient");
     datetime_init();
     /* we don't use the object table passed in */
@@ -1058,6 +1063,7 @@ void Device_Init(object_functions_t *object_table)
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
+            // change NULL to pass in the init data array for each object type
             pObject->Object_Init();
         }
         pObject++;
