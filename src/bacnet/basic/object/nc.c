@@ -249,33 +249,37 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_RECIPIENT_LIST:
-            /* get the size of all entry of Recipient_List */
-            for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
+            {
+              /* get the size of all entry of Recipient_List */
+              int apdu_test_len = apdu_len;
+
+              for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *Destination;
                 BACNET_RECIPIENT *Recipient;
                 Destination = &CurrentNotify->Recipient_List[idx];
                 Recipient = &Destination->Recipient;
                 if (!bacnet_recipient_device_wildcard(Recipient)) {
-                    apdu_len += bacnet_destination_encode(NULL, Destination);
+                  apdu_test_len += bacnet_destination_encode(NULL, Destination);
                 }
-            }
-            if (apdu_len > apdu_max) {
+              }
+              if (apdu_test_len > apdu_max) {
                 /* Abort response */
                 rpdata->error_code =
-                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                  ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                 apdu_len = BACNET_STATUS_ABORT;
                 break;
-            }
-            /* size fits, therefore, encode all entry of Recipient_List */
-            for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
+              }
+              /* size fits, therefore, encode all entry of Recipient_List */
+              for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *Destination;
                 BACNET_RECIPIENT *Recipient;
                 Destination = &CurrentNotify->Recipient_List[idx];
                 Recipient = &Destination->Recipient;
                 if (!bacnet_recipient_device_wildcard(Recipient)) {
-                    apdu_len +=
-                        bacnet_destination_encode(&apdu[apdu_len], Destination);
+                  apdu_len +=
+                    bacnet_destination_encode(&apdu[apdu_len], Destination);
                 }
+              }
             }
             break;
 
