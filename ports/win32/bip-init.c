@@ -48,6 +48,7 @@
 /* Windows sockets */
 static SOCKET BIP_Socket = INVALID_SOCKET;
 static SOCKET BIP_Broadcast_Socket = INVALID_SOCKET;
+static bool BIP_Initialized;
 
 /* NOTE: we store address and port in network byte order
    since BACnet/IP uses network byte order for all address byte arrays
@@ -258,18 +259,17 @@ static void print_last_error(const char *info)
  */
 static void bip_init_windows(void)
 {
-    static bool initialized = false;
     int Result;
     WSADATA wd;
 
-    if (!initialized) {
+    if (!BIP_Initialized) {
         Result = WSAStartup((1 << 8) | 1, &wd);
         /*Result = WSAStartup(MAKEWORD(2,2), &wd); */
         if (Result != 0) {
             print_last_error("TCP/IP stack initialization failed");
             exit(1);
         }
-        initialized = true;
+        BIP_Initialized = true;
         atexit(bip_cleanup);
     }
 }
@@ -933,7 +933,10 @@ void bip_cleanup(void)
     }
     BIP_Broadcast_Socket = INVALID_SOCKET;
 
-    WSACleanup();
+    if (BIP_Initialized) {
+        BIP_Initialized = false;
+        WSACleanup();
+    }
 
     return;
 }
