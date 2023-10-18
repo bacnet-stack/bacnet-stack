@@ -249,37 +249,34 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_RECIPIENT_LIST:
-            {
-              /* get the size of all entry of Recipient_List */
-              int apdu_test_len = apdu_len;
-
-              for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
+            /* get the size of all entry of Recipient_List */
+            for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *Destination;
                 BACNET_RECIPIENT *Recipient;
                 Destination = &CurrentNotify->Recipient_List[idx];
                 Recipient = &Destination->Recipient;
                 if (!bacnet_recipient_device_wildcard(Recipient)) {
-                  apdu_test_len += bacnet_destination_encode(NULL, Destination);
+                    apdu_len += bacnet_destination_encode(NULL, Destination);
                 }
-              }
-              if (apdu_test_len > apdu_max) {
+            }
+            if (apdu_len > apdu_max) {
                 /* Abort response */
                 rpdata->error_code =
-                  ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                 apdu_len = BACNET_STATUS_ABORT;
                 break;
-              }
-              /* size fits, therefore, encode all entry of Recipient_List */
-              for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
+            }
+            /* size fits, therefore, encode all entry of Recipient_List */
+            apdu_len = 0;
+            for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *Destination;
                 BACNET_RECIPIENT *Recipient;
                 Destination = &CurrentNotify->Recipient_List[idx];
                 Recipient = &Destination->Recipient;
                 if (!bacnet_recipient_device_wildcard(Recipient)) {
-                  apdu_len +=
-                    bacnet_destination_encode(&apdu[apdu_len], Destination);
+                    apdu_len +=
+                        bacnet_destination_encode(&apdu[apdu_len], Destination);
                 }
-              }
             }
             break;
 
@@ -451,7 +448,11 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = true;
             break;
 
+        case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_NAME:
+        case PROP_OBJECT_TYPE:
+        case PROP_DESCRIPTION:
+        case PROP_NOTIFICATION_CLASS:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
@@ -708,8 +709,7 @@ void Notification_Class_find_recipient(void)
  * the BACnetLIST all of the specified elements, or to neither add nor
  * update any elements at all.
  */
-int Notification_Class_Add_List_Element(
-    BACNET_LIST_ELEMENT_DATA * list_element)
+int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
 {
     NOTIFICATION_CLASS_INFO *notification = NULL;
     BACNET_DESTINATION recipient_list[NC_MAX_RECIPIENTS] = { 0 };
@@ -759,8 +759,8 @@ int Notification_Class_Add_List_Element(
     application_data = list_element->application_data;
     application_data_len = list_element->application_data_len;
     while (application_data_len > 0) {
-        len = bacnet_destination_decode(application_data,
-            application_data_len, &recipient_list[index]);
+        len = bacnet_destination_decode(
+            application_data, application_data_len, &recipient_list[index]);
         if (len > 0) {
             new_element_count++;
             application_data_len -= len;
@@ -797,7 +797,7 @@ int Notification_Class_Add_List_Element(
             same_element_count++;
         } else {
             added_element_count++;
-            if ((added_element_count+element_count) > NC_MAX_RECIPIENTS) {
+            if ((added_element_count + element_count) > NC_MAX_RECIPIENTS) {
                 list_element->first_failed_element_number = 1 + i;
                 list_element->error_class = ERROR_CLASS_RESOURCES;
                 list_element->error_code =
@@ -866,7 +866,7 @@ int Notification_Class_Add_List_Element(
  * a 'Result(-)' response primitive shall be issued.
  */
 int Notification_Class_Remove_List_Element(
-    BACNET_LIST_ELEMENT_DATA * list_element)
+    BACNET_LIST_ELEMENT_DATA *list_element)
 {
     NOTIFICATION_CLASS_INFO *notification = NULL;
     uint32_t notify_index = 0;
@@ -915,8 +915,8 @@ int Notification_Class_Remove_List_Element(
     application_data = list_element->application_data;
     application_data_len = list_element->application_data_len;
     while (application_data_len > 0) {
-        len = bacnet_destination_decode(application_data,
-            application_data_len, &recipient_list[index]);
+        len = bacnet_destination_decode(
+            application_data, application_data_len, &recipient_list[index]);
         if (len > 0) {
             remove_element_count++;
             application_data_len -= len;
