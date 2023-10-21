@@ -428,7 +428,190 @@ static void Present_Value_On_Off_Handler(uint32_t object_instance)
             }
             pObject->Feedback_Value = pObject->Target_Value;
         }
+        pObject->Target_Value = BACNET_BINARY_LIGHTING_STOP;
         pObject->Egress_Timer = 0;
+    }
+}
+
+/**
+ * For a given object instance-number, handles an ON or OFF target value
+ *
+ * @param  object_instance - object-instance number of the object
+ */
+static void Present_Value_Relinquish_Handler(uint32_t object_instance)
+{
+    uint8_t current_priority;
+    BACNET_BINARY_LIGHTING_PV value;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (!pObject) {
+        return;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if (pObject->Target_Priority != current_priority) {
+        /* target priority holds previous priority
+           and *any* change after relinquish
+           indicates something needs done */
+        if (current_priority > BACNET_MAX_PRIORITY) {
+            value = pObject->Relinquish_Default;
+        } else {
+            value = Priority_Array_Value(pObject, current_priority);
+        }
+        if (pObject->Feedback_Value != value) {
+            pObject->Changed = true;
+            if ((!pObject->Out_Of_Service) &&
+                (Binary_Lighting_Output_Write_Value_Callback)) {
+                Binary_Lighting_Output_Write_Value_Callback(
+                    object_instance, pObject->Feedback_Value, value);
+            }
+            pObject->Feedback_Value = value;
+        }
+        pObject->Target_Value = BACNET_BINARY_LIGHTING_STOP;
+    }
+}
+
+/**
+ * For a given object instance, handles a WARN target value
+ *
+ * WARN
+ * Executes a blink-warn notification at the
+ * specified priority. After the blink-warn
+ * notification has been executed the value
+ * at the specified priority remains ON.
+ *
+ * WARN_OFF
+ * Executes a blink-warn notification at the
+ * specified priority and then writes the value OFF
+ * to the specified slot in the priority array
+ * after a delay of Egress_Time seconds.
+ *
+ * WARN_RELINQUISH
+ * Executes a blink-warn notification at the
+ * specified priority and then relinquishes the value
+ * at the specified priority slot
+ * after a delay of Egress_Time seconds.
+ *
+ * The blink-warn notification shall not occur
+ * if any of the following conditions occur:
+ *   (a) The specified priority is not the highest priority, or
+ *   (b) The value at the specified priority is OFF, or
+ *   (c) Blink_Warn_Enable is FALSE.
+ *
+ * In the case of WARN_RELINQUISH,
+ *   (d) The value at the specified priority is NULL, or
+ *   (e) The value of the next highest non-NULL priority,
+ *       including Relinquish_Default, is ON.
+ *
+ * @param  object_instance - object-instance number of the object
+ */
+static void Present_Value_Warn_Handler(uint32_t object_instance)
+{
+    uint8_t current_priority;
+    BACNET_BINARY_LIGHTING_PV lighting_value;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (!pObject) {
+        return;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if (pObject->Target_Value == BACNET_BINARY_LIGHTING_WARN_RELINQUISH) {
+        /* relinquish this priority */
+        Present_Value_Relinquish(pObject, pObject->Target_Priority);
+    }
+    if (pObject->Target_Priority > current_priority) {
+        /* The specified priority is not the highest priority */
+        return;
+    }
+    lighting_value = Priority_Array_Next_Value(pObject, 0);
+    if (lighting_value == BACNET_BINARY_LIGHTING_OFF) {
+        /* The value at the specified priority is OFF */
+        return;
+    }
+    if (!pObject->Blink_Warn_Enable) {
+        /* Blink_Warn_Enable is FALSE */
+        return;
+    }
+    if (pObject->Target_Value == BACNET_BINARY_LIGHTING_WARN_RELINQUISH) {
+        if (!Priority_Array_Active(pObject, pObject->Target_Priority)) {
+            /* The value at the specified priority is NULL */
+            return;
+        }
+        lighting_value =
+            Priority_Array_Next_Value(pObject, pObject->Target_Priority);
+        if (lighting_value == BACNET_BINARY_LIGHTING_ON) {
+            /* The value of the next highest non-NULL priority,
+                including Relinquish_Default, is ON. */
+            return;
+        }
+        pObject->Target_Priority = Present_Value_Priority(pObject);
+    }
+    /* the egress time in seconds when a WARN_RELINQUISH or WARN_OFF value
+        is written to the Present_Value property. */
+    pObject->Egress_Timer = 1000UL * pObject->Egress_Time;
+    /* warn at least once */
+    if ((!pObject->Out_Of_Service) &&
+        (Binary_Lighting_Output_Blink_Warn_Callback)) {
+        Binary_Lighting_Output_Blink_Warn_Callback(object_instance);
+    }
+    /* what to do after egress expires */
+    if (pObject->Target_Value == BACNET_BINARY_LIGHTING_WARN) {
+        pObject->Target_Value = BACNET_BINARY_LIGHTING_ON;
+    } else if (pObject->Target_Value == BACNET_BINARY_LIGHTING_WARN_OFF) {
+        pObject->Target_Value = BACNET_BINARY_LIGHTING_OFF;
+    } else if (pObject->Target_Value ==
+        BACNET_BINARY_LIGHTING_WARN_RELINQUISH) {
+        pObject->Target_Value = BACNET_BINARY_LIGHTING_OFF;
+    }
+}
+
+/**
+ * @brief Updates the lighting object feedback value per present-value
+ * @param  object_instance - object-instance number of the object
+ * @param milliseconds - number of milliseconds elapsed since previously
+ * called.  Suggest that this is called every 1000 milliseconds.
+ */
+void Binary_Lighting_Output_Timer(
+    uint32_t object_instance, uint16_t milliseconds)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (pObject->Egress_Timer > milliseconds) {
+            pObject->Egress_Timer -= milliseconds;
+            if ((!pObject->Out_Of_Service) &&
+                (Binary_Lighting_Output_Blink_Warn_Callback)) {
+                Binary_Lighting_Output_Blink_Warn_Callback(object_instance);
+            }
+            return;
+        } else {
+            pObject->Egress_Timer = 0;
+        }
+        switch (pObject->Target_Value) {
+            case BACNET_BINARY_LIGHTING_OFF:
+                Present_Value_On_Off_Handler(object_instance);
+                break;
+            case BACNET_BINARY_LIGHTING_ON:
+                Present_Value_On_Off_Handler(object_instance);
+                break;
+            case BACNET_BINARY_LIGHTING_WARN:
+                Present_Value_Warn_Handler(object_instance);
+                break;
+            case BACNET_BINARY_LIGHTING_WARN_OFF:
+                /* Executes a blink-warn notification at the
+                   specified priority and then writes the value OFF
+                   to the specified slot in the priority array after
+                   a delay of Egress_Time seconds. */
+                break;
+            case BACNET_BINARY_LIGHTING_WARN_RELINQUISH:
+                break;
+            case BACNET_BINARY_LIGHTING_STOP:
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -462,15 +645,12 @@ static bool Binary_Lighting_Output_Present_Value_Write(uint32_t object_instance,
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else if ((priority > 0) && (priority <= BACNET_MAX_PRIORITY)) {
             if (value < BACNET_BINARY_LIGHTING_MAX) {
+                pObject->Target_Value = value;
+                pObject->Target_Priority = priority;
                 status = Present_Value_Set(pObject, value, priority);
                 if (status) {
                     /* ON or OFF only */
-                    pObject->Target_Value = value;
-                    pObject->Target_Priority = priority;
                     Present_Value_On_Off_Handler(object_instance);
-                } else {
-                    pObject->Target_Value = value;
-                    pObject->Target_Priority = priority;
                 }
                 status = true;
             } else if ((value >= BACNET_BINARY_LIGHTING_PROPRIETARY_FIRST) &&
@@ -536,8 +716,6 @@ static bool Binary_Lighting_Output_Present_Value_Relinquish_Write(
 {
     bool status = false;
     struct object_data *pObject;
-    uint8_t old_priority, new_priority;
-    BACNET_BINARY_LIGHTING_PV value;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -548,28 +726,11 @@ static bool Binary_Lighting_Output_Present_Value_Relinquish_Write(
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else if ((priority > 0) && (priority <= BACNET_MAX_PRIORITY)) {
-            old_priority = Present_Value_Priority(pObject);
+            /* target priority will hold the previous priority */
+            pObject->Target_Priority = Present_Value_Priority(pObject);
+            pObject->Target_Value = BACNET_BINARY_LIGHTING_STOP;
             Present_Value_Relinquish(pObject, priority);
-            new_priority = Present_Value_Priority(pObject);
-            if (old_priority != new_priority) {
-                if (new_priority > BACNET_MAX_PRIORITY) {
-                    /* BACNET_LIGHTS_WARN_RELINQUISH? */
-                    value = pObject->Relinquish_Default;
-                } else {
-                    value = Priority_Array_Value(pObject, new_priority);
-                }
-                /* we have priority - do something */
-                if (pObject->Feedback_Value != value) {
-                    pObject->Changed = true;
-                    if ((!pObject->Out_Of_Service) &&
-                        (Binary_Lighting_Output_Write_Value_Callback)) {
-                        Binary_Lighting_Output_Write_Value_Callback(
-                            object_instance, pObject->Feedback_Value, value);
-                    }
-                    pObject->Feedback_Value = value;
-                }
-                pObject->Target_Value = value;
-            }
+            Present_Value_Relinquish_Handler(object_instance);
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -1274,102 +1435,6 @@ bool Binary_Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
- * For a given object instance, handles a WARN targe-value
- *
- * Executes a blink-warn notification at the
- * specified priority. After the blink-warn
- * notification has been executed the value
- * at the specified priority remains ON.
- *
- * The blink-warn notification shall not occur
- * if any of the following conditions occur:
- *   (a) The specified priority is not the highest priority, or
- *   (b) The value at the specified priority is OFF, or
- *   (c) Blink_Warn_Enable is FALSE.
- *
- * @param  object_instance - object-instance number of the object
- */
-static void Present_Value_Warn_Handler(uint32_t object_instance)
-{
-    uint8_t current_priority;
-    BACNET_BINARY_LIGHTING_PV lighting_value;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject) {
-        return;
-    }
-    current_priority = Present_Value_Priority(pObject);
-    if (pObject->Target_Priority > current_priority) {
-        return;
-    }
-    lighting_value = Priority_Array_Next_Value(pObject, 0);
-    if (lighting_value == BACNET_BINARY_LIGHTING_OFF) {
-        return;
-    }
-    if (!pObject->Blink_Warn_Enable) {
-        return;
-    }
-    if (pObject->Egress_Time == 0) {
-        /* the egress time in seconds when a WARN_RELINQUISH or WARN_OFF value
-           is written to the Present_Value property. */
-        pObject->Egress_Timer = 0;
-    } else {
-        pObject->Egress_Timer = 1000UL * pObject->Egress_Time;
-    }
-    if ((!pObject->Out_Of_Service) &&
-        (Binary_Lighting_Output_Blink_Warn_Callback)) {
-        Binary_Lighting_Output_Blink_Warn_Callback(object_instance);
-    }
-    pObject->Target_Value = BACNET_BINARY_LIGHTING_ON;
-}
-
-/**
- * @brief Updates the lighting object feedback value per present-value
- * @param  object_instance - object-instance number of the object
- * @param milliseconds - number of milliseconds elapsed since previously
- * called.  Suggest that this is called every 1000 milliseconds.
- */
-void Binary_Lighting_Output_Timer(
-    uint32_t object_instance, uint16_t milliseconds)
-{
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        if (pObject->Egress_Timer > milliseconds) {
-            pObject->Egress_Timer -= milliseconds;
-            if ((!pObject->Out_Of_Service) &&
-                (Binary_Lighting_Output_Blink_Warn_Callback)) {
-                Binary_Lighting_Output_Blink_Warn_Callback(object_instance);
-            }
-            return;
-        } else {
-            pObject->Egress_Timer = 0;
-        }
-        switch (pObject->Target_Value) {
-            case BACNET_BINARY_LIGHTING_OFF:
-                Present_Value_On_Off_Handler(object_instance);
-                break;
-            case BACNET_BINARY_LIGHTING_ON:
-                Present_Value_On_Off_Handler(object_instance);
-                break;
-            case BACNET_BINARY_LIGHTING_WARN:
-                Present_Value_Warn_Handler(object_instance);
-                break;
-            case BACNET_BINARY_LIGHTING_WARN_OFF:
-                break;
-            case BACNET_BINARY_LIGHTING_WARN_RELINQUISH:
-                break;
-            case BACNET_BINARY_LIGHTING_STOP:
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-/**
  * @brief Sets a callback used when present-value is written from BACnet
  * @param cb - callback used to provide indications
  */
@@ -1418,13 +1483,13 @@ uint32_t Binary_Lighting_Output_Create(uint32_t object_instance)
         }
         pObject->Object_Name = NULL;
         pObject->Description = NULL;
-        pObject->Target_Value = BACNET_BINARY_LIGHTING_OFF;
         pObject->Target_Priority = BACNET_MAX_PRIORITY;
-        pObject->Feedback_Value = BACNET_BINARY_LIGHTING_OFF;
         pObject->Out_Of_Service = false;
         pObject->Blink_Warn_Enable = false;
         pObject->Egress_Active = false;
         pObject->Egress_Time = 0;
+        pObject->Feedback_Value = BACNET_BINARY_LIGHTING_OFF;
+        pObject->Target_Value = BACNET_BINARY_LIGHTING_OFF;
         for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
             pObject->Priority_Array[p] = BACNET_BINARY_LIGHTING_OFF;
             BIT_CLEAR(pObject->Priority_Active_Bits, p);
