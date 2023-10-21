@@ -127,14 +127,16 @@ int rpm_ack_decode_service_request(
                     apdu++;
                 } else {
                     while (value && (apdu_len > 0)) {
-                        len = bacapp_decode_known_property(apdu, (unsigned)apdu_len,
-                            value, rpm_object->object_type,
+                        len = bacapp_decode_known_property(apdu,
+                            (unsigned)apdu_len, value, rpm_object->object_type,
                             rpm_property->propertyIdentifier);
-                        /* If len == 0 then it's an empty structure, which is OK. */
+                        /* If len == 0 then it's an empty structure, which is
+                         * OK. */
                         if (len < 0) {
                             /* problem decoding */
                             PERROR("RPM Ack: unable to decode! %s:%s\n",
-                                bactext_object_type_name(rpm_object->object_type),
+                                bactext_object_type_name(
+                                    rpm_object->object_type),
                                 bactext_property_name(
                                     rpm_property->propertyIdentifier));
                             /* note: caller will free the memory */
@@ -150,12 +152,13 @@ int rpm_ack_decode_service_request(
                             break;
                         } else if (len > 0) {
                             old_value = value;
-                            value =
-                                calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+                            value = calloc(
+                                1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                             old_value->next = value;
                         } else {
                             PERROR("RPM Ack: decoded %s:%s len=%d\n",
-                                bactext_object_type_name(rpm_object->object_type),
+                                bactext_object_type_name(
+                                    rpm_object->object_type),
                                 bactext_property_name(
                                     rpm_property->propertyIdentifier),
                                 len);
