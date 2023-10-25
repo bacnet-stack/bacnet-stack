@@ -2218,12 +2218,14 @@ void Device_Init(object_functions_t *object_table)
         pObject++;
     }
     /* create some dynamically created objects as examples */
-    pObject = Object_Table;
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Create) {
-            pObject->Object_Create(BACNET_MAX_INSTANCE);
+    if (!object_table) {
+        pObject = Object_Table;
+        while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+            if (pObject->Object_Create) {
+                pObject->Object_Create(BACNET_MAX_INSTANCE);
+            }
+            pObject++;
         }
-        pObject++;
     }
 #if (BACNET_PROTOCOL_REVISION >= 14)
     Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
