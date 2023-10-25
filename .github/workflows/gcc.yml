@@ -49,6 +49,20 @@ jobs:
         make clean
         make BBMD=none all
 
+  bip-client-bbmd-apps:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Demo Apps BBMD=none
+      run: |
+        gcc --version
+        make clean
+        make BBMD=client all
+    
   gateway:
     runs-on: ubuntu-latest
     steps:
