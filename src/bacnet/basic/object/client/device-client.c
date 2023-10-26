@@ -116,14 +116,18 @@ static object_functions_t Object_Table[] = {
         Device_Read_Property_Local, NULL /* Write_Property */,
         Device_Property_Lists, NULL /* ReadRangeInfo */, NULL /* Iterator */,
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */ },
+        NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
         Network_Port_Object_Name, Network_Port_Read_Property,
         Network_Port_Write_Property, Network_Port_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
-        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 #endif
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
@@ -131,7 +135,9 @@ static object_functions_t Object_Table[] = {
         NULL /* Write_Property */, NULL /* Property_Lists */,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */ }
+        NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 };
 
 /** Glue function to let the Device object, when called by a handler,
@@ -599,6 +605,39 @@ bool Device_Object_List_Identifier(
     return status;
 }
 
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+int Device_Object_List_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t instance;
+    bool found;
+
+    if (object_instance == Device_Object_Instance_Number()) {
+        /* single element is zero based, add 1 for BACnetARRAY which is one
+         * based */
+        array_index++;
+        found =
+            Device_Object_List_Identifier(array_index, &object_type, &instance);
+        if (found) {
+            apdu_len =
+                encode_application_object_id(apdu, object_type, instance);
+        }
+    }
+
+    return apdu_len;
+}
+
 /** Determine if we have an object with the given object_name.
  * If the object_type and object_instance pointers are not null,
  * and the lookup succeeds, they will be given the resulting values.
@@ -788,22 +827,20 @@ uint32_t Device_Interval_Offset(void)
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    int len = 0; /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t i = 0;
-    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
-    uint32_t instance = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
+    int apdu_size = 0;
     struct object_functions *pObject = NULL;
-    bool found = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
+    apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -892,52 +929,16 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
-            /* Array element zero is the number of objects in the list */
-            if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(&apdu[0], count);
-                /* if no index was specified, then try to encode the entire list
-                 */
-                /* into one packet.  Note that more than likely you will have */
-                /* to return an error if the number of encoded objects exceeds
-                 */
-                /* your maximum APDU size. */
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 1; i <= count; i++) {
-                    found = Device_Object_List_Identifier(
-                        i, &object_type, &instance);
-                    if (found) {
-                        len = encode_application_object_id(
-                            &apdu[apdu_len], object_type, instance);
-                        apdu_len += len;
-                        /* assume next one is the same size as this one */
-                        /* can we all fit into the APDU? Don't check for last
-                         * entry */
-                        if ((i != count) && (apdu_len + len) >= MAX_APDU) {
-                            /* Abort response */
-                            rpdata->error_code =
-                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                            apdu_len = BACNET_STATUS_ABORT;
-                            break;
-                        }
-                    } else {
-                        /* error: internal error? */
-                        rpdata->error_class = ERROR_CLASS_SERVICES;
-                        rpdata->error_code = ERROR_CODE_OTHER;
-                        apdu_len = BACNET_STATUS_ERROR;
-                        break;
-                    }
-                }
-            } else {
-                found = Device_Object_List_Identifier(
-                    rpdata->array_index, &object_type, &instance);
-                if (found) {
-                    apdu_len = encode_application_object_id(
-                        &apdu[0], object_type, instance);
-                } else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index,
+                Device_Object_List_Element_Encode,
+                count, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
             break;
         case PROP_MAX_APDU_LENGTH_ACCEPTED:
@@ -1039,6 +1040,34 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Updates all the object timers with elapsed milliseconds
+ * @param milliseconds - number of milliseconds elapsed
+ */
+void Device_Timer(
+    uint16_t milliseconds)
+{
+    struct object_functions *pObject;
+    unsigned count = 0;
+    uint32_t instance;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        if (pObject->Object_Count) {
+            count = pObject->Object_Count();
+        }
+        while (count) {
+            count--;
+            if ((pObject->Object_Timer) &&
+                (pObject->Object_Index_To_Instance)) {
+                instance = pObject->Object_Index_To_Instance(count);
+                pObject->Object_Timer(instance, milliseconds);
+            }
+        }
+        pObject++;
+    }
 }
 
 /** Initialize the Device Object.

@@ -86,23 +86,23 @@ static void print_help(char *filename)
 {
     printf("Send BACnet UnconfirmedEventNotification message for a device.\n");
     printf("--mac A\n"
-           "Optional BACnet mac address."
-           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-           "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-           "\n"
-           "--dnet N\n"
-           "Optional BACnet network number N for directed requests.\n"
-           "Valid range is from 0 to 65535 where 0 is the local connection\n"
-           "and 65535 is network broadcast.\n"
-           "\n"
-           "--dadr A\n"
-           "Optional BACnet mac address on the destination BACnet network "
-           "number.\n"
-           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-           "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-           "\n");
+        "Optional BACnet mac address."
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--dnet N\n"
+        "Optional BACnet network number N for directed requests.\n"
+        "Valid range is from 0 to 65535 where 0 is the local connection\n"
+        "and 65535 is network broadcast.\n");
+    printf("\n");
+    printf("--dadr A\n"
+        "Optional BACnet mac address on the destination BACnet network\n"
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    (void)filename;
 }
 
 int main(int argc, char *argv[])
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--mac") == 0) {
             if (++argi < argc) {
-                if (address_mac_from_ascii(&mac, argv[argi])) {
+                if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
                     specific_address = true;
                 }
             }
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--dadr") == 0) {
             if (++argi < argc) {
-                if (address_mac_from_ascii(&adr, argv[argi])) {
+                if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
                     specific_address = true;
                 }
             }

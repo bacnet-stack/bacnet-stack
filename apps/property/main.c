@@ -42,6 +42,7 @@ static int32_t Target_Object_Index = BACNET_ARRAY_ALL;
 static void Parse_Arguments(int argc, char *argv[])
 {
     int argi = 0;
+    long long_value = 0;
     bool status = false;
 
     for (argi = 1; argi < argc; argi++) {
@@ -59,21 +60,20 @@ static void Parse_Arguments(int argc, char *argv[])
                 case '-':
                     if (strcmp(argv[argi], "--instance") == 0) {
                         if (++argi < argc) {
-                            Target_Object_Instance =
-                                strtol(argv[argi], NULL, 0);
-                            if (Target_Object_Instance < 0) {
+                            long_value = strtol(argv[argi], NULL, 0);
+                            if (long_value < 0) {
                                 fprintf(stderr,
                                     "--instance=%s - it must positive\n",
                                     argv[argi]);
                                 exit(1);
-                            } else if (Target_Object_Instance >
-                                BACNET_MAX_INSTANCE) {
+                            } else if (long_value > BACNET_MAX_INSTANCE) {
                                 fprintf(stderr,
                                     "--instance=%s - it must be less than %u\n",
                                     argv[argi], BACNET_MAX_INSTANCE);
                                 exit(1);
+                            } else {
+                                Target_Object_Instance = long_value;
                             }
-
                         }
                     } else if (strcmp(argv[argi], "--object-type") == 0) {
                         if (++argi < argc) {
@@ -87,8 +87,8 @@ static void Parse_Arguments(int argc, char *argv[])
                         }
                     } else if (strcmp(argv[argi], "--property") == 0) {
                         if (++argi < argc) {
-                            status = bactext_property_strtol(argv[argi],
-                                &Target_Object_Property);
+                            status = bactext_property_strtol(
+                                argv[argi], &Target_Object_Property);
                             if (!status) {
                                 fprintf(stderr, "--property=%s invalid\n",
                                     argv[argi]);
@@ -116,11 +116,10 @@ static void Parse_Arguments(int argc, char *argv[])
  * @param application_data_len size of the encoded application data
  */
 static void print_property_value(
-    uint8_t *application_data,
-    int application_data_len)
+    uint8_t *application_data, int application_data_len)
 {
-    BACNET_OBJECT_PROPERTY_VALUE object_value = {};
-    BACNET_APPLICATION_DATA_VALUE value = {};
+    BACNET_OBJECT_PROPERTY_VALUE object_value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     int len = 0;
     bool first_value = true;
     bool print_brace = false;
@@ -162,19 +161,18 @@ static void print_property_value(
 }
 
 /**************************************************************************
-* Description: The starting point of the C program
-* Returns: none
-* Notes: called from crt.s module
-**************************************************************************/
+ * Description: The starting point of the C program
+ * Returns: none
+ * Notes: called from crt.s module
+ **************************************************************************/
 int main(int argc, char *argv[])
 {
     /* initialize our interface */
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf(
-            "bacprop [options] <75 07 00 4c 4f 4c 43 50 32>\r\n"
-            "options:\r\n"
-            "[-x] interprete the arguments as ascii hex (default)\r\n"
-            "[-d] interprete the argument as ascii decimal\r\n");
+        printf("bacprop [options] <75 07 00 4c 4f 4c 43 50 32>\r\n"
+               "options:\r\n"
+               "[-x] interprete the arguments as ascii hex (default)\r\n"
+               "[-d] interprete the argument as ascii decimal\r\n");
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
@@ -188,8 +186,7 @@ int main(int argc, char *argv[])
     }
     Parse_Arguments(argc, argv);
     print_property_value(
-        octetstring_value(&Octet_String),
-        octetstring_length(&Octet_String));
+        octetstring_value(&Octet_String), octetstring_length(&Octet_String));
 
     return 1;
 }

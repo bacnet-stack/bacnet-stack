@@ -119,8 +119,8 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
                     that are sent with a local unicast address. */
                 if (npdu_len >= 2) {
                     len += decode_unsigned16(npdu, &dnet);
-                    printf(": network number = %u. SNET=%u\n",
-                        (unsigned)dnet, (unsigned)src->net);
+                    printf(": network number = %u. SNET=%u\n", (unsigned)dnet,
+                        (unsigned)src->net);
                 } else {
                     printf(": network number = missing! SNET=%u\n", src->net);
                 }
@@ -149,7 +149,7 @@ static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
 
-    apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
+    apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
         My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
             (uint16_t)(pdu_len - apdu_offset));
@@ -251,7 +251,8 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
 
     if (argc < 3) {
-        printf("Usage: %s DNET status [MAC]\r\n", filename_remove_path(argv[0]));
+        printf(
+            "Usage: %s DNET status [MAC]\r\n", filename_remove_path(argv[0]));
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
@@ -307,8 +308,7 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
-    Send_Network_Number_Is(
-        &Target_Router_Address, Target_Network_Number,
+    Send_Network_Number_Is(&Target_Router_Address, Target_Network_Number,
         Target_Network_Number_Status);
     /* loop forever */
     for (;;) {
@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* increment timer - exit if timed out */
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {

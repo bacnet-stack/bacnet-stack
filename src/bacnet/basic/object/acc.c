@@ -69,13 +69,13 @@ void Accumulator_Property_Lists(
 {
     if (pRequired) {
         *pRequired = Properties_Required;
-}
+    }
     if (pOptional) {
         *pOptional = Properties_Optional;
-}
+    }
     if (pProprietary) {
         *pProprietary = Properties_Proprietary;
-}
+    }
 
     return;
 }
@@ -91,7 +91,7 @@ bool Accumulator_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_ACCUMULATORS) {
         return true;
-}
+    }
 
     return false;
 }
@@ -134,7 +134,7 @@ unsigned Accumulator_Instance_To_Index(uint32_t object_instance)
 
     if (object_instance < MAX_ACCUMULATORS) {
         index = object_instance;
-}
+    }
 
     return index;
 }

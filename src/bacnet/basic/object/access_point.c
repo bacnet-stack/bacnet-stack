@@ -291,6 +291,10 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 }
             }
             break;
+        case PROP_PRIORITY_FOR_WRITING:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], ap_descr[object_index].priority_for_writing);
+            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;

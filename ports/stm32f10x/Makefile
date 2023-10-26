@@ -56,6 +56,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacdest.c \
 	$(BACNET_CORE)/bacdevobjpropref.c \
 	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacint.c \
@@ -76,6 +77,9 @@ BACNET_SRC = \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/timestamp.c \
+	$(BACNET_CORE)/weeklyschedule.c \
+	$(BACNET_CORE)/dailyschedule.c \
+	$(BACNET_CORE)/bactimevalue.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c
@@ -144,6 +148,10 @@ BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
 # if called from root Makefile, PRINT was already defined
 BACNET_FLAGS += -UPRINT_ENABLED
 BACNET_FLAGS += -DPRINT_ENABLED=0
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 CFLAGS += $(MCU_FLAGS)
 CFLAGS += $(OPTIMIZE_FLAGS)
@@ -155,15 +163,25 @@ CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin
 # place uninitialized global variables in the data section of the object file.
 CFLAGS += -fno-common
-# enable all relevant warnings
-CFLAGS += -Wall
+WARNING_ALL := -Wall
+# enable all relevant warnings that find bugs
+#WARNING_ALL += -pedantic -Wextra -Wfloat-equal -Wconversion -Wparentheses
+#WARNING_ALL += -Wunused-parameter -Wunused-variable -Wreturn-type
+#WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
+#WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
+#WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+#WARNING_ALL += -Wno-long-long
+#WARNING_ALL += -Wredundant-decls
+#WARNING_ALL += -Werror
+CFLAGS += $(WARNING_ALL)
 # don't warn about missing braces since GCC is over-achiever for this
 CFLAGS += -Wno-missing-braces
 # don't warn about missing prototypes since STM32 library doesn't have some
 CFLAGS += -Wno-missing-prototypes
 # don't warn about array subscript being char
 CFLAGS += -Wno-char-subscripts
-
+# FIXME later
+CFLAGS += -Wno-unused-parameter
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
 

@@ -266,7 +266,7 @@ void RS485_Initialize(void)
         0, OPEN_EXISTING,
         /*FILE_FLAG_OVERLAPPED */ 0, 0);
     if (RS485_Handle == INVALID_HANDLE_VALUE) {
-        fprintf(stderr, "Unable to open %s\n", RS485_Port_Name);
+        fprintf(stderr, "RS485 unable to open %s\n", RS485_Port_Name);
         RS485_Print_Error();
         exit(1);
     }
@@ -276,6 +276,8 @@ void RS485_Initialize(void)
     RS485_Configure_Status();
 #if PRINT_ENABLED
     fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
+    fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Get_Baud_Rate());
+    fflush(stdout);
 #endif
 
     atexit(RS485_Cleanup);

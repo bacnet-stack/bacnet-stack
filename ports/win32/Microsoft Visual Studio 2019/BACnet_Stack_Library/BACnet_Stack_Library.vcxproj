@@ -196,7 +196,6 @@
     <ClCompile Include="..\..\..\..\src\bacnet\iam.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\ihave.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\indtext.c" />
-    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\key.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\keylist.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\hostnport.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\lighting.c" />

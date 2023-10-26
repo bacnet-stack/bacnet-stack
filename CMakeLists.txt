@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project(
   bacnet-stack
@@ -70,6 +70,15 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+option(
+  BACNET_STACK_DEPRECATED_DISABLE 
+  "Disable deprecation compile warnings" 
+  ON)
+
+if(BACNET_STACK_DEPRECATED_DISABLE)
+  add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
+endif()
+
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -105,6 +114,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/bacdcode.c
     src/bacnet/bacdcode.h
     src/bacnet/bacdef.h
+    src/bacnet/bacdest.c
+    src/bacnet/bacdest.h
     src/bacnet/bacdevobjpropref.c
     src/bacnet/bacdevobjpropref.h
     src/bacnet/bacenum.h
@@ -124,6 +135,10 @@ add_library(${PROJECT_NAME}
     src/bacnet/bactext.h
     src/bacnet/bactimevalue.c
     src/bacnet/bactimevalue.h
+    src/bacnet/dailyschedule.c
+    src/bacnet/dailyschedule.h
+    src/bacnet/weeklyschedule.c
+    src/bacnet/weeklyschedule.h
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
@@ -221,10 +236,14 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/service/h_awf.h
     src/bacnet/basic/service/h_ccov.c
     src/bacnet/basic/service/h_ccov.h
+    src/bacnet/basic/service/h_create_object.c
+    src/bacnet/basic/service/h_create_object.h
     src/bacnet/basic/service/h_cov.c
     src/bacnet/basic/service/h_cov.h
     src/bacnet/basic/service/h_dcc.c
     src/bacnet/basic/service/h_dcc.h
+    src/bacnet/basic/service/h_delete_object.c
+    src/bacnet/basic/service/h_delete_object.h
     src/bacnet/basic/service/h_gas_a.c
     src/bacnet/basic/service/h_gas_a.h
     src/bacnet/basic/service/h_get_alarm_sum.c
@@ -239,6 +258,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/service/h_ihave.h
     src/bacnet/basic/service/h_lso.c
     src/bacnet/basic/service/h_lso.h
+    src/bacnet/basic/service/h_list_element.c
+    src/bacnet/basic/service/h_list_element.h
     src/bacnet/basic/service/h_noserv.c
     src/bacnet/basic/service/h_noserv.h
     src/bacnet/basic/service/h_rd.c
@@ -279,10 +300,14 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/service/s_awfs.h
     src/bacnet/basic/service/s_cevent.c
     src/bacnet/basic/service/s_cevent.h
+    src/bacnet/basic/service/s_create_object.c
+    src/bacnet/basic/service/s_create_object.h
     src/bacnet/basic/service/s_cov.c
     src/bacnet/basic/service/s_cov.h
     src/bacnet/basic/service/s_dcc.c
     src/bacnet/basic/service/s_dcc.h
+    src/bacnet/basic/service/s_delete_object.c
+    src/bacnet/basic/service/s_delete_object.h
     src/bacnet/basic/service/s_error.c
     src/bacnet/basic/service/s_error.h
     src/bacnet/basic/service/s_get_alarm_sum.c
@@ -295,6 +320,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/service/s_iam.h
     src/bacnet/basic/service/s_ihave.c
     src/bacnet/basic/service/s_ihave.h
+    src/bacnet/basic/service/s_list_element.c
+    src/bacnet/basic/service/s_list_element.h
     src/bacnet/basic/service/s_lso.c
     src/bacnet/basic/service/s_lso.h
     src/bacnet/basic/service/s_rd.c
@@ -335,6 +362,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/key.h
     src/bacnet/basic/sys/keylist.c
     src/bacnet/basic/sys/keylist.h
+    src/bacnet/basic/sys/linear.c
+    src/bacnet/basic/sys/linear.h
     src/bacnet/basic/sys/mstimer.c
     src/bacnet/basic/sys/mstimer.h
     src/bacnet/basic/sys/ringbuf.c
@@ -348,6 +377,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/config.h
     src/bacnet/cov.c
     src/bacnet/cov.h
+    src/bacnet/create_object.c
+    src/bacnet/create_object.h
     src/bacnet/credential_authentication_factor.c
     src/bacnet/credential_authentication_factor.h
     src/bacnet/datalink/arcnet.h
@@ -377,6 +408,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/datetime.h
     src/bacnet/dcc.c
     src/bacnet/dcc.h
+    src/bacnet/delete_object.c
+    src/bacnet/delete_object.h
     src/bacnet/event.c
     src/bacnet/event.h
     src/bacnet/get_alarm_sum.c
@@ -393,6 +426,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/indtext.h
     src/bacnet/lighting.c
     src/bacnet/lighting.h
+    src/bacnet/list_element.c
+    src/bacnet/list_element.h
     src/bacnet/lso.c
     src/bacnet/lso.h
     src/bacnet/memcopy.c
@@ -475,6 +510,7 @@ if(ZEPHYR_BASE)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNET: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
+  target_link_libraries(${PROJECT_NAME} PUBLIC m)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
@@ -501,6 +537,8 @@ elseif(WIN32)
     winmm
     $<$<BOOL:${BACDL_BIP}>:ws2_32>
     $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
+
+  add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
@@ -542,8 +580,17 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(ack-alarm apps/ack-alarm/main.c)
   target_link_libraries(ack-alarm PRIVATE ${PROJECT_NAME})
 
+  add_executable(add-list-element apps/add-list-element/main.c)
+  target_link_libraries(add-list-element PRIVATE ${PROJECT_NAME})
+
+  add_executable(create-object apps/create-object/main.c)
+  target_link_libraries(create-object PRIVATE ${PROJECT_NAME})
+
   add_executable(dcc apps/dcc/main.c)
   target_link_libraries(dcc PRIVATE ${PROJECT_NAME})
+
+  add_executable(delete-object apps/delete-object/main.c)
+  target_link_libraries(delete-object PRIVATE ${PROJECT_NAME})
 
   add_executable(epics apps/epics/main.c)
   target_link_libraries(epics PRIVATE ${PROJECT_NAME})
@@ -610,6 +657,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(readrange apps/readrange/main.c)
   target_link_libraries(readrange PRIVATE ${PROJECT_NAME})
+
+  add_executable(remove-list-element apps/remove-list-element/main.c)
+  target_link_libraries(remove-list-element PRIVATE ${PROJECT_NAME})
 
   add_executable(reinit apps/reinit/main.c)
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
@@ -698,6 +748,7 @@ set(BACNET_STACK_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME
 install(
   TARGETS ${PROJECT_NAME}
   EXPORT ${PROJECT_NAME}Targets
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
 

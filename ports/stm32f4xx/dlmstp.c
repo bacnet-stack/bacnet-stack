@@ -247,8 +247,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = npdu_decode(
-        &request_pdu[0], NULL, &request.address, &request.npdu_data);
+    offset = bacnet_npdu_decode(request_pdu, request_pdu_len, NULL,
+        &request.address, &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -265,7 +265,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the reply data */
     reply.address.mac[0] = dest_address;
     reply.address.mac_len = 1;
-    offset = npdu_decode(&reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
+    offset = bacnet_npdu_decode(
+        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
@@ -582,8 +583,8 @@ static void MSTP_Receive_Frame_FSM(void)
                                 source = SourceAddress;
                                 destination = DestinationAddress;
                                 frame = FrameType;
-                                Frame_Rx_Callback(source, destination, 
-                                    frame, InputBuffer, DataLength);
+                                Frame_Rx_Callback(source, destination, frame,
+                                    InputBuffer, DataLength);
                             }
                             /* wait for the start of the next frame. */
                             Receive_State = MSTP_RECEIVE_STATE_IDLE;
@@ -674,8 +675,8 @@ static void MSTP_Receive_Frame_FSM(void)
                             source = SourceAddress;
                             destination = DestinationAddress;
                             frame = FrameType;
-                            Frame_Rx_Callback(source, destination,
-                                frame, InputBuffer, DataLength);
+                            Frame_Rx_Callback(source, destination, frame,
+                                InputBuffer, DataLength);
                         }
 
                     } else {
@@ -1135,6 +1136,7 @@ static bool MSTP_Master_Node_FSM(void)
                     Next_Station = This_Station;
                     RetryCount = 0;
                     TokenCount = 0;
+                    Statistics.lost_token_counter++;
                     /* EventCount = 0; removed in Addendum 135-2004d-8 */
                     /* find a new successor to TS */
                     Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;

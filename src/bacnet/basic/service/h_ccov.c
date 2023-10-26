@@ -39,14 +39,10 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/sys/debug.h"
 
 /** @file h_ccov.c  Handles Confirmed COV Notifications. */
-#if PRINT_ENABLED
-#include <stdio.h>
-#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+#define PRINTF debug_perror
 
 /* max number of COV properties decoded in a COV notification */
 #ifndef MAX_COV_PROPERTIES
@@ -60,8 +56,7 @@ static BACNET_COV_NOTIFICATION Confirmed_COV_Notification_Head;
  * @brief call the COV notification callbacks
  * @param cov_data - data decoded from the COV notification
  */
-static void handler_ccov_notification_callback(
-    BACNET_COV_DATA *cov_data)
+static void handler_ccov_notification_callback(BACNET_COV_DATA *cov_data)
 {
     BACNET_COV_NOTIFICATION *head;
 
@@ -78,8 +73,7 @@ static void handler_ccov_notification_callback(
  * @brief Add a Confirmed COV notification callback
  * @param cb - COV notification callback to be added
  */
-void handler_ccov_notification_add(
-    BACNET_COV_NOTIFICATION *cb)
+void handler_ccov_notification_add(BACNET_COV_NOTIFICATION *cb)
 {
     BACNET_COV_NOTIFICATION *head;
 
@@ -161,8 +155,7 @@ void handler_ccov_notification(uint8_t *service_request,
                 PRINTF("%s ",
                     bactext_property_name(pProperty_value->propertyIdentifier));
             } else {
-                PRINTF("proprietary %u ",
-                    pProperty_value->propertyIdentifier);
+                PRINTF("proprietary %u ", pProperty_value->propertyIdentifier);
             }
             if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
                 PRINTF("%u ", pProperty_value->propertyArrayIndex);
@@ -189,7 +182,7 @@ CCOV_ABORT:
     if (bytes_sent <= 0) {
         PRINTF("CCOV: Failed to send PDU (%s)!\n", strerror(errno));
     }
-    bytes_sent = bytes_sent;
+    (void)bytes_sent;
 
     return;
 }

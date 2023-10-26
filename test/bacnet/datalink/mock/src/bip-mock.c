@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <stdio.h>
@@ -130,6 +130,11 @@ void bip_debug_enable(void)
 }
 
 int bip_get_socket(void)
+{
+    return ztest_get_return_value();
+}
+
+int bip_get_broadcast_socket(void)
 {
     return ztest_get_return_value();
 }

@@ -679,15 +679,14 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
     datetime_days_since_epoch_into_date(bdatetime_days, &bdatetime->date);
 }
 
-#ifdef UINT64_MAX
 /**
- * @brief Calculates the number of seconds since epoch
+ * @brief Calculates the number of seconds since epoch from datetime
  * @param bdatetime [in] the starting date and time
- * @return seconds since midnight
+ * @return seconds since epoch
  */
-uint64_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime)
+bacnet_time_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime)
 {
-    uint64_t seconds = 0;
+    bacnet_time_t seconds = 0;
     uint32_t days = 0;
 
     if (bdatetime) {
@@ -699,15 +698,14 @@ uint64_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime)
 
     return seconds;
 }
-#endif
 
-#ifdef UINT64_MAX
 /**
- * @brief Calculates the number of seconds since epoch
- * @param bdatetime [in] the starting date and time
- * @return seconds since midnight
+ * @brief Calculates the datetime from number of seconds since epoch
+ * @param bdatetime [out] the starting date and time
+ * @param seconds since epoch
  */
-void datetime_since_epoch_seconds(BACNET_DATE_TIME *bdatetime, uint64_t seconds)
+void datetime_since_epoch_seconds(
+    BACNET_DATE_TIME *bdatetime, bacnet_time_t seconds)
 {
     uint32_t seconds_after_midnight = 0;
     uint32_t days = 0;
@@ -722,7 +720,20 @@ void datetime_since_epoch_seconds(BACNET_DATE_TIME *bdatetime, uint64_t seconds)
         datetime_days_since_epoch_into_date(days, &bdatetime->date);
     }
 }
+
+/**
+ * @brief Calculates the number of seconds since epoch
+ * @param bdatetime [in] the starting date and time
+ * @return maximum number of seconds since epoch
+ */
+bacnet_time_t datetime_seconds_since_epoch_max(void)
+{
+#ifdef UINT64_MAX
+    return UINT64_MAX;
+#else
+    return UINT32_MAX;
 #endif
+}
 
 /* Returns true if year is a wildcard */
 bool datetime_wildcard_year(BACNET_DATE *bdate)
@@ -1032,85 +1043,149 @@ bool datetime_local_to_utc(BACNET_DATE_TIME *utc_time,
     return status;
 }
 
+/**
+ * @brief Encode a BACnetDateTime complex data type
+ *  From clause 21. FORMAL DESCRIPTION OF APPLICATION PROTOCOL DATA UNITS
+ *
+ *  BACnetDateTime ::= SEQUENCE {
+ *      date Date, -- see Clause 20.2.12 for restrictions
+ *      time Time -- see Clause 20.2.13 for restrictions
+ *  }
+ *
+ * @param apdu  buffer to be encoded, or NULL for length
+ * @param value The value to be encoded.
+ * @return the number of apdu bytes encoded
+ */
 int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value)
 {
     int len = 0;
     int apdu_len = 0;
 
-    if (apdu && value) {
-        len = encode_application_date(&apdu[0], &value->date);
+    if (value) {
+        len = encode_application_date(apdu, &value->date);
+        if (apdu) {
+            apdu += len;
+        }
         apdu_len += len;
-
-        len = encode_application_time(&apdu[apdu_len], &value->time);
+        len = encode_application_time(apdu, &value->time);
         apdu_len += len;
     }
+
     return apdu_len;
 }
 
+/**
+ * @brief Encode a context tagged BACnetDateTime complex data type
+ * @param apdu  buffer to be encoded, or NULL for length
+ * @param tag_number - context tag number to be encoded
+ * @param value The value to be encoded.
+ * @return the number of apdu bytes encoded
+ */
 int bacapp_encode_context_datetime(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value)
 {
     int len = 0;
     int apdu_len = 0;
 
-    if (apdu && value) {
-        len = encode_opening_tag(&apdu[apdu_len], tag_number);
+    if (value) {
+        len = encode_opening_tag(apdu, tag_number);
         apdu_len += len;
-
-        len = bacapp_encode_datetime(&apdu[apdu_len], value);
+        if (apdu) {
+            apdu += len;
+        }
+        len = bacapp_encode_datetime(apdu, value);
         apdu_len += len;
-
-        len = encode_closing_tag(&apdu[apdu_len], tag_number);
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_number);
         apdu_len += len;
     }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes a BACnetDateTime value from APDU buffer
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param value - parameter to store the value after decoding
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ */
+int bacnet_datetime_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_DATE_TIME *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_DATE *bdate = NULL;
+    BACNET_TIME *btime = NULL;
+
+    if (value) {
+        bdate = &value->date;
+    }
+    len = bacnet_date_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, bdate);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (value) {
+        btime = &value->time;
+    }
+    len = bacnet_time_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, btime);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
     return apdu_len;
 }
 
 int bacapp_decode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value)
 {
-    int len = 0;
-    int section_len;
+    return bacnet_datetime_decode(apdu, MAX_APDU, value);
+}
 
-    if (-1 ==
-        (section_len = decode_application_date(&apdu[len], &value->date))) {
-        return -1;
+/**
+ * @brief Decodes a context tagged BACnetDateTime value from APDU buffer
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param tag_number - context tag number to be encoded
+ * @param value - parameter to store the value after decoding
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ */
+int bacnet_datetime_context_decode(uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_DATE_TIME *value)
+{
+    int apdu_len = 0;
+    int len;
+
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
     }
-    len += section_len;
-
-    if (-1 ==
-        (section_len = decode_application_time(&apdu[len], &value->time))) {
-        return -1;
+    apdu_len += len;
+    len = bacnet_datetime_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
     }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
 
-    len += section_len;
-
-    return len;
+    return apdu_len;
 }
 
 int bacapp_decode_context_datetime(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value)
 {
-    int apdu_len = 0;
-    int len;
-
-    if (decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
-        apdu_len++;
-    } else {
-        return -1;
-    }
-
-    if (-1 == (len = bacapp_decode_datetime(&apdu[apdu_len], value))) {
-        return -1;
-    } else {
-        apdu_len += len;
-    }
-
-    if (decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
-        apdu_len++;
-    } else {
-        return -1;
-    }
-    return apdu_len;
+    return bacnet_datetime_context_decode(apdu, MAX_APDU, tag_number, value);
 }
 
 /**

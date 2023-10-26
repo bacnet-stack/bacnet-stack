@@ -251,3 +251,84 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
 
     return apdu_len;
 }
+
+/**
+ * ReadProperty handler for common properties.  For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  rpdata - ReadProperty data, including requested data and
+ * data for the reply, or error response.
+ * @param device_instance_number - device instance number
+ *
+ * @return number of APDU bytes in the response, or
+ * BACNET_STATUS_ERROR on error.
+ */
+int property_list_common_encode(
+    BACNET_READ_PROPERTY_DATA *rpdata, uint32_t device_instance_number)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    uint8_t *apdu = NULL;
+
+    if (!rpdata) {
+        return 0;
+    }
+    if ((rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
+        case PROP_OBJECT_IDENTIFIER:
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                /* Device Object exception: requested instance
+                   may not match our instance if a wildcard */
+                if (rpdata->object_type == OBJECT_DEVICE) {
+                    rpdata->object_instance = device_instance_number;
+                }
+                apdu_len = encode_application_object_id(
+                    &apdu[0], rpdata->object_type, rpdata->object_instance);
+            }
+            break;
+        case PROP_OBJECT_TYPE:
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                apdu_len = encode_application_enumerated(
+                    &apdu[0], rpdata->object_type);
+            }
+            break;
+        default:
+            break;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Determine if the property is a common property
+ * @param property - property value for comparison
+ * @return true if the property is a common object property
+ */
+bool property_list_common(BACNET_PROPERTY_ID property)
+{
+    bool status = false;
+
+    switch (property) {
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_TYPE:
+            status = true;
+            break;
+        default:
+            break;
+    }
+
+    return status;
+}

@@ -8,7 +8,7 @@
  * @brief test BACnet integer encode/decode APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/getevent.h>
 
 /**
@@ -72,7 +72,11 @@ static int getevent_ack_decode_apdu(uint8_t *apdu,
     return len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(getevent_tests, testGetEventInformationAck)
+#else
 static void testGetEventInformationAck(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -139,7 +143,11 @@ static void testGetEventInformationAck(void)
     zassert_equal(event_data.eventState, test_event_data.eventState, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(getevent_tests, testGetEventInformation)
+#else
 static void testGetEventInformation(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -174,6 +182,9 @@ static void testGetEventInformation(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(getevent_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(getevent_tests,
@@ -183,3 +194,4 @@ void test_main(void)
 
     ztest_run_test_suite(getevent_tests);
 }
+#endif

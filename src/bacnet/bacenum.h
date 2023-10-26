@@ -454,7 +454,7 @@ typedef enum {
     PROP_NETWORK_TYPE = 427,
     PROP_ROUTING_TABLE = 428,
     PROP_VIRTUAL_MAC_ADDRESS_TABLE = 429,
-    /* enumerations 430-491 */
+    /* enumerations 430-491 are defined in Addendum-135-2012as */
     PROP_COMMAND_TIME_ARRAY = 430,
     PROP_CURRENT_COMMAND_PRIORITY = 431,
     PROP_LAST_COMMAND_TIME = 432,
@@ -545,12 +545,14 @@ typedef enum {
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
     /* Enumerated values 512-4194303 may be used by others subject to the  */
     /* procedures and constraints described in Clause 23.  */
+    PROP_RESERVED_RANGE_MAX = 511,
     PROP_PROPRIETARY_RANGE_MIN = 512,
     PROP_PROPRIETARY_RANGE_MAX = 4194303,
+    PROP_RESERVED_RANGE_MIN2 = 4194304,
     /* enumerations 4194304-4194327 are defined in Addendum 2020cc */
     PROP_MAX_BVLC_LENGTH_ACCEPTED = 4194304,
     PROP_MAX_NPDU_LENGTH_ACCEPTED = 4194305,
-    PROP_OPERATIONAL_CERTIFICATE_FILE = 4194305,
+    PROP_OPERATIONAL_CERTIFICATE_FILE = 4194306,
     PROP_CURRENT_HEALTH = 4194307,
     PROP_SC_CONNECT_WAIT_TIMEOUT = 4194308,
     PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE = 4194309,
@@ -1049,9 +1051,21 @@ typedef enum {
     RELIABILITY_PROCESS_ERROR = 8,
     RELIABILITY_MULTI_STATE_FAULT = 9,
     RELIABILITY_CONFIGURATION_ERROR = 10,
-    RELIABILITY_MEMBER_FAULT = 11,
+    RELIABILITY_RESERVED_11 = 11,
     RELIABILITY_COMMUNICATION_FAILURE = 12,
-    RELIABILITY_TRIPPED = 13,
+    RELIABILITY_MEMBER_FAULT = 13,
+    RELIABILITY_MONITORED_OBJECT_FAULT = 14,
+    RELIABILITY_TRIPPED = 15,
+    RELIABILITY_LAMP_FAILURE = 16,
+    RELIABILITY_ACTIVATION_FAILURE = 17,
+    RELIABILITY_RENEW_DHCP_FAILURE = 18,
+    RELIABILITY_RENEW_FD_REGISTRATION_FAILURE = 19,
+    RELIABILITY_RESTART_AUTO_NEGOTIATION_FAILURE = 20,
+    RELIABILITY_RESTART_FAILURE = 21,
+    RELIABILITY_PROPRIETARY_COMMAND_FAILURE = 22,
+    RELIABILITY_FAULTS_LISTED = 23,
+    RELIABILITY_REFERENCED_OBJECT_FAULT = 24,
+    RELIABILITY_MULTI_STATE_OUT_OF_RANGE = 25,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
     /* Enumerated values 64-65535 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */
@@ -1295,6 +1309,8 @@ typedef enum BACnetObjectType {
     OBJECT_AUDIT_REPORTER = 62, /* Addendum 135-2016bi */
     OBJECT_COLOR = 63, /* Addendum 135-2020ca */
     OBJECT_COLOR_TEMPERATURE = 64, /* Addendum 135-2020ca */
+    BACNET_OBJECT_TYPE_LAST = OBJECT_COLOR_TEMPERATURE,
+    BACNET_OBJECT_TYPE_RESERVED_MAX = 127,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */
@@ -1304,8 +1320,8 @@ typedef enum BACnetObjectType {
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
     MAX_BACNET_OBJECT_TYPE = 1024,
-    /* special usage for this library */
-    OBJECT_NONE = UINT16_MAX
+    /* special usage for this library 16-bit max */
+    OBJECT_NONE = 65535
 } BACNET_OBJECT_TYPE;
 
 typedef enum {
@@ -1474,7 +1490,7 @@ typedef enum BACnet_Confirmed_Service_Choice {
     /* Services added after 2016 */
     /* confirmed-audit-notification [32] see Alarm and Event Services */
     /* audit-log-query [33] see Object Access Services */
-    MAX_BACNET_CONFIRMED_SERVICE = 30
+    MAX_BACNET_CONFIRMED_SERVICE = 34
 } BACNET_CONFIRMED_SERVICE;
 
 /* BACnetUnconfirmedServiceChoice ::= ENUMERATED */
@@ -1493,6 +1509,8 @@ typedef enum BACnet_Unconfirmed_Service_Choice {
     SERVICE_UNCONFIRMED_WRITE_GROUP = 10,
     /* addendum 2012-aq */
     SERVICE_UNCONFIRMED_COV_NOTIFICATION_MULTIPLE = 11,
+    /* addendum 2016-bi */
+    SERVICE_UNCONFIRMED_AUDIT_NOTIFICATION = 12,
     /* addendum 2016-bz */
     SERVICE_UNCONFIRMED_WHO_AM_I = 13,
     SERVICE_UNCONFIRMED_YOU_ARE = 14,
@@ -1509,6 +1527,7 @@ typedef enum BACnet_Services_Supported {
     /* Alarm and Event Services */
     SERVICE_SUPPORTED_ACKNOWLEDGE_ALARM = 0,
     SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION = 1,
+    SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION_MULTIPLE = 42,
     SERVICE_SUPPORTED_CONFIRMED_EVENT_NOTIFICATION = 2,
     SERVICE_SUPPORTED_GET_ALARM_SUMMARY = 3,
     SERVICE_SUPPORTED_GET_ENROLLMENT_SUMMARY = 4,
@@ -1548,9 +1567,9 @@ typedef enum BACnet_Services_Supported {
     /* Security Services */
     SERVICE_SUPPORTED_AUTHENTICATE = 24,
     SERVICE_SUPPORTED_REQUEST_KEY = 25,
+    /* Unconfirmed Services */
     SERVICE_SUPPORTED_I_AM = 26,
     SERVICE_SUPPORTED_I_HAVE = 27,
-    /* Unconfirmed Services */
     SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION = 28,
     SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION_MULTIPLE = 43,
     SERVICE_SUPPORTED_UNCONFIRMED_EVENT_NOTIFICATION = 29,
@@ -1668,10 +1687,15 @@ typedef enum {
     ABORT_REASON_SEGMENTATION_NOT_SUPPORTED = 4,
     ABORT_REASON_SECURITY_ERROR = 5,
     ABORT_REASON_INSUFFICIENT_SECURITY = 6,
+    ABORT_REASON_WINDOW_SIZE_OUT_OF_RANGE = 7,
+    ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME = 8,
+    ABORT_REASON_OUT_OF_RESOURCES = 9,
+    ABORT_REASON_TSM_TIMEOUT = 10,
+    ABORT_REASON_APDU_TOO_LONG = 11,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-255 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_ABORT_REASON = 7,
+    MAX_BACNET_ABORT_REASON = 12,
     ABORT_REASON_PROPRIETARY_FIRST = 64,
     ABORT_REASON_PROPRIETARY_LAST = 255
 } BACNET_ABORT_REASON;
@@ -1687,10 +1711,11 @@ typedef enum {
     REJECT_REASON_TOO_MANY_ARGUMENTS = 7,
     REJECT_REASON_UNDEFINED_ENUMERATION = 8,
     REJECT_REASON_UNRECOGNIZED_SERVICE = 9,
+    REJECT_REASON_INVALID_DATA_ENCODING = 10,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-255 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_REJECT_REASON = 10,
+    MAX_BACNET_REJECT_REASON = 11,
     REJECT_REASON_PROPRIETARY_FIRST = 64,
     REJECT_REASON_PROPRIETARY_LAST = 255
 } BACNET_REJECT_REASON;
@@ -2024,10 +2049,9 @@ typedef enum BACnetLightingInProgress {
 } BACNET_LIGHTING_IN_PROGRESS;
 
 typedef enum BACnetLightingTransition {
-    BACNET_LIGHTING_TRANSITION_IDLE = 0,
+    BACNET_LIGHTING_TRANSITION_NONE = 0,
     BACNET_LIGHTING_TRANSITION_FADE = 1,
     BACNET_LIGHTING_TRANSITION_RAMP = 2,
-    MAX_BACNET_LIGHTING_TRANSITION = 3,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to
        the procedures and constraints described in Clause 23. */
@@ -2059,7 +2083,7 @@ typedef enum BACnetColorTransition {
     BACNET_COLOR_TRANSITION_NONE = 0,
     BACNET_COLOR_TRANSITION_FADE = 1,
     BACNET_COLOR_TRANSITION_RAMP = 2,
-    BACNET_COLOR_TRANSITION_MAX = 3,
+    BACNET_COLOR_TRANSITION_MAX = 3
 } BACNET_COLOR_TRANSITION;
 
 /* NOTE: BACNET_DAYS_OF_WEEK is different than BACNET_WEEKDAY */
@@ -2297,11 +2321,24 @@ typedef enum {
     PORT_TYPE_BIP = 5,
     PORT_TYPE_ZIGBEE = 6,
     PORT_TYPE_VIRTUAL = 7,
+    /* note: (8), removed in version 1 revision 18 */
     PORT_TYPE_NON_BACNET = 8,
     PORT_TYPE_BIP6 = 9,
+    PORT_TYPE_SERIAL = 10,
+    PORT_TYPE_BSC = 11,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to the
        procedures and constraints described in Clause 23. */
+    PORT_TYPE_RESERVED_FIRST = 12,
+    PORT_TYPE_RESERVED_LAST = 63,
+    PORT_TYPE_PROPRIETARY_FIRST = 64,
+    /*  For BACnet/SC network port implementations with
+        a protocol revision Protocol_Revision 17 and higher through 23,
+        BACnet/SC network ports shall be represented by a Network Port
+        object at the BACNET_APPLICATION protocol level with
+        a proprietary network type value. */
+    PORT_TYPE_BSC_INTERIM = 64,
+    PORT_TYPE_PROPRIETARY_LAST = 255,
     PORT_TYPE_MAX = 255
 } BACNET_PORT_TYPE;
 
@@ -2322,10 +2359,17 @@ typedef enum {
     PORT_COMMAND_RENEW_DHCP = 4,
     PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
     PORT_COMMAND_DISCONNECT = 6,
-    PORT_COMMAND_RESTART_PORT = 7
+    PORT_COMMAND_RESTART_PORT = 7,
+    PORT_COMMAND_GENERATE_CSR_FILE = 8,
+    PORT_COMMAND_VALIDATE_CHANGES = 9,
+    PORT_COMMAND_RESERVED_FIRST = 10,
+    PORT_COMMAND_RESERVED_LAST = 127,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
        Enumerated values 128-255 may be used by others subject to the
        procedures and constraints described in Clause 23. */
+    PORT_COMMAND_PROPRIETARY_FIRST = 128,
+    PORT_COMMAND_PROPRIETARY_LAST = 255,
+    PORT_COMMAND_MAX = 255
 } BACNET_PORT_COMMAND;
 
 typedef enum {
@@ -2462,56 +2506,6 @@ typedef enum {
     AUTHENTICATION_FACTOR_USER_PASSWORD = 24,
     AUTHENTICATION_FACTOR_MAX = 25
 } BACNET_AUTHENTICATION_FACTOR_TYPE;
-
-typedef enum {
-    NETWORK_TYPE_ETHERNET = 0,
-    NETWORK_TYPE_ARCNET = 1,
-    NETWORK_TYPE_MSTP = 2,
-    NETWORK_TYPE_PTP = 3,
-    NETWORK_TYPE_LONTALK = 4,
-    NETWORK_TYPE_BACNET_IPV4 = 5,
-    NETWORK_TYPE_ZIGBEE = 6,
-    NETWORK_TYPE_VIRTUAL = 7,
-    /* (8), removed in version 1 revision 18 */
-    NETWORK_TYPE_BACNET_IPV6 = 9,
-    NETWORK_TYPE_SERIAL = 10,
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-       Enumerated values 64-255 may be used by others subject to the
-       procedures and constraints described in Clause 23. */
-    /* do the max range inside of enum so that
-       compilers will allocate adequate sized datatype for enum
-       which is used to store decoding */
-    NETWORK_TYPE_PROPRIETARY_MIN = 64,
-    NETWORK_TYPE_PROPRIETARY_MAX = 255
-} BACNET_NETWORK_TYPE;
-
-/* Network Number Quality, Addendum 135-2012az */
-typedef enum {
-    NETWORK_NUMBER_QUALITIY_UNKNOWN = 0,
-    NETWORK_NUMBER_QUALITIY_LEARNED = 1,
-    NETWORK_NUMBER_QUALITIY_LEARNED_CONFIGURED = 2,
-    NETWORK_NUMBER_QUALITIY_CONFIGURED = 3
-} BACNET_NETWORK_NUMBER_QUALITY;
-
-typedef enum BACnetNetworkPortCommand_T {
-    NETWORK_PORT_COMMAND_IDLE = 0,
-    NETWORK_PORT_COMMAND_DISCARD_CHANGES = 1,
-    NETWORK_PORT_COMMAND_RENEW_FD_REGISTRATION = 2,
-    NETWORK_PORT_COMMAND_RESTART_SLAVE_DISCOVERY = 3,
-    NETWORK_PORT_COMMAND_RENEW_DHCP = 4,
-    NETWORK_PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
-    NETWORK_PORT_COMMAND_DISCONNECT = 6,
-    NETWORK_PORT_COMMAND_RESTART_PORT = 7,
-    /* Enumerated values 0-127 are reserved for definition
-       by ASHRAE. Enumerated values 128-255 may be used
-       by others subject to the procedures and constraints
-       described in Clause 23. */
-    /* do the max range inside of enum so that
-       compilers will allocate adequate sized datatype for enum
-       which is used to store decoding */
-    NETWORK_PORT_COMMAND_PROPRIETARY_MIN = 128,
-    NETWORK_PORT_COMMAND_PROPRIETARY_MAX = 255
-} BACNET_NETWORK_PORT_COMMAND;
 
 typedef enum BACnetProtocolLevel_T {
     BACNET_PROTOCOL_LEVEL_PHYSICAL = 0,

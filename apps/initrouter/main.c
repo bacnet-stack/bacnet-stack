@@ -185,7 +185,7 @@ static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
 
-    apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
+    apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
         if (apdu_offset <= pdu_len) {
             My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
@@ -241,9 +241,9 @@ static void print_help(char *filename)
 {
     printf(
         "Send BACnet Initialize-Routing-Table message to a network\n"
-        "and wait for responses.  Displays their network information.\n"
-        "\n"
-        "address:\n"
+        "and wait for responses.  Displays their network information.\n");
+    printf("\n");
+    printf("address:\n"
         "MAC address in xx:xx:xx:xx:xx:xx format or IP x.x.x.x:port\n"
         "DNET ID Len Info:\n"
         "Port-info data:\n"
@@ -365,7 +365,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* increment timer - exit if timed out */
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {

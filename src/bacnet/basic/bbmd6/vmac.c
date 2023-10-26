@@ -47,14 +47,18 @@ static bool VMAC_Debug = false;
 #if PRINT_ENABLED
 #include <stdarg.h>
 #include <stdio.h>
-#define PRINTF(...) \
-    if (VMAC_Debug) { \
-        fprintf(stderr,__VA_ARGS__); \
-        fflush(stderr); \
+#define PRINTF(...)                   \
+    if (VMAC_Debug) {                 \
+        fprintf(stderr, __VA_ARGS__); \
+        fflush(stderr);               \
     }
 #else
 #define PRINTF(...)
+
+#if !defined UNUSED
+#define UNUSED(x) ((void)(x))
 #endif
+#endif // PRINT_ENABLED
 
 /**
  * @brief Enable debugging if print is enabled
@@ -263,6 +267,9 @@ void VMAC_Cleanup(void)
     if (VMAC_List) {
         do {
             device_id = Keylist_Key(VMAC_List, index);
+#if !PRINT_ENABLED
+            UNUSED(device_id);
+#endif
             pVMAC = Keylist_Data_Delete_By_Index(VMAC_List, index);
             if (pVMAC) {
                 PRINTF("VMAC List: %lu [", (unsigned long)device_id);

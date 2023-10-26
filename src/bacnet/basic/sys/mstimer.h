@@ -35,8 +35,9 @@ struct mstimer {
   unsigned long interval;
 };
 
+/* optional callback function form */
 typedef void (*mstimer_callback_function) (void);
-/* callback data structure */
+/* optional callback data structure */
 struct mstimer_callback_data_t;
 struct mstimer_callback_data_t {
     struct mstimer timer;
@@ -62,14 +63,17 @@ BACNET_STACK_EXPORT
 unsigned long mstimer_elapsed(struct mstimer *t);
 BACNET_STACK_EXPORT
 unsigned long mstimer_interval(struct mstimer *t);
-/* HAL implementation */
-BACNET_STACK_EXPORT
-unsigned long mstimer_now(void);
+/* optional callback timer support for embedded systems */
 BACNET_STACK_EXPORT
 void mstimer_callback(
     struct mstimer_callback_data_t *cb,
     mstimer_callback_function callback,
     unsigned long milliseconds);
+BACNET_STACK_EXPORT
+void mstimer_callback_handler(void);
+/* HAL implementation */
+BACNET_STACK_EXPORT
+unsigned long mstimer_now(void);
 BACNET_STACK_EXPORT
 void mstimer_init(void);
 

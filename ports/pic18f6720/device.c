@@ -52,14 +52,65 @@ static uint32_t Object_Instance_Number = 12345;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static uint8_t Database_Revision;
 BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
-static char Reinit_Password[16] = "filister";
+static const char *Reinit_Password = "filister";
 
+/**
+ * @brief Sets the ReinitializeDevice password
+ *
+ * The password shall be a null terminated C string of up to
+ * 20 ASCII characters for those devices that require the password.
+ *
+ * For those devices that do not require a password, set to NULL or
+ * point to a zero length C string (null terminated).
+ *
+ * @param the ReinitializeDevice password; can be NULL or empty string
+ */
+bool Device_Reinitialize_Password_Set(const char *password)
+{
+    Reinit_Password = password;
+
+    return true;
+}
+
+/** Commands a Device re-initialization, to a given state.
+ * The request's password must match for the operation to succeed.
+ * This implementation provides a framework, but doesn't
+ * actually *DO* anything.
+ * @note You could use a mix of states and passwords to multiple outcomes.
+ * @note You probably want to restart *after* the simple ack has been sent
+ *       from the return handler, so just set a local flag here.
+ * @ingroup ObjIntf
+ *
+ * @param rd_data [in,out] The information from the RD request.
+ *                         On failure, the error class and code will be set.
+ * @return True if succeeds (password is correct), else False.
+ */
 bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
+    bool password_success = false;
 
-    /* Note: you could use a mix of state and password to multiple things */
-    if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
+    /* From 16.4.1.1.2 Password
+        This optional parameter shall be a CharacterString of up to
+        20 characters. For those devices that require the password as a
+        protection, the service request shall be denied if the parameter
+        is absent or if the password is incorrect. For those devices that
+        do not require a password, this parameter shall be ignored.*/
+    if (Reinit_Password && strlen(Reinit_Password) > 0) {
+        if (characterstring_length(&rd_data->password) > 20) {
+            rd_data->error_class = ERROR_CLASS_SERVICES;
+            rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+        } else if (characterstring_ansi_same(
+                       &rd_data->password, Reinit_Password)) {
+            password_success = true;
+        } else {
+            rd_data->error_class = ERROR_CLASS_SECURITY;
+            rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
+        }
+    } else {
+        password_success = true;
+    }
+    if (password_success) {
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
             case BACNET_REINIT_WARMSTART:
@@ -89,9 +140,6 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
                 break;
         }
-    } else {
-        rd_data->error_class = ERROR_CLASS_SECURITY;
-        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
     }
 
     return status;
@@ -269,23 +317,54 @@ bool Device_Object_List_Identifier(
     return status;
 }
 
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+int Device_Object_List_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t instance;
+    bool found;
+
+    if (object_instance == Device_Object_Instance_Number()) {
+        /* single element is zero based, add 1 for BACnetARRAY which is one
+         * based */
+        array_index++;
+        found =
+            Device_Object_List_Identifier(array_index, &object_type, &instance);
+        if (found) {
+            apdu_len =
+                encode_application_object_id(apdu, object_type, instance);
+        }
+    }
+
+    return apdu_len;
+}
+
 /* returns true if successful */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     static char string_buffer[28];
     static BACNET_CHARACTER_STRING char_string;
     int apdu_len = 0; /* return value */
-    int len = 0; /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
     uint32_t i = 0;
-    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
-    uint32_t instance = 0;
     uint32_t count = 0;
     BACNET_TIME local_time;
     BACNET_DATE local_date;
     uint8_t year = 0;
     int16_t TimeZone = 0;
     uint8_t *apdu = NULL;
+    int apdu_max = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -387,46 +466,16 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
-            /* Array element zero is the number of objects in the list */
-            if (rpdata->array_index == 0)
-                apdu_len = encode_application_unsigned(&apdu[0], count);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet.  Note that more than likely you will have */
-            /* to return an error if the number of encoded objects exceeds */
-            /* your maximum APDU size. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 1; i <= count; i++) {
-                    if (Device_Object_List_Identifier(
-                            i, &object_type, &instance)) {
-                        len = encode_application_object_id(
-                            &apdu[apdu_len], object_type, instance);
-                        apdu_len += len;
-                        /* assume next one is the same size as this one */
-                        /* can we all fit into the APDU? */
-                        if ((apdu_len + len) >= MAX_APDU) {
-                            rpdata->error_code =
-                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                            apdu_len = BACNET_STATUS_ABORT;
-                            break;
-                        }
-                    } else {
-                        /* error: internal error? */
-                        rpdata->error_class = ERROR_CLASS_SERVICES;
-                        rpdata->error_code = ERROR_CODE_OTHER;
-                        apdu_len = BACNET_STATUS_ERROR;
-                        break;
-                    }
-                }
-            } else {
-                if (Device_Object_List_Identifier(
-                        rpdata->array_index, &object_type, &instance))
-                    apdu_len = encode_application_object_id(
-                        &apdu[0], object_type, instance);
-                else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index,
+                Device_Object_List_Element_Encode,
+                count, apdu, apdu_max);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
             break;
         case PROP_MAX_APDU_LENGTH_ACCEPTED:

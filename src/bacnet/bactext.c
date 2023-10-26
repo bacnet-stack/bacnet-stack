@@ -129,8 +129,8 @@ const char *bactext_unconfirmed_service_name(unsigned index)
         bacnet_unconfirmed_service_names, index, ASHRAE_Reserved_String);
 }
 
-INDTEXT_DATA bacnet_application_tag_names[] = {
-    { BACNET_APPLICATION_TAG_NULL, "Null" },
+INDTEXT_DATA bacnet_application_tag_names[] = { { BACNET_APPLICATION_TAG_NULL,
+                                                    "Null" },
     { BACNET_APPLICATION_TAG_BOOLEAN, "Boolean" },
     { BACNET_APPLICATION_TAG_UNSIGNED_INT, "Unsigned Int" },
     { BACNET_APPLICATION_TAG_SIGNED_INT, "Signed Int" },
@@ -166,8 +166,7 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
     { BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION,
         "BACnetReadAccessSpecification" },
     { BACNET_APPLICATION_TAG_LIGHTING_COMMAND, "BACnetLightingCommand" },
-    { BACNET_APPLICATION_TAG_HOST_N_PORT, "BACnetHostNPort" },
-    { 0, NULL } };
+    { BACNET_APPLICATION_TAG_HOST_N_PORT, "BACnetHostNPort" }, { 0, NULL } };
 
 const char *bactext_application_tag_name(unsigned index)
 {
@@ -246,8 +245,9 @@ INDTEXT_DATA bacnet_object_type_names[] = { { OBJECT_ANALOG_INPUT,
 
 const char *bactext_object_type_name(unsigned index)
 {
-    return indtext_by_index_split_default(bacnet_object_type_names, index, 128,
-        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    return indtext_by_index_split_default(bacnet_object_type_names, index,
+        OBJECT_PROPRIETARY_MIN, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
 }
 
 bool bactext_object_type_index(const char *search_name, unsigned *found_index)
@@ -744,16 +744,27 @@ INDTEXT_DATA bacnet_property_names[] = {
     { PROP_COLOR_COMMAND, "color-command" },
     { PROP_HIGH_END_TRIM, "high-end-trim" },
     { PROP_LOW_END_TRIM, "low-end-trim" },
-    { PROP_TRIM_FADE_TIME, "trim-fade-time" },
-    { 0, NULL }
+    { PROP_TRIM_FADE_TIME, "trim-fade-time" }, { 0, NULL }
 };
+
+bool bactext_property_name_proprietary(unsigned index)
+{
+    bool status = false;
+
+    if ((index >= PROP_PROPRIETARY_RANGE_MIN) &&
+        (index <= PROP_PROPRIETARY_RANGE_MAX)) {
+        status = true;
+    }
+
+    return status;
+}
 
 const char *bactext_property_name(unsigned index)
 {
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-4194303 may be used by others subject to the
        procedures and constraints described in Clause 23. */
-    if ((index >= 512) && (index <= 4194303)) {
+    if (bactext_property_name_proprietary(index)) {
         return Vendor_Proprietary_String;
     } else {
         return indtext_by_index_default(
@@ -1018,18 +1029,28 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
        the procedures and constraints described in Clause 23. */
 };
 
+bool bactext_engineering_unit_name_proprietary(unsigned index)
+{
+    bool status = false;
+
+    if ((index >= UNITS_PROPRIETARY_RANGE_MIN) &&
+        (index <= UNITS_PROPRIETARY_RANGE_MAX)) {
+        status = true;
+    } else if ((index >= UNITS_PROPRIETARY_RANGE_MIN2) &&
+        (index <= UNITS_PROPRIETARY_RANGE_MAX2)) {
+        status = true;
+    }
+
+    return status;
+}
+
 const char *bactext_engineering_unit_name(unsigned index)
 {
-    if (index <= UNITS_RESERVED_RANGE_MAX) {
-        return indtext_by_index_default(
-            bacnet_engineering_unit_names, index, ASHRAE_Reserved_String);
-    } else if (index <= UNITS_PROPRIETARY_RANGE_MAX) {
+    if (bactext_engineering_unit_name_proprietary(index)) {
         return Vendor_Proprietary_String;
     } else if (index <= UNITS_RESERVED_RANGE_MAX2) {
         return indtext_by_index_default(
             bacnet_engineering_unit_names, index, ASHRAE_Reserved_String);
-    } else if (index <= UNITS_PROPRIETARY_RANGE_MAX2) {
-        return Vendor_Proprietary_String;
     }
 
     return ASHRAE_Reserved_String;
@@ -1053,6 +1074,7 @@ INDTEXT_DATA bacnet_reject_reason_names[] = { { REJECT_REASON_OTHER, "Other" },
     { REJECT_REASON_TOO_MANY_ARGUMENTS, "Too Many Arguments" },
     { REJECT_REASON_UNDEFINED_ENUMERATION, "Undefined Enumeration" },
     { REJECT_REASON_UNRECOGNIZED_SERVICE, "Unrecognized Service" },
+    { REJECT_REASON_INVALID_DATA_ENCODING, "invalid-data-encoding" },
     { REJECT_REASON_PROPRIETARY_FIRST, "Proprietary" }, { 0, NULL } };
 
 const char *bactext_reject_reason_name(unsigned index)
@@ -1070,6 +1092,12 @@ INDTEXT_DATA bacnet_abort_reason_names[] = { { ABORT_REASON_OTHER, "Other" },
     { ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, "Segmentation Not Supported" },
     { ABORT_REASON_SECURITY_ERROR, "Security Error" },
     { ABORT_REASON_INSUFFICIENT_SECURITY, "Insufficient Security" },
+    { ABORT_REASON_WINDOW_SIZE_OUT_OF_RANGE, "window-size-out-of-range" },
+    { ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME,
+        "application-exceeded-reply-time" },
+    { ABORT_REASON_OUT_OF_RESOURCES, "out-of-resources" },
+    { ABORT_REASON_TSM_TIMEOUT, "tsm-timeout" },
+    { ABORT_REASON_APDU_TOO_LONG, "apdu-too-long" },
     { ABORT_REASON_PROPRIETARY_FIRST, "Proprietary" }, { 0, NULL } };
 
 const char *bactext_abort_reason_name(unsigned index)
@@ -1083,7 +1111,8 @@ INDTEXT_DATA bacnet_error_class_names[] = { { ERROR_CLASS_DEVICE, "device" },
     { ERROR_CLASS_OBJECT, "object" }, { ERROR_CLASS_PROPERTY, "property" },
     { ERROR_CLASS_RESOURCES, "resources" },
     { ERROR_CLASS_SECURITY, "security" }, { ERROR_CLASS_SERVICES, "services" },
-    { ERROR_CLASS_VT, "vt" }, { 0, NULL } };
+    { ERROR_CLASS_VT, "vt" }, { ERROR_CLASS_COMMUNICATION, "communication" },
+    { 0, NULL } };
 
 const char *bactext_error_class_name(unsigned index)
 {
@@ -1529,9 +1558,23 @@ INDTEXT_DATA bacnet_reliability_names[] = { { RELIABILITY_NO_FAULT_DETECTED,
     { RELIABILITY_PROCESS_ERROR, "process-error" },
     { RELIABILITY_MULTI_STATE_FAULT, "mult-state-fault" },
     { RELIABILITY_CONFIGURATION_ERROR, "configuration-error" },
-    { RELIABILITY_MEMBER_FAULT, "member-fault" },
     { RELIABILITY_COMMUNICATION_FAILURE, "communication-failure" },
-    { RELIABILITY_TRIPPED, "tripped" }, { 0, NULL } };
+    { RELIABILITY_MEMBER_FAULT, "member-fault" },
+    { RELIABILITY_MONITORED_OBJECT_FAULT, "monitored-object-fault" },
+    { RELIABILITY_TRIPPED, "tripped" },
+    { RELIABILITY_LAMP_FAILURE, "lamp-failure" },
+    { RELIABILITY_ACTIVATION_FAILURE, "activation-failure" },
+    { RELIABILITY_RENEW_DHCP_FAILURE, "renew-dhcp-failure" },
+    { RELIABILITY_RENEW_FD_REGISTRATION_FAILURE,
+        "renew-fd-registration-failure" },
+    { RELIABILITY_RESTART_AUTO_NEGOTIATION_FAILURE,
+        "restart-auto-negotiation-failure" },
+    { RELIABILITY_RESTART_FAILURE, "restart-failure" },
+    { RELIABILITY_PROPRIETARY_COMMAND_FAILURE, "proprietary-command-failure" },
+    { RELIABILITY_FAULTS_LISTED, "faults-listed" },
+    { RELIABILITY_REFERENCED_OBJECT_FAULT, "referenced-object-fault" },
+    { RELIABILITY_MULTI_STATE_OUT_OF_RANGE, "multi-state-out-of-range" },
+    { 0, NULL } };
 
 const char *bactext_reliability_name(unsigned index)
 {
@@ -1646,14 +1689,14 @@ const char *bactext_life_safety_state_name(unsigned index)
         return indtext_by_index_default(
             life_safety_state_names, index, ASHRAE_Reserved_String);
     } else {
-        return "Invalid Safety State Message";
+        return "Invalid BACnetLifeSafetyState";
     }
 }
 
 INDTEXT_DATA lighting_in_progress[] = { { BACNET_LIGHTING_IDLE, "idle" },
     { BACNET_LIGHTING_FADE_ACTIVE, "fade" },
     { BACNET_LIGHTING_RAMP_ACTIVE, "ramp" },
-    { BACNET_LIGHTING_NOT_CONTROLLED, "not" },
+    { BACNET_LIGHTING_NOT_CONTROLLED, "not-controlled" },
     { BACNET_LIGHTING_OTHER, "other" },
     { BACNET_LIGHTING_TRIM_ACTIVE, "trim-active" }, { 0, NULL } };
 
@@ -1663,22 +1706,24 @@ const char *bactext_lighting_in_progress(unsigned index)
         return indtext_by_index_default(
             lighting_in_progress, index, ASHRAE_Reserved_String);
     } else {
-        return "Invalid Lighting In Progress Message";
+        return "Invalid BACnetLightingInProgress";
     }
 }
 
-INDTEXT_DATA lighting_transition[] = { { BACNET_LIGHTING_TRANSITION_IDLE,
-                                           "idle" },
+INDTEXT_DATA lighting_transition[] = {
+    { BACNET_LIGHTING_TRANSITION_NONE, "none" },
     { BACNET_LIGHTING_TRANSITION_FADE, "fade" },
     { BACNET_LIGHTING_TRANSITION_RAMP, "ramp" }, { 0, NULL } };
 
 const char *bactext_lighting_transition(unsigned index)
 {
-    if (index < MAX_BACNET_LIGHTING_TRANSITION) {
+    if (index < BACNET_LIGHTING_TRANSITION_PROPRIETARY_FIRST) {
         return indtext_by_index_default(
             lighting_transition, index, ASHRAE_Reserved_String);
+    } else if (index <= BACNET_LIGHTING_TRANSITION_PROPRIETARY_LAST) {
+        return Vendor_Proprietary_String;
     } else {
-        return "Invalid Lighting Transition Message";
+        return "Invalid BACnetLightingTransition";
     }
 }
 

@@ -8,7 +8,7 @@
  * @brief test BACnet integer encode/decode APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/event.h>
 
 /**
@@ -111,7 +111,11 @@ static void verifyBaseEventState(void)
 /**
  * @brief Test BACnet event handlers
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(event_tests, testEventEventState)
+#else
 static void testEventEventState(void)
+#endif
 {
     uint8_t buffer[MAX_APDU];
     int inLen;
@@ -942,6 +946,9 @@ static void testEventEventState(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(event_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(event_tests,
@@ -950,3 +957,4 @@ void test_main(void)
 
     ztest_run_test_suite(event_tests);
 }
+#endif

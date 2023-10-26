@@ -126,6 +126,10 @@ extern "C" {
         confirmed_ack_function pFunction);
 
     BACNET_STACK_EXPORT
+    bool apdu_confirmed_simple_ack_service(
+        BACNET_CONFIRMED_SERVICE service_choice);
+
+    BACNET_STACK_EXPORT
     void apdu_set_confirmed_simple_ack_handler(
         BACNET_CONFIRMED_SERVICE service_choice,
         confirmed_simple_ack_function pFunction);

@@ -8,7 +8,7 @@
  * @brief test BACnet integer encode/decode APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/basic/sys/keylist.h>
 
 /**
@@ -19,7 +19,11 @@
 /**
  * @brief Test the FIFO
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(keylist_tests, testKeyListFIFO)
+#else
 static void testKeyListFIFO(void)
+#endif
 {
     OS_Keylist list;
     KEY key;
@@ -62,7 +66,11 @@ static void testKeyListFIFO(void)
 }
 
 /* test the FILO */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(keylist_tests, testKeyListFILO)
+#else
 static void testKeyListFILO(void)
+#endif
 {
     OS_Keylist list;
     KEY key;
@@ -108,7 +116,11 @@ static void testKeyListFILO(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(keylist_tests, testKeyListDataKey)
+#else
 static void testKeyListDataKey(void)
+#endif
 {
     OS_Keylist list;
     KEY key;
@@ -187,7 +199,11 @@ static void testKeyListDataKey(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(keylist_tests, testKeyListDataIndex)
+#else
 static void testKeyListDataIndex(void)
+#endif
 {
     OS_Keylist list;
     KEY key;
@@ -256,7 +272,11 @@ static void testKeyListDataIndex(void)
 }
 
 /* test access of a lot of entries */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(keylist_tests, testKeyListLarge)
+#else
 static void testKeyListLarge(void)
+#endif
 {
     int data1 = 42;
     int *data;
@@ -284,11 +304,47 @@ static void testKeyListLarge(void)
 
     return;
 }
+
+/* test the encode and decode macros */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(keylist_tests, testKeySample)
+#else
+static void testKeySample(void)
+#endif
+{
+    int type, id;
+    int type_list[] = { 0, 1, KEY_TYPE_MAX / 2, KEY_TYPE_MAX - 1, -1 };
+    int id_list[] = { 0, 1, KEY_ID_MAX / 2, KEY_ID_MAX - 1, -1 };
+    int type_index = 0;
+    int id_index = 0;
+    int decoded_type, decoded_id;
+    KEY key;
+
+    while (type_list[type_index] != -1) {
+        while (id_list[id_index] != -1) {
+            type = type_list[type_index];
+            id = id_list[id_index];
+            key = KEY_ENCODE(type, id);
+            decoded_type = KEY_DECODE_TYPE(key);
+            decoded_id = KEY_DECODE_ID(key);
+            zassert_equal(decoded_type, type, NULL);
+            zassert_equal(decoded_id, id, NULL);
+            id_index++;
+        }
+        id_index = 0;
+        type_index++;
+    }
+
+    return;
+}
 /**
  * @}
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(keylist_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(keylist_tests,
@@ -296,8 +352,10 @@ void test_main(void)
      ztest_unit_test(testKeyListFILO),
      ztest_unit_test(testKeyListDataKey),
      ztest_unit_test(testKeyListDataIndex),
-     ztest_unit_test(testKeyListLarge)
+     ztest_unit_test(testKeyListLarge),
+     ztest_unit_test(testKeySample)
      );
 
     ztest_run_test_suite(keylist_tests);
 }
+#endif

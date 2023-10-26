@@ -90,7 +90,7 @@ void *dl_ip_thread(void *pArgs)
                         &address.mac[0], &msg_data->dest.adr[0], MAX_MAC_LEN);
 
                     dl_ip_send(
-                      &ip_data, &address, msg_data->pdu, msg_data->pdu_len);
+                        &ip_data, &address, msg_data->pdu, msg_data->pdu_len);
 
                     check_data(msg_data);
 
@@ -181,15 +181,16 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
     /* Bind to device so we don't get routing loops between our
        different ports. */
     status = setsockopt(ip_data->socket, SOL_SOCKET, SO_BINDTODEVICE,
-                        port->iface, strlen(port->iface));
+        port->iface, strlen(port->iface));
     if (status < 0) {
-      close(ip_data->socket);
-      return false;
+        close(ip_data->socket);
+        return false;
     }
 
     /* bind the socket to the local port number */
     sin.sin_family = AF_INET;
-    //    sin.sin_addr.s_addr, ip_data->local_addr.s_addr;// = htonl(INADDR_ANY);
+    /*    sin.sin_addr.s_addr, ip_data->local_addr.s_addr;// =
+     * htonl(INADDR_ANY); */
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = ip_data->port;
 
@@ -309,7 +310,7 @@ int dl_ip_recv(
     /* the signature of a BACnet/IP packet */
     if (data->buff[0] != BVLL_TYPE_BACNET_IP) {
         return 0;
-}
+    }
 
     switch (data->buff[1]) {
         case BVLC_ORIGINAL_UNICAST_NPDU:

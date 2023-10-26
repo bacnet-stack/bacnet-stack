@@ -8,7 +8,7 @@
  * @brief test BACnet integer encode/decode APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/rp.h>
 
@@ -72,7 +72,11 @@ static int rp_ack_decode_apdu(uint8_t *apdu,
     return len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(rp_tests, testReadPropertyAck)
+#else
 static void testReadPropertyAck(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     uint8_t apdu2[480] = { 0 };
@@ -120,7 +124,11 @@ static void testReadPropertyAck(void)
     zassert_equal(object_instance, rpdata.object_instance, NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(rp_tests, testReadProperty)
+#else
 static void testReadProperty(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -152,6 +160,9 @@ static void testReadProperty(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(rp_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(rp_tests,
@@ -161,3 +172,4 @@ void test_main(void)
 
     ztest_run_test_suite(rp_tests);
 }
+#endif

@@ -8,7 +8,7 @@
  * @brief test BACnet integer encode/decode APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/dcc.h>
 
 /**
@@ -76,7 +76,11 @@ static void test_DeviceCommunicationControlData(
     zassert_true(characterstring_same(&test_password, password), NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(dcc_tests, test_DeviceCommunicationControl)
+#else
 static void test_DeviceCommunicationControl(void)
+#endif
 {
     uint8_t invoke_id = 128;
     uint16_t timeDuration = 0;
@@ -97,7 +101,11 @@ static void test_DeviceCommunicationControl(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(dcc_tests, test_DeviceCommunicationControlMalformedData)
+#else
 static void test_DeviceCommunicationControlMalformedData(void)
+#endif
 {
     /* payload with enable-disable, and password with wrong characterstring
      * length */
@@ -142,6 +150,9 @@ static void test_DeviceCommunicationControlMalformedData(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(dcc_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(dcc_tests,
@@ -151,3 +162,4 @@ void test_main(void)
 
     ztest_run_test_suite(dcc_tests);
 }
+#endif

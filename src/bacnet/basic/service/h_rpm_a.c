@@ -37,7 +37,11 @@
 /* some demo stuff needed */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
+
+#define PRINTF debug_aprintf
+#define PERROR debug_perror
 
 /** @file h_rpm_a.c  Handles Read Property Multiple Acknowledgments. */
 
@@ -114,36 +118,52 @@ int rpm_ack_decode_service_request(
                    more than one element to decode */
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
-                while (value && (apdu_len > 0)) {
-                    len = bacapp_decode_known_property(
-                        apdu, (unsigned)apdu_len, value,
-                        rpm_object->object_type,
-                        rpm_property->propertyIdentifier);
-                    /* If len == 0 then it's an empty structure, which is OK. */
-                    if (len < 0) {
-                        /* problem decoding */
-#if PRINT_ENABLED
-                        fprintf(stderr, "RPM Ack: unable to decode! %s:%s\n",
-                            bactext_object_type_name(rpm_object->object_type),
-                            bactext_property_name(
-                            rpm_property->propertyIdentifier));
-#endif
-                        /* note: caller will free the memory */
-                        return BACNET_STATUS_ERROR;
-                    }
-                    decoded_len += len;
-                    apdu_len -= len;
-                    apdu += len;
-                    if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
-                        decoded_len++;
-                        apdu_len--;
-                        apdu++;
-                        break;
-                    } else {
-                        old_value = value;
-                        value =
-                            calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
-                        old_value->next = value;
+
+                /* Special case for an empty array - we decode it as null */
+                if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
+                    /* NULL value has tag 0, that was already set by calloc */
+                    decoded_len++;
+                    apdu_len--;
+                    apdu++;
+                } else {
+                    while (value && (apdu_len > 0)) {
+                        len = bacapp_decode_known_property(apdu,
+                            (unsigned)apdu_len, value, rpm_object->object_type,
+                            rpm_property->propertyIdentifier);
+                        /* If len == 0 then it's an empty structure, which is
+                         * OK. */
+                        if (len < 0) {
+                            /* problem decoding */
+                            PERROR("RPM Ack: unable to decode! %s:%s\n",
+                                bactext_object_type_name(
+                                    rpm_object->object_type),
+                                bactext_property_name(
+                                    rpm_property->propertyIdentifier));
+                            /* note: caller will free the memory */
+                            return BACNET_STATUS_ERROR;
+                        }
+                        decoded_len += len;
+                        apdu_len -= len;
+                        apdu += len;
+                        if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
+                            decoded_len++;
+                            apdu_len--;
+                            apdu++;
+                            break;
+                        } else if (len > 0) {
+                            old_value = value;
+                            value = calloc(
+                                1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+                            old_value->next = value;
+                        } else {
+                            PERROR("RPM Ack: decoded %s:%s len=%d\n",
+                                bactext_object_type_name(
+                                    rpm_object->object_type),
+                                bactext_property_name(
+                                    rpm_property->propertyIdentifier),
+                                len);
+                            break;
+                        }
                     }
                 }
             } else if (apdu_len && decode_is_opening_tag_number(apdu, 5)) {
@@ -209,50 +229,39 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
 #endif
     BACNET_PROPERTY_REFERENCE *listOfProperties = NULL;
     BACNET_APPLICATION_DATA_VALUE *value = NULL;
-#if PRINT_ENABLED
     bool array_value = false;
-#endif
 
     if (rpm_data) {
-#if PRINT_ENABLED
-        fprintf(stdout, "%s #%lu\r\n",
-            bactext_object_type_name(rpm_data->object_type),
+        PRINTF("%s #%lu\r\n", bactext_object_type_name(rpm_data->object_type),
             (unsigned long)rpm_data->object_instance);
-        fprintf(stdout, "{\r\n");
-#endif
+        PRINTF("{\r\n");
         listOfProperties = rpm_data->listOfProperties;
         while (listOfProperties) {
-#if PRINT_ENABLED
             if ((listOfProperties->propertyIdentifier < 512) ||
                 (listOfProperties->propertyIdentifier > 4194303)) {
                 /* Enumerated values 0-511 and 4194304+ are reserved
                    for definition by ASHRAE.*/
-                fprintf(stdout, "    %s: ",
+                PRINTF("    %s: ",
                     bactext_property_name(
                         listOfProperties->propertyIdentifier));
             } else {
                 /* Enumerated values 512-4194303 may be used
                     by others subject to the procedures and
                     constraints described in Clause 23. */
-                fprintf(stdout, "    proprietary %u: ",
+                PRINTF("    proprietary %u: ",
                     (unsigned)listOfProperties->propertyIdentifier);
             }
-#endif
             if (listOfProperties->propertyArrayIndex != BACNET_ARRAY_ALL) {
-#if PRINT_ENABLED
-                fprintf(stdout, "[%d]", listOfProperties->propertyArrayIndex);
-#endif
+                PRINTF("[%d]", listOfProperties->propertyArrayIndex);
             }
             value = listOfProperties->value;
             if (value) {
-#if PRINT_ENABLED
                 if (value->next) {
-                    fprintf(stdout, "{");
+                    PRINTF("{");
                     array_value = true;
                 } else {
                     array_value = false;
                 }
-#endif
 #ifdef BACAPP_PRINT_ENABLED
                 object_value.object_type = rpm_data->object_type;
                 object_value.object_instance = rpm_data->object_instance;
@@ -266,34 +275,28 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
                     object_value.value = value;
                     bacapp_print_value(stdout, &object_value);
 #endif
-#if PRINT_ENABLED
                     if (value->next) {
-                        fprintf(stdout, ",\r\n        ");
+                        PRINTF(",\r\n        ");
                     } else {
                         if (array_value) {
-                            fprintf(stdout, "}\r\n");
+                            PRINTF("}\r\n");
                         } else {
-                            fprintf(stdout, "\r\n");
+                            PRINTF("\r\n");
                         }
                     }
-#endif
                     value = value->next;
                 }
             } else {
-#if PRINT_ENABLED
                 /* AccessError */
-                fprintf(stdout, "BACnet Error: %s: %s\r\n",
+                PRINTF("BACnet Error: %s: %s\r\n",
                     bactext_error_class_name(
                         (int)listOfProperties->error.error_class),
                     bactext_error_code_name(
                         (int)listOfProperties->error.error_code));
-#endif
             }
             listOfProperties = listOfProperties->next;
         }
-#if PRINT_ENABLED
-        fprintf(stdout, "}\r\n");
-#endif
+        PRINTF("}\r\n");
     }
 }
 
@@ -366,9 +369,7 @@ void handler_read_property_multiple_ack(uint8_t *service_request,
                 rpm_data = rpm_data_free(rpm_data);
             }
         } else {
-#if PRINT_ENABLED
-            fprintf(stderr, "RPM Ack Malformed! Freeing memory...\n");
-#endif
+            PERROR("RPM Ack Malformed! Freeing memory...\n");
             while (rpm_data) {
                 rpm_data = rpm_data_free(rpm_data);
             }

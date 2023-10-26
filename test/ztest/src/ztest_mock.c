@@ -13,7 +13,7 @@
 #ifdef KERNEL
 #error Why is KERNEL defined by hered?
 #endif
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #ifdef KERNEL
 #error Why is KERNEL defined by hered?
 #endif

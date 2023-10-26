@@ -153,17 +153,17 @@ void handler_read_range(uint8_t *service_request,
     } else {
         memset(&data, 0, sizeof(data)); /* start with blank canvas */
         len = rr_decode_service_request(service_request, service_len, &data);
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
         if (len <= 0)
             fprintf(stderr, "RR: Unable to decode Request!\n");
-    #endif
+#endif
         if (len < 0) {
             /* bad decoding - send an abort */
             len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, ABORT_REASON_OTHER, true);
-    #if PRINT_ENABLED
+#if PRINT_ENABLED
             fprintf(stderr, "RR: Bad Encoding.  Sending Abort!\n");
-    #endif
+#endif
         } else {
             /* assume that there is an error */
             error = true;
@@ -173,29 +173,31 @@ void handler_read_range(uint8_t *service_request,
                 data.application_data = &Temp_Buf[0];
                 data.application_data_len = len;
                 /* FIXME: probably need a length limitation sent with encode */
-                len = rr_ack_encode_apdu(
-                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
-        #if PRINT_ENABLED
+                len = rr_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, &data);
+#if PRINT_ENABLED
                 fprintf(stderr, "RR: Sending Ack!\n");
-        #endif
+#endif
                 error = false;
             }
             if (error) {
                 if (len == -2) {
-                    /* BACnet APDU too small to fit data, so proper response is Abort */
+                    /* BACnet APDU too small to fit data, so proper response is
+                     * Abort */
                     len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id,
                         ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr, "RR: Reply too big to fit into APDU!\n");
-        #endif
+#endif
                 } else {
-                    len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    len = bacerror_encode_apdu(
+                        &Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, SERVICE_CONFIRMED_READ_RANGE,
                         data.error_class, data.error_code);
-        #if PRINT_ENABLED
+#if PRINT_ENABLED
                     fprintf(stderr, "RR: Sending Error!\n");
-        #endif
+#endif
                 }
             }
         }

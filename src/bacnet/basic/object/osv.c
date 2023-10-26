@@ -140,6 +140,7 @@ bool OctetString_Value_Present_Value_Set(
     unsigned index = 0;
     bool status = false;
 
+    (void)priority;
     index = OctetString_Value_Instance_To_Index(object_instance);
     if (index < MAX_OCTETSTRING_VALUES) {
         octetstring_copy(&OSV_Descr[index].Present_Value, value);
@@ -303,8 +304,8 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_OCTET_STRING);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_OCTET_STRING);
             if (status) {
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
@@ -327,8 +328,8 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_OUT_OF_SERVICE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 CurrentAV->Out_Of_Service = value.type.Boolean;
             }
@@ -354,4 +355,5 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 void OctetString_Value_Intrinsic_Reporting(uint32_t object_instance)
 {
+    (void)object_instance;
 }

@@ -65,6 +65,8 @@ void get_alarm_summary_ack_handler(uint8_t *service_request,
     uint16_t len = 0;
     BACNET_GET_ALARM_SUMMARY_DATA data;
 
+    (void)src;
+    (void)service_data;
     while (service_len - len) {
         apdu_len = get_alarm_summary_ack_decode_apdu_data(
             &service_request[len], service_len - len, &data);

@@ -22,6 +22,60 @@
 #include <stdint.h>
 #include "bacnet/basic/sys/mstimer.h"
 
+/* callback data head of list */
+static struct mstimer_callback_data_t *Callback_Head;
+
+/**
+ * Handles an interrupt from a hardware millisecond timer
+ */
+void mstimer_callback_handler(void)
+{
+    struct mstimer_callback_data_t *cb;
+
+    cb = (struct mstimer_callback_data_t *)Callback_Head;
+    while (cb) {
+        if (mstimer_expired(&cb->timer)) {
+            cb->callback();
+            if (mstimer_interval(&cb->timer) > 0) {
+                mstimer_reset(&cb->timer);
+            }
+        }
+        cb = cb->next;
+    }
+}
+
+/**
+ * Configures and enables a repeating callback function
+ *
+ * @param new_cb - pointer to #mstimer_callback_data_t
+ * @param callback - pointer to a #timer_callback_function function
+ * @param milliseconds - how often to call the function
+ */
+void mstimer_callback(struct mstimer_callback_data_t *new_cb,
+    mstimer_callback_function callback,
+    unsigned long milliseconds)
+{
+    struct mstimer_callback_data_t *cb;
+
+    if (new_cb) {
+        new_cb->callback = callback;
+        mstimer_set(&new_cb->timer, milliseconds);
+    }
+    if (Callback_Head) {
+        cb = (struct mstimer_callback_data_t *)Callback_Head;
+        while (cb) {
+            if (!cb->next) {
+                cb->next = new_cb;
+                break;
+            } else {
+                cb = cb->next;
+            }
+        }
+    } else {
+        Callback_Head = new_cb;
+    }
+}
+
 /**
  * @brief Set a timer for a time sometime in the future
  *

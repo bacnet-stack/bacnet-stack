@@ -57,16 +57,39 @@ test-results.xml
 Debug/
 settings/
 *.componentinfo.xml
-bin/
 Backup*
 BACnet_BDT_table
 address_cache
-/build/*
-/_build/*
+**/build/*
+**/_build/*
 CMakeLists.txt.user
-/out/*
+**/out/*
 Obj/
 Release/
+
+/test/build/
+/cmake-build-*
+/.idea
+
+# exclude the bin folder, except for some files
+bin/*
+!bin/*.sh
+!bin/*.bat
+!bin/*.txt
+
+# exclude the apps folder, except for some source files
+apps/*
+!apps/Makefile
+!apps/*.md
+apps/**/*
+!apps/**/
+!apps/**/*.c
+!apps/**/*.h
+!apps/**/*.txt
+!apps/**/*.md
+!apps/**/Makefile
+!apps/**/CMakeLists.txt
 apps/piface/libmcp23s17/
 apps/piface/libpifacedigital/
 
+*.vcxproj.user

@@ -47,7 +47,7 @@ SRCS = main.c \
 	msgqueue.c \
 	network_layer.c
 
-CFLAGS = -I${SOURCE_DIR} -I${BACNET_PORT_DIR}
+CFLAGS += -I${SOURCE_DIR} -I${BACNET_PORT_DIR}
 
 OBJS = ${SRCS:.c=.o}
 

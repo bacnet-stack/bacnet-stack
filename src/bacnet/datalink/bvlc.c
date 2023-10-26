@@ -563,10 +563,10 @@ int bvlc_broadcast_distribution_table_encode(uint8_t *apdu,
             len = encode_opening_tag(&apdu[apdu_len], 0);
             apdu_len += len;
             /* CHOICE - ip-address [1] OCTET STRING */
-            octetstring_init(&octet_string,
-                &bdt_entry->dest_address.address[0], IP_ADDRESS_MAX);
-            len = encode_context_octet_string(&apdu[apdu_len], 1,
-                &octet_string);
+            octetstring_init(&octet_string, &bdt_entry->dest_address.address[0],
+                IP_ADDRESS_MAX);
+            len =
+                encode_context_octet_string(&apdu[apdu_len], 1, &octet_string);
             apdu_len += len;
             /*  host [0] BACnetHostAddress - closing */
             len = encode_closing_tag(&apdu[apdu_len], 0);
@@ -581,8 +581,8 @@ int bvlc_broadcast_distribution_table_encode(uint8_t *apdu,
             /* broadcast-mask [1] OCTET STRING */
             octetstring_init(&octet_string,
                 &bdt_entry->broadcast_mask.address[0], IP_ADDRESS_MAX);
-            len = encode_context_octet_string(&apdu[apdu_len], 1,
-                &octet_string);
+            len =
+                encode_context_octet_string(&apdu[apdu_len], 1, &octet_string);
             apdu_len += len;
         }
         if (!entry_size) {
@@ -657,13 +657,12 @@ int bvlc_broadcast_distribution_table_decode(uint8_t *apdu,
             }
             return BACNET_STATUS_REJECT;
         }
-        len += decode_octet_string(&apdu[len], len_value_type,
-            &octet_string);
+        len += decode_octet_string(&apdu[len], len_value_type, &octet_string);
         if (len > apdu_len) {
             return BACNET_STATUS_REJECT;
         }
-        (void)octetstring_copy_value(&bdt_entry->dest_address.address[0],
-            IP_ADDRESS_MAX, &octet_string);
+        (void)octetstring_copy_value(
+            &bdt_entry->dest_address.address[0], IP_ADDRESS_MAX, &octet_string);
         /*  host [0] BACnetHostAddress - closing */
         if (!decode_is_closing_tag_number(&apdu[len++], 0)) {
             if (error_code) {
@@ -717,8 +716,7 @@ int bvlc_broadcast_distribution_table_decode(uint8_t *apdu,
         if (len > apdu_len) {
             return BACNET_STATUS_REJECT;
         }
-        len += decode_octet_string(&apdu[len], len_value_type,
-            &octet_string);
+        len += decode_octet_string(&apdu[len], len_value_type, &octet_string);
         if (len > apdu_len) {
             return BACNET_STATUS_REJECT;
         }
@@ -1148,13 +1146,11 @@ int bvlc_foreign_device_table_encode(uint8_t *apdu,
     while (fdt_entry) {
         if (fdt_entry->valid) {
             /* bacnetip-address [0] OCTET STRING */
-            len = bvlc_encode_address(
-                octetstring_value(&octet_string),
-                octetstring_capacity(&octet_string),
-                &fdt_entry->dest_address);
+            len = bvlc_encode_address(octetstring_value(&octet_string),
+                octetstring_capacity(&octet_string), &fdt_entry->dest_address);
             octetstring_truncate(&octet_string, len);
-            len = encode_context_octet_string(
-                &apdu[apdu_len], 0, &octet_string);
+            len =
+                encode_context_octet_string(&apdu[apdu_len], 0, &octet_string);
             apdu_len += len;
             /* time-to-live [1] Unsigned16 */
             len = encode_context_unsigned(
@@ -1178,8 +1174,6 @@ int bvlc_foreign_device_table_encode(uint8_t *apdu,
 
     return apdu_len;
 }
-
-
 
 /**
  * @brief J.2.7 Read-Foreign-Device-Table: encode
@@ -2162,13 +2156,13 @@ bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *addr, const char *addrstr)
                 return false;
             }
             if ((c == '.') || (c == 0) || (c == ' ')) {
-                addr->address[i] = (uint8_t) tmp;
+                addr->address[i] = (uint8_t)tmp;
                 tmp = 0;
             } else if ((c >= '0') && (c <= '9')) {
                 tmp = (tmp * 10) + (c - '0');
-		if (tmp > UINT8_MAX) {
+                if (tmp > UINT8_MAX) {
                     return false;
-		}
+                }
             } else {
                 return false;
             }
@@ -2598,7 +2592,7 @@ const char *bvlc_result_code_name(uint16_t result_code)
             name = "Successful Completion";
             break;
         case BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK:
-            name= "Write-Broadcast-Distribution-Table NAK";
+            name = "Write-Broadcast-Distribution-Table NAK";
             break;
         case BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK:
             name = "Read-Broadcast-Distribution-Table NAK";
@@ -2629,17 +2623,16 @@ const char *bvlc_result_code_name(uint16_t result_code)
  * @param ip_address - IP address and port number
  * @return length of the APDU buffer
  */
-int bvlc_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
-    uint16_t apdu_size,
-    BACNET_IP_ADDRESS *ip_address)
+int bvlc_foreign_device_bbmd_host_address_encode(
+    uint8_t *apdu, uint16_t apdu_size, BACNET_IP_ADDRESS *ip_address)
 {
     BACNET_HOST_N_PORT address = { 0 };
     int apdu_len = 0;
 
     address.host_ip_address = true;
     address.host_name = false;
-    octetstring_init(&address.host.ip_address, &ip_address->address[0],
-        IP_ADDRESS_MAX);
+    octetstring_init(
+        &address.host.ip_address, &ip_address->address[0], IP_ADDRESS_MAX);
     address.port = ip_address->port;
     apdu_len = host_n_port_encode(NULL, &address);
     if (apdu_len <= apdu_size) {
@@ -2668,10 +2661,8 @@ int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
     if (len > 0) {
         if (address.host_ip_address) {
             ip_address->port = address.port;
-            (void)octetstring_copy_value(
-                &ip_address->address[0],
-                IP_ADDRESS_MAX,
-                &address.host.ip_address);
+            (void)octetstring_copy_value(&ip_address->address[0],
+                IP_ADDRESS_MAX, &address.host.ip_address);
         } else {
             len = BACNET_STATUS_REJECT;
             if (error_code) {

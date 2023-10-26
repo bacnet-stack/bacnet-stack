@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/platform.h"
 
 /* define our epic beginnings */
 #define BACNET_DATE_YEAR_EPOCH 1900
@@ -77,6 +78,12 @@ typedef struct BACnet_Weeknday {
                             5=days 29-31, 6=last 7 days, FF=any week */
     uint8_t dayofweek; /* 1=Monday-7=Sunday, FF=any */
 } BACNET_WEEKNDAY;
+
+#ifdef UINT64_MAX
+typedef uint64_t bacnet_time_t;
+#else
+typedef uint32_t bacnet_time_t;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -189,10 +196,12 @@ BACNET_STACK_EXPORT
 void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes);
 
 BACNET_STACK_EXPORT
-uint64_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime);
+bacnet_time_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime);
 BACNET_STACK_EXPORT
 void datetime_since_epoch_seconds(
-    BACNET_DATE_TIME *bdatetime, uint64_t seconds);
+    BACNET_DATE_TIME *bdatetime, bacnet_time_t seconds);
+BACNET_STACK_EXPORT
+bacnet_time_t datetime_seconds_since_epoch_max(void);
 
 /* date and time wildcards */
 BACNET_STACK_EXPORT
@@ -256,17 +265,26 @@ bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value);
-
 BACNET_STACK_EXPORT
 int bacapp_encode_context_datetime(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value);
-
 BACNET_STACK_EXPORT
-int bacapp_decode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value);
-
+int bacnet_datetime_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_DATE_TIME *value);
 BACNET_STACK_EXPORT
-int bacapp_decode_context_datetime(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value);
+int bacnet_datetime_context_decode(
+    uint8_t *apdu, uint32_t apdu_size,  uint8_t tag_number,
+    BACNET_DATE_TIME *value);
+
+BACNET_STACK_DEPRECATED("Use bacnet_datetime_decode() instead")
+BACNET_STACK_EXPORT
+int bacapp_decode_datetime(
+    uint8_t *apdu, BACNET_DATE_TIME *value);
+BACNET_STACK_DEPRECATED("Use bacnet_datetime_context_decode() instead")
+BACNET_STACK_EXPORT
+int bacapp_decode_context_datetime(uint8_t *apdu,
+    uint8_t tag_number,
+    BACNET_DATE_TIME *value);
 
 /* implementation agnostic functions - create your own! */
 BACNET_STACK_EXPORT

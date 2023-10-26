@@ -54,6 +54,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacdest.c \
 	$(BACNET_CORE)/bacdevobjpropref.c \
 	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacint.c \
@@ -74,6 +75,9 @@ BACNET_SRC = \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/timestamp.c \
+	$(BACNET_CORE)/weeklyschedule.c \
+	$(BACNET_CORE)/dailyschedule.c \
+	$(BACNET_CORE)/bactimevalue.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c
@@ -141,6 +145,10 @@ BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
 # if called from root Makefile, PRINT was already defined
 BACNET_FLAGS += -UPRINT_ENABLED
 BACNET_FLAGS += -DPRINT_ENABLED=0
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 CFLAGS += $(MCU_FLAGS)
 CFLAGS += $(OPTIMIZE_FLAGS)

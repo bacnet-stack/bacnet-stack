@@ -65,6 +65,14 @@ abort:
 ack-alarm:
 	$(MAKE) -s -C apps $@
 
+.PHONY: add-list-element
+add-list-element:
+	$(MAKE) -s -C apps $@
+
+.PHONY: blinkt
+blinkt:
+	$(MAKE) -s -C apps $@
+
 .PHONY: dcc
 dcc:
 	$(MAKE) -s -C apps $@
@@ -97,6 +105,10 @@ gateway:
 gateway-win32:
 	$(MAKE) BACNET_PORT=win32 -s -C apps gateway
 
+.PHONY: piface
+piface:
+	$(MAKE) CSTANDARD="-std=gnu11" LEGACY=true -s -C apps $@
+
 .PHONY: property
 property:
 	$(MAKE) -s -C apps $@
@@ -107,6 +119,10 @@ readbdt:
 
 .PHONY: readfdt
 readfdt:
+	$(MAKE) -s -C apps $@
+
+.PHONY: remove-list-element
+remove-list-element:
 	$(MAKE) -s -C apps $@
 
 .PHONY: writebdt
@@ -157,13 +173,22 @@ router-ipv6:
 router-mstp:
 	$(MAKE) -s -C apps $@
 
+.PHONY: fuzz-libfuzzer
+fuzz-libfuzzer:
+	$(MAKE) -s -C apps $@
+
+.PHONY: fuzz-afl
+fuzz-afl:
+	$(MAKE) -s -C apps $@
+
 # Add "ports" to the build, if desired
 .PHONY: ports
 ports:	atmega168 bdk-atxx4-mstp at91sam7s stm32f10x stm32f4xx
 	@echo "Built the ARM7 and AVR ports"
 
 .PHONY: ports-clean
-ports-clean: atmega168-clean bdk-atxx4-mstp-clean at91sam7s-clean stm32f10x-clean stm32f4xx-clean
+ports-clean: atmega168-clean bdk-atxx4-mstp-clean at91sam7s-clean \
+ stm32f10x-clean stm32f4xx-clean xplained-clean
 
 .PHONY: atmega168
 atmega168: ports/atmega168/Makefile
@@ -205,6 +230,14 @@ stm32f4xx: ports/stm32f4xx/Makefile
 stm32f4xx-clean: ports/stm32f4xx/Makefile
 	$(MAKE) -s -C ports/stm32f4xx clean
 
+.PHONY: xplained
+xplained: ports/xplained/Makefile
+	$(MAKE) -s -C ports/xplained clean all
+
+.PHONY: xplained-clean
+xplained-clean: ports/xplained/Makefile
+	$(MAKE) -s -C ports/xplained clean
+
 .PHONY: mstpsnap
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
@@ -244,7 +277,7 @@ tidy:
 
 .PHONY: scan-build
 scan-build:
-	scan-build --status-bugs -analyze-headers make -j2 server
+	scan-build --status-bugs -analyze-headers make -j2 LEGACY=true server
 
 SPLINT_OPTIONS := -weak +posixlib +quiet \
 	-D__signed__=signed -D__gnuc_va_list=va_list \
@@ -273,7 +306,7 @@ cppcheck:
 flawfinder:
 	flawfinder --minlevel 5 --error-level=5 ./src/
 
-IGNORE_WORDS = ba
+IGNORE_WORDS = ba,statics
 CODESPELL_OPTIONS = --write-changes --interactive 3 --enable-colors
 CODESPELL_OPTIONS += --ignore-words-list $(IGNORE_WORDS)
 .PHONY: codespell
@@ -293,6 +326,8 @@ clean: ports-clean
 	$(MAKE) -s -C apps/router-ipv6 clean
 	$(MAKE) -s -C apps/router-mstp clean
 	$(MAKE) -s -C apps/gateway clean
+	$(MAKE) -s -C apps/fuzz-afl clean
+	$(MAKE) -s -C apps/fuzz-libfuzzer clean
 	$(MAKE) -s -C ports/lwip clean
 	$(MAKE) -s -C test clean
 	rm -rf ./build

@@ -45,7 +45,7 @@
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
-static int Encode_Property_APDU(uint8_t *apdu, BACNET_READ_PROPERTY_DATA *rpdata)
+static int Encode_Property_APDU(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = -1;
 
@@ -115,30 +115,26 @@ void handler_read_property(uint8_t *service_request,
     /* most cases will be error */
     ack_len = rp_ack_encode_apdu_init(
         &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
-    /* FIXME: add buffer len as passed into function or use smart buffer */
+    data.application_data = &Handler_Transmit_Buffer[pdu_len + ack_len];
+    data.application_data_len = sizeof(Handler_Transmit_Buffer) -
+        (pdu_len + ack_len);
     data.error_class = ERROR_CLASS_OBJECT;
     data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    property_len = Encode_Property_APDU(
-        &Handler_Transmit_Buffer[pdu_len + ack_len], &data);
+    property_len = Encode_Property_APDU(&data);
     if (property_len >= 0) {
         len = rp_ack_encode_apdu_object_property_end(
             &Handler_Transmit_Buffer[pdu_len + property_len + ack_len]);
         len += ack_len + property_len;
+    } else if (property_len == BACNET_STATUS_ABORT) {
+        /* BACnet APDU too small to fit data,
+           so proper response is Abort */
+        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
     } else {
-        switch (property_len) {
-                /* BACnet APDU too small to fit data, so proper response is
-                 * Abort */
-            case BACNET_STATUS_ABORT:
-                len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-                break;
-            default:
-                len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
-                    data.error_class, data.error_code);
-                break;
-        }
+        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
+            data.error_class, data.error_code);
     }
 RP_ABORT:
     pdu_len += len;
