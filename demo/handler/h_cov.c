@@ -771,10 +771,21 @@ static bool cov_subscribe(
         if (status) {
             status =
                 cov_list_subscribe(src, cov_data, error_class, error_code);
+        } else if (cov_data->cancellationRequest) {
+            /* From BACnet Standard 135-2010-13.14.2
+               ...Cancellations that are issued for which no matching COV
+               context can be found shall succeed as if a context had
+               existed, returning 'Result(+)'. */
+            status = true;
         } else {
             *error_class = ERROR_CLASS_OBJECT;
             *error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
         }
+    } else if (cov_data->cancellationRequest) {
+        /* From BACnet Standard 135-2010-13.14.2
+            ...Cancellations that are issued for which no matching COV
+            context can be found shall succeed as if a context had
+            existed, returning 'Result(+)'. */
     } else {
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;
