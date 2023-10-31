@@ -47,6 +47,9 @@
 #if !defined(BBMD_ENABLED)
 #define BBMD_ENABLED 1
 #endif
+#if !defined(BBMD_CLIENT_ENABLED)
+#define BBMD_CLIENT_ENABLED 1
+#endif
 #endif
 
 /* optional configuration for BACnet/IPv6 datalink layer */
