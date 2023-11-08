@@ -27,7 +27,6 @@
 #include "hardware.h"
 #include "bacnet/basic/sys/fifo.h"
 #include "bacnet/basic/sys/mstimer.h"
-#include "bacnet/datalink/dlmstp.h"
 #include "led.h"
 #include "nvdata.h"
 /* me */
@@ -49,7 +48,7 @@ static uint32_t Baud_Rate = 9600;
 /* turnaround_time_milliseconds = (Tturnaround*1000UL)/Baud_Rate; */
 
 /* buffer for storing received bytes - size must be power of two */
-static uint8_t Receive_Buffer_Data[NEXT_POWER_OF_2(DLMSTP_MPDU_MAX)];
+static uint8_t Receive_Buffer_Data[256];
 static FIFO_BUFFER Receive_Buffer;
 
 static struct mstimer Silence_Timer;
