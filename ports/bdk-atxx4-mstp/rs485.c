@@ -27,6 +27,7 @@
 #include "hardware.h"
 #include "bacnet/basic/sys/fifo.h"
 #include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "led.h"
 #include "nvdata.h"
 /* me */

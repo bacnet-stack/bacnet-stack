@@ -33,6 +33,7 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/bits.h"
 #include "bacnet/basic/sys/fifo.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
 #include "rs485.h"
 
