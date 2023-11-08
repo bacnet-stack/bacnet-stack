@@ -161,6 +161,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\datalink\crc.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\datalink\datalink.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\datalink\dlenv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\cobs.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstptext.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\datetime.c" />
