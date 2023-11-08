@@ -18,25 +18,44 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+- Added MSTP extended frames to src/datalink/mstp.c module used by mstpcap (#529)
+- Added menu to release script (#506)
+
 ### Changed
 
+- Change SubscribeCOV Cancellations to always reply with Result+ (#526)
+- Allow processing of Who-Has when DCC initiation is disabled
+
 ### Fixed
+
+- Fix BACnet/IP builds for BBMD clients without BBMD tables. (#523)
+- Fix decoding empty array of complex type in RPM
+- Fix device object ReinitializeDevice service handling examples of
+  no-password in the device. (#518)
+- Fix DeviceCommunicationControl service handling example of
+  no-password in the device. (#518)
+- Fix incorrect apdu_len calculation when encoding Recipient_List
+  which had resulted in malformed APDU. (#517)
+- Fix reinitializing a bacnet stack on windows by checking
+  for valid socket before cleaning up WSA (#514)
+- Fix a warning that 'device_id' is not used (#510)
+- Added new linear.c to Microsoft Visual Studio project (#507)
 
 ## [1.3.1] - 2023-09-29
 
 ### Added
 
-Added example Channel object WriteProperty callback into example Device objects. (#504)
-Added Microsoft Visual Studio 2022 Community Edition solution to ports/win32 (#502)
-Added details in apps/blinkt example about starting app with systemd (#505)
+- Added example Channel object WriteProperty callback into example Device objects. (#504)
+- Added Microsoft Visual Studio 2022 Community Edition solution to ports/win32 (#502)
+- Added details in apps/blinkt example about starting app with systemd (#505)
 
 ### Fixed
 
-Refactored WriteProperty of object-name property rules into example device object (#504)
+- Refactored WriteProperty of object-name property rules into example device object (#504)
 
 ### Changed
 
-Changed WriteProperty string property checker to ignore length check with zero option.(#504)
+- Changed WriteProperty string property checker to ignore length check with zero option.(#504)
 
 ## [1.3.0] - 2023-09-28
 
