@@ -56,6 +56,7 @@
 #include "rs485.h"
 #include "bacnet/datalink/mstptext.h"
 #include "bacnet/npdu.h"
+#include "bacnet/datalink/cobs.h"
 
 #ifndef DEBUG_ENABLED
 #define DEBUG_ENABLED 0
@@ -532,30 +533,56 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     mstp_port->DataCRC = CRC_Calc_Data(
                         mstp_port->DataRegister, mstp_port->DataCRC);
                     mstp_port->DataCRCActualMSB = mstp_port->DataRegister;
+                    mstp_port->InputBuffer[mstp_port->Index] =
+                        mstp_port->DataRegister;
                     mstp_port->Index++;
                     /* SKIP_DATA or DATA - no change in state */
                 } else if (mstp_port->Index == (mstp_port->DataLength + 1)) {
                     /* CRC2 */
+                    mstp_port->InputBuffer[mstp_port->Index] =
+                        mstp_port->DataRegister;
                     mstp_port->DataCRC = CRC_Calc_Data(
                         mstp_port->DataRegister, mstp_port->DataCRC);
                     mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
                     printf_receive_data("%s",
                         mstptext_frame_type((unsigned)mstp_port->FrameType));
-                    /* STATE DATA CRC - no need for new state */
-                    /* indicate the complete reception of a valid frame */
-                    if (mstp_port->DataCRC == 0xF0B8) {
-                        if (mstp_port->receive_state ==
-                            MSTP_RECEIVE_STATE_DATA) {
-                            /* ForUs */
-                            mstp_port->ReceivedValidFrame = true;
+                    if ((mstp_port->FrameType ==
+                            FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY) ||
+                        (mstp_port->FrameType ==
+                            FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY)) {
+                        if (cobs_frame_decode(
+                                &mstp_port->InputBuffer[mstp_port->Index + 1],
+                                mstp_port->InputBufferSize,
+                                mstp_port->InputBuffer, mstp_port->Index + 1)) {
+                            if (mstp_port->receive_state ==
+                                MSTP_RECEIVE_STATE_DATA) {
+                                /* ForUs */
+                                mstp_port->ReceivedValidFrame = true;
+                            } else {
+                                /* NotForUs */
+                                mstp_port->ReceivedValidFrameNotForUs = true;
+                            }
                         } else {
-                            /* NotForUs */
-                            mstp_port->ReceivedValidFrameNotForUs = true;
+                            mstp_port->ReceivedInvalidFrame = true;
                         }
                     } else {
-                        mstp_port->ReceivedInvalidFrame = true;
-                        printf_receive_error("MSTP: Rx Data: BadCRC [%02X]\n",
-                            mstp_port->DataRegister);
+                        /* STATE DATA CRC - no need for new state */
+                        /* indicate the complete reception of a valid frame */
+                        if (mstp_port->DataCRC == 0xF0B8) {
+                            if (mstp_port->receive_state ==
+                                MSTP_RECEIVE_STATE_DATA) {
+                                /* ForUs */
+                                mstp_port->ReceivedValidFrame = true;
+                            } else {
+                                /* NotForUs */
+                                mstp_port->ReceivedValidFrameNotForUs = true;
+                            }
+                        } else {
+                            mstp_port->ReceivedInvalidFrame = true;
+                            printf_receive_error(
+                                "MSTP: Rx Data: BadCRC [%02X]\n",
+                                mstp_port->DataRegister);
+                        }
                     }
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 } else {
