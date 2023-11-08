@@ -224,7 +224,7 @@
                     <state>USE_STDPERIPH_DRIVER</state>
                     <state>STM32F4XX</state>
                     <state>BACDL_MSTP</state>
-                    <state>MAX_APDU=480</state>
+                    <state>MAX_APDU=1476</state>
                     <state>BIG_ENDIAN=0</state>
                     <state>MAX_TSM_TRANSACTIONS=1</state>
                 </option>

@@ -35,7 +35,7 @@
 #include "rs485.h"
 
 /* buffer for storing received bytes - size must be power of two */
-static uint8_t Receive_Buffer_Data[512];
+static uint8_t Receive_Buffer_Data[NEXT_POWER_OF_2(DLMSTP_MPDU_MAX)];
 static FIFO_BUFFER Receive_Buffer;
 /* amount of silence on the wire */
 static struct mstimer Silence_Timer;
