@@ -102,6 +102,18 @@
 #else
 #define MAX_APDU 480
 #endif
+#elif defined (BACDL_MSTP)
+#if defined(BACNET_SECURITY)
+#define MAX_APDU 412
+#else
+#define MAX_APDU 1476
+#endif
+#else
+#if defined(BACNET_SECURITY)
+#define MAX_APDU 412
+#else
+#define MAX_APDU 480
+#endif
 #endif
 #endif
 
