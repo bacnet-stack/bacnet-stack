@@ -7,14 +7,27 @@
  * SPDX-License-Identifier: MIT
  *
  */
-#ifndef DATALINK_FREERTOS_MSTP_H
-#define DATALINK_FREERTOS_MSTP_H
+#ifndef DLMSTP_INIT_H
+#define DLMSTP_INIT_H
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <FreeRTOS.h>
+#include "FreeRTOS.h"
+#include "semphr.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/datalink/crc.h"
+#include "bacnet/datalink/dlmstp.h"
+#include "bacnet/datalink/mstp.h"
+
+#ifndef DLMSTP_MAX_INFO_FRAMES
+#define DLMSTP_MAX_INFO_FRAMES DEFAULT_MAX_INFO_FRAMES
+#endif
+#ifndef DLMSTP_MAX_MASTER
+#define DLMSTP_MAX_MASTER DEFAULT_MAX_MASTER
+#endif
+#ifndef DLMSTP_BAUD_RATE_DEFAULT
+#define DLMSTP_BAUD_RATE_DEFAULT 38400UL
+#endif
 
 /**
  * The structure of RS485 driver for BACnet MS/TP
@@ -25,7 +38,7 @@ struct rs485_driver {
     void (* init)(void);
 
     /** Prepare & transmit a packet. */
-    bool (* send)(uint8_t *payload, uint16_t payload_len);
+    void (* send)(uint8_t *payload, uint16_t payload_len);
 
     /** Check if one received byte is available */
     bool (* read)(uint8_t *buf);
@@ -43,36 +56,22 @@ struct rs485_driver {
 /**
  * The structure of BACnet Port Data for BACnet MS/TP
  */
-struct bacnet_port_data {
-    /* common RS485 driver functions */
+struct mstp_user_data_t {
+    struct dlmstp_statistics Statistics;
     struct rs485_driver *RS485_Driver;
-    /* send PDU ring buffer */
     RING_BUFFER PDU_Queue;
-    xSemaphoreHandle PDU_Mutex;
+    SemaphoreHandle_t PDU_Mutex;
+    bool Initialized;
+    uint8_t Input_Buffer[MAX_MPDU];
+    uint8_t Output_Buffer[MAX_MPDU];
+    struct dlmstp_packet_t PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-void datalink_freertos_non_volatile_init(void);
-void datalink_freertos_defaults_init(void);
-void datalink_freertos_init(void);
-bool datalink_freertos_send_pdu_queue_full(void);
-
-uint16_t datalink_freertos_receive(
-    BACNET_ADDRESS * src,
-    uint8_t * pdu,
-    uint16_t max_pdu,
-    unsigned timeout);
-uint16_t datalink_freertos_receive(
-    BACNET_ADDRESS * src,
-    uint8_t * pdu,
-    uint16_t max_pdu,
-    unsigned timeout);
-
-uint8_t datalink_freertos_max_info_frames(void);
-uint8_t datalink_freertos_max_master(void);
+void dlmstp_freertos_init(void);
 
 #ifdef __cplusplus
 }

@@ -72,6 +72,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool dlmstp_init(
         char *ifname);
+
     BACNET_STACK_EXPORT
     void dlmstp_reset(
         void);

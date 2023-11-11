@@ -52,8 +52,7 @@
 #include <stdio.h>
 #endif
 #include "bacnet/datalink/mstp.h"
-#include "crc.h"
-#include "rs485.h"
+#include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstptext.h"
 #include "bacnet/npdu.h"
 
@@ -267,7 +266,7 @@ void MSTP_Create_And_Send_Frame(
         mstp_port->OutputBufferSize, frame_type, destination, source, data,
         data_len);
 
-    RS485_Send_Frame(mstp_port, (uint8_t *)&mstp_port->OutputBuffer[0], len);
+    MSTP_Send_Frame(mstp_port, (uint8_t *)&mstp_port->OutputBuffer[0], len);
     /* FIXME: be sure to reset SilenceTimer() after each octet is sent! */
 }
 
@@ -729,7 +728,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
             } else {
                 uint8_t frame_type = mstp_port->OutputBuffer[2];
                 uint8_t destination = mstp_port->OutputBuffer[3];
-                RS485_Send_Frame(mstp_port,
+                MSTP_Send_Frame(mstp_port,
                     (uint8_t *)&mstp_port->OutputBuffer[0], (uint16_t)length);
                 mstp_port->FrameCount++;
                 switch (frame_type) {
@@ -1108,7 +1107,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                 /* then call MSTP_Create_And_Send_Frame to transmit the reply
                  * frame  */
                 /* and enter the IDLE state to wait for the next frame. */
-                RS485_Send_Frame(mstp_port,
+                MSTP_Send_Frame(mstp_port,
                     (uint8_t *)&mstp_port->OutputBuffer[0], (uint16_t)length);
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
@@ -1180,7 +1179,7 @@ void MSTP_Slave_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                          * reply frame  */
                         /* and enter the IDLE state to wait for the next frame.
                          */
-                        RS485_Send_Frame(mstp_port,
+                        MSTP_Send_Frame(mstp_port,
                             (uint8_t *)&mstp_port->OutputBuffer[0],
                             (uint16_t)length);
                         /* clear our flag we were holding for comparison */

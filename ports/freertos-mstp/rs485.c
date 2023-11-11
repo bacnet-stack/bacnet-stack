@@ -15,10 +15,10 @@
 #include "rs485.h"
 
 /* buffer for storing received bytes - size must be power of two */
-static uint8_t Receive_Buffer_Data[NEXT_POWER_OF_2(MAX_MPDU)];
+static uint8_t Receive_Buffer_Data[NEXT_POWER_OF_2(DLMSTP_MPDU_MAX)];
 static FIFO_BUFFER Receive_Queue;
 /* buffer for storing data to be transmitted - size must be power of two */
-static uint8_t Transmit_Buffer_Data[NEXT_POWER_OF_2(MAX_MPDU)];
+static uint8_t Transmit_Buffer_Data[NEXT_POWER_OF_2(DLMSTP_MPDU_MAX)];
 static FIFO_BUFFER Transmit_Queue;
 
 /* baud rate of the UART interface */
@@ -32,23 +32,24 @@ static volatile uint32_t RS485_Transmit_Bytes;
 static volatile uint32_t RS485_Receive_Bytes;
 
 /**
- * \brief SERCOM UART interrupt handler
+ * \brief UART interrupt handler
  */
 static void rs485_interrupt_handler(uint8_t dummy)
 {
     bool register_empty_interrupt = true;
     bool transmit_complete_interrupt = false;
     bool receive_complete_interrupt = false;
+    uint8_t tx_data = 0, rx_data = 0, error_code = 0;
 
     if (register_empty_interrupt) {
         /* transmitting, register is ready for more */
         if (FIFO_Count(&Transmit_Queue)) {
             if (RS485_Transmitting) {
-                data = FIFO_Get(&Transmit_Queue);
+                tx_data = FIFO_Get(&Transmit_Queue);
+                /* FIXME: send tx_data to UART */
                 RS485_Transmit_Bytes++;
-                rs485_silence_reset();
+                rs485_silence_reset(NULL);
             }
-            /* set the 'data' into the register */
             if (FIFO_Empty(&Transmit_Queue)) {
                 /* Disable the Data Register Empty Interrupt */
                 /* Enable Transmission Complete interrupt */
@@ -63,15 +64,15 @@ static void rs485_interrupt_handler(uint8_t dummy)
         rs485_rts_enable(false);
     }
     if (receive_complete_interrupt) {
-        /* get 'data' from the register */
+        /* FIXME: get 'rx_data' from the register */
         if (!RS485_Transmitting) {
-            (void)FIFO_Put(&Receive_Queue, data);
+            (void)FIFO_Put(&Receive_Queue, rx_data);
         }
-        /* get any `error_code` from UART register */
+        /* FIXME: get any `error_code` from UART register */
         if (error_code) {
             /* clear error codes */
         }
-        rs485_silence_reset();
+        rs485_silence_reset(NULL);
         RS485_Receive_Bytes++;
     }
 }
@@ -89,7 +90,7 @@ void rs485_rts_enable(bool enable)
     } else {
         /* /DE, RE */
         RS485_Transmitting = false;
-        rs485_silence_reset();
+        rs485_silence_reset(NULL);
     }
 }
 
@@ -136,15 +137,13 @@ bool rs485_receive_error(void)
  * @param buffer - array of one or more bytes to transmit
  * @param nbytes - number of bytes to transmit
  */
-bool rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
+void rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
 {
     if (buffer && nbytes) {
         FIFO_Flush(&Transmit_Queue);
         FIFO_Add(&Transmit_Queue, buffer, nbytes);
         rs485_rts_enable(true);
     }
-
-    return true;
 }
 
 /**
@@ -190,7 +189,7 @@ bool rs485_baud_rate_set(uint32_t baudrate)
  * @return silence time in milliseconds
  */
 uint32_t rs485_silence_milliseconds(
-    void)
+    void *arg)
 {
     return mstimer_elapsed(&Silence_Timer);
 }
@@ -199,8 +198,9 @@ uint32_t rs485_silence_milliseconds(
  * @brief Reset the RS-485 silence time to zero
  */
 void rs485_silence_reset(
-    void)
+    void *arg)
 {
+    (void)arg;
     mstimer_restart(&Silence_Timer);
 }
 
@@ -250,7 +250,7 @@ void rs485_init(void)
         (unsigned)sizeof(Receive_Buffer_Data));
     FIFO_Init(&Transmit_Queue, &Transmit_Buffer_Data[0],
         (unsigned)sizeof(Transmit_Buffer_Data));
-    rs485_silence_reset();
+    rs485_silence_reset(NULL);
     rs485_clock_init();
     rs485_pin_init();
     rs485_usart_init();

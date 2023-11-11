@@ -10,17 +10,18 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <FreeRTOS.h>
-#include "mstimer.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /* counter for the timer */
 static volatile uint32_t Millisecond_Counter;
 
-static xTaskHandle mstimer_task_handle;
+static TaskHandle_t mstimer_task_handle;
 static void mstimer_task(void *pvParameters)
 {
-    const portTickType xFrequency = 1 / portTICK_RATE_MS;
-    portTickType xLastWakeTime;
+    const TickType_t xFrequency = 1 / portTICK_PERIOD_MS;
+    TickType_t xLastWakeTime;
 
     xLastWakeTime = xTaskGetTickCount();
     for (;;) {

@@ -112,10 +112,15 @@ struct mstp_port_struct_t {
        so that you can be atomic on 8 bit microcontrollers */
              uint32_t(
         *SilenceTimer) (
-        void *pArg);
+        void *context);
     void (
         *SilenceTimerReset) (
-        void *pArg);
+        void *context);
+
+    void (*Send_Frame) (
+        void *context,
+        uint8_t * buffer,
+        uint16_t nbytes);
 
     /* A timer used to measure and generate Reply Postponed frames.  It is */
     /* incremented by a timer process and is cleared by the Master Node State */
@@ -223,7 +228,11 @@ extern "C" {
     BACNET_STACK_EXPORT
     uint16_t MSTP_Put_Receive(
         volatile struct mstp_port_struct_t *mstp_port);
-
+    BACNET_STACK_EXPORT
+    void MSTP_Send_Frame(
+        volatile struct mstp_port_struct_t *mstp_port,
+        uint8_t * buffer,
+        uint16_t nbytes);
     /* for the MS/TP state machine to use for getting data to send */
     /* Return: amount of PDU data */
     BACNET_STACK_EXPORT

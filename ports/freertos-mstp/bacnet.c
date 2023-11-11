@@ -11,7 +11,8 @@
 #include <stdbool.h>
 #include <string.h>
 /* hardware layer includes */
-#include <FreeRTOS.h>
+#include "FreeRTOS.h"
+#include "dlmstp-init.h"
 #include "rs485.h"
 /* BACnet Stack includes */
 #include "bacnet/npdu.h"
@@ -30,11 +31,11 @@
 #include "bacnet.h"
 
 /* FreeRTOS file data */
-static xTaskHandle BACnet_Task_Handle;
+static TaskHandle_t BACnet_Task_Handle;
 static volatile unsigned long BACnet_Task_High_Water_Mark;
-static xTaskHandle BACnet_MSTP_Task_Handle;
+static TaskHandle_t BACnet_MSTP_Task_Handle;
 static volatile unsigned long BACnet_MSTP_Task_High_Water_Mark;
-static xSemaphoreHandle BACnet_PDU_Available;
+static SemaphoreHandle_t BACnet_PDU_Available;
 static unsigned BACnet_Task_Counter;
 /* Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
@@ -59,7 +60,7 @@ static struct mstimer WriteProperty_Timer;
 #endif
 
 /* MS/TP port */
-static volatile struct dlmstp_packet_t
+static struct dlmstp_packet
     Receive_PDU_Buffer[NEXT_POWER_OF_2(MSTP_PDU_PACKET_COUNT)];
 static RING_BUFFER Receive_PDU_Queue;
 /* buffer for incoming packet */
@@ -107,13 +108,13 @@ static void device_id_init(uint8_t mac)
  * @brief timeout - number of milliseconds for datalink to wait for packet
  * @note called by ISR or RTOS every timeout milliseconds
  */
-static void bacnet_datalink_task(unsigned int timeout)
+static void bacnet_dlmstp_task(unsigned int timeout)
 {
-    struct dlmstp_packet_t *pkt = NULL;
+    struct dlmstp_packet *pkt = NULL;
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src = { 0 };
 
-    pdu_len = datalink_receive(
+    pdu_len = dlmstp_receive(
         &src, &Receive_Buffer[0], sizeof(Receive_Buffer), timeout);
     if (pdu_len) {
         pkt = (void *)Ringbuf_Data_Peek(&Receive_PDU_Queue);
@@ -121,8 +122,7 @@ static void bacnet_datalink_task(unsigned int timeout)
             memcpy(pkt->pdu, Receive_Buffer, MAX_MPDU);
             bacnet_address_copy(&pkt->address, &src);
             pkt->pdu_len = pdu_len;
-            if (Ringbuf_Data_Put(
-                    &Receive_PDU_Queue, (volatile uint8_t *)pkt)) {
+            if (Ringbuf_Data_Put(&Receive_PDU_Queue, (volatile uint8_t *)pkt)) {
                 xSemaphoreGive(BACnet_PDU_Available);
             }
         }
@@ -135,7 +135,7 @@ static void bacnet_datalink_task(unsigned int timeout)
 void bacnet_task(void)
 {
     bool hello_world = false;
-    struct dlmstp_packet_t pkt = { 0 };
+    struct dlmstp_packet pkt = { 0 };
     bool pdu_available = false;
 
     BACnet_Task_Counter++;
@@ -155,7 +155,7 @@ void bacnet_task(void)
     }
     reinit_task();
     /* handle the messaging */
-    if (!datalink_send_pdu_queue_full()) {
+    if (!dlmstp_send_pdu_queue_full()) {
         pdu_available = Ringbuf_Pop(&Receive_PDU_Queue, (uint8_t *)&pkt);
     }
     if (pdu_available) {
@@ -172,14 +172,15 @@ void bacnet_task(void)
  */
 static void BACnet_MSTP_Task(void *pvParameters)
 {
-    const portTickType xFrequency
-        = BACNET_MSTP_TASK_MILLISECONDS / portTICK_RATE_MS;
+    const TickType_t xFrequency =
+        BACNET_MSTP_TASK_MILLISECONDS / portTICK_PERIOD_MS;
 
     for (;;) {
         vTaskDelay(xFrequency);
-        bacnet_datalink_task(BACNET_MSTP_TASK_MILLISECONDS);
-        BACnet_MSTP_Task_High_Water_Mark
-            = uxTaskGetStackHighWaterMark(NULL);
+        bacnet_dlmstp_task(BACNET_MSTP_TASK_MILLISECONDS);
+#if (INCLUDE_uxTaskGetStackHighWaterMark2 == 1)
+        BACnet_MSTP_Task_High_Water_Mark = uxTaskGetStackHighWaterMark(NULL);
+#endif
     }
     /* Should never go there */
     vTaskDelete(NULL);
@@ -190,29 +191,18 @@ static void BACnet_MSTP_Task(void *pvParameters)
  */
 static void BACnet_Task(void *pvParameters)
 {
-    const portTickType xBlockTime =
-        BACNET_TASK_MILLISECONDS / portTICK_RATE_MS;
+    const TickType_t xBlockTime = BACNET_TASK_MILLISECONDS / portTICK_PERIOD_MS;
 
     for (;;) {
         /* block to wait for a notification from either MS/TP task */
         xSemaphoreTake(BACnet_PDU_Available, xBlockTime);
         bacnet_task();
+#if (INCLUDE_uxTaskGetStackHighWaterMark2 == 1)
         BACnet_Task_High_Water_Mark = uxTaskGetStackHighWaterMark(NULL);
+#endif
     }
     /* Should never go there */
     vTaskDelete(NULL);
-}
-
-/**
- * @brief delay some brief time via RTOS mechanism
- * @param milliseconds - amount of milliseconds to delay
- */
-void bacnet_task_delay_milliseconds(unsigned milliseconds)
-{
-    portTickType xTicks;
-
-    xTicks = milliseconds / portTICK_RATE_MS;
-    vTaskDelay(xTicks);
 }
 
 /**
@@ -220,10 +210,10 @@ void bacnet_task_delay_milliseconds(unsigned milliseconds)
  */
 void bacnet_init(void)
 {
-    const signed char *const BACnet_Task_Name
-        = (const signed char *const) "BACnet Task";
-    const signed char *const BACnet_MSTP_Task_Name
-        = (const signed char *const) "BACnet MSTP Task";
+    const signed char *const BACnet_Task_Name =
+        (const signed char *const)"BACnet Task";
+    const signed char *const BACnet_MSTP_Task_Name =
+        (const signed char *const)"BACnet MSTP Task";
     uint8_t mstp_mac = 123;
 
     /* configure application layer */
@@ -232,7 +222,8 @@ void bacnet_init(void)
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_unicast);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_unicast);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
@@ -253,17 +244,15 @@ void bacnet_init(void)
     mstimer_set(&TSM_Timer, TSM_CYCLE_SECONDS * 1000);
     /* start the cyclic 1 minute timer for WriteProperty */
     mstimer_set(&WriteProperty_Timer, WRITE_CYCLE_SECONDS * 1000);
-    /* configure datalink layer - BMS Port */
-    Ringbuf_Init(&Receive_PDU_Queue, (uint8_t *)&Receive_PDU_Buffer,
-        sizeof(struct dlmstp_packet_t), MSTP_PDU_PACKET_COUNT);
     /* add counting semaphores to signal PDU handling */
-    BACnet_PDU_Available
-        = xSemaphoreCreateCounting(MSTP_PDU_PACKET_COUNT * 2, 0);
+    BACnet_PDU_Available =
+        xSemaphoreCreateCounting(MSTP_PDU_PACKET_COUNT * 2, 0);
     /* create the tasks */
     xTaskCreate(BACnet_MSTP_Task, "BACnet MSTP",
         configMINIMAL_STACK_SIZE + (MAX_APDU * 1), NULL,
-        configMAX_PRIORITIES - 2,  &BACnet_MSTP_Task_Handle);
+        configMAX_PRIORITIES - 2, &BACnet_MSTP_Task_Handle);
     xTaskCreate(BACnet_Task, "BACnet",
         configMINIMAL_STACK_SIZE + (MAX_APDU * 3), NULL,
         configMAX_PRIORITIES - 4, &BACnet_Task_Handle);
+    dlmstp_freertos_init();
 }
