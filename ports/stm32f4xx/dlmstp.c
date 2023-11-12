@@ -37,10 +37,11 @@
 #include <stddef.h>
 #include <string.h>
 #include "bacnet/bacdef.h"
+#include "bacnet/datalink/cobs.h"
+#include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
 #include "rs485.h"
-#include "bacnet/datalink/crc.h"
 #include "bacnet/npdu.h"
 #include "bacnet/bits.h"
 #include "bacnet/bytes.h"
@@ -363,6 +364,10 @@ static uint16_t MSTP_Create_Frame(uint8_t *buffer,
     uint16_t crc16 = 0xFFFF;
     /* used to load the data portion of the frame */
     uint16_t index = 0;
+    /* length of the COBS encoded frame */
+    uint16_t cobs_len;
+    /* true for COBS BACnet frames */
+    bool cobs_bacnet_frame = false;
 
     /* not enough to do a header */
     if (buffer_size < 8)
@@ -381,25 +386,58 @@ static uint16_t MSTP_Create_Frame(uint8_t *buffer,
     buffer[6] = data_len & 0xFF;
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
-
     index = 8;
-    while (data_len && data && (index < buffer_size)) {
-        buffer[index] = *data;
-        crc16 = CRC_Calc_Data(buffer[index], crc16);
-        data++;
-        index++;
-        data_len--;
-    }
-    /* append the data CRC if necessary */
-    if (index > 8) {
-        if ((index + 2) <= buffer_size) {
-            crc16 = ~crc16;
-            buffer[index] = crc16 & 0xFF; /* LSB first */
-            index++;
-            buffer[index] = crc16 >> 8;
-            index++;
-        } else
+
+    if ((data_len > 501) || ((frame_type >= Nmin_COBS_type) &&
+        (frame_type <= Nmax_COBS_type))) {
+        /* COBS encoded frame */
+        if (frame_type == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) {
+            frame_type = FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY;
+            cobs_bacnet_frame = true;
+        } else if (frame_type == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) {
+            frame_type = FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY;
+            cobs_bacnet_frame = true;
+        } else if ((frame_type < Nmin_COBS_type) ||
+            (frame_type > Nmax_COBS_type)) {
+            /* I'm sorry, Dave, I'm afraid I can't do that. */
             return 0;
+        }
+        cobs_len = cobs_frame_encode(buffer, buffer_len, data, data_len);
+        /* check the results of COBs encoding for validity */
+        if (cobs_bacnet_frame) {
+            if (cobs_len < Nmin_COBS_length_BACnet) {
+                return 0;
+            } else if (cobs_len > Nmax_COBS_length_BACnet) {
+                return 0;
+            }
+        } else {
+            if (cobs_len < Nmin_COBS_length) {
+                return 0;
+            } else if (cobs_len > Nmax_COBS_length) {
+                return 0;
+            }
+        }
+        /* for COBS, we must subtract two before use as the
+           MS/TP frame length field since CRC32 is 2 bytes longer
+           than CRC16 in original MSTP and non-COBS devices need
+           to be able to ingest the entire frame */
+        index = index + cobs_len - 2;
+    } else if (data_len > 0) {
+        while (data_len && data && (index < buffer_len)) {
+            buffer[index] = *data;
+            crc16 = CRC_Calc_Data(buffer[index], crc16);
+            data++;
+            index++;
+            data_len--;
+        }
+        if ((index + 2) > buffer_len) {
+            return 0;
+        }
+        crc16 = ~crc16;
+        buffer[index] = crc16 & 0xFF; /* LSB first */
+        index++;
+        buffer[index] = crc16 >> 8;
+        index++;
     }
 
     return index; /* returns the frame length */
@@ -653,13 +691,37 @@ static void MSTP_Receive_Frame_FSM(void)
                 } else if (Index == DataLength) {
                     /* CRC1 */
                     DataCRC = CRC_Calc_Data(DataRegister, DataCRC);
+                    if (Index < InputBufferSize) {
+                        InputBuffer[Index] = DataRegister;
+                    }
                     Index++;
                 } else if (Index == (DataLength + 1)) {
                     /* CRC2 */
                     DataCRC = CRC_Calc_Data(DataRegister, DataCRC);
-                    /* STATE DATA CRC - no need for new state */
-                    /* indicate the complete reception of a valid frame */
-                    if (DataCRC == 0xF0B8) {
+                    if (Index < InputBufferSize) {
+                        InputBuffer[Index] = DataRegister;
+                    }
+                    if ((FrameType >= Nmin_COBS_type) &&
+                        (FrameType <= Nmax_COBS_type)) {
+                        if (((Index+1) < InputBufferSize) &&
+                            cobs_frame_decode(
+                                &InputBuffer[Index + 1],
+                                InputBufferSize,
+                                InputBuffer, Index + 1)) {
+                            if (Receive_State ==
+                                MSTP_RECEIVE_STATE_DATA) {
+                                /* ForUs */
+                                MSTP_Flag.ReceivedValidFrame = true;
+                            } else {
+                                /* NotForUs */
+                                MSTP_Flag.ReceivedValidFrameNotForUs = true;
+                            }
+                        } else {
+                            MSTP_Flag.ReceivedInvalidFrame = true;
+                        }
+                    } else if (DataCRC == 0xF0B8) {
+                        /* STATE DATA CRC - no need for new state */
+                        /* indicate the complete reception of a valid frame */
                         if (Receive_State == MSTP_RECEIVE_STATE_DATA) {
                             /* ForUs */
                             MSTP_Flag.ReceivedValidFrame = true;
@@ -678,7 +740,6 @@ static void MSTP_Receive_Frame_FSM(void)
                             Frame_Rx_Callback(source, destination, frame,
                                 InputBuffer, DataLength);
                         }
-
                     } else {
                         MSTP_Flag.ReceivedInvalidFrame = true;
                     }
