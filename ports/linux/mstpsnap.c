@@ -100,6 +100,22 @@ uint16_t MSTP_Get_Send(
     return 0;
 }
 
+/**
+ * @brief Send an MSTP frame
+ * @param mstp_port - port specific data
+ * @param buffer - data to send
+ * @param nbytes - number of bytes of data to send
+ */
+void MSTP_Send_Frame(
+    volatile struct mstp_port_struct_t *mstp_port,
+    uint8_t * buffer,
+    uint16_t nbytes)
+{
+    (void)mstp_port;
+    (void)buffer;
+    (void)nbytes;
+}
+
 uint16_t MSTP_Get_Reply(
     volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
