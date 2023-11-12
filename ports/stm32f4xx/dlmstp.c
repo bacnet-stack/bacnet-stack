@@ -402,7 +402,7 @@ static uint16_t MSTP_Create_Frame(uint8_t *buffer,
             /* I'm sorry, Dave, I'm afraid I can't do that. */
             return 0;
         }
-        cobs_len = cobs_frame_encode(buffer, buffer_len, data, data_len);
+        cobs_len = cobs_frame_encode(buffer, buffer_size, data, data_len);
         /* check the results of COBs encoding for validity */
         if (cobs_bacnet_frame) {
             if (cobs_len < Nmin_COBS_length_BACnet) {
@@ -423,14 +423,14 @@ static uint16_t MSTP_Create_Frame(uint8_t *buffer,
            to be able to ingest the entire frame */
         index = index + cobs_len - 2;
     } else if (data_len > 0) {
-        while (data_len && data && (index < buffer_len)) {
+        while (data_len && data && (index < buffer_size)) {
             buffer[index] = *data;
             crc16 = CRC_Calc_Data(buffer[index], crc16);
             data++;
             index++;
             data_len--;
         }
-        if ((index + 2) > buffer_len) {
+        if ((index + 2) > buffer_size) {
             return 0;
         }
         crc16 = ~crc16;

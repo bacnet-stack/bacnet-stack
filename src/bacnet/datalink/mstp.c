@@ -214,7 +214,7 @@ void MSTP_Fill_BACnet_Address(BACNET_ADDRESS *src, uint8_t mstp_address)
  *   (pad): (optional) at most one octet of padding: X'FF'
  *
  * @param buffer - where frame is loaded
- * @param buffer_len - amount of space available in the buffer
+ * @param buffer_size - amount of space available in the buffer
  * @param frame_type - type of frame to send - see defines
  * @param destination - destination address
  * @param source - source address
@@ -223,7 +223,7 @@ void MSTP_Fill_BACnet_Address(BACNET_ADDRESS *src, uint8_t mstp_address)
  * @return number of bytes encoded, or 0 on error
  */
 uint16_t MSTP_Create_Frame(uint8_t *buffer,
-    uint16_t buffer_len,
+    uint16_t buffer_size,
     uint8_t frame_type,
     uint8_t destination,
     uint8_t source,
@@ -237,7 +237,7 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
     bool cobs_bacnet_frame = false; /* true for COBS BACnet frames */
 
     /* not enough to do a header */
-    if (buffer_len < 8) {
+    if (buffer_size < 8) {
         return 0;
     }
     buffer[0] = 0x55;
@@ -269,7 +269,7 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
             /* I'm sorry, Dave, I'm afraid I can't do that. */
             return 0;
         }
-        cobs_len = cobs_frame_encode(buffer, buffer_len, data, data_len);
+        cobs_len = cobs_frame_encode(buffer, buffer_size, data, data_len);
         /* check the results of COBs encoding for validity */
         if (cobs_bacnet_frame) {
             if (cobs_len < Nmin_COBS_length_BACnet) {
@@ -290,14 +290,14 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
            to be able to ingest the entire frame */
         index = index + cobs_len - 2;
     } else if (data_len > 0) {
-        while (data_len && data && (index < buffer_len)) {
+        while (data_len && data && (index < buffer_size)) {
             buffer[index] = *data;
             crc16 = CRC_Calc_Data(buffer[index], crc16);
             data++;
             index++;
             data_len--;
         }
-        if ((index + 2) > buffer_len) {
+        if ((index + 2) > buffer_size) {
             return 0;
         }
         crc16 = ~crc16;
