@@ -1139,6 +1139,9 @@
     <group>
         <name>BACnet Datalink</name>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\cobs.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\datalink\crc.c</name>
         </file>
     </group>
