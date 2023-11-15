@@ -143,6 +143,7 @@ static bool apdu_unconfirmed_dcc_disabled(uint8_t service_choice)
         /* WhoIs will be processed and I-Am initiated as response. */
         switch (service_choice) {
             case SERVICE_UNCONFIRMED_WHO_IS:
+            case SERVICE_UNCONFIRMED_WHO_HAS:
                 break;
             default:
                 status = true;

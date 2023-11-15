@@ -33,17 +33,18 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/bits.h"
 #include "bacnet/basic/sys/fifo.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
 #include "rs485.h"
 
 /* buffer for storing received bytes - size must be power of two */
-/* BACnet DLMSTP_MPDU_MAX for MS/TP is 501 bytes */
-static uint8_t Receive_Queue_Data[512];
+/* BACnet DLMSTP_MPDU_MAX for MS/TP is 1501 bytes */
+static uint8_t Receive_Queue_Data[NEXT_POWER_OF_2(DLMSTP_MPDU_MAX)];
 static FIFO_BUFFER Receive_Queue;
 
 /* buffer for storing bytes to transmit */
-/* BACnet DLMSTP_MPDU_MAX for MS/TP is 501 bytes */
-static uint8_t Transmit_Queue_Data[512];
+/* BACnet DLMSTP_MPDU_MAX for MS/TP is 1501 bytes */
+static uint8_t Transmit_Queue_Data[NEXT_POWER_OF_2(DLMSTP_MPDU_MAX)];
 static FIFO_BUFFER Transmit_Queue;
 
 /* baud rate of the UART interface */

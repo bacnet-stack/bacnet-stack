@@ -201,6 +201,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\lighting.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\lso.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\memcopy.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\cobs.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstptext.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\npdu.c" />

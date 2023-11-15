@@ -18,48 +18,80 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+- Added MSTP extended frames transmit to src/datalink/mstp.c
+  and ports/stm32f4xx/dlmstp.c modules (#531)
+- Added MSTP extended frames to src/datalink/mstp.c module
+  used by mstpcap (#529)
+- Added menu to release script (#506)
+
 ### Changed
 
+- Changed SubscribeCOV Cancellations to always reply with Result+ (#526)
+- Changed Who-Has to process when DCC initiation is disabled
+- Changed mstp.c external API to remove rs485.h dependency
+  for send frame. (#531)
+
 ### Fixed
+
+- Fix BACnet/IP builds for BBMD clients without BBMD tables. (#523)
+- Fix decoding empty array of complex type in RPM
+- Fix device object ReinitializeDevice service handling examples of
+  no-password in the device. (#518)
+- Fix DeviceCommunicationControl service handling example of
+  no-password in the device. (#518)
+- Fix incorrect apdu_len calculation when encoding Recipient_List
+  which had resulted in malformed APDU. (#517)
+- Fix reinitializing a bacnet stack on windows by checking
+  for valid socket before cleaning up WSA (#514)
+- Fix a warning that 'device_id' is not used (#510)
+- Added new linear.c to Microsoft Visual Studio project (#507)
 
 ## [1.3.1] - 2023-09-29
 
 ### Added
 
-Added example Channel object WriteProperty callback into example Device objects. (#504)
-Added Microsoft Visual Studio 2022 Community Edition solution to ports/win32 (#502)
-Added details in apps/blinkt example about starting app with systemd (#505)
+- Added example Channel object WriteProperty callback into example Device objects. (#504)
+- Added Microsoft Visual Studio 2022 Community Edition solution to ports/win32 (#502)
+- Added details in apps/blinkt example about starting app with systemd (#505)
 
 ### Fixed
 
-Refactored WriteProperty of object-name property rules into example device object (#504)
+- Refactored WriteProperty of object-name property rules into example device object (#504)
 
 ### Changed
 
-Changed WriteProperty string property checker to ignore length check with zero option.(#504)
+- Changed WriteProperty string property checker to ignore length
+  check with zero option.(#504)
 
 ## [1.3.0] - 2023-09-28
 
 ### Added
 
 - Added [feature#14] EventTimeStamp decoding from ReadPropertyMultiple app. (#503)
-- Added Channel, Color, Color Temperature, & Lighting Output demo app with Blinkt! (#503)
-- Added pipeline build of piface and blinkt apps with Raspberry Pi OS image. (#503)
+- Added Channel, Color, Color Temperature, & Lighting Output demo
+  app with Blinkt! (#503)
+- Added pipeline build of piface and blinkt apps with Raspberry Pi
+  OS image. (#503)
 - Added linear interpolation library functions used in fading and ramping. (#503)
 
 ### Changed
 
-- Added Device timer API to feed elapsed milliseconds to children objects. (#503)
-- Changed gitignore to ease the maintainenance of source files in app folder. (#503)
-- Changed example server app device simulator to use mstimer instead of OS time. (#503)
+- Added Device timer API to feed elapsed milliseconds to children
+  objects. (#503)
+- Changed gitignore to ease the maintainenance of source files in
+  app folder. (#503)
+- Changed example server app device simulator to use mstimer instead
+  of OS time. (#503)
 - Changed example channel object to be dynamically created or deleted. (#503)
-- Changed example channel object to handle color & color temperature objects. (#503)
+- Changed example channel object to handle color & color temperature
+  objects. (#503)
 
 ### Fixed
 
 - Fixed datetime decode of invalid application tag. (#495)
 - Fixed extraneous SO_BINDTODEVICE error message in Linux BIP. (#498)
-- Fixed example Color, Color Temperature, and Lighting object fade, ramp, and step. (#503)
+- Fixed example Color, Color Temperature, and Lighting object fade,
+  ramp, and step. (#503)
 - Fixed and secured BACnetXYcolor and ColorCommand codecs. (#503)
 
 ## [1.2.0] - 2023-09-11

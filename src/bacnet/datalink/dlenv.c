@@ -357,7 +357,9 @@ void dlenv_network_port_init(void)
 {
     const uint32_t instance = 1;
     BACNET_IP_ADDRESS addr = { 0 };
+#if BBMD_ENABLED
     uint8_t addr0, addr1, addr2, addr3;
+#endif
 
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IP Port");
@@ -481,6 +483,8 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
             BBMD_Timer_Seconds = (uint16_t)BBMD_TTL_Seconds;
         }
     }
+#else
+    (void)elapsed_seconds;
 #endif
 }
 
