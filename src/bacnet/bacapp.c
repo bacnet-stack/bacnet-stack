@@ -1613,7 +1613,7 @@ int bacapp_data_len(
     return total_len;
 }
 
-#if defined(BACAPP_DATE)
+#if defined(BACAPP_DATE) && defined (BACAPP_PRINT_ENABLED)
 /* 135.1-4.4 Notational Rules for Parameter Values
 (j)
 dates are represented enclosed in parenthesis:
@@ -1669,7 +1669,7 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
 }
 #endif
 
-#if defined(BACAPP_TIME)
+#if defined(BACAPP_TIME) && defined (BACAPP_PRINT_ENABLED)
 /* 135.1-4.4 Notational Rules for Parameter Values
 (k)
 times are represented as hours, minutes, seconds, hundredths in the format
@@ -1735,7 +1735,7 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
 }
 #endif
 
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_TYPES_EXTRA) && defined (BACAPP_PRINT_ENABLED)
 static int bacapp_snprintf_weeklyschedule(char *str,
     size_t str_len,
     BACNET_WEEKLY_SCHEDULE *ws,
@@ -1877,6 +1877,7 @@ static int bacapp_snprintf_weeklyschedule(char *str,
 }
 #endif
 
+#if defined (BACAPP_PRINT_ENABLED)
 /**
  * @brief Extract the value into a text string
  * @param str - the buffer to store the extracted value, or NULL for length
@@ -2373,6 +2374,7 @@ int bacapp_snprintf_value(
 
     return ret_val;
 }
+#endif
 
 #ifdef BACAPP_PRINT_ENABLED
 /**

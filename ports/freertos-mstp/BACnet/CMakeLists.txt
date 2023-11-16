@@ -10,22 +10,10 @@ target_include_directories(BACnet_Stack PUBLIC
     ${BACNET_STACK_PATH}
 )
 
-target_compile_definitions(BACnet_Stack PUBLIC
-    -DBACDL_MSTP=1
-    -DBACAPP_ALL
-    -DMAX_APDU=480
-    -DBIG_ENDIAN=0
-    -DMAX_TSM_TRANSACTIONS=1
-    -DMAX_CHARACTER_STRING_BYTES=64
-    -DMAX_OCTET_STRING_BYTES=64
-    -DBACNET_STACK_DEPRECATED_DISABLE
-)
-
 target_sources(BACnet_Stack PRIVATE
     ${BACNET_BASIC}/object/netport.c
 	${BACNET_BASIC}/service/h_dcc.c
 	${BACNET_BASIC}/service/h_apdu.c
-	${BACNET_BASIC}/npdu/h_npdu.c
 	${BACNET_BASIC}/service/h_rd.c
 	${BACNET_BASIC}/service/h_rp.c
 	${BACNET_BASIC}/service/h_rpm.c
@@ -35,14 +23,17 @@ target_sources(BACnet_Stack PRIVATE
 	${BACNET_BASIC}/service/h_noserv.c
 	${BACNET_BASIC}/service/s_iam.c
 	${BACNET_BASIC}/service/s_ihave.c
+	${BACNET_BASIC}/npdu/h_npdu.c
 	${BACNET_BASIC}/tsm/tsm.c
 	${BACNET_BASIC}/sys/days.c
 	${BACNET_BASIC}/sys/debug.c
 	${BACNET_BASIC}/sys/fifo.c
 	${BACNET_BASIC}/sys/mstimer.c
 	${BACNET_BASIC}/sys/ringbuf.c
+	${BACNET_CORE}/datalink/cobs.c
 	${BACNET_CORE}/datalink/crc.c
 	${BACNET_CORE}/datalink/mstp.c
+	${BACNET_CORE}/datalink/mstptext.c
 	${BACNET_CORE}/abort.c
 	${BACNET_CORE}/bacaddr.c
 	${BACNET_CORE}/bacapp.c
@@ -58,6 +49,7 @@ target_sources(BACnet_Stack PRIVATE
 	${BACNET_CORE}/dcc.c
 	${BACNET_CORE}/iam.c
 	${BACNET_CORE}/ihave.c
+	${BACNET_CORE}/indtext.c
 	${BACNET_CORE}/hostnport.c
 	${BACNET_CORE}/lighting.c
 	${BACNET_CORE}/memcopy.c

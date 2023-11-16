@@ -66,8 +66,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest,
     int bytes_sent = 0;
     unsigned i = 0; /* loop counter */
     struct mstp_user_data_t *port = NULL;
-    struct dlmstp_packet packet = { 0 };
-    BaseType_t rv = pdFALSE;
+    struct dlmstp_packet *pkt;
     TickType_t xTicksToWait = portMAX_DELAY;
 
     if (!MSTP_Port) {
@@ -77,31 +76,32 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest,
         return 0;
     }
     port = MSTP_Port->UserData;
-    if (npdu_data->data_expecting_reply) {
-        packet.frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
-    } else {
-        packet.frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+    xSemaphoreTake(port->PDU_Mutex, xTicksToWait);
+    pkt = (struct dlmstp_packet *)(void *)Ringbuf_Data_Peek(&port->PDU_Queue);
+    if (pkt && (pdu_len <= DLMSTP_MPDU_MAX)) {
+        if (npdu_data->data_expecting_reply) {
+            pkt->frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+        } else {
+            pkt->frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+        }
+        for (i = 0; i < pdu_len; i++) {
+            pkt->pdu[i] = pdu[i];
+        }
+        pkt->pdu_len = pdu_len;
+        if (dest && dest->mac_len) {
+            pkt->address.mac_len = 1;
+            pkt->address.mac[0] = dest->mac[0];
+            pkt->address.len = 0;
+        } else {
+            pkt->address.mac_len = 1;
+            pkt->address.mac[0] = MSTP_BROADCAST_ADDRESS;
+            pkt->address.len = 0;
+        }
+        if (Ringbuf_Data_Put(&port->PDU_Queue, (uint8_t *)pkt)) {
+            bytes_sent = pdu_len;
+        }
     }
-    if (pdu_len > sizeof(packet.pdu)) {
-        return 0;
-    }
-    for (i = 0; i < pdu_len; i++) {
-        packet.pdu[i] = pdu[i];
-    }
-    packet.pdu_len = pdu_len;
-    if (dest && dest->mac_len) {
-        packet.address.mac_len = 1;
-        packet.address.mac[0] = dest->mac[0];
-        packet.address.len = 0;
-    } else {
-        packet.address.mac_len = 1;
-        packet.address.mac[0] = MSTP_BROADCAST_ADDRESS;
-        packet.address.len = 0;
-    }
-    rv = xQueueSend(port->Transmit_Queue, &packet, xTicksToWait);
-    if (rv == pdTRUE) {
-        bytes_sent = pdu_len;
-    }
+    xSemaphoreGive(port->PDU_Mutex);
 
     return bytes_sent;
 }
@@ -116,10 +116,9 @@ uint16_t MSTP_Get_Send(
     volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
 {
     uint16_t pdu_len = 0;
-    struct dlmstp_packet packet = { 0 };
+    struct dlmstp_packet *pkt;
     struct mstp_user_data_t *port;
     TickType_t xTicksToWait = 0;
-    BaseType_t rv = pdFALSE;
 
     if (!mstp_port) {
         return 0;
@@ -129,15 +128,21 @@ uint16_t MSTP_Get_Send(
         return 0;
     }
     xTicksToWait = timeout / portTICK_PERIOD_MS;
-    rv = xQueueReceive(port->Transmit_Queue, &packet, xTicksToWait);
-    if (rv == pdTRUE) {
-        /* convert the packet into the MSTP Frame */
-        pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
-            mstp_port->OutputBufferSize, packet.frame_type,
-            packet.address.mac[0], mstp_port->This_Station, &packet.pdu[0],
-            packet.pdu_len);
-        port->Statistics.transmit_pdu_counter++;
+    xSemaphoreTake(port->PDU_Mutex, xTicksToWait);
+    if (Ringbuf_Empty(&port->PDU_Queue)) {
+        xSemaphoreGive(port->PDU_Mutex);
+        return 0;
     }
+    /* look at next PDU in queue without removing it */
+    pkt = (struct dlmstp_packet *)(void *)Ringbuf_Peek(&port->PDU_Queue);
+    /* convert the PDU into the MSTP Frame */
+    pdu_len
+        = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
+            mstp_port->OutputBufferSize, pkt->frame_type, pkt->address.mac[0],
+            mstp_port->This_Station, &pkt->pdu[0], pkt->pdu_len);
+    port->Statistics.transmit_pdu_counter++;
+    (void)Ringbuf_Pop(&port->PDU_Queue, NULL);
+    xSemaphoreGive(port->PDU_Mutex);
 
     return pdu_len;
 }
@@ -280,7 +285,7 @@ uint16_t MSTP_Get_Reply(
     struct dlmstp_packet packet = { 0 };
     struct mstp_user_data_t *port = NULL;
     TickType_t xTicksToWait = 0;
-    BaseType_t rv = pdFALSE;
+    struct dlmstp_packet *pkt;
 
     if (!mstp_port) {
         return 0;
@@ -290,25 +295,28 @@ uint16_t MSTP_Get_Reply(
         return 0;
     }
     xTicksToWait = timeout / portTICK_PERIOD_MS;
-    /* look at next packet in queue without removing it */
-    rv = xQueuePeek(port->Transmit_Queue, &packet, xTicksToWait);
-    if (rv == pdTRUE) {
-        /* is this the reply to the DER? */
-        matched = MSTP_Compare_Data_Expecting_Reply(
-            mstp_port, packet.pdu, packet.pdu_len, &packet.address);
-        if (!matched) {
-            return 0;
-        }
-        /* convert the PDU into the MSTP Frame */
-        pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
-            mstp_port->OutputBufferSize, packet.frame_type,
-            packet.address.mac[0], mstp_port->This_Station, &packet.pdu[0],
-            packet.pdu_len);
-        port->Statistics.transmit_pdu_counter++;
-        xTicksToWait = 0;
-        /* pop off the queue, discard */
-        rv = xQueueReceive(port->Transmit_Queue, &packet, xTicksToWait);
+    xSemaphoreTake(port->PDU_Mutex, xTicksToWait);
+    if (Ringbuf_Empty(&port->PDU_Queue)) {
+        xSemaphoreGive(port->PDU_Mutex);
+        return 0;
     }
+    /* look at next PDU in queue without removing it */
+    pkt = (struct dlmstp_packet *)(void *)Ringbuf_Peek(&port->PDU_Queue);
+        /* is this the reply to the DER? */
+    matched = MSTP_Compare_Data_Expecting_Reply(
+        mstp_port, pkt->pdu, pkt->pdu_len, &pkt->address);
+    if (!matched) {
+        xSemaphoreGive(port->PDU_Mutex);
+        return 0;
+    }
+    /* convert the PDU into the MSTP Frame */
+    pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
+        mstp_port->OutputBufferSize, pkt->frame_type,
+        packet.address.mac[0], mstp_port->This_Station, &pkt->pdu[0],
+        pkt->pdu_len);
+    port->Statistics.transmit_pdu_counter++;
+    (void)Ringbuf_Pop(&port->PDU_Queue, NULL);
+    xSemaphoreGive(port->PDU_Mutex);
 
     return pdu_len;
 }
@@ -395,26 +403,9 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
     if (!port) {
         return 0;
     }
-    pdu_len = mstp_port->DataLength;
-    if (pdu_len > sizeof(packet.pdu)) {
-        /* drop packets that are too long for us */
-        return 0;
-    }
-    if (pdu_len == 0) {
-        /* drop packets that are zero length */
-        return 0;
-    }
-    for (i = 0; i < pdu_len; i++) {
-        packet.pdu[i] = mstp_port->InputBuffer[i];
-    }
-    dlmstp_fill_bacnet_address(&packet.address, mstp_port->SourceAddress);
-    packet.pdu_len = mstp_port->DataLength;
-    rv = xQueueSend(port->Receive_Queue, &packet, xTicksToWait);
-    if (rv == pdFALSE) {
-        return 0;
-    }
+    port->ReceivePacketPending = true;
 
-    return pdu_len;
+    return mstp_port->DataLength;
 }
 
 /**
@@ -432,8 +423,6 @@ uint16_t dlmstp_receive(
     struct mstp_user_data_t *port;
     struct rs485_driver *driver;
     uint16_t i;
-    TickType_t xTicksToWait = 0;
-    BaseType_t rv = pdFALSE;
 
     if (!MSTP_Port) {
         return 0;
@@ -449,10 +438,8 @@ uint16_t dlmstp_receive(
     if (!driver) {
         return 0;
     }
-    /* set the input buffer to the same data storage for zero copy */
-    if (!MSTP_Port->InputBuffer) {
-        MSTP_Port->InputBuffer = pdu;
-        MSTP_Port->InputBufferSize = max_pdu;
+    while (!MSTP_Port->InputBuffer) {
+        /* FIXME: develop configure an input buffer! */
     }
     if (driver->transmitting()) {
         /* we're transmitting; do nothing else */
@@ -490,27 +477,42 @@ uint16_t dlmstp_receive(
             };
         }
     }
-    xTicksToWait = timeout / portTICK_PERIOD_MS;
-    rv = xQueueReceive(port->Receive_Queue, &packet, xTicksToWait);
-    if (rv == pdFALSE) {
-        return 0;
-    }
-    if (packet.pdu_len > max_pdu) {
-        return 0;
-    }
-    port->Statistics.receive_pdu_counter++;
-    pdu_len = packet.pdu_len;
-    src->len = 0;
-    src->net = 0;
-    src->mac_len = 1;
-    src->mac[0] = packet.address.mac[0];
-    for (i = 0; i < pdu_len; i++) {
-        pdu[i] = packet.pdu[i];
+    /* see if there is a packet available */
+    if (port->ReceivePacketPending) {
+        port->ReceivePacketPending = false;
+        port->Statistics.receive_pdu_counter++;
+        pdu_len = MSTP_Port->DataLength;
+        if (pdu_len > max_pdu) {
+            /* PDU is too large */
+            return 0;
+        }
+        if (!pdu) {
+            /* no place to put a PDU */
+            return 0;
+        }
+        /* copy input buffer to PDU */
+        for (i = 0; i < pdu_len; i++) {
+            pdu[i] = MSTP_Port->InputBuffer[i];
+        }
+        if (!src) {
+            /* no place to put a source address */
+            return 0;
+        }
+        /* copy source address */
+        src->len = 0;
+        src->net = 0;
+        src->mac_len = 1;
+        src->mac[0] = MSTP_Port->SourceAddress;
     }
 
     return pdu_len;
 }
 
+/**
+ * @brief fill a BACNET_ADDRESS with the MSTP MAC address
+ * @param src - a #BACNET_ADDRESS structure
+ * @param mstp_address - a BACnet MSTP address
+ */
 void dlmstp_fill_bacnet_address(
     BACNET_ADDRESS *src,
     uint8_t mstp_address)
@@ -536,6 +538,10 @@ void dlmstp_fill_bacnet_address(
     }
 }
 
+/**
+ * @brief Set the MSTP MAC address
+ * @param mac_address - MAC address to set
+ */
 void dlmstp_set_mac_address(
     uint8_t mac_address)
 {
@@ -549,6 +555,10 @@ void dlmstp_set_mac_address(
     return;
 }
 
+/**
+ * @brief Get the MSTP MAC address
+ * @return MSTP MAC address
+ */
 uint8_t dlmstp_mac_address(void)
 {
     uint8_t value = 0;
@@ -585,6 +595,10 @@ void dlmstp_set_max_info_frames(
     return;
 }
 
+/**
+ * @brief Get the MSTP max-info-frames value
+ * @return the MSTP max-info-frames value
+ */
 uint8_t dlmstp_max_info_frames(void)
 {
     uint8_t value = 0;
@@ -764,6 +778,10 @@ uint32_t dlmstp_baud_rate(void)
     return driver->baud_rate();
 }
 
+/**
+ * @brief Copy the MSTP port statistics if they exist
+ * @param statistics - MSTP port statistics
+ */
 void dlmstp_fill_statistics(struct dlmstp_statistics * statistics)
 {
     struct mstp_user_data_t *port;

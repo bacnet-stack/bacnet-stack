@@ -5,6 +5,18 @@ project(freertos-mstp)
 set(FREERTOS_KERNEL_PATH "FreeRTOS-Kernel")
 set(BACNET_STACK_PATH "../../src")
 
+add_definitions(
+    -DPRINT_ENABLED=0
+    -DBACDL_MSTP=1
+    -DBACAPP_ALL
+    -DMAX_APDU=480
+    -DBIG_ENDIAN=0
+    -DMAX_TSM_TRANSACTIONS=1
+    -DMAX_CHARACTER_STRING_BYTES=64
+    -DMAX_OCTET_STRING_BYTES=64
+    -DBACNET_STACK_DEPRECATED_DISABLE
+)
+
 # Add the freertos_config for FreeRTOS-Kernel
 add_library(freertos_config INTERFACE)
 
@@ -31,17 +43,6 @@ add_executable(${PROJECT_NAME}
     dlmstp-init.c
     mstimer-init.c
     rs485.c
-)
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC
-    -DBACDL_MSTP=1
-    -DBACAPP_ALL
-    -DMAX_APDU=480
-    -DBIG_ENDIAN=0
-    -DMAX_TSM_TRANSACTIONS=1
-    -DMAX_CHARACTER_STRING_BYTES=64
-    -DMAX_OCTET_STRING_BYTES=64
-    -DBACNET_STACK_DEPRECATED_DISABLE
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

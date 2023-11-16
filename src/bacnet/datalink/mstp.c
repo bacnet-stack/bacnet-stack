@@ -56,10 +56,6 @@
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/mstptext.h"
 #include "bacnet/npdu.h"
-
-#ifndef DEBUG_ENABLED
-#define DEBUG_ENABLED 0
-#endif
 #include "bacnet/basic/sys/debug.h"
 
 #if PRINT_ENABLED
@@ -69,41 +65,10 @@
 #undef PRINT_ENABLED_MASTER
 #endif
 
-#if defined(PRINT_ENABLED_RECEIVE)
 #define printf_receive debug_printf
-#else
-static inline void printf_receive(const char *format, ...)
-{
-    (void)format;
-}
-#endif
-
-#if defined(PRINT_ENABLED_RECEIVE_DATA)
 #define printf_receive_data debug_printf
-#else
-static inline void printf_receive_data(const char *format, ...)
-{
-    (void)format;
-}
-#endif
-
-#if defined(PRINT_ENABLED_RECEIVE_ERRORS)
 #define printf_receive_error debug_printf
-#else
-static inline void printf_receive_error(const char *format, ...)
-{
-    (void)format;
-}
-#endif
-
-#if defined(PRINT_ENABLED_MASTER)
 #define printf_master debug_printf
-#else
-static inline void printf_master(const char *format, ...)
-{
-    (void)format;
-}
-#endif
 
 /* MS/TP Frame Format */
 /* All frames are of the following format: */

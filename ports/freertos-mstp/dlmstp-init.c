@@ -48,8 +48,8 @@ void dlmstp_freertos_init(void)
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_User_Data.PDU_Mutex = xSemaphoreCreateMutex();
     Ringbuf_Init(&MSTP_User_Data.PDU_Queue,
-        &MSTP_User_Data.PDU_Buffer,
-        sizeof(struct dlmstp_packet_t),
+        (volatile uint8_t *)&MSTP_User_Data.PDU_Buffer,
+        sizeof(struct dlmstp_packet),
         DLMSTP_MAX_INFO_FRAMES);
     /* initialize the datalink */
     dlmstp_init((char *)&MSTP_Port);

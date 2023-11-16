@@ -62,9 +62,10 @@ struct mstp_user_data_t {
     RING_BUFFER PDU_Queue;
     SemaphoreHandle_t PDU_Mutex;
     bool Initialized;
-    uint8_t Input_Buffer[MAX_MPDU];
-    uint8_t Output_Buffer[MAX_MPDU];
-    struct dlmstp_packet_t PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
+    uint8_t Input_Buffer[DLMSTP_MPDU_MAX];
+    bool ReceivePacketPending;
+    uint8_t Output_Buffer[DLMSTP_MPDU_MAX];
+    struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
 };
 
 #ifdef __cplusplus
