@@ -772,6 +772,9 @@ static void MSTP_Slave_Node_FSM(void)
                            to determine this is a local matter), then no reply
                            is possible. */
                         MSTP_Flag.ReceivedValidFrame = false;
+                    } else {
+                        /* indicate successful reception to higher layers */
+                        MSTP_Flag.ReceivePacketPending = true;
                     }
                 } else {
                     /* no reply when addressed as Broadcast */
