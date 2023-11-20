@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.15)
 
 project(freertos-mstp)
 
-set(FREERTOS_KERNEL_PATH "FreeRTOS-Kernel")
-set(BACNET_STACK_PATH "../../src")
+set(FREERTOS_KERNEL_PATH "../FreeRTOS-Kernel")
+set(BACNET_STACK_PATH "../../../src")
+set(BACNET_CMAKE_PATH "../BACnet")
+set(BACNET_PORT_PATH "..")
 
 add_definitions(
     -DPRINT_ENABLED=0
@@ -22,7 +24,7 @@ add_library(freertos_config INTERFACE)
 
 target_include_directories(freertos_config
     INTERFACE
-    FreeRTOS-Kernel/examples/sample_configuration
+    ${FREERTOS_KERNEL_PATH}/examples/sample_configuration
 )
 
 # Select the heap port.  values between 1-4 will pick a heap.
@@ -33,19 +35,22 @@ set(FREERTOS_PORT "TEMPLATE" CACHE STRING "" FORCE)
 
 # Adding the components subdirectories
 add_subdirectory(${FREERTOS_KERNEL_PATH} FreeRTOS-Kernel)
-add_subdirectory(BACnet BACnet_Stack)
+add_subdirectory(${BACNET_CMAKE_PATH} BACnet_Stack)
 
 add_executable(${PROJECT_NAME}
     main.c
     bacnet.c
     device.c
-    dlmstp.c
+    ${BACNET_PORT_PATH}/dlmstp.c
     dlmstp-init.c
     mstimer-init.c
     rs485.c
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${PROJECT_SOURCE_DIR}
+    ${BACNET_PORT_PATH}
+    ${BACNET_CMAKE_PATH}
     ${BACNET_STACK_PATH}
     ${FREERTOS_KERNEL_PATH}/portable/template
     ${FREERTOS_KERNEL_PATH}/include

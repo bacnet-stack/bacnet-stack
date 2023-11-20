@@ -7,6 +7,10 @@
  * SPDX-License-Identifier: MIT
  *
  */
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/fifo.h"
@@ -143,6 +147,14 @@ void rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
         FIFO_Flush(&Transmit_Queue);
         FIFO_Add(&Transmit_Queue, buffer, nbytes);
         rs485_rts_enable(true);
+        /* FIXME: demo only - remove for real hardware */
+        while (!FIFO_Empty(&Transmit_Queue)) {
+            uint8_t tx_data;
+            tx_data = FIFO_Get(&Transmit_Queue);
+            printf("%02X", tx_data);
+        }
+        printf("\n");
+        fflush(stdout);
     }
 }
 

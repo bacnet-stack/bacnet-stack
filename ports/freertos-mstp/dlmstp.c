@@ -24,8 +24,6 @@
 #include "bacnet/bytes.h"
 #include "bacnet/bacaddr.h"
 #include "dlmstp-init.h"
-#include "rs485.h"
-#include "bacnet.h"
 
 /* the current MSTP port that the datalink is using */
 static struct mstp_port_struct_t *MSTP_Port;
