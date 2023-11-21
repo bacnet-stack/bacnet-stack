@@ -733,67 +733,69 @@ static void MSTP_Receive_Frame_FSM(void)
 
 static void MSTP_Slave_Node_FSM(void)
 {
-    /* destination address */
-    uint8_t destination;
-    /* source address */
-    uint8_t source;
-    /* any data to be sent - may be null */
-    uint8_t *data;
-    /* amount of data to be sent - may be 0 */
-    uint16_t data_len;
-    /* packet from the PDU Queue */
-    struct dlmstp_packet *pkt;
-
-    if (MSTP_Flag.ReceivedInvalidFrame) {
+    Master_State = MSTP_MASTER_STATE_IDLE;
+    if (MSTP_Flag.ReceivedInvalidFrame == true) {
         /* ReceivedInvalidFrame */
         /* invalid frame was received */
         MSTP_Flag.ReceivedInvalidFrame = false;
     } else if (MSTP_Flag.ReceivedValidFrame) {
+        MSTP_Flag.ReceivedValidFrame = false;
         switch (FrameType) {
             case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
                 if (DestinationAddress != MSTP_BROADCAST_ADDRESS) {
-                    /* The ANSWER_DATA_REQUEST state is entered when a  */
-                    /* BACnet Data Expecting Reply, a Test_Request, or  */
-                    /* a proprietary frame that expects a reply is received. */
-                    pkt = (struct dlmstp_packet *)Ringbuf_Peek(&PDU_Queue);
-                    if (pkt != NULL) {
-                        MSTP_Send_Frame(pkt->frame_type, pkt->address.mac[0],
-                            This_Station, (uint8_t *)&pkt->pdu[0],
-                            pkt->pdu_len);
-                        Master_State = MSTP_MASTER_STATE_IDLE;
-                        /* clear our flag we were holding for comparison */
-                        MSTP_Flag.ReceivedValidFrame = false;
-                        /* clear the queue */
-                        (void)Ringbuf_Pop(&PDU_Queue, NULL);
-                    } else if (rs485_silence_elapsed(Treply_delay)) {
-                        /* If no reply will be available from the higher layers
-                           within Treply_delay after the reception of the final
-                           octet of the requesting frame (the mechanism used
-                           to determine this is a local matter), then no reply
-                           is possible. */
-                        MSTP_Flag.ReceivedValidFrame = false;
-                    }
-                } else {
-                    /* no reply when addressed as Broadcast */
-                    MSTP_Flag.ReceivedValidFrame = false;
+                    /* indicate successful reception to the higher layers  */
+                    MSTP_Flag.ReceivePacketPending = true;
                 }
                 break;
             case FRAME_TYPE_TEST_REQUEST:
-                MSTP_Flag.ReceivedValidFrame = false;
-                destination = SourceAddress;
-                source = This_Station;
-                data = &InputBuffer[0];
-                data_len = DataLength;
-                MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE, destination, source,
-                    data, data_len);
+                MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE, SourceAddress,
+                    This_Station, &InputBuffer[0], DataLength);
                 break;
             case FRAME_TYPE_TOKEN:
             case FRAME_TYPE_POLL_FOR_MASTER:
             case FRAME_TYPE_TEST_RESPONSE:
             case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
             default:
-                MSTP_Flag.ReceivedValidFrame = false;
                 break;
+        }
+    } else if (MSTP_Flag.ReceivePacketPending) {
+        if (!Ringbuf_Empty(&PDU_Queue)) {
+            /* packet from the PDU Queue */
+            struct mstp_pdu_packet *pkt;
+            /* did the frame in the queue match the last request? */
+            bool matched;
+
+            pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
+            matched = dlmstp_compare_data_expecting_reply(&InputBuffer[0],
+                DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
+                pkt->destination_mac);
+            if (matched) {
+                /* Reply */
+                /* If a reply is available from the higher layers  */
+                /* within Treply_delay after the reception of the  */
+                /* final octet of the requesting frame  */
+                /* (the mechanism used to determine this is a local matter), */
+                /* then call MSTP_Send_Frame to transmit the reply frame  */
+                /* and enter the IDLE state to wait for the next frame. */
+                uint8_t frame_type;
+                if (pkt->data_expecting_reply) {
+                    frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+                } else {
+                    frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+                }
+                MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
+                    (uint8_t *)&pkt->buffer[0], pkt->length);
+                (void)Ringbuf_Pop(&PDU_Queue, NULL);
+            }
+            /* clear our flag we were holding for comparison */
+            MSTP_Flag.ReceivePacketPending = false;
+        } else if ((rs485_silence_elapsed(Treply_delay))) {
+            /* If no reply will be available from the higher layers
+               within Treply_delay after the reception of the final octet
+               of the requesting frame (the mechanism used to determine
+               this is a local matter), then no reply is possible. */
+            /* clear our flag we were holding for comparison */
+            MSTP_Flag.ReceivePacketPending = false;
         }
     }
 }
@@ -1645,7 +1647,10 @@ uint16_t dlmstp_receive(BACNET_ADDRESS *src, /* source address */
     if (This_Station != 255) {
         /* if there is a packet that needs processed, do it now. */
         if (MSTP_Flag.ReceivePacketPending) {
-            MSTP_Flag.ReceivePacketPending = false;
+            if (This_Station <= 127) {
+                /* master nodes clear immediately */
+                MSTP_Flag.ReceivePacketPending = false;
+            }
             pdu_len = DataLength;
             src->mac_len = 1;
             src->mac[0] = SourceAddress;
