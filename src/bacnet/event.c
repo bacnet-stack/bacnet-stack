@@ -1024,13 +1024,12 @@ int event_notify_decode_service_request(
 
                         case EVENT_BUFFER_READY:
                             /* Tag 0 - bufferProperty */
-                            if (-1 ==
-                                (section_length =
-                                        bacapp_decode_context_device_obj_property_ref(
-                                            &apdu[len], 0,
-                                            &data->notificationParams
-                                                 .bufferReady
-                                                 .bufferProperty))) {
+                            section_length =
+                                bacnet_device_object_property_reference_context_decode(
+                                    &apdu[len], apdu_len - len, 0,
+                                    &data->notificationParams.bufferReady
+                                         .bufferProperty);
+                            if (section_length <= 0) {
                                 return -1;
                             }
                             len += section_length;

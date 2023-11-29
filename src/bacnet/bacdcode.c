@@ -849,7 +849,7 @@ bool decode_is_opening_tag_number(uint8_t *apdu, uint8_t tag_number)
  * @param tag_length  Pointer to a variable, or NULL.
  *  Returns the length of the tag in bytes if not NULL.
  *
- * @return true if the tag number matches is an opening tag.
+ * @return true if the tag number matches and is an opening tag.
  */
 bool bacnet_is_opening_tag_number(
     uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length)

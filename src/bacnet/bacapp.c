@@ -337,8 +337,9 @@ int bacapp_decode_data(uint8_t *apdu,
                 break;
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
                 /* BACnetDeviceObjectPropertyReference */
-                len = bacapp_decode_device_obj_property_ref(
-                    apdu, &value->type.Device_Object_Property_Reference);
+                len = bacnet_device_object_property_reference_decode(
+                    apdu, len_value_type, 
+                    &value->type.Device_Object_Property_Reference);
                 break;
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
                 /* BACnetDeviceObjectReference */
@@ -1264,8 +1265,9 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
             /* Properties using BACnetDeviceObjectPropertyReference */
-            len = bacapp_decode_device_obj_property_ref(
-                apdu, &value->type.Device_Object_Property_Reference);
+            len = bacnet_device_object_property_reference_decode(
+                apdu, max_apdu_len, 
+                &value->type.Device_Object_Property_Reference);
             break;
 
         case PROP_MANIPULATED_VARIABLE_REFERENCE:
