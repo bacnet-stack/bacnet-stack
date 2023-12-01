@@ -118,12 +118,14 @@ CSRC += $(STM32_SRC)
 ASRC = $(LIBRARY_CMSIS)/gcc_ride7/startup_stm32f4xx.s
 
 #Set the toolchain command names (only the ones needed are defined)
+# sudo apt install gcc-arm-none-eabi
 PREFIX ?= arm-none-eabi-
 
 CC = $(PREFIX)gcc
 OBJCOPY = $(PREFIX)objcopy
 OBJDUMP = $(PREFIX)objdump
 AR = $(PREFIX)ar
+NM = $(PREFIX)nm
 SIZE = $(PREFIX)size
 
 LDSCRIPT = $(PLATFORM_DIR)/stm32f4xx.ld
@@ -196,18 +198,48 @@ $(TARGET).bin:  $(TARGET).elf
 $(TARGET).elf: $(COBJ) $(AOBJ) Makefile
 	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@
 
-# allow a single file to be unoptimized for debugging purposes
-#dlmstp.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
-#
-#main.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
-#
-#$(BACNET_CORE)/npdu.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
-#
-#$(BACNET_CORE)/apdu.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
+: ram-usage
+ram-usage:
+	$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
+
+# GDB using st-util (GDB server for ST Link)
+GDB_PORT = 3333
+.PHONY: debug
+debug:
+	st-util --listen $(GDB_PORT)
+
+# GDB using openocd (GDB server for ST Link)
+# sudo apt install openocd
+.PHONY: openocd
+openocd:
+	openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
+
+# graphical GDB debugging tool
+# note: relies on .gdbinit containing:
+# file "./release/target.elf"
+# target extended-remote :3333
+# load
+# break main
+# sudo apt install ddd
+.PHONY: ddd
+ddd:
+	ddd --debugger $(GDB) $(realpath $(TARGET).elf)
+
+# web based graphical GDB debugging tool
+# pip install gdbgui
+.PHONY: gdbgui
+gdbgui:
+	gdbgui -g $(GDB) $(realpath $(TARGET).elf)
+
+# sudo apt install stlink-tools
+# note: might require adding rule file to /etc/udev/rules.d/
+# SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", MODE="0666"
+# SUBSYSTEM=="usb_device", ATTRS{idVendor}=="0483", MODE="0666"
+# and reloading with
+# $ sudo udevadm control --reload-rules
+# or unplug and plugin the stlink after adding the rules file
+install: $(TARGET).bin
+	st-flash write $(TARGET).bin 0x08000000
 
 .c.o:
 	$(CC) -c $(OPTIMIZATION) $(CFLAGS) $*.c -o $@
@@ -219,6 +251,7 @@ $(TARGET).elf: $(COBJ) $(AOBJ) Makefile
 clean:
 	-rm -rf $(COBJ) $(AOBJ) $(COREOBJ)
 	-rm -rf $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
+	-rm -rf $(TARGET).su $(TARGET).nm
 	-rm -rf *.lst
 
 ## Other dependencies
