@@ -262,6 +262,8 @@ BACNET_STACK_EXPORT
 bool datetime_date_init_ascii(BACNET_DATE *bdate, const char *ascii);
 BACNET_STACK_EXPORT
 bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii);
+BACNET_STACK_EXPORT
+bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value);

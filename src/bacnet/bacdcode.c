@@ -792,11 +792,14 @@ bool decode_is_context_tag_with_length(
  * @param tag_number  Tag number, that has been decoded before.
  * @param tag_length  Pointer to a variable, or NULL.
  *  Returns the length of the tag in bytes if not NULL.
+ * @param len_value_type  Pointer to a variable, or NULL.
+ *  Returns the len_value_type of the tag in bytes if not NULL.
  *
  * @return true on a match, false otherwise.
  */
 bool bacnet_is_context_tag_number(
-    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length)
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length, 
+    uint32_t *len_value_type)
 {
     bool match = false;
     int len;
@@ -807,6 +810,9 @@ bool bacnet_is_context_tag_number(
         if (tag.context && (tag.number == tag_number)) {
             if (tag_length) {
                 *tag_length = len;
+            }
+            if (len_value_type) {
+                *len_value_type = tag.len_value_type;
             }
             match = true;
         }
