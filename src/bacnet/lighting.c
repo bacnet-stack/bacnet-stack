@@ -554,7 +554,7 @@ bool lighting_command_from_ascii(
     BACNET_LIGHTING_COMMAND *value, const char *argv)
 {
     bool status = false;
-    BACNET_LIGHTING_OPERATION operation;
+    BACNET_LIGHTING_OPERATION operation = BACNET_LIGHTS_NONE;
     unsigned a = 0;
     float b = 0.0, c = 0.0, d = 0.0;
     int count;
@@ -568,6 +568,8 @@ bool lighting_command_from_ascii(
     count = sscanf(argv, "%u,%f,%f,%f", &a, &b, &c, &d);
     if (count >= 1) {
         operation = a;
+    } else {
+        return false;
     }
     switch (operation) {
         case BACNET_LIGHTS_NONE:
