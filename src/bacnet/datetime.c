@@ -1262,7 +1262,7 @@ bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii)
 bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii)
 {
     bool status = false;
-    int year, month, day, wday;
+    int year, month, day;
     int hour = 0, min = 0, sec = 0, hundredths = 0;
     int count = 0;
 
