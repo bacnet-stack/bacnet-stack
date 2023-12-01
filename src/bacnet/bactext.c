@@ -1750,6 +1750,12 @@ const char *bactext_lighting_operation_name(unsigned index)
     }
 }
 
+bool bactext_bactext_lighting_operation_strtol(const char *search_name, unsigned *found_index)
+{
+    return bactext_strtol_index(
+        bacnet_lighting_operation_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_color_operation_names[] = { { BACNET_COLOR_OPERATION_NONE,
                                                     "none" },
     { BACNET_COLOR_OPERATION_FADE_TO_COLOR, "fade-to-color" },

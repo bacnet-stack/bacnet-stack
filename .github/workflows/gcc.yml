@@ -191,9 +191,9 @@ jobs:
     - name: ports-avr
       run: |
         avr-gcc --version
-        make atmega168
-        make bdk-atxx4-mstp
-        make xplained
+        make LEGACY=true atmega168
+        make LEGACY=true bdk-atxx4-mstp
+        make LEGACY=true xplained
 
   ports-lwip:
     runs-on: ubuntu-latest

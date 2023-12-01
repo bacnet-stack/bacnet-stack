@@ -148,6 +148,20 @@ int bacnet_device_object_reference_context_decode(uint8_t *apdu,
     uint8_t tag_number,
     BACNET_DEVICE_OBJECT_REFERENCE *value);
 
+BACNET_STACK_EXPORT
+bool bacnet_device_object_property_reference_same(
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value1, 
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value2);
+
+BACNET_STACK_EXPORT
+bool bacnet_device_object_reference_same(
+    BACNET_DEVICE_OBJECT_REFERENCE *value1, 
+    BACNET_DEVICE_OBJECT_REFERENCE *value2);
+
+BACNET_STACK_EXPORT
+bool bacnet_object_property_reference_same(
+    BACNET_OBJECT_PROPERTY_REFERENCE *value1, 
+    BACNET_OBJECT_PROPERTY_REFERENCE *value2);
 
 #ifdef __cplusplus
 }

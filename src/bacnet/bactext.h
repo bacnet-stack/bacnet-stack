@@ -201,6 +201,11 @@ extern "C" {
         unsigned index);
 
     BACNET_STACK_EXPORT
+    bool bactext_bactext_lighting_operation_strtol(
+        const char *search_name, 
+        unsigned *found_index);
+
+    BACNET_STACK_EXPORT
 	const char *bactext_lighting_in_progress(
 		unsigned index);
 

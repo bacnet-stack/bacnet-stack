@@ -105,9 +105,49 @@ void bacapp_timestamp_copy(BACNET_TIMESTAMP *dest, BACNET_TIMESTAMP *src)
     }
 }
 
-/** 
+/**
+ * @brief Compare two complex data values
+ * @param value1 - complex data value 1 structure
+ * @param value2 - complex data value 2 structure
+ * @return true if the two complex data values are the same
+ */
+bool bacapp_timestamp_same(BACNET_TIMESTAMP *value1, BACNET_TIMESTAMP *value2)
+{
+    bool status = false;
+
+    if (value1 && value2) {
+        if (value1->tag == value2->tag) {
+            switch (value1->tag) {
+                case TIME_STAMP_TIME:
+                    if (datetime_compare_time(
+                            &value1->value.time, &value2->value.time) == 0) {
+                        status = true;
+                    }
+                    break;
+                case TIME_STAMP_SEQUENCE:
+                    if (value1->value.sequenceNum ==
+                        value2->value.sequenceNum) {
+                        status = true;
+                    }
+                    break;
+                case TIME_STAMP_DATETIME:
+                    if (datetime_compare(&value1->value.dateTime,
+                            &value2->value.dateTime) == 0) {
+                        status = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
  * @brief Encode a time stamp.
- *  
+ *
  *  BACnetTimeStamp ::= CHOICE {
  *      time [0] Time, -- deprecated in version 1 revision 21
  *      sequence-number [1] Unsigned (0..65535),
@@ -186,7 +226,7 @@ int bacapp_encode_context_timestamp(
 
 /**
  * @brief Decode a time stamp from the given buffer.
- *  
+ *
  *  BACnetTimeStamp ::= CHOICE {
  *      time [0] Time, -- deprecated in version 1 revision 21
  *      sequence-number [1] Unsigned (0..65535),
@@ -224,8 +264,8 @@ int bacnet_timestamp_decode(
             if (value) {
                 btime = &value->value.time;
             }
-            len = bacnet_time_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, tag.number, btime);
+            len = bacnet_time_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, tag.number, btime);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
@@ -251,8 +291,8 @@ int bacnet_timestamp_decode(
             if (value) {
                 bdatetime = &value->value.dateTime;
             }
-            len = bacnet_datetime_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, tag.number, bdatetime);
+            len = bacnet_datetime_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, tag.number, bdatetime);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
@@ -278,7 +318,7 @@ int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
     return bacnet_timestamp_decode(apdu, MAX_APDU, value);
 }
 
-/** 
+/**
  * @brief Decode a time stamp and check for opening and closing tags.
  * @param apdu  Pointer to the APDU buffer.
  * @param apdu_size - the APDU buffer length
@@ -315,7 +355,7 @@ int bacnet_timestamp_context_decode(uint8_t *apdu,
     return apdu_len;
 }
 
-/** 
+/**
  * @brief Decode a time stamp and check for opening and closing tags.
  * @param apdu  Pointer to the APDU buffer.
  * @param tag_number  The tag number that shall

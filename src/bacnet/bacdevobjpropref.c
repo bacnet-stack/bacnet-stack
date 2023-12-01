@@ -166,6 +166,7 @@ int bacnet_device_object_property_reference_decode(uint8_t *apdu,
 {
     int apdu_len = 0;
     int len = 0;
+    uint32_t len_value_type = 0;
     BACNET_UNSIGNED_INTEGER array_index = 0;
     BACNET_OBJECT_TYPE object_type = 0;
     uint32_t object_instance = 0;
@@ -199,9 +200,10 @@ int bacnet_device_object_property_reference_decode(uint8_t *apdu,
     }
     /* property-array-index [2] Unsigned OPTIONAL */
     if (bacnet_is_context_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 2, NULL)) {
-        len = bacnet_unsigned_context_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, 2, &array_index);
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &len, &len_value_type)) {
+        apdu_len += len;
+        len = bacnet_unsigned_decode(&apdu[apdu_len], apdu_size - apdu_len,
+            len_value_type, &array_index);
         if (len > 0) {
             apdu_len += len;
             if (value) {
@@ -218,9 +220,10 @@ int bacnet_device_object_property_reference_decode(uint8_t *apdu,
     }
     /* device-identifier [3] BACnetObjectIdentifier OPTIONAL */
     if (bacnet_is_context_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 3, NULL)) {
-        len = bacnet_object_id_context_decode(&apdu[apdu_len],
-            apdu_size - apdu_len, 3, &object_type, &object_instance);
+            &apdu[apdu_len], apdu_size - apdu_len, 3, &len, &len_value_type)) {
+        apdu_len += len;
+        len = bacnet_object_id_decode(&apdu[apdu_len], apdu_size - apdu_len,
+            len_value_type, &object_type, &object_instance);
         if (len > 0) {
             apdu_len += len;
             if (value) {
@@ -284,6 +287,34 @@ int bacnet_device_object_property_reference_context_decode(uint8_t *apdu,
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Compare the complex data of value1 and value2
+ * @param value1 - value 1 structure
+ * @param value2 - value 2 structure
+ * @return true if the values are the same
+ */
+bool bacnet_device_object_property_reference_same(
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value1,
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value2)
+{
+    bool status = false;
+
+    if (value1 && value2) {
+        if ((value1->arrayIndex == value2->arrayIndex) &&
+            (value1->deviceIdentifier.instance ==
+                value2->deviceIdentifier.instance) &&
+            (value1->deviceIdentifier.type == value2->deviceIdentifier.type) &&
+            (value1->objectIdentifier.instance ==
+                value2->objectIdentifier.instance) &&
+            (value1->objectIdentifier.type == value2->objectIdentifier.type) &&
+            (value1->propertyIdentifier == value2->propertyIdentifier)) {
+            status = true;
+        }
+    }
+
+    return status;
 }
 
 /**
@@ -433,6 +464,7 @@ int bacnet_device_object_reference_decode(
 {
     int len;
     int apdu_len = 0;
+    uint32_t len_value_type = 0;
     BACNET_OBJECT_TYPE object_type = 0;
     uint32_t object_instance = 0;
 
@@ -441,9 +473,10 @@ int bacnet_device_object_reference_decode(
     }
     /* device-identifier [0] BACnetObjectIdentifier OPTIONAL */
     if (bacnet_is_context_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 0, NULL)) {
-        len = bacnet_object_id_context_decode(&apdu[apdu_len],
-            apdu_size - apdu_len, 0, &object_type, &object_instance);
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &len, &len_value_type)) {
+        apdu_len += len;
+        len = bacnet_object_id_decode(&apdu[apdu_len], apdu_size - apdu_len,
+            len_value_type, &object_type, &object_instance);
         if (len > 0) {
             apdu_len += len;
             if (value) {
@@ -517,6 +550,31 @@ int bacnet_device_object_reference_context_decode(uint8_t *apdu,
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Compare the complex data of value1 and value2
+ * @param value1 - value 1 structure
+ * @param value2 - value 2 structure
+ * @return true if the values are the same
+ */
+bool bacnet_device_object_reference_same(BACNET_DEVICE_OBJECT_REFERENCE *value1,
+    BACNET_DEVICE_OBJECT_REFERENCE *value2)
+{
+    bool status = false;
+
+    if (value1 && value2) {
+        if ((value1->deviceIdentifier.instance ==
+                value2->deviceIdentifier.instance) &&
+            (value1->deviceIdentifier.type == value2->deviceIdentifier.type) &&
+            (value1->objectIdentifier.instance ==
+                value2->objectIdentifier.instance) &&
+            (value1->objectIdentifier.type == value2->objectIdentifier.type)) {
+            status = true;
+        }
+    }
+
+    return status;
 }
 
 /**
@@ -757,4 +815,29 @@ int bacapp_decode_context_obj_property_ref(uint8_t *apdu,
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Compare the complex data of value1 and value2
+ * @param value1 - value 1 structure
+ * @param value2 - value 2 structure
+ * @return true if the values are the same
+ */
+bool bacnet_object_property_reference_same(
+    BACNET_OBJECT_PROPERTY_REFERENCE *value1,
+    BACNET_OBJECT_PROPERTY_REFERENCE *value2)
+{
+    bool status = false;
+
+    if (value1 && value2) {
+        if ((value1->property_identifier == value2->property_identifier) &&
+            (value1->object_identifier.instance ==
+                value2->object_identifier.instance) &&
+            (value1->object_identifier.type ==
+                value2->object_identifier.type)) {
+            status = true;
+        }
+    }
+
+    return status;
 }
