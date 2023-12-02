@@ -15,7 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#define __USE_ISOC99
 #include <math.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacreal.h"
