@@ -214,7 +214,7 @@ extern "C" {
     void Analog_Value_Init(
         void);
     BACNET_STACK_EXPORT
-    bool Analog_Value_Init_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
+    bool Analog_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 
 #ifdef __cplusplus
 }
