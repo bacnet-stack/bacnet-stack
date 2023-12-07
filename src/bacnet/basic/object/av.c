@@ -204,12 +204,10 @@ bool Analog_Value_Valid_Instance(uint32_t object_instance)
 
     for (instance = 0; instance < MAX_ANALOG_VALUES; instance++) {
         if (AV_Descr[instance].Object_Instance == object_instance) {
-            PRINT(" %u: is TRUE @ %u", object_instance, instance);
             return true;
         }
     }
 
-    PRINT(" %u: is FALSE", object_instance);
     return false;
 }
 
@@ -220,7 +218,6 @@ bool Analog_Value_Valid_Instance(uint32_t object_instance)
  */
 unsigned Analog_Value_Count(void)
 {
-    PRINT(" ");
     //NMC4 TODO: we could modify this to only return number of values that we actually set.
     return MAX_ANALOG_VALUES;
 }
@@ -238,7 +235,6 @@ uint32_t Analog_Value_Index_To_Instance(unsigned index)
 
     if (index < MAX_ANALOG_VALUES) {
         instance = AV_Descr[index].Object_Instance;
-        PRINT("instance = %u", instance);
         return instance;
     }
     else {
