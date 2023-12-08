@@ -270,7 +270,6 @@ uint32_t Device_Index_To_Instance(unsigned index)
  */
 uint32_t Device_Object_Instance_Number(void)
 {
-    printf("%s:%d: Device Object %d\r\n", __FILE__, __LINE__, (int)Object_Instance_Number);
 #ifdef BAC_ROUTING
     return Routed_Device_Object_Instance_Number();
 #else
@@ -280,7 +279,6 @@ uint32_t Device_Object_Instance_Number(void)
 
 bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
-    printf("%s:%d: Device_Set_Object_Instance_Number()\r\n", __FILE__, __LINE__);
     bool status = true; /* return value */
 
     if (object_id <= BACNET_MAX_INSTANCE) {
@@ -1055,7 +1053,6 @@ void Device_Init(object_functions_t *object_table)
 {
     struct object_functions *pObject = NULL;
 
-    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     characterstring_init_ansi(&My_Object_Name, "SimpleClient");
     datetime_init();
     /* we don't use the object table passed in */
