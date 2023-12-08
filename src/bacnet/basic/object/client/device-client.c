@@ -28,7 +28,6 @@
  * Device-specific properties.  This Device instance is designed to
  * meet minimal functionality for simple clients. */
 
-#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h> /* for memmove */
