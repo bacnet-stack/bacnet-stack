@@ -202,6 +202,9 @@ bool Analog_Value_Valid_Instance(uint32_t object_instance)
  */
 unsigned Analog_Value_Count(void)
 {
+   /* NMC4 TODO: we could modify this to only return number of values that we actually set.
+    * We want to report only the analog values that are in use for the patricular app.
+    */
     return MAX_ANALOG_VALUES;
 }
 
