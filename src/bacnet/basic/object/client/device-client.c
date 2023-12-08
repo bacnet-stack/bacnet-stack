@@ -458,7 +458,6 @@ const char *Device_Description(void)
 bool Device_Set_Description(const char *name, size_t length)
 {
     bool status = false; /*return value */
-    PRINT("");
 
     if (length < sizeof(Description)) {
         memmove(Description, name, length);
@@ -1059,7 +1058,6 @@ void Device_Init(object_functions_t *object_table)
     pObject = &Object_Table[0];
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {
-            // change NULL to pass in the init data array for each object type
             pObject->Object_Init();
         }
         pObject++;
