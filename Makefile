@@ -322,6 +322,40 @@ SPELL_OPTIONS = --enable-colors --ignore-words-list $(IGNORE_WORDS)
 spell:
 	codespell $(SPELL_OPTIONS) ./src
 
+# McCabe's Cyclomatic Complexity Scores
+# sudo apt install pmccable
+COMPLEXITY_SRC = \
+	$(wildcard ./src/bacnet/*.c) \
+	$(wildcard ./src/bacnet/basic/*.c) \
+	$(wildcard ./src/bacnet/basic/binding/*.c) \
+	$(wildcard ./src/bacnet/basic/service/*.c) \
+	$(wildcard ./src/bacnet/basic/sys/*.c) \
+	./src/bacnet/basic/npdu/h_npdu.c \
+	./src/bacnet/basic/npdu/s_router.c \
+	./src/bacnet/basic/tsm/tsm.c
+
+.PHONY: pmccabe
+pmccabe:
+	pmccabe $(COMPLEXITY_SRC) | awk '{print $$2,$$6,$$7}' | sort -nr | head -20
+
+# sudo apt install complexity
+#  0-9 Easily maintained code.
+# 10-19 Maintained with little trouble.
+# 20-29 Maintained with some effort.
+# 30-39 Difficult to maintain code.
+# 40-49 Hard to maintain code.
+# 50-99 Unmaintainable code.
+# 100-199 Crazy making difficult code.
+# 200+ I only wish I were kidding.
+.PHONY: complexity
+complexity:
+	complexity $(COMPLEXITY_SRC)
+
+# sudo apt install sloccount
+.PHONY: sloccount
+sloccount:
+	sloccount .
+
 .PHONY: clean
 clean: ports-clean
 	$(MAKE) -s -C src clean
