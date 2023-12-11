@@ -128,9 +128,55 @@ void Analog_Value_Init(void)
 }
 
 /**
- * We simply have 0-n object instances. Yours might be
- * more complex, and then you need validate that the
- * given instance exists.
+ * Initialize the analog values. Returns false if there are errors.
+ *
+ * @param pInit_data pointer to initialisation values
+ *
+ * @return true/false
+ */
+bool Analog_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
+{
+  unsigned i;
+
+  if (!pInit_data) {
+    return false;
+  }
+
+  if (pInit_data->length > MAX_ANALOG_VALUES) {
+    return false;
+  }
+
+  for (i = 0; i < pInit_data->length; i++) {
+    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+      AV_Descr[i].Object_Instance = pInit_data->Object_Init_Values[i].Object_Instance;
+    } else {
+      PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+      return false;
+    }
+
+    if (!characterstring_init_ansi(&AV_Descr[i].Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+      PRINT("Fail to set Object name to \"%s\"", pInit_data->Object_Init_Values[i].Object_Name);
+      return false;
+    }
+
+    if (!characterstring_init_ansi(&AV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
+      PRINT("Fail to set Object description to \"%s\"", pInit_data->Object_Init_Values[i].Description);
+      return false;
+    }
+
+    if (pInit_data->Object_Init_Values[i].Units <= UNITS_PROPRIETARY_RANGE_MAX2) {
+      AV_Descr[i].Units = pInit_data->Object_Init_Values[i].Units;
+    } else {
+      PRINT("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Validate whether the given instance exists in our table.
  *
  * @param object_instance Object instance
  *
@@ -138,8 +184,12 @@ void Analog_Value_Init(void)
  */
 bool Analog_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ANALOG_VALUES) {
-        return true;
+    unsigned int instance;
+
+    for (instance = 0; instance < MAX_ANALOG_VALUES; instance++) {
+        if (AV_Descr[instance].Object_Instance == object_instance) {
+            return true;
+        }
     }
 
     return false;
@@ -152,13 +202,14 @@ bool Analog_Value_Valid_Instance(uint32_t object_instance)
  */
 unsigned Analog_Value_Count(void)
 {
+   /* NMC4 TODO: we could modify this to only return number of values that we actually set.
+    * We want to report only the analog values that are in use for the patricular app.
+    */
     return MAX_ANALOG_VALUES;
 }
 
 /**
- * We simply have 0-n object instances.  Yours might be
- * more complex, and then you need to return the instance
- * that correlates to the correct index.
+ * Return the instance that correlates to the correct index.
  *
  * @param index Index
  *
@@ -166,13 +217,20 @@ unsigned Analog_Value_Count(void)
  */
 uint32_t Analog_Value_Index_To_Instance(unsigned index)
 {
-    return index;
+    unsigned int instance;
+
+    if (index < MAX_ANALOG_VALUES) {
+        instance = AV_Descr[index].Object_Instance;
+        return instance;
+    }
+    else {
+        PRINT("index out of bounds");
+        return 0;
+    }
 }
 
 /**
- * We simply have 0-n object instances.  Yours might be
- * more complex, and then you need to return the index
- * that correlates to the correct instance number
+ * Return the index that correlates to the correct instance.
  *
  * @param object_instance Object instance
  *
@@ -180,10 +238,14 @@ uint32_t Analog_Value_Index_To_Instance(unsigned index)
  */
 unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_ANALOG_VALUES;
+    unsigned index = 0;
+    unsigned int instance;
 
-    if (object_instance < MAX_ANALOG_VALUES) {
-        index = object_instance;
+    for (instance = 0; instance < MAX_ANALOG_VALUES; instance++) {
+        if (AV_Descr[instance].Object_Instance == object_instance) {
+            index = instance;
+            break;
+        }
     }
 
     return index;
@@ -270,23 +332,57 @@ float Analog_Value_Present_Value(uint32_t object_instance)
 /**
  * For a given object instance-number, return the name.
  *
- * Note: the object name must be unique within this device
+ * Note: the object name must be unique within this device.
  *
  * @param  object_instance - object-instance number of the object
- * @param  object_name - object name/string pointer
+ * @param  object_name - object name pointer
  *
  * @return  true/false
  */
 bool Analog_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
+    unsigned index = 0;
 
-    if (object_instance < MAX_ANALOG_VALUES) {
-        sprintf(
-            text_string, "ANALOG VALUE %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+    if (!object_name) {
+        return false;
+    }
+
+    index = Analog_Value_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_VALUES) {
+        *object_name = AV_Descr[index].Object_Name;
+        status = true;
+    }
+
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, return the description.
+ *
+ * Note: the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  description - description pointer
+ *
+ * @return  true/false
+ */
+bool Analog_Value_Description(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    if (!description) {
+        return false;
+    }
+
+    index = Analog_Value_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_VALUES) {
+        *description = AV_Descr[index].Description;
+        status = true;
     }
 
     return status;
@@ -468,7 +564,7 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
-    BACNET_CHARACTER_STRING char_string;
+    BACNET_CHARACTER_STRING char_string = {0, };
     float real_value = (float)1.414;
     unsigned object_index = 0;
     bool state = false;
@@ -506,8 +602,15 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             if (Analog_Value_Object_Name(
+                    rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
+            break;
+
+        case PROP_DESCRIPTION:
+            if (Analog_Value_Description(
                     rpdata->object_instance, &char_string)) {
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);

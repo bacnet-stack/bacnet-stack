@@ -30,6 +30,12 @@
 #include "bacnet/bacint.h"
 #include "bacnet/config.h"
 
+#ifdef DEBUG_PRINT
+#define PRINT(...) do {printf("%s:%d::%s(): ", __FILE__, __LINE__, __func__); printf(__VA_ARGS__); printf("\r\n");} while(0)
+#else
+#define PRINT(...)
+#endif
+
 #if defined(_MSC_VER)
 /* Silence the warnings about unsafe versions of library functions */
 /* as we need to keep the code portable */
@@ -130,6 +136,8 @@
 /* largest BACnet Instance Number */
 /* Also used as a device instance number wildcard address */
 #define BACNET_MAX_INSTANCE (0x3FFFFF)
+// based on 169 alarms currently in App Charlie
+#define BACNET_MAX_SUPPORTED_INSTANCES 200
 #define BACNET_INSTANCE_BITS 22
 /* large BACnet Object Type */
 #define BACNET_MAX_OBJECT (0x3FF)
@@ -186,6 +194,24 @@ typedef struct BACnet_Object_Id {
     BACNET_OBJECT_TYPE type;
     uint32_t instance;
 } BACNET_OBJECT_ID;
+
+/* This Struct is for initialisation info coming from Elixir 
+*/
+typedef struct BACnet_Object_Init_s {
+    // Instance works as an index to the object within the type, the type number is not included in this value.
+    uint32_t Object_Instance;
+    //BACNET_CHARACTER_STRING Object_Name;
+    char Object_Name[MAX_CHARACTER_STRING_BYTES]; // the init values are always gonna be english ascii
+    //BACNET_CHARACTER_STRING Description;
+    char Description[MAX_CHARACTER_STRING_BYTES];
+    //BACNET_ENGINEERING_UNITS unit;
+    uint16_t Units;
+} BACNET_OBJECT_INIT_T;
+
+typedef struct BACnet_Object_List_Init_s {
+    uint32_t length; // must be less than BACNET_MAX_SUPPORTED_INSTANCES
+    BACNET_OBJECT_INIT_T Object_Init_Values[BACNET_MAX_SUPPORTED_INSTANCES];
+} BACNET_OBJECT_LIST_INIT_T;
 
 #define MAX_NPDU (1+1+2+1+MAX_MAC_LEN+2+1+MAX_MAC_LEN+1+1+2)
 #define MAX_PDU (MAX_APDU + MAX_NPDU)

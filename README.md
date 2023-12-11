@@ -1,3 +1,11 @@
+# NMC4 Desktop build
+
+Add this to install into your local toolchain dir as sudo:
+set (CMAKE_INSTALL_PREFIX "/opt/poky/rzn1/sysroots/x86_64-pokysdk-linux/usr/")
+
+Add DEBUG_PRINT compile flag to compile_options to print out debug messages, e.g.:
+add_compile_options(-DDEBUG_PRINT -DMAX_ANALOG_VALUES=32 -DMAX_ANALOG_INPUTS=32)
+
 # BACnet Stack 
 
 BACnet open source protocol stack for embedded systems, Linux, and Windows
