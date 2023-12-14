@@ -37,8 +37,10 @@
 #include <string.h>
 #include <stdio.h>
 #include "bacnet/config.h"
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacint.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bacaddr.h"
 
 /** @file bacaddr.c  BACnet Address structure utilities */
@@ -260,3 +262,178 @@ bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
     return status;
 }
 
+/**
+ * @brief Decodes a BACnetAddress value from APDU buffer
+ *  From clause 21. FORMAL DESCRIPTION OF APPLICATION PROTOCOL DATA UNITS
+ *
+ *  BACnetAddress ::= SEQUENCE {
+ *      network-number Unsigned16, -- A value of 0 indicates the local network
+ *      mac-address OCTET STRING -- A string of length 0 indicates a broadcast
+ *  }
+ *
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - decoded value, if decoded (if not NULL)
+ *
+ * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
+ */
+int bacnet_address_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_ADDRESS *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+    uint8_t i = 0;
+    BACNET_UNSIGNED_INTEGER decoded_unsigned = 0;
+    BACNET_OCTET_STRING mac_addr = { 0 };
+
+    /* network number */
+    len = bacnet_unsigned_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &decoded_unsigned);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (decoded_unsigned <= UINT16_MAX) {
+        /* bounds checking - passed! */
+        if (value) {
+            value->net = (uint16_t)decoded_unsigned;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    /* mac address as an octet-string */
+    len = bacnet_octet_string_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &mac_addr);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        if (mac_addr.length > sizeof(value->mac)) {
+            return BACNET_STATUS_ERROR;
+        }
+        /* bounds checking - passed! */
+        value->mac_len = mac_addr.length;
+        /* copy address */
+        for (i = 0; i < value->mac_len; i++) {
+            value->mac[i] = mac_addr.value[i];
+        }
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes a context tagged BACnetAddress value from APDU buffer
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param tag_number - context tag number to be encoded
+ * @param value - parameter to store the value after decoding
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ */
+int bacnet_address_context_decode(uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_ADDRESS *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len = bacnet_address_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * Encode a BACnetAddress and returns the number of apdu bytes consumed.
+ *
+ * @param apdu - buffer to hold encoded data, or NULL for length
+ * @param destination  Pointer to the destination address to be encoded.
+ *
+ * @return number of apdu bytes created
+ */
+int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
+{
+    int apdu_len = 0;
+    BACNET_OCTET_STRING mac_addr;
+
+    if (destination) {
+        /* network number */
+        apdu_len += encode_application_unsigned(apdu, destination->net);
+        /* encode mac address as an octet-string */
+        if (destination->len != 0) {
+            octetstring_init(&mac_addr, destination->adr, destination->len);
+        } else {
+            octetstring_init(&mac_addr, destination->mac, destination->mac_len);
+        }
+        if (apdu) {
+            apdu += apdu_len;
+        }
+        apdu_len += encode_application_octet_string(apdu, &mac_addr);
+    }
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a BACnetAddress and returns the number of apdu bytes consumed.
+ * @param apdu  Receive buffer
+ * @param value - parameter to store the value after decoding
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ * @deprecated use bacnet_address_decode() instead
+ */
+int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *value)
+{
+    return bacnet_address_decode(apdu, MAX_APDU, value);
+}
+
+/**
+ * @brief Encode a context encoded BACnetAddress
+ * @param apdu - buffer to hold encoded data, or NULL for length
+ * @param destination  Pointer to the destination address to be encoded.
+ * @return number of apdu bytes created
+ */
+int encode_context_bacnet_address(
+    uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *destination)
+{
+    int len = 0;
+    uint8_t *apdu_offset = NULL;
+
+    len += encode_opening_tag(apdu, tag_number);
+    if (apdu) {
+        apdu_offset = &apdu[len];
+    }
+    len += encode_bacnet_address(apdu_offset, destination);
+    if (apdu) {
+        apdu_offset = &apdu[len];
+    }
+    len += encode_closing_tag(apdu_offset, tag_number);
+    return len;
+}
+
+/*
+ * @brief Decodes a context tagged BACnetAddress value from APDU buffer
+ * @param apdu - the APDU buffer
+ * @param tag_number - context tag number to be encoded
+ * @param value - parameter to store the value after decoding
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ * @deprecated use bacnet_address_context_decode() instead
+ */
+int decode_context_bacnet_address(
+    uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *value)
+{
+    return bacnet_address_context_decode(apdu, MAX_APDU, tag_number, value);
+}

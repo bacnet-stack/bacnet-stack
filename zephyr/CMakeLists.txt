@@ -223,6 +223,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/sys/key.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/keylist.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/keylist.h
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/linear.c
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/linear.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/mstimer.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/mstimer.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/ringbuf.c

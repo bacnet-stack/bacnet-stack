@@ -1074,6 +1074,7 @@ INDTEXT_DATA bacnet_reject_reason_names[] = { { REJECT_REASON_OTHER, "Other" },
     { REJECT_REASON_TOO_MANY_ARGUMENTS, "Too Many Arguments" },
     { REJECT_REASON_UNDEFINED_ENUMERATION, "Undefined Enumeration" },
     { REJECT_REASON_UNRECOGNIZED_SERVICE, "Unrecognized Service" },
+    { REJECT_REASON_INVALID_DATA_ENCODING, "invalid-data-encoding" },
     { REJECT_REASON_PROPRIETARY_FIRST, "Proprietary" }, { 0, NULL } };
 
 const char *bactext_reject_reason_name(unsigned index)
@@ -1091,6 +1092,12 @@ INDTEXT_DATA bacnet_abort_reason_names[] = { { ABORT_REASON_OTHER, "Other" },
     { ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, "Segmentation Not Supported" },
     { ABORT_REASON_SECURITY_ERROR, "Security Error" },
     { ABORT_REASON_INSUFFICIENT_SECURITY, "Insufficient Security" },
+    { ABORT_REASON_WINDOW_SIZE_OUT_OF_RANGE, "window-size-out-of-range" },
+    { ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME,
+        "application-exceeded-reply-time" },
+    { ABORT_REASON_OUT_OF_RESOURCES, "out-of-resources" },
+    { ABORT_REASON_TSM_TIMEOUT, "tsm-timeout" },
+    { ABORT_REASON_APDU_TOO_LONG, "apdu-too-long" },
     { ABORT_REASON_PROPRIETARY_FIRST, "Proprietary" }, { 0, NULL } };
 
 const char *bactext_abort_reason_name(unsigned index)
@@ -1104,7 +1111,8 @@ INDTEXT_DATA bacnet_error_class_names[] = { { ERROR_CLASS_DEVICE, "device" },
     { ERROR_CLASS_OBJECT, "object" }, { ERROR_CLASS_PROPERTY, "property" },
     { ERROR_CLASS_RESOURCES, "resources" },
     { ERROR_CLASS_SECURITY, "security" }, { ERROR_CLASS_SERVICES, "services" },
-    { ERROR_CLASS_VT, "vt" }, { 0, NULL } };
+    { ERROR_CLASS_VT, "vt" }, { ERROR_CLASS_COMMUNICATION, "communication" },
+    { 0, NULL } };
 
 const char *bactext_error_class_name(unsigned index)
 {
@@ -1681,14 +1689,14 @@ const char *bactext_life_safety_state_name(unsigned index)
         return indtext_by_index_default(
             life_safety_state_names, index, ASHRAE_Reserved_String);
     } else {
-        return "Invalid Safety State Message";
+        return "Invalid BACnetLifeSafetyState";
     }
 }
 
 INDTEXT_DATA lighting_in_progress[] = { { BACNET_LIGHTING_IDLE, "idle" },
     { BACNET_LIGHTING_FADE_ACTIVE, "fade" },
     { BACNET_LIGHTING_RAMP_ACTIVE, "ramp" },
-    { BACNET_LIGHTING_NOT_CONTROLLED, "not" },
+    { BACNET_LIGHTING_NOT_CONTROLLED, "not-controlled" },
     { BACNET_LIGHTING_OTHER, "other" },
     { BACNET_LIGHTING_TRIM_ACTIVE, "trim-active" }, { 0, NULL } };
 
@@ -1698,22 +1706,24 @@ const char *bactext_lighting_in_progress(unsigned index)
         return indtext_by_index_default(
             lighting_in_progress, index, ASHRAE_Reserved_String);
     } else {
-        return "Invalid Lighting In Progress Message";
+        return "Invalid BACnetLightingInProgress";
     }
 }
 
-INDTEXT_DATA lighting_transition[] = { { BACNET_LIGHTING_TRANSITION_IDLE,
-                                           "idle" },
+INDTEXT_DATA lighting_transition[] = {
+    { BACNET_LIGHTING_TRANSITION_NONE, "none" },
     { BACNET_LIGHTING_TRANSITION_FADE, "fade" },
     { BACNET_LIGHTING_TRANSITION_RAMP, "ramp" }, { 0, NULL } };
 
 const char *bactext_lighting_transition(unsigned index)
 {
-    if (index < MAX_BACNET_LIGHTING_TRANSITION) {
+    if (index < BACNET_LIGHTING_TRANSITION_PROPRIETARY_FIRST) {
         return indtext_by_index_default(
             lighting_transition, index, ASHRAE_Reserved_String);
+    } else if (index <= BACNET_LIGHTING_TRANSITION_PROPRIETARY_LAST) {
+        return Vendor_Proprietary_String;
     } else {
-        return "Invalid Lighting Transition Message";
+        return "Invalid BACnetLightingTransition";
     }
 }
 
@@ -1738,6 +1748,12 @@ const char *bactext_lighting_operation_name(unsigned index)
     } else {
         return "Invalid BACnetLightingOperation";
     }
+}
+
+bool bactext_bactext_lighting_operation_strtol(const char *search_name, unsigned *found_index)
+{
+    return bactext_strtol_index(
+        bacnet_lighting_operation_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_color_operation_names[] = { { BACNET_COLOR_OPERATION_NONE,

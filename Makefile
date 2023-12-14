@@ -33,6 +33,14 @@ bip6-win32:
 bip6:
 	$(MAKE) BACDL=bip6 -s -C apps all
 
+.PHONY: bip
+bip:
+	$(MAKE) BACDL=bip -s -C apps all
+
+.PHONY: bip-client
+bip-client:
+	$(MAKE) BACDL=bip BBMD=client -s -C apps all
+
 .PHONY: ethernet
 ethernet:
 	$(MAKE) BACDL=ethernet -s -C apps all
@@ -69,6 +77,10 @@ ack-alarm:
 add-list-element:
 	$(MAKE) -s -C apps $@
 
+.PHONY: blinkt
+blinkt:
+	$(MAKE) -s -C apps $@
+
 .PHONY: dcc
 dcc:
 	$(MAKE) -s -C apps $@
@@ -100,6 +112,10 @@ gateway:
 .PHONY: gateway-win32
 gateway-win32:
 	$(MAKE) BACNET_PORT=win32 -s -C apps gateway
+
+.PHONY: piface
+piface:
+	$(MAKE) CSTANDARD="-std=gnu11" LEGACY=true -s -C apps $@
 
 .PHONY: readbdt
 readbdt:
@@ -175,7 +191,8 @@ ports:	atmega168 bdk-atxx4-mstp at91sam7s stm32f10x stm32f4xx
 	@echo "Built the ARM7 and AVR ports"
 
 .PHONY: ports-clean
-ports-clean: atmega168-clean bdk-atxx4-mstp-clean at91sam7s-clean stm32f10x-clean stm32f4xx-clean
+ports-clean: atmega168-clean bdk-atxx4-mstp-clean at91sam7s-clean \
+ stm32f10x-clean stm32f4xx-clean xplained-clean
 
 .PHONY: atmega168
 atmega168: ports/atmega168/Makefile
@@ -217,6 +234,14 @@ stm32f4xx: ports/stm32f4xx/Makefile
 stm32f4xx-clean: ports/stm32f4xx/Makefile
 	$(MAKE) -s -C ports/stm32f4xx clean
 
+.PHONY: xplained
+xplained: ports/xplained/Makefile
+	$(MAKE) -s -C ports/xplained clean all
+
+.PHONY: xplained-clean
+xplained-clean: ports/xplained/Makefile
+	$(MAKE) -s -C ports/xplained clean
+
 .PHONY: mstpsnap
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
@@ -256,7 +281,7 @@ tidy:
 
 .PHONY: scan-build
 scan-build:
-	scan-build --status-bugs -analyze-headers make -j2 server
+	scan-build --status-bugs -analyze-headers make -j2 LEGACY=true server
 
 SPLINT_OPTIONS := -weak +posixlib +quiet \
 	-D__signed__=signed -D__gnuc_va_list=va_list \
@@ -296,6 +321,40 @@ SPELL_OPTIONS = --enable-colors --ignore-words-list $(IGNORE_WORDS)
 .PHONY: spell
 spell:
 	codespell $(SPELL_OPTIONS) ./src
+
+# McCabe's Cyclomatic Complexity Scores
+# sudo apt install pmccable
+COMPLEXITY_SRC = \
+	$(wildcard ./src/bacnet/*.c) \
+	$(wildcard ./src/bacnet/basic/*.c) \
+	$(wildcard ./src/bacnet/basic/binding/*.c) \
+	$(wildcard ./src/bacnet/basic/service/*.c) \
+	$(wildcard ./src/bacnet/basic/sys/*.c) \
+	./src/bacnet/basic/npdu/h_npdu.c \
+	./src/bacnet/basic/npdu/s_router.c \
+	./src/bacnet/basic/tsm/tsm.c
+
+.PHONY: pmccabe
+pmccabe:
+	pmccabe $(COMPLEXITY_SRC) | awk '{print $$2,$$6,$$7}' | sort -nr | head -20
+
+# sudo apt install complexity
+#  0-9 Easily maintained code.
+# 10-19 Maintained with little trouble.
+# 20-29 Maintained with some effort.
+# 30-39 Difficult to maintain code.
+# 40-49 Hard to maintain code.
+# 50-99 Unmaintainable code.
+# 100-199 Crazy making difficult code.
+# 200+ I only wish I were kidding.
+.PHONY: complexity
+complexity:
+	complexity $(COMPLEXITY_SRC)
+
+# sudo apt install sloccount
+.PHONY: sloccount
+sloccount:
+	sloccount .
 
 .PHONY: clean
 clean: ports-clean

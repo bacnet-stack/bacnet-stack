@@ -37,10 +37,11 @@
 #include <stddef.h>
 #include <string.h>
 #include "bacnet/bacdef.h"
+#include "bacnet/datalink/cobs.h"
+#include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
 #include "rs485.h"
-#include "bacnet/datalink/crc.h"
 #include "bacnet/npdu.h"
 #include "bacnet/bits.h"
 #include "bacnet/bytes.h"
@@ -363,6 +364,10 @@ static uint16_t MSTP_Create_Frame(uint8_t *buffer,
     uint16_t crc16 = 0xFFFF;
     /* used to load the data portion of the frame */
     uint16_t index = 0;
+    /* length of the COBS encoded frame */
+    uint16_t cobs_len;
+    /* true for COBS BACnet frames */
+    bool cobs_bacnet_frame = false;
 
     /* not enough to do a header */
     if (buffer_size < 8)
@@ -381,25 +386,58 @@ static uint16_t MSTP_Create_Frame(uint8_t *buffer,
     buffer[6] = data_len & 0xFF;
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
-
     index = 8;
-    while (data_len && data && (index < buffer_size)) {
-        buffer[index] = *data;
-        crc16 = CRC_Calc_Data(buffer[index], crc16);
-        data++;
-        index++;
-        data_len--;
-    }
-    /* append the data CRC if necessary */
-    if (index > 8) {
-        if ((index + 2) <= buffer_size) {
-            crc16 = ~crc16;
-            buffer[index] = crc16 & 0xFF; /* LSB first */
-            index++;
-            buffer[index] = crc16 >> 8;
-            index++;
-        } else
+
+    if ((data_len > 501) || ((frame_type >= Nmin_COBS_type) &&
+        (frame_type <= Nmax_COBS_type))) {
+        /* COBS encoded frame */
+        if (frame_type == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) {
+            frame_type = FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY;
+            cobs_bacnet_frame = true;
+        } else if (frame_type == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) {
+            frame_type = FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY;
+            cobs_bacnet_frame = true;
+        } else if ((frame_type < Nmin_COBS_type) ||
+            (frame_type > Nmax_COBS_type)) {
+            /* I'm sorry, Dave, I'm afraid I can't do that. */
             return 0;
+        }
+        cobs_len = cobs_frame_encode(buffer, buffer_size, data, data_len);
+        /* check the results of COBs encoding for validity */
+        if (cobs_bacnet_frame) {
+            if (cobs_len < Nmin_COBS_length_BACnet) {
+                return 0;
+            } else if (cobs_len > Nmax_COBS_length_BACnet) {
+                return 0;
+            }
+        } else {
+            if (cobs_len < Nmin_COBS_length) {
+                return 0;
+            } else if (cobs_len > Nmax_COBS_length) {
+                return 0;
+            }
+        }
+        /* for COBS, we must subtract two before use as the
+           MS/TP frame length field since CRC32 is 2 bytes longer
+           than CRC16 in original MSTP and non-COBS devices need
+           to be able to ingest the entire frame */
+        index = index + cobs_len - 2;
+    } else if (data_len > 0) {
+        while (data_len && data && (index < buffer_size)) {
+            buffer[index] = *data;
+            crc16 = CRC_Calc_Data(buffer[index], crc16);
+            data++;
+            index++;
+            data_len--;
+        }
+        if ((index + 2) > buffer_size) {
+            return 0;
+        }
+        crc16 = ~crc16;
+        buffer[index] = crc16 & 0xFF; /* LSB first */
+        index++;
+        buffer[index] = crc16 >> 8;
+        index++;
     }
 
     return index; /* returns the frame length */
@@ -653,13 +691,37 @@ static void MSTP_Receive_Frame_FSM(void)
                 } else if (Index == DataLength) {
                     /* CRC1 */
                     DataCRC = CRC_Calc_Data(DataRegister, DataCRC);
+                    if (Index < InputBufferSize) {
+                        InputBuffer[Index] = DataRegister;
+                    }
                     Index++;
                 } else if (Index == (DataLength + 1)) {
                     /* CRC2 */
                     DataCRC = CRC_Calc_Data(DataRegister, DataCRC);
-                    /* STATE DATA CRC - no need for new state */
-                    /* indicate the complete reception of a valid frame */
-                    if (DataCRC == 0xF0B8) {
+                    if (Index < InputBufferSize) {
+                        InputBuffer[Index] = DataRegister;
+                    }
+                    if ((FrameType >= Nmin_COBS_type) &&
+                        (FrameType <= Nmax_COBS_type)) {
+                        if (((Index+1) < InputBufferSize) &&
+                            cobs_frame_decode(
+                                &InputBuffer[Index + 1],
+                                InputBufferSize,
+                                InputBuffer, Index + 1)) {
+                            if (Receive_State ==
+                                MSTP_RECEIVE_STATE_DATA) {
+                                /* ForUs */
+                                MSTP_Flag.ReceivedValidFrame = true;
+                            } else {
+                                /* NotForUs */
+                                MSTP_Flag.ReceivedValidFrameNotForUs = true;
+                            }
+                        } else {
+                            MSTP_Flag.ReceivedInvalidFrame = true;
+                        }
+                    } else if (DataCRC == 0xF0B8) {
+                        /* STATE DATA CRC - no need for new state */
+                        /* indicate the complete reception of a valid frame */
                         if (Receive_State == MSTP_RECEIVE_STATE_DATA) {
                             /* ForUs */
                             MSTP_Flag.ReceivedValidFrame = true;
@@ -678,7 +740,6 @@ static void MSTP_Receive_Frame_FSM(void)
                             Frame_Rx_Callback(source, destination, frame,
                                 InputBuffer, DataLength);
                         }
-
                     } else {
                         MSTP_Flag.ReceivedInvalidFrame = true;
                     }
@@ -715,67 +776,63 @@ void log_master_state(MSTP_MASTER_STATE state)
 
 static void MSTP_Slave_Node_FSM(void)
 {
-    /* destination address */
-    uint8_t destination;
-    /* source address */
-    uint8_t source;
-    /* any data to be sent - may be null */
-    uint8_t *data;
-    /* amount of data to be sent - may be 0 */
-    uint16_t data_len;
-    /* packet from the PDU Queue */
-    struct dlmstp_packet *pkt;
-
-    if (MSTP_Flag.ReceivedInvalidFrame) {
+    Master_State = MSTP_MASTER_STATE_IDLE;
+    if (MSTP_Flag.ReceivedInvalidFrame == true) {
         /* ReceivedInvalidFrame */
         /* invalid frame was received */
         MSTP_Flag.ReceivedInvalidFrame = false;
     } else if (MSTP_Flag.ReceivedValidFrame) {
+        MSTP_Flag.ReceivedValidFrame = false;
         switch (FrameType) {
             case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
                 if (DestinationAddress != MSTP_BROADCAST_ADDRESS) {
-                    /* The ANSWER_DATA_REQUEST state is entered when a  */
-                    /* BACnet Data Expecting Reply, a Test_Request, or  */
-                    /* a proprietary frame that expects a reply is received. */
-                    pkt = (struct dlmstp_packet *)Ringbuf_Peek(&PDU_Queue);
-                    if (pkt != NULL) {
-                        MSTP_Send_Frame(pkt->frame_type, pkt->address.mac[0],
-                            This_Station, (uint8_t *)&pkt->pdu[0],
-                            pkt->pdu_len);
-                        Master_State = MSTP_MASTER_STATE_IDLE;
-                        /* clear our flag we were holding for comparison */
-                        MSTP_Flag.ReceivedValidFrame = false;
-                        /* clear the queue */
-                        (void)Ringbuf_Pop(&PDU_Queue, NULL);
-                    } else if (rs485_silence_elapsed(Treply_delay)) {
-                        /* If no reply will be available from the higher layers
-                           within Treply_delay after the reception of the final
-                           octet of the requesting frame (the mechanism used
-                           to determine this is a local matter), then no reply
-                           is possible. */
-                        MSTP_Flag.ReceivedValidFrame = false;
-                    }
-                } else {
-                    /* no reply when addressed as Broadcast */
-                    MSTP_Flag.ReceivedValidFrame = false;
+                    /* indicate successful reception to the higher layers  */
+                    MSTP_Flag.ReceivePacketPending = true;
                 }
                 break;
             case FRAME_TYPE_TEST_REQUEST:
-                MSTP_Flag.ReceivedValidFrame = false;
-                destination = SourceAddress;
-                source = This_Station;
-                data = &InputBuffer[0];
-                data_len = DataLength;
-                MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE, destination, source,
-                    data, data_len);
+                MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE, SourceAddress,
+                    This_Station, &InputBuffer[0], DataLength);
                 break;
             case FRAME_TYPE_TOKEN:
             case FRAME_TYPE_POLL_FOR_MASTER:
             case FRAME_TYPE_TEST_RESPONSE:
             case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
             default:
-                MSTP_Flag.ReceivedValidFrame = false;
                 break;
+        }
+    } else if (MSTP_Flag.ReceivePacketPending) {
+        if (!Ringbuf_Empty(&PDU_Queue)) {
+            /* packet from the PDU Queue */
+            struct dlmstp_packet *pkt;
+            /* did the frame in the queue match the last request? */
+            bool matched;
+
+            pkt = (struct dlmstp_packet *)Ringbuf_Peek(&PDU_Queue);
+            matched = dlmstp_compare_data_expecting_reply(&InputBuffer[0],
+                DataLength, SourceAddress, &pkt->pdu[0], pkt->pdu_len,
+                pkt->address.mac[0]);
+            if (matched) {
+                /* Reply */
+                /* If a reply is available from the higher layers  */
+                /* within Treply_delay after the reception of the  */
+                /* final octet of the requesting frame  */
+                /* (the mechanism used to determine this is a local matter), */
+                /* then call MSTP_Send_Frame to transmit the reply frame  */
+                /* and enter the IDLE state to wait for the next frame. */
+                MSTP_Send_Frame(pkt->frame_type, pkt->address.mac[0],
+                    This_Station, pkt->pdu, pkt->pdu_len);
+                (void)Ringbuf_Pop(&PDU_Queue, NULL);
+            }
+            /* clear our flag we were holding for comparison */
+            MSTP_Flag.ReceivePacketPending = false;
+        } else if ((rs485_silence_elapsed(Treply_delay))) {
+            /* If no reply will be available from the higher layers
+               within Treply_delay after the reception of the final octet
+               of the requesting frame (the mechanism used to determine
+               this is a local matter), then no reply is possible. */
+            /* clear our flag we were holding for comparison */
+            MSTP_Flag.ReceivePacketPending = false;
         }
     }
 }
@@ -1450,7 +1507,10 @@ uint16_t dlmstp_receive(
     }
     /* if there is a packet that needs processed, do it now. */
     if (MSTP_Flag.ReceivePacketPending) {
-        MSTP_Flag.ReceivePacketPending = false;
+        if (This_Station <= 127) {
+            /* master nodes clear immediately */
+            MSTP_Flag.ReceivePacketPending = false;
+        }
         Statistics.receive_pdu_counter++;
         pdu_len = DataLength;
         src->mac_len = 1;

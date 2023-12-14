@@ -1687,10 +1687,15 @@ typedef enum {
     ABORT_REASON_SEGMENTATION_NOT_SUPPORTED = 4,
     ABORT_REASON_SECURITY_ERROR = 5,
     ABORT_REASON_INSUFFICIENT_SECURITY = 6,
+    ABORT_REASON_WINDOW_SIZE_OUT_OF_RANGE = 7,
+    ABORT_REASON_APPLICATION_EXCEEDED_REPLY_TIME = 8,
+    ABORT_REASON_OUT_OF_RESOURCES = 9,
+    ABORT_REASON_TSM_TIMEOUT = 10,
+    ABORT_REASON_APDU_TOO_LONG = 11,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-255 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_ABORT_REASON = 7,
+    MAX_BACNET_ABORT_REASON = 12,
     ABORT_REASON_PROPRIETARY_FIRST = 64,
     ABORT_REASON_PROPRIETARY_LAST = 255
 } BACNET_ABORT_REASON;
@@ -1706,10 +1711,11 @@ typedef enum {
     REJECT_REASON_TOO_MANY_ARGUMENTS = 7,
     REJECT_REASON_UNDEFINED_ENUMERATION = 8,
     REJECT_REASON_UNRECOGNIZED_SERVICE = 9,
+    REJECT_REASON_INVALID_DATA_ENCODING = 10,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-255 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_REJECT_REASON = 10,
+    MAX_BACNET_REJECT_REASON = 11,
     REJECT_REASON_PROPRIETARY_FIRST = 64,
     REJECT_REASON_PROPRIETARY_LAST = 255
 } BACNET_REJECT_REASON;
@@ -2043,10 +2049,9 @@ typedef enum BACnetLightingInProgress {
 } BACNET_LIGHTING_IN_PROGRESS;
 
 typedef enum BACnetLightingTransition {
-    BACNET_LIGHTING_TRANSITION_IDLE = 0,
+    BACNET_LIGHTING_TRANSITION_NONE = 0,
     BACNET_LIGHTING_TRANSITION_FADE = 1,
     BACNET_LIGHTING_TRANSITION_RAMP = 2,
-    MAX_BACNET_LIGHTING_TRANSITION = 3,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to
        the procedures and constraints described in Clause 23. */

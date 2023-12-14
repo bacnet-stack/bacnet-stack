@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/platform.h"
 
 /* define our epic beginnings */
 #define BACNET_DATE_YEAR_EPOCH 1900
@@ -261,20 +262,31 @@ BACNET_STACK_EXPORT
 bool datetime_date_init_ascii(BACNET_DATE *bdate, const char *ascii);
 BACNET_STACK_EXPORT
 bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii);
+BACNET_STACK_EXPORT
+bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value);
-
 BACNET_STACK_EXPORT
 int bacapp_encode_context_datetime(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value);
-
 BACNET_STACK_EXPORT
-int bacapp_decode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value);
-
+int bacnet_datetime_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_DATE_TIME *value);
 BACNET_STACK_EXPORT
-int bacapp_decode_context_datetime(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value);
+int bacnet_datetime_context_decode(
+    uint8_t *apdu, uint32_t apdu_size,  uint8_t tag_number,
+    BACNET_DATE_TIME *value);
+
+BACNET_STACK_DEPRECATED("Use bacnet_datetime_decode() instead")
+BACNET_STACK_EXPORT
+int bacapp_decode_datetime(
+    uint8_t *apdu, BACNET_DATE_TIME *value);
+BACNET_STACK_DEPRECATED("Use bacnet_datetime_context_decode() instead")
+BACNET_STACK_EXPORT
+int bacapp_decode_context_datetime(uint8_t *apdu,
+    uint8_t tag_number,
+    BACNET_DATE_TIME *value);
 
 /* implementation agnostic functions - create your own! */
 BACNET_STACK_EXPORT

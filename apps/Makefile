@@ -50,6 +50,9 @@ ifeq (${BBMD},server)
 BBMD_DEFINE = -DBBMD_ENABLED=1
 endif
 ifeq (${BBMD},client)
+BBMD_DEFINE = -DBBMD_ENABLED=0 -DBBMD_CLIENT_ENABLED
+endif
+ifeq (${BBMD},full)
 BBMD_DEFINE = -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
 
@@ -71,6 +74,12 @@ ifeq (${BACNET_PORT},)
 			BACNET_PORT = linux
 		endif
 		ifeq ($(UNAME_S),Darwin)
+			BACNET_PORT = bsd
+		endif
+		ifeq ($(UNAME_S),FreeBSD)
+			BACNET_PORT = bsd
+		endif
+		ifeq ($(UNAME_S),OpenBSD)
 			BACNET_PORT = bsd
 		endif
 	endif
@@ -95,6 +104,7 @@ ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
+CSTANDARD = -std=c99
 endif
 ifeq (${BACNET_PORT},win32)
 # winget install --id=MSYS2.MSYS2  -e
@@ -144,6 +154,11 @@ BACNET_DEFINES += -DBIP_DEBUG
 endif
 endif
 
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_DEFINES += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
+
 BACNET_DEFINES += -DPRINT_ENABLED=1
 BACNET_DEFINES += -DBACAPP_ALL
 BACNET_DEFINES += -DBACFILE
@@ -177,7 +192,8 @@ endif
 SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
-	server-client add-list-element remove-list-element
+	server-client add-list-element remove-list-element create-object \
+	delete-object
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -202,14 +218,14 @@ endif
 #####
 
 # AFL
-fuzz-afl: CC=afl-gcc 
+fuzz-afl: CC=afl-gcc
 fuzz-afl: FUZZ_FLAGS=-DFUZZING=1
 fuzz-afl: LFLAGS += $(FUZZ_FLAGS)
 fuzz-afl: CFLAGS += $(FUZZ_FLAGS)
 fuzz-afl: export AFL_USE_ASAN=1
 
 # LIBFUZZER
-fuzz-libfuzzer: CC=clang 
+fuzz-libfuzzer: CC=clang
 fuzz-libfuzzer: FUZZ_FLAGS=-DFUZZING=1 -fsanitize=fuzzer,address -g3 -Og -fno-optimize-sibling-calls -fno-omit-frame-pointer
 fuzz-libfuzzer: LFLAGS += $(FUZZ_FLAGS)
 fuzz-libfuzzer: CFLAGS += $(FUZZ_FLAGS)
@@ -249,6 +265,10 @@ ack-alarm: $(BACNET_LIB_TARGET)
 .PHONY: add-list-element
 add-list-element: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@ clean all
+
+.PHONY: blinkt
+blinkt:
+	$(MAKE) -C $@
 
 .PHONY: dcc
 dcc: $(BACNET_LIB_TARGET)
@@ -296,6 +316,10 @@ mstpcap:
 
 .PHONY: mstpcrc
 mstpcrc:
+	$(MAKE) -B -C $@
+
+.PHONY: piface
+piface:
 	$(MAKE) -B -C $@
 
 .PHONY: ptransfer
@@ -352,6 +376,10 @@ timesync: $(BACNET_LIB_TARGET)
 
 .PHONY: uevent
 uevent: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: uptransfer
+uptransfer: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: whois

@@ -12,7 +12,7 @@ jobs:
   bip-apps:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -38,7 +38,7 @@ jobs:
   bip-no-bbmd-apps:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -49,10 +49,24 @@ jobs:
         make clean
         make BBMD=none all
 
+  bip-client-bbmd-apps:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Demo Apps BBMD=client
+      run: |
+        gcc --version
+        make clean
+        make BBMD=client all
+    
   gateway:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -66,7 +80,7 @@ jobs:
   router:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -80,7 +94,7 @@ jobs:
   router-ipv6:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -94,7 +108,7 @@ jobs:
   router-mstp:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -108,7 +122,7 @@ jobs:
   bip6:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -122,7 +136,7 @@ jobs:
   mstp:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -136,7 +150,7 @@ jobs:
   ethernet:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -150,7 +164,7 @@ jobs:
   ports-arm:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -168,7 +182,7 @@ jobs:
   ports-avr:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -177,13 +191,14 @@ jobs:
     - name: ports-avr
       run: |
         avr-gcc --version
-        make atmega168
-        make bdk-atxx4-mstp
+        make LEGACY=true atmega168
+        make LEGACY=true bdk-atxx4-mstp
+        make LEGACY=true xplained
 
   ports-lwip:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -196,7 +211,7 @@ jobs:
   mingw:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq

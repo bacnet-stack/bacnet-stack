@@ -2,6 +2,9 @@
 
 # Executable file name
 TARGET = bacwpm
+
+CFLAGS += -DBACAPP_COLOR_RGB_CONVERSION_ENABLED=1
+
 # BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \

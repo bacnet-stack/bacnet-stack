@@ -77,6 +77,9 @@ BACNET_REJECT_REASON reject_convert_error_code(BACNET_ERROR_CODE error_code)
         case ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE:
             reject_code = REJECT_REASON_UNRECOGNIZED_SERVICE;
             break;
+        case ERROR_CODE_INVALID_DATA_ENCODING:
+            reject_code = REJECT_REASON_INVALID_DATA_ENCODING;
+            break;
         case ERROR_CODE_REJECT_PROPRIETARY:
             reject_code = REJECT_REASON_PROPRIETARY_FIRST;
             break;
@@ -90,6 +93,38 @@ BACNET_REJECT_REASON reject_convert_error_code(BACNET_ERROR_CODE error_code)
 }
 
 /**
+ * @brief Determine if a BACnetErrorCode is a BACnetRejectReason
+ * @param error_code #BACNET_ERROR_CODE enumeration
+ * @return true if the BACnet Error Code is a BACnet abort reason
+ */
+bool reject_valid_error_code(BACNET_ERROR_CODE error_code)
+{
+    bool status = false;
+
+    switch (error_code) {
+        case ERROR_CODE_REJECT_OTHER:
+        case ERROR_CODE_REJECT_BUFFER_OVERFLOW:
+        case ERROR_CODE_REJECT_INCONSISTENT_PARAMETERS:
+        case ERROR_CODE_REJECT_INVALID_PARAMETER_DATA_TYPE:
+        case ERROR_CODE_REJECT_INVALID_TAG:
+        case ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER:
+        case ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE:
+        case ERROR_CODE_REJECT_TOO_MANY_ARGUMENTS:
+        case ERROR_CODE_REJECT_UNDEFINED_ENUMERATION:
+        case ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE:
+        case ERROR_CODE_INVALID_DATA_ENCODING:
+        case ERROR_CODE_REJECT_PROPRIETARY:
+            status = true;
+            break;
+        default:
+            break;
+    }
+
+    return status;
+}
+
+
+/**
  * @brief Convert a reject code to BACnet Error code
  * @param reject_code - code to be converted
  * @return error code converted. Anything not defined gets converted
@@ -100,6 +135,9 @@ BACNET_ERROR_CODE reject_convert_to_error_code(BACNET_REJECT_REASON reject_code)
     BACNET_ERROR_CODE error_code = ERROR_CODE_REJECT_OTHER;
 
     switch (reject_code) {
+        case REJECT_REASON_OTHER:
+            error_code = ERROR_CODE_REJECT_OTHER;
+            break;
         case REJECT_REASON_BUFFER_OVERFLOW:
             error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
             break;
@@ -127,8 +165,8 @@ BACNET_ERROR_CODE reject_convert_to_error_code(BACNET_REJECT_REASON reject_code)
         case REJECT_REASON_UNRECOGNIZED_SERVICE:
             error_code = ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE;
             break;
-        case REJECT_REASON_OTHER:
-            error_code = ERROR_CODE_REJECT_OTHER;
+        case REJECT_REASON_INVALID_DATA_ENCODING:
+            error_code = ERROR_CODE_INVALID_DATA_ENCODING;
             break;
         default:
             if ((reject_code >= REJECT_REASON_PROPRIETARY_FIRST) &&

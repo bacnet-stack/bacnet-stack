@@ -67,6 +67,11 @@ typedef struct BACnet_COV_Notification {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
+    int cov_notify_encode_apdu(
+        uint8_t *apdu, BACNET_COV_DATA *data);
+
+    BACNET_STACK_EXPORT
     int ucov_notify_encode_apdu(
         uint8_t * apdu,
         unsigned max_apdu_len,

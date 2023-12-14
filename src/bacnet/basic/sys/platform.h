@@ -18,14 +18,21 @@
 #ifndef BACNET_SYS_PLATFORM_H
 #define BACNET_SYS_PLATFORM_H
 
+#include <stddef.h>
 #include <math.h>
 
 #ifndef islessgreater
 #define islessgreater(x, y) ((x) < (y) || (x) > (y))
 #endif
 
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(array) ((size_t)(sizeof(array) / sizeof((array)[0])))
+#endif
+
 /* marking some code as 'deprecated' */
-# if defined(_MSC_VER)
+#if defined(BACNET_STACK_DEPRECATED_DISABLE)
+#   define BACNET_STACK_DEPRECATED(message)
+#elif defined(_MSC_VER)
 #   define BACNET_STACK_DEPRECATED(message) __declspec(deprecated(message))
 #elif defined(__GNUC__)
 #   define BACNET_STACK_DEPRECATED(message) __attribute__((deprecated(message)))

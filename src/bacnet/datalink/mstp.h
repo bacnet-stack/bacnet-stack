@@ -276,10 +276,12 @@ void MSTP_Zero_Config_UUID_Init(struct mstp_port_struct_t *mstp_port);
 BACNET_STACK_EXPORT
 void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port);
 
-/* functions used by the MS/TP state machine to put or get data */
-/* FIXME: developer must implement these in their DLMSTP module */
-BACNET_STACK_EXPORT
-uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port);
+    /* functions used by the MS/TP state machine to put or get data */
+    /* FIXME: developer must implement these in their DLMSTP module */
+
+    BACNET_STACK_EXPORT
+    uint16_t MSTP_Put_Receive(
+        struct mstp_port_struct_t *mstp_port);
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
@@ -292,6 +294,18 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port,
 BACNET_STACK_EXPORT
 uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port,
     unsigned timeout); /* milliseconds to wait for a packet */
+
+BACNET_STACK_EXPORT
+void MSTP_Send_Frame(
+   struct mstp_port_struct_t *mstp_port,
+   uint8_t * buffer,
+   uint16_t nbytes);
+
+BACNET_STACK_EXPORT
+void MSTP_Send_Frame(
+   struct mstp_port_struct_t *mstp_port,
+   uint8_t * buffer,
+   uint16_t nbytes);
 
 #ifdef __cplusplus
 }

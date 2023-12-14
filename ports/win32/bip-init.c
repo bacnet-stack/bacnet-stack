@@ -45,13 +45,10 @@
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacport.h"
 
-#ifndef USE_CLASSADDR
-#define USE_CLASSADDR 0
-#endif
-
 /* Windows sockets */
 static SOCKET BIP_Socket = INVALID_SOCKET;
 static SOCKET BIP_Broadcast_Socket = INVALID_SOCKET;
+static bool BIP_Initialized;
 
 /* NOTE: we store address and port in network byte order
    since BACnet/IP uses network byte order for all address byte arrays
@@ -62,10 +59,12 @@ static uint16_t BIP_Port;
 /* IP address - stored here in network byte order */
 static struct in_addr BIP_Address;
 /* IP broadcast address - stored here in network byte order */
-static struct in_addr BIP_Broadcast_Address;
-
+static struct in_addr BIP_Broadcast_Addr;
+/* broadcast binding mechanism */
+static bool BIP_Broadcast_Binding_Address_Override;
+static struct in_addr BIP_Broadcast_Binding_Address;
 /* enable debugging */
-static bool BIP_Debug = false;
+static bool BIP_Debug;
 
 /**
  * @brief Print the IPv4 address with debug info
@@ -260,18 +259,17 @@ static void print_last_error(const char *info)
  */
 static void bip_init_windows(void)
 {
-    static bool initialized = false;
     int Result;
     WSADATA wd;
 
-    if (!initialized) {
+    if (!BIP_Initialized) {
         Result = WSAStartup((1 << 8) | 1, &wd);
         /*Result = WSAStartup(MAKEWORD(2,2), &wd); */
         if (Result != 0) {
             print_last_error("TCP/IP stack initialization failed");
             exit(1);
         }
-        initialized = true;
+        BIP_Initialized = true;
         atexit(bip_cleanup);
     }
 }
@@ -328,7 +326,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 
     if (dest) {
         dest->mac_len = 6;
-        memcpy(&dest->mac[0], &BIP_Broadcast_Address.s_addr, 4);
+        memcpy(&dest->mac[0], &BIP_Broadcast_Addr.s_addr, 4);
         memcpy(&dest->mac[4], &BIP_Port, 2);
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0; /* no SLEN */
@@ -388,7 +386,7 @@ bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
 bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
-        memcpy(&addr->address[0], &BIP_Broadcast_Address.s_addr, 4);
+        memcpy(&addr->address[0], &BIP_Broadcast_Addr.s_addr, 4);
         addr->port = ntohs(BIP_Port);
     }
 
@@ -418,8 +416,8 @@ uint8_t bip_get_subnet_prefix(void)
     uint32_t mask = 0xFFFFFFFE;
     uint8_t prefix = 0;
 
-    address = BIP_Broadcast_Address.s_addr;
-    broadcast = BIP_Broadcast_Address.s_addr;
+    address = BIP_Broadcast_Addr.s_addr;
+    broadcast = BIP_Broadcast_Addr.s_addr;
     /* calculate the subnet prefix from the broadcast address */
     for (prefix = 1; prefix <= 32; prefix++) {
         test_broadcast = (address & mask) | (~mask);
@@ -653,7 +651,6 @@ static long gethostaddr(void)
     return *(long *)host_ent->h_addr;
 }
 
-#if (USE_CLASSADDR == 0)
 /* returns the subnet mask in network byte order */
 static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
 {
@@ -696,11 +693,38 @@ static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
 
     return ipMask;
 }
-#endif
+
+/**
+ * @brief Get the netmask of the BACnet/IP's interface via an ioctl() call.
+ * @param netmask [out] The netmask, in host order.
+ * @return 0 on success, else the error from the ioctl() call.
+ */
+int bip_get_local_netmask(struct in_addr *netmask)
+{
+    if (netmask) {
+        netmask->s_addr = getIpMaskForIpAddress(BIP_Address.s_addr);
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Set the broadcast socket binding address
+ * @param baddr The broadcast socket binding address, in host order.
+ * @return 0 on success
+ */
+int bip_set_broadcast_binding(
+    const char *ip4_broadcast)
+{
+    BIP_Broadcast_Binding_Address.s_addr = inet_addr(ip4_broadcast);
+    BIP_Broadcast_Binding_Address_Override = true;
+
+    return 0;
+}
 
 static void set_broadcast_address(uint32_t net_address)
 {
-#if USE_CLASSADDR
+#ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
     long broadcast_address = 0;
 
     if (IN_CLASSA(ntohl(net_address)))
@@ -717,7 +741,7 @@ static void set_broadcast_address(uint32_t net_address)
             (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
     else
         broadcast_address = INADDR_BROADCAST;
-    BIP_Broadcast_Address.s_addr = htonl(broadcast_address);
+    BIP_Broadcast_Addr.s_addr = htonl(broadcast_address);
 #else
     /* these are network byte order variables */
     long broadcast_address = 0;
@@ -731,7 +755,7 @@ static void set_broadcast_address(uint32_t net_address)
         fflush(stderr);
     }
     broadcast_address = (net_address & net_mask) | (~net_mask);
-    BIP_Broadcast_Address.s_addr = broadcast_address;
+    BIP_Broadcast_Addr.s_addr = broadcast_address;
 #endif
 }
 
@@ -754,7 +778,7 @@ void bip_set_interface(char *ifname)
         fflush(stderr);
     }
     /* setup local broadcast address */
-    if (BIP_Broadcast_Address.s_addr == 0) {
+    if (BIP_Broadcast_Addr.s_addr == 0) {
         set_broadcast_address(BIP_Address.s_addr);
     }
 }
@@ -829,13 +853,13 @@ bool bip_init(char *ifname)
         BIP_Address.s_addr = gethostaddr();
     }
     /* has broadcast address been set? */
-    if (BIP_Broadcast_Address.s_addr == 0) {
+    if (BIP_Broadcast_Addr.s_addr == 0) {
         set_broadcast_address(BIP_Address.s_addr);
     }
     if (BIP_Debug) {
         fprintf(stderr, "BIP: Address: %s\n", inet_ntoa(BIP_Address));
         fprintf(stderr, "BIP: Broadcast Address: %s\n",
-            inet_ntoa(BIP_Broadcast_Address));
+            inet_ntoa(BIP_Broadcast_Addr));
         fprintf(stderr, "BIP: UDP Port: 0x%04X [%hu]\n", ntohs(BIP_Port),
             ntohs(BIP_Port));
         fflush(stderr);
@@ -855,7 +879,17 @@ bool bip_init(char *ifname)
     if (sock_fd == INVALID_SOCKET) {
         return false;
     }
-    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (BIP_Broadcast_Binding_Address_Override) {
+        sin.sin_addr.s_addr = BIP_Broadcast_Binding_Address.s_addr;
+    } else {
+#if defined(BACNET_IP_BROADCAST_USE_INADDR_ANY)
+        sin.sin_addr.s_addr = htonl(INADDR_ANY);
+#elif defined(BACNET_IP_BROADCAST_USE_INADDR_BROADCAST)
+        sin.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+#else
+        sin.sin_addr.s_addr = BIP_Address.s_addr;
+#endif
+    }
     if (BIP_Debug) {
         fprintf(stderr, "BIP: broadcast bind %s:%hu\n", inet_ntoa(sin.sin_addr),
             ntohs(sin.sin_port));
@@ -899,7 +933,10 @@ void bip_cleanup(void)
     }
     BIP_Broadcast_Socket = INVALID_SOCKET;
 
-    WSACleanup();
+    if (BIP_Initialized) {
+        BIP_Initialized = false;
+        WSACleanup();
+    }
 
     return;
 }

@@ -89,12 +89,12 @@ extern "C" {
     bool write_property_string_valid(
         BACNET_WRITE_PROPERTY_DATA * wp_data,
         BACNET_APPLICATION_DATA_VALUE * value,
-        int len_max);
+        size_t len_max);
     BACNET_STACK_EXPORT
     bool write_property_empty_string_valid(
         BACNET_WRITE_PROPERTY_DATA * wp_data,
         BACNET_APPLICATION_DATA_VALUE * value,
-        int len_max);
+        size_t len_max);
 
 #ifdef __cplusplus
 }

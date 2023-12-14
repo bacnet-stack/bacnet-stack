@@ -82,20 +82,40 @@ typedef struct BACnet_Application_Data_Value {
 #if defined (BACAPP_OBJECT_ID)
         BACNET_OBJECT_ID Object_Id;
 #endif
-#if defined (BACAPP_TYPES_EXTRA)
+#if defined (BACAPP_TIMESTAMP)
         BACNET_TIMESTAMP Time_Stamp;
+#endif
+#if defined (BACAPP_DATETIME)
         BACNET_DATE_TIME Date_Time;
+#endif
+#if defined (BACAPP_LIGHTING_COMMAND)
         BACNET_LIGHTING_COMMAND Lighting_Command;
-        BACNET_COLOR_COMMAND Color_Command;
+#endif
+#if defined (BACAPP_XY_COLOR)
         BACNET_XY_COLOR XY_Color;
+#endif
+#if defined (BACAPP_COLOR_COMMAND)
+        BACNET_COLOR_COMMAND Color_Command;
+#endif
+#if defined (BACAPP_WEEKLY_SCHEDULE)
         BACNET_WEEKLY_SCHEDULE Weekly_Schedule;
+#endif
+#if defined (BACAPP_HOST_N_PORT)
         BACNET_HOST_N_PORT Host_Address;
+#endif
+#if defined (BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
             Device_Object_Property_Reference;
+#endif
+#if defined (BACAPP_DEVICE_OBJECT_REFERENCE)
         BACNET_DEVICE_OBJECT_REFERENCE
             Device_Object_Reference;
+#endif
+#if defined (BACAPP_OBJECT_PROPERTY_REFERENCE)
         BACNET_OBJECT_PROPERTY_REFERENCE
             Object_Property_Reference;
+#endif
+#if defined (BACAPP_DESTINATION)
         BACNET_DESTINATION Destination;
 #endif
     } type;
@@ -154,6 +174,21 @@ extern "C" {
     void bacapp_property_value_list_init(
         BACNET_PROPERTY_VALUE *value,
         size_t count);
+
+    BACNET_STACK_EXPORT
+    void bacapp_property_value_list_link(
+        BACNET_PROPERTY_VALUE *value_list,
+        size_t count);
+
+    BACNET_STACK_EXPORT
+    int bacapp_property_value_encode(
+        uint8_t *apdu,
+        BACNET_PROPERTY_VALUE *value);
+    BACNET_STACK_EXPORT
+    int bacapp_property_value_decode(
+        uint8_t *apdu,
+        uint32_t apdu_size,
+        BACNET_PROPERTY_VALUE *value);
 
     BACNET_STACK_EXPORT
     int bacapp_encode_data(

@@ -70,6 +70,15 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+option(
+  BACNET_STACK_DEPRECATED_DISABLE 
+  "Disable deprecation compile warnings" 
+  ON)
+
+if(BACNET_STACK_DEPRECATED_DISABLE)
+  add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
+endif()
+
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -227,10 +236,14 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/service/h_awf.h
     src/bacnet/basic/service/h_ccov.c
     src/bacnet/basic/service/h_ccov.h
+    src/bacnet/basic/service/h_create_object.c
+    src/bacnet/basic/service/h_create_object.h
     src/bacnet/basic/service/h_cov.c
     src/bacnet/basic/service/h_cov.h
     src/bacnet/basic/service/h_dcc.c
     src/bacnet/basic/service/h_dcc.h
+    src/bacnet/basic/service/h_delete_object.c
+    src/bacnet/basic/service/h_delete_object.h
     src/bacnet/basic/service/h_gas_a.c
     src/bacnet/basic/service/h_gas_a.h
     src/bacnet/basic/service/h_get_alarm_sum.c
@@ -287,10 +300,14 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/service/s_awfs.h
     src/bacnet/basic/service/s_cevent.c
     src/bacnet/basic/service/s_cevent.h
+    src/bacnet/basic/service/s_create_object.c
+    src/bacnet/basic/service/s_create_object.h
     src/bacnet/basic/service/s_cov.c
     src/bacnet/basic/service/s_cov.h
     src/bacnet/basic/service/s_dcc.c
     src/bacnet/basic/service/s_dcc.h
+    src/bacnet/basic/service/s_delete_object.c
+    src/bacnet/basic/service/s_delete_object.h
     src/bacnet/basic/service/s_error.c
     src/bacnet/basic/service/s_error.h
     src/bacnet/basic/service/s_get_alarm_sum.c
@@ -345,6 +362,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/key.h
     src/bacnet/basic/sys/keylist.c
     src/bacnet/basic/sys/keylist.h
+    src/bacnet/basic/sys/linear.c
+    src/bacnet/basic/sys/linear.h
     src/bacnet/basic/sys/mstimer.c
     src/bacnet/basic/sys/mstimer.h
     src/bacnet/basic/sys/ringbuf.c
@@ -358,6 +377,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/config.h
     src/bacnet/cov.c
     src/bacnet/cov.h
+    src/bacnet/create_object.c
+    src/bacnet/create_object.h
     src/bacnet/credential_authentication_factor.c
     src/bacnet/credential_authentication_factor.h
     src/bacnet/datalink/arcnet.h
@@ -371,6 +392,7 @@ add_library(${PROJECT_NAME}
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.h>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
     src/bacnet/datalink/datalink.c
     src/bacnet/datalink/datalink.h
@@ -387,6 +409,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/datetime.h
     src/bacnet/dcc.c
     src/bacnet/dcc.h
+    src/bacnet/delete_object.c
+    src/bacnet/delete_object.h
     src/bacnet/event.c
     src/bacnet/event.h
     src/bacnet/get_alarm_sum.c
@@ -500,7 +524,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
-    # ports/linux/rx_fsm.c
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     ports/linux/mstimer-init.c)
 
@@ -515,13 +538,14 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_BIP}>:ws2_32>
     $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
 
-  add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
+  if(MSVC)
+    add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
+  endif()
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
     $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
-    # ports/win32/rx_fsm.c
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
@@ -560,8 +584,14 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(add-list-element apps/add-list-element/main.c)
   target_link_libraries(add-list-element PRIVATE ${PROJECT_NAME})
 
+  add_executable(create-object apps/create-object/main.c)
+  target_link_libraries(create-object PRIVATE ${PROJECT_NAME})
+
   add_executable(dcc apps/dcc/main.c)
   target_link_libraries(dcc PRIVATE ${PROJECT_NAME})
+
+  add_executable(delete-object apps/delete-object/main.c)
+  target_link_libraries(delete-object PRIVATE ${PROJECT_NAME})
 
   add_executable(epics apps/epics/main.c)
   target_link_libraries(epics PRIVATE ${PROJECT_NAME})
