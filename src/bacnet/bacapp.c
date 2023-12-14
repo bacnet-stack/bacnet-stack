@@ -423,7 +423,7 @@ int bacapp_decode_data(uint8_t *apdu,
  * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR
  */
 int bacapp_decode_application_data(
-    uint8_t *apdu, unsigned apdu_len_max, BACNET_APPLICATION_DATA_VALUE *value)
+    uint8_t *apdu, uint32_t apdu_size, BACNET_APPLICATION_DATA_VALUE *value)
 {
     int len = 0;
     int tag_len = 0;
@@ -431,17 +431,17 @@ int bacapp_decode_application_data(
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
 
-    if (apdu && value && apdu_len_max && !IS_CONTEXT_SPECIFIC(*apdu)) {
+    if (apdu && value && apdu_size && !IS_CONTEXT_SPECIFIC(*apdu)) {
         value->context_specific = false;
         tag_len = bacnet_tag_number_and_value_decode(
-            &apdu[0], apdu_len_max, &tag_number, &len_value_type);
+            &apdu[0], apdu_size, &tag_number, &len_value_type);
         if (tag_len > 0) {
             len += tag_len;
             value->tag = tag_number;
-            if ((unsigned)len <= apdu_len_max) {
+            if ((unsigned)len <= apdu_size) {
                 decode_len =
                     bacapp_decode_data_len(NULL, tag_number, len_value_type);
-                if ((unsigned)decode_len <= (apdu_len_max - len)) {
+                if ((unsigned)decode_len <= (apdu_size - len)) {
                     decode_len = bacapp_decode_data(
                         &apdu[len], tag_number, len_value_type, value);
                     if (value->tag != MAX_BACNET_APPLICATION_TAG) {
