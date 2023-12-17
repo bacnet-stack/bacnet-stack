@@ -182,18 +182,20 @@ LDFLAGS = -nostartfiles
 LDFLAGS += -Wl,-nostdlib,-Map=$(TARGET).map,$(LIBRARIES),-T$(LDSCRIPT)
 # dead code removal
 LDFLAGS += -Wl,--gc-sections,-static
-CPFLAGS = --output-target=binary
 ODFLAGS	= -x --syms
 
 AOBJ = $(ASRC:.s=.o)
 COBJ = $(CSRC:.c=.o)
 
-all: $(TARGET).bin $(TARGET).elf
+all: $(TARGET).bin $(TARGET).hex $(TARGET).elf
 	$(OBJDUMP) $(ODFLAGS) $(TARGET).elf > $(TARGET).dmp
 	$(SIZE) $(TARGET).elf
 
 $(TARGET).bin:  $(TARGET).elf
-	$(OBJCOPY) $(TARGET).elf $(CPFLAGS) $(TARGET).bin
+	$(OBJCOPY) $(TARGET).elf --output-target=binary $(TARGET).bin
+
+$(TARGET).hex:  $(TARGET).elf
+	$(OBJCOPY) $(TARGET).elf --output-target=ihex $(TARGET).hex
 
 $(TARGET).elf: $(COBJ) $(AOBJ) Makefile
 	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@
