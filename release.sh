@@ -26,6 +26,11 @@ url_frs="${USERNAME},bacnet@frs.sourceforge.net:/home/frs/project/b/ba/bacnet"
 url_frs_tools="$url_frs/bacnet-tools"
 url_frs_source="$url_frs/bacnet-stack"
 
+function bacnet_tag() {
+    echo "Tagging Source Code $tag_name"
+    git tag $tag_name
+}
+
 function bacnet_build() {
     echo ""
     echo "Build Win32 Apps"
@@ -87,20 +92,22 @@ function bacnet_settings() {
 menu(){
 echo -ne "
 BACnet Stack Release Steps
-1) Build BACnet apps for Win32
-2) Zip BACnet apps for Win32
-3) Archive BACnet source code
-4) Upload files to bacnet.sf.net
-5) Configure bacnet.sf.net download settings
+1) Tag BACnet source code
+2) Build BACnet apps for Win32
+3) Zip BACnet apps for Win32
+4) Archive BACnet source code
+5) Upload files to bacnet.sf.net
+6) Configure bacnet.sf.net download settings
 0) Exit
 Choose an option: "
         read a
         case $a in
-	        1) bacnet_build ; menu ;;
-	        2) bacnet_zip ; menu ;;
-	        3) bacnet_source ; menu ;;
-	        4) bacnet_upload ; menu ;;
-	        5) bacnet_settings ; menu ;;
+	        1) bacnet_tag ; menu ;;
+	        2) bacnet_build ; menu ;;
+	        3) bacnet_zip ; menu ;;
+	        4) bacnet_source ; menu ;;
+	        5) bacnet_upload ; menu ;;
+	        6) bacnet_settings ; menu ;;
 		0) exit 0 ;;
 		*) echo -e $red"Invalid option."$clear; WrongCommand;;
         esac
