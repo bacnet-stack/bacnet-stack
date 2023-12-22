@@ -124,12 +124,11 @@ static void print_usage(char *filename)
     printf("Example:\n"
         "If you want generate an unconfirmed COV,\n"
         "you could send one of the following command:\n"
-        "%s 1 2 analog-value 4 5 prevent-value 4 100.0\n"
+        "%s 1 2 analog-value 4 5 present-value 4 100.0\n"
         "%s 1 2 3 4 5 85 4 100.0\n"
         "where 1=pid, 2=device-id, 3=AV, 4=object-id, 5=time,\n"
         "85=Present-Value, 4=REAL, 100.0=value\n",
         filename, filename);
-
 }
 
 int main(int argc, char *argv[])
