@@ -213,8 +213,8 @@ int npdu_encode_pdu(uint8_t *npdu,
                 encode_unsigned16(&npdu[len], src->net);
             }
             len += 2;
-            if (dest->len > MAX_MAC_LEN) {
-                dest->len = MAX_MAC_LEN;
+            if (src->len > MAX_MAC_LEN) {
+                src->len = MAX_MAC_LEN;
             }
             if (npdu) {
                 npdu[len] = src->len;
