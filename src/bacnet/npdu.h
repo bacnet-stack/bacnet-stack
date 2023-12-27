@@ -82,6 +82,14 @@ extern "C" {
         BACNET_NPDU_DATA * npdu_data);
 
     BACNET_STACK_EXPORT
+    int bacnet_npdu_encode_pdu(
+        uint8_t * pdu,
+        uint16_t pdu_size,
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src,
+        BACNET_NPDU_DATA * npdu_data);
+
+    BACNET_STACK_EXPORT
     void npdu_encode_npdu_data(
         BACNET_NPDU_DATA * npdu,
         bool data_expecting_reply,

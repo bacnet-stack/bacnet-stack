@@ -25,7 +25,7 @@ ZTEST(npdu_tests, test_NPDU_Network)
 static void test_NPDU_Network(void)
 #endif
 {
-    uint8_t pdu[480] = { 0 };
+    uint8_t pdu[MAX_NPDU] = { 0 };
     BACNET_ADDRESS dest = { 0 };
     BACNET_ADDRESS src = { 0 };
     BACNET_ADDRESS npdu_dest = { 0 };
@@ -42,8 +42,8 @@ static void test_NPDU_Network(void)
     npdu_encode_npdu_network(&npdu_data,
         network_message_type,
         data_expecting_reply, priority);
-    null_len = npdu_encode_pdu(NULL, &dest, &src, &npdu_data);
-    len = npdu_encode_pdu(&pdu[0], &dest, &src, &npdu_data);
+    null_len = bacnet_npdu_encode_pdu(NULL, 0, &dest, &src, &npdu_data);
+    len = bacnet_npdu_encode_pdu(&pdu[0], sizeof(pdu), &dest, &src, &npdu_data);
     zassert_equal(len, null_len, NULL);
     zassert_not_equal(len, 0, NULL);
     /* can we get the info back? */
@@ -77,7 +77,7 @@ ZTEST(npdu_tests, testNPDU2)
 static void testNPDU2(void)
 #endif
 {
-    uint8_t pdu[480] = { 0 };
+    uint8_t pdu[MAX_NPDU] = { 0 };
     BACNET_ADDRESS dest = { 0 };
     BACNET_ADDRESS src = { 0 };
     BACNET_ADDRESS npdu_dest = { 0 };
@@ -113,7 +113,7 @@ static void testNPDU2(void)
         src.adr[i] = 0x40;
     }
     npdu_encode_npdu_data(&npdu_data, true, priority);
-    len = npdu_encode_pdu(&pdu[0], &dest, &src, &npdu_data);
+    len = bacnet_npdu_encode_pdu(&pdu[0], sizeof(pdu), &dest, &src, &npdu_data);
     zassert_not_equal(len, 0, NULL);
     /* can we get the info back? */
     npdu_len = bacnet_npdu_decode(pdu, sizeof(pdu), &npdu_dest, &npdu_src, &npdu_data);
@@ -145,7 +145,7 @@ ZTEST(npdu_tests, testNPDU1)
 static void testNPDU1(void)
 #endif
 {
-    uint8_t pdu[480] = { 0 };
+    uint8_t pdu[MAX_NPDU] = { 0 };
     BACNET_ADDRESS dest = { 0 };
     BACNET_ADDRESS src = { 0 };
     BACNET_ADDRESS npdu_dest = { 0 };
@@ -182,7 +182,7 @@ static void testNPDU1(void)
         src.adr[i] = 0;
     }
     npdu_encode_npdu_data(&npdu_data, false, priority);
-    len = npdu_encode_pdu(&pdu[0], &dest, &src, &npdu_data);
+    len = bacnet_npdu_encode_pdu(&pdu[0], sizeof(pdu), &dest, &src, &npdu_data);
     zassert_not_equal(len, 0, NULL);
     /* can we get the info back? */
     npdu_len = bacnet_npdu_decode(pdu, sizeof(pdu), &npdu_dest, &npdu_src, &npdu_data);

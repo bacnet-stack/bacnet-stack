@@ -109,7 +109,8 @@ ABORT.indication               Yes         Yes         Yes        No
  * @param npdu [out] Buffer which will hold the encoded NPDU header bytes.
  * 	The size isn't given, but it must be at least 2 bytes for the simplest
  *  case, and should always be at least 24 bytes to accommodate the maximal
- *  case (all fields loaded). Can be NULL to determine length of buffer.
+ *  case (all fields loaded). If the buffer is NULL, the number of bytes
+ *  the buffer would have held is returned.
  * @param dest [in] The routing destination information if the message must
  *  be routed to reach its destination. If dest->net and dest->len are 0,
  *  there is no routing destination information.
@@ -120,8 +121,7 @@ ABORT.indication               Yes         Yes         Yes        No
  * @param npdu_data [in] The structure which describes how the NCPI and other
  *  NPDU bytes should be encoded.
  * @return On success, returns the number of bytes which were encoded into
- *  the NPDU section. If 0 or negative, there were problems with the data or
- *  encoding.
+ *  the NPDU section, or 0 if there were problems with the data or encoding.
  */
 int npdu_encode_pdu(uint8_t *npdu,
     BACNET_ADDRESS *dest,
@@ -130,7 +130,6 @@ int npdu_encode_pdu(uint8_t *npdu,
 {
     int len = 0; /* return value - number of octets loaded in this function */
     uint8_t i = 0; /* counter  */
-    uint8_t *npdu_offset = NULL;
 
     if (npdu_data) {
         /* protocol version */
@@ -187,9 +186,12 @@ int npdu_encode_pdu(uint8_t *npdu,
         len = 2;
         if (dest && dest->net) {
             if (npdu) {
-                npdu_offset = &npdu[len];
+                encode_unsigned16(&npdu[len], dest->net);
             }
-            len += encode_unsigned16(npdu_offset, dest->net);
+            len += 2;
+            if (dest->len > MAX_MAC_LEN) {
+                dest->len = MAX_MAC_LEN;
+            }
             if (npdu) {
                 npdu[len] = dest->len;
             }
@@ -208,9 +210,12 @@ int npdu_encode_pdu(uint8_t *npdu,
         if (src && src->net && src->len) {
             /* Only insert if valid */
             if (npdu) {
-                npdu_offset = &npdu[len];
+                encode_unsigned16(&npdu[len], src->net);
             }
-            len += encode_unsigned16(npdu_offset, src->net);
+            len += 2;
+            if (dest->len > MAX_MAC_LEN) {
+                dest->len = MAX_MAC_LEN;
+            }
             if (npdu) {
                 npdu[len] = src->len;
             }
@@ -244,14 +249,58 @@ int npdu_encode_pdu(uint8_t *npdu,
             /* then a Vendor ID field shall be present */
             if (npdu_data->network_message_type >= 0x80) {
                 if (npdu) {
-                    npdu_offset = &npdu[len];
+                    encode_unsigned16(&npdu[len], npdu_data->vendor_id);
                 }
-                len += encode_unsigned16(npdu_offset, npdu_data->vendor_id);
+                len += 2;
             }
         }
     }
 
     return len;
+}
+
+/**
+ * @brief Encode the NPDU portion of a message to be sent
+ *  based on the npdu_data and associated data.
+ *  If this is to be a Network Layer Control Message, there are probably
+ *  more bytes which will need to be encoded following the ones encoded here.
+ *  The Network Layer Protocol Control Information byte is described
+ *  in section 6.2.2 of the BACnet standard.
+ * @param pdu [out] Buffer which will hold the encoded NPDU header bytes.
+ *  If pdu is NULL, the number of bytes the buffer would have held
+ *  is returned.
+ * @param pdu_size Number of bytes in the buffer to hold the encoded data.
+ *  If the size is zero, the number of bytes the buffer would have held
+ *  is returned.
+ * 	The size isn't given, but it must be at least 2 bytes for the simplest
+ *  case, and should always be at least 24 bytes to accommodate the maximal
+ *  case (all fields loaded). Can be NULL to determine length of buffer.
+ * @param dest [in] The routing destination information if the message must
+ *  be routed to reach its destination. If dest->net and dest->len are 0,
+ *  there is no routing destination information.
+ * @param src  [in] The routing source information if the message was routed
+ *  from another BACnet network. If src->net and src->len are 0, there is no
+ *  routing source information. This src describes the original source of the
+ *  message when it had to be routed to reach this BACnet Device.
+ * @param npdu_data [in] The structure which describes how the NCPI and other
+ *  NPDU bytes should be encoded.
+ * @return On success, returns the number of bytes which were encoded into
+ *  the NPDU section, or 0 if there were problems with the data or encoding.
+ */
+int bacnet_npdu_encode_pdu(uint8_t *pdu,
+    uint16_t pdu_size,
+    BACNET_ADDRESS *dest,
+    BACNET_ADDRESS *src,
+    BACNET_NPDU_DATA *npdu_data)
+{
+    int pdu_len = 0;
+
+    pdu_len = npdu_encode_pdu(NULL, dest, src, npdu_data);
+    if ((pdu != NULL) && (pdu_size > 0) && (pdu_len <= pdu_size)) {
+        pdu_len = npdu_encode_pdu(pdu, dest, src, npdu_data);
+    }
+
+    return pdu_len;
 }
 
 /* Configure the NPDU portion of the packet for an APDU */
