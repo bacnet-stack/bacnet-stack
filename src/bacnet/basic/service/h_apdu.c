@@ -559,16 +559,18 @@ void apdu_handler(BACNET_ADDRESS *src,
     uint16_t apdu_len)
 {
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
-    BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = { 0 };
-    uint8_t invoke_id = 0;
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
     int len = 0; /* counts where we are in PDU */
+#if !BACNET_SVC_SERVER
+    uint8_t invoke_id = 0;
+    BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = { 0 };
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
     uint8_t reason = 0;
     bool server = false;
+#endif
 
     if (apdu) {
         /* PDU Type */
@@ -620,6 +622,7 @@ void apdu_handler(BACNET_ADDRESS *src,
                     }
                 }
                 break;
+#if !BACNET_SVC_SERVER
             case PDU_TYPE_SIMPLE_ACK:
                 if (apdu_len < 3) {
                     break;
@@ -716,6 +719,7 @@ void apdu_handler(BACNET_ADDRESS *src,
                 }
                 tsm_free_invoke_id(invoke_id);
                 break;
+#endif
             default:
                 break;
         }

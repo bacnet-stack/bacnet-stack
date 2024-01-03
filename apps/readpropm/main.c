@@ -35,6 +35,10 @@
 
 #define PRINT_ENABLED 1
 
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
+#endif
+
 #include "bacnet/bacdef.h"
 #include "bacnet/config.h"
 #include "bacnet/bactext.h"

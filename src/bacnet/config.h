@@ -244,9 +244,10 @@
 */
 
 /*
-** Note: I've left everything enabled here in the default config.h. You should
-** use a local copy of config.h with settings configured for your needs to
-** make use of any code space reductions in your device.
+** Note: these are enabled by default for the example apps to build. 
+** Use a local copy named "bacnet-config.h" with settings configured for 
+** the product specific needs for code space reductions in your device.
+** Alternately, use a compiler and linker the have code reduction features.
 **/
 
 #define BACNET_SVC_I_HAVE_A    1

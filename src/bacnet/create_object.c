@@ -351,6 +351,7 @@ int create_object_error_ack_encode(
     return len;
 }
 
+#if !BACNET_SVC_SERVER
 /**
  * @brief Decode a CreateObject-Error ACK APDU
  *
@@ -419,3 +420,4 @@ int create_object_error_ack_service_decode(
 
     return apdu_len;
 }
+#endif
