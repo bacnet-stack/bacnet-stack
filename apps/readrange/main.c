@@ -56,6 +56,10 @@
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/readrange.h"
 
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
+#endif
+
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 

@@ -273,6 +273,7 @@ int list_element_error_ack_encode(
     return apdu_len;
 }
 
+#if !BACNET_SVC_SERVER
 /**
  * @brief Decoding for AddListElement or RemoveListElement Error Ack
  *  AddListElement-Error ::= SEQUENCE {
@@ -361,3 +362,4 @@ int list_element_error_ack_decode(
 
     return apdu_len;
 }
+#endif
