@@ -24,6 +24,10 @@
 #ifndef BITS_H
 #define BITS_H
 
+#ifdef ARRAY_SIZE  /* Warnig fix: zephyr/sys/util.h redefine ARRAY_SIZE */
+#undef ARRAY_SIZE
+#endif
+
 #include <zephyr/sys/util.h>  /* defines BIT(n) */
 
 /********************************************************************

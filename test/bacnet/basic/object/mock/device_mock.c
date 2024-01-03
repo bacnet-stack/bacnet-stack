@@ -44,7 +44,9 @@ bool Device_Write_Property(
 void Device_getCurrentDateTime(
         BACNET_DATE_TIME * DateTime)
 {
-    (void)DateTime;
+    static int minute = 1;
+    datetime_set_date(&DateTime->date, 2023, 7, 10);
+    datetime_set_time(&DateTime->time, 5, minute++, 0, 0);
 }
 
 int Device_Read_Property(
