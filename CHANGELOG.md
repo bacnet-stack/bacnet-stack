@@ -18,9 +18,19 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added more tool descriptions to bin/readme.txt file
+* Added bacnet_npdu_encode_pdu API with additional size of PDU argument. (#549)
+
 ### Changed
 
+* Changed npdu_encode function to return length when given a NULL buffer. (#549)
+* Changed NPDU handler use local buffer which reduced TSM dependency. (#549)
+
 ### Fixed
+
+* Fixed spelling in bacucov help message.
+* Fixed COBS conversion for large MSTP data-not-expecting-reply frames. (#550)
+* Fixed compilation with BACNET_SVC_SERVER=1 for client apps. (#552)
 
 ## [1.3.2] - 2023-12-21
 
