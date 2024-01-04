@@ -61,7 +61,28 @@ typedef int (
 extern "C" {
 #endif /* __cplusplus */
 
-/* encode service */
+    BACNET_STACK_EXPORT
+    int read_property_request_encode(
+        uint8_t *apdu, 
+        BACNET_READ_PROPERTY_DATA *data);
+
+    BACNET_STACK_EXPORT
+    size_t read_property_request_service_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_READ_PROPERTY_DATA *data);
+
+    BACNET_STACK_EXPORT
+    int read_property_ack_encode(
+        uint8_t *apdu, 
+        BACNET_READ_PROPERTY_DATA *data);
+
+    BACNET_STACK_EXPORT
+    size_t read_property_ack_service_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_READ_PROPERTY_DATA *data);
+
     BACNET_STACK_EXPORT
     int rp_encode_apdu(
         uint8_t * apdu,

@@ -18,7 +18,7 @@
 #include "bacnet/list_element.h"
 
 /**
- * @brief Encode the Add/Remove ListElement service request only
+ * @brief Encode the Add/Remove ListElement service request APDU
  *
  *  AddListElement-Request ::= SEQUENCE {
  *      object-identifier       [0] BACnetObjectIdentifier,
@@ -40,7 +40,7 @@
  *
  * @return Bytes encoded or zero on error.
  */
-int list_element_encode_service_request(
+int list_element_encode_apdu(
     uint8_t *apdu, BACNET_LIST_ELEMENT_DATA *list_element)
 {
     int len = 0; /* length of each encoding */
@@ -80,6 +80,28 @@ int list_element_encode_service_request(
         apdu_len += len;
         len = encode_closing_tag(apdu, 3);
         apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the Add/Remove ListElement service request only
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t list_element_encode_service_request(
+    uint8_t *apdu, size_t apdu_size, BACNET_LIST_ELEMENT_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = list_element_encode_apdu(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = list_element_encode_apdu(apdu, data);
     }
 
     return apdu_len;
@@ -273,7 +295,6 @@ int list_element_error_ack_encode(
     return apdu_len;
 }
 
-#if !BACNET_SVC_SERVER
 /**
  * @brief Decoding for AddListElement or RemoveListElement Error Ack
  *  AddListElement-Error ::= SEQUENCE {
@@ -362,4 +383,3 @@ int list_element_error_ack_decode(
 
     return apdu_len;
 }
-#endif
