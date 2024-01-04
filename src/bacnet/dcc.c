@@ -222,8 +222,8 @@ size_t dcc_service_request_encode(uint8_t *apdu,
     if (apdu_len > apdu_size) {
         apdu_len = 0;
     } else {
-        apdu_len = cov_notify_encode_apdu(
-            apdu, timeDuration, enable_disable, password);
+        apdu_len =
+            dcc_apdu_encode(apdu, timeDuration, enable_disable, password);
     }
 
     return apdu_len;
@@ -256,7 +256,8 @@ int dcc_encode_apdu(uint8_t *apdu,
     }
     len = 4;
     apdu_len += len;
-    len = cov_notify_encode_apdu(apdu, timeDuration, enable_disable, password);
+    len = dcc_apdu_encode(
+        apdu, timeDuration, enable_disable, password);
     apdu_len += len;
 
     return apdu_len;

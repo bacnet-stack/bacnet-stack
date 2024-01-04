@@ -637,7 +637,7 @@ int cov_subscribe_property_apdu_encode(
         }
     }
     /* tag 4 - monitoredPropertyIdentifier */
-    len = encode_opening_tag(apdu[apdu_len], 4);
+    len = encode_opening_tag(apdu, 4);
     apdu_len += len;
     if (apdu) {
         apdu += len;

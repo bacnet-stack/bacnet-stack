@@ -64,10 +64,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-int list_element_encode_apdu(
+int list_element_encode_service_request(
     uint8_t *apdu, BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
-size_t list_element_encode_service_request(
+size_t list_element_service_request_encode(
     uint8_t *apdu, size_t apdu_size, BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
 int list_element_decode_service_request(
