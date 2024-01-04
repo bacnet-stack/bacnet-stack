@@ -36,7 +36,6 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/memcopy.h"
 /* me! */
 #include "bacnet/cov.h"
 
@@ -140,7 +139,7 @@ size_t cov_notify_service_request_encode(
 /**
  * Encode APDU for confirmed notification.
  *
- * @param apdu  Pointer to the buffer.
+ * @param apdu  Pointer to the buffer, or NULL for length
  * @param apdu_size number of bytes available in the buffer
  * @param invoke_id  ID to invoke for notification
  * @param data  Pointer to the data to encode.
@@ -153,7 +152,7 @@ int ccov_notify_encode_apdu(uint8_t *apdu,
     BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
-    int apdu_len = BACNET_STATUS_ERROR; /* return value */
+    int apdu_len = 0; /* return value */
 
     if (apdu && (apdu_size > 4)) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -178,32 +177,33 @@ int ccov_notify_encode_apdu(uint8_t *apdu,
 }
 
 /**
- * Encode APDU for unconfirmed notification.
- *
- * @param apdu  Pointer to the buffer.
- * @param max_apdu_len  Buffer size.
- * @param data  Pointer to the data to encode.
- *
- * @return bytes encoded or zero on error.
+ * @brief Encode APDU for unconfirmed notification.
+ * @param apdu  Pointer to the buffer for encoding into, or NULL for length
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
  */
 int ucov_notify_encode_apdu(
-    uint8_t *apdu, unsigned max_apdu_len, BACNET_COV_DATA *data)
+    uint8_t *apdu, unsigned apdu_size, BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
-    int apdu_len = BACNET_STATUS_ERROR; /* return value */
+    int apdu_len = 0; /* return value */
 
-    if (apdu && data && memcopylen(0, max_apdu_len, 2)) {
+    if (apdu && (apdu_size > 2)) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-        apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; /* service choice */
-        apdu_len = 2;
-        len = cov_notify_service_request_encode(
-            &apdu[apdu_len], max_apdu_len - apdu_len, data);
-        if (len <= 0) {
-            /* return the error */
-            apdu_len = len;
-        } else {
-            apdu_len += len;
-        }
+        apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; 
+    } 
+    len = 2;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = cov_notify_service_request_encode(
+        apdu, apdu_size - apdu_len, data);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        apdu_len = 0;
     }
 
     return apdu_len;
