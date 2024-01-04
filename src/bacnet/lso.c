@@ -98,8 +98,17 @@ int lso_encode_apdu(uint8_t *apdu, uint8_t invoke_id, BACNET_LSO_DATA *data)
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION;
     }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
     len = life_safety_operation_encode(apdu, data);
-
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        apdu_len = len;
+    }
 
     return apdu_len;
 }
