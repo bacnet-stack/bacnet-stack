@@ -317,24 +317,34 @@ int rp_ack_encode_apdu_init(
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
         apdu[1] = invoke_id; /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY; /* service choice */
-        apdu_len = 3;
-
-        /* service ack follows */
-        len = encode_context_object_id(
-            &apdu[apdu_len], 0, rpdata->object_type, rpdata->object_instance);
-        apdu_len += len;
-        len = encode_context_enumerated(
-            &apdu[apdu_len], 1, rpdata->object_property);
-        apdu_len += len;
-        /* context 2 array index is optional */
-        if (rpdata->array_index != BACNET_ARRAY_ALL) {
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 2, rpdata->array_index);
-            apdu_len += len;
-        }
-        len = encode_opening_tag(&apdu[apdu_len], 3);
-        apdu_len += len;
     }
+    len = 3;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* service ack follows */
+    len = encode_context_object_id(
+        apdu, 0, rpdata->object_type, rpdata->object_instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_context_enumerated(apdu, 1, rpdata->object_property);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* context 2 array index is optional */
+    if (rpdata->array_index != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(apdu, 2, rpdata->array_index);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    len = encode_opening_tag(apdu, 3);
+    apdu_len += len;
 
     return apdu_len;
 }
@@ -374,19 +384,25 @@ int rp_ack_encode_apdu(
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
-    if (apdu) {
+    if (rpdata) {
         /* Do the initial encoding */
-        apdu_len = rp_ack_encode_apdu_init(apdu, invoke_id, rpdata);
-        /* propertyValue
-         * double check maximum possible */
+        len = rp_ack_encode_apdu_init(apdu, invoke_id, rpdata);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         imax = rpdata->application_data_len;
-        if (imax > (MAX_APDU - apdu_len - 2)) {
-            imax = (MAX_APDU - apdu_len - 2);
-        }
         for (len = 0; len < imax; len++) {
-            apdu[apdu_len++] = rpdata->application_data[len];
+            if (apdu) {
+                apdu[len] = rpdata->application_data[len];
+            }
         }
-        apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, 3);
+        apdu_len += len;
     }
 
     return apdu_len;
