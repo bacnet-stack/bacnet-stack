@@ -454,10 +454,16 @@ int event_notify_encode_service_request(
                     }
                     len = encode_closing_tag(apdu, 3);
                     apdu_len += len;
+                    if (apdu) {
+                        apdu += len;
+                    }
                     break;
                 case EVENT_FLOATING_LIMIT:
                     len = encode_opening_tag(apdu, 4);
                     apdu_len += len;
+                    if (apdu) {
+                        apdu += len;
+                    }
                     len = encode_context_real(apdu, 0,
                         data->notificationParams.floatingLimit.referenceValue);
                     apdu_len += len;
@@ -559,6 +565,9 @@ int event_notify_encode_service_request(
                     }
                     len = encode_closing_tag(apdu, 8);
                     apdu_len += len;
+                    if (apdu) {
+                        apdu += len;
+                    }
                     break;
 
                 case EVENT_BUFFER_READY:
@@ -617,7 +626,6 @@ int event_notify_encode_service_request(
                     if (apdu) {
                         apdu += len;
                     }
-
                     len = encode_closing_tag(apdu, 11);
                     apdu_len += len;
                     if (apdu) {
