@@ -256,6 +256,9 @@ int dcc_encode_apdu(uint8_t *apdu,
     }
     len = 4;
     apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
     len = dcc_apdu_encode(
         apdu, timeDuration, enable_disable, password);
     apdu_len += len;
