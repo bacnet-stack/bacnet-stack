@@ -40,6 +40,76 @@
 /** @file rp.c  Encode/Decode Read Property and RP ACKs */
 
 #if BACNET_SVC_RP_A
+/**
+ * @brief Encode APDU for ReadProperty-Request
+ *
+ *  ReadProperty-Request ::= SEQUENCE {
+ *      object-identifier [0] BACnetObjectIdentifier,
+ *      property-identifier [1] BACnetPropertyIdentifier,
+ *      property-array-index [2] Unsigned OPTIONAL
+ *      -- used only with array datatype
+ *      -- if omitted with an array the entire array is referenced
+ *  }
+ *
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param data  Pointer to the data to encode.
+ * @return number of bytes encoded, or zero on error.
+ */
+int read_property_request_encode(uint8_t *apdu, BACNET_READ_PROPERTY_DATA *data)
+{
+    int len = 0; /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    if (!data) {
+        return 0;
+    }
+    /* object-identifier [0] BACnetObjectIdentifier */
+    if (data->object_type <= BACNET_MAX_OBJECT) {
+        len = encode_context_object_id(
+            apdu, 0, data->object_type, data->object_instance);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    /* property-identifier [1] BACnetPropertyIdentifier */
+    if (data->object_property <= MAX_BACNET_PROPERTY_ID) {
+        len = encode_context_enumerated(apdu, 1, data->object_property);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    /* property-array-index [2] Unsigned OPTIONAL */
+    if (data->array_index != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(apdu, 2, data->array_index);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the ReadProperty-Request service
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t read_property_request_service_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_READ_PROPERTY_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = read_property_request_encode(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = read_property_request_encode(apdu, data);
+    }
+
+    return apdu_len;
+}
 
 /** Encode the service
  *
@@ -50,7 +120,7 @@
  * @return Bytes encoded or zero on error.
  */
 int rp_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_READ_PROPERTY_DATA *rpdata)
+    uint8_t *apdu, uint8_t invoke_id, BACNET_READ_PROPERTY_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -60,29 +130,14 @@ int rp_encode_apdu(
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_READ_PROPERTY; /* service choice */
-        apdu_len = 4;
-        if (rpdata->object_type <= BACNET_MAX_OBJECT) {
-            /* check bounds so that we could create malformed
-               messages for testing */
-            len = encode_context_object_id(&apdu[apdu_len], 0,
-                rpdata->object_type, rpdata->object_instance);
-            apdu_len += len;
-        }
-        /* The value should be in the range of 0 to 4194303. */
-        if (rpdata->object_property <= MAX_BACNET_PROPERTY_ID) {
-            /* check bounds so that we could create malformed
-               messages for testing */
-            len = encode_context_enumerated(
-                &apdu[apdu_len], 1, rpdata->object_property);
-            apdu_len += len;
-        }
-        /* optional array index */
-        if (rpdata->array_index != BACNET_ARRAY_ALL) {
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 2, rpdata->array_index);
-            apdu_len += len;
-        }
     }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = read_property_request_encode(apdu, data);
+    apdu_len += len;
 
     return apdu_len;
 }
@@ -158,6 +213,91 @@ int rp_decode_service_request(
 
     return (int)len;
 }
+/**
+ * @brief Encode APDU for ReadProperty-ACK
+ *
+ *  ReadProperty-ACK ::= SEQUENCE {
+ *      object-identifier [0] BACnetObjectIdentifier,
+ *      property-identifier [1] BACnetPropertyIdentifier,
+ *      property-array-index [2] Unsigned OPTIONAL,
+ *      -- used only with array datatype
+ *      -- if omitted with an array the entire array is referenced
+ *      property-value [3]
+ *  }
+ *
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param data  Pointer to the data to encode.
+ * @return number of bytes encoded, or zero on error.
+ */
+int read_property_ack_encode(uint8_t *apdu, BACNET_READ_PROPERTY_DATA *data)
+{
+    int len = 0; /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    if (!data) {
+        return 0;
+    }
+    /* object-identifier [0] BACnetObjectIdentifier */
+    len = encode_context_object_id(
+        apdu, 0, data->object_type, data->object_instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* property-identifier [1] BACnetPropertyIdentifier */
+    len = encode_context_enumerated(apdu, 1, data->object_property);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* property-array-index [2] Unsigned OPTIONAL */
+    if (data->array_index != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(apdu, 2, data->array_index);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    /* property-value [3] */
+    len = encode_opening_tag(apdu, 3);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    if (apdu) {
+        for (len = 0; len < data->application_data_len; len++) {
+            apdu[len] = data->application_data[len];
+        }
+        apdu += data->application_data_len;
+    }
+    apdu_len += data->application_data_len;
+    len = encode_closing_tag(apdu, 3);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the COVNotification service request
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t read_property_ack_service_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_READ_PROPERTY_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = read_property_ack_encode(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = read_property_ack_encode(apdu, data);
+    }
+
+    return apdu_len;
+}
 
 /** Alternate method to encode the ack without extra buffer.
  *
@@ -177,24 +317,34 @@ int rp_ack_encode_apdu_init(
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
         apdu[1] = invoke_id; /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY; /* service choice */
-        apdu_len = 3;
-
-        /* service ack follows */
-        len = encode_context_object_id(
-            &apdu[apdu_len], 0, rpdata->object_type, rpdata->object_instance);
-        apdu_len += len;
-        len = encode_context_enumerated(
-            &apdu[apdu_len], 1, rpdata->object_property);
-        apdu_len += len;
-        /* context 2 array index is optional */
-        if (rpdata->array_index != BACNET_ARRAY_ALL) {
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 2, rpdata->array_index);
-            apdu_len += len;
-        }
-        len = encode_opening_tag(&apdu[apdu_len], 3);
-        apdu_len += len;
     }
+    len = 3;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* service ack follows */
+    len = encode_context_object_id(
+        apdu, 0, rpdata->object_type, rpdata->object_instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_context_enumerated(apdu, 1, rpdata->object_property);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* context 2 array index is optional */
+    if (rpdata->array_index != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(apdu, 2, rpdata->array_index);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    len = encode_opening_tag(apdu, 3);
+    apdu_len += len;
 
     return apdu_len;
 }
@@ -234,19 +384,25 @@ int rp_ack_encode_apdu(
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
-    if (apdu) {
+    if (rpdata) {
         /* Do the initial encoding */
-        apdu_len = rp_ack_encode_apdu_init(apdu, invoke_id, rpdata);
-        /* propertyValue
-         * double check maximum possible */
+        len = rp_ack_encode_apdu_init(apdu, invoke_id, rpdata);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         imax = rpdata->application_data_len;
-        if (imax > (MAX_APDU - apdu_len - 2)) {
-            imax = (MAX_APDU - apdu_len - 2);
-        }
         for (len = 0; len < imax; len++) {
-            apdu[apdu_len++] = rpdata->application_data[len];
+            if (apdu) {
+                apdu[len] = rpdata->application_data[len];
+            }
         }
-        apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, 3);
+        apdu_len += len;
     }
 
     return apdu_len;

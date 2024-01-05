@@ -139,6 +139,16 @@ extern "C" {
         BACNET_READ_RANGE_DATA * rrdata);
 
     BACNET_STACK_EXPORT
+    int read_range_encode(
+        uint8_t *apdu, 
+        BACNET_READ_RANGE_DATA *data);
+    BACNET_STACK_EXPORT
+    size_t read_range_request_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_READ_RANGE_DATA *data);
+
+    BACNET_STACK_EXPORT
     int rr_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
