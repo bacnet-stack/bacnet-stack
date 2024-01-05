@@ -1063,19 +1063,20 @@ typedef enum {
     PROP_STATE_AUDIT_LEVEL = 59,
     PROP_STATE_AUDIT_OPERATION = 60,
     PROP_STATE_EXTENDED_VALUE = 63,
-    PROP_STATE_EXAMPLE_ONE = 256,
-    PROP_STATE_EXAMPLE_TWO = 257,
+    /* Tag values 0-63 are reserved for definition by ASHRAE.*/
+    PROP_STATE_PROPRIETARY_MIN = 64,
+    PROP_STATE_PROPRIETARY_MAX = 254,
+    /* Tag values of 64-254 may be used by others to
+       accommodate vendor specific properties that have discrete
+       or enumerated values, subject to the constraints
+       described in Clause 23.*/
     /* Tag values greater than 254 are not encoded as ASN context tags.
        In these cases, the tag value is multiplied
        by 100000 and is added to the enumeration value
        and the sum is encoded using context tag 63,
        the extended-value choice.*/
-
-    /* Tag values 0-63 are reserved for definition by ASHRAE.
-       Tag values of 64-254 may be used by others to
-       accommodate vendor specific properties that have discrete
-       or enumerated values, subject to the constraints
-       described in Clause 23.*/
+    PROP_STATE_EXAMPLE_ONE = 256,
+    PROP_STATE_EXAMPLE_TWO = 257,
 } BACNET_PROPERTY_STATES;
 
 typedef enum {
@@ -2312,7 +2313,7 @@ typedef enum BACnetAccessZoneOccupancyState {
     ACCESS_ZONE_OCCUPANCY_STATE_AT_UPPER_LIMIT = 3,
     ACCESS_ZONE_OCCUPANCY_STATE_ABOVE_UPPER_LIMIT = 4,
     ACCESS_ZONE_OCCUPANCY_STATE_DISABLED = 5,
-    ACCESS_ZONE_OCCUPANCY_STATE_NOT_SUPPORTED = 6
+    ACCESS_ZONE_OCCUPANCY_STATE_NOT_SUPPORTED = 6,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. 
     Enumerated values 64-65535 may be used by others subject 
     to the procedures and constraints described in Clause 23. */
