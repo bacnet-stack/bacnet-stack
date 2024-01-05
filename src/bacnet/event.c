@@ -693,9 +693,6 @@ int event_notify_encode_service_request(
             }
             len = encode_closing_tag(apdu, 12);
             apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
             break;
         case NOTIFY_ACK_NOTIFICATION:
             /* FIXME: handle this case */
