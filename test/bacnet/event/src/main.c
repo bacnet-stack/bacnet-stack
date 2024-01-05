@@ -127,7 +127,7 @@ static void testEventEventState(void)
     data.toState = EVENT_STATE_OFFNORMAL;
 
     data.eventType = EVENT_CHANGE_OF_STATE;
-    data.notificationParams.changeOfState.newState.tag = UNITS;
+    data.notificationParams.changeOfState.newState.tag = PROP_STATE_UNITS;
     data.notificationParams.changeOfState.newState.state.units =
         UNITS_SQUARE_METERS;
 
