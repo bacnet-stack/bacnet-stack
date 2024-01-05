@@ -563,6 +563,16 @@ elseif(APPLE)
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
     ports/bsd/stdbool.h)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+  message(STATUS "BACNET: building for FreeBSD")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    ports/bsd/bacport.h
+    ports/bsd/bip-init.c
+    ports/bsd/datetime-init.c
+    ports/bsd/mstimer-init.c
+    ports/bsd/stdbool.h)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
