@@ -6,6 +6,12 @@ project(Unit_Tests)
 
 # add definitions
 add_definitions(-fprofile-arcs -ftest-coverage)
+set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic")
+set(CMAKE_C_FLAGS "-Wextra -Wfloat-equal -Wconversion -Wparentheses")
+set(CMAKE_C_FLAGS "-Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value")
+set(CMAKE_C_FLAGS "-Wreturn-type -Wswitch-default -Wuninitialized -Winit-self")
+set(CMAKE_C_FLAGS "-Wno-sign-conversion -Wno-conversion -Wno-sign-compare")
+set(CMAKE_C_FLAGS "-Wno-long-long -Wno-implicit-fallthrough -Wno-attributes")
 
 option(BACNET_STACK_DEPRECATED_DISABLE "Disable deprecation compile warnings" ON)
 
