@@ -1,4 +1,43 @@
-# Project settings for STM32F429ZI hardware on Nucleof429zi board
+# This is a CMake example for STM32F429ZI hardware on Nucleof429zi board
+# using the ARM GCC compiler and STM32F4xx_StdPeriph_Driver library.
+#
+# MCU STM32F429ZI
+# CPU Cortex-M4
+# Board Nucleof429zi
+# Clock 180MHz
+# RAM 256Kb
+# Flash 2Mb
+#
+# To build this project you need to install:
+# - ARM GCC compiler
+# - CMake
+#
+# To build this project you need to run:
+# - cmake -S . -B build
+# - cmake --build build
+#
+# To flash this project you need to run:
+# - st-flash write build/bacnet-mstp.hex 0x8000000
+#
+# To debug this project you need to run:
+# - arm-none-eabi-gdb -q build/bacnet-mstp.out
+# - (gdb) target extended-remote localhost:3333
+# - (gdb) monitor reset halt
+# - (gdb) load
+# - (gdb) monitor reset halt
+# - (gdb) monitor reset init
+# - (gdb) monitor reset run
+# - (gdb) monitor reset exit
+# - (gdb) quit
+#
+# You can also use VSCode with Cortex-Debug extension
+#
+# This example was tested with:
+# - ARM GCC 10.3.1
+# - CMake 3.22.1
+# - STM32F4xx_StdPeriph_Driver V1.0.0
+# - BACnet Stack V1.3.2
+#
 cmake_minimum_required(VERSION 3.20)
 
 # Cross compilers and tools
@@ -13,7 +52,7 @@ set(CMAKE_OBJDUMP arm-none-eabi-objdump)
 set(SIZE arm-none-eabi-size)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
-project(BACnet-429zi)
+project(bacnet-mstp)
 
 enable_language(C ASM)
 set(CMAKE_C_STANDARD 11)
@@ -23,7 +62,8 @@ set(CMAKE_C_EXTENSIONS ON)
 # Specific ARM microcontroller compiler and linker settings
 add_compile_options(-mcpu=cortex-m4)
 add_compile_options(-mthumb -mthumb-interwork)
-add_compile_options(-ffunction-sections -fdata-sections -fno-common -fmessage-length=0)
+add_compile_options(-ffunction-sections -fdata-sections)
+add_compile_options(-fno-common -fmessage-length=0)
 add_link_options(-mcpu=cortex-m4)
 add_link_options(-mthumb -mthumb-interwork)
 add_link_options(-Wl,-gc-sections,--print-memory-usage)
@@ -54,7 +94,6 @@ option(BACNET_STACK_DEPRECATED_DISABLE "Disable deprecation compile warnings" ON
 if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
-
 
 set(BACNET_CORE "../../src/bacnet")
 set(BACNET_BASIC "../../src/bacnet/basic")
