@@ -1,9 +1,9 @@
 # This is a CMake example for STM32F429ZI hardware on Nucleof429zi board
 # using the ARM GCC compiler and STM32F4xx_StdPeriph_Driver library.
 #
+# Board Nucleof429zi
 # MCU STM32F429ZI
 # CPU Cortex-M4
-# Board Nucleof429zi
 # Clock 180MHz
 # RAM 256Kb
 # Flash 2Mb
@@ -95,104 +95,108 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
-set(BACNET_CORE "../../src/bacnet")
-set(BACNET_BASIC "../../src/bacnet/basic")
-set(LIBRARY_STM32 "./STM32F4xx_StdPeriph_Driver/src")
+set(LIBRARY_BACNET_INC "../../src")
+set(LIBRARY_BACNET_CORE "../../src/bacnet")
+set(LIBRARY_BACNET_BASIC "../../src/bacnet/basic")
+set(LIBRARY_STM32_SRC "./STM32F4xx_StdPeriph_Driver/src")
+set(LIBRARY_STM32_INC "./STM32F4xx_StdPeriph_Driver/inc")
+set(LIBRARY_CMSIS_INC "./CMSIS")
+set(LIBRARY_CMSIS_GCC_INC "./CMSIS/gcc_ride7")
 
 set(BACNET_PROJECT_SOURCE
-    ${LIBRARY_STM32}/stm32f4xx_adc.c
-    ${LIBRARY_STM32}/stm32f4xx_can.c
-    ${LIBRARY_STM32}/stm32f4xx_crc.c
-    ${LIBRARY_STM32}/stm32f4xx_dac.c
-    ${LIBRARY_STM32}/stm32f4xx_dbgmcu.c
-    ${LIBRARY_STM32}/stm32f4xx_dcmi.c
-    ${LIBRARY_STM32}/stm32f4xx_dma.c
-    ${LIBRARY_STM32}/stm32f4xx_exti.c
-    ${LIBRARY_STM32}/stm32f4xx_flash.c
-    ${LIBRARY_STM32}/stm32f4xx_fsmc.c
-    ${LIBRARY_STM32}/stm32f4xx_gpio.c
-    ${LIBRARY_STM32}/stm32f4xx_i2c.c
-    ${LIBRARY_STM32}/stm32f4xx_iwdg.c
-    ${LIBRARY_STM32}/stm32f4xx_misc.c
-    ${LIBRARY_STM32}/stm32f4xx_pwr.c
-    ${LIBRARY_STM32}/stm32f4xx_rcc.c
-    ${LIBRARY_STM32}/stm32f4xx_rng.c
-    ${LIBRARY_STM32}/stm32f4xx_rtc.c
-    ${LIBRARY_STM32}/stm32f4xx_sdio.c
-    ${LIBRARY_STM32}/stm32f4xx_spi.c
-    ${LIBRARY_STM32}/stm32f4xx_syscfg.c
-    ${LIBRARY_STM32}/stm32f4xx_tim.c
-    ${LIBRARY_STM32}/stm32f4xx_usart.c
-    ${LIBRARY_STM32}/stm32f4xx_wwdg.c
-    ${LIBRARY_STM32}/syscalls.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_adc.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_can.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_crc.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_dac.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_dbgmcu.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_dcmi.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_dma.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_exti.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_flash.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_fsmc.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_gpio.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_i2c.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_iwdg.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_misc.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_pwr.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_rcc.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_rng.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_rtc.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_sdio.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_spi.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_syscfg.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_tim.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_usart.c
+    ${LIBRARY_STM32_SRC}/stm32f4xx_wwdg.c
+    ${LIBRARY_STM32_SRC}/syscalls.c
 
     ${CMAKE_SOURCE_DIR}/stm32f4xx_conf.h
 
     ${CMAKE_SOURCE_DIR}/main.c
     ${CMAKE_SOURCE_DIR}/stm32f4xx_it.c
     ${CMAKE_SOURCE_DIR}/stm32f4xx_it.h
-	${CMAKE_SOURCE_DIR}/system_stm32f4xx.c
-	${CMAKE_SOURCE_DIR}/system_stm32f4xx.h
+    ${CMAKE_SOURCE_DIR}/system_stm32f4xx.c
+    ${CMAKE_SOURCE_DIR}/system_stm32f4xx.h
 
     ${CMAKE_SOURCE_DIR}/bacnet.c
     ${CMAKE_SOURCE_DIR}/dlmstp.c
     ${CMAKE_SOURCE_DIR}/led.c
     ${CMAKE_SOURCE_DIR}/mstimer-init.c
-	${CMAKE_SOURCE_DIR}/rs485.c
+    ${CMAKE_SOURCE_DIR}/rs485.c
 
     ${CMAKE_SOURCE_DIR}/device.c
     ${CMAKE_SOURCE_DIR}/netport.c
 
-	${BACNET_BASIC}/service/h_dcc.c
-	${BACNET_BASIC}/service/h_apdu.c
-	${BACNET_BASIC}/npdu/h_npdu.c
-	${BACNET_BASIC}/service/h_rd.c
-	${BACNET_BASIC}/service/h_rp.c
-	${BACNET_BASIC}/service/h_rpm.c
-	${BACNET_BASIC}/service/h_whohas.c
-	${BACNET_BASIC}/service/h_whois.c
-	${BACNET_BASIC}/service/h_wp.c
-	${BACNET_BASIC}/service/h_noserv.c
-	${BACNET_BASIC}/service/s_iam.c
-	${BACNET_BASIC}/service/s_ihave.c
-	${BACNET_BASIC}/tsm/tsm.c
-	${BACNET_BASIC}/sys/debug.c
-	${BACNET_BASIC}/sys/ringbuf.c
-	${BACNET_BASIC}/sys/fifo.c
-	${BACNET_BASIC}/sys/mstimer.c
+    ${LIBRARY_BACNET_BASIC}/service/h_dcc.c
+    ${LIBRARY_BACNET_BASIC}/service/h_apdu.c
+    ${LIBRARY_BACNET_BASIC}/npdu/h_npdu.c
+    ${LIBRARY_BACNET_BASIC}/service/h_rd.c
+    ${LIBRARY_BACNET_BASIC}/service/h_rp.c
+    ${LIBRARY_BACNET_BASIC}/service/h_rpm.c
+    ${LIBRARY_BACNET_BASIC}/service/h_whohas.c
+    ${LIBRARY_BACNET_BASIC}/service/h_whois.c
+    ${LIBRARY_BACNET_BASIC}/service/h_wp.c
+    ${LIBRARY_BACNET_BASIC}/service/h_noserv.c
+    ${LIBRARY_BACNET_BASIC}/service/s_iam.c
+    ${LIBRARY_BACNET_BASIC}/service/s_ihave.c
+    ${LIBRARY_BACNET_BASIC}/tsm/tsm.c
+    ${LIBRARY_BACNET_BASIC}/sys/debug.c
+    ${LIBRARY_BACNET_BASIC}/sys/ringbuf.c
+    ${LIBRARY_BACNET_BASIC}/sys/fifo.c
+    ${LIBRARY_BACNET_BASIC}/sys/mstimer.c
 
-	${BACNET_CORE}/abort.c
-	${BACNET_CORE}/bacaddr.c
-	${BACNET_CORE}/bacapp.c
-	${BACNET_CORE}/bacdcode.c
-	${BACNET_CORE}/bacdest.c
-	${BACNET_CORE}/bacdevobjpropref.c
-	${BACNET_CORE}/bacerror.c
-	${BACNET_CORE}/bacint.c
-	${BACNET_CORE}/bacreal.c
-	${BACNET_CORE}/bacstr.c
-	${BACNET_CORE}/datalink/cobs.c
-	${BACNET_CORE}/datalink/crc.c
-	${BACNET_CORE}/datetime.c
-	${BACNET_CORE}/dcc.c
-	${BACNET_CORE}/iam.c
-	${BACNET_CORE}/ihave.c
-	${BACNET_CORE}/hostnport.c
-	${BACNET_CORE}/lighting.c
-	${BACNET_CORE}/memcopy.c
-	${BACNET_CORE}/npdu.c
-	${BACNET_CORE}/proplist.c
-	${BACNET_CORE}/rd.c
-	${BACNET_CORE}/reject.c
-	${BACNET_CORE}/rp.c
-	${BACNET_CORE}/rpm.c
-	${BACNET_CORE}/timestamp.c
-	${BACNET_CORE}/weeklyschedule.c
-	${BACNET_CORE}/dailyschedule.c
-	${BACNET_CORE}/bactimevalue.c
-	${BACNET_CORE}/whohas.c
-	${BACNET_CORE}/whois.c
-	${BACNET_CORE}/wp.c
+    ${LIBRARY_BACNET_CORE}/abort.c
+    ${LIBRARY_BACNET_CORE}/bacaddr.c
+    ${LIBRARY_BACNET_CORE}/bacapp.c
+    ${LIBRARY_BACNET_CORE}/bacdcode.c
+    ${LIBRARY_BACNET_CORE}/bacdest.c
+    ${LIBRARY_BACNET_CORE}/bacdevobjpropref.c
+    ${LIBRARY_BACNET_CORE}/bacerror.c
+    ${LIBRARY_BACNET_CORE}/bacint.c
+    ${LIBRARY_BACNET_CORE}/bacreal.c
+    ${LIBRARY_BACNET_CORE}/bacstr.c
+    ${LIBRARY_BACNET_CORE}/datalink/cobs.c
+    ${LIBRARY_BACNET_CORE}/datalink/crc.c
+    ${LIBRARY_BACNET_CORE}/datetime.c
+    ${LIBRARY_BACNET_CORE}/dcc.c
+    ${LIBRARY_BACNET_CORE}/iam.c
+    ${LIBRARY_BACNET_CORE}/ihave.c
+    ${LIBRARY_BACNET_CORE}/hostnport.c
+    ${LIBRARY_BACNET_CORE}/lighting.c
+    ${LIBRARY_BACNET_CORE}/memcopy.c
+    ${LIBRARY_BACNET_CORE}/npdu.c
+    ${LIBRARY_BACNET_CORE}/proplist.c
+    ${LIBRARY_BACNET_CORE}/rd.c
+    ${LIBRARY_BACNET_CORE}/reject.c
+    ${LIBRARY_BACNET_CORE}/rp.c
+    ${LIBRARY_BACNET_CORE}/rpm.c
+    ${LIBRARY_BACNET_CORE}/timestamp.c
+    ${LIBRARY_BACNET_CORE}/weeklyschedule.c
+    ${LIBRARY_BACNET_CORE}/dailyschedule.c
+    ${LIBRARY_BACNET_CORE}/bactimevalue.c
+    ${LIBRARY_BACNET_CORE}/whohas.c
+    ${LIBRARY_BACNET_CORE}/whois.c
+    ${LIBRARY_BACNET_CORE}/wp.c
 
     CMSIS/gcc_ride7/startup_stm32f4xx.s
     CMSIS/stm32f4xx.h
@@ -205,13 +209,13 @@ set(EXECUTABLE ${PROJECT_NAME}.out)
 add_executable(${EXECUTABLE} ${BACNET_PROJECT_SOURCE})
 
 target_compile_definitions(${EXECUTABLE} PRIVATE
-        -DNDEBUG
-        -DUSE_STDPERIPH_DRIVER
-        -DSTM32F4XX
-        -DBACDL_MSTP
-        -DMAX_APDU=480
-        -DBIG_ENDIAN=0
-        -DMAX_TSM_TRANSACTIONS=1
+    -DNDEBUG
+    -DUSE_STDPERIPH_DRIVER
+    -DSTM32F4XX
+    -DBACDL_MSTP
+    -DMAX_APDU=480
+    -DBIG_ENDIAN=0
+    -DMAX_TSM_TRANSACTIONS=1
 )
 
 # inhibit pedantic warnings
@@ -224,28 +228,30 @@ target_compile_options(${EXECUTABLE} PRIVATE
 
 target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_SOURCE_DIR}
-    CMSIS
-    CMSIS/gcc_ride7
-    STM32F4xx_StdPeriph_Driver/inc
-    ../../src
+    ${LIBRARY_CMSIS_INC}
+    ${LIBRARY_CMSIS_GCC_INC}
+    ${LIBRARY_STM32_INC}
+    ${LIBRARY_BACNET_INC}
 )
 
 target_link_options(${EXECUTABLE} PRIVATE
-        -T${LINKER_SCRIPT}
-        -specs=nano.specs
-        -lm
-        -lnosys
-        -Wl,-Map=${PROJECT_NAME}.map,--cref
-        -Wl,--gc-sections
+    -T${LINKER_SCRIPT}
+    -specs=nano.specs
+    -lm
+    -lnosys
+    -Wl,-Map=${PROJECT_NAME}.map,--cref
+    -Wl,--gc-sections
 )
 
 # Print executable size
 add_custom_command(TARGET ${EXECUTABLE}
-        POST_BUILD
-        COMMAND arm-none-eabi-size ${EXECUTABLE})
+    POST_BUILD
+    COMMAND arm-none-eabi-size ${EXECUTABLE}
+)
 
 # Create hex file
 add_custom_command(TARGET ${EXECUTABLE}
-        POST_BUILD
-        COMMAND arm-none-eabi-objcopy -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
-        COMMAND arm-none-eabi-objcopy -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin)
+    POST_BUILD
+    COMMAND arm-none-eabi-objcopy -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
+    COMMAND arm-none-eabi-objcopy -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin
+)
