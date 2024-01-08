@@ -34,6 +34,12 @@
 #include "led.h"
 #include "bacnet.h"
 
+int __io_putchar(int ch)
+{
+    (void)ch;
+    return 0;
+}
+
 int main(void)
 {
     struct mstimer Blink_Timer;
