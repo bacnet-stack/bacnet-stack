@@ -40,9 +40,8 @@
 
 /** @file rd.c  Encode/Decode Reinitialize Device APDUs */
 #if BACNET_SVC_RD_A
-
 /**
- * @brief Encode Reinitialize Device service
+ * @brief Encode ReinitializeDevice-Request APDU
  *
  *  ReinitializeDevice-Request ::= SEQUENCE {
  *      reinitialized-state-of-device [0] ENUMERATED {
@@ -58,6 +57,62 @@
  *      password [1] CharacterString (SIZE (1..20)) OPTIONAL
  * }
  *
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param state  Reinitialization state
+ * @param password  Pointer to the pass phrase.
+ * @return number of bytes encoded
+ */
+int reinitialize_device_encode(uint8_t *apdu,
+    BACNET_REINITIALIZED_STATE state,
+    BACNET_CHARACTER_STRING *password)
+{
+    int len = 0; /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    /* reinitialized-state-of-device [0] ENUMERATED */
+    len = encode_context_enumerated(apdu, 0, state);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* password [1] CharacterString (SIZE (1..20)) OPTIONAL */
+    if (password) {
+        if ((password->length >= 1) && (password->length <= 20)) {
+            len = encode_context_character_string(apdu, 1, password);
+            apdu_len += len;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the COVNotification service request
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param state  Reinitialization state
+ * @param password  Pointer to the pass phrase.
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t reinitialize_device_request_encode(uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_REINITIALIZED_STATE state,
+    BACNET_CHARACTER_STRING *password)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = reinitialize_device_encode(NULL, state, password);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = reinitialize_device_encode(apdu, state, password);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode Reinitialize Device service
  * @param apdu  Pointer to the APDU buffer.
  * @param invoke_id Invoke-Id
  * @param state  Reinitialization state
@@ -84,20 +139,8 @@ int rd_encode_apdu(uint8_t *apdu,
     if (apdu) {
         apdu += len;
     }
-    len = encode_context_enumerated(apdu, 0, state);
+    len = reinitialize_device_encode(apdu, state, password);
     apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    /* optional password */
-    if (password) {
-        /* Must be at least 1 character, limited to 20 characters */
-        if ((password->length >= 1) && (password->length <= 20)) {
-            len = encode_context_character_string(
-                apdu, 1, password);
-            apdu_len += len;
-        }
-    }
 
     return apdu_len;
 }

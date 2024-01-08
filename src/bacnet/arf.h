@@ -69,6 +69,11 @@ extern "C" {
     int arf_service_encode_apdu(
         uint8_t *apdu, 
         BACNET_ATOMIC_READ_FILE_DATA *data);
+    BACNET_STACK_EXPORT
+    size_t atomicreadfile_service_request_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_ATOMIC_READ_FILE_DATA *data);
 
 /* decode the service request only */
     BACNET_STACK_EXPORT

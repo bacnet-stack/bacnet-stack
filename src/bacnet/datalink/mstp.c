@@ -226,7 +226,7 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
         if (frame_type == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) {
             frame_type = FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY;
             cobs_bacnet_frame = true;
-        } else if (frame_type == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) {
+        } else if (frame_type == FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY) {
             frame_type = FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY;
             cobs_bacnet_frame = true;
         } else if ((frame_type < Nmin_COBS_type) ||

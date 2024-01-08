@@ -36,7 +36,6 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/memcopy.h"
 /* me! */
 #include "bacnet/cov.h"
 
@@ -53,7 +52,7 @@ Unconfirmed COV Notification
  * @brief Encode APDU for COV Notification.
  * @param apdu  Pointer to the buffer, or NULL for length
  * @param data  Pointer to the data to encode.
- * @return bytes encoded or zero on error.
+ * @return number of bytes encoded, or zero on error.
  */
 int cov_notify_encode_apdu(uint8_t *apdu, BACNET_COV_DATA *data)
 {
@@ -61,72 +60,71 @@ int cov_notify_encode_apdu(uint8_t *apdu, BACNET_COV_DATA *data)
     int apdu_len = 0; /* total length of the apdu, return value */
     BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
 
-    if (apdu) {
-        /* tag 0 - subscriberProcessIdentifier */
-        len =
-            encode_context_unsigned(apdu, 0, data->subscriberProcessIdentifier);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        /* tag 1 - initiatingDeviceIdentifier */
-        len = encode_context_object_id(
-            apdu, 1, OBJECT_DEVICE, data->initiatingDeviceIdentifier);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        /* tag 2 - monitoredObjectIdentifier */
-        len = encode_context_object_id(apdu, 2,
-            data->monitoredObjectIdentifier.type,
-            data->monitoredObjectIdentifier.instance);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        /* tag 3 - timeRemaining */
-        len = encode_context_unsigned(apdu, 3, data->timeRemaining);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        /* tag 4 - listOfValues */
-        len = encode_opening_tag(apdu, 4);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        /* the first value includes a pointer to the next value, etc */
-        value = data->listOfValues;
-        while (value != NULL) {
-            len = bacapp_property_value_encode(apdu, value);
-            apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
-            /* is there another one to encode? */
-            value = value->next;
-        }
-        len = encode_closing_tag(apdu, 4);
-        apdu_len += len;
+    if (!data) {
+        return 0;
     }
+    /* tag 0 - subscriberProcessIdentifier */
+    len =
+        encode_context_unsigned(apdu, 0, data->subscriberProcessIdentifier);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* tag 1 - initiatingDeviceIdentifier */
+    len = encode_context_object_id(
+        apdu, 1, OBJECT_DEVICE, data->initiatingDeviceIdentifier);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* tag 2 - monitoredObjectIdentifier */
+    len = encode_context_object_id(apdu, 2,
+        data->monitoredObjectIdentifier.type,
+        data->monitoredObjectIdentifier.instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* tag 3 - timeRemaining */
+    len = encode_context_unsigned(apdu, 3, data->timeRemaining);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* tag 4 - listOfValues */
+    len = encode_opening_tag(apdu, 4);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* the first value includes a pointer to the next value, etc */
+    value = data->listOfValues;
+    while (value != NULL) {
+        len = bacapp_property_value_encode(apdu, value);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* is there another one to encode? */
+        value = value->next;
+    }
+    len = encode_closing_tag(apdu, 4);
+    apdu_len += len;
 
     return apdu_len;
 }
 
 /**
- * Encode APDU for notification.
- *
+ * @brief Encode the COVNotification service request
  * @param apdu  Pointer to the buffer for encoding into
  * @param apdu_size number of bytes available in the buffer
- * @param data  Pointer to the data to encode.
- *
- * @return bytes encoded or zero if unable to encode
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
  */
-static int notify_encode_apdu(
-    uint8_t *apdu, unsigned apdu_size, BACNET_COV_DATA *data)
+size_t cov_notify_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_COV_DATA *data)
 {
-    int apdu_len = 0; /* total length of the apdu, return value */
+    size_t apdu_len = 0; /* total length of the apdu, return value */
 
     apdu_len = cov_notify_encode_apdu(NULL, data);
     if (apdu_len > apdu_size) {
@@ -141,67 +139,71 @@ static int notify_encode_apdu(
 /**
  * Encode APDU for confirmed notification.
  *
- * @param apdu  Pointer to the buffer.
- * @param max_apdu_len  Buffer size.
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param apdu_size number of bytes available in the buffer
  * @param invoke_id  ID to invoke for notification
  * @param data  Pointer to the data to encode.
  *
  * @return bytes encoded or zero on error.
  */
 int ccov_notify_encode_apdu(uint8_t *apdu,
-    unsigned max_apdu_len,
+    unsigned apdu_size,
     uint8_t invoke_id,
     BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
-    int apdu_len = BACNET_STATUS_ERROR; /* return value */
+    int apdu_len = 0; /* return value */
 
-    if (apdu && data && memcopylen(0, max_apdu_len, 4)) {
+    if (apdu && (apdu_size > 4)) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_COV_NOTIFICATION;
-        apdu_len = 4;
-        len =
-            notify_encode_apdu(&apdu[apdu_len], max_apdu_len - apdu_len, data);
-        if (len <= 0) {
-            /* return the error */
-            apdu_len = len;
-        } else {
-            apdu_len += len;
-        }
+    }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = cov_notify_service_request_encode(
+        apdu, apdu_size - apdu_len, data);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        apdu_len = 0;
     }
 
     return apdu_len;
 }
 
 /**
- * Encode APDU for unconfirmed notification.
- *
- * @param apdu  Pointer to the buffer.
- * @param max_apdu_len  Buffer size.
- * @param data  Pointer to the data to encode.
- *
- * @return bytes encoded or zero on error.
+ * @brief Encode APDU for unconfirmed notification.
+ * @param apdu  Pointer to the buffer for encoding into, or NULL for length
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
  */
 int ucov_notify_encode_apdu(
-    uint8_t *apdu, unsigned max_apdu_len, BACNET_COV_DATA *data)
+    uint8_t *apdu, unsigned apdu_size, BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
-    int apdu_len = BACNET_STATUS_ERROR; /* return value */
+    int apdu_len = 0; /* return value */
 
-    if (apdu && data && memcopylen(0, max_apdu_len, 2)) {
+    if (apdu && (apdu_size > 2)) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-        apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; /* service choice */
-        apdu_len = 2;
-        len =
-            notify_encode_apdu(&apdu[apdu_len], max_apdu_len - apdu_len, data);
-        if (len <= 0) {
-            /* return the error */
-            apdu_len = len;
-        } else {
-            apdu_len += len;
-        }
+        apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; 
+    } 
+    len = 2;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = cov_notify_service_request_encode(
+        apdu, apdu_size - apdu_len, data);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        apdu_len = 0;
     }
 
     return apdu_len;
@@ -351,53 +353,110 @@ SubscribeCOV-Request ::= SEQUENCE {
 */
 
 /**
- * Encode the COV-service request.
- * Note: COV and Unconfirmed COV are the same.
- *
+ * @brief Encode APDU for SubscribeCOV-Request
+ * @note COV and Unconfirmed COV are the same encodings
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param data  Pointer to the data to encode.
+ * @return number of bytes encoded, or zero on error.
+ */
+int cov_subscribe_apdu_encode(uint8_t *apdu, BACNET_SUBSCRIBE_COV_DATA *data)
+{
+    int len = 0; /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    /* tag 0 - subscriberProcessIdentifier */
+    len = encode_context_unsigned(apdu, 0, data->subscriberProcessIdentifier);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+
+    /* tag 1 - monitoredObjectIdentifier */
+    len =
+        encode_context_object_id(apdu, 1, data->monitoredObjectIdentifier.type,
+            data->monitoredObjectIdentifier.instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /*
+        If both the 'Issue Confirmed Notifications' and
+        'Lifetime' parameters are absent, then this shall
+        indicate a cancellation request.
+        */
+    if (!data->cancellationRequest) {
+        /* tag 2 - issueConfirmedNotifications */
+        len =
+            encode_context_boolean(apdu, 2, data->issueConfirmedNotifications);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* tag 3 - lifetime */
+        len = encode_context_unsigned(apdu, 3, data->lifetime);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the SubscribeCOV service request
+ * @note COV and Unconfirmed COV are the same encodings
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t cov_subscribe_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = cov_subscribe_apdu_encode(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = cov_subscribe_apdu_encode(apdu, data);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the COV-service request.
+ * @note COV and Unconfirmed COV are the same encodings
  * @param apdu  Pointer to the buffer.
+ * @param apdu_size number of bytes available in the buffer
  * @param invoke_id  Invoke ID
  * @param data  Pointer to the data to store the decoded values.
- *
- * @return Bytes encoded or zero on error.
+ * @return number of bytes encoded, or zero if unable to encode or too large
  */
 int cov_subscribe_encode_apdu(uint8_t *apdu,
-    unsigned max_apdu_len,
+    unsigned apdu_size,
     uint8_t invoke_id,
     BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
-    (void)max_apdu_len;
-    if (apdu && data) {
+    if (apdu && (apdu_size > 4)) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_SUBSCRIBE_COV;
-        apdu_len = 4;
-        /* tag 0 - subscriberProcessIdentifier */
-        len = encode_context_unsigned(
-            &apdu[apdu_len], 0, data->subscriberProcessIdentifier);
+    }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len =
+        cov_subscribe_service_request_encode(apdu, apdu_size - apdu_len, data);
+    if (len > 0) {
         apdu_len += len;
-        /* tag 1 - monitoredObjectIdentifier */
-        len = encode_context_object_id(&apdu[apdu_len], 1,
-            data->monitoredObjectIdentifier.type,
-            data->monitoredObjectIdentifier.instance);
-        apdu_len += len;
-        /*
-           If both the 'Issue Confirmed Notifications' and
-           'Lifetime' parameters are absent, then this shall
-           indicate a cancellation request.
-         */
-        if (!data->cancellationRequest) {
-            /* tag 2 - issueConfirmedNotifications */
-            len = encode_context_boolean(
-                &apdu[apdu_len], 2, data->issueConfirmedNotifications);
-            apdu_len += len;
-            /* tag 3 - lifetime */
-            len = encode_context_unsigned(&apdu[apdu_len], 3, data->lifetime);
-            apdu_len += len;
-        }
+    } else {
+        apdu_len = 0;
     }
 
     return apdu_len;
@@ -534,67 +593,141 @@ BACnetPropertyReference ::= SEQUENCE {
 */
 
 /**
- * Encode the properties for subscription into the APDU.
- *
+ * @brief Encode APDU for SubscribeCOVProperty request
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param data  Pointer to the data to encode.
+ * @return bytes encoded or zero on error.
+ */
+int cov_subscribe_property_apdu_encode(
+    uint8_t *apdu, BACNET_SUBSCRIBE_COV_DATA *data)
+{
+    int len = 0; /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    if (!data) {
+        return 0;
+    }
+    /* tag 0 - subscriberProcessIdentifier */
+    len = encode_context_unsigned(apdu, 0, data->subscriberProcessIdentifier);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* tag 1 - monitoredObjectIdentifier */
+    len =
+        encode_context_object_id(apdu, 1, data->monitoredObjectIdentifier.type,
+            data->monitoredObjectIdentifier.instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    if (!data->cancellationRequest) {
+        /* tag 2 - issueConfirmedNotifications */
+        len =
+            encode_context_boolean(apdu, 2, data->issueConfirmedNotifications);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* tag 3 - lifetime */
+        len = encode_context_unsigned(apdu, 3, data->lifetime);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    /* tag 4 - monitoredPropertyIdentifier */
+    len = encode_opening_tag(apdu, 4);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_context_enumerated(
+        apdu, 0, data->monitoredProperty.propertyIdentifier);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    if (data->monitoredProperty.propertyArrayIndex != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(
+            apdu, 1, data->monitoredProperty.propertyArrayIndex);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    len = encode_closing_tag(apdu, 4);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* tag 5 - covIncrement */
+    if (data->covIncrementPresent) {
+        len = encode_context_real(apdu, 5, data->covIncrement);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the SubscribeCOVProperty service request
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t cov_subscribe_property_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = cov_subscribe_property_apdu_encode(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = cov_subscribe_property_apdu_encode(apdu, data);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode SubscribeCOVProperty request
  * @param apdu  Pointer to the buffer.
- * @param max_apdu_len  Buffer size.
+ * @param apdu_size number of bytes available in the buffer
  * @param invoke_id  Invoke Id.
  * @param data  Pointer to the data to encode.
- *
- * @return Bytes decoded or Zero/BACNET_STATUS_ERROR on error.
+ * @return number of bytes encoded, or zero on error.
  */
 int cov_subscribe_property_encode_apdu(uint8_t *apdu,
-    unsigned max_apdu_len,
+    unsigned apdu_size,
     uint8_t invoke_id,
     BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
-    (void)max_apdu_len;
-    if (apdu && data) {
+    if (!data) {
+        return 0;
+    }
+    if (apdu && (apdu_size > 4)) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY;
-        apdu_len = 4;
-        /* tag 0 - subscriberProcessIdentifier */
-        len = encode_context_unsigned(
-            &apdu[apdu_len], 0, data->subscriberProcessIdentifier);
+    }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = cov_subscribe_property_service_request_encode(
+        apdu, apdu_size - apdu_len, data);
+    if (len > 0) {
         apdu_len += len;
-        /* tag 1 - monitoredObjectIdentifier */
-        len = encode_context_object_id(&apdu[apdu_len], 1,
-            data->monitoredObjectIdentifier.type,
-            data->monitoredObjectIdentifier.instance);
-        apdu_len += len;
-        if (!data->cancellationRequest) {
-            /* tag 2 - issueConfirmedNotifications */
-            len = encode_context_boolean(
-                &apdu[apdu_len], 2, data->issueConfirmedNotifications);
-            apdu_len += len;
-            /* tag 3 - lifetime */
-            len = encode_context_unsigned(&apdu[apdu_len], 3, data->lifetime);
-            apdu_len += len;
-        }
-        /* tag 4 - monitoredPropertyIdentifier */
-        len = encode_opening_tag(&apdu[apdu_len], 4);
-        apdu_len += len;
-        len = encode_context_enumerated(
-            &apdu[apdu_len], 0, data->monitoredProperty.propertyIdentifier);
-        apdu_len += len;
-        if (data->monitoredProperty.propertyArrayIndex != BACNET_ARRAY_ALL) {
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 1, data->monitoredProperty.propertyArrayIndex);
-            apdu_len += len;
-        }
-        len = encode_closing_tag(&apdu[apdu_len], 4);
-        apdu_len += len;
-
-        /* tag 5 - covIncrement */
-        if (data->covIncrementPresent) {
-            len = encode_context_real(&apdu[apdu_len], 5, data->covIncrement);
-            apdu_len += len;
-        }
+    } else {
+        apdu_len = 0;
     }
 
     return apdu_len;

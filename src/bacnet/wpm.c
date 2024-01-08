@@ -437,6 +437,7 @@ int wpm_error_ack_encode_apdu(
     return len;
 }
 
+#if !BACNET_SVC_SERVER
 /** Decoding for WritePropertyMultiple Error
  * @ingroup DSWPM
  *  WritePropertyMultiple-Error ::= SEQUENCE {
@@ -571,6 +572,7 @@ int wpm_error_ack_decode_apdu(
 
     return apdu_len;
 }
+#endif
 
 /**
  * @brief Convert an array of BACnetWriteAccessData to linked list

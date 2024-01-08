@@ -123,6 +123,28 @@ int arf_service_encode_apdu(uint8_t *apdu, BACNET_ATOMIC_READ_FILE_DATA *data)
 
 /**
  * @brief Encode the AtomicReadFile service request
+ * @param apdu Pointer to the buffer for encoded values
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t atomicreadfile_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_ATOMIC_READ_FILE_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = arf_service_encode_apdu(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = arf_service_encode_apdu(apdu, data);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the AtomicReadFile service request
  * @param apdu  Pointer to the buffer for decoding.
  * @param invoke_id original invoke id for request
  * @param data  Pointer to the property decoded data to be stored
