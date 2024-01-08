@@ -79,9 +79,21 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+  add_compile_options(-Wall -Wextra -pedantic)
+  add_compile_options(-Wfloat-equal -Wconversion -Wparentheses)
+  add_compile_options(-Wunused-value -Wreturn-type -Wswitch-default)
+  add_compile_options(-Wuninitialized -Winit-self)
+  add_compile_options(-Wno-sign-conversion -Wno-conversion)
+  add_compile_options(-Wno-sign-compare -Wno-long-long)
+  add_compile_options(-Wno-implicit-fallthrough -Wno-attributes)
+  add_compile_options(-Wunused-variable -Wunused-function)
+  add_compile_options(-Wunused-parameter)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  add_compile_options(-Wall -Wextra -pedantic -g -O3)
+endif()
 
 #
 # library

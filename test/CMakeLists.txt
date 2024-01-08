@@ -4,15 +4,6 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 # set the project name
 project(Unit_Tests)
 
-# add definitions
-add_definitions(-fprofile-arcs -ftest-coverage)
-set(CMAKE_C_FLAGS "-Wall -Wextra -pedantic")
-set(CMAKE_C_FLAGS "-Wextra -Wfloat-equal -Wconversion -Wparentheses")
-set(CMAKE_C_FLAGS "-Wunused-parameter -Wunused-variable -Wunused-function -Wunused-value")
-set(CMAKE_C_FLAGS "-Wreturn-type -Wswitch-default -Wuninitialized -Winit-self")
-set(CMAKE_C_FLAGS "-Wno-sign-conversion -Wno-conversion -Wno-sign-compare")
-set(CMAKE_C_FLAGS "-Wno-long-long -Wno-implicit-fallthrough -Wno-attributes")
-
 option(BACNET_STACK_DEPRECATED_DISABLE "Disable deprecation compile warnings" ON)
 
 if(BACNET_STACK_DEPRECATED_DISABLE)
@@ -20,11 +11,19 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
 # Set the compiler options
-if (NOT MSVC)
-    add_compile_options(-Wall -g -O0 -W -fprofile-arcs -ftest-coverage)
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+    add_definitions(-fprofile-arcs -ftest-coverage)
+    add_compile_options(-g -O0 -W -fprofile-arcs -ftest-coverage)
+    add_compile_options(-Wall -Wextra -pedantic)
+    add_compile_options(-Wfloat-equal -Wconversion -Wparentheses)
+    add_compile_options(-Wunused-value -Wreturn-type -Wswitch-default)
+    add_compile_options(-Wuninitialized -Winit-self)
+    add_compile_options(-Wno-sign-conversion -Wno-conversion)
+    add_compile_options(-Wno-sign-compare -Wno-long-long)
+    add_compile_options(-Wno-implicit-fallthrough -Wno-attributes)
     # ignore some warnings that occur during unit testing
     add_compile_options(-Wno-unused-variable -Wno-unused-function)
-    add_compile_options(-Wno-sign-compare -Wno-unused-parameter)
+    add_compile_options(-Wno-unused-parameter)
     add_link_options(-fprofile-arcs -ftest-coverage)
 endif()
 
