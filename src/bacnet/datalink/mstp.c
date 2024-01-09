@@ -1496,10 +1496,10 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                     }
                 }
             } else if (mstp_port->ReceivedInvalidFrame) {
-                /* InvalidFrame */
+                /* ClaimInvalidFrame */
                 mstp_port->ReceivedInvalidFrame = false;
             } else if (mstp_port->Zero_Config_Silence > 0) {
-                /* LostToken */
+                /* ClaimLostToken */
                 if (mstp_port->SilenceTimer((void *)mstp_port) >
                     mstp_port->Zero_Config_Silence) {
                     mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;

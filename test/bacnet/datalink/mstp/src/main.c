@@ -839,9 +839,11 @@ static void testZeroConfigNode_Test_LURK_ClaimAddressInUse(
     struct mstp_port_struct_t *mstp_port)
 {
     bool transition_now;
+    uint8_t station;
 
     /* ClaimAddressInUse */
-    mstp_port->SourceAddress = mstp_port->Zero_Config_Station;
+    station = mstp_port->Zero_Config_Station;
+    mstp_port->SourceAddress = station;
     mstp_port->DestinationAddress = 0;
     mstp_port->FrameType = FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER;
     mstp_port->ReceivedValidFrame = true;
@@ -849,7 +851,39 @@ static void testZeroConfigNode_Test_LURK_ClaimAddressInUse(
     zassert_false(transition_now, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
     zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_LURK, NULL);
+    zassert_equal(mstp_port->Zero_Config_Station, station + 1, NULL);
 }
+
+static void testZeroConfigNode_Test_LURK_ClaimInvalidFrame(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now;
+
+    /* ClaimInvalidFrame */
+    mstp_port->ReceivedValidFrame = false;
+    mstp_port->ReceivedValidFrameNotForUs = false;
+    mstp_port->ReceivedInvalidFrame = true;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(mstp_port->ReceivedInvalidFrame == false, NULL);
+    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_CLAIM, NULL);
+}
+
+static void testZeroConfigNode_Test_LURK_ClaimLostToken(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now;
+
+    /* ClaimLostToken */
+    mstp_port->ReceivedValidFrame = false;
+    mstp_port->ReceivedValidFrameNotForUs = false;
+    mstp_port->ReceivedInvalidFrame = false;
+    SilenceTime = mstp_port->Zero_Config_Silence + 1;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
+}
+
 
 static void testZeroConfigNodeFSM(void)
 {
@@ -883,8 +917,16 @@ static void testZeroConfigNodeFSM(void)
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
     testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
     testZeroConfigNode_Test_LURK_ClaimAddressInUse(&MSTP_Port);
-
-
+    /* test case: valid frame event LURK PFMs: ClaimInvalidFrame  */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ClaimInvalidFrame(&MSTP_Port);
+    /* test case: valid frame event LURK PFMs: ClaimLostToken  */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ClaimLostToken(&MSTP_Port);
 }
 
 /**
