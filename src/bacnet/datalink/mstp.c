@@ -185,7 +185,7 @@ void MSTP_Fill_BACnet_Address(BACNET_ADDRESS *src, uint8_t mstp_address)
  * @param destination - destination address
  * @param source - source address
  * @param data - any data to be sent - may be null
- * @param data_len - number of bytes of data (up to 501)
+ * @param data_len - number of bytes of data
  * @return number of bytes encoded, or 0 on error
  */
 uint16_t MSTP_Create_Frame(uint8_t *buffer,
@@ -220,7 +220,7 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
     }
     index = 8;
 
-    if ((data_len > 501) || ((frame_type >= Nmin_COBS_type) &&
+    if ((data_len > MSTP_FRAME_NPDU_MAX) || ((frame_type >= Nmin_COBS_type) &&
         (frame_type <= Nmax_COBS_type))) {
         /* COBS encoded frame */
         if (frame_type == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) {
@@ -288,7 +288,7 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
  * @param destination - destination address
  * @param source - source address
  * @param data - any data to be sent - may be null
- * @param data_len - number of bytes of data (up to 501)
+ * @param data_len - number of bytes of data
  */
 void MSTP_Create_And_Send_Frame(
     struct mstp_port_struct_t *mstp_port,
@@ -1365,7 +1365,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
     uint8_t count, frame, src, dst;
     uint32_t slots;
 
-    switch (mstp_port->zero_config_state) {
+    switch (mstp_port->Zero_Config_State) {
         case MSTP_ZERO_CONFIG_STATE_INIT:
             /* The ZERO_CONFIGURATION_INIT state is entered when
                ZeroConfigurationMode is TRUE. */
@@ -1379,7 +1379,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
             mstp_port->Zero_Config_Silence = Tno_token + Tslot * slots;
             MSTP_Zero_Config_UUID_Init(mstp_port);
             mstp_port->Zero_Config_Max_Master = 0;
-            mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_IDLE;
+            mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
             break;
         case MSTP_ZERO_CONFIG_STATE_IDLE:
             /* The ZERO_CONFIGURATION_IDLE state is entered when
@@ -1388,9 +1388,10 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
             if ((mstp_port->ReceivedValidFrame) ||
                 (mstp_port->ReceivedValidFrameNotForUs) ||
                 (mstp_port->ReceivedInvalidFrame)) {
-                /* next state will clear the flags */
+                /* next state will clear the frame flags */
                 /* MonitorPFM */
-                mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_LURK;
+                mstp_port->Poll_Count = 0;
+                mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
             } else if (mstp_port->Zero_Config_Silence > 0) {
                 if (mstp_port->SilenceTimer((void *)mstp_port) >
                     mstp_port->Zero_Config_Silence) {
@@ -1404,7 +1405,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                         FRAME_TYPE_TEST_REQUEST, mstp_port->Zero_Config_Station,
                         mstp_port->Zero_Config_Station, mstp_port->UUID,
                         sizeof(mstp_port->UUID));
-                    mstp_port->zero_config_state =
+                    mstp_port->Zero_Config_State =
                         MSTP_ZERO_CONFIG_STATE_CONFIRM;
                 }
             }
@@ -1436,6 +1437,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                         /* start again from first */
                         mstp_port->Zero_Config_Station = Nmin_poll_station;
                     }
+                    mstp_port->Poll_Count = 0;
                 } else if ((frame == FRAME_TYPE_POLL_FOR_MASTER) &&
                     (dst == mstp_port->Zero_Config_Station)) {
                     mstp_port->Poll_Count++;
@@ -1446,8 +1448,8 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                         MSTP_Create_And_Send_Frame(mstp_port,
                             FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER, src,
                             mstp_port->Zero_Config_Station, NULL, 0);
-                        mstp_port->zero_config_state =
-                            MSTP_ZERO_CONFIG_STATE_TOKEN;
+                        mstp_port->Zero_Config_State =
+                            MSTP_ZERO_CONFIG_STATE_CLAIM;
                     }
                 }
             } else if (mstp_port->ReceivedInvalidFrame) {
@@ -1456,11 +1458,11 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
             } else if (mstp_port->Zero_Config_Silence > 0) {
                 if (mstp_port->SilenceTimer((void *)mstp_port) >
                     mstp_port->Zero_Config_Silence) {
-                    mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_IDLE;
+                    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
                 }
             }
             break;
-        case MSTP_ZERO_CONFIG_STATE_TOKEN:
+        case MSTP_ZERO_CONFIG_STATE_CLAIM:
             /* The ZERO_CONFIGURATION_TOKEN state is entered when a node
                is waiting for a Token frame from the master to which it
                previously sent a Reply To Poll For Master frame, and
@@ -1473,23 +1475,24 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                 src = mstp_port->SourceAddress;
                 frame = mstp_port->FrameType;
                 if (src == mstp_port->Zero_Config_Station) {
-                    /* AddressInUse */
+                    /* ClaimAddressInUse */
                     /* monitor PFM from the next address */
                     mstp_port->Zero_Config_Station++;
                     if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
                         /* start again from first */
                         mstp_port->Zero_Config_Station = Nmin_poll_station;
                     }
-                    mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_LURK;
+                    mstp_port->Poll_Count = 0;
+                    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
                 }
                 if (frame == FRAME_TYPE_TOKEN) {
                     if (dst == mstp_port->Zero_Config_Station) {
-                        /* TokenForUs */
+                        /* ClaimTokenForUs */
                         MSTP_Create_And_Send_Frame(mstp_port,
                             FRAME_TYPE_TEST_REQUEST, src,
                             mstp_port->Zero_Config_Station, mstp_port->UUID,
                             MSTP_UUID_SIZE);
-                        mstp_port->zero_config_state =
+                        mstp_port->Zero_Config_State =
                             MSTP_ZERO_CONFIG_STATE_CONFIRM;
                     }
                 }
@@ -1500,7 +1503,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                 /* LostToken */
                 if (mstp_port->SilenceTimer((void *)mstp_port) >
                     mstp_port->Zero_Config_Silence) {
-                    mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_IDLE;
+                    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
                 }
             }
             break;
@@ -1533,14 +1536,14 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                         take_address = true;
                     }
                 } else if (src == mstp_port->Zero_Config_Station) {
-                    /* AddressInUse */
+                    /* ConfirmationAddressInUse */
                     /* monitor PFM from the next address */
                     mstp_port->Zero_Config_Station++;
                     if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
                         /* start again from first */
                         mstp_port->Zero_Config_Station = Nmin_poll_station;
                     }
-                    mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_LURK;
+                    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
                 }
             } else if (mstp_port->SilenceTimer((void *)mstp_port) >=
                 mstp_port->Treply_timeout) {
@@ -1551,10 +1554,10 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
             }
             if (take_address) {
                 mstp_port->This_Station = mstp_port->Zero_Config_Station;
-                mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_USE;
+                mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_USE;
             } else {
                 /* ConfirmationFailed */
-                mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_IDLE;
+                mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
             }
             break;
         case MSTP_ZERO_CONFIG_STATE_USE:
@@ -1629,6 +1632,6 @@ void MSTP_Init(struct mstp_port_struct_t *mstp_port)
         mstp_port->SourceAddress = 0;
         mstp_port->TokenCount = 0;
         /* zero config */
-        mstp_port->zero_config_state = MSTP_ZERO_CONFIG_STATE_INIT;
+        mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
     }
 }

@@ -52,15 +52,23 @@
 /* These frames are available to vendors as proprietary (non-BACnet) frames. */
 /* The first two octets of the Data field shall specify the unique vendor */
 /* identification code, most significant octet first, for the type of */
-/* vendor-proprietary frame to be conveyed. The length of the data portion */
-/* of a Proprietary frame shall be in the range of 2 to 501 octets. */
+/* vendor-proprietary frame to be conveyed.  */
 #define FRAME_TYPE_PROPRIETARY_MIN 128
 #define FRAME_TYPE_PROPRIETARY_MAX 255
 /* The initial CRC16 checksum value */
 #define CRC16_INITIAL_VALUE (0xFFFF)
 #define CRC32K_INITIAL_VALUE (0xFFFFFFFF)
 #define CRC32K_RESIDUE (0x0843323B)
+/* frame specific data */
 #define MSTP_PREAMBLE_X55 (0x55)
+/* The length of the data portion of a Test_Request, Test_Response,
+   BACnet Data Expecting Reply, or BACnet Data Not Expecting Reply frame 
+   may range from 0 to 501 octets. 
+   The length of the data portion of a proprietary frame shall 
+   be in the range of 2 to 501 octets.*/
+#define MSTP_FRAME_NPDU_MAX 501
+/* COBS-encoded frames data parameter length is between 
+   502 and 1497 octets, inclusive */
 #define MSTP_EXTENDED_FRAME_NPDU_MAX 1497
 
 /* receive FSM states */
@@ -90,10 +98,9 @@ typedef enum MSTP_Zero_Config_State {
     MSTP_ZERO_CONFIG_STATE_INIT = 0,
     MSTP_ZERO_CONFIG_STATE_IDLE = 1,
     MSTP_ZERO_CONFIG_STATE_LURK = 2,
-    MSTP_ZERO_CONFIG_STATE_TOKEN = 3,
-    MSTP_ZERO_CONFIG_STATE_TEST = 4,
-    MSTP_ZERO_CONFIG_STATE_CONFIRM = 5,
-    MSTP_ZERO_CONFIG_STATE_USE = 6
+    MSTP_ZERO_CONFIG_STATE_CLAIM = 3,
+    MSTP_ZERO_CONFIG_STATE_CONFIRM = 4,
+    MSTP_ZERO_CONFIG_STATE_USE = 5
 } MSTP_ZERO_CONFIG_STATE;
 
 /* The time without a DataAvailable or ReceiveError event before declaration */

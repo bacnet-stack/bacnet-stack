@@ -96,8 +96,7 @@ struct mstp_port_struct_t {
     uint32_t Index;
     /* An array of octets, used to store octets as they are received. */
     /* InputBuffer is indexed from 0 to InputBufferSize-1. */
-    /* The maximum size of a frame is 501 octets. */
-    /* FIXME: assign this to an actual array of bytes! */
+    /* Note: assign this to an actual array of bytes! */
     /* Note: the buffer is designed as a pointer since some compilers
        and microcontroller architectures have limits as to places to
        hold contiguous memory. */
@@ -172,7 +171,6 @@ struct mstp_port_struct_t {
 
     /* An array of octets, used to store octets for transmitting */
     /* OutputBuffer is indexed from 0 to OutputBufferSize-1. */
-    /* The maximum size of a frame is 501 octets. */
     /* FIXME: assign this to an actual array of bytes! */
     /* Note: the buffer is designed as a pointer since some compilers
        and microcontroller architectures have limits as to places to
@@ -181,7 +179,7 @@ struct mstp_port_struct_t {
     uint16_t OutputBufferSize;
 
     /* orderly transition tracking for zero-configuration node startup */
-    MSTP_ZERO_CONFIG_STATE zero_config_state;
+    MSTP_ZERO_CONFIG_STATE Zero_Config_State;
     /* the MAC address that this node is testing for MAC addresses
        that are not in-use.*/
     uint8_t Zero_Config_Station;
@@ -250,21 +248,21 @@ BACNET_STACK_EXPORT
 bool MSTP_Line_Active(struct mstp_port_struct_t *mstp_port);
 
 BACNET_STACK_EXPORT
-uint16_t MSTP_Create_Frame(uint8_t *buffer, /* where frame is loaded */
-    uint16_t buffer_len, /* amount of space available */
-    uint8_t frame_type, /* type of frame to send - see defines */
-    uint8_t destination, /* destination address */
-    uint8_t source, /* source address */
-    uint8_t *data, /* any data to be sent - may be null */
-    uint16_t data_len); /* number of bytes of data (up to 501) */
+uint16_t MSTP_Create_Frame(uint8_t *buffer, 
+    uint16_t buffer_len,
+    uint8_t frame_type,
+    uint8_t destination,
+    uint8_t source,
+    uint8_t *data,
+    uint16_t data_len);
 
 BACNET_STACK_EXPORT
 void MSTP_Create_And_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, /* port to send from */
-    uint8_t frame_type, /* type of frame to send - see defines */
-    uint8_t destination, /* destination address */
-    uint8_t source, /* source address */
-    uint8_t *data, /* any data to be sent - may be null */
+    struct mstp_port_struct_t *mstp_port, 
+    uint8_t frame_type,
+    uint8_t destination,
+    uint8_t source,
+    uint8_t *data,
     uint16_t data_len);
 
 BACNET_STACK_EXPORT
