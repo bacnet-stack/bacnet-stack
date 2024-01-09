@@ -1484,8 +1484,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                     }
                     mstp_port->Poll_Count = 0;
                     mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
-                }
-                if (frame == FRAME_TYPE_TOKEN) {
+                } else if (frame == FRAME_TYPE_TOKEN) {
                     if (dst == mstp_port->Zero_Config_Station) {
                         /* ClaimTokenForUs */
                         MSTP_Create_And_Send_Frame(mstp_port,

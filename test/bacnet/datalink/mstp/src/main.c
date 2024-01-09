@@ -757,7 +757,7 @@ static void testZeroConfigNode_Test_LURK_LearnMaxMaster(
     }
 }
 
-static void testZeroConfigNode_Test_LURK_ClaimAddress(
+static void testZeroConfigNode_Test_LURK_Claim(
     struct mstp_port_struct_t *mstp_port)
 {
     bool transition_now, non_zero;
@@ -798,7 +798,17 @@ static void testZeroConfigNode_Test_LURK_ClaimAddress(
     zassert_equal(mstp_port->OutputBuffer[2], FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER, NULL);
     zassert_equal(mstp_port->OutputBuffer[3], mstp_port->SourceAddress, NULL);
     zassert_equal(mstp_port->OutputBuffer[4], mstp_port->Zero_Config_Station, NULL);
+}
+
+static void testZeroConfigNode_Test_LURK_ConfirmationSuccessful(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now, non_zero;
+    unsigned slots, silence, i;
+    uint8_t src = 0, dst, count, count_max, count_claim;
+
     /* ClaimTokenForUs */
+    dst = mstp_port->Zero_Config_Station;
     mstp_port->SourceAddress = src;
     mstp_port->DestinationAddress = dst;
     mstp_port->FrameType = FRAME_TYPE_TOKEN;
@@ -807,7 +817,6 @@ static void testZeroConfigNode_Test_LURK_ClaimAddress(
     zassert_false(transition_now, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
     zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_CONFIRM, NULL);
-
     /* verify the Test Request Frame was sent for confirmation */
     zassert_equal(mstp_port->OutputBuffer[2], FRAME_TYPE_TEST_REQUEST, NULL);
     zassert_equal(mstp_port->OutputBuffer[3], mstp_port->SourceAddress, NULL);
@@ -824,6 +833,22 @@ static void testZeroConfigNode_Test_LURK_ClaimAddress(
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
     zassert_equal(mstp_port->This_Station, mstp_port->Zero_Config_Station, NULL);
     zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_USE, NULL);
+}
+
+static void testZeroConfigNode_Test_LURK_ClaimAddressInUse(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now;
+
+    /* ClaimAddressInUse */
+    mstp_port->SourceAddress = mstp_port->Zero_Config_Station;
+    mstp_port->DestinationAddress = 0;
+    mstp_port->FrameType = FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER;
+    mstp_port->ReceivedValidFrame = true;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
+    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_LURK, NULL);
 }
 
 static void testZeroConfigNodeFSM(void)
@@ -851,7 +876,15 @@ static void testZeroConfigNodeFSM(void)
     /* test case: valid frame event LURK PFMs: ClaimAddress */
     testZeroConfigNode_Init(&MSTP_Port);
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
-    testZeroConfigNode_Test_LURK_ClaimAddress(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ConfirmationSuccessful(&MSTP_Port);
+    /* test case: valid frame event LURK PFMs: ClaimAddressInUse  */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ClaimAddressInUse(&MSTP_Port);
+
+
 }
 
 /**
