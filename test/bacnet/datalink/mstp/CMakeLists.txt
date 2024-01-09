@@ -36,6 +36,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/datalink/mstp.c
 	${SRC_DIR}/bacnet/datalink/mstptext.c
 	${SRC_DIR}/bacnet/datalink/crc.c
+	${SRC_DIR}/bacnet/datalink/cobs.c
 	${SRC_DIR}/bacnet/basic/sys/fifo.c
 	${SRC_DIR}/bacnet/indtext.c
 	# core files needed
