@@ -800,12 +800,11 @@ static void testZeroConfigNode_Test_LURK_Claim(
     zassert_equal(mstp_port->OutputBuffer[4], mstp_port->Zero_Config_Station, NULL);
 }
 
-static void testZeroConfigNode_Test_LURK_ConfirmationSuccessful(
+static void testZeroConfigNode_Test_LURK_ClaimTokenForUs(
     struct mstp_port_struct_t *mstp_port)
 {
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
-    uint8_t src = 0, dst, count, count_max, count_claim;
+    bool transition_now;
+    uint8_t src = 0, dst;
 
     /* ClaimTokenForUs */
     dst = mstp_port->Zero_Config_Station;
@@ -821,7 +820,16 @@ static void testZeroConfigNode_Test_LURK_ConfirmationSuccessful(
     zassert_equal(mstp_port->OutputBuffer[2], FRAME_TYPE_TEST_REQUEST, NULL);
     zassert_equal(mstp_port->OutputBuffer[3], mstp_port->SourceAddress, NULL);
     zassert_equal(mstp_port->OutputBuffer[4], mstp_port->Zero_Config_Station, NULL);
+}
+
+static void testZeroConfigNode_Test_LURK_ConfirmationSuccessful(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now;
+    uint8_t src = 0, dst;
+
     /* ConfirmationSuccessful */
+    dst = mstp_port->Zero_Config_Station;
     mstp_port->SourceAddress = src;
     mstp_port->DestinationAddress = dst;
     mstp_port->FrameType = FRAME_TYPE_TEST_RESPONSE;
@@ -833,6 +841,49 @@ static void testZeroConfigNode_Test_LURK_ConfirmationSuccessful(
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
     zassert_equal(mstp_port->This_Station, mstp_port->Zero_Config_Station, NULL);
     zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_USE, NULL);
+}
+
+static void testZeroConfigNode_Test_LURK_ConfirmationUnuccessful_UUID_Size(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now;
+    uint8_t src = 0, dst;
+
+    /* ConfirmationFailed */
+    dst = mstp_port->Zero_Config_Station;
+    mstp_port->SourceAddress = src;
+    mstp_port->DestinationAddress = dst;
+    mstp_port->FrameType = FRAME_TYPE_TEST_RESPONSE;
+    memcpy(mstp_port->InputBuffer, mstp_port->UUID, MSTP_UUID_SIZE);
+    /* set to an invalid size */
+    mstp_port->DataLength = MSTP_UUID_SIZE-1;
+    mstp_port->ReceivedValidFrame = true;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
+    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
+}
+
+static void testZeroConfigNode_Test_LURK_ConfirmationUnuccessful_UUID(
+    struct mstp_port_struct_t *mstp_port)
+{
+    bool transition_now;
+    uint8_t src = 0, dst;
+
+    /* ConfirmationFailed */
+    dst = mstp_port->Zero_Config_Station;
+    mstp_port->SourceAddress = src;
+    mstp_port->DestinationAddress = dst;
+    mstp_port->FrameType = FRAME_TYPE_TEST_RESPONSE;
+    memcpy(mstp_port->InputBuffer, mstp_port->UUID, MSTP_UUID_SIZE);
+    /* make the UUID invalid */
+    mstp_port->InputBuffer[0] = ~mstp_port->InputBuffer[0];
+    mstp_port->DataLength = MSTP_UUID_SIZE;
+    mstp_port->ReceivedValidFrame = true;
+    transition_now = MSTP_Master_Node_FSM(mstp_port);
+    zassert_false(transition_now, NULL);
+    zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
+    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
 }
 
 static void testZeroConfigNode_Test_LURK_ClaimAddressInUse(
@@ -911,7 +962,22 @@ static void testZeroConfigNodeFSM(void)
     testZeroConfigNode_Init(&MSTP_Port);
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
     testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ClaimTokenForUs(&MSTP_Port);
     testZeroConfigNode_Test_LURK_ConfirmationSuccessful(&MSTP_Port);
+    /* test case: valid frame event LURK PFMs: ClaimAddress
+       but Confirmation is Unsuccessful - UUID is invalid */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ClaimTokenForUs(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ConfirmationUnuccessful_UUID(&MSTP_Port);
+    /* test case: valid frame event LURK PFMs: ClaimAddress
+       but Confirmation is Unsuccessful - UUID is too short */
+    testZeroConfigNode_Init(&MSTP_Port);
+    testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ClaimTokenForUs(&MSTP_Port);
+    testZeroConfigNode_Test_LURK_ConfirmationUnuccessful_UUID_Size(&MSTP_Port);
     /* test case: valid frame event LURK PFMs: ClaimAddressInUse  */
     testZeroConfigNode_Init(&MSTP_Port);
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);

@@ -1522,7 +1522,7 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                     if (dst == mstp_port->Zero_Config_Station) {
                         match = true;
                     }
-                    if (match & (mstp_port->DataLength != MSTP_UUID_SIZE)) {
+                    if (match & (mstp_port->DataLength < MSTP_UUID_SIZE)) {
                         match = false;
                     }
                     if (match &&
