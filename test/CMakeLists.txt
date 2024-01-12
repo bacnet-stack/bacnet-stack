@@ -149,6 +149,7 @@ list(APPEND testdirs
 
 # bacnet/datalink/*
 list(APPEND testdirs
+  bacnet/datalink/automac
   bacnet/datalink/cobs
   bacnet/datalink/crc
   bacnet/datalink/bvlc
