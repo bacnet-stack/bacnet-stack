@@ -1360,7 +1360,6 @@ void MSTP_Zero_Config_UUID_Init(struct mstp_port_struct_t *mstp_port)
  */
 void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
 {
-    bool take_address = false;
     bool match = false;
     uint8_t count, frame, src, dst;
     uint32_t slots;
@@ -1532,7 +1531,11 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                     }
                     if (match) {
                         /* ConfirmationSuccessful */
-                        take_address = true;
+                        mstp_port->This_Station = mstp_port->Zero_Config_Station;
+                        mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_USE;
+                    } else {
+                        /* ConfirmationFailed */
+                        mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
                     }
                 } else if (src == mstp_port->Zero_Config_Station) {
                     /* ConfirmationAddressInUse */
@@ -1549,14 +1552,8 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                 /* ConfirmationTimeout */
                 /* In case validating device doesn't support Test Request */
                 /* no response and no collision */
-                take_address = true;
-            }
-            if (take_address) {
                 mstp_port->This_Station = mstp_port->Zero_Config_Station;
                 mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_USE;
-            } else {
-                /* ConfirmationFailed */
-                mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
             }
             break;
         case MSTP_ZERO_CONFIG_STATE_USE:
