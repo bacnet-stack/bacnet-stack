@@ -220,8 +220,8 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
     }
     index = 8;
 
-    if ((data_len > MSTP_FRAME_NPDU_MAX) || ((frame_type >= Nmin_COBS_type) &&
-        (frame_type <= Nmax_COBS_type))) {
+    if ((data_len > MSTP_FRAME_NPDU_MAX) ||
+        ((frame_type >= Nmin_COBS_type) && (frame_type <= Nmax_COBS_type))) {
         /* COBS encoded frame */
         if (frame_type == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) {
             frame_type = FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY;
@@ -290,8 +290,7 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
  * @param data - any data to be sent - may be null
  * @param data_len - number of bytes of data
  */
-void MSTP_Create_And_Send_Frame(
-    struct mstp_port_struct_t *mstp_port,
+void MSTP_Create_And_Send_Frame(struct mstp_port_struct_t *mstp_port,
     uint8_t frame_type,
     uint8_t destination,
     uint8_t source,
@@ -582,7 +581,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
                     printf_receive_data("%s",
                         mstptext_frame_type((unsigned)mstp_port->FrameType));
-                    if (((mstp_port->Index+1) < mstp_port->InputBufferSize) &&
+                    if (((mstp_port->Index + 1) < mstp_port->InputBufferSize) &&
                         (mstp_port->FrameType >= Nmin_COBS_type) &&
                         (mstp_port->FrameType <= Nmax_COBS_type)) {
                         if (cobs_frame_decode(
@@ -672,7 +671,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                     /* indicate that the next station is unknown */
                     mstp_port->Next_Station = mstp_port->This_Station;
                     mstp_port->Poll_Station = (mstp_port->Next_Station + 1) %
-                        (DEFAULT_MAX_MASTER + 1);
+                        (mstp_port->Zero_Config_Max_Master + 1);
                     mstp_port->TokenCount = Npoll;
                     mstp_port->EventCount = 0;
                     mstp_port->SoleMaster = true;
@@ -711,8 +710,17 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                     mstp_port->DataLength, mstp_port->FrameCount,
                     mstp_port->SilenceTimer((void *)mstp_port),
                     mstptext_frame_type((unsigned)mstp_port->FrameType));
-                if ((mstp_port->DestinationAddress ==
-                        mstp_port->This_Station) ||
+                if (mstp_port->SourceAddress == mstp_port->This_Station) {
+                    /* DuplicateNode */
+                    if (mstp_port->ZeroConfigEnabled) {
+                        /* we are a zero config node - start over */
+                        mstp_port->Zero_Config_State =
+                            MSTP_ZERO_CONFIG_STATE_INIT;
+                        mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
+                    }
+                    mstp_port->ReceivedValidFrame = false;
+                } else if ((mstp_port->DestinationAddress ==
+                               mstp_port->This_Station) ||
                     (mstp_port->DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
                     /* destined for me! */
                     switch (mstp_port->FrameType) {
@@ -1364,6 +1372,12 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
     uint8_t count, frame, src, dst;
     uint32_t slots;
 
+    if (!mstp_port) {
+        return;
+    }
+    if (!mstp_port->ZeroConfigEnabled) {
+        return;
+    }
     switch (mstp_port->Zero_Config_State) {
         case MSTP_ZERO_CONFIG_STATE_INIT:
             /* The ZERO_CONFIGURATION_INIT state is entered when
@@ -1531,11 +1545,14 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
                     }
                     if (match) {
                         /* ConfirmationSuccessful */
-                        mstp_port->This_Station = mstp_port->Zero_Config_Station;
-                        mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_USE;
+                        mstp_port->This_Station =
+                            mstp_port->Zero_Config_Station;
+                        mstp_port->Zero_Config_State =
+                            MSTP_ZERO_CONFIG_STATE_USE;
                     } else {
                         /* ConfirmationFailed */
-                        mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
+                        mstp_port->Zero_Config_State =
+                            MSTP_ZERO_CONFIG_STATE_IDLE;
                     }
                 } else if (src == mstp_port->Zero_Config_Station) {
                     /* ConfirmationAddressInUse */

@@ -65,6 +65,8 @@ struct mstp_port_struct_t {
     /* A Boolean flag set to TRUE by the master machine if this node is the */
     /* only known master node. */
     unsigned SoleMaster : 1;
+   /* A Boolean flag set to TRUE if this node is using a ZeroConfig address */
+    unsigned ZeroConfigEnabled : 1;
     /* stores the latest received data */
     uint8_t DataRegister;
     /* Used to accumulate the CRC on the data field of a frame. */

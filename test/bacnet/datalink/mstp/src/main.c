@@ -542,6 +542,7 @@ static void testZeroConfigNode_Init(struct mstp_port_struct_t *mstp_port)
     mstp_port->SilenceTimerReset = Timer_Silence_Reset;
 
     /* configure for Zero Config */
+    mstp_port->ZeroConfigEnabled = true;
     mstp_port->This_Station = 255;
 
     MSTP_Init(mstp_port);
