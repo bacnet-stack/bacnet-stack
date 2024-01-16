@@ -90,10 +90,10 @@ void Analog_Input_Init(void)
     unsigned j;
 #endif
 
-    PRINT("+++++++ rev 002");
     AI_Max_Index = MAX_ANALOG_INPUTS;
 
     for (i = 0; i < MAX_ANALOG_INPUTS; i++) {
+        memset(&AI_Descr[i], 0x00, sizeof(ANALOG_INPUT_DESCR));
         AI_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_ANALOG_INPUT));
         AI_Descr[i].Present_Value = 0.0f;
         AI_Descr[i].Out_Of_Service = false;
@@ -220,7 +220,7 @@ uint32_t Analog_Input_Index_To_Instance(unsigned index)
 /**
  * Return the index that corresponds to the object instance.
  *
- * @param index Object Instance
+ * @param instance Object Instance
  *
  * @return Object index
  */
