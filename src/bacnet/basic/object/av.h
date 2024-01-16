@@ -52,8 +52,8 @@ extern "C" {
         float Prior_Value;
         float COV_Increment;
         bool Changed;
-        uint32_t Object_Instance;
-        BACNET_CHARACTER_STRING Object_Name;
+        uint32_t Instance;
+        BACNET_CHARACTER_STRING Name;
         BACNET_CHARACTER_STRING Description;
 #if defined(INTRINSIC_REPORTING)
         uint32_t Time_Delay;

@@ -151,15 +151,15 @@ bool Analog_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   }
 
   for (i = 0; i < pInit_data->length; i++) {
-    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-      AV_Descr[i].Object_Instance = pInit_data->Object_Init_Values[i].Object_Instance;
+    if (pInit_data->Object_Init_Values[i].Instance < BACNET_MAX_INSTANCE) {
+      AV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Instance;
     } else {
-      PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+      PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Instance);
       return false;
     }
 
-    if (!characterstring_init_ansi(&AV_Descr[i].Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-      PRINT("Fail to set Object name to \"%s\"", pInit_data->Object_Init_Values[i].Object_Name);
+    if (!characterstring_init_ansi(&AV_Descr[i].Name, pInit_data->Object_Init_Values[i].Name)) {
+      PRINT("Fail to set Object name to \"%s\"", pInit_data->Object_Init_Values[i].Name);
       return false;
     }
 
@@ -193,7 +193,7 @@ bool Analog_Value_Valid_Instance(uint32_t object_instance)
     unsigned int instance;
 
     for (instance = 0; instance < AV_Max_Index; instance++) {
-        if (AV_Descr[instance].Object_Instance == object_instance) {
+        if (AV_Descr[instance].Instance == object_instance) {
             return true;
         }
     }
@@ -223,7 +223,7 @@ uint32_t Analog_Value_Index_To_Instance(unsigned index)
     unsigned int instance;
 
     if (index < AV_Max_Index) {
-        return AV_Descr[index].Object_Instance;
+        return AV_Descr[index].Instance;
     }
     else {
         PRINT("index out of bounds");
@@ -347,7 +347,7 @@ bool Analog_Value_Object_Name(
 
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < AV_Max_Index) {
-        *object_name = AV_Descr[index].Object_Name;
+        *object_name = AV_Descr[index].Name;
         status = true;
     }
 
