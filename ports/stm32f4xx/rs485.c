@@ -60,46 +60,24 @@ static volatile uint32_t RS485_Receive_Bytes;
 static struct mstimer Silence_Timer;
 
 /**
- * @brief Reset the silence on the wire timer.
+ * @brief Return the RS-485 silence time in milliseconds
+ * @return silence time in milliseconds
  */
-void rs485_silence_reset(void)
+uint32_t rs485_silence_milliseconds(
+    void *arg)
 {
-    mstimer_set(&Silence_Timer, 0);
+    (void)arg;
+    return mstimer_elapsed(&Silence_Timer);
 }
 
 /**
- * @brief Determine the amount of silence on the wire from the timer.
- * @param amount of time that might have elapsed
- * @return true if the amount of time has elapsed
+ * @brief Reset the RS-485 silence time to zero
  */
-bool rs485_silence_elapsed(uint32_t interval)
+void rs485_silence_reset(
+    void *arg)
 {
-    return (mstimer_elapsed(&Silence_Timer) > interval);
-}
-
-/**
- * @brief Determine the turnaround time
- * @return amount of milliseconds
- */
-static uint16_t rs485_turnaround_time(void)
-{
-    /* delay after reception before transmitting - per MS/TP spec */
-    /* wait a minimum  40 bit times since reception */
-    /* at least 2 ms for errors: rounding, clock tick */
-    if (Baud_Rate) {
-        return (2 + ((Tturnaround * 1000UL) / Baud_Rate));
-    } else {
-        return 2;
-    }
-}
-
-/**
- * @brief Use the silence timer to determine turnaround time
- * @return true if turnaround time has expired
- */
-bool rs485_turnaround_elapsed(void)
-{
-    return (mstimer_elapsed(&Silence_Timer) > rs485_turnaround_time());
+    (void)arg;
+    mstimer_restart(&Silence_Timer);
 }
 
 /**
@@ -131,7 +109,7 @@ void USART6_IRQHandler(void)
         if (FIFO_Count(&Transmit_Queue)) {
             USART_SendData(USART6, FIFO_Get(&Transmit_Queue));
             RS485_Transmit_Bytes += 1;
-            rs485_silence_reset();
+            rs485_silence_reset(NULL);
         } else {
             /* disable the USART to generate interrupts on TX empty */
             USART_ITConfig(USART6, USART_IT_TXE, DISABLE);
@@ -203,7 +181,7 @@ bool rs485_byte_available(uint8_t *data_register)
         if (data_register) {
             *data_register = FIFO_Get(&Receive_Queue);
         }
-        rs485_silence_reset();
+        rs485_silence_reset(NULL);
         data_available = true;
     }
 
@@ -216,24 +194,19 @@ bool rs485_byte_available(uint8_t *data_register)
  * @param nbytes - number of bytes to transmit
  * @return true if added to queue
  */
-bool rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
+void rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
 {
-    bool status = false;
-
     if (buffer && (nbytes > 0)) {
         if (FIFO_Add(&Transmit_Queue, buffer, nbytes)) {
-            rs485_silence_reset();
+            rs485_silence_reset(NULL);
             rs485_rts_enable(true);
             /* disable the USART to generate interrupts on RX not empty */
             USART_ITConfig(USART6, USART_IT_RXNE, DISABLE);
             /* enable the USART to generate interrupts on TX empty */
             USART_ITConfig(USART6, USART_IT_TXE, ENABLE);
             /* TXE interrupt will load the first byte */
-            status = true;
         }
     }
-
-    return status;
 }
 
 /**
@@ -371,5 +344,5 @@ void rs485_init(void)
 
     USART_Cmd(USART6, ENABLE);
 
-    rs485_silence_reset();
+    rs485_silence_reset(NULL);
 }

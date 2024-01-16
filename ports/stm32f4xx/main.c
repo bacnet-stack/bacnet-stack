@@ -30,6 +30,7 @@
 #include "stm32f4xx_rcc.h"
 #include "system_stm32f4xx.h"
 #include "bacnet/basic/sys/mstimer.h"
+#include "dlmstp-init.h"
 #include "rs485.h"
 #include "led.h"
 #include "bacnet.h"
@@ -53,12 +54,18 @@ int main(void)
     /* enable some clocks - USART and GPIO clocks are enabled in our drivers */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-    /* enable our hardware */
+    /* initialize hardware layer */
     mstimer_init();
     led_init();
     rs485_init();
+    mstimer_set(&Blink_Timer, 500);
+    /* initialize datalink layer */
+    dlmstp_set_mac_address(2);
+    dlmstp_set_max_master(DEFAULT_MAX_MASTER);
+    dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
+    dlmstp_framework_init();
+    /* initialize application layer*/
     bacnet_init();
-    mstimer_set(&Blink_Timer, 125);
     for (;;) {
         if (mstimer_expired(&Blink_Timer)) {
             mstimer_reset(&Blink_Timer);

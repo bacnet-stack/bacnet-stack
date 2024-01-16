@@ -47,10 +47,6 @@ static struct mstimer DCC_Timer;
 
 void bacnet_init(void)
 {
-    dlmstp_set_mac_address(2);
-    dlmstp_set_max_master(127);
-    /* initialize datalink layer */
-    dlmstp_init(NULL);
     /* initialize objects */
     Device_Init(NULL);
 
@@ -90,7 +86,7 @@ void bacnet_task(void)
         dcc_timer_seconds(DCC_CYCLE_SECONDS);
     }
     /* handle the messaging */
-    pdu_len = dlmstp_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
+    pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
     if (pdu_len) {
         npdu_handler(&src, &PDUBuffer[0], pdu_len);
     }
