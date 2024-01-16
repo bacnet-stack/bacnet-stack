@@ -151,14 +151,14 @@ bool Analog_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   }
 
   for (i = 0; i < pInit_data->length; i++) {
-    if (pInit_data->Object_Init_Values[i].Instance < BACNET_MAX_INSTANCE) {
-      AV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Instance;
+    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+      AV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
     } else {
-      PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Instance);
+      PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
       return false;
     }
 
-    if (!characterstring_init_ansi(&AV_Descr[i].Name, pInit_data->Object_Init_Values[i].Name)) {
+    if (!characterstring_init_ansi(&AV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
       PRINT("Fail to set Object name to \"%s\"", pInit_data->Object_Init_Values[i].Name);
       return false;
     }
