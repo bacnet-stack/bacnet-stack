@@ -159,12 +159,12 @@ bool Analog_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
 
     if (!characterstring_init_ansi(&AV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-      PRINT("Fail to set Object name to \"%s\"", pInit_data->Object_Init_Values[i].Object_Name);
+      PRINT("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
       return false;
     }
 
     if (!characterstring_init_ansi(&AV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
-      PRINT("Fail to set Object description to \"%s\"", pInit_data->Object_Init_Values[i].Description);
+      PRINT("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
       return false;
     }
 

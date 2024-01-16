@@ -154,12 +154,12 @@ bool Analog_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
 
     if (!characterstring_init_ansi(&AI_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-      PRINT("Fail to set Object name to \"%s\"", pInit_data->Object_Init_Values[i].Object_Name);
+      PRINT("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
       return false;
     }
 
     if (!characterstring_init_ansi(&AI_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
-      PRINT("Fail to set Object description to \"%s\"", pInit_data->Object_Init_Values[i].Description);
+      PRINT("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
       return false;
     }
 
@@ -1083,7 +1083,7 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                     ExceededLimit = 0;
                     break;
             } /* switch (ToState) */
-            PRINT("Analog-Input[%d]: Event_State goes from %s to %s.\n",
+            PRINT("Analog-Input[%d]: Event_State goes from %128s to %128s.\n",
                 object_instance, bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
             /* Notify Type */
