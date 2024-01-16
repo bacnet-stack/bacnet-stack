@@ -8,9 +8,11 @@ project(
 #
 # options
 #
+#
 # <INSERT_CMAKE_INSTALL_PREFIX_HERE>
+#set(CMAKE_INSTALL_PREFIX "/opt/poky/rzn1/sysroots/x86_64-pokysdk-linux/usr")
 
-add_compile_options(-DDEBUG_PRINT -DMAX_ANALOG_VALUES=32 -DMAX_ANALOG_INPUTS=32)
+add_compile_options(-DDEBUG_PRINT)
 option(
   BACNET_STACK_BUILD_APPS
   "build apps"
@@ -504,6 +506,8 @@ target_compile_definitions(
   BBMD_ENABLED=0
   BBMD_CLIENT_ENABLED=1
   INTRINSIC_REPORTING=1
+  MAX_ANALOG_VALUES=32
+  MAX_ANALOG_INPUTS=128
   MAX_NOTIFICATION_CLASSES=2
   # NC_MAX_RECIPIENTS=4
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>

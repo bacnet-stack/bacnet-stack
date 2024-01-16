@@ -46,6 +46,7 @@
 #endif
 
 static ANALOG_VALUE_DESCR AV_Descr[MAX_ANALOG_VALUES];
+static int AV_Max_Index = MAX_ANALOG_VALUES;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Analog_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -97,8 +98,11 @@ void Analog_Value_Init(void)
     unsigned j;
 #endif
 
+    AV_Max_Index = MAX_ANALOG_VALUES;
+
     for (i = 0; i < MAX_ANALOG_VALUES; i++) {
         memset(&AV_Descr[i], 0x00, sizeof(ANALOG_VALUE_DESCR));
+        AV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_ANALOG_VALUE));
         AV_Descr[i].Present_Value = 0.0;
         AV_Descr[i].Units = UNITS_NO_UNITS;
         AV_Descr[i].Prior_Value = 0.0f;
@@ -148,29 +152,31 @@ bool Analog_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 
   for (i = 0; i < pInit_data->length; i++) {
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-      AV_Descr[i].Object_Instance = pInit_data->Object_Init_Values[i].Object_Instance;
+      AV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
     } else {
       PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
       return false;
     }
 
-    if (!characterstring_init_ansi(&AV_Descr[i].Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-      PRINT("Fail to set Object name to \"%s\"", pInit_data->Object_Init_Values[i].Object_Name);
+    if (!characterstring_init_ansi(&AV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+      PRINT("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
       return false;
     }
 
     if (!characterstring_init_ansi(&AV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
-      PRINT("Fail to set Object description to \"%s\"", pInit_data->Object_Init_Values[i].Description);
+      PRINT("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
       return false;
     }
 
-    if (pInit_data->Object_Init_Values[i].Units <= UNITS_PROPRIETARY_RANGE_MAX2) {
+    if (pInit_data->Object_Init_Values[i].Units < UNITS_PROPRIETARY_RANGE_MAX2) {
       AV_Descr[i].Units = pInit_data->Object_Init_Values[i].Units;
     } else {
       PRINT("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
       return false;
     }
   }
+
+  AV_Max_Index = (int) pInit_data->length;
 
   return true;
 }
@@ -186,8 +192,8 @@ bool Analog_Value_Valid_Instance(uint32_t object_instance)
 {
     unsigned int instance;
 
-    for (instance = 0; instance < MAX_ANALOG_VALUES; instance++) {
-        if (AV_Descr[instance].Object_Instance == object_instance) {
+    for (instance = 0; instance < AV_Max_Index; instance++) {
+        if (AV_Descr[instance].Instance == object_instance) {
             return true;
         }
     }
@@ -202,10 +208,7 @@ bool Analog_Value_Valid_Instance(uint32_t object_instance)
  */
 unsigned Analog_Value_Count(void)
 {
-   /* NMC4 TODO: we could modify this to only return number of values that we actually set.
-    * We want to report only the analog values that are in use for the patricular app.
-    */
-    return MAX_ANALOG_VALUES;
+    return AV_Max_Index;
 }
 
 /**
@@ -219,9 +222,8 @@ uint32_t Analog_Value_Index_To_Instance(unsigned index)
 {
     unsigned int instance;
 
-    if (index < MAX_ANALOG_VALUES) {
-        instance = AV_Descr[index].Object_Instance;
-        return instance;
+    if (index < AV_Max_Index) {
+        return AV_Descr[index].Instance;
     }
     else {
         PRINT("index out of bounds");
@@ -239,14 +241,8 @@ uint32_t Analog_Value_Index_To_Instance(unsigned index)
 unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = 0;
-    unsigned int instance;
 
-    for (instance = 0; instance < MAX_ANALOG_VALUES; instance++) {
-        if (AV_Descr[instance].Object_Instance == object_instance) {
-            index = instance;
-            break;
-        }
-    }
+    for (; index < AV_Max_Index && AV_Descr[index].Instance != object_instance; index++) ;
 
     return index;
 }
@@ -267,7 +263,7 @@ static void Analog_Value_COV_Detect(unsigned int index, float value)
     float cov_increment = 0.0;
     float cov_delta = 0.0;
 
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         prior_value = AV_Descr[index].Prior_Value;
         cov_increment = AV_Descr[index].COV_Increment;
         if (prior_value > value) {
@@ -300,7 +296,7 @@ bool Analog_Value_Present_Value_Set(
 
     (void)priority;
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         Analog_Value_COV_Detect(index, value);
         AV_Descr[index].Present_Value = value;
         status = true;
@@ -322,7 +318,7 @@ float Analog_Value_Present_Value(uint32_t object_instance)
     unsigned index = 0;
 
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         value = AV_Descr[index].Present_Value;
     }
 
@@ -350,8 +346,8 @@ bool Analog_Value_Object_Name(
     }
 
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
-        *object_name = AV_Descr[index].Object_Name;
+    if (index < AV_Max_Index) {
+        *object_name = AV_Descr[index].Name;
         status = true;
     }
 
@@ -380,7 +376,7 @@ bool Analog_Value_Description(
     }
 
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         *description = AV_Descr[index].Description;
         status = true;
     }
@@ -402,7 +398,7 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
     unsigned index = 0;
 
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         state = AV_Descr[index].Event_State;
     }
 #endif
@@ -424,7 +420,7 @@ bool Analog_Value_Change_Of_Value(uint32_t object_instance)
     bool changed = false;
 
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         changed = AV_Descr[index].Changed;
     }
 
@@ -441,7 +437,7 @@ void Analog_Value_Change_Of_Value_Clear(uint32_t object_instance)
     unsigned index = 0;
 
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         AV_Descr[index].Changed = false;
     }
 }
@@ -509,7 +505,7 @@ float Analog_Value_COV_Increment(uint32_t object_instance)
     float value = 0;
 
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         value = AV_Descr[index].COV_Increment;
     }
 
@@ -521,7 +517,7 @@ void Analog_Value_COV_Increment_Set(uint32_t object_instance, float value)
     unsigned index = 0;
 
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         AV_Descr[index].COV_Increment = value;
         Analog_Value_COV_Detect(index, AV_Descr[index].Present_Value);
     }
@@ -533,7 +529,7 @@ bool Analog_Value_Out_Of_Service(uint32_t object_instance)
     bool value = false;
 
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         value = AV_Descr[index].Out_Of_Service;
     }
 
@@ -545,7 +541,7 @@ void Analog_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     unsigned index = 0;
 
     index = Analog_Value_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         if (AV_Descr[index].Out_Of_Service != value) {
             AV_Descr[index].Changed = true;
         }
@@ -587,7 +583,7 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     apdu = rpdata->application_data;
 
     object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
-    if (object_index >= MAX_ANALOG_VALUES) {
+    if (object_index >= AV_Max_Index) {
         rpdata->error_class = ERROR_CLASS_OBJECT;
         rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return BACNET_STATUS_ERROR;
@@ -840,7 +836,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     /* Valid object? */
     object_index = Analog_Value_Instance_To_Index(wp_data->object_instance);
-    if (object_index >= MAX_ANALOG_VALUES) {
+    if (object_index >= AV_Max_Index) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
@@ -1035,7 +1031,7 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
     bool SendNotify = false;
 
     object_index = Analog_Value_Instance_To_Index(object_instance);
-    if (object_index < MAX_ANALOG_VALUES)
+    if (object_index < AV_Max_Index)
         CurrentAV = &AV_Descr[object_index];
     else
         return;
@@ -1341,7 +1337,7 @@ int Analog_Value_Event_Information(
     int i;
 
     /* check index */
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         /* Event_State not equal to NORMAL */
         IsActiveEvent = (AV_Descr[index].Event_State != EVENT_STATE_NORMAL);
 
@@ -1415,7 +1411,7 @@ int Analog_Value_Alarm_Ack(
     object_index = Analog_Value_Instance_To_Index(
         alarmack_data->eventObjectIdentifier.instance);
 
-    if (object_index < MAX_ANALOG_VALUES)
+    if (object_index < AV_Max_Index)
         CurrentAV = &AV_Descr[object_index];
     else {
         *error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -1522,7 +1518,7 @@ int Analog_Value_Alarm_Summary(
     unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data)
 {
     /* check index */
-    if (index < MAX_ANALOG_VALUES) {
+    if (index < AV_Max_Index) {
         /* Event_State is not equal to NORMAL  and
            Notify_Type property value is ALARM */
         if ((AV_Descr[index].Event_State != EVENT_STATE_NORMAL) &&
