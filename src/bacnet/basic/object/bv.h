@@ -76,8 +76,8 @@ extern "C" {
         uint32_t object_instance);
 
     BACNET_STACK_EXPORT
-    char *Binary_Value_Description(
-        uint32_t instance);
+    bool Binary_Value_Description(
+        uint32_t object_instance, BACNET_CHARACTER_STRING *description);
     BACNET_STACK_EXPORT
     bool Binary_Value_Description_Set(
         uint32_t instance,
@@ -142,14 +142,6 @@ extern "C" {
         bool value);
 
     BACNET_STACK_EXPORT
-    char *Binary_Value_Description(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    bool Binary_Value_Description_Set(
-        uint32_t object_instance,
-        char *text_string);
-
-    BACNET_STACK_EXPORT
     char *Binary_Value_Inactive_Text(
         uint32_t instance);
     BACNET_STACK_EXPORT
@@ -180,6 +172,8 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Binary_Value_Cleanup(
         void);
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 
 #ifdef __cplusplus
 }

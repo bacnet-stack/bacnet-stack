@@ -42,6 +42,8 @@
 #define MAX_BINARY_VALUES 10
 #endif
 
+#define PRINTF debug_perror
+
 /* When all the priorities are level null, the present value returns */
 /* the Relinquish Default value */
 #define RELINQUISH_DEFAULT BINARY_INACTIVE
@@ -52,13 +54,27 @@ static BACNET_BINARY_PV Binary_Value_Level[MAX_BINARY_VALUES]
 /* without changing the physical output */
 static bool Out_Of_Service[MAX_BINARY_VALUES];
 
+typedef struct binary_value_descr {
+  uint32_t Instance;
+  BACNET_CHARACTER_STRING Name;
+  BACNET_CHARACTER_STRING Description;
+} BINARY_VALUE_DESCR;
+
+static BINARY_VALUE_DESCR BV_Descr[MAX_BINARY_VALUES];
+static int BV_Max_Index = MAX_BINARY_VALUES;
+
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1 };
 
-static const int Binary_Value_Properties_Optional[] = { PROP_DESCRIPTION,
-    PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT, -1 };
+static const int Binary_Value_Properties_Optional[] = {
+#if (BINARY_VALUE_COMMANDABLE_PV)
+    PROP_DESCRIPTION,
+    PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT,
+#else
+#endif
+-1 };
 
 static const int Binary_Value_Properties_Proprietary[] = { -1 };
 
@@ -99,6 +115,9 @@ void Binary_Value_Init(void)
 
         /* initialize all the analog output priority arrays to NULL */
         for (i = 0; i < MAX_BINARY_VALUES; i++) {
+            memset(&BV_Descr[i], 0x00, sizeof(BINARY_VALUE_DESCR));
+            BV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_BINARY_VALUE));
+
             for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
                 Binary_Value_Level[i][j] = BINARY_NULL;
             }
@@ -109,9 +128,7 @@ void Binary_Value_Init(void)
 }
 
 /**
- * We simply have 0-n object instances. Yours might be
- * more complex, and then you need validate that the
- * given instance exists.
+ * Validate whether the given instance exists in our table.
  *
  * @param object_instance Object instance
  *
@@ -119,12 +136,17 @@ void Binary_Value_Init(void)
  */
 bool Binary_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_BINARY_VALUES) {
-        return true;
+    unsigned int index;
+
+    for (index = 0; index < BV_Max_Index; index++) {
+        if (BV_Descr[index].Instance == object_instance) {
+            return true;
+        }
     }
 
     return false;
 }
+
 
 /**
  * Return the count of analog values.
@@ -133,39 +155,84 @@ bool Binary_Value_Valid_Instance(uint32_t object_instance)
  */
 unsigned Binary_Value_Count(void)
 {
-    return MAX_BINARY_VALUES;
+    return BV_Max_Index;
 }
 
 /**
- * We simply have 0-n object instances.  Yours might be
- * more complex, and then you need to return the instance
- * that correlates to the correct index.
+ * @brief Return the instance of an object indexed by index.
  *
- * @param index Index
+ * @param index Object index
  *
  * @return Object instance
  */
 uint32_t Binary_Value_Index_To_Instance(unsigned index)
 {
-    return index;
+    if (index < BV_Max_Index) {
+        return BV_Descr[index].Instance;
+    } else {
+        PRINT("index out of bounds");
+    }
+
+    return 0;
 }
 
 /**
- * We simply have 0-n object instances. Yours might be
- * more complex, and then you need to return the index
- * that correlates to the correct instance number
+ * Initialize the analog inputs. Returns false if there are errors.
  *
- * @param object_instance Object instance
+ * @param pInit_data pointer to initialisation values
  *
- * @return Index in the object table.
+ * @return true/false
+ */
+bool Binary_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
+{
+  unsigned i;
+
+  if (!pInit_data) {
+    return false;
+  }
+
+  if ((int) pInit_data->length > MAX_BINARY_VALUES) {
+    PRINTF("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_BINARY_VALUES);
+    return false;
+  }
+    PRINTF("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_BINARY_VALUES);
+
+  for (i = 0; i < pInit_data->length; i++) {
+    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+      BV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
+    } else {
+      PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+      return false;
+    }
+
+    if (!characterstring_init_ansi(&BV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+      PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+      return false;
+    }
+
+    if (!characterstring_init_ansi(&BV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
+      PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+      return false;
+    }
+  }
+
+  BV_Max_Index = (int) pInit_data->length;
+
+  return true;
+}
+
+/**
+ * Return the index that corresponds to the object instance.
+ *
+ * @param instance Object Instance
+ *
+ * @return Object index
  */
 unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_BINARY_VALUES;
+    unsigned index = 0;
 
-    if (object_instance < MAX_BINARY_VALUES) {
-        index = object_instance;
-    }
+    for (; index < BV_Max_Index && BV_Descr[index].Instance != object_instance; index++) ;
 
     return index;
 }
@@ -214,7 +281,7 @@ static int Binary_Value_Priority_Array_Encode(
     unsigned index = 0;
 
     index = Binary_Value_Instance_To_Index(object_instance);
-    if ((index < MAX_BINARY_VALUES) && (priority < BACNET_MAX_PRIORITY)) {
+    if ((index < BV_Max_Index) && (priority < BACNET_MAX_PRIORITY)) {
         if (Binary_Value_Level[index][priority] != BINARY_NULL) {
             apdu_len = encode_application_null(apdu);
         } else {
@@ -229,23 +296,57 @@ static int Binary_Value_Priority_Array_Encode(
 /**
  * For a given object instance-number, return the name.
  *
- * Note: the object name must be unique within this device
+ * Note: the object name must be unique within this device.
  *
  * @param  object_instance - object-instance number of the object
- * @param  object_name - object name/string pointer
+ * @param  object_name - object name pointer
  *
  * @return  true/false
  */
 bool Binary_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
+    unsigned index = 0;
 
-    if (object_instance < MAX_BINARY_VALUES) {
-        sprintf(
-            text_string, "BINARY VALUE %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+    if (!object_name) {
+        return false;
+    }
+
+    index = Binary_Value_Instance_To_Index(object_instance);
+    if (index < BV_Max_Index) {
+        *object_name = BV_Descr[index].Name;
+        status = true;
+    }
+
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, return the description.
+ *
+ * Note: the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  description - description pointer
+ *
+ * @return  true/false
+ */
+bool Binary_Value_Description(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    if (!description) {
+        return false;
+    }
+
+    index = Binary_Value_Instance_To_Index(object_instance);
+    if (index < BV_Max_Index) {
+        *description = BV_Descr[index].Description;
+        status = true;
     }
 
     return status;
@@ -264,7 +365,7 @@ bool Binary_Value_Out_Of_Service(uint32_t instance)
     bool oos_flag = false;
 
     index = Binary_Value_Instance_To_Index(instance);
-    if (index < MAX_BINARY_VALUES) {
+    if (index < BV_Max_Index) {
         oos_flag = Out_Of_Service[index];
     }
 
@@ -282,7 +383,7 @@ void Binary_Value_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
     unsigned index = 0;
 
     index = Binary_Value_Instance_To_Index(instance);
-    if (index < MAX_BINARY_VALUES) {
+    if (index < BV_Max_Index) {
         Out_Of_Service[index] = oos_flag;
     }
 }
@@ -316,7 +417,7 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
     /* Valid object index? */
     object_index = Binary_Value_Instance_To_Index(rpdata->object_instance);
-    if (object_index >= MAX_BINARY_VALUES) {
+    if (object_index >= BV_Max_Index) {
         rpdata->error_class = ERROR_CLASS_OBJECT;
         rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return BACNET_STATUS_ERROR;
@@ -332,8 +433,14 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             if (Binary_Value_Object_Name(
+                    rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            if (Binary_Value_Description(
                     rpdata->object_instance, &char_string)) {
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
@@ -445,7 +552,7 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     /* Valid object index? */
     object_index = Binary_Value_Instance_To_Index(wp_data->object_instance);
-    if (object_index >= MAX_BINARY_VALUES) {
+    if (object_index >= BV_Max_Index) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;

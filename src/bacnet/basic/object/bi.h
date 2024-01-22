@@ -77,8 +77,8 @@ extern "C" {
         BACNET_BINARY_PV value);
 
     BACNET_STACK_EXPORT
-    char *Binary_Input_Description(
-        uint32_t instance);
+    bool Binary_Input_Description(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
     BACNET_STACK_EXPORT
     bool Binary_Input_Description_Set(
         uint32_t instance,
@@ -154,6 +154,8 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Binary_Input_Init(
         void);
+    BACNET_STACK_EXPORT
+    bool Binary_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 
 #ifdef __cplusplus
 }
