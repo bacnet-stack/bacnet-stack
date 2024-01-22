@@ -220,8 +220,6 @@ unsigned Analog_Value_Count(void)
  */
 uint32_t Analog_Value_Index_To_Instance(unsigned index)
 {
-    unsigned int instance;
-
     if (index < AV_Max_Index) {
         return AV_Descr[index].Instance;
     }
