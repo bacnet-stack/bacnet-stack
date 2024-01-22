@@ -203,9 +203,13 @@ unsigned Analog_Input_Count(void)
     return AI_Max_Index;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the instance */
-/* that correlates to the correct index */
+/**
+ * @brief Return the instance of an object indexed by index.
+ *
+ * @param index Object index
+ *
+ * @return Object instance
+ */
 uint32_t Analog_Input_Index_To_Instance(unsigned index)
 {
     if (index < AI_Max_Index) {
