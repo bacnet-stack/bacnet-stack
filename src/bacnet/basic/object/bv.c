@@ -39,7 +39,7 @@
 #include "bacnet/basic/object/bv.h"
 #include "bacnet/basic/services.h"
 
-#include <"bacnet/basic/sys/debug.h">
+#include "bacnet/basic/sys/debug.h"
 
 #ifndef MAX_BINARY_VALUES
 #define MAX_BINARY_VALUES 10
