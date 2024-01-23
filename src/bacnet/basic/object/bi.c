@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
@@ -51,6 +52,17 @@ static bool Out_Of_Service[MAX_BINARY_INPUTS];
 static bool Change_Of_Value[MAX_BINARY_INPUTS];
 /* Polarity of Input */
 static BACNET_POLARITY Polarity[MAX_BINARY_INPUTS];
+
+typedef BACNET_CHARACTER_STRING BINARY_INPUT_CHARACTER_STRING;
+
+typedef struct binary_input_descr {
+  uint32_t Instance;
+  BINARY_INPUT_CHARACTER_STRING Name;
+  BINARY_INPUT_CHARACTER_STRING Description;
+} BINARY_INPUT_DESCR;
+
+static BINARY_INPUT_DESCR BI_Descr[MAX_BINARY_INPUTS];
+static int BI_Max_Index = MAX_BINARY_INPUTS;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Input_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -77,31 +89,50 @@ void Binary_Input_Property_Lists(
     return;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need validate that the */
-/* given instance exists */
+/**
+ * Validate whether the given instance exists in our table.
+ *
+ * @param object_instance Object instance
+ *
+ * @return true/false
+ */
 bool Binary_Input_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_BINARY_INPUTS) {
-        return true;
+    unsigned int index;
+
+    for (index = 0; index < BI_Max_Index; index++) {
+        if (BI_Descr[index].Instance == object_instance) {
+            return true;
+        }
     }
 
     return false;
 }
 
+
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
 unsigned Binary_Input_Count(void)
 {
-    return MAX_BINARY_INPUTS;
+    return BI_Max_Index;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the instance */
-/* that correlates to the correct index */
+/**
+ * @brief Return the instance of an object indexed by index.
+ *
+ * @param index Object index
+ *
+ * @return Object instance
+ */
 uint32_t Binary_Input_Index_To_Instance(unsigned index)
 {
-    return index;
+    if (index < BI_Max_Index) {
+        return BI_Descr[index].Instance;
+    } else {
+        PRINT("index out of bounds");
+    }
+
+    return 0;
 }
 
 void Binary_Input_Init(void)
@@ -113,7 +144,9 @@ void Binary_Input_Init(void)
         initialized = true;
 
         /* initialize all the values */
-        for (i = 0; i < MAX_BINARY_INPUTS; i++) {
+        for (i = 0; i < BI_Max_Index; i++) {
+            memset(&BI_Descr[i], 0x00, sizeof(BINARY_INPUT_DESCR));
+            BI_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_BINARY_INPUT));
             Present_Value[i] = BINARY_INACTIVE;
         }
     }
@@ -121,16 +154,62 @@ void Binary_Input_Init(void)
     return;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the index */
-/* that correlates to the correct instance number */
+/**
+ * Initialize the analog inputs. Returns false if there are errors.
+ *
+ * @param pInit_data pointer to initialisation values
+ *
+ * @return true/false
+ */
+bool Binary_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
+{
+  unsigned i;
+
+  if (!pInit_data) {
+    return false;
+  }
+
+  if ((int) pInit_data->length > MAX_BINARY_INPUTS) {
+    PRINT("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_BINARY_INPUTS);
+    return false;
+  }
+
+  for (i = 0; i < pInit_data->length; i++) {
+    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+      BI_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
+    } else {
+      PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+      return false;
+    }
+
+    if (!characterstring_init_ansi(&BI_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+      PRINT("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+      return false;
+    }
+
+    if (!characterstring_init_ansi(&BI_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
+      PRINT("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+      return false;
+    }
+  }
+
+  BI_Max_Index = (int) pInit_data->length;
+
+  return true;
+}
+
+/**
+ * Return the index that corresponds to the object instance.
+ *
+ * @param instance Object Instance
+ *
+ * @return Object index
+ */
 unsigned Binary_Input_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_BINARY_INPUTS;
+    unsigned index = 0;
 
-    if (object_instance < MAX_BINARY_INPUTS) {
-        index = object_instance;
-    }
+    for (; index < BI_Max_Index && BI_Descr[index].Instance != object_instance; index++) ;
 
     return index;
 }
@@ -141,7 +220,7 @@ BACNET_BINARY_PV Binary_Input_Present_Value(uint32_t object_instance)
     unsigned index = 0;
 
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS) {
+    if (index < BI_Max_Index) {
         value = Present_Value[index];
         if (Polarity[index] != POLARITY_NORMAL) {
             if (value == BINARY_INACTIVE) {
@@ -161,7 +240,7 @@ bool Binary_Input_Out_Of_Service(uint32_t object_instance)
     unsigned index = 0;
 
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS) {
+    if (index < BI_Max_Index) {
         value = Out_Of_Service[index];
     }
 
@@ -174,7 +253,7 @@ bool Binary_Input_Change_Of_Value(uint32_t object_instance)
     unsigned index;
 
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS) {
+    if (index < BI_Max_Index) {
         status = Change_Of_Value[index];
     }
 
@@ -186,7 +265,7 @@ void Binary_Input_Change_Of_Value_Clear(uint32_t object_instance)
     unsigned index;
 
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS) {
+    if (index < BI_Max_Index) {
         Change_Of_Value[index] = false;
     }
 
@@ -252,7 +331,7 @@ bool Binary_Input_Present_Value_Set(
     bool status = false;
 
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS) {
+    if (index < BI_Max_Index) {
         if (Polarity[index] != POLARITY_NORMAL) {
             if (value == BINARY_INACTIVE) {
                 value = BINARY_ACTIVE;
@@ -275,7 +354,7 @@ void Binary_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
     unsigned index = 0;
 
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS) {
+    if (index < BI_Max_Index) {
         if (Out_Of_Service[index] != value) {
             Change_Of_Value[index] = true;
         }
@@ -285,22 +364,65 @@ void Binary_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
     return;
 }
 
+/**
+ * For a given object instance-number, return the name.
+ *
+ * Note: the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - object name pointer
+ *
+ * @return  true/false
+ */
 bool Binary_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
     unsigned index = 0;
 
+    if (!object_name) {
+        return false;
+    }
+
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS) {
-        sprintf(
-            text_string, "BINARY INPUT %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+    if (index < BI_Max_Index) {
+        *object_name = BI_Descr[index].Name;
+        status = true;
+    }
+
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, return the description.
+ *
+ * Note: the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  description - description pointer
+ *
+ * @return  true/false
+ */
+bool Binary_Input_Description(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    if (!description) {
+        return false;
+    }
+
+    index = Binary_Input_Instance_To_Index(object_instance);
+    if (index < BI_Max_Index) {
+        *description = BI_Descr[index].Description;
+        status = true;
     }
 
     return status;
 }
+
 
 BACNET_POLARITY Binary_Input_Polarity(uint32_t object_instance)
 {
@@ -308,7 +430,7 @@ BACNET_POLARITY Binary_Input_Polarity(uint32_t object_instance)
     unsigned index = 0;
 
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS) {
+    if (index < BI_Max_Index) {
         polarity = Polarity[index];
     }
 
@@ -322,7 +444,7 @@ bool Binary_Input_Polarity_Set(
     unsigned index = 0;
 
     index = Binary_Input_Instance_To_Index(object_instance);
-    if (index < MAX_BINARY_INPUTS) {
+    if (index < BI_Max_Index) {
         Polarity[index] = polarity;
     }
 
@@ -350,11 +472,19 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_BINARY_INPUT, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
+            if (Binary_Input_Object_Name(
+                    rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
+            break;
+
         case PROP_DESCRIPTION:
-            /* note: object name must be unique in our device */
-            Binary_Input_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            if (Binary_Input_Description(
+                    rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
             break;
         case PROP_OBJECT_TYPE:
             apdu_len =
