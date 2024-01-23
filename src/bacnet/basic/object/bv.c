@@ -28,7 +28,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stringh>
+#include <string.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
