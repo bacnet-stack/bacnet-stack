@@ -45,7 +45,7 @@
 #define MAX_BINARY_VALUES 10
 #endif
 
-#define PRINTF perror
+#define PRINTF printf
 
 /* When all the priorities are level null, the present value returns */
 /* the Relinquish Default value */
