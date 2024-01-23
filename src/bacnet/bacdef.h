@@ -30,10 +30,12 @@
 #include "bacnet/bacint.h"
 #include "bacnet/config.h"
 
-#ifdef DEBUG_PRINT
-#define PRINT(...) do {printf("%s:%d::%s(): ", __FILE__, __LINE__, __func__); printf(__VA_ARGS__); printf("\r\n");} while(0)
-#else
-#define PRINT(...)
+#if !defined(PRINT)
+#  ifdef DEBUG_PRINT
+#    define PRINT(...) do {printf("%s:%d::%s(): ", __FILE__, __LINE__, __func__); printf(__VA_ARGS__); printf("\r\n");} while(0)
+#  else
+#  define PRINT(...)
+#  endif
 #endif
 
 #if defined(_MSC_VER)
