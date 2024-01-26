@@ -361,15 +361,14 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
  * At 115200 baud, 40 bit times would be about 0.347 milliseconds
  * 40 bits is 4 octets including a start and stop bit with each octet
  * @param baud_rate - buad rate in bits per second
- * @return: amount of milliseconds to wait
+ * @return: amount of whole milliseconds to wait 1..5
  */
 static uint32_t dlmstp_receive_turnaround_time(uint32_t baud_rate)
 {
     if (baud_rate == 0) {
         baud_rate = 9600;
     }
-    /* at least 2 ms for errors: rounding, clock tick */
-    return (2 + ((Tturnaround * 1000) / baud_rate));
+    return (1 + ((Tturnaround * 1000) / baud_rate));
 }
 
 /**
