@@ -214,11 +214,16 @@ GDB_PORT = 3333
 debug:
 	st-util --listen $(GDB_PORT)
 
+# Note: STLink is built into Nucleo board
+OPENOCD_FLAGS = -f interface/stlink.cfg -f target/stm32f4x.cfg
 # GDB using openocd (GDB server for ST Link)
 # sudo apt install openocd
 .PHONY: openocd
 openocd:
-	openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
+	openocd $(OPENOCD_FLAGS)
+
+flash: $(TARGET).elf
+	openocd $(OPENOCD_FLAGS) -c "program $< verify reset" -c "shutdown"
 
 # graphical GDB debugging tool
 # note: relies on .gdbinit containing:
