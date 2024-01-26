@@ -338,7 +338,7 @@ void MSTP_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,
     uint32_t turnaround_milliseconds;
     bool sent;
     struct mstp_user_data_t *port;
-    struct rs485_driver *driver;
+    struct mstp_rs485_driver *driver;
 
     if (!mstp_port) {
         return;
@@ -396,7 +396,7 @@ uint16_t dlmstp_receive(
     uint8_t data_register = 0;
     struct dlmstp_packet packet = { 0 };
     struct mstp_user_data_t *port;
-    struct rs485_driver *driver;
+    struct mstp_rs485_driver *driver;
     uint16_t i;
 
     if (!MSTP_Port) {
@@ -713,7 +713,7 @@ bool dlmstp_send_pdu_queue_full(void)
 void dlmstp_set_baud_rate(uint32_t baud)
 {
     struct mstp_user_data_t *port;
-    struct rs485_driver *driver;
+    struct mstp_rs485_driver *driver;
 
     if (!MSTP_Port) {
         return;
@@ -736,7 +736,7 @@ void dlmstp_set_baud_rate(uint32_t baud)
 uint32_t dlmstp_baud_rate(void)
 {
     struct mstp_user_data_t *port;
-    struct rs485_driver *driver;
+    struct mstp_rs485_driver *driver;
 
     if (!MSTP_Port) {
         return 0;

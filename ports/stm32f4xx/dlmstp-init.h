@@ -2,7 +2,7 @@
  * @file
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date February 2023
- * @brief BACnet FreeRTOS MSTP datalink API
+ * @brief BACnet MSTP datalink API
  *
  * SPDX-License-Identifier: MIT
  *
@@ -10,6 +10,7 @@
 #ifndef DLMSTP_INIT_H
 #define DLMSTP_INIT_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacnet/basic/sys/ringbuf.h"
@@ -30,25 +31,24 @@
 /**
  * The structure of RS485 driver for BACnet MS/TP
  */
-struct rs485_driver {
-
+struct mstp_rs485_driver {
     /** Initialize the driver hardware */
-    void (* init)(void);
+    void (*init)(void);
 
     /** Prepare & transmit a packet. */
-    void (* send)(uint8_t *payload, uint16_t payload_len);
+    void (*send)(uint8_t *payload, uint16_t payload_len);
 
     /** Check if one received byte is available */
-    bool (* read)(uint8_t *buf);
+    bool (*read)(uint8_t *buf);
 
     /** true if the driver is transmitting */
-    bool (* transmitting)(void);
+    bool (*transmitting)(void);
 
     /** Get the current baud rate */
-    uint32_t (* baud_rate)(void);
+    uint32_t (*baud_rate)(void);
 
     /** Set the current baud rate */
-    bool (* baud_rate_set)(uint32_t baud);
+    bool (*baud_rate_set)(uint32_t baud);
 };
 
 /**
@@ -56,7 +56,7 @@ struct rs485_driver {
  */
 struct mstp_user_data_t {
     struct dlmstp_statistics Statistics;
-    struct rs485_driver *RS485_Driver;
+    struct mstp_rs485_driver *RS485_Driver;
     RING_BUFFER PDU_Queue;
     bool Initialized;
     uint8_t Input_Buffer[DLMSTP_MPDU_MAX];

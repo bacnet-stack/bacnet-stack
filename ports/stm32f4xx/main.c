@@ -60,10 +60,10 @@ int main(void)
     rs485_init();
     mstimer_set(&Blink_Timer, 500);
     /* initialize datalink layer */
+    dlmstp_framework_init();
     dlmstp_set_mac_address(2);
     dlmstp_set_max_master(DEFAULT_MAX_MASTER);
     dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
-    dlmstp_framework_init();
     /* initialize application layer*/
     bacnet_init();
     for (;;) {

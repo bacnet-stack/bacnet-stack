@@ -31,9 +31,9 @@ PLATFORM_SRC = \
 	$(PLATFORM_DIR)/system_stm32f4xx.c
 
 BASIC_SRC = \
-	$(BACNET_BASIC)/service/h_dcc.c \
-	$(BACNET_BASIC)/service/h_apdu.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/service/h_apdu.c \
+	$(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/h_rd.c \
 	$(BACNET_BASIC)/service/h_rp.c \
 	$(BACNET_BASIC)/service/h_rpm.c \
@@ -43,11 +43,11 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/h_noserv.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
-	$(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/sys/fifo.c \
-	$(BACNET_BASIC)/sys/mstimer.c
+	$(BACNET_BASIC)/sys/mstimer.c \
+	$(BACNET_BASIC)/tsm/tsm.c
 
 BACNET_SRC = \
 	$(BACNET_CORE)/abort.c \

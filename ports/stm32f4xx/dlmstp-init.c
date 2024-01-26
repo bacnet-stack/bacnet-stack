@@ -20,13 +20,12 @@
 
 /* MS/TP port */
 static volatile struct mstp_port_struct_t MSTP_Port;
-static struct rs485_driver RS485_Driver = {
+static struct mstp_rs485_driver RS485_Driver = { 
     .send = rs485_bytes_send,
     .read = rs485_byte_available,
     .transmitting = rs485_rts_enabled,
     .baud_rate = rs485_baud_rate,
-    .baud_rate_set = rs485_baud_rate_set
-};
+    .baud_rate_set = rs485_baud_rate_set };
 static struct mstp_user_data_t MSTP_User_Data;
 
 /**
@@ -47,8 +46,7 @@ void dlmstp_framework_init(void)
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     Ringbuf_Init(&MSTP_User_Data.PDU_Queue,
         (volatile uint8_t *)&MSTP_User_Data.PDU_Buffer,
-        sizeof(struct dlmstp_packet),
-        DLMSTP_MAX_INFO_FRAMES);
+        sizeof(struct dlmstp_packet), DLMSTP_MAX_INFO_FRAMES);
     /* initialize the datalink */
     dlmstp_init((char *)&MSTP_Port);
 }
