@@ -126,10 +126,9 @@ uint16_t MSTP_Get_Send(
     /* look at next PDU in queue without removing it */
     pkt = (struct dlmstp_packet *)(void *)Ringbuf_Peek(&port->PDU_Queue);
     /* convert the PDU into the MSTP Frame */
-    pdu_len
-        = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
-            mstp_port->OutputBufferSize, pkt->frame_type, pkt->address.mac[0],
-            mstp_port->This_Station, &pkt->pdu[0], pkt->pdu_len);
+    pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
+        mstp_port->OutputBufferSize, pkt->frame_type, pkt->address.mac[0],
+        mstp_port->This_Station, &pkt->pdu[0], pkt->pdu_len);
     port->Statistics.transmit_pdu_counter++;
     (void)Ringbuf_Pop(&port->PDU_Queue, NULL);
 
@@ -146,9 +145,9 @@ uint16_t MSTP_Get_Send(
  */
 static bool MSTP_Compare_Data_Expecting_Reply(
     volatile struct mstp_port_struct_t *mstp_port,
-    uint8_t * reply_pdu,
+    uint8_t *reply_pdu,
     uint16_t reply_pdu_len,
-    BACNET_ADDRESS * dest_address)
+    BACNET_ADDRESS *dest_address)
 {
     uint16_t offset;
     /* One way to check the message is to compare NPDU
@@ -163,7 +162,7 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     };
     struct DER_compare_t request;
     struct DER_compare_t reply;
-    uint8_t * request_pdu;
+    uint8_t *request_pdu;
     uint16_t request_pdu_len;
     uint8_t src_address;
 
@@ -177,9 +176,8 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset =
-        (uint16_t) npdu_decode(&request_pdu[0], NULL, &request.address,
-        &request.npdu_data);
+    offset = (uint16_t)npdu_decode(
+        &request_pdu[0], NULL, &request.address, &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -195,9 +193,8 @@ static bool MSTP_Compare_Data_Expecting_Reply(
         request.service_choice = request_pdu[offset + 3];
     /* decode the reply data */
     bacnet_address_copy(&reply.address, dest_address);
-    offset =
-        (uint16_t) npdu_decode(&reply_pdu[0], &reply.address, NULL,
-        &reply.npdu_data);
+    offset = (uint16_t)npdu_decode(
+        &reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
@@ -242,7 +239,8 @@ static bool MSTP_Compare_Data_Expecting_Reply(
             return false;
         }
     }
-    if (request.npdu_data.protocol_version != reply.npdu_data.protocol_version) {
+    if (request.npdu_data.protocol_version !=
+        reply.npdu_data.protocol_version) {
         return false;
     }
 #if 0
@@ -287,7 +285,7 @@ uint16_t MSTP_Get_Reply(
     }
     /* look at next PDU in queue without removing it */
     pkt = (struct dlmstp_packet *)(void *)Ringbuf_Peek(&port->PDU_Queue);
-        /* is this the reply to the DER? */
+    /* is this the reply to the DER? */
     matched = MSTP_Compare_Data_Expecting_Reply(
         mstp_port, pkt->pdu, pkt->pdu_len, &pkt->address);
     if (!matched) {
@@ -295,13 +293,60 @@ uint16_t MSTP_Get_Reply(
     }
     /* convert the PDU into the MSTP Frame */
     pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
-        mstp_port->OutputBufferSize, pkt->frame_type,
-        packet.address.mac[0], mstp_port->This_Station, &pkt->pdu[0],
-        pkt->pdu_len);
+        mstp_port->OutputBufferSize, pkt->frame_type, packet.address.mac[0],
+        mstp_port->This_Station, &pkt->pdu[0], pkt->pdu_len);
     port->Statistics.transmit_pdu_counter++;
     (void)Ringbuf_Pop(&port->PDU_Queue, NULL);
 
     return pdu_len;
+}
+
+/**
+ * @brief MS/TP state machine callback to use for sending a frame
+ * @param mstp_port - specific MSTP port that is used for this datalink
+ * @param buffer - buffer to send
+ * @param nbytes - number of bytes of data to send
+ */
+void MSTP_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,
+    uint8_t *buffer,
+    uint16_t nbytes)
+{
+    struct mstp_user_data_t *port;
+    struct mstp_rs485_driver *driver;
+
+    if (!mstp_port) {
+        return;
+    }
+    port = mstp_port->UserData;
+    if (!port) {
+        return;
+    }
+    driver = port->RS485_Driver;
+    if (!driver) {
+        return;
+    }
+    driver->send(buffer, nbytes);
+    port->Statistics.transmit_frame_counter++;
+}
+
+/**
+ * @brief MS/TP state machine received a frame
+ * @return number of bytes queued, or 0 if unable to be queued
+ */
+uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+{
+    struct mstp_user_data_t *port = NULL;
+
+    if (!mstp_port) {
+        return 0;
+    }
+    port = mstp_port->UserData;
+    if (!port) {
+        return 0;
+    }
+    port->ReceivePacketPending = true;
+
+    return mstp_port->DataLength;
 }
 
 /**
@@ -318,69 +363,13 @@ uint16_t MSTP_Get_Reply(
  * @param baud_rate - buad rate in bits per second
  * @return: amount of milliseconds to wait
  */
-static uint32_t rs485_turnaround_time(uint32_t baud_rate)
+static uint32_t dlmstp_receive_turnaround_time(uint32_t baud_rate)
 {
     if (baud_rate == 0) {
         baud_rate = 9600;
     }
-    /* delay after reception before transmitting - per MS/TP spec */
-    /* wait a minimum  40 bit times since reception */
     /* at least 2 ms for errors: rounding, clock tick */
     return (2 + ((Tturnaround * 1000) / baud_rate));
-}
-
-/* for the MS/TP state machine callback to use for sending a frame */
-void MSTP_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,
-    uint8_t * buffer,
-    uint16_t nbytes)
-{
-    uint32_t milliseconds;
-    uint32_t turnaround_milliseconds;
-    bool sent;
-    struct mstp_user_data_t *port;
-    struct mstp_rs485_driver *driver;
-
-    if (!mstp_port) {
-        return;
-    }
-    port = mstp_port->UserData;
-    if (!port) {
-        return;
-    }
-    driver = port->RS485_Driver;
-    if (!driver) {
-        return;
-    }
-    /* delay after reception before transmitting - per MS/TP spec */
-    turnaround_milliseconds = rs485_turnaround_time(driver->baud_rate());
-    do {
-        milliseconds = mstp_port->SilenceTimer(NULL);
-    } while (milliseconds < turnaround_milliseconds);
-    driver->send(buffer, nbytes);
-    port->Statistics.transmit_frame_counter++;
-}
-
-/**
- * @brief MS/TP state machine received a frame
- * @return number of bytes queued, or 0 if unable to be queued
- */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
-{
-    uint16_t pdu_len = 0;
-    uint16_t i = 0;
-    struct dlmstp_packet packet = { 0 };
-    struct mstp_user_data_t *port = NULL;
-
-    if (!mstp_port) {
-        return 0;
-    }
-    port = mstp_port->UserData;
-    if (!port) {
-        return 0;
-    }
-    port->ReceivePacketPending = true;
-
-    return mstp_port->DataLength;
 }
 
 /**
@@ -388,16 +377,19 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
  * @param pdu - place to put PDU data for the caller
  * @param max_pdu - number of bytes of PDU data that caller can receive
  * @return number of bytes in received packet, or 0 if no packet was received
+ * @note Must be called at least once every 1 milliseconds, with no more than 
+ *  5 milliseconds jitter.
  */
 uint16_t dlmstp_receive(
     BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout)
 {
     uint16_t pdu_len = 0;
     uint8_t data_register = 0;
-    struct dlmstp_packet packet = { 0 };
     struct mstp_user_data_t *port;
     struct mstp_rs485_driver *driver;
     uint16_t i;
+    uint32_t milliseconds;
+    uint32_t turnaround_milliseconds;
 
     if (!MSTP_Port) {
         return 0;
@@ -434,6 +426,17 @@ uint16_t dlmstp_receive(
             break;
         }
     }
+    if (MSTP_Port->ReceivedValidFrameNotForUs ||
+        MSTP_Port->ReceivedValidFrame || MSTP_Port->ReceivedInvalidFrame) {
+        /* delay after reception before transmitting - per MS/TP spec */
+        turnaround_milliseconds =
+            dlmstp_receive_turnaround_time(driver->baud_rate());
+        milliseconds = MSTP_Port->SilenceTimer(NULL);
+        if (milliseconds < turnaround_milliseconds) {
+            /* we're waiting; do nothing else */
+            return 0;
+        }
+    }
     if (MSTP_Port->ReceivedValidFrameNotForUs) {
         MSTP_Port->ReceivedValidFrameNotForUs = false;
         port->Statistics.receive_valid_frame_counter++;
@@ -444,8 +447,8 @@ uint16_t dlmstp_receive(
     if (MSTP_Port->ReceivedInvalidFrame) {
         port->Statistics.receive_invalid_frame_counter++;
     }
-    /* only do master state machine while rx is idle */
     if (MSTP_Port->receive_state == MSTP_RECEIVE_STATE_IDLE) {
+        /* only do master state machine while rx is idle */
         if (MSTP_Port->This_Station <= DEFAULT_MAX_MASTER) {
             while (MSTP_Master_Node_FSM(MSTP_Port)) {
                 /* do nothing while some states fast transition */
@@ -488,9 +491,7 @@ uint16_t dlmstp_receive(
  * @param src - a #BACNET_ADDRESS structure
  * @param mstp_address - a BACnet MSTP address
  */
-void dlmstp_fill_bacnet_address(
-    BACNET_ADDRESS *src,
-    uint8_t mstp_address)
+void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
 {
     int i = 0;
 
@@ -517,8 +518,7 @@ void dlmstp_fill_bacnet_address(
  * @brief Set the MSTP MAC address
  * @param mac_address - MAC address to set
  */
-void dlmstp_set_mac_address(
-    uint8_t mac_address)
+void dlmstp_set_mac_address(uint8_t mac_address)
 {
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
@@ -558,8 +558,7 @@ uint8_t dlmstp_mac_address(void)
  *
  * @param max_info_frames - parameter value to set
  */
-void dlmstp_set_max_info_frames(
-    uint8_t max_info_frames)
+void dlmstp_set_max_info_frames(uint8_t max_info_frames)
 {
     if (max_info_frames >= 1) {
         if (MSTP_Port) {
@@ -596,8 +595,7 @@ uint8_t dlmstp_max_info_frames(void)
  *
  * @param max_master - value to be set
  */
-void dlmstp_set_max_master(
-    uint8_t max_master)
+void dlmstp_set_max_master(uint8_t max_master)
 {
     if (max_master <= 127) {
         if (MSTP_Port->This_Station <= max_master) {
@@ -627,8 +625,7 @@ uint8_t dlmstp_max_master(void)
  * @brief Initialize the data link broadcast address
  * @param my_address - address to be filled with unicast designator
  */
-void dlmstp_get_my_address(
-    BACNET_ADDRESS *my_address)
+void dlmstp_get_my_address(BACNET_ADDRESS *my_address)
 {
     int i = 0; /* counter */
 
@@ -649,8 +646,7 @@ void dlmstp_get_my_address(
  * @brief Initialize the a data link broadcast address
  * @param dest - address to be filled with broadcast designator
  */
-void dlmstp_get_broadcast_address(
-    BACNET_ADDRESS *dest)
+void dlmstp_get_broadcast_address(BACNET_ADDRESS *dest)
 { /* destination address */
     int i = 0; /* counter */
 
@@ -757,7 +753,7 @@ uint32_t dlmstp_baud_rate(void)
  * @brief Copy the MSTP port statistics if they exist
  * @param statistics - MSTP port statistics
  */
-void dlmstp_fill_statistics(struct dlmstp_statistics * statistics)
+void dlmstp_fill_statistics(struct dlmstp_statistics *statistics)
 {
     struct mstp_user_data_t *port;
 
@@ -776,11 +772,19 @@ void dlmstp_fill_statistics(struct dlmstp_statistics * statistics)
     }
 }
 
+/**
+ * @brief Get the MSTP port Max-Info-Frames limit
+ * @return Max-Info-Frames limit
+ */
 uint8_t dlmstp_max_info_frames_limit(void)
 {
     return DLMSTP_MAX_INFO_FRAMES;
 }
 
+/**
+ * @brief Get the MSTP port Max-Master limit
+ * @return Max-Master limit
+ */
 uint8_t dlmstp_max_master_limit(void)
 {
     return DLMSTP_MAX_MASTER;

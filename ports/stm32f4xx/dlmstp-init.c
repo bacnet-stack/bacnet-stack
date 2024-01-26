@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Configuration FreeRTOS BACnet datalink
+ * @brief Configuration BACnet MSTP datalink
  * @date February 2023
  * @author Steve Karg <skarg@users.sourceforge.net>
  *

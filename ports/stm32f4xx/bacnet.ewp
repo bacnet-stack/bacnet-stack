@@ -1088,6 +1088,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\dcc.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\indtext.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\iam.c</name>
         </file>
         <file>
@@ -1146,6 +1149,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\datalink\dlmstp.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\mstp.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\mstptext.c</name>
         </file>
     </group>
     <group>

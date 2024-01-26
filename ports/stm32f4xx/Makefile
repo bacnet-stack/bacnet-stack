@@ -64,8 +64,10 @@ BACNET_SRC = \
 	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/datalink/dlmstp.c \
 	$(BACNET_CORE)/datalink/mstp.c \
+	$(BACNET_CORE)/datalink/mstptext.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \
+	$(BACNET_CORE)/indtext.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
 	$(BACNET_CORE)/hostnport.c \
