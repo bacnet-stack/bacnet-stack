@@ -1088,6 +1088,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\dcc.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\indtext.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\iam.c</name>
         </file>
         <file>
@@ -1143,6 +1146,15 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\datalink\crc.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\dlmstp.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\mstp.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\mstptext.c</name>
         </file>
     </group>
     <group>
@@ -1222,6 +1234,12 @@
         <file>
             <name>$PROJ_DIR$\rs485.c</name>
         </file>
+        <file>
+            <name>$PROJ_DIR$\stm32f4xx_it.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\system_stm32f4xx.c</name>
+        </file>
     </group>
     <group>
         <name>NUCLEO-BACnet</name>
@@ -1230,9 +1248,6 @@
         </file>
         <file>
             <name>$PROJ_DIR$\device.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\dlmstp.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\netport.c</name>
@@ -1279,11 +1294,5 @@
     </group>
     <file>
         <name>$PROJ_DIR$\main.c</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\stm32f4xx_it.c</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\system_stm32f4xx.c</name>
     </file>
 </project>

@@ -139,7 +139,6 @@ set(BACNET_PROJECT_SOURCE
     ${CMAKE_SOURCE_DIR}/system_stm32f4xx.h
 
     ${CMAKE_SOURCE_DIR}/bacnet.c
-    ${CMAKE_SOURCE_DIR}/dlmstp.c
     ${CMAKE_SOURCE_DIR}/led.c
     ${CMAKE_SOURCE_DIR}/mstimer-init.c
     ${CMAKE_SOURCE_DIR}/rs485.c
@@ -177,8 +176,12 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/bacstr.c
     ${LIBRARY_BACNET_CORE}/datalink/cobs.c
     ${LIBRARY_BACNET_CORE}/datalink/crc.c
+    ${LIBRARY_BACNET_CORE}/datalink/dlmstp.c
+    ${LIBRARY_BACNET_CORE}/datalink/mstp.c
+    ${LIBRARY_BACNET_CORE}/datalink/mstptext.c
     ${LIBRARY_BACNET_CORE}/datetime.c
     ${LIBRARY_BACNET_CORE}/dcc.c
+    ${LIBRARY_BACNET_CORE}/indtext.c
     ${LIBRARY_BACNET_CORE}/iam.c
     ${LIBRARY_BACNET_CORE}/ihave.c
     ${LIBRARY_BACNET_CORE}/hostnport.c
@@ -204,7 +207,7 @@ set(BACNET_PROJECT_SOURCE
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/stm32f4xx.ld)
 
-set(EXECUTABLE ${PROJECT_NAME}.out)
+set(EXECUTABLE ${PROJECT_NAME}.elf)
 
 add_executable(${EXECUTABLE} ${BACNET_PROJECT_SOURCE})
 
