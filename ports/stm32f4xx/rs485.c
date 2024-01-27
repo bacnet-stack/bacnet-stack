@@ -60,20 +60,20 @@ static volatile uint32_t RS485_Receive_Bytes;
 static struct mstimer Silence_Timer;
 
 /**
+ * @brief Reset the silence on the wire timer.
+ */
+void rs485_silence_reset(void)
+{
+    mstimer_restart(&Silence_Timer);
+}
+
+/**
  * @brief Return the RS-485 silence time in milliseconds
  * @return silence time in milliseconds
  */
 uint32_t rs485_silence_milliseconds(void)
 {
     return mstimer_elapsed(&Silence_Timer);
-}
-
-/**
- * @brief Reset the RS-485 silence time to zero
- */
-void rs485_silence_reset(void)
-{
-    mstimer_restart(&Silence_Timer);
 }
 
 /**
