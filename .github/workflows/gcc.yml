@@ -189,7 +189,6 @@ jobs:
         sudo apt-get install -qq build-essential
         sudo apt-get install -qq gcc-arm-none-eabi
         sudo apt-get install -qq libnewlib-arm-none-eabi
-        sudo apt-get install -qq libnewlib-nano-arm-none-eabi
         sudo apt-get install -qq cmake
     - name: ports-arm-cmake
       run: |
