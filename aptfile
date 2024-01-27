@@ -24,6 +24,8 @@ package "gitg"
 package "tofrodos"
 package "clang-format"
 package "sloccount"
+package "complexity"
+package "pmccabe"
 
 # install ARM compiler and debugging tools
 package "gcc-arm-none-eabi"

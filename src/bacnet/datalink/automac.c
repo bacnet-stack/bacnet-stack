@@ -1,27 +1,11 @@
-/**************************************************************************
+/**
+ * @file
+ * @brief BACnet MSTP zero-config auto MAC address
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2010
  *
- * Copyright (C) 2010 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+ * SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -30,7 +14,7 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/config.h"
 #include "bacnet/datalink/mstpdef.h"
-#include "automac.h"
+#include "bacnet/datalink/automac.h"
 
 /* MS/TP Auto MAC address functionality */
 
@@ -46,11 +30,7 @@ typedef struct {
     /* reserve some slots for fixed addresses */
     bool reserved : 1;
 } AUTO_MAC_DATA;
-/* starting number available for AutoMAC */
-#define MAC_SLOTS_OFFSET 32
-/* total number of slots */
-#define MAC_SLOTS_MAX 128
-static AUTO_MAC_DATA Auto_MAC_Data[MAC_SLOTS_MAX];
+static AUTO_MAC_DATA Auto_MAC_Data[MSTP_MAC_SLOTS_MAX];
 /* my automatic MAC address */
 static uint8_t My_MAC_Address;
 /* my no-token silence timer time slot in milliseconds */
@@ -99,7 +79,7 @@ static bool automac_address_used(uint8_t mac)
 {
     bool status = false;
 
-    if (mac < MAC_SLOTS_MAX) {
+    if (mac < MSTP_MAC_SLOTS_MAX) {
         if ((Auto_MAC_Data[mac].emitter) || (Auto_MAC_Data[mac].reserved) ||
             (Auto_MAC_Data[mac].token)) {
             status = true;
@@ -118,7 +98,7 @@ bool automac_free_address_valid(uint8_t mac)
 {
     bool status = false;
 
-    if (mac < MAC_SLOTS_MAX) {
+    if (mac < MSTP_MAC_SLOTS_MAX) {
         if ((Auto_MAC_Data[mac].pfm) && (!automac_address_used(mac))) {
             status = true;
         }
@@ -139,12 +119,12 @@ uint8_t automac_next_station(uint8_t mac)
     uint8_t test_station = 0; /* station number to test for token */
 
     test_station = (mac + 1) % 128;
-    for (i = 0; i < MAC_SLOTS_MAX; i++) {
+    for (i = 0; i < MSTP_MAC_SLOTS_MAX; i++) {
         if (Auto_MAC_Data[test_station].token) {
             next_station = test_station;
             break;
         }
-        test_station = (test_station + 1) % MAC_SLOTS_MAX;
+        test_station = (test_station + 1) % MSTP_MAC_SLOTS_MAX;
     }
 
     return next_station;
@@ -160,7 +140,7 @@ uint8_t automac_free_address_count(void)
     uint8_t i = 0;
     uint8_t slots = 0;
 
-    for (i = 0; i < MAC_SLOTS_MAX; i++) {
+    for (i = 0; i < MSTP_MAC_SLOTS_MAX; i++) {
         if (automac_free_address_valid(i)) {
             slots++;
         }
@@ -180,7 +160,7 @@ uint8_t automac_free_address_mac(uint8_t count)
     uint8_t slots = 0;
     uint8_t mac = 255;
 
-    for (i = 0; i < MAC_SLOTS_MAX; i++) {
+    for (i = 0; i < MSTP_MAC_SLOTS_MAX; i++) {
         if (automac_free_address_valid(i)) {
             if (slots == count) {
                 mac = i;
@@ -250,10 +230,10 @@ uint16_t automac_time_slot(void)
  *****************************************************************************/
 void automac_address_init(void)
 {
-    My_MAC_Address =
-        MAC_SLOTS_OFFSET + rand() % (MAC_SLOTS_MAX - MAC_SLOTS_OFFSET);
+    My_MAC_Address = MSTP_MAC_SLOTS_OFFSET +
+        rand() % (MSTP_MAC_SLOTS_MAX - MSTP_MAC_SLOTS_OFFSET);
     /* at least as long as a dropped token - worst case */
-    My_Time_Slot = Tno_token + (MAC_SLOTS_MAX * Tslot);
+    My_Time_Slot = Tno_token + (MSTP_MAC_SLOTS_MAX * Tslot);
     My_Time_Slot += (uint16_t)My_MAC_Address * Tslot;
 }
 
@@ -264,7 +244,7 @@ void automac_address_init(void)
  *****************************************************************************/
 void automac_pfm_set(uint8_t mac)
 {
-    if (mac < MAC_SLOTS_MAX) {
+    if (mac < MSTP_MAC_SLOTS_MAX) {
         if (Auto_MAC_Data[mac].pfm) {
             /* indicate that we have completed enough PFM to continue */
             if (automac_free_address_count() > 0) {
@@ -282,7 +262,7 @@ void automac_pfm_set(uint8_t mac)
  *****************************************************************************/
 void automac_token_set(uint8_t mac)
 {
-    if (mac < MAC_SLOTS_MAX) {
+    if (mac < MSTP_MAC_SLOTS_MAX) {
         Auto_MAC_Data[mac].token = true;
     }
 }
@@ -294,7 +274,7 @@ void automac_token_set(uint8_t mac)
  *****************************************************************************/
 void automac_emitter_set(uint8_t mac)
 {
-    if (mac < MAC_SLOTS_MAX) {
+    if (mac < MSTP_MAC_SLOTS_MAX) {
         Auto_MAC_Data[mac].emitter = true;
     }
 }
@@ -308,11 +288,11 @@ void automac_init(void)
 {
     uint8_t i = 0;
 
-    for (i = 0; i < MAC_SLOTS_MAX; i++) {
+    for (i = 0; i < MSTP_MAC_SLOTS_MAX; i++) {
         Auto_MAC_Data[i].token = false;
         Auto_MAC_Data[i].emitter = false;
         Auto_MAC_Data[i].pfm = false;
-        if (i < MAC_SLOTS_OFFSET) {
+        if (i < MSTP_MAC_SLOTS_OFFSET) {
             Auto_MAC_Data[i].reserved = true;
         } else {
             Auto_MAC_Data[i].reserved = false;
@@ -321,100 +301,3 @@ void automac_init(void)
     automac_address_init();
     PFM_Cycle_Complete = false;
 }
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include <stdio.h>
-#include "ctest.h"
-
-/* test the ring buffer */
-void test_Auto_MAC(Test *pTest)
-{
-    uint8_t mac = 255;
-
-    automac_init();
-    ct_test(pTest, automac_free_address_count() == 0);
-    mac = automac_free_address_mac(0);
-    ct_test(pTest, mac == 255);
-    automac_pfm_set(MAC_SLOTS_OFFSET);
-    mac = automac_free_address_mac(0);
-    ct_test(pTest, mac == MAC_SLOTS_OFFSET);
-    ct_test(pTest, automac_free_address_count() == 1);
-    automac_token_set(MAC_SLOTS_OFFSET);
-    mac = automac_free_address_mac(0);
-    ct_test(pTest, mac == 255);
-    ct_test(pTest, automac_free_address_count() == 0);
-    automac_pfm_set(127);
-    mac = automac_free_address_mac(0);
-    ct_test(pTest, mac == 127);
-    ct_test(pTest, automac_free_address_count() == 1);
-    automac_token_set(127);
-    mac = automac_free_address_mac(0);
-    ct_test(pTest, mac == 255);
-    ct_test(pTest, automac_free_address_count() == 0);
-    /* the ANSI rand() uses consistent sequence based on seed */
-    srand(42);
-    mac = automac_free_address_random();
-    ct_test(pTest, mac == 255);
-    automac_pfm_set(MAC_SLOTS_OFFSET + 1);
-    mac = automac_free_address_mac(0);
-    ct_test(pTest, mac == (MAC_SLOTS_OFFSET + 1));
-    mac = automac_free_address_random();
-    ct_test(pTest, mac == (MAC_SLOTS_OFFSET + 1));
-    /* test 2 free addresses */
-    automac_pfm_set(MAC_SLOTS_OFFSET + 2);
-    mac = automac_free_address_mac(0);
-    ct_test(pTest, mac == (MAC_SLOTS_OFFSET + 1));
-    mac = automac_free_address_mac(1);
-    ct_test(pTest, mac == (MAC_SLOTS_OFFSET + 2));
-    mac = automac_free_address_random();
-    ct_test(pTest,
-        (mac == (MAC_SLOTS_OFFSET + 1)) || (mac == (MAC_SLOTS_OFFSET + 2)));
-    /* test 3 free addresses */
-    automac_pfm_set(126);
-    mac = automac_free_address_mac(0);
-    ct_test(pTest, mac == (MAC_SLOTS_OFFSET + 1));
-    mac = automac_free_address_mac(1);
-    ct_test(pTest, mac == (MAC_SLOTS_OFFSET + 2));
-    mac = automac_free_address_mac(2);
-    ct_test(pTest, mac == 126);
-    mac = automac_free_address_random();
-    ct_test(pTest,
-        (mac == (MAC_SLOTS_OFFSET + 1)) || (mac == (MAC_SLOTS_OFFSET + 2)) ||
-            (mac == 126));
-    /* test the stored address */
-    mac = automac_address();
-    ct_test(pTest, mac < MAC_SLOTS_MAX);
-    automac_address_set(MAC_SLOTS_OFFSET);
-    mac = automac_address();
-    ct_test(pTest, mac == MAC_SLOTS_OFFSET);
-
-    automac_init();
-    automac_token_set(0x6B);
-    mac = automac_next_station(0x25);
-    ct_test(pTest, mac == 0x6B);
-}
-
-#ifdef TEST_AUTOMAC
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("Auto MAC", NULL);
-
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, test_Auto_MAC);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif
-#endif

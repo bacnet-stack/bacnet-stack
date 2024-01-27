@@ -49,6 +49,7 @@ static void test_bacnet_tag_codec(uint8_t tag_number,
     uint8_t apdu[BACNET_TAG_SIZE] = { 0 };
     BACNET_TAG tag = { 0 };
     int len = 0, test_len = 0, null_len = 0, tag_len = 0;
+    uint32_t tag_len_value_type;
     bool status;
 
     if (opening) {
@@ -72,9 +73,10 @@ static void test_bacnet_tag_codec(uint8_t tag_number,
         zassert_false(tag.closing, NULL);
         zassert_false(tag.opening, NULL);
         status = bacnet_is_context_tag_number(
-            apdu, sizeof(apdu), tag_number, &tag_len);
+            apdu, sizeof(apdu), tag_number, &tag_len, &tag_len_value_type);
         zassert_true(status, NULL);
         zassert_equal(tag_len, test_len, NULL);
+        zassert_equal(tag_len_value_type, len_value_type, NULL);
     } else if (opening) {
         zassert_false(tag.context, NULL);
         zassert_false(tag.application, NULL);
@@ -99,7 +101,7 @@ static void test_bacnet_tag_codec(uint8_t tag_number,
         zassert_false(tag.closing, NULL);
         zassert_false(tag.opening, NULL);
         status = bacnet_is_context_tag_number(
-            apdu, sizeof(apdu), tag_number, &tag_len);
+            apdu, sizeof(apdu), tag_number, &tag_len, &tag_len_value_type);
         zassert_false(status, NULL);
     }
     while (len) {
@@ -155,7 +157,7 @@ static void testBACDCodeTags(void)
     uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t tag_number = 0, test_tag_number = 0;
     int len = 0, test_len = 0, tag_len = 0;
-    uint32_t value = 0, test_value = 0;
+    uint32_t value = 0, test_value = 0, tag_len_value_type = 0;
     unsigned i = 0, j = 0;
     BACNET_TAG tag = { 0 };
     bool status = false;
@@ -212,7 +214,7 @@ static void testBACDCodeTags(void)
             zassert_false(tag.context, NULL);
             zassert_true(tag.application, NULL);
             status = bacnet_is_context_tag_number(
-                apdu, sizeof(apdu), tag_number, &tag_len);
+                apdu, sizeof(apdu), tag_number, &tag_len, &tag_len_value_type);
             zassert_false(status, NULL);
             zassert_false(tag.closing, NULL);
             zassert_false(tag.opening, NULL);

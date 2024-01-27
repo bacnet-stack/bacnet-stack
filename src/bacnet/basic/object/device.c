@@ -210,7 +210,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+        Life_Safety_Point_Create, Life_Safety_Point_Delete, NULL /* Timer */ },
     { OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
         Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
         Load_Control_Object_Name, Load_Control_Read_Property,

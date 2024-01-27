@@ -29,6 +29,7 @@ SRCS = main.c \
 	${BACNET_SOURCE_DIR}/basic/bbmd/h_bbmd.c \
 	${BACNET_SOURCE_DIR}/datalink/bvlc.c \
 	${BACNET_SOURCE_DIR}/basic/sys/fifo.c \
+	${BACNET_SOURCE_DIR}/datalink/cobs.c \
 	${BACNET_SOURCE_DIR}/datalink/mstp.c \
 	${BACNET_SOURCE_DIR}/datalink/mstptext.c \
 	${BACNET_SOURCE_DIR}/basic/sys/debug.c \

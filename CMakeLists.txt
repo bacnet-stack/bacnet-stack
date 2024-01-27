@@ -79,9 +79,21 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+  add_compile_options(-Wall -Wextra -pedantic)
+  add_compile_options(-Wfloat-equal -Wconversion -Wparentheses)
+  add_compile_options(-Wunused-value -Wreturn-type -Wswitch-default)
+  add_compile_options(-Wuninitialized -Winit-self)
+  add_compile_options(-Wno-sign-conversion -Wno-conversion)
+  add_compile_options(-Wno-sign-compare -Wno-long-long)
+  add_compile_options(-Wno-implicit-fallthrough -Wno-attributes)
+  add_compile_options(-Wunused-variable -Wunused-function)
+  add_compile_options(-Wunused-parameter)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  add_compile_options(-Wall -Wextra -pedantic -g -O3)
+endif()
 
 #
 # library
@@ -394,6 +406,7 @@ add_library(${PROJECT_NAME}
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.h>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
     src/bacnet/datalink/datalink.c
     src/bacnet/datalink/datalink.h
@@ -525,7 +538,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
-    # ports/linux/rx_fsm.c
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     ports/linux/mstimer-init.c)
 
@@ -540,13 +552,14 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_BIP}>:ws2_32>
     $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
 
-  add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
+  if(MSVC)
+    add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
+  endif()
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
     $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
-    # ports/win32/rx_fsm.c
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
@@ -556,6 +569,16 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>)
 elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    ports/bsd/bacport.h
+    ports/bsd/bip-init.c
+    ports/bsd/datetime-init.c
+    ports/bsd/mstimer-init.c
+    ports/bsd/stdbool.h)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+  message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
 
   target_sources(${PROJECT_NAME} PRIVATE

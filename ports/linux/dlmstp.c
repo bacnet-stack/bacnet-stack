@@ -164,6 +164,7 @@ static uint32_t Timer_Silence(void *pArg)
     struct timespec now, diff;
     int32_t res;
 
+    (void)pArg;
     clock_gettime(CLOCK_MONOTONIC, &now);
     timespec_subtract(&diff, &now, &start);
     res = ((diff.tv_sec) * 1000 + (diff.tv_nsec) / 1000000);
@@ -173,6 +174,7 @@ static uint32_t Timer_Silence(void *pArg)
 
 static void Timer_Silence_Reset(void *pArg)
 {
+    (void)pArg;
     clock_gettime(CLOCK_MONOTONIC, &start);
 }
 
@@ -410,6 +412,20 @@ uint16_t MSTP_Get_Send(
     pthread_mutex_unlock(&Ring_Buffer_Mutex);
 
     return pdu_len;
+}
+
+/**
+ * @brief Send an MSTP frame
+ * @param mstp_port - port specific data
+ * @param buffer - data to send
+ * @param nbytes - number of bytes of data to send
+ */
+void MSTP_Send_Frame(
+    volatile struct mstp_port_struct_t *mstp_port,
+    uint8_t * buffer,
+    uint16_t nbytes)
+{
+    RS485_Send_Frame(mstp_port, buffer, nbytes);
 }
 
 static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,

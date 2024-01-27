@@ -71,6 +71,11 @@ extern "C" {
         BACNET_TIMESTAMP * src);
 
     BACNET_STACK_EXPORT
+    bool bacapp_timestamp_same(
+        BACNET_TIMESTAMP *value1, 
+        BACNET_TIMESTAMP *value2);
+
+    BACNET_STACK_EXPORT
     int bacapp_encode_timestamp(
         uint8_t * apdu,
         BACNET_TIMESTAMP * value);

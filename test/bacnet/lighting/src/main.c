@@ -28,7 +28,9 @@ static void testBACnetLightingCommand(BACNET_LIGHTING_COMMAND *data)
     BACNET_LIGHTING_COMMAND test_data;
     int len, apdu_len;
     uint8_t apdu[MAX_APDU] = { 0 };
+    char command_text[80] = "";
 
+    /* copy */
     status = lighting_command_copy(&test_data, NULL);
     zassert_false(status, NULL);
     status = lighting_command_copy(NULL, data);
@@ -37,6 +39,7 @@ static void testBACnetLightingCommand(BACNET_LIGHTING_COMMAND *data)
     zassert_true(status, NULL);
     status = lighting_command_same(&test_data, data);
     zassert_true(status, NULL);
+    /* encode/decode */
     len = lighting_command_encode(apdu, data);
     apdu_len = lighting_command_decode(apdu, len, &test_data);
     zassert_true(len > 0, "lighting-command[%s] failed to encode!",
@@ -48,6 +51,26 @@ static void testBACnetLightingCommand(BACNET_LIGHTING_COMMAND *data)
         len--;
         apdu_len = lighting_command_decode(apdu, len, NULL);
     }
+    /* to/from ASCII */
+    len = lighting_command_to_ascii(NULL, NULL, 0);
+    zassert_equal(len, 0, NULL);
+    len = lighting_command_to_ascii(data, NULL, 0);
+    zassert_true(len > 0, NULL);
+    len = lighting_command_to_ascii(data, command_text, 0);
+    zassert_true(len > 0, NULL);
+    len = lighting_command_to_ascii(data, command_text, sizeof(command_text));
+    zassert_true(len > 0, NULL);
+    status = lighting_command_from_ascii(NULL, command_text);
+    zassert_false(status, NULL);
+    status = lighting_command_from_ascii(&test_data, NULL);
+    zassert_false(status, NULL);
+    status = lighting_command_from_ascii(NULL, NULL);
+    zassert_false(status, NULL);
+    status = lighting_command_from_ascii(&test_data, command_text);
+    zassert_true(status, NULL);
+    status = lighting_command_same(&test_data, data);
+    zassert_true(status,  "lighting-command[%s] \"%s\" is different!",
+        bactext_lighting_operation_name(data->operation), command_text);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)

@@ -1252,3 +1252,31 @@ bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii)
 
     return status;
 }
+
+/**
+ * @brief Parse an ascii string for the date+time 2021/12/31 23:59:59.99
+ * @param bdate - #BACNET_DATE_TIME structure
+ * @param argv - C string with date+time formatted 2021/12/31 23:59:59.99
+ * @return true if parsed successfully
+ */
+bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii)
+{
+    bool status = false;
+    int year, month, day;
+    int hour = 0, min = 0, sec = 0, hundredths = 0;
+    int count = 0;
+
+    count = sscanf(ascii, "%4d/%3d/%3d %3d:%3d:%3d.%3d", &year, &month, &day,
+        &hour, &min, &sec, &hundredths);
+    if (count >= 3) {
+        datetime_set_date(
+            &bdatetime->date, (uint16_t)year, (uint8_t)month, (uint8_t)day);
+        bdatetime->time.hour = (uint8_t)hour;
+        bdatetime->time.min = (uint8_t)min;
+        bdatetime->time.sec = (uint8_t)sec;
+        bdatetime->time.hundredths = (uint8_t)hundredths;
+        status = true;
+    }
+
+    return status;
+}

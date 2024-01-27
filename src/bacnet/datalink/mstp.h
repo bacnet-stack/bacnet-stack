@@ -220,6 +220,7 @@ extern "C" {
 
     /* functions used by the MS/TP state machine to put or get data */
     /* FIXME: developer must implement these in their DLMSTP module */
+
     BACNET_STACK_EXPORT
     uint16_t MSTP_Put_Receive(
         volatile struct mstp_port_struct_t *mstp_port);
@@ -237,6 +238,12 @@ extern "C" {
     uint16_t MSTP_Get_Reply(
         volatile struct mstp_port_struct_t *mstp_port,
         unsigned timeout);      /* milliseconds to wait for a packet */
+
+    BACNET_STACK_EXPORT
+    void MSTP_Send_Frame(
+        volatile struct mstp_port_struct_t *mstp_port,
+        uint8_t * buffer,
+        uint16_t nbytes);
 
 #ifdef __cplusplus
 }

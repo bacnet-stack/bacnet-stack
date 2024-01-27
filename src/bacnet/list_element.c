@@ -18,7 +18,7 @@
 #include "bacnet/list_element.h"
 
 /**
- * @brief Encode the Add/Remove ListElement service request only
+ * @brief Encode the Add/Remove ListElement service request APDU
  *
  *  AddListElement-Request ::= SEQUENCE {
  *      object-identifier       [0] BACnetObjectIdentifier,
@@ -80,6 +80,28 @@ int list_element_encode_service_request(
         apdu_len += len;
         len = encode_closing_tag(apdu, 3);
         apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the Add/Remove ListElement service request only
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t list_element_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_LIST_ELEMENT_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = list_element_encode_service_request(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = list_element_encode_service_request(apdu, data);
     }
 
     return apdu_len;
