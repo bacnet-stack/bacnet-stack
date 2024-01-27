@@ -20,7 +20,6 @@ INCLUDES += -I$(BACNET_INCLUDE)
 
 PLATFORM_SRC = \
 	$(PLATFORM_DIR)/main.c \
-	$(PLATFORM_DIR)/automac.c \
 	$(PLATFORM_DIR)/bacnet.c \
 	$(PLATFORM_DIR)/bo.c \
 	$(PLATFORM_DIR)/device.c \
@@ -62,6 +61,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
+	$(BACNET_CORE)/datalink/automac.c \
 	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \

@@ -226,6 +226,13 @@ at91sam7s: ports/at91sam7s/Makefile
 at91sam7s-clean: ports/at91sam7s/Makefile
 	$(MAKE) -s -C ports/at91sam7s clean
 
+AT91SAM7S_CMAKE_BUILD_DIR=ports/at91sam7s/build
+.PHONY: at91sam7s-cmake
+at91sam7s-cmake:
+	[ -d $(AT91SAM7S_CMAKE_BUILD_DIR) ] || mkdir -p $(AT91SAM7S_CMAKE_BUILD_DIR)
+	[ -d $(AT91SAM7S_CMAKE_BUILD_DIR) ] && cd $(AT91SAM7S_CMAKE_BUILD_DIR) && \
+	cmake ../ && cmake --build . --clean-first
+
 .PHONY: stm32f10x
 stm32f10x: ports/stm32f10x/Makefile
 	$(MAKE) -s -C ports/stm32f10x clean all
@@ -241,6 +248,13 @@ stm32f4xx: ports/stm32f4xx/Makefile
 .PHONY: stm32f4xx-clean
 stm32f4xx-clean: ports/stm32f4xx/Makefile
 	$(MAKE) -s -C ports/stm32f4xx clean
+
+STM32F4XX_CMAKE_BUILD_DIR=ports/stm32f4xx/build
+.PHONY: stm32f4xx-cmake
+stm32f4xx-cmake:
+	[ -d $(STM32F4XX_CMAKE_BUILD_DIR) ] || mkdir -p $(STM32F4XX_CMAKE_BUILD_DIR)
+	[ -d $(STM32F4XX_CMAKE_BUILD_DIR) ] && cd $(STM32F4XX_CMAKE_BUILD_DIR) && \
+	cmake ../ && cmake --build . --clean-first
 
 .PHONY: xplained
 xplained: ports/xplained/Makefile

@@ -68,38 +68,12 @@ void rs485_silence_reset(void)
 }
 
 /**
- * @brief Determine the amount of silence on the wire from the timer.
- * @param amount of time that might have elapsed
- * @return true if the amount of time has elapsed
+ * @brief Return the RS-485 silence time in milliseconds
+ * @return silence time in milliseconds
  */
-bool rs485_silence_elapsed(uint32_t interval)
+uint32_t rs485_silence_milliseconds(void)
 {
-    return (mstimer_elapsed(&Silence_Timer) > interval);
-}
-
-/**
- * @brief Determine the turnaround time
- * @return amount of milliseconds
- */
-static uint16_t rs485_turnaround_time(void)
-{
-    /* delay after reception before transmitting - per MS/TP spec */
-    /* wait a minimum  40 bit times since reception */
-    /* at least 2 ms for errors: rounding, clock tick */
-    if (Baud_Rate) {
-        return (2 + ((Tturnaround * 1000UL) / Baud_Rate));
-    } else {
-        return 2;
-    }
-}
-
-/**
- * @brief Use the silence timer to determine turnaround time
- * @return true if turnaround time has expired
- */
-bool rs485_turnaround_elapsed(void)
-{
-    return (mstimer_elapsed(&Silence_Timer) > rs485_turnaround_time());
+    return mstimer_elapsed(&Silence_Timer);
 }
 
 /**
@@ -216,10 +190,8 @@ bool rs485_byte_available(uint8_t *data_register)
  * @param nbytes - number of bytes to transmit
  * @return true if added to queue
  */
-bool rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
+void rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
 {
-    bool status = false;
-
     if (buffer && (nbytes > 0)) {
         if (FIFO_Add(&Transmit_Queue, buffer, nbytes)) {
             rs485_silence_reset();
@@ -229,11 +201,8 @@ bool rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
             /* enable the USART to generate interrupts on TX empty */
             USART_ITConfig(USART6, USART_IT_TXE, ENABLE);
             /* TXE interrupt will load the first byte */
-            status = true;
         }
     }
-
-    return status;
 }
 
 /**
