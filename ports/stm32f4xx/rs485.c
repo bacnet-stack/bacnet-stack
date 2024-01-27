@@ -63,20 +63,16 @@ static struct mstimer Silence_Timer;
  * @brief Return the RS-485 silence time in milliseconds
  * @return silence time in milliseconds
  */
-uint32_t rs485_silence_milliseconds(
-    void *arg)
+uint32_t rs485_silence_milliseconds(void)
 {
-    (void)arg;
     return mstimer_elapsed(&Silence_Timer);
 }
 
 /**
  * @brief Reset the RS-485 silence time to zero
  */
-void rs485_silence_reset(
-    void *arg)
+void rs485_silence_reset(void)
 {
-    (void)arg;
     mstimer_restart(&Silence_Timer);
 }
 
@@ -109,7 +105,7 @@ void USART6_IRQHandler(void)
         if (FIFO_Count(&Transmit_Queue)) {
             USART_SendData(USART6, FIFO_Get(&Transmit_Queue));
             RS485_Transmit_Bytes += 1;
-            rs485_silence_reset(NULL);
+            rs485_silence_reset();
         } else {
             /* disable the USART to generate interrupts on TX empty */
             USART_ITConfig(USART6, USART_IT_TXE, DISABLE);
@@ -181,7 +177,7 @@ bool rs485_byte_available(uint8_t *data_register)
         if (data_register) {
             *data_register = FIFO_Get(&Receive_Queue);
         }
-        rs485_silence_reset(NULL);
+        rs485_silence_reset();
         data_available = true;
     }
 
@@ -198,7 +194,7 @@ void rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
 {
     if (buffer && (nbytes > 0)) {
         if (FIFO_Add(&Transmit_Queue, buffer, nbytes)) {
-            rs485_silence_reset(NULL);
+            rs485_silence_reset();
             rs485_rts_enable(true);
             /* disable the USART to generate interrupts on RX not empty */
             USART_ITConfig(USART6, USART_IT_RXNE, DISABLE);
@@ -344,5 +340,5 @@ void rs485_init(void)
 
     USART_Cmd(USART6, ENABLE);
 
-    rs485_silence_reset(NULL);
+    rs485_silence_reset();
 }

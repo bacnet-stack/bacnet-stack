@@ -139,7 +139,6 @@ set(BACNET_PROJECT_SOURCE
     ${CMAKE_SOURCE_DIR}/system_stm32f4xx.h
 
     ${CMAKE_SOURCE_DIR}/bacnet.c
-    ${CMAKE_SOURCE_DIR}/dlmstp-init.c
     ${CMAKE_SOURCE_DIR}/led.c
     ${CMAKE_SOURCE_DIR}/mstimer-init.c
     ${CMAKE_SOURCE_DIR}/rs485.c

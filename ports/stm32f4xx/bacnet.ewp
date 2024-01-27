@@ -1232,9 +1232,6 @@
             <name>$PROJ_DIR$\mstimer-init.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\dlmstp-init.c</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\rs485.c</name>
         </file>
         <file>

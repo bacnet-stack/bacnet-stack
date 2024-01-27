@@ -25,15 +25,34 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #include "stm32f4xx.h"
 #include "stm32f4xx_pwr.h"
 #include "stm32f4xx_rcc.h"
 #include "system_stm32f4xx.h"
 #include "bacnet/basic/sys/mstimer.h"
-#include "dlmstp-init.h"
+#include "bacnet/basic/sys/ringbuf.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/dlmstp.h"
+#include "bacnet/datalink/mstp.h"
 #include "rs485.h"
 #include "led.h"
 #include "bacnet.h"
+
+/* MS/TP port */
+static struct mstp_port_struct_t MSTP_Port;
+static struct dlmstp_rs485_driver RS485_Driver = { .send = rs485_bytes_send,
+    .read = rs485_byte_available,
+    .transmitting = rs485_rts_enabled,
+    .baud_rate = rs485_baud_rate,
+    .baud_rate_set = rs485_baud_rate_set,
+    .silence_milliseconds = rs485_silence_milliseconds,
+    .silence_reset = rs485_silence_reset };
+static struct dlmstp_user_data_t MSTP_User_Data;
+static uint8_t Input_Buffer[DLMSTP_MPDU_MAX];
+static uint8_t Output_Buffer[DLMSTP_MPDU_MAX];
+static struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
 
 int __io_putchar(int ch)
 {
@@ -59,10 +78,22 @@ int main(void)
     led_init();
     rs485_init();
     mstimer_set(&Blink_Timer, 500);
-    /* initialize datalink layer */
-    dlmstp_framework_init();
+    /* initialize MSTP datalink layer */
+    MSTP_Port.Nmax_info_frames = DLMSTP_MAX_INFO_FRAMES;
+    MSTP_Port.Nmax_master = DLMSTP_MAX_MASTER;
+    MSTP_Port.InputBuffer = Input_Buffer;
+    MSTP_Port.InputBufferSize = sizeof(Input_Buffer);
+    MSTP_Port.OutputBuffer = Output_Buffer;
+    MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
+    /* user data */
+    MSTP_User_Data.RS485_Driver = &RS485_Driver;
+    MSTP_User_Data.PDU_Buffer = (volatile uint8_t *)PDU_Buffer;
+    MSTP_User_Data.PDU_Buffer_Size = sizeof(PDU_Buffer);
+    Ringbuf_Init(&MSTP_User_Data.PDU_Queue, MSTP_User_Data.PDU_Buffer,
+        MSTP_User_Data.PDU_Buffer_Size, DLMSTP_MAX_INFO_FRAMES);
+    MSTP_Port.UserData = &MSTP_User_Data;
+    dlmstp_init((char *)&MSTP_Port);
     dlmstp_set_mac_address(2);
-    dlmstp_set_max_master(DEFAULT_MAX_MASTER);
     dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
     /* initialize application layer*/
     bacnet_init();

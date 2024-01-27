@@ -22,30 +22,9 @@
 #include "bacnet/bits.h"
 #include "bacnet/bytes.h"
 #include "bacnet/bacaddr.h"
-#include "dlmstp-init.h"
 
 /* the current MSTP port that the datalink is using */
 static struct mstp_port_struct_t *MSTP_Port;
-
-/**
- * @brief Initialize this MS/TP datalink
- * @param ifname user data structure
- * @return true if the MSTP datalink is initialized
- */
-bool dlmstp_init(char *ifname)
-{
-    struct mstp_user_data_t *user_data;
-    MSTP_Port = (struct mstp_port_struct_t *)ifname;
-    if (MSTP_Port && MSTP_Port->UserData) {
-        user_data = (struct mstp_user_data_t *)MSTP_Port->UserData;
-        if (!user_data->Initialized) {
-            MSTP_Init(MSTP_Port);
-            user_data->Initialized = true;
-        }
-    }
-
-    return true;
-}
 
 /**
  * @brief send an PDU via MSTP
@@ -62,7 +41,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest,
 {
     int bytes_sent = 0;
     unsigned i = 0; /* loop counter */
-    struct mstp_user_data_t *port = NULL;
+    struct dlmstp_user_data_t *port = NULL;
     struct dlmstp_packet *pkt;
 
     if (!MSTP_Port) {
@@ -111,12 +90,12 @@ uint16_t MSTP_Get_Send(
 {
     uint16_t pdu_len = 0;
     struct dlmstp_packet *pkt;
-    struct mstp_user_data_t *port;
+    struct dlmstp_user_data_t *port;
 
     if (!mstp_port) {
         return 0;
     }
-    port = (struct mstp_user_data_t *)mstp_port->UserData;
+    port = (struct dlmstp_user_data_t *)mstp_port->UserData;
     if (!port) {
         return 0;
     }
@@ -270,7 +249,7 @@ uint16_t MSTP_Get_Reply(
     uint16_t pdu_len = 0;
     bool matched = false;
     struct dlmstp_packet packet = { 0 };
-    struct mstp_user_data_t *port = NULL;
+    struct dlmstp_user_data_t *port = NULL;
     struct dlmstp_packet *pkt;
 
     if (!mstp_port) {
@@ -311,8 +290,8 @@ void MSTP_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,
     uint8_t *buffer,
     uint16_t nbytes)
 {
-    struct mstp_user_data_t *port;
-    struct mstp_rs485_driver *driver;
+    struct dlmstp_user_data_t *port;
+    struct dlmstp_rs485_driver *driver;
 
     if (!mstp_port) {
         return;
@@ -335,7 +314,7 @@ void MSTP_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,
  */
 uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 {
-    struct mstp_user_data_t *port = NULL;
+    struct dlmstp_user_data_t *port = NULL;
 
     if (!mstp_port) {
         return 0;
@@ -376,7 +355,7 @@ static uint32_t dlmstp_receive_turnaround_time(uint32_t baud_rate)
  * @param pdu - place to put PDU data for the caller
  * @param max_pdu - number of bytes of PDU data that caller can receive
  * @return number of bytes in received packet, or 0 if no packet was received
- * @note Must be called at least once every 1 milliseconds, with no more than 
+ * @note Must be called at least once every 1 milliseconds, with no more than
  *  5 milliseconds jitter.
  */
 uint16_t dlmstp_receive(
@@ -384,8 +363,8 @@ uint16_t dlmstp_receive(
 {
     uint16_t pdu_len = 0;
     uint8_t data_register = 0;
-    struct mstp_user_data_t *port;
-    struct mstp_rs485_driver *driver;
+    struct dlmstp_user_data_t *port;
+    struct dlmstp_rs485_driver *driver;
     uint16_t i;
     uint32_t milliseconds;
     uint32_t turnaround_milliseconds;
@@ -430,7 +409,7 @@ uint16_t dlmstp_receive(
         /* delay after reception before transmitting - per MS/TP spec */
         turnaround_milliseconds =
             dlmstp_receive_turnaround_time(driver->baud_rate());
-        milliseconds = MSTP_Port->SilenceTimer(NULL);
+        milliseconds = MSTP_Port->SilenceTimer(MSTP_Port);
         if (milliseconds < turnaround_milliseconds) {
             /* we're waiting; do nothing else */
             return 0;
@@ -669,7 +648,7 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS *dest)
 bool dlmstp_send_pdu_queue_empty(void)
 {
     bool status = false;
-    struct mstp_user_data_t *port;
+    struct dlmstp_user_data_t *port;
 
     if (MSTP_Port) {
         port = MSTP_Port->UserData;
@@ -688,7 +667,7 @@ bool dlmstp_send_pdu_queue_empty(void)
 bool dlmstp_send_pdu_queue_full(void)
 {
     bool status = false;
-    struct mstp_user_data_t *port;
+    struct dlmstp_user_data_t *port;
 
     if (MSTP_Port) {
         port = MSTP_Port->UserData;
@@ -707,8 +686,8 @@ bool dlmstp_send_pdu_queue_full(void)
  */
 void dlmstp_set_baud_rate(uint32_t baud)
 {
-    struct mstp_user_data_t *port;
-    struct mstp_rs485_driver *driver;
+    struct dlmstp_user_data_t *port;
+    struct dlmstp_rs485_driver *driver;
 
     if (!MSTP_Port) {
         return;
@@ -730,8 +709,8 @@ void dlmstp_set_baud_rate(uint32_t baud)
  */
 uint32_t dlmstp_baud_rate(void)
 {
-    struct mstp_user_data_t *port;
-    struct mstp_rs485_driver *driver;
+    struct dlmstp_user_data_t *port;
+    struct dlmstp_rs485_driver *driver;
 
     if (!MSTP_Port) {
         return 0;
@@ -754,7 +733,7 @@ uint32_t dlmstp_baud_rate(void)
  */
 void dlmstp_fill_statistics(struct dlmstp_statistics *statistics)
 {
-    struct mstp_user_data_t *port;
+    struct dlmstp_user_data_t *port;
 
     if (!MSTP_Port) {
         return;
@@ -787,4 +766,72 @@ uint8_t dlmstp_max_info_frames_limit(void)
 uint8_t dlmstp_max_master_limit(void)
 {
     return DLMSTP_MAX_MASTER;
+}
+
+/**
+ * @brief Return the RS-485 silence time in milliseconds
+ * @param arg - pointer to MSTP port structure
+ * @return silence time in milliseconds
+ */
+uint32_t dlmstp_silence_milliseconds(void *arg)
+{
+    uint32_t milliseconds = 0;
+    struct mstp_port_struct_t *port = arg;
+    struct dlmstp_user_data_t *user = NULL;
+    struct dlmstp_rs485_driver *driver = NULL;
+
+    if (port) {
+        user = port->UserData;
+    }
+    if (user) {
+        driver = user->RS485_Driver;
+    }
+    if (driver) {
+        milliseconds = driver->silence_milliseconds();
+    }
+
+    return milliseconds;
+}
+
+/**
+ * @brief Reset the RS-485 silence time to zero
+ * @param arg - pointer to MSTP port structure
+ */
+void dlmstp_silence_reset(void *arg)
+{
+    struct mstp_port_struct_t *port = arg;
+    struct dlmstp_user_data_t *user = NULL;
+    struct dlmstp_rs485_driver *driver = NULL;
+
+    if (port) {
+        user = port->UserData;
+    }
+    if (user) {
+        driver = user->RS485_Driver;
+    }
+    if (driver) {
+        driver->silence_reset();
+    }
+}
+
+/**
+ * @brief Initialize this MS/TP datalink
+ * @param ifname user data structure
+ * @return true if the MSTP datalink is initialized
+ */
+bool dlmstp_init(char *ifname)
+{
+    struct dlmstp_user_data_t *user_data;
+    MSTP_Port = (struct mstp_port_struct_t *)ifname;
+    if (MSTP_Port) {
+        MSTP_Port->SilenceTimer = dlmstp_silence_milliseconds;
+        MSTP_Port->SilenceTimerReset = dlmstp_silence_reset;
+        user_data = (struct dlmstp_user_data_t *)MSTP_Port->UserData;
+        if (user_data && !user_data->Initialized) {
+            MSTP_Init(MSTP_Port);
+            user_data->Initialized = true;
+        }
+    }
+
+    return true;
 }

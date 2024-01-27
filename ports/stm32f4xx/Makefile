@@ -22,7 +22,6 @@ PLATFORM_SRC = \
 	$(PLATFORM_DIR)/main.c \
 	$(PLATFORM_DIR)/bacnet.c \
 	$(PLATFORM_DIR)/device.c \
-	$(PLATFORM_DIR)/dlmstp-init.c \
 	$(PLATFORM_DIR)/led.c \
 	$(PLATFORM_DIR)/netport.c \
 	$(PLATFORM_DIR)/rs485.c \

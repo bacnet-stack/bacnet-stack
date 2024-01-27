@@ -53,10 +53,8 @@ void rs485_bytes_send(uint8_t *buffer, uint16_t nbytes);
 uint32_t rs485_baud_rate(void);
 bool rs485_baud_rate_set(uint32_t baud);
 
-uint32_t rs485_silence_milliseconds(
-    void *arg);
-void rs485_silence_reset(
-    void *arg);
+uint32_t rs485_silence_milliseconds(void);
+void rs485_silence_reset(void);
 
 uint32_t rs485_bytes_transmitted(void);
 uint32_t rs485_bytes_received(void);
