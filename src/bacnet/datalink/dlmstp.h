@@ -105,8 +105,7 @@ struct dlmstp_user_data_t {
     struct dlmstp_rs485_driver *RS485_Driver;
     /* the PDU Queue is made of Nmax_info_frames x dlmstp_packet's */
     RING_BUFFER PDU_Queue;
-    volatile uint8_t *PDU_Buffer;
-    size_t PDU_Buffer_Size;
+    struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
     bool Initialized;
     bool ReceivePacketPending;
 };

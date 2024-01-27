@@ -52,7 +52,6 @@ static struct dlmstp_rs485_driver RS485_Driver = { .send = rs485_bytes_send,
 static struct dlmstp_user_data_t MSTP_User_Data;
 static uint8_t Input_Buffer[DLMSTP_MPDU_MAX];
 static uint8_t Output_Buffer[DLMSTP_MPDU_MAX];
-static struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
 
 int __io_putchar(int ch)
 {
@@ -87,10 +86,6 @@ int main(void)
     MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
     /* user data */
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
-    MSTP_User_Data.PDU_Buffer = (volatile uint8_t *)PDU_Buffer;
-    MSTP_User_Data.PDU_Buffer_Size = sizeof(PDU_Buffer);
-    Ringbuf_Init(&MSTP_User_Data.PDU_Queue, MSTP_User_Data.PDU_Buffer,
-        MSTP_User_Data.PDU_Buffer_Size, DLMSTP_MAX_INFO_FRAMES);
     MSTP_Port.UserData = &MSTP_User_Data;
     dlmstp_init((char *)&MSTP_Port);
     dlmstp_set_mac_address(2);
