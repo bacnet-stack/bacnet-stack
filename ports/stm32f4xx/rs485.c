@@ -64,7 +64,7 @@ static struct mstimer Silence_Timer;
  */
 void rs485_silence_reset(void)
 {
-    mstimer_restart(&Silence_Timer);
+    mstimer_set(&Silence_Timer, 0);
 }
 
 /**
