@@ -29,9 +29,6 @@
 #include <stdint.h>
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/basic/sys/ringbuf.h"
-#include "bacnet/datalink/crc.h"
-#include "bacnet/datalink/dlmstp.h"
-#include "bacnet/datalink/mstp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 
@@ -224,12 +221,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     void dlmstp_silence_reset(
         void *arg);
-
-    BACNET_STACK_EXPORT
-    void dlmstp_user_init(
-        struct mstp_port_struct_t *port,
-        struct dlmstp_user_data_t *user,
-        struct dlmstp_rs485_driver *driver);
 
     /* Set the callback function to be called on every valid received frame */
     /* This is not necessary for normal usage, but is helpful if the caller */
