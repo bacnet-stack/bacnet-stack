@@ -528,9 +528,10 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 }
 
 /**
- * @brief Determine if the object property exists in this object instance
+ * @brief Determine if the object property is a member of this object instance
  * @param object_instance - object-instance number of the object
  * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
  */
 static bool Network_Port_Property_List_Member(
     uint32_t object_instance, int object_property)
