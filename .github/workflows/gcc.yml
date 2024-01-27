@@ -161,7 +161,7 @@ jobs:
         make clean
         make ethernet
 
-  ports-arm:
+  ports-arm-makefile:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -171,7 +171,7 @@ jobs:
         sudo apt-get install -qq build-essential
         sudo apt-get install -qq gcc-arm-none-eabi
         sudo apt-get install -qq libnewlib-arm-none-eabi
-    - name: ports-arm
+    - name: ports-arm-makefile
       run: |
         make clean
         arm-none-eabi-gcc --version
@@ -179,6 +179,23 @@ jobs:
         make stm32f4xx
         make at91sam7s
 
+  ports-arm-cmake:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq build-essential
+        sudo apt-get install -qq gcc-arm-none-eabi
+        sudo apt-get install -qq libnewlib-arm-none-eabi
+        sudo apt-get install -qq cmake
+    - name: ports-arm-cmake
+      run: |
+        arm-none-eabi-gcc --version
+        make stm32f4xx-cmake
+        make at91sam7s-cmake
+      
   ports-avr:
     runs-on: ubuntu-latest
     steps:
