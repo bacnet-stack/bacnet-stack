@@ -27,12 +27,18 @@
         ]
       },
       "preLaunchCommands": [
-        "monitor reset"
+        //  guarantee the halt at soon as possible after reset
+        "monitor reset",
+        "monitor sleep 2000",
+        "monitor reset halt",
+        // synchronize GDB to the state of the target after reset
+        "monitor gdb_sync",
+        "stepi"
       ],
       "postLaunchCommands": [
         "monitor reset init",
         "monitor sleep 200"
-      ],      
+      ],
       "showDevDebugOutput": "raw"
     }
   ]
