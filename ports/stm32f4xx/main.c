@@ -42,23 +42,34 @@
 
 /* MS/TP port */
 static struct mstp_port_struct_t MSTP_Port;
-static struct dlmstp_rs485_driver RS485_Driver = { .send = rs485_bytes_send,
+static struct dlmstp_rs485_driver RS485_Driver = { 
+    .init = rs485_init,
+    .send = rs485_bytes_send,
     .read = rs485_byte_available,
     .transmitting = rs485_rts_enabled,
     .baud_rate = rs485_baud_rate,
     .baud_rate_set = rs485_baud_rate_set,
     .silence_milliseconds = rs485_silence_milliseconds,
-    .silence_reset = rs485_silence_reset };
+    .silence_reset = rs485_silence_reset 
+};
 static struct dlmstp_user_data_t MSTP_User_Data;
 static uint8_t Input_Buffer[DLMSTP_MPDU_MAX];
 static uint8_t Output_Buffer[DLMSTP_MPDU_MAX];
 
+/**
+ * @brief Called from _write() function from printf and friends
+ * @param[in] ch Character to send
+ */
 int __io_putchar(int ch)
 {
     (void)ch;
     return 0;
 }
 
+/**
+ * @brief Main function
+ * @return 0 - never returns
+ */
 int main(void)
 {
     struct mstimer Blink_Timer;
