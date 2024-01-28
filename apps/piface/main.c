@@ -57,21 +57,12 @@ static struct mstimer BACnet_Object_Timer;
 static bool PiFace_Output_State[MAX_BINARY_OUTPUTS];
 
 /**
- * @brief Callback for write value request
- * @param  object_instance - object-instance number of the object
- * @param  old_value - value prior to write
- * @param  value - value of the write
+ * @brief output write value request
+ * @param index - 0..N index of the output
+ * @param value - value of the write ON or OFF
  */
-static void Binary_Lighting_Output_Write_Value_Handler(
-    uint32_t object_instance, BACNET_BINARY_LIGHTING_PV old_value,
-    BACNET_BINARY_LIGHTING_PV value)
+static void piface_write_output(int index, BACNET_BINARY_LIGHTING_PV value)
 {
-    unsigned index = MAX_BINARY_OUTPUTS;
-
-    (void)old_value;
-    if (object_instance > 0) {
-        index = object_instance - 1;
-    }
     if (index < MAX_BINARY_OUTPUTS) {
         if (value == BACNET_BINARY_LIGHTING_OFF) {
             pifacedigital_digital_write(index, 0);
@@ -86,11 +77,36 @@ static void Binary_Lighting_Output_Write_Value_Handler(
 }
 
 /**
+ * @brief Callback for write value request
+ * @param  object_instance - object-instance number of the object
+ * @param  old_value - value prior to write
+ * @param  value - value of the write
+ */
+static void Binary_Lighting_Output_Write_Value_Handler(uint32_t object_instance,
+    BACNET_BINARY_LIGHTING_PV old_value,
+    BACNET_BINARY_LIGHTING_PV value)
+{
+    unsigned index = MAX_BINARY_OUTPUTS;
+
+    if (object_instance > 0) {
+        index = object_instance - 1;
+    }
+    if (index < MAX_BINARY_OUTPUTS) {
+        printf("BLO-WRITE: OUTPUT[%u]=%d present=%d feedback=%d target=%d\n",
+            index, (int)value,
+            (int)Binary_Lighting_Output_Present_Value(object_instance),
+            (int)old_value,
+            (int)Binary_Lighting_Output_Lighting_Command_Target_Value(
+                object_instance));
+        piface_write_output(index, value);
+    }
+}
+
+/**
  * @brief Callback for blink warning notification
  * @param  object_instance - object-instance number of the object
  */
-static void Binary_Lighting_Output_Blink_Warn_Handler(
-    uint32_t object_instance)
+static void Binary_Lighting_Output_Blink_Warn_Handler(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_OUTPUTS;
 
@@ -100,11 +116,13 @@ static void Binary_Lighting_Output_Blink_Warn_Handler(
     if (index < MAX_BINARY_OUTPUTS) {
         /* blink is just toggle on/off every one second */
         if (PiFace_Output_State[index]) {
-            Binary_Lighting_Output_Write_Value_Handler(object_instance,
-                BACNET_BINARY_LIGHTING_ON, BACNET_BINARY_LIGHTING_OFF);
+            printf("BLO-BLINK: OUTPUT[%u]=%d\n", index,
+                BACNET_BINARY_LIGHTING_OFF);
+            piface_write_output(index, BACNET_BINARY_LIGHTING_OFF);
         } else {
-            Binary_Lighting_Output_Write_Value_Handler(object_instance,
-                BACNET_BINARY_LIGHTING_OFF, BACNET_BINARY_LIGHTING_ON);
+            printf(
+                "BLO-BLINK: OUTPUT[%u]=%d\n", index, BACNET_BINARY_LIGHTING_ON);
+            piface_write_output(index, BACNET_BINARY_LIGHTING_ON);
         }
     }
 }
@@ -159,6 +177,7 @@ static void Init_Service_Handlers(void)
 
     for (i = 0; i < MAX_BINARY_OUTPUTS; i++) {
         Binary_Lighting_Output_Create(object_instance);
+        Binary_Output_Create(object_instance);
         object_instance = i + 1;
     }
     Binary_Lighting_Output_Write_Value_Callback_Set(
@@ -236,15 +255,23 @@ static void piface_task(void)
             }
         }
     }
-    for (i = 0; i < MAX_BINARY_OUTPUTS; i++) {
-        if (!Binary_Output_Out_Of_Service(i)) {
-            present_value = Binary_Output_Present_Value(i);
-            if (present_value == BINARY_INACTIVE) {
-                Binary_Lighting_Output_Write_Value_Handler(1+i,
-                    BACNET_BINARY_LIGHTING_ON, BACNET_BINARY_LIGHTING_OFF);
-            } else {
-                Binary_Lighting_Output_Write_Value_Handler(1+i,
-                    BACNET_BINARY_LIGHTING_OFF, BACNET_BINARY_LIGHTING_ON);
+    for (i = 1; i <= MAX_BINARY_OUTPUTS; i++) {
+        if (Binary_Output_Valid_Instance(i)) {
+            if (!Binary_Output_Out_Of_Service(i)) {
+                present_value = Binary_Output_Present_Value(i);
+                if (present_value == BINARY_INACTIVE) {
+                    if (PiFace_Output_State[i]) {
+                        printf("BO-WRITE: OUTPUT[%u]=%d\n", i,
+                            BACNET_BINARY_LIGHTING_OFF);
+                        piface_write_output(i, BACNET_BINARY_LIGHTING_OFF);
+                    }
+                } else {
+                    if (!PiFace_Output_State[i]) {
+                        printf("BO-WRITE: OUTPUT[%u]=%d\n", i,
+                            BACNET_BINARY_LIGHTING_OFF);
+                        piface_write_output(i, BACNET_BINARY_LIGHTING_ON);
+                    }
+                }
             }
         }
     }
