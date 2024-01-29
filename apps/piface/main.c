@@ -41,6 +41,9 @@
 
 /** @file server/main.c  Example server application using the BACnet Stack. */
 
+/* number of binary outputs on the PiFace card */
+#define PIFACE_OUTPUTS_MAX 8
+
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /* current version of the BACnet stack */
@@ -54,7 +57,7 @@ static struct mstimer BACnet_Address_Timer;
 /* task timer for object functionality */
 static struct mstimer BACnet_Object_Timer;
 /* track the state of of the output */
-static bool PiFace_Output_State[MAX_BINARY_OUTPUTS];
+static bool PiFace_Output_State[PIFACE_OUTPUTS_MAX];
 
 /**
  * @brief output write value request
@@ -63,7 +66,7 @@ static bool PiFace_Output_State[MAX_BINARY_OUTPUTS];
  */
 static void piface_write_output(int index, BACNET_BINARY_LIGHTING_PV value)
 {
-    if (index < MAX_BINARY_OUTPUTS) {
+    if (index < PIFACE_OUTPUTS_MAX) {
         if (value == BINARY_LIGHTING_PV_OFF) {
             pifacedigital_digital_write(index, 0);
             PiFace_Output_State[index] = false;
@@ -86,12 +89,10 @@ static void Binary_Lighting_Output_Write_Value_Handler(uint32_t object_instance,
     BACNET_BINARY_LIGHTING_PV old_value,
     BACNET_BINARY_LIGHTING_PV value)
 {
-    unsigned index = MAX_BINARY_OUTPUTS;
+    unsigned index;
 
-    if (object_instance > 0) {
-        index = object_instance - 1;
-    }
-    if (index < MAX_BINARY_OUTPUTS) {
+    index = Binary_Lighting_Output_Instance_To_Index(object_instance);
+    if (index < PIFACE_OUTPUTS_MAX) {
         printf("BLO-WRITE: OUTPUT[%u]=%d present=%d feedback=%d target=%d\n",
             index, (int)value,
             (int)Binary_Lighting_Output_Present_Value(object_instance),
@@ -108,12 +109,10 @@ static void Binary_Lighting_Output_Write_Value_Handler(uint32_t object_instance,
  */
 static void Binary_Lighting_Output_Blink_Warn_Handler(uint32_t object_instance)
 {
-    unsigned index = MAX_BINARY_OUTPUTS;
+    unsigned index;
 
-    if (object_instance > 0) {
-        index = object_instance - 1;
-    }
-    if (index < MAX_BINARY_OUTPUTS) {
+    index = Binary_Lighting_Output_Instance_To_Index(object_instance);
+    if (index < PIFACE_OUTPUTS_MAX) {
         /* blink is just toggle on/off every one second */
         if (PiFace_Output_State[index]) {
             printf("BLO-BLINK: OUTPUT[%u]=%d\n", index,
@@ -133,7 +132,7 @@ static void Binary_Lighting_Output_Blink_Warn_Handler(uint32_t object_instance)
 static void Init_Service_Handlers(void)
 {
     uint32_t i = 0;
-    uint32_t object_instance = 1;
+    uint32_t object_instance;
 
     Device_Init(NULL);
     /* we need to handle who-is to support dynamic device binding */
@@ -174,11 +173,11 @@ static void Init_Service_Handlers(void)
     mstimer_set(&BACnet_TSM_Timer, 50UL);
     mstimer_set(&BACnet_Address_Timer, 60UL * 1000UL);
     mstimer_set(&BACnet_Object_Timer, 1000UL);
-
-    for (i = 0; i < MAX_BINARY_OUTPUTS; i++) {
+    /* create some objects */
+    for (i = 0; i < PIFACE_OUTPUTS_MAX; i++) {
+        object_instance = 1 + i;
         Binary_Lighting_Output_Create(object_instance);
         Binary_Output_Create(object_instance);
-        object_instance = i + 1;
     }
     Binary_Lighting_Output_Write_Value_Callback_Set(
         Binary_Lighting_Output_Write_Value_Handler);
@@ -233,6 +232,7 @@ static void piface_task(void)
     unsigned i = 0;
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
     bool pin_status = false;
+    uint32_t object_instance;
 
     for (i = 0; i < MAX_BINARY_INPUTS; i++) {
         if (!Binary_Input_Out_Of_Service(i)) {
@@ -255,10 +255,11 @@ static void piface_task(void)
             }
         }
     }
-    for (i = 1; i <= MAX_BINARY_OUTPUTS; i++) {
-        if (Binary_Output_Valid_Instance(i)) {
-            if (!Binary_Output_Out_Of_Service(i)) {
-                present_value = Binary_Output_Present_Value(i);
+    for (i = 0; i < PIFACE_OUTPUTS_MAX; i++) {
+        object_instance = Binary_Output_Index_To_Instance(i);
+        if (Binary_Output_Valid_Instance(object_instance)) {
+            if (!Binary_Output_Out_Of_Service(object_instance)) {
+                present_value = Binary_Output_Present_Value(object_instance);
                 if (present_value == BINARY_INACTIVE) {
                     if (PiFace_Output_State[i]) {
                         printf("BO-WRITE: OUTPUT[%u]=%d\n", i,
