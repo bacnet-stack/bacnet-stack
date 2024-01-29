@@ -25,7 +25,7 @@
 #define KEYLIST_H
 
 #include "bacnet/bacnet_stack_exports.h"
-#include "key.h"
+#include "bacnet/basic/sys/key.h"
 
 /* This is a key sorted linked list data library that */
 /* uses a key or index to access the data. */

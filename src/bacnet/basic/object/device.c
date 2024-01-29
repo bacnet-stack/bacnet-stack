@@ -51,6 +51,9 @@
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/basic/object/av.h"
 #include "bacnet/basic/object/bi.h"
+#if (BACNET_PROTOCOL_REVISION >= 16)
+#include "bacnet/basic/object/blo.h"
+#endif
 #include "bacnet/basic/object/bo.h"
 #include "bacnet/basic/object/bv.h"
 #include "bacnet/basic/object/channel.h"
@@ -266,6 +269,20 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         Channel_Create, Channel_Delete, NULL /* Timer */ },
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 16)
+    { OBJECT_BINARY_LIGHTING_OUTPUT, Binary_Lighting_Output_Init,
+        Binary_Lighting_Output_Count, Binary_Lighting_Output_Index_To_Instance,
+        Binary_Lighting_Output_Valid_Instance,
+        Binary_Lighting_Output_Object_Name,
+        Binary_Lighting_Output_Read_Property,
+        Binary_Lighting_Output_Write_Property,
+        Binary_Lighting_Output_Property_Lists, NULL /* ReadRangeInfo */,
+        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
+        NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Binary_Lighting_Output_Create, Binary_Lighting_Output_Delete,
+        Binary_Lighting_Output_Timer },
 #endif
 #if (BACNET_PROTOCOL_REVISION >= 24)
     { OBJECT_COLOR, Color_Init, Color_Count, Color_Index_To_Instance,
@@ -2201,12 +2218,14 @@ void Device_Init(object_functions_t *object_table)
         pObject++;
     }
     /* create some dynamically created objects as examples */
-    pObject = Object_Table;
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Create) {
-            pObject->Object_Create(BACNET_MAX_INSTANCE);
+    if (!object_table) {
+        pObject = Object_Table;
+        while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+            if (pObject->Object_Create) {
+                pObject->Object_Create(BACNET_MAX_INSTANCE);
+            }
+            pObject++;
         }
-        pObject++;
     }
 #if (BACNET_PROTOCOL_REVISION >= 14)
     Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);

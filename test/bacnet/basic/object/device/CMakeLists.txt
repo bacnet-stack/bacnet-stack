@@ -52,6 +52,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/object/ao.c
 	${SRC_DIR}/bacnet/basic/object/av.c
 	${SRC_DIR}/bacnet/basic/object/bi.c
+	${SRC_DIR}/bacnet/basic/object/blo.c
 	${SRC_DIR}/bacnet/basic/object/bo.c
 	${SRC_DIR}/bacnet/basic/object/bv.c
 	${SRC_DIR}/bacnet/basic/object/channel.c

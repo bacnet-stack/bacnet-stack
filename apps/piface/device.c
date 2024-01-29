@@ -47,6 +47,7 @@
 /* include the OS specific */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/bi.h"
+#include "bacnet/basic/object/blo.h"
 #include "bacnet/basic/object/bo.h"
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
@@ -88,6 +89,18 @@ static object_functions_t My_Object_Table[] = {
         Binary_Input_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+    { OBJECT_BINARY_LIGHTING_OUTPUT, Binary_Lighting_Output_Init,
+        Binary_Lighting_Output_Count, Binary_Lighting_Output_Index_To_Instance,
+        Binary_Lighting_Output_Valid_Instance,
+        Binary_Lighting_Output_Object_Name,
+        Binary_Lighting_Output_Read_Property,
+        Binary_Lighting_Output_Write_Property,
+        Binary_Lighting_Output_Property_Lists, NULL /* ReadRangeInfo */,
+        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
+        NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Binary_Lighting_Output_Create, Binary_Lighting_Output_Delete,
+        Binary_Lighting_Output_Timer },
     { OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
         Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
         Binary_Output_Object_Name, Binary_Output_Read_Property,
@@ -1978,4 +1991,31 @@ bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
     }
 
     return status;
+}
+
+/**
+ * @brief Updates all the object timers with elapsed milliseconds
+ * @param milliseconds - number of milliseconds elapsed
+ */
+void Device_Timer(uint16_t milliseconds)
+{
+    struct object_functions *pObject;
+    unsigned count = 0;
+    uint32_t instance;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        if (pObject->Object_Count) {
+            count = pObject->Object_Count();
+        }
+        while (count) {
+            count--;
+            if ((pObject->Object_Timer) &&
+                (pObject->Object_Index_To_Instance)) {
+                instance = pObject->Object_Index_To_Instance(count);
+                pObject->Object_Timer(instance, milliseconds);
+            }
+        }
+        pObject++;
+    }
 }

@@ -1750,10 +1750,39 @@ const char *bactext_lighting_operation_name(unsigned index)
     }
 }
 
-bool bactext_bactext_lighting_operation_strtol(const char *search_name, unsigned *found_index)
+bool bactext_lighting_operation_strtol(const char *search_name, unsigned *found_index)
 {
     return bactext_strtol_index(
         bacnet_lighting_operation_names, search_name, found_index);
+}
+
+INDTEXT_DATA bacnet_binary_lighting_pv_names[] = {
+    { BINARY_LIGHTING_PV_OFF, "off" }, 
+    { BINARY_LIGHTING_PV_ON, "on" },
+    { BINARY_LIGHTING_PV_WARN, "warn" }, 
+    { BINARY_LIGHTING_PV_WARN_OFF, "warn-off" },
+    { BINARY_LIGHTING_PV_WARN_RELINQUISH, "warn-relinquish" },
+    { BINARY_LIGHTING_PV_STOP, "stop" },
+    { 0, NULL }
+};
+
+const char *bactext_binary_lighting_pv_name(unsigned index)
+{
+    if (index < BINARY_LIGHTING_PV_PROPRIETARY_MIN) {
+        return indtext_by_index_default(
+            bacnet_binary_lighting_pv_names, index, ASHRAE_Reserved_String);
+    } else if (index <= BINARY_LIGHTING_PV_PROPRIETARY_MAX) {
+        return Vendor_Proprietary_String;
+    } else {
+        return "Invalid BACnetBinaryLightingPV";
+    }
+}
+
+bool bactext_binary_lighting_pv_names_strtol(const char *search_name, 
+    unsigned *found_index)
+{
+    return bactext_strtol_index(
+        bacnet_binary_lighting_pv_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_color_operation_names[] = { { BACNET_COLOR_OPERATION_NONE,

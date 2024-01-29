@@ -2206,13 +2206,23 @@ int bacapp_snprintf_value(
                         break;
                     case PROP_PRESENT_VALUE:
                     case PROP_RELINQUISH_DEFAULT:
-                        if (object_type < OBJECT_PROPRIETARY_MIN) {
-                            ret_val = snprintf(str, str_len, "%s",
-                                bactext_binary_present_value_name(
-                                    value->type.Enumerated));
-                        } else {
-                            ret_val = snprintf(str, str_len, "%lu",
-                                (unsigned long)value->type.Enumerated);
+                        switch (object_type) {
+                            case OBJECT_BINARY_INPUT:
+                            case OBJECT_BINARY_OUTPUT:
+                            case OBJECT_BINARY_VALUE:
+                                ret_val = snprintf(str, str_len, "%s",
+                                    bactext_binary_present_value_name(
+                                        value->type.Enumerated));
+                                break;
+                            case OBJECT_BINARY_LIGHTING_OUTPUT:
+                                ret_val = snprintf(str, str_len, "%s",
+                                    bactext_binary_lighting_pv_name(
+                                        value->type.Enumerated));
+                                break;
+                            default:
+                                ret_val = snprintf(str, str_len, "%lu",
+                                    (unsigned long)value->type.Enumerated);
+                                break;
                         }
                         break;
                     case PROP_RELIABILITY:
