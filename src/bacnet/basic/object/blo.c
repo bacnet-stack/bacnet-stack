@@ -192,7 +192,7 @@ static bool Priority_Array_Active(
 static BACNET_BINARY_LIGHTING_PV Priority_Array_Next_Value(
     struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
-    BACNET_BINARY_LIGHTING_PV value = BACNET_BINARY_LIGHTING_OFF;
+    BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     unsigned p = 0;
 
     value = pObject->Relinquish_Default;
@@ -216,7 +216,7 @@ static BACNET_BINARY_LIGHTING_PV Priority_Array_Next_Value(
 BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Present_Value(
     uint32_t object_instance)
 {
-    BACNET_BINARY_LIGHTING_PV value = BACNET_BINARY_LIGHTING_OFF;
+    BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -237,7 +237,7 @@ BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Present_Value(
 static BACNET_BINARY_LIGHTING_PV Priority_Array_Value(
     struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
-    BACNET_BINARY_LIGHTING_PV value = BACNET_BINARY_LIGHTING_OFF;
+    BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
 
     if (priority < BACNET_MAX_PRIORITY) {
         if (BIT_CHECK(pObject->Priority_Active_Bits, priority)) {
@@ -262,7 +262,7 @@ static int Binary_Lighting_Output_Priority_Array_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX priority, uint8_t *apdu)
 {
     int apdu_len = BACNET_STATUS_ERROR;
-    BACNET_BINARY_LIGHTING_PV value = BACNET_BINARY_LIGHTING_OFF;
+    BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -320,7 +320,7 @@ static bool Present_Value_Relinquish(
         (priority != 6 /* reserved */)) {
         priority--;
         BIT_CLEAR(pObject->Priority_Active_Bits, priority);
-        pObject->Priority_Array[priority] = BACNET_BINARY_LIGHTING_OFF;
+        pObject->Priority_Array[priority] = BINARY_LIGHTING_PV_OFF;
         status = true;
     }
 
@@ -346,8 +346,8 @@ static bool Present_Value_Set(struct object_data *pObject,
     if (priority && (priority <= BACNET_MAX_PRIORITY) &&
         (priority != 6 /* reserved */)) {
         priority--;
-        if ((value == BACNET_BINARY_LIGHTING_OFF) ||
-            (value == BACNET_BINARY_LIGHTING_ON)) {
+        if ((value == BINARY_LIGHTING_PV_OFF) ||
+            (value == BINARY_LIGHTING_PV_ON)) {
             /* The logical state of the output shall be either ON or OFF */
             BIT_SET(pObject->Priority_Active_Bits, priority);
             pObject->Priority_Array[priority] = value;
@@ -428,7 +428,7 @@ static void Present_Value_On_Off_Handler(uint32_t object_instance)
             }
             pObject->Feedback_Value = pObject->Target_Value;
         }
-        pObject->Target_Value = BACNET_BINARY_LIGHTING_STOP;
+        pObject->Target_Value = BINARY_LIGHTING_PV_STOP;
         pObject->Egress_Timer = 0;
     }
 }
@@ -467,7 +467,7 @@ static void Present_Value_Relinquish_Handler(uint32_t object_instance)
             }
             pObject->Feedback_Value = value;
         }
-        pObject->Target_Value = BACNET_BINARY_LIGHTING_STOP;
+        pObject->Target_Value = BINARY_LIGHTING_PV_STOP;
     }
 }
 
@@ -516,7 +516,7 @@ static void Present_Value_Warn_Handler(uint32_t object_instance)
         return;
     }
     current_priority = Present_Value_Priority(pObject);
-    if (pObject->Target_Value == BACNET_BINARY_LIGHTING_WARN_RELINQUISH) {
+    if (pObject->Target_Value == BINARY_LIGHTING_PV_WARN_RELINQUISH) {
         /* relinquish this priority */
         Present_Value_Relinquish(pObject, pObject->Target_Priority);
     }
@@ -525,7 +525,7 @@ static void Present_Value_Warn_Handler(uint32_t object_instance)
         return;
     }
     lighting_value = Priority_Array_Next_Value(pObject, 0);
-    if (lighting_value == BACNET_BINARY_LIGHTING_OFF) {
+    if (lighting_value == BINARY_LIGHTING_PV_OFF) {
         /* The value at the specified priority is OFF */
         return;
     }
@@ -533,14 +533,14 @@ static void Present_Value_Warn_Handler(uint32_t object_instance)
         /* Blink_Warn_Enable is FALSE */
         return;
     }
-    if (pObject->Target_Value == BACNET_BINARY_LIGHTING_WARN_RELINQUISH) {
+    if (pObject->Target_Value == BINARY_LIGHTING_PV_WARN_RELINQUISH) {
         if (!Priority_Array_Active(pObject, pObject->Target_Priority)) {
             /* The value at the specified priority is NULL */
             return;
         }
         lighting_value =
             Priority_Array_Next_Value(pObject, pObject->Target_Priority);
-        if (lighting_value == BACNET_BINARY_LIGHTING_ON) {
+        if (lighting_value == BINARY_LIGHTING_PV_ON) {
             /* The value of the next highest non-NULL priority,
                 including Relinquish_Default, is ON. */
             return;
@@ -556,13 +556,13 @@ static void Present_Value_Warn_Handler(uint32_t object_instance)
         Binary_Lighting_Output_Blink_Warn_Callback(object_instance);
     }
     /* what to do after egress expires */
-    if (pObject->Target_Value == BACNET_BINARY_LIGHTING_WARN) {
-        pObject->Target_Value = BACNET_BINARY_LIGHTING_ON;
-    } else if (pObject->Target_Value == BACNET_BINARY_LIGHTING_WARN_OFF) {
-        pObject->Target_Value = BACNET_BINARY_LIGHTING_OFF;
+    if (pObject->Target_Value == BINARY_LIGHTING_PV_WARN) {
+        pObject->Target_Value = BINARY_LIGHTING_PV_ON;
+    } else if (pObject->Target_Value == BINARY_LIGHTING_PV_WARN_OFF) {
+        pObject->Target_Value = BINARY_LIGHTING_PV_OFF;
     } else if (pObject->Target_Value ==
-        BACNET_BINARY_LIGHTING_WARN_RELINQUISH) {
-        pObject->Target_Value = BACNET_BINARY_LIGHTING_OFF;
+        BINARY_LIGHTING_PV_WARN_RELINQUISH) {
+        pObject->Target_Value = BINARY_LIGHTING_PV_OFF;
     }
 }
 
@@ -590,24 +590,24 @@ void Binary_Lighting_Output_Timer(
             pObject->Egress_Timer = 0;
         }
         switch (pObject->Target_Value) {
-            case BACNET_BINARY_LIGHTING_OFF:
+            case BINARY_LIGHTING_PV_OFF:
                 Present_Value_On_Off_Handler(object_instance);
                 break;
-            case BACNET_BINARY_LIGHTING_ON:
+            case BINARY_LIGHTING_PV_ON:
                 Present_Value_On_Off_Handler(object_instance);
                 break;
-            case BACNET_BINARY_LIGHTING_WARN:
+            case BINARY_LIGHTING_PV_WARN:
                 Present_Value_Warn_Handler(object_instance);
                 break;
-            case BACNET_BINARY_LIGHTING_WARN_OFF:
+            case BINARY_LIGHTING_PV_WARN_OFF:
                 /* Executes a blink-warn notification at the
                    specified priority and then writes the value OFF
                    to the specified slot in the priority array after
                    a delay of Egress_Time seconds. */
                 break;
-            case BACNET_BINARY_LIGHTING_WARN_RELINQUISH:
+            case BINARY_LIGHTING_PV_WARN_RELINQUISH:
                 break;
-            case BACNET_BINARY_LIGHTING_STOP:
+            case BINARY_LIGHTING_PV_STOP:
                 break;
             default:
                 break;
@@ -644,7 +644,7 @@ static bool Binary_Lighting_Output_Present_Value_Write(uint32_t object_instance,
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else if ((priority > 0) && (priority <= BACNET_MAX_PRIORITY)) {
-            if (value < BACNET_BINARY_LIGHTING_MAX) {
+            if (value < BINARY_LIGHTING_PV_MAX) {
                 pObject->Target_Value = value;
                 pObject->Target_Priority = priority;
                 status = Present_Value_Set(pObject, value, priority);
@@ -653,8 +653,8 @@ static bool Binary_Lighting_Output_Present_Value_Write(uint32_t object_instance,
                     Present_Value_On_Off_Handler(object_instance);
                 }
                 status = true;
-            } else if ((value >= BACNET_BINARY_LIGHTING_PROPRIETARY_FIRST) &&
-                (value <= BACNET_BINARY_LIGHTING_PROPRIETARY_LAST)) {
+            } else if ((value >= BINARY_LIGHTING_PV_PROPRIETARY_MIN) &&
+                (value <= BINARY_LIGHTING_PV_PROPRIETARY_MAX)) {
                 pObject->Target_Priority = priority;
                 pObject->Target_Value = value;
                 status = true;
@@ -728,7 +728,7 @@ static bool Binary_Lighting_Output_Present_Value_Relinquish_Write(
         } else if ((priority > 0) && (priority <= BACNET_MAX_PRIORITY)) {
             /* target priority will hold the previous priority */
             pObject->Target_Priority = Present_Value_Priority(pObject);
-            pObject->Target_Value = BACNET_BINARY_LIGHTING_STOP;
+            pObject->Target_Value = BINARY_LIGHTING_PV_STOP;
             Present_Value_Relinquish(pObject, priority);
             Present_Value_Relinquish_Handler(object_instance);
             status = true;
@@ -879,7 +879,7 @@ bool Binary_Lighting_Output_Lighting_Command_Set(uint32_t object_instance,
 BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Lighting_Command_Target_Value(
     uint32_t object_instance)
 {
-    BACNET_BINARY_LIGHTING_PV value = BACNET_BINARY_LIGHTING_OFF;
+    BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -920,7 +920,7 @@ unsigned Binary_Lighting_Output_Lighting_Command_Target_Priority(
 BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Feedback_Value(
     uint32_t object_instance)
 {
-    BACNET_BINARY_LIGHTING_PV value = BACNET_BINARY_LIGHTING_OFF;
+    BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -948,8 +948,8 @@ bool Binary_Lighting_Output_Feedback_Value_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if ((value == BACNET_BINARY_LIGHTING_OFF) ||
-            (value == BACNET_BINARY_LIGHTING_ON)) {
+        if ((value == BINARY_LIGHTING_PV_OFF) ||
+            (value == BINARY_LIGHTING_PV_ON)) {
             /* This property shall have the value
                 ON (i.e. light is physically on) or
                 OFF (i.e. light is physically off). */
@@ -1123,7 +1123,7 @@ void Binary_Lighting_Output_Out_Of_Service_Set(
 BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Relinquish_Default(
     uint32_t object_instance)
 {
-    BACNET_BINARY_LIGHTING_PV value = BACNET_BINARY_LIGHTING_OFF;
+    BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -1151,8 +1151,8 @@ bool Binary_Lighting_Output_Relinquish_Default_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if ((value == BACNET_BINARY_LIGHTING_OFF) ||
-            (value == BACNET_BINARY_LIGHTING_ON)) {
+        if ((value == BINARY_LIGHTING_PV_OFF) ||
+            (value == BINARY_LIGHTING_PV_ON)) {
             pObject->Relinquish_Default = value;
         }
     }
@@ -1488,13 +1488,13 @@ uint32_t Binary_Lighting_Output_Create(uint32_t object_instance)
         pObject->Blink_Warn_Enable = false;
         pObject->Egress_Active = false;
         pObject->Egress_Time = 0;
-        pObject->Feedback_Value = BACNET_BINARY_LIGHTING_OFF;
-        pObject->Target_Value = BACNET_BINARY_LIGHTING_OFF;
+        pObject->Feedback_Value = BINARY_LIGHTING_PV_OFF;
+        pObject->Target_Value = BINARY_LIGHTING_PV_OFF;
         for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
-            pObject->Priority_Array[p] = BACNET_BINARY_LIGHTING_OFF;
+            pObject->Priority_Array[p] = BINARY_LIGHTING_PV_OFF;
             BIT_CLEAR(pObject->Priority_Active_Bits, p);
         }
-        pObject->Relinquish_Default = BACNET_BINARY_LIGHTING_OFF;
+        pObject->Relinquish_Default = BINARY_LIGHTING_PV_OFF;
         pObject->Power = 0.0;
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);

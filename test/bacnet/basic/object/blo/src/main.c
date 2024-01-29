@@ -179,7 +179,7 @@ static void testBinaryLightingOutputBlink(void)
         Binary_Lighting_Output_Blink_Warn_Handler);
     /* check the blink warning engine at defaults */
     milliseconds_elapsed = 100;
-    expect_pv = BACNET_BINARY_LIGHTING_OFF;
+    expect_pv = BINARY_LIGHTING_PV_OFF;
     Binary_Lighting_Output_Timer(object_instance, milliseconds_elapsed);
     zassert_equal(BLO_Blink.count, 0, "count=%u", BLO_Blink.count);
     zassert_equal(BLO_Value.count, 0, "count=%u", BLO_Value.count);
@@ -194,8 +194,8 @@ static void testBinaryLightingOutputBlink(void)
     wpdata.error_class = ERROR_CLASS_PROPERTY;
     wpdata.error_code = ERROR_CODE_SUCCESS;
     /* ON */
-    pv = BACNET_BINARY_LIGHTING_ON;
-    expect_pv = BACNET_BINARY_LIGHTING_ON;
+    pv = BINARY_LIGHTING_PV_ON;
+    expect_pv = BINARY_LIGHTING_PV_ON;
     wpdata.application_data_len =
         encode_application_enumerated(wpdata.application_data, pv);
     status = Binary_Lighting_Output_Write_Property(&wpdata);
@@ -216,8 +216,8 @@ static void testBinaryLightingOutputBlink(void)
         milliseconds -= milliseconds_elapsed;
     }
     /* OFF */
-    pv = BACNET_BINARY_LIGHTING_OFF;
-    expect_pv = BACNET_BINARY_LIGHTING_OFF;
+    pv = BINARY_LIGHTING_PV_OFF;
+    expect_pv = BINARY_LIGHTING_PV_OFF;
     wpdata.application_data_len =
         encode_application_enumerated(wpdata.application_data, pv);
     status = Binary_Lighting_Output_Write_Property(&wpdata);
@@ -238,8 +238,8 @@ static void testBinaryLightingOutputBlink(void)
         milliseconds -= milliseconds_elapsed;
     }
     /* WARN - already off */
-    pv = BACNET_BINARY_LIGHTING_WARN;
-    expect_pv = BACNET_BINARY_LIGHTING_OFF;
+    pv = BINARY_LIGHTING_PV_WARN;
+    expect_pv = BINARY_LIGHTING_PV_OFF;
     wpdata.application_data_len =
         encode_application_enumerated(wpdata.application_data, pv);
     status = Binary_Lighting_Output_Write_Property(&wpdata);

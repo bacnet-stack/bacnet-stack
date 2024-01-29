@@ -64,11 +64,11 @@ static bool PiFace_Output_State[MAX_BINARY_OUTPUTS];
 static void piface_write_output(int index, BACNET_BINARY_LIGHTING_PV value)
 {
     if (index < MAX_BINARY_OUTPUTS) {
-        if (value == BACNET_BINARY_LIGHTING_OFF) {
+        if (value == BINARY_LIGHTING_PV_OFF) {
             pifacedigital_digital_write(index, 0);
             PiFace_Output_State[index] = false;
             printf("OUTPUT[%u]=OFF\n", index);
-        } else if (value == BACNET_BINARY_LIGHTING_ON) {
+        } else if (value == BINARY_LIGHTING_PV_ON) {
             pifacedigital_digital_write(index, 1);
             PiFace_Output_State[index] = true;
             printf("OUTPUT[%u]=ON\n", index);
@@ -117,12 +117,12 @@ static void Binary_Lighting_Output_Blink_Warn_Handler(uint32_t object_instance)
         /* blink is just toggle on/off every one second */
         if (PiFace_Output_State[index]) {
             printf("BLO-BLINK: OUTPUT[%u]=%d\n", index,
-                BACNET_BINARY_LIGHTING_OFF);
-            piface_write_output(index, BACNET_BINARY_LIGHTING_OFF);
+                BINARY_LIGHTING_PV_OFF);
+            piface_write_output(index, BINARY_LIGHTING_PV_OFF);
         } else {
             printf(
-                "BLO-BLINK: OUTPUT[%u]=%d\n", index, BACNET_BINARY_LIGHTING_ON);
-            piface_write_output(index, BACNET_BINARY_LIGHTING_ON);
+                "BLO-BLINK: OUTPUT[%u]=%d\n", index, BINARY_LIGHTING_PV_ON);
+            piface_write_output(index, BINARY_LIGHTING_PV_ON);
         }
     }
 }
@@ -262,14 +262,14 @@ static void piface_task(void)
                 if (present_value == BINARY_INACTIVE) {
                     if (PiFace_Output_State[i]) {
                         printf("BO-WRITE: OUTPUT[%u]=%d\n", i,
-                            BACNET_BINARY_LIGHTING_OFF);
-                        piface_write_output(i, BACNET_BINARY_LIGHTING_OFF);
+                            BINARY_LIGHTING_PV_OFF);
+                        piface_write_output(i, BINARY_LIGHTING_PV_OFF);
                     }
                 } else {
                     if (!PiFace_Output_State[i]) {
                         printf("BO-WRITE: OUTPUT[%u]=%d\n", i,
-                            BACNET_BINARY_LIGHTING_OFF);
-                        piface_write_output(i, BACNET_BINARY_LIGHTING_ON);
+                            BINARY_LIGHTING_PV_OFF);
+                        piface_write_output(i, BINARY_LIGHTING_PV_ON);
                     }
                 }
             }

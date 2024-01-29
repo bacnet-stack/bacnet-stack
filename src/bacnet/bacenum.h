@@ -2099,6 +2099,21 @@ typedef enum BACnetLightingTransition {
     BACNET_LIGHTING_TRANSITION_PROPRIETARY_LAST = 255
 } BACNET_LIGHTING_TRANSITION;
 
+typedef enum BACnetBinaryLightingPV {
+    BINARY_LIGHTING_PV_OFF = 0,
+    BINARY_LIGHTING_PV_ON = 1,
+    BINARY_LIGHTING_PV_WARN = 2,
+    BINARY_LIGHTING_PV_WARN_OFF = 3,
+    BINARY_LIGHTING_PV_WARN_RELINQUISH = 4,
+    BINARY_LIGHTING_PV_STOP = 5,
+    BINARY_LIGHTING_PV_MAX = 6,
+    /* -- Enumerated values 0-63 are reserved for definition by ASHRAE. 
+    -- Enumerated values 64-255 may be used by others 
+    -- subject to the procedures and constraints described in Clause 23. */
+    BINARY_LIGHTING_PV_PROPRIETARY_MIN = 64,
+    BINARY_LIGHTING_PV_PROPRIETARY_MAX = 255
+} BACNET_BINARY_LIGHTING_PV;
+
 typedef enum BACnetColorOperation {
     BACNET_COLOR_OPERATION_NONE = 0,
     BACNET_COLOR_OPERATION_FADE_TO_COLOR = 1,
@@ -2125,21 +2140,6 @@ typedef enum BACnetColorTransition {
     BACNET_COLOR_TRANSITION_RAMP = 2,
     BACNET_COLOR_TRANSITION_MAX = 3
 } BACNET_COLOR_TRANSITION;
-
-typedef enum BACnetBinaryLightingPV {
-    BACNET_BINARY_LIGHTING_OFF = 0,
-    BACNET_BINARY_LIGHTING_ON = 1,
-    BACNET_BINARY_LIGHTING_WARN = 2,
-    BACNET_BINARY_LIGHTING_WARN_OFF = 3,
-    BACNET_BINARY_LIGHTING_WARN_RELINQUISH = 4,
-    BACNET_BINARY_LIGHTING_STOP = 5,
-    BACNET_BINARY_LIGHTING_MAX = 6,
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-       Enumerated values 64-255 may be used by others subject to
-       the procedures and constraints described in Clause 23 */
-    BACNET_BINARY_LIGHTING_PROPRIETARY_FIRST = 64,
-    BACNET_BINARY_LIGHTING_PROPRIETARY_LAST = 255
-} BACNET_BINARY_LIGHTING_PV;
 
 /* NOTE: BACNET_DAYS_OF_WEEK is different than BACNET_WEEKDAY */
 /* 0=Monday-6=Sunday */
