@@ -1079,7 +1079,7 @@ typedef enum {
     PROP_STATE_EXAMPLE_TWO = 257
 } BACNET_PROPERTY_STATES;
 
-typedef enum {
+typedef enum BACnetReliability {
     RELIABILITY_NO_FAULT_DETECTED = 0,
     RELIABILITY_NO_SENSOR = 1,
     RELIABILITY_OVER_RANGE = 2,
@@ -2106,6 +2106,7 @@ typedef enum BACnetBinaryLightingPV {
     BINARY_LIGHTING_PV_WARN_OFF = 3,
     BINARY_LIGHTING_PV_WARN_RELINQUISH = 4,
     BINARY_LIGHTING_PV_STOP = 5,
+    BINARY_LIGHTING_PV_MAX = 6,
     /* -- Enumerated values 0-63 are reserved for definition by ASHRAE. 
     -- Enumerated values 64-255 may be used by others 
     -- subject to the procedures and constraints described in Clause 23. */

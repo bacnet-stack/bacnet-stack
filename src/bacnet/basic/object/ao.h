@@ -184,6 +184,7 @@ extern "C" {
     bool Analog_Output_Max_Pres_Value_Set(
         uint32_t object_instance, float value);
 
+    BACNET_STACK_EXPORT
     int Analog_Output_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
     BACNET_STACK_EXPORT

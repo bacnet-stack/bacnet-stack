@@ -118,9 +118,6 @@ static void Init_Service_Handlers(void)
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
-    /* handle the data coming back from private requests */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
-        handler_unconfirmed_private_transfer);
     /* configure the cyclic timers */
     mstimer_set(&BACnet_Task_Timer, 1000UL);
     mstimer_set(&BACnet_TSM_Timer, 50UL);
@@ -297,7 +294,7 @@ static void bacnet_output_init(void)
         Channel_Reference_List_Member_Element_Set(
             light_channel_instance, 1 + i, &member);
 
-        object_instance++;
+        object_instance = 1 + i;
     }
     Color_Write_Present_Value_Callback_Set(Color_Write_Value_Handler);
     Color_Temperature_Write_Present_Value_Callback_Set(
