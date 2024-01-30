@@ -159,12 +159,12 @@ static void timespec_add_ns(struct timespec *ts, long ns)
     }
 }
 
-static uint32_t Timer_Silence(struct mstp_port_struct_t *mstp_port)
+static uint32_t Timer_Silence(void *pArg)
 {
     struct timespec now, diff;
     int32_t res;
 
-    (void)mstp_port;
+    (void)pArg;
     clock_gettime(CLOCK_MONOTONIC, &now);
     timespec_subtract(&diff, &now, &start);
     res = ((diff.tv_sec) * 1000 + (diff.tv_nsec) / 1000000);
@@ -172,9 +172,9 @@ static uint32_t Timer_Silence(struct mstp_port_struct_t *mstp_port)
     return (res >= 0 ? res : 0);
 }
 
-static void Timer_Silence_Reset(struct mstp_port_struct_t *mstp_port)
+static void Timer_Silence_Reset(void *pArg)
 {
-    (void)mstp_port;
+    (void)pArg;
     clock_gettime(CLOCK_MONOTONIC, &start);
 }
 
@@ -287,7 +287,7 @@ static void *dlmstp_master_fsm_task(void *pArg)
         if (MSTP_Port.ReceivedValidFrame || MSTP_Port.ReceivedInvalidFrame) {
             run_master = true;
         } else {
-            silence = MSTP_Port.SilenceTimer(NULL);
+            silence = MSTP_Port.SilenceTimer(&MSTP_Port);
             switch (MSTP_Port.master_state) {
                 case MSTP_MASTER_STATE_IDLE:
                     if (silence >= Tno_token)

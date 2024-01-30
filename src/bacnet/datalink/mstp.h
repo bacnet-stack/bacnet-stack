@@ -127,8 +127,8 @@ struct mstp_port_struct_t {
     /* denote intervals between N-1 and N */
     /* Note: done here as functions - put into timer task or ISR
        so that you can be atomic on 8 bit microcontrollers */
-    uint32_t (*SilenceTimer)(struct mstp_port_struct_t *mstp_port);
-    void (*SilenceTimerReset)(struct mstp_port_struct_t *mstp_port);
+    uint32_t (*SilenceTimer)(void *pArg);
+    void (*SilenceTimerReset)(void *pArg);
 
     /* A timer used to measure and generate Reply Postponed frames.  It is */
     /* incremented by a timer process and is cleared by the Master Node State */
@@ -199,9 +199,6 @@ struct mstp_port_struct_t {
        The value of this parameter shall be less than or equal to 127.
        In the absense of other fixed address nodes, this value shall be 127. */
     uint8_t Zero_Config_Max_Master;
-
-    void (*Send_Frame)(
-        struct mstp_port_struct_t *mstp_port, uint8_t *buffer, uint16_t nbytes);
 
     /* The minimum time without a DataAvailable or ReceiveError event within
        a frame before a receiving node may discard the frame: 60 bit times.

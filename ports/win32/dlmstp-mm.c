@@ -62,11 +62,12 @@ static uint32_t TimeBeginPeriod;
 /* 1-millisecond target resolution */
 #define TARGET_RESOLUTION 1
 
-static uint16_t Timer_Silence(void)
+static uint16_t Timer_Silence(void *arg)
 {
     uint32_t now = timeGetTime();
     uint32_t delta_time = 0;
 
+    (void)arg;  
     if (SilenceStartTime < now) {
         delta_time = now - SilenceStartTime;
     } else {
@@ -79,8 +80,9 @@ static uint16_t Timer_Silence(void)
     return (uint16_t)delta_time;
 }
 
-static void Timer_Silence_Reset(void)
+static void Timer_Silence_Reset(void *arg)
 {
+    (void)arg;
     SilenceStartTime = timeGetTime();
 }
 

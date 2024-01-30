@@ -86,13 +86,15 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 }
 
 uint32_t SilenceTime = 0;
-static uint32_t Timer_Silence(struct mstp_port_struct_t *mstp_port)
+static uint32_t Timer_Silence(void *pArg)
 {
+    (void)pArg;
     return SilenceTime;
 }
 
-static void Timer_Silence_Reset(struct mstp_port_struct_t *mstp_port)
+static void Timer_Silence_Reset(void *pArg)
 {
+    (void)pArg;
     SilenceTime = 0;
 }
 

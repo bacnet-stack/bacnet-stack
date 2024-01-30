@@ -69,13 +69,13 @@ static uint8_t Tusage_timeout = 30;
 static struct mstimer Silence_Timer;
 
 /* Timer that indicates line silence - and functions */
-static uint32_t Timer_Silence(struct mstp_port_struct_t *pArg)
+static uint32_t Timer_Silence(void *pArg)
 {
     (void)pArg;
     return mstimer_elapsed(&Silence_Timer);
 }
 
-static void Timer_Silence_Reset(struct mstp_port_struct_t *pArg)
+static void Timer_Silence_Reset(void *pArg)
 {
     (void)pArg;
     mstimer_set(&Silence_Timer, 0);

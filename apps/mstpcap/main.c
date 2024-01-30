@@ -400,15 +400,15 @@ static void packet_statistics_clear(void)
     Invalid_Frame_Count = 0;
 }
 
-static uint32_t Timer_Silence(struct mstp_port_struct_t *mstp_port)
+static uint32_t Timer_Silence(void *pArg)
 {
-    (void)mstp_port;
+    (void)pArg;
     return mstimer_elapsed(&Silence_Timer);
 }
 
-static void Timer_Silence_Reset(struct mstp_port_struct_t *mstp_port)
+static void Timer_Silence_Reset(void *pArg)
 {
-    (void)mstp_port;
+    (void)pArg;
     mstimer_set(&Silence_Timer, 0);
 }
 

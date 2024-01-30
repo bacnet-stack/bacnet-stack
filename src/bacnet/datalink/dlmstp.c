@@ -86,7 +86,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest,
  * @return amount of PDU data
  */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 {
     uint16_t pdu_len = 0;
     struct dlmstp_packet *pkt;
@@ -244,7 +244,7 @@ static bool MSTP_Compare_Data_Expecting_Reply(
  * @return number of bytes, or 0 if no reply is available
  */
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 {
     uint16_t pdu_len = 0;
     bool matched = false;
@@ -286,7 +286,7 @@ uint16_t MSTP_Get_Reply(
  * @param buffer - buffer to send
  * @param nbytes - number of bytes of data to send
  */
-void MSTP_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,
+void MSTP_Send_Frame(struct mstp_port_struct_t *mstp_port,
     uint8_t *buffer,
     uint16_t nbytes)
 {
@@ -312,7 +312,7 @@ void MSTP_Send_Frame(volatile struct mstp_port_struct_t *mstp_port,
  * @brief MS/TP state machine received a frame
  * @return number of bytes queued, or 0 if unable to be queued
  */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     struct dlmstp_user_data_t *port = NULL;
 
