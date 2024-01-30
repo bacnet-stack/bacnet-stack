@@ -161,8 +161,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/binding/address.h
     src/bacnet/basic/npdu/h_npdu.c
     src/bacnet/basic/npdu/h_npdu.h
-    src/bacnet/basic/npdu/h_routed_npdu.c
-    src/bacnet/basic/npdu/h_routed_npdu.h
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.c>
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.h>
     src/bacnet/basic/npdu/s_router.c
     src/bacnet/basic/npdu/s_router.h
     src/bacnet/basic/object/access_credential.c
