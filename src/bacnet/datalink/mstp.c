@@ -1363,15 +1363,246 @@ void MSTP_Zero_Config_UUID_Init(struct mstp_port_struct_t *mstp_port)
 }
 
 /**
+ * @brief The ZERO_CONFIGURATION_INIT state is entered when
+ *  ZeroConfigurationMode is TRUE
+ * @param mstp_port the context of the MSTP port
+ */
+static void MSTP_Zero_Config_State_Init(struct mstp_port_struct_t *mstp_port)
+{
+    uint32_t slots;
+
+    if (!mstp_port) {
+        return;
+    }
+    mstp_port->Poll_Count = 0;
+    mstp_port->Zero_Config_Station = Nmin_poll_station;
+    mstp_port->Npoll_slot = 1 + (rand() % Nmax_poll_slot);
+    /* basic silence timeout is the dropped token time plus
+        one Tslot after the last master node. Add one Tslot of
+        silence timeout per zero config priority slot */
+    slots = 128 + mstp_port->Npoll_slot;
+    mstp_port->Zero_Config_Silence = Tno_token + Tslot * slots;
+    MSTP_Zero_Config_UUID_Init(mstp_port);
+    mstp_port->Zero_Config_Max_Master = 0;
+    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
+}
+
+/**
+ * @brief The ZERO_CONFIGURATION_IDLE state is entered when
+ *  ZeroConfigurationMode is TRUE, and a node is
+ *  is waiting for any frame or waiting to timeout.
+ * @param mstp_port the context of the MSTP port
+ */
+static void MSTP_Zero_Config_State_Idle(struct mstp_port_struct_t *mstp_port)
+{
+    if (!mstp_port) {
+        return;
+    }
+    if ((mstp_port->ReceivedValidFrame) ||
+        (mstp_port->ReceivedValidFrameNotForUs) ||
+        (mstp_port->ReceivedInvalidFrame)) {
+        /* next state will clear the frame flags */
+        /* MonitorPFM */
+        mstp_port->Poll_Count = 0;
+        mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
+    } else if (mstp_port->Zero_Config_Silence > 0) {
+        if (mstp_port->SilenceTimer((void *)mstp_port) >
+            mstp_port->Zero_Config_Silence) {
+            /* ClaimAddress */
+            /* long silence indicates we are alone or
+            with other silent devices */
+            /* claim the token at this address */
+            /* confirm this station with a quick test */
+            mstp_port->Zero_Config_Max_Master = DEFAULT_MAX_MASTER;
+            MSTP_Create_And_Send_Frame(mstp_port, FRAME_TYPE_TEST_REQUEST,
+                mstp_port->Zero_Config_Station, mstp_port->Zero_Config_Station,
+                mstp_port->UUID, sizeof(mstp_port->UUID));
+            mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_CONFIRM;
+        }
+    }
+}
+
+/**
+ * @brief The ZERO_CONFIGURATION_LURK state is entered when
+ *  ZeroConfigurationMode is TRUE, and a node is
+ *  counting a Poll For Master frames to Zero_Config_Station address
+ * @param mstp_port the context of the MSTP port
+ */
+static void MSTP_Zero_Config_State_Lurk(struct mstp_port_struct_t *mstp_port)
+{
+    uint8_t count, frame, src, dst;
+
+    if (!mstp_port) {
+        return;
+    }
+    if ((mstp_port->ReceivedValidFrame) ||
+        (mstp_port->ReceivedValidFrameNotForUs)) {
+        mstp_port->ReceivedValidFrame = false;
+        mstp_port->ReceivedValidFrameNotForUs = false;
+        dst = mstp_port->DestinationAddress;
+        src = mstp_port->SourceAddress;
+        frame = mstp_port->FrameType;
+        if (frame == FRAME_TYPE_POLL_FOR_MASTER) {
+            if ((dst > mstp_port->Zero_Config_Max_Master) &&
+                (dst <= DEFAULT_MAX_MASTER)) {
+                /* LearnMaxMaster */
+                mstp_port->Zero_Config_Max_Master = dst;
+            }
+        }
+        if (src == mstp_port->Zero_Config_Station) {
+            /* AddressInUse */
+            /* monitor PFM from the next address */
+            mstp_port->Zero_Config_Station++;
+            if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
+                /* start again from first */
+                mstp_port->Zero_Config_Station = Nmin_poll_station;
+            }
+            mstp_port->Poll_Count = 0;
+        } else if ((frame == FRAME_TYPE_POLL_FOR_MASTER) &&
+            (dst == mstp_port->Zero_Config_Station)) {
+            mstp_port->Poll_Count++;
+            /* calculate this node poll count priority */
+            count = Nmin_poll + mstp_port->Npoll_slot;
+            if (mstp_port->Poll_Count == count) {
+                /* ClaimAddress */
+                MSTP_Create_And_Send_Frame(mstp_port,
+                    FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER, src,
+                    mstp_port->Zero_Config_Station, NULL, 0);
+                mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_CLAIM;
+            }
+        }
+    } else if (mstp_port->ReceivedInvalidFrame) {
+        /* InvalidFrame */
+        mstp_port->ReceivedInvalidFrame = false;
+    } else if (mstp_port->Zero_Config_Silence > 0) {
+        if (mstp_port->SilenceTimer((void *)mstp_port) >
+            mstp_port->Zero_Config_Silence) {
+            mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
+        }
+    }
+}
+
+/**
+ * @brief The ZERO_CONFIGURATION_CLAIM state is entered when a node
+ *  is waiting for a Token frame from the master to which it
+ *  previously sent a Reply To Poll For Master frame, and
+ *  ZeroConfigurationMode is TRUE.
+ * @param mstp_port the context of the MSTP port
+ */
+static void MSTP_Zero_Config_State_Claim(struct mstp_port_struct_t *mstp_port)
+{
+    uint8_t frame, src, dst;
+
+    if (!mstp_port) {
+        return;
+    }
+    /*  */
+    if ((mstp_port->ReceivedValidFrame) ||
+        (mstp_port->ReceivedValidFrameNotForUs)) {
+        mstp_port->ReceivedValidFrame = false;
+        mstp_port->ReceivedValidFrameNotForUs = false;
+        dst = mstp_port->DestinationAddress;
+        src = mstp_port->SourceAddress;
+        frame = mstp_port->FrameType;
+        if (src == mstp_port->Zero_Config_Station) {
+            /* ClaimAddressInUse */
+            /* monitor PFM from the next address */
+            mstp_port->Zero_Config_Station++;
+            if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
+                /* start again from first */
+                mstp_port->Zero_Config_Station = Nmin_poll_station;
+            }
+            mstp_port->Poll_Count = 0;
+            mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
+        } else if (frame == FRAME_TYPE_TOKEN) {
+            if (dst == mstp_port->Zero_Config_Station) {
+                /* ClaimTokenForUs */
+                MSTP_Create_And_Send_Frame(mstp_port, FRAME_TYPE_TEST_REQUEST,
+                    src, mstp_port->Zero_Config_Station, mstp_port->UUID,
+                    MSTP_UUID_SIZE);
+                mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_CONFIRM;
+            }
+        }
+    } else if (mstp_port->ReceivedInvalidFrame) {
+        /* ClaimInvalidFrame */
+        mstp_port->ReceivedInvalidFrame = false;
+    } else if (mstp_port->Zero_Config_Silence > 0) {
+        /* ClaimLostToken */
+        if (mstp_port->SilenceTimer((void *)mstp_port) >
+            mstp_port->Zero_Config_Silence) {
+            mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
+        }
+    }
+}
+
+/**
+ * @brief The ZERO_CONFIGURATION_CONFIRM state is entered when
+ *  a node is waiting for a Test Response frame and
+ *  ZeroConfigurationMode is TRUE.
+ * @param mstp_port the context of the MSTP port
+ */
+static void MSTP_Zero_Config_State_Confirm(struct mstp_port_struct_t *mstp_port)
+{
+    bool match = false;
+    uint8_t frame, src, dst;
+
+    if (!mstp_port) {
+        return;
+    }
+    if ((mstp_port->ReceivedValidFrame) ||
+        (mstp_port->ReceivedValidFrameNotForUs)) {
+        mstp_port->ReceivedValidFrame = false;
+        mstp_port->ReceivedValidFrameNotForUs = false;
+        dst = mstp_port->DestinationAddress;
+        src = mstp_port->SourceAddress;
+        frame = mstp_port->FrameType;
+        /* note: test frame could be from us. Check frame type first. */
+        if (frame == FRAME_TYPE_TEST_RESPONSE) {
+            if (dst == mstp_port->Zero_Config_Station) {
+                match = true;
+            }
+            if (match & (mstp_port->DataLength < MSTP_UUID_SIZE)) {
+                match = false;
+            }
+            if (match &&
+                (memcmp(mstp_port->InputBuffer, mstp_port->UUID,
+                     MSTP_UUID_SIZE) != 0)) {
+                match = false;
+            }
+            if (match) {
+                /* ConfirmationSuccessful */
+                mstp_port->This_Station = mstp_port->Zero_Config_Station;
+                mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_USE;
+            } else {
+                /* ConfirmationFailed */
+                mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
+            }
+        } else if (src == mstp_port->Zero_Config_Station) {
+            /* ConfirmationAddressInUse */
+            /* monitor PFM from the next address */
+            mstp_port->Zero_Config_Station++;
+            if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
+                /* start again from first */
+                mstp_port->Zero_Config_Station = Nmin_poll_station;
+            }
+            mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
+        }
+    } else if (mstp_port->SilenceTimer((void *)mstp_port) >=
+        mstp_port->Treply_timeout) {
+        /* ConfirmationTimeout */
+        /* In case validating device doesn't support Test Request */
+        /* no response and no collision */
+        mstp_port->This_Station = mstp_port->Zero_Config_Station;
+        mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_USE;
+    }
+}
+
+/**
  * @brief Finite State Machine for the Zero Configuration process
  * @param mstp_port the context of the MSTP port
  */
 void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
 {
-    bool match = false;
-    uint8_t count, frame, src, dst;
-    uint32_t slots;
-
     if (!mstp_port) {
         return;
     }
@@ -1380,198 +1611,19 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port)
     }
     switch (mstp_port->Zero_Config_State) {
         case MSTP_ZERO_CONFIG_STATE_INIT:
-            /* The ZERO_CONFIGURATION_INIT state is entered when
-               ZeroConfigurationMode is TRUE. */
-            mstp_port->Poll_Count = 0;
-            mstp_port->Zero_Config_Station = Nmin_poll_station;
-            mstp_port->Npoll_slot = 1 + (rand() % Nmax_poll_slot);
-            /* basic silence timeout is the dropped token time plus
-               one Tslot after the last master node. Add one Tslot of
-               silence timeout per zero config priority slot */
-            slots = 128 + mstp_port->Npoll_slot;
-            mstp_port->Zero_Config_Silence = Tno_token + Tslot * slots;
-            MSTP_Zero_Config_UUID_Init(mstp_port);
-            mstp_port->Zero_Config_Max_Master = 0;
-            mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
+            MSTP_Zero_Config_State_Init(mstp_port);
             break;
         case MSTP_ZERO_CONFIG_STATE_IDLE:
-            /* The ZERO_CONFIGURATION_IDLE state is entered when
-               ZeroConfigurationMode is TRUE, and a node is
-               is waiting for any frame or waiting to timeout. */
-            if ((mstp_port->ReceivedValidFrame) ||
-                (mstp_port->ReceivedValidFrameNotForUs) ||
-                (mstp_port->ReceivedInvalidFrame)) {
-                /* next state will clear the frame flags */
-                /* MonitorPFM */
-                mstp_port->Poll_Count = 0;
-                mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
-            } else if (mstp_port->Zero_Config_Silence > 0) {
-                if (mstp_port->SilenceTimer((void *)mstp_port) >
-                    mstp_port->Zero_Config_Silence) {
-                    /* ClaimAddress */
-                    /* long silence indicates we are alone or
-                    with other silent devices */
-                    /* claim the token at this address */
-                    /* confirm this station with a quick test */
-                    mstp_port->Zero_Config_Max_Master = DEFAULT_MAX_MASTER;
-                    MSTP_Create_And_Send_Frame(mstp_port,
-                        FRAME_TYPE_TEST_REQUEST, mstp_port->Zero_Config_Station,
-                        mstp_port->Zero_Config_Station, mstp_port->UUID,
-                        sizeof(mstp_port->UUID));
-                    mstp_port->Zero_Config_State =
-                        MSTP_ZERO_CONFIG_STATE_CONFIRM;
-                }
-            }
+            MSTP_Zero_Config_State_Idle(mstp_port);
             break;
         case MSTP_ZERO_CONFIG_STATE_LURK:
-            /* The ZERO_CONFIGURATION_IDLE state is entered when
-               ZeroConfigurationMode is TRUE, and a node is
-               counting a Poll For Master frames to Zero_Config_Station
-               address */
-            if ((mstp_port->ReceivedValidFrame) ||
-                (mstp_port->ReceivedValidFrameNotForUs)) {
-                mstp_port->ReceivedValidFrame = false;
-                mstp_port->ReceivedValidFrameNotForUs = false;
-                dst = mstp_port->DestinationAddress;
-                src = mstp_port->SourceAddress;
-                frame = mstp_port->FrameType;
-                if (frame == FRAME_TYPE_POLL_FOR_MASTER) {
-                    if ((dst > mstp_port->Zero_Config_Max_Master) &&
-                        (dst <= DEFAULT_MAX_MASTER)) {
-                        /* LearnMaxMaster */
-                        mstp_port->Zero_Config_Max_Master = dst;
-                    }
-                }
-                if (src == mstp_port->Zero_Config_Station) {
-                    /* AddressInUse */
-                    /* monitor PFM from the next address */
-                    mstp_port->Zero_Config_Station++;
-                    if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
-                        /* start again from first */
-                        mstp_port->Zero_Config_Station = Nmin_poll_station;
-                    }
-                    mstp_port->Poll_Count = 0;
-                } else if ((frame == FRAME_TYPE_POLL_FOR_MASTER) &&
-                    (dst == mstp_port->Zero_Config_Station)) {
-                    mstp_port->Poll_Count++;
-                    /* calculate this node poll count priority */
-                    count = Nmin_poll + mstp_port->Npoll_slot;
-                    if (mstp_port->Poll_Count == count) {
-                        /* ClaimAddress */
-                        MSTP_Create_And_Send_Frame(mstp_port,
-                            FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER, src,
-                            mstp_port->Zero_Config_Station, NULL, 0);
-                        mstp_port->Zero_Config_State =
-                            MSTP_ZERO_CONFIG_STATE_CLAIM;
-                    }
-                }
-            } else if (mstp_port->ReceivedInvalidFrame) {
-                /* InvalidFrame */
-                mstp_port->ReceivedInvalidFrame = false;
-            } else if (mstp_port->Zero_Config_Silence > 0) {
-                if (mstp_port->SilenceTimer((void *)mstp_port) >
-                    mstp_port->Zero_Config_Silence) {
-                    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
-                }
-            }
+            MSTP_Zero_Config_State_Lurk(mstp_port);
             break;
         case MSTP_ZERO_CONFIG_STATE_CLAIM:
-            /* The ZERO_CONFIGURATION_TOKEN state is entered when a node
-               is waiting for a Token frame from the master to which it
-               previously sent a Reply To Poll For Master frame, and
-               ZeroConfigurationMode is TRUE */
-            if ((mstp_port->ReceivedValidFrame) ||
-                (mstp_port->ReceivedValidFrameNotForUs)) {
-                mstp_port->ReceivedValidFrame = false;
-                mstp_port->ReceivedValidFrameNotForUs = false;
-                dst = mstp_port->DestinationAddress;
-                src = mstp_port->SourceAddress;
-                frame = mstp_port->FrameType;
-                if (src == mstp_port->Zero_Config_Station) {
-                    /* ClaimAddressInUse */
-                    /* monitor PFM from the next address */
-                    mstp_port->Zero_Config_Station++;
-                    if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
-                        /* start again from first */
-                        mstp_port->Zero_Config_Station = Nmin_poll_station;
-                    }
-                    mstp_port->Poll_Count = 0;
-                    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
-                } else if (frame == FRAME_TYPE_TOKEN) {
-                    if (dst == mstp_port->Zero_Config_Station) {
-                        /* ClaimTokenForUs */
-                        MSTP_Create_And_Send_Frame(mstp_port,
-                            FRAME_TYPE_TEST_REQUEST, src,
-                            mstp_port->Zero_Config_Station, mstp_port->UUID,
-                            MSTP_UUID_SIZE);
-                        mstp_port->Zero_Config_State =
-                            MSTP_ZERO_CONFIG_STATE_CONFIRM;
-                    }
-                }
-            } else if (mstp_port->ReceivedInvalidFrame) {
-                /* ClaimInvalidFrame */
-                mstp_port->ReceivedInvalidFrame = false;
-            } else if (mstp_port->Zero_Config_Silence > 0) {
-                /* ClaimLostToken */
-                if (mstp_port->SilenceTimer((void *)mstp_port) >
-                    mstp_port->Zero_Config_Silence) {
-                    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
-                }
-            }
+            MSTP_Zero_Config_State_Claim(mstp_port);
             break;
         case MSTP_ZERO_CONFIG_STATE_CONFIRM:
-            /* The ZERO_CONFIGURATION_CONFIRM state is entered when
-               a node is waiting for a Test Response frame and
-               ZeroConfigurationMode is TRUE. */
-            if ((mstp_port->ReceivedValidFrame) ||
-                (mstp_port->ReceivedValidFrameNotForUs)) {
-                mstp_port->ReceivedValidFrame = false;
-                mstp_port->ReceivedValidFrameNotForUs = false;
-                dst = mstp_port->DestinationAddress;
-                src = mstp_port->SourceAddress;
-                frame = mstp_port->FrameType;
-                /* note: test frame could be from us. Check frame type first. */
-                if (frame == FRAME_TYPE_TEST_RESPONSE) {
-                    if (dst == mstp_port->Zero_Config_Station) {
-                        match = true;
-                    }
-                    if (match & (mstp_port->DataLength < MSTP_UUID_SIZE)) {
-                        match = false;
-                    }
-                    if (match &&
-                        (memcmp(mstp_port->InputBuffer, mstp_port->UUID,
-                             MSTP_UUID_SIZE) != 0)) {
-                        match = false;
-                    }
-                    if (match) {
-                        /* ConfirmationSuccessful */
-                        mstp_port->This_Station =
-                            mstp_port->Zero_Config_Station;
-                        mstp_port->Zero_Config_State =
-                            MSTP_ZERO_CONFIG_STATE_USE;
-                    } else {
-                        /* ConfirmationFailed */
-                        mstp_port->Zero_Config_State =
-                            MSTP_ZERO_CONFIG_STATE_IDLE;
-                    }
-                } else if (src == mstp_port->Zero_Config_Station) {
-                    /* ConfirmationAddressInUse */
-                    /* monitor PFM from the next address */
-                    mstp_port->Zero_Config_Station++;
-                    if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
-                        /* start again from first */
-                        mstp_port->Zero_Config_Station = Nmin_poll_station;
-                    }
-                    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
-                }
-            } else if (mstp_port->SilenceTimer((void *)mstp_port) >=
-                mstp_port->Treply_timeout) {
-                /* ConfirmationTimeout */
-                /* In case validating device doesn't support Test Request */
-                /* no response and no collision */
-                mstp_port->This_Station = mstp_port->Zero_Config_Station;
-                mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_USE;
-            }
+            MSTP_Zero_Config_State_Confirm(mstp_port);
             break;
         case MSTP_ZERO_CONFIG_STATE_USE:
             break;
