@@ -66,6 +66,9 @@ int bacnet_special_event_decode(
         return BACNET_STATUS_ERROR;
     }
     len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
     if (tag.opening &&
         (tag.number == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY)) {
         value->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
