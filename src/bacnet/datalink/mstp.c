@@ -1261,45 +1261,15 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
         /* invalid frame was received */
         mstp_port->ReceivedInvalidFrame = false;
     } else if (mstp_port->ReceivedValidFrame) {
+        mstp_port->ReceivedValidFrame = false;
         switch (mstp_port->FrameType) {
             case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
                 if (mstp_port->DestinationAddress != MSTP_BROADCAST_ADDRESS) {
-                    /* The ANSWER_DATA_REQUEST state is entered when a  */
-                    /* BACnet Data Expecting Reply, a Test_Request, or  */
-                    /* a proprietary frame that expects a reply is received. */
-                    length = (unsigned)MSTP_Get_Reply(mstp_port, 0);
-                    if (length > 0) {
-                        /* Reply */
-                        /* If a reply is available from the higher layers  */
-                        /* within Treply_delay after the reception of the  */
-                        /* final octet of the requesting frame  */
-                        /* (the mechanism used to determine this is a local
-                         * matter), */
-                        /* then call MSTP_Create_And_Send_Frame to transmit the
-                         * reply frame  */
-                        /* and enter the IDLE state to wait for the next frame.
-                         */
-                        MSTP_Send_Frame(mstp_port,
-                            (uint8_t *)&mstp_port->OutputBuffer[0],
-                            (uint16_t)length);
-                        /* clear our flag we were holding for comparison */
-                        mstp_port->ReceivedValidFrame = false;
-                    } else if (mstp_port->SilenceTimer((void *)mstp_port) >
-                        mstp_port->Treply_delay) {
-                        /* If no reply will be available from the higher layers
-                           within Treply_delay after the reception of the final
-                           octet of the requesting frame (the mechanism used to
-                           determine this is a local matter), then no reply is
-                           possible. */
-                        /* clear our flag we were holding for comparison */
-                        mstp_port->ReceivedValidFrame = false;
-                    }
-                } else {
-                    mstp_port->ReceivedValidFrame = false;
+                    /* indicate successful reception to the higher layers  */
+                    (void)MSTP_Put_Receive(mstp_port);
                 }
                 break;
             case FRAME_TYPE_TEST_REQUEST:
-                mstp_port->ReceivedValidFrame = false;
                 MSTP_Create_And_Send_Frame(mstp_port, FRAME_TYPE_TEST_RESPONSE,
                     mstp_port->SourceAddress, mstp_port->This_Station,
                     &mstp_port->InputBuffer[0], mstp_port->DataLength);
@@ -1309,8 +1279,38 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
             case FRAME_TYPE_TEST_RESPONSE:
             case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
             default:
-                mstp_port->ReceivedValidFrame = false;
                 break;
+        }
+    } else {
+        /* The ANSWER_DATA_REQUEST state is entered when a  */
+        /* BACnet Data Expecting Reply, a Test_Request, or  */
+        /* a proprietary frame that expects a reply is received. */
+        length = (unsigned)MSTP_Get_Reply(mstp_port, 0);
+        if (length > 0) {
+            /* Reply */
+            /* If a reply is available from the higher layers  */
+            /* within Treply_delay after the reception of the  */
+            /* final octet of the requesting frame  */
+            /* (the mechanism used to determine this is a local
+                * matter), */
+            /* then call MSTP_Create_And_Send_Frame to transmit the
+                * reply frame  */
+            /* and enter the IDLE state to wait for the next frame.
+                */
+            MSTP_Send_Frame(mstp_port,
+                (uint8_t *)&mstp_port->OutputBuffer[0],
+                (uint16_t)length);
+            /* clear our flag we were holding for comparison */
+            mstp_port->ReceivedValidFrame = false;
+        } else if (mstp_port->SilenceTimer((void *)mstp_port) >
+            mstp_port->Treply_delay) {
+            /* If no reply will be available from the higher layers
+                within Treply_delay after the reception of the final
+                octet of the requesting frame (the mechanism used to
+                determine this is a local matter), then no reply is
+                possible. */
+            /* clear our flag we were holding for comparison */
+            mstp_port->ReceivedValidFrame = false;
         }
     }
 }
