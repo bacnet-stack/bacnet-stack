@@ -23,6 +23,10 @@ BACNET_FLAGS += -DPRINT_ENABLED=0
 BACNET_FLAGS += -DMAX_APDU=480
 BACNET_FLAGS += -DCRC_USE_TABLE
 #BACNET_FLAGS += -DDLMSTP_TEST
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 BACNET_SRC = ../../src
 BACNET_CORE = $(BACNET_SRC)/bacnet

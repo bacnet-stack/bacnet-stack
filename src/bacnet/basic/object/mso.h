@@ -174,7 +174,7 @@ extern "C" {
         uint32_t value);
 
     BACNET_STACK_EXPORT
-    bool Multistate_Output_Create(
+    uint32_t Multistate_Output_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Multistate_Output_Delete(

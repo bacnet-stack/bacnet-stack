@@ -155,7 +155,7 @@ static void test_BACnetSpecialEvent_Date(void)
         },
         .timeValues = {
             .TV_Count = 0,
-            .Time_Values = {}
+            .Time_Values = { 0 }
         },
         .priority = 16,
     };
@@ -219,7 +219,7 @@ static void test_BACnetSpecialEvent_DateRange(void)
         },
         .timeValues = {
             .TV_Count = 0,
-            .Time_Values = {}
+            .Time_Values = { 0 }
         },
         .priority = 0,
     };
@@ -228,7 +228,7 @@ static void test_BACnetSpecialEvent_DateRange(void)
     len = bacnet_special_event_encode(apdu, &in);
     apdu_len = bacnet_special_event_decode(apdu, len, &out);
 
-    zassert_equal(len, apdu_len, NULL);
+    zassert_equal(len, apdu_len, "apdu_len %d != len %d", apdu_len, len);
     zassert_equal(in.periodTag, out.periodTag, NULL);
 
     zassert_equal(
@@ -284,7 +284,7 @@ static void test_BACnetSpecialEvent_WeekNDate(void)
         },
         .timeValues = {
             .TV_Count = 0,
-            .Time_Values = {}
+            .Time_Values = { 0 }
         },
         .priority = 16,
     };

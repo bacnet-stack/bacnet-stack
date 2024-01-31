@@ -51,7 +51,7 @@ License.
  *     weekNDay [2] BACnetWeekNDay
  * }
  *
- * @param apdu  Pointer to the buffer for encoding.
+ * @param apdu  Pointer to the buffer for encoding, or NULL for only length
  * @param value Pointer to the property data to be encoded.
  * @return bytes encoded or zero on error.
  */
@@ -59,41 +59,40 @@ int bacnet_calendar_entry_encode(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value)
 {
     int len = 0;
     int apdu_len = 0;
-    BACNET_OCTET_STRING octetstring;
+    BACNET_OCTET_STRING octetstring = { 0 };
 
     switch (value->tag) {
-    case BACNET_CALENDAR_DATE:
-        len = encode_context_date(apdu, value->tag, &value->type.Date);
-        apdu_len += len;
-        break;
-    case BACNET_CALENDAR_DATE_RANGE:
-        len = bacapp_daterange_context_encode(apdu, value->tag, &value->type.DateRange);
-        apdu_len += len;
-        break;
-    case BACNET_CALENDAR_WEEK_N_DAY:
-        octetstring.value[0] = value->type.WeekNDay.month;
-        octetstring.value[1] = value->type.WeekNDay.weekofmonth;
-        octetstring.value[2] = value->type.WeekNDay.dayofweek;
-        octetstring.length = 3;
-        len = encode_context_octet_string(apdu, value->tag, &octetstring);
-        apdu_len += len;
-        break;
-    default:
-        /* do nothing */
-        break;
+        case BACNET_CALENDAR_DATE:
+            len = encode_context_date(apdu, value->tag, &value->type.Date);
+            apdu_len += len;
+            break;
+        case BACNET_CALENDAR_DATE_RANGE:
+            len = bacapp_daterange_context_encode(
+                apdu, value->tag, &value->type.DateRange);
+            apdu_len += len;
+            break;
+        case BACNET_CALENDAR_WEEK_N_DAY:
+            octetstring.value[0] = value->type.WeekNDay.month;
+            octetstring.value[1] = value->type.WeekNDay.weekofmonth;
+            octetstring.value[2] = value->type.WeekNDay.dayofweek;
+            octetstring.length = 3;
+            len = encode_context_octet_string(apdu, value->tag, &octetstring);
+            apdu_len += len;
+            break;
+        default:
+            /* do nothing */
+            break;
     }
 
     return apdu_len;
 }
 
 /**
- * Encodes into bytes from the calendar-entry structure
- * a context tagged chunk (opening and closing tag)
- *
- * @param apdu - buffer to hold the bytes
+ * @brief Encodes into bytes from the calendar-entry structure
+ *  a context tagged chunk (opening and closing tag)
+ * @param apdu  Pointer to the buffer for encoding, or NULL for only length
  * @param tag_number - tag number to encode this chunk
  * @param value - calendar entry value to encode
- *
  * @return  number of bytes encoded, or 0 if unable to encode.
  */
 int bacnet_calendar_entry_context_encode(
@@ -102,80 +101,88 @@ int bacnet_calendar_entry_context_encode(
     int len = 0;
     int apdu_len = 0;
 
-    if (apdu && value) {
-        len = encode_opening_tag(&apdu[apdu_len], tag_number);
+    if (value) {
+        len = encode_opening_tag(apdu, tag_number);
         apdu_len += len;
-
-        len = bacnet_calendar_entry_encode(&apdu[apdu_len], value);
+        if (apdu) {
+            apdu += len;
+        }
+        len = bacnet_calendar_entry_encode(apdu, value);
         apdu_len += len;
-
-        len = encode_closing_tag(&apdu[apdu_len], tag_number);
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_number);
         apdu_len += len;
     }
+
     return apdu_len;
 }
 
 /**
- * Decodes from bytes into the calendar-entry structure
- *
+ * @brief Decodes from bytes into the calendar-entry structure
  * @param apdu - buffer to hold the bytes
- * @param apdu_max_len - number of bytes in the buffer to decode
+ * @param apdu_size - number of bytes in the buffer to decode
  * @param entry - calendar entry value to place the decoded values
- *
  * @return number of bytes decoded, or BACNET_STATUS_REJECT
  */
-int bacnet_calendar_entry_decode(uint8_t *apdu, uint32_t apdu_max_len,
-    BACNET_CALENDAR_ENTRY *entry)
+int bacnet_calendar_entry_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_CALENDAR_ENTRY *entry)
 {
     int apdu_len = 0;
-    int len;
+    int len = 0;
+    BACNET_TAG tag = { 0 };
     BACNET_OCTET_STRING octet_string = { 0 };
-    (void) apdu_max_len;
 
     if (!apdu || !entry) {
         return BACNET_STATUS_REJECT;
     }
-
-    len = decode_tag_number(apdu, &entry->tag);
+    len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
     if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-
-    switch (entry->tag) {
-    case BACNET_CALENDAR_DATE:
-        len = decode_context_date(apdu, entry->tag, &entry->type.Date);
-        if (len <= 0) {
-            return BACNET_STATUS_REJECT;
-        }
-        apdu_len += len;
-        break;
-
-    case BACNET_CALENDAR_DATE_RANGE:
-        len = bacapp_daterange_context_decode(apdu, entry->tag, &entry->type.DateRange);
-        if (len <= 0) {
-            return BACNET_STATUS_REJECT;
-        }
-        apdu_len += len;
-        break;
-
-    case BACNET_CALENDAR_WEEK_N_DAY:
-        len = decode_context_octet_string(apdu, entry->tag, &octet_string);
-        if (len <= 0) {
-            return BACNET_STATUS_REJECT;
-        }
-        apdu_len += len;
-
-        if (octet_string.length != 3) {
-            return BACNET_STATUS_ERROR;
-        }
-
-        entry->type.WeekNDay.month = octet_string.value[0];
-        entry->type.WeekNDay.weekofmonth = octet_string.value[1];
-        entry->type.WeekNDay.dayofweek = octet_string.value[2];
-        break;
-    default:
-       /* none */
+    if (tag.context || tag.opening) {
+        entry->tag = tag.number;
+    } else {
         return BACNET_STATUS_REJECT;
+    }
+    switch (entry->tag) {
+        case BACNET_CALENDAR_DATE:
+            len = bacnet_date_context_decode(&apdu[apdu_len],
+                apdu_size - apdu_len, entry->tag, &entry->type.Date);
+            if (len <= 0) {
+                return BACNET_STATUS_REJECT;
+            }
+            apdu_len += len;
+            break;
+
+        case BACNET_CALENDAR_DATE_RANGE:
+            len = bacnet_daterange_context_decode(&apdu[apdu_len],
+                apdu_size - apdu_len, entry->tag, &entry->type.DateRange);
+            if (len <= 0) {
+                return BACNET_STATUS_REJECT;
+            }
+            apdu_len += len;
+            break;
+
+        case BACNET_CALENDAR_WEEK_N_DAY:
+            len = bacnet_octet_string_context_decode(&apdu[apdu_len],
+                apdu_size - apdu_len, entry->tag, &octet_string);
+            if (len <= 0) {
+                return BACNET_STATUS_REJECT;
+            }
+            apdu_len += len;
+            /* additional checks for valid Week-n-Day */
+            if (octet_string.length != 3) {
+                return BACNET_STATUS_ERROR;
+            }
+            entry->type.WeekNDay.month = octet_string.value[0];
+            entry->type.WeekNDay.weekofmonth = octet_string.value[1];
+            entry->type.WeekNDay.dayofweek = octet_string.value[2];
+            break;
+        default:
+            /* none */
+            return BACNET_STATUS_REJECT;
     }
 
     return apdu_len;
@@ -186,139 +193,196 @@ int bacnet_calendar_entry_decode(uint8_t *apdu, uint32_t apdu_max_len,
  * a context tagged chunk (opening and closing tag)
  *
  * @param apdu - buffer to hold the bytes
- * @param apdu_max_len - number of bytes in the buffer to decode
+ * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_number - tag number to encode this chunk
  * @param value - calendar entry value to place the decoded values
  *
  * @return number of bytes decoded, or BACNET_STATUS_REJECT
  */
-int bacnet_calendar_entry_context_decode(uint8_t *apdu, uint32_t apdu_max_len,
-    uint8_t tag_number, BACNET_CALENDAR_ENTRY *value)
+int bacnet_calendar_entry_context_decode(uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_CALENDAR_ENTRY *value)
 {
     int apdu_len = 0;
-    int len;
+    int len = 0;
 
-    if (decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
-        apdu_len++;
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
     } else {
         return BACNET_STATUS_REJECT;
     }
-
-    if (BACNET_STATUS_REJECT ==
-        (len = bacnet_calendar_entry_decode(&apdu[apdu_len],
-                                    apdu_max_len - apdu_len, value))) {
+    len = bacnet_calendar_entry_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     } else {
         apdu_len += len;
     }
-
-    if (decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
-        apdu_len++;
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
     } else {
         return BACNET_STATUS_REJECT;
     }
-    if (apdu_len > apdu_max_len) {
-        return BACNET_STATUS_REJECT;
-    }
+
     return apdu_len;
 }
 
+/**
+ * @brief Compare a month to a BACnetDate value month
+ * @param date - BACnetDate with a month value to compare
+ * @param month - month to compare
+ * @return true if the same month including special values, else false
+ */
 static bool month_match(BACNET_DATE *date, uint8_t month)
 {
-    return (month == 0xff) || (month == date->month) ||
-        ((month == 13) && (date->month % 2 == 1))  ||
-        ((month == 14) && (date->month % 2 == 0));
+    if (month == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return ((month == date->month) ||
+        ((month == 13) && (date->month % 2 == 1)) ||
+        ((month == 14) && (date->month % 2 == 0)));
 }
 
+/**
+ * @brief Compare a week of the month to a BACnetDate value
+ * @param date - BACnetDate value to compare
+ * @param weekofmonth - week of the month to compare
+ * @return true if the same week of the month including special values
+ */
 static bool weekofmonth_match(BACNET_DATE *date, uint8_t weekofmonth)
 {
     bool st = false;
-    uint8_t day_to_end_month =
-        days_per_month(date->year, date->month) - date->day;
+    uint8_t day_to_end_month;
 
     switch (weekofmonth) {
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-        st = (weekofmonth == (date->day - 1) % 7 + 1);
-        break;
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-        st = ((weekofmonth - 6) == day_to_end_month % 7);
-        break;
-    case 0xff:
-        st = true;
-        break;
-    default:
-        break;
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            if (date) {
+                st = (weekofmonth == (date->day - 1) % 7 + 1);
+            }
+            break;
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+            if (date) {
+                day_to_end_month =
+                    days_per_month(date->year, date->month) - date->day;
+                st = ((weekofmonth - 6) == day_to_end_month % 7);
+            }
+            break;
+        case 0xff:
+            st = true;
+            break;
+        default:
+            break;
     }
+
     return st;
 }
 
+/**
+ * @brief Compare a day of the week to a BACnetDate value
+ * @param date - BACnetDate value to compare
+ * @param dayofweek - day of the week to compare
+ * @return true if the same day of the week including special values
+ */
 static bool dayofweek_match(BACNET_DATE *date, uint8_t dayofweek)
 {
-    return (dayofweek == 0xff) || (dayofweek == date->wday);
+    if (dayofweek == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (dayofweek == date->wday);
 }
 
-bool bacapp_date_in_calendar_entry(BACNET_DATE *date,
-    BACNET_CALENDAR_ENTRY *entry)
- {
-    switch (entry->tag) {
-    case BACNET_CALENDAR_DATE:
-        if (datetime_compare_date(date, &entry->type.Date) == 0) {
-            return true;
-        }
-        break;
-    case BACNET_CALENDAR_DATE_RANGE:
-        if ((datetime_compare_date(
-                &entry->type.DateRange.startdate, date) <= 0) &&
-            (datetime_compare_date(
-                date, &entry->type.DateRange.enddate) <= 0)) {
-            return true;
-        }
-        break;
-    case BACNET_CALENDAR_WEEK_N_DAY:
-        if (month_match(date, entry->type.WeekNDay.month) &&
-            weekofmonth_match(date, entry->type.WeekNDay.weekofmonth) &&
-            dayofweek_match(date, entry->type.WeekNDay.dayofweek)) {
-            return true;
-        }
-        break;
-    default:
-    /* do nothing */
-        break;
+/**
+ * @brief Determine if a BACnetCalendarEntry includes a BACnetDate value
+ * @param date - BACnetDate value to compare
+ * @param entry - BACnetCalendarEntry value to compare
+ * @return true if a BACnetCalendarEntry includes the BACnetDate value
+ */
+bool bacapp_date_in_calendar_entry(
+    BACNET_DATE *date, BACNET_CALENDAR_ENTRY *entry)
+{
+    if (!entry) {
+        return false;
     }
+    switch (entry->tag) {
+        case BACNET_CALENDAR_DATE:
+            if (datetime_compare_date(date, &entry->type.Date) == 0) {
+                return true;
+            }
+            break;
+        case BACNET_CALENDAR_DATE_RANGE:
+            if ((datetime_compare_date(
+                     &entry->type.DateRange.startdate, date) <= 0) &&
+                (datetime_compare_date(date, &entry->type.DateRange.enddate) <=
+                    0)) {
+                return true;
+            }
+            break;
+        case BACNET_CALENDAR_WEEK_N_DAY:
+            if (month_match(date, entry->type.WeekNDay.month) &&
+                weekofmonth_match(date, entry->type.WeekNDay.weekofmonth) &&
+                dayofweek_match(date, entry->type.WeekNDay.dayofweek)) {
+                return true;
+            }
+            break;
+        default:
+            /* do nothing */
+            break;
+    }
+
     return false;
 }
 
+/**
+ * @brief Determine if two BACnetCalendarEntry are the same
+ * @param value1 - BACnetCalendarEntry value to compare
+ * @param value2 - BACnetCalendarEntry value to compare
+ * @return true if both BACnetCalendarEntry are the same
+ */
 bool bacnet_calendar_entry_same(
     BACNET_CALENDAR_ENTRY *value1, BACNET_CALENDAR_ENTRY *value2)
 {
-    if (value1->tag != value2->tag) {
-    return false;
-    }
-
-    switch (value1->tag) {
-    case BACNET_CALENDAR_DATE:
-        return datetime_compare_date(&value1->type.Date, &value2->type.Date) ==
-            0;
-    case BACNET_CALENDAR_DATE_RANGE:
-        return (datetime_compare_date(&value1->type.DateRange.startdate,
-                    &value2->type.DateRange.startdate) == 0) &&
-            (datetime_compare_date(&value2->type.DateRange.enddate,
-                 &value2->type.DateRange.enddate) == 0);
-    case BACNET_CALENDAR_WEEK_N_DAY:
-        return (value1->type.WeekNDay.month == value2->type.WeekNDay.month) &&
-            (value1->type.WeekNDay.weekofmonth ==
-                value2->type.WeekNDay.weekofmonth) &&
-            (value1->type.WeekNDay.dayofweek ==
-                value2->type.WeekNDay.dayofweek);
-    default:
-        /* should be unreachable */
+    if (!value1 || !value2) {
         return false;
+    }
+    if (value1->tag != value2->tag) {
+        return false;
+    }
+    switch (value1->tag) {
+        case BACNET_CALENDAR_DATE:
+            return datetime_compare_date(
+                       &value1->type.Date, &value2->type.Date) == 0;
+        case BACNET_CALENDAR_DATE_RANGE:
+            return (datetime_compare_date(&value1->type.DateRange.startdate,
+                        &value2->type.DateRange.startdate) == 0) &&
+                (datetime_compare_date(&value2->type.DateRange.enddate,
+                     &value2->type.DateRange.enddate) == 0);
+        case BACNET_CALENDAR_WEEK_N_DAY:
+            return (value1->type.WeekNDay.month ==
+                       value2->type.WeekNDay.month) &&
+                (value1->type.WeekNDay.weekofmonth ==
+                    value2->type.WeekNDay.weekofmonth) &&
+                (value1->type.WeekNDay.dayofweek ==
+                    value2->type.WeekNDay.dayofweek);
+        default:
+            /* should be unreachable */
+            return false;
     }
 }

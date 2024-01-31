@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/platform.h"
 
 /* define our epic beginnings */
 #define BACNET_DATE_YEAR_EPOCH 1900
@@ -261,64 +262,54 @@ BACNET_STACK_EXPORT
 bool datetime_date_init_ascii(BACNET_DATE *bdate, const char *ascii);
 BACNET_STACK_EXPORT
 bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii);
+BACNET_STACK_EXPORT
+bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value);
-
 BACNET_STACK_EXPORT
 int bacapp_encode_context_datetime(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value);
-
 BACNET_STACK_EXPORT
-int bacapp_decode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value);
-
+int bacnet_datetime_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_DATE_TIME *value);
 BACNET_STACK_EXPORT
-int bacapp_decode_context_datetime(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value);
+int bacnet_datetime_context_decode(
+    uint8_t *apdu, uint32_t apdu_size,  uint8_t tag_number,
+    BACNET_DATE_TIME *value);
 
-/**
- * Encode daterange
- *
- * @param apdu - apdu buffer; NULL to only measure capacity needed
- * @param value - value to encode
- * @return number of bytes emitted, <= 0 on error
- */
+BACNET_STACK_DEPRECATED("Use bacnet_datetime_decode() instead")
+BACNET_STACK_EXPORT
+int bacapp_decode_datetime(
+    uint8_t *apdu, BACNET_DATE_TIME *value);
+BACNET_STACK_DEPRECATED("Use bacnet_datetime_context_decode() instead")
+BACNET_STACK_EXPORT
+int bacapp_decode_context_datetime(uint8_t *apdu,
+    uint8_t tag_number,
+    BACNET_DATE_TIME *value);
+
 BACNET_STACK_EXPORT
 int bacapp_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value);
-
-/**
- * Decode daterange
- *
- * @param apdu - apdu buffer with data
- * @param value - value to decode
- * @return number of bytes consumed, <= 0 on error
- */
+BACNET_STACK_DEPRECATED("Use int bacnet_daterange_decode() instead")
 BACNET_STACK_EXPORT
-int bacapp_daterange_decode(uint8_t *apdu, BACNET_DATE_RANGE *value);
-
-/**
- * Encode daterange with context tag
- *
- * @param apdu - apdu buffer; NULL to only measure capacity needed
- * @param tag_number - context tag number
- * @param value - value to encode
- * @return number of bytes emitted, <= 0 on error
- */
+int bacapp_daterange_decode(uint8_t *apdu, 
+    BACNET_DATE_RANGE *value);
+BACNET_STACK_EXPORT
+int bacnet_daterange_decode(uint8_t *apdu, 
+    uint32_t apdu_size, 
+    BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
 int bacapp_daterange_context_encode(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value);
-
-/**
- * Decode daterange with context tag
- *
- * @param apdu - apdu buffer
- * @param tag_number - context tag number to expect
- * @param value - value to decode
- * @return number of bytes consumed, <= 0 on error
- */
+BACNET_STACK_DEPRECATED("Use int bacnet_daterange_context_decode() instead")
 BACNET_STACK_EXPORT
 int bacapp_daterange_context_decode(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value);
+BACNET_STACK_EXPORT
+int bacnet_daterange_context_decode(uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_DATE_RANGE *value);
 
 /* implementation agnostic functions - create your own! */
 BACNET_STACK_EXPORT

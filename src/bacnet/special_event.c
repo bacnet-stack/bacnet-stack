@@ -37,48 +37,76 @@ License.
 #include "bacnet/bacdcode.h"
 #include "bacapp.h"
 
+/**
+ * @brief Decode a BACnetSpecialEvent complex data type
+ *
+ * BACnetSpecialEvent ::= SEQUENCE {
+ *   period CHOICE {
+ *     calendar-entry [0] BACnetCalendarEntry,
+ *     calendar-reference [1] BACnetObjectIdentifier
+ *   },
+ *   list-of-time-values [2] SEQUENCE OF BACnetTimeValue,
+ *   event-priority [3] Unsigned (1..16)
+ * }
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the size of the APDU buffer
+ * @param value - BACnetSpecialEvent structure
+ * @return length of the APDU buffer, or BACNET_STATUS_ERROR if unable to decode
+ */
 int bacnet_special_event_decode(
-    uint8_t *apdu, int max_apdu_len, BACNET_SPECIAL_EVENT *value)
+    uint8_t *apdu, int apdu_size, BACNET_SPECIAL_EVENT *value)
 {
     int len = 0;
     int apdu_len = 0;
     BACNET_UNSIGNED_INTEGER priority = 0;
+    BACNET_TAG tag = { 0 };
 
-    /* Try to decode calendar entry [0] */
-    len = bacnet_calendar_entry_context_decode(&apdu[apdu_len],
-        max_apdu_len - apdu_len, BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
-        &value->period.calendarEntry);
-    if (len >= 0) {
+    if (!apdu || !value) {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
+    if (tag.opening &&
+        (tag.number == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY)) {
         value->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
-    } else if (len == BACNET_STATUS_REJECT) {
-        /* Not calendar entry, try calendar reference [1] */
+        len = bacnet_calendar_entry_context_decode(&apdu[apdu_len],
+            apdu_size - apdu_len, BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
+            &value->period.calendarEntry);
+        if (len < 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+    } else if (tag.context &&
+        (tag.number == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE)) {
+        value->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
         len = bacnet_object_id_context_decode(&apdu[apdu_len],
-            max_apdu_len - apdu_len,
+            apdu_size - apdu_len,
             BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE,
             &value->period.calendarReference.type,
             &value->period.calendarReference.instance);
         if (len < 0) {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
-        value->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
+        apdu_len += len;
     } else {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
-    apdu_len += len;
-
     /* Values [2] */
     len = bacnet_dailyschedule_context_decode(
-        &apdu[apdu_len], max_apdu_len - apdu_len, 2, &value->timeValues);
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &value->timeValues);
     if (len < 0) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
 
     /* Priority [3] */
     len = bacnet_unsigned_context_decode(
-        &apdu[apdu_len], max_apdu_len - apdu_len, 3, &priority);
+        &apdu[apdu_len], apdu_size - apdu_len, 3, &priority);
     if (len < 0) {
-        return -1;
+        return BACNET_STATUS_ERROR;
+    }
+    if (priority > BACNET_MAX_PRIORITY) {
+        return BACNET_STATUS_ERROR;
     }
     value->priority = (uint8_t)priority;
     apdu_len += len;
@@ -86,6 +114,12 @@ int bacnet_special_event_decode(
     return apdu_len;
 }
 
+/**
+ * @brief Encode a BACnetSpecialEvent complex data type
+ * @param apdu - the APDU buffer (NULL to determine the length)
+ * @param value - BACnetSpecialEvent structure
+ * @return length of the APDU buffer, or 0 if not able to encode
+ */
 int bacnet_special_event_encode(uint8_t *apdu, BACNET_SPECIAL_EVENT *value)
 {
     int apdu_len = 0;
@@ -135,10 +169,10 @@ int bacnet_special_event_encode(uint8_t *apdu, BACNET_SPECIAL_EVENT *value)
 }
 
 /**
- * @brief Encode a context tagged WeeklySchedule complex data type
- * @param apdu - the APDU buffer
- * @param tag_number - the APDU buffer size
- * @param value - WeeklySchedule structure
+ * @brief Encode a context tagged BACnetSpecialEvent complex data type
+ * @param apdu - the APDU buffer (NULL to determine the length)
+ * @param tag_number - tag number to context encode
+ * @param value - BACnetSpecialEvent structure
  * @return length of the APDU buffer, or 0 if not able to encode
  */
 int bacnet_special_event_context_encode(
@@ -146,63 +180,68 @@ int bacnet_special_event_context_encode(
 {
     int len = 0;
     int apdu_len = 0;
-    uint8_t *apdu_offset = NULL;
 
     if (value) {
-        apdu_offset = apdu;
-        len = encode_opening_tag(apdu_offset, tag_number);
+        len = encode_opening_tag(apdu, tag_number);
         apdu_len += len;
         if (apdu) {
-            apdu_offset = &apdu[apdu_len];
+            apdu += len;
         }
-        len = bacnet_special_event_encode(apdu_offset, value);
+        len = bacnet_special_event_encode(apdu, value);
         apdu_len += len;
         if (apdu) {
-            apdu_offset = &apdu[apdu_len];
+            apdu += len;
         }
-        len = encode_closing_tag(apdu_offset, tag_number);
+        len = encode_closing_tag(apdu, tag_number);
         apdu_len += len;
     }
 
-    return apdu_len;
-}
-
-int bacnet_special_event_context_decode(uint8_t *apdu,
-    int max_apdu_len,
-    uint8_t tag_number,
-    BACNET_SPECIAL_EVENT *value)
-{
-    int apdu_len = 0;
-    int len;
-
-    if ((max_apdu_len - apdu_len) >= 1 &&
-        decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
-        apdu_len += 1;
-    } else {
-        return -1;
-    }
-
-    if (-1 ==
-        (len = bacnet_special_event_decode(
-             &apdu[apdu_len], max_apdu_len - apdu_len, value))) {
-        return -1;
-    } else {
-        apdu_len += len;
-    }
-
-    if ((max_apdu_len - apdu_len) >= 1 &&
-        decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
-        apdu_len += 1;
-    } else {
-        return -1;
-    }
     return apdu_len;
 }
 
 /**
- * @brief Compare the BACnetWeeklySchedule complex data
- * @param value1 - BACNET_COLOR_COMMAND structure
- * @param value2 - BACNET_COLOR_COMMAND structure
+ * @brief Decode a context tagged BACnetSpecialEvent complex data type
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the size of the APDU buffer
+ * @param tag_number - tag number to context decode
+ * @param value - BACnetSpecialEvent structure
+ * @return length of the APDU buffer, or BACNET_STATUS_ERROR if unable to decode
+ */
+int bacnet_special_event_context_decode(uint8_t *apdu,
+    int apdu_size,
+    uint8_t tag_number,
+    BACNET_SPECIAL_EVENT *value)
+{
+    int apdu_len = 0;
+    int len = 0;
+
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_special_event_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        apdu_len += len;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Compare the BACnetSpecialEvent complex data
+ * @param value1 - BACNET_SPECIAL_EVENT structure
+ * @param value2 - BACNET_SPECIAL_EVENT structure
  * @return true if the same
  */
 bool bacnet_special_event_same(

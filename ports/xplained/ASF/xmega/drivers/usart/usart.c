@@ -95,7 +95,7 @@ bool usart_init_rs232(USART_t *usart, const usart_rs232_options_t *opt)
  */
 void usart_init_spi(USART_t *usart, const usart_spi_options_t *opt)
 {
-	ioport_pin_t sck_pin;
+	ioport_pin_t sck_pin = UINT8_MAX;
 	bool invert_sck;
 
 	sysclk_enable_peripheral_clock(usart);
@@ -179,6 +179,9 @@ void usart_init_spi(USART_t *usart, const usart_spi_options_t *opt)
 	}
 #endif
 
+	if (sck_pin == UINT8_MAX) {
+		return;
+	}
 	/* Configure the USART output pin */
 	ioport_set_pin_dir(sck_pin, IOPORT_DIR_OUTPUT);
 	ioport_set_pin_mode(sck_pin,

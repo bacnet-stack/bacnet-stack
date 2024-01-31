@@ -25,15 +25,20 @@ static void testAtomicWriteFileAccess(BACNET_ATOMIC_WRITE_FILE_DATA *data)
     uint8_t apdu[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
+    int null_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
 
+    null_len = awf_encode_apdu(NULL, invoke_id, data);
     len = awf_encode_apdu(&apdu[0], invoke_id, data);
     zassert_not_equal(len, 0, NULL);
+    zassert_equal(len, null_len, NULL);
     apdu_len = len;
 
+    null_len = awf_decode_apdu(&apdu[0], apdu_len, NULL, NULL);
     len = awf_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
     zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(len, null_len, NULL);
     zassert_equal(test_data.object_type, data->object_type, NULL);
     zassert_equal(test_data.object_instance, data->object_instance, NULL);
     zassert_equal(test_data.access, data->access, NULL);
@@ -56,6 +61,12 @@ static void testAtomicWriteFileAccess(BACNET_ATOMIC_WRITE_FILE_DATA *data)
         memcmp(octetstring_value(&test_data.fileData[0]),
             octetstring_value(&data->fileData[0]),
             octetstring_length(&test_data.fileData[0])), 0, NULL);
+    /* test APDU too short */
+    while (apdu_len) {
+        apdu_len--;
+        len = awf_decode_apdu(apdu, apdu_len, NULL, NULL);
+        zassert_true(len < 0, "len=%d apdu_len=%d", len, apdu_len);
+    }
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -94,14 +105,19 @@ static void testAtomicWriteFileAckAccess(
     uint8_t apdu[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
+    int null_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
 
-    len = awf_encode_apdu(&apdu[0], invoke_id, data);
+    null_len = awf_ack_encode_apdu(NULL, invoke_id, data);
+    len = awf_ack_encode_apdu(&apdu[0], invoke_id, data);
     zassert_not_equal(len, 0, NULL);
+    zassert_equal(len, null_len, NULL);
     apdu_len = len;
 
-    len = awf_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
+    null_len = awf_ack_decode_apdu(&apdu[0], apdu_len, NULL, NULL);
+    len = awf_ack_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
+    zassert_equal(len, null_len, NULL);
     if (len == BACNET_STATUS_ERROR) {
         if (data->access == FILE_STREAM_ACCESS) {
             printf("testing FILE_STREAM_ACCESS failed decode\n");
@@ -119,6 +135,12 @@ static void testAtomicWriteFileAckAccess(
         zassert_equal(
             test_data.type.record.fileStartRecord,
                 data->type.record.fileStartRecord, NULL);
+    }
+    /* test APDU too short */
+    while (apdu_len) {
+        apdu_len--;
+        len = awf_ack_decode_apdu(apdu, apdu_len, NULL, NULL);
+        zassert_true(len < 0, "len=%d apdu_len=%d", len, apdu_len);
     }
 }
 
