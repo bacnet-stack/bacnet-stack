@@ -71,7 +71,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest,
             pkt->address.mac[0] = MSTP_BROADCAST_ADDRESS;
             pkt->address.len = 0;
         }
-        if (Ringbuf_Data_Put(&port->PDU_Queue, (uint8_t *)pkt)) {
+        if (Ringbuf_Data_Put(&user->PDU_Queue, (uint8_t *)pkt)) {
             bytes_sent = pdu_len;
         }
     }
@@ -305,7 +305,7 @@ void MSTP_Send_Frame(struct mstp_port_struct_t *mstp_port,
         return;
     }
     driver->send(buffer, nbytes);
-    port->Statistics.transmit_frame_counter++;
+    user->Statistics.transmit_frame_counter++;
 }
 
 /**
@@ -326,28 +326,6 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
     user->ReceivePacketPending = true;
 
     return mstp_port->DataLength;
-}
-
-/**
- * @brief Baud rate determines turnaround time.
- * The minimum time after the end of the stop bit of the final octet of a
- * received frame before a node may enable its EIA-485 driver: 40 bit times.
- * At 9600 baud, 40 bit times would be about 4.166 milliseconds
- * At 19200 baud, 40 bit times would be about 2.083 milliseconds
- * At 38400 baud, 40 bit times would be about 1.041 milliseconds
- * At 57600 baud, 40 bit times would be about 0.694 milliseconds
- * At 76800 baud, 40 bit times would be about 0.520 milliseconds
- * At 115200 baud, 40 bit times would be about 0.347 milliseconds
- * 40 bits is 4 octets including a start and stop bit with each octet
- * @param baud_rate - baud rate in bits per second
- * @return: amount of whole milliseconds to wait 1..5
- */
-static uint32_t dlmstp_receive_turnaround_time(uint32_t baud_rate)
-{
-    if (baud_rate == 0) {
-        baud_rate = 9600;
-    }
-    return (1 + ((Tturnaround * 1000) / baud_rate));
 }
 
 /**
@@ -407,10 +385,8 @@ uint16_t dlmstp_receive(
     if (MSTP_Port->ReceivedValidFrameNotForUs ||
         MSTP_Port->ReceivedValidFrame || MSTP_Port->ReceivedInvalidFrame) {
         /* delay after reception before transmitting - per MS/TP spec */
-        turnaround_milliseconds =
-            dlmstp_receive_turnaround_time(driver->baud_rate());
         milliseconds = MSTP_Port->SilenceTimer(MSTP_Port);
-        if (milliseconds < turnaround_milliseconds) {
+        if (milliseconds < MSTP_Port->Tturnaround_timeout) {
             /* we're waiting; do nothing else */
             return 0;
         }
@@ -426,8 +402,10 @@ uint16_t dlmstp_receive(
         user->Statistics.receive_invalid_frame_counter++;
     }
     if (MSTP_Port->receive_state == MSTP_RECEIVE_STATE_IDLE) {
-        /* only do master state machine while rx is idle */
-        if (MSTP_Port->This_Station <= DEFAULT_MAX_MASTER) {
+        /* only node state machines while rx is idle */
+        if (MSTP_Port->SlaveNodeEnabled) {
+            MSTP_Slave_Node_FSM(MSTP_Port);
+        } else if (MSTP_Port->This_Station <= DEFAULT_MAX_MASTER) {
             while (MSTP_Master_Node_FSM(MSTP_Port)) {
                 /* do nothing while some states fast transition */
             };
@@ -700,7 +678,15 @@ void dlmstp_set_baud_rate(uint32_t baud)
     if (!driver) {
         return;
     }
-    driver->baud_rate_set(baud);
+    if (driver->baud_rate_set(baud)) {
+        /* Tframe_abort=60 bit times, not to exceed 100 milliseconds.*/
+        if (MSTP_Port->Tframe_abort <= 7) {
+            /* within baud range, so auto-calculate range based on baud */
+            MSTP_Port->Tframe_abort = 1+((60*1000UL)/baud); 
+        }
+        /* Tturnaround=40 bit times */
+        MSTP_Port->Tturnaround_timeout = 1 + ((Tturnaround * 1000) / baud);
+    }
 }
 
 /**

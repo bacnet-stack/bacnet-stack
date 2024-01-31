@@ -95,6 +95,10 @@ int main(void)
     MSTP_Port.InputBufferSize = sizeof(Input_Buffer);
     MSTP_Port.OutputBuffer = Output_Buffer;
     MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
+    /* not a zero config node */
+    MSTP_Port.ZeroConfigEnabled = false;
+    /* only a master node */
+    MSTP_Port.SlaveNodeEnabled = false;
     /* user data */
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;
