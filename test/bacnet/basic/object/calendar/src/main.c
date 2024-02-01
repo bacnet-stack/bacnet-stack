@@ -1,13 +1,12 @@
-/*
- * Copyright (c) 2023 Legrand North America, LLC.
+/**
+ * @file
+ * @brief Unit test for BACnet Calendar object encode/decode APIs
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date June 2023
  *
  * SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet calendar encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/calendar.h>
 #include <bacnet/bactext.h>

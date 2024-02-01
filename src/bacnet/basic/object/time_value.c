@@ -287,8 +287,6 @@ bool Time_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     return status;
 }
 
-
-
 /**
  * For a given object instance-number, loads the object-name into
  * a characterstring. Note that the object name must be unique
