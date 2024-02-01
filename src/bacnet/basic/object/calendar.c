@@ -195,6 +195,10 @@ static bool Calendar_Present_Value_Write(uint32_t object_instance,
     return status;
 }
 
+/**
+ * For a given date-list, deletes the entire data-list.
+ * @param  list - the list to be deleted
+ */
 static void Calendar_Date_List_Clean(OS_Keylist list)
 {
     void *data;
