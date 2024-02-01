@@ -148,15 +148,12 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     request_pdu = &mstp_port->InputBuffer[0];
     request_pdu_len = mstp_port->DataLength;
     src_address = mstp_port->SourceAddress;
-
-    /* unused parameters */
-    request_pdu_len = request_pdu_len;
-    reply_pdu_len = reply_pdu_len;
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = (uint16_t)npdu_decode(
-        &request_pdu[0], NULL, &request.address, &request.npdu_data);
+    offset = bacnet_npdu_decode(
+        &request_pdu[0], request_pdu_len, NULL, &request.address, 
+	&request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -172,8 +169,9 @@ static bool MSTP_Compare_Data_Expecting_Reply(
         request.service_choice = request_pdu[offset + 3];
     /* decode the reply data */
     bacnet_address_copy(&reply.address, dest_address);
-    offset = (uint16_t)npdu_decode(
-        &reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
+    offset = bacnet_npdu_decode(
+        &reply_pdu[0], reply_pdu_len, &reply.address, NULL, 
+	&reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
@@ -345,7 +343,6 @@ uint16_t dlmstp_receive(
     struct dlmstp_rs485_driver *driver;
     uint16_t i;
     uint32_t milliseconds;
-    uint32_t turnaround_milliseconds;
 
     if (!MSTP_Port) {
         return 0;
