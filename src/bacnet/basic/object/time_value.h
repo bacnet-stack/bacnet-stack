@@ -1,22 +1,14 @@
 /**
  * @file
- * @author Mikhail Antropov
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date June 2023
- * @brief Time Value object, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Time Value object is an object with a present-value that
- * uses an bacnet time data type.
- *
+ * @brief API for a Time Value object used by a BACnet device object
  * @section LICENSE
- *
- * Copyright (C) 2023 Steve Karg <skarg@users.sourceforge.net>
  *
  * SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_TIME_OBJECT_H
-#define BACNET_TIME_OBJECT_H
+#ifndef BACNET_TIME_VALUE_OBJECT_H
+#define BACNET_TIME_VALUE_OBJECT_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -28,7 +20,6 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
-
 /**
  * @brief Callback for gateway write present value request
  * @param  object_instance - object-instance number of the object
@@ -38,7 +29,6 @@
 typedef void (*time_value_write_present_value_callback)(uint32_t object_instance,
     BACNET_TIME *old_value,
     BACNET_TIME *value);
-
 
 #ifdef __cplusplus
 extern "C" {

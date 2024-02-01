@@ -1498,7 +1498,7 @@ int bacapp_decode_known_property(uint8_t *apdu,
             /* BACnetDateRange  (Schedule) */
             len = bacnet_daterange_decode(
                 apdu, max_apdu_len, &value->type.Date_Range);
-#endif                
+#endif
             break;
 
             /* properties without a specific decoder - fall through to default

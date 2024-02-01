@@ -1,18 +1,9 @@
 /**
  * @file
- * @author Mikhail Antropov
- * @date June 2023
- * @brief Calendar object, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Calendar object type defines a standardized object used to describe a
- * list of calendar dates, which might be thought of as "holidays," "special
- * events," or simply as a list of dates.
- *
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
+ * @date June 2022
+ * @brief API for a Calendar object used by a BACnet device object
  * @section LICENSE
- *
- * Copyright (C) 2023 Steve Karg <skarg@users.sourceforge.net>
  *
  * SPDX-License-Identifier: MIT
  */
@@ -30,16 +21,14 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
-
 /**
  * @brief Callback for gateway write present value request
  * @param  object_instance - object-instance number of the object
  * @param  old_value - bool value prior to write
  * @param  value - bool value of the write
  */
-typedef void (*calendar_write_present_value_callback)(uint32_t object_instance,
-    bool old_value, bool value);
-
+typedef void (*calendar_write_present_value_callback)(
+    uint32_t object_instance, bool old_value, bool value);
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,11 +65,11 @@ void Calendar_Write_Present_Value_Callback_Set(
     calendar_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
-BACNET_CALENDAR_ENTRY *
-Calendar_Date_List_Get(uint32_t object_instance, uint8_t index);
+BACNET_CALENDAR_ENTRY *Calendar_Date_List_Get(
+    uint32_t object_instance, uint8_t index);
 BACNET_STACK_EXPORT
-bool Calendar_Date_List_Add(uint32_t object_instance,
-    BACNET_CALENDAR_ENTRY *value);
+bool Calendar_Date_List_Add(
+    uint32_t object_instance, BACNET_CALENDAR_ENTRY *value);
 BACNET_STACK_EXPORT
 bool Calendar_Date_List_Delete_All(uint32_t object_instance);
 BACNET_STACK_EXPORT

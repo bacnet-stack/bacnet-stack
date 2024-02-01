@@ -1,6 +1,7 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date June 2022
  * @brief Calendar objects, customize for your use
  *
@@ -12,17 +13,16 @@
  *
  * @section LICENSE
  *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
  * SPDX-License-Identifier: MIT
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacnet/config.h"
+#include "bacnet/abort.h"
+#include "bacnet/apdu.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
@@ -30,9 +30,8 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
 #include "bacnet/cov.h"
-#include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
-#include "bacnet/abort.h"
+#include "bacnet/proplist.h"
 #include "bacnet/reject.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -62,6 +61,11 @@ static const int Calendar_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
 static const int Calendar_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
 static const int Calendar_Properties_Proprietary[] = { -1 };
+
+/* standard properties that are arrays for this object,
+   but not necessary supported in this object */
+static const int BACnetARRAY_Properties[] = { 
+    PROP_PRIORITY_ARRAY, PROP_TAGS, -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -455,6 +459,46 @@ bool Calendar_Description_Set(uint32_t object_instance, char *new_name)
 }
 
 /**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    (void)object_instance;
+    Calendar_Property_Lists(
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
+ * @brief Determine if the object property is a BACnetARRAY property
+ * @param object_property - object-property to be checked
+ * @return true if the property is a BACnetARRAY property
+ */
+static bool BACnetARRAY_Property(
+    int object_property)
+{
+    return property_list_member(
+            BACnetARRAY_Properties, object_property);
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -513,8 +557,8 @@ int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
-        (rpdata->object_property != PROP_TAGS) &&
+    if ((apdu_len >= 0) &&
+        (!BACnetARRAY_Property(rpdata->object_property)) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -553,8 +597,7 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->object_property != PROP_TAGS) &&
+    if ((!BACnetARRAY_Property(wp_data->object_property)) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -564,7 +607,6 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     switch (wp_data->object_property) {
         case PROP_DATE_LIST:
             pv_old = Calendar_Present_Value(wp_data->object_instance);
-
             Calendar_Date_List_Delete_All(wp_data->object_instance);
             iOffset = 0;
             /* decode all packed */
@@ -586,18 +628,15 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 pv_old, pv, wp_data->priority, &wp_data->error_class,
                 &wp_data->error_code);
             break;
-            
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_TYPE:
-        case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
-        case PROP_PRESENT_VALUE:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -663,6 +702,7 @@ void Calendar_Write_Disable(uint32_t object_instance)
 /**
  * Creates a Calendar object
  * @param object_instance - object-instance number of the object
+ * @return object_instance if the object is created, else BACNET_MAX_INSTANCE
  */
 uint32_t Calendar_Create(uint32_t object_instance)
 {

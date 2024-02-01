@@ -1,21 +1,19 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date June 2023
- * @brief Time Value objects, customize for your use
+ * @brief Time Value objects used by a BACnet device object
  *
  * @section DESCRIPTION
  *
- * The Time Value object is an object with a present-value that
+  * The Time Value object is an object with a present-value that
  * uses an bacnet time data type.
- *
+*
  * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
  *
  * SPDX-License-Identifier: MIT
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,7 +65,7 @@ static const int Time_Value_Properties_Proprietary[] = { -1 };
 
 /* standard properties that are arrays for this object,
    but not necessary supported in this object */
-static const int Time_Value_Properties_BACnetARRAY[] = { 
+static const int BACnetARRAY_Properties[] = { 
     PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS, 
     PROP_EVENT_MESSAGE_TEXTS_CONFIG,
     PROP_VALUE_SOURCE_ARRAY, PROP_COMMAND_TIME_ARRAY, PROP_TAGS, -1 };
@@ -397,7 +395,7 @@ bool Time_Value_Description_Set(uint32_t object_instance, char *new_name)
  * @param object_property - object-property to be checked
  * @return true if the property is a member of this object instance
  */
-static bool Time_Value_Property_List_Member(
+static bool Property_List_Member(
     uint32_t object_instance, int object_property)
 {
     bool found = false;
@@ -424,11 +422,11 @@ static bool Time_Value_Property_List_Member(
  * @param object_property - object-property to be checked
  * @return true if the property is a BACnetARRAY property
  */
-static bool Time_Value_BACnetARRAY_Property(
+static bool BACnetARRAY_Property(
     int object_property)
 {
     return property_list_member(
-            Time_Value_Properties_BACnetARRAY, object_property);
+            BACnetARRAY_Properties, object_property);
 }
 
 /**
@@ -505,7 +503,7 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) &&
-        (!Time_Value_BACnetARRAY_Property(rpdata->object_property)) &&
+        (!BACnetARRAY_Property(rpdata->object_property)) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -540,7 +538,7 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((!Time_Value_BACnetARRAY_Property(wp_data->object_property)) &&
+    if ((!BACnetARRAY_Property(wp_data->object_property)) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -564,7 +562,7 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         default:
-            if (Time_Value_Property_List_Member(
+            if (Property_List_Member(
                     wp_data->object_instance, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -656,6 +654,7 @@ void Time_Value_Write_Disable(uint32_t object_instance)
 /**
  * Creates a Time Value object
  * @param object_instance - object-instance number of the object
+ * @return object_instance if the object is created, else BACNET_MAX_INSTANCE
  */
 uint32_t Time_Value_Create(uint32_t object_instance)
 {

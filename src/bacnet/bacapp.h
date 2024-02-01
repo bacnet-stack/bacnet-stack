@@ -32,7 +32,6 @@
 #include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
-#include "bacnet/calendar_entry.h"
 #include "bacnet/datetime.h"
 #include "bacnet/lighting.h"
 #include "bacnet/bacdevobjpropref.h"
