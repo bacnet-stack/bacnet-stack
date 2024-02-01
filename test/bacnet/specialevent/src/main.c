@@ -35,7 +35,7 @@ ZTEST(BACnetSpecialEvent_tests, test_BACnetSpecialEvent_CalendarRef)
 static void test_BACnetSpecialEvent_CalendarRef(void)
 #endif
 {
-    int len, apdu_len;
+    int len, apdu_len, null_len;
     uint8_t apdu[MAX_APDU] = { 0 };
 
     BACNET_SPECIAL_EVENT in = {
@@ -84,8 +84,10 @@ static void test_BACnetSpecialEvent_CalendarRef(void)
     BACNET_SPECIAL_EVENT out = { 0 };
 
     len = bacnet_special_event_encode(apdu, &in);
-    apdu_len = bacnet_special_event_decode(apdu, len, &out);
+    null_len = bacnet_special_event_encode(NULL, &in);
+    zassert_equal(len, null_len, NULL);
 
+    apdu_len = bacnet_special_event_decode(apdu, len, &out);
     zassert_equal(len, apdu_len, NULL);
 
     zassert_equal(in.periodTag, out.periodTag, NULL);
@@ -135,7 +137,7 @@ ZTEST(BACnetSpecialEvent_tests, test_BACnetSpecialEvent_Date)
 static void test_BACnetSpecialEvent_Date(void)
 #endif
 {
-    int len, apdu_len;
+    int len, apdu_len, null_len;
     uint8_t apdu[MAX_APDU] = { 0 };
 
     BACNET_SPECIAL_EVENT in = {
@@ -162,11 +164,12 @@ static void test_BACnetSpecialEvent_Date(void)
     BACNET_SPECIAL_EVENT out = { 0 };
 
     len = bacnet_special_event_encode(apdu, &in);
-    apdu_len = bacnet_special_event_decode(apdu, len, &out);
+    null_len = bacnet_special_event_encode(NULL, &in);
+    zassert_equal(len, null_len, NULL);
 
+    apdu_len = bacnet_special_event_decode(apdu, len, &out);
     zassert_equal(len, apdu_len, NULL);
     zassert_equal(in.periodTag, out.periodTag, NULL);
-
     zassert_equal(
         in.period.calendarEntry.tag, out.period.calendarEntry.tag, NULL);
     zassert_equal(in.period.calendarEntry.type.Date.wday,
@@ -191,7 +194,7 @@ ZTEST(BACnetSpecialEvent_tests, test_BACnetSpecialEvent_DateRange)
 static void test_BACnetSpecialEvent_DateRange(void)
 #endif
 {
-    int len, apdu_len;
+    int len, apdu_len, null_len;
     uint8_t apdu[MAX_APDU] = { 0 };
 
     BACNET_SPECIAL_EVENT in = {
@@ -226,8 +229,10 @@ static void test_BACnetSpecialEvent_DateRange(void)
     BACNET_SPECIAL_EVENT out = { 0 };
 
     len = bacnet_special_event_encode(apdu, &in);
-    apdu_len = bacnet_special_event_decode(apdu, len, &out);
+    null_len = bacnet_special_event_encode(NULL, &in);
+    zassert_equal(len, null_len, NULL);
 
+    apdu_len = bacnet_special_event_decode(apdu, len, &out);
     zassert_equal(len, apdu_len, "apdu_len %d != len %d", apdu_len, len);
     zassert_equal(in.periodTag, out.periodTag, NULL);
 
@@ -265,7 +270,7 @@ ZTEST(BACnetSpecialEvent_tests, test_BACnetSpecialEvent_WeekNDate)
 static void test_BACnetSpecialEvent_WeekNDate(void)
 #endif
 {
-    int len, apdu_len;
+    int len, apdu_len, null_len;
     uint8_t apdu[MAX_APDU] = { 0 };
 
     BACNET_SPECIAL_EVENT in = {
@@ -291,8 +296,10 @@ static void test_BACnetSpecialEvent_WeekNDate(void)
     BACNET_SPECIAL_EVENT out = { 0 };
 
     len = bacnet_special_event_encode(apdu, &in);
-    apdu_len = bacnet_special_event_decode(apdu, len, &out);
+    null_len = bacnet_special_event_encode(NULL, &in);
+    zassert_equal(len, null_len, NULL);
 
+    apdu_len = bacnet_special_event_decode(apdu, len, &out);
     zassert_equal(len, apdu_len, NULL);
     zassert_equal(in.periodTag, out.periodTag, NULL);
 
