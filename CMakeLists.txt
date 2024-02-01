@@ -151,6 +151,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/dailyschedule.h
     src/bacnet/weeklyschedule.c
     src/bacnet/weeklyschedule.h
+    src/bacnet/special_event.c
+    src/bacnet/special_event.h
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
@@ -389,6 +391,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/bits.h
     src/bacnet/bytes.h
     src/bacnet/config.h
+    src/bacnet/calendar_entry.c
+    src/bacnet/calendar_entry.h
     src/bacnet/cov.c
     src/bacnet/cov.h
     src/bacnet/create_object.c

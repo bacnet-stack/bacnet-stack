@@ -38,6 +38,8 @@
 #include "bacnet/hostnport.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/weeklyschedule.h"
+#include "bacnet/calendar_entry.h"
+#include "bacnet/special_event.h"
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
@@ -88,6 +90,9 @@ typedef struct BACnet_Application_Data_Value {
 #if defined (BACAPP_DATETIME)
         BACNET_DATE_TIME Date_Time;
 #endif
+#if defined (BACAPP_DATERANGE)
+        BACNET_DATE_RANGE Date_Range;
+#endif
 #if defined (BACAPP_LIGHTING_COMMAND)
         BACNET_LIGHTING_COMMAND Lighting_Command;
 #endif
@@ -117,6 +122,12 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined (BACAPP_DESTINATION)
         BACNET_DESTINATION Destination;
+#endif
+#if defined (BACAPP_CALENDAR_ENTRY)
+        BACNET_CALENDAR_ENTRY Calendar_Entry;
+#endif
+#if defined (BACAPP_SPECIAL_EVENT)
+        BACNET_SPECIAL_EVENT Special_Event;
 #endif
     } type;
     /* simple linked list if needed */

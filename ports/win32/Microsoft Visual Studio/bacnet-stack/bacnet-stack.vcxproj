@@ -189,6 +189,8 @@
     <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\timesync.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\weeklyschedule.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\calendar_entry.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\special_event.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\whohas.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\whois.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\wp.c" />
