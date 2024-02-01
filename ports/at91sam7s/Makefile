@@ -97,7 +97,6 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
-	$(BACNET_CORE)/calendar_entry.c \
 	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \

@@ -50,9 +50,7 @@ CORESRC =  \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacapp.c \
-	$(BACNET_CORE)/version.c \
-	$(BACNET_CORE)/calendar_entry.c \
-	$(BACNET_CORE)/datetime.c
+	$(BACNET_CORE)/version.c
 
 #	$(BACNET_CORE)/bacprop.c \
 #	$(BACNET_CORE)/bactext.c \

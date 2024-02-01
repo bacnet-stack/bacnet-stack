@@ -83,7 +83,6 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/sys/linear.c
 	${SRC_DIR}/bacnet/basic/tsm/tsm.c
 	${SRC_DIR}/bacnet/datalink/bvlc.c
-	${SRC_DIR}/bacnet/calendar_entry.c
 	${SRC_DIR}/bacnet/cov.c
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/basic/sys/days.c

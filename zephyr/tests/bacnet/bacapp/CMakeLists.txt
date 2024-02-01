@@ -50,7 +50,6 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
-    ${BACNET_SRC}/calendar_entry.c
     )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")

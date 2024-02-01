@@ -58,7 +58,6 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/calendar_entry.c
 	${SRC_DIR}/bacnet/special_event.c
 	${SRC_DIR}/bacnet/memcopy.c
-	${SRC_DIR}/bacnet/calendar_entry.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c
