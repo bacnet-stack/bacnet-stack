@@ -85,12 +85,6 @@ int main(void)
     /* enable some clocks - USART and GPIO clocks are enabled in our drivers */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-    /* enable the random number generator hardware */
-    RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_RNG, ENABLE);
-    RNG_Cmd(ENABLE);
-    while (RNG_GetFlagStatus(RNG_FLAG_DRDY) == RESET) {
-        /* wait for 32-bit random number to generate */
-    }
     /* initialize hardware layer */
     mstimer_init();
     led_init();
@@ -124,6 +118,12 @@ int main(void)
     /* seed stdlib rand() with device-id to get pweudo consisten 
        zero-config poll slot, or use hardware RNG to get a more random slot */
 #ifdef BACNET_ZERO_CONFIG_RNG_HARDWARE
+    /* enable the random number generator hardware */
+    RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_RNG, ENABLE);
+    RNG_Cmd(ENABLE);
+    while (RNG_GetFlagStatus(RNG_FLAG_DRDY) == RESET) {
+        /* wait for 32-bit random number to generate */
+    }
     srand(RNG_GetRandomNumber());
 #else
     srand(Device_Object_Instance_Number());
