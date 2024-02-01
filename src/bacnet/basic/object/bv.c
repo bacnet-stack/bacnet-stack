@@ -61,6 +61,7 @@ typedef struct binary_value_descr {
   uint32_t Instance;
   BACNET_CHARACTER_STRING Name;
   BACNET_CHARACTER_STRING Description;
+  bool Change_Of_Value;
 } BINARY_VALUE_DESCR;
 
 static BINARY_VALUE_DESCR BV_Descr[MAX_BINARY_VALUES];
@@ -120,6 +121,7 @@ void Binary_Value_Init(void)
         for (i = 0; i < MAX_BINARY_VALUES; i++) {
             memset(&BV_Descr[i], 0x00, sizeof(BINARY_VALUE_DESCR));
             BV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_BINARY_VALUE));
+            BV_Descr[i].Change_Of_Value = false;
 
             for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
                 Binary_Value_Level[i][j] = BINARY_NULL;
@@ -198,7 +200,6 @@ bool Binary_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     PRINTF("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_BINARY_VALUES);
     return false;
   }
-    PRINTF("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_BINARY_VALUES);
 
   for (i = 0; i < pInit_data->length; i++) {
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
@@ -256,14 +257,65 @@ BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
     index = Binary_Value_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_VALUES) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-            if (Binary_Value_Level[index][i] != BINARY_NULL) {
-                value = Binary_Value_Level[index][i];
-                break;
-            }
+          if (Binary_Value_Level[index][i] != BINARY_NULL) {
+            value = Binary_Value_Level[index][i];
+            break;
+          }
         }
     }
 
     return value;
+}
+
+/**
+ * For a given object instance-number, sets the present-value at a given
+ * priority 1..16.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - BACNET_BINARY_PV binary value translated to either 0 or 1
+ * @param  priority - priority 1..16
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+bool Binary_Value_Present_Value_Set(
+    uint32_t object_instance, BACNET_BINARY_PV value, uint8_t priority)
+{
+    bool status = false;
+
+    if((priority > 0) && (priority <= BACNET_MAX_PRIORITY)) {
+      unsigned index = Binary_Value_Instance_To_Index(object_instance);
+
+      if (index < BV_Max_Index) {
+        if (Binary_Value_Level[index][priority-1] != value) {
+          BV_Descr[index].Change_Of_Value = true;
+        }
+        Binary_Value_Level[index][priority-1] = value;
+        status = true;
+      }
+    }
+
+    return status;
+}
+
+bool Binary_Value_Change_Of_Value(uint32_t object_instance)
+{
+    bool status = false;
+    unsigned index = Binary_Value_Instance_To_Index(object_instance);
+
+    if (index < BV_Max_Index) {
+        status = BV_Descr[index].Change_Of_Value;
+    }
+
+    return status;
+}
+
+void Binary_Value_Change_Of_Value_Clear(uint32_t object_instance)
+{
+    unsigned index = Binary_Value_Instance_To_Index(object_instance);
+
+    if (index < BV_Max_Index) {
+        BV_Descr[index].Change_Of_Value = false;
+    }
 }
 
 /**
