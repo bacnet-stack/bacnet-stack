@@ -643,7 +643,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         (mstp_port->Next_Station + 1) % (mstp_port->Nmax_master + 1);
     switch (mstp_port->master_state) {
         case MSTP_MASTER_STATE_INITIALIZE:
-            if (mstp_port->This_Station == 255) {
+            if (mstp_port->ZeroConfigEnabled) {
                 MSTP_Zero_Config_FSM(mstp_port);
                 if (mstp_port->This_Station != 255) {
                     /* indicate that the next station is unknown */
