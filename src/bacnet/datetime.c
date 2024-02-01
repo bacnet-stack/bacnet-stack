@@ -1,36 +1,15 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnetDate, BACnetTime, BACnetDateTime, BACnetDateRange complex data 
+ *  type encode and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @author Ondřej Hruška <ondra@ondrovo.com>
+ * @date 2012
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -1182,10 +1161,159 @@ int bacnet_datetime_context_decode(uint8_t *apdu,
     return apdu_len;
 }
 
+/**
+ * @brief Decodes a context tagged BACnetDateTime value from APDU buffer
+ * @param apdu - the APDU buffer
+ * @param tag_number - context tag number to be encoded
+ * @param value - parameter to store the value after decoding
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
+ * @deprecated - use bacnet_datetime_context_decode() instead
+ */
 int bacapp_decode_context_datetime(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value)
 {
     return bacnet_datetime_context_decode(apdu, MAX_APDU, tag_number, value);
+}
+
+/**
+ * @brief Encode BACnetDateRange complex data type
+ *
+ * BACnetDateRange ::= SEQUENCE { -- see Clause 20.2.12 for restrictions
+ *   start-date Date,
+ *   end-date Date
+ * }
+ *
+ * @param apdu - apdu buffer; NULL to only measure capacity needed
+ * @param value - value to encode
+ * @return number of bytes emitted, BACNET_STATUS_ERROR on error
+ */
+int bacnet_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    len = encode_application_date(apdu, &value->startdate);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+
+    len = encode_application_date(apdu, &value->enddate);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode BACnetDateRange complex data type
+ * @param apdu - apdu buffer; NULL to only measure capacity needed
+ * @param apdu_size - apdu buffer size
+ * @param value - value to decode
+ * @return number of bytes emitted, BACNET_STATUS_ERROR on error
+ */
+int bacnet_daterange_decode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_DATE_RANGE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!apdu || !value) {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_date_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &value->startdate);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len = bacnet_date_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &value->enddate);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode daterange with context tag
+ * @param apdu - apdu buffer; NULL to only measure capacity needed
+ * @param tag_number - context tag number
+ * @param value - value to encode
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
+ */
+int bacnet_daterange_context_encode(
+    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (value) {
+        len = encode_opening_tag(apdu, tag_number);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = bacnet_daterange_encode(apdu, value);
+        if (len <= 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_number);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode BACnetDateRange complex data with context tag
+ * @param apdu - apdu buffer to decode
+ * @param apdu_size - apdu buffer size
+ * @param tag_number - context tag number
+ * @param value - value to encode
+ * @return number of bytes decoded, BACNET_STATUS_ERROR on error
+ */
+int bacnet_daterange_context_decode(uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_DATE_RANGE *value)
+{
+    int apdu_len = 0;
+    int len = 0;
+
+    if (!apdu || !value) {
+        return -1;
+    }
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_daterange_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        apdu_len += len;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    return apdu_len;
 }
 
 /**

@@ -55,6 +55,8 @@
 #include "bacnet/lighting.h"
 #include "bacnet/hostnport.h"
 #include "bacnet/weeklyschedule.h"
+#include "bacnet/calendar_entry.h"
+#include "bacnet/special_event.h"
 #include "bacnet/basic/sys/platform.h"
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
@@ -157,6 +159,11 @@ int bacapp_encode_application_data(
                 apdu_len = bacapp_encode_datetime(apdu, &value->type.Date_Time);
                 break;
 #endif
+#if defined(BACAPP_DATERANGE)
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                apdu_len = bacnet_daterange_encode(apdu, &value->type.Date_Range);
+                break;
+#endif
 #if defined(BACAPP_LIGHTING_COMMAND)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 /* BACnetLightingCommand */
@@ -182,6 +189,20 @@ int bacapp_encode_application_data(
                 /* BACnetWeeklySchedule */
                 apdu_len = bacnet_weeklyschedule_encode(
                     apdu, &value->type.Weekly_Schedule);
+                break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* BACnetCalendarEntry */
+                apdu_len = bacnet_calendar_entry_encode(
+                    apdu, &value->type.Calendar_Entry);
+                break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* BACnetSpecialEvent */
+                apdu_len = bacnet_special_event_encode(
+                    apdu, &value->type.Special_Event);
                 break;
 #endif
 #if defined(BACAPP_HOST_N_PORT)
@@ -336,6 +357,12 @@ int bacapp_decode_data(uint8_t *apdu,
                     apdu, len_value_type, &value->type.Date_Time);
                 break;
 #endif
+#if defined(BACAPP_DATERANGE)
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                len = bacnet_daterange_decode(apdu, len_value_type, 
+                    &value->type.Date_Range);
+                break;
+#endif
 #if defined(BACAPP_LIGHTING_COMMAND)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 len = lighting_command_decode(
@@ -359,7 +386,19 @@ int bacapp_decode_data(uint8_t *apdu,
 #if defined(BACAPP_WEEKLY_SCHEDULE)
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 len = bacnet_weeklyschedule_decode(
-                    apdu, len_value_type, &value->type.Weekly_Schedule);
+                    apdu, (int) len_value_type, &value->type.Weekly_Schedule);
+                break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                len = bacnet_calendar_entry_decode(
+                    apdu, len_value_type, &value->type.Calendar_Entry);
+                break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                len = bacnet_special_event_decode(
+                    apdu, (int) len_value_type, &value->type.Special_Event);
                 break;
 #endif
 #if defined(BACAPP_HOST_N_PORT)
@@ -692,6 +731,12 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                     apdu, context_tag_number, &value->type.Date_Time);
                 break;
 #endif
+#if defined(BACAPP_DATERANGE)
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                apdu_len = bacnet_daterange_context_encode(
+                    apdu, context_tag_number, &value->type.Date_Range);
+                break;
+#endif
 #if defined(BACAPP_LIGHTING_COMMAND)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 apdu_len = lighting_command_encode_context(
@@ -703,6 +748,20 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 /* BACnetxyColor */
                 apdu_len = xy_color_context_encode(
                     apdu, context_tag_number, &value->type.XY_Color);
+                break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* BACnetWeeklySchedule */
+                apdu_len = bacnet_calendar_entry_context_encode(
+                    apdu, context_tag_number, &value->type.Calendar_Entry);
+                break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* BACnetWeeklySchedule */
+                apdu_len = bacnet_special_event_context_encode(
+                    apdu, context_tag_number, &value->type.Special_Event);
                 break;
 #endif
 #if defined(BACAPP_COLOR_COMMAND)
@@ -1216,19 +1275,19 @@ int bacapp_known_property_tag(
 
         case PROP_EXCEPTION_SCHEDULE:
             /* BACnetSpecialEvent (Schedule) */
-            return -1;
+            return BACNET_APPLICATION_TAG_SPECIAL_EVENT;
 
         case PROP_DATE_LIST:
-            /* FIXME: Properties using : BACnetCalendarEntry */
-            return -1;
+            /* BACnetCalendarEntry */
+            return BACNET_APPLICATION_TAG_CALENDAR_ENTRY;
 
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             /* FIXME: BACnetCOVSubscription */
             return -1;
 
         case PROP_EFFECTIVE_PERIOD:
-            /* FIXME: Properties using BACnetDateRange  (Schedule) */
-            return -1;
+            /* BACnetDateRange (Schedule) */
+            return BACNET_APPLICATION_TAG_DATERANGE;
 
         case PROP_RECIPIENT_LIST:
             /* Properties using BACnetDestination */
@@ -1417,19 +1476,37 @@ int bacapp_decode_known_property(uint8_t *apdu,
 #endif
             break;
 
+        case PROP_DATE_LIST:
+#ifdef BACAPP_CALENDAR_ENTRY      
+            /* List of BACnetCalendarEntry */
+            len = bacnet_calendar_entry_decode(
+                apdu, max_apdu_len, &value->type.Calendar_Entry);
+#endif
+            break;
+
+        case PROP_EXCEPTION_SCHEDULE:
+#ifdef BACAPP_SPECIAL_EVENT
+            /* List of BACnetSpecialEvent (Schedule) */
+            len = bacnet_special_event_decode(
+                apdu, max_apdu_len, &value->type.Special_Event);
+#endif
+            break;
+
+        case PROP_EFFECTIVE_PERIOD:
+#ifdef BACAPP_DATERANGE
+            /* BACnetDateRange  (Schedule) */
+            len = bacnet_daterange_decode(
+                apdu, max_apdu_len, &value->type.Date_Range);
+#endif
+            break;
+
             /* properties without a specific decoder - fall through to default
              */
 
         case PROP_LIST_OF_GROUP_MEMBERS:
             /* Properties using ReadAccessSpecification */
-        case PROP_EXCEPTION_SCHEDULE:
-            /* BACnetSpecialEvent (Schedule) */
-        case PROP_DATE_LIST:
-            /* FIXME: Properties using : BACnetCalendarEntry */
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             /* FIXME: BACnetCOVSubscription */
-        case PROP_EFFECTIVE_PERIOD:
-            /* FIXME: Properties using BACnetDateRange  (Schedule) */
         case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
         case PROP_RESTART_NOTIFICATION_RECIPIENTS:
         case PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
@@ -2305,6 +2382,26 @@ int bacapp_snprintf_value(
                 ret_val += slen;
                 break;
 #endif
+#if defined(BACAPP_DATERANGE)
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                slen = bacapp_snprintf_date(str, str_len, &value->type.Date_Range.startdate);
+                ret_val += slen;
+                if (str) {
+                    str += slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
+                }
+
+                slen = snprintf(str, str_len, "..");
+                ret_val += slen;
+
+                slen = bacapp_snprintf_date(str, str_len, &value->type.Date_Range.enddate);
+                ret_val += slen;
+                break;
+#endif
 #if defined(BACAPP_TIMESTAMP)
             case BACNET_APPLICATION_TAG_TIMESTAMP:
                 /*ISO 8601 format */
@@ -2387,6 +2484,20 @@ int bacapp_snprintf_value(
                 /* BACnetWeeklySchedule */
                 ret_val = bacapp_snprintf_weeklyschedule(str, str_len,
                     &value->type.Weekly_Schedule, object_value->array_index);
+                break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* FIXME: add printing for BACnetSpecialEvent */
+                ret_val =
+                    snprintf(str, str_len, "SpecialEvent(TODO)");
+                break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* FIXME: add printing for BACnetCalendarEntry */
+                ret_val =
+                    snprintf(str, str_len, "CalendarEntry(TODO)");
                 break;
 #endif
 #if defined(BACAPP_HOST_N_PORT)
@@ -2901,6 +3012,16 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                 status = parse_weeklyschedule(argv, value);
                 break;
 #endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* FIXME: add parsing for BACnetSpecialEvent */
+                break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* FIXME: add parsing for BACnetCalendarEntry */
+                break;
+#endif
 #if defined(BACAPP_HOST_N_PORT)
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 status =
@@ -3358,6 +3479,22 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
                 status =
                     bacnet_weeklyschedule_same(&value->type.Weekly_Schedule,
                         &test_value->type.Weekly_Schedule);
+                break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                /* BACnetCalendarEntry */
+                status =
+                    bacnet_calendar_entry_same(&value->type.Calendar_Entry,
+                        &test_value->type.Calendar_Entry);
+                break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* BACnetSpecialEvent */
+                status =
+                    bacnet_special_event_same(&value->type.Special_Event,
+                        &test_value->type.Special_Event);
                 break;
 #endif
 #if defined(BACAPP_HOST_N_PORT)

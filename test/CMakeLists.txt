@@ -21,6 +21,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wno-sign-conversion -Wno-conversion)
     add_compile_options(-Wno-sign-compare -Wno-long-long)
     add_compile_options(-Wno-implicit-fallthrough -Wno-attributes)
+    add_compile_options(-Wno-missing-braces)
     # ignore some warnings that occur during unit testing
     add_compile_options(-Wno-unused-variable -Wno-unused-function)
     add_compile_options(-Wno-unused-parameter)
@@ -87,6 +88,7 @@ list(APPEND testdirs
   bacnet/reject
   bacnet/rp
   bacnet/rpm
+  bacnet/specialevent
   bacnet/timestamp
   bacnet/timesync
   bacnet/whohas

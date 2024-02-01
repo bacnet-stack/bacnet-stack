@@ -270,7 +270,8 @@ static void testCOVSubscribePropertyData(
     zassert_equal(
         test_data->covIncrementPresent, data->covIncrementPresent, NULL);
     if (test_data->covIncrementPresent) {
-        zassert_equal(test_data->covIncrement, data->covIncrement, NULL);
+        zassert_false(islessgreater(test_data->covIncrement, 
+            data->covIncrement), NULL);
     }
 }
 

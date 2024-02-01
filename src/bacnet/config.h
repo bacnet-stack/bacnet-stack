@@ -157,10 +157,13 @@
     defined(BACAPP_TIME) || \
     defined(BACAPP_OBJECT_ID) || \
     defined(BACAPP_DATETIME) || \
+    defined(BACAPP_DATERANGE) || \
     defined(BACAPP_LIGHTING_COMMAND) || \
     defined(BACAPP_XY_COLOR) || \
     defined(BACAPP_COLOR_COMMAND) || \
     defined(BACAPP_WEEKLY_SCHEDULE) || \
+    defined(BACAPP_CALENDAR_ENTRY) || \
+    defined(BACAPP_SPECIAL_EVENT) || \
     defined(BACAPP_HOST_N_PORT) || \
     defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
@@ -194,10 +197,13 @@
 #define BACAPP_DOUBLE
 #define BACAPP_TIMESTAMP
 #define BACAPP_DATETIME
+#define BACAPP_DATERANGE
 #define BACAPP_LIGHTING_COMMAND
 #define BACAPP_XY_COLOR
 #define BACAPP_COLOR_COMMAND
 #define BACAPP_WEEKLY_SCHEDULE
+#define BACAPP_CALENDAR_ENTRY
+#define BACAPP_SPECIAL_EVENT
 #define BACAPP_HOST_N_PORT
 #define BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE
 #define BACAPP_DEVICE_OBJECT_REFERENCE
@@ -207,10 +213,13 @@
 
 #if defined(BACAPP_DOUBLE) || \
     defined(BACAPP_DATETIME) || \
+    defined(BACAPP_DATERANGE) || \
     defined(BACAPP_LIGHTING_COMMAND) || \
     defined(BACAPP_XY_COLOR) || \
     defined(BACAPP_COLOR_COMMAND) || \
     defined(BACAPP_WEEKLY_SCHEDULE) || \
+    defined(BACAPP_CALENDAR_ENTRY) || \
+    defined(BACAPP_SPECIAL_EVENT) || \
     defined(BACAPP_HOST_N_PORT) || \
     defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \

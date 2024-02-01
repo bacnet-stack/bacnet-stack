@@ -291,8 +291,9 @@ static void testEventEventState(void)
     zassert_equal(data.notificationParams.changeOfValue.tag,
         data2.notificationParams.changeOfValue.tag, NULL);
 
-    zassert_equal(data.notificationParams.changeOfValue.newValue.changeValue,
-        data2.notificationParams.changeOfValue.newValue.changeValue, NULL);
+    zassert_false(islessgreater(
+        data.notificationParams.changeOfValue.newValue.changeValue,
+        data2.notificationParams.changeOfValue.newValue.changeValue), NULL);
 
     /*
      ** Event Type = EVENT_CHANGE_OF_VALUE - bitstring value
@@ -462,14 +463,15 @@ static void testEventEventState(void)
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
     verifyBaseEventState();
 
-    zassert_equal(data.notificationParams.floatingLimit.referenceValue,
-        data2.notificationParams.floatingLimit.referenceValue, NULL);
-
-    zassert_equal(data.notificationParams.floatingLimit.setPointValue,
-        data2.notificationParams.floatingLimit.setPointValue, NULL);
-
-    zassert_equal(data.notificationParams.floatingLimit.errorLimit,
-        data2.notificationParams.floatingLimit.errorLimit, NULL);
+    zassert_false(islessgreater(
+        data.notificationParams.floatingLimit.referenceValue,
+        data2.notificationParams.floatingLimit.referenceValue), NULL);
+    zassert_false(islessgreater(
+        data.notificationParams.floatingLimit.setPointValue,
+        data2.notificationParams.floatingLimit.setPointValue), NULL);
+    zassert_false(islessgreater(
+        data.notificationParams.floatingLimit.errorLimit,
+        data2.notificationParams.floatingLimit.errorLimit), NULL);
     zassert_true(
         bitstring_same(&data.notificationParams.floatingLimit.statusFlags,
             &data2.notificationParams.floatingLimit.statusFlags),
@@ -508,14 +510,16 @@ static void testEventEventState(void)
     zassert_equal(apdu_len, test_len, NULL);
     verifyBaseEventState();
 
-    zassert_equal(data.notificationParams.outOfRange.deadband,
-        data2.notificationParams.outOfRange.deadband, NULL);
+    zassert_false(islessgreater(data.notificationParams.outOfRange.deadband,
+        data2.notificationParams.outOfRange.deadband), NULL);
 
-    zassert_equal(data.notificationParams.outOfRange.exceededLimit,
-        data2.notificationParams.outOfRange.exceededLimit, NULL);
+    zassert_false(islessgreater(
+        data.notificationParams.outOfRange.exceededLimit,
+        data2.notificationParams.outOfRange.exceededLimit), NULL);
 
-    zassert_equal(data.notificationParams.outOfRange.exceedingValue,
-        data2.notificationParams.outOfRange.exceedingValue, NULL);
+    zassert_false(islessgreater(
+        data.notificationParams.outOfRange.exceedingValue,
+        data2.notificationParams.outOfRange.exceedingValue), NULL);
     zassert_true(bitstring_same(&data.notificationParams.outOfRange.statusFlags,
                      &data2.notificationParams.outOfRange.statusFlags),
         NULL);

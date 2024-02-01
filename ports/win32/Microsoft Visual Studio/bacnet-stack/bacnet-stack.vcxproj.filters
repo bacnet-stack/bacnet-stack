@@ -204,6 +204,12 @@
     <ClCompile Include="..\..\..\..\src\bacnet\weeklyschedule.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\calendar_entry.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\special_event.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\whohas.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
