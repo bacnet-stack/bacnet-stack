@@ -97,7 +97,7 @@ BACNET_STACK_EXPORT
 void Time_Value_Write_Disable(uint32_t instance);
 
 BACNET_STACK_EXPORT
-bool Time_Value_Create(uint32_t object_instance);
+uint32_t Time_Value_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Time_Value_Delete(uint32_t object_instance);
 BACNET_STACK_EXPORT

@@ -113,6 +113,10 @@ int bacnet_calendar_entry_decode(
     if (!apdu || !entry) {
         return BACNET_STATUS_REJECT;
     }
+    if (apdu_size == 0) {
+        /* empty list */
+        return 0;
+    }
     len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
     if (len <= 0) {
         return BACNET_STATUS_REJECT;

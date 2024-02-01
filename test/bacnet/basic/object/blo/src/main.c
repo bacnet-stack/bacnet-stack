@@ -27,17 +27,19 @@ static void testBinaryLightingOutput(void)
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int *pRequired = NULL;
     const int *pOptional = NULL;
     const int *pProprietary = NULL;
     const uint32_t instance = 123;
-    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    uint32_t test_instance = 0;
     bool status = false;
     unsigned index;
 
     Binary_Lighting_Output_Init();
-    Binary_Lighting_Output_Create(instance);
+    test_instance = Binary_Lighting_Output_Create(instance);
+    zassert_equal(test_instance, instance, NULL);
     status = Binary_Lighting_Output_Valid_Instance(instance);
     zassert_true(status, NULL);
     index = Binary_Lighting_Output_Instance_To_Index(instance);

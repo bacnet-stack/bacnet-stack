@@ -32,10 +32,10 @@
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/proplist.h"
 #include "bacnet/reject.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
 /* me! */
@@ -64,6 +64,13 @@ static const int Time_Value_Properties_Optional[] = { PROP_DESCRIPTION,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1 };
 
 static const int Time_Value_Properties_Proprietary[] = { -1 };
+
+/* standard properties that are arrays for this object,
+   but not necessary supported in this object */
+static const int Time_Value_Properties_BACnetARRAY[] = { 
+    PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS, 
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+    PROP_VALUE_SOURCE_ARRAY, PROP_COMMAND_TIME_ARRAY, PROP_TAGS, -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -327,30 +334,12 @@ bool Time_Value_Object_Name(
 bool Time_Value_Name_Set(uint32_t object_instance, char *new_name)
 {
     bool status = false; /* return value */
-    BACNET_CHARACTER_STRING object_name;
-    BACNET_OBJECT_TYPE found_type = 0;
-    uint32_t found_instance = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject && new_name) {
-        /* All the object names in a device must be unique */
-        characterstring_init_ansi(&object_name, new_name);
-        if (Device_Valid_Object_Name(
-                &object_name, &found_type, &found_instance)) {
-            if ((found_type == OBJECT_TIME_VALUE) &&
-                (found_instance == object_instance)) {
-                /* writing same name to same object */
-                status = true;
-            } else {
-                /* duplicate name! */
-                status = false;
-            }
-        } else {
-            status = true;
-            pObject->Object_Name = new_name;
-            Device_Inc_Database_Revision();
-        }
+        status = true;
+        pObject->Object_Name = new_name;
     }
 
     return status;
@@ -402,14 +391,44 @@ bool Time_Value_Description_Set(uint32_t object_instance, char *new_name)
     return status;
 }
 
-static bool Time_Value_BACnetARRAY_Property(BACNET_PROPERTY_ID object_property)
+/**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Time_Value_Property_List_Member(
+    uint32_t object_instance, int object_property)
 {
-    return (object_property == PROP_EVENT_TIME_STAMPS) ||
-        (object_property == PROP_EVENT_MESSAGE_TEXTS) ||
-        (object_property == PROP_EVENT_MESSAGE_TEXTS_CONFIG) ||
-        (object_property == PROP_VALUE_SOURCE_ARRAY) ||
-        (object_property == PROP_COMMAND_TIME_ARRAY) ||
-        (object_property == PROP_TAGS);
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    (void)object_instance;
+    Time_Value_Property_Lists(
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
+ * @brief Determine if the object property is a BACnetARRAY property
+ * @param object_property - object-property to be checked
+ * @return true if the property is a BACnetARRAY property
+ */
+static bool Time_Value_BACnetARRAY_Property(
+    int object_property)
+{
+    return property_list_member(
+            Time_Value_Properties_BACnetARRAY, object_property);
 }
 
 /**
@@ -544,21 +563,15 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
             break;
-        
-        
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_TYPE:
-        case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
-        case PROP_STATUS_FLAGS:
-        case PROP_OUT_OF_SERVICE:
-        case PROP_EVENT_STATE:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Time_Value_Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -575,6 +588,11 @@ void Time_Value_Write_Present_Value_Callback_Set(
     Time_Value_Write_Present_Value_Callback = cb;
 }
 
+/**
+ * @brief Determines the status flags for a given object instance-number
+ * @param object_instance - object-instance number of the object
+ * @return  status flags bitstring octet
+ */
 uint8_t Time_Value_Status_Flags(uint32_t object_instance)
 {
     BACNET_BIT_STRING bit_string;
@@ -639,31 +657,41 @@ void Time_Value_Write_Disable(uint32_t object_instance)
  * Creates a Time Value object
  * @param object_instance - object-instance number of the object
  */
-bool Time_Value_Create(uint32_t object_instance)
+uint32_t Time_Value_Create(uint32_t object_instance)
 {
-    bool status = false;
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        /* wildcard instance */
+        /* the Object_Identifier property of the newly created object
+            shall be initialized to a value that is unique within the
+            responding BACnet-user device. The method used to generate
+            the object identifier is a local matter.*/
+        object_instance = Keylist_Next_Empty_Key(Object_List, 1);
+    }
     pObject = Keylist_Data(Object_List, object_instance);
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
-        if (pObject) {
-            pObject->Object_Name = NULL;
-            pObject->Description = NULL;
-            memset(&pObject->Present_Value, 0, sizeof(pObject->Present_Value));
-            pObject->Changed = false;
-            pObject->Write_Enabled = false;
-            /* add to list */
-            index = Keylist_Data_Add(Object_List, object_instance, pObject);
-            if (index >= 0) {
-                status = true;
-                Device_Inc_Database_Revision();
-            }
+        if (!pObject) {
+            return BACNET_MAX_INSTANCE;
+        }
+        pObject->Object_Name = NULL;
+        pObject->Description = NULL;
+        memset(&pObject->Present_Value, 0, sizeof(pObject->Present_Value));
+        pObject->Changed = false;
+        pObject->Write_Enabled = false;
+        /* add to list */
+        index = Keylist_Data_Add(Object_List, object_instance, pObject);
+        if (index < 0) {
+            free(pObject);
+            return BACNET_MAX_INSTANCE;
         }
     }
 
-    return status;
+    return object_instance;
 }
 
 /**
@@ -680,7 +708,6 @@ bool Time_Value_Delete(uint32_t object_instance)
     if (pObject) {
         free(pObject);
         status = true;
-        Device_Inc_Database_Revision();
     }
 
     return status;
@@ -698,7 +725,6 @@ void Time_Value_Cleanup(void)
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
                 free(pObject);
-                Device_Inc_Database_Revision();
             }
         } while (pObject);
         Keylist_Delete(Object_List);

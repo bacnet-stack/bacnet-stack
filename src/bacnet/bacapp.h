@@ -123,7 +123,6 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined (BACAPP_DESTINATION)
         BACNET_DESTINATION Destination;
-        BACNET_CALENDAR_ENTRY Calendar_Entry;
 #endif
 #if defined (BACAPP_CALENDAR_ENTRY)
         BACNET_CALENDAR_ENTRY Calendar_Entry;

@@ -45,7 +45,6 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bactext.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
 	${SRC_DIR}/bacnet/basic/sys/keylist.c
-	${SRC_DIR}/bacnet/calendar_entry.c
 	${SRC_DIR}/bacnet/cov.c
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/basic/sys/days.c
@@ -56,6 +55,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/memcopy.c
 	${SRC_DIR}/bacnet/wp.c
 	${SRC_DIR}/bacnet/weeklyschedule.c
+	${SRC_DIR}/bacnet/calendar_entry.c
+	${SRC_DIR}/bacnet/special_event.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
     # Test and test library files
