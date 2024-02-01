@@ -67,7 +67,7 @@ int bacnet_calendar_entry_encode(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value)
             apdu_len += len;
             break;
         case BACNET_CALENDAR_DATE_RANGE:
-            len = bacapp_daterange_context_encode(
+            len = bacnet_daterange_context_encode(
                 apdu, value->tag, &value->type.DateRange);
             apdu_len += len;
             break;
@@ -189,9 +189,8 @@ int bacnet_calendar_entry_decode(
 }
 
 /**
- * Decodes from bytes into the calendar-entry structure
+ * @brief Decodes from bytes into the calendar-entry structure
  * a context tagged chunk (opening and closing tag)
- *
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_number - tag number to encode this chunk

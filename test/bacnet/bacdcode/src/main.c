@@ -450,53 +450,56 @@ static void testBACnetDateRangeDecodes(void)
     uint8_t apdu[MAX_APDU];
     uint8_t sample[10] = { 0xa4, 0xff, 0xff, 0xff, 0xff, 0xa4, 0xff, 0xff, 0xff,
         0xff };
-    int inLen;
-    int outLen;
+    int len;
+    int null_len;
+    int test_len;
     int outLen2;
 
-    BACNET_DATE_RANGE in;
-    BACNET_DATE_RANGE out;
+    BACNET_DATE_RANGE data;
+    BACNET_DATE_RANGE test_data;
 
-    memset(&out, 0, sizeof(out));
+    memset(&test_data, 0, sizeof(test_data));
 
-    in.startdate.day = 3;
-    in.startdate.month = 10;
-    in.startdate.wday = 5;
-    in.startdate.year = 1945;
+    data.startdate.day = 3;
+    data.startdate.month = 10;
+    data.startdate.wday = 5;
+    data.startdate.year = 1945;
 
-    in.enddate.day = 24;
-    in.enddate.month = 8;
-    in.enddate.wday = 4;
-    in.enddate.year = 2023;
+    data.enddate.day = 24;
+    data.enddate.month = 8;
+    data.enddate.wday = 4;
+    data.enddate.year = 2023;
 
-    inLen = bacapp_daterange_encode(apdu, &in);
-    outLen = bacapp_daterange_decode(apdu, &out);
+    len = bacnet_daterange_encode(apdu, &data);
+    null_len = bacnet_daterange_encode(NULL, &data);
+    zassert_equal(len, null_len, NULL);
 
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in.startdate.day, out.startdate.day, NULL);
-    zassert_equal(in.startdate.month, out.startdate.month, NULL);
-    zassert_equal(in.startdate.wday, out.startdate.wday, NULL);
-    zassert_equal(in.startdate.year, out.startdate.year, NULL);
+    test_len = bacnet_daterange_decode(apdu, len, &test_data);
+    zassert_equal(len, test_len, NULL);
+    zassert_equal(data.startdate.day, test_data.startdate.day, NULL);
+    zassert_equal(data.startdate.month, test_data.startdate.month, NULL);
+    zassert_equal(data.startdate.wday, test_data.startdate.wday, NULL);
+    zassert_equal(data.startdate.year, test_data.startdate.year, NULL);
 
-    zassert_equal(in.enddate.day, out.enddate.day, NULL);
-    zassert_equal(in.enddate.month, out.enddate.month, NULL);
-    zassert_equal(in.enddate.wday, out.enddate.wday, NULL);
-    zassert_equal(in.enddate.year, out.enddate.year, NULL);
+    zassert_equal(data.enddate.day, test_data.enddate.day, NULL);
+    zassert_equal(data.enddate.month, test_data.enddate.month, NULL);
+    zassert_equal(data.enddate.wday, test_data.enddate.wday, NULL);
+    zassert_equal(data.enddate.year, test_data.enddate.year, NULL);
 
-    memset(&out, 0, sizeof(out));
-    outLen = bacapp_daterange_decode(sample, &out);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacnet_daterange_decode(sample, len, &test_data);
 
     /* try decoding sample data captured from a bacnet device - all wildcards */
-    zassert_equal(10, outLen, NULL);
-    zassert_equal(0xff, out.startdate.day, NULL);
-    zassert_equal(0xff, out.startdate.month, NULL);
-    zassert_equal(0xff, out.startdate.wday, NULL);
-    zassert_equal(2155, out.startdate.year, NULL);
+    zassert_equal(10, test_len, NULL);
+    zassert_equal(0xff, test_data.startdate.day, NULL);
+    zassert_equal(0xff, test_data.startdate.month, NULL);
+    zassert_equal(0xff, test_data.startdate.wday, NULL);
+    zassert_equal(2155, test_data.startdate.year, NULL);
 
-    zassert_equal(0xff, out.enddate.day, NULL);
-    zassert_equal(0xff, out.enddate.month, NULL);
-    zassert_equal(0xff, out.enddate.wday, NULL);
-    zassert_equal(2155, out.enddate.year, NULL);
+    zassert_equal(0xff, test_data.enddate.day, NULL);
+    zassert_equal(0xff, test_data.enddate.month, NULL);
+    zassert_equal(0xff, test_data.enddate.wday, NULL);
+    zassert_equal(2155, test_data.enddate.year, NULL);
 }
 
 static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
@@ -1641,39 +1644,41 @@ static void testDateRangeContextDecodes(void)
 #endif
 {
     uint8_t apdu[MAX_APDU];
-    int inLen;
-    int outLen;
-    int outLen2;
+    int len;
+    int null_len;
+    int test_len;
 
-    BACNET_DATE_RANGE in;
-    BACNET_DATE_RANGE out;
-    memset(&in, 0, sizeof(in));
-    memset(&out, 0, sizeof(out));
+    BACNET_DATE_RANGE data;
+    BACNET_DATE_RANGE test_data;
+    memset(&data, 0, sizeof(data));
+    memset(&test_data, 0, sizeof(test_data));
 
-    in.startdate.day = 3;
-    in.startdate.month = 10;
-    in.startdate.wday = 5;
-    in.startdate.year = 1945;
+    data.startdate.day = 3;
+    data.startdate.month = 10;
+    data.startdate.wday = 5;
+    data.startdate.year = 1945;
 
-    in.enddate.day = 24;
-    in.enddate.month = 8;
-    in.enddate.wday = 4;
-    in.enddate.year = 2023;
+    data.enddate.day = 24;
+    data.enddate.month = 8;
+    data.enddate.wday = 4;
+    data.enddate.year = 2023;
 
-    inLen = bacapp_daterange_context_encode(apdu, 10, &in);
-    outLen = bacapp_daterange_context_decode(apdu, 10, &out);
-    outLen2 = bacapp_daterange_context_decode(apdu, 9, &out);
-
-    zassert_equal(outLen2, BACNET_STATUS_ERROR, NULL);
-    zassert_equal(inLen, outLen, NULL);
-    zassert_equal(in.startdate.day, out.startdate.day, NULL);
-    zassert_equal(in.startdate.month, out.startdate.month, NULL);
-    zassert_equal(in.startdate.wday, out.startdate.wday, NULL);
-    zassert_equal(in.startdate.year, out.startdate.year, NULL);
-    zassert_equal(in.enddate.day, out.enddate.day, NULL);
-    zassert_equal(in.enddate.month, out.enddate.month, NULL);
-    zassert_equal(in.enddate.wday, out.enddate.wday, NULL);
-    zassert_equal(in.enddate.year, out.enddate.year, NULL);
+    len = bacnet_daterange_context_encode(apdu, 10, &data);
+    null_len = bacnet_daterange_context_encode(NULL, 10, &data);
+    zassert_equal(len, null_len, NULL);
+    test_len = bacnet_daterange_context_decode(apdu, len, 10, &test_data);
+    zassert_equal(len, test_len, NULL);
+    zassert_equal(data.startdate.day, test_data.startdate.day, NULL);
+    zassert_equal(data.startdate.month, test_data.startdate.month, NULL);
+    zassert_equal(data.startdate.wday, test_data.startdate.wday, NULL);
+    zassert_equal(data.startdate.year, test_data.startdate.year, NULL);
+    zassert_equal(data.enddate.day, test_data.enddate.day, NULL);
+    zassert_equal(data.enddate.month, test_data.enddate.month, NULL);
+    zassert_equal(data.enddate.wday, test_data.enddate.wday, NULL);
+    zassert_equal(data.enddate.year, test_data.enddate.year, NULL);
+    /* incorrect tag number */
+    test_len = bacnet_daterange_context_decode(apdu, len, 9, &test_data);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
 }
 
 /**

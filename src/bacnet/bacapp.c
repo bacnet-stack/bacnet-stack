@@ -161,7 +161,7 @@ int bacapp_encode_application_data(
 #endif
 #if defined(BACAPP_DATERANGE)
             case BACNET_APPLICATION_TAG_DATERANGE:
-                apdu_len = bacapp_daterange_encode(apdu, &value->type.Date_Range);
+                apdu_len = bacnet_daterange_encode(apdu, &value->type.Date_Range);
                 break;
 #endif
 #if defined(BACAPP_LIGHTING_COMMAND)
@@ -359,7 +359,8 @@ int bacapp_decode_data(uint8_t *apdu,
 #endif
 #if defined(BACAPP_DATERANGE)
             case BACNET_APPLICATION_TAG_DATERANGE:
-                len = bacapp_daterange_decode(apdu, &value->type.Date_Range);
+                len = bacnet_daterange_decode(apdu, len_value_type, 
+                    &value->type.Date_Range);
                 break;
 #endif
 #if defined(BACAPP_LIGHTING_COMMAND)
@@ -732,7 +733,7 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
 #endif
 #if defined(BACAPP_DATERANGE)
             case BACNET_APPLICATION_TAG_DATERANGE:
-                apdu_len = bacapp_daterange_context_encode(
+                apdu_len = bacnet_daterange_context_encode(
                     apdu, context_tag_number, &value->type.Date_Range);
                 break;
 #endif
@@ -1494,8 +1495,8 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_EFFECTIVE_PERIOD:
 #ifdef BACAPP_DATERANGE
             /* BACnetDateRange  (Schedule) */
-            len = bacapp_daterange_decode(
-                apdu, &value->type.Date_Range);
+            len = bacnet_daterange_decode(
+                apdu, max_apdu_len, &value->type.Date_Range);
 #endif
             break;
 

@@ -1208,7 +1208,7 @@ int bacapp_decode_context_datetime(
  * @param value - value to encode
  * @return number of bytes emitted, BACNET_STATUS_ERROR on error
  */
-int bacapp_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value)
+int bacnet_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -1264,26 +1264,13 @@ int bacnet_daterange_decode(
 }
 
 /**
- * @brief Decode BACnetDateRange complex data type
- * @param apdu - apdu buffer to decode
- * @param value - value for decoded data
- * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
- * @deprecated - use bacnet_daterange_decode() instead
- */
-int bacapp_daterange_decode(uint8_t *apdu, BACNET_DATE_RANGE *value)
-{
-    return bacnet_daterange_decode(apdu, MAX_APDU, value);
-}
-
-/**
- * Encode daterange with context tag
- *
+ * @brief Encode daterange with context tag
  * @param apdu - apdu buffer; NULL to only measure capacity needed
  * @param tag_number - context tag number
  * @param value - value to encode
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
-int bacapp_daterange_context_encode(
+int bacnet_daterange_context_encode(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value)
 {
     int len = 0;
@@ -1295,7 +1282,7 @@ int bacapp_daterange_context_encode(
         if (apdu) {
             apdu += len;
         }
-        len = bacapp_daterange_encode(apdu, value);
+        len = bacnet_daterange_encode(apdu, value);
         if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
@@ -1311,8 +1298,7 @@ int bacapp_daterange_context_encode(
 }
 
 /**
- * Decode BACnetDateRange complex data with context tag
- *
+ * @brief Decode BACnetDateRange complex data with context tag
  * @param apdu - apdu buffer to decode
  * @param apdu_size - apdu buffer size
  * @param tag_number - context tag number
@@ -1349,20 +1335,6 @@ int bacnet_daterange_context_decode(uint8_t *apdu,
         return BACNET_STATUS_ERROR;
     }
     return apdu_len;
-}
-
-/**
- * @brief Decode BACnetDateRange with context tag
- * @param apdu - apdu buffer; NULL to only measure capacity needed
- * @param tag_number - context tag number
- * @param value - value to encode
- * @return number of bytes emitted, BACNET_STATUS_ERROR on error
- * @deprecated - use bacnet_daterange_context_decode() instead
- */
-int bacapp_daterange_context_decode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value)
-{
-    return bacnet_daterange_context_decode(apdu, MAX_APDU, tag_number, value);
 }
 
 /**

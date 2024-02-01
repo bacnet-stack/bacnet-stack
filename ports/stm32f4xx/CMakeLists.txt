@@ -196,8 +196,8 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/timestamp.c
     ${LIBRARY_BACNET_CORE}/weeklyschedule.c
     ${LIBRARY_BACNET_CORE}/dailyschedule.c
-	${LIBRARY_BACNET_CORE}/calendar_entry.c
-	${LIBRARY_BACNET_CORE}/special_event.c
+    ${LIBRARY_BACNET_CORE}/calendar_entry.c
+    ${LIBRARY_BACNET_CORE}/special_event.c
     ${LIBRARY_BACNET_CORE}/bactimevalue.c
     ${LIBRARY_BACNET_CORE}/whohas.c
     ${LIBRARY_BACNET_CORE}/whois.c

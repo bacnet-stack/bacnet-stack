@@ -289,21 +289,13 @@ int bacapp_decode_context_datetime(uint8_t *apdu,
     BACNET_DATE_TIME *value);
 
 BACNET_STACK_EXPORT
-int bacapp_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value);
-BACNET_STACK_DEPRECATED("Use int bacnet_daterange_decode() instead")
-BACNET_STACK_EXPORT
-int bacapp_daterange_decode(uint8_t *apdu, 
-    BACNET_DATE_RANGE *value);
+int bacnet_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
 int bacnet_daterange_decode(uint8_t *apdu, 
     uint32_t apdu_size, 
     BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
-int bacapp_daterange_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value);
-BACNET_STACK_DEPRECATED("Use int bacnet_daterange_context_decode() instead")
-BACNET_STACK_EXPORT
-int bacapp_daterange_context_decode(
+int bacnet_daterange_context_encode(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
 int bacnet_daterange_context_decode(uint8_t *apdu,
