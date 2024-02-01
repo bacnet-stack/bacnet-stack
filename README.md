@@ -1,6 +1,7 @@
 # BACnet Stack 
 
-BACnet open source protocol stack for embedded systems, Linux, and Windows
+BACnet open source protocol stack C library for embedded systems,
+Linux, MacOS, BSD, and Windows
 http://bacnet.sourceforge.net/
 
 Welcome to the wonderful world of BACnet and true device interoperability!

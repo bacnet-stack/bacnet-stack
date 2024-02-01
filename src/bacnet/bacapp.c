@@ -55,6 +55,8 @@
 #include "bacnet/lighting.h"
 #include "bacnet/hostnport.h"
 #include "bacnet/weeklyschedule.h"
+#include "bacnet/calendar_entry.h"
+#include "bacnet/special_event.h"
 #include "bacnet/basic/sys/platform.h"
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
@@ -148,59 +150,89 @@ int bacapp_encode_application_data(
                     value->type.Object_Id.type, value->type.Object_Id.instance);
                 break;
 #endif
-#if defined(BACAPP_TYPES_EXTRA)
             case BACNET_APPLICATION_TAG_EMPTYLIST:
                 /* Empty data list */
                 apdu_len = 0; /* EMPTY */
                 break;
-
-                break;
+#if defined(BACAPP_DATETIME)
             case BACNET_APPLICATION_TAG_DATETIME:
                 apdu_len = bacapp_encode_datetime(apdu, &value->type.Date_Time);
                 break;
+#endif
+#if defined(BACAPP_DATERANGE)
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                apdu_len = bacnet_daterange_encode(apdu, &value->type.Date_Range);
+                break;
+#endif
+#if defined(BACAPP_LIGHTING_COMMAND)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 /* BACnetLightingCommand */
                 apdu_len = lighting_command_encode(
                     apdu, &value->type.Lighting_Command);
                 break;
+#endif
+#if defined(BACAPP_XY_COLOR)
             case BACNET_APPLICATION_TAG_XY_COLOR:
                 /* BACnetxyColor */
                 apdu_len = xy_color_encode(apdu, &value->type.XY_Color);
                 break;
+#endif
+#if defined(BACAPP_COLOR_COMMAND)
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
                 apdu_len =
                     color_command_encode(apdu, &value->type.Color_Command);
                 break;
+#endif
+#if defined(BACAPP_WEEKLY_SCHEDULE)
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 /* BACnetWeeklySchedule */
                 apdu_len = bacnet_weeklyschedule_encode(
                     apdu, &value->type.Weekly_Schedule);
                 break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
             case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
                 /* BACnetCalendarEntry */
                 apdu_len = bacnet_calendar_entry_encode(
                     apdu, &value->type.Calendar_Entry);
                 break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* BACnetSpecialEvent */
+                apdu_len = bacnet_special_event_encode(
+                    apdu, &value->type.Special_Event);
+                break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 /* BACnetHostNPort */
                 apdu_len = host_n_port_encode(apdu, &value->type.Host_Address);
                 break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
                 /* BACnetDeviceObjectPropertyReference */
                 apdu_len = bacapp_encode_device_obj_property_ref(
                     apdu, &value->type.Device_Object_Property_Reference);
                 break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
                 /* BACnetDeviceObjectReference */
                 apdu_len = bacapp_encode_device_obj_ref(
                     apdu, &value->type.Device_Object_Reference);
                 break;
+#endif
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
             case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
                 /* BACnetObjectPropertyReference */
                 apdu_len = bacapp_encode_obj_property_ref(
                     apdu, &value->type.Object_Property_Reference);
                 break;
+#endif
+#if defined(BACAPP_DESTINATION)
             case BACNET_APPLICATION_TAG_DESTINATION:
                 /* BACnetDestination */
                 apdu_len =
@@ -313,53 +345,91 @@ int bacapp_decode_data(uint8_t *apdu,
                 value->type.Object_Id.instance = instance;
             } break;
 #endif
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_TIMESTAMP)
+            case BACNET_APPLICATION_TAG_TIMESTAMP:
+                len = bacnet_timestamp_decode(
+                    apdu, len_value_type, &value->type.Time_Stamp);
+                break;
+#endif
+#if defined(BACAPP_DATETIME)
             case BACNET_APPLICATION_TAG_DATETIME:
                 len = bacnet_datetime_decode(
                     apdu, len_value_type, &value->type.Date_Time);
                 break;
+#endif
+#if defined(BACAPP_DATERANGE)
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                len = bacnet_daterange_decode(apdu, len_value_type, 
+                    &value->type.Date_Range);
+                break;
+#endif
+#if defined(BACAPP_LIGHTING_COMMAND)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 len = lighting_command_decode(
                     apdu, len_value_type, &value->type.Lighting_Command);
                 break;
+#endif
+#if defined(BACAPP_XY_COLOR)
             case BACNET_APPLICATION_TAG_XY_COLOR:
                 /* BACnetxyColor */
                 len = xy_color_decode(
                     apdu, len_value_type, &value->type.XY_Color);
                 break;
+#endif
+#if defined(BACAPP_COLOR_COMMAND)
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
                 len = color_command_decode(
                     apdu, len_value_type, NULL, &value->type.Color_Command);
                 break;
+#endif
+#if defined(BACAPP_WEEKLY_SCHEDULE)
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 len = bacnet_weeklyschedule_decode(
-                    apdu, len_value_type, &value->type.Weekly_Schedule);
+                    apdu, (int) len_value_type, &value->type.Weekly_Schedule);
                 break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
             case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
-                /* BACnetCalendarEntry */
                 len = bacnet_calendar_entry_decode(
                     apdu, len_value_type, &value->type.Calendar_Entry);
                 break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                len = bacnet_special_event_decode(
+                    apdu, (int) len_value_type, &value->type.Special_Event);
+                break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 len = host_n_port_decode(
                     apdu, len_value_type, NULL, &value->type.Host_Address);
                 break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
                 /* BACnetDeviceObjectPropertyReference */
-                len = bacapp_decode_device_obj_property_ref(
-                    apdu, &value->type.Device_Object_Property_Reference);
+                len = bacnet_device_object_property_reference_decode(apdu,
+                    len_value_type,
+                    &value->type.Device_Object_Property_Reference);
                 break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
                 /* BACnetDeviceObjectReference */
                 len = bacapp_decode_device_obj_ref(
                     apdu, &value->type.Device_Object_Reference);
                 break;
+#endif
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
             case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
                 /* BACnetObjectPropertyReference */
                 len = bacapp_decode_obj_property_ref(apdu, len_value_type,
                     &value->type.Object_Property_Reference);
                 break;
+#endif
+#if defined(BACAPP_DESTINATION)
             case BACNET_APPLICATION_TAG_DESTINATION:
                 /* BACnetDestination */
                 len = bacnet_destination_decode(
@@ -392,7 +462,7 @@ int bacapp_decode_data(uint8_t *apdu,
  * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR
  */
 int bacapp_decode_application_data(
-    uint8_t *apdu, unsigned apdu_len_max, BACNET_APPLICATION_DATA_VALUE *value)
+    uint8_t *apdu, uint32_t apdu_size, BACNET_APPLICATION_DATA_VALUE *value)
 {
     int len = 0;
     int tag_len = 0;
@@ -400,17 +470,17 @@ int bacapp_decode_application_data(
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
 
-    if (apdu && value && !IS_CONTEXT_SPECIFIC(*apdu)) {
+    if (apdu && value && apdu_size && !IS_CONTEXT_SPECIFIC(*apdu)) {
         value->context_specific = false;
         tag_len = bacnet_tag_number_and_value_decode(
-            &apdu[0], apdu_len_max, &tag_number, &len_value_type);
+            &apdu[0], apdu_size, &tag_number, &len_value_type);
         if (tag_len > 0) {
             len += tag_len;
             value->tag = tag_number;
-            if ((unsigned)len <= apdu_len_max) {
+            if ((unsigned)len <= apdu_size) {
                 decode_len =
                     bacapp_decode_data_len(NULL, tag_number, len_value_type);
-                if ((unsigned)decode_len <= (apdu_len_max - len)) {
+                if ((unsigned)decode_len <= (apdu_size - len)) {
                     decode_len = bacapp_decode_data(
                         &apdu[len], tag_number, len_value_type, value);
                     if (value->tag != MAX_BACNET_APPLICATION_TAG) {
@@ -649,55 +719,94 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                     value->type.Object_Id.type, value->type.Object_Id.instance);
                 break;
 #endif
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_TIMESTAMP)
+            case BACNET_APPLICATION_TAG_TIMESTAMP:
+                apdu_len = bacapp_encode_context_timestamp(
+                    apdu, context_tag_number, &value->type.Time_Stamp);
+                break;
+#endif
+#if defined(BACAPP_DATETIME)
             case BACNET_APPLICATION_TAG_DATETIME:
                 apdu_len = bacapp_encode_context_datetime(
                     apdu, context_tag_number, &value->type.Date_Time);
                 break;
+#endif
+#if defined(BACAPP_DATERANGE)
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                apdu_len = bacnet_daterange_context_encode(
+                    apdu, context_tag_number, &value->type.Date_Range);
+                break;
+#endif
+#if defined(BACAPP_LIGHTING_COMMAND)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 apdu_len = lighting_command_encode_context(
                     apdu, context_tag_number, &value->type.Lighting_Command);
                 break;
+#endif
+#if defined(BACAPP_XY_COLOR)
             case BACNET_APPLICATION_TAG_XY_COLOR:
                 /* BACnetxyColor */
                 apdu_len = xy_color_context_encode(
                     apdu, context_tag_number, &value->type.XY_Color);
                 break;
-            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
-                /* BACnetWeeklySchedule */
-                apdu_len = bacnet_weeklyschedule_context_encode(
-                    apdu, context_tag_number, &value->type.Weekly_Schedule);
-                break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
             case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
-                /* BACnetCalendarEntry */
-                apdu_len = bacnet_calendar_entry_context_encode(apdu,
-                    context_tag_number, &value->type.Calendar_Entry);
+                /* BACnetWeeklySchedule */
+                apdu_len = bacnet_calendar_entry_context_encode(
+                    apdu, context_tag_number, &value->type.Calendar_Entry);
                 break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* BACnetWeeklySchedule */
+                apdu_len = bacnet_special_event_context_encode(
+                    apdu, context_tag_number, &value->type.Special_Event);
+                break;
+#endif
+#if defined(BACAPP_COLOR_COMMAND)
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
                 apdu_len = color_command_context_encode(
                     apdu, context_tag_number, &value->type.Color_Command);
                 break;
+#endif
+#if defined(BACAPP_WEEKLY_SCHEDULE)
+            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
+                /* BACnetWeeklySchedule */
+                apdu_len = bacnet_weeklyschedule_context_encode(
+                    apdu, context_tag_number, &value->type.Weekly_Schedule);
+                break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 apdu_len = host_n_port_context_encode(
                     apdu, context_tag_number, &value->type.Host_Address);
                 break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
                 /* BACnetDeviceObjectPropertyReference */
                 apdu_len = bacapp_encode_context_device_obj_property_ref(apdu,
                     context_tag_number,
                     &value->type.Device_Object_Property_Reference);
                 break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
                 /* BACnetDeviceObjectReference */
                 apdu_len = bacapp_encode_context_device_obj_ref(apdu,
                     context_tag_number, &value->type.Device_Object_Reference);
                 break;
+#endif
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
             case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
                 /* BACnetObjectPropertyReference */
                 apdu_len = bacapp_encode_context_obj_property_ref(apdu,
                     context_tag_number, &value->type.Object_Property_Reference);
                 break;
+#endif
+#if defined(BACAPP_DESTINATION)
             case BACNET_APPLICATION_TAG_DESTINATION:
                 /* BACnetDestination */
                 apdu_len = bacnet_destination_context_encode(
@@ -911,6 +1020,27 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     break;
             }
             break;
+        case PROP_EVENT_TIME_STAMPS:
+            /*  BACnetTimeStamp ::= CHOICE {
+                    time [0] Time, -- deprecated in version 1 revision 21
+                    sequence-number [1] Unsigned (0..65535),
+                    datetime [2] BACnetDateTime
+                }
+            */
+            switch (tag_number) {
+                case TIME_STAMP_TIME:
+                    tag = BACNET_APPLICATION_TAG_TIMESTAMP;
+                    break;
+                case TIME_STAMP_SEQUENCE:
+                    tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+                    break;
+                case TIME_STAMP_DATETIME:
+                    tag = BACNET_APPLICATION_TAG_DATETIME;
+                    break;
+                default:
+                    break;
+            }
+            break;
         default:
             break;
     }
@@ -983,7 +1113,7 @@ int bacapp_decode_context_data(uint8_t *apdu,
     return apdu_len;
 }
 
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_COMPLEX_TYPES)
 /**
  * @brief Context or Application tagged property value decoding
  *
@@ -1008,7 +1138,7 @@ int bacapp_decode_generic_property(uint8_t *apdu,
 }
 #endif
 
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_COMPLEX_TYPES)
 /* decode one value of a priority array */
 static int decode_priority_value(uint8_t *apdu,
     unsigned max_apdu_len,
@@ -1047,7 +1177,7 @@ static int decode_priority_value(uint8_t *apdu,
 }
 #endif
 
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_COMPLEX_TYPES)
 int bacapp_known_property_tag(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID property)
 {
@@ -1145,10 +1275,10 @@ int bacapp_known_property_tag(
 
         case PROP_EXCEPTION_SCHEDULE:
             /* BACnetSpecialEvent (Schedule) */
-            return -1;
+            return BACNET_APPLICATION_TAG_SPECIAL_EVENT;
 
         case PROP_DATE_LIST:
-            /* Properties using BACnetCalendarEntry */
+            /* BACnetCalendarEntry */
             return BACNET_APPLICATION_TAG_CALENDAR_ENTRY;
 
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
@@ -1156,8 +1286,8 @@ int bacapp_known_property_tag(
             return -1;
 
         case PROP_EFFECTIVE_PERIOD:
-            /* FIXME: Properties using BACnetDateRange  (Schedule) */
-            return -1;
+            /* BACnetDateRange (Schedule) */
+            return BACNET_APPLICATION_TAG_DATERANGE;
 
         case PROP_RECIPIENT_LIST:
             /* Properties using BACnetDestination */
@@ -1228,9 +1358,11 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_ACCOMPANIMENT:
         case PROP_BELONGS_TO:
         case PROP_LAST_ACCESS_POINT:
+#ifdef BACAPP_DEVICE_OBJECT_REFERENCE
             /* Properties using BACnetDeviceObjectReference */
             len = bacapp_decode_device_obj_ref(
                 apdu, &value->type.Device_Object_Reference);
+#endif               
             break;
 
         case PROP_TIME_OF_ACTIVE_TIME_RESET:
@@ -1249,46 +1381,58 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_ACTIVATION_TIME:
         case PROP_EXPIRATION_TIME:
         case PROP_LAST_USE_TIME:
+#ifdef BACAPP_DATETIME
             /* Properties using BACnetDateTime value */
             len = bacnet_datetime_decode(
                 apdu, max_apdu_len, &value->type.Date_Time);
+#endif
             break;
 
         case PROP_OBJECT_PROPERTY_REFERENCE:
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
+#ifdef BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE
             /* Properties using BACnetDeviceObjectPropertyReference */
-            len = bacapp_decode_device_obj_property_ref(
-                apdu, &value->type.Device_Object_Property_Reference);
+            len = bacnet_device_object_property_reference_decode(apdu,
+                max_apdu_len, &value->type.Device_Object_Property_Reference);
+#endif
             break;
 
         case PROP_MANIPULATED_VARIABLE_REFERENCE:
         case PROP_CONTROLLED_VARIABLE_REFERENCE:
         case PROP_INPUT_REFERENCE:
+#ifdef BACAPP_OBJECT_PROPERTY_REFERENCE
             /* Properties using BACnetObjectPropertyReference */
             len = bacapp_decode_obj_property_ref(
                 apdu, max_apdu_len, &value->type.Object_Property_Reference);
+#endif
             break;
 
         case PROP_EVENT_TIME_STAMPS:
         case PROP_LAST_RESTORE_TIME:
         case PROP_TIME_OF_DEVICE_RESTART:
         case PROP_ACCESS_EVENT_TIME:
+#ifdef BACAPP_TIMESTAMP
             /* Properties using BACnetTimeStamp */
             len = bacapp_decode_timestamp(apdu, &value->type.Time_Stamp);
+#endif
             break;
 
         case PROP_DEFAULT_COLOR:
+#ifdef BACAPP_XY_COLOR
             /* Properties using BACnetxyColor */
             len = xy_color_decode(apdu, max_apdu_len, &value->type.XY_Color);
+#endif
             break;
 
         case PROP_TRACKING_VALUE:
         case PROP_PRESENT_VALUE:
             if (object_type == OBJECT_COLOR) {
+#ifdef BACAPP_XY_COLOR
                 /* Properties using BACnetxyColor */
                 len =
                     xy_color_decode(apdu, max_apdu_len, &value->type.XY_Color);
+#endif
             } else {
                 /* Decode a "classic" simple property */
                 len = bacapp_decode_generic_property(
@@ -1297,15 +1441,19 @@ int bacapp_decode_known_property(uint8_t *apdu,
             break;
 
         case PROP_COLOR_COMMAND:
+#ifdef BACAPP_COLOR_COMMAND
             /* Properties using BACnetColorCommand */
             len = color_command_decode(
                 apdu, max_apdu_len, NULL, &value->type.Color_Command);
+#endif
             break;
 
         case PROP_LIGHTING_COMMAND:
+#ifdef BACAPP_LIGHTING_COMMAND
             /* Properties using BACnetLightingCommand */
             len = lighting_command_decode(
                 apdu, max_apdu_len, &value->type.Lighting_Command);
+#endif
             break;
 
         case PROP_PRIORITY_ARRAY:
@@ -1314,20 +1462,42 @@ int bacapp_decode_known_property(uint8_t *apdu,
             break;
 
         case PROP_WEEKLY_SCHEDULE:
+#ifdef BACAPP_WEEKLY_SCHEDULE
             /* BACnetWeeklySchedule ([7] BACnetDailySchedule*/
             len = bacnet_weeklyschedule_decode(
                 apdu, max_apdu_len, &value->type.Weekly_Schedule);
+#endif
             break;
 
         case PROP_RECIPIENT_LIST:
+#ifdef BACAPP_DESTINATION        
             len = bacnet_destination_decode(
                 apdu, max_apdu_len, &value->type.Destination);
+#endif
             break;
 
         case PROP_DATE_LIST:
-            /* Properties using BACnetCalendarEntry */
+#ifdef BACAPP_CALENDAR_ENTRY      
+            /* List of BACnetCalendarEntry */
             len = bacnet_calendar_entry_decode(
                 apdu, max_apdu_len, &value->type.Calendar_Entry);
+#endif
+            break;
+
+        case PROP_EXCEPTION_SCHEDULE:
+#ifdef BACAPP_SPECIAL_EVENT
+            /* List of BACnetSpecialEvent (Schedule) */
+            len = bacnet_special_event_decode(
+                apdu, max_apdu_len, &value->type.Special_Event);
+#endif
+            break;
+
+        case PROP_EFFECTIVE_PERIOD:
+#ifdef BACAPP_DATERANGE
+            /* BACnetDateRange  (Schedule) */
+            len = bacnet_daterange_decode(
+                apdu, max_apdu_len, &value->type.Date_Range);
+#endif                
             break;
 
             /* properties without a specific decoder - fall through to default
@@ -1335,12 +1505,8 @@ int bacapp_decode_known_property(uint8_t *apdu,
 
         case PROP_LIST_OF_GROUP_MEMBERS:
             /* Properties using ReadAccessSpecification */
-        case PROP_EXCEPTION_SCHEDULE:
-            /* BACnetSpecialEvent (Schedule) */
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             /* FIXME: BACnetCOVSubscription */
-        case PROP_EFFECTIVE_PERIOD:
-            /* FIXME: Properties using BACnetDateRange  (Schedule) */
         case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
         case PROP_RESTART_NOTIFICATION_RECIPIENTS:
         case PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
@@ -1361,7 +1527,7 @@ int bacapp_decode_known_property(uint8_t *apdu,
 }
 #endif
 
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_COMPLEX_TYPES)
 /**
  * @brief Determine the BACnet Context Data number of APDU bytes consumed
  *
@@ -1496,17 +1662,6 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE *dest_value,
                     src_value->type.Object_Id.instance;
                 break;
 #endif
-#if defined(BACAPP_TYPES_EXTRA)
-            case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
-                status =
-                    lighting_command_copy(&dest_value->type.Lighting_Command,
-                        &src_value->type.Lighting_Command);
-                break;
-            case BACNET_APPLICATION_TAG_HOST_N_PORT:
-                status = host_n_port_copy(&dest_value->type.Host_Address,
-                    &src_value->type.Host_Address);
-                break;
-#endif
             default:
                 memcpy(&dest_value->type, &src_value->type,
                     sizeof(src_value->type));
@@ -1529,7 +1684,7 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE *dest_value,
  * @param apdu_len_max Bytes valid in the buffer
  * @param property ID of the property to get the length for.
  *
- * @return Length in bytes or BACNET_STATUS_ERROR.
+ * @return Length in bytes 0..N, or BACNET_STATUS_ERROR.
  */
 int bacapp_data_len(
     uint8_t *apdu, unsigned apdu_len_max, BACNET_PROPERTY_ID property)
@@ -1565,6 +1720,8 @@ int bacapp_data_len(
             } else if (tag_number == opening_tag_number) {
                 total_len_enable = true;
                 opening_tag_number_counter++;
+            } else {
+                total_len_enable = true;
             }
         } else if (bacnet_is_closing_tag(apdu, apdu_len_max)) {
             len = bacnet_tag_number_and_value_decode(
@@ -1576,7 +1733,7 @@ int bacapp_data_len(
             }
             total_len_enable = true;
         } else if (bacnet_is_context_specific(apdu, apdu_len_max)) {
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_COMPLEX_TYPES)
             /* context-specific tagged data */
             len = bacapp_decode_context_data_len(
                 apdu, apdu_len_max - apdu_len, property);
@@ -1731,7 +1888,7 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
 }
 #endif
 
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_WEEKLY_SCHEDULE)
 static int bacapp_snprintf_weeklyschedule(char *str,
     size_t str_len,
     BACNET_WEEKLY_SCHEDULE *ws,
@@ -1891,9 +2048,6 @@ int bacapp_snprintf_value(
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
     int ret_val = 0;
     int slen = 0;
-#if defined(BACAPP_OCTET_STRING) || defined(BACAPP_TYPES_EXTRA)
-    uint8_t *octet_str;
-#endif
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
     /* Wide character (decoded from multi-byte character). */
     wchar_t wc;
@@ -1944,19 +2098,22 @@ int bacapp_snprintf_value(
 #if defined(BACAPP_OCTET_STRING)
             case BACNET_APPLICATION_TAG_OCTET_STRING:
                 len = octetstring_length(&value->type.Octet_String);
-                octet_str = octetstring_value(&value->type.Octet_String);
-                for (i = 0; i < len; i++) {
-                    slen = snprintf(str, str_len, "%02X", *octet_str);
-                    octet_str++;
-                    if (str) {
-                        str += slen;
-                        if (str_len >= slen) {
-                            str_len -= slen;
-                        } else {
-                            str_len = 0;
+                if (len > 0) {
+                    uint8_t *octet_str;
+                    octet_str = octetstring_value(&value->type.Octet_String);
+                    for (i = 0; i < len; i++) {
+                        slen = snprintf(str, str_len, "%02X", *octet_str);
+                        octet_str++;
+                        if (str) {
+                            str += slen;
+                            if (str_len >= slen) {
+                                str_len -= slen;
+                            } else {
+                                str_len = 0;
+                            }
                         }
+                        ret_val += slen;
                     }
-                    ret_val += slen;
                 }
                 break;
 #endif
@@ -2126,13 +2283,23 @@ int bacapp_snprintf_value(
                         break;
                     case PROP_PRESENT_VALUE:
                     case PROP_RELINQUISH_DEFAULT:
-                        if (object_type < OBJECT_PROPRIETARY_MIN) {
-                            ret_val = snprintf(str, str_len, "%s",
-                                bactext_binary_present_value_name(
-                                    value->type.Enumerated));
-                        } else {
-                            ret_val = snprintf(str, str_len, "%lu",
-                                (unsigned long)value->type.Enumerated);
+                        switch (object_type) {
+                            case OBJECT_BINARY_INPUT:
+                            case OBJECT_BINARY_OUTPUT:
+                            case OBJECT_BINARY_VALUE:
+                                ret_val = snprintf(str, str_len, "%s",
+                                    bactext_binary_present_value_name(
+                                        value->type.Enumerated));
+                                break;
+                            case OBJECT_BINARY_LIGHTING_OUTPUT:
+                                ret_val = snprintf(str, str_len, "%s",
+                                    bactext_binary_lighting_pv_name(
+                                        value->type.Enumerated));
+                                break;
+                            default:
+                                ret_val = snprintf(str, str_len, "%lu",
+                                    (unsigned long)value->type.Enumerated);
+                                break;
                         }
                         break;
                     case PROP_RELIABILITY:
@@ -2150,6 +2317,16 @@ int bacapp_snprintf_value(
                     case PROP_NODE_TYPE:
                         ret_val = snprintf(str, str_len, "%s",
                             bactext_node_type_name(value->type.Enumerated));
+                        break;
+                    case PROP_TRANSITION:
+                        ret_val = snprintf(str, str_len, "%s",
+                            bactext_lighting_transition(
+                                value->type.Enumerated));
+                        break;
+                    case PROP_IN_PROGRESS:
+                        ret_val = snprintf(str, str_len, "%s",
+                            bactext_lighting_in_progress(
+                                value->type.Enumerated));
                         break;
                     default:
                         ret_val = snprintf(str, str_len, "%lu",
@@ -2205,9 +2382,9 @@ int bacapp_snprintf_value(
                 ret_val += slen;
                 break;
 #endif
-#if defined(BACAPP_TYPES_EXTRA)
-            case BACNET_APPLICATION_TAG_DATETIME:
-                slen = bacapp_snprintf_date(str, str_len, &value->type.Date);
+#if defined(BACAPP_DATERANGE)
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                slen = bacapp_snprintf_date(str, str_len, &value->type.Date_Range.startdate);
                 ret_val += slen;
                 if (str) {
                     str += slen;
@@ -2217,9 +2394,15 @@ int bacapp_snprintf_value(
                         str_len = 0;
                     }
                 }
-                slen = bacapp_snprintf_time(str, str_len, &value->type.Time);
+
+                slen = snprintf(str, str_len, "..");
+                ret_val += slen;
+
+                slen = bacapp_snprintf_date(str, str_len, &value->type.Date_Range.enddate);
                 ret_val += slen;
                 break;
+#endif
+#if defined(BACAPP_TIMESTAMP)
             case BACNET_APPLICATION_TAG_TIMESTAMP:
                 /*ISO 8601 format */
                 slen = snprintf(str, str_len,
@@ -2234,8 +2417,12 @@ int bacapp_snprintf_value(
                         value->type.Time_Stamp.value.dateTime.time.hundredths);
                 ret_val += slen;
                 break;
-            case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
-                slen = snprintf(str, str_len, "(");
+#endif
+#if defined(BACAPP_DATETIME)
+            case BACNET_APPLICATION_TAG_DATETIME:
+                slen = bacapp_snprintf_date(
+                    str, str_len, &value->type.Date_Time.date);
+                ret_val += slen;
                 if (str) {
                     str += slen;
                     if (str_len >= slen) {
@@ -2244,29 +2431,25 @@ int bacapp_snprintf_value(
                         str_len = 0;
                     }
                 }
-                ret_val += slen;
-                slen = snprintf(str, str_len, "%s",
-                    bactext_lighting_operation_name(
-                        value->type.Lighting_Command.operation));
-                if (str) {
-                    str += slen;
-                    if (str_len >= slen) {
-                        str_len -= slen;
-                    } else {
-                        str_len = 0;
-                    }
-                }
-                ret_val += slen;
-                /* FIXME: add the Lighting Command optional values */
-                slen = snprintf(str, str_len, ")");
+                slen = bacapp_snprintf_time(
+                    str, str_len, &value->type.Date_Time.time);
                 ret_val += slen;
                 break;
+#endif
+#if defined(BACAPP_LIGHTING_COMMAND)
+            case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
+                ret_val = lighting_command_to_ascii(
+                    &value->type.Lighting_Command, str, str_len);
+                break;
+#endif
+#if defined(BACAPP_XY_COLOR)
             case BACNET_APPLICATION_TAG_XY_COLOR:
                 /* BACnetxyColor */
-                ret_val = snprintf(str, str_len, "(%f,%f)",
-                    value->type.XY_Color.x_coordinate,
-                    value->type.XY_Color.x_coordinate);
+                ret_val =
+                    xy_color_to_ascii(&value->type.XY_Color, str, str_len);
                 break;
+#endif
+#if defined(BACAPP_COLOR_COMMAND)
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
                 slen = snprintf(str, str_len, "(");
@@ -2295,23 +2478,33 @@ int bacapp_snprintf_value(
                 slen = snprintf(str, str_len, ")");
                 ret_val += slen;
                 break;
+#endif
+#if defined(BACAPP_WEEKLY_SCHEDULE)
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 /* BACnetWeeklySchedule */
                 ret_val = bacapp_snprintf_weeklyschedule(str, str_len,
                     &value->type.Weekly_Schedule, object_value->array_index);
                 break;
-            case BACNET_APPLICATION_TAG_DESTINATION:
-                /* BACnetWeeklySchedule */
-                ret_val = bacnet_destination_to_ascii(
-                    &value->type.Destination, str, str_len);
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* FIXME: add printing for BACnetSpecialEvent */
+                ret_val =
+                    snprintf(str, str_len, "SpecialEvent(TODO)");
                 break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
             case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
                 /* FIXME: add printing for BACnetCalendarEntry */
                 ret_val =
                     snprintf(str, str_len, "CalendarEntry(TODO)");
                 break;
-           case BACNET_APPLICATION_TAG_HOST_N_PORT:
+#endif
+#if defined(BACAPP_HOST_N_PORT)
+            case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                /* BACnetHostNPort */
                 if (value->type.Host_Address.host_ip_address) {
+                    uint8_t *octet_str;
                     octet_str = octetstring_value(
                         &value->type.Host_Address.host.ip_address);
                     slen = snprintf(str, str_len, "%u.%u.%u.%u:%u",
@@ -2354,6 +2547,12 @@ int bacapp_snprintf_value(
                     slen = snprintf(str, str_len, "\"");
                     ret_val += slen;
                 }
+                break;
+#endif
+#if defined(BACAPP_DESTINATION)
+            case BACNET_APPLICATION_TAG_DESTINATION:
+                ret_val = bacnet_destination_to_ascii(
+                    &value->type.Destination, str, str_len);
                 break;
 #endif
             default:
@@ -2447,7 +2646,7 @@ static char *trim(char *str, const char *trimmedchars)
     return ltrim(rtrim(str, trimmedchars), trimmedchars);
 }
 
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_WEEKLY_SCHEDULE)
 static bool parse_weeklyschedule(
     char *str, BACNET_APPLICATION_DATA_VALUE *value)
 {
@@ -2640,10 +2839,6 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
     BACNET_UNSIGNED_INTEGER unsigned_long_value = 0;
     double double_value = 0.0;
     int count = 0;
-#if defined(BACAPP_TYPES_EXTRA)
-    unsigned a[4] = { 0 }, p = 0;
-    float x, y;
-#endif
 
     if (value && (tag_number != MAX_BACNET_APPLICATION_TAG)) {
         status = true;
@@ -2788,52 +2983,52 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                 }
                 break;
 #endif
-#if defined(BACAPP_TYPES_EXTRA)
-            case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
-                /* FIXME: add parsing for lighting command */
+#if defined(BACAPP_DATETIME)
+            case BACNET_APPLICATION_TAG_DATETIME:
+                /* BACnetDateTime */
+                status = datetime_init_ascii(&value->type.Date_Time, argv);
                 break;
+#endif
+#if defined(BACAPP_LIGHTING_COMMAND)
+            case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
+                /* BACnetLightingCommand */
+                status = lighting_command_from_ascii(
+                    &value->type.Lighting_Command, argv);
+                break;
+#endif
+#if defined(BACAPP_XY_COLOR)
             case BACNET_APPLICATION_TAG_XY_COLOR:
                 /* BACnetxyColor */
-                count = sscanf(argv, "%f,%f", &x, &y);
-                if (count == 2) {
-                    value->type.XY_Color.x_coordinate = x;
-                    value->type.XY_Color.y_coordinate = y;
-                } else {
-                    status = false;
-                }
+                status = xy_color_from_ascii(&value->type.XY_Color, argv);
                 break;
+#endif
+#if defined(BACAPP_COLOR_COMMAND)
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* FIXME: add parsing for BACnetColorCommand */
                 break;
+#endif
+#if defined(BACAPP_WEEKLY_SCHEDULE)
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 status = parse_weeklyschedule(argv, value);
                 break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* FIXME: add parsing for BACnetSpecialEvent */
+                break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
             case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
                 /* FIXME: add parsing for BACnetCalendarEntry */
                 break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
-                count = sscanf(argv, "%3u.%3u.%3u.%3u:%5u", &a[0], &a[1], &a[2],
-                    &a[3], &p);
-                if ((count == 4) || (count == 5)) {
-                    uint8_t address[4];
-                    value->type.Host_Address.host_ip_address = true;
-                    value->type.Host_Address.host_name = false;
-                    address[0] = (uint8_t)a[0];
-                    address[1] = (uint8_t)a[1];
-                    address[2] = (uint8_t)a[2];
-                    address[3] = (uint8_t)a[3];
-                    octetstring_init(
-                        &value->type.Host_Address.host.ip_address, address, 4);
-                    if (count == 4) {
-                        value->type.Host_Address.port = 0xBAC0U;
-                    } else {
-                        value->type.Host_Address.port = (uint16_t)p;
-                    }
-                    status = true;
-                } else {
-                    status = false;
-                }
+                status =
+                    host_n_port_from_ascii(&value->type.Host_Address, argv);
                 break;
+#endif
+#if defined(BACAPP_DESTINATION)
             case BACNET_APPLICATION_TAG_DESTINATION:
                 status = bacnet_destination_from_ascii(
                     &value->type.Destination, argv);
@@ -3026,6 +3221,7 @@ int bacapp_property_value_decode(
     int apdu_len = 0;
     int tag_len = 0;
     uint32_t enumerated_value = 0;
+    uint32_t len_value_type = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     BACNET_PROPERTY_ID property_identifier = PROP_ALL;
     BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
@@ -3044,9 +3240,10 @@ int bacapp_property_value_decode(
     }
     /* property-array-index [1] Unsigned OPTIONAL */
     if (bacnet_is_context_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 1, NULL)) {
-        len = bacnet_unsigned_context_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
+            &apdu[apdu_len], apdu_size - apdu_len, 1, &len, &len_value_type)) {
+        apdu_len += len;
+        len = bacnet_unsigned_decode(&apdu[apdu_len], apdu_size - apdu_len,
+            len_value_type, &unsigned_value);
         if (len > 0) {
             if (unsigned_value > UINT32_MAX) {
                 return BACNET_STATUS_ERROR;
@@ -3106,9 +3303,10 @@ int bacapp_property_value_decode(
     }
     /* priority [3] Unsigned (1..16) OPTIONAL */
     if (bacnet_is_context_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 3, NULL)) {
-        len = bacnet_unsigned_context_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, 3, &unsigned_value);
+            &apdu[apdu_len], apdu_size - apdu_len, 3, &len, &len_value_type)) {
+        apdu_len += len;
+        len = bacnet_unsigned_decode(&apdu[apdu_len], apdu_size - apdu_len,
+            len_value_type, &unsigned_value);
         if (len > 0) {
             if (unsigned_value > UINT8_MAX) {
                 return BACNET_STATUS_ERROR;
@@ -3241,42 +3439,95 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
                     &value->type.Bit_String, &test_value->type.Bit_String);
                 break;
 #endif
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_TIMESTAMP)
+            case BACNET_APPLICATION_TAG_TIMESTAMP:
+                status = bacapp_timestamp_same(
+                    &value->type.Time_Stamp, &test_value->type.Time_Stamp);
+                break;
+#endif
+#if defined(BACAPP_DATETIME)
             case BACNET_APPLICATION_TAG_DATETIME:
                 if (datetime_compare(&value->type.Date_Time,
                         &test_value->type.Date_Time) == 0) {
                     status = true;
                 }
                 break;
+#endif
+#if defined(BACAPP_LIGHTING_COMMAND)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 status = lighting_command_same(&value->type.Lighting_Command,
                     &test_value->type.Lighting_Command);
                 break;
+#endif
+#if defined(BACAPP_XY_COLOR)
             case BACNET_APPLICATION_TAG_XY_COLOR:
                 /* BACnetxyColor */
                 status = xy_color_same(
                     &value->type.XY_Color, &test_value->type.XY_Color);
                 break;
+#endif
+#if defined(BACAPP_COLOR_COMMAND)
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
                 status = color_command_same(&value->type.Color_Command,
                     &test_value->type.Color_Command);
                 break;
+#endif
+#if defined(BACAPP_WEEKLY_SCHEDULE)
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 /* BACnetWeeklySchedule */
                 status =
                     bacnet_weeklyschedule_same(&value->type.Weekly_Schedule,
                         &test_value->type.Weekly_Schedule);
                 break;
-            case BACNET_APPLICATION_TAG_HOST_N_PORT:
-                status = host_n_port_same(
-                    &value->type.Host_Address, &value->type.Host_Address);
-                break;
+#endif
+#if defined(BACAPP_CALENDAR_ENTRY)
             case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
                 /* BACnetCalendarEntry */
                 status =
                     bacnet_calendar_entry_same(&value->type.Calendar_Entry,
                         &test_value->type.Calendar_Entry);
+                break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                /* BACnetSpecialEvent */
+                status =
+                    bacnet_special_event_same(&value->type.Special_Event,
+                        &test_value->type.Special_Event);
+                break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
+            case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                status = host_n_port_same(
+                    &value->type.Host_Address, &test_value->type.Host_Address);
+                break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
+                status = bacnet_device_object_property_reference_same(
+                    &value->type.Device_Object_Property_Reference,
+                    &test_value->type.Device_Object_Property_Reference);
+                break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
+                status = bacnet_device_object_reference_same(
+                    &value->type.Device_Object_Reference,
+                    &test_value->type.Device_Object_Reference);
+                break;
+#endif
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
+            case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
+                status = bacnet_object_property_reference_same(
+                    &value->type.Object_Property_Reference,
+                    &test_value->type.Object_Property_Reference);
+                break;
+#endif
+#if defined(BACAPP_DESTINATION)
+            case BACNET_APPLICATION_TAG_DESTINATION:
+                status = bacnet_destination_same(
+                    &value->type.Destination, &test_value->type.Destination);
                 break;
 #endif
             default:

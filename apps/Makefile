@@ -50,6 +50,9 @@ ifeq (${BBMD},server)
 BBMD_DEFINE = -DBBMD_ENABLED=1
 endif
 ifeq (${BBMD},client)
+BBMD_DEFINE = -DBBMD_ENABLED=0 -DBBMD_CLIENT_ENABLED
+endif
+ifeq (${BBMD},full)
 BBMD_DEFINE = -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
 
@@ -215,14 +218,14 @@ endif
 #####
 
 # AFL
-fuzz-afl: CC=afl-gcc 
+fuzz-afl: CC=afl-gcc
 fuzz-afl: FUZZ_FLAGS=-DFUZZING=1
 fuzz-afl: LFLAGS += $(FUZZ_FLAGS)
 fuzz-afl: CFLAGS += $(FUZZ_FLAGS)
 fuzz-afl: export AFL_USE_ASAN=1
 
 # LIBFUZZER
-fuzz-libfuzzer: CC=clang 
+fuzz-libfuzzer: CC=clang
 fuzz-libfuzzer: FUZZ_FLAGS=-DFUZZING=1 -fsanitize=fuzzer,address -g3 -Og -fno-optimize-sibling-calls -fno-omit-frame-pointer
 fuzz-libfuzzer: LFLAGS += $(FUZZ_FLAGS)
 fuzz-libfuzzer: CFLAGS += $(FUZZ_FLAGS)
@@ -262,6 +265,10 @@ ack-alarm: $(BACNET_LIB_TARGET)
 .PHONY: add-list-element
 add-list-element: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@ clean all
+
+.PHONY: blinkt
+blinkt:
+	$(MAKE) -C $@
 
 .PHONY: dcc
 dcc: $(BACNET_LIB_TARGET)
@@ -309,6 +316,10 @@ mstpcap:
 
 .PHONY: mstpcrc
 mstpcrc:
+	$(MAKE) -B -C $@
+
+.PHONY: piface
+piface:
 	$(MAKE) -B -C $@
 
 .PHONY: ptransfer

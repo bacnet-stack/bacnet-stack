@@ -386,6 +386,7 @@ static void packet_statistics_print(void)
     fprintf(stdout, "Node Count: %u\n", node_count);
     fprintf(stdout, "Invalid Frame Count: %lu\n",
         (long unsigned int)Invalid_Frame_Count);
+    fflush(stdout);
 }
 
 static void packet_statistics_clear(void)
@@ -429,6 +430,22 @@ uint16_t MSTP_Get_Send(
     return 0;
 }
 
+/**
+ * @brief Send an MSTP frame
+ * @param mstp_port - port specific data
+ * @param buffer - data to send
+ * @param nbytes - number of bytes of data to send
+ */
+void MSTP_Send_Frame(
+    volatile struct mstp_port_struct_t *mstp_port,
+    uint8_t * buffer,
+    uint16_t nbytes)
+{
+    (void)mstp_port;
+    (void)buffer;
+    (void)nbytes;
+}
+
 uint16_t MSTP_Get_Reply(
     volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
@@ -438,20 +455,20 @@ uint16_t MSTP_Get_Reply(
 }
 
 static char Capture_Filename[64] = "mstp_20090123091200.cap";
-static FILE *pFile = NULL; /* stream pointer */
+static FILE *File_Handle = NULL; /* stream pointer */
 #if defined(_WIN32)
-static HANDLE hPipe = INVALID_HANDLE_VALUE; /* pipe handle */
+static HANDLE Pipe_Handle = INVALID_HANDLE_VALUE; /* pipe handle */
 static void named_pipe_create(char *pipe_name)
 {
     if (!Wireshark_Capture) {
         fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", pipe_name);
     }
     /* create the pipe */
-    while (hPipe == INVALID_HANDLE_VALUE) {
+    while (Pipe_Handle == INVALID_HANDLE_VALUE) {
         /* use CreateFile rather than CreateNamedPipe */
-        hPipe = CreateFile(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+        Pipe_Handle = CreateFile(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, NULL,
             OPEN_EXISTING, 0, NULL);
-        if (hPipe != INVALID_HANDLE_VALUE) {
+        if (Pipe_Handle != INVALID_HANDLE_VALUE) {
             break;
         }
         /* if an error occured at handle creation */
@@ -463,36 +480,48 @@ static void named_pipe_create(char *pipe_name)
             return;
         }
     }
-    ConnectNamedPipe(hPipe, NULL);
+    ConnectNamedPipe(Pipe_Handle, NULL);
 }
 
 static size_t data_write(const void *ptr, size_t size, size_t nitems)
 {
+    size_t written = 0;
     DWORD cbWritten = 0;
-    if (hPipe != INVALID_HANDLE_VALUE) {
-        (void)WriteFile(hPipe, /* handle to pipe  */
+
+    if (Pipe_Handle != INVALID_HANDLE_VALUE) {
+        (void)WriteFile(Pipe_Handle, /* handle to pipe  */
             ptr, /* buffer to write from  */
             size * nitems, /* number of bytes to write  */
             &cbWritten, /* number of bytes written  */
             NULL); /* not overlapped I/O  */
+        written = cbWritten;
     }
 
-    return fwrite(ptr, size, nitems, pFile);
+    if (File_Handle) {
+        written = fwrite(ptr, size, nitems, File_Handle);
+    }
+
+    return written;
 }
 
 static size_t data_write_header(
-    const void *ptr, size_t size, size_t nitems, bool pipe_enable)
+    const void *ptr, size_t size, size_t nitems)
 {
+    size_t written = 0;
     DWORD cbWritten = 0;
-    if (pipe_enable && (hPipe != INVALID_HANDLE_VALUE)) {
-        (void)WriteFile(hPipe, /* handle to pipe  */
+    if (Pipe_Handle != INVALID_HANDLE_VALUE) {
+        (void)WriteFile(Pipe_Handle, /* handle to pipe  */
             ptr, /* buffer to write from  */
             size * nitems, /* number of bytes to write  */
             &cbWritten, /* number of bytes written  */
             NULL); /* not overlapped I/O  */
+        written = cbWritten;
+    }
+    if (File_Handle) {
+        written = fwrite(ptr, size, nitems, File_Handle);
     }
 
-    return fwrite(ptr, size, nitems, pFile);
+    return written;
 }
 #else
 static int FD_Pipe = -1;
@@ -513,43 +542,64 @@ static void named_pipe_create(char *name)
 
 static size_t data_write(const void *ptr, size_t size, size_t nitems)
 {
-    ssize_t bytes = 0;
+    ssize_t written = 0;
+
     if (FD_Pipe != -1) {
-        bytes = write(FD_Pipe, ptr, size * nitems);
-        (void)bytes;
+        written = write(FD_Pipe, ptr, size * nitems);
     }
-    return fwrite(ptr, size, nitems, pFile);
+    if (File_Handle) {
+        written = fwrite(ptr, size, nitems, File_Handle);
+    }
+
+    return written;
 }
 
 static size_t data_write_header(
-    const void *ptr, size_t size, size_t nitems, bool pipe_enable)
+    const void *ptr, size_t size, size_t nitems)
 {
-    ssize_t bytes = 0;
-    if (pipe_enable && (FD_Pipe != -1)) {
-        bytes = write(FD_Pipe, ptr, size * nitems);
-        (void)bytes;
+    ssize_t written = 0;
+
+    if (FD_Pipe != -1) {
+        written = write(FD_Pipe, ptr, size * nitems);
     }
-    return fwrite(ptr, size, nitems, pFile);
+    if (File_Handle) {
+        written = fwrite(ptr, size, nitems, File_Handle);
+    }
+
+    return written;
 }
 #endif
 
-static void filename_create(char *filename)
+static void filename_create_new(void)
 {
     BACNET_DATE bdate;
     BACNET_TIME btime;
+    char *filename = &Capture_Filename[0];
+    size_t filename_size = sizeof(Capture_Filename);
 
-    if (filename) {
-        datetime_local(&bdate, &btime, NULL, NULL);
-        sprintf(filename, "mstp_%04d%02d%02d%02d%02d%02d.cap", (int)bdate.year,
-            (int)bdate.month, (int)bdate.day, (int)btime.hour, (int)btime.min,
-            (int)btime.sec);
+    if (Wireshark_Capture) {
+        return;
+    }
+    if (File_Handle) {
+        fclose(File_Handle);
+    }
+    File_Handle = NULL;
+    datetime_local(&bdate, &btime, NULL, NULL);
+    snprintf(filename, filename_size, "mstp_%04d%02d%02d%02d%02d%02d.cap",
+        (int)bdate.year, (int)bdate.month, (int)bdate.day, (int)btime.hour,
+        (int)btime.min, (int)btime.sec);
+    File_Handle = fopen(filename, "wb");
+    if (File_Handle) {
+        fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
+    } else {
+        fprintf(stderr, "mstpcap: failed to open %s: %s\n", filename,
+            strerror(errno));
     }
 }
 
 /* write packet to file in libpcap format */
-static void write_global_header(const char *filename)
+static void write_global_header(void)
 {
-    static bool pipe_enable = true; /* don't write more than one header */
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
     uint16_t version_major = 2; /* major version number */
     uint16_t version_minor = 4; /* minor version number */
@@ -559,29 +609,17 @@ static void write_global_header(const char *filename)
     uint32_t network = DLT_BACNET_MS_TP; /* data link type - BACNET_MS_TP */
 
     /* create a new file. */
-    pFile = fopen(filename, "wb");
-    if (pFile) {
-        (void)data_write_header(
-            &magic_number, sizeof(magic_number), 1, pipe_enable);
-        (void)data_write_header(
-            &version_major, sizeof(version_major), 1, pipe_enable);
-        (void)data_write_header(
-            &version_minor, sizeof(version_minor), 1, pipe_enable);
-        (void)data_write_header(&thiszone, sizeof(thiszone), 1, pipe_enable);
-        (void)data_write_header(&sigfigs, sizeof(sigfigs), 1, pipe_enable);
-        (void)data_write_header(&snaplen, sizeof(snaplen), 1, pipe_enable);
-        (void)data_write_header(&network, sizeof(network), 1, pipe_enable);
-        fflush(pFile);
-        if (!Wireshark_Capture) {
-            fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
-        }
-    } else {
-        fprintf(stderr, "mstpcap[header]: failed to open %s: %s\n", filename,
-            strerror(errno));
-    }
-    if (pipe_enable) {
-        pipe_enable = false;
-    }
+    (void)data_write_header(
+        &magic_number, sizeof(magic_number), 1);
+    (void)data_write_header(
+        &version_major, sizeof(version_major), 1);
+    (void)data_write_header(
+        &version_minor, sizeof(version_minor), 1);
+    (void)data_write_header(&thiszone, sizeof(thiszone), 1);
+    (void)data_write_header(&sigfigs, sizeof(sigfigs), 1);
+    (void)data_write_header(&snaplen, sizeof(snaplen), 1);
+    (void)data_write_header(&network, sizeof(network), 1);
+    fflush(File_Handle);
 }
 
 static void write_received_packet(
@@ -596,66 +634,61 @@ static void write_received_packet(
     struct timeval tv;
     size_t max_data = 0;
 
-    if (pFile) {
-        gettimeofday(&tv, NULL);
-        ts_sec = tv.tv_sec;
-        ts_usec = tv.tv_usec;
-        if ((mstp_port->ReceivedValidFrame) ||
-            (mstp_port->ReceivedValidFrameNotForUs)) {
-            packet_statistics(&tv, mstp_port);
-        }
-        (void)data_write(&ts_sec, sizeof(ts_sec), 1);
-        (void)data_write(&ts_usec, sizeof(ts_usec), 1);
-        if (mstp_port->ReceivedInvalidFrame) {
-            if (mstp_port->Index) {
-                max_data = min(mstp_port->InputBufferSize, mstp_port->Index);
-                if ((mstp_port->DataLength > 0) &&
-                    (mstp_port->Index == (mstp_port->DataLength + 1))) {
-                    /* case where index is not incremented for CRC2,
-                        so only 1 for checksum */
-                    data_crc_len = 1;
-                }
-                incl_len = orig_len = header_len + max_data + data_crc_len;
-            } else {
-                /* header only */
-                incl_len = orig_len = header_len;
+    gettimeofday(&tv, NULL);
+    ts_sec = tv.tv_sec;
+    ts_usec = tv.tv_usec;
+    if ((mstp_port->ReceivedValidFrame) ||
+        (mstp_port->ReceivedValidFrameNotForUs)) {
+        packet_statistics(&tv, mstp_port);
+    }
+    (void)data_write(&ts_sec, sizeof(ts_sec), 1);
+    (void)data_write(&ts_usec, sizeof(ts_usec), 1);
+    if (mstp_port->ReceivedInvalidFrame) {
+        if (mstp_port->Index) {
+            max_data = min(mstp_port->InputBufferSize, mstp_port->Index);
+            if ((mstp_port->DataLength > 0) &&
+                (mstp_port->Index == (mstp_port->DataLength + 1))) {
+                /* case where index is not incremented for CRC2,
+                    so only 1 for checksum */
+                data_crc_len = 1;
             }
+            incl_len = orig_len = header_len + max_data + data_crc_len;
         } else {
-            if (mstp_port->DataLength) {
-                max_data =
-                    min(mstp_port->InputBufferSize, mstp_port->DataLength);
-                incl_len = orig_len = header_len + max_data + data_crc_len;
-            } else {
-                /* header only - or at least some bytes of the header */
-                incl_len = orig_len = header_len;
-            }
-        }
-        (void)data_write(&incl_len, sizeof(incl_len), 1);
-        (void)data_write(&orig_len, sizeof(orig_len), 1);
-        if (header_len == 1) {
-            header[0] = mstp_port->DataRegister;
-        } else if (header_len == 2) {
-            header[0] = 0x55;
-            header[1] = mstp_port->DataRegister;
-        } else {
-            header[0] = 0x55;
-            header[1] = 0xFF;
-            header[2] = mstp_port->FrameType;
-            header[3] = mstp_port->DestinationAddress;
-            header[4] = mstp_port->SourceAddress;
-            header[5] = HI_BYTE(mstp_port->DataLength);
-            header[6] = LO_BYTE(mstp_port->DataLength);
-            header[7] = mstp_port->HeaderCRCActual;
-        }
-        (void)data_write(header, header_len, 1);
-        if (max_data) {
-            (void)data_write(mstp_port->InputBuffer, max_data, 1);
-            (void)data_write((char *)&mstp_port->DataCRCActualMSB, 1, 1);
-            (void)data_write((char *)&mstp_port->DataCRCActualLSB, 1, 1);
+            /* header only */
+            incl_len = orig_len = header_len;
         }
     } else {
-        fprintf(stderr, "mstpcap[packet]: failed to open %s: %s\n",
-            Capture_Filename, strerror(errno));
+        if (mstp_port->DataLength) {
+            max_data =
+                min(mstp_port->InputBufferSize, mstp_port->DataLength);
+            incl_len = orig_len = header_len + max_data + data_crc_len;
+        } else {
+            /* header only - or at least some bytes of the header */
+            incl_len = orig_len = header_len;
+        }
+    }
+    (void)data_write(&incl_len, sizeof(incl_len), 1);
+    (void)data_write(&orig_len, sizeof(orig_len), 1);
+    if (header_len == 1) {
+        header[0] = mstp_port->DataRegister;
+    } else if (header_len == 2) {
+        header[0] = 0x55;
+        header[1] = mstp_port->DataRegister;
+    } else {
+        header[0] = 0x55;
+        header[1] = 0xFF;
+        header[2] = mstp_port->FrameType;
+        header[3] = mstp_port->DestinationAddress;
+        header[4] = mstp_port->SourceAddress;
+        header[5] = HI_BYTE(mstp_port->DataLength);
+        header[6] = LO_BYTE(mstp_port->DataLength);
+        header[7] = mstp_port->HeaderCRCActual;
+    }
+    (void)data_write(header, header_len, 1);
+    if (max_data) {
+        (void)data_write(mstp_port->InputBuffer, max_data, 1);
+        (void)data_write((char *)&mstp_port->DataCRCActualMSB, 1, 1);
+        (void)data_write((char *)&mstp_port->DataCRCActualLSB, 1, 1);
     }
 }
 
@@ -672,55 +705,55 @@ static bool test_global_header(const char *filename)
     size_t count = 0;
 
     /* open existing file. */
-    pFile = fopen(filename, "rb");
-    if (pFile) {
-        count = fread(&magic_number, sizeof(magic_number), 1, pFile);
+    File_Handle = fopen(filename, "rb");
+    if (File_Handle) {
+        count = fread(&magic_number, sizeof(magic_number), 1, File_Handle);
         if ((count != 1) || (magic_number != 0xa1b2c3d4)) {
             fprintf(stderr, "mstpcap: invalid magic number\n");
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
-        count = fread(&version_major, sizeof(version_major), 1, pFile);
+        count = fread(&version_major, sizeof(version_major), 1, File_Handle);
         if ((count != 1) || (version_major != 2)) {
             fprintf(stderr, "mstpcap: invalid major version\n");
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
-        count = fread(&version_minor, sizeof(version_minor), 1, pFile);
+        count = fread(&version_minor, sizeof(version_minor), 1, File_Handle);
         if ((count != 1) || (version_minor != 4)) {
             fprintf(stderr, "mstpcap: invalid minor version\n");
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
-        count = fread(&thiszone, sizeof(thiszone), 1, pFile);
+        count = fread(&thiszone, sizeof(thiszone), 1, File_Handle);
         if ((count != 1) || (thiszone != 0)) {
             fprintf(stderr, "mstpcap: invalid time zone\n");
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
-        count = fread(&sigfigs, sizeof(sigfigs), 1, pFile);
+        count = fread(&sigfigs, sizeof(sigfigs), 1, File_Handle);
         if ((count != 1) || (sigfigs != 0)) {
             fprintf(stderr, "mstpcap: invalid time stamp accuracy\n");
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
-        count = fread(&snaplen, sizeof(snaplen), 1, pFile);
+        count = fread(&snaplen, sizeof(snaplen), 1, File_Handle);
         if (count != 1) {
             fprintf(stderr, "mstpcap: unable to read SNAP length\n");
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
-        count = fread(&network, sizeof(network), 1, pFile);
+        count = fread(&network, sizeof(network), 1, File_Handle);
         if ((count != 1) || (network != DLT_BACNET_MS_TP)) {
             fprintf(stderr, "mstpcap: invalid data link type (DLT)\n");
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
     } else {
@@ -743,37 +776,37 @@ static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
     size_t count = 0;
     unsigned i = 0;
 
-    if (pFile) {
-        count = fread(&ts_sec, sizeof(ts_sec), 1, pFile);
+    if (File_Handle) {
+        count = fread(&ts_sec, sizeof(ts_sec), 1, File_Handle);
         if (count != 1) {
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
-        count = fread(&ts_usec, sizeof(ts_usec), 1, pFile);
+        count = fread(&ts_usec, sizeof(ts_usec), 1, File_Handle);
         if (count != 1) {
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
         tv.tv_sec = ts_sec;
         tv.tv_usec = ts_usec;
-        count = fread(&incl_len, sizeof(incl_len), 1, pFile);
+        count = fread(&incl_len, sizeof(incl_len), 1, File_Handle);
         if (count != 1) {
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
-        count = fread(&orig_len, sizeof(orig_len), 1, pFile);
+        count = fread(&orig_len, sizeof(orig_len), 1, File_Handle);
         if (count != 1) {
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
-        count = fread(&header, sizeof(header), 1, pFile);
+        count = fread(&header, sizeof(header), 1, File_Handle);
         if (count != 1) {
-            fclose(pFile);
-            pFile = NULL;
+            fclose(File_Handle);
+            File_Handle = NULL;
             return false;
         }
         mstp_port->FrameType = header[2];
@@ -801,22 +834,22 @@ static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
             /* packet includes data */
             mstp_port->DataLength = orig_len - 8 - 2;
             count =
-                fread(mstp_port->InputBuffer, mstp_port->DataLength, 1, pFile);
+                fread(mstp_port->InputBuffer, mstp_port->DataLength, 1, File_Handle);
             if (count != 1) {
-                fclose(pFile);
-                pFile = NULL;
+                fclose(File_Handle);
+                File_Handle = NULL;
                 return false;
             }
-            count = fread((char *)&mstp_port->DataCRCActualMSB, 1, 1, pFile);
+            count = fread((char *)&mstp_port->DataCRCActualMSB, 1, 1, File_Handle);
             if (count != 1) {
-                fclose(pFile);
-                pFile = NULL;
+                fclose(File_Handle);
+                File_Handle = NULL;
                 return false;
             }
-            count = fread((char *)&mstp_port->DataCRCActualLSB, 1, 1, pFile);
+            count = fread((char *)&mstp_port->DataCRCActualLSB, 1, 1, File_Handle);
             if (count != 1) {
-                fclose(pFile);
-                pFile = NULL;
+                fclose(File_Handle);
+                File_Handle = NULL;
                 return false;
             }
             mstp_port->DataCRC = 0xFFFF;
@@ -858,11 +891,11 @@ static void cleanup(void)
     if (!Wireshark_Capture) {
         packet_statistics_print();
     }
-    if (pFile) {
-        fflush(pFile); /* stream pointer */
-        fclose(pFile); /* stream pointer */
+    if (File_Handle) {
+        fflush(File_Handle); /* stream pointer */
+        fclose(File_Handle); /* stream pointer */
     }
-    pFile = NULL;
+    File_Handle = NULL;
 }
 
 #if defined(_WIN32)
@@ -870,11 +903,11 @@ static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
 {
     dwCtrlType = dwCtrlType;
 
-    if (hPipe != INVALID_HANDLE_VALUE) {
-        FlushFileBuffers(hPipe);
-        DisconnectNamedPipe(hPipe);
-        CloseHandle(hPipe);
-        hPipe = INVALID_HANDLE_VALUE;
+    if (Pipe_Handle != INVALID_HANDLE_VALUE) {
+        FlushFileBuffers(Pipe_Handle);
+        DisconnectNamedPipe(Pipe_Handle);
+        CloseHandle(Pipe_Handle);
+        Pipe_Handle = INVALID_HANDLE_VALUE;
     }
     /* signal to main loop to exit */
     Exit_Requested = true;
@@ -904,16 +937,6 @@ static void signal_init(void)
 }
 #endif
 
-static void filename_create_new(void)
-{
-    if (pFile) {
-        fclose(pFile);
-    }
-    pFile = NULL;
-    filename_create(&Capture_Filename[0]);
-    write_global_header(&Capture_Filename[0]);
-}
-
 static void print_usage(char *filename)
 {
     printf("Usage: %s", filename);
@@ -931,9 +954,9 @@ static void print_help(char *filename)
         filename);
     printf("\n");
     printf("Captures MS/TP packets from a serial interface\n"
-           "and saves them to a file. Saves packets in a\n"
-           "filename mstp_20090123091200.cap that has data and time.\n"
-           "After receiving 65535 packets, a new file is created.\n");
+        "and writes them to a file or a pipe, or scans a file for stats."
+        "Filename is of the form mstp_20090123091200.cap (timestamp).\n"
+        "New files are created after receiving 65535 packets.\n");
     printf("\n");
     printf("Command line options:\n"
            "[--extcap-interface port] - serial interface.\n"
@@ -1144,6 +1167,7 @@ int main(int argc, char *argv[])
     signal_init();
 #endif
     filename_create_new();
+    write_global_header();
     /* run forever */
     for (;;) {
         RS485_Check_UART_Data(mstp_port);
@@ -1196,11 +1220,13 @@ int main(int argc, char *argv[])
             if (!(packet_count % 100)) {
                 fprintf(stdout, "\r%u packets, %u invalid frames",
                     (unsigned)packet_count, (unsigned)Invalid_Frame_Count);
+                fflush(stdout);
             }
             if (packet_count >= 65535) {
                 packet_statistics_print();
                 packet_statistics_clear();
                 filename_create_new();
+                write_global_header();
                 packet_count = 0;
             }
         }

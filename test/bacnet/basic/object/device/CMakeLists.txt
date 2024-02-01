@@ -52,6 +52,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/object/ao.c
 	${SRC_DIR}/bacnet/basic/object/av.c
 	${SRC_DIR}/bacnet/basic/object/bi.c
+	${SRC_DIR}/bacnet/basic/object/blo.c
 	${SRC_DIR}/bacnet/basic/object/bo.c
 	${SRC_DIR}/bacnet/basic/object/bv.c
 	${SRC_DIR}/bacnet/basic/object/calendar.c
@@ -79,6 +80,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
 	${SRC_DIR}/bacnet/basic/sys/debug.c
 	${SRC_DIR}/bacnet/basic/sys/keylist.c
+	${SRC_DIR}/bacnet/basic/sys/linear.c
 	${SRC_DIR}/bacnet/basic/tsm/tsm.c
 	${SRC_DIR}/bacnet/datalink/bvlc.c
 	${SRC_DIR}/bacnet/calendar_entry.c
@@ -97,6 +99,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/wp.c
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/dailyschedule.c
+	${SRC_DIR}/bacnet/calendar_entry.c
+	${SRC_DIR}/bacnet/special_event.c
 	./stubs.c
     # Test and test library files
 	./src/main.c

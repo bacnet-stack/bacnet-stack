@@ -70,9 +70,30 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+option(
+  BACNET_STACK_DEPRECATED_DISABLE 
+  "Disable deprecation compile warnings" 
+  ON)
+
+if(BACNET_STACK_DEPRECATED_DISABLE)
+  add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
+endif()
+
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+  add_compile_options(-Wall -Wextra -pedantic)
+  add_compile_options(-Wfloat-equal -Wconversion -Wparentheses)
+  add_compile_options(-Wunused-value -Wreturn-type -Wswitch-default)
+  add_compile_options(-Wuninitialized -Winit-self)
+  add_compile_options(-Wno-sign-conversion -Wno-conversion)
+  add_compile_options(-Wno-sign-compare -Wno-long-long)
+  add_compile_options(-Wno-implicit-fallthrough -Wno-attributes)
+  add_compile_options(-Wunused-variable -Wunused-function)
+  add_compile_options(-Wunused-parameter)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  add_compile_options(-Wall -Wextra -pedantic -g -O3)
+endif()
 
 #
 # library
@@ -130,6 +151,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/dailyschedule.h
     src/bacnet/weeklyschedule.c
     src/bacnet/weeklyschedule.h
+    src/bacnet/special_event.c
+    src/bacnet/special_event.h
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
@@ -140,8 +163,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/binding/address.h
     src/bacnet/basic/npdu/h_npdu.c
     src/bacnet/basic/npdu/h_npdu.h
-    src/bacnet/basic/npdu/h_routed_npdu.c
-    src/bacnet/basic/npdu/h_routed_npdu.h
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.c>
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.h>
     src/bacnet/basic/npdu/s_router.c
     src/bacnet/basic/npdu/s_router.h
     src/bacnet/basic/object/access_credential.c
@@ -167,6 +190,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/bacfile.h
     src/bacnet/basic/object/bi.c
     src/bacnet/basic/object/bi.h
+    src/bacnet/basic/object/blo.c
+    src/bacnet/basic/object/blo.h
     src/bacnet/basic/object/bo.c
     src/bacnet/basic/object/bo.h
     src/bacnet/basic/object/bv.c
@@ -357,6 +382,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/key.h
     src/bacnet/basic/sys/keylist.c
     src/bacnet/basic/sys/keylist.h
+    src/bacnet/basic/sys/linear.c
+    src/bacnet/basic/sys/linear.h
     src/bacnet/basic/sys/mstimer.c
     src/bacnet/basic/sys/mstimer.h
     src/bacnet/basic/sys/ringbuf.c
@@ -387,6 +414,7 @@ add_library(${PROJECT_NAME}
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.h>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
     src/bacnet/datalink/datalink.c
     src/bacnet/datalink/datalink.h
@@ -518,7 +546,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
-    # ports/linux/rx_fsm.c
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     ports/linux/mstimer-init.c)
 
@@ -533,13 +560,14 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_BIP}>:ws2_32>
     $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
 
-  add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
+  if(MSVC)
+    add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
+  endif()
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
     $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
-    # ports/win32/rx_fsm.c
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
@@ -549,6 +577,16 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>)
 elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    ports/bsd/bacport.h
+    ports/bsd/bip-init.c
+    ports/bsd/datetime-init.c
+    ports/bsd/mstimer-init.c
+    ports/bsd/stdbool.h)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+  message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
 
   target_sources(${PROJECT_NAME} PRIVATE

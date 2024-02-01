@@ -33,6 +33,15 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
+/**
+ * @brief Callback for write present value request
+ * @param  object_instance - object-instance number of the object
+ * @param  old_value - value prior to write
+ * @param  value - value of the write
+ */
+typedef void (*lighting_output_write_present_value_callback)(
+    uint32_t object_instance, float old_value, float value);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -194,6 +203,14 @@ extern "C" {
         float step_increment);
 
     BACNET_STACK_EXPORT
+    BACNET_LIGHTING_TRANSITION Lighting_Output_Transition(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Lighting_Output_Transition_Set(
+        uint32_t object_instance,
+        BACNET_LIGHTING_TRANSITION value);
+
+    BACNET_STACK_EXPORT
     unsigned Lighting_Output_Default_Priority(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
@@ -202,9 +219,46 @@ extern "C" {
         unsigned priority);
 
     BACNET_STACK_EXPORT
+    bool Lighting_Output_Color_Override(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Lighting_Output_Color_Override_Set(
+        uint32_t object_instance,
+        bool value);
+
+    BACNET_STACK_EXPORT
+    bool Lighting_Output_Color_Reference(
+        uint32_t object_instance,
+        BACNET_OBJECT_ID *value);
+    BACNET_STACK_EXPORT
+    bool Lighting_Output_Color_Reference_Set(
+        uint32_t object_instance,
+        BACNET_OBJECT_ID *value);
+
+    BACNET_STACK_EXPORT
+    bool Lighting_Output_Override_Color_Reference(
+        uint32_t object_instance,
+        BACNET_OBJECT_ID *value);
+    BACNET_STACK_EXPORT
+    bool Lighting_Output_Override_Color_Reference_Set(
+        uint32_t object_instance,
+        BACNET_OBJECT_ID *value);
+
+    BACNET_STACK_EXPORT
     void Lighting_Output_Timer(
+        uint32_t object_instance,
         uint16_t milliseconds);
 
+    BACNET_STACK_EXPORT
+    void Lighting_Output_Write_Present_Value_Callback_Set(
+        lighting_output_write_present_value_callback cb);
+
+    BACNET_STACK_EXPORT
+    uint32_t Lighting_Output_Create(uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Lighting_Output_Delete(uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    void Lighting_Output_Cleanup(void);
     BACNET_STACK_EXPORT
     void Lighting_Output_Init(
         void);

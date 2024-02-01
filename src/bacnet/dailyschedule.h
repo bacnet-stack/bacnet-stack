@@ -51,15 +51,17 @@ extern "C" {
 
     /** Decode DailySchedule (sequence of times and values) */
     BACNET_STACK_EXPORT
-    int bacnet_dailyschedule_decode(
+    int bacnet_dailyschedule_context_decode(
         uint8_t * apdu,
         int max_apdu_len,
+        uint8_t tag_number,
         BACNET_DAILY_SCHEDULE * day);
 
     /** Encode DailySchedule (sequence of times and values) */
     BACNET_STACK_EXPORT
-    int bacnet_dailyschedule_encode(
+    int bacnet_dailyschedule_context_encode(
         uint8_t * apdu,
+        uint8_t tag_number,
         BACNET_DAILY_SCHEDULE * day);
 
 #ifdef __cplusplus

@@ -27,9 +27,17 @@ static void test_ListElement(void)
 
     list_element.application_data = NULL;
     list_element.application_data_len = 0;
+    /* NULL test - number of bytes which would have been written to the APDU */
     null_len = list_element_encode_service_request(NULL, &list_element);
     apdu_len = list_element_encode_service_request(apdu, &list_element);
     zassert_equal(apdu_len, null_len, NULL);
+    apdu_len =
+        list_element_service_request_encode(apdu, null_len, &list_element);
+    zassert_equal(apdu_len, null_len, NULL);
+    /* negative test - too short */
+    null_len = list_element_service_request_encode(NULL, 0, &list_element);
+    zassert_equal(0, null_len, NULL);
+    /* decoder test */
     test_len =
         list_element_decode_service_request(apdu, apdu_len, &test_list_element);
     zassert_equal(apdu_len, test_len, NULL);

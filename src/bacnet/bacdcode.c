@@ -498,7 +498,9 @@ int bacnet_tag_decode(uint8_t *apdu, uint32_t apdu_size, BACNET_TAG *tag)
     bool closing_tag = false;
     uint32_t len_value_type = 0;
 
-    len = bacnet_tag_number_decode(&apdu[0], apdu_size, &tag_number);
+    if (apdu && (apdu_size > 0)) {
+        len = bacnet_tag_number_decode(&apdu[0], apdu_size, &tag_number);
+    }
     if (len > 0) {
         if (IS_EXTENDED_VALUE(apdu[0])) {
             if (apdu_size > len) {
@@ -792,11 +794,14 @@ bool decode_is_context_tag_with_length(
  * @param tag_number  Tag number, that has been decoded before.
  * @param tag_length  Pointer to a variable, or NULL.
  *  Returns the length of the tag in bytes if not NULL.
+ * @param len_value_type  Pointer to a variable, or NULL.
+ *  Returns the len_value_type of the tag in bytes if not NULL.
  *
  * @return true on a match, false otherwise.
  */
 bool bacnet_is_context_tag_number(
-    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length)
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length, 
+    uint32_t *len_value_type)
 {
     bool match = false;
     int len;
@@ -807,6 +812,9 @@ bool bacnet_is_context_tag_number(
         if (tag.context && (tag.number == tag_number)) {
             if (tag_length) {
                 *tag_length = len;
+            }
+            if (len_value_type) {
+                *len_value_type = tag.len_value_type;
             }
             match = true;
         }
@@ -849,7 +857,7 @@ bool decode_is_opening_tag_number(uint8_t *apdu, uint8_t tag_number)
  * @param tag_length  Pointer to a variable, or NULL.
  *  Returns the length of the tag in bytes if not NULL.
  *
- * @return true if the tag number matches is an opening tag.
+ * @return true if the tag number matches and is an opening tag.
  */
 bool bacnet_is_opening_tag_number(
     uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length)
@@ -1115,11 +1123,7 @@ int bacnet_boolean_context_decode(
             apdu_len = len;
             if (apdu_len < apdu_size) {
                 if (boolean_value) {
-                    if (apdu[apdu_len]) {
-                        *boolean_value = true;
-                    } else {
-                        *boolean_value = false;
-                    }
+                    *boolean_value = decode_context_boolean(&apdu[apdu_len]);
                 }
                 apdu_len++;
             } else {

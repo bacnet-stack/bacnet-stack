@@ -251,6 +251,7 @@ static void handle_signal(int sig)
 		PRINT(" at %s function\n", phase_str[phase]);
 		longjmp(test_fail, 1);
 	case TEST_PHASE_FRAMEWORK:
+	default:
 		PRINT("\n");
 		longjmp(stack_fail, 1);
 	}

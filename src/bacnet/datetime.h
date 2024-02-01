@@ -1,28 +1,17 @@
-/**************************************************************************
+/**
+ * @file
+ * @brief API for BACnetDate, BACnetTime, BACnetDateTime, BACnetDateRange 
+ * complex data type encode and decode
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @author Ondřej Hruška <ondra@ondrovo.com>
+ * @date 2012
+ * @section LICENSE
  *
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *********************************************************************/
-#ifndef DATE_TIME_H
-#define DATE_TIME_H
+ * SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_DATE_TIME_H
+#define BACNET_DATE_TIME_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -262,6 +251,8 @@ BACNET_STACK_EXPORT
 bool datetime_date_init_ascii(BACNET_DATE *bdate, const char *ascii);
 BACNET_STACK_EXPORT
 bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii);
+BACNET_STACK_EXPORT
+bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value);
@@ -286,49 +277,20 @@ int bacapp_decode_context_datetime(uint8_t *apdu,
     uint8_t tag_number,
     BACNET_DATE_TIME *value);
 
-/**
- * Encode daterange
- *
- * @param apdu - apdu buffer; NULL to only measure capacity needed
- * @param value - value to encode
- * @return number of bytes emitted, <= 0 on error
- */
 BACNET_STACK_EXPORT
-int bacapp_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value);
-
-/**
- * Decode daterange
- *
- * @param apdu - apdu buffer with data
- * @param value - value to decode
- * @return number of bytes consumed, <= 0 on error
- */
+int bacnet_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
-int bacapp_daterange_decode(uint8_t *apdu, BACNET_DATE_RANGE *value);
-
-/**
- * Encode daterange with context tag
- *
- * @param apdu - apdu buffer; NULL to only measure capacity needed
- * @param tag_number - context tag number
- * @param value - value to encode
- * @return number of bytes emitted, <= 0 on error
- */
+int bacnet_daterange_decode(uint8_t *apdu, 
+    uint32_t apdu_size, 
+    BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
-int bacapp_daterange_context_encode(
+int bacnet_daterange_context_encode(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value);
-
-/**
- * Decode daterange with context tag
- *
- * @param apdu - apdu buffer
- * @param tag_number - context tag number to expect
- * @param value - value to decode
- * @return number of bytes consumed, <= 0 on error
- */
 BACNET_STACK_EXPORT
-int bacapp_daterange_context_decode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_RANGE *value);
+int bacnet_daterange_context_decode(uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_DATE_RANGE *value);
 
 /* implementation agnostic functions - create your own! */
 BACNET_STACK_EXPORT
@@ -342,4 +304,4 @@ void datetime_init(void);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /* DATE_TIME_H */
+#endif

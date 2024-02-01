@@ -51,9 +51,9 @@
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
+#include "bacnet/datalink/cobs.h"
+#include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstp.h"
-#include "crc.h"
-#include "rs485.h"
 #include "bacnet/datalink/mstptext.h"
 #include "bacnet/npdu.h"
 
@@ -198,23 +198,48 @@ void MSTP_Fill_BACnet_Address(BACNET_ADDRESS *src, uint8_t mstp_address)
     }
 }
 
-uint16_t MSTP_Create_Frame(uint8_t *buffer, /* where frame is loaded */
-    uint16_t buffer_len, /* amount of space available */
-    uint8_t frame_type, /* type of frame to send - see defines */
-    uint8_t destination, /* destination address */
-    uint8_t source, /* source address */
-    uint8_t *data, /* any data to be sent - may be null */
+/**
+ * @brief Create an MS/TP Frame
+ *
+ * All MS/TP frames are of the following format:
+ *   Preamble: two octet preamble: X`55', X`FF'
+ *   Frame Type: one octet
+ *   Destination Address: one octet address
+ *   Source Address: one octet address
+ *   Length: two octets, most significant octet first, of the Data field
+ *   Header CRC: one octet
+ *   Data: (present only if Length is non-zero)
+ *   Data CRC: (present only if Length is non-zero) two octets,
+ *     least significant octet first
+ *   (pad): (optional) at most one octet of padding: X'FF'
+ *
+ * @param buffer - where frame is loaded
+ * @param buffer_size - amount of space available in the buffer
+ * @param frame_type - type of frame to send - see defines
+ * @param destination - destination address
+ * @param source - source address
+ * @param data - any data to be sent - may be null
+ * @param data_len - number of bytes of data (up to 501)
+ * @return number of bytes encoded, or 0 on error
+ */
+uint16_t MSTP_Create_Frame(uint8_t *buffer,
+    uint16_t buffer_size,
+    uint8_t frame_type,
+    uint8_t destination,
+    uint8_t source,
+    uint8_t *data,
     uint16_t data_len)
-{ /* number of bytes of data (up to 501) */
+{
     uint8_t crc8 = 0xFF; /* used to calculate the crc value */
     uint16_t crc16 = 0xFFFF; /* used to calculate the crc value */
     uint16_t index = 0; /* used to load the data portion of the frame */
+    uint16_t cobs_len; /* length of the COBS encoded frame */
+    bool cobs_bacnet_frame = false; /* true for COBS BACnet frames */
 
     /* not enough to do a header */
-    if (buffer_len < 8) {
+    if (buffer_size < 8) {
         return 0;
     }
-
     buffer[0] = 0x55;
     buffer[1] = 0xFF;
     buffer[2] = frame_type;
@@ -228,46 +253,87 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer, /* where frame is loaded */
     buffer[6] = data_len & 0xFF;
     crc8 = CRC_Calc_Header(buffer[6], crc8);
     buffer[7] = ~crc8;
-
     index = 8;
-    while (data_len && data && (index < buffer_len)) {
-        buffer[index] = *data;
-        crc16 = CRC_Calc_Data(buffer[index], crc16);
-        data++;
-        index++;
-        data_len--;
-    }
-    /* append the data CRC if necessary */
-    if (index > 8) {
-        if ((index + 2) <= buffer_len) {
-            crc16 = ~crc16;
-            buffer[index] = crc16 & 0xFF; /* LSB first */
-            index++;
-            buffer[index] = crc16 >> 8;
-            index++;
-        } else {
+
+    if ((data_len > 501) || ((frame_type >= Nmin_COBS_type) &&
+        (frame_type <= Nmax_COBS_type))) {
+        /* COBS encoded frame */
+        if (frame_type == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) {
+            frame_type = FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY;
+            cobs_bacnet_frame = true;
+        } else if (frame_type == FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY) {
+            frame_type = FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY;
+            cobs_bacnet_frame = true;
+        } else if ((frame_type < Nmin_COBS_type) ||
+            (frame_type > Nmax_COBS_type)) {
+            /* I'm sorry, Dave, I'm afraid I can't do that. */
             return 0;
         }
+        cobs_len = cobs_frame_encode(buffer, buffer_size, data, data_len);
+        /* check the results of COBs encoding for validity */
+        if (cobs_bacnet_frame) {
+            if (cobs_len < Nmin_COBS_length_BACnet) {
+                return 0;
+            } else if (cobs_len > Nmax_COBS_length_BACnet) {
+                return 0;
+            }
+        } else {
+            if (cobs_len < Nmin_COBS_length) {
+                return 0;
+            } else if (cobs_len > Nmax_COBS_length) {
+                return 0;
+            }
+        }
+        /* for COBS, we must subtract two before use as the
+           MS/TP frame length field since CRC32 is 2 bytes longer
+           than CRC16 in original MSTP and non-COBS devices need
+           to be able to ingest the entire frame */
+        index = index + cobs_len - 2;
+    } else if (data_len > 0) {
+        while (data_len && data && (index < buffer_size)) {
+            buffer[index] = *data;
+            crc16 = CRC_Calc_Data(buffer[index], crc16);
+            data++;
+            index++;
+            data_len--;
+        }
+        if ((index + 2) > buffer_size) {
+            return 0;
+        }
+        crc16 = ~crc16;
+        buffer[index] = crc16 & 0xFF; /* LSB first */
+        index++;
+        buffer[index] = crc16 >> 8;
+        index++;
     }
 
     return index; /* returns the frame length */
 }
 
+/**
+ * @brief Send an MS/TP Frame
+ * @param mstp_port - port to send from
+ * @param frame_type - type of frame to send - see defines
+ * @param destination - destination address
+ * @param source - source address
+ * @param data - any data to be sent - may be null
+ * @param data_len - number of bytes of data (up to 501)
+ */
 void MSTP_Create_And_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port, /* port to send from */
-    uint8_t frame_type, /* type of frame to send - see defines */
-    uint8_t destination, /* destination address */
-    uint8_t source, /* source address */
-    uint8_t *data, /* any data to be sent - may be null */
+    volatile struct mstp_port_struct_t *mstp_port,
+    uint8_t frame_type,
+    uint8_t destination,
+    uint8_t source,
+    uint8_t *data,
     uint16_t data_len)
-{ /* number of bytes of data (up to 501) */
+{
     uint16_t len = 0; /* number of bytes to send */
 
     len = MSTP_Create_Frame((uint8_t *)&mstp_port->OutputBuffer[0],
         mstp_port->OutputBufferSize, frame_type, destination, source, data,
         data_len);
 
-    RS485_Send_Frame(mstp_port, (uint8_t *)&mstp_port->OutputBuffer[0], len);
+    MSTP_Send_Frame(mstp_port, (uint8_t *)&mstp_port->OutputBuffer[0], len);
     /* FIXME: be sure to reset SilenceTimer() after each octet is sent! */
 }
 
@@ -532,30 +598,59 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                     mstp_port->DataCRC = CRC_Calc_Data(
                         mstp_port->DataRegister, mstp_port->DataCRC);
                     mstp_port->DataCRCActualMSB = mstp_port->DataRegister;
+                    if (mstp_port->Index < mstp_port->InputBufferSize) {
+                        mstp_port->InputBuffer[mstp_port->Index] =
+                            mstp_port->DataRegister;
+                    }
                     mstp_port->Index++;
                     /* SKIP_DATA or DATA - no change in state */
                 } else if (mstp_port->Index == (mstp_port->DataLength + 1)) {
                     /* CRC2 */
+                    if (mstp_port->Index < mstp_port->InputBufferSize) {
+                        mstp_port->InputBuffer[mstp_port->Index] =
+                            mstp_port->DataRegister;
+                    }
                     mstp_port->DataCRC = CRC_Calc_Data(
                         mstp_port->DataRegister, mstp_port->DataCRC);
                     mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
                     printf_receive_data("%s",
                         mstptext_frame_type((unsigned)mstp_port->FrameType));
-                    /* STATE DATA CRC - no need for new state */
-                    /* indicate the complete reception of a valid frame */
-                    if (mstp_port->DataCRC == 0xF0B8) {
-                        if (mstp_port->receive_state ==
-                            MSTP_RECEIVE_STATE_DATA) {
-                            /* ForUs */
-                            mstp_port->ReceivedValidFrame = true;
+                    if (((mstp_port->Index+1) < mstp_port->InputBufferSize) &&
+                        (mstp_port->FrameType >= Nmin_COBS_type) &&
+                        (mstp_port->FrameType <= Nmax_COBS_type)) {
+                        if (cobs_frame_decode(
+                                &mstp_port->InputBuffer[mstp_port->Index + 1],
+                                mstp_port->InputBufferSize,
+                                mstp_port->InputBuffer, mstp_port->Index + 1)) {
+                            if (mstp_port->receive_state ==
+                                MSTP_RECEIVE_STATE_DATA) {
+                                /* ForUs */
+                                mstp_port->ReceivedValidFrame = true;
+                            } else {
+                                /* NotForUs */
+                                mstp_port->ReceivedValidFrameNotForUs = true;
+                            }
                         } else {
-                            /* NotForUs */
-                            mstp_port->ReceivedValidFrameNotForUs = true;
+                            mstp_port->ReceivedInvalidFrame = true;
                         }
                     } else {
-                        mstp_port->ReceivedInvalidFrame = true;
-                        printf_receive_error("MSTP: Rx Data: BadCRC [%02X]\n",
-                            mstp_port->DataRegister);
+                        /* STATE DATA CRC - no need for new state */
+                        /* indicate the complete reception of a valid frame */
+                        if (mstp_port->DataCRC == 0xF0B8) {
+                            if (mstp_port->receive_state ==
+                                MSTP_RECEIVE_STATE_DATA) {
+                                /* ForUs */
+                                mstp_port->ReceivedValidFrame = true;
+                            } else {
+                                /* NotForUs */
+                                mstp_port->ReceivedValidFrameNotForUs = true;
+                            }
+                        } else {
+                            mstp_port->ReceivedInvalidFrame = true;
+                            printf_receive_error(
+                                "MSTP: Rx Data: BadCRC [%02X]\n",
+                                mstp_port->DataRegister);
+                        }
                     }
                     mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                 } else {
@@ -729,7 +824,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
             } else {
                 uint8_t frame_type = mstp_port->OutputBuffer[2];
                 uint8_t destination = mstp_port->OutputBuffer[3];
-                RS485_Send_Frame(mstp_port,
+                MSTP_Send_Frame(mstp_port,
                     (uint8_t *)&mstp_port->OutputBuffer[0], (uint16_t)length);
                 mstp_port->FrameCount++;
                 switch (frame_type) {
@@ -1108,7 +1203,7 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                 /* then call MSTP_Create_And_Send_Frame to transmit the reply
                  * frame  */
                 /* and enter the IDLE state to wait for the next frame. */
-                RS485_Send_Frame(mstp_port,
+                MSTP_Send_Frame(mstp_port,
                     (uint8_t *)&mstp_port->OutputBuffer[0], (uint16_t)length);
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
@@ -1180,7 +1275,7 @@ void MSTP_Slave_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                          * reply frame  */
                         /* and enter the IDLE state to wait for the next frame.
                          */
-                        RS485_Send_Frame(mstp_port,
+                        MSTP_Send_Frame(mstp_port,
                             (uint8_t *)&mstp_port->OutputBuffer[0],
                             (uint16_t)length);
                         /* clear our flag we were holding for comparison */

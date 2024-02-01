@@ -27,8 +27,14 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 /* MS/TP Auto MAC address functionality */
+/* starting number available for AutoMAC */
+#define MSTP_MAC_SLOTS_OFFSET 32
+/* total number of slots */
+#define MSTP_MAC_SLOTS_MAX 128
 
 #ifdef __cplusplus
 extern "C" {

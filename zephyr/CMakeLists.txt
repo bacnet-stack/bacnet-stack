@@ -225,6 +225,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/sys/key.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/keylist.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/keylist.h
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/linear.c
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/linear.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/mstimer.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/mstimer.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/ringbuf.c
@@ -322,6 +324,10 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/weeklyschedule.h
     ${BACNETSTACK_SRC}/bacnet/dailyschedule.c
     ${BACNETSTACK_SRC}/bacnet/dailyschedule.h
+    ${BACNETSTACK_SRC}/bacnet/calendar_entry.c
+    ${BACNETSTACK_SRC}/bacnet/calendar_entry.h
+    ${BACNETSTACK_SRC}/bacnet/special_event.c
+    ${BACNETSTACK_SRC}/bacnet/special_event.h
     )
 
 set(BACNETSTACK_BASIC_SRCS

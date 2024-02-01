@@ -39,6 +39,52 @@
 
 /** @file getevent.c  Encode/Decode GetEvent services */
 
+/**
+ * @brief Encode APDU for GetEvent-Request service
+ * @param apdu Pointer to a buffer, or NULL for length
+ * @param lastReceivedObjectIdentifier  Object identifier
+ * @return Bytes encoded.
+ */
+int getevent_apdu_encode(uint8_t *apdu,
+    BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    /* encode optional parameter */
+    if (lastReceivedObjectIdentifier) {
+        len = encode_context_object_id(apdu, 0,
+            lastReceivedObjectIdentifier->type,
+            lastReceivedObjectIdentifier->instance);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the GetEvent-Request service
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t getevent_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, 
+    BACNET_OBJECT_ID *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = getevent_apdu_encode(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = getevent_apdu_encode(apdu, data);
+    }
+
+    return apdu_len;
+}
+
 /** Encode service
  *
  * @param apdu APDU buffer to encode to.
@@ -49,7 +95,7 @@
  */
 int getevent_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
-    BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
+    BACNET_OBJECT_ID *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -59,15 +105,14 @@ int getevent_encode_apdu(uint8_t *apdu,
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_GET_EVENT_INFORMATION;
-        apdu_len = 4;
-        /* encode optional parameter */
-        if (lastReceivedObjectIdentifier) {
-            len = encode_context_object_id(&apdu[apdu_len], 0,
-                lastReceivedObjectIdentifier->type,
-                lastReceivedObjectIdentifier->instance);
-            apdu_len += len;
-        }
     }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = getevent_apdu_encode(apdu, data);
+    apdu_len += len;
 
     return apdu_len;
 }

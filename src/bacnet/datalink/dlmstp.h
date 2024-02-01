@@ -24,10 +24,12 @@
 #ifndef DLMSTP_H
 #define DLMSTP_H
 
+#include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stddef.h>
 #include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/ringbuf.h"
+#include "bacnet/datalink/mstpdef.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 
@@ -53,6 +55,58 @@ typedef struct dlmstp_statistics {
     uint32_t receive_pdu_counter;
     uint32_t lost_token_counter;
 } DLMSTP_STATISTICS;
+
+#ifndef DLMSTP_MAX_INFO_FRAMES
+#define DLMSTP_MAX_INFO_FRAMES DEFAULT_MAX_INFO_FRAMES
+#endif
+#ifndef DLMSTP_MAX_MASTER
+#define DLMSTP_MAX_MASTER DEFAULT_MAX_MASTER
+#endif
+#ifndef DLMSTP_BAUD_RATE_DEFAULT
+#define DLMSTP_BAUD_RATE_DEFAULT 38400UL
+#endif
+
+/**
+ * The structure of RS485 driver for BACnet MS/TP
+ */
+struct dlmstp_rs485_driver {
+    /** Initialize the driver hardware */
+    void (*init)(void);
+
+    /** Prepare & transmit a packet. */
+    void (*send)(uint8_t *payload, uint16_t payload_len);
+
+    /** Check if one received byte is available */
+    bool (*read)(uint8_t *buf);
+
+    /** true if the driver is transmitting */
+    bool (*transmitting)(void);
+
+    /** Get the current baud rate */
+    uint32_t (*baud_rate)(void);
+
+    /** Set the current baud rate */
+    bool (*baud_rate_set)(uint32_t baud);
+
+    /** Get the current silence time */
+    uint32_t (*silence_milliseconds)(void);
+
+    /** Reset the silence time */
+    void (*silence_reset)(void);
+};
+
+/**
+ * A structure of BACnet Port Data for BACnet MS/TP
+ */
+struct dlmstp_user_data_t {
+    struct dlmstp_statistics Statistics;
+    struct dlmstp_rs485_driver *RS485_Driver;
+    /* the PDU Queue is made of Nmax_info_frames x dlmstp_packet's */
+    RING_BUFFER PDU_Queue;
+    struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
+    bool Initialized;
+    bool ReceivePacketPending;
+};
 
 /* callback to signify the receipt of a preamble */
 typedef void (*dlmstp_hook_frame_rx_start_cb)(void);
@@ -161,6 +215,13 @@ extern "C" {
     uint8_t dlmstp_max_info_frames_limit(void);
     BACNET_STACK_EXPORT
     uint8_t dlmstp_max_master_limit(void);
+
+    BACNET_STACK_EXPORT
+    uint32_t dlmstp_silence_milliseconds(
+        void *arg);
+    BACNET_STACK_EXPORT
+    void dlmstp_silence_reset(
+        void *arg);
 
     /* Set the callback function to be called on every valid received frame */
     /* This is not necessary for normal usage, but is helpful if the caller */

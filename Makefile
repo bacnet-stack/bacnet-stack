@@ -33,6 +33,14 @@ bip6-win32:
 bip6:
 	$(MAKE) BACDL=bip6 -s -C apps all
 
+.PHONY: bip
+bip:
+	$(MAKE) BACDL=bip -s -C apps all
+
+.PHONY: bip-client
+bip-client:
+	$(MAKE) BACDL=bip BBMD=client -s -C apps all
+
 .PHONY: ethernet
 ethernet:
 	$(MAKE) BACDL=ethernet -s -C apps all
@@ -69,6 +77,10 @@ ack-alarm:
 add-list-element:
 	$(MAKE) -s -C apps $@
 
+.PHONY: blinkt
+blinkt:
+	$(MAKE) -s -C apps $@
+
 .PHONY: dcc
 dcc:
 	$(MAKE) -s -C apps $@
@@ -101,12 +113,24 @@ gateway:
 gateway-win32:
 	$(MAKE) BACNET_PORT=win32 -s -C apps gateway
 
+.PHONY: piface
+piface:
+	$(MAKE) CSTANDARD="-std=gnu11" LEGACY=true -s -C apps $@
+
 .PHONY: readbdt
 readbdt:
 	$(MAKE) -s -C apps $@
 
 .PHONY: readfdt
 readfdt:
+	$(MAKE) -s -C apps $@
+
+.PHONY: readprop
+readprop:
+	$(MAKE) -s -C apps $@
+
+.PHONY: readpropm
+readpropm:
 	$(MAKE) -s -C apps $@
 
 .PHONY: remove-list-element
@@ -202,6 +226,13 @@ at91sam7s: ports/at91sam7s/Makefile
 at91sam7s-clean: ports/at91sam7s/Makefile
 	$(MAKE) -s -C ports/at91sam7s clean
 
+AT91SAM7S_CMAKE_BUILD_DIR=ports/at91sam7s/build
+.PHONY: at91sam7s-cmake
+at91sam7s-cmake:
+	[ -d $(AT91SAM7S_CMAKE_BUILD_DIR) ] || mkdir -p $(AT91SAM7S_CMAKE_BUILD_DIR)
+	[ -d $(AT91SAM7S_CMAKE_BUILD_DIR) ] && cd $(AT91SAM7S_CMAKE_BUILD_DIR) && \
+	cmake ../ && cmake --build . --clean-first
+
 .PHONY: stm32f10x
 stm32f10x: ports/stm32f10x/Makefile
 	$(MAKE) -s -C ports/stm32f10x clean all
@@ -217,6 +248,13 @@ stm32f4xx: ports/stm32f4xx/Makefile
 .PHONY: stm32f4xx-clean
 stm32f4xx-clean: ports/stm32f4xx/Makefile
 	$(MAKE) -s -C ports/stm32f4xx clean
+
+STM32F4XX_CMAKE_BUILD_DIR=ports/stm32f4xx/build
+.PHONY: stm32f4xx-cmake
+stm32f4xx-cmake:
+	[ -d $(STM32F4XX_CMAKE_BUILD_DIR) ] || mkdir -p $(STM32F4XX_CMAKE_BUILD_DIR)
+	[ -d $(STM32F4XX_CMAKE_BUILD_DIR) ] && cd $(STM32F4XX_CMAKE_BUILD_DIR) && \
+	cmake ../ && cmake --build . --clean-first
 
 .PHONY: xplained
 xplained: ports/xplained/Makefile
@@ -305,6 +343,40 @@ SPELL_OPTIONS = --enable-colors --ignore-words-list $(IGNORE_WORDS)
 .PHONY: spell
 spell:
 	codespell $(SPELL_OPTIONS) ./src
+
+# McCabe's Cyclomatic Complexity Scores
+# sudo apt install pmccable
+COMPLEXITY_SRC = \
+	$(wildcard ./src/bacnet/*.c) \
+	$(wildcard ./src/bacnet/basic/*.c) \
+	$(wildcard ./src/bacnet/basic/binding/*.c) \
+	$(wildcard ./src/bacnet/basic/service/*.c) \
+	$(wildcard ./src/bacnet/basic/sys/*.c) \
+	./src/bacnet/basic/npdu/h_npdu.c \
+	./src/bacnet/basic/npdu/s_router.c \
+	./src/bacnet/basic/tsm/tsm.c
+
+.PHONY: pmccabe
+pmccabe:
+	pmccabe $(COMPLEXITY_SRC) | awk '{print $$2,$$6,$$7}' | sort -nr | head -20
+
+# sudo apt install complexity
+#  0-9 Easily maintained code.
+# 10-19 Maintained with little trouble.
+# 20-29 Maintained with some effort.
+# 30-39 Difficult to maintain code.
+# 40-49 Hard to maintain code.
+# 50-99 Unmaintainable code.
+# 100-199 Crazy making difficult code.
+# 200+ I only wish I were kidding.
+.PHONY: complexity
+complexity:
+	complexity $(COMPLEXITY_SRC)
+
+# sudo apt install sloccount
+.PHONY: sloccount
+sloccount:
+	sloccount .
 
 .PHONY: clean
 clean: ports-clean

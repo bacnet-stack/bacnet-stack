@@ -47,6 +47,8 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/bactext.c
     ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/calendar_entry.c
+    ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/bactimevalue.c
     ${BACNET_SRC}/dailyschedule.c
     ${BACNET_SRC}/lighting.c

@@ -11,6 +11,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/av.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
 	$(BACNET_OBJECT_DIR)/bo.c \
+	$(BACNET_OBJECT_DIR)/blo.c \
 	$(BACNET_OBJECT_DIR)/bv.c \
 	$(BACNET_OBJECT_DIR)/calendar.c \
 	$(BACNET_OBJECT_DIR)/channel.c \
