@@ -58,10 +58,6 @@ struct mstp_port_struct_t {
     /* if a valid frame is received.  */
     /* Set to FALSE by the Master or Slave Node state machine. */
     unsigned ReceivedValidFrame : 1;
-    /* A Boolean flag set to TRUE by the Receive State Machine
-       if a valid frame is received but it is not addressed to us.
-       Set to FALSE by the Master or Slave Node state machine. */
-    unsigned ReceivedValidFrameNotForUs : 1;
     /* A Boolean flag set to TRUE by the master machine if this node is the
        only known master node. */
     unsigned SoleMaster : 1;
@@ -219,7 +215,7 @@ struct mstp_port_struct_t {
        that a node must wait for a remote node to begin using a token 
        or replying to a Poll For Master frame: 20 milliseconds. 
        (Implementations may use larger values for this timeout, 
-       not to exceed 100 milliseconds.) */
+       not to exceed 35 milliseconds.) */
     uint8_t Tusage_timeout;
 
    /* The minimum time after the end of the stop bit of the final 

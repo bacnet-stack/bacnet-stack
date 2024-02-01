@@ -95,15 +95,17 @@ int main(void)
     MSTP_Port.InputBufferSize = sizeof(Input_Buffer);
     MSTP_Port.OutputBuffer = Output_Buffer;
     MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
-    /* not a zero config node */
-    MSTP_Port.ZeroConfigEnabled = false;
-    /* only a master node */
-    MSTP_Port.SlaveNodeEnabled = false;
     /* user data */
+    MSTP_Port.ZeroConfigEnabled = true;
+    MSTP_Port.SlaveNodeEnabled = false;
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;
     dlmstp_init((char *)&MSTP_Port);
-    dlmstp_set_mac_address(2);
+    if (MSTP_Port.ZeroConfigEnabled) {
+        dlmstp_set_mac_address(255);
+    } else {
+        dlmstp_set_mac_address(1);
+    }
     dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
     /* initialize application layer*/
     bacnet_init();

@@ -370,7 +370,6 @@ uint16_t dlmstp_receive(
     }
     /* only do receive state machine while we don't have a frame */
     while ((MSTP_Port->ReceivedValidFrame == false) &&
-        (MSTP_Port->ReceivedValidFrameNotForUs == false) &&
         (MSTP_Port->ReceivedInvalidFrame == false)) {
         MSTP_Port->DataAvailable = driver->read(&data_register);
         if (MSTP_Port->DataAvailable) {
@@ -382,18 +381,13 @@ uint16_t dlmstp_receive(
             break;
         }
     }
-    if (MSTP_Port->ReceivedValidFrameNotForUs ||
-        MSTP_Port->ReceivedValidFrame || MSTP_Port->ReceivedInvalidFrame) {
+    if (MSTP_Port->ReceivedValidFrame || MSTP_Port->ReceivedInvalidFrame) {
         /* delay after reception before transmitting - per MS/TP spec */
         milliseconds = MSTP_Port->SilenceTimer(MSTP_Port);
         if (milliseconds < MSTP_Port->Tturnaround_timeout) {
             /* we're waiting; do nothing else */
             return 0;
         }
-    }
-    if (MSTP_Port->ReceivedValidFrameNotForUs) {
-        MSTP_Port->ReceivedValidFrameNotForUs = false;
-        user->Statistics.receive_valid_frame_counter++;
     }
     if (MSTP_Port->ReceivedValidFrame) {
         user->Statistics.receive_valid_frame_counter++;
@@ -405,7 +399,8 @@ uint16_t dlmstp_receive(
         /* only node state machines while rx is idle */
         if (MSTP_Port->SlaveNodeEnabled) {
             MSTP_Slave_Node_FSM(MSTP_Port);
-        } else if (MSTP_Port->This_Station <= DEFAULT_MAX_MASTER) {
+        } else if ((MSTP_Port->This_Station <= DEFAULT_MAX_MASTER) ||
+            MSTP_Port->ZeroConfigEnabled) {
             while (MSTP_Master_Node_FSM(MSTP_Port)) {
                 /* do nothing while some states fast transition */
             };
@@ -476,11 +471,8 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
  */
 void dlmstp_set_mac_address(uint8_t mac_address)
 {
-    /* Master Nodes can only have address 0-127 */
-    if (mac_address <= 127) {
-        if (MSTP_Port) {
-            MSTP_Port->This_Station = mac_address;
-        }
+    if (MSTP_Port) {
+        MSTP_Port->This_Station = mac_address;
     }
 
     return;
