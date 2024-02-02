@@ -6,8 +6,8 @@
 #
 # Prior to running this script, be sure to:
 # a) update CHANGELOG and version.h with new version number, and commit changes.
-# b) git tag to bacnet-stack-x.y.z where x.y.z is the new version number
-# c) create long term branch as bacnet-stack-x.y if needed
+# After running this script, be sure to:
+# a) create long term branch as bacnet-stack-x.y if needed
 
 USERNAME='skarg'
 
