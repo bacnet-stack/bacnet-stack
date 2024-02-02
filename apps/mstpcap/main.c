@@ -286,8 +286,7 @@ static void packet_statistics(
                     MSTP_Statistics[src].der_reply = delta;
                 }
             }
-            if ((mstp_port->ReceivedValidFrame) ||
-                (mstp_port->ReceivedValidFrameNotForUs)) {
+            if (mstp_port->ReceivedValidFrame) {
                 if ((mstp_port->DataLength <= mstp_port->InputBufferSize) &&
                     (mstp_port->DataLength > 0)) {
                     mstp_monitor_i_am(
@@ -637,8 +636,7 @@ static void write_received_packet(
     gettimeofday(&tv, NULL);
     ts_sec = tv.tv_sec;
     ts_usec = tv.tv_usec;
-    if ((mstp_port->ReceivedValidFrame) ||
-        (mstp_port->ReceivedValidFrameNotForUs)) {
+    if (mstp_port->ReceivedValidFrame) {
         packet_statistics(&tv, mstp_port);
     }
     (void)data_write(&ts_sec, sizeof(ts_sec), 1);
@@ -824,7 +822,6 @@ static bool read_received_packet(struct mstp_port_struct_t *mstp_port)
             mstp_port->ReceivedInvalidFrame = false;
             if (mstp_port->DataLength == 0) {
                 mstp_port->ReceivedValidFrame = true;
-                mstp_port->ReceivedValidFrameNotForUs = true;
             }
         } else {
             mstp_port->ReceivedValidFrame = false;
@@ -864,19 +861,16 @@ static bool read_received_packet(struct mstp_port_struct_t *mstp_port)
             if (mstp_port->DataCRC == 0xF0B8) {
                 mstp_port->ReceivedInvalidFrame = false;
                 mstp_port->ReceivedValidFrame = true;
-                mstp_port->ReceivedValidFrameNotForUs = true;
             } else {
                 mstp_port->ReceivedInvalidFrame = true;
                 mstp_port->ReceivedValidFrame = false;
-                mstp_port->ReceivedValidFrameNotForUs = false;
             }
         } else {
             mstp_port->DataLength = 0;
         }
         if (mstp_port->ReceivedInvalidFrame) {
             Invalid_Frame_Count++;
-        } else if ((mstp_port->ReceivedValidFrame) ||
-            (mstp_port->ReceivedValidFrameNotForUs)) {
+        } else if (mstp_port->ReceivedValidFrame) {
             packet_statistics(&tv, mstp_port);
         }
     } else {
@@ -996,7 +990,6 @@ static void mstp_structure_init(struct mstp_port_struct_t *mstp_port)
         mstp_port->EventCount = 0;
         mstp_port->ReceivedInvalidFrame = false;
         mstp_port->ReceivedValidFrame = false;
-        mstp_port->ReceivedValidFrameNotForUs = false;
         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
     }
 }
@@ -1174,10 +1167,6 @@ int main(int argc, char *argv[])
         MSTP_Receive_Frame_FSM(mstp_port);
         /* process the data portion of the frame */
         if (mstp_port->ReceivedValidFrame) {
-            write_received_packet(mstp_port, MSTP_HEADER_MAX);
-            mstp_structure_init(mstp_port);
-            packet_count++;
-        } else if (mstp_port->ReceivedValidFrameNotForUs) {
             write_received_packet(mstp_port, MSTP_HEADER_MAX);
             mstp_structure_init(mstp_port);
             packet_count++;
