@@ -190,7 +190,7 @@ struct mstp_port_struct_t {
     uint32_t Zero_Config_Silence;
     /* This parameter tracks the highest polled station address.
        The value of this parameter shall be less than or equal to 127.
-       In the absense of other fixed address nodes, this value shall be 127. */
+       In the absence of other fixed address nodes, this value shall be 127. */
     uint8_t Zero_Config_Max_Master;
 
     /* The minimum time without a DataAvailable or ReceiveError event within
