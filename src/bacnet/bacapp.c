@@ -161,7 +161,8 @@ int bacapp_encode_application_data(
 #endif
 #if defined(BACAPP_DATERANGE)
             case BACNET_APPLICATION_TAG_DATERANGE:
-                apdu_len = bacnet_daterange_encode(apdu, &value->type.Date_Range);
+                apdu_len =
+                    bacnet_daterange_encode(apdu, &value->type.Date_Range);
                 break;
 #endif
 #if defined(BACAPP_LIGHTING_COMMAND)
@@ -359,8 +360,8 @@ int bacapp_decode_data(uint8_t *apdu,
 #endif
 #if defined(BACAPP_DATERANGE)
             case BACNET_APPLICATION_TAG_DATERANGE:
-                len = bacnet_daterange_decode(apdu, len_value_type, 
-                    &value->type.Date_Range);
+                len = bacnet_daterange_decode(
+                    apdu, len_value_type, &value->type.Date_Range);
                 break;
 #endif
 #if defined(BACAPP_LIGHTING_COMMAND)
@@ -386,7 +387,7 @@ int bacapp_decode_data(uint8_t *apdu,
 #if defined(BACAPP_WEEKLY_SCHEDULE)
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 len = bacnet_weeklyschedule_decode(
-                    apdu, (int) len_value_type, &value->type.Weekly_Schedule);
+                    apdu, (int)len_value_type, &value->type.Weekly_Schedule);
                 break;
 #endif
 #if defined(BACAPP_CALENDAR_ENTRY)
@@ -398,7 +399,7 @@ int bacapp_decode_data(uint8_t *apdu,
 #if defined(BACAPP_SPECIAL_EVENT)
             case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
                 len = bacnet_special_event_decode(
-                    apdu, (int) len_value_type, &value->type.Special_Event);
+                    apdu, (int)len_value_type, &value->type.Special_Event);
                 break;
 #endif
 #if defined(BACAPP_HOST_N_PORT)
@@ -829,6 +830,12 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
 
     switch (property) {
         case PROP_DATE_LIST:
+            /* BACnetCalendarEntry ::= CHOICE {
+                 date [0] Date,
+                 date-range [1] BACnetDateRange,
+                 weekNDay [2] BACnetWeekNDay
+               } 
+            */
             switch (tag_number) {
                 case 0: /* single calendar date */
                     tag = BACNET_APPLICATION_TAG_DATE;
@@ -846,6 +853,12 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
         case PROP_ACTUAL_SHED_LEVEL:
         case PROP_REQUESTED_SHED_LEVEL:
         case PROP_EXPECTED_SHED_LEVEL:
+            /* BACnetShedLevel ::= CHOICE {
+                 percent [0] Unsigned,
+                 level [1] Unsigned,
+                 amount [2] REAL
+               } 
+            */
             switch (tag_number) {
                 case 0:
                 case 1:
@@ -859,6 +872,18 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
             }
             break;
         case PROP_ACTION:
+            /*  BACnetActionCommand ::= SEQUENCE {
+                  device-identifier [0] BACnetObjectIdentifier OPTIONAL,
+                  object-identifier [1] BACnetObjectIdentifier,
+                  property-identifier [2] BACnetPropertyIdentifier,
+                  property-array-index [3] Unsigned OPTIONAL,
+                  property-value [4] ABSTRACT-SYNTAX.&Type,
+                  priority [5] Unsigned (1..16) OPTIONAL,
+                  post-delay [6] Unsigned OPTIONAL,
+                  quit-on-failure [7] BOOLEAN,
+                  write-successful [8] BOOLEAN
+                }
+            */
             switch (tag_number) {
                 case 0:
                 case 1:
@@ -882,7 +907,12 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
             }
             break;
         case PROP_LIST_OF_GROUP_MEMBERS:
-            /* Sequence of ReadAccessSpecification */
+            /* ReadAccessSpecification ::= SEQUENCE {
+                 object-identifier [0] BACnetObjectIdentifier,
+                 list-of-property-references [1] SEQUENCE OF 
+                    BACnetPropertyReference
+               } 
+            */
             switch (tag_number) {
                 case 0:
                     tag = BACNET_APPLICATION_TAG_OBJECT_ID;
@@ -933,7 +963,6 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     break;
             }
             break;
-
         case PROP_RECIPIENT_LIST:
             /* List of BACnetDestination */
             switch (tag_number) {
@@ -952,9 +981,23 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
             }
             break;
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
-            /* BACnetCOVSubscription */
+            /* BACnetCOVSubscription ::= SEQUENCE {
+                 recipient [0] BACnetRecipientProcess,
+                 monitored-property-reference [1] BACnetObjectPropertyReference,
+                 issue-confirmed-notifications [2] BOOLEAN,
+                 time-remaining [3] Unsigned,
+                 cov-increment [4] REAL OPTIONAL 
+                    -- used only with monitored
+                    -- properties with a numeric datatype
+                }
+            */
             switch (tag_number) {
-                case 0: /* BACnetRecipientProcess */
+                case 0: 
+                    /* BACnetRecipientProcess ::= SEQUENCE {
+                        recipient [0] BACnetRecipient,
+                        process-identifier [1] Unsigned32
+                       } 
+                    */
                     break;
                 case 1: /* BACnetObjectPropertyReference */
                     tag = BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE;
@@ -1038,6 +1081,36 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     tag = BACNET_APPLICATION_TAG_DATETIME;
                     break;
                 default:
+                    break;
+            }
+            break;
+        case PROP_SCALE:
+            /*  BACnetScale ::= CHOICE {
+                    float-scale [0] REAL,
+                    integer-scale [1] INTEGER
+                }
+            */
+            switch (tag_number) {
+                case 0:
+                    tag = BACNET_APPLICATION_TAG_REAL;
+                    break;
+                case 1:
+                    tag = BACNET_APPLICATION_TAG_SIGNED_INT;
+                    break;
+            }
+            break;
+        case PROP_PRESCALE:
+            /*  BACnetPrescale ::= SEQUENCE {
+                    multiplier [0] Unsigned,
+                    modulo-divide [1] Unsigned
+                }
+            */
+            switch (tag_number) {
+                case 0:
+                    tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+                    break;
+                case 1:
+                    tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
                     break;
             }
             break;
@@ -1363,7 +1436,7 @@ int bacapp_decode_known_property(uint8_t *apdu,
             /* Properties using BACnetDeviceObjectReference */
             len = bacapp_decode_device_obj_ref(
                 apdu, &value->type.Device_Object_Reference);
-#endif               
+#endif
             break;
 
         case PROP_TIME_OF_ACTIVE_TIME_RESET:
@@ -1425,7 +1498,6 @@ int bacapp_decode_known_property(uint8_t *apdu,
             len = xy_color_decode(apdu, max_apdu_len, &value->type.XY_Color);
 #endif
             break;
-
         case PROP_TRACKING_VALUE:
         case PROP_PRESENT_VALUE:
             if (object_type == OBJECT_COLOR) {
@@ -1471,14 +1543,14 @@ int bacapp_decode_known_property(uint8_t *apdu,
             break;
 
         case PROP_RECIPIENT_LIST:
-#ifdef BACAPP_DESTINATION        
+#ifdef BACAPP_DESTINATION
             len = bacnet_destination_decode(
                 apdu, max_apdu_len, &value->type.Destination);
 #endif
             break;
 
         case PROP_DATE_LIST:
-#ifdef BACAPP_CALENDAR_ENTRY      
+#ifdef BACAPP_CALENDAR_ENTRY
             /* List of BACnetCalendarEntry */
             len = bacnet_calendar_entry_decode(
                 apdu, max_apdu_len, &value->type.Calendar_Entry);
@@ -1516,6 +1588,7 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_MANUAL_SLAVE_ADDRESS_BINDING:
         case PROP_SLAVE_ADDRESS_BINDING:
             /* FIXME: BACnetAddressBinding */
+        case PROP_SCALE:
         case PROP_ACTION:
         default:
             /* Decode a "classic" simple property */
@@ -2385,7 +2458,8 @@ int bacapp_snprintf_value(
 #endif
 #if defined(BACAPP_DATERANGE)
             case BACNET_APPLICATION_TAG_DATERANGE:
-                slen = bacapp_snprintf_date(str, str_len, &value->type.Date_Range.startdate);
+                slen = bacapp_snprintf_date(
+                    str, str_len, &value->type.Date_Range.startdate);
                 ret_val += slen;
                 if (str) {
                     str += slen;
@@ -2399,7 +2473,8 @@ int bacapp_snprintf_value(
                 slen = snprintf(str, str_len, "..");
                 ret_val += slen;
 
-                slen = bacapp_snprintf_date(str, str_len, &value->type.Date_Range.enddate);
+                slen = bacapp_snprintf_date(
+                    str, str_len, &value->type.Date_Range.enddate);
                 ret_val += slen;
                 break;
 #endif
@@ -2490,15 +2565,13 @@ int bacapp_snprintf_value(
 #if defined(BACAPP_SPECIAL_EVENT)
             case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
                 /* FIXME: add printing for BACnetSpecialEvent */
-                ret_val =
-                    snprintf(str, str_len, "SpecialEvent(TODO)");
+                ret_val = snprintf(str, str_len, "SpecialEvent(TODO)");
                 break;
 #endif
 #if defined(BACAPP_CALENDAR_ENTRY)
             case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
                 /* FIXME: add printing for BACnetCalendarEntry */
-                ret_val =
-                    snprintf(str, str_len, "CalendarEntry(TODO)");
+                ret_val = snprintf(str, str_len, "CalendarEntry(TODO)");
                 break;
 #endif
 #if defined(BACAPP_HOST_N_PORT)
@@ -3485,17 +3558,15 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
 #if defined(BACAPP_CALENDAR_ENTRY)
             case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
                 /* BACnetCalendarEntry */
-                status =
-                    bacnet_calendar_entry_same(&value->type.Calendar_Entry,
-                        &test_value->type.Calendar_Entry);
+                status = bacnet_calendar_entry_same(&value->type.Calendar_Entry,
+                    &test_value->type.Calendar_Entry);
                 break;
 #endif
 #if defined(BACAPP_SPECIAL_EVENT)
             case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
                 /* BACnetSpecialEvent */
-                status =
-                    bacnet_special_event_same(&value->type.Special_Event,
-                        &test_value->type.Special_Event);
+                status = bacnet_special_event_same(&value->type.Special_Event,
+                    &test_value->type.Special_Event);
                 break;
 #endif
 #if defined(BACAPP_HOST_N_PORT)
