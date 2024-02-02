@@ -614,7 +614,6 @@ static void testZeroConfigNode_Test_Request_Supported(
     /* test case: remote node supports Test-Request */
     SilenceTime = 0;
 
-    mstp_port->ReceivedValidFrameNotForUs = true;
     mstp_port->DestinationAddress = mstp_port->Zero_Config_Station;
     mstp_port->SourceAddress = 0;
     mstp_port->FrameType = FRAME_TYPE_TEST_RESPONSE;
@@ -691,24 +690,6 @@ static void testZeroConfigNode_Test_IDLE_ValidFrame(
     zassert_true(
         mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == true, NULL);
-}
-
-static void testZeroConfigNode_Test_IDLE_ValidFrameNotForUs(
-    struct mstp_port_struct_t *mstp_port)
-{
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
-
-    /* test case: get a valid frame, followed by timeout  */
-    SilenceTime = 0;
-    mstp_port->SourceAddress = 0;
-    mstp_port->DestinationAddress = 1;
-    mstp_port->ReceivedValidFrameNotForUs = true;
-    transition_now = MSTP_Master_Node_FSM(mstp_port);
-    zassert_false(transition_now, NULL);
-    zassert_true(
-        mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
-    zassert_true(mstp_port->ReceivedValidFrameNotForUs == true, NULL);
 }
 
 static void testZeroConfigNode_Test_LURK_AddressInUse(
@@ -940,7 +921,6 @@ static void testZeroConfigNode_Test_LURK_ClaimInvalidFrame(
 
     /* ClaimInvalidFrame */
     mstp_port->ReceivedValidFrame = false;
-    mstp_port->ReceivedValidFrameNotForUs = false;
     mstp_port->ReceivedInvalidFrame = true;
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
@@ -955,7 +935,6 @@ static void testZeroConfigNode_Test_LURK_ClaimLostToken(
 
     /* ClaimLostToken */
     mstp_port->ReceivedValidFrame = false;
-    mstp_port->ReceivedValidFrameNotForUs = false;
     mstp_port->ReceivedInvalidFrame = false;
     SilenceTime = mstp_port->Zero_Config_Silence + 1;
     transition_now = MSTP_Master_Node_FSM(mstp_port);
