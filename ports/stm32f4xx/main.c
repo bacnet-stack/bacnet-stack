@@ -22,7 +22,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  *************************************************************************/
-
+#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -30,7 +30,9 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_pwr.h"
 #include "stm32f4xx_rcc.h"
+#include "stm32f4xx_rng.h"
 #include "system_stm32f4xx.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/datalink/datalink.h"
@@ -96,13 +98,36 @@ int main(void)
     MSTP_Port.OutputBuffer = Output_Buffer;
     MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
     /* user data */
+    MSTP_Port.ZeroConfigEnabled = true;
+    MSTP_Port.SlaveNodeEnabled = false;
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;
     dlmstp_init((char *)&MSTP_Port);
-    dlmstp_set_mac_address(2);
+    if (MSTP_Port.ZeroConfigEnabled) {
+        dlmstp_set_mac_address(255);
+    } else {
+        /* FIXME: get the address from hardware DIP or from EEPROM */
+        dlmstp_set_mac_address(1);
+    }
+    /* FIXME: get the baud rate from hardware DIP or from EEPROM */
     dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
     /* initialize application layer*/
     bacnet_init();
+    /* FIXME: get the device ID from EEPROM */
+    Device_Set_Object_Instance_Number(103);
+    /* seed stdlib rand() with device-id to get pweudo consisten 
+       zero-config poll slot, or use hardware RNG to get a more random slot */
+#ifdef BACNET_ZERO_CONFIG_RNG_HARDWARE
+    /* enable the random number generator hardware */
+    RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_RNG, ENABLE);
+    RNG_Cmd(ENABLE);
+    while (RNG_GetFlagStatus(RNG_FLAG_DRDY) == RESET) {
+        /* wait for 32-bit random number to generate */
+    }
+    srand(RNG_GetRandomNumber());
+#else
+    srand(Device_Object_Instance_Number());
+#endif
     for (;;) {
         if (mstimer_expired(&Blink_Timer)) {
             mstimer_reset(&Blink_Timer);

@@ -39,6 +39,9 @@ extern "C" {
     BACNET_STACK_EXPORT
     const char *mstptext_frame_type(
         unsigned index);
+    BACNET_STACK_EXPORT
+    const char *mstptext_zero_config_state(
+        unsigned index);
 
 #ifdef __cplusplus
 }

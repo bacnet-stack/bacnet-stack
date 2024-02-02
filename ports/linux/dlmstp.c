@@ -75,7 +75,7 @@ static bool run_thread;
 
 /*RT_TASK Receive_Task, Fsm_Task;*/
 /* local MS/TP port data - shared with RS-485 */
-static volatile struct mstp_port_struct_t MSTP_Port;
+static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t TxBuffer[DLMSTP_MPDU_MAX];
 static uint8_t RxBuffer[DLMSTP_MPDU_MAX];
@@ -287,7 +287,7 @@ static void *dlmstp_master_fsm_task(void *pArg)
         if (MSTP_Port.ReceivedValidFrame || MSTP_Port.ReceivedInvalidFrame) {
             run_master = true;
         } else {
-            silence = MSTP_Port.SilenceTimer(NULL);
+            silence = MSTP_Port.SilenceTimer(&MSTP_Port);
             switch (MSTP_Port.master_state) {
                 case MSTP_MASTER_STATE_IDLE:
                     if (silence >= Tno_token)
@@ -353,7 +353,7 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     uint16_t pdu_len = 0;
 
@@ -384,8 +384,7 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
-uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
     uint8_t frame_type = 0;
@@ -421,7 +420,7 @@ uint16_t MSTP_Get_Send(
  * @param nbytes - number of bytes of data to send
  */
 void MSTP_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port,
+    struct mstp_port_struct_t *mstp_port,
     uint8_t * buffer,
     uint16_t nbytes)
 {
@@ -584,8 +583,7 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
 }
 
 /* Get the reply to a DATA_EXPECTING_REPLY frame, or nothing */
-uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0; /* return value */
     bool matched = false;

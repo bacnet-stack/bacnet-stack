@@ -17,6 +17,10 @@
       "searchDir": [],
       "svdFile":"${workspaceRoot}/stm32f429.svd",
       "runToEntryPoint": "main",
+      "liveWatch": {
+        "enabled": true,
+        "samplesPerSecond": 1
+      },
       "swoConfig": {
         "enabled": true,
         "cpuFrequency": 8000000,

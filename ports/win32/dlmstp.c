@@ -51,7 +51,7 @@ static HANDLE Receive_Packet_Flag;
 HANDLE Received_Frame_Flag;
 static DLMSTP_PACKET Transmit_Packet;
 /* local MS/TP port data - shared with RS-485 */
-volatile struct mstp_port_struct_t MSTP_Port;
+struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t TxBuffer[DLMSTP_MPDU_MAX];
 static uint8_t RxBuffer[DLMSTP_MPDU_MAX];
@@ -71,11 +71,13 @@ static struct mstimer Silence_Timer;
 /* Timer that indicates line silence - and functions */
 static uint32_t Timer_Silence(void *pArg)
 {
+    (void)pArg;
     return mstimer_elapsed(&Silence_Timer);
 }
 
 static void Timer_Silence_Reset(void *pArg)
 {
+    (void)pArg;
     mstimer_set(&Silence_Timer, 0);
 }
 
@@ -226,7 +228,7 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     uint16_t pdu_len = 0;
     BOOL rc;
@@ -252,7 +254,7 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
     uint8_t destination = 0; /* destination address */
@@ -288,7 +290,7 @@ uint16_t MSTP_Get_Send(
  * @param nbytes - number of bytes of data to send
  */
 void MSTP_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port,
+    struct mstp_port_struct_t *mstp_port,
     uint8_t * buffer,
     uint16_t nbytes)
 {
@@ -405,7 +407,7 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
 
 /* Get the reply to a DATA_EXPECTING_REPLY frame, or nothing */
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0; /* return value */
     uint8_t destination = 0; /* destination address */

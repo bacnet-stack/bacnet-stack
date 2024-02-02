@@ -68,7 +68,7 @@
 #define MSTP_HEADER_MAX (2 + 1 + 1 + 1 + 2 + 1)
 
 /* local port data - shared with RS-485 */
-static volatile struct mstp_port_struct_t MSTP_Port;
+static struct mstp_port_struct_t MSTP_Port;
 /* track the receive state to know when there is a broken packet */
 static MSTP_RECEIVE_STATE MSTP_Receive_State = MSTP_RECEIVE_STATE_IDLE;
 /* buffers needed by mstp port struct */
@@ -185,7 +185,7 @@ static void mstp_monitor_i_am(uint8_t mac, uint8_t *pdu, uint16_t pdu_len)
 }
 
 static void packet_statistics(
-    struct timeval *tv, volatile struct mstp_port_struct_t *mstp_port)
+    struct timeval *tv, struct mstp_port_struct_t *mstp_port)
 {
     static struct timeval old_tv = { 0 };
     static uint8_t old_frame = 255;
@@ -286,8 +286,7 @@ static void packet_statistics(
                     MSTP_Statistics[src].der_reply = delta;
                 }
             }
-            if ((mstp_port->ReceivedValidFrame) ||
-                (mstp_port->ReceivedValidFrameNotForUs)) {
+            if (mstp_port->ReceivedValidFrame) {
                 if ((mstp_port->DataLength <= mstp_port->InputBufferSize) &&
                     (mstp_port->DataLength > 0)) {
                     mstp_monitor_i_am(
@@ -413,7 +412,7 @@ static void Timer_Silence_Reset(void *pArg)
 }
 
 /* functions used by the MS/TP state machine to put or get data */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     (void)mstp_port;
 
@@ -423,7 +422,7 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
@@ -437,7 +436,7 @@ uint16_t MSTP_Get_Send(
  * @param nbytes - number of bytes of data to send
  */
 void MSTP_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port,
+    struct mstp_port_struct_t *mstp_port,
     uint8_t * buffer,
     uint16_t nbytes)
 {
@@ -447,7 +446,7 @@ void MSTP_Send_Frame(
 }
 
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
@@ -623,7 +622,7 @@ static void write_global_header(void)
 }
 
 static void write_received_packet(
-    volatile struct mstp_port_struct_t *mstp_port, size_t header_len)
+    struct mstp_port_struct_t *mstp_port, size_t header_len)
 {
     uint32_t ts_sec = 0; /* timestamp seconds */
     uint32_t ts_usec = 0; /* timestamp microseconds */
@@ -637,8 +636,7 @@ static void write_received_packet(
     gettimeofday(&tv, NULL);
     ts_sec = tv.tv_sec;
     ts_usec = tv.tv_usec;
-    if ((mstp_port->ReceivedValidFrame) ||
-        (mstp_port->ReceivedValidFrameNotForUs)) {
+    if (mstp_port->ReceivedValidFrame) {
         packet_statistics(&tv, mstp_port);
     }
     (void)data_write(&ts_sec, sizeof(ts_sec), 1);
@@ -765,7 +763,7 @@ static bool test_global_header(const char *filename)
     return true;
 }
 
-static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
+static bool read_received_packet(struct mstp_port_struct_t *mstp_port)
 {
     uint32_t ts_sec = 0; /* timestamp seconds */
     uint32_t ts_usec = 0; /* timestamp microseconds */
@@ -824,7 +822,6 @@ static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
             mstp_port->ReceivedInvalidFrame = false;
             if (mstp_port->DataLength == 0) {
                 mstp_port->ReceivedValidFrame = true;
-                mstp_port->ReceivedValidFrameNotForUs = true;
             }
         } else {
             mstp_port->ReceivedValidFrame = false;
@@ -864,19 +861,16 @@ static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
             if (mstp_port->DataCRC == 0xF0B8) {
                 mstp_port->ReceivedInvalidFrame = false;
                 mstp_port->ReceivedValidFrame = true;
-                mstp_port->ReceivedValidFrameNotForUs = true;
             } else {
                 mstp_port->ReceivedInvalidFrame = true;
                 mstp_port->ReceivedValidFrame = false;
-                mstp_port->ReceivedValidFrameNotForUs = false;
             }
         } else {
             mstp_port->DataLength = 0;
         }
         if (mstp_port->ReceivedInvalidFrame) {
             Invalid_Frame_Count++;
-        } else if ((mstp_port->ReceivedValidFrame) ||
-            (mstp_port->ReceivedValidFrameNotForUs)) {
+        } else if (mstp_port->ReceivedValidFrame) {
             packet_statistics(&tv, mstp_port);
         }
     } else {
@@ -984,7 +978,7 @@ static void print_help(char *filename)
 }
 
 /* initialize some of the variables in the MS/TP Receive structure */
-static void mstp_structure_init(volatile struct mstp_port_struct_t *mstp_port)
+static void mstp_structure_init(struct mstp_port_struct_t *mstp_port)
 {
     if (mstp_port) {
         mstp_port->FrameType = FRAME_TYPE_PROPRIETARY_MAX;
@@ -996,7 +990,6 @@ static void mstp_structure_init(volatile struct mstp_port_struct_t *mstp_port)
         mstp_port->EventCount = 0;
         mstp_port->ReceivedInvalidFrame = false;
         mstp_port->ReceivedValidFrame = false;
-        mstp_port->ReceivedValidFrameNotForUs = false;
         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
     }
 }
@@ -1004,7 +997,7 @@ static void mstp_structure_init(volatile struct mstp_port_struct_t *mstp_port)
 /* simple test to packetize the data and print it */
 int main(int argc, char *argv[])
 {
-    volatile struct mstp_port_struct_t *mstp_port;
+    struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
     uint32_t packet_count = 0;
     uint32_t header_len = 0;
@@ -1174,10 +1167,6 @@ int main(int argc, char *argv[])
         MSTP_Receive_Frame_FSM(mstp_port);
         /* process the data portion of the frame */
         if (mstp_port->ReceivedValidFrame) {
-            write_received_packet(mstp_port, MSTP_HEADER_MAX);
-            mstp_structure_init(mstp_port);
-            packet_count++;
-        } else if (mstp_port->ReceivedValidFrameNotForUs) {
             write_received_packet(mstp_port, MSTP_HEADER_MAX);
             mstp_structure_init(mstp_port);
             packet_count++;

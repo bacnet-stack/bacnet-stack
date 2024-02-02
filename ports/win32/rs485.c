@@ -421,7 +421,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
 
 /* Transmits a Frame on the wire */
 void RS485_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port, /* port specific data */
+    struct mstp_port_struct_t *mstp_port, /* port specific data */
     uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 { /* number of bytes of data (up to 501) */
@@ -453,7 +453,7 @@ void RS485_Send_Frame(
 }
 
 /* called by timer, interrupt(?) or other thread */
-void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
+void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
 {
     char lpBuf[1];
     DWORD dwRead = 0;

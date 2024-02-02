@@ -87,3 +87,18 @@ const char *mstptext_frame_type(unsigned index)
     return indtext_by_index_split_default(mstp_frame_type_text, index,
         FRAME_TYPE_PROPRIETARY_MIN, "UNKNOWN", "PROPRIETARY");
 }
+
+static INDTEXT_DATA mstp_zero_config_state_text[] = { 
+    { MSTP_ZERO_CONFIG_STATE_INIT, "INIT" },
+    { MSTP_ZERO_CONFIG_STATE_IDLE, "IDLE" },
+    { MSTP_ZERO_CONFIG_STATE_LURK, "LURK" },
+    { MSTP_ZERO_CONFIG_STATE_CLAIM, "CLAIM" },
+    { MSTP_ZERO_CONFIG_STATE_CONFIRM, "CONFIRM" },
+    { MSTP_ZERO_CONFIG_STATE_USE, "USE" },
+    { 0, NULL } 
+ };
+
+const char *mstptext_zero_config_state(unsigned index)
+{
+    return indtext_by_index_default(mstp_zero_config_state_text, index, "unknown");
+}
