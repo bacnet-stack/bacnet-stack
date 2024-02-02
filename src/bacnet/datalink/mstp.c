@@ -1380,13 +1380,17 @@ static void MSTP_Zero_Config_State_Idle(struct mstp_port_struct_t *mstp_port)
         /* MonitorPFM */
         mstp_port->Poll_Count = 0;
         mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
+    } else if (mstp_port->ReceivedInvalidFrame) {
+        /* InvalidFrame */
+        mstp_port->ReceivedInvalidFrame = false;
     } else if (mstp_port->Zero_Config_Silence > 0) {
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
             /* ClaimAddress */
             /* long silence indicates we are alone or
             with other silent devices */
-            /* claim the token at this address */
+            /* claim the token at the current zero-config address */
+            /* configure max master at maximum */
             /* confirm this station with a quick test */
             mstp_port->Zero_Config_Max_Master = DEFAULT_MAX_MASTER;
             MSTP_Create_And_Send_Frame(mstp_port, FRAME_TYPE_TEST_REQUEST,

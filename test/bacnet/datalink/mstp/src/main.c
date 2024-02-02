@@ -637,12 +637,12 @@ static void testZeroConfigNode_Test_IDLE_InvalidFrame(
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(
-        mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
-    zassert_true(mstp_port->ReceivedInvalidFrame == true, NULL);
+        mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
+    zassert_true(mstp_port->ReceivedInvalidFrame == false, NULL);
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(
-        mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
+        mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
     zassert_true(mstp_port->ReceivedInvalidFrame == false, NULL);
 }
 
