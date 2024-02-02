@@ -16,21 +16,82 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+ * Secured the following services by refactoring the size check
+   and refactoring the service requests from the service header,
+   adding APDU size checking and length features, and adding unit 
+   tests to check for length when passing NULL buffer:
+   ARF/AWF/COV/CO/DO/DCC/Event/GE/ALE/RLE/LSO/RD/RR/RP/WP. (#553)
+
 ### Added
 
-* Added more tool descriptions to bin/readme.txt file
+* Added bacapp decoding for accumulator SCALE property (#566)
+* Added a MS/TP zero-config (automatically choose an unused MAC address)
+  using an algorithm that starts with MAC=64 and waits for a random number
+  of PFM (minimum of 8 plus modulo 64) before attempting to choose a MAC
+  sequentially from 64..127. The confirmation uses a 128-bit UUID with the
+  MSTP Test Request frame. The modifications are in src/bacnet/datalink/mstp.c
+  and src/bacnet/datalink/dlmstp.c modules enabling any device to use
+  zero-config if enabled. A working demonstration is in the ports/stm32f4xx
+  for the NUCLEO board. Complete unit testing is included.  Options include
+  lurking forever (wait for a router or another master node before joining)
+  or lurking for a minimum time (enables self forming automatic MAC addressing
+  device nodes). (#564)
+* Added basic Calendar object, unit tests, and integration with
+  example device object. (#440)
+* Added basic Time Value object, unit tests, and integration with
+  example device object. (#440)
+* Added the SpecialEvent struct for the Exception_Schedule property
+  of Schedule, encode/decode/same functions, unit tests, and integrated
+  into bacapp functions. (#474)
+* Added the CalendarEntry struct for the Date_List property of Calendar
+  and the SpecialEvent struct, encode/decode functions, unit tests, and
+  integrated into bacapp functions. (#474)
+* Added the DateRange struct for the Effective_Period property of Schedule, 
+  encode/decode functions, unit tests, and integrated into bacapp 
+  functions. (#474)
+* Added Binary Lighting Output object example. (#522)
+* Added more unit testing for device object.  (#522)
+* Added CMake to AT91SAM7S port example. (#560)
+* Added ports AT91SAM7S and STM32F4xx CMake builds into pipeline. (#560)
+* Added openocd debug launcher under vscode in STM32F4xx example. (#559)
+* Added generic property list member checking for write property members
+  of network port object in STM32F4xx example. (#559)
+* Added a new src/bacnet/datalink/dlmstp.c module as a reference.
+  Integrated the new dlmstp.c into the STM32F4xx example port. (#559)
+* Added CMake build option for stm32f4xx. Added fixes and comments to
+  stm32f4xx example device.c from bacnet/basic/object/device.c module. (#556)
+* Added apdu size checking on BACnetPropertyStates decode. Added more
+  BACnetPropertyStates codec unit test coverage. Added more enumerations
+  to BACNET_PROPERTY_STATES aka struct BACnetPropertyStates.
+* Added more tool descriptions to bin/readme.txt file.
+* Added McCabe complexity generation to Makefile.
 * Added bacnet_npdu_encode_pdu API with additional size of PDU argument. (#549)
 
 ### Changed
 
+* Changed piface example app to support binary-lighting-output object type
+  and blink warn. (#522)
+* Changed example device object to not create objects 
+  when device object-table is overridden  (#522)
+* Changed example STM32F4xx DLMSTP module to use core MSTP FSM
+* Changed automac module from ports into bacnet/datalink and added a unit
+  test. (#557)
+* Change Life-Safety-Point object to use Create/Delete-Object (#555)
 * Changed npdu_encode function to return length when given a NULL buffer. (#549)
 * Changed NPDU handler use local buffer which reduced TSM dependency. (#549)
 
 ### Fixed
 
+* Fixed CMakeLists.txt: to exclude h_routed_npdu.c when BAC_ROUTING=OFF. (#562)
+* Fixed BACNET_STACK_EXPORT macro to Analog_Output_Read_Property function. (#561)
+* Fixed build on FreeBSD. (#554)
 * Fixed spelling in bacucov help message.
 * Fixed COBS conversion for large MSTP data-not-expecting-reply frames. (#550)
 * Fixed compilation with BACNET_SVC_SERVER=1 for client apps. (#552)
+
+### Removed
+
+* Removed BACnetPropertyStates local enumeration BACNET_PROPERTY_STATE_TYPE.
 
 ## [1.3.2] - 2023-12-21
 
@@ -59,7 +120,6 @@ The git repositories are hosted at the following sites:
   for send frame. (#531)
 * Changed ReadRange handling to remove RefIndx == 0 condition as BACnet
   norm allows this case (#539)
-* Removed rx_fsm.c examples which duplicated MSTPCAP features (#544)
 * Changed BACnet app decode function APDU size datatype to 32-bit (#546)
 * Add WPM workaround for BTL Specified Test 9.23.2.X5 (#548)
 
@@ -80,6 +140,10 @@ The git repositories are hosted at the following sites:
   for valid socket before cleaning up WSA (#514)
 * Fixed a warning that 'device_id' is not used (#510)
 * Fixed Microsoft Visual Studio project by adding new linear.c (#507)
+
+### Removed
+
+* Removed linux/rx_fsm.c example which duplicated MSTPCAP features (#544)
 
 ## [1.3.1] - 2023-09-29
 
