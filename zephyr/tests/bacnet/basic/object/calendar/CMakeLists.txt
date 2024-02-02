@@ -26,35 +26,39 @@ if(BOARD STREQUAL unit_testing)
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
+    ${BACNET_TEST_PATH}/stubs.c
+    ${BACNET_TEST_PATH}/../mock/device_mock.c
     )
 
-  get_filename_component(BACNET_SRC ${BACNET_SRC_PATH} PATH)
+  get_filename_component(BACNET_OBJECT_SRC ${BACNET_SRC_PATH} PATH)
+  get_filename_component(BACNET_BASIC_SRC ${BACNET_OBJECT_SRC} PATH)
+  get_filename_component(BACNET_SRC ${BACNET_BASIC_SRC} PATH)
   list(APPEND SOURCES
     ${BACNET_SRC}/bacaddr.c
     ${BACNET_SRC}/bacapp.c
-    ${BACNET_SRC}/bacstr.c
     ${BACNET_SRC}/bacdcode.c
     ${BACNET_SRC}/bacdest.c
     ${BACNET_SRC}/bacstr.c
     ${BACNET_SRC}/bacint.c
     ${BACNET_SRC}/bacreal.c
     ${BACNET_SRC}/datetime.c
+    ${BACNET_SRC}/timestamp.c
     ${BACNET_SRC}/basic/sys/days.c
+    ${BACNET_SRC}/basic/sys/keylist.c
     ${BACNET_SRC}/bacdevobjpropref.c
-    ${BACNET_SRC}/authentication_factor.c
-    ${BACNET_SRC}/bacpropstates.c
-    # Dependencies of bacapp.c
     ${BACNET_SRC}/bactext.c
     ${BACNET_SRC}/indtext.c
-    ${BACNET_SRC}/weeklyschedule.c
-    ${BACNET_SRC}/calendar_entry.c
-    ${BACNET_SRC}/special_event.c
-    ${BACNET_SRC}/bactimevalue.c
-    ${BACNET_SRC}/dailyschedule.c
     ${BACNET_SRC}/lighting.c
-    ${BACNET_SRC}/timestamp.c
+    ${BACNET_SRC}/proplist.c
+    ${BACNET_SRC}/wp.c
     ${BACNET_SRC}/hostnport.c
-  )
+    ${BACNET_SRC}/calendar_entry.c
+    ${BACNET_SRC}/dailyschedule.c
+    ${BACNET_SRC}/special_event.c
+    ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/basic/sys/bigend.c
+    ${BACNET_SRC}/bactimevalue.c
+    )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
   find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})

@@ -21,19 +21,19 @@ jobs:
       run: |
         gcc --version
         make clean
-        make CSTANDARD="-std=gnu89" all
+        make LEGACY=true CSTANDARD="-std=gnu89" all
     - name: Build Demo Apps GNU99
       run: |
         make clean
         make CSTANDARD="-std=gnu99" all
-    - name: Build Demo Apps GNU11
+    - name: LEGACY=true Build Demo Apps GNU11
       run: |
         make clean
-        make CSTANDARD="-std=gnu11" all
+        make LEGACY=true CSTANDARD="-std=gnu11" all
     - name: Build Demo Apps GNU17
       run: |
         make clean
-        make CSTANDARD="-std=gnu17" all
+        make LEGACY=true CSTANDARD="-std=gnu17" all
 
   bip-no-bbmd-apps:
     runs-on: ubuntu-latest
@@ -47,7 +47,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make BBMD=none all
+        make LEGACY=true BBMD=none all
 
   bip-client-bbmd-apps:
     runs-on: ubuntu-latest
@@ -61,7 +61,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make BBMD=client all
+        make LEGACY=true BBMD=client all
     
   gateway:
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make gateway
+        make LEGACY=true gateway
 
   router:
     runs-on: ubuntu-latest
@@ -89,7 +89,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make router
+        make LEGACY=true router
 
   router-ipv6:
     runs-on: ubuntu-latest
@@ -103,7 +103,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make router-ipv6
+        make LEGACY=true router-ipv6
 
   router-mstp:
     runs-on: ubuntu-latest
@@ -117,7 +117,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make router-mstp
+        make LEGACY=true router-mstp
 
   bip6:
     runs-on: ubuntu-latest
@@ -131,7 +131,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make bip6
+        make LEGACY=true bip6
 
   mstp:
     runs-on: ubuntu-latest
@@ -145,7 +145,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make mstp
+        make LEGACY=true mstp
 
   ethernet:
     runs-on: ubuntu-latest
@@ -159,7 +159,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make ethernet
+        make LEGACY=true ethernet
 
   ports-arm-makefile:
     runs-on: ubuntu-latest
@@ -175,9 +175,9 @@ jobs:
       run: |
         make clean
         arm-none-eabi-gcc --version
-        make stm32f10x
-        make stm32f4xx
-        make at91sam7s
+        make LEGACY=true stm32f10x
+        make LEGACY=true stm32f4xx
+        make LEGACY=true at91sam7s
 
   ports-arm-cmake:
     runs-on: ubuntu-latest

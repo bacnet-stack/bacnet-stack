@@ -1320,7 +1320,8 @@ int bacapp_known_property_tag(
  * @param max_apdu_len - number of bytes in the buffer
  * @param value - stores the decoded property value
  * @param property - context property identifier
- * @return  number of bytes decoded, or ERROR if errors occur
+ * @return  number of bytes decoded, or BACNET_STATUS_ERROR if errors occur
+ * @note number of bytes can be 0 for empty lists, etc.
  */
 int bacapp_decode_known_property(uint8_t *apdu,
     int max_apdu_len,
