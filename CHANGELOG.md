@@ -5,7 +5,7 @@ Linux, MacOS, BSD, and Windows
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 The git repositories are hosted at the following sites:
@@ -16,9 +16,21 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [1.3.3] - 2024-02-2
+
+### Security
+
  * Secured the following services by refactoring the size check
    and refactoring the service requests from the service header,
-   adding APDU size checking and length features, and adding unit 
+   adding APDU size checking and length features, and adding unit
    tests to check for length when passing NULL buffer:
    ARF/AWF/COV/CO/DO/DCC/Event/GE/ALE/RLE/LSO/RD/RR/RP/WP. (#553)
 
@@ -46,8 +58,8 @@ The git repositories are hosted at the following sites:
 * Added the CalendarEntry struct for the Date_List property of Calendar
   and the SpecialEvent struct, encode/decode functions, unit tests, and
   integrated into bacapp functions. (#474)
-* Added the DateRange struct for the Effective_Period property of Schedule, 
-  encode/decode functions, unit tests, and integrated into bacapp 
+* Added the DateRange struct for the Effective_Period property of Schedule,
+  encode/decode functions, unit tests, and integrated into bacapp
   functions. (#474)
 * Added Binary Lighting Output object example. (#522)
 * Added more unit testing for device object.  (#522)
@@ -71,12 +83,12 @@ The git repositories are hosted at the following sites:
 
 * Changed piface example app to support binary-lighting-output object type
   and blink warn. (#522)
-* Changed example device object to not create objects 
+* Changed example device object to not create objects
   when device object-table is overridden  (#522)
 * Changed example STM32F4xx DLMSTP module to use core MSTP FSM
 * Changed automac module from ports into bacnet/datalink and added a unit
   test. (#557)
-* Change Life-Safety-Point object to use Create/Delete-Object (#555)
+* Changed Life-Safety-Point object to use Create/Delete-Object (#555)
 * Changed npdu_encode function to return length when given a NULL buffer. (#549)
 * Changed NPDU handler use local buffer which reduced TSM dependency. (#549)
 
@@ -125,7 +137,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
-* Fixed MSTP slave FSM for Data-Expecting-Reply frames (#538) 
+* Fixed MSTP slave FSM for Data-Expecting-Reply frames (#538)
 * Removed duplicate cobs.c file in MSVC project (#535)
 * Fixed CMake for code::blocks build (#533)
 * Fixed BACnet/IP builds for BBMD clients without BBMD tables. (#523)
