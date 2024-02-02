@@ -274,11 +274,11 @@ void *dlmstp_master_fsm_task(void *pArg)
                         run_master = true;
                     break;
                 case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-                    if (silence >= poSharedData->Treply_timeout)
+                    if (silence >= mstp_port->Treply_timeout)
                         run_master = true;
                     break;
                 case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-                    if (silence >= poSharedData->Tusage_timeout)
+                    if (silence >= mstp_port->Tusage_timeout)
                         run_master = true;
                     break;
                 default:
