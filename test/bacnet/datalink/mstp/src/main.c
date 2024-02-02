@@ -32,6 +32,13 @@
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
 /* test stub functions */
+
+/**
+ * @brief Send a frame to the RS-485 network
+ * @param mstp_port port specific context data
+ * @param buffer pointer to the frame data
+ * @param nbytes number of bytes to send
+ */
 void RS485_Send_Frame(
     struct mstp_port_struct_t *mstp_port, uint8_t *buffer, uint16_t nbytes)
 {
@@ -40,8 +47,15 @@ void RS485_Send_Frame(
     (void)nbytes;
 }
 
+/* A data queue for the test */
 FIFO_DATA_STORE(Test_Queue_Data, MAX_MPDU);
 static FIFO_BUFFER Test_Queue;
+
+/**
+ * @brief Load the input buffer with data
+ * @param buffer pointer to the data
+ * @param len number of bytes to load
+ */
 static void Load_Input_Buffer(uint8_t *buffer, size_t len)
 {
     static bool initialized = false; /* tracks our init */
@@ -68,36 +82,66 @@ void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
     }
 }
 
+/**
+ * @brief Store data about a RS-485 network received packet
+ * @param mstp_port port specific context data
+ */
 uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     return mstp_port->DataLength;
 }
 
-/* for the MS/TP state machine to use for getting data to send */
-/* Return: amount of PDU data */
+/**
+ * @brief MS/TP state machine calls this to get data to send
+ * @param mstp_port port specific context data
+ * @param timeout milliseconds to wait for a packet to send
+ * @return amount of PDU data
+ */
 uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     return 0;
 }
 
+/**
+ * @brief MS/TP state machine calls this to get data to send
+ * @param mstp_port port specific context data
+ * @param timeout milliseconds to wait for a packet
+ * @return amount of PDU data
+ */
 uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     return 0;
 }
 
+/* track the RS485 line silence time in milliseconds */
 uint32_t SilenceTime = 0;
+/**
+ * @brief MS/TP state machine calls this to get the silence time
+ * @param pArg pointer to the port specific context data
+ * @return amount of time in milliseconds
+ */
 static uint32_t Timer_Silence(void *pArg)
 {
     (void)pArg;
     return SilenceTime;
 }
 
+/**
+ * @brief MS/TP state machine calls this to reset the silence time
+ * @param pArg pointer to the port specific context data
+ */
 static void Timer_Silence_Reset(void *pArg)
 {
     (void)pArg;
     SilenceTime = 0;
 }
 
+/**
+ * @brief MS/TP state machine calls this to send a frame
+ * @param mstp_port port specific context data
+ * @param buffer pointer to the frame data
+ * @param nbytes number of bytes to send
+ */
 void MSTP_Send_Frame(
     struct mstp_port_struct_t *mstp_port, uint8_t *buffer, uint16_t nbytes)
 {
