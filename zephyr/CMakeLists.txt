@@ -112,6 +112,7 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/bi.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/bo.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/bv.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/calendar.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/channel.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/color_object.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/color_temperature.h
@@ -132,6 +133,7 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/osv.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/piv.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/schedule.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/time_value.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_alarm_ack.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_apdu.c
@@ -320,6 +322,10 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/weeklyschedule.h
     ${BACNETSTACK_SRC}/bacnet/dailyschedule.c
     ${BACNETSTACK_SRC}/bacnet/dailyschedule.h
+    ${BACNETSTACK_SRC}/bacnet/calendar_entry.c
+    ${BACNETSTACK_SRC}/bacnet/calendar_entry.h
+    ${BACNETSTACK_SRC}/bacnet/special_event.c
+    ${BACNETSTACK_SRC}/bacnet/special_event.h
     )
 
 set(BACNETSTACK_BASIC_SRCS
@@ -338,6 +344,7 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/bi.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bo.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bv.c
+    ${BACNETSTACK_SRC}/bacnet/basic/object/calendar.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/channel.c
     #${BACNETSTACK_SRC}/bacnet/basic/object/client/device-client.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/command.c
@@ -360,6 +367,7 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/osv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/piv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/schedule.c
+    ${BACNETSTACK_SRC}/bacnet/basic/object/time_value.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_alarm_ack.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf_a.c

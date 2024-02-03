@@ -254,6 +254,9 @@ extern "C" {
     BACNET_STACK_EXPORT
     BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
         void);
+    BACNET_STACK_EXPORT
+    bool Device_Reinitialize_Password_Set(
+        const char *password);
 
     BACNET_STACK_EXPORT
     rr_info_function Device_Objects_RR_Info(

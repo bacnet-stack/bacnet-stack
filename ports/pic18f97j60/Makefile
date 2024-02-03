@@ -52,25 +52,6 @@ CORESRC =  \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/version.c
 
-#	$(BACNET_CORE)/bacprop.c \
-#	$(BACNET_CORE)/bactext.c \
-#	$(BACNET_CORE)/datetime.c \
-#	$(BACNET_CORE)/indtext.c \
-#	$(BACNET_CORE)/bigend.c \
-#	$(BACNET_CORE)/arf.c \
-#	$(BACNET_CORE)/awf.c \
-#	$(BACNET_CORE)/cov.c \
-#	$(BACNET_CORE)/dcc.c \
-#	$(BACNET_CORE)/iam/iam_client.c \
-#	$(BACNET_CORE)/ihave.c \
-#	$(BACNET_CORE)/rd.c \
-#	$(BACNET_CORE)/rpm.c \
-#	$(BACNET_CORE)/timesync.c \
-#	$(BACNET_CORE)/whohas.c \
-#	$(BACNET_CORE)/filename.c \
-#	$(BACNET_CORE)/tsm.c \
-#	$(BACNET_CORE)/address.c \
-
 ## Include Directories
 INCLUDES = -I. -I$(BACNET_INCLUDE)
 

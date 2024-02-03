@@ -1,0 +1,6 @@
+tests:
+  bacnet.basic.object.time_value:
+    tags: bacnet
+  bacnet.basic.object.time_value.unit:
+    tags: bacnet
+    type: unit

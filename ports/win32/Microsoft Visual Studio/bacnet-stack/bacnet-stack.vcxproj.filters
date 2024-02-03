@@ -31,9 +31,6 @@
     <Filter Include="Source Files\ports">
       <UniqueIdentifier>{1c0fbcda-2c87-4204-8259-e2607f9509d1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\ports\win">
-      <UniqueIdentifier>{dafdfbc0-5a48-441c-8682-4d5423832141}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\src\bacnet\basic\bbmd">
       <UniqueIdentifier>{d9370b4d-c98c-48f1-8eda-ae7777b9c061}</UniqueIdentifier>
     </Filter>
@@ -48,6 +45,9 @@
     </Filter>
     <Filter Include="Source Files\src\bacnet\basic\binding">
       <UniqueIdentifier>{4221463c-bad1-4ec5-b4b3-4dfbea8345d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ports\win32">
+      <UniqueIdentifier>{dafdfbc0-5a48-441c-8682-4d5423832141}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -202,6 +202,12 @@
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\weeklyschedule.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\calendar_entry.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\special_event.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\whohas.c">
@@ -571,16 +577,19 @@
       <Filter>Source Files\src\bacnet\basic\binding</Filter>
     </ClCompile>
     <ClCompile Include="..\..\datetime-init.c">
-      <Filter>Source Files\ports\win</Filter>
+      <Filter>Source Files\ports\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\linear.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
     </ClCompile>
     <ClCompile Include="..\..\bip-init.c">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\ports\win32</Filter>
     </ClCompile>
     <ClCompile Include="..\..\mstimer-init.c">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\ports\win32</Filter>
     </ClCompile>
     <ClCompile Include="..\..\rs485.c">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\ports\win32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -858,10 +867,10 @@
       <Filter>Source Files\src\bacnet\basic\sys</Filter>
     </ClInclude>
     <ClInclude Include="..\..\bacport.h">
-      <Filter>Source Files\ports\win</Filter>
+      <Filter>Source Files\ports\win32</Filter>
     </ClInclude>
     <ClInclude Include="..\..\rs485.h">
-      <Filter>Source Files\ports\win</Filter>
+      <Filter>Source Files\ports\win32</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\basic\bbmd\h_bbmd.h">
       <Filter>Source Files\src\bacnet\basic\bbmd</Filter>
@@ -1160,10 +1169,13 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\binding\address.h">
       <Filter>Source Files\src\bacnet\basic\binding</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\linear.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\readme.MD">
-      <Filter>Source Files\ports\win</Filter>
+      <Filter>Source Files\ports\win32</Filter>
     </None>
   </ItemGroup>
 </Project>

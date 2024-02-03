@@ -48,10 +48,6 @@
 /* me! */
 #include "bacnet/basic/object/lo.h"
 
-#ifndef MAX_LIGHTING_OUTPUTS
-#define MAX_LIGHTING_OUTPUTS 8
-#endif
-
 struct object_data {
     float Present_Value;
     float Tracking_Value;

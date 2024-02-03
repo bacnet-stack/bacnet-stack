@@ -160,22 +160,91 @@ bool dcc_set_status_duration(
 
 #if BACNET_SVC_DCC_A
 /**
- * Encode service
- *
+ * @brief Encode DeviceCommunicationControl service
  * @param apdu  Pointer to the APDU buffer used for encoding.
- * @param invoke_id  Invoke-Id
  * @param timeDuration  Optional time duration in minutes.
  * @param enable_disable  Enable/disable communication
  * @param password  Pointer to an optional password.
  *
  * @return Bytes encoded or zero on an error.
  */
-int dcc_encode_apdu(uint8_t *apdu,
-    uint8_t invoke_id,
-    uint16_t timeDuration, /* 0=optional */
+int dcc_apdu_encode(uint8_t *apdu,
+    uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
     BACNET_CHARACTER_STRING *password)
-{ /* NULL=optional */
+{
+    int len = 0; /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    /* optional timeDuration */
+    if (timeDuration) {
+        len = encode_context_unsigned(apdu, 0, timeDuration);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    /* enable disable */
+    len = encode_context_enumerated(apdu, 1, enable_disable);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* optional password */
+    if (password) {
+        if ((password->length >= 1) && (password->length <= 20)) {
+            len = encode_context_character_string(apdu, 2, password);
+            apdu_len += len;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the COVNotification service request
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param timeDuration  Optional time duration in minutes.
+ * @param enable_disable  Enable/disable communication
+ * @param password  Pointer to an optional password.
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t dcc_service_request_encode(uint8_t *apdu,
+    size_t apdu_size,
+    uint16_t timeDuration,
+    BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
+    BACNET_CHARACTER_STRING *password)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = dcc_apdu_encode(NULL, timeDuration, enable_disable, password);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len =
+            dcc_apdu_encode(apdu, timeDuration, enable_disable, password);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * Encode service
+ *
+ * @param apdu  Pointer to the APDU buffer used for encoding.
+ * @param invoke_id  Invoke-Id
+ * @param timeDuration  Optional time duration in minutes, 0=optional
+ * @param enable_disable  Enable/disable communication
+ * @param password  Pointer to an optional password, NULL=optional
+ * @return Bytes encoded or zero on an error.
+ */
+int dcc_encode_apdu(uint8_t *apdu,
+    uint8_t invoke_id,
+    uint16_t timeDuration,
+    BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
+    BACNET_CHARACTER_STRING *password)
+{
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -184,24 +253,15 @@ int dcc_encode_apdu(uint8_t *apdu,
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL;
-        apdu_len = 4;
-        /* optional timeDuration */
-        if (timeDuration) {
-            len = encode_context_unsigned(&apdu[apdu_len], 0, timeDuration);
-            apdu_len += len;
-        }
-        /* enable disable */
-        len = encode_context_enumerated(&apdu[apdu_len], 1, enable_disable);
-        apdu_len += len;
-        /* optional password */
-        if (password) {
-            if ((password->length >= 1) && (password->length <= 20)) {
-                len = encode_context_character_string(
-                    &apdu[apdu_len], 2, password);
-                apdu_len += len;
-            }
-        }
     }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = dcc_apdu_encode(
+        apdu, timeDuration, enable_disable, password);
+    apdu_len += len;
 
     return apdu_len;
 }

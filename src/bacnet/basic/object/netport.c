@@ -2618,6 +2618,7 @@ bool Network_Port_Read_Range(
 #if defined(BACDL_BIP) && BBMD_ENABLED
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
 #endif
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_SERVICES;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
             break;
@@ -2627,8 +2628,10 @@ bool Network_Port_Read_Range(
             pInfo->Handler = Network_Port_Read_Range_BDT;
             status = true;
 #else
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            (void)pInfo;
 #endif
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
@@ -2637,11 +2640,14 @@ bool Network_Port_Read_Range(
             pInfo->Handler = Network_Port_Read_Range_FDT;
             status = true;
 #else
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            (void)pInfo;
 #endif
             break;
         default:
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;

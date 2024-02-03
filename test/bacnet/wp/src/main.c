@@ -7,7 +7,7 @@
 /* @file
  * @brief test BACnet integer encode/decode APIs
  */
-
+#include <math.h>
 #include <zephyr/ztest.h>
 #include <bacnet/wp.h>
 
@@ -129,7 +129,8 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
                 test_value.type.Signed_Int, value->type.Signed_Int, NULL);
             break;
         case BACNET_APPLICATION_TAG_REAL:
-            zassert_equal(test_value.type.Real, value->type.Real, NULL);
+            zassert_false(islessgreater(test_value.type.Real, value->type.Real), 
+                NULL);
             break;
         case BACNET_APPLICATION_TAG_ENUMERATED:
             zassert_equal(

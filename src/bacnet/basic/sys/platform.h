@@ -46,6 +46,16 @@
 #  include <strings.h>
 # endif
 
+/* some common min/max as defined in windef.h */
+#ifndef NOMINMAX
+#ifndef max
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef min
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+#endif  /* NOMINMAX */
+
 #if defined(__MINGW32__)
 #define BACNET_STACK_FALLTHROUGH() /* fall through */
 #elif defined(__GNUC__)

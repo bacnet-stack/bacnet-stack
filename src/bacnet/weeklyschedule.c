@@ -59,8 +59,8 @@ int bacnet_weeklyschedule_decode(
     }
     value->singleDay = false;
     for (wi = 0; wi < 7; wi++) {
-        len = bacnet_dailyschedule_decode(&apdu[apdu_len],
-            max_apdu_len - apdu_len, &value->weeklySchedule[wi]);
+        len = bacnet_dailyschedule_context_decode(&apdu[apdu_len],
+            max_apdu_len - apdu_len, 0, &value->weeklySchedule[wi]);
         if (len < 0) {
             if (wi == 1) {
                 value->singleDay = true;
@@ -96,8 +96,8 @@ int bacnet_weeklyschedule_encode(uint8_t *apdu, BACNET_WEEKLY_SCHEDULE *value)
         if (apdu) {
             apdu_offset = &apdu[apdu_len];
         }
-        len = bacnet_dailyschedule_encode(
-            apdu_offset, &value->weeklySchedule[wi]);
+        len = bacnet_dailyschedule_context_encode(
+            apdu_offset, 0, &value->weeklySchedule[wi]);
         if (len < 0) {
             return BACNET_STATUS_ERROR;
         }

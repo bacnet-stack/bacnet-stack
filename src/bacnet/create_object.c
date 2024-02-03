@@ -96,6 +96,28 @@ int create_object_encode_service_request(
 }
 
 /**
+ * @brief Encode the CreateObject service request
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t create_object_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = create_object_encode_service_request(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = create_object_encode_service_request(apdu, data);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode the CreateObject service request
  *
  *  CreateObject-Request ::= SEQUENCE {

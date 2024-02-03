@@ -375,7 +375,7 @@ int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     uint16_t addr16[8];
 
     /* assumes that the driver has already been initialized */
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return 0;
     }
     /* load destination IP address */
@@ -443,7 +443,7 @@ uint16_t bip6_receive(
     uint16_t i = 0;
 
     /* Make sure the socket is open */
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return 0;
     }
     /* we could just use a non-blocking socket, but that consumes all
@@ -503,10 +503,11 @@ uint16_t bip6_receive(
  */
 void bip6_cleanup(void)
 {
-    if (BIP6_Socket != -1) {
-        closesocket(BIP6_Socket);
+    if (BIP6_Socket == INVALID_SOCKET) {
+        return;
     }
-    BIP6_Socket = -1;
+    closesocket(BIP6_Socket);
+    BIP6_Socket = INVALID_SOCKET;
     WSACleanup();
 
     return;

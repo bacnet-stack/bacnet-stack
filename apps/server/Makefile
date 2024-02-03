@@ -11,7 +11,9 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/av.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
 	$(BACNET_OBJECT_DIR)/bo.c \
+	$(BACNET_OBJECT_DIR)/blo.c \
 	$(BACNET_OBJECT_DIR)/bv.c \
+	$(BACNET_OBJECT_DIR)/calendar.c \
 	$(BACNET_OBJECT_DIR)/channel.c \
 	$(BACNET_OBJECT_DIR)/color_object.c \
 	$(BACNET_OBJECT_DIR)/color_temperature.c \
@@ -28,6 +30,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/piv.c \
 	$(BACNET_OBJECT_DIR)/nc.c  \
 	$(BACNET_OBJECT_DIR)/netport.c  \
+	$(BACNET_OBJECT_DIR)/time_value.c \
 	$(BACNET_OBJECT_DIR)/trendlog.c \
 	$(BACNET_OBJECT_DIR)/schedule.c \
 	$(BACNET_OBJECT_DIR)/access_credential.c \

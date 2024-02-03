@@ -50,6 +50,9 @@ ifeq (${BBMD},server)
 BBMD_DEFINE = -DBBMD_ENABLED=1
 endif
 ifeq (${BBMD},client)
+BBMD_DEFINE = -DBBMD_ENABLED=0 -DBBMD_CLIENT_ENABLED
+endif
+ifeq (${BBMD},full)
 BBMD_DEFINE = -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
 

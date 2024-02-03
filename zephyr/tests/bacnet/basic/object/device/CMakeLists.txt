@@ -40,6 +40,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/bacstr.c
     ${BACNET_SRC}/bacint.c
     ${BACNET_SRC}/bacreal.c
+    ${BACNET_SRC}/calendar.c
     ${BACNET_SRC}/datetime.c
     ${BACNET_SRC}/timestamp.c
     ${BACNET_SRC}/basic/sys/days.c
@@ -68,6 +69,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/object/bi.c
     ${BACNET_SRC}/basic/object/bo.c
     ${BACNET_SRC}/basic/object/bv.c
+    ${BACNET_SRC}/basic/object/calendar.c
     ${BACNET_SRC}/basic/object/channel.c
     ${BACNET_SRC}/basic/object/color_object.c
     ${BACNET_SRC}/basic/object/color_temperature.c
@@ -84,6 +86,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/object/osv.c
     ${BACNET_SRC}/basic/object/piv.c
     ${BACNET_SRC}/basic/object/schedule.c
+    ${BACNET_SRC}/basic/object/time_value.c
     ${BACNET_SRC}/basic/object/trendlog.c
     ${BACNET_SRC}/hostnport.c
     ${BACNET_SRC}/basic/service/h_apdu.c
@@ -95,6 +98,8 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/datalink/bvlc.c
     ${BACNET_SRC}/dailyschedule.c
     ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/calendar_entry.c
+    ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
     )

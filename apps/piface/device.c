@@ -47,6 +47,7 @@
 /* include the OS specific */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/bi.h"
+#include "bacnet/basic/object/blo.h"
 #include "bacnet/basic/object/bo.h"
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
@@ -67,8 +68,8 @@ static object_functions_t My_Object_Table[] = {
         Device_Property_Lists, DeviceGetRRInfo, NULL /* Iterator */,
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */, NULL /* Add_List_Element */,
-        NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+        NULL /* Remove_List_Element */, NULL /* Create */, NULL /* Delete */,
+        NULL /* Timer */ },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
@@ -88,6 +89,18 @@ static object_functions_t My_Object_Table[] = {
         Binary_Input_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+    { OBJECT_BINARY_LIGHTING_OUTPUT, Binary_Lighting_Output_Init,
+        Binary_Lighting_Output_Count, Binary_Lighting_Output_Index_To_Instance,
+        Binary_Lighting_Output_Valid_Instance,
+        Binary_Lighting_Output_Object_Name,
+        Binary_Lighting_Output_Read_Property,
+        Binary_Lighting_Output_Write_Property,
+        Binary_Lighting_Output_Property_Lists, NULL /* ReadRangeInfo */,
+        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
+        NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Binary_Lighting_Output_Create, Binary_Lighting_Output_Delete,
+        Binary_Lighting_Output_Timer },
     { OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
         Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
         Binary_Output_Object_Name, Binary_Output_Read_Property,
@@ -95,7 +108,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        Binary_Output_Create, Binary_Output_Delete, NULL /* Timer */},
+        Binary_Output_Create, Binary_Output_Delete, NULL /* Timer */ },
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,
@@ -103,7 +116,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ , NULL /* Timer */}
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ }
 };
 
 /** Glue function to let the Device object, when called by a handler,
@@ -296,6 +309,24 @@ static uint32_t Database_Revision = 0;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static const char *Reinit_Password = "raspberry";
 
+/**
+ * @brief Sets the ReinitializeDevice password
+ *
+ * The password shall be a null terminated C string of up to
+ * 20 ASCII characters for those devices that require the password.
+ *
+ * For those devices that do not require a password, set to NULL or
+ * point to a zero length C string (null terminated).
+ *
+ * @param the ReinitializeDevice password; can be NULL or empty string
+ */
+bool Device_Reinitialize_Password_Set(const char *password)
+{
+    Reinit_Password = password;
+
+    return true;
+}
+
 /** Commands a Device re-initialization, to a given state.
  * The request's password must match for the operation to succeed.
  * This implementation provides a framework, but doesn't
@@ -312,6 +343,7 @@ static const char *Reinit_Password = "raspberry";
 bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
+    bool password_success = false;
 
     /* From 16.4.1.1.2 Password
         This optional parameter shall be a CharacterString of up to
@@ -319,12 +351,21 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
         protection, the service request shall be denied if the parameter
         is absent or if the password is incorrect. For those devices that
         do not require a password, this parameter shall be ignored.*/
-    if (characterstring_length(&rd_data->password) > 20) {
-        rd_data->error_class = ERROR_CLASS_SERVICES;
-        rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-    } else if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
-        /* Note: you could use a mix of state and password to
-           accomplish multiple things before restarting */
+    if (Reinit_Password && strlen(Reinit_Password) > 0) {
+        if (characterstring_length(&rd_data->password) > 20) {
+            rd_data->error_class = ERROR_CLASS_SERVICES;
+            rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+        } else if (characterstring_ansi_same(
+                       &rd_data->password, Reinit_Password)) {
+            password_success = true;
+        } else {
+            rd_data->error_class = ERROR_CLASS_SECURITY;
+            rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
+        }
+    } else {
+        password_success = true;
+    }
+    if (password_success) {
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
             case BACNET_REINIT_WARMSTART:
@@ -1070,9 +1111,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
             apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
-                Device_Object_List_Element_Encode,
-                count, apdu, apdu_max);
+                rpdata->array_index, Device_Object_List_Element_Encode, count,
+                apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -1230,7 +1270,7 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         } else {
             rpdata->error_class = ERROR_CLASS_OBJECT;
             rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-            }
+        }
     } else {
         rpdata->error_class = ERROR_CLASS_OBJECT;
         rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -1602,8 +1642,8 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
 #endif
                 if (wp_data->object_property == PROP_OBJECT_NAME) {
-                    status = Device_Write_Property_Object_Name(wp_data,
-                        pObject->Object_Write_Property);
+                    status = Device_Write_Property_Object_Name(
+                        wp_data, pObject->Object_Write_Property);
                 } else {
                     status = pObject->Object_Write_Property(wp_data);
                 }
@@ -1630,8 +1670,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * @return The length of the apdu encoded or #BACNET_STATUS_ERROR or
  * #BACNET_STATUS_ABORT or #BACNET_STATUS_REJECT.
  */
-int Device_Add_List_Element(
-    BACNET_LIST_ELEMENT_DATA * list_element)
+int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
 {
     int status = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
@@ -1665,8 +1704,7 @@ int Device_Add_List_Element(
  * @return The length of the apdu encoded or #BACNET_STATUS_ERROR or
  * #BACNET_STATUS_ABORT or #BACNET_STATUS_REJECT.
  */
-int Device_Remove_List_Element(
-    BACNET_LIST_ELEMENT_DATA * list_element)
+int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
 {
     int status = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
@@ -1772,8 +1810,7 @@ void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
  * @param data - CreateObject data, including error codes if failures
  * @return true if object has been created
  */
-bool Device_Create_Object(
-    BACNET_CREATE_OBJECT_DATA *data)
+bool Device_Create_Object(BACNET_CREATE_OBJECT_DATA *data)
 {
     bool status = false;
     struct object_functions *pObject = NULL;
@@ -1832,8 +1869,7 @@ bool Device_Create_Object(
  * @param data - DeleteObject data, including error codes if failures
  * @return true if object has been deleted
  */
-bool Device_Delete_Object(
-    BACNET_DELETE_OBJECT_DATA *data)
+bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
 {
     bool status = false;
     struct object_functions *pObject = NULL;
@@ -1955,4 +1991,31 @@ bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
     }
 
     return status;
+}
+
+/**
+ * @brief Updates all the object timers with elapsed milliseconds
+ * @param milliseconds - number of milliseconds elapsed
+ */
+void Device_Timer(uint16_t milliseconds)
+{
+    struct object_functions *pObject;
+    unsigned count = 0;
+    uint32_t instance;
+
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        if (pObject->Object_Count) {
+            count = pObject->Object_Count();
+        }
+        while (count) {
+            count--;
+            if ((pObject->Object_Timer) &&
+                (pObject->Object_Index_To_Instance)) {
+                instance = pObject->Object_Index_To_Instance(count);
+                pObject->Object_Timer(instance, milliseconds);
+            }
+        }
+        pObject++;
+    }
 }

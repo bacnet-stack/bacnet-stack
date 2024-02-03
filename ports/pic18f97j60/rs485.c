@@ -46,9 +46,9 @@ FIFO_BUFFER FIFO_Rx;
 FIFO_BUFFER FIFO_Tx;
 #pragma udata MSTPPortData
 /* the buffer for receiving data (size must be a power of 2) */
-volatile uint8_t RS485_Rx_Buffer[128];
+volatile uint8_t RS485_Rx_Buffer[NEXT_POWER_OF_2(DLMSTP_MPDU_MAX)];
 /* the buffer for sending data (size must be a power of 2) */
-volatile uint8_t RS485_Tx_Buffer[128];
+volatile uint8_t RS485_Tx_Buffer[NEXT_POWER_OF_2(DLMSTP_MPDU_MAX)];
 #pragma udata
 
 /****************************************************************************

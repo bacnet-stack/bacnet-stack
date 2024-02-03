@@ -165,13 +165,14 @@ static void testCOVNotifyData(BACNET_COV_DATA *data, BACNET_COV_DATA *test_data)
 static void testUCOVNotifyData(BACNET_COV_DATA *data)
 {
     uint8_t apdu[480] = { 0 };
-    int len = 0;
-    int apdu_len = 0;
+    int len = 0, null_len = 0, apdu_len = 0;
     BACNET_COV_DATA test_data = { 0 };
     BACNET_PROPERTY_VALUE value_list[5] = { { 0 } };
 
+    null_len = ucov_notify_encode_apdu(NULL, sizeof(apdu), data);
     len = ucov_notify_encode_apdu(&apdu[0], sizeof(apdu), data);
     zassert_true(len > 0, NULL);
+    zassert_equal(len, null_len, NULL);
     apdu_len = len;
 
     cov_data_value_list_link(
@@ -184,14 +185,15 @@ static void testUCOVNotifyData(BACNET_COV_DATA *data)
 static void testCCOVNotifyData(uint8_t invoke_id, BACNET_COV_DATA *data)
 {
     uint8_t apdu[480] = { 0 };
-    int len = 0;
-    int apdu_len = 0;
+    int len = 0, null_len = 0, apdu_len = 0;
     BACNET_COV_DATA test_data = { 0 };
     BACNET_PROPERTY_VALUE value_list[2] = { { 0 } };
     uint8_t test_invoke_id = 0;
 
+    null_len = ccov_notify_encode_apdu(NULL, sizeof(apdu), invoke_id, data);
     len = ccov_notify_encode_apdu(&apdu[0], sizeof(apdu), invoke_id, data);
     zassert_not_equal(len, 0, NULL);
+    zassert_equal(len, null_len, NULL);
     apdu_len = len;
 
     cov_data_value_list_link(&test_data, &value_list[0], 2);
@@ -268,7 +270,8 @@ static void testCOVSubscribePropertyData(
     zassert_equal(
         test_data->covIncrementPresent, data->covIncrementPresent, NULL);
     if (test_data->covIncrementPresent) {
-        zassert_equal(test_data->covIncrement, data->covIncrement, NULL);
+        zassert_false(islessgreater(test_data->covIncrement, 
+            data->covIncrement), NULL);
     }
 }
 

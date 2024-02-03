@@ -145,6 +145,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\fifo.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\filename.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\keylist.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\linear.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\mstimer.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\sbuf.c" />
@@ -188,6 +189,8 @@
     <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\timesync.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\weeklyschedule.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\calendar_entry.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\special_event.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\whohas.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\whois.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\wp.c" />
@@ -330,6 +333,7 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\filename.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\key.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\keylist.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\linear.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\mstimer.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\platform.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.h" />

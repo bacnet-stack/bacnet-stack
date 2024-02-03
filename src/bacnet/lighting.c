@@ -458,6 +458,276 @@ bool lighting_command_same(
 }
 
 /**
+ * @brief Convert BACnetLightingCommand to ASCII for printing
+ * @param value - struct to convert to ASCII
+ * @param buf - ASCII output buffer (or NULL for size)
+ * @param buf_size - ASCII output buffer capacity (or 0 for size)
+ *
+ * @return the number of characters which would be generated for the given
+ *  input, excluding the trailing null. negative is returned if the
+ *  capacity was not sufficient.
+ *
+ * @note buf and buf_size may be null and zero to return only the size
+ */
+int lighting_command_to_ascii(
+    const BACNET_LIGHTING_COMMAND *value, char *buf, size_t buf_size)
+{
+    int len = 0;
+    float target_level = -1.0F;
+    float ramp_rate = 0.0F;
+    float step_increment = 0.0;
+    uint32_t fade_time = 0;
+    uint8_t priority = BACNET_NO_PRIORITY;
+
+    if (!value) {
+        return 0;
+    }
+    switch (value->operation) {
+        case BACNET_LIGHTS_NONE:
+            len = snprintf(buf, buf_size, "%u", (unsigned)value->operation);
+            break;
+        case BACNET_LIGHTS_FADE_TO:
+            if (value->use_target_level) {
+                target_level = value->target_level;
+            }
+            if (value->use_fade_time) {
+                fade_time = value->fade_time;
+            }
+            if (value->use_priority) {
+                priority = value->priority;
+            }
+            len = snprintf(buf, buf_size, "%u,%f,%lu,%u", value->operation,
+                target_level, (unsigned long)fade_time, (unsigned)priority);
+            break;
+        case BACNET_LIGHTS_RAMP_TO:
+            if (value->use_target_level) {
+                target_level = value->target_level;
+            }
+            if (value->use_ramp_rate) {
+                ramp_rate = value->ramp_rate;
+            }
+            if (value->use_priority) {
+                priority = value->priority;
+            }
+            len = snprintf(buf, buf_size, "%u,%f,%f,%u",
+                (unsigned)value->operation, target_level, ramp_rate,
+                (unsigned)priority);
+            break;
+        case BACNET_LIGHTS_STEP_UP:
+        case BACNET_LIGHTS_STEP_DOWN:
+        case BACNET_LIGHTS_STEP_ON:
+        case BACNET_LIGHTS_STEP_OFF:
+            if (value->use_step_increment) {
+                step_increment = value->step_increment;
+            }
+            if (value->use_priority) {
+                priority = value->priority;
+            }
+            len = snprintf(buf, buf_size, "%u,%f,%u",
+                (unsigned)value->operation, step_increment, (unsigned)priority);
+            break;
+        case BACNET_LIGHTS_WARN:
+        case BACNET_LIGHTS_WARN_OFF:
+        case BACNET_LIGHTS_WARN_RELINQUISH:
+        case BACNET_LIGHTS_STOP:
+            if (value->use_priority) {
+                priority = value->priority;
+            }
+            len = snprintf(buf, buf_size, "%u,%u", (unsigned)value->operation,
+                (unsigned)priority);
+            break;
+        default:
+            len = snprintf(buf, buf_size, "%u", (unsigned)value->operation);
+            break;
+    }
+
+    return len;
+}
+
+/**
+ * @brief Parse an ASCII string for a BACnetLightingCommand
+ * @param value [out] BACnetLightingCommand structure to store the results
+ * @param argv [in] nul terminated ASCII string to parse
+ * @return true if the address was parsed
+ */
+bool lighting_command_from_ascii(
+    BACNET_LIGHTING_COMMAND *value, const char *argv)
+{
+    bool status = false;
+    BACNET_LIGHTING_OPERATION operation = BACNET_LIGHTS_NONE;
+    unsigned a = 0;
+    float b = 0.0, c = 0.0, d = 0.0;
+    int count;
+
+    if (!value) {
+        return false;
+    }
+    if (!argv) {
+        return false;
+    }
+    count = sscanf(argv, "%u,%f,%f,%f", &a, &b, &c, &d);
+    if (count >= 1) {
+        operation = a;
+    } else {
+        return false;
+    }
+    switch (operation) {
+        case BACNET_LIGHTS_NONE:
+            value->operation = operation;
+            value->use_target_level = false;
+            value->use_ramp_rate = false;
+            value->use_step_increment = false;
+            value->use_fade_time = false;
+            value->use_priority = false;
+            status = true;
+            break;
+        case BACNET_LIGHTS_FADE_TO:
+            value->operation = operation;
+            if (count >= 2) {
+                /* (0.0..100.0) OPTIONAL */
+                if (isgreaterequal(b, 0.0) && islessequal(b, 100.0)) {
+                    value->use_target_level = true;
+                    value->target_level = b;
+                } else {
+                    value->use_target_level = false;
+                }
+            } else {
+                value->use_target_level = false;
+            }
+            if (count >= 3) {
+                /* (100..86400000) OPTIONAL */
+                if (isgreaterequal(c, 100.0) && islessequal(c, 86400000.0)) {
+                    value->use_fade_time = true;
+                    value->fade_time = c;
+                } else {
+                    value->use_fade_time = false;
+                }
+            } else {
+                value->use_fade_time = false;
+            }
+            if (count >= 4) {
+                if (isgreaterequal(d, BACNET_MIN_PRIORITY) &&
+                    islessequal(d, BACNET_MAX_PRIORITY)) {
+                    value->use_priority = true;
+                    value->priority = d;
+                } else {
+                    value->use_priority = false;
+                }
+            } else {
+                value->use_priority = false;
+            }
+            value->use_ramp_rate = false;
+            value->use_step_increment = false;
+            status = true;
+            break;
+        case BACNET_LIGHTS_RAMP_TO:
+            value->operation = operation;
+            if (count >= 2) {
+                /* (0.0..100.0) OPTIONAL */
+                if (isgreaterequal(b, 0.0) && islessequal(b, 100.0)) {
+                    value->use_target_level = true;
+                    value->target_level = b;
+                } else {
+                    value->use_target_level = false;
+                }
+            } else {
+                value->use_target_level = false;
+            }
+            if (count >= 3) {
+                /* (0.1..100.0) OPTIONAL */
+                if (isgreaterequal(c, 0.1) && islessequal(c, 100.0)) {
+                    value->use_ramp_rate = true;
+                    value->ramp_rate = c;
+                } else {
+                    value->use_ramp_rate = false;
+                }
+            } else {
+                value->use_ramp_rate = false;
+            }
+            if (count >= 4) {
+                if (isgreaterequal(d, BACNET_MIN_PRIORITY) &&
+                    islessequal(d, BACNET_MAX_PRIORITY)) {
+                    value->use_priority = true;
+                    value->priority = d;
+                } else {
+                    value->use_priority = false;
+                }
+            } else {
+                value->use_priority = false;
+            }
+            value->use_fade_time = false;
+            value->use_step_increment = false;
+            status = true;
+            break;
+        case BACNET_LIGHTS_STEP_UP:
+        case BACNET_LIGHTS_STEP_DOWN:
+        case BACNET_LIGHTS_STEP_ON:
+        case BACNET_LIGHTS_STEP_OFF:
+            value->operation = operation;
+            /* (0.1..100.0) OPTIONAL */
+            if (count >= 2) {
+                if (isgreaterequal(b, 0.1) && islessequal(b, 100.0)) {
+                    value->use_step_increment = true;
+                    value->ramp_rate = b;
+                } else {
+                    value->step_increment = false;
+                }
+            } else {
+                value->step_increment = false;
+            }
+            if (count >= 3) {
+                if (isgreaterequal(c, BACNET_MIN_PRIORITY) &&
+                    islessequal(c, BACNET_MAX_PRIORITY)) {
+                    value->use_priority = true;
+                    value->priority = c;
+                } else {
+                    value->use_priority = false;
+                }
+            } else {
+                value->use_priority = false;
+            }
+            value->use_target_level = false;
+            value->use_ramp_rate = false;
+            value->use_fade_time = false;
+            status = true;
+            break;
+        case BACNET_LIGHTS_WARN:
+        case BACNET_LIGHTS_WARN_OFF:
+        case BACNET_LIGHTS_WARN_RELINQUISH:
+        case BACNET_LIGHTS_STOP:
+            value->operation = operation;
+            if (count >= 2) {
+                if (isgreaterequal(b, BACNET_MIN_PRIORITY) &&
+                    islessequal(b, BACNET_MAX_PRIORITY)) {
+                    value->use_priority = true;
+                    value->priority = b;
+                } else {
+                    value->use_priority = false;
+                }
+            } else {
+                value->use_priority = false;
+            }
+            value->use_target_level = false;
+            value->use_ramp_rate = false;
+            value->use_step_increment = false;
+            value->use_fade_time = false;
+            status = true;
+            break;
+        default:
+            value->operation = operation;
+            value->use_target_level = false;
+            value->use_ramp_rate = false;
+            value->use_step_increment = false;
+            value->use_fade_time = false;
+            value->use_priority = false;
+            status = true;
+            break;
+    }
+
+    return status;
+}
+
+/**
  * @brief Encode a BACnetxyColor complex data type
  *
  * BACnetxyColor::= SEQUENCE {
@@ -670,13 +940,10 @@ bool xy_color_same(BACNET_XY_COLOR *value1, BACNET_XY_COLOR *value2)
  *
  * @note buf and buf_size may be null and zero to return only the size
  */
-int xy_color_to_ascii(
-    const BACNET_XY_COLOR *value,
-    char *buf,
-    size_t buf_size)
+int xy_color_to_ascii(const BACNET_XY_COLOR *value, char *buf, size_t buf_size)
 {
-    return snprintf(buf, buf_size, "(%f,%f)",  value->x_coordinate,
-        value->x_coordinate);
+    return snprintf(
+        buf, buf_size, "(%f,%f)", value->x_coordinate, value->x_coordinate);
 }
 
 /**
@@ -689,7 +956,7 @@ bool xy_color_from_ascii(BACNET_XY_COLOR *value, const char *argv)
 {
     bool status = false;
     int count;
-    float x,y;
+    float x, y;
 
     count = sscanf(argv, "%f,%f", &x, &y);
     if (count == 2) {
