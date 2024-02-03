@@ -710,7 +710,6 @@ void Calendar_Write_Disable(uint32_t object_instance)
  */
 uint32_t Calendar_Create(uint32_t object_instance)
 {
-    bool status = false;
     struct object_data *pObject = NULL;
     int index = 0;
 

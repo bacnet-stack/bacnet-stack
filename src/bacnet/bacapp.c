@@ -1097,6 +1097,8 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                 case 1:
                     tag = BACNET_APPLICATION_TAG_SIGNED_INT;
                     break;
+                default:
+                    break;
             }
             break;
         case PROP_PRESCALE:
@@ -1111,6 +1113,8 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                     break;
                 case 1:
                     tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+                    break;
+                default:
                     break;
             }
             break;
