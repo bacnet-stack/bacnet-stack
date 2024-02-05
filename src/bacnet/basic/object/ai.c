@@ -394,6 +394,44 @@ void Analog_Input_COV_Increment_Set(uint32_t object_instance, float value)
     }
 }
 
+/**
+ * For a given object instance-number, returns the units property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  units property value
+ */
+uint16_t Analog_Input_Units(uint32_t object_instance)
+{
+    uint16_t units = UNITS_NO_UNITS;
+
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        units = AI_Descr[object_instance].Units;
+    }
+
+    return units;
+}
+
+/**
+ * For a given object instance-number, sets the units property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param units - units property value
+ *
+ * @return true if the units property value was set
+ */
+bool Analog_Input_Units_Set(uint32_t object_instance, uint16_t units)
+{
+    bool status = false;
+
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        AI_Descr[object_instance].Units = units;
+        status = true;
+    }
+
+    return status;
+}
+
 bool Analog_Input_Out_Of_Service(uint32_t object_instance)
 {
     unsigned index = 0;
