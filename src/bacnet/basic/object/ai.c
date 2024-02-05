@@ -97,6 +97,7 @@ void Analog_Input_Init(void)
         AI_Descr[i].Prior_Value = 0.0f;
         AI_Descr[i].COV_Increment = 1.0f;
         AI_Descr[i].Changed = false;
+        AI_Descr[i].Object_Name = NULL;
 #if defined(INTRINSIC_REPORTING)
         AI_Descr[i].Event_State = EVENT_STATE_NORMAL;
         /* notification class not connected */
@@ -209,17 +210,49 @@ void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
     }
 }
 
+/**
+ * For a given object instance-number, return the name.
+ *
+ * Note: the object name must be unique within this device
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - object name/string pointer
+ *
+ * @return  true/false
+ */
 bool Analog_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
-    unsigned int index;
+    static char text_string[32] = "";
     bool status = false;
 
-    index = Analog_Input_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_INPUTS) {
-        sprintf(text_string, "ANALOG INPUT %lu", (unsigned long)index);
-        status = characterstring_init_ansi(object_name, text_string);
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        if (AI_Descr[object_instance].Object_Name) {
+            status = characterstring_init_ansi(object_name, AI_Descr[object_instance].Object_Name);
+        } else {
+            snprintf(text_string, sizeof(text_string), "ANALOG INPUT %u",
+                object_instance);
+            status = characterstring_init_ansi(object_name, text_string);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Analog_Input_Name_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false;
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        status = true;
+        AI_Descr[object_instance].Object_Name = new_name;
     }
 
     return status;
