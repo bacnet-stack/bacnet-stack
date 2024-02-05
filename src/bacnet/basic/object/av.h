@@ -53,6 +53,7 @@ extern "C" {
         float COV_Increment;
         bool Changed;
         char* Object_Name;
+        char* Description;
 #if defined(INTRINSIC_REPORTING)
         uint32_t Time_Delay;
         uint32_t Notification_Class;

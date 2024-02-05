@@ -339,6 +339,40 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
 }
 
 /**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+char *Analog_Value_Description(uint32_t object_instance)
+{
+    char *name = NULL;
+
+    if (object_instance < MAX_ANALOG_VALUES) {
+        name = AV_Descr[object_instance].Description;
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if object-name was set
+ */
+bool Analog_Value_Description_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false; /* return value */
+
+    if (object_instance < MAX_ANALOG_VALUES && new_name) {
+        status = true;
+        AV_Descr[object_instance].Description = new_name;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, determines if the COV flag
  * has been triggered.
  *
@@ -530,12 +564,18 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             if (Analog_Value_Object_Name(
                     rpdata->object_instance, &char_string)) {
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
             }
+            break;
+
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(&char_string,
+                Analog_Value_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
 
         case PROP_OBJECT_TYPE:
