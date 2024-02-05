@@ -97,6 +97,7 @@ void Analog_Input_Init(void)
         AI_Descr[i].Prior_Value = 0.0f;
         AI_Descr[i].COV_Increment = 1.0f;
         AI_Descr[i].Changed = false;
+        AI_Descr[i].Object_Name = NULL;
 #if defined(INTRINSIC_REPORTING)
         AI_Descr[i].Event_State = EVENT_STATE_NORMAL;
         /* notification class not connected */
@@ -209,17 +210,49 @@ void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
     }
 }
 
+/**
+ * For a given object instance-number, return the name.
+ *
+ * Note: the object name must be unique within this device
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - object name/string pointer
+ *
+ * @return  true/false
+ */
 bool Analog_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
-    unsigned int index;
+    static char text_string[32] = "";
     bool status = false;
 
-    index = Analog_Input_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_INPUTS) {
-        sprintf(text_string, "ANALOG INPUT %lu", (unsigned long)index);
-        status = characterstring_init_ansi(object_name, text_string);
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        if (AI_Descr[object_instance].Object_Name) {
+            status = characterstring_init_ansi(object_name, AI_Descr[object_instance].Object_Name);
+        } else {
+            snprintf(text_string, sizeof(text_string), "ANALOG INPUT %u",
+                object_instance);
+            status = characterstring_init_ansi(object_name, text_string);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Analog_Input_Name_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false;
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        status = true;
+        AI_Descr[object_instance].Object_Name = new_name;
     }
 
     return status;
@@ -245,6 +278,40 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
 #endif
 
     return state;
+}
+
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+char *Analog_Input_Description(uint32_t object_instance)
+{
+    char *name = NULL;
+
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        name = AI_Descr[object_instance].Description;
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if object-name was set
+ */
+bool Analog_Input_Description_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false; /* return value */
+
+    if (object_instance < MAX_ANALOG_INPUTS && new_name) {
+        status = true;
+        AI_Descr[object_instance].Description = new_name;
+    }
+
+    return status;
 }
 
 bool Analog_Input_Change_Of_Value(uint32_t object_instance)
@@ -327,6 +394,44 @@ void Analog_Input_COV_Increment_Set(uint32_t object_instance, float value)
     }
 }
 
+/**
+ * For a given object instance-number, returns the units property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  units property value
+ */
+uint16_t Analog_Input_Units(uint32_t object_instance)
+{
+    uint16_t units = UNITS_NO_UNITS;
+
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        units = AI_Descr[object_instance].Units;
+    }
+
+    return units;
+}
+
+/**
+ * For a given object instance-number, sets the units property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param units - units property value
+ *
+ * @return true if the units property value was set
+ */
+bool Analog_Input_Units_Set(uint32_t object_instance, uint16_t units)
+{
+    bool status = false;
+
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        AI_Descr[object_instance].Units = units;
+        status = true;
+    }
+
+    return status;
+}
+
 bool Analog_Input_Out_Of_Service(uint32_t object_instance)
 {
     unsigned index = 0;
@@ -396,8 +501,14 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             Analog_Input_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(&char_string,
+                Analog_Input_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
