@@ -280,6 +280,40 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
     return state;
 }
 
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+char *Analog_Input_Description(uint32_t object_instance)
+{
+    char *name = NULL;
+
+    if (object_instance < MAX_ANALOG_INPUTS) {
+        name = AI_Descr[object_instance].Description;
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if object-name was set
+ */
+bool Analog_Input_Description_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false; /* return value */
+
+    if (object_instance < MAX_ANALOG_INPUTS && new_name) {
+        status = true;
+        AI_Descr[object_instance].Description = new_name;
+    }
+
+    return status;
+}
+
 bool Analog_Input_Change_Of_Value(uint32_t object_instance)
 {
     unsigned index = 0;
@@ -429,8 +463,14 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             Analog_Input_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(&char_string,
+                Analog_Input_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
