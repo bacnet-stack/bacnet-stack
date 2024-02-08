@@ -40,8 +40,10 @@
 #   define BACNET_STACK_DEPRECATED(message)
 # endif
 
-# if defined(WIN32) || defined(WIN64)
-#  define strcasecmp _stricmp
+#if defined(WIN32) || defined(WIN64)
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
+#define snprintf _snprintf
 #elif defined(__ZEPHYR__)
 #  include <strings.h>
 # endif

@@ -76,11 +76,6 @@ and globals in favor of more secure versions.  */
 #define inline __inline
 #endif
 
-#ifdef _WIN32
-#define strncasecmp(x, y, z) _strnicmp(x, y, z)
-#define snprintf _snprintf
-#endif
-
 BACNET_STACK_EXPORT
 extern int bip_get_local_netmask(
     struct in_addr *netmask);
