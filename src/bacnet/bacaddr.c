@@ -156,7 +156,7 @@ bool bacnet_address_init(BACNET_ADDRESS *dest,
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->mac[i] = 0;
         }
-        dest->mac_len = mac->len;
+        dest->mac_len = 0;
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = 0;
         }
