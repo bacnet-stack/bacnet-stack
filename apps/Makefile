@@ -193,7 +193,7 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
 	server-client add-list-element remove-list-element create-object \
-	delete-object
+	delete-object server-discover
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -368,6 +368,10 @@ server: $(BACNET_LIB_TARGET)
 
 .PHONY: server-client
 server-client: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: server-discover
+server-discover: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: timesync
