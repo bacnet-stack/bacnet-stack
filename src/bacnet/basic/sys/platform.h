@@ -2,7 +2,7 @@
  * @file
  * @author Steve Karg
  * @date 2022
- * @brief Platform libc and compiler abstraction layer 
+ * @brief Platform libc and compiler abstraction layer
   *
  * @section DESCRIPTION
  *
@@ -41,9 +41,15 @@
 # endif
 
 #if defined(WIN32) || defined(WIN64)
+#ifndef strcasecmp
 #define strcasecmp _stricmp
+#endif
+#ifndef strncasecmp
 #define strncasecmp _strnicmp
+#endif
+#ifndef snprintf
 #define snprintf _snprintf
+#endif
 #elif defined(__ZEPHYR__)
 #  include <strings.h>
 # endif
@@ -62,7 +68,7 @@
 #define BACNET_STACK_FALLTHROUGH() /* fall through */
 #elif defined(__GNUC__)
 #define BACNET_STACK_FALLTHROUGH() __attribute__ ((fallthrough))
-#else 
+#else
 #define BACNET_STACK_FALLTHROUGH() /* fall through */
 #endif
 
