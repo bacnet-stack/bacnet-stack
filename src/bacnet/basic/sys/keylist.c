@@ -200,6 +200,7 @@ static int FindIndex(OS_Keylist list, KEY key, int *pIndex)
  *              This pointer needs to be poiting to static memory
  *              as it will be stored in the list and later used
  *              by retrieving the key again.
+ * @return Index of the key, or -1 if not found.
  */
 int Keylist_Data_Add(OS_Keylist list, KEY key, void *data)
 {
