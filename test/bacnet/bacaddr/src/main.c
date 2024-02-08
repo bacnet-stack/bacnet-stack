@@ -99,6 +99,14 @@ static void test_BACNET_ADDRESS(void)
     dest.mac_len = 1;
     status = bacnet_address_same(&dest, &src);
     zassert_false(status, NULL);
+    /* only setting a DNET address */
+    dnet = 1234;
+    status = bacnet_address_init(&dest, NULL, dnet, NULL);
+    zassert_true(status, NULL);
+    status = bacnet_address_init(&src, NULL, dnet, NULL);
+    zassert_true(status, NULL);
+    status = bacnet_address_same(&dest, &src);
+    zassert_true(status, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
