@@ -32,6 +32,8 @@ static struct mstimer Cache_Timer;
 static struct mstimer Read_Write_Timer;
 /* where the data from the read is stored */
 static bacnet_read_write_value_callback_t bacnet_read_write_value_callback;
+/* where the data from the I-Am is called */
+static bacnet_read_write_device_callback_t bacnet_read_write_device_callback;
 
 /* states for client task */
 typedef enum {
@@ -170,6 +172,10 @@ static void My_I_Am_Bind(
             }
             if (bind) {
                 address_add_binding(device_id, max_apdu, src);
+                if (bacnet_read_write_device_callback) {
+                    bacnet_read_write_device_callback(device_id, max_apdu, 
+                        segmentation, vendor_id);
+                }
             }
         }
     }
@@ -544,6 +550,17 @@ void bacnet_read_write_value_callback_set(
     bacnet_read_write_value_callback_t callback)
 {
     bacnet_read_write_value_callback = callback;
+}
+
+/**
+ * @brief Sets the callback for when an I-Am returns device data
+ *
+ * @param callback - function for callback
+ */
+void bacnet_read_write_device_callback_set(
+    bacnet_read_write_device_callback_t callback)
+{
+    bacnet_read_write_device_callback = callback;
 }
 
 /**
