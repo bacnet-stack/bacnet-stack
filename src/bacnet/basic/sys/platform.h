@@ -41,12 +41,14 @@
 # endif
 
 #if defined(WIN32) || defined(WIN64)
+#include <strings.h>
 #ifndef strcasecmp
 #define strcasecmp _stricmp
 #endif
 #ifndef strncasecmp
 #define strncasecmp _strnicmp
 #endif
+#include<stdio.h>
 #ifndef snprintf
 #define snprintf _snprintf
 #endif
