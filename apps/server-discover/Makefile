@@ -10,6 +10,7 @@ BACNET_CLIENT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/client
 SRC = main.c \
 	$(BACNET_OBJECT_DIR)/client/device-client.c \
 	$(BACNET_OBJECT_DIR)/netport.c \
+	$(BACNET_CLIENT_DIR)/bac-discover.c \
 	$(BACNET_CLIENT_DIR)/bac-rw.c
 
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing

@@ -173,7 +173,7 @@ static void My_I_Am_Bind(
             if (bind) {
                 address_add_binding(device_id, max_apdu, src);
                 if (bacnet_read_write_device_callback) {
-                    bacnet_read_write_device_callback(device_id, max_apdu, 
+                    bacnet_read_write_device_callback(device_id, max_apdu,
                         segmentation, vendor_id);
                 }
             }
@@ -894,6 +894,16 @@ bool bacnet_read_write_busy(void)
 void bacnet_read_write_vendor_id_filter_set(uint16_t vendor_id)
 {
     Target_Vendor_ID = vendor_id;
+}
+
+/**
+ * @brief Gets a Vendor ID filter on I-Am bindings to limit the address
+ *  cache usage when we are only reading/writing to a specific vendor ID
+ * @return vendor_id - vendor ID to filter, 0=no filter
+ */
+uint16_t bacnet_read_write_vendor_id_filter(void)
+{
+    return Target_Vendor_ID;
 }
 
 /**

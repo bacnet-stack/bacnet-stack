@@ -114,6 +114,8 @@ void bacnet_read_write_device_callback_set(
     bacnet_read_write_device_callback_t callback);
 BACNET_STACK_EXPORT
 void bacnet_read_write_vendor_id_filter_set(uint16_t vendor_id);
+BACNET_STACK_EXPORT
+uint16_t bacnet_read_write_vendor_id_filter(void);
 
 #ifdef __cplusplus
 }
