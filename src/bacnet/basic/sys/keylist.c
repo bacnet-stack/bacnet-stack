@@ -392,6 +392,7 @@ void *Keylist_Data_Index(OS_Keylist list, int index)
  * @param index  Index that shall be returned
  *
  * @return Key for the index or UINT32_MAX if not found.
+ * @deprecated Use Keylist_Index_Key() instead
  */
 KEY Keylist_Key(OS_Keylist list, int index)
 {
@@ -408,6 +409,35 @@ KEY Keylist_Key(OS_Keylist list, int index)
         }
     }
     return key;
+}
+
+/** 
+ * Determine if there is a node key at the given index.
+ *
+ * @param list  Pointer to the list
+ * @param index  Index that shall be returned
+ * @param pKey  Pointer to the variable returning the key
+ * @return True if the key is found, false if not.
+ */
+bool Keylist_Index_Key(OS_Keylist list, int index, KEY *pKey)
+{
+    bool status = false; /* return value */
+    struct Keylist_Node *node;
+
+    if (list) {
+        if (list->array && list->count && (index >= 0) &&
+            (index < list->count)) {
+            node = list->array[index];
+            if (node) {
+                status = true;
+                if (pKey) {
+                    *pKey = node->key;
+                }
+            }
+        }
+    }
+
+    return status;
 }
 
 /** Returns the next empty key from the list.
