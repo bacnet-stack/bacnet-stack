@@ -159,18 +159,20 @@ uint32_t bacfile_pathname_instance(
     struct object_data *pObject;
     int count = 0;
     int index = 0;
+    KEY key = BACNET_MAX_INSTANCE;
 
     count = Keylist_Count(Object_List);
     while (count) {
         pObject = Keylist_Data_Index(Object_List, index);
         if (strcmp(pathname, pObject->Pathname) == 0) {
-            return Keylist_Key(Object_List, index);
+            Keylist_Index_Key(Object_List, index, &key);
+            break;
         }
         count--;
         index++;
     }
 
-    return BACNET_MAX_INSTANCE;
+    return key;
 }
 
 /**
@@ -262,7 +264,11 @@ uint32_t bacfile_count(void)
  */
 uint32_t bacfile_index_to_instance(unsigned find_index)
 {
-    return Keylist_Key(Object_List, find_index);
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, find_index, &key);
+
+    return key;
 }
 
 /**
