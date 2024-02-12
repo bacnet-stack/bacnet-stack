@@ -60,7 +60,10 @@ void print_discovered_devices(void)
     unsigned int device_index = 0;
     unsigned int device_count = 0;
     unsigned int object_count = 0;
+    unsigned int object_index = 0;
+    unsigned int property_count = 0;
     uint32_t device_id = 0;
+    BACNET_OBJECT_ID object_id = { 0 };
     unsigned long milliseconds = 0;
     char *model_name;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
@@ -85,6 +88,16 @@ void print_discovered_devices(void)
         }
         printf("device[%u] %7u \"%s\" object_list[%d] in %lums\n", device_index,
             device_id, model_name, object_count, milliseconds);
+        for (object_index = 0; object_index < object_count; object_index++) {
+            if (bacnet_discover_device_object_identifier(
+                    device_id, object_index, &object_id)) {
+                property_count = bacnet_discover_object_property_count(
+                    device_id, object_id.type, object_id.instance);
+                printf("    object_list[%d] %s %u has %u properties\n",
+                    object_index, bactext_object_type_name(object_id.type),
+                    object_id.instance, property_count);
+            }
+        }
     }
 }
 
@@ -160,6 +173,8 @@ static void print_help(const char *filename)
     printf("Simulate a BACnet server-discovery device.\n");
     printf("--discover-seconds:\n"
            "Number of seconds to wait before initiating the next discovery.\n");
+    printf("--print-seconds:\n"
+           "Number of seconds to wait before printing list of devices.\n");
     printf("--dnet N\n"
            "Optional BACnet network number N for directed requests.\n"
            "Valid range is from 0 to 65535 where 0 is the local connection\n"

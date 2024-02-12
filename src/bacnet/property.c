@@ -1535,7 +1535,7 @@ BACNET_PROPERTY_ID property_list_special_property(
     BACNET_PROPERTY_ID special_property,
     unsigned index)
 {
-    int property = -1; /* return value */
+    BACNET_PROPERTY_ID property = UINT32_MAX; /* return value */
     unsigned required, optional, proprietary;
     struct special_property_list_t PropertyList = { 0 };
 
@@ -1573,7 +1573,7 @@ BACNET_PROPERTY_ID property_list_special_property(
         }
     }
 
-    return (BACNET_PROPERTY_ID)property;
+    return property;
 }
 
 unsigned property_list_special_count(

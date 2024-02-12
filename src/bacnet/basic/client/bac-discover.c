@@ -20,6 +20,7 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/property.h"
 /* us */
 #include "bacnet/basic/client/bac-rw.h"
 #include "bacnet/basic/client/bac-discover.h"
@@ -357,14 +358,24 @@ bool bacnet_discover_property_value(uint32_t device_id,
 
     device = Keylist_Data(Device_List, key);
     if (device) {
-        if (object_type == OBJECT_DEVICE) {
+        if ((object_type == OBJECT_DEVICE) && (object_instance == device_id)) {
             switch (object_property) {
-                case PROP_VENDOR_IDENTIFIER:
+                case PROP_OBJECT_IDENTIFIER:
                     if (value) {
                         value->context_specific = false;
                         value->context_tag = 0;
-                        value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
-                        value->type.Unsigned_Int = device->Vendor_Identifier;
+                        value->tag = BACNET_APPLICATION_TAG_OBJECT_ID;
+                        value->type.Object_Id.type = object_type;
+                        value->type.Object_Id.instance = object_instance;
+                    }
+                    status = true;
+                    break;
+                case PROP_OBJECT_TYPE:
+                    if (value) {
+                        value->context_specific = false;
+                        value->context_tag = 0;
+                        value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
+                        value->type.Enumerated = object_type;
                     }
                     status = true;
                     break;
@@ -375,6 +386,15 @@ bool bacnet_discover_property_value(uint32_t device_id,
                         value->tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
                         characterstring_copy(&value->type.Character_String,
                             &device->Object_Name);
+                    }
+                    status = true;
+                    break;
+                case PROP_VENDOR_IDENTIFIER:
+                    if (value) {
+                        value->context_specific = false;
+                        value->context_tag = 0;
+                        value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+                        value->type.Unsigned_Int = device->Vendor_Identifier;
                     }
                     status = true;
                     break;
@@ -399,6 +419,91 @@ bool bacnet_discover_property_value(uint32_t device_id,
                 property = Keylist_Data(object->Property_List, key);
                 if (property) {
                     status = bacapp_copy(value, &property->value);
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the object property count from object property cache
+ * @param device_id - ID of the destination device
+ * @param object_type - BACnet object type
+ * @param object_instance - Instance number of the object to be read.
+ * @return number of object properties
+ */
+unsigned int bacnet_discover_object_property_count(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
+{
+    unsigned int count = 0;
+    BACNET_DEVICE_DATA *device;
+    BACNET_OBJECT_DATA *object;
+    KEY key = device_id;
+
+    device = Keylist_Data(Device_List, key);
+    if (device) {
+        if ((object_type == OBJECT_DEVICE) && (object_instance == device_id)) {
+            /* FIXME: device object needs a Property_List! */
+            count = property_list_special_count(OBJECT_DEVICE, PROP_REQUIRED);
+        } else {
+            key = KEY_ENCODE(object_type, object_instance);
+            object = Keylist_Data(device->Object_List, key);
+            if (object) {
+                count = Keylist_Count(object->Property_List);
+            }
+        }
+    }
+
+    return count;
+}
+
+/**
+ * @brief get the number of objects discovered in a device
+ * @param device_id - ID of the destination device
+ * @param object_type - BACnet object type
+ * @param object_instance - Instance number of the object to be queried
+ * @param index - 0..N of max properties in an object instance
+ * @param property_id - property identifier if object exists
+ * @return true if an object property ID was found at this index
+ */
+bool bacnet_discover_object_property_identifier(
+    uint32_t device_id, 
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    unsigned index, 
+    uint32_t *property_id)
+{
+    bool status = false;
+    BACNET_DEVICE_DATA *device;
+    BACNET_OBJECT_DATA *object;
+    KEY key = device_id;
+
+    device = Keylist_Data(Device_List, key);
+    if (device) {
+        if ((object_type == OBJECT_DEVICE) && (object_instance == device_id)) {
+            /* FIXME: device object needs a Property_List! */
+            key = property_list_special_property(OBJECT_DEVICE, PROP_REQUIRED,
+            index);
+            if (key < UINT32_MAX) {
+                if (property_id) {
+                    *property_id = key;
+                }
+                status = true;
+            }
+        } else {
+            key = KEY_ENCODE(object_type, object_instance);
+            object = Keylist_Data(device->Object_List, key);
+            if (object) {
+                key = Keylist_Key(object->Property_List, index);
+                if (key < UINT32_MAX) {
+                    if (property_id) {
+                        *property_id = key;
+                    }
+                    status = true;
                 }
             }
         }

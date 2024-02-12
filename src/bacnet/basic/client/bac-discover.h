@@ -35,6 +35,18 @@ BACNET_STACK_EXPORT
 unsigned long bacnet_discover_device_elapsed_milliseconds(
     uint32_t device_id);
 BACNET_STACK_EXPORT
+unsigned int bacnet_discover_object_property_count(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool bacnet_discover_object_property_identifier(
+    uint32_t device_id, 
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    unsigned index, 
+    uint32_t *property_id);
+BACNET_STACK_EXPORT
 bool bacnet_discover_property_value(uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
