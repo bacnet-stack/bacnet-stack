@@ -60,7 +60,11 @@ int objects_device_count(void)
 
 uint32_t objects_device_id(int index)
 {
-    return Keylist_Key(Device_List, index);
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, index, &key);
+
+    return key;
 }
 
 OBJECT_DEVICE_T *objects_device_data(int index)

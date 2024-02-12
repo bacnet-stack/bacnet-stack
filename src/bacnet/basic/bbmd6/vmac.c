@@ -241,10 +241,7 @@ bool VMAC_Find_By_Data(struct vmac_data *vmac, uint32_t *device_id)
         list_vmac = Keylist_Data_Index(VMAC_List, index);
         if (list_vmac) {
             if (VMAC_Match(vmac, list_vmac)) {
-                if (device_id) {
-                    *device_id = Keylist_Key(VMAC_List, index);
-                }
-                status = true;
+                status = Keylist_Index_Key(VMAC_List, index, device_id);
                 break;
             }
         }
@@ -260,24 +257,25 @@ bool VMAC_Find_By_Data(struct vmac_data *vmac, uint32_t *device_id)
 void VMAC_Cleanup(void)
 {
     struct vmac_data *pVMAC;
-    uint32_t device_id;
     const int index = 0;
     unsigned i = 0;
 
     if (VMAC_List) {
         do {
-            device_id = Keylist_Key(VMAC_List, index);
-#if !PRINT_ENABLED
-            UNUSED(device_id);
+#if PRINT_ENABLED
+            uint32_t device_id;
+            Keylist_Index_Key(VMAC_List, index, &device_id);
 #endif
             pVMAC = Keylist_Data_Delete_By_Index(VMAC_List, index);
             if (pVMAC) {
+#if PRINT_ENABLED
                 PRINTF("VMAC List: %lu [", (unsigned long)device_id);
                 /* print the MAC */
                 for (i = 0; i < pVMAC->mac_len; i++) {
                     PRINTF("%02X", pVMAC->mac[i]);
                 }
                 PRINTF("]\n");
+#endif
                 free(pVMAC);
             }
         } while (pVMAC);

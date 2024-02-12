@@ -143,7 +143,11 @@ unsigned Binary_Lighting_Output_Count(void)
  */
 uint32_t Binary_Lighting_Output_Index_To_Instance(unsigned index)
 {
-    return Keylist_Key(Object_List, index);
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, index, &key);
+
+    return key;
 }
 
 /**
