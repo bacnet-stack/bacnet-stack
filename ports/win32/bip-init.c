@@ -412,16 +412,14 @@ uint8_t bip_get_subnet_prefix(void)
 {
     uint32_t address = 0;
     uint32_t broadcast = 0;
-    uint32_t test_broadcast = 0;
     uint32_t mask = 0xFFFFFFFE;
     uint8_t prefix = 0;
 
-    address = BIP_Broadcast_Addr.s_addr;
+    address = BIP_Address.s_addr;
     broadcast = BIP_Broadcast_Addr.s_addr;
     /* calculate the subnet prefix from the broadcast address */
     for (prefix = 1; prefix <= 32; prefix++) {
-        test_broadcast = (address & mask) | (~mask);
-        if (test_broadcast == broadcast) {
+        if ((address | mask) == broadcast) {
             break;
         }
         mask = mask << 1;

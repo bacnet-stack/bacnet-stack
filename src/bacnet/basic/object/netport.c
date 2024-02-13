@@ -938,7 +938,7 @@ bool Network_Port_IP_Subnet(
     bool status = false;
     uint32_t mask = 0;
     uint32_t prefix = 0;
-    uint8_t ip_mask[4] = { 0 };
+    uint8_t ip_mask[4] = { 255, 255, 255, 255 };
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
@@ -947,9 +947,8 @@ bool Network_Port_IP_Subnet(
             if ((prefix > 0) && (prefix <= 32)) {
                 mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF;
                 encode_unsigned32(ip_mask, mask);
-                status =
-                    octetstring_init(subnet_mask, ip_mask, sizeof(ip_mask));
             }
+            status = octetstring_init(subnet_mask, ip_mask, sizeof(ip_mask));
         }
     }
 
