@@ -357,6 +357,7 @@ void dlenv_network_port_init(void)
 {
     const uint32_t instance = 1;
     BACNET_IP_ADDRESS addr = { 0 };
+    uint8_t prefix = 0;
 #if BBMD_ENABLED
     uint8_t addr0, addr1, addr2, addr3;
 #endif
@@ -365,9 +366,22 @@ void dlenv_network_port_init(void)
     Network_Port_Name_Set(instance, "BACnet/IP Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BIP);
     bip_get_addr(&addr);
+    prefix = bip_get_subnet_prefix();
+    if (BIP_DL_Debug) {
+        fprintf(stderr,
+            "BIP: Setting Network Port %lu address %u.%u.%u.%u:%u/%u\n",
+            (unsigned long)instance,
+            (unsigned)addr.address[0],
+            (unsigned)addr.address[1],
+            (unsigned)addr.address[2],
+            (unsigned)addr.address[3],
+            (unsigned)addr.port,
+            (unsigned)prefix);
+    }
     Network_Port_BIP_Port_Set(instance, addr.port);
-    Network_Port_MAC_Address_Set(instance, &addr.address[0], 6);
-    Network_Port_IP_Subnet_Prefix_Set(instance, bip_get_subnet_prefix());
+    Network_Port_IP_Address_Set(instance, addr.address[0], addr.address[1],
+        addr.address[2], addr.address[3]);
+    Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
     Network_Port_Link_Speed_Set(instance, 0.0);
 #if BBMD_ENABLED
     Network_Port_BBMD_BD_Table_Set(instance, bvlc_bdt_list());
