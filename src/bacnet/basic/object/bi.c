@@ -51,6 +51,8 @@ static bool Out_Of_Service[MAX_BINARY_INPUTS];
 static bool Change_Of_Value[MAX_BINARY_INPUTS];
 /* Polarity of Input */
 static BACNET_POLARITY Polarity[MAX_BINARY_INPUTS];
+/* stores the object name */
+static char* Object_Name[MAX_BINARY_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Input_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -294,9 +296,32 @@ bool Binary_Input_Object_Name(
 
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
-        sprintf(
-            text_string, "BINARY INPUT %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        if (Object_Name[index] == NULL) {
+            sprintf(
+                text_string, "BINARY INPUT %lu", (unsigned long)object_instance);
+            status = characterstring_init_ansi(object_name, text_string);
+        } else {
+            status = characterstring_init_ansi(object_name, Object_Name[index]);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Binary_Input_Name_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false;
+    if (object_instance < MAX_BINARY_INPUTS && new_name) {
+        status = true;
+        Object_Name[object_instance] = new_name;
     }
 
     return status;
