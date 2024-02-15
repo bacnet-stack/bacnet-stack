@@ -34,6 +34,11 @@ option(
   "compile the bacpoll app"
   ON)
 
+  option(
+    BACNET_BUILD_BACDISCOVER_APP
+    "compile the bacdiscover app"
+    ON)
+
 option(
   BACDL_ETHERNET
   "compile with ethernet support"
@@ -667,6 +672,14 @@ if(BACNET_STACK_BUILD_APPS)
         src/bacnet/basic/client/bac-rw.c)
     target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_BACPOLL_APP)
+
+  if(BACNET_BUILD_BACDISCOVER_APP)
+  add_executable(bacdiscover
+      apps/server-discover/main.c
+      src/bacnet/basic/client/bac-discover.c
+      src/bacnet/basic/client/bac-rw.c)
+  target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+endif(BACNET_BUILD_BACDISCOVER_APP)
 
   if(NOT BACDL_ETHERNET)
     add_executable(readbdt apps/readbdt/main.c)
