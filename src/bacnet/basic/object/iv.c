@@ -142,6 +142,51 @@ uint32_t Integer_Value_Index_To_Instance(unsigned index)
 }
 
 /**
+ * Initialize the Inetger Value Inputs. Returns false if there are errors.
+ *
+ * @param pInit_data pointer to initialisation values
+ *
+ * @return true/false
+ */
+bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
+{
+  unsigned i;
+
+  if (!pInit_data) {
+    return false;
+  }
+
+  if ((int) pInit_data->length > MAX_INTEGER_VALUES) {
+    PRINTF("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
+    return false;
+  }
+    PRINTF("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
+
+  for (i = 0; i < pInit_data->length; i++) {
+    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+      BV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
+    } else {
+      PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+      return false;
+    }
+
+    if (!characterstring_init_ansi(&BV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+      PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+      return false;
+    }
+
+    if (!characterstring_init_ansi(&BV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
+      PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+      return false;
+    }
+  }
+
+  BV_Max_Index = (int) pInit_data->length;
+
+  return true;
+}
+
+/**
  * For a given object instance-number, determines a 0..N index
  * of Integer Value objects where N is Integer_Value_Count().
  *
