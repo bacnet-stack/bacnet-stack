@@ -65,7 +65,11 @@ static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
 #endif
     -1 };
 
-static const int Properties_Proprietary[] = { 9997, 9998, 9999, -1 };
+static const int Properties_Proprietary[] = {
+#if BACNET_AI_TEST
+  9997, 9998, 9999,
+#endif
+  -1 };
 
 void Analog_Input_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
@@ -686,6 +690,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
 #endif
+#if BACNET_AI_TEST
         case 9997:
             /* test case for real encoding-decoding real value correctly */
             apdu_len = encode_application_real(&apdu[0], 90.510F);
@@ -700,6 +705,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
              */
             apdu_len = encode_application_signed(&apdu[0], -200);
             break;
+#endif
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -900,12 +906,14 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_ACKED_TRANSITIONS:
         case PROP_EVENT_TIME_STAMPS:
 #endif
+#if BACNET_AI_TEST
         case 9997:
         case 9998:
         case 9999:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
+#endif
         default:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
