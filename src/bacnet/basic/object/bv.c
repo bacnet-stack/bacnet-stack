@@ -73,10 +73,9 @@ static const int Binary_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1 };
 
 static const int Binary_Value_Properties_Optional[] = {
-#if (BINARY_VALUE_COMMANDABLE_PV)
     PROP_DESCRIPTION,
+#if (BINARY_VALUE_COMMANDABLE_PV)
     PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT,
-#else
 #endif
 -1 };
 
