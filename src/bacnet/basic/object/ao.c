@@ -402,7 +402,7 @@ static bool Analog_Output_Present_Value_Write(uint32_t object_instance,
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
-            (value >= 0.0) && (value <= 100.0)) {
+            (value >= pObject->Min_Pres_Value) && (value <= pObject->Max_Pres_Value)) {
             if (priority != 6) {
                 old_value = Analog_Output_Present_Value(object_instance);
                 Analog_Output_Present_Value_Set(
