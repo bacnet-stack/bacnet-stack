@@ -56,10 +56,10 @@ function bacnet_zip() {
 
 function bacnet_source() {
     echo "ZIP Source Code for Tag $tag_name"
-    git archive --format zip --output $tag_name.zip $tag_name
+    git archive --format=zip --prefix=$tag_name/ --output=$tag_name.zip $tag_name
 
     echo "TGZ Source Code for Tag $tag_name"
-    git archive --format tgz --output $tag_name.tgz $tag_name
+    git archive --format=tar.gz --prefix=$tag_name/ --output=$tag_name.tgz $tag_name
 
     mkdir -p $tag_name
     mv $tag_name.zip $tag_name
