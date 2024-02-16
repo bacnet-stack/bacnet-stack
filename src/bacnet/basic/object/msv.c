@@ -135,33 +135,33 @@ bool Multistate_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     return false;
   }
 
-  for (i = 0; i < pInit_data->length; i++) {
-    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-      AI_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
-    } else {
-      PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
-      return false;
-    }
+  // for (i = 0; i < pInit_data->length; i++) {
+  //   if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+  //     AI_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
+  //   } else {
+  //     PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+  //     return false;
+  //   }
 
-    if (!characterstring_init_ansi(&AI_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-      PRINT("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-      return false;
-    }
+  //   if (!characterstring_init_ansi(&AI_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+  //     PRINT("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+  //     return false;
+  //   }
 
-    if (!characterstring_init_ansi(&AI_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
-      PRINT("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-      return false;
-    }
+  //   if (!characterstring_init_ansi(&AI_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
+  //     PRINT("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+  //     return false;
+  //   }
 
-    if (pInit_data->Object_Init_Values[i].Units < UNITS_PROPRIETARY_RANGE_MAX2) {
-      AI_Descr[i].Units = pInit_data->Object_Init_Values[i].Units;
-    } else {
-      PRINT("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
-      return false;
-    }
-  }
+  //   if (pInit_data->Object_Init_Values[i].Units < UNITS_PROPRIETARY_RANGE_MAX2) {
+  //     AI_Descr[i].Units = pInit_data->Object_Init_Values[i].Units;
+  //   } else {
+  //     PRINT("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
+  //     return false;
+  //   }
+  // }
 
-  AI_Max_Index = (int) pInit_data->length;
+  //AI_Max_Index = (int) pInit_data->length;
 
   return true;
 }
