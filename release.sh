@@ -66,15 +66,19 @@ function bacnet_upload_apps() {
 }
 
 function bacnet_zip_source() {
-    echo "ZIP Source Code for Tag $tag_name"
-    git archive --format=zip --prefix=$tag_name/ --output=$tag_name.zip $tag_name
-
-    echo "TGZ Source Code for Tag $tag_name"
-    git archive --format=tar.gz --prefix=$tag_name/ --output=$tag_name.tgz $tag_name
-
     mkdir -p $work_tree/$tag_name
-    mv $tag_name.zip $work_tree/$tag_name
-    mv $tag_name.tgz $work_tree/$tag_name
+    echo "Release folder made at $work_tree/$tag_name"
+    archive_zip_option="--format=zip --prefix=$tag_name/"
+    archive_zip_output="--output=$work_tree/$tag_name/$tag_name.zip"
+    echo "ZIP Source Code for Tag $tag_name"
+    git archive $archive_zip_option $archive_zip_output $tag_name
+
+    archive_tgz_option="--format=tar.gz --prefix=$tag_name/"
+    archive_tgz_output="--output=$work_tree/$tag_name/$tag_name.tgz"
+    echo "TGZ Source Code for Tag $tag_name"
+    git archive $archive_tgz_option $archive_tgz_output $tag_name
+
+    echo "Copying CHANGELOG, SECURITY, README to $work_tree/$tag_name"
     cp $work_tree/CHANGELOG.md $work_tree/$tag_name
     cp $work_tree/README.md $work_tree/$tag_name
     cp $work_tree/SECURITY.md $work_tree/$tag_name
