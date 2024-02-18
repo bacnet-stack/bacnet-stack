@@ -250,6 +250,9 @@ lib: lib/Makefile Makefile $(BACNET_LIB_TARGET)
 $(BACNET_LIB_TARGET):
 	$(MAKE) -B -C lib
 
+clean:
+	$(MAKE) -C lib clean
+
 .PHONY: gateway
 gateway: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
