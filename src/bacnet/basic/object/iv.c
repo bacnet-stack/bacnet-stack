@@ -71,7 +71,7 @@ static const int Integer_Value_Properties_Proprietary[] = { -1 };
 typedef BACNET_CHARACTER_STRING INTEGER_VALUE_CHARACTER_STRING;
 
 typedef struct integer_value_descr {
-    uint32_t instance;
+    uint32_t Instance;
     INTEGER_VALUE_CHARACTER_STRING Name;
     INTEGER_VALUE_CHARACTER_STRING Description;
 } INTERGER_VALUE_DESCR;
