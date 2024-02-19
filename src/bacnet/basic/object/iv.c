@@ -118,9 +118,10 @@ bool Integer_Value_Valid_Instance(uint32_t object_instance)
 {
     unsigned int index;
 
-    index = Integer_Value_Instance_To_Index(object_instance);
-    if (index < MAX_INTEGER_VALUES) {
-        return true;
+    for (index = 0; index < IV_Max_Index; index++) {
+        if (IV_Descr[index].Instance == object_instance) {
+            return true;
+        }
     }
 
     return false;
@@ -133,7 +134,7 @@ bool Integer_Value_Valid_Instance(uint32_t object_instance)
  */
 unsigned Integer_Value_Count(void)
 {
-    return MAX_INTEGER_VALUES;
+    return IV_Max_Index;
 }
 
 /**
@@ -146,11 +147,13 @@ unsigned Integer_Value_Count(void)
  */
 uint32_t Integer_Value_Index_To_Instance(unsigned index)
 {
-    uint32_t instance = 1;
+    if (index < IV_Max_Index) {
+        return IV_Descr[index].Instance;
+    } else {
+        PRINT("index out of bounds");
+    }
 
-    instance += index;
-
-    return instance;
+    return 0;
 }
 
 /**
