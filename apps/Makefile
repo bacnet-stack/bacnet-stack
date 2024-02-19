@@ -14,7 +14,7 @@ BACNET_DEFINES ?=
 BACNET_LIB_DIR = $(realpath ./lib)
 BACNET_LIB_NAME = bacnet
 BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
-BACNET_LIB ?= -L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+BACNET_LIB ?= -L$(BACNET_LIB_DIR) -l$(BACNET_LIB_NAME)
 
 # choose a datalink to build the example applications
 # Use BACDL=mstp or BACDL=bip and BBMD=server when invoking make
@@ -172,7 +172,7 @@ INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
 CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
 CFLAGS += $(CSTANDARD)
 ifneq (${BACNET_LIB},)
-LFLAGS += -Wl,$(BACNET_LIB)
+LFLAGS += $(BACNET_LIB)
 endif
 # BACnet library depends on system flags.
 # System flags must go after BACnet library flags.
@@ -212,7 +212,6 @@ ifeq (${BACNET_PORT},win32)
 	SUBDIRS += mstpcap mstpcrc
 endif
 
-
 #####
 # Define target-specific fuzzing flags
 #####
@@ -230,11 +229,9 @@ fuzz-libfuzzer: FUZZ_FLAGS=-DFUZZING=1 -fsanitize=fuzzer,address -g3 -Og -fno-op
 fuzz-libfuzzer: LFLAGS += $(FUZZ_FLAGS)
 fuzz-libfuzzer: CFLAGS += $(FUZZ_FLAGS)
 
-
 #####
 # Fuzz setup end
 #####
-
 
 .PHONY: all clean
 TARGETS = all clean
