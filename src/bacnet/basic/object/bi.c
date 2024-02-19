@@ -51,6 +51,10 @@ static bool Out_Of_Service[MAX_BINARY_INPUTS];
 static bool Change_Of_Value[MAX_BINARY_INPUTS];
 /* Polarity of Input */
 static BACNET_POLARITY Polarity[MAX_BINARY_INPUTS];
+/* stores the object name */
+static char* Object_Name[MAX_BINARY_INPUTS];
+/* stores the description */
+static char* Description[MAX_BINARY_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Input_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -294,9 +298,32 @@ bool Binary_Input_Object_Name(
 
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
-        sprintf(
-            text_string, "BINARY INPUT %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        if (Object_Name[index] == NULL) {
+            sprintf(
+                text_string, "BINARY INPUT %lu", (unsigned long)object_instance);
+            status = characterstring_init_ansi(object_name, text_string);
+        } else {
+            status = characterstring_init_ansi(object_name, Object_Name[index]);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Binary_Input_Name_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false;
+    if (object_instance < MAX_BINARY_INPUTS && new_name) {
+        status = true;
+        Object_Name[object_instance] = new_name;
     }
 
     return status;
@@ -329,6 +356,44 @@ bool Binary_Input_Polarity_Set(
     return status;
 }
 
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+char *Binary_Input_Description(uint32_t object_instance)
+{
+    char *name = NULL;
+
+    if (object_instance < MAX_BINARY_INPUTS) {
+        if (Description[object_instance] == NULL) {
+            name = "";
+        } else {
+            name = Description[object_instance];
+        }
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if object-name was set
+ */
+bool Binary_Input_Description_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false; /* return value */
+
+    if (object_instance < MAX_BINARY_INPUTS && new_name) {
+        status = true;
+        Description[object_instance] = new_name;
+    }
+
+    return status;
+}
+
 /* return apdu length, or BACNET_STATUS_ERROR on error */
 /* assumption - object already exists, and has been bounds checked */
 int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
@@ -350,9 +415,14 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_BINARY_INPUT, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             /* note: object name must be unique in our device */
             Binary_Input_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(&char_string,
+                Binary_Input_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
