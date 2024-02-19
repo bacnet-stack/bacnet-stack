@@ -45,13 +45,23 @@ typedef bool(
 extern "C" {
 #endif /* __cplusplus */
 
-/* encode service */
     BACNET_STACK_EXPORT
     int rd_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_REINITIALIZED_STATE state,
         BACNET_CHARACTER_STRING * password);
+
+    BACNET_STACK_EXPORT
+    int reinitialize_device_encode(uint8_t *apdu,
+        BACNET_REINITIALIZED_STATE state,
+        BACNET_CHARACTER_STRING *password);
+
+    BACNET_STACK_EXPORT
+    size_t reinitialize_device_request_encode(
+        uint8_t *apdu, size_t apdu_size, 
+        BACNET_REINITIALIZED_STATE state,
+        BACNET_CHARACTER_STRING *password);
 
 /* decode the service request only */
     BACNET_STACK_EXPORT

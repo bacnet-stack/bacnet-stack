@@ -86,6 +86,9 @@ typedef struct BACnetColorCommand {
 #define BACNET_COLOR_STEP_INCREMENT_MIN 1ul
 #define BACNET_COLOR_STEP_INCREMENT_MAX 30000ul
 
+#define BACNET_COLOR_TEMPERATURE_MIN 1000ul
+#define BACNET_COLOR_TEMPERATURE_MAX 30000ul
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -112,6 +115,16 @@ extern "C" {
     bool lighting_command_same(
         BACNET_LIGHTING_COMMAND * dst,
         BACNET_LIGHTING_COMMAND * src);
+        
+    BACNET_STACK_EXPORT
+    bool lighting_command_from_ascii(
+        BACNET_LIGHTING_COMMAND *value, 
+        const char *argv);
+    BACNET_STACK_EXPORT
+    int lighting_command_to_ascii(
+        const BACNET_LIGHTING_COMMAND *value, 
+        char *buf, 
+        size_t buf_size);
 
     BACNET_STACK_EXPORT
     int xy_color_encode(uint8_t *apdu,
@@ -140,6 +153,20 @@ extern "C" {
     bool xy_color_same(
         BACNET_XY_COLOR *value1,
         BACNET_XY_COLOR *value2);
+    BACNET_STACK_EXPORT
+    void xy_color_set(
+        BACNET_XY_COLOR *dst,
+        float x,
+        float y);
+    BACNET_STACK_EXPORT
+    int xy_color_to_ascii(
+        const BACNET_XY_COLOR *value,
+        char *buf,
+        size_t buf_size);
+    BACNET_STACK_EXPORT
+    bool xy_color_from_ascii(
+        BACNET_XY_COLOR *value,
+        const char *arg);
 
     BACNET_STACK_EXPORT
     int color_command_encode(

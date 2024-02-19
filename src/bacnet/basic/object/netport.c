@@ -750,8 +750,7 @@ float Network_Port_Link_Speed(uint32_t object_instance)
  * For a given object instance-number, sets the Link_Speed
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - APDU length 0..65535
- *
+ * @param  value Link_Speed value in bits-per-second
  * @return  true if values are within range and property is set.
  */
 bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)
@@ -939,7 +938,7 @@ bool Network_Port_IP_Subnet(
     bool status = false;
     uint32_t mask = 0;
     uint32_t prefix = 0;
-    uint8_t ip_mask[4] = { 0 };
+    uint8_t ip_mask[4] = { 255, 255, 255, 255 };
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
@@ -948,9 +947,8 @@ bool Network_Port_IP_Subnet(
             if ((prefix > 0) && (prefix <= 32)) {
                 mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF;
                 encode_unsigned32(ip_mask, mask);
-                status =
-                    octetstring_init(subnet_mask, ip_mask, sizeof(ip_mask));
             }
+            status = octetstring_init(subnet_mask, ip_mask, sizeof(ip_mask));
         }
     }
 
@@ -2619,6 +2617,7 @@ bool Network_Port_Read_Range(
 #if defined(BACDL_BIP) && BBMD_ENABLED
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
 #endif
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_SERVICES;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
             break;
@@ -2628,8 +2627,10 @@ bool Network_Port_Read_Range(
             pInfo->Handler = Network_Port_Read_Range_BDT;
             status = true;
 #else
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            (void)pInfo;
 #endif
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
@@ -2638,11 +2639,14 @@ bool Network_Port_Read_Range(
             pInfo->Handler = Network_Port_Read_Range_FDT;
             status = true;
 #else
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            (void)pInfo;
 #endif
             break;
         default:
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;

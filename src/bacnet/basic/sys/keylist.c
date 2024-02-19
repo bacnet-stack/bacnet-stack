@@ -41,16 +41,9 @@
 /* static data */
 
 #include <stdlib.h>
-
-#include "bacnet/basic/sys/keylist.h" /* check for valid prototypes */
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
+#include <stdint.h>
+#include <stdbool.h>
+#include "bacnet/basic/sys/keylist.h"
 
 /******************************************************************** */
 /* Generic node routines */
@@ -81,16 +74,16 @@ static struct Keylist *KeylistCreate(void)
  *
  * @param list  Pointer to the list to be tested.
  *
- * @return Returns TRUE if success, FALSE if failed
+ * @return Returns true if success, false if failed
  */
-static int CheckArraySize(OS_Keylist list)
+static bool CheckArraySize(OS_Keylist list)
 {
     int new_size = 0; /* set it up so that no size change is the default */
     const int chunk = 8; /* minimum number of nodes to allocate memory for */
     struct Keylist_Node **new_array = NULL; /* new array of nodes, if needed */
     int i; /* counter */
     if (!list) {
-        return FALSE;
+        return false;
     }
 
     /* indicates the need for more memory allocation */
@@ -107,7 +100,7 @@ static int CheckArraySize(OS_Keylist list)
 
         /* See if we got the memory we wanted */
         if (!new_array) {
-            return FALSE;
+            return true;
         }
 
         /* copy the nodes from the old array to the new array */
@@ -121,12 +114,12 @@ static int CheckArraySize(OS_Keylist list)
         list->size = new_size;
     }
 
-    return TRUE;
+    return true;
 }
 
 /** Find the index of the key that we are looking for.
  * Since it is sorted, we can optimize the search.
- * returns TRUE if found, and FALSE not found.
+ * returns true if found, and false not found.
  * Returns the found key and the index where it was found in parameters.
  * If the key is not found, the nearest index from the bottom will be returned,
  * allowing the ability to find where an key should go into the list.
@@ -136,24 +129,24 @@ static int CheckArraySize(OS_Keylist list)
  * @param pIndex  Pointer to the variable taking the index were the key
  *                had been found.
  *
- * @return TRUE if found, and FALSE if not
+ * @return true if found, and false if not
  */
-static int FindIndex(OS_Keylist list, KEY key, int *pIndex)
+static bool FindIndex(OS_Keylist list, KEY key, int *pIndex)
 {
     struct Keylist_Node *node; /* holds the new node */
     int left = 0; /* the left branch of tree, beginning of list */
     int right = 0; /* the right branch on the tree, end of list */
     int index = 0; /* our current search place in the array */
     KEY current_key = 0; /* place holder for current node key */
-    int status = FALSE; /* return value */
+    bool status = false; /* return value */
 
     if (!list) {
         *pIndex = 0;
-        return (FALSE);
+        return false;
     }
     if (!list->array || !list->count) {
         *pIndex = 0;
-        return (FALSE);
+        return false;
     }
     right = list->count - 1;
     /* assume that the list is sorted */
@@ -174,7 +167,7 @@ static int FindIndex(OS_Keylist list, KEY key, int *pIndex)
     } while ((key != current_key) && (left <= right));
 
     if (key == current_key) {
-        status = TRUE;
+        status = true;
         *pIndex = index;
 
     } else {
@@ -186,7 +179,7 @@ static int FindIndex(OS_Keylist list, KEY key, int *pIndex)
             *pIndex = index;
         }
     }
-    return (status);
+    return status;
 }
 
 /******************************************************************** */
@@ -200,6 +193,7 @@ static int FindIndex(OS_Keylist list, KEY key, int *pIndex)
  *              This pointer needs to be poiting to static memory
  *              as it will be stored in the list and later used
  *              by retrieving the key again.
+ * @return Index of the key, or -1 if not found.
  */
 int Keylist_Data_Add(OS_Keylist list, KEY key, void *data)
 {
@@ -397,11 +391,12 @@ void *Keylist_Data_Index(OS_Keylist list, int index)
  * @param list  Pointer to the list
  * @param index  Index that shall be returned
  *
- * @return Key for the index or 0.
+ * @return Key for the index or UINT32_MAX if not found.
+ * @deprecated Use Keylist_Index_Key() instead
  */
 KEY Keylist_Key(OS_Keylist list, int index)
 {
-    KEY key = 0; /* return value */
+    KEY key = UINT32_MAX; /* return value */
     struct Keylist_Node *node;
 
     if (list) {
@@ -414,6 +409,35 @@ KEY Keylist_Key(OS_Keylist list, int index)
         }
     }
     return key;
+}
+
+/** 
+ * Determine if there is a node key at the given index.
+ *
+ * @param list  Pointer to the list
+ * @param index  Index that shall be returned
+ * @param pKey  Pointer to the variable returning the key
+ * @return True if the key is found, false if not.
+ */
+bool Keylist_Index_Key(OS_Keylist list, int index, KEY *pKey)
+{
+    bool status = false; /* return value */
+    struct Keylist_Node *node;
+
+    if (list) {
+        if (list->array && list->count && (index >= 0) &&
+            (index < list->count)) {
+            node = list->array[index];
+            if (node) {
+                status = true;
+                if (pKey) {
+                    *pKey = node->key;
+                }
+            }
+        }
+    }
+
+    return status;
 }
 
 /** Returns the next empty key from the list.

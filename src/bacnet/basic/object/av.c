@@ -104,6 +104,7 @@ void Analog_Value_Init(void)
         AV_Descr[i].Prior_Value = 0.0f;
         AV_Descr[i].COV_Increment = 1.0f;
         AV_Descr[i].Changed = false;
+        AV_Descr[i].Object_Name = NULL;
 #if defined(INTRINSIC_REPORTING)
         AV_Descr[i].Event_State = EVENT_STATE_NORMAL;
         /* notification class not connected */
@@ -280,13 +281,36 @@ float Analog_Value_Present_Value(uint32_t object_instance)
 bool Analog_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text_string[32] = "";
     bool status = false;
 
     if (object_instance < MAX_ANALOG_VALUES) {
-        sprintf(
-            text_string, "ANALOG VALUE %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        if (AV_Descr[object_instance].Object_Name) {
+            status = characterstring_init_ansi(object_name, AV_Descr[object_instance].Object_Name);
+        } else {
+            snprintf(text_string, sizeof(text_string), "ANALOG VALUE %u",
+                object_instance);
+            status = characterstring_init_ansi(object_name, text_string);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Analog_Value_Name_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false;
+    if (object_instance < MAX_ANALOG_VALUES) {
+        status = true;
+        AV_Descr[object_instance].Object_Name = new_name;
     }
 
     return status;
@@ -312,6 +336,40 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
 #endif
 
     return state;
+}
+
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+char *Analog_Value_Description(uint32_t object_instance)
+{
+    char *name = NULL;
+
+    if (object_instance < MAX_ANALOG_VALUES) {
+        name = AV_Descr[object_instance].Description;
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if object-name was set
+ */
+bool Analog_Value_Description_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false; /* return value */
+
+    if (object_instance < MAX_ANALOG_VALUES && new_name) {
+        status = true;
+        AV_Descr[object_instance].Description = new_name;
+    }
+
+    return status;
 }
 
 /**
@@ -431,6 +489,44 @@ void Analog_Value_COV_Increment_Set(uint32_t object_instance, float value)
     }
 }
 
+/**
+ * For a given object instance-number, returns the units property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  units property value
+ */
+uint16_t Analog_Value_Units(uint32_t object_instance)
+{
+	uint16_t units = UNITS_NO_UNITS;
+
+	if (object_instance < MAX_ANALOG_VALUES) {
+		units = AV_Descr[object_instance].Units;
+	}
+
+	return units;
+}
+
+/**
+ * For a given object instance-number, sets the units property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param units - units property value
+ *
+ * @return true if the units property value was set
+ */
+bool Analog_Value_Units_Set(uint32_t object_instance, uint16_t units)
+{
+	bool status = false;
+
+	if (object_instance < MAX_ANALOG_VALUES) {
+		AV_Descr[object_instance].Units = units;
+		status = true;
+	}
+
+	return status;
+}
+
 bool Analog_Value_Out_Of_Service(uint32_t object_instance)
 {
     unsigned index = 0;
@@ -506,12 +602,18 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             if (Analog_Value_Object_Name(
                     rpdata->object_instance, &char_string)) {
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
             }
+            break;
+
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(&char_string,
+                Analog_Value_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
 
         case PROP_OBJECT_TYPE:

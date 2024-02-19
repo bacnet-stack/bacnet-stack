@@ -357,15 +357,31 @@ void dlenv_network_port_init(void)
 {
     const uint32_t instance = 1;
     BACNET_IP_ADDRESS addr = { 0 };
+    uint8_t prefix = 0;
+#if BBMD_ENABLED
     uint8_t addr0, addr1, addr2, addr3;
+#endif
 
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IP Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BIP);
     bip_get_addr(&addr);
+    prefix = bip_get_subnet_prefix();
+    if (BIP_DL_Debug) {
+        fprintf(stderr,
+            "BIP: Setting Network Port %lu address %u.%u.%u.%u:%u/%u\n",
+            (unsigned long)instance,
+            (unsigned)addr.address[0],
+            (unsigned)addr.address[1],
+            (unsigned)addr.address[2],
+            (unsigned)addr.address[3],
+            (unsigned)addr.port,
+            (unsigned)prefix);
+    }
     Network_Port_BIP_Port_Set(instance, addr.port);
-    Network_Port_MAC_Address_Set(instance, &addr.address[0], 6);
-    Network_Port_IP_Subnet_Prefix_Set(instance, bip_get_subnet_prefix());
+    Network_Port_IP_Address_Set(instance, addr.address[0], addr.address[1],
+        addr.address[2], addr.address[3]);
+    Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
     Network_Port_Link_Speed_Set(instance, 0.0);
 #if BBMD_ENABLED
     Network_Port_BBMD_BD_Table_Set(instance, bvlc_bdt_list());
@@ -481,6 +497,8 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
             BBMD_Timer_Seconds = (uint16_t)BBMD_TTL_Seconds;
         }
     }
+#else
+    (void)elapsed_seconds;
 #endif
 }
 
@@ -524,6 +542,7 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  *   - BACNET_BDT_MASK_1 - dotted IPv4 mask of the BBMD table
  *       entry 1..128 (optional)
  *   - BACNET_IP_NAT_ADDR - dotted IPv4 address of the public facing router
+ *   - BACNET_IP_BROADCAST_BIND_ADDR - dotted IPv4 address to bind broadcasts
  * - BACDL_MSTP: (BACnet MS/TP)
  *   - BACNET_MAX_INFO_FRAMES
  *   - BACNET_MAX_MASTER
@@ -591,6 +610,10 @@ void dlenv_init(void)
         if (bip_get_port() < 1024) {
             bip_set_port(0xBAC0);
         }
+    }
+    pEnv = getenv("BACNET_IP_BROADCAST_BIND_ADDR");
+    if (pEnv) {
+        bip_set_broadcast_binding(pEnv);
     }
     pEnv = getenv("BACNET_IP_NAT_ADDR");
     if (pEnv) {

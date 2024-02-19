@@ -151,10 +151,61 @@ bool Access_Credential_Object_Name(
     return status;
 }
 
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int Access_Credential_Authentication_Factor_Array_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+
+    if (object_instance < MAX_ACCESS_CREDENTIALS) {
+        if (index < ac_descr[object_instance].auth_factors_count) {
+            apdu_len = bacapp_encode_credential_authentication_factor(
+                apdu, &ac_descr[object_instance].auth_factors[index]);
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int Access_Credential_Assigned_Access_Rights_Array_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+
+    if (object_instance < MAX_ACCESS_CREDENTIALS) {
+        if (index < ac_descr[object_instance].assigned_access_rights_count) {
+            apdu_len = bacapp_encode_assigned_access_rights(
+                apdu, &ac_descr[object_instance].assigned_access_rights[index]);
+        }
+    }
+
+    return apdu_len;
+}
+
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
+    int apdu_size;
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
@@ -167,6 +218,7 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
     apdu = rpdata->application_data;
+    apdu_size = rpdata->application_data_len;
     object_index = Access_Credential_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -218,35 +270,16 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_AUTHENTICATION_FACTORS:
-            if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(
-                    &apdu[0], ac_descr[object_index].auth_factors_count);
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 0; i < ac_descr[object_index].auth_factors_count;
-                     i++) {
-                    len = bacapp_encode_credential_authentication_factor(
-                        &apdu[0], &ac_descr[object_index].auth_factors[i]);
-                    if (apdu_len + len < MAX_APDU) {
-                        apdu_len += len;
-                    } else {
-                        rpdata->error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        apdu_len = BACNET_STATUS_ABORT;
-                        break;
-                    }
-                }
-            } else {
-                if (rpdata->array_index <=
-                    ac_descr[object_index].auth_factors_count) {
-                    apdu_len =
-                        bacapp_encode_credential_authentication_factor(&apdu[0],
-                            &ac_descr[object_index]
-                                 .auth_factors[rpdata->array_index - 1]);
-                } else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index, 
+                Access_Credential_Authentication_Factor_Array_Encode,
+                ac_descr[object_index].auth_factors_count, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
             break;
         case PROP_ACTIVATION_TIME:
@@ -262,35 +295,16 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], ac_descr[object_index].credential_disable);
             break;
         case PROP_ASSIGNED_ACCESS_RIGHTS:
-            if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(&apdu[0],
-                    ac_descr[object_index].assigned_access_rights_count);
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 0;
-                     i < ac_descr[object_index].assigned_access_rights_count;
-                     i++) {
-                    len = bacapp_encode_assigned_access_rights(&apdu[0],
-                        &ac_descr[object_index].assigned_access_rights[i]);
-                    if (apdu_len + len < MAX_APDU) {
-                        apdu_len += len;
-                    } else {
-                        rpdata->error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        apdu_len = BACNET_STATUS_ABORT;
-                        break;
-                    }
-                }
-            } else {
-                if (rpdata->array_index <=
-                    ac_descr[object_index].assigned_access_rights_count) {
-                    apdu_len = bacapp_encode_assigned_access_rights(&apdu[0],
-                        &ac_descr[object_index]
-                             .assigned_access_rights[rpdata->array_index - 1]);
-                } else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index, 
+                Access_Credential_Assigned_Access_Rights_Array_Encode,
+                ac_descr[object_index].assigned_access_rights_count, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
             break;
         default:

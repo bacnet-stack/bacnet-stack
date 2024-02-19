@@ -26,16 +26,21 @@ static void testAtomicReadFileAckAccess(
     uint8_t apdu[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
+    int null_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
     unsigned int i = 0;
 
+    null_len = arf_ack_encode_apdu(NULL, invoke_id, data); 
     len = arf_ack_encode_apdu(&apdu[0], invoke_id, data);
     zassert_not_equal(len, 0, NULL);
+    zassert_equal(null_len, len, NULL);
     apdu_len = len;
 
+    null_len = arf_ack_decode_apdu(&apdu[0], apdu_len, NULL, NULL);
     len = arf_ack_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
-    zassert_not_equal(len, -1, NULL);
+    zassert_true(len > 0, NULL);
+    zassert_equal(null_len, len, NULL);
     zassert_equal(test_data.endOfFile, data->endOfFile, NULL);
     zassert_equal(test_data.access, data->access, NULL);
     if (test_data.access == FILE_STREAM_ACCESS) {
@@ -64,6 +69,12 @@ static void testAtomicReadFileAckAccess(
                     octetstring_value(&data->fileData[i]),
                     octetstring_length(&test_data.fileData[i])), 0, NULL);
         }
+    }
+    /* test APDU too short */
+    while (apdu_len) {
+        apdu_len--;
+        len = arf_ack_decode_apdu(apdu, apdu_len, NULL, NULL);
+        zassert_true(len < 0, "len=%d apdu_len=%d", len, apdu_len);
     }
 }
 
@@ -102,15 +113,20 @@ static void testAtomicReadFileAccess(BACNET_ATOMIC_READ_FILE_DATA *data)
     BACNET_ATOMIC_READ_FILE_DATA test_data = { 0 };
     uint8_t apdu[480] = { 0 };
     int len = 0;
+    int null_len = 0;
     int apdu_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
 
+    null_len = arf_encode_apdu(NULL, invoke_id, data);
     len = arf_encode_apdu(&apdu[0], invoke_id, data);
     zassert_not_equal(len, 0, NULL);
+    zassert_equal(len, null_len, NULL);
     apdu_len = len;
 
+    null_len = arf_decode_apdu(&apdu[0], apdu_len, NULL, NULL);
     len = arf_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
+    zassert_equal(len, null_len, NULL);
     zassert_not_equal(len, -1, NULL);
     zassert_equal(test_data.object_type, data->object_type, NULL);
     zassert_equal(test_data.object_instance, data->object_instance, NULL);
@@ -128,6 +144,12 @@ static void testAtomicReadFileAccess(BACNET_ATOMIC_READ_FILE_DATA *data)
                 data->type.record.fileStartRecord, NULL);
         zassert_equal(
             test_data.type.record.RecordCount, data->type.record.RecordCount, NULL);
+    }
+    /* test APDU too short */
+    while (apdu_len) {
+        apdu_len--;
+        len = arf_decode_apdu(apdu, apdu_len, NULL, NULL);
+        zassert_true(len < 0, "len=%d apdu_len=%d", len, apdu_len);
     }
 }
 

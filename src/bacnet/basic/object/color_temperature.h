@@ -29,7 +29,7 @@
 #include "bacnet/wp.h"
 
 /**
- * @brief Callback for gateway write present value request
+ * @brief Callback for write present value request
  * @param  object_instance - object-instance number of the object
  * @param  old_value - 32-bit value prior to write
  * @param  value - 32-bit value of the write
@@ -151,7 +151,10 @@ BACNET_STACK_EXPORT
 void Color_Temperature_Write_Disable(uint32_t instance);
 
 BACNET_STACK_EXPORT
-bool Color_Temperature_Create(uint32_t object_instance);
+void Color_Temperature_Timer(uint32_t object_instance, uint16_t milliseconds);
+
+BACNET_STACK_EXPORT
+uint32_t Color_Temperature_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Color_Temperature_Delete(uint32_t object_instance);
 BACNET_STACK_EXPORT

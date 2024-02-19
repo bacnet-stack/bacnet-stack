@@ -77,7 +77,7 @@ uint32_t cobs_crc32k(uint8_t dataValue, uint32_t crc32kValue)
 
 /**
  * @brief Encodes 'length' octets of data located at 'from' and
- * writes one or more COBS code blocks at 'to', removing
+ * writes one or more COBS code blocks at 'buffer', removing
  * any 0x55 octets that may present be in the encoded data.
  * @param buffer - encoded buffer
  * @param buffer_size - encoded buffer size
@@ -154,7 +154,7 @@ size_t cobs_encode(uint8_t *buffer,
 }
 /**
  * @brief Encodes 'length' octets of client data located at 'from' and writes
- * the COBS-encoded Encoded Data and Encoded CRC-32K fields at 'to'.
+ * the COBS-encoded Encoded Data and Encoded CRC-32K fields at 'buffer'.
  * @param buffer - encoded buffer
  * @param buffer_size - encoded buffer size
  * @param from - buffer to encode
@@ -206,7 +206,7 @@ size_t cobs_frame_encode(
 
 /**
  * @brief Decodes 'length' octets of data located at 'from' and
- * writes the original client data at 'to', restoring any
+ * writes the original client data at 'buffer', restoring any
  * 'mask' octets that may present in the encoded data.
  * @param buffer - decoded buffer
  * @param buffer_size - decoded buffer size
@@ -266,7 +266,7 @@ size_t cobs_decode(uint8_t *buffer,
 
 /**
  * Decodes Encoded Data and Encoded CRC-32K fields at 'from' and
- * writes the decoded client data at 'to'. Assumes 'length' contains
+ * writes the decoded client data at 'buffer'. Assumes 'length' contains
  * the actual combined length of these fields in octets (that is, the
  * MS/TP header Length field plus two).
  * @param buffer - decoded buffer

@@ -23,7 +23,8 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
-	BACAPP_ALL
+	BACAPP_MINIMAL=1
+	BACAPP_DESTINATION=1
 	)
 
 include_directories(
@@ -55,6 +56,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
+	${SRC_DIR}/bacnet/calendar_entry.c
+	${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c
