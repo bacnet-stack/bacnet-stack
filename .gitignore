@@ -71,6 +71,8 @@ Release/
 /cmake-build-*
 /.idea
 
+/doc/*
+
 # exclude the bin folder, except for some files
 bin/*
 !bin/*.sh

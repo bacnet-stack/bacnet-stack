@@ -378,6 +378,11 @@ complexity:
 sloccount:
 	sloccount .
 
+# sudo apt install sloccount
+.PHONY: doxygen
+doxygen:
+	doxygen BACnet-stack.doxyfile
+	
 .PHONY: clean
 clean: ports-clean
 	$(MAKE) -s -C src clean
