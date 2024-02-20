@@ -129,11 +129,6 @@ extern "C" {
     BACNET_BINARY_PV Binary_Value_Present_Value(
         uint32_t instance);
     BACNET_STACK_EXPORT
-    bool Binary_Value_Present_Value_Set(
-        uint32_t instance,
-        BACNET_BINARY_PV value);
-
-    BACNET_STACK_EXPORT
     bool Binary_Value_Out_Of_Service(
         uint32_t instance);
     BACNET_STACK_EXPORT
@@ -174,6 +169,15 @@ extern "C" {
         void);
     BACNET_STACK_EXPORT
     bool Binary_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Present_Value_Set(
+        uint32_t object_instance, BACNET_BINARY_PV value, uint8_t priority);
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Change_Of_Value(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    void Binary_Value_Change_Of_Value_Clear(
+        uint32_t object_instance);
 
 #ifdef __cplusplus
 }
