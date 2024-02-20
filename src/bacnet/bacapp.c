@@ -482,7 +482,8 @@ int bacapp_decode_data(uint8_t *apdu,
  * @param apdu_len_max - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return the number of apdu bytes consumed, 0 on bad args, or BACNET_STATUS_ERROR
+ * @return the number of apdu bytes consumed, 0 on bad args, or
+ * BACNET_STATUS_ERROR
  */
 int bacapp_decode_application_data(
     uint8_t *apdu, uint32_t apdu_size, BACNET_APPLICATION_DATA_VALUE *value)
@@ -500,9 +501,8 @@ int bacapp_decode_application_data(
         value->context_specific = false;
         value->tag = tag.number;
         apdu_len += len;
-        len = bacapp_data_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, tag.number, 
-                tag.len_value_type, value);
+        len = bacapp_data_decode(&apdu[apdu_len], apdu_size - apdu_len,
+            tag.number, tag.len_value_type, value);
         if ((len >= 0) && (value->tag != MAX_BACNET_APPLICATION_TAG)) {
             apdu_len += len;
         } else {
@@ -1157,7 +1157,7 @@ int bacapp_encode_context_data(uint8_t *apdu,
 
 /**
  * @brief Decode context encoded data
- * 
+ *
  * @param apdu - buffer of data to be decoded
  * @param apdu_size - number of bytes in the buffer
  * @param value - stores the decoded property value
@@ -1199,7 +1199,7 @@ int bacapp_decode_context_data(uint8_t *apdu,
                 /* Unknown value : non null size (elementary type) */
                 apdu_len += tag.len_value_type;
                 /* SHOULD NOT HAPPEN, EXCEPTED WHEN READING UNKNOWN CONTEXTUAL
-                * PROPERTY */
+                 * PROPERTY */
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
             }
@@ -1241,7 +1241,7 @@ int bacapp_decode_generic_property(uint8_t *apdu,
 #if defined(BACAPP_COMPLEX_TYPES)
 /**
  * @brief Decode BACnetPriorityValue complex data
- * 
+ *
  * @param apdu - buffer of data to be decoded
  * @param apdu_size - number of bytes in the buffer
  * @param value - stores the decoded property value
@@ -1266,12 +1266,14 @@ static int decode_priority_value(uint8_t *apdu,
             return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
-        if (!bacnet_is_closing_tag_number(&apdu[apdu_len], apdu_size-apdu_len, 0, &len)) {
+        if (!bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
             return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
     } else {
-        apdu_len = bacapp_decode_generic_property(apdu, apdu_size, value, property);
+        apdu_len =
+            bacapp_decode_generic_property(apdu, apdu_size, value, property);
     }
 
     return len;
@@ -1516,7 +1518,8 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_ACCESS_EVENT_TIME:
 #ifdef BACAPP_TIMESTAMP
             /* Properties using BACnetTimeStamp */
-            len = bacapp_decode_timestamp(apdu, &value->type.Time_Stamp);
+            len = bacnet_timestamp_decode(
+                apdu, max_apdu_len, &value->type.Time_Stamp);
 #endif
             break;
 
@@ -1643,23 +1646,18 @@ int bacapp_decode_context_data_len(
     uint8_t *apdu, unsigned apdu_len_max, BACNET_PROPERTY_ID property)
 {
     int apdu_len = 0, len = 0;
-    int tag_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
-    uint8_t tag = 0;
+    BACNET_TAG tag = { 0 };
+    uint8_t application_tag = 0;
 
-    if (apdu && IS_CONTEXT_SPECIFIC(*apdu)) {
-        tag_len = bacnet_tag_number_and_value_decode(
-            &apdu[0], apdu_len_max, &tag_number, &len_value_type);
-        if (tag_len) {
-            apdu_len = tag_len;
-            tag = bacapp_context_tag_type(property, tag_number);
-            if (tag != MAX_BACNET_APPLICATION_TAG) {
-                len = bacapp_decode_data_len(NULL, tag, len_value_type);
-                apdu_len += len;
-            } else {
-                apdu_len += len_value_type;
-            }
+    len = bacnet_tag_decode(&apdu[0], apdu_len_max, &tag);
+    if ((len > 0) && tag.context) {
+        apdu_len = len;
+        application_tag = bacapp_context_tag_type(property, tag.number);
+        if (application_tag != MAX_BACNET_APPLICATION_TAG) {
+            len = bacapp_decode_data_len(NULL, application_tag, tag.len_value_type);
+            apdu_len += len;
+        } else {
+            apdu_len += tag.len_value_type;
         }
     }
 
@@ -1782,19 +1780,19 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE *dest_value,
  * Include a value property identifier for context specific data
  * such as the value received in a WriteProperty request.
  *
- * @param Pointer to the APDU buffer
- * @param apdu_len_max Bytes valid in the buffer
+ * @param apdu Pointer to the APDU buffer
+ * @param apdu_size Bytes valid in the buffer
  * @param property ID of the property to get the length for.
  *
  * @return Length in bytes 0..N, or BACNET_STATUS_ERROR.
  */
 int bacapp_data_len(
-    uint8_t *apdu, unsigned apdu_len_max, BACNET_PROPERTY_ID property)
+    uint8_t *apdu, unsigned apdu_size, BACNET_PROPERTY_ID property)
 {
     int len = 0;
     int total_len = 0;
     int apdu_len = 0;
-    uint8_t tag_number = 0;
+    BACNET_TAG tag = { 0 };
     uint8_t opening_tag_number = 0;
     uint8_t opening_tag_number_counter = 0;
     uint32_t value = 0;
@@ -1803,48 +1801,48 @@ int bacapp_data_len(
     if (!apdu) {
         return BACNET_STATUS_ERROR;
     }
-    if (apdu_len_max <= apdu_len) {
+    if (apdu_size <= apdu_len) {
         /* error: exceeding our buffer limit */
         return BACNET_STATUS_ERROR;
     }
-    if (!bacnet_is_opening_tag(apdu, apdu_len_max)) {
+    if (!bacnet_is_opening_tag(apdu, apdu_size)) {
         /* error: opening tag is missing */
         return BACNET_STATUS_ERROR;
     }
     do {
-        if (bacnet_is_opening_tag(apdu, apdu_len_max)) {
-            len = bacnet_tag_number_and_value_decode(
-                apdu, apdu_len_max - apdu_len, &tag_number, &value);
+        len = bacnet_tag_decode(apdu, apdu_size - apdu_len, &tag);
+        if (len == 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        if (tag.opening) {
             if (opening_tag_number_counter == 0) {
-                opening_tag_number = tag_number;
+                opening_tag_number = tag.number;
                 opening_tag_number_counter = 1;
                 total_len_enable = false;
-            } else if (tag_number == opening_tag_number) {
+            } else if (tag.number == opening_tag_number) {
                 total_len_enable = true;
                 opening_tag_number_counter++;
             } else {
                 total_len_enable = true;
             }
-        } else if (bacnet_is_closing_tag(apdu, apdu_len_max)) {
-            len = bacnet_tag_number_and_value_decode(
-                apdu, apdu_len_max - apdu_len, &tag_number, &value);
-            if (tag_number == opening_tag_number) {
+        } else if (tag.closing) {
+            if (tag.number == opening_tag_number) {
                 if (opening_tag_number_counter > 0) {
                     opening_tag_number_counter--;
                 }
             }
             total_len_enable = true;
-        } else if (bacnet_is_context_specific(apdu, apdu_len_max)) {
+        } else if (tag.context) {
 #if defined(BACAPP_COMPLEX_TYPES)
             /* context-specific tagged data */
             len = bacapp_decode_context_data_len(
-                apdu, apdu_len_max - apdu_len, property);
+                apdu, apdu_size - apdu_len, property);
             total_len_enable = true;
 #endif
         } else {
             /* application tagged data */
             len = bacapp_decode_application_data_len(
-                apdu, apdu_len_max - apdu_len);
+                apdu, apdu_size - apdu_len);
             total_len_enable = true;
         }
         if (opening_tag_number_counter > 0) {
@@ -1857,7 +1855,7 @@ int bacapp_data_len(
                 return BACNET_STATUS_ERROR;
             }
             apdu_len += len;
-            if (apdu_len_max <= apdu_len) {
+            if (apdu_size <= apdu_len) {
                 /* error: exceeding our buffer limit */
                 return BACNET_STATUS_ERROR;
             }
