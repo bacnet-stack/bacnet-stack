@@ -541,8 +541,7 @@ bool bacapp_decode_application_data_safe(uint8_t *new_apdu,
     static uint32_t apdu_len = 0;
     int len = 0;
     int tag_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
+    BACNET_TAG tag = { 0 };
 
     bool ret = false;
 
@@ -551,30 +550,28 @@ bool bacapp_decode_application_data_safe(uint8_t *new_apdu,
         apdu_len_remaining = new_apdu_len;
         apdu_len = 0;
     }
-
-    if (value && apdu_len_remaining > 0 &&
-        !IS_CONTEXT_SPECIFIC(apdu[apdu_len])) {
-        value->context_specific = false;
-        tag_len = bacnet_tag_number_and_value_decode(
-            &apdu[apdu_len], apdu_len_remaining, &tag_number, &len_value_type);
+    if (!value) {
+        return ret;
+    }
+    tag_len = bacnet_tag_decode(&apdu[apdu_len], apdu_len_remaining, &tag);
+    if ((tag_len > 0) && tag.application) {
         /* If tag_len is zero, then the tag information is truncated */
-        if (tag_len) {
-            apdu_len += tag_len;
-            apdu_len_remaining -= tag_len;
-            /* The tag is boolean then len_value_type is interpreted as value,
-               not length, so don't bother checking with apdu_len_remaining */
-            if (tag_number == BACNET_APPLICATION_TAG_BOOLEAN ||
-                len_value_type <= apdu_len_remaining) {
-                value->tag = tag_number;
-                len = bacapp_data_decode(&apdu[apdu_len], apdu_len_remaining,
-                    tag_number, len_value_type, value);
-                if (value->tag != MAX_BACNET_APPLICATION_TAG) {
-                    apdu_len += len;
-                    apdu_len_remaining -= len;
-                    ret = true;
-                } else {
-                    ret = false;
-                }
+        value->context_specific = false;
+        apdu_len += tag_len;
+        apdu_len_remaining -= tag_len;
+        /* The tag is boolean then len_value_type is interpreted as value,
+            not length, so don't bother checking with apdu_len_remaining */
+        if (tag.number == BACNET_APPLICATION_TAG_BOOLEAN ||
+            (tag.len_value_type <= apdu_len_remaining)) {
+            value->tag = tag.number;
+            len = bacapp_data_decode(&apdu[apdu_len], apdu_len_remaining,
+                tag.number, tag.len_value_type, value);
+            if (value->tag != MAX_BACNET_APPLICATION_TAG) {
+                apdu_len += len;
+                apdu_len_remaining -= len;
+                ret = true;
+            } else {
+                ret = false;
             }
         }
         value->next = NULL;
@@ -627,29 +624,23 @@ int bacapp_decode_data_len(
 /**
  * @brief Determine the BACnet Application Data number of APDU bytes consumed
  * @param apdu - buffer of data to be decoded
- * @param apdu_len_max - number of bytes in the buffer
+ * @param apdu_size - number of bytes in the buffer
  * @return  number of bytes decoded, or zero if errors occur
  */
-int bacapp_decode_application_data_len(uint8_t *apdu, unsigned apdu_len_max)
+int bacapp_decode_application_data_len(uint8_t *apdu, unsigned apdu_size)
 {
+    int apdu_len = 0;
     int len = 0;
-    int tag_len = 0;
-    int decode_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
+    BACNET_TAG tag = { 0 };
 
-    if (apdu && !IS_CONTEXT_SPECIFIC(*apdu)) {
-        tag_len = bacnet_tag_number_and_value_decode(
-            &apdu[0], apdu_len_max, &tag_number, &len_value_type);
-        if (tag_len > 0) {
-            len += tag_len;
-            decode_len =
-                bacapp_decode_data_len(NULL, tag_number, len_value_type);
-            len += decode_len;
-        }
+    len = bacnet_tag_decode(apdu, apdu_size, &tag);
+    if ((len > 0) && (tag.application)) {
+        apdu_len += len;
+        len = bacapp_decode_data_len(NULL, tag.number, tag.len_value_type);
+        apdu_len += len;
     }
 
-    return len;
+    return apdu_len;
 }
 
 int bacapp_encode_context_data_value(uint8_t *apdu,
@@ -1164,47 +1155,54 @@ int bacapp_encode_context_data(uint8_t *apdu,
     return apdu_len;
 }
 
+/**
+ * @brief Decode context encoded data
+ * 
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - stores the decoded property value
+ * @param property - context property identifier
+ * @return  number of bytes decoded, or #BACNET_STATUS_ERROR
+ */
 int bacapp_decode_context_data(uint8_t *apdu,
     unsigned apdu_size,
     BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_PROPERTY_ID property)
 {
     int apdu_len = 0, len = 0;
-    int tag_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
+    BACNET_TAG tag = { 0 };
 
-    if (apdu && value && IS_CONTEXT_SPECIFIC(*apdu)) {
-        value->context_specific = true;
-        value->next = NULL;
-        tag_len =
-            decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
-        apdu_len = tag_len;
-        /* Empty construct : (closing tag) => returns NULL value */
-        if (tag_len && ((unsigned)tag_len <= apdu_size) &&
-            !decode_is_closing_tag_number(&apdu[0], tag_number)) {
-            value->context_tag = tag_number;
-            value->tag = bacapp_context_tag_type(property, tag_number);
+    if (!value) {
+        return apdu_len;
+    }
+    len = bacnet_tag_decode(&apdu[0], apdu_size, &tag);
+    if (len > 0) {
+        if (tag.closing) {
+            /* Empty construct : (closing tag) */
+            /* Don't advance over that closing tag. */
+            apdu_len = 0;
+        } else if (tag.context) {
+            apdu_len += len;
+            value->context_specific = true;
+            value->next = NULL;
+            value->context_tag = tag.number;
+            value->tag = bacapp_context_tag_type(property, tag.number);
             if (value->tag != MAX_BACNET_APPLICATION_TAG) {
                 len = bacapp_data_decode(&apdu[apdu_len], apdu_size - apdu_len,
-                    value->tag, len_value_type, value);
-                if (value->tag != MAX_BACNET_APPLICATION_TAG) {
+                    value->tag, tag.len_value_type, value);
+                if ((len >= 0) && (value->tag != MAX_BACNET_APPLICATION_TAG)) {
                     apdu_len += len;
                 } else {
                     apdu_len = BACNET_STATUS_ERROR;
                 }
-            } else if (len_value_type) {
+            } else if (tag.len_value_type) {
                 /* Unknown value : non null size (elementary type) */
-                apdu_len += len_value_type;
+                apdu_len += tag.len_value_type;
                 /* SHOULD NOT HAPPEN, EXCEPTED WHEN READING UNKNOWN CONTEXTUAL
-                 * PROPERTY */
+                * PROPERTY */
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
             }
-        } else if (tag_len == 1) {
-            /* and is a Closing tag */
-            /* Don't advance over that closing tag. */
-            apdu_len = 0;
         }
     }
 
