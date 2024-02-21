@@ -39,10 +39,6 @@ static unsigned long Discovery_Milliseconds;
 typedef enum bacnet_discover_state_enum {
     BACNET_DISCOVER_STATE_INIT = 0,
     BACNET_DISCOVER_STATE_BINDING,
-    BACNET_DISCOVER_STATE_DEVICE_NAME_REQUEST,
-    BACNET_DISCOVER_STATE_DEVICE_NAME_RESPONSE,
-    BACNET_DISCOVER_STATE_DEVICE_MODEL_REQUEST,
-    BACNET_DISCOVER_STATE_DEVICE_MODEL_RESPONSE,
     BACNET_DISCOVER_STATE_OBJECT_LIST_SIZE_REQUEST,
     BACNET_DISCOVER_STATE_OBJECT_LIST_SIZE_RESPONSE,
     BACNET_DISCOVER_STATE_OBJECT_LIST_REQUEST,
@@ -65,16 +61,14 @@ typedef struct bacnet_object_data_t {
 } BACNET_OBJECT_DATA;
 
 typedef struct bacnet_device_data_t {
-    uint16_t Vendor_Identifier;
-    BACNET_CHARACTER_STRING Object_Name;
-    BACNET_CHARACTER_STRING Model_Name;
     OS_Keylist Object_List;
     /* used for discovering device data */
+    uint32_t Object_List_Size;
+    uint32_t Object_List_Index;
+    /* timer and stats */
     struct mstimer Discovery_Timer;
     unsigned long Discovery_Elapsed_Milliseconds;
     BACNET_DISCOVER_STATE Discovery_State;
-    uint32_t Object_List_Size;
-    uint32_t Object_List_Index;
 } BACNET_DEVICE_DATA;
 
 /**
@@ -151,6 +145,22 @@ static BACNET_OBJECT_DATA *bacnet_object_data_add(
     }
 
     return data;
+}
+
+/**
+ * @brief Add an object to the object list
+ * @param list - Keylist to add the object to
+ * @param object_type - BACnet object type
+ * @param object_instance - BACnet object instance
+ * @return Pointer to the object data structure
+ */
+static int bacnet_object_list_index(
+    OS_Keylist list, BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+{
+    KEY key;
+
+    key = KEY_ENCODE(object_type, object_instance);
+    return Keylist_Index(list, key);
 }
 
 /**
@@ -320,8 +330,7 @@ bool bacnet_discover_device_object_identifier(
  * @param device_id - ID of the destination device
  * @return the elapsed time it took to discover a device
  */
-unsigned long bacnet_discover_device_elapsed_milliseconds(
-    uint32_t device_id)
+unsigned long bacnet_discover_device_elapsed_milliseconds(uint32_t device_id)
 {
     unsigned long milliseconds = 0;
     BACNET_DEVICE_DATA *device;
@@ -358,68 +367,13 @@ bool bacnet_discover_property_value(uint32_t device_id,
 
     device = Keylist_Data(Device_List, key);
     if (device) {
-        if ((object_type == OBJECT_DEVICE) && (object_instance == device_id)) {
-            switch (object_property) {
-                case PROP_OBJECT_IDENTIFIER:
-                    if (value) {
-                        value->context_specific = false;
-                        value->context_tag = 0;
-                        value->tag = BACNET_APPLICATION_TAG_OBJECT_ID;
-                        value->type.Object_Id.type = object_type;
-                        value->type.Object_Id.instance = object_instance;
-                    }
-                    status = true;
-                    break;
-                case PROP_OBJECT_TYPE:
-                    if (value) {
-                        value->context_specific = false;
-                        value->context_tag = 0;
-                        value->tag = BACNET_APPLICATION_TAG_ENUMERATED;
-                        value->type.Enumerated = object_type;
-                    }
-                    status = true;
-                    break;
-                case PROP_OBJECT_NAME:
-                    if (value) {
-                        value->context_specific = false;
-                        value->context_tag = 0;
-                        value->tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
-                        characterstring_copy(&value->type.Character_String,
-                            &device->Object_Name);
-                    }
-                    status = true;
-                    break;
-                case PROP_VENDOR_IDENTIFIER:
-                    if (value) {
-                        value->context_specific = false;
-                        value->context_tag = 0;
-                        value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
-                        value->type.Unsigned_Int = device->Vendor_Identifier;
-                    }
-                    status = true;
-                    break;
-                case PROP_MODEL_NAME:
-                    if (value) {
-                        value->context_specific = false;
-                        value->context_tag = 0;
-                        value->tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
-                        characterstring_copy(&value->type.Character_String,
-                            &device->Model_Name);
-                    }
-                    status = true;
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            key = KEY_ENCODE(object_type, object_instance);
-            object = Keylist_Data(device->Object_List, key);
-            if (object) {
-                key = object_property;
-                property = Keylist_Data(object->Property_List, key);
-                if (property) {
-                    status = bacapp_copy(value, &property->value);
-                }
+        key = KEY_ENCODE(object_type, object_instance);
+        object = Keylist_Data(device->Object_List, key);
+        if (object) {
+            key = object_property;
+            property = Keylist_Data(object->Property_List, key);
+            if (property) {
+                status = bacapp_copy(value, &property->value);
             }
         }
     }
@@ -434,8 +388,7 @@ bool bacnet_discover_property_value(uint32_t device_id,
  * @param object_instance - Instance number of the object to be read.
  * @return number of object properties
  */
-unsigned int bacnet_discover_object_property_count(
-    uint32_t device_id,
+unsigned int bacnet_discover_object_property_count(uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance)
 {
@@ -446,15 +399,10 @@ unsigned int bacnet_discover_object_property_count(
 
     device = Keylist_Data(Device_List, key);
     if (device) {
-        if ((object_type == OBJECT_DEVICE) && (object_instance == device_id)) {
-            /* FIXME: device object needs a Property_List! */
-            count = property_list_special_count(OBJECT_DEVICE, PROP_REQUIRED);
-        } else {
-            key = KEY_ENCODE(object_type, object_instance);
-            object = Keylist_Data(device->Object_List, key);
-            if (object) {
-                count = Keylist_Count(object->Property_List);
-            }
+        key = KEY_ENCODE(object_type, object_instance);
+        object = Keylist_Data(device->Object_List, key);
+        if (object) {
+            count = Keylist_Count(object->Property_List);
         }
     }
 
@@ -470,11 +418,10 @@ unsigned int bacnet_discover_object_property_count(
  * @param property_id - property identifier if object exists
  * @return true if an object property ID was found at this index
  */
-bool bacnet_discover_object_property_identifier(
-    uint32_t device_id, 
+bool bacnet_discover_object_property_identifier(uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
-    unsigned index, 
+    unsigned index,
     uint32_t *property_id)
 {
     bool status = false;
@@ -484,27 +431,15 @@ bool bacnet_discover_object_property_identifier(
 
     device = Keylist_Data(Device_List, key);
     if (device) {
-        if ((object_type == OBJECT_DEVICE) && (object_instance == device_id)) {
-            /* FIXME: device object needs a Property_List! */
-            key = property_list_special_property(OBJECT_DEVICE, PROP_REQUIRED,
-            index);
+        key = KEY_ENCODE(object_type, object_instance);
+        object = Keylist_Data(device->Object_List, key);
+        if (object) {
+            key = Keylist_Key(object->Property_List, index);
             if (key < UINT32_MAX) {
                 if (property_id) {
                     *property_id = key;
                 }
                 status = true;
-            }
-        } else {
-            key = KEY_ENCODE(object_type, object_instance);
-            object = Keylist_Data(device->Object_List, key);
-            if (object) {
-                key = Keylist_Key(object->Property_List, index);
-                if (key < UINT32_MAX) {
-                    if (property_id) {
-                        *property_id = key;
-                    }
-                    status = true;
-                }
             }
         }
     }
@@ -514,13 +449,14 @@ bool bacnet_discover_object_property_identifier(
 
 /**
  * @brief add a ReadProperty reply value from a device object property
+ * @param device_id [in] Device instance number where data originated
  * @param rp_data [in] Pointer to the BACNET_READ_PROPERTY_DATA structure,
  * which is packed with the information from the ReadProperty request.
  * @param value [in] pointer to the BACNET_APPLICATION_DATA_VALUE structure
  * which is packed with the decoded value from the ReadProperty request.
  * @param device_data [in] Pointer to the device data structure
  */
-static void bacnet_device_object_property_add(
+static void bacnet_device_object_property_add(uint32_t device_id,
     BACNET_READ_PROPERTY_DATA *rp_data,
     BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_DEVICE_DATA *device_data)
@@ -529,110 +465,73 @@ static void bacnet_device_object_property_add(
     BACNET_PROPERTY_DATA *property_data;
     bool status = false;
 
-    if (!rp_data) {
+    if (!rp_data || !value || !device_data) {
         return;
     }
-    if (!value) {
-        return;
-    }
-    if (!device_data) {
-        return;
-    }
-    if (device_data->Discovery_State ==
-        BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_REQUEST) {
-        device_data->Discovery_State =
-            BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_RESPONSE;
-    }
-    object_data = bacnet_object_data_add(device_data->Object_List,
-        rp_data->object_type, rp_data->object_instance);
-    if (!object_data) {
-        return;
-    }
-    property_data = bacnet_property_data_add(
-        object_data->Property_List, rp_data->object_property);
-    if (!property_data) {
-        return;
-    }
-    status = bacapp_copy(&property_data->value, value);
-    if (!status) {
-        debug_perror("%s-%u %s property fail to copy!\n",
-            bactext_object_type_name(rp_data->object_type),
-            rp_data->object_instance,
-            bactext_property_name(rp_data->object_property));
-    }
-}
-
-/**
- * @brief save the Device values from the ReadProperty request
- * @param device_id [in] Device instance number
- * @param rp_data [in] Pointer to the BACNET_READ_PROPERTY_DATA structure,
- *  which is packed with the information from the ReadProperty request.
- * @param value [in] pointer to the BACNET_APPLICATION_DATA_VALUE structure
- *  which is packed with the decoded value from the ReadProperty request.
- */
-static void bacnet_device_property_add(uint32_t device_id,
-    BACNET_READ_PROPERTY_DATA *rp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
-    BACNET_DEVICE_DATA *device_data)
-{
-    BACNET_OBJECT_DATA *object_data;
-
-    if (!rp_data) {
-        return;
-    }
-    if (!value) {
-        return;
-    }
-    if (!device_data) {
-        return;
-    }
-    switch (rp_data->object_property) {
-        case PROP_OBJECT_NAME:
-            if (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                characterstring_copy(
-                    &device_data->Object_Name, &value->type.Character_String);
+    if ((rp_data->object_type == OBJECT_DEVICE) &&
+        (rp_data->object_instance == device_id) &&
+        (rp_data->object_property == PROP_OBJECT_LIST)) {
+        if (value->tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            device_data->Object_List_Size = value->type.Unsigned_Int;
+            device_data->Object_List_Index = 0;
+            if (device_data->Discovery_State ==
+                BACNET_DISCOVER_STATE_OBJECT_LIST_SIZE_REQUEST) {
                 device_data->Discovery_State =
-                    BACNET_DISCOVER_STATE_DEVICE_NAME_RESPONSE;
+                    BACNET_DISCOVER_STATE_OBJECT_LIST_SIZE_RESPONSE;
             }
-            break;
-        case PROP_MODEL_NAME:
-            if (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                characterstring_copy(
-                    &device_data->Model_Name, &value->type.Character_String);
-                device_data->Discovery_State =
-                    BACNET_DISCOVER_STATE_DEVICE_MODEL_RESPONSE;
-            }
-            break;
-        case PROP_OBJECT_LIST:
-            if (value->tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                device_data->Object_List_Size = value->type.Unsigned_Int;
-                device_data->Object_List_Index = 0;
+        } else if (value->tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
+            if (rp_data->array_index <= device_data->Object_List_Size) {
+                object_data = bacnet_object_data_add(device_data->Object_List,
+                    value->type.Object_Id.type, value->type.Object_Id.instance);
+                debug_printf("add %u object-list[%u] %s-%lu %s.\n", device_id,
+                    device_data->Object_List_Index,
+                    bactext_object_type_name(value->type.Object_Id.type),
+                    (unsigned long)value->type.Object_Id.instance,
+                    object_data ? "success" : "fail");
                 if (device_data->Discovery_State ==
-                    BACNET_DISCOVER_STATE_OBJECT_LIST_SIZE_REQUEST) {
+                    BACNET_DISCOVER_STATE_OBJECT_LIST_REQUEST) {
                     device_data->Discovery_State =
-                        BACNET_DISCOVER_STATE_OBJECT_LIST_SIZE_RESPONSE;
-                }
-            } else if (value->tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
-                if (rp_data->array_index <= device_data->Object_List_Size) {
-                    object_data = bacnet_object_data_add(
-                        device_data->Object_List, value->type.Object_Id.type,
-                        value->type.Object_Id.instance);
-                    if (device_data->Discovery_State ==
-                        BACNET_DISCOVER_STATE_OBJECT_LIST_REQUEST) {
-                        debug_printf("add %u object-list[%u] %s-%lu %s.\n",
-                            device_id, device_data->Object_List_Index,
-                            bactext_object_type_name(
-                                value->type.Object_Id.type),
-                            (unsigned long)value->type.Object_Id.instance,
-                            object_data ? "success" : "fail");
-                        device_data->Discovery_State =
-                            BACNET_DISCOVER_STATE_OBJECT_LIST_RESPONSE;
-                    }
+                        BACNET_DISCOVER_STATE_OBJECT_LIST_RESPONSE;
                 }
             }
-            break;
-        default:
-            break;
+        }
+    } else {
+        /* move to next state */
+        if (device_data->Discovery_State ==
+            BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_REQUEST) {
+            device_data->Discovery_State =
+                BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_RESPONSE;
+        }
+        object_data = bacnet_object_data_add(device_data->Object_List,
+            rp_data->object_type, rp_data->object_instance);
+        if (!object_data) {
+            debug_perror("%s-%u object fail to add!\n",
+                bactext_object_type_name(rp_data->object_type),
+                rp_data->object_instance);
+            return;
+        }
+        property_data = bacnet_property_data_add(
+            object_data->Property_List, rp_data->object_property);
+        if (!property_data) {
+            debug_perror("%s-%u %s property fail to add!\n",
+                bactext_object_type_name(rp_data->object_type),
+                rp_data->object_instance,
+                bactext_property_name(rp_data->object_property));
+            return;
+        }
+        status = bacapp_copy(&property_data->value, value);
+        if (!status) {
+            debug_perror("%s-%u %s property fail to copy!\n",
+                bactext_object_type_name(rp_data->object_type),
+                rp_data->object_instance,
+                bactext_property_name(rp_data->object_property));
+        }
+        debug_printf("%u object-list[%d] %s-%lu %s added.\n", device_id,
+            bacnet_object_list_index(device_data->Object_List, 
+            rp_data->object_type, rp_data->object_instance),
+            bactext_object_type_name(value->type.Object_Id.type),
+            (unsigned long)value->type.Object_Id.instance,
+            bactext_property_name(rp_data->object_property));
     }
 }
 
@@ -649,20 +548,6 @@ static void Device_Error_Handler(uint32_t device_id,
         debug_printf(
             "%u - %s\n", device_id, bactext_error_code_name((int)error_code));
         switch (device_data->Discovery_State) {
-            case BACNET_DISCOVER_STATE_DEVICE_NAME_REQUEST:
-                /* go back to previous step */
-                device_data->Discovery_State = BACNET_DISCOVER_STATE_INIT;
-                break;
-            case BACNET_DISCOVER_STATE_DEVICE_MODEL_REQUEST:
-                /* go back to previous step */
-                device_data->Discovery_State =
-                    BACNET_DISCOVER_STATE_DEVICE_NAME_RESPONSE;
-                break;
-            case BACNET_DISCOVER_STATE_OBJECT_LIST_SIZE_REQUEST:
-                /* go back to previous step */
-                device_data->Discovery_State =
-                    BACNET_DISCOVER_STATE_DEVICE_MODEL_RESPONSE;
-                break;
             case BACNET_DISCOVER_STATE_OBJECT_LIST_REQUEST:
                 /* resend request */
                 if (device_data->Object_List_Index != 0) {
@@ -709,15 +594,8 @@ static void bacnet_read_property_reply(uint32_t device_id,
     if (rp_data->error_code != ERROR_CODE_SUCCESS) {
         Device_Error_Handler(device_id, rp_data->error_code, device_data);
     } else if (value) {
-        switch (rp_data->object_type) {
-            case OBJECT_DEVICE:
-                bacnet_device_property_add(
-                    device_id, rp_data, value, device_data);
-                break;
-            default:
-                bacnet_device_object_property_add(rp_data, value, device_data);
-                break;
-        }
+        bacnet_device_object_property_add(
+            device_id, rp_data, value, device_data);
     }
 }
 
@@ -739,32 +617,6 @@ void bacnet_discover_device_fsm(
     }
     switch (device_data->Discovery_State) {
         case BACNET_DISCOVER_STATE_INIT:
-            status = bacnet_read_property_queue(device_id, OBJECT_DEVICE,
-                device_id, PROP_OBJECT_NAME, BACNET_ARRAY_ALL);
-            if (status) {
-                device_data->Discovery_State =
-                    BACNET_DISCOVER_STATE_DEVICE_NAME_REQUEST;
-            } else {
-                debug_perror("%u object-name fail to queue!\n", device_id);
-            }
-            break;
-        case BACNET_DISCOVER_STATE_DEVICE_NAME_REQUEST:
-            /* waiting for response */
-            break;
-        case BACNET_DISCOVER_STATE_DEVICE_NAME_RESPONSE:
-            status = bacnet_read_property_queue(device_id, OBJECT_DEVICE,
-                device_id, PROP_MODEL_NAME, BACNET_ARRAY_ALL);
-            if (status) {
-                device_data->Discovery_State =
-                    BACNET_DISCOVER_STATE_DEVICE_MODEL_REQUEST;
-            } else {
-                debug_perror("%u model-name fail to queue!\n", device_id);
-            }
-            break;
-        case BACNET_DISCOVER_STATE_DEVICE_MODEL_REQUEST:
-            /* waiting for response */
-            break;
-        case BACNET_DISCOVER_STATE_DEVICE_MODEL_RESPONSE:
             status = bacnet_read_property_queue(
                 device_id, OBJECT_DEVICE, device_id, PROP_OBJECT_LIST, 0);
             if (status) {
@@ -822,11 +674,6 @@ void bacnet_discover_device_fsm(
                     device_data->Object_List, device_data->Object_List_Index);
                 object_type = KEY_DECODE_TYPE(key);
                 object_instance = KEY_DECODE_ID(key);
-                if (object_type == OBJECT_DEVICE) {
-                    /* skip device object */
-                    device_data->Object_List_Index++;
-                    break;
-                }
                 debug_printf("%u object-list[%u] %s-%u read ALL.\n", device_id,
                     device_data->Object_List_Index,
                     bactext_object_type_name(object_type),
@@ -845,11 +692,11 @@ void bacnet_discover_device_fsm(
                 }
             } else {
                 /* track the duration */
-                device_data->Discovery_Elapsed_Milliseconds = 
+                device_data->Discovery_Elapsed_Milliseconds =
                     mstimer_elapsed(&device_data->Discovery_Timer);
                 /* rediscover in the future */
-                mstimer_set(&device_data->Discovery_Timer, 
-                    Discovery_Milliseconds);
+                mstimer_set(
+                    &device_data->Discovery_Timer, Discovery_Milliseconds);
                 device_data->Discovery_State = BACNET_DISCOVER_STATE_DONE;
             }
             break;
@@ -911,9 +758,8 @@ void bacnet_discover_device_list_print(void)
             continue;
         }
         device_id = Keylist_Key(Device_List, device_index);
-        debug_printf("device[%u] %7u vendor-id=%4d object_list[%d]\n",
-            device_index, device_id, device_data->Vendor_Identifier,
-            Keylist_Count(device_data->Object_List));
+        debug_printf("device[%u] %7u object_list[%d]\n", device_index,
+            device_id, Keylist_Count(device_data->Object_List));
     }
 }
 
@@ -1032,10 +878,7 @@ void bacnet_discover_device_add(uint32_t device_instance,
     (void)max_apdu;
     (void)segmentation;
     device_data = bacnet_device_data_add(device_instance);
-    if (device_data) {
-        device_data->Vendor_Identifier = vendor_id;
-    }
-    debug_printf("device[%d] %lu - vendor=%u %s\n",
+    debug_printf("device[%d] %lu - vendor=%u %s.\n",
         Keylist_Index(Device_List, device_instance), device_instance, vendor_id,
         device_data ? "success" : "fail");
 }
@@ -1047,11 +890,11 @@ void bacnet_discover_init(void)
 {
     Device_List = Keylist_Create();
     bacnet_read_write_init();
-    /* force WhoIs_Timer to be expired to send WhoIs immediately */
     /* default value in case it is not set */
     if (!mstimer_interval(&WhoIs_Timer)) {
         mstimer_set(&WhoIs_Timer, 5UL * 60UL * 1000UL);
     }
+    /* force WhoIs_Timer to be expired to send WhoIs immediately */
     WhoIs_Timer.start = mstimer_now() - WhoIs_Timer.interval;
     /* default value in case it is not set */
     if (!mstimer_interval(&Read_Write_Timer)) {

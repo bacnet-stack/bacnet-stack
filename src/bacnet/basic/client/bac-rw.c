@@ -327,7 +327,6 @@ static void My_Read_Property_Multiple_Ack_Handler(uint8_t *service_request,
         if (len > 0) {
             address_get_device_id(src, &device_id);
             while (rpm_data) {
-                rpm_ack_print_data(rpm_data);
                 bacnet_rpm_process(device_id, rpm_data);
                 rpm_property = rpm_data->listOfProperties;
                 while (rpm_property) {
