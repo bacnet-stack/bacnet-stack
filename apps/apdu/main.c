@@ -52,6 +52,9 @@ static bool Error_Detected = false;
 /* debug info printing */
 static bool BACnet_Debug_Enabled;
 
+/**
+ * @brief Print error messages
+ */
 static void MyPrintHandler(const char *hex_ascii,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
@@ -64,6 +67,9 @@ static void MyPrintHandler(const char *hex_ascii,
     printf("\n  }\n}]\n");
 }
 
+/**
+ * @brief Handler for a abort messages
+ */
 static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
@@ -76,6 +82,9 @@ static void MyAbortHandler(
     }
 }
 
+/**
+ * @brief Handler for reject messages
+ */
 static void MyRejectHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
@@ -87,6 +96,9 @@ static void MyRejectHandler(
     }
 }
 
+/**
+ * @brief Initilize the BACnet application service handlers
+ */
 static void init_service_handlers(void)
 {
     Device_Init(NULL);
@@ -106,14 +118,21 @@ static void init_service_handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
+/**
+ * @brief Print the usage message
+*/
 static void print_usage(char *filename)
 {
     printf("Usage: %s", filename);
     printf(" <device-instance> <hex-ASCII>\n");
+    printf("       [--repeat][--retry][--timeout][--delay]\n");
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
+/**
+ * @brief Print the help message
+ */
 static void print_help(char *filename)
 {
     printf("Send an arbitrary BACnet APDU to a device.\n");
