@@ -26,6 +26,7 @@
 #include "bacnet/reject.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
@@ -44,7 +45,7 @@ static size_t APDU_Buf_Len = 0;
 
 /* target device data for the request */
 static BACNET_ADDRESS Target_Address;
-static uint32_t Target_Device_Instance = BACNET_MAX_INSTANCE + 1;
+static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE + 1;
 /* needed to filter incoming messages */
 static uint8_t Request_Invoke_ID = 0;
 /* track errors for early exit */
@@ -59,12 +60,12 @@ static void MyPrintHandler(const char *hex_ascii,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    printf("[{\n");
-    printf("  \"%s\": {\n"
-           "    \"error-class\": \"%s\",\n    \"error-code\": \"%s\"",
+    debug_printf("[{\n");
+    debug_printf("  \"%s\": {\n"
+                 "    \"error-class\": \"%s\",\n    \"error-code\": \"%s\"",
         hex_ascii, bactext_error_class_name((int)error_class),
         bactext_error_code_name((int)error_code));
-    printf("\n  }\n}]\n");
+    debug_printf("\n  }\n}]\n");
 }
 
 /**
@@ -120,7 +121,7 @@ static void init_service_handlers(void)
 
 /**
  * @brief Print the usage message
-*/
+ */
 static void print_usage(char *filename)
 {
     printf("Usage: %s", filename);
@@ -165,7 +166,7 @@ static void print_help(char *filename)
     printf("\n");
     printf("--retry C\n"
            "Send the message C number of times\n"
-           "Default is retry 0, only sending one time.\n");
+           "Default is retry 1, only sending one time.\n");
     printf("\n");
     printf("--timeout T\n"
            "Wait T milliseconds after sending before retry\n"
@@ -281,12 +282,14 @@ int main(int argc, char *argv[])
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
-    bool specific_address = true;
+    bool specific_address = false;
+    unsigned max_apdu = 0;
+    bool found = false;
     int argi = 0;
     unsigned int target_args = 0;
     char *filename = NULL;
     bool repeat_forever = false;
-    long retry_count = 0;
+    long retry_count = 1;
 
     /* check for local environment settings */
     if (getenv("BACNET_DEBUG")) {
@@ -333,8 +336,8 @@ int main(int argc, char *argv[])
         } else if (strcmp(argv[argi], "--retry") == 0) {
             if (++argi < argc) {
                 retry_count = strtol(argv[argi], NULL, 0);
-                if (retry_count < 0) {
-                    retry_count = 0;
+                if (retry_count < 1) {
+                    retry_count = 1;
                 }
             }
         } else if (strcmp(argv[argi], "--timeout") == 0) {
@@ -347,7 +350,8 @@ int main(int argc, char *argv[])
             }
         } else {
             if (target_args == 0) {
-                Target_Device_Instance = strtol(argv[argi], NULL, 0);
+                Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
+                target_args++;
             } else if (target_args == 1) {
                 APDU_Hex_ASCII = argv[argi];
                 APDU_Buf_Len = ascii_hex_to_binary(
@@ -355,7 +359,7 @@ int main(int argc, char *argv[])
                 if (APDU_Buf_Len > 0) {
                     target_args++;
                 } else {
-                    printf("Invalid hex ascii conversion!\n");
+                    debug_printf("Invalid hex ascii conversion!\n");
                     return 1;
                 }
             } else if (target_args == 2) {
@@ -364,28 +368,48 @@ int main(int argc, char *argv[])
             }
         }
     }
-    if (Target_Device_Instance > BACNET_MAX_INSTANCE) {
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         print_usage(filename);
         return 1;
     }
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-    init_service_handlers();
-    /* setup my info */
     address_init();
     if (specific_address) {
         bacnet_address_init(&dest, &mac, dnet, &adr);
-        address_add(Target_Device_Instance, MAX_APDU, &dest);
+        address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
     }
+    /* setup my info */
+    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
+    init_service_handlers();
+    /* setup the datalink */
     dlenv_init();
     atexit(datalink_cleanup);
+    /* setup the timers */
     if (timeout_milliseconds == 0) {
         timeout_milliseconds = apdu_timeout() * apdu_retries();
     }
     mstimer_set(&apdu_timer, timeout_milliseconds);
+    mstimer_expire(&apdu_timer);
     mstimer_set(&datalink_timer, 1000);
-    if (retry_count > 0) {
-        retry_count--;
+    /* try to bind with the device */
+    if (BACnet_Debug_Enabled) {
+        debug_printf(
+            "Binding with Device %u...\n", Target_Device_Object_Instance);
+    }
+    found = address_bind_request(
+        Target_Device_Object_Instance, &max_apdu, &Target_Address);
+    if (found) {
+        if (BACnet_Debug_Enabled) {
+            debug_printf("Found Device %u in address_cache.\n",
+                Target_Device_Object_Instance);
+        }
+    } else {
+        if (BACnet_Debug_Enabled) {
+            debug_printf(
+                "Sending Device %u Who-Is.\n", Target_Device_Object_Instance);
+        }
+        Send_WhoIs(
+            Target_Device_Object_Instance, Target_Device_Object_Instance);
     }
     /* loop forever */
     for (;;) {
@@ -404,14 +428,24 @@ int main(int argc, char *argv[])
                 mstimer_interval(&datalink_timer) / 1000);
             mstimer_reset(&datalink_timer);
         }
-        if (mstimer_expired(&apdu_timer)) {
-            if (repeat_forever || retry_count) {
-                Send_APDU_To_Network(&dest, APDU_Buf, APDU_Buf_Len);
-                retry_count--;
-            } else {
-                break;
+        if (found) {
+            /* device is bound! */
+            if (BACnet_Debug_Enabled) {
+                printf("Sending APDU to Device %u.\n",
+                    Target_Device_Object_Instance);
             }
-            mstimer_reset(&apdu_timer);
+            if (mstimer_expired(&apdu_timer)) {
+                if (repeat_forever || retry_count) {
+                    Send_APDU_To_Network(&dest, APDU_Buf, APDU_Buf_Len);
+                    retry_count--;
+                } else {
+                    break;
+                }
+                mstimer_reset(&apdu_timer);
+            }
+        } else {
+            found = address_bind_request(
+                Target_Device_Object_Instance, &max_apdu, &Target_Address);
         }
     }
 
