@@ -616,6 +616,9 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(add-list-element apps/add-list-element/main.c)
   target_link_libraries(add-list-element PRIVATE ${PROJECT_NAME})
 
+  add_executable(apdu apps/apdu/main.c)
+  target_link_libraries(apdu PRIVATE ${PROJECT_NAME})
+
   add_executable(create-object apps/create-object/main.c)
   target_link_libraries(create-object PRIVATE ${PROJECT_NAME})
 

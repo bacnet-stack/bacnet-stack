@@ -193,7 +193,7 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
 	server-client add-list-element remove-list-element create-object \
-	delete-object
+	delete-object apdu
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -265,6 +265,10 @@ ack-alarm: $(BACNET_LIB_TARGET)
 .PHONY: add-list-element
 add-list-element: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@ clean all
+
+.PHONY: apdu
+apdu: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
 
 .PHONY: blinkt
 blinkt:

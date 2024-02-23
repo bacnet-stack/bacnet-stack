@@ -145,6 +145,21 @@ int mstimer_expired(struct mstimer *t)
     return 0;
 }
 /*---------------------------------------------------------------------------*/
+
+/**
+ * @brief Expire the timer from the current point in time
+ *
+ * This function expires a timer with the same interval that was
+ * given to the mstimer_set() function.
+ *
+ * @param t A pointer to the timer.
+ * @sa mstimer_reset()
+ */
+void mstimer_expire(struct mstimer *t)
+{
+    t->start -= t->interval;
+}
+
 /**
  * The time until the timer expires
  *
