@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
     uint32_t device_id = BACNET_MAX_INSTANCE;
     long long_value = -1;
     /* data from the command line */
-    unsigned long print_seconds = 0;
+    unsigned long print_seconds = 60;
     unsigned long discover_seconds = 60;
     uint16_t dnet = 0;
 
@@ -223,7 +223,6 @@ int main(int argc, char *argv[])
         } else if (strcmp(argv[argi], "--print-seconds") == 0) {
             if (++argi < argc) {
                 print_seconds = strtol(argv[argi], NULL, 0);
-                mstimer_set(&BACnet_Print_Timer, print_seconds * 1000UL);
             }
         } else if (strcmp(argv[argi], "--dnet") == 0) {
             if (++argi < argc) {
@@ -249,9 +248,10 @@ int main(int argc, char *argv[])
                   "BACnet Stack Version %s\n"
                   "BACnet Device ID: %u\n"
                   "DNET: %u every %lu seconds\n"
+                  "Print Devices: every %lu seconds (0=none)\n"
                   "Max APDU: %d\n",
         BACnet_Version, Device_Object_Instance_Number(), dnet, discover_seconds,
-        MAX_APDU);
+        print_seconds, MAX_APDU);
     dlenv_init();
     atexit(datalink_cleanup);
     bacnet_server_init();
@@ -260,6 +260,7 @@ int main(int argc, char *argv[])
     bacnet_discover_seconds_set(discover_seconds);
     bacnet_discover_init();
     atexit(bacnet_discover_cleanup);
+    mstimer_set(&BACnet_Print_Timer, print_seconds * 1000UL);
     /* loop forever */
     for (;;) {
         bacnet_server_task();
