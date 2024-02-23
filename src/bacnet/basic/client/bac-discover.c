@@ -529,8 +529,8 @@ static void bacnet_device_object_property_add(uint32_t device_id,
         debug_printf("%u object-list[%d] %s-%lu %s added.\n", device_id,
             bacnet_object_list_index(device_data->Object_List, 
             rp_data->object_type, rp_data->object_instance),
-            bactext_object_type_name(value->type.Object_Id.type),
-            (unsigned long)value->type.Object_Id.instance,
+            bactext_object_type_name(rp_data->object_type),
+            (unsigned long)rp_data->object_instance,
             bactext_property_name(rp_data->object_property));
     }
 }

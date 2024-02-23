@@ -75,6 +75,18 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+# Build types
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    message(STATUS "Maximum optimization for speed")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+    message(STATUS "Maximum optimization for speed, debug info included")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
+    message(STATUS "Maximum optimization for size")
+else ()
+    message(STATUS "Minimal optimization, debug info included")
+    add_compile_definitions(DEBUG_ENABLED=1)
+endif ()
+
 option(
   BACNET_STACK_DEPRECATED_DISABLE 
   "Disable deprecation compile warnings" 
@@ -209,7 +221,6 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/color_object.h
     src/bacnet/basic/object/color_temperature.c
     src/bacnet/basic/object/color_temperature.h
-    # src/bacnet/basic/object/client/device-client.c
     src/bacnet/basic/object/command.c
     src/bacnet/basic/object/command.h
     src/bacnet/basic/object/credential_data_input.c
@@ -217,8 +228,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/csv.c
     src/bacnet/basic/object/csv.h
     src/bacnet/basic/object/device.c
-    src/bacnet/basic/object/device.h
     $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/object/gateway/gw_device.c>
+    src/bacnet/basic/object/device.h
     src/bacnet/basic/object/iv.c
     src/bacnet/basic/object/iv.h
     src/bacnet/basic/object/lc.c
@@ -675,11 +686,11 @@ if(BACNET_STACK_BUILD_APPS)
 
   if(BACNET_BUILD_BACDISCOVER_APP)
   add_executable(bacdiscover
-      apps/server-discover/main.c
-      src/bacnet/basic/client/bac-discover.c
-      src/bacnet/basic/client/bac-rw.c)
+        apps/server-discover/main.c
+        src/bacnet/basic/client/bac-discover.c
+        src/bacnet/basic/client/bac-rw.c)
   target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
-endif(BACNET_BUILD_BACDISCOVER_APP)
+  endif(BACNET_BUILD_BACDISCOVER_APP)
 
   if(NOT BACDL_ETHERNET)
     add_executable(readbdt apps/readbdt/main.c)
