@@ -65,6 +65,7 @@ void print_discovered_devices(void)
     uint32_t device_id = 0;
     BACNET_OBJECT_ID object_id = { 0 };
     unsigned long milliseconds = 0;
+    size_t heap_ram = 0;
     char *model_name;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
@@ -74,6 +75,9 @@ void print_discovered_devices(void)
         device_id = bacnet_discover_device_instance(device_index);
         object_count = bacnet_discover_device_object_count(device_id);
         milliseconds = bacnet_discover_device_elapsed_milliseconds(device_id);
+        heap_ram = bacnet_discover_device_memory(device_id);
+        /* convert to KB */
+        heap_ram /= 1024;
         model_name = "";
         status = bacnet_discover_property_value(
             device_id, OBJECT_DEVICE, device_id, PROP_MODEL_NAME, &value);
@@ -86,8 +90,9 @@ void print_discovered_devices(void)
             debug_perror("device[%u] %7u failed to read Model Name!\n",
                 device_index, device_id);
         }
-        printf("device[%u] %7u \"%s\" object_list[%d] in %lums\n", device_index,
-            device_id, model_name, object_count, milliseconds);
+        printf("device[%u] %7u \"%s\" object_list[%d] in %lums using %zu KB\n",
+            device_index, device_id, model_name, object_count, milliseconds,
+            heap_ram);
         for (object_index = 0; object_index < object_count; object_index++) {
             if (bacnet_discover_device_object_identifier(
                     device_id, object_index, &object_id)) {

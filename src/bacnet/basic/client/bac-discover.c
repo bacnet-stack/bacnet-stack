@@ -326,6 +326,37 @@ bool bacnet_discover_device_object_identifier(
 }
 
 /**
+ * @brief Determine the amount of heap data used by a device
+ * @param device_id - BACnet device instance
+ * @return the amount of heap data used by a device
+ */
+size_t bacnet_discover_device_memory(uint32_t device_id)
+{
+    size_t heap_size = 0;
+    size_t object_count = 0, property_count = 0;
+    KEY key = device_id;
+    BACNET_DEVICE_DATA *device;
+    BACNET_OBJECT_DATA *object;
+    BACNET_PROPERTY_DATA *property;
+
+    device = Keylist_Data(Device_List, key);
+    if (device) {
+        heap_size += sizeof(BACNET_DEVICE_DATA);
+        object_count = Keylist_Count(device->Object_List);
+        heap_size += (object_count * sizeof(BACNET_OBJECT_DATA));
+        for (size_t i = 0; i < object_count; i++) {
+            object = Keylist_Data_Index(device->Object_List, i);
+            if (object) {
+                property_count = Keylist_Count(object->Property_List);
+                heap_size += (property_count * sizeof(BACNET_PROPERTY_DATA));
+            }
+        }
+    }
+
+    return heap_size;
+}
+
+/**
  * @brief get the elapsed time it took to discover a device
  * @param device_id - ID of the destination device
  * @return the elapsed time it took to discover a device
