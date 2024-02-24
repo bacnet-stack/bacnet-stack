@@ -22,11 +22,12 @@ list(APPEND BACNET_INCLUDE ${BACNET_BASE}/src)
 
 if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
-  list(APPEND INCLUDE ${BACNET_INCLUDE} ${BACNET_TEST_PATH}/../)
+  list(APPEND INCLUDE ${BACNET_INCLUDE})
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
     ${BACNET_TEST_PATH}/../property_test.c
+    ${BACNET_TEST_PATH}/../property_test.h
     )
 
   get_filename_component(BACNET_OBJECT_SRC ${BACNET_SRC_PATH} PATH)
