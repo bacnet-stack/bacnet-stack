@@ -33,8 +33,11 @@ void bacnet_object_property_read_write_test(
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     len = read_property(rpdata);
-    zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
-    if (len >= 0) {
+    if ((len == BACNET_STATUS_ERROR) &&
+        (rpdata->error_class == ERROR_CLASS_PROPERTY) &&
+        (rpdata->error_code == ERROR_CODE_READ_ACCESS_DENIED)) {
+        /* read-only is a valid response for some properties */
+    } else if (len > 0) {
         test_len = bacapp_decode_known_property(rpdata->application_data,
             (uint8_t)rpdata->application_data_len, &value, rpdata->object_type,
             rpdata->object_property);
@@ -63,9 +66,12 @@ void bacnet_object_property_read_write_test(
                 "property '%s': WriteProperty Unknown!\n",
                 bactext_property_name(rpdata->object_property));
         }
+    } else if (len == 0) {
+        /* empty response is valid for some properties */
     } else {
-        printf("property '%s': failed to read(%d)!\n",
-            bactext_property_name(rpdata->object_property), len);
+        zassert_not_equal(len, BACNET_STATUS_ERROR, 
+            "property '%s': failed to read!\n",
+            bactext_property_name(rpdata->object_property));
     }
 }
 
