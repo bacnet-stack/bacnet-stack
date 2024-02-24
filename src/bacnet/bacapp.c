@@ -490,7 +490,6 @@ int bacapp_decode_application_data(
 {
     int len = 0;
     int apdu_len = 0;
-    int decode_len = 0;
     BACNET_TAG tag = { 0 };
 
     if (!value) {
@@ -1255,7 +1254,6 @@ static int decode_priority_value(uint8_t *apdu,
 {
     int apdu_len = 0;
     int len = 0;
-    BACNET_TAG tag = { 0 };
 
     if (bacnet_is_opening_tag_number(apdu, apdu_size, 0, &len)) {
         /* Contextual Abstract-syntax & type */
@@ -1276,7 +1274,7 @@ static int decode_priority_value(uint8_t *apdu,
             bacapp_decode_generic_property(apdu, apdu_size, value, property);
     }
 
-    return len;
+    return apdu_len;
 }
 #endif
 
@@ -1654,7 +1652,8 @@ int bacapp_decode_context_data_len(
         apdu_len = len;
         application_tag = bacapp_context_tag_type(property, tag.number);
         if (application_tag != MAX_BACNET_APPLICATION_TAG) {
-            len = bacapp_decode_data_len(NULL, application_tag, tag.len_value_type);
+            len = bacapp_decode_data_len(
+                NULL, application_tag, tag.len_value_type);
             apdu_len += len;
         } else {
             apdu_len += tag.len_value_type;
@@ -1795,7 +1794,6 @@ int bacapp_data_len(
     BACNET_TAG tag = { 0 };
     uint8_t opening_tag_number = 0;
     uint8_t opening_tag_number_counter = 0;
-    uint32_t value = 0;
     bool total_len_enable = false;
 
     if (!apdu) {
@@ -1841,8 +1839,8 @@ int bacapp_data_len(
 #endif
         } else {
             /* application tagged data */
-            len = bacapp_decode_application_data_len(
-                apdu, apdu_size - apdu_len);
+            len =
+                bacapp_decode_application_data_len(apdu, apdu_size - apdu_len);
             total_len_enable = true;
         }
         if (opening_tag_number_counter > 0) {
