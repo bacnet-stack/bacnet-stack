@@ -22,10 +22,11 @@ list(APPEND BACNET_INCLUDE ${BACNET_BASE}/src)
 
 if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
-  list(APPEND INCLUDE ${BACNET_INCLUDE})
+  list(APPEND INCLUDE ${BACNET_INCLUDE} ${BACNET_TEST_PATH}/../)
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
+    ${BACNET_TEST_PATH}/../property_test.c
     )
 
   get_filename_component(BACNET_OBJECT_SRC ${BACNET_SRC_PATH} PATH)
@@ -46,6 +47,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/bactext.c
     ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/lighting.c
+    ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/wp.c
     ${BACNET_SRC}/authentication_factor.c
     ${BACNET_SRC}/authentication_factor_format.c
