@@ -380,6 +380,34 @@ void Command_Property_Lists(
 }
 
 /**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    (void)object_instance;
+    Command_Property_Lists(
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
  * Initializes the Command object data
  */
 void Command_Init(void)
@@ -797,21 +825,16 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 status = false;
             }
-
-            break;
-
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_IN_PROCESS:
-        case PROP_ALL_WRITES_SUCCESSFUL:
-        case PROP_ACTION:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
