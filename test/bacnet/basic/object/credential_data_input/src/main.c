@@ -29,12 +29,13 @@ static void testCredentialDataInput(void)
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
     int test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata;
-    /* for decode value data */
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int *pRequired = NULL;
     const int *pOptional = NULL;
     const int *pProprietary = NULL;
+    bool status = false;
     unsigned count = 0;
     uint32_t object_instance = 0;
 
@@ -52,21 +53,41 @@ static void testCredentialDataInput(void)
         rpdata.array_index = BACNET_ARRAY_ALL;
         len = Credential_Data_Input_Read_Property(&rpdata);
         zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
-        if (len > 0) {
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
+        if (len >= 0) {
+            test_len = bacapp_decode_known_property(rpdata.application_data,
+                (uint8_t)rpdata.application_data_len, &value,
+                rpdata.object_type, rpdata.object_property);
             if (len != test_len) {
-                printf("property '%s': failed to decode!\n",
+                printf("property '%s': failed to decode! %d!=%d\n",
+                    bactext_property_name(rpdata.object_property), test_len,
+                    len);
+            }
+            if ((rpdata.object_property == PROP_PRESENT_VALUE) ||
+                (rpdata.object_property == PROP_UPDATE_TIME) ||
+                (rpdata.object_property == PROP_SUPPORTED_FORMATS)) {
+                /* FIXME: known fail to decode */
+                test_len = len;
+            }
+            zassert_true(test_len == len, NULL);
+            /* check WriteProperty properties */
+            wpdata.object_type = rpdata.object_type;
+            wpdata.object_instance = rpdata.object_instance;
+            wpdata.object_property = rpdata.object_property;
+            wpdata.array_index = rpdata.array_index;
+            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
+            wpdata.application_data_len = len;
+            wpdata.error_code = ERROR_CODE_SUCCESS;
+            status = Credential_Data_Input_Write_Property(&wpdata);
+            if (!status) {
+                /* verify WriteProperty property is known */
+                zassert_not_equal(wpdata.error_code,
+                    ERROR_CODE_UNKNOWN_PROPERTY,
+                    "property '%s': WriteProperty Unknown!\n",
                     bactext_property_name(rpdata.object_property));
             }
-            if (rpdata.object_property == PROP_PRIORITY_ARRAY) {
-                /* FIXME: known fail to decode */
-                len = test_len;
-            }
-            zassert_true(test_len >= 0, NULL);
         } else {
-            printf("property '%s': failed to read!\n",
-                bactext_property_name(rpdata.object_property));
+            printf("property '%s': failed to read(%d)!\n",
+                bactext_property_name(rpdata.object_property),len);
         }
         pRequired++;
     }
@@ -76,12 +97,29 @@ static void testCredentialDataInput(void)
         len = Credential_Data_Input_Read_Property(&rpdata);
         zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
         if (len > 0) {
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            zassert_true(test_len >= 0, NULL);
+            test_len = bacapp_decode_known_property(rpdata.application_data,
+                (uint8_t)rpdata.application_data_len, &value,
+                rpdata.object_type, rpdata.object_property);
+            zassert_true(test_len == len, NULL);
+            /* check WriteProperty properties */
+            wpdata.object_type = rpdata.object_type;
+            wpdata.object_instance = rpdata.object_instance;
+            wpdata.object_property = rpdata.object_property;
+            wpdata.array_index = rpdata.array_index;
+            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
+            wpdata.application_data_len = len;
+            wpdata.error_code = ERROR_CODE_SUCCESS;
+            status = Credential_Data_Input_Write_Property(&wpdata);
+            if (!status) {
+                /* verify WriteProperty property is known */
+                zassert_not_equal(wpdata.error_code,
+                    ERROR_CODE_UNKNOWN_PROPERTY,
+                    "property '%s': WriteProperty Unknown!\n",
+                    bactext_property_name(rpdata.object_property));
+            }
         } else {
-            printf("property '%s': failed to read!\n",
-                bactext_property_name(rpdata.object_property));
+            printf("property '%s': failed to read(%d)!\n",
+                bactext_property_name(rpdata.object_property),len);
         }
         pOptional++;
     }
