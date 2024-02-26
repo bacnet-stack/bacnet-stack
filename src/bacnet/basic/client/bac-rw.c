@@ -212,16 +212,19 @@ static void bacnet_read_property_process(
     if (rp_data) {
         apdu = rp_data->application_data;
         apdu_len = rp_data->application_data_len;
-        if (rp_data->array_index == BACNET_ARRAY_ALL) {
-            /* split full array of elements into separate RP Acks */
-            array_index = 1;
-        }
         while (apdu_len) {
             value = &Target_Decoded_Property_Value;
             len = bacapp_decode_known_property(apdu,
                 (unsigned)apdu_len, value, rp_data->object_type,
                 rp_data->object_property);
             if (len > 0) {
+                if ((len < apdu_len) && 
+                    (rp_data->array_index == BACNET_ARRAY_ALL)) {
+                    /* assume that since there is more data that this 
+                       is an array and split full array of elements 
+                       into separate RP Acks */
+                    array_index = 1;
+                }
                 rp_data->error_class = ERROR_CLASS_SERVICES;
                 rp_data->error_code = ERROR_CODE_SUCCESS;
                 if (array_index) {

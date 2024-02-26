@@ -337,7 +337,6 @@ size_t bacnet_discover_device_memory(uint32_t device_id)
     KEY key = device_id;
     BACNET_DEVICE_DATA *device;
     BACNET_OBJECT_DATA *object;
-    BACNET_PROPERTY_DATA *property;
 
     device = Keylist_Data(Device_List, key);
     if (device) {
@@ -557,12 +556,23 @@ static void bacnet_device_object_property_add(uint32_t device_id,
                 rp_data->object_instance,
                 bactext_property_name(rp_data->object_property));
         }
-        debug_printf("%u object-list[%d] %s-%lu %s added.\n", device_id,
-            bacnet_object_list_index(device_data->Object_List, 
-            rp_data->object_type, rp_data->object_instance),
-            bactext_object_type_name(rp_data->object_type),
-            (unsigned long)rp_data->object_instance,
-            bactext_property_name(rp_data->object_property));
+        if (rp_data->array_index == BACNET_ARRAY_ALL) {
+            debug_printf("%u object-list[%d] %s-%lu %s added.\n", device_id,
+                bacnet_object_list_index(device_data->Object_List, 
+                rp_data->object_type, rp_data->object_instance),
+                bactext_object_type_name(rp_data->object_type),
+                (unsigned long)rp_data->object_instance,
+                bactext_property_name(rp_data->object_property));
+        } else {
+            debug_printf("%u object-list[%d] %s-%lu %s[%lu] added.\n",
+                device_id,
+                bacnet_object_list_index(device_data->Object_List, 
+                rp_data->object_type, rp_data->object_instance),
+                bactext_object_type_name(rp_data->object_type),
+                (unsigned long)rp_data->object_instance,
+                bactext_property_name(rp_data->object_property),
+                (unsigned long)rp_data->array_index);
+        }
     }
 }
 
