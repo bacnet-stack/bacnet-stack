@@ -27,7 +27,7 @@ static void testSchedule(void)
 {
     unsigned count = 0;
     uint32_t object_instance = 0;
-    const int known_fail_property_list[] = { 
+    const int skip_fail_property_list[] = { 
         PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES, -1 };
 
     Schedule_Init();
@@ -40,7 +40,7 @@ static void testSchedule(void)
         Schedule_Property_Lists,
         Schedule_Read_Property,
         Schedule_Write_Property,
-        known_fail_property_list);
+        skip_fail_property_list);
 }
 /**
  * @}

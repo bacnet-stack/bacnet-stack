@@ -27,7 +27,7 @@ static void testCredentialDataInput(void)
 {
     unsigned count = 0;
     uint32_t object_instance = 0;
-    const int known_fail_property_list[] = { 
+    const int skip_fail_property_list[] = { 
         PROP_PRESENT_VALUE,
         PROP_UPDATE_TIME,
         PROP_SUPPORTED_FORMATS,
@@ -43,7 +43,7 @@ static void testCredentialDataInput(void)
         Credential_Data_Input_Property_Lists,
         Credential_Data_Input_Read_Property,
         Credential_Data_Input_Write_Property,
-        known_fail_property_list);
+        skip_fail_property_list);
 }
 /**
  * @}

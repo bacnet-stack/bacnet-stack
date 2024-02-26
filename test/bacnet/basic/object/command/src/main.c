@@ -27,7 +27,7 @@ static void test_object_command(void)
     bool status = false;
     unsigned count = 0;
     uint32_t object_instance = 0;
-    const int known_fail_property_list[] = { PROP_ACTION, -1 };
+    const int skip_fail_property_list[] = { PROP_ACTION, -1 };
 
     Command_Init();
     count = Command_Count();
@@ -39,7 +39,7 @@ static void test_object_command(void)
         Command_Property_Lists,
         Command_Read_Property,
         Command_Write_Property,
-        known_fail_property_list);
+        skip_fail_property_list);
 }
 /**
  * @}
