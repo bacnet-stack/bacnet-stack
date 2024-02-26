@@ -173,8 +173,8 @@ static void My_I_Am_Bind(
             if (bind) {
                 address_add_binding(device_id, max_apdu, src);
                 if (bacnet_read_write_device_callback) {
-                    bacnet_read_write_device_callback(device_id, max_apdu,
-                        segmentation, vendor_id);
+                    bacnet_read_write_device_callback(
+                        device_id, max_apdu, segmentation, vendor_id);
                 }
             }
         }
@@ -198,11 +198,10 @@ static void MyWritePropertySimpleAckHandler(
 }
 
 /**
- * 
-*/
-static void bacnet_read_property_process(
-    uint32_t device_id, 
-    BACNET_READ_PROPERTY_DATA *rp_data)
+ *
+ */
+static void bacnet_read_property_ack_process(
+    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data)
 {
     BACNET_APPLICATION_DATA_VALUE *value;
     uint8_t *apdu;
@@ -214,14 +213,13 @@ static void bacnet_read_property_process(
         apdu_len = rp_data->application_data_len;
         while (apdu_len) {
             value = &Target_Decoded_Property_Value;
-            len = bacapp_decode_known_property(apdu,
-                (unsigned)apdu_len, value, rp_data->object_type,
-                rp_data->object_property);
+            len = bacapp_decode_known_property(apdu, (unsigned)apdu_len, value,
+                rp_data->object_type, rp_data->object_property);
             if (len > 0) {
-                if ((len < apdu_len) && 
+                if ((len < apdu_len) &&
                     (rp_data->array_index == BACNET_ARRAY_ALL)) {
-                    /* assume that since there is more data that this 
-                       is an array and split full array of elements 
+                    /* assume that since there is more data that this
+                       is an array and split full array of elements
                        into separate RP Acks */
                     array_index = 1;
                 }
@@ -231,8 +229,7 @@ static void bacnet_read_property_process(
                     rp_data->array_index = array_index;
                 }
                 if (bacnet_read_write_value_callback) {
-                    bacnet_read_write_value_callback(
-                        device_id, rp_data, value);
+                    bacnet_read_write_value_callback(device_id, rp_data, value);
                 }
                 /* see if there is any more data */
                 if (len < apdu_len) {
@@ -248,8 +245,7 @@ static void bacnet_read_property_process(
                 rp_data->error_class = ERROR_CLASS_SERVICES;
                 rp_data->error_code = ERROR_CODE_SUCCESS;
                 if (bacnet_read_write_value_callback) {
-                    bacnet_read_write_value_callback(
-                        device_id, rp_data, NULL);
+                    bacnet_read_write_value_callback(device_id, rp_data, NULL);
                 }
                 break;
             }
@@ -286,13 +282,28 @@ static void My_Read_Property_Ack_Handler(uint8_t *service_request,
             Error_Class = ERROR_CLASS_SERVICES;
             Error_Code = ERROR_CODE_INTERNAL_ERROR;
         } else {
-            bacnet_read_property_process(device_id, &rp_data);
+            bacnet_read_property_ack_process(device_id, &rp_data);
         }
     }
 }
 
 /** Handler for a ReadPropertyMultiple ACK.
  *  Saves the data from a matching read-property-multiple request
+ *
+ *  ReadAccessResult ::= SEQUENCE {
+ *      object-identifier [0] BACnetObjectIdentifier,
+ *      list-of-results [1] SEQUENCE OF SEQUENCE {
+ *          property-identifier [2] BACnetPropertyIdentifier,
+ *          property-array-index [3] Unsigned OPTIONAL,
+ *          -- used only with array datatype
+ *          -- if omitted with an array the entire
+ *          -- array is referenced
+ *          read-result CHOICE {
+ *              property-value [4] ABSTRACT-SYNTAX.&Type,
+ *              property-access-error [5] Error
+ *          }
+ *      }
+ *  }
  *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
@@ -310,8 +321,6 @@ static void My_Read_Property_Multiple_Ack_Handler(uint8_t *apdu,
     uint32_t device_id = 0;
     uint16_t application_data_len;
     uint32_t error_value = 0; /* decoded error value */
-    uint8_t tag_number = 0; /* decoded tag number */
-    uint32_t len_value = 0; /* decoded length value */
 
     address_get_device_id(src, &device_id);
     rp_data.error_class = ERROR_CLASS_SERVICES;
@@ -319,8 +328,10 @@ static void My_Read_Property_Multiple_Ack_Handler(uint8_t *apdu,
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
         while (apdu_len) {
-            len = rpm_ack_decode_object_id(apdu, apdu_len, &rp_data.object_type,
-                &rp_data.object_instance);
+            /*  object-identifier [0] BACnetObjectIdentifier */
+            /*      list-of-results [1] SEQUENCE OF SEQUENCE */
+            len = rpm_ack_decode_object_id(
+                apdu, apdu_len, &rp_data.object_type, &rp_data.object_instance);
             if (len <= 0) {
                 /* malformed */
                 return;
@@ -329,58 +340,61 @@ static void My_Read_Property_Multiple_Ack_Handler(uint8_t *apdu,
             apdu += len;
             while (apdu_len) {
                 len = rpm_ack_decode_object_property(apdu, apdu_len,
-                    &rp_data.object_property,
-                    &rp_data.array_index);
+                    &rp_data.object_property, &rp_data.array_index);
                 if (len <= 0) {
                     /* malformed */
                     return;
                 }
                 apdu_len -= len;
                 apdu += len;
-                if (apdu_len && decode_is_opening_tag_number(apdu, 4)) {
-                    application_data_len = bacapp_data_len(apdu, 
-                        apdu_len, rp_data.object_property);
+                if (bacnet_is_opening_tag_number(apdu, apdu_len, 4, &len)) {
+                    application_data_len = bacapp_data_len(
+                        apdu, apdu_len, rp_data.object_property);
                     /* propertyValue */
-                    apdu_len--;
-                    apdu++;
+                    apdu_len -= len;
+                    apdu += len;
                     if (application_data_len) {
                         rp_data.application_data_len = application_data_len;
                         rp_data.application_data = apdu;
                         apdu_len -= application_data_len;
                         apdu += application_data_len;
                     }
-                    if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
-                        apdu_len--;
-                        apdu++;
+                    if (bacnet_is_closing_tag_number(apdu, apdu_len, 4, &len)) {
+                        apdu_len -= len;
+                        apdu += len;
                     } else {
                         /* malformed */
                         return;
                     }
-                    bacnet_read_property_process(device_id, &rp_data);
-                } else if (apdu_len && decode_is_opening_tag_number(apdu, 5)) {
-                    apdu_len--;
-                    apdu++;
-                    /* propertyAccessError */
-                    /* decode the class and code sequence */
-                    len =
-                        decode_tag_number_and_value(apdu, &tag_number, &len_value);
+                    bacnet_read_property_ack_process(device_id, &rp_data);
+                } else if (bacnet_is_opening_tag_number(
+                               apdu, apdu_len, 5, &len)) {
                     apdu_len -= len;
                     apdu += len;
-                    len = decode_enumerated(apdu, len_value, &error_value);
-                    rp_data.error_class = (BACNET_ERROR_CLASS)error_value;
-                    apdu_len -= len;
-                    apdu += len;
-                    len =
-                        decode_tag_number_and_value(apdu, &tag_number, &len_value);
-                    apdu_len -= len;
-                    apdu += len;
-                    len = decode_enumerated(apdu, len_value, &error_value);
-                    rp_data.error_code = (BACNET_ERROR_CODE)error_value;
-                    apdu_len -= len;
-                    apdu += len;
-                    if (apdu_len && decode_is_closing_tag_number(apdu, 5)) {
-                        apdu_len--;
-                        apdu++;
+                    /* property-access-error */
+                    len = bacnet_enumerated_application_decode(
+                        apdu, apdu_len, &error_value);
+                    if (len > 0) {
+                        rp_data.error_class = (BACNET_ERROR_CLASS)error_value;
+                        apdu_len -= len;
+                        apdu += len;
+                    } else {
+                        /* malformed */
+                        return;
+                    }
+                    len = bacnet_enumerated_application_decode(
+                        apdu, apdu_len, &error_value);
+                    if (len > 0) {
+                        rp_data.error_code = (BACNET_ERROR_CODE)error_value;
+                        apdu_len -= len;
+                        apdu += len;
+                    } else {
+                        /* malformed */
+                        return;
+                    }
+                    if (bacnet_is_closing_tag_number(apdu, apdu_len, 5, &len)) {
+                        apdu_len -= len;
+                        apdu += len;
                     } else {
                         /* malformed */
                         return;
