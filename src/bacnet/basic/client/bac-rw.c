@@ -198,7 +198,9 @@ static void MyWritePropertySimpleAckHandler(
 }
 
 /**
- *
+ * @brief Process a ReadProperty-ACK message
+ * @param device_id [in] The device ID of the source of the message
+ * @param rp_data [in] The contents of the service request.
  */
 static void bacnet_read_property_ack_process(
     uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data)
