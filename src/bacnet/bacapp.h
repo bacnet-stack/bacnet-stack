@@ -206,10 +206,18 @@ extern "C" {
         uint8_t * apdu,
         BACNET_APPLICATION_DATA_VALUE * value);
     BACNET_STACK_EXPORT
+    int bacapp_data_decode(
+        uint8_t * apdu,
+        uint32_t apdu_size,
+        uint8_t tag_data_type,
+        uint32_t len_value_type,
+        BACNET_APPLICATION_DATA_VALUE * value);
+    BACNET_STACK_DEPRECATED("Use bacapp_data_decode() instead")
+    BACNET_STACK_EXPORT
     int bacapp_decode_data(
         uint8_t * apdu,
         uint8_t tag_data_type,
-        uint32_t apdu_size,
+        uint32_t len_value_type,
         BACNET_APPLICATION_DATA_VALUE * value);
 
     BACNET_STACK_EXPORT

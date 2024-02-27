@@ -77,6 +77,10 @@ ack-alarm:
 add-list-element:
 	$(MAKE) -s -C apps $@
 
+.PHONY: apdu
+apdu:
+	$(MAKE) -s -C apps $@
+
 .PHONY: blinkt
 blinkt:
 	$(MAKE) -s -C apps $@
