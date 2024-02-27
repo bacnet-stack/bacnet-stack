@@ -53,10 +53,75 @@ static struct mstimer BACnet_Task_Timer;
 static struct mstimer BACnet_TSM_Timer;
 /* task timer for printing data */
 static struct mstimer BACnet_Print_Timer;
+/* flag to determine if devices or both devices and objects are printed */
+static bool Print_Summary = false;
 
+/**
+ * @brief Get a name property value from the device object property cache
+ * @param device_id - ID of the destination device
+ * @param object_type - BACnet object type
+ * @param object_instance - Instance number of the object to be read.
+ * @param object_property - BACnet property identifier
+ * @param buffer [out] Buffer to hold the property name.
+ * @param buffer_len [in] Length of the buffer.
+ * @param default_string [in] String to use if the property is not found.
+ * @return true if found and value copied, else false and default_string copied.
+ */
+static bool discover_device_object_name_copy(uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    char *buffer,
+    size_t buffer_len,
+    const char *default_string)
+{
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    bool status = false;
+
+    if (buffer && buffer_len) {
+        status = bacnet_discover_property_value(
+            device_id, object_type, object_instance, object_property, &value);
+        if (status && value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+            if (characterstring_valid(&value.type.Character_String)) {
+                strncpy(buffer,
+                    characterstring_value(&value.type.Character_String),
+                    buffer_len - 1);
+            } else {
+                status = false;
+            }
+        }
+    }
+    if (!status) {
+        strncpy(buffer, default_string, buffer_len);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get a device property name string from the device object.
+ * @param device_id [in] Device instance number.
+ * @param object_property [in] Property to read.
+ * @param buffer [out] Buffer to hold the property name.
+ * @param buffer_len [in] Length of the buffer.
+ * @param default_string [in] String to use if the property is not found.
+ * @return True if the property was found and copied, else false.
+ */
+static bool discover_device_name_copy(uint32_t device_id,
+    BACNET_PROPERTY_ID object_property,
+    char *buffer,
+    size_t buffer_len,
+    const char *default_string)
+{
+    return discover_device_object_name_copy(device_id, OBJECT_DEVICE, device_id,
+        object_property, buffer, buffer_len, default_string);
+}
+
+/**
+ * @brief Print the list of discovered devices and their objects
+ */
 void print_discovered_devices(void)
 {
-    bool status = false;
     unsigned int device_index = 0;
     unsigned int device_count = 0;
     unsigned int object_count = 0;
@@ -68,7 +133,6 @@ void print_discovered_devices(void)
     size_t heap_ram = 0;
     char model_name[MAX_CHARACTER_STRING_BYTES] = { 0 };
     char object_name[MAX_CHARACTER_STRING_BYTES] = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     device_count = bacnet_discover_device_count();
     printf("----list of %u devices ----\n", device_count);
@@ -77,40 +141,24 @@ void print_discovered_devices(void)
         object_count = bacnet_discover_device_object_count(device_id);
         milliseconds = bacnet_discover_device_elapsed_milliseconds(device_id);
         heap_ram = bacnet_discover_device_memory(device_id);
-        /* convert to KB */
-        heap_ram /= 1024;
-        strcpy(model_name, "");
-        status = bacnet_discover_property_value(
-            device_id, OBJECT_DEVICE, device_id, PROP_MODEL_NAME, &value);
-        if (status && value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-            if (characterstring_valid(&value.type.Character_String)) {
-                strcpy(model_name,
-                    characterstring_value(&value.type.Character_String));
-            }
-        } else {
-            debug_perror("device[%u] %7u failed to read Model Name!\n",
-                device_index, device_id);
-        }
+        /* convert to KB next highest value */
+        heap_ram = (heap_ram + 1023) / 1024;
+        discover_device_name_copy(
+            device_id, PROP_MODEL_NAME, model_name, sizeof(model_name), "");
         printf("device[%u] %7u \"%s\" object_list[%d] in %lums using %zu KB\n",
             device_index, device_id, model_name, object_count, milliseconds,
             heap_ram);
+        if (Print_Summary) {
+            continue;
+        }
         for (object_index = 0; object_index < object_count; object_index++) {
             if (bacnet_discover_device_object_identifier(
                     device_id, object_index, &object_id)) {
                 property_count = bacnet_discover_object_property_count(
                     device_id, object_id.type, object_id.instance);
-                strcpy(object_name, "");
-                status =
-                    bacnet_discover_property_value(device_id, object_id.type,
-                        object_id.instance, PROP_OBJECT_NAME, &value);
-                if (status &&
-                    value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                    if (characterstring_valid(&value.type.Character_String)) {
-                        strcpy(object_name,
-                            characterstring_value(
-                                &value.type.Character_String));
-                    }
-                }
+                discover_device_object_name_copy(device_id, object_id.type,
+                    object_id.instance, PROP_OBJECT_NAME, object_name,
+                    sizeof(object_name), "");
                 printf("    object_list[%d] %s %u \"%s\" has %u properties\n",
                     object_index, bactext_object_type_name(object_id.type),
                     object_id.instance, object_name, property_count);
@@ -180,12 +228,19 @@ static void bacnet_server_init(void)
     mstimer_set(&BACnet_TSM_Timer, 50);
 }
 
+/**
+ * @brief Print the usage information for this application
+ */
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s [--discover-seconds][--dnet]\n", filename);
+    printf("Usage: %s [--dnet]\n", filename);
+    printf("       [--discover-seconds][--print-seconds][--print-summary]\n");
     printf("       [--version][--help]\n");
 }
 
+/**
+ * @brief Print the help information for this application
+*/
 static void print_help(const char *filename)
 {
     printf("Simulate a BACnet server-discovery device.\n");
@@ -193,6 +248,8 @@ static void print_help(const char *filename)
            "Number of seconds to wait before initiating the next discovery.\n");
     printf("--print-seconds:\n"
            "Number of seconds to wait before printing list of devices.\n");
+    printf("--print-summary:\n"
+           "Print only the list of devices.\n");
     printf("--dnet N\n"
            "Optional BACnet network number N for directed requests.\n"
            "Valid range is from 0 to 65535 where 0 is the local connection\n"
@@ -242,6 +299,8 @@ int main(int argc, char *argv[])
             if (++argi < argc) {
                 print_seconds = strtol(argv[argi], NULL, 0);
             }
+        } else if (strcmp(argv[argi], "--print-summary") == 0) {
+            Print_Summary = true;
         } else if (strcmp(argv[argi], "--dnet") == 0) {
             if (++argi < argc) {
                 long_value = strtol(argv[argi], NULL, 0);
