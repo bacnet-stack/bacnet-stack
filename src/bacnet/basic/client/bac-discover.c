@@ -268,13 +268,16 @@ int bacnet_discover_device_count(void)
 /**
  * @brief get the device ID at a particular index
  * @param index - 0..N of max devices
- * @return the device ID at a particular index
+ * @return the device ID at a particular index, or UINT32_MAX if not found
  */
 uint32_t bacnet_discover_device_instance(unsigned index)
 {
-    uint32_t instance;
+    uint32_t instance = UINT32_MAX;
+    KEY key;
 
-    instance = Keylist_Key(Device_List, index);
+    if (Keylist_Index_Key(Device_List, index, &key)) {
+        instance = key;
+    }
 
     return instance;
 }
@@ -314,8 +317,7 @@ bool bacnet_discover_device_object_identifier(
 
     device = Keylist_Data(Device_List, key);
     if (device) {
-        key = Keylist_Key(device->Object_List, index);
-        if (key != UINT32_MAX) {
+        if (Keylist_Index_Key(device->Object_List, index, &key)) {
             if (object_id) {
                 object_id->type = KEY_DECODE_TYPE(key);
                 object_id->instance = KEY_DECODE_ID(key);
@@ -336,6 +338,7 @@ size_t bacnet_discover_device_memory(uint32_t device_id)
 {
     size_t heap_size = 0;
     size_t object_count = 0, property_count = 0;
+    size_t i, j;
     KEY key = device_id;
     BACNET_DEVICE_DATA *device;
     BACNET_OBJECT_DATA *object;
@@ -346,12 +349,12 @@ size_t bacnet_discover_device_memory(uint32_t device_id)
         heap_size += sizeof(BACNET_DEVICE_DATA);
         object_count = Keylist_Count(device->Object_List);
         heap_size += (object_count * sizeof(BACNET_OBJECT_DATA));
-        for (size_t i = 0; i < object_count; i++) {
+        for (i = 0; i < object_count; i++) {
             object = Keylist_Data_Index(device->Object_List, i);
             if (object) {
                 property_count = Keylist_Count(object->Property_List);
                 heap_size += (property_count * sizeof(BACNET_PROPERTY_DATA));
-                for (size_t j = 0; j < property_count; j++) {
+                for (j = 0; j < property_count; j++) {
                     property = Keylist_Data_Index(object->Property_List, j);
                     if (property) {
                         heap_size += property->application_data_len;
@@ -488,8 +491,7 @@ bool bacnet_discover_object_property_identifier(uint32_t device_id,
         key = KEY_ENCODE(object_type, object_instance);
         object = Keylist_Data(device->Object_List, key);
         if (object) {
-            key = Keylist_Key(object->Property_List, index);
-            if (key < UINT32_MAX) {
+            if (Keylist_Index_Key(object->Property_List, index, &key)) {
                 if (property_id) {
                     *property_id = key;
                 }
@@ -750,16 +752,17 @@ void bacnet_discover_device_fsm(
         case BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_RESPONSE:
             if (device_data->Object_List_Index <
                 device_data->Object_List_Size) {
-                key = Keylist_Key(
-                    device_data->Object_List, device_data->Object_List_Index);
-                object_type = KEY_DECODE_TYPE(key);
-                object_instance = KEY_DECODE_ID(key);
-                debug_printf("%u object-list[%u] %s-%u read ALL.\n", device_id,
-                    device_data->Object_List_Index,
-                    bactext_object_type_name(object_type),
-                    (unsigned)object_instance);
-                status = bacnet_read_property_queue(device_id, object_type,
-                    object_instance, PROP_ALL, BACNET_ARRAY_ALL);
+                if (Keylist_Index_Key(device_data->Object_List,
+                        device_data->Object_List_Index, &key)) {
+                    object_type = KEY_DECODE_TYPE(key);
+                    object_instance = KEY_DECODE_ID(key);
+                    debug_printf("%u object-list[%u] %s-%u read ALL.\n",
+                        device_id, device_data->Object_List_Index,
+                        bactext_object_type_name(object_type),
+                        (unsigned)object_instance);
+                    status = bacnet_read_property_queue(device_id, object_type,
+                        object_instance, PROP_ALL, BACNET_ARRAY_ALL);
+                }
                 if (status) {
                     device_data->Discovery_State =
                         BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_REQUEST;
@@ -806,6 +809,7 @@ static void bacnet_discover_devices_task(void)
     unsigned int device_count = 0;
     uint32_t device_id = 0;
     BACNET_DEVICE_DATA *device_data;
+    KEY key;
 
     device_count = Keylist_Count(Device_List);
     for (device_index = 0; device_index < device_count; device_index++) {
@@ -814,8 +818,10 @@ static void bacnet_discover_devices_task(void)
             debug_perror("device[%u] is NULL!\n", device_index);
             continue;
         }
-        device_id = Keylist_Key(Device_List, device_index);
-        bacnet_discover_device_fsm(device_id, device_data);
+        if (Keylist_Index_Key(Device_List, device_index, &key)) {
+            device_id = key;
+            bacnet_discover_device_fsm(device_id, device_data);
+        }
     }
 }
 
@@ -828,6 +834,7 @@ void bacnet_discover_device_list_print(void)
     unsigned int device_count = 0;
     uint32_t device_id = 0;
     BACNET_DEVICE_DATA *device_data;
+    KEY key;
 
     device_count = Keylist_Count(Device_List);
     debug_printf("----list of %u devices ----\n", device_count);
@@ -837,9 +844,11 @@ void bacnet_discover_device_list_print(void)
             debug_perror("device[%u] is NULL!\n", device_index);
             continue;
         }
-        device_id = Keylist_Key(Device_List, device_index);
-        debug_printf("device[%u] %7u object_list[%d]\n", device_index,
-            device_id, Keylist_Count(device_data->Object_List));
+        if (Keylist_Index_Key(Device_List, device_index, &key)) {
+            device_id = key;
+            debug_printf("device[%u] %7u object_list[%d]\n", device_index,
+                device_id, Keylist_Count(device_data->Object_List));
+        }
     }
 }
 

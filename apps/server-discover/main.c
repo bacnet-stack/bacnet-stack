@@ -145,9 +145,9 @@ void print_discovered_devices(void)
         heap_ram = (heap_ram + 1023) / 1024;
         discover_device_name_copy(
             device_id, PROP_MODEL_NAME, model_name, sizeof(model_name), "");
-        printf("device[%u] %7u \"%s\" object_list[%d] in %lums using %zu KB\n",
+        printf("device[%u] %7u \"%s\" object_list[%d] in %lums using %lu KB\n",
             device_index, device_id, model_name, object_count, milliseconds,
-            heap_ram);
+            (unsigned long)heap_ram);
         if (Print_Summary) {
             continue;
         }
