@@ -82,29 +82,58 @@ int bacnet_object_property_read_test(BACNET_READ_PROPERTY_DATA *rpdata,
     bool status = false;
     int len = 0;
     int test_len = 0;
+    int apdu_len = 0;
+    int read_len = 0;
+    uint8_t *apdu;
+    BACNET_ARRAY_INDEX array_index = 0;
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
-    len = read_property(rpdata);
-    if ((len == BACNET_STATUS_ERROR) &&
+    read_len = read_property(rpdata);
+    if ((read_len == BACNET_STATUS_ERROR) &&
         (rpdata->error_class == ERROR_CLASS_PROPERTY) &&
         (rpdata->error_code == ERROR_CODE_READ_ACCESS_DENIED)) {
         /* read-only is a valid response for some properties */
-    } else if (len > 0) {
-        test_len = bacapp_decode_known_property(rpdata->application_data,
-            (uint8_t)rpdata->application_data_len, &value, rpdata->object_type,
-            rpdata->object_property);
-        if (len != test_len) {
+    } else if (read_len > 0) {
+        /* validate the data from the read request */
+        apdu = rpdata->application_data;
+        apdu_len = read_len;
+        while (apdu_len) {
+            len = bacapp_decode_known_property(apdu, apdu_len, &value,
+                rpdata->object_type, rpdata->object_property);
+            if (len > 0) {
+                test_len += len;
+                if ((len < apdu_len) &&
+                    (rpdata->array_index == BACNET_ARRAY_ALL)) {
+                    /* more data, therefore, this is an array */
+                    array_index = 1;
+                }
+                if (array_index > 0) {
+                    apdu += len;
+                    apdu_len -= len;
+                    array_index++;
+                } else {
+                    break;
+                }
+            } else {
+                printf("property '%s': failed to decode! len=%d\n",
+                    bactext_property_name(rpdata->object_property), 
+                    len);
+                break;
+            }
+        }
+        if (read_len != test_len) {
             printf("property '%s': failed to decode! %d!=%d\n",
-                bactext_property_name(rpdata->object_property), test_len, len);
+                bactext_property_name(rpdata->object_property), test_len, 
+                read_len);
         }
         if (property_list_member(
                 skip_fail_property_list, rpdata->object_property)) {
             /* FIXME: known fail to decode */
-            test_len = len;
+            test_len = read_len;
         }
-        zassert_true(test_len == len, NULL);
-    } else if (len == 0) {
+        zassert_true(test_len == read_len, NULL);
+    } else if (read_len == 0) {
         /* empty response is valid for some properties */
     } else {
         zassert_not_equal(len, BACNET_STATUS_ERROR,
