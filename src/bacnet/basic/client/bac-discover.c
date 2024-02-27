@@ -50,7 +50,8 @@ typedef enum bacnet_discover_state_enum {
 } BACNET_DISCOVER_STATE;
 
 typedef struct bacnet_property_data_t {
-    BACNET_APPLICATION_DATA_VALUE value;
+    uint8_t *application_data;
+    int application_data_len;
 } BACNET_PROPERTY_DATA;
 
 typedef struct bacnet_object_data_t {
@@ -108,6 +109,7 @@ static void bacnet_property_data_cleanup(OS_Keylist list)
     do {
         data = Keylist_Data_Pop(list);
         if (data) {
+            free(data->application_data);
             free(data);
         }
     } while (data);
@@ -337,6 +339,7 @@ size_t bacnet_discover_device_memory(uint32_t device_id)
     KEY key = device_id;
     BACNET_DEVICE_DATA *device;
     BACNET_OBJECT_DATA *object;
+    BACNET_PROPERTY_DATA *property;
 
     device = Keylist_Data(Device_List, key);
     if (device) {
@@ -348,6 +351,12 @@ size_t bacnet_discover_device_memory(uint32_t device_id)
             if (object) {
                 property_count = Keylist_Count(object->Property_List);
                 heap_size += (property_count * sizeof(BACNET_PROPERTY_DATA));
+                for (size_t j = 0; j < property_count; j++) {
+                    property = Keylist_Data_Index(object->Property_List, j);
+                    if (property) {
+                        heap_size += property->application_data_len;
+                    }
+                }
             }
         }
     }
@@ -394,7 +403,11 @@ bool bacnet_discover_property_value(uint32_t device_id,
     BACNET_OBJECT_DATA *object;
     BACNET_PROPERTY_DATA *property;
     KEY key = device_id;
+    int len = 0;
 
+    if (!value) {
+        return false;
+    }
     device = Keylist_Data(Device_List, key);
     if (device) {
         key = KEY_ENCODE(object_type, object_instance);
@@ -403,7 +416,18 @@ bool bacnet_discover_property_value(uint32_t device_id,
             key = object_property;
             property = Keylist_Data(object->Property_List, key);
             if (property) {
-                status = bacapp_copy(value, &property->value);
+                if (property->application_data_len > 0) {
+                    len =
+                        bacapp_decode_known_property(property->application_data,
+                            property->application_data_len, value, object_type,
+                            object_property);
+                    if (len > 0) {
+                        status = true;
+                    }
+                } else {
+                    bacapp_value_list_init(value, 1);
+                    status = true;
+                }
             }
         }
     }
@@ -493,7 +517,6 @@ static void bacnet_device_object_property_add(uint32_t device_id,
 {
     BACNET_OBJECT_DATA *object_data;
     BACNET_PROPERTY_DATA *property_data;
-    bool status = false;
 
     if (!rp_data || !value || !device_data) {
         return;
@@ -549,25 +572,41 @@ static void bacnet_device_object_property_add(uint32_t device_id,
                 bactext_property_name(rp_data->object_property));
             return;
         }
-        status = bacapp_copy(&property_data->value, value);
-        if (!status) {
-            debug_perror("%s-%u %s property fail to copy!\n",
-                bactext_object_type_name(rp_data->object_type),
-                rp_data->object_instance,
-                bactext_property_name(rp_data->object_property));
+        if (rp_data->application_data_len > 0) {
+            if (property_data->application_data_len !=
+                rp_data->application_data_len) {
+                free(property_data->application_data);
+                property_data->application_data =
+                    calloc(1, rp_data->application_data_len);
+            }
+            if (property_data->application_data) {
+                property_data->application_data_len =
+                    rp_data->application_data_len;
+                memcpy(property_data->application_data,
+                    rp_data->application_data, rp_data->application_data_len);
+            } else {
+                debug_perror("%s-%u %s property fail to allocate!\n",
+                    bactext_object_type_name(rp_data->object_type),
+                    rp_data->object_instance,
+                    bactext_property_name(rp_data->object_property));
+            }
+        } else {
+            free(property_data->application_data);
+            property_data->application_data = NULL;
+            property_data->application_data_len = 0;
         }
         if (rp_data->array_index == BACNET_ARRAY_ALL) {
             debug_printf("%u object-list[%d] %s-%lu %s added.\n", device_id,
-                bacnet_object_list_index(device_data->Object_List, 
-                rp_data->object_type, rp_data->object_instance),
+                bacnet_object_list_index(device_data->Object_List,
+                    rp_data->object_type, rp_data->object_instance),
                 bactext_object_type_name(rp_data->object_type),
                 (unsigned long)rp_data->object_instance,
                 bactext_property_name(rp_data->object_property));
         } else {
             debug_printf("%u object-list[%d] %s-%lu %s[%lu] added.\n",
                 device_id,
-                bacnet_object_list_index(device_data->Object_List, 
-                rp_data->object_type, rp_data->object_instance),
+                bacnet_object_list_index(device_data->Object_List,
+                    rp_data->object_type, rp_data->object_instance),
                 bactext_object_type_name(rp_data->object_type),
                 (unsigned long)rp_data->object_instance,
                 bactext_property_name(rp_data->object_property),

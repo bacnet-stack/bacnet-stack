@@ -66,7 +66,8 @@ void print_discovered_devices(void)
     BACNET_OBJECT_ID object_id = { 0 };
     unsigned long milliseconds = 0;
     size_t heap_ram = 0;
-    char *model_name;
+    char model_name[MAX_CHARACTER_STRING_BYTES] = { 0 };
+    char object_name[MAX_CHARACTER_STRING_BYTES] = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     device_count = bacnet_discover_device_count();
@@ -78,13 +79,13 @@ void print_discovered_devices(void)
         heap_ram = bacnet_discover_device_memory(device_id);
         /* convert to KB */
         heap_ram /= 1024;
-        model_name = "";
+        strcpy(model_name, "");
         status = bacnet_discover_property_value(
             device_id, OBJECT_DEVICE, device_id, PROP_MODEL_NAME, &value);
         if (status && value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
             if (characterstring_valid(&value.type.Character_String)) {
-                model_name =
-                    characterstring_value(&value.type.Character_String);
+                strcpy(model_name,
+                    characterstring_value(&value.type.Character_String));
             }
         } else {
             debug_perror("device[%u] %7u failed to read Model Name!\n",
@@ -98,9 +99,21 @@ void print_discovered_devices(void)
                     device_id, object_index, &object_id)) {
                 property_count = bacnet_discover_object_property_count(
                     device_id, object_id.type, object_id.instance);
-                printf("    object_list[%d] %s %u has %u properties\n",
+                strcpy(object_name, "");
+                status =
+                    bacnet_discover_property_value(device_id, object_id.type,
+                        object_id.instance, PROP_OBJECT_NAME, &value);
+                if (status &&
+                    value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                    if (characterstring_valid(&value.type.Character_String)) {
+                        strcpy(object_name,
+                            characterstring_value(
+                                &value.type.Character_String));
+                    }
+                }
+                printf("    object_list[%d] %s %u \"%s\" has %u properties\n",
                     object_index, bactext_object_type_name(object_id.type),
-                    object_id.instance, property_count);
+                    object_id.instance, object_name, property_count);
             }
         }
     }
