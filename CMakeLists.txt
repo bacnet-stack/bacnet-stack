@@ -221,6 +221,7 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/color_object.h
     src/bacnet/basic/object/color_temperature.c
     src/bacnet/basic/object/color_temperature.h
+    # src/bacnet/basic/object/client/device-client.c
     src/bacnet/basic/object/command.c
     src/bacnet/basic/object/command.h
     src/bacnet/basic/object/credential_data_input.c
@@ -228,8 +229,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/csv.c
     src/bacnet/basic/object/csv.h
     src/bacnet/basic/object/device.c
-    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/object/gateway/gw_device.c>
     src/bacnet/basic/object/device.h
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/object/gateway/gw_device.c>
     src/bacnet/basic/object/iv.c
     src/bacnet/basic/object/iv.h
     src/bacnet/basic/object/lc.c
