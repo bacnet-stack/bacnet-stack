@@ -630,8 +630,6 @@ void rpm_ack_object_property_process(
     if (!rp_data) {
         return;
     }
-    rp_data->error_class = ERROR_CLASS_SERVICES;
-    rp_data->error_code = ERROR_CODE_SUCCESS;
     while (apdu_len) {
         /*  object-identifier [0] BACnetObjectIdentifier */
         /*      list-of-results [1] SEQUENCE OF SEQUENCE */
@@ -671,6 +669,8 @@ void rpm_ack_object_property_process(
                     /* malformed */
                     return;
                 }
+                rp_data->error_class = ERROR_CLASS_PROPERTY;
+                rp_data->error_code = ERROR_CODE_SUCCESS;
                 if (callback) {
                     callback(device_id, rp_data);
                 }
