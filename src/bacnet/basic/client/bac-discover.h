@@ -13,7 +13,26 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/rp.h"
 #include "bacnet/bacnet_stack_exports.h"
+
+/**
+ * @brief Callback function for iterating the results of the device discovery.
+ * @param device_id [in] The device ID of the data
+ * @param device_index [in] The index of the device in the list of discovered devices
+ * @param object_index [in] The index of the object in the list of discovered objects in the device
+ * @param property_index [in] The index of the property in the list of discovered properties in the object in the device
+ * @param rp_data [in] The contents of the device object property
+ * @param context_data [in] The context data passed to the discover function
+ * @return true if the iteration should continue, false if it should stop
+*/
+typedef bool (*bacnet_discover_device_callback) (
+    uint32_t device_id,
+    unsigned device_index,
+    unsigned object_index,
+    unsigned property_index,
+    BACNET_READ_PROPERTY_DATA * rp_data,
+    void *context_data);
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,6 +74,28 @@ bool bacnet_discover_property_value(uint32_t device_id,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
     BACNET_APPLICATION_DATA_VALUE *value);
+BACNET_STACK_EXPORT
+bool bacnet_discover_property_name(uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    char *buffer,
+    size_t buffer_len,
+    const char *default_string);
+
+BACNET_STACK_EXPORT
+bool bacnet_discover_device_object_property_iterate(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    bacnet_discover_device_callback callback, void *context);
+BACNET_STACK_EXPORT
+bool bacnet_discover_device_object_iterate(
+    uint32_t device_id,
+    bacnet_discover_device_callback callback, void *context);
+BACNET_STACK_EXPORT
+bool bacnet_discover_device_iterate(
+    bacnet_discover_device_callback callback, void *context);
 
 BACNET_STACK_EXPORT
 void bacnet_discover_task(void);

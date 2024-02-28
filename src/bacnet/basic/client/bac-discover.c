@@ -439,6 +439,48 @@ bool bacnet_discover_property_value(uint32_t device_id,
 }
 
 /**
+ * @brief Get a name property value from the device object property cache
+ * @param device_id - ID of the destination device
+ * @param object_type - BACnet object type
+ * @param object_instance - Instance number of the object to be read.
+ * @param object_property - BACnet property identifier
+ * @param buffer [out] Buffer to hold the property name.
+ * @param buffer_len [in] Length of the buffer.
+ * @param default_string [in] String to use if the property is not found.
+ * @return true if found and value copied, else false and default_string copied.
+ */
+bool bacnet_discover_property_name(uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    char *buffer,
+    size_t buffer_len,
+    const char *default_string)
+{
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    bool status = false;
+
+    if (buffer && buffer_len) {
+        status = bacnet_discover_property_value(
+            device_id, object_type, object_instance, object_property, &value);
+        if (status && value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+            if (characterstring_valid(&value.type.Character_String)) {
+                strncpy(buffer,
+                    characterstring_value(&value.type.Character_String),
+                    buffer_len - 1);
+            } else {
+                status = false;
+            }
+        }
+    }
+    if (!status) {
+        strncpy(buffer, default_string, buffer_len);
+    }
+
+    return status;
+}
+
+/**
  * @brief Get the object property count from object property cache
  * @param device_id - ID of the destination device
  * @param object_type - BACnet object type
@@ -826,30 +868,150 @@ static void bacnet_discover_devices_task(void)
 }
 
 /**
- * @brief Print the device list to the debug console
+ * @brief Iterate a specific device object property list
+ * @param callback - function to call for each device object property
+ * @param context - pointer to user data
+ * @return true if the iteration completed, false if it stopped early
  */
-void bacnet_discover_device_list_print(void)
+bool bacnet_discover_device_object_property_iterate(uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    bacnet_discover_device_callback callback,
+    void *context)
 {
-    unsigned int device_index = 0;
-    unsigned int device_count = 0;
-    uint32_t device_id = 0;
-    BACNET_DEVICE_DATA *device_data;
-    KEY key;
+    size_t property_count = 0;
+    size_t device_index = 0, object_index = 0, property_index = 0;
+    BACNET_DEVICE_DATA *device;
+    BACNET_OBJECT_DATA *object;
+    BACNET_PROPERTY_DATA *property;
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    bool status = true;
+    KEY key = device_id;
 
-    device_count = Keylist_Count(Device_List);
-    debug_printf("----list of %u devices ----\n", device_count);
-    for (device_index = 0; device_index < device_count; device_index++) {
-        device_data = Keylist_Data_Index(Device_List, device_index);
-        if (!device_data) {
-            debug_perror("device[%u] is NULL!\n", device_index);
+    /* device */
+    device = Keylist_Data(Device_List, key);
+    if (!device) {
+        return true;
+    }
+    device_index = Keylist_Index(Device_List, key);
+    /* object */
+    key = KEY_ENCODE(object_type, object_instance);
+    object = Keylist_Data(device->Object_List, key);
+    if (!object) {
+        return true;
+    }
+    object_index = Keylist_Index(device->Object_List, key);
+    rp_data.object_type = object_type;
+    rp_data.object_instance = object_instance;
+    /* property */
+    property_count = Keylist_Count(object->Property_List);
+    for (property_index = 0; property_index < property_count;
+         property_index++) {
+        if (Keylist_Index_Key(object->Property_List, property_index, &key)) {
+            rp_data.object_property = key;
+        } else {
             continue;
         }
-        if (Keylist_Index_Key(Device_List, device_index, &key)) {
-            device_id = key;
-            debug_printf("device[%u] %7u object_list[%d]\n", device_index,
-                device_id, Keylist_Count(device_data->Object_List));
+        property = Keylist_Data_Index(object->Property_List, property_index);
+        if (property) {
+            rp_data.error_class = ERROR_CLASS_PROPERTY;
+            rp_data.error_code = ERROR_CODE_SUCCESS;
+            rp_data.application_data = property->application_data;
+            rp_data.application_data_len = property->application_data_len;
+            status = callback(device_id, device_index, object_index,
+                property_index, &rp_data, context);
+            /* callback returns true if the iteration
+                should continue, false if it should stop */
+            if (!status) {
+                return false;
+            }
+        } else {
+            rp_data.application_data = NULL;
+            rp_data.application_data_len = 0;
+            rp_data.error_class = ERROR_CLASS_PROPERTY;
+            rp_data.error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            status = callback(device_id, device_index, object_index,
+                property_index, &rp_data, context);
+            /* callback returns true if the iteration
+                should continue, false if it should stop */
+            if (!status) {
+                return false;
+            }
         }
     }
+
+    return true;
+}
+
+/**
+ * @brief Iterate a specific device object list
+ * @param callback - function to call for each device object property
+ * @param context - pointer to user data
+ * @return true if the iteration completed, false if it stopped early
+ */
+bool bacnet_discover_device_object_iterate(
+    uint32_t device_id, bacnet_discover_device_callback callback, void *context)
+{
+    size_t object_count = 0;
+    size_t object_index = 0;
+    BACNET_DEVICE_DATA *device;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t object_instance = 0;
+    KEY key = device_id;
+    bool status = false;
+
+    device = Keylist_Data(Device_List, key);
+    if (!device) {
+        return true;
+    }
+    object_count = Keylist_Count(device->Object_List);
+    for (object_index = 0; object_index < object_count; object_index++) {
+        if (Keylist_Index_Key(device->Object_List, object_index, &key)) {
+            object_type = KEY_DECODE_TYPE(key);
+            object_instance = KEY_DECODE_ID(key);
+        } else {
+            continue;
+        }
+        status = bacnet_discover_device_object_property_iterate(
+            device_id, object_type, object_instance, callback, context);
+        if (!status) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Iterate the device list
+ * @param callback - function to call for each device object property
+ * @param context - pointer to user data
+ * @return true if the iteration completed, false if it stopped early
+ */
+bool bacnet_discover_device_iterate(
+    bacnet_discover_device_callback callback, void *context)
+{
+    size_t device_count = 0;
+    size_t device_index = 0;
+    uint32_t device_id = 0;
+    bool status = true;
+    KEY key = 0;
+
+    device_count = Keylist_Count(Device_List);
+    for (device_index = 0; device_index < device_count; device_index++) {
+        if (Keylist_Index_Key(Device_List, device_index, &key)) {
+            device_id = key;
+            status = bacnet_discover_device_object_iterate(
+                device_id, callback, context);
+            if (!status) {
+                return false;
+            }
+        } else {
+            continue;
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -862,7 +1024,6 @@ void bacnet_discover_task(void)
 
     if (mstimer_expired(&WhoIs_Timer)) {
         mstimer_restart(&WhoIs_Timer);
-        bacnet_discover_device_list_print();
         dest.net = Target_DNET;
         Send_WhoIs_To_Network(&dest, -1, -1);
     }
