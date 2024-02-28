@@ -31,6 +31,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/proplist.h"
+#include "bacnet/rp.h"
 /*
  * Bundle together commonly used data items for convenience when calling
  * rpm helper functions.
@@ -184,6 +185,12 @@ extern "C" {
         unsigned apdu_len,
         BACNET_PROPERTY_ID * object_property,
         BACNET_ARRAY_INDEX * array_index);
+    void rpm_ack_object_property_process(
+        uint8_t *apdu,
+        unsigned apdu_len,
+        uint32_t device_id,
+        BACNET_READ_PROPERTY_DATA *rp_data,
+        read_property_ack_process callback);
 
 #ifdef __cplusplus
 }

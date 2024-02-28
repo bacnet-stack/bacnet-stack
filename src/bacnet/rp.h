@@ -57,6 +57,10 @@ typedef int (
     *read_property_function) (
     BACNET_READ_PROPERTY_DATA * rp_data);
 
+typedef void (
+    *read_property_ack_process) (
+    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
