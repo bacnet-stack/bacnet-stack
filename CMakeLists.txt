@@ -34,6 +34,11 @@ option(
   "compile the bacpoll app"
   ON)
 
+  option(
+    BACNET_BUILD_BACDISCOVER_APP
+    "compile the bacdiscover app"
+    ON)
+
 option(
   BACDL_ETHERNET
   "compile with ethernet support"
@@ -69,6 +74,18 @@ set(BACNET_PROTOCOL_REVISION 19)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
+
+# Build types
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    message(STATUS "Maximum optimization for speed")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+    message(STATUS "Maximum optimization for speed, debug info included")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
+    message(STATUS "Maximum optimization for size")
+else ()
+    message(STATUS "Minimal optimization, debug info included")
+    add_compile_definitions(DEBUG_ENABLED=1)
+endif ()
 
 option(
   BACNET_STACK_DEPRECATED_DISABLE 
@@ -670,6 +687,14 @@ if(BACNET_STACK_BUILD_APPS)
         src/bacnet/basic/client/bac-rw.c)
     target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_BACPOLL_APP)
+
+  if(BACNET_BUILD_BACDISCOVER_APP)
+  add_executable(bacdiscover
+        apps/server-discover/main.c
+        src/bacnet/basic/client/bac-discover.c
+        src/bacnet/basic/client/bac-rw.c)
+  target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+  endif(BACNET_BUILD_BACDISCOVER_APP)
 
   if(NOT BACDL_ETHERNET)
     add_executable(readbdt apps/readbdt/main.c)

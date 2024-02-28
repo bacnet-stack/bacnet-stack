@@ -45,7 +45,6 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #if defined(BACDL_MSTP)
 #include "rs485.h"

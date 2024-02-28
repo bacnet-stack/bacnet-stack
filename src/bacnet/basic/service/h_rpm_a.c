@@ -62,6 +62,7 @@ int rpm_ack_decode_service_request(
     int len = 0; /* number of bytes returned from decoding */
     uint8_t tag_number = 0; /* decoded tag number */
     uint32_t len_value = 0; /* decoded length value */
+    int data_len = 0; /* data blob length */
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -110,6 +111,8 @@ int rpm_ack_decode_service_request(
             apdu_len -= len;
             apdu += len;
             if (apdu_len && decode_is_opening_tag_number(apdu, 4)) {
+                data_len = bacapp_data_len(apdu, (unsigned)apdu_len, 
+                    rpm_property->propertyIdentifier);
                 /* propertyValue */
                 decoded_len++;
                 apdu_len--;
@@ -121,7 +124,7 @@ int rpm_ack_decode_service_request(
 
                 /* Special case for an empty array - we decode it as null */
                 if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
-                    /* NULL value has tag 0, that was already set by calloc */
+                    bacapp_value_list_init(value, 1);
                     decoded_len++;
                     apdu_len--;
                     apdu++;
@@ -134,13 +137,19 @@ int rpm_ack_decode_service_request(
                          * OK. */
                         if (len < 0) {
                             /* problem decoding */
-                            PERROR("RPM Ack: unable to decode! %s:%s\n",
-                                bactext_object_type_name(
-                                    rpm_object->object_type),
-                                bactext_property_name(
-                                    rpm_property->propertyIdentifier));
-                            /* note: caller will free the memory */
-                            return BACNET_STATUS_ERROR;
+                            if (data_len >= 0) {
+                                /* valid data that we'll skip over */
+                                len = data_len;
+                                bacapp_value_list_init(value, 1);
+                            } else {
+                                PERROR("RPM Ack: unable to decode! %s:%s\n",
+                                    bactext_object_type_name(
+                                        rpm_object->object_type),
+                                    bactext_property_name(
+                                        rpm_property->propertyIdentifier));
+                                /* note: caller will free the memory */
+                                return BACNET_STATUS_ERROR;
+                            }
                         }
                         decoded_len += len;
                         apdu_len -= len;

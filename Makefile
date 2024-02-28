@@ -157,6 +157,14 @@ netnumis:
 server:
 	$(MAKE) -s -C apps $@
 
+.PHONY: server-client
+server-client:
+	$(MAKE) LEGACY=true -s -C apps $@
+
+.PHONY: server-discover
+server-discover:
+	$(MAKE) LEGACY=true -s -C apps $@
+
 .PHONY: mstpcap
 mstpcap:
 	$(MAKE) -s -C apps $@
