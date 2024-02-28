@@ -403,7 +403,7 @@ writefile: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: router
-router: $(BACNET_LIB_TARGET)
+router:
 	$(MAKE) -B -C $@
 
 .PHONY: router-ipv6

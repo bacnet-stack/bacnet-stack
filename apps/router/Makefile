@@ -1,4 +1,6 @@
 #Makefile to build BACnet Application for the Linux Port
+# Note: requires libconfig-dev to be installed
+#       sudo apt-get install -qq libconfig-dev
 
 # tools - only if you need them.
 # Most platforms have this already defined
@@ -10,14 +12,11 @@ TARGET = router
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
 ifeq (${BACNET_PORT},linux)
-#PFLAGS =
-# -pthread
 TARGET_EXT =
 LIBS = -lpthread -lconfig -lm
-LFLAGS += $(LIBS)
+LFLAGS = $(LIBS)
 endif
 
-#DEFINES = $(BACNET_DEFINES) -DBACDL_MSTP -DBACDL_BIP
 SOURCE_DIR = ../../src
 BACNET_SOURCE_DIR = ${SOURCE_DIR}/bacnet
 
@@ -42,6 +41,7 @@ SRCS = main.c \
 	${BACNET_SOURCE_DIR}/bacstr.c \
 	${BACNET_SOURCE_DIR}/npdu.c \
 	${BACNET_SOURCE_DIR}/bacaddr.c \
+	${BACNET_SOURCE_DIR}/hostnport.c \
 	mstpmodule.c \
 	ipmodule.c \
 	portthread.c \
@@ -51,14 +51,16 @@ SRCS = main.c \
 # note: router does not use common libbacnet.a library, 
 # so use CFLAGS without common app defines or includes
 CFLAGS = -I${SOURCE_DIR} -I${BACNET_PORT_DIR}
-CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(CSTANDARD)
+CFLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+CFLAGS += -std=gnu99
+CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION)
 
 OBJS = ${SRCS:.c=.o}
 
 all: Makefile ${TARGET_BIN}
 
 ${TARGET_BIN}: ${OBJS} Makefile
-	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
+	${CC} ${OBJS} ${LFLAGS} -o $@
 	size $@
 	cp $@ ../../bin
 
