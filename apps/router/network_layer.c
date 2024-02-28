@@ -116,6 +116,8 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
                 case 4:
                     PRINT(ERROR, "Error: Message too long\n");
                     break;
+                default:
+                    break;
             }
             break;
         }
