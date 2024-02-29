@@ -24,21 +24,28 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
-* Secured bacapp_decode_application_data_safe(),bacapp_decode_application_data_len(), bacapp_decode_context_data(), bacapp_decode_known_property() for timestamp,
-bacapp_decode_context_data_len(), and bacapp_data_len() functions. (#578)
+* Secured bacapp_decode_application_data_safe(),bacapp_decode_application_data_len(),
+  bacapp_decode_context_data(), bacapp_decode_known_property() for timestamp,
+  bacapp_decode_context_data_len(), and bacapp_data_len() functions. (#578)
 
 ### Added
 
-* Added an example application to discover devices and their objects and properties on a specific destination network. The application uses a BACnet Discovery FSM module along with the BACnet R/W FSM. The BACnet Discovery module stores the binary property data in Keylists and includes device object property queries and iterators. (#583)
+* Added a BASH script for parallel EPICS clients registering as foreign devices
+  to a BBMD (#586)
+* Added an example application - bacdiscover - to discover devices and their
+  objects and properties on a specific destination network. The application
+  uses a BACnet Discovery FSM module along with the BACnet R/W FSM.
+  The BACnet Discovery module stores the binary property data in Keylists
+  and includes device object property queries and iterators. (#583)
 * Added callback from BACnet R/W FSM module for I-Am messages. (#583)
-* Added an example application - bacapdu - to send an arbitrary 
-APDU string of hex-ASCII. (#580)
+* Added an example application - bacapdu - to send an arbitrary
+  APDU string of hex-ASCII. (#580)
 * Added a clean target recipe in apps to remove stale libbacnet.a file.
 * Added missing binary input functions to set custom object names. (#574)
 * Added Keylist_Index_Key to deprecate Keylist_Key function in
-keylist module. Added unit test for Keylist_Index_Key API. Changed
-modules using Keylist_Key. Changed keylist module to use bool and
-stdint value for key not found. (#572)
+  keylist module. Added unit test for Keylist_Index_Key API. Changed
+  modules using Keylist_Key. Changed keylist module to use bool and
+  stdint value for key not found. (#572)
 * Added missing object functions to analog inputs and values. (#568)
 
 ### Changed
