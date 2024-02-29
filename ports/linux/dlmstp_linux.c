@@ -563,10 +563,10 @@ uint16_t MSTP_Get_Reply(
     struct mstp_pdu_packet *pkt;
     SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
 
+    (void)timeout;
     if (!poSharedData) {
         return 0;
     }
-
     if (Ringbuf_Empty(&poSharedData->PDU_Queue)) {
         return 0;
     }
