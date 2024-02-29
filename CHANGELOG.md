@@ -54,6 +54,7 @@ stdint value for key not found. (#572)
 
 ### Fixed
 
+* Fixed makefile for building the Linux router application. (#585)
 * Fixed Command, Credential Data Input, and Schedule objects unit tests. (#578)
 * Fixed apps/Makefile to use apps/lib/libbacnet.a library file instead of
   a library file in system /usr/lib folder.
