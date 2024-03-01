@@ -38,10 +38,9 @@
 #include "bacnet/apdu.h"
 #include "bacnet/dcc.h"
 #include "bacnet/wpm.h"
-/* some demo stuff needed */
+/* basic services, TSM, binding, and datalink */
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 

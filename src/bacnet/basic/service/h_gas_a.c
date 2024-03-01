@@ -43,8 +43,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/get_alarm_sum.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 

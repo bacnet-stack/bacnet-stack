@@ -35,8 +35,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/readrange.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
@@ -70,7 +69,7 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     pRequest->error_code = ERROR_CODE_OTHER;
 
     /* handle each object type */
-    info_fn_ptr = Device_Objects_RR_Info(pRequest->object_type);
+    info_fn_ptr = handler_device_object_read_range_info(pRequest->object_type);
 
     if ((info_fn_ptr != NULL) && (info_fn_ptr(pRequest, &PropInfo) != false)) {
         /* We try and do some of the more generic error checking here to cut

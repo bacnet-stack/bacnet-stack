@@ -32,10 +32,9 @@
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/dcc.h"
-/* some demo stuff needed */
+/* basic services, TSM, binding, and datalink */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
 

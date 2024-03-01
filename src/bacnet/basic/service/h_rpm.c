@@ -40,7 +40,6 @@
 #include "bacnet/bacerror.h"
 #include "bacnet/rpm.h"
 /* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
@@ -137,7 +136,7 @@ static int RPM_Encode_Property(
         /* special properties only get ERROR encoding */
         len = BACNET_STATUS_ERROR;
     } else {
-        len = Device_Read_Property(&rpdata);
+        len = handler_device_read_property(&rpdata);
     }
 
     if (len < 0) {
@@ -249,7 +248,8 @@ void handler_read_property_multiple(uint8_t *service_request,
                 /* Test for case of indefinite Device object instance */
                 if ((rpmdata.object_type == OBJECT_DEVICE) &&
                     (rpmdata.object_instance == BACNET_MAX_INSTANCE)) {
-                    rpmdata.object_instance = Device_Object_Instance_Number();
+                    rpmdata.object_instance = 
+                        handler_device_object_instance_number();
                 }
 #if (BACNET_PROTOCOL_REVISION >= 17)
                 /* When the object-type in the Object Identifier parameter
@@ -310,8 +310,9 @@ void handler_read_property_multiple(uint8_t *service_request,
                         unsigned index = 0;
                         BACNET_PROPERTY_ID special_object_property;
 
-                        if (!Device_Valid_Object_Id(rpmdata.object_type,
-                                                    rpmdata.object_instance)) {
+                        if (!handler_device_object_instance_valid(
+                            rpmdata.object_type,
+                            rpmdata.object_instance)) {
                             len = RPM_Encode_Property(
                                 &Handler_Transmit_Buffer[npdu_len],
                                 (uint16_t)apdu_len, MAX_APDU, &rpmdata);
@@ -377,7 +378,7 @@ void handler_read_property_multiple(uint8_t *service_request,
                             apdu_len += len;
                         } else {
                             special_object_property = rpmdata.object_property;
-                            Device_Objects_Property_List(rpmdata.object_type,
+                            handler_device_object_property_list(rpmdata.object_type,
                                 rpmdata.object_instance, &property_list);
                             property_count = RPM_Object_Property_Count(
                                 &property_list, special_object_property);
@@ -391,8 +392,9 @@ void handler_read_property_multiple(uint8_t *service_request,
                                    an empty 'List of Results' shall be returned
                                    for the specified property, except if the
                                    object does not exist. */
-                                if (!Device_Valid_Object_Id(rpmdata.object_type,
-                                  rpmdata.object_instance)) {
+                                if (!handler_device_object_instance_valid(
+                                    rpmdata.object_type,
+                                    rpmdata.object_instance)) {
                                     len = RPM_Encode_Property(
                                         &Handler_Transmit_Buffer[npdu_len],
                                         (uint16_t)apdu_len, MAX_APDU, &rpmdata);

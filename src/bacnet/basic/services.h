@@ -33,6 +33,9 @@
 /* application layer binding handler */
 #include "bacnet/basic/binding/address.h"
 
+/* application layer device handler */
+#include "bacnet/basic/service/h_device.h"
+
 /* application layer service handler */
 #include "bacnet/basic/service/h_alarm_ack.h"
 #include "bacnet/basic/service/h_apdu.h"

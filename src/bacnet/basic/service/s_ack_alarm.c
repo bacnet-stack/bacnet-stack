@@ -34,9 +34,7 @@
 #include "bacnet/dcc.h"
 #include "bacnet/whois.h"
 #include "bacnet/alarm_ack.h"
-/* some demo stuff needed */
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, debug, and datalink */
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"

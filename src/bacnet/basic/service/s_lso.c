@@ -34,11 +34,11 @@
 #include "bacnet/dcc.h"
 #include "bacnet/whois.h"
 #include "bacnet/lso.h"
-/* some demo stuff needed */
+/* basic services, TSM, binding, and datalink */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, binding, and datalink */
 #include "bacnet/datalink/datalink.h"
 
 /** @file s_lso.c  Send BACnet Life Safety Operation message. */

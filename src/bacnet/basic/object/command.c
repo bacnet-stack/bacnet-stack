@@ -48,7 +48,6 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/bactext.h"
 #include "bacnet/config.h" /* the custom stuff */
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/lighting.h"
 #include "bacnet/proplist.h"

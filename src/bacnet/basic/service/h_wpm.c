@@ -37,8 +37,7 @@
 #include "bacnet/wp.h"
 #include "bacnet/reject.h"
 #include "bacnet/wpm.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
@@ -128,7 +127,7 @@ static int write_property_multiple_decode(uint8_t *apdu,
     return len;
 }
 
-/** Handler for a WriteProperty Service request.
+/** Handler for a WritePropertyMultiple Service request.
  * @ingroup DSWP
  * This handler will be invoked by apdu_handler() if it has been enabled
  * by a call to apdu_set_confirmed_handler().
@@ -136,8 +135,8 @@ static int write_property_multiple_decode(uint8_t *apdu,
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
- * - an ACK if Device_Write_Property_Multiple() succeeds
- * - an Error if Device_Write_PropertyMultiple() encounters an error
+ * - an ACK if WritePropertyMultiple succeeds
+ * - an Error if WritePropertyMultiple encounters an error
  *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
@@ -169,7 +168,8 @@ void handler_write_property_multiple(uint8_t *service_request,
             service_request, service_len, &wp_data, NULL);
         if (len > 0) {
             len = write_property_multiple_decode(
-                service_request, service_len, &wp_data, Device_Write_Property);
+                service_request, service_len, &wp_data, 
+                handler_device_write_property);
         }
     }
     /* encode the confirmed reply */

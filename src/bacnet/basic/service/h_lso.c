@@ -37,7 +37,6 @@
 /* basic objects, services, TSM, and datalink */
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 
 /** @file h_lso.c  Handles BACnet Life Safey Operation messages. */

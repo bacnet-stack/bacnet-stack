@@ -35,7 +35,6 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/bactext.h"
 #include "bacnet/config.h" /* the custom stuff */
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
@@ -913,6 +912,7 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     float ExceededLimit = 0.0f;
     float PresentVal = 0.0f;
     bool SendNotify = false;
+    BACNET_DATE_TIME *bdatetime;
 
     object_index = Analog_Input_Instance_To_Index(object_instance);
     if (object_index < MAX_ANALOG_INPUTS) {
@@ -1092,7 +1092,8 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         /* Time Stamp */
         event_data.timeStamp.tag = TIME_STAMP_DATETIME;
         if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
-            Device_getCurrentDateTime(&event_data.timeStamp.value.dateTime);
+            bdatetime = &event_data.timeStamp.value.dateTime;
+            datetime_local(&bdatetime->date, &bdatetime->time, NULL, NULL);
             /* fill Event_Time_Stamps */
             switch (ToState) {
                 case EVENT_STATE_HIGH_LIMIT:

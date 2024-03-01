@@ -22,8 +22,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/list_element.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
@@ -37,8 +36,8 @@
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
- * - a SimpleACK if Device_Add_List_Element() succeeds
- * - an Error if Device_Add_List_Element() fails
+ * - a SimpleACK if AddListElement succeeds
+ * - an Error if AddListElement fails
  *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
@@ -94,7 +93,7 @@ void handler_add_list_element(uint8_t *service_request,
             status = false;
         }
         if (status) {
-            if (Device_Add_List_Element(&list_element)) {
+            if (handler_device_object_list_element_add(&list_element)) {
                 len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_ADD_LIST_ELEMENT);
@@ -127,8 +126,8 @@ void handler_add_list_element(uint8_t *service_request,
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
- * - a SimpleACK if Device_Remove_List_Element() succeeds
- * - an Error if Device_Remove_List_Element() fails
+ * - a SimpleACK if RemoveListElement succeeds
+ * - an Error if RemoveListElement fails
  *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
@@ -184,7 +183,7 @@ void handler_remove_list_element(uint8_t *service_request,
             status = false;
         }
         if (status) {
-            if (Device_Remove_List_Element(&list_element)) {
+            if (handler_device_object_list_element_remove(&list_element)) {
                 len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT);

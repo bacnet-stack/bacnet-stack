@@ -26,9 +26,9 @@
 #include <stdint.h>
 #include <errno.h>
 #include "bacnet/event.h"
+/* basic services and datalink */
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/object/device.h"
 
 /** @file s_uevent.c  Send an Unconfirmed Event Notification. */
 

@@ -21,8 +21,7 @@
 #include "bacnet/abort.h"
 #include "bacnet/reject.h"
 #include "bacnet/delete_object.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
@@ -36,8 +35,8 @@
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
- * - a SimpleACK if Device_Delete_Object() succeeds
- * - an Error if Device_Delete_Object() fails
+ * - a SimpleACK if DeleteObject-Request succeeds
+ * - an Error if DeleteObject-Request fails
  *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
@@ -90,7 +89,7 @@ void handler_delete_object(uint8_t *service_request,
             status = false;
         }
         if (status) {
-            if (Device_Delete_Object(&data)) {
+            if (handler_device_object_delete(&data)) {
                 len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id,
                     SERVICE_CONFIRMED_DELETE_OBJECT);

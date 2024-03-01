@@ -40,7 +40,6 @@
 #include "bacnet/rp.h" /* ReadProperty handling */
 #include "bacnet/dcc.h" /* DeviceCommunicationControl handling */
 #include "bacnet/version.h"
-#include "bacnet/basic/object/device.h" /* me */
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
@@ -1060,39 +1059,11 @@ int Device_Object_List_Element_Encode(
  * Object.
  * @return True on success or else False if not found.
  */
-bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
+bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {
-    bool found = false;
-    BACNET_OBJECT_TYPE type = OBJECT_NONE;
-    uint32_t instance;
-    uint32_t max_objects = 0, i = 0;
-    bool check_id = false;
-    BACNET_CHARACTER_STRING object_name2;
-    struct object_functions *pObject = NULL;
-
-    max_objects = Device_Object_List_Count();
-    for (i = 1; i <= max_objects; i++) {
-        check_id = Device_Object_List_Identifier(i, &type, &instance);
-        if (check_id) {
-            pObject = Device_Objects_Find_Functions(type);
-            if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
-                (pObject->Object_Name(instance, &object_name2) &&
-                    characterstring_same(object_name1, &object_name2))) {
-                found = true;
-                if (object_type) {
-                    *object_type = type;
-                }
-                if (object_instance) {
-                    *object_instance = instance;
-                }
-                break;
-            }
-        }
-    }
-
-    return found;
+    return handler_device_valid_object_name(object_name, object_type, object_instance);
 }
 
 /** Determine if we have an object of this type and instance number.
@@ -2165,28 +2136,7 @@ bool Device_Delete_Object(BACNET_DELETE_OBJECT_DATA *data)
 #if defined(INTRINSIC_REPORTING)
 void Device_local_reporting(void)
 {
-    struct object_functions *pObject = NULL;
-    uint32_t objects_count = 0;
-    uint32_t object_instance = 0;
-    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
-    uint32_t idx = 0;
-
-    objects_count = Device_Object_List_Count();
-
-    /* loop for all objects */
-    for (idx = 1; idx <= objects_count; idx++) {
-        Device_Object_List_Identifier(idx, &object_type, &object_instance);
-
-        pObject = Device_Objects_Find_Functions(object_type);
-        if (pObject != NULL) {
-            if (pObject->Object_Valid_Instance &&
-                pObject->Object_Valid_Instance(object_instance)) {
-                if (pObject->Object_Intrinsic_Reporting) {
-                    pObject->Object_Intrinsic_Reporting(object_instance);
-                }
-            }
-        }
-    }
+    handler_device_intrinsic_reporting();
 }
 #endif
 
@@ -2224,17 +2174,11 @@ void Device_Init(object_functions_t *object_table)
     characterstring_init_ansi(&My_Object_Name, "SimpleServer");
     datetime_init();
     if (object_table) {
-        Object_Table = object_table;
+        handler_device_object_table_set(object_table);
     } else {
-        Object_Table = &My_Object_Table[0];
+        handler_device_object_table_set(&My_Object_Table[0]);
     }
-    pObject = Object_Table;
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Init) {
-            pObject->Object_Init();
-        }
-        pObject++;
-    }
+    handler_device_object_init();
     /* create some dynamically created objects as examples */
     if (!object_table) {
         pObject = Object_Table;
@@ -2245,14 +2189,17 @@ void Device_Init(object_functions_t *object_table)
             pObject++;
         }
     }
-#if (BACNET_PROTOCOL_REVISION >= 14)
-    Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
-#endif
 }
 
-bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
+/**
+ * @brief Get list property info with ReadRangeInfo-Request
+ * @param pRequest [in] BACNET_READ_RANGE_DATA object
+ * @param pInfo [out] RR_PROP_INFO object
+ * @return true if the property is supported and the request is valid
+*/
+bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest,
     RR_PROP_INFO *pInfo)
-{ /* Where to put the response */
+{
     bool status = false; /* return value */
 
     switch (pRequest->object_property) {
@@ -2295,25 +2242,7 @@ bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
  */
 void Device_Timer(uint16_t milliseconds)
 {
-    struct object_functions *pObject;
-    unsigned count = 0;
-    uint32_t instance;
-
-    pObject = Object_Table;
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Count) {
-            count = pObject->Object_Count();
-        }
-        while (count) {
-            count--;
-            if ((pObject->Object_Timer) &&
-                (pObject->Object_Index_To_Instance)) {
-                instance = pObject->Object_Index_To_Instance(count);
-                pObject->Object_Timer(instance, milliseconds);
-            }
-        }
-        pObject++;
-    }
+    handler_device_timer(milliseconds);
 }
 
 #ifdef BAC_ROUTING

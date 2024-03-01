@@ -1770,4 +1770,6 @@ void Channel_Cleanup(void)
 void Channel_Init(void)
 {
     Object_List = Keylist_Create();
+    Channel_Write_Property_Internal_Callback_Set(
+        handler_device_write_property);
 }

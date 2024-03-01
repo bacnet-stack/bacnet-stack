@@ -25,25 +25,22 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h> /* for memmove */
+#include <string.h>
+#include "bacnet/apdu.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
-#include "bacnet/apdu.h"
-#include "bacnet/wp.h" /* write property handling */
-#include "bacnet/version.h"
-#include "bacnet/basic/object/device.h" /* me */
-#include "bacnet/basic/services.h"
-#include "bacnet/datalink/datalink.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/bacdevobjpropref.h"
-#include "bacnet/basic/object/trendlog.h"
+#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/datetime.h"
+#include "bacnet/version.h"
+#include "bacnet/wp.h"
+#include "bacnet/basic/services.h"
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h" /* object list dependency */
 #endif
+#include "bacnet/basic/object/trendlog.h"
 
 /* number of demo objects */
 #ifndef MAX_TREND_LOGS
@@ -147,7 +144,8 @@ static bacnet_time_t Trend_Log_Epoch_Seconds_Now(void)
 {
     BACNET_DATE_TIME bdatetime;
 
-    Device_getCurrentDateTime(&bdatetime);
+    datetime_local(&bdatetime.date, &bdatetime.time, NULL, NULL);
+
     return datetime_seconds_since_epoch(&bdatetime);
 }
 
@@ -219,7 +217,7 @@ void Trend_Log_Init(void)
             LogInfo[iLog].ulTotalRecordCount = 10000;
 
             LogInfo[iLog].Source.deviceIdentifier.instance =
-                Device_Object_Instance_Number();
+                handler_device_object_instance_number();
             LogInfo[iLog].Source.deviceIdentifier.type = OBJECT_DEVICE;
             LogInfo[iLog].Source.objectIdentifier.instance = iLog;
             LogInfo[iLog].Source.objectIdentifier.type = OBJECT_ANALOG_INPUT;
@@ -691,7 +689,7 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* We only support references to objects in ourself for now */
             if ((TempSource.deviceIdentifier.type == OBJECT_DEVICE) &&
                 (TempSource.deviceIdentifier.instance !=
-                    Device_Object_Instance_Number())) {
+                    handler_device_object_instance_number())) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code =
                     ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
@@ -1531,7 +1529,7 @@ static int local_read_property(uint8_t *value,
         rpdata.object_property = Source->propertyIdentifier;
         rpdata.array_index = Source->arrayIndex;
         /* Try to fetch the required property */
-        len = Device_Read_Property(&rpdata);
+        len = handler_device_read_property(&rpdata);
         if (len < 0) {
             *error_class = rpdata.error_class;
             *error_code = rpdata.error_code;
@@ -1544,7 +1542,7 @@ static int local_read_property(uint8_t *value,
         rpdata.application_data_len = MAX_APDU;
         rpdata.object_property = PROP_STATUS_FLAGS;
         rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Device_Read_Property(&rpdata);
+        len = handler_device_read_property(&rpdata);
         if (len < 0) {
             *error_class = rpdata.error_class;
             *error_code = rpdata.error_code;

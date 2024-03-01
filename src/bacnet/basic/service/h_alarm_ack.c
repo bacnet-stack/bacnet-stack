@@ -38,8 +38,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/alarm_ack.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
@@ -132,7 +131,7 @@ void handler_alarm_ack(uint8_t *service_request,
             Revealed by BACnet Test Client v1.8.16 (
        www.bac-test.com/bacnet-test-client-download ) BC 135.1: 9.1.3.3-A Any
        discussions can be directed to edward@bac-test.com */
-    if (!Device_Valid_Object_Id(data.eventObjectIdentifier.type,
+    if (!handler_device_object_instance_valid(data.eventObjectIdentifier.type,
             data.eventObjectIdentifier.instance)) {
         len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,

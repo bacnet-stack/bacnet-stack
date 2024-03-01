@@ -33,23 +33,23 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdest.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/config.h"
 #include "bacnet/datetime.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/event.h"
+#include "bacnet/wp.h"
+/* basic binding, services, debug, TSM, and datalink */
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/wp.h"
-#include "bacnet/basic/object/nc.h"
 #include "bacnet/datalink/datalink.h"
+/* me */
+#include "bacnet/basic/object/nc.h"
 
 #define PRINTF debug_perror
 
@@ -558,7 +558,7 @@ void Notification_Class_common_reporting_function(
     /* Initiating Device Identifier */
     event_data->initiatingObjectIdentifier.type = OBJECT_DEVICE;
     event_data->initiatingObjectIdentifier.instance =
-        Device_Object_Instance_Number();
+        handler_device_object_instance_number();
 
     /* Priority and AckRequired */
     switch (event_data->toState) {

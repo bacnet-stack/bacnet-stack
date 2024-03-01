@@ -31,7 +31,6 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/bactext.h"
 #include "bacnet/config.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
@@ -65,6 +64,34 @@ void Schedule_Property_Lists(
     if (pProprietary) {
         *pProprietary = Schedule_Properties_Proprietary;
     }
+}
+
+/**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    (void)object_instance;
+    Schedule_Property_Lists(
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
 }
 
 void Schedule_Init(void)
@@ -144,13 +171,11 @@ bool Schedule_Object_Name(
     return status;
 }
 
-/* 	BACnet Testing Observed Incident oi00106
-        Out of service was not supported by Schedule object
-        Revealed by BACnet Test Client v1.8.16 (
-   www.bac-test.com/bacnet-test-client-download ) BITS: BIT00032 Any discussions
-   can be directed to edward@bac-test.com Please feel free to remove this
-   comment when my changes accepted after suitable time for review by all
-   interested parties. Say 6 months -> September 2016 */
+/**
+ * @brief Set the Out-of-Service property of a Schedule object
+ * @param object_instance - object-instance number of the object
+ * @param value - value to be set
+ */
 void Schedule_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     unsigned index = 0;
@@ -303,24 +328,11 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
 bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    /* Ed->Steve, I know that initializing stack values used to be 'safer', but
-       warnings in latest compilers indicate when uninitialized values are being
-       used, and I think that the warnings are more useful to reveal bad code
-       flow than the "safety: of pre-intializing variables. Please give this
-       some thought let me know if you agree we should start to remove
-       initializations */
     unsigned object_index;
     bool status = false; /* return value */
     int len;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    /* 	BACnet Testing Observed Incident oi00106
-            Out of service was not supported by Schedule object
-            Revealed by BACnet Test Client v1.8.16 (
-       www.bac-test.com/bacnet-test-client-download ) BITS: BIT00032 Any
-       discussions can be directed to edward@bac-test.com Please feel free to
-       remove this comment when my changes accepted after suitable time for
-            review by all interested parties. Say 6 months -> September 2016 */
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
@@ -331,23 +343,12 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-
     object_index = Schedule_Instance_To_Index(wp_data->object_instance);
     if (object_index >= MAX_SCHEDULES) {
         return false;
     }
-
     switch ((int)wp_data->object_property) {
         case PROP_OUT_OF_SERVICE:
-            /* 	BACnet Testing Observed Incident oi00106
-                    Out of service was not supported by Schedule object
-                    Revealed by BACnet Test Client v1.8.16 (
-               www.bac-test.com/bacnet-test-client-download ) BITS: BIT00032 Any
-               discussions can be directed to edward@bac-test.com Please feel
-               free to remove this comment when my changes accepted after
-               suitable time for
-                    review by all interested parties. Say 6 months -> September
-               2016 */
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
@@ -355,24 +356,15 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
-
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_PRESENT_VALUE:
-        case PROP_EFFECTIVE_PERIOD:
-        case PROP_WEEKLY_SCHEDULE:
-        case PROP_SCHEDULE_DEFAULT:
-        case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-        case PROP_PRIORITY_FOR_WRITING:
-        case PROP_STATUS_FLAGS:
-        case PROP_RELIABILITY:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

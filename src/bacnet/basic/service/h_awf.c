@@ -37,7 +37,6 @@
 #include "bacnet/abort.h"
 #include "bacnet/awf.h"
 /* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"

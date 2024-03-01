@@ -36,8 +36,7 @@
 #include "bacnet/abort.h"
 #include "bacnet/event.h"
 #include "bacnet/getevent.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"

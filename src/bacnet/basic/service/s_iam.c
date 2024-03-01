@@ -33,10 +33,9 @@
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/iam.h"
-/* some demo stuff needed */
+/* basic services, TSM, binding, and datalink */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
 
@@ -101,7 +100,8 @@ int iam_encode_pdu(
     pdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
 
     /* encode the APDU portion of the packet */
-    len = iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
+    len = iam_encode_apdu(&buffer[pdu_len], 
+        handler_device_object_instance_number(),
         MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len += len;
 
@@ -172,7 +172,8 @@ int iam_unicast_encode_pdu(uint8_t *buffer,
     npdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
     /* encode the APDU portion of the packet */
     apdu_len =
-        iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
+        iam_encode_apdu(&buffer[npdu_len], 
+            handler_device_object_instance_number(),
             MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len = npdu_len + apdu_len;
 

@@ -41,9 +41,8 @@
 #if PRINT_ENABLED
 #include "bacnet/bactext.h"
 #endif
-/* basic objects, services, TSM, and datalink */
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 
@@ -470,7 +469,8 @@ static bool cov_send_request(BACNET_COV_SUBSCRIPTION *cov_subscription,
     /* load the COV data structure for outgoing message */
     cov_data.subscriberProcessIdentifier =
         cov_subscription->subscriberProcessIdentifier;
-    cov_data.initiatingDeviceIdentifier = Device_Object_Instance_Number();
+    cov_data.initiatingDeviceIdentifier = 
+        handler_device_object_instance_number();
     cov_data.monitoredObjectIdentifier.type =
         cov_subscription->monitoredObjectIdentifier.type;
     cov_data.monitoredObjectIdentifier.instance =
@@ -622,7 +622,8 @@ bool handler_cov_fsm(void)
                                   .monitoredObjectIdentifier.type;
                 object_instance =
                     COV_Subscriptions[index].monitoredObjectIdentifier.instance;
-                status = Device_COV(object_type, object_instance);
+                status = handler_device_object_cov(object_type, 
+                    object_instance);
                 if (status) {
                     COV_Subscriptions[index].flag.send_requested = true;
 #if PRINT_ENABLED
@@ -644,7 +645,7 @@ bool handler_cov_fsm(void)
                                   .monitoredObjectIdentifier.type;
                 object_instance =
                     COV_Subscriptions[index].monitoredObjectIdentifier.instance;
-                Device_COV_Clear(object_type, object_instance);
+                handler_device_object_cov_clear(object_type, object_instance);
             }
             index++;
             if (index >= MAX_COV_SUBCRIPTIONS) {
@@ -697,7 +698,7 @@ bool handler_cov_fsm(void)
                     /* configure the linked list for the two properties */
                     bacapp_property_value_list_init(
                         &value_list[0], MAX_COV_PROPERTIES);
-                    status = Device_Encode_Value_List(
+                    status = handler_device_object_value_list(
                         object_type, object_instance, &value_list[0]);
                     if (status) {
                         status = cov_send_request(
@@ -738,9 +739,9 @@ static bool cov_subscribe(BACNET_ADDRESS *src,
 
     object_type = (BACNET_OBJECT_TYPE)cov_data->monitoredObjectIdentifier.type;
     object_instance = cov_data->monitoredObjectIdentifier.instance;
-    status = Device_Valid_Object_Id(object_type, object_instance);
+    status = handler_device_object_instance_valid(object_type, object_instance);
     if (status) {
-        status = Device_Value_List_Supported(object_type);
+        status = handler_device_object_value_list_supported(object_type);
         if (status) {
             status = cov_list_subscribe(src, cov_data, error_class, error_code);
         } else if (cov_data->cancellationRequest) {

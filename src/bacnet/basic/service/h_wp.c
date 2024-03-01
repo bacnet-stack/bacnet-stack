@@ -35,8 +35,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/wp.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
@@ -51,8 +50,8 @@
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
- * - an ACK if Device_Write_Property() succeeds
- * - an Error if Device_Write_Property() fails
+ * - an ACK if WriteProperty succeeds
+ * - an Error if WriteProperty fails
  *   or there isn't enough room in the APDU to fit the data.
  *
  * @param service_request [in] The contents of the service request.
@@ -118,7 +117,7 @@ void handler_write_property(uint8_t *service_request,
         }
 
         if (bcontinue) {
-            if (Device_Write_Property(&wp_data)) {
+            if (handler_device_write_property(&wp_data)) {
                 len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
 #if PRINT_ENABLED

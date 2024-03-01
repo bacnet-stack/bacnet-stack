@@ -28,8 +28,7 @@
 #include <string.h>
 #include "bacnet/event.h"
 #include "bacnet/dcc.h"
-/* some demo stuff needed */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, binding, and datalink */
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/binding/address.h"

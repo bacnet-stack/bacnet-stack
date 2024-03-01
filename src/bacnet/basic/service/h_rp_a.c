@@ -33,9 +33,8 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/bactext.h"
 #include "bacnet/rp.h"
-/* some demo stuff needed */
+/* basic binding, services, TSM, and debug */
 #include "bacnet/basic/binding/address.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/sys/debug.h"

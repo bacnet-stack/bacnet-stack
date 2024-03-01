@@ -33,8 +33,7 @@
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
 #endif
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 

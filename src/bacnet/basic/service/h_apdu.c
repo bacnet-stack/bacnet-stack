@@ -42,8 +42,7 @@
 #include "bacnet/bacerror.h"
 #include "bacnet/dcc.h"
 #include "bacnet/iam.h"
-/* basic objects, services, TSM */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 

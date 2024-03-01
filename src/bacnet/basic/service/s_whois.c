@@ -29,20 +29,14 @@
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/dcc.h"
 #include "bacnet/whois.h"
 #include "bacnet/bacenum.h"
-/* some demo stuff needed */
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/tsm/tsm.h"
+/* basic services and datalink */
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/services.h"
 
 /** @file s_whois.c  Send a Who-Is request. */
 

@@ -32,7 +32,6 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/whois.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 
@@ -58,8 +57,8 @@ void handler_who_is(
         Send_I_Am(&Handler_Transmit_Buffer[0]);
     } else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
-        if ((Device_Object_Instance_Number() >= (uint32_t)low_limit) &&
-            (Device_Object_Instance_Number() <= (uint32_t)high_limit)) {
+        if ((handler_device_object_instance_number() >= (uint32_t)low_limit) &&
+            (handler_device_object_instance_number() <= (uint32_t)high_limit)) {
             Send_I_Am(&Handler_Transmit_Buffer[0]);
         }
     }
@@ -89,8 +88,8 @@ void handler_who_is_unicast(
         Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
     } else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
-        if ((Device_Object_Instance_Number() >= (uint32_t)low_limit) &&
-            (Device_Object_Instance_Number() <= (uint32_t)high_limit)) {
+        if ((handler_device_object_instance_number() >= (uint32_t)low_limit) &&
+            (handler_device_object_instance_number() <= (uint32_t)high_limit)) {
             Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
         }
     }
@@ -140,7 +139,7 @@ static void check_who_is_for_routing(uint8_t *service_request,
     bcast_net.net = BACNET_BROADCAST_NETWORK; /* That's all we have to set */
 
     while (Routed_Device_GetNext(&bcast_net, my_list, &cursor)) {
-        dev_instance = Device_Object_Instance_Number();
+        dev_instance = handler_device_object_instance_number();
         /* If len == 0, no limits and always respond */
         if ((len == 0) ||
             ((dev_instance >= low_limit) && (dev_instance <= high_limit))) {

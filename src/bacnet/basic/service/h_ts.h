@@ -39,9 +39,25 @@
 #include "bacnet/datetime.h"
 #include "bacnet/wp.h"
 
+/**
+ * @brief Callback for timesync service
+ * @param bdate [in] The date to be set
+ * @param btime [in] The time to be set
+ */
+typedef void (*handler_timesync_callback)(
+    BACNET_DATE * bdate,
+    BACNET_TIME * btime);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    BACNET_STACK_EXPORT
+    void handler_timesync_callback_set(
+        handler_timesync_callback cb);
+    BACNET_STACK_EXPORT
+    void handler_timesync_utc_callback_set(
+        handler_timesync_callback cb);
 
     /* time synchronization handlers */
     BACNET_STACK_EXPORT
@@ -59,6 +75,18 @@ extern "C" {
     int handler_timesync_encode_recipients(
         uint8_t * apdu,
         int max_apdu);
+    BACNET_STACK_EXPORT
+    bool handler_timesync_align_intervals_set(bool flag);
+    BACNET_STACK_EXPORT
+    bool handler_timesync_align_intervals(void);
+    BACNET_STACK_EXPORT
+    bool handler_timesync_interval_set(uint32_t minutes);
+    BACNET_STACK_EXPORT
+    uint32_t handler_timesync_interval(void);
+    BACNET_STACK_EXPORT
+    bool handler_timesync_interval_offset_set(uint32_t minutes);
+    BACNET_STACK_EXPORT
+    uint32_t handler_timesync_interval_offset(void);
     BACNET_STACK_EXPORT
     void handler_timesync_task(BACNET_DATE_TIME *bdatetime);
     BACNET_STACK_EXPORT

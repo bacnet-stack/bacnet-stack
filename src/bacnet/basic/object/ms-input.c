@@ -35,7 +35,6 @@
 #include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/ms-input.h"
 #include "bacnet/basic/services.h"
 
@@ -607,23 +606,9 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
             if (status) {
-                /* All the object names in a device must be unique */
-                if (Device_Valid_Object_Name(&value.type.Character_String,
-                        &object_type, &object_instance)) {
-                    if ((object_type == wp_data->object_type) &&
-                        (object_instance == wp_data->object_instance)) {
-                        /* writing same name to same object */
-                        status = true;
-                    } else {
-                        status = false;
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
-                    }
-                } else {
-                    status = Multistate_Input_Object_Name_Write(
-                        wp_data->object_instance, &value.type.Character_String,
-                        &wp_data->error_class, &wp_data->error_code);
-                }
+                status = Multistate_Input_Object_Name_Write(
+                    wp_data->object_instance, &value.type.Character_String,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
         case PROP_DESCRIPTION:

@@ -31,7 +31,6 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/whohas.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 
@@ -52,20 +51,20 @@ static void match_name_or_object(BACNET_WHO_HAS_DATA *data)
        note: we should have only 1 of such an object */
     if (data->is_object_name) {
         /* valid name in my device? */
-        found = Device_Valid_Object_Name(
+        found = handler_device_valid_object_name(
             &data->object.name, &object_type, &object_instance);
         if (found) {
-            Send_I_Have(Device_Object_Instance_Number(),
+            Send_I_Have(handler_device_object_instance_number(),
                 (BACNET_OBJECT_TYPE)object_type, object_instance,
                 &data->object.name);
         }
     } else {
         /* valid object_name copy in my device? */
-        found = Device_Object_Name_Copy(
+        found = handler_device_object_name_copy(
             (BACNET_OBJECT_TYPE)data->object.identifier.type,
             data->object.identifier.instance, &object_name);
         if (found) {
-            Send_I_Have(Device_Object_Instance_Number(),
+            Send_I_Have(handler_device_object_instance_number(),
                 (BACNET_OBJECT_TYPE)data->object.identifier.type,
                 data->object.identifier.instance, &object_name);
         }
@@ -93,9 +92,10 @@ void handler_who_has(
     if (len > 0) {
         if ((data.low_limit == -1) || (data.high_limit == -1)) {
             directed_to_me = true;
-        } else if ((Device_Object_Instance_Number() >=
+        } else if ((handler_device_object_instance_number() >=
                        (uint32_t)data.low_limit) &&
-            (Device_Object_Instance_Number() <= (uint32_t)data.high_limit)) {
+            (handler_device_object_instance_number() <=
+                (uint32_t)data.high_limit)) {
             directed_to_me = true;
         }
         if (directed_to_me) {
@@ -139,7 +139,7 @@ void handler_who_has_for_routing(
         bcast_net.net =
             BACNET_BROADCAST_NETWORK; /* That's all we have to set */
         while (Routed_Device_GetNext(&bcast_net, my_list, &cursor)) {
-            dev_instance = Device_Object_Instance_Number();
+            dev_instance = handler_device_object_instance_number();
             if ((data.low_limit == -1) || (data.high_limit == -1) ||
                 ((dev_instance >= data.low_limit) &&
                     (dev_instance <= data.high_limit)))

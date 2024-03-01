@@ -42,7 +42,6 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
 #include "bacnet/config.h" /* the custom stuff */
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 /* me! */
 #include "bacnet/basic/object/iv.h"

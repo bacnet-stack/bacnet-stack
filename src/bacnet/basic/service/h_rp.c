@@ -37,11 +37,7 @@
 #include "bacnet/abort.h"
 #include "bacnet/reject.h"
 #include "bacnet/rp.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
-#if (BACNET_PROTOCOL_REVISION >= 17)
-#include "bacnet/basic/object/netport.h"
-#endif
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
@@ -57,8 +53,8 @@
  *   - the message is segmented
  *   - if decoding fails
  *   - if the response would be too large
- * - the result from Device_Read_Property(), if it succeeds
- * - an Error if Device_Read_Property() fails
+ * - the result from ReadProperty, if it succeeds
+ * - an Error if ReadProperty fails
  *   or there isn't enough room in the APDU to fit the data.
  *
  * @param service_request [in] The contents of the service request.
@@ -115,31 +111,8 @@ void handler_read_property(uint8_t *service_request,
             fprintf(stderr, "RP: Bad Encoding.\n");
 #endif
         } else {
-            /* When the object-type in the Object Identifier parameter
-               contains the value DEVICE and the instance in the 'Object
-               Identifier' parameter contains the value 4194303, the responding
-               BACnet-user shall treat the Object Identifier as if it correctly
-               matched the local Device object. This allows the device instance
-               of a device that does not generate I-Am messages to be
-               determined. */
-            if ((rpdata.object_type == OBJECT_DEVICE) &&
-                (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
-                rpdata.object_instance = Device_Object_Instance_Number();
-            }
-#if (BACNET_PROTOCOL_REVISION >= 17)
-            /* When the object-type in the Object Identifier parameter
-               contains the value NETWORK_PORT and the instance in the 'Object
-               Identifier' parameter contains the value 4194303, the responding
-               BACnet-user shall treat the Object Identifier as if it correctly
-               matched the local Network Port object representing the network
-               port through which the request was received. This allows the
-               network port instance of the network port that was used to
-               receive the request to be determined. */
-            if ((rpdata.object_type == OBJECT_NETWORK_PORT) &&
-                (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
-                rpdata.object_instance = Network_Port_Index_To_Instance(0);
-            }
-#endif
+            rpdata.object_instance = handler_device_wildcard_instance_number(
+                rpdata.object_type, rpdata.object_instance);
             apdu_len =
                 rp_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
                     service_data->invoke_id, &rpdata);
@@ -148,7 +121,7 @@ void handler_read_property(uint8_t *service_request,
                 &Handler_Transmit_Buffer[npdu_len + apdu_len];
             rpdata.application_data_len =
                 sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
-            len = Device_Read_Property(&rpdata);
+            len = handler_device_read_property(&rpdata);
             if (len >= 0) {
                 apdu_len += len;
                 len = rp_ack_encode_apdu_object_property_end(
@@ -173,7 +146,7 @@ void handler_read_property(uint8_t *service_request,
                 }
             } else {
 #if PRINT_ENABLED
-                fprintf(stderr, "RP: Device_Read_Property: ");
+                fprintf(stderr, "ReadProperty: ");
                 if (len == BACNET_STATUS_ABORT) {
                     fprintf(stderr, "Abort!\n");
                 } else if (len == BACNET_STATUS_ERROR) {

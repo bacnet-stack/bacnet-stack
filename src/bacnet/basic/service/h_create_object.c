@@ -21,8 +21,7 @@
 #include "bacnet/abort.h"
 #include "bacnet/reject.h"
 #include "bacnet/create_object.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
@@ -36,8 +35,8 @@
  * - an Abort if
  *   - the message is segmented
  *   - if decoding fails
- * - a SimpleACK if Device_Create_Object() succeeds
- * - an Error if Device_Create_Object() fails
+ * - a SimpleACK if CreateObject-Request succeeds
+ * - an Error if CreateObject-Request fails
  *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
@@ -96,7 +95,7 @@ void handler_create_object(uint8_t *service_request,
                 debug_perror("CreateObject: Sending Reject!\n");
             }
         } else {
-            if (Device_Create_Object(&data)) {
+            if (handler_device_object_create(&data)) {
                 len =
                     create_object_ack_encode(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, &data);

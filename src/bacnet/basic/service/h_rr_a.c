@@ -32,8 +32,7 @@
 #include "bacnet/apdu.h"
 #include "bacnet/bactext.h"
 #include "bacnet/readrange.h"
-/* some demo stuff needed */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM */
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 

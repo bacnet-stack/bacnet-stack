@@ -36,8 +36,7 @@
 #include "bacnet/abort.h"
 #include "bacnet/reject.h"
 #include "bacnet/rd.h"
-/* basic objects, services, TSM, and datalink */
-#include "bacnet/basic/object/device.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
@@ -134,7 +133,7 @@ void handler_reinitialize_device(uint8_t *service_request,
             goto RD_ABORT;
 #endif
 
-        if (Device_Reinitialize(&rd_data)) {
+        if (handler_device_reinitialize(&rd_data)) {
             len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id, SERVICE_CONFIRMED_REINITIALIZE_DEVICE);
 #if PRINT_ENABLED
