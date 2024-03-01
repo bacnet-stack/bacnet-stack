@@ -721,7 +721,6 @@ int bacapp_decode_obj_property_ref(uint8_t *apdu,
     BACNET_OBJECT_ID object_identifier;
     uint32_t property_identifier;
     BACNET_UNSIGNED_INTEGER unsigned_value;
-    uint32_t enumerated_value;
 
     if (!apdu) {
         return BACNET_STATUS_ERROR;
