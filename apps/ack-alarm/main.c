@@ -153,8 +153,7 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_simple_ack_handler(
         SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, MyWritePropertySimpleAckHandler);
     /* handle any errors coming back */
-    apdu_set_error_handler(
-        SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, MyErrorHandler);
+    apdu_set_error_handler(SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
@@ -172,54 +171,52 @@ static void print_usage(char *filename)
 static void print_help(char *filename)
 {
     printf("Send BACnet AcknowledgedAlarm, message to a device.\n");
-    printf(
-        "device-id:\n"
+    printf("device-id:\n"
         "BACnet Device Object Instance number that you are trying to\n"
         "communicate to.  This number will be used to try and bind with\n"
         "the device using Who-Is and I-Am services.  For example, if you were\n"
-        "notifying Device Object 123, the device-instance would be 123.\n"
-        "\n"
-        "process-id:\n"
+        "notifying Device Object 123, the device-instance would be 123.\n");
+    printf("\n");
+    printf("process-id:\n"
         "Process Identifier in the receiving device for which the\n"
-        "notification is intended.\n"
-        "\n"
-        "event-object-type:\n"
+        "notification is intended.\n");
+    printf("\n");
+    printf("event-object-type:\n"
         "The object type is defined either as the object-type name string\n"
-        "as defined in the BACnet specification, or as the integer value.\n"
-        "\n"
-        "event-object-instance:\n"
-        "The object instance number of the event object.\n"
-        "\n"
-        "event-state-acked:\n"
-        "The event-state that for this alarm acknowledge.\n"
-        "\n"
-        "event-time-stamp:\n"
-        "The time-stamp of the event.\n"
-        "\n"
-        "ack-source-name\n"
-        "The source name of the alarm acknowledge.\n"
-        "\n"
-        "ack-time-stamp\n"
-        "The time-stamp of the alarm acknowledge.\n"
-        "\n");
+        "as defined in the BACnet specification, or as the integer value.\n");
+    printf("\n");
+    printf("event-object-instance:\n"
+        "The object instance number of the event object.\n");
+    printf("\n");
+    printf("event-state-acked:\n"
+        "The event-state that for this alarm acknowledge.\n");
+    printf("\n");
+    printf("event-time-stamp:\n"
+        "The time-stamp of the event.\n");
+    printf("\n");
+    printf("ack-source-name\n"
+        "The source name of the alarm acknowledge.\n");
+    printf("\n");
+    printf("ack-time-stamp\n"
+        "The time-stamp of the alarm acknowledge.\n");
+    printf("\n");
     printf("--mac A\n"
         "Optional BACnet mac address."
         "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
         "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n"
-        "--dnet N\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--dnet N\n"
         "Optional BACnet network number N for directed requests.\n"
         "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n"
-        "\n"
-        "--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network "
-        "number.\n"
+        "and 65535 is network broadcast.\n");
+    printf("\n");
+    printf("--dadr A\n"
+        "Optional BACnet mac address on the destination BACnet network.\n"
         "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
         "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n");
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    (void)filename;
 }
 
 int main(int argc, char *argv[])
@@ -235,6 +232,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     bool found = false;
     long dnet = -1;
+    unsigned object_type = 0;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -261,7 +259,7 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--mac") == 0) {
             if (++argi < argc) {
-                if (address_mac_from_ascii(&mac, argv[argi])) {
+                if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
                     specific_address = true;
                 }
             }
@@ -274,7 +272,7 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--dadr") == 0) {
             if (++argi < argc) {
-                if (address_mac_from_ascii(&adr, argv[argi])) {
+                if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
                     specific_address = true;
                 }
             }
@@ -289,12 +287,12 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 2) {
                 /* event-object-type */
-                if (bactext_object_type_strtol(argv[argi],
-                    &data.eventObjectIdentifier.type)) {
+                if (bactext_object_type_strtol(argv[argi], &object_type)) {
+                    data.eventObjectIdentifier.type = object_type;
                     target_args++;
                 } else {
-                    fprintf(stderr, "event-object-type=%s invalid\n",
-                        argv[argi]);
+                    fprintf(
+                        stderr, "event-object-type=%s invalid\n", argv[argi]);
                     return 1;
                 }
             } else if (target_args == 3) {
@@ -304,12 +302,11 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 4) {
                 /* event-state-acked */
-                if (bactext_event_state_strtol(argv[argi],
-                    &data.eventStateAcked)) {
+                if (bactext_event_state_strtol(argv[argi], &object_type)) {
+                    data.eventStateAcked = object_type;
                     target_args++;
                 } else {
-                    fprintf(stderr, "event-state=%s invalid\n",
-                        argv[argi]);
+                    fprintf(stderr, "event-state=%s invalid\n", argv[argi]);
                     return 1;
                 }
             } else if (target_args == 5) {
@@ -395,7 +392,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(
@@ -403,12 +400,9 @@ int main(int argc, char *argv[])
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
-                Request_Invoke_ID =
-                    Send_Alarm_Acknowledgement_Address(
-                        Handler_Transmit_Buffer,
-                        sizeof(Handler_Transmit_Buffer),
-                        &data,
-                        &Target_Address);
+                Request_Invoke_ID = Send_Alarm_Acknowledgement_Address(
+                    Handler_Transmit_Buffer, sizeof(Handler_Transmit_Buffer),
+                    &data, &Target_Address);
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {

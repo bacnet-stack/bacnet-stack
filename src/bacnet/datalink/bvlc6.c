@@ -670,8 +670,7 @@ bool bvlc6_address_get(BACNET_IP6_ADDRESS *addr,
  *  input, excluding the trailing null.
  * @note buf and buf_size may be null and zero to return only the size
  */
-int bvlc6_address_to_ascii(BACNET_IP6_ADDRESS *addr, char *buf,
-    size_t buf_size)
+int bvlc6_address_to_ascii(BACNET_IP6_ADDRESS *addr, char *buf, size_t buf_size)
 {
     uint16_t a;
     unsigned int i;
@@ -685,7 +684,7 @@ int bvlc6_address_to_ascii(BACNET_IP6_ADDRESS *addr, char *buf,
     if (!buf) {
         return n;
     }
-    for(i = 0; i < IP6_ADDRESS_MAX; i += 2) {
+    for (i = 0; i < IP6_ADDRESS_MAX; i += 2) {
         a = (addr->address[i] << 8) + addr->address[i + 1];
         if ((a == 0) && (f >= 0)) {
             if (f++ == 0) {

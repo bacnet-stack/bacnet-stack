@@ -29,7 +29,13 @@
 #include <stdbool.h>
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
+#include "bacnet/bacaddr.h"
 #include "bacnet/readrange.h"
+
+/* refactored utility functions - see bacaddr.c module */
+#define address_mac_init(m,a,l) bacnet_address_mac_init(m,a,l)
+#define address_mac_from_ascii(m,a) bacnet_address_mac_from_ascii(m,a)
+#define address_match(d,s) bacnet_address_same(d,s)
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,11 +90,6 @@ extern "C" {
         void);
 
     BACNET_STACK_EXPORT
-    bool address_match(
-        BACNET_ADDRESS * dest,
-        BACNET_ADDRESS * src);
-
-    BACNET_STACK_EXPORT
     bool address_bind_request(
         uint32_t device_id,
         unsigned *max_apdu,
@@ -126,17 +127,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     void address_cache_timer(
         uint16_t uSeconds);
-
-    BACNET_STACK_EXPORT
-    void address_mac_init(
-        BACNET_MAC_ADDRESS *mac,
-        uint8_t *adr,
-        uint8_t len);
-
-    BACNET_STACK_EXPORT
-    bool address_mac_from_ascii(
-        BACNET_MAC_ADDRESS *mac,
-        const char *arg);
 
     BACNET_STACK_EXPORT
     void address_protected_entry_index_set(uint32_t top_protected_entry_index);

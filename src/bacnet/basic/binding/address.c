@@ -121,60 +121,6 @@ void address_own_device_id_set(uint32_t own_id)
 }
 
 /**
- * @brief Check if the given source and destination address can be matched
- *        by checking the length, net and MAC address.
- *
- * @param dest  Destination address
- * @param src   Source address
- *
- * @return true for a match, false otherwise
- */
-bool address_match(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
-{
-    uint8_t i = 0;
-    uint8_t max_len = 0;
-
-    if (dest == src) {
-        return (true);
-    }
-    if (dest->mac_len != src->mac_len) {
-        return false;
-    }
-    max_len = dest->mac_len;
-    if (max_len > MAX_MAC_LEN) {
-        max_len = MAX_MAC_LEN;
-    }
-    for (i = 0; i < max_len; i++) {
-        if (dest->mac[i] != src->mac[i]) {
-            return false;
-        }
-    }
-    if (dest->net != src->net) {
-        return false;
-    }
-
-    /* if local, ignore remaining fields */
-    if (dest->net == 0) {
-        return true;
-    }
-
-    if (dest->len != src->len) {
-        return false;
-    }
-    max_len = dest->len;
-    if (max_len > MAX_MAC_LEN) {
-        max_len = MAX_MAC_LEN;
-    }
-    for (i = 0; i < max_len; i++) {
-        if (dest->adr[i] != src->adr[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
  * @brief Remove a device from the address list.
  *
  * @param device_id  ID of the device
@@ -268,76 +214,6 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
     return (pCandidate);
 }
 
-/**
- * Initialize a BACNET_MAC_ADDRESS
- *
- * @param mac [out] BACNET_MAC_ADDRESS structure
- * @param adr [in] address to initialize, null if empty
- * @param len [in] length of address in bytes
- */
-void address_mac_init(BACNET_MAC_ADDRESS *mac, uint8_t *adr, uint8_t len)
-{
-    uint8_t i = 0;
-
-    if (mac) {
-        if (adr && (len <= sizeof(mac->adr))) {
-            for (i = 0; i < len; i++) {
-                mac->adr[i] = adr[i];
-            }
-            mac->len = len;
-        } else {
-            mac->len = 0;
-        }
-    }
-}
-
-/** Parse an ASCII string for a bacnet-address
- *
- * @param mac [out] BACNET_MAC_ADDRESS structure to store the results
- * @param arg [in] nul terminated ASCII string to parse
- *
- * @return true if the address was parsed
- */
-bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
-{
-    unsigned a[6] = { 0 }, p = 0;
-    uint16_t port = 0;
-    int c;
-    bool status = false;
-
-    if (!(mac && arg)) {
-        return false;
-    }
-    c = sscanf(arg, "%3u.%3u.%3u.%3u:%5u", &a[0], &a[1], &a[2], &a[3], &p);
-    if ((c == 4) || (c == 5)) {
-        mac->adr[0] = a[0];
-        mac->adr[1] = a[1];
-        mac->adr[2] = a[2];
-        mac->adr[3] = a[3];
-        if (c == 4) {
-            port = 0xBAC0U;
-        } else {
-            port = (uint16_t)p;
-        }
-        encode_unsigned16(&mac->adr[4], port);
-        mac->len = 6;
-        status = true;
-    } else {
-        c = sscanf(arg, "%2x:%2x:%2x:%2x:%2x:%2x", &a[0], &a[1], &a[2], &a[3],
-            &a[4], &a[5]);
-
-        if (c > 0) {
-            for (int i = 0; i < c; i++) {
-                mac->adr[i] = a[i];
-            }
-            mac->len = c;
-            status = true;
-        }
-    }
-
-    return status;
-}
-
 #ifdef BACNET_ADDRESS_CACHE_FILE
 /* File format:
 DeviceID MAC SNET SADR MAX-APDU
@@ -367,7 +243,7 @@ static void address_file_init(const char *pFilename)
                 if (sscanf(line, "%7ld %79s %5u %79s %4u", &device_id,
                         &mac_string[0], &snet, &sadr_string[0],
                         &max_apdu) == 5) {
-                    if (address_mac_from_ascii(&mac, mac_string)) {
+                    if (bacnet_address_mac_from_ascii(&mac, mac_string)) {
                         src.mac_len = mac.len;
                         for (index = 0; index < MAX_MAC_LEN; index++) {
                             src.mac[index] = mac.adr[index];
@@ -375,7 +251,7 @@ static void address_file_init(const char *pFilename)
                     }
                     src.net = (uint16_t)snet;
                     if (snet) {
-                        if (address_mac_from_ascii(&mac, sadr_string)) {
+                        if (bacnet_address_mac_from_ascii(&mac, sadr_string)) {
                             src.len = mac.len;
                             for (index = 0; index < MAX_MAC_LEN; index++) {
                                 src.adr[index] = mac.adr[index];
@@ -484,7 +360,7 @@ void address_set_device_TTL(
                     pMatch->TimeToLive = TimeOut;
                 }
             } else {
-            	/* For unbound we can only set the time to live */
+                /* For unbound we can only set the time to live */
                 pMatch->TimeToLive = TimeOut;
             }
             break; /* Exit now if found at all - bound or unbound */
@@ -601,7 +477,7 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
                 /* Opportunistic entry so leave on short fuse */
                 pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
             } else {
-            	/* Renewing existing entry */
+                /* Renewing existing entry */
                 pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
             }
             /* Clear bind request flag just in case */
@@ -1036,7 +912,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         pMatch++;
         /* Shall not happen as the count has been checked first. */
         if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        	/* Issue with the table. */
+            /* Issue with the table. */
             return (0);
         }
     }
@@ -1053,7 +929,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         }
         /* Shall not happen as the count has been checked first. */
         if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        	/* Issue with the table. */
+            /* Issue with the table. */
             return (0);
         }
     }
@@ -1104,7 +980,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             pMatch++;
             /* Can normally not happen. */
             if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-            	/* Issue with the table. */
+                /* Issue with the table. */
                 return (0);
             }
         }

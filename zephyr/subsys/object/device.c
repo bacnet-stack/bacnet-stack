@@ -7,7 +7,7 @@
 /** @file device.c Zephyr specific part of the Base "class". */
 
 #ifdef CONFIG_BACNET_USE_SECTION_ITERABLE_OBJECT_TABLE
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 #endif
 #include "bacnet/basic/object/device.h"
 #include "object.h"

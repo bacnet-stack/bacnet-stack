@@ -34,6 +34,9 @@
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
+#include "bacnet/create_object.h"
+#include "bacnet/delete_object.h"
+#include "bacnet/list_element.h"
 #include "bacnet/wp.h"
 #include "bacnet/rd.h"
 #include "bacnet/rp.h"
@@ -139,6 +142,14 @@ typedef void (
     *object_intrinsic_reporting_function) (
     uint32_t object_instance);
 
+/**
+ * @brief Updates the object with the elapsed milliseconds
+ * @param  object_instance - object-instance number of the object
+ * @param milliseconds - number of milliseconds elapsed
+ */
+typedef void (
+    *object_timer_function) (
+    uint32_t object_instance, uint16_t milliseconds);
 
 /** Defines the group of object helper functions for any supported Object.
  * @ingroup ObjHelpers
@@ -165,6 +176,11 @@ typedef struct object_functions {
     object_cov_function Object_COV;
     object_cov_clear_function Object_COV_Clear;
     object_intrinsic_reporting_function Object_Intrinsic_Reporting;
+    list_element_function Object_Add_List_Element;
+    list_element_function Object_Remove_List_Element;
+    create_object_function Object_Create;
+    delete_object_function Object_Delete;
+    object_timer_function Object_Timer;
 } object_functions_t;
 
 /* String Lengths - excluding any nul terminator */
@@ -227,6 +243,10 @@ extern "C" {
         object_functions_t * object_table);
 
     BACNET_STACK_EXPORT
+    void Device_Timer(
+        uint16_t milliseconds);
+
+    BACNET_STACK_EXPORT
     bool Device_Reinitialize(
         BACNET_REINITIALIZE_DEVICE_DATA * rd_data);
     BACNET_STACK_EXPORT
@@ -234,6 +254,9 @@ extern "C" {
     BACNET_STACK_EXPORT
     BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
         void);
+    BACNET_STACK_EXPORT
+    bool Device_Reinitialize_Password_Set(
+        const char *password);
 
     BACNET_STACK_EXPORT
     rr_info_function Device_Objects_RR_Info(
@@ -298,6 +321,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Device_Valid_Object_Instance_Number(
         uint32_t object_id);
+        
     BACNET_STACK_EXPORT
     unsigned Device_Object_List_Count(
         void);
@@ -306,6 +330,18 @@ extern "C" {
         uint32_t array_index,
         BACNET_OBJECT_TYPE *object_type,
         uint32_t * instance);
+    BACNET_STACK_EXPORT
+    int Device_Object_List_Element_Encode(
+        uint32_t object_instance, 
+        BACNET_ARRAY_INDEX array_index, 
+        uint8_t *apdu);
+
+    BACNET_STACK_EXPORT
+    bool Device_Create_Object(
+        BACNET_CREATE_OBJECT_DATA *data);
+    BACNET_STACK_EXPORT
+    bool Device_Delete_Object(
+        BACNET_DELETE_OBJECT_DATA *data);
 
     BACNET_STACK_EXPORT
     unsigned Device_Count(
@@ -426,6 +462,14 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     BACNET_STACK_EXPORT
+    int Device_Add_List_Element(
+        BACNET_LIST_ELEMENT_DATA *list_element);
+
+    BACNET_STACK_EXPORT
+    int Device_Remove_List_Element(
+        BACNET_LIST_ELEMENT_DATA *list_element);
+
+    BACNET_STACK_EXPORT
     bool DeviceGetRRInfo(
         BACNET_READ_RANGE_DATA * pRequest,      /* Info on the request */
         RR_PROP_INFO * pInfo);  /* Where to put the information */
@@ -512,7 +556,7 @@ extern "C" {
         void);
     BACNET_STACK_EXPORT
     int Routed_Device_Service_Approval(
-        BACNET_CONFIRMED_SERVICE service,
+        BACNET_SERVICES_SUPPORTED service,
         int service_argument,
         uint8_t * apdu_buff,
         uint8_t invoke_id);

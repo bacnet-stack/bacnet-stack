@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <stdio.h>
-#include <tc_util.h>
+#include <zephyr/tc_util.h>
 #if 0
 #include <app_memory/app_memdomain.h>
 #ifdef CONFIG_USERSPACE
@@ -15,7 +15,7 @@
 #endif
 
 #ifdef KERNEL
-#include <sys/reboot.h>
+#include <zephyr/sys/reboot.h>
 static struct k_thread ztest_thread;
 #endif
 
@@ -251,6 +251,7 @@ static void handle_signal(int sig)
 		PRINT(" at %s function\n", phase_str[phase]);
 		longjmp(test_fail, 1);
 	case TEST_PHASE_FRAMEWORK:
+	default:
 		PRINT("\n");
 		longjmp(stack_fail, 1);
 	}

@@ -8,7 +8,7 @@
  * @brief test BACnet integer encode/decode APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bacstr.h>
 
 /**
@@ -19,7 +19,11 @@
 /**
  * @brief Test encode/decode API for strings
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testBitString)
+#else
 static void testBitString(void)
+#endif
 {
     uint8_t bit = 0;
     int max_bit;
@@ -27,7 +31,6 @@ static void testBitString(void)
     BACNET_BIT_STRING bit_string2;
     BACNET_BIT_STRING bit_string3;
     bool status = false;
-    unsigned bits = 0;
 
     bitstring_init(&bit_string);
     /* verify initialization */
@@ -84,7 +87,11 @@ static void testBitString(void)
 /**
  * @brief Test encode/decode API for character strings
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testCharacterString)
+#else
 static void testCharacterString(void)
+#endif
 {
     BACNET_CHARACTER_STRING bacnet_string;
     char *value = "Joshua,Mary,Anna,Christopher";
@@ -176,7 +183,11 @@ static void testCharacterString(void)
 /**
  * @brief Test encode/decode API for octet strings
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testOctetString)
+#else
 static void testOctetString(void)
+#endif
 {
     BACNET_OCTET_STRING bacnet_string;
     BACNET_OCTET_STRING bacnet_string_twin;
@@ -295,6 +306,9 @@ static void testOctetString(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacstr_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacstr_tests,
@@ -305,3 +319,4 @@ void test_main(void)
 
     ztest_run_test_suite(bacstr_tests);
 }
+#endif

@@ -39,7 +39,7 @@
 #endif
 
 #include <windows.h>
-#if (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
+#ifndef BACNET_IP_BROADCAST_USE_CLASSADDR
 #include <iphlpapi.h>
 #if defined(_MSC_VER)
 #pragma comment(lib, "IPHLPAPI.lib")
@@ -76,10 +76,9 @@ and globals in favor of more secure versions.  */
 #define inline __inline
 #endif
 
-#ifdef _WIN32
-#define strncasecmp(x, y, z) _strnicmp(x, y, z)
-#define snprintf _snprintf
-#endif
+BACNET_STACK_EXPORT
+extern int bip_get_local_netmask(
+    struct in_addr *netmask);
 
 #define BACNET_OBJECT_TABLE(table_name, _type, _init, _count,               \
                             _index_to_instance, _valid_instance, _object_name, \

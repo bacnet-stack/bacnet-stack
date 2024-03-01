@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/platform.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 
@@ -81,6 +82,14 @@ extern "C" {
         BACNET_NPDU_DATA * npdu_data);
 
     BACNET_STACK_EXPORT
+    int bacnet_npdu_encode_pdu(
+        uint8_t * pdu,
+        uint16_t pdu_size,
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src,
+        BACNET_NPDU_DATA * npdu_data);
+
+    BACNET_STACK_EXPORT
     void npdu_encode_npdu_data(
         BACNET_NPDU_DATA * npdu,
         bool data_expecting_reply,
@@ -98,6 +107,7 @@ extern "C" {
         BACNET_NPDU_DATA * dest,
         BACNET_NPDU_DATA * src);
 
+    BACNET_STACK_DEPRECATED("Use bacnet_npdu_decode() instead")
     BACNET_STACK_EXPORT
     int npdu_decode(
         uint8_t * npdu,

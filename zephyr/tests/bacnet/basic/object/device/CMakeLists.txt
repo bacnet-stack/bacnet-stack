@@ -33,11 +33,14 @@ if(BOARD STREQUAL unit_testing)
   get_filename_component(BACNET_BASIC_SRC ${BACNET_OBJECT_SRC} PATH)
   get_filename_component(BACNET_SRC ${BACNET_BASIC_SRC} PATH)
   list(APPEND SOURCES
+    ${BACNET_SRC}/bacaddr.c
     ${BACNET_SRC}/bacapp.c
     ${BACNET_SRC}/bacdcode.c
+    ${BACNET_SRC}/bacdest.c
     ${BACNET_SRC}/bacstr.c
     ${BACNET_SRC}/bacint.c
     ${BACNET_SRC}/bacreal.c
+    ${BACNET_SRC}/calendar.c
     ${BACNET_SRC}/datetime.c
     ${BACNET_SRC}/timestamp.c
     ${BACNET_SRC}/basic/sys/days.c
@@ -54,6 +57,11 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/npdu.c
     ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/reject.c
+    ${BACNET_SRC}/abort.c
+    ${BACNET_SRC}/bacaddr.c
+    ${BACNET_SRC}/bactimevalue.c
+    ${BACNET_SRC}/bacerror.c
+    ${BACNET_SRC}/basic/binding/address.c
     ${BACNET_SRC}/basic/object/acc.c
     ${BACNET_SRC}/basic/object/ai.c
     ${BACNET_SRC}/basic/object/ao.c
@@ -61,7 +69,10 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/object/bi.c
     ${BACNET_SRC}/basic/object/bo.c
     ${BACNET_SRC}/basic/object/bv.c
+    ${BACNET_SRC}/basic/object/calendar.c
     ${BACNET_SRC}/basic/object/channel.c
+    ${BACNET_SRC}/basic/object/color_object.c
+    ${BACNET_SRC}/basic/object/color_temperature.c
     ${BACNET_SRC}/basic/object/command.c
     ${BACNET_SRC}/basic/object/csv.c
     ${BACNET_SRC}/basic/object/iv.c
@@ -75,18 +86,34 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/object/osv.c
     ${BACNET_SRC}/basic/object/piv.c
     ${BACNET_SRC}/basic/object/schedule.c
+    ${BACNET_SRC}/basic/object/time_value.c
     ${BACNET_SRC}/basic/object/trendlog.c
+    ${BACNET_SRC}/hostnport.c
+    ${BACNET_SRC}/basic/service/h_apdu.c
+    ${BACNET_SRC}/basic/service/h_cov.c
+    ${BACNET_SRC}/basic/service/h_wp.c
+    ${BACNET_SRC}/basic/sys/bigend.c
+    ${BACNET_SRC}/basic/sys/keylist.c
+    ${BACNET_SRC}/basic/tsm/tsm.c
+    ${BACNET_SRC}/datalink/bvlc.c
+    ${BACNET_SRC}/dailyschedule.c
+    ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/calendar_entry.c
+    ${BACNET_SRC}/special_event.c
+    ${BACNET_SRC}/basic/sys/bigend.c
+    ${BACNET_SRC}/bactimevalue.c
     )
 
-  include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
+  set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
+  find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 else()
-  include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
+  find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 
   target_include_directories(app PRIVATE ${BACNET_INCLUDE})
   target_sources(app PRIVATE
     ${BACNET_TEST_PATH}/src/main.c
-    ${BACNET_TEST_PATH}/stubs.c
+    #${BACNET_TEST_PATH}/stubs.c
     )
 endif()

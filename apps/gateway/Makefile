@@ -2,17 +2,23 @@
 
 # Executable file name
 TARGET = bacgateway
-# BACnet objects that are used with this app
+
+SRC := main.c
+
+BACNET_SRC_DIR ?= $(realpath ../../src)
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
-SRC = main.c \
+
+BACNET_OBJECT_SRC := \
 	$(BACNET_OBJECT_DIR)/gateway/gw_device.c \
 	$(BACNET_OBJECT_DIR)/acc.c \
 	$(BACNET_OBJECT_DIR)/ai.c \
 	$(BACNET_OBJECT_DIR)/ao.c \
 	$(BACNET_OBJECT_DIR)/av.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
+	$(BACNET_OBJECT_DIR)/blo.c \
 	$(BACNET_OBJECT_DIR)/bo.c \
 	$(BACNET_OBJECT_DIR)/bv.c \
+	$(BACNET_OBJECT_DIR)/calendar.c \
 	$(BACNET_OBJECT_DIR)/channel.c \
 	$(BACNET_OBJECT_DIR)/color_object.c \
 	$(BACNET_OBJECT_DIR)/color_temperature.c \
@@ -30,6 +36,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/piv.c \
 	$(BACNET_OBJECT_DIR)/nc.c  \
 	$(BACNET_OBJECT_DIR)/netport.c  \
+	$(BACNET_OBJECT_DIR)/time_value.c \
 	$(BACNET_OBJECT_DIR)/trendlog.c \
 	$(BACNET_OBJECT_DIR)/schedule.c \
 	$(BACNET_OBJECT_DIR)/access_credential.c \
@@ -53,9 +60,9 @@ BACNET_BASIC_SRC = \
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-SRCS = $(SRC) $(BACNET_SRC) $(BACNET_BASIC_SRC) $(BACNET_PORT_SRC)
+SRCS := $(SRC) $(BACNET_OBJECT_SRC) $(BACNET_BASIC_SRC)
 
-OBJS += ${SRCS:.c=.o}
+OBJS := $(SRCS:.c=.o)
 
 CFLAGS += -DBAC_ROUTING
 

@@ -1,0 +1,1181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\src">
+      <UniqueIdentifier>{5e02ec26-93bb-4daf-af81-099098394a20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\bacnet">
+      <UniqueIdentifier>{f7b691c6-2856-40d4-b9dd-4e4237fce077}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\bacnet\datalink">
+      <UniqueIdentifier>{c0e5986e-748b-4f4f-803c-4918952f73dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\bacnet\basic">
+      <UniqueIdentifier>{7553fe57-8baf-426b-a686-23a7b68db91e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\bacnet\basic\sys">
+      <UniqueIdentifier>{9bc6b530-8d61-4a21-9979-9b39a50e3cdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ports">
+      <UniqueIdentifier>{1c0fbcda-2c87-4204-8259-e2607f9509d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\bacnet\basic\bbmd">
+      <UniqueIdentifier>{d9370b4d-c98c-48f1-8eda-ae7777b9c061}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\bacnet\basic\object">
+      <UniqueIdentifier>{7f13b82d-0c5b-41d1-aa78-7b3e65dd2b26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\bacnet\basic\tsm">
+      <UniqueIdentifier>{dea1fc49-c4c2-471e-a8c5-486aee9e62f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\bacnet\basic\service">
+      <UniqueIdentifier>{9c27a602-4318-4e68-8851-ac40340f52bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\bacnet\basic\binding">
+      <UniqueIdentifier>{4221463c-bad1-4ec5-b4b3-4dfbea8345d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ports\win32">
+      <UniqueIdentifier>{dafdfbc0-5a48-441c-8682-4d5423832141}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\src\bacnet\abort.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\access_rule.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\alarm_ack.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\arf.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\assigned_access_rights.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\authentication_factor.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\authentication_factor_format.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\awf.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaddr.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacapp.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacdcode.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacdest.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacdevobjpropref.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacerror.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacint.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacprop.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacpropstates.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacreal.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacstr.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bactext.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bactimevalue.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\cov.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\create_object.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\credential_authentication_factor.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\dailyschedule.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datetime.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\dcc.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\delete_object.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\event.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\get_alarm_sum.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\getevent.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\hostnport.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\iam.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\ihave.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\indtext.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\lighting.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\list_element.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\lso.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\memcopy.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\npdu.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\property.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\proplist.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\ptransfer.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\rd.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\readrange.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\reject.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\rp.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\rpm.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\timesync.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\weeklyschedule.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\calendar_entry.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\special_event.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\whohas.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\whois.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\wp.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\wpm.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\bacsec.c">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\bvlc.c">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\bvlc6.c">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\cobs.c">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\crc.c">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\datalink.c">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\dlenv.c">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstp.c">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstptext.c">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\bigend.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\color_rgb.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\days.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\debug.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\fifo.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\filename.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\keylist.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\mstimer.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\sbuf.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\bbmd\h_bbmd.c">
+      <Filter>Source Files\src\bacnet\basic\bbmd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\acc.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_credential.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_door.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_point.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_rights.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_user.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_zone.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ai.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ao.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\av.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bacfile.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bi.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bo.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bv.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\channel.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\color_object.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\color_temperature.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\command.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\credential_data_input.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\csv.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\device.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\iv.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lc.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lo.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lsp.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ms-input.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\mso.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\msv.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\nc.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\netport.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\objects.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\osv.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\piv.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\tsm\tsm.c">
+      <Filter>Source Files\src\bacnet\basic\tsm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_alarm_ack.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_apdu.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_arf.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_arf_a.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_awf.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_ccov.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_cov.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_create_object.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_dcc.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_delete_object.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_gas_a.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_get_alarm_sum.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_getevent.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_getevent_a.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_iam.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_ihave.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_list_element.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_lso.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_noserv.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rd.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rp.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rp_a.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rpm.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rpm_a.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rr.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rr_a.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_ts.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_ucov.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_upt.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_whohas.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_whois.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_wp.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_wpm.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_abort.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_ack_alarm.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_arfs.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_awfs.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_cevent.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_cov.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_create_object.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_dcc.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_delete_object.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_error.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_get_alarm_sum.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_get_event.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_getevent.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_iam.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_ihave.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_list_element.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_lso.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_rd.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_readrange.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_rp.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_rpm.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_ts.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_uevent.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_upt.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_whohas.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_whois.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_wp.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_wpm.c">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\binding\address.c">
+      <Filter>Source Files\src\bacnet\basic\binding</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\datetime-init.c">
+      <Filter>Source Files\ports\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\linear.c">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\bip-init.c">
+      <Filter>Source Files\ports\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mstimer-init.c">
+      <Filter>Source Files\ports\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\rs485.c">
+      <Filter>Source Files\ports\win32</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\src\bacnet\abort.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\access_rule.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\alarm_ack.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\apdu.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\arf.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\assigned_access_rights.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\authentication_factor.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\authentication_factor_format.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\awf.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacaddr.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacapp.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdcode.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdef.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdest.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdevobjpropref.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacenum.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacerror.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacint.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacnet_stack_exports.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacprop.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacpropstates.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacreal.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacstr.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bactext.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bactimevalue.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bits.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bytes.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\config.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\cov.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\create_object.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\credential_authentication_factor.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\dailyschedule.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datetime.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\dcc.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\delete_object.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\event.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\get_alarm_sum.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\getevent.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\hostnport.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\iam.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\ihave.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\indtext.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\lighting.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\list_element.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\lso.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\memcopy.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\npdu.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\property.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\proplist.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\ptransfer.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\rd.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\readrange.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\reject.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\rp.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\rpm.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\timestamp.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\timesync.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\version.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\weeklyschedule.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\whohas.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\whois.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\wp.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\wpm.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\arcnet.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\bacsec.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\bip.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\bip6.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\bvlc.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\bvlc6.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\cobs.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\crc.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\datalink.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\dlenv.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\dlmstp.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\ethernet.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\mstp.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\mstpdef.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\mstptext.h">
+      <Filter>Source Files\src\bacnet\datalink</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\services.h">
+      <Filter>Source Files\src\bacnet\basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\bigend.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\color_rgb.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\days.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\debug.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\fifo.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\filename.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\key.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\keylist.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\mstimer.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\platform.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\sbuf.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\bacport.h">
+      <Filter>Source Files\ports\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\rs485.h">
+      <Filter>Source Files\ports\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\bbmd\h_bbmd.h">
+      <Filter>Source Files\src\bacnet\basic\bbmd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\acc.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_credential.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_door.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_point.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_rights.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_user.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_zone.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ai.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ao.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\av.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bacfile.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bi.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bo.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bv.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\channel.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\color_object.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\color_temperature.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\command.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\credential_data_input.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\csv.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\device.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\iv.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\lc.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\lo.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\lsp.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ms-input.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\mso.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\msv.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\nc.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\netport.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\objects.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\osv.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\piv.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\schedule.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\trendlog.h">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\tsm\tsm.h">
+      <Filter>Source Files\src\bacnet\basic\tsm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_alarm_ack.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_apdu.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_arf.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_arf_a.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_awf.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_ccov.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_cov.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_create_object.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_dcc.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_delete_object.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_gas_a.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_get_alarm_sum.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_getevent.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_getevent_a.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_iam.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_ihave.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_list_element.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_lso.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_noserv.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rd.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rp.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rp_a.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rpm.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rpm_a.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rr.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rr_a.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_ts.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_ucov.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_upt.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_whohas.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_whois.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_wp.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_wpm.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_abort.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_ack_alarm.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_arfs.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_awfs.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_cevent.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_cov.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_create_object.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_dcc.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_delete_object.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_error.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_get_alarm_sum.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_get_event.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_getevent.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_iam.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_ihave.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_list_element.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_lso.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_rd.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_readrange.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_rp.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_rpm.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_ts.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_uevent.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_upt.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_whohas.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_whois.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_wp.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_wpm.h">
+      <Filter>Source Files\src\bacnet\basic\service</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\binding\address.h">
+      <Filter>Source Files\src\bacnet\basic\binding</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\linear.h">
+      <Filter>Source Files\src\bacnet\basic\sys</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\readme.MD">
+      <Filter>Source Files\ports\win32</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -59,7 +59,7 @@
 #endif
 
 /* local port data - shared with RS-485 */
-static volatile struct mstp_port_struct_t MSTP_Port;
+static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t RxBuffer[DLMSTP_MPDU_MAX];
 static uint8_t TxBuffer[DLMSTP_MPDU_MAX];
@@ -83,7 +83,7 @@ static void Timer_Silence_Reset(void *pArg)
 }
 
 /* functions used by the MS/TP state machine to put or get data */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     (void)mstp_port;
 
@@ -93,15 +93,31 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
     return 0;
 }
 
+/**
+ * @brief Send an MSTP frame
+ * @param mstp_port - port specific data
+ * @param buffer - data to send
+ * @param nbytes - number of bytes of data to send
+ */
+void MSTP_Send_Frame(
+    struct mstp_port_struct_t *mstp_port,
+    uint8_t * buffer,
+    uint16_t nbytes)
+{
+    (void)mstp_port;
+    (void)buffer;
+    (void)nbytes;
+}
+
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
@@ -149,7 +165,7 @@ static int network_init(const char *name, int protocol)
 }
 
 static void snap_received_packet(
-    volatile struct mstp_port_struct_t *mstp_port, int sockfd)
+    struct mstp_port_struct_t *mstp_port, int sockfd)
 {
     uint16_t mtu_len = 0; /* number of octets of packet saved in file */
     unsigned i = 0; /* counter */
@@ -225,7 +241,7 @@ void signal_init(void)
 /* simple test to packetize the data and print it */
 int main(int argc, char *argv[])
 {
-    volatile struct mstp_port_struct_t *mstp_port;
+    struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
     uint32_t packet_count = 0;
     int sockfd = -1;

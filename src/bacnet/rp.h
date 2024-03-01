@@ -57,11 +57,41 @@ typedef int (
     *read_property_function) (
     BACNET_READ_PROPERTY_DATA * rp_data);
 
+/**
+ * @brief Process a ReadProperty-ACK message
+ * @param device_id [in] The device ID of the source of the message
+ * @param rp_data [in] The contents of the ReadProperty-ACK message
+ */
+typedef void (
+    *read_property_ack_process) (
+    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-/* encode service */
+    BACNET_STACK_EXPORT
+    int read_property_request_encode(
+        uint8_t *apdu, 
+        BACNET_READ_PROPERTY_DATA *data);
+
+    BACNET_STACK_EXPORT
+    size_t read_property_request_service_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_READ_PROPERTY_DATA *data);
+
+    BACNET_STACK_EXPORT
+    int read_property_ack_encode(
+        uint8_t *apdu, 
+        BACNET_READ_PROPERTY_DATA *data);
+
+    BACNET_STACK_EXPORT
+    size_t read_property_ack_service_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_READ_PROPERTY_DATA *data);
+
     BACNET_STACK_EXPORT
     int rp_encode_apdu(
         uint8_t * apdu,

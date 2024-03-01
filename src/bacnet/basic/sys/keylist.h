@@ -25,7 +25,8 @@
 #define KEYLIST_H
 
 #include "bacnet/bacnet_stack_exports.h"
-#include "key.h"
+#include "bacnet/basic/sys/platform.h"
+#include "bacnet/basic/sys/key.h"
 
 /* This is a key sorted linked list data library that */
 /* uses a key or index to access the data. */
@@ -104,11 +105,19 @@ extern "C" {
         OS_Keylist list,
         int index);
 
-/* return the key at the given index */
+/* returns the node key specified by the index */
+    BACNET_STACK_DEPRECATED("Use Keylist_Index_Key() instead")
     BACNET_STACK_EXPORT
     KEY Keylist_Key(
         OS_Keylist list,
         int index);
+
+/* returns the node key specified by the index */
+    BACNET_STACK_EXPORT
+    bool Keylist_Index_Key(
+        OS_Keylist list, 
+        int index, 
+        KEY *pKey);
 
 /* returns the next empty key from the list */
     BACNET_STACK_EXPORT

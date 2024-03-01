@@ -1058,6 +1058,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\bacdcode.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\bacdest.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\bacdevobjpropref.c</name>
         </file>
         <file>
@@ -1127,7 +1130,7 @@
     <group>
         <name>BACnet-Datalink</name>
         <file>
-            <name>$PROJ_DIR$\automac.c</name>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\automac.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\datalink\crc.c</name>

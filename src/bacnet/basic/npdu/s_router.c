@@ -317,6 +317,5 @@ void Send_Network_Number_Is(BACNET_ADDRESS *dst, int dnet, int status)
     iArgs[0] = dnet;
     iArgs[1] = status;
 
-    Send_Network_Layer_Message(
-        NETWORK_MESSAGE_NETWORK_NUMBER_IS, dst, iArgs);
+    Send_Network_Layer_Message(NETWORK_MESSAGE_NETWORK_NUMBER_IS, dst, iArgs);
 }

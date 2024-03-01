@@ -219,11 +219,11 @@ extern "C" {
         uint8_t * msg,
         uint32_t msg_len,
         uint8_t * signature);
-    // BACNET_STACK_EXPORT
-    // bool key_verify_sign_msg(BACNET_KEY_ENTRY * key,
-    //     uint8_t * msg,
-    //     uint32_t msg_len,
-    //     uint8_t * signature);
+    /* BACNET_STACK_EXPORT */
+    /* bool key_verify_sign_msg(BACNET_KEY_ENTRY * key, */
+    /*     uint8_t * msg, */
+    /*     uint32_t msg_len, */
+    /*     uint8_t * signature); */
     BACNET_STACK_EXPORT
     int key_encrypt_msg(BACNET_KEY_ENTRY * key,
         uint8_t * msg,
@@ -241,10 +241,10 @@ extern "C" {
         uint8_t * padding);
 
 /* encoders */
-    // BACNET_STACK_EXPORT
-    // int encode_security_wrapper(int bytes_before,
-    //     uint8_t * apdu,
-    //     BACNET_SECURITY_WRAPPER * wrapper);
+    /* BACNET_STACK_EXPORT */
+    /* int encode_security_wrapper(int bytes_before, */
+    /*     uint8_t * apdu, */
+    /*     BACNET_SECURITY_WRAPPER * wrapper); */
     BACNET_STACK_EXPORT
     int encode_challenge_request(uint8_t * apdu,
         BACNET_CHALLENGE_REQUEST * bc_req);
@@ -274,11 +274,11 @@ extern "C" {
         BACNET_SET_MASTER_KEY * set_master_key);
 
 /* safe decoders */
-    // BACNET_STACK_EXPORT
-    // int decode_security_wrapper_safe(int bytes_before,
-    //     uint8_t * apdu,
-    //     uint32_t apdu_len_remaining,
-    //     BACNET_SECURITY_WRAPPER * wrapper);
+    /* BACNET_STACK_EXPORT */
+    /* int decode_security_wrapper_safe(int bytes_before, */
+    /*     uint8_t * apdu, */
+    /*     uint32_t apdu_len_remaining, */
+    /*     BACNET_SECURITY_WRAPPER * wrapper); */
     BACNET_STACK_EXPORT
     int decode_challenge_request_safe(uint8_t * apdu,
         uint32_t apdu_len_remaining,

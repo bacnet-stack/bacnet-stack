@@ -29,6 +29,7 @@ PORT_ARCNET_SRC = \
 PORT_MSTP_SRC = \
 	$(BACNET_PORT_DIR)/rs485.c \
 	$(BACNET_PORT_DIR)/dlmstp.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/cobs.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/mstp.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/mstptext.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c
@@ -86,7 +87,7 @@ endif
 BACNET_PORT_SRC += \
 	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c \
 	$(BACNET_PORT_DIR)/mstimer-init.c \
-	$(BACNET_PORT_DIR)/datetime-init.c \
+	$(BACNET_PORT_DIR)/datetime-init.c
 
 BACNET_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \

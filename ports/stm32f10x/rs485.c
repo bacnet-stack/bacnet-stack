@@ -30,12 +30,13 @@
 #include "hardware.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/bits.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "bacnet/basic/sys/fifo.h"
 #include "led.h"
 #include "rs485.h"
 
 /* buffer for storing received bytes - size must be power of two */
-static uint8_t Receive_Buffer_Data[512];
+static uint8_t Receive_Buffer_Data[NEXT_POWER_OF_2(DLMSTP_MPDU_MAX)];
 static FIFO_BUFFER Receive_Buffer;
 /* amount of silence on the wire */
 static struct mstimer Silence_Timer;
@@ -110,17 +111,9 @@ bool rs485_receive_error(void)
     return false;
 }
 
-/*********************************************************************/ /**
-                                                                         * @brief
-                                                                         *USARTx
-                                                                         *interrupt
-                                                                         *handler
-                                                                         *sub-routine
-                                                                         * @param[in]
-                                                                         *None
-                                                                         * @return
-                                                                         *None
-                                                                         **********************************************************************/
+/**
+ * @brief USARTx interrupt handler sub-routine
+ */
 void USART2_IRQHandler(void)
 {
     uint8_t data_byte;
@@ -129,6 +122,12 @@ void USART2_IRQHandler(void)
         /* Read one byte from the receive data register */
         data_byte = USART_ReceiveData(USART2);
         (void)FIFO_Put(&Receive_Buffer, data_byte);
+    }
+    if (USART_GetFlagStatus(USART2, USART_FLAG_ORE) != RESET) {
+        /* note: enabling RXNE interrupt also enables the ORE interrupt! */
+        /* dummy read to clear error state */
+        data_byte = USART_ReceiveData(USART2);
+        USART_ClearFlag(USART2, USART_FLAG_ORE);
     }
 }
 

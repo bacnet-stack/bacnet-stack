@@ -28,6 +28,19 @@ typedef void (*bacnet_read_write_value_callback_t)(uint32_t device_instance,
     BACNET_READ_PROPERTY_DATA *rp_data,
     BACNET_APPLICATION_DATA_VALUE *value);
 
+/**
+ * Save the I-Am service data to a data store
+ *
+ * @param device_instance [in] device instance number where data originated
+ * @param max_apdu [in] maximum APDU size
+ * @param segmentation [in] segmentation flag
+ * @param vendor_id [in] vendor identifier
+ */
+typedef void (*bacnet_read_write_device_callback_t)(uint32_t device_instance,
+    unsigned max_apdu,
+    int segmentation,
+    uint16_t vendor_id);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -97,7 +110,12 @@ BACNET_STACK_EXPORT
 void bacnet_read_write_value_callback_set(
     bacnet_read_write_value_callback_t callback);
 BACNET_STACK_EXPORT
+void bacnet_read_write_device_callback_set(
+    bacnet_read_write_device_callback_t callback);
+BACNET_STACK_EXPORT
 void bacnet_read_write_vendor_id_filter_set(uint16_t vendor_id);
+BACNET_STACK_EXPORT
+uint16_t bacnet_read_write_vendor_id_filter(void);
 
 #ifdef __cplusplus
 }

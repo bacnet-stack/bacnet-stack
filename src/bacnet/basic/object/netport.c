@@ -224,6 +224,33 @@ void Network_Port_Property_Lists(
 }
 
 /**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    Network_Port_Property_List(object_instance,
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
  * For a given object instance-number, loads the object-name into
  * a characterstring. Note that the object name must be unique
  * within this device.
@@ -613,8 +640,8 @@ bool Network_Port_MAC_Address(
                 memcpy(
                     &ip_mac[0], &Object_List[index].Network.IPv4.IP_Address, 4);
                 /* convert port from host-byte-order to network-byte-order */
-                encode_unsigned16(&ip_mac[4],
-                    Object_List[index].Network.IPv4.Port);
+                encode_unsigned16(
+                    &ip_mac[4], Object_List[index].Network.IPv4.Port);
                 mac = &ip_mac[0];
                 mac_len = sizeof(ip_mac);
                 break;
@@ -750,8 +777,7 @@ float Network_Port_Link_Speed(uint32_t object_instance)
  * For a given object instance-number, sets the Link_Speed
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - APDU length 0..65535
- *
+ * @param  value Link_Speed value in bits-per-second
  * @return  true if values are within range and property is set.
  */
 bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)
@@ -939,7 +965,7 @@ bool Network_Port_IP_Subnet(
     bool status = false;
     uint32_t mask = 0;
     uint32_t prefix = 0;
-    uint8_t ip_mask[4] = { 0 };
+    uint8_t ip_mask[4] = { 255, 255, 255, 255 };
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
@@ -948,9 +974,8 @@ bool Network_Port_IP_Subnet(
             if ((prefix > 0) && (prefix <= 32)) {
                 mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF;
                 encode_unsigned32(ip_mask, mask);
-                status =
-                    octetstring_init(subnet_mask, ip_mask, sizeof(ip_mask));
             }
+            status = octetstring_init(subnet_mask, ip_mask, sizeof(ip_mask));
         }
     }
 
@@ -1326,9 +1351,7 @@ void *Network_Port_BBMD_BD_Table(uint32_t object_instance)
  * @return true if the Broadcast Distribution Table linked list head
  *  property value was set
  */
-bool Network_Port_BBMD_BD_Table_Set(
-    uint32_t object_instance,
-    void *bdt_head)
+bool Network_Port_BBMD_BD_Table_Set(uint32_t object_instance, void *bdt_head)
 {
     bool status = false;
     unsigned index = 0;
@@ -1379,9 +1402,7 @@ void *Network_Port_BBMD_FD_Table(uint32_t object_instance)
  *
  * @return true if the BBMD-Accept-FD-Registrations property value was set
  */
-bool Network_Port_BBMD_FD_Table_Set(
-    uint32_t object_instance,
-    void *fdt_head)
+bool Network_Port_BBMD_FD_Table_Set(uint32_t object_instance, void *fdt_head)
 {
     bool status = false;
     unsigned index = 0;
@@ -1449,8 +1470,7 @@ static bool Network_Port_Remote_BBMD_IP_Address_And_Port(
  * @return  true if ip-address was retrieved
  */
 bool Network_Port_Remote_BBMD_IP_Address(
-    uint32_t object_instance,
-    uint8_t *a, uint8_t *b, uint8_t *c, uint8_t *d)
+    uint32_t object_instance, uint8_t *a, uint8_t *b, uint8_t *c, uint8_t *d)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -1539,8 +1559,8 @@ uint16_t Network_Port_Remote_BBMD_BIP_Port(uint32_t object_instance)
  *
  * @return  true if values are within range and property is set.
  */
-bool Network_Port_Remote_BBMD_BIP_Port_Set(uint32_t object_instance,
-    uint16_t value)
+bool Network_Port_Remote_BBMD_BIP_Port_Set(
+    uint32_t object_instance, uint16_t value)
 {
     bool status = false;
     unsigned index = 0;
@@ -1591,8 +1611,8 @@ uint16_t Network_Port_Remote_BBMD_BIP_Lifetime(uint32_t object_instance)
  *
  * @return  true if values are within range and property is set.
  */
-bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(uint32_t object_instance,
-    uint16_t value)
+bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(
+    uint32_t object_instance, uint16_t value)
 {
     bool status = false;
     unsigned index = 0;
@@ -2357,13 +2377,12 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_FD_BBMD_ADDRESS:
             Network_Port_Remote_BBMD_IP_Address_And_Port(
                 rpdata->object_instance, &ip_address);
-            apdu_len = bvlc_foreign_device_bbmd_host_address_encode(&apdu[0],
-                apdu_size, &ip_address);
+            apdu_len = bvlc_foreign_device_bbmd_host_address_encode(
+                &apdu[0], apdu_size, &ip_address);
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
-            apdu_len = encode_application_unsigned(
-                &apdu[0], Network_Port_Remote_BBMD_BIP_Lifetime(
-                rpdata->object_instance));
+            apdu_len = encode_application_unsigned(&apdu[0],
+                Network_Port_Remote_BBMD_BIP_Lifetime(rpdata->object_instance));
             break;
 #endif
         case PROP_BACNET_IPV6_MODE:
@@ -2497,8 +2516,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_MAX_MASTER:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
                     status = Network_Port_MSTP_Max_Master_Set(
@@ -2514,8 +2533,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MAX_INFO_FRAMES:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
                     status = Network_Port_MSTP_Max_Info_Frames_Set(
@@ -2531,26 +2550,15 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_RELIABILITY:
-        case PROP_OUT_OF_SERVICE:
-        case PROP_NETWORK_TYPE:
-        case PROP_PROTOCOL_LEVEL:
-        case PROP_NETWORK_NUMBER:
-        case PROP_NETWORK_NUMBER_QUALITY:
-        case PROP_MAC_ADDRESS:
-        case PROP_LINK_SPEED:
-        case PROP_CHANGES_PENDING:
-        case PROP_APDU_LENGTH:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -2567,6 +2575,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  */
 int Network_Port_Read_Range_BDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 {
+    (void)apdu;
+    (void)pRequest;
     return 0;
 }
 
@@ -2580,6 +2590,8 @@ int Network_Port_Read_Range_BDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  */
 int Network_Port_Read_Range_FDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 {
+    (void)apdu;
+    (void)pRequest;
     return 0;
 }
 
@@ -2621,6 +2633,7 @@ bool Network_Port_Read_Range(
 #if defined(BACDL_BIP) && BBMD_ENABLED
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
 #endif
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_SERVICES;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
             break;
@@ -2630,8 +2643,10 @@ bool Network_Port_Read_Range(
             pInfo->Handler = Network_Port_Read_Range_BDT;
             status = true;
 #else
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            (void)pInfo;
 #endif
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
@@ -2640,11 +2655,14 @@ bool Network_Port_Read_Range(
             pInfo->Handler = Network_Port_Read_Range_FDT;
             status = true;
 #else
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            (void)pInfo;
 #endif
             break;
         default:
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;

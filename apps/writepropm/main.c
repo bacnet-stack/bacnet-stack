@@ -33,6 +33,10 @@
 
 #define PRINT_ENABLED 1
 
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
+#endif
+
 #include "bacnet/bacdef.h"
 #include "bacnet/config.h"
 #include "bacnet/bactext.h"
@@ -70,11 +74,10 @@ static bool Error_Detected = false;
 /* Used for verbose */
 static bool Verbose = false;
 
-static void MyWritePropertyMultipleErrorHandler(
-    BACNET_ADDRESS * src,
+static void MyWritePropertyMultipleErrorHandler(BACNET_ADDRESS *src,
     uint8_t invoke_id,
     uint8_t service_choice,
-    uint8_t * service_request,
+    uint8_t *service_request,
     uint16_t service_len)
 {
     int len = 0;
@@ -120,7 +123,6 @@ static void MyRejectHandler(
         Error_Detected = true;
     }
 }
-
 
 static void MyWritePropertyMultipleSimpleAckHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id)
@@ -188,73 +190,79 @@ static void print_usage(char *filename)
 
 static void print_help(char *filename)
 {
-    printf(
-        "Write one or more properties to one or more objects\n"
-        "in a BACnet device.\n"
-        "device-instance:\n"
+    printf("Write one or more properties to one or more objects\n"
+        "in a BACnet device.\n");
+    printf("\n");
+    printf("device-instance:\n"
         "BACnet Device Object Instance number that you are\n"
         "trying to communicate to.  This number will be used\n"
         "to try and bind with the device using Who-Is and\n"
         "I-Am services.  For example, if you were writing\n"
-        "Device Object 123, the device-instance would be 123.\n"
-        "\nobject-type:\n"
+        "Device Object 123, the device-instance would be 123.\n");
+    printf("\n");
+    printf("object-type:\n"
         "The object type is object that you are reading. It\n"
         "can be defined either as the object-type name string\n"
         "as defined in the BACnet specification, or as the\n"
         "integer value of the enumeration BACNET_OBJECT_TYPE\n"
         "in bacenum.h. For example if you were reading Analog\n"
-        "Output 2, the object-type would be analog-output or 1.\n"
-        "\nobject-instance:\n"
+        "Output 2, the object-type would be analog-output or 1.\n");
+    printf("\n");
+    printf("object-instance:\n"
         "This is the object instance number of the object that\n"
         "you are writing.  For example, if you were writing\n"
-        "Analog Output 2, the object-instance would be 2.\n"
-        "\nproperty:\n"
+        "Analog Output 2, the object-instance would be 2.\n");
+    printf("\n");
+    printf("property:\n"
         "The property is an integer value of the enumeration\n"
         "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
         "you are writing.  For example, if you were writing the\n"
-        "Present Value property, use 85 as the property.\n"
-        "priority:\n"
+        "Present Value property, use 85 as the property.\n");
+    printf("\n");
+    printf("priority:\n"
         "This parameter is used for setting the priority of the\n"
         "write. If Priority 0 is given, no priority is sent.  The BACnet \n"
         "standard states that the value is written at the lowest \n"
         "priority (16) if the object property supports priorities\n"
-        "when no priority is sent.\n"
-        "\n"
-        "index\n"
+        "when no priority is sent.\n");
+    printf("\n");
+    printf("index:\n"
         "This integer parameter is the index number of an array.\n"
         "If the property is an array, individual elements can be written\n"
-        "to if supported.  If this parameter is -1, the index is ignored.\n"
-        "\n"
-        "tag:\n"
+        "to if supported.  If this parameter is -1, the index is ignored.\n");
+    printf("\n");
+    printf("tag:\n"
         "Tag is the integer value of the enumeration BACNET_APPLICATION_TAG \n"
         "in bacenum.h.  It is the data type of the value that you are\n"
         "writing.  For example, if you were writing a REAL value, you would \n"
         "use a tag of 4.\n"
         "Context tags are created using two tags in a row.  The context tag\n"
-        "is preceded by a C.  Ctag tag. C2 4 creates a context 2 tagged REAL.\n"
-        "\n"
-        "value:\n"
+        "is preceded by a C.  Ctag tag. C2 4 creates a context 2 tagged REAL.\n");
+    printf("\n");
+    printf("value:\n"
         "The value is an ASCII representation of some type of data that you\n"
         "are writing.  It is encoded using the tag information provided.  For\n"
         "example, if you were writing a REAL value of 100.0, you would use \n"
-        "100.0 as the value.\n"
-        "\n"
-        "Here is a brief overview of BACnet property and tags:\n"
+        "100.0 as the value.\n");
+    printf("\n");
+    printf("Here is a brief overview of BACnet property and tags:\n"
         "Certain properties are expected to be written with certain \n"
         "application tags, so you probably need to know which ones to use\n"
         "with each property of each object.  It is almost safe to say that\n"
         "given a property and an object and a table, the tag could be looked\n"
         "up automatically.  There may be a few exceptions to this, such as\n"
         "the Any property type in the schedule object and the Present Value\n"
-        "accepting REAL, BOOLEAN, NULL, etc.  Perhaps it would be simpler for\n"
-        "the demo to use this kind of table - but I also wanted to be able\n"
-        "to do negative testing by passing the wrong tag and have the server\n"
-        "return a reject message.\n\n");
+        "accepting REAL, BOOLEAN, NULL, etc.\n");
+    printf("Perhaps it would be simpler for the demo to use this\n"
+        "kind of table - but this tool can also be used for negative\n"
+        "testing by passing the wrong tag to validate that the server\n"
+        "returns an error, reject, or abort message.\n");
+    printf("\n");
     printf("Example:\n"
-           "If you want send a value of 100 to the Present-Value in\n"
-           "Analog Output 44 and 45 of Device 123 at priority 16,\n"
-           "send the following command:\n"
-           "%s 123 1 44 85 16 4 100 1 45 85 16 4 100\n",
+        "If you want write a value of 100 to the Present-Value in\n"
+        "Analog Output 44 and 45 of Device 123 at priority 16,\n"
+        "send the following command:\n"
+        "%s 123 1 44 85 16 4 100 1 45 85 16 4 100\n",
         filename);
 }
 
@@ -275,8 +283,10 @@ int main(int argc, char *argv[])
     BACNET_PROPERTY_VALUE *wpm_property;
     char *value_string = NULL;
     bool status = false;
-    BACNET_APPLICATION_TAG property_tag;
+    long property_tag;
+    long priority;
     uint8_t context_tag = 0;
+    unsigned object_type = 0;
     unsigned property_id = 0;
     unsigned property_array_index = 0;
     int scan_count = 0;
@@ -318,12 +328,13 @@ int main(int argc, char *argv[])
     arg_sets = 0;
     while (wpm_object) {
         tag_value_arg = 2 + (arg_sets * 6);
-        if (bactext_object_type_strtol(
-                argv[tag_value_arg], &wpm_object->object_type) == false) {
+        if (bactext_object_type_strtol(argv[tag_value_arg], &object_type) ==
+            false) {
             fprintf(
                 stderr, "Error: object-type=%s invalid\n", argv[tag_value_arg]);
             return 1;
         }
+        wpm_object->object_type = object_type;
         tag_value_arg++;
         args_remaining--;
         if (Verbose) {
@@ -388,8 +399,12 @@ int main(int argc, char *argv[])
                     return 1;
                 }
                 /* Priority */
-                wpm_property->priority =
-                    (uint8_t)strtol(argv[tag_value_arg], NULL, 0);
+                priority = strtol(argv[tag_value_arg], NULL, 0);
+                if ((priority < BACNET_MIN_PRIORITY) ||
+                    (priority > BACNET_MAX_PRIORITY)) {
+                    priority = BACNET_NO_PRIORITY;
+                }
+                wpm_property->priority = priority;
                 tag_value_arg++;
                 args_remaining--;
                 if (Verbose) {
@@ -423,18 +438,32 @@ int main(int argc, char *argv[])
                 tag_value_arg++;
                 args_remaining--;
                 if (Verbose) {
-                    printf("tag=%u value=%s\n", property_tag, value_string);
+                    printf("tag=%ld value=%s\n", property_tag, value_string);
                 }
-                if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-                    fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
+                if (property_tag < 0) {
+                    property_tag =
+                        bacapp_known_property_tag(wpm_object->object_type,
+                            wpm_property->propertyIdentifier);
+                } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
+                    fprintf(stderr,
+                        "Error: tag=%ld - it must be less than %u\n",
                         property_tag, MAX_BACNET_APPLICATION_TAG);
                     return 1;
                 }
-                status = bacapp_parse_application_data(
-                    property_tag, value_string, &wpm_property->value);
-                if (!status) {
-                    /* FIXME: show the expected entry format for the tag */
-                    fprintf(stderr, "Error: unable to parse the tag value\n");
+                if (property_tag >= 0) {
+                    status = bacapp_parse_application_data(
+                        property_tag, value_string, &wpm_property->value);
+                    if (!status) {
+                        /* FIXME: show the expected entry format for the tag */
+                        fprintf(
+                            stderr, "Error: unable to parse the tag value\n");
+                        return 1;
+                    }
+                } else {
+                    fprintf(stderr,
+                        "Error: parser for property %s is not implemented\n",
+                        bactext_property_name(
+                        wpm_property->propertyIdentifier));
                     return 1;
                 }
                 wpm_property->value.next = NULL;
@@ -482,7 +511,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(

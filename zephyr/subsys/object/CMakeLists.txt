@@ -4,6 +4,11 @@
 # SPDX-License-Identifier: MIT
 #
 
+zephyr_compile_definitions(
+  _POSIX_C_SOURCE=200809    # Expose `strdup()` for bacfile, ao, bo, mso
+  CONFIG_NEWLIB_LIBC        # Choose library providing `strdup()` impl.
+  )
+
 zephyr_sources(device.c)
 
 if(CONFIG_BACNET_USE_DYNAMIC_DESCRIPTION)
@@ -22,6 +27,7 @@ if(CONFIG_BACNET_USE_DYNAMIC_DESCRIPTION)
     bi.c
     bo.c
     bv.c
+    calendar.c
     channel.c
     command.c
     credential_data_input.c
@@ -37,6 +43,7 @@ if(CONFIG_BACNET_USE_DYNAMIC_DESCRIPTION)
     osv.c
     piv.c
     schedule.c
+    time_value.c
     trendlog.c
     )
 

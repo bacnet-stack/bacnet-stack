@@ -130,7 +130,16 @@ static int RPM_Encode_Property(
     rpdata.array_index = rpmdata->array_index;
     rpdata.application_data = &Temp_Buf[0];
     rpdata.application_data_len = sizeof(Temp_Buf);
-    len = Device_Read_Property(&rpdata);
+
+    if ((rpmdata->object_property == PROP_ALL) ||
+        (rpmdata->object_property == PROP_REQUIRED) ||
+        (rpmdata->object_property == PROP_OPTIONAL)) {
+        /* special properties only get ERROR encoding */
+        len = BACNET_STATUS_ERROR;
+    } else {
+        len = Device_Read_Property(&rpdata);
+    }
+
     if (len < 0) {
         if ((len == BACNET_STATUS_ABORT) || (len == BACNET_STATUS_REJECT)) {
             rpmdata->error_code = rpdata.error_code;
@@ -287,8 +296,9 @@ void handler_read_property_multiple(uint8_t *service_request,
 #endif
                         error = len;
                         berror = true;
-                        break; // The berror flag ensures that both loops will
-                               // be broken!
+                        break; /* The berror flag ensures that both loops will
+                                */
+                        /* be broken! */
                     }
                     decode_len += len;
                     /* handle the special properties */
@@ -300,7 +310,26 @@ void handler_read_property_multiple(uint8_t *service_request,
                         unsigned index = 0;
                         BACNET_PROPERTY_ID special_object_property;
 
-                        if (rpmdata.array_index != BACNET_ARRAY_ALL) {
+                        if (!Device_Valid_Object_Id(rpmdata.object_type,
+                                                    rpmdata.object_instance)) {
+                            len = RPM_Encode_Property(
+                                &Handler_Transmit_Buffer[npdu_len],
+                                (uint16_t)apdu_len, MAX_APDU, &rpmdata);
+                            if (len > 0) {
+                                apdu_len += len;
+                            } else {
+#if PRINT_ENABLED
+                                fprintf(stderr,
+                                        "RPM: Too full for property!\r\n");
+#endif
+                                error = len;
+                                /* The berror flag ensures that
+                                   both loops will be broken! */
+                                berror = true;
+                                break;
+                            }
+                        } else if (rpmdata.array_index != BACNET_ARRAY_ALL) {
+
                             /* No array index options for this special property.
                                Encode error for this object property response */
                             len = rpm_ack_encode_apdu_object_property(
@@ -320,8 +349,8 @@ void handler_read_property_multiple(uint8_t *service_request,
                                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                                 error = BACNET_STATUS_ABORT;
                                 berror = true;
-                                break; // The berror flag ensures that both
-                                       // loops will be broken!
+                                break; /* The berror flag ensures that both */
+                                /* loops will be broken! */
                             }
 
                             apdu_len += len;
@@ -342,8 +371,8 @@ void handler_read_property_multiple(uint8_t *service_request,
                                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                                 error = BACNET_STATUS_ABORT;
                                 berror = true;
-                                break; // The berror flag ensures that both
-                                       // loops will be broken!
+                                break; /* The berror flag ensures that both */
+                                /* loops will be broken! */
                             }
                             apdu_len += len;
                         } else {
@@ -360,7 +389,27 @@ void handler_read_property_multiple(uint8_t *service_request,
                                    response on OPTIONAL when empty. */
                                 /* If no optional properties are supported then
                                    an empty 'List of Results' shall be returned
-                                   for the specified property.*/
+                                   for the specified property, except if the
+                                   object does not exist. */
+                                if (!Device_Valid_Object_Id(rpmdata.object_type,
+                                  rpmdata.object_instance)) {
+                                    len = RPM_Encode_Property(
+                                        &Handler_Transmit_Buffer[npdu_len],
+                                        (uint16_t)apdu_len, MAX_APDU, &rpmdata);
+                                    if (len > 0) {
+                                        apdu_len += len;
+                                    } else {
+#if PRINT_ENABLED
+                                        fprintf(stderr,
+                                            "RPM: Too full for property!\r\n");
+#endif
+                                        error = len;
+                                        /* The berror flag ensures that
+                                           both loops will be broken! */
+                                        berror = true;
+                                        break;
+                                    }
+                                }
                             } else {
                                 for (index = 0; index < property_count;
                                      index++) {
@@ -379,8 +428,9 @@ void handler_read_property_multiple(uint8_t *service_request,
 #endif
                                         error = len;
                                         berror = true;
-                                        break; // The berror flag ensures that
-                                               // both loops will be broken!
+                                        break; /* The berror flag ensures that
+                                                */
+                                        /* both loops will be broken! */
                                     }
                                 }
                             }
@@ -399,8 +449,8 @@ void handler_read_property_multiple(uint8_t *service_request,
 #endif
                             error = len;
                             berror = true;
-                            break; // The berror flag ensures that both loops
-                                   // will be broken!
+                            break; /* The berror flag ensures that both loops */
+                            /* will be broken! */
                         }
                     }
 
@@ -421,14 +471,14 @@ void handler_read_property_multiple(uint8_t *service_request,
                                 ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             error = BACNET_STATUS_ABORT;
                             berror = true;
-                            break; // The berror flag ensures that both loops
-                                   // will be broken!
+                            break; /* The berror flag ensures that both loops */
+                            /* will be broken! */
                         } else {
                             apdu_len += copy_len;
                         }
                         break; /* finished with this property list */
                     }
-                } // for(;;)
+                } /* for(;;) */
                 if (berror) {
                     break;
                 }
@@ -436,7 +486,7 @@ void handler_read_property_multiple(uint8_t *service_request,
                     /* Reached the end so finish up */
                     break;
                 }
-            } // for(;;)
+            } /* for(;;) */
 
             /* If not having an error so far, check the remaining space. */
             if (!berror) {

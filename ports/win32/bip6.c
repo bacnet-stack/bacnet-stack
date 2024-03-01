@@ -46,6 +46,7 @@
 
 /* Win32 Socket */
 static SOCKET BIP6_Socket = INVALID_SOCKET;
+static int BIP6_Socket_Scope_Id = 0;
 /* local address - filled by init functions */
 static BACNET_IP6_ADDRESS BIP6_Addr;
 static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
@@ -113,7 +114,6 @@ void bip6_set_interface(char *ifname)
     int i, RetVal;
     struct addrinfo Hints, *AddrInfo, *AI;
     struct sockaddr_in6 *sin;
-    struct sockaddr_in6 server = {};
     struct in6_addr broadcast_address = {};
     struct ipv6_mreq join_request = {};
     SOCKET ServSock[FD_SETSIZE] = {};
@@ -208,8 +208,9 @@ void bip6_set_interface(char *ifname)
             IP6_ADDRESS_MAX);
         memcpy(&join_request.ipv6mr_multiaddr, &broadcast_address,
             sizeof(struct in6_addr));
-        /* Let system choose the interface */
-        join_request.ipv6mr_interface = 0;
+        /* Let system not choose the interface */
+        BIP6_Socket_Scope_Id = if_nametoindex(ifname);
+        join_request.ipv6mr_interface = BIP6_Socket_Scope_Id;
         RetVal = setsockopt(BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP,
             (char *)&join_request, sizeof(join_request));
         if (RetVal < 0) {
@@ -224,12 +225,7 @@ void bip6_set_interface(char *ifname)
         // the application is a server that has a well-known port
         // that clients know about in advance.
         //
-        memset(&server, 0, sizeof(server));
-        server.sin6_family = AF_INET6;
-        server.sin6_port = htons(BIP6_Addr.port);
-        server.sin6_addr = in6addr_any;
-        if (bind(BIP6_Socket, (struct sockaddr *)&server, sizeof(server)) ==
-            SOCKET_ERROR) {
+        if (bind(BIP6_Socket, AI->ai_addr, AI->ai_addrlen) == SOCKET_ERROR) {
             fprintf(stderr, "BIP6: bind() failed with error %d: %s\n",
                 WSAGetLastError(), PrintError(WSAGetLastError()));
             closesocket(ServSock[i]);
@@ -379,7 +375,7 @@ int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     uint16_t addr16[8];
 
     /* assumes that the driver has already been initialized */
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return 0;
     }
     /* load destination IP address */
@@ -395,6 +391,7 @@ int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     bvlc_dest.sin6_addr.s6_addr16[6] = htons(addr16[6]);
     bvlc_dest.sin6_addr.s6_addr16[7] = htons(addr16[7]);
     bvlc_dest.sin6_port = htons(dest->port);
+    bvlc_dest.sin6_scope_id = BIP6_Socket_Scope_Id;
     debug_print_ipv6("Sending MPDU->", &bvlc_dest.sin6_addr);
     /* Send the packet */
     return sendto(BIP6_Socket, (char *)mtu, mtu_len, 0,
@@ -446,7 +443,7 @@ uint16_t bip6_receive(
     uint16_t i = 0;
 
     /* Make sure the socket is open */
-    if (BIP6_Socket < 0) {
+    if (BIP6_Socket == INVALID_SOCKET) {
         return 0;
     }
     /* we could just use a non-blocking socket, but that consumes all
@@ -506,10 +503,11 @@ uint16_t bip6_receive(
  */
 void bip6_cleanup(void)
 {
-    if (BIP6_Socket != -1) {
-        closesocket(BIP6_Socket);
+    if (BIP6_Socket == INVALID_SOCKET) {
+        return;
     }
-    BIP6_Socket = -1;
+    closesocket(BIP6_Socket);
+    BIP6_Socket = INVALID_SOCKET;
     WSACleanup();
 
     return;

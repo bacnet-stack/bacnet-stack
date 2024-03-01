@@ -63,6 +63,11 @@ extern "C" {
         BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
 
     BACNET_STACK_EXPORT
+    size_t getevent_service_request_encode(
+        uint8_t *apdu, size_t apdu_size, 
+        BACNET_OBJECT_ID *data);
+
+    BACNET_STACK_EXPORT
     int getevent_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,

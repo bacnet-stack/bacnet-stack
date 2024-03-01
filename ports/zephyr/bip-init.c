@@ -34,13 +34,13 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <device.h>
-#include <init.h>
-#include <kernel.h>
-#include <sys/printk.h>
-#include <net/net_ip.h>
-#include <net/socket.h>
-#include <net/socket_select.h>
+#include <zephyr/device.h>
+#include <zephyr/init.h>
+#include <zephyr/kernel.h>
+#include <zephyr/sys/printk.h>
+#include <zephyr/net/net_ip.h>
+#include <zephyr/net/socket.h>
+#include <zephyr/net/socket_select.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip.h"
@@ -48,8 +48,8 @@
 #include "bacnet/basic/bbmd/h_bbmd.h"
 
 /* Logging module registration is already done in ports/zephyr/main.c */
-#include <logging/log.h>
-#include <logging/log_ctrl.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/logging/log_ctrl.h>
 
 LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 
@@ -154,7 +154,7 @@ void bip_get_my_address(BACNET_ADDRESS *addr)
 
 void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 {
-    int i = 0; 
+    int i = 0;
 
     if (dest) {
         dest->mac_len = BIP_ADDRESS_MAX;
@@ -247,7 +247,6 @@ uint8_t bip_get_subnet_prefix(void)
 {
     uint32_t address = 0;
     uint32_t broadcast = 0;
-    uint32_t test_broadcast = 0;
     uint32_t mask = 0xFFFFFFFE;
     uint8_t prefix = 0;
 
@@ -255,8 +254,7 @@ uint8_t bip_get_subnet_prefix(void)
     broadcast = BIP_Broadcast_Addr.s_addr;
     /* calculate the subnet prefix from the broadcast address */
     for (prefix = 1; prefix <= 32; prefix++) {
-        test_broadcast = (address & mask) | (~mask);
-        if (test_broadcast == broadcast) {
+        if ((address | mask) == broadcast) {
             break;
         }
         mask = mask<<1;
@@ -352,7 +350,7 @@ uint16_t bip_receive(
         received_bytes = zsock_recvfrom(socket, (char *)&npdu[0], max_npdu,
             0, (struct sockaddr *)&sin, &sin_len);
     }
-    else 
+    else
     {
         return 0;
     }
@@ -371,16 +369,16 @@ uint16_t bip_receive(
         LOG_WRN("%s:%d - RX bad packet", THIS_FILE, __LINE__);
         return 0;
     }
-    
+
     /* Data link layer addressing between B/IPv4 nodes consists of a 32-bit
        IPv4 address followed by a two-octet UDP port number (both of which
        shall be transmitted with the most significant octet first). This
        address shall be referred to as a B/IPv4 address.
     */
-   
+
     memcpy(&addr.address[0], &sin.sin_addr.s_addr, IP_ADDRESS_MAX);
     addr.port = ntohs(sin.sin_port);
-  
+
     debug_print_ipv4("Received MPDU->", &sin.sin_addr, sin.sin_port,
         received_bytes);
     /* pass the packet into the BBMD handler */
@@ -502,7 +500,7 @@ void bip_set_interface(char *ifname)
         bip_set_broadcast_addr(&broadcast);
 
         /* net_if -> net_if_config . net_if_ip . net_if_ipv4 -> net_if_addr . net_addr . in_addr . s4_addr[4] */
-        LOG_INF("   Unicast: %s", log_strdup(inet_ntoa(&interface->config.ip.ipv4->unicast->address.in_addr))); 
+        LOG_INF("   Unicast: %s", log_strdup(inet_ntoa(&interface->config.ip.ipv4->unicast->address.in_addr)));
         LOG_INF(" Broadcast: %s", log_strdup(inet_ntoa(&BIP_Broadcast_Addr)));
         LOG_INF("   Netmask: %s", log_strdup(inet_ntoa(&interface->config.ip.ipv4->netmask)) );
     }
@@ -573,7 +571,7 @@ static int createSocket(struct sockaddr_in *sin)
  */
 bool bip_init(char *ifname)
 {
-    int status = -1;
+    int sock_fd;
     struct sockaddr_in sin = { 0 };
 
     bip_set_interface(ifname);

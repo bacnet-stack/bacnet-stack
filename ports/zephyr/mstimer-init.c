@@ -23,7 +23,7 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#include <kernel.h>
+#include <zephyr/kernel.h>
 #include "bacnet/basic/sys/mstimer.h"
 
 /**
@@ -32,7 +32,7 @@
 */
 unsigned long mstimer_now(void)
 {
-    return (unsigned long) k_uptime_get();
+    return (unsigned long) k_uptime_get_32();
 }
 
 /**

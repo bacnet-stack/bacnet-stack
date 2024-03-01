@@ -74,7 +74,6 @@ int decode_real(uint8_t *apdu, float *real_value)
         }
     }
 
-
     return 4;
 }
 

@@ -236,8 +236,7 @@ static int bip_encode_bip_address(BACNET_IP_ADDRESS *baddr,
 /** Function to send a packet out the BACnet/IP socket (Annex J).
  * @ingroup DLBIP
  *
- * @param dest [in] Destination address
- * @param port [in] UDP port number
+ * @param dest [in] Destination address and port
  * @param mtu_len [in] PBUF packet
  * @return number of bytes sent, or 0 on failure.
  */
@@ -318,6 +317,10 @@ void bip_server_callback(void *arg,
     pbuf_free(pkt);
 }
 
+/**
+ * @brief Get the BACnet/IP unicast address in full BACnet address format
+ * @param my_address - pointer to the #BACNET_ADDRESS to fill
+ */
 void bip_get_my_address(BACNET_ADDRESS *my_address)
 {
     int i = 0;
@@ -337,8 +340,12 @@ void bip_get_my_address(BACNET_ADDRESS *my_address)
     return;
 }
 
+/**
+ * @brief Get the BACnet/IP broadcast address in full BACnet address format
+ * @param dest - pointer to the #BACNET_ADDRESS to fill
+ */
 void bip_get_broadcast_address(BACNET_ADDRESS *dest)
-{ /* destination address */
+{
     int i = 0; /* counter */
 
     if (dest) {

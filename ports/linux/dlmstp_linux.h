@@ -87,16 +87,6 @@ typedef struct shared_mstp_data {
     /* buffers needed by mstp port struct */
     uint8_t TxBuffer[DLMSTP_MPDU_MAX];
     uint8_t RxBuffer[DLMSTP_MPDU_MAX];
-    /* The minimum time without a DataAvailable or ReceiveError event */
-    /* that a node must wait for a station to begin replying to a */
-    /* confirmed request: 255 milliseconds. (Implementations may use */
-    /* larger values for this timeout, not to exceed 300 milliseconds.) */
-    uint16_t Treply_timeout;
-    /* The minimum time without a DataAvailable or ReceiveError event that a */
-    /* node must wait for a remote node to begin using a token or replying to */
-    /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
-    /* larger values for this timeout, not to exceed 100 milliseconds.) */
-    uint8_t Tusage_timeout;
     /* Timer that indicates line silence - and functions */
     uint16_t SilenceTime;
 

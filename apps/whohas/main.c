@@ -135,6 +135,7 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     int argi = 0;
+    unsigned object_type = 0;
     bool by_name = false;
 
     if (argc < 2) {
@@ -157,10 +158,11 @@ int main(int argc, char *argv[])
     } else if (argc < 4) {
         /* bacwh 8 1234 */
         Target_Object_Instance_Min = Target_Object_Instance_Max = -1;
-        if (bactext_object_type_strtol(argv[1], &Target_Object_Type) == false) {
+        if (bactext_object_type_strtol(argv[1], &object_type) == false) {
             fprintf(stderr, "object-type=%s invalid\n", argv[1]);
             return 1;
         }
+        Target_Object_Type = object_type;
         Target_Object_Instance = strtol(argv[2], NULL, 0);
     } else if (argc < 5) {
         /* bacwh 0 4194303 "name" */
@@ -172,10 +174,11 @@ int main(int argc, char *argv[])
         /* bacwh 0 4194303 8 1234 */
         Target_Object_Instance_Min = strtol(argv[1], NULL, 0);
         Target_Object_Instance_Max = strtol(argv[2], NULL, 0);
-        if (bactext_object_type_strtol(argv[3], &Target_Object_Type) == false) {
+        if (bactext_object_type_strtol(argv[3], &object_type) == false) {
             fprintf(stderr, "object-type=%s invalid\n", argv[3]);
             return 1;
         }
+        Target_Object_Type = object_type;
         Target_Object_Instance = strtol(argv[4], NULL, 0);
     } else {
         print_usage(filename_remove_path(argv[0]));
@@ -243,7 +246,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* increment timer - exit if timed out */
         elapsed_seconds += (current_seconds - last_seconds);
         if (elapsed_seconds > timeout_seconds) {

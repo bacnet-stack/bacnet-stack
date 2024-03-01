@@ -8,7 +8,7 @@
  * @brief test BACnet integer encode/decode APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/basic/sys/filename.h>
 
 /**
@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(filename_tests, testFilename)
+#else
 static void testFilename(void)
+#endif
 {
     char *data1 = "c:\\Joshua\\run";
     char *data2 = "/home/Anna/run";
@@ -46,6 +50,9 @@ static void testFilename(void)
  */
 
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(filename_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(filename_tests,
@@ -54,3 +61,4 @@ void test_main(void)
 
     ztest_run_test_suite(filename_tests);
 }
+#endif

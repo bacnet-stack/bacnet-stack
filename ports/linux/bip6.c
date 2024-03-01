@@ -90,6 +90,7 @@ void bip6_debug_enable(void)
 
 /* unix socket */
 static int BIP6_Socket = -1;
+static int BIP6_Socket_Scope_Id = 0;
 /* local address - filled by init functions */
 static BACNET_IP6_ADDRESS BIP6_Addr;
 static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
@@ -130,6 +131,7 @@ void bip6_set_interface(char *ifname)
                 ntohs(sin->sin6_addr.s6_addr16[7]));
             debug_print_ipv6(ifname, (&sin->sin6_addr));
             found = true;
+            BIP6_Socket_Scope_Id = if_nametoindex(ifname);
             break;
         }
         ifa_tmp = ifa_tmp->ifa_next;
@@ -264,6 +266,7 @@ int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     bvlc_dest.sin6_addr.s6_addr16[6] = htons(addr16[6]);
     bvlc_dest.sin6_addr.s6_addr16[7] = htons(addr16[7]);
     bvlc_dest.sin6_port = htons(dest->port);
+    bvlc_dest.sin6_scope_id = BIP6_Socket_Scope_Id;
     debug_print_ipv6("Sending MPDU->", &bvlc_dest.sin6_addr);
     /* Send the packet */
     return sendto(BIP6_Socket, (char *)mtu, mtu_len, 0,
@@ -422,7 +425,7 @@ bool bip6_init(char *ifname)
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0U);
     }
-    PRINTF("BIP6: IPv6 UDP port: 0x%04X\n", htons(BIP6_Addr.port));
+    PRINTF("BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
     if (BIP6_Broadcast_Addr.address[0] == 0) {
         bvlc6_address_set(&BIP6_Broadcast_Addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0,
             0, 0, 0, 0, BIP6_MULTICAST_GROUP_ID);
@@ -454,8 +457,8 @@ bool bip6_init(char *ifname)
         IP6_ADDRESS_MAX);
     memcpy(&join_request.ipv6mr_multiaddr, &broadcast_address,
         sizeof(struct in6_addr));
-    /* Let system choose the interface */
-    join_request.ipv6mr_interface = 0;
+    /* Let system not choose the interface */
+    join_request.ipv6mr_interface = BIP6_Socket_Scope_Id;
     status = setsockopt(BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP,
         &join_request, sizeof(join_request));
     if (status < 0) {
@@ -464,8 +467,23 @@ bool bip6_init(char *ifname)
 
     /* bind the socket to the local port number and IP address */
     server.sin6_family = AF_INET6;
+#if 0
+    uint16_t addr16[8];
+    bvlc6_address_get(&BIP6_Addr, &addr16[0], &addr16[1], &addr16[2],
+        &addr16[3], &addr16[4], &addr16[5], &addr16[6], &addr16[7]);
+    server.sin6_addr.s6_addr16[0] = htons(addr16[0]);
+    server.sin6_addr.s6_addr16[1] = htons(addr16[1]);
+    server.sin6_addr.s6_addr16[2] = htons(addr16[2]);
+    server.sin6_addr.s6_addr16[3] = htons(addr16[3]);
+    server.sin6_addr.s6_addr16[4] = htons(addr16[4]);
+    server.sin6_addr.s6_addr16[5] = htons(addr16[5]);
+    server.sin6_addr.s6_addr16[6] = htons(addr16[6]);
+    server.sin6_addr.s6_addr16[7] = htons(addr16[7]);
+#else
     server.sin6_addr = in6addr_any;
+#endif
     server.sin6_port = htons(BIP6_Addr.port);
+    debug_print_ipv6("Binding->", &server.sin6_addr);
     status = bind(BIP6_Socket, (const void *)&server, sizeof(server));
     if (status < 0) {
         perror("BIP: bind");

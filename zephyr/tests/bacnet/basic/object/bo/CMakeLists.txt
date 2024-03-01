@@ -32,8 +32,10 @@ if(BOARD STREQUAL unit_testing)
   get_filename_component(BACNET_BASIC_SRC ${BACNET_OBJECT_SRC} PATH)
   get_filename_component(BACNET_SRC ${BACNET_BASIC_SRC} PATH)
   list(APPEND SOURCES
+    ${BACNET_SRC}/bacaddr.c
     ${BACNET_SRC}/bacapp.c
     ${BACNET_SRC}/bacdcode.c
+    ${BACNET_SRC}/bacdest.c
     ${BACNET_SRC}/bacstr.c
     ${BACNET_SRC}/bacint.c
     ${BACNET_SRC}/bacreal.c
@@ -45,12 +47,31 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/lighting.c
     ${BACNET_SRC}/wp.c
+    ${BACNET_SRC}/hostnport.c
+    ${BACNET_SRC}/dailyschedule.c
+    ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/calendar_entry.c
+    ${BACNET_SRC}/special_event.c
+    ${BACNET_SRC}/basic/sys/bigend.c
+    ${BACNET_SRC}/bactimevalue.c
+    ${BACNET_SRC}/basic/sys/keylist.c
+    ${BACNET_SRC}/basic/object/device.c
+    ${BACNET_SRC}/proplist.c
+    ${BACNET_SRC}/cov.c
+    ${BACNET_SRC}/dcc.c
+    ${BACNET_SRC}/basic/service/h_apdu.c
+    ${BACNET_SRC}/basic/binding/address.c
+    ${BACNET_SRC}/basic/service/h_cov.c
+    ${BACNET_SRC}/npdu.c
+    ${BACNET_SRC}/abort.c
+    ${BACNET_SRC}/bacerror.c
     )
 
-  include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
+  set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
+  find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 else()
-  include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
+  find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 
   target_include_directories(app PRIVATE ${BACNET_INCLUDE})

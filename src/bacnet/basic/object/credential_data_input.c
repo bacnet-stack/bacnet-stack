@@ -333,8 +333,8 @@ bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_RELIABILITY:
             if (Credential_Data_Input_Out_Of_Service(
                     wp_data->object_instance)) {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_ENUMERATED);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
                 if (status) {
                     cdi_descr[object_index].reliability =
                         (BACNET_RELIABILITY)value.type.Enumerated;

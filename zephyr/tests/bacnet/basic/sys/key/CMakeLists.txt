@@ -19,17 +19,17 @@ get_filename_component(BACNET_NAME ${BACNET_BASE} NAME)
 
 
 if(BOARD STREQUAL unit_testing)
-  file(RELATIVE_PATH BACNET_INCLUDE ${ZEPHYR_BASE} ${BACNET_BASE}/src)
+  file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
   list(APPEND INCLUDE ${BACNET_INCLUDE})
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
     )
 
-  include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
+  find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 else()
-  include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
+  find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 
   target_include_directories(app PRIVATE ${BACNET_BASE}/src)

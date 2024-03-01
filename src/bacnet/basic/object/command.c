@@ -164,6 +164,7 @@ int cl_decode_apdu(uint8_t *apdu,
     int dec_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
+    uint32_t enum_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     if (decode_is_context_tag(&apdu[dec_len], 0)) {
@@ -194,11 +195,11 @@ int cl_decode_apdu(uint8_t *apdu,
     if (tag_number != 2) {
         return BACNET_STATUS_REJECT;
     }
-    len = decode_enumerated(
-        &apdu[dec_len], len_value_type, &bcl->Property_Identifier);
+    len = decode_enumerated(&apdu[dec_len], len_value_type, &enum_value);
     if (len < 0) {
         return BACNET_STATUS_REJECT;
     }
+    bcl->Property_Identifier = enum_value;
     dec_len += len;
     if (decode_is_context_tag(&apdu[dec_len], 3)) {
         len = decode_tag_number_and_value(
@@ -376,6 +377,34 @@ void Command_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    (void)object_instance;
+    Command_Property_Lists(
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
 }
 
 /**
@@ -781,8 +810,8 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch ((int)wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int >= MAX_COMMAND_ACTIONS) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -796,21 +825,16 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 status = false;
             }
-
-            break;
-
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_IN_PROCESS:
-        case PROP_ALL_WRITES_SUCCESSFUL:
-        case PROP_ACTION:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -819,4 +843,5 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 void Command_Intrinsic_Reporting(uint32_t object_instance)
 {
+    (void)object_instance;
 }

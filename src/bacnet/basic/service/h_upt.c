@@ -111,6 +111,7 @@ void handler_unconfirmed_private_transfer(
     BACNET_PRIVATE_TRANSFER_DATA private_data;
     int len = 0;
 
+    (void)src;
 #if PRINT_ENABLED
     fprintf(stderr, "Received Unconfirmed Private Transfer Request!\n");
 #endif

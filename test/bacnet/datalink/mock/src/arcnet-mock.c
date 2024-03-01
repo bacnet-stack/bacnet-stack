@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <stdint.h>
 #include "bacnet/datalink/arcnet.h"
 
