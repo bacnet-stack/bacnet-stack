@@ -153,6 +153,15 @@ BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
 # if called from root Makefile, PRINT was already defined
 BACNET_FLAGS += -UPRINT_ENABLED
 BACNET_FLAGS += -DPRINT_ENABLED=0
+ifeq (${SHIELD},)
+BACNET_FLAGS += -DRS485_DFR0259_ENABLED=1
+endif
+ifeq (${SHIELD},dfr0259)
+BACNET_FLAGS += -DRS485_DFR0259_ENABLED=1
+endif
+ifeq (${SHIELD},linksprite)
+BACNET_FLAGS += -DRS485_LINKSPRITE_ENABLED=1
+endif
 ifeq (${LEGACY},true)
 # disable deprecated function warnings for legacy builds
 BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
