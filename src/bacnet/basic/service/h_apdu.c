@@ -600,7 +600,7 @@ void apdu_handler(BACNET_ADDRESS *src,
                 }
                 break;
             case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
-                if (apdu_len < 2) {
+                if (apdu_len < 3) {
                     break;
                 }
                 service_choice = apdu[1];
