@@ -20,7 +20,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.3.4] - 2024-03-01
+## [1.3.4] - 2024-03-02
 
 ### Security
 
@@ -30,6 +30,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added SHIELD=dfr0259 or SHIELD=linksprite build options to RS485
+  driver for stm32f4xx port.
+* Added FAQ 18 for firewall info (#587)
 * Added a BASH script for parallel EPICS clients registering as foreign devices
   to a BBMD (#586)
 * Added an example application - bacdiscover - to discover devices and their
