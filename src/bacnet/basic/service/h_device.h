@@ -32,41 +32,34 @@
 /** Called so a BACnet object can perform any necessary initialization.
  * @ingroup ObjHelpers
  */
-typedef void (
-    *object_init_function) (
-    void);
+typedef void (*object_init_function)(void);
 
 /** Counts the number of objects of this type.
  * @ingroup ObjHelpers
  * @return Count of implemented objects of this type.
  */
-typedef unsigned (
-    *object_count_function) (
-    void);
+typedef unsigned (*object_count_function)(void);
 
-/** Maps an object index position to its corresponding BACnet object instance number.
+/** Maps an object index position to its corresponding BACnet object instance
+ * number.
  * @ingroup ObjHelpers
- * @param index [in] The index of the object, in the array of objects of its type.
+ * @param index [in] The index of the object, in the array of objects of its
+ * type.
  * @return The BACnet object instance number to be used in a BACNET_OBJECT_ID.
  */
-typedef uint32_t(
-    *object_index_to_instance_function)
-        (
-    unsigned index);
+typedef uint32_t (*object_index_to_instance_function)(unsigned index);
 
 /** Provides the BACnet Object_Name for a given object instance of this type.
  * @ingroup ObjHelpers
  * @param object_instance [in] The object instance number to be looked up.
  * @param object_name [in,out] Pointer to a character_string structure that
- *         will hold a copy of the object name if this is a valid object_instance.
+ *         will hold a copy of the object name if this is a valid
+ * object_instance.
  * @return True if the object_instance is valid and object_name has been
  *         filled with a copy of the Object's name.
  */
-typedef bool(
-    *object_name_function)
-        (
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name);
+typedef bool (*object_name_function)(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 
 /** Look in the table of objects of this type, and see if this is a valid
  *  instance number.
@@ -74,9 +67,7 @@ typedef bool(
  * @param [in] The object instance number to be looked up.
  * @return True if the object instance refers to a valid object of this type.
  */
-typedef bool(
-    *object_valid_instance_function) (
-    uint32_t object_instance);
+typedef bool (*object_valid_instance_function)(uint32_t object_instance);
 
 /** Helper function to step through an array of objects and find either the
  * first one or the next one of a given type. Used to step through an array
@@ -88,9 +79,7 @@ typedef bool(
  * @return The index of the next object of the required type or ~0 (all bits
  * == 1) to indicate no more objects found.
  */
-typedef unsigned (
-    *object_iterate_function) (
-    unsigned current_index);
+typedef unsigned (*object_iterate_function)(unsigned current_index);
 
 /** Look in the table of objects of this type, and get the COV Value List.
  * @ingroup ObjHelpers
@@ -98,43 +87,34 @@ typedef unsigned (
  * @param [out] The value list
  * @return True if the object instance supports this feature, and has changed.
  */
-typedef bool(
-    *object_value_list_function) (
-    uint32_t object_instance,
-    BACNET_PROPERTY_VALUE * value_list);
+typedef bool (*object_value_list_function)(
+    uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list);
 
 /** Look in the table of objects for this instance to see if value changed.
  * @ingroup ObjHelpers
  * @param [in] The object instance number to be looked up.
  * @return True if the object instance has changed.
  */
-typedef bool(
-    *object_cov_function) (
-    uint32_t object_instance);
+typedef bool (*object_cov_function)(uint32_t object_instance);
 
 /** Look in the table of objects for this instance to clear the changed flag.
  * @ingroup ObjHelpers
  * @param [in] The object instance number to be looked up.
  */
-typedef void (
-    *object_cov_clear_function) (
-    uint32_t object_instance);
+typedef void (*object_cov_clear_function)(uint32_t object_instance);
 
 /** Intrinsic Reporting funcionality.
  * @ingroup ObjHelpers
  * @param [in] Object instance.
  */
-typedef void (
-    *object_intrinsic_reporting_function) (
-    uint32_t object_instance);
+typedef void (*object_intrinsic_reporting_function)(uint32_t object_instance);
 
 /**
  * @brief Updates the object with the elapsed milliseconds
  * @param  object_instance - object-instance number of the object
  * @param milliseconds - number of milliseconds elapsed
  */
-typedef void (
-    *object_timer_function) (
+typedef void (*object_timer_function)(
     uint32_t object_instance, uint16_t milliseconds);
 
 /** Defines the group of object helper functions for any supported Object.
@@ -180,14 +160,12 @@ void handler_device_object_instance_number_set(uint32_t device_id);
 
 BACNET_STACK_EXPORT
 uint32_t handler_device_wildcard_instance_number(
-    BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance);
+    BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 uint32_t handler_device_object_database_revision(void);
 BACNET_STACK_EXPORT
-void handler_device_object_database_revision_set(
-    uint32_t database_revision);
+void handler_device_object_database_revision_set(uint32_t database_revision);
 BACNET_STACK_EXPORT
 void handler_device_object_database_revision_increment(void);
 
@@ -198,7 +176,11 @@ bool handler_device_reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data);
 BACNET_STACK_EXPORT
 BACNET_REINITIALIZED_STATE handler_device_reinitialized_state(void);
 BACNET_STACK_EXPORT
-void handler_device_reinitialized_state_set(BACNET_REINITIALIZED_STATE state)
+void handler_device_reinitialized_state_set(BACNET_REINITIALIZED_STATE state);
+BACNET_STACK_EXPORT
+uint16_t handler_device_vendor_identifier(void);
+BACNET_STACK_EXPORT
+void handler_device_vendor_identifier_set(uint16_t vendor_id);
 BACNET_STACK_EXPORT
 void handler_device_reinitialize_backup_restore_enabled_set(bool enable);
 BACNET_STACK_EXPORT
@@ -209,8 +191,7 @@ rr_info_function handler_device_object_read_range_info(
     BACNET_OBJECT_TYPE object_type);
 
 BACNET_STACK_EXPORT
-void handler_device_object_property_list(
-    BACNET_OBJECT_TYPE object_type,
+void handler_device_object_property_list(BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     struct special_property_list_t *pPropertyList);
 
@@ -219,14 +200,11 @@ bool handler_device_object_instance_valid(
     BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-bool handler_device_write_property(
-    BACNET_WRITE_PROPERTY_DATA *wp_data);
+bool handler_device_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
 bool handler_device_object_list_identifier(
-    uint32_t array_index, 
-    BACNET_OBJECT_TYPE *object_type, 
-    uint32_t *instance);
+    uint32_t array_index, BACNET_OBJECT_TYPE *object_type, uint32_t *instance);
 BACNET_STACK_EXPORT
 unsigned handler_device_object_list_count(void);
 
@@ -238,19 +216,16 @@ int handler_device_object_list_element_remove(
     BACNET_LIST_ELEMENT_DATA *list_element);
 
 BACNET_STACK_EXPORT
-bool handler_device_valid_object_name(
-    BACNET_CHARACTER_STRING *object_name1,
+bool handler_device_valid_object_name(BACNET_CHARACTER_STRING *object_name1,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance);
 BACNET_STACK_EXPORT
-bool handler_device_object_name_copy(
-    BACNET_OBJECT_TYPE object_type,
+bool handler_device_object_name_copy(BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
 bool handler_device_valid_object_instance(
-    BACNET_OBJECT_TYPE object_type, 
-    uint32_t object_instance);
+    BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 void handler_device_intrinsic_reporting(void);
@@ -262,11 +237,11 @@ bool handler_device_object_value_list(BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE *value_list);
 BACNET_STACK_EXPORT
-bool handler_device_object_cov(BACNET_OBJECT_TYPE object_type, 
-    uint32_t object_instance);
+bool handler_device_object_cov(
+    BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 BACNET_STACK_EXPORT
-void handler_device_object_cov_clear(BACNET_OBJECT_TYPE object_type, 
-    uint32_t object_instance);
+void handler_device_object_cov_clear(
+    BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int handler_device_read_property(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -280,8 +255,7 @@ BACNET_STACK_EXPORT
 void handler_device_timer(uint16_t milliseconds);
 
 BACNET_STACK_EXPORT
-void handler_device_object_table_set(
-    object_functions_t *object_table);
+void handler_device_object_table_set(object_functions_t *object_table);
 
 BACNET_STACK_EXPORT
 void handler_device_object_init(void);

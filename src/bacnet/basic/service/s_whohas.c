@@ -33,8 +33,9 @@
 #include "bacnet/apdu.h"
 #include "bacnet/dcc.h"
 #include "bacnet/whohas.h"
-/* basic services and datalink */
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
 /** @file s_whohas.c  Send Who-Has requests. */

@@ -33,9 +33,10 @@
 #include "bacnet/apdu.h"
 #include "bacnet/dcc.h"
 #include "bacnet/ptransfer.h"
-/* basic services and datalink */
-#include "bacnet/basic/services.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
 
 /** @file s_upt.c  Send an Unconfirmed Private Transfer request. */
 

@@ -37,12 +37,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "bacnet/config.h"
+#include "bacnet/apdu.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
-#include "bacnet/apdu.h"
+#include "bacnet/proplist.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
 

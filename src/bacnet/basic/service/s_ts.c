@@ -31,6 +31,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
+#include "bacnet/datetime.h"
 #include "bacnet/dcc.h"
 #include "bacnet/timesync.h"
 /* basic services, TSM, binding, and datalink */
@@ -161,20 +162,22 @@ void Send_TimeSyncUTC(BACNET_DATE *bdate, BACNET_TIME *btime)
  */
 void Send_TimeSyncUTC_Device(void)
 {
-    int32_t utc_offset_minutes = 0;
-    bool dst = false;
+    int16_t utc_offset_minutes = 0;
+    bool dst_active = false;
     BACNET_DATE_TIME local_time;
     BACNET_DATE_TIME utc_time;
+    bool status = false;
 
-    Device_getCurrentDateTime(&local_time);
-    dst = Device_Daylight_Savings_Status();
-    utc_offset_minutes = Device_UTC_Offset();
-    datetime_copy(&utc_time, &local_time);
-    datetime_add_minutes(&utc_time, utc_offset_minutes);
-    if (dst) {
-        datetime_add_minutes(&utc_time, -60);
+    status = datetime_local(
+        &local_time.date, &local_time.time, &utc_offset_minutes, &dst_active);
+    if (status) {
+        datetime_copy(&utc_time, &local_time);
+        datetime_add_minutes(&utc_time, utc_offset_minutes);
+        if (dst_active) {
+            datetime_add_minutes(&utc_time, -60);
+        }
+        Send_TimeSyncUTC(&utc_time.date, &utc_time.time);
     }
-    Send_TimeSyncUTC(&utc_time.date, &utc_time.time);
 }
 
 /**
@@ -182,8 +185,12 @@ void Send_TimeSyncUTC_Device(void)
  */
 void Send_TimeSync_Device(void)
 {
-    BACNET_DATE_TIME local_time;
+    BACNET_DATE_TIME local_time = { 0 };
+    bool status = false;
 
-    Device_getCurrentDateTime(&local_time);
-    Send_TimeSync(&local_time.date, &local_time.time);
+    status = datetime_local(
+        &local_time.date, &local_time.time, NULL, NULL);
+    if (status) {
+        Send_TimeSync(&local_time.date, &local_time.time);
+    }
 }

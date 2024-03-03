@@ -40,6 +40,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
+#include "bacnet/readrange.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 

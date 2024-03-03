@@ -34,9 +34,10 @@
 #include "bacnet/dcc.h"
 #include "bacnet/whois.h"
 #include "bacnet/bacenum.h"
-/* basic services and datalink */
-#include "bacnet/datalink/datalink.h"
+/* basic services, TSM, and datalink */
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 
 /** @file s_whois.c  Send a Who-Is request. */
 

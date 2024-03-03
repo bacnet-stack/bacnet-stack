@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include "bacnet/dcc.h"
 #include "bacnet/basic/service/h_device.h"
 
 /* Object services */
@@ -20,6 +21,7 @@ static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static const char *Reinit_Password = "filister";
 static bool Reinitialize_Backup_Restore_Enabled;
+static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
 
 /**
  * @brief Sets the ReinitializeDevice password
@@ -149,6 +151,25 @@ BACNET_REINITIALIZED_STATE handler_device_reinitialized_state(void)
 void handler_device_reinitialized_state_set(BACNET_REINITIALIZED_STATE state)
 {
     Reinitialize_State = state;
+}
+
+/** Returns the Vendor ID for this Device.
+ * Get a free vendor ID, or see the assignments at
+ * http://www.bacnet.org/VendorID/BACnet%20Vendor%20IDs.htm
+ * @return The Vendor ID of this Device.
+ */
+uint16_t handler_device_vendor_identifier(void)
+{
+    return Vendor_Identifier;
+}
+
+/**
+ * @brief Set the Vendor ID for this Device.
+ * @param vendor_id [in] The desired Vendor ID for the Device.
+ */
+void handler_device_vendor_identifier_set(uint16_t vendor_id)
+{
+    Vendor_Identifier = vendor_id;
 }
 
 /** Glue function to let the Device object, when called by a handler,
