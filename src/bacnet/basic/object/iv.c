@@ -165,38 +165,38 @@ uint32_t Integer_Value_Index_To_Instance(unsigned index)
  */
 bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 {
-//   unsigned i;
+  unsigned i;
 
-//   if (!pInit_data) {
-//     return false;
-//   }
+  if (!pInit_data) {
+    return false;
+  }
 
-//   if ((int) pInit_data->length > MAX_INTEGER_VALUES) {
-//     PRINTF("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
-//     return false;
-//   }
-//     PRINTF("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
+  if ((int) pInit_data->length > MAX_INTEGER_VALUES) {
+    PRINTF("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
+    return false;
+  }
+    PRINTF("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
 
-//   for (i = 0; i < pInit_data->length; i++) {
-//     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-//       IV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
-//     } else {
-//       PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
-//       return false;
-//     }
+  for (i = 0; i < pInit_data->length; i++) {
+    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+      IV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
+    } else {
+      PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+      return false;
+    }
 
-//     if (!characterstring_init_ansi(&IV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-//       PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-//       return false;
-//     }
+    if (!characterstring_init_ansi(&IV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+      PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+      return false;
+    }
 
-//     if (!characterstring_init_ansi(&IV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
-//       PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-//       return false;
-//     }
-//   }
+    if (!characterstring_init_ansi(&IV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
+      PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+      return false;
+    }
+  }
 
-//   IV_Max_Index = (int) pInit_data->length;
+  IV_Max_Index = (int) pInit_data->length;
 
   return true;
 }
