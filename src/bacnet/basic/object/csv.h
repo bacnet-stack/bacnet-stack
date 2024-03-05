@@ -109,7 +109,7 @@ extern "C" {
     void CharacterString_Value_Init(
         void);
     BACNET_STACK_EXPORT
-    bool CharacterString_Value_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
+    bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 
 #ifdef __cplusplus
 }

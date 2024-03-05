@@ -184,6 +184,7 @@ bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
       PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
       return false;
     }
+       
 
     if (!characterstring_init_ansi(&IV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
       PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
@@ -194,11 +195,11 @@ bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
       PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
       return false;
     }
-  }
+   }
 
-  IV_Max_Index = (int) pInit_data->length;
+   IV_Max_Index = (int) pInit_data->length;
 
-  return true;
+   return true;
 }
 
 /**
