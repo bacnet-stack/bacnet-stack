@@ -31,9 +31,6 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// debugger
-#include "nif_logger.h"
-//
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -286,7 +283,9 @@ bool Integer_Value_Object_Name(
 {
     bool status = false;
     unsigned index = 0;
-
+    print("########TEST INTEGER#############");
+    print("########TEST INTEGER#############");
+    print("########TEST INTEGER#############");
     if (!object_name) {
         return false;
     }

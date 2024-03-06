@@ -23,11 +23,6 @@
  *
  *********************************************************************/
 
-// debugger
-#include "nif_logger.h"
-//
-
-
 /* Binary Output Objects - customize for your use */
 
 #include <stdbool.h>
@@ -367,7 +362,9 @@ bool Binary_Value_Object_Name(
 {
     bool status = false;
     unsigned index = 0;
-
+    print("########TEST BINARY#############");
+    print("########TEST BINARY#############");
+    print("########TEST BINARY#############");
     if (!object_name) {
         return false;
     }
