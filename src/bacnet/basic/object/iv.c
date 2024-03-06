@@ -65,18 +65,18 @@ static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_UNITS, -1 };
 
-static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE,
+static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE, 
+    PROP_DESCRIPTION,
     -1 };
 
-static const int Integer_Value_Properties_Proprietary[] = { 
-    PROP_DESCRIPTION, -1 };
+static const int Integer_Value_Properties_Proprietary[] = { -1 };
 
 typedef BACNET_CHARACTER_STRING INTEGER_VALUE_CHARACTER_STRING;
 
 typedef struct integer_value_descr {
     uint32_t Instance;
-    INTEGER_VALUE_CHARACTER_STRING Name;
-    INTEGER_VALUE_CHARACTER_STRING Description;
+    BACNET_CHARACTER_STRING Name;
+    BACNET_CHARACTER_STRING Description;
 } INTERGER_VALUE_DESCR;
 
 
