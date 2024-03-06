@@ -23,6 +23,11 @@
  *
  *********************************************************************/
 
+// debugger
+#include "nif_logger.h"
+//
+
+
 /* Binary Output Objects - customize for your use */
 
 #include <stdbool.h>

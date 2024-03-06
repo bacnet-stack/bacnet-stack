@@ -31,6 +31,10 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// debugger
+#include "nif_logger.h"
+//
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -216,14 +220,9 @@ bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  */
 unsigned Integer_Value_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_INTEGER_VALUES;
+    unsigned index = 0;
 
-    if (object_instance) {
-        index = object_instance - 1;
-        if (index > MAX_INTEGER_VALUES) {
-            index = MAX_INTEGER_VALUES;
-        }
-    }
+    for (; index < IV_Max_Index && IV_Descr[index].Instance != object_instance; index++) ;
 
     return index;
 }
