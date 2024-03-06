@@ -51,6 +51,8 @@
 #define MAX_INTEGER_VALUES 1
 #endif
 
+#define PRINTF printf
+
 struct integer_object {
     bool Out_Of_Service : 1;
     int32_t Present_Value;
@@ -172,27 +174,27 @@ bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   }
 
   if ((int) pInit_data->length > MAX_INTEGER_VALUES) {
-    PRINTF("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
+    prinf("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
     return false;
   }
-    PRINTF("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
+    prinf("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
 
   for (i = 0; i < pInit_data->length; i++) {
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
       IV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
     } else {
-      PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+      prinf("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
       return false;
     }
        
 
     if (!characterstring_init_ansi(&IV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-      PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+      prinf("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
       return false;
     }
 
     if (!characterstring_init_ansi(&IV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
-      PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+      prinf("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
       return false;
     }
    }
@@ -288,7 +290,7 @@ bool Integer_Value_Object_Name(
 
     index = Integer_Value_Instance_To_Index(object_instance);
     if (index < MAX_INTEGER_VALUES) {
-        sprintf(
+        sprinf(
             text_string, "INTEGER VALUE %lu", (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
