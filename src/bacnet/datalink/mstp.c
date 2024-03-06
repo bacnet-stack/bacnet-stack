@@ -575,10 +575,11 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     if (((mstp_port->Index + 1) < mstp_port->InputBufferSize) &&
                         (mstp_port->FrameType >= Nmin_COBS_type) &&
                         (mstp_port->FrameType <= Nmax_COBS_type)) {
-                        if (cobs_frame_decode(
-                                &mstp_port->InputBuffer[mstp_port->Index + 1],
-                                mstp_port->InputBufferSize,
-                                mstp_port->InputBuffer, mstp_port->Index + 1)) {
+                        mstp_port->DataLength = cobs_frame_decode(
+                            &mstp_port->InputBuffer[mstp_port->Index + 1],
+                            mstp_port->InputBufferSize,
+                            mstp_port->InputBuffer, mstp_port->Index + 1);
+                        if (mstp_port->DataLength > 0) {
                             mstp_port->ReceivedValidFrame = true;
                         } else {
                             mstp_port->ReceivedInvalidFrame = true;
@@ -586,7 +587,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     } else {
                         /* STATE DATA CRC - no need for new state */
                         if (mstp_port->DataCRC == 0xF0B8) {
-                            /* indicate the complete reception of a 
+                            /* indicate the complete reception of a
                                valid frame */
                             mstp_port->ReceivedValidFrame = true;
                         } else {
