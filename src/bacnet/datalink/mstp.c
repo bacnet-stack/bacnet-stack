@@ -728,6 +728,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                             }
                             break;
                         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+                        case FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY:
                             if ((mstp_port->DestinationAddress ==
                                     MSTP_BROADCAST_ADDRESS) &&
                                 (npdu_confirmed_service(mstp_port->InputBuffer,
@@ -744,6 +745,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                             }
                             break;
                         case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
+                        case FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY:
                             if (mstp_port->DestinationAddress ==
                                 MSTP_BROADCAST_ADDRESS) {
                                 /* broadcast DER just remains IDLE */
@@ -1242,6 +1244,7 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
         mstp_port->ReceivedValidFrame = false;
         switch (mstp_port->FrameType) {
             case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
+            case FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY:
                 if (mstp_port->DestinationAddress != MSTP_BROADCAST_ADDRESS) {
                     /* indicate successful reception to the higher layers  */
                     (void)MSTP_Put_Receive(mstp_port);
@@ -1256,6 +1259,7 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
             case FRAME_TYPE_POLL_FOR_MASTER:
             case FRAME_TYPE_TEST_RESPONSE:
             case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+            case FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY
             default:
                 break;
         }
