@@ -105,7 +105,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool Integer_Value_Description(
-        uint32_t instance);
+         uint32_t object_instance, BACNET_CHARACTER_STRING *description);
     BACNET_STACK_EXPORT
     bool Integer_Value_Description_Set(
         uint32_t instance,
