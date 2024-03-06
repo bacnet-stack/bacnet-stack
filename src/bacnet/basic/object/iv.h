@@ -104,7 +104,7 @@ extern "C" {
         float value);
 
     BACNET_STACK_EXPORT
-    char *Integer_Value_Description(
+    bool Integer_Value_Description(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool Integer_Value_Description_Set(

@@ -68,7 +68,8 @@ static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
 static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE,
     -1 };
 
-static const int Integer_Value_Properties_Proprietary[] = { -1 };
+static const int Integer_Value_Properties_Proprietary[] = { 
+    PROP_DESCRIPTION, -1 };
 
 typedef BACNET_CHARACTER_STRING INTEGER_VALUE_CHARACTER_STRING;
 
@@ -284,19 +285,51 @@ bool Integer_Value_Present_Value_Set(
 bool Integer_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text_string[32] = "";
-    unsigned int index;
     bool status = false;
+    unsigned index = 0;
+
+    if (!object_name) {
+        return false;
+    }
 
     index = Integer_Value_Instance_To_Index(object_instance);
-    if (index < MAX_INTEGER_VALUES) {
-        sprintf(
-            text_string, "INTEGER VALUE %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+    if (index < IV_Max_Index) {
+        *object_name = IV_Descr[index].Name;
+        status = true;
     }
 
     return status;
 }
+
+/**
+ * For a given object instance-number, return the description.
+ *
+ * Note: the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  description - description pointer
+ *
+ * @return  true/false
+ */
+bool Integer_Value_Description(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    if (!description) {
+        return false;
+    }
+
+    index = Integer_Value_Instance_To_Index(object_instance);
+    if (index < IV_Max_Index) {
+        *description = IV_Descr[index].Description;
+        status = true;
+    }
+
+    return status;
+}
+
 
 /**
  * For a given object instance-number, returns the units property value
@@ -411,9 +444,19 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_INTEGER_VALUE, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-            Integer_Value_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            if (Integer_Value_Object_Name(
+                    rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            if (Integer_Value_Description(
+                    rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
+
             break;
         case PROP_OBJECT_TYPE:
             apdu_len =
@@ -511,6 +554,7 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_NAME:
+        case PROP_DESCRIPTION:
         case PROP_OBJECT_TYPE:
         case PROP_STATUS_FLAGS:
         case PROP_UNITS:
