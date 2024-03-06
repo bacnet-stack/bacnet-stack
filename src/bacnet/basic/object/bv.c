@@ -362,9 +362,9 @@ bool Binary_Value_Object_Name(
 {
     bool status = false;
     unsigned index = 0;
-    print("########TEST BINARY#############");
-    print("########TEST BINARY#############");
-    print("########TEST BINARY#############");
+    PRINTF("########TEST BINARY#############");
+    PRINTF("########TEST BINARY#############");
+    PRINTF("########TEST BINARY#############");
     if (!object_name) {
         return false;
     }

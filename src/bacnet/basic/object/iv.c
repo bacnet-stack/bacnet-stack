@@ -283,9 +283,9 @@ bool Integer_Value_Object_Name(
 {
     bool status = false;
     unsigned index = 0;
-    print("########TEST INTEGER#############");
-    print("########TEST INTEGER#############");
-    print("########TEST INTEGER#############");
+    printf("########TEST INTEGER#############");
+    printf("########TEST INTEGER#############");
+    printf("########TEST INTEGER#############");
     if (!object_name) {
         return false;
     }
