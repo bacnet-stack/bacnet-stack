@@ -44,6 +44,9 @@
 #define MAX_CHARACTERSTRING_VALUES 1
 #endif
 
+#define PRINTF printf
+
+
 /* Here is our Present Value */
 static BACNET_CHARACTER_STRING Present_Value[MAX_CHARACTERSTRING_VALUES];
 /* Writable out-of-service allows others to manipulate our Present Value */
@@ -196,7 +199,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   }
 
   if ((int) pInit_data->length > MAX_CHARACTERSTRING_VALUES) {
-    PRINT("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_CHARACTERSTRING_VALUES);
+    PRINTF("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_CHARACTERSTRING_VALUES);
     return false;
   }
 
