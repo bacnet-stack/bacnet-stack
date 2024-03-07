@@ -891,6 +891,7 @@ static void routed_apdu_handler(uint16_t snet,
         }
         return;
     }
+    remote_dest = *dest;
     port = dnet_find(dest->net, &remote_dest);
     if (port) {
         if (port->net == dest->net) {

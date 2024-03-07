@@ -202,24 +202,10 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
     uint16_t cobs_len; /* length of the COBS encoded frame */
     bool cobs_bacnet_frame = false; /* true for COBS BACnet frames */
 
-    /* not enough to do a header */
-    if (buffer && (buffer_size >= 8)) {
-        buffer[0] = 0x55;
-        buffer[1] = 0xFF;
-        buffer[2] = frame_type;
-        crc8 = CRC_Calc_Header(buffer[2], crc8);
-        buffer[3] = destination;
-        crc8 = CRC_Calc_Header(buffer[3], crc8);
-        buffer[4] = source;
-        crc8 = CRC_Calc_Header(buffer[4], crc8);
-        buffer[5] = data_len >> 8; /* MSB first */
-        crc8 = CRC_Calc_Header(buffer[5], crc8);
-        buffer[6] = data_len & 0xFF;
-        crc8 = CRC_Calc_Header(buffer[6], crc8);
-        buffer[7] = ~crc8;
+    if (!buffer) {
+        return 0;
     }
-    index = 8;
-
+    /* encode the data portion of the packet */
     if ((data_len > MSTP_FRAME_NPDU_MAX) ||
         ((frame_type >= Nmin_COBS_type) && (frame_type <= Nmax_COBS_type))) {
         /* COBS encoded frame */
@@ -234,7 +220,8 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
             /* I'm sorry, Dave, I'm afraid I can't do that. */
             return 0;
         }
-        cobs_len = cobs_frame_encode(buffer, buffer_size, data, data_len);
+        cobs_len = cobs_frame_encode(&buffer[8], buffer_size-8, data,
+            data_len);
         /* check the results of COBs encoding for validity */
         if (cobs_bacnet_frame) {
             if (cobs_len < Nmin_COBS_length_BACnet) {
@@ -253,29 +240,38 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
            MS/TP frame length field since CRC32 is 2 bytes longer
            than CRC16 in original MSTP and non-COBS devices need
            to be able to ingest the entire frame */
-        index = index + cobs_len - 2;
+        data_len = cobs_len - 2;
     } else if (data_len > 0) {
-        while (data_len && data && (index < buffer_size)) {
-            if (buffer) {
-                buffer[index] = *data;
-                crc16 = CRC_Calc_Data(buffer[index], crc16);
-            }
-            data++;
-            index++;
-            data_len--;
-        }
-        if ((index + 2) > buffer_size) {
+        if (!data) {
             return 0;
         }
+        if ((8 + data_len + 2) > buffer_size) {
+             return 0;
+        }
+        for (index = 8; index < (data_len + 8); index++, data++) {
+            buffer[index] = *data;
+            crc16 = CRC_Calc_Data(buffer[index], crc16);
+        }
         crc16 = ~crc16;
-        if (buffer) {
-            buffer[index] = crc16 & 0xFF; /* LSB first */
-        }
-        index++;
-        if (buffer) {
-            buffer[index] = crc16 >> 8;
-        }
-        index++;
+        buffer[index] = crc16 & 0xFF; /* LSB first */
+        buffer[index+1] = crc16 >> 8;
+    }
+    buffer[0] = 0x55;
+    buffer[1] = 0xFF;
+    buffer[2] = frame_type;
+    crc8 = CRC_Calc_Header(buffer[2], crc8);
+    buffer[3] = destination;
+    crc8 = CRC_Calc_Header(buffer[3], crc8);
+    buffer[4] = source;
+    crc8 = CRC_Calc_Header(buffer[4], crc8);
+    buffer[5] = data_len >> 8; /* MSB first */
+    crc8 = CRC_Calc_Header(buffer[5], crc8);
+    buffer[6] = data_len & 0xFF;
+    crc8 = CRC_Calc_Header(buffer[6], crc8);
+    buffer[7] = ~crc8;
+    index = 8;
+    if (data_len > 0) {
+        index += data_len + 2;
     }
 
     return index; /* returns the frame length */
@@ -575,10 +571,11 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     if (((mstp_port->Index + 1) < mstp_port->InputBufferSize) &&
                         (mstp_port->FrameType >= Nmin_COBS_type) &&
                         (mstp_port->FrameType <= Nmax_COBS_type)) {
-                        if (cobs_frame_decode(
-                                &mstp_port->InputBuffer[mstp_port->Index + 1],
-                                mstp_port->InputBufferSize,
-                                mstp_port->InputBuffer, mstp_port->Index + 1)) {
+                        mstp_port->DataLength = cobs_frame_decode(
+                            &mstp_port->InputBuffer[mstp_port->Index + 1],
+                            mstp_port->InputBufferSize,
+                            mstp_port->InputBuffer, mstp_port->Index + 1);
+                        if (mstp_port->DataLength > 0) {
                             mstp_port->ReceivedValidFrame = true;
                         } else {
                             mstp_port->ReceivedInvalidFrame = true;
@@ -586,7 +583,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     } else {
                         /* STATE DATA CRC - no need for new state */
                         if (mstp_port->DataCRC == 0xF0B8) {
-                            /* indicate the complete reception of a 
+                            /* indicate the complete reception of a
                                valid frame */
                             mstp_port->ReceivedValidFrame = true;
                         } else {
@@ -727,6 +724,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                             }
                             break;
                         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+                        case FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY:
                             if ((mstp_port->DestinationAddress ==
                                     MSTP_BROADCAST_ADDRESS) &&
                                 (npdu_confirmed_service(mstp_port->InputBuffer,
@@ -743,6 +741,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                             }
                             break;
                         case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
+                        case FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY:
                             if (mstp_port->DestinationAddress ==
                                 MSTP_BROADCAST_ADDRESS) {
                                 /* broadcast DER just remains IDLE */
@@ -1241,6 +1240,7 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
         mstp_port->ReceivedValidFrame = false;
         switch (mstp_port->FrameType) {
             case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
+            case FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY:
                 if (mstp_port->DestinationAddress != MSTP_BROADCAST_ADDRESS) {
                     /* indicate successful reception to the higher layers  */
                     (void)MSTP_Put_Receive(mstp_port);
@@ -1255,6 +1255,7 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
             case FRAME_TYPE_POLL_FOR_MASTER:
             case FRAME_TYPE_TEST_RESPONSE:
             case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+            case FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY:
             default:
                 break;
         }
