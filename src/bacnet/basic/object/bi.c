@@ -255,8 +255,10 @@ bool Binary_Input_Change_Of_Value(uint32_t object_instance)
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < BI_Max_Index) {
         status = Change_Of_Value[index];
+        fprintf(stderr, "[%s %d %s]: Change_Of_Value[%u] status = %d\r\n", __FILE__, __LINE__, __func__, object_instance, (int) status);
     }
 
+    fprintf(stderr, "[%s %d %s]: Change_Of_Value[%u] return status %d\r\n", __FILE__, __LINE__, __func__, object_instance, (int) status);
     return status;
 }
 
@@ -267,6 +269,7 @@ void Binary_Input_Change_Of_Value_Clear(uint32_t object_instance)
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < BI_Max_Index) {
         Change_Of_Value[index] = false;
+        fprintf(stderr, "[%s %d %s]: Change_Of_Value[%u] <-- %d\r\n", __FILE__, __LINE__, __func__, object_instance, (int) Change_Of_Value[index]);
     }
 
     return;
@@ -340,6 +343,7 @@ bool Binary_Input_Present_Value_Set(
             }
         }
         if (Present_Value[index] != value) {
+            fprintf(stderr, "[%s %d %s]: Change_Of_Value[%u] <--  true", __FILE__, __LINE__, __func__, object_instance);
             Change_Of_Value[index] = true;
         }
         Present_Value[index] = value;

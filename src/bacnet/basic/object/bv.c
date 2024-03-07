@@ -348,6 +348,58 @@ static int Binary_Value_Priority_Array_Encode(
 }
 
 /**
+ * For a given object instance-number, loads the value_list with the COV data.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value_list - list of COV data
+ *
+ * @return  true if the value list is encoded
+ */
+bool Binary_Value_Encode_Value_List(
+    uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list)
+{
+    bool status = false;
+
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+        value_list->value.next = NULL;
+        value_list->value.type.Enumerated =
+            Binary_Value_Present_Value(object_instance);
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list = value_list->next;
+    }
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        value_list->value.next = NULL;
+        bitstring_init(&value_list->value.type.Bit_String);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, false);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN, false);
+        if (Binary_Value_Out_Of_Service(object_instance)) {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_OUT_OF_SERVICE, true);
+        } else {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_OUT_OF_SERVICE, false);
+        }
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list->next = NULL;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, return the name.
  *
  * Note: the object name must be unique within this device.
