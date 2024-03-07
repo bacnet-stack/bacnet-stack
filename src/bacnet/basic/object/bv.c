@@ -384,7 +384,7 @@ bool Binary_Value_Encode_Value_List(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN, false);
-        if (Binary_Input_Out_Of_Service(object_instance)) {
+        if (Binary_Value_Out_Of_Service(object_instance)) {
             bitstring_set_bit(&value_list->value.type.Bit_String,
                 STATUS_FLAG_OUT_OF_SERVICE, true);
         } else {
