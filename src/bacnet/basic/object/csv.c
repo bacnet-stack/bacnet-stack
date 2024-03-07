@@ -67,7 +67,7 @@ static const int Properties_Proprietary[] = { -1 };
 
 typedef struct CharacterString_Value_descr {
     uint32_t Instance;
-    char Object_Name[MAX_CHARACTERSTRING_VALUES][MAX_CHARACTER_STRING_BYTES];
+    char Object_Name[MAX_CHARACTERSTRING_VALUES][64];
     char Object_Description[MAX_CHARACTERSTRING_VALUES][MAX_CHARACTER_STRING_BYTES];
 } CHARACTERSTRING_VALUE_STRING;
 
@@ -212,17 +212,17 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
    }
     // CSV_Descr is not made up of any BACNET_CHARACTER_STRINF its a char list [][]
 
-    if(!strcmp(CSV_Descr->Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name))
-    {
-        PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-        return false;       
-    }
+    // if(!strcmp(CSV_Descr->Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name))
+    // {
+    //     PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+    //     return false;       
+    // }
 
-    if(!strcmp(CSV_Descr->Object_Description[i], pInit_data->Object_Init_Values[i].Description))
-    {
-        PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-        return false;       
-    }
+    // if(!strcmp(CSV_Descr->Object_Description[i], pInit_data->Object_Init_Values[i].Description))
+    // {
+    //     PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+    //     return false;       
+    // }
 
     // if (!characterstring_init_ansi(&CSV_Descr[i].Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
     //   PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
