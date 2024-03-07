@@ -89,7 +89,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Description_Set(
         uint32_t object_instance,
-        char *text_string);
+        BACNET_CHARACTER_STRING *text_string);
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Out_Of_Service(
         uint32_t object_instance);

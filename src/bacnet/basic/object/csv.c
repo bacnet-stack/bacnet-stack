@@ -108,9 +108,9 @@ void CharacterString_Value_Init(void)
 
     /* initialize all Present Values */
     for (i = 0; i < MAX_CHARACTERSTRING_VALUES; i++) {
-        snprintf(CSV_Descr->Object_Name[i], sizeof(CSV_Descr->Object_Name[i]),
+        snprintf(CSV_Descr->Object_Name[i][0], sizeof(CSV_Descr->Object_Name[i]),
             "CHARACTER STRING VALUE %u", i + 1);
-        snprintf(CSV_Descr->Object_Description[i], sizeof(CSV_Descr->Object_Description[i]),
+        snprintf(CSV_Descr->Object_Description[i][0], sizeof(CSV_Descr->Object_Description[i]),
             "A Character String Value Example");
         CSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_CHARACTERSTRING_VALUE));
         characterstring_init_ansi(&Present_Value[i], "");
@@ -210,7 +210,20 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
       PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
       return false;
    }
-    // TOOK OUT 
+    // CSV_Descr is not made up of any BACNET_CHARACTER_STRINF its a char list [][]
+
+    if(!strcmp(CSV_Descr->Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name))
+    {
+        PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+        return false;       
+    }
+
+    if(!strcmp(CSV_Descr->Object_Description[i], pInit_data->Object_Init_Values[i].Description))
+    {
+        PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+        return false;       
+    }
+
     // if (!characterstring_init_ansi(&CSV_Descr[i].Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
     //   PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
     //   return false;
@@ -408,27 +421,48 @@ static char *CharacterString_Value_Description(uint32_t object_instance)
  * @return True on success, false otherwise.
  */
 bool CharacterString_Value_Description_Set(
-    uint32_t object_instance, char *new_descr)
+    uint32_t object_instance, BACNET_CHARACTER_STRING *new_descr)
 {
     unsigned index = 0; /* offset from instance lookup */
     size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
+    if(index < MAX_CHARACTERSTRING_VALUES)
+    {
         status = true;
-        if (new_descr) {
-            for (i = 0; i < sizeof(CSV_Descr->Object_Description[index]); i++) {
-                CSV_Descr->Object_Description[index][i] = new_descr[i];
-                if (new_descr[i] == 0) {
+        if(new_descr)
+        {
+            for (i = 0; i < sizeof(MAX_CHARACTER_STRING_BYTES); i++) {
+                CSV_Descr->Object_Description[index][i] = new_descr->value[i];
+                if(new_descr->value[i] == 0)
+                {
                     break;
                 }
             }
-        } else {
-            memset(&CSV_Descr->Object_Description[index][0], 0,
-                sizeof(CSV_Descr->Object_Description[index]));
+        }
+        else
+        {
+             memset(&CSV_Descr->Object_Description[index][0], 0,
+                  sizeof(CSV_Descr->Object_Description[index]));
+
         }
     }
+
+    // if (index < MAX_CHARACTERSTRING_VALUES) {
+    //     status = true;
+    //     if (new_descr) {
+    //         for (i = 0; i < sizeof(CSV_Descr->Object_Description[index]); i++) {
+    //             CSV_Descr->Object_Description[index][i] = new_descr[i];
+    //             if (new_descr[i] == 0) {
+    //                 break;
+    //             }
+    //         }
+    //     } else {
+    //         memset(&CSV_Descr->Object_Description[index][0], 0,
+    //             sizeof(CSV_Descr->Object_Description[index]));
+    //     }
+    // }
 
     return status;
 }
@@ -450,7 +484,7 @@ bool CharacterString_Value_Object_Name(
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < MAX_CHARACTERSTRING_VALUES) {
-        status = characterstring_init_ansi(object_name, CSV_Descr[index].Object_Name);
+        status = characterstring_init_ansi(object_name, CSV_Descr->Object_Name[index]);
     }
 
     return status;
