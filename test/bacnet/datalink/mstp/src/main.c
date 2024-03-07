@@ -11,6 +11,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bytes.h>
 #include <bacnet/datalink/crc.h>
+#include <bacnet/datalink/cobs.h>
 #include <bacnet/datalink/datalink.h>
 #include <bacnet/datalink/mstp.h>
 #include <bacnet/datalink/mstpdef.h>
@@ -507,7 +508,49 @@ static void testReceiveNodeFSM(void)
     zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
     zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
     zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
-    return;
+    /* Extended-Data-Expecting-Reply */
+    zassert_true(Nmin_COBS_length_BACnet <= sizeof(data), NULL);
+    mstp_port.ReceivedInvalidFrame = false;
+    mstp_port.ReceivedValidFrame = false;
+    memset(data, 0, sizeof(data));
+    len = MSTP_Create_Frame(buffer, sizeof(buffer),
+        FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY,
+        my_mac, my_mac, data, Nmin_COBS_length_BACnet);
+    zassert_true(len > 0, NULL);
+    Load_Input_Buffer(buffer, len);
+    RS485_Check_UART_Data(&mstp_port);
+    MSTP_Receive_Frame_FSM(&mstp_port);
+    while (mstp_port.receive_state != MSTP_RECEIVE_STATE_IDLE) {
+        RS485_Check_UART_Data(&mstp_port);
+        MSTP_Receive_Frame_FSM(&mstp_port);
+    }
+    zassert_true(mstp_port.DataLength == Nmin_COBS_length_BACnet, NULL);
+    zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
+    zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
+    zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
+    zassert_true(mstp_port.FrameType ==
+        FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY, NULL);
+    /* Extended-Data-Not-Expecting-Reply */
+    mstp_port.ReceivedInvalidFrame = false;
+    mstp_port.ReceivedValidFrame = false;
+    memset(data, 0, sizeof(data));
+    len = MSTP_Create_Frame(buffer, sizeof(buffer),
+        FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY,
+        my_mac, my_mac, data, Nmin_COBS_length_BACnet);
+    zassert_true(len > 0, NULL);
+    Load_Input_Buffer(buffer, len);
+    RS485_Check_UART_Data(&mstp_port);
+    MSTP_Receive_Frame_FSM(&mstp_port);
+    while (mstp_port.receive_state != MSTP_RECEIVE_STATE_IDLE) {
+        RS485_Check_UART_Data(&mstp_port);
+        MSTP_Receive_Frame_FSM(&mstp_port);
+    }
+    zassert_true(mstp_port.DataLength == Nmin_COBS_length_BACnet, NULL);
+    zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
+    zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
+    zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
+    zassert_true(mstp_port.FrameType ==
+        FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY, NULL);
 }
 
 static void testMasterNodeFSM(void)
@@ -1009,14 +1052,14 @@ static void testZeroConfigNodeFSM(void)
     testZeroConfigNode_Init(&MSTP_Port);
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
     testZeroConfigNode_Test_LURK_LearnMaxMaster(&MSTP_Port);
-    /* test case: valid frame event LURK PFMs: ClaimAddress 
+    /* test case: valid frame event LURK PFMs: ClaimAddress
        ConfirmationSuccessful */
     testZeroConfigNode_Init(&MSTP_Port);
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
     testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
     testZeroConfigNode_Test_LURK_ClaimTokenForUs(&MSTP_Port);
     testZeroConfigNode_Test_LURK_ConfirmationSuccessful(&MSTP_Port);
-    /* test case: valid frame event LURK PFMs: ClaimAddress 
+    /* test case: valid frame event LURK PFMs: ClaimAddress
        ConfirmationAddressInUse */
     testZeroConfigNode_Init(&MSTP_Port);
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
