@@ -88,8 +88,8 @@ else ()
 endif ()
 
 option(
-  BACNET_STACK_DEPRECATED_DISABLE 
-  "Disable deprecation compile warnings" 
+  BACNET_STACK_DEPRECATED_DISABLE
+  "Disable deprecation compile warnings"
   ON)
 
 if(BACNET_STACK_DEPRECATED_DISABLE)
@@ -239,6 +239,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/lo.h
     src/bacnet/basic/object/lsp.c
     src/bacnet/basic/object/lsp.h
+    src/bacnet/basic/object/lsz.c
+    src/bacnet/basic/object/lsz.h
     src/bacnet/basic/object/ms-input.c
     src/bacnet/basic/object/ms-input.h
     src/bacnet/basic/object/mso.c
