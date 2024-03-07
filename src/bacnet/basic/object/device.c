@@ -63,6 +63,7 @@
 #include "bacnet/basic/object/iv.h"
 #include "bacnet/basic/object/lc.h"
 #include "bacnet/basic/object/lsp.h"
+#include "bacnet/basic/object/lsz.h"
 #include "bacnet/basic/object/ms-input.h"
 #include "bacnet/basic/object/mso.h"
 #include "bacnet/basic/object/msv.h"
@@ -221,6 +222,14 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         Life_Safety_Point_Create, Life_Safety_Point_Delete, NULL /* Timer */ },
+    { OBJECT_LIFE_SAFETY_ZONE, Life_Safety_Zone_Init, Life_Safety_Zone_Count,
+        Life_Safety_Zone_Index_To_Instance, Life_Safety_Zone_Valid_Instance,
+        Life_Safety_Zone_Object_Name, Life_Safety_Zone_Read_Property,
+        Life_Safety_Zone_Write_Property, Life_Safety_Zone_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Life_Safety_Zone_Create, Life_Safety_Zone_Delete, NULL /* Timer */ },
     { OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
         Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
         Load_Control_Object_Name, Load_Control_Read_Property,
