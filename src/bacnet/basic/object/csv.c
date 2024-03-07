@@ -210,16 +210,16 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
       PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
       return false;
    }
+    // TOOK OUT 
+    // if (!characterstring_init_ansi(&CSV_Descr[i].Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+    //   PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+    //   return false;
+    // }
 
-    if (!characterstring_init_ansi(&CSV_Descr[i].Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-      PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-      return false;
-    }
-
-    if (!characterstring_init_ansi(&CSV_Descr[i].Object_Description, pInit_data->Object_Init_Values[i].Description)) {
-      PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-      return false;
-    }
+    // if (!characterstring_init_ansi(&CSV_Descr[i].Object_Description, pInit_data->Object_Init_Values[i].Description)) {
+    //   PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+    //   return false;
+    // }
 
   }
 

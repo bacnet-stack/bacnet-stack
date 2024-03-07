@@ -283,9 +283,7 @@ bool Integer_Value_Object_Name(
 {
     bool status = false;
     unsigned index = 0;
-    printf("########TEST INTEGER#############");
-    printf("########TEST INTEGER#############");
-    printf("########TEST INTEGER#############");
+
     if (!object_name) {
         return false;
     }
