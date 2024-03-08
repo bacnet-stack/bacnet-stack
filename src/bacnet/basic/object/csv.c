@@ -218,6 +218,9 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
         PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
         return false;       
     }
+    else{
+        strcpy(CSV_Descr->Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name);
+    }
     // removed for this build 
     // if(!strcmp(CSV_Descr->Object_Description[i], pInit_data->Object_Init_Values[i].Description))
     // {
@@ -492,17 +495,11 @@ bool CharacterString_Value_Object_Name(
     }
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-
-    if (index < CSV_Max_Index) {
-        *object_name->value = CSV_Descr[index].Object_Name;
-        status = true;
+    if (index < MAX_CHARACTERSTRING_VALUES) {
+        status = characterstring_init_ansi(object_name, CSV_Descr->Object_Name[index]);
     }
 
-    // if (index < MAX_CHARACTERSTRING_VALUES) {
-    //     status = characterstring_init_ansi(object_name, CSV_Descr->Object_Name[index]);
-    // }
-
-     return status;
+    return status;
 }
 
 /**
