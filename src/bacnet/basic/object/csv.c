@@ -69,9 +69,9 @@ typedef struct CharacterString_Value_descr {
     uint32_t Instance;
     char Object_Name[MAX_CHARACTERSTRING_VALUES][64];
     char Object_Description[MAX_CHARACTERSTRING_VALUES][MAX_CHARACTER_STRING_BYTES];
-} CHARACTERSTRING_VALUE_STRING;
+} CHARACTERSTRING_VALUE_DESCR;
 
-static CHARACTERSTRING_VALUE_STRING CSV_Descr[MAX_CHARACTERSTRING_VALUES];
+static CHARACTERSTRING_VALUE_DESCR CSV_Descr[MAX_CHARACTERSTRING_VALUES];
 static int CSV_Max_Index = MAX_CHARACTERSTRING_VALUES;
 
 
@@ -108,7 +108,7 @@ void CharacterString_Value_Init(void)
 
     /* initialize all Present Values */
     for (i = 0; i < MAX_CHARACTERSTRING_VALUES; i++) {
-        memset(&BV_Descr[i], 0x00, sizeof(BINARY_VALUE_DESCR));
+        memset(&CSV_Descr[i], 0x00, sizeof(CHARACTERSTRING_VALUE_DESCR));
         snprintf(CSV_Descr->Object_Name[i][0], sizeof(CSV_Descr->Object_Name[i]),
             "CHARACTER STRING VALUE %u", i + 1);
         snprintf(CSV_Descr->Object_Description[i][0], sizeof(CSV_Descr->Object_Description[i]),
