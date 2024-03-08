@@ -213,12 +213,12 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
    }
     // CSV_Descr is not made up of any BACNET_CHARACTER_STRINF its a char list [][]
 
-    // if(!strcmp(CSV_Descr->Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name))
-    // {
-    //     PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-    //     return false;       
-    // }
-
+    if(!strcmp(CSV_Descr->Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name))
+    {
+        PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+        return false;       
+    }
+    // removed for this build 
     // if(!strcmp(CSV_Descr->Object_Description[i], pInit_data->Object_Init_Values[i].Description))
     // {
     //     PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
