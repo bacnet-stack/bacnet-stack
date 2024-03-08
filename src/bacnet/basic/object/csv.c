@@ -623,7 +623,7 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PRESENT_VALUE:
             CharacterString_Value_Present_Value(
-                rpdata->object_instance, &char_string);
+                rpdata->object_instance);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -716,7 +716,7 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
             if (status) {
                 status = CharacterString_Value_Present_Value_Set(
-                    wp_data->object_instance, &value.type.Character_String);
+                    wp_data->object_instance, value.type.Signed_Int, wp_data->priority);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
