@@ -487,12 +487,22 @@ bool CharacterString_Value_Object_Name(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        status = characterstring_init_ansi(object_name, CSV_Descr->Object_Name[index]);
+    if (!object_name) {
+        return false;
     }
 
-    return status;
+    index = CharacterString_Value_Instance_To_Index(object_instance);
+
+    if (index < CSV_Max_Index) {
+        *object_name->value = CSV_Descr[index].Object_Name;
+        status = true;
+    }
+
+    // if (index < MAX_CHARACTERSTRING_VALUES) {
+    //     status = characterstring_init_ansi(object_name, CSV_Descr->Object_Name[index]);
+    // }
+
+     return status;
 }
 
 /**
