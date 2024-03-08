@@ -67,7 +67,7 @@ static const int Properties_Proprietary[] = { -1 };
 
 typedef struct CharacterString_Value_descr {
     uint32_t Instance;
-    char Object_Name[MAX_CHARACTERSTRING_VALUES][64];
+    char Object_Name[MAX_CHARACTERSTRING_VALUES][MAX_CHARACTER_STRING_BYTES];
     char Object_Description[MAX_CHARACTERSTRING_VALUES][MAX_CHARACTER_STRING_BYTES];
 } CHARACTERSTRING_VALUE_DESCR;
 
@@ -210,8 +210,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     } else {
       PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
       return false;
-   }
-    // CSV_Descr is not made up of any BACNET_CHARACTER_STRINF its a char list [][]
+    }
 
     if(!strcmp(CSV_Descr->Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name))
     {
@@ -219,7 +218,10 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
         return false;       
     }
     else
-    {
+    {   
+        PRINTF("##############################");
+        PRINTF("%s", pInit_data->Object_Init_Values[i].Object_Name);
+        PRINTF("##############################");
         strcpy(CSV_Descr->Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name);
     }
 
@@ -230,19 +232,11 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
     else
     {
-
+        PRINTF("##############################");
+        PRINTF("%s", pInit_data->Object_Init_Values[i].Description);
+        PRINTF("##############################");
         strcpy(CSV_Descr->Object_Description[i], pInit_data->Object_Init_Values[i].Description);
     }
-
-    // if (!characterstring_init_ansi(&CSV_Descr[i].Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-    //   PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-    //   return false;
-    // }
-
-    // if (!characterstring_init_ansi(&CSV_Descr[i].Object_Description, pInit_data->Object_Init_Values[i].Description)) {
-    //   PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-    //   return false;
-    // }
 
   }
 
@@ -261,19 +255,38 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  * @return  true if values are within range and present-value
  *          is returned.
  */
-bool CharacterString_Value_Present_Value(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
+char * CharacterString_Value_Present_Value(
+    uint32_t object_instance)
 {
-    bool status = false;
+   // bool status = false;
+    char value[MAX_CHARACTERSTRING_VALUES];
+    memset(value, 0, sizeof(value));
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (object_name && (index < MAX_CHARACTERSTRING_VALUES)) {
-        status = characterstring_copy(object_name, &Present_Value[index]);
+    if (index < MAX_CHARACTERSTRING_VALUES) 
+    {   
+        //status = characterstring_copy(value, &Present_Value[index]);
+        strcpy(value, Present_Value[index].value);
     }
 
-    return status;
+    return value;
+
 }
+
+// bool CharacterString_Value_Present_Value(
+//     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
+// {
+//     bool status = false;
+//     unsigned index = 0; /* offset from instance lookup */
+
+//     index = CharacterString_Value_Instance_To_Index(object_instance);
+//     if (object_name && (index < MAX_CHARACTERSTRING_VALUES)) {
+//         status = characterstring_copy(object_name, &Present_Value[index]);
+//     }
+
+//     return status;
+// }
 
 /**
  * For a given object instance-number, sets the present-value,
@@ -285,21 +298,39 @@ bool CharacterString_Value_Present_Value(
  * @return  true if values are within range and present-value is set.
  */
 bool CharacterString_Value_Present_Value_Set(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
+    uint32_t object_instance, char * value, uint16_t priority)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
 
+    (void)priority;
+
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        if (!characterstring_same(&Present_Value[index], object_name)) {
+
+    if (index < CSV_Max_Index) {
+        if (!strcmp(Present_Value[index].value, value)) {
             Changed[index] = true;
         }
-        status = characterstring_copy(&Present_Value[index], object_name);
+        value = strcpy(Present_Value[index].value, value);
+        status = true;
     }
 
     return status;
 }
+
+// bool CharacterString_Value_Present_Value(
+//     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
+// {
+//     bool status = false;
+//     unsigned index = 0; /* offset from instance lookup */
+
+//     index = CharacterString_Value_Instance_To_Index(object_instance);
+//     if (object_name && (index < MAX_CHARACTERSTRING_VALUES)) {
+//         status = characterstring_copy(object_name, &Present_Value[index]);
+//     }
+
+//     return status;
+// }
 
 /**
  * For a given object instance-number, read the out of service value.
@@ -462,21 +493,6 @@ bool CharacterString_Value_Description_Set(
 
         }
     }
-
-    // if (index < MAX_CHARACTERSTRING_VALUES) {
-    //     status = true;
-    //     if (new_descr) {
-    //         for (i = 0; i < sizeof(CSV_Descr->Object_Description[index]); i++) {
-    //             CSV_Descr->Object_Description[index][i] = new_descr[i];
-    //             if (new_descr[i] == 0) {
-    //                 break;
-    //             }
-    //         }
-    //     } else {
-    //         memset(&CSV_Descr->Object_Description[index][0], 0,
-    //             sizeof(CSV_Descr->Object_Description[index]));
-    //     }
-    // }
 
     return status;
 }
