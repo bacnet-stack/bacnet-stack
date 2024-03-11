@@ -69,6 +69,7 @@ typedef struct CharacterString_Value_descr {
     uint32_t Instance;
     char Object_Name[MAX_CHARACTERSTRING_VALUES][MAX_CHARACTER_STRING_BYTES];
     char Object_Description[MAX_CHARACTERSTRING_VALUES][MAX_CHARACTER_STRING_BYTES];
+    
 } CHARACTERSTRING_VALUE_DESCR;
 
 static CHARACTERSTRING_VALUE_DESCR CSV_Descr[MAX_CHARACTERSTRING_VALUES];
@@ -177,8 +178,11 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        return true;
+
+    for (index = 0; index < CSV_Max_Index; index++) {
+        if (CSV_Descr[index].Instance == object_instance) {
+            return true;
+        }
     }
 
     return false;
@@ -219,9 +223,6 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
     else
     {   
-        PRINTF("##############################");
-        PRINTF("%s", pInit_data->Object_Init_Values[i].Object_Name);
-        PRINTF("##############################");
         strcpy(CSV_Descr->Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name);
     }
 
@@ -232,9 +233,6 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
     else
     {
-        PRINTF("##############################");
-        PRINTF("%s", pInit_data->Object_Init_Values[i].Description);
-        PRINTF("##############################");
         strcpy(CSV_Descr->Object_Description[i], pInit_data->Object_Init_Values[i].Description);
     }
 
@@ -297,6 +295,9 @@ bool CharacterString_Value_Present_Value_Set(
         if (!strcmp(Present_Value[index].value, object_name->value)) {
             Changed[index] = true;
         }
+        PRINTF("##############################");
+        PRINTF("%s", object_name->value);
+        PRINTF("##############################");
       //  status = characterstring_copy(&Present_Value[index], object_name);
         strcpy(Present_Value[index].value, object_name->value);
         status = true;
