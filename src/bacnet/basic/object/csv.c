@@ -255,22 +255,23 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  * @return  true if values are within range and present-value
  *          is returned.
  */
-char * CharacterString_Value_Present_Value(
-    uint32_t object_instance)
+bool CharacterString_Value_Present_Value(
+    uint32_t object_instance, BACNET_CHARACTER_STRING * object_name)
 {
-   // bool status = false;
-    char value[MAX_CHARACTERSTRING_VALUES];
-    memset(value, 0, sizeof(value));
+    bool status = false;
+   // char value[MAX_CHARACTERSTRING_VALUES];
+    //memset(value, 0, sizeof(value));
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < MAX_CHARACTERSTRING_VALUES) 
     {   
-        //status = characterstring_copy(value, &Present_Value[index]);
-        strcpy(value, Present_Value[index].value);
+      //  status = characterstring_copy(object_name, &Present_Value[index]);
+        strcpy(object_name->value, Present_Value[index].value);
+        status = true;
     }
 
-    return value;
+    return status;
 
 }
 
@@ -285,7 +286,7 @@ char * CharacterString_Value_Present_Value(
  * @return  true if values are within range and present-value is set.
  */
 bool CharacterString_Value_Present_Value_Set(
-    uint32_t object_instance, char * value)
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
@@ -293,10 +294,11 @@ bool CharacterString_Value_Present_Value_Set(
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
     if (index < CSV_Max_Index) {
-        if (!strcmp(Present_Value[index].value, value)) {
+        if (!strcmp(Present_Value[index].value, object_name->value)) {
             Changed[index] = true;
         }
-        value = strcpy(Present_Value[index].value, value);
+      //  status = characterstring_copy(&Present_Value[index], object_name);
+        strcpy(Present_Value[index].value, object_name->value);
         status = true;
     }
 
@@ -595,7 +597,7 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PRESENT_VALUE:
             CharacterString_Value_Present_Value(
-                rpdata->object_instance);
+                rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
