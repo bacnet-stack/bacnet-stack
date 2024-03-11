@@ -19,7 +19,11 @@
 /**
  * @brief Test Calendar handling
  */
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_calendar, testCalendar)
+#else
 static void testCalendar(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
@@ -123,7 +127,11 @@ static void testCalendar(void)
     zassert_true(status, NULL);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_calendar, testPresentValue)
+#else
 static void testPresentValue(void)
+#endif
 {
     const uint32_t instance = 1;
     BACNET_DATE date;
@@ -228,6 +236,9 @@ static void testPresentValue(void)
  * @}
  */
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST_SUITE(bacnet_calendar, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(calendar_tests,
@@ -237,3 +248,4 @@ void test_main(void)
 
     ztest_run_test_suite(calendar_tests);
 }
+#endif

@@ -19,7 +19,11 @@
 /**
  * @brief Test Time Value handling
  */
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_tv, testTimeValue)
+#else
 static void testTimeValue(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
@@ -131,6 +135,9 @@ static void testTimeValue(void)
  * @}
  */
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST_SUITE(bacnet_tv, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(tv_tests,
@@ -139,3 +146,4 @@ void test_main(void)
 
     ztest_run_test_suite(tv_tests);
 }
+#endif
