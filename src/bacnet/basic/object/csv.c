@@ -254,7 +254,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  *          is returned.
  */
 bool CharacterString_Value_Present_Value(
-    uint32_t object_instance, BACNET_CHARACTER_STRING * object_name)
+    uint32_t object_instance, char * object_name)
 {
     bool status = false;
    // char value[MAX_CHARACTERSTRING_VALUES];
@@ -262,10 +262,10 @@ bool CharacterString_Value_Present_Value(
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) 
+    if (index < CSV_Max_Index) 
     {   
       //  status = characterstring_copy(object_name, &Present_Value[index]);
-        strcpy(object_name->value, Present_Value[index].value);
+        strcpy(object_name, Present_Value[index].value);
         status = true;
     }
 
@@ -284,7 +284,7 @@ bool CharacterString_Value_Present_Value(
  * @return  true if values are within range and present-value is set.
  */
 bool CharacterString_Value_Present_Value_Set(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
+    uint32_t object_instance, char *object_name)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
@@ -292,14 +292,14 @@ bool CharacterString_Value_Present_Value_Set(
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
     if (index < CSV_Max_Index) {
-        if (!strcmp(Present_Value[index].value, object_name->value)) {
+        if (!strcmp(Present_Value[index].value, object_name)) {
             Changed[index] = true;
         }
-        PRINTF("##############################");
-        PRINTF("%s", object_name->value);
-        PRINTF("##############################");
+        PRINTF("##############################\n");
+        PRINTF("%s\n", object_name);
+        PRINTF("###########################\n");
       //  status = characterstring_copy(&Present_Value[index], object_name);
-        strcpy(Present_Value[index].value, object_name->value);
+        strcpy(Present_Value[index].value, object_name);
         status = true;
     }
 

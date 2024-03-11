@@ -81,11 +81,11 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Present_Value(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING * value);
+        char * value);
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Present_Value_Set(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING * value);
+        char * value);
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Description_Set(
         uint32_t object_instance,
