@@ -274,19 +274,6 @@ char * CharacterString_Value_Present_Value(
 
 }
 
-// bool CharacterString_Value_Present_Value(
-//     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
-// {
-//     bool status = false;
-//     unsigned index = 0; /* offset from instance lookup */
-
-//     index = CharacterString_Value_Instance_To_Index(object_instance);
-//     if (object_name && (index < MAX_CHARACTERSTRING_VALUES)) {
-//         status = characterstring_copy(object_name, &Present_Value[index]);
-//     }
-
-//     return status;
-// }
 
 /**
  * For a given object instance-number, sets the present-value,
@@ -298,12 +285,10 @@ char * CharacterString_Value_Present_Value(
  * @return  true if values are within range and present-value is set.
  */
 bool CharacterString_Value_Present_Value_Set(
-    uint32_t object_instance, char * value, uint16_t priority)
+    uint32_t object_instance, char * value)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
-
-    (void)priority;
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
@@ -318,19 +303,6 @@ bool CharacterString_Value_Present_Value_Set(
     return status;
 }
 
-// bool CharacterString_Value_Present_Value(
-//     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
-// {
-//     bool status = false;
-//     unsigned index = 0; /* offset from instance lookup */
-
-//     index = CharacterString_Value_Instance_To_Index(object_instance);
-//     if (object_name && (index < MAX_CHARACTERSTRING_VALUES)) {
-//         status = characterstring_copy(object_name, &Present_Value[index]);
-//     }
-
-//     return status;
-// }
 
 /**
  * For a given object instance-number, read the out of service value.
@@ -716,7 +688,7 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
             if (status) {
                 status = CharacterString_Value_Present_Value_Set(
-                    wp_data->object_instance, value.type.Signed_Int, wp_data->priority);
+                    wp_data->object_instance, &value.type.Character_String);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
