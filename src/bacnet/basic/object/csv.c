@@ -115,7 +115,7 @@ void CharacterString_Value_Init(void)
         snprintf(CSV_Descr[i].Description, sizeof(CSV_Descr[i].Description),
             "A Character String Value Example");
         CSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_CHARACTERSTRING_VALUE));
-        characterstring_init_ansi(&Present_Value[i], ""); 
+        characterstring_init_ansi(&Present_Value[i], "hello world"); 
         Changed[i] = false;
     }
 
@@ -268,7 +268,7 @@ BACNET_CHARACTER_STRING CharacterString_Value_Present_Value( // made ptr
     {   
         status = characterstring_copy(&value, &Present_Value[index]);
         PRINTF("#########  PRESENT_VALUE \r\n");
-        PRINTF("%s value\r\n", value.value);
+        PRINTF("value \r\n", value.value);
         PRINTF("%s present value index\r\n", Present_Value[index].value);
         PRINTF("#########\r\n");
         if(status == true)
