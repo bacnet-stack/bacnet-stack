@@ -115,7 +115,7 @@ void CharacterString_Value_Init(void)
         snprintf(CSV_Descr->Object_Description[i], sizeof(CSV_Descr->Object_Description[i]),
             "A Character String Value Example");
         CSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_CHARACTERSTRING_VALUE));
-        characterstring_init_ansi(&Present_Value[i], "0"); // changed 
+        characterstring_init_ansi(&Present_Value[i], ""); 
         Changed[i] = false;
     }
 
@@ -272,7 +272,7 @@ BACNET_CHARACTER_STRING CharacterString_Value_Present_Value(
 {
     bool status = false;
     BACNET_CHARACTER_STRING value;
-    memset(value.value, 0, sizeof(value.value)); // changed
+    //memset(value.value, 0, sizeof(value.value)); 
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
@@ -330,9 +330,9 @@ bool CharacterString_Value_Present_Value_Set(
              Changed[index] = true;
          }
 
-      //  status = characterstring_copy(&Present_Value[index], object_name);
+        status = characterstring_copy(&Present_Value[index], object_name);
        // strcpy(Present_Value[index].value, object_name->value);
-        status = true;
+        
     }
 
     return status;
