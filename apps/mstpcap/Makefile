@@ -28,11 +28,9 @@ SRCS = main.c \
 	${BACNET_SRC_DIR}/bacnet/datalink/mstptext.c \
 	${BACNET_SRC_DIR}/bacnet/datalink/crc.c
 
-# This demo seems to be a little unique
+# This demo seems to be a little unique -skarg
 DEFINES = $(BACNET_DEFINES) -DBACDL_MSTP
 
-# BACNET_PORT, BACNET_PORT_DIR, BACNET_PORT_SRC are defined in common Makefile
-# BACNET_SRC_DIR is defined in common apps Makefile
 # WARNINGS, DEBUGGING, OPTIMIZATION are defined in common apps Makefile
 # BACNET_DEFINES is defined in common apps Makefile
 # put all the flags together
@@ -44,20 +42,29 @@ LFLAGS += -Wl,$(BACNET_LIB)
 endif
 # GCC dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
+ifeq ($(shell uname -s),Darwin)
+LFLAGS += -Wl,-dead_strip
+else
 LFLAGS += -Wl,--gc-sections
+endif
+# GCC dead code removal
+
+# TARGET_EXT defined in common apps Makefile
+TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
 OBJS += ${SRCS:.c=.o}
 
-TARGET_BIN = ${TARGET}$(TARGET_EXT)
-
 .PHONY: all
-all: Makefile ${TARGET_BIN}
+all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
-${TARGET_BIN}: ${OBJS}
+${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 	size $@
 	cp $@ ../../bin
 
+${BACNET_LIB_TARGET}:
+	( cd ${BACNET_LIB_DIR} ; $(MAKE) clean ; $(MAKE) -s )
+	
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
 
