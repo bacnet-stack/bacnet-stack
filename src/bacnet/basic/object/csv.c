@@ -254,19 +254,23 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  *          is returned.
  */
 
-BACNET_CHARACTER_STRING * CharacterString_Value_Present_Value( // made ptr
+BACNET_CHARACTER_STRING CharacterString_Value_Present_Value( // made ptr
     uint32_t object_instance)
 {
     bool status = false;
-    BACNET_CHARACTER_STRING *value; // made ptr
-    characterstring_init_ansi(value, ""); // init value
+    BACNET_CHARACTER_STRING value; // made ptr
+    characterstring_init_ansi(&value, ""); // init value
     //memset(value.value, 0, sizeof(value.value)); 
     unsigned index = 0; /* offset from instance lookup */
-
+    
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < MAX_CHARACTERSTRING_VALUES) 
     {   
-        status = characterstring_copy(value, &Present_Value[index]);
+        status = characterstring_copy(&value, &Present_Value[index]);
+        PRINTF("#########  PRESENT_VALUE \r\n");
+        PRINTF("%s value\r\n", value.value);
+        PRINTF("%s present value index\r\n", Present_Value[index].value);
+        PRINTF("#########\r\n");
         if(status == true)
         {
             return value;
@@ -304,6 +308,9 @@ bool CharacterString_Value_Present_Value_Set(
 
         status = characterstring_copy(&Present_Value[index], object_name); //added 
        // strcpy(Present_Value[index].value, object_name->value);
+        PRINTF("#########  PRESENT_VALUE_SET \r\n");
+        PRINTF("%s present value index\r\n", Present_Value[index].value);
+        PRINTF("#########\r\n");
         
     }
 
