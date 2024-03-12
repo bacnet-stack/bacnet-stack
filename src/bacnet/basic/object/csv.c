@@ -253,39 +253,42 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  * @return  true if values are within range and present-value
  *          is returned.
  */
-bool CharacterString_Value_Present_Value(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
-{
-    bool status = false;
-    unsigned index = 0; /* offset from instance lookup */
-
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (object_name && (index < MAX_CHARACTERSTRING_VALUES)) {
-        status = characterstring_copy(object_name, &Present_Value[index]);
-    }
-
-    return status;
-}
-
 // bool CharacterString_Value_Present_Value(
-//     uint32_t object_instance, BACNET_CHARACTER_STRING * object_name)
+//     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 // {
 //     bool status = false;
-//    // char value[MAX_CHARACTERSTRING_VALUES];
-//     //memset(value, 0, sizeof(value));
 //     unsigned index = 0; /* offset from instance lookup */
 
 //     index = CharacterString_Value_Instance_To_Index(object_instance);
-//     if (index < CSV_Max_Index) 
-//     {   
+//     if (object_name && (index < MAX_CHARACTERSTRING_VALUES)) {
 //         status = characterstring_copy(object_name, &Present_Value[index]);
-//       //  strcpy(object_name->value, Present_Value[index].value);
-//        // status = true;
 //     }
 
 //     return status;
-
 // }
+
+BACNET_CHARACTER_STRING CharacterString_Value_Present_Value(
+    uint32_t object_instance)
+{
+    bool status = false;
+    BACNET_CHARACTER_STRING *value;
+    //memset(value, 0, sizeof(value));
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = CharacterString_Value_Instance_To_Index(object_instance);
+    if (index < CSV_Max_Index) 
+    {   
+        status = characterstring_copy(value, &Present_Value[index]);
+        if(status == true)
+        {
+            return *value;
+        }
+
+    }
+
+    return *value;
+
+}
 
 
 /**
@@ -297,22 +300,6 @@ bool CharacterString_Value_Present_Value(
  *
  * @return  true if values are within range and present-value is set.
  */
-bool CharacterString_Value_Present_Value_Set(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
-{
-    bool status = false;
-    unsigned index = 0; /* offset from instance lookup */
-
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        if (!characterstring_same(&Present_Value[index], object_name)) {
-            Changed[index] = true;
-        }
-        status = characterstring_copy(&Present_Value[index], object_name);
-    }
-
-    return status;
-}
 // bool CharacterString_Value_Present_Value_Set(
 //     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 // {
@@ -320,21 +307,36 @@ bool CharacterString_Value_Present_Value_Set(
 //     unsigned index = 0; /* offset from instance lookup */
 
 //     index = CharacterString_Value_Instance_To_Index(object_instance);
-
-//     if (index < CSV_Max_Index) {
-//         if (!strcmp(Present_Value[index].value, object_name->value)) {
+//     if (index < MAX_CHARACTERSTRING_VALUES) {
+//         if (!characterstring_same(&Present_Value[index], object_name)) {
 //             Changed[index] = true;
 //         }
-//         PRINTF("##############################");
-//         PRINTF("%s", object_name->value);
-//         PRINTF("##############################");
-//       //  status = characterstring_copy(&Present_Value[index], object_name);
-//         strcpy(Present_Value[index].value, object_name->value);
-//         status = true;
+//         status = characterstring_copy(&Present_Value[index], object_name);
 //     }
 
 //     return status;
 // }
+
+bool CharacterString_Value_Present_Value_Set(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
+{
+    bool status = false;
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = CharacterString_Value_Instance_To_Index(object_instance);
+
+    if (index < CSV_Max_Index) {
+         if (!characterstring_same(&Present_Value[index], object_name)) {
+             Changed[index] = true;
+         }
+
+      //  status = characterstring_copy(&Present_Value[index], object_name);
+       // strcpy(Present_Value[index].value, object_name->value);
+        status = true;
+    }
+
+    return status;
+}
 
 
 /**
@@ -628,7 +630,7 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PRESENT_VALUE:
             CharacterString_Value_Present_Value(
-                rpdata->object_instance, &char_string);
+                rpdata->object_instance);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
