@@ -254,11 +254,11 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  *          is returned.
  */
 
-BACNET_CHARACTER_STRING CharacterString_Value_Present_Value( // made ptr
+BACNET_CHARACTER_STRING CharacterString_Value_Present_Value(
     uint32_t object_instance)
 {
     bool status = false;
-    BACNET_CHARACTER_STRING value; // made ptr
+    BACNET_CHARACTER_STRING value; 
     characterstring_init_ansi(&value, ""); // init value
     //memset(value.value, 0, sizeof(value.value)); 
     unsigned index = 0; /* offset from instance lookup */
