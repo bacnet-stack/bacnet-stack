@@ -271,22 +271,22 @@ BACNET_CHARACTER_STRING CharacterString_Value_Present_Value(
     uint32_t object_instance)
 {
     bool status = false;
-    BACNET_CHARACTER_STRING *value;
+    BACNET_CHARACTER_STRING value;
     //memset(value, 0, sizeof(value));
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < CSV_Max_Index) 
+    if (index < MAX_CHARACTERSTRING_VALUES) 
     {   
-        status = characterstring_copy(value, &Present_Value[index]);
+        status = characterstring_copy(&value, &Present_Value[index]);
         if(status == true)
         {
-            return *value;
+            return value;
         }
 
     }
 
-    return *value;
+    return value;
 
 }
 
@@ -325,7 +325,7 @@ bool CharacterString_Value_Present_Value_Set(
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
-    if (index < CSV_Max_Index) {
+    if (index < MAX_CHARACTERSTRING_VALUES) {
          if (!characterstring_same(&Present_Value[index], object_name)) {
              Changed[index] = true;
          }
