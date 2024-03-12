@@ -272,6 +272,7 @@ BACNET_CHARACTER_STRING CharacterString_Value_Present_Value(
 {
     bool status = false;
     BACNET_CHARACTER_STRING value;
+    characterstring_init_ansi(&value, ""); // init value
     //memset(value.value, 0, sizeof(value.value)); 
     unsigned index = 0; /* offset from instance lookup */
 
@@ -330,7 +331,7 @@ bool CharacterString_Value_Present_Value_Set(
              Changed[index] = true;
          }
 
-        status = characterstring_copy(&Present_Value[index], object_name);
+        status = characterstring_copy(&Present_Value[index], &object_name); //added 
        // strcpy(Present_Value[index].value, object_name->value);
         
     }
