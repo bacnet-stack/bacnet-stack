@@ -253,33 +253,20 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  * @return  true if values are within range and present-value
  *          is returned.
  */
-// bool CharacterString_Value_Present_Value(
-//     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
-// {
-//     bool status = false;
-//     unsigned index = 0; /* offset from instance lookup */
 
-//     index = CharacterString_Value_Instance_To_Index(object_instance);
-//     if (object_name && (index < MAX_CHARACTERSTRING_VALUES)) {
-//         status = characterstring_copy(object_name, &Present_Value[index]);
-//     }
-
-//     return status;
-// }
-
-BACNET_CHARACTER_STRING CharacterString_Value_Present_Value(
+BACNET_CHARACTER_STRING * CharacterString_Value_Present_Value( // made ptr
     uint32_t object_instance)
 {
     bool status = false;
-    BACNET_CHARACTER_STRING value;
-    characterstring_init_ansi(&value, ""); // init value
+    BACNET_CHARACTER_STRING *value; // made ptr
+    characterstring_init_ansi(value, ""); // init value
     //memset(value.value, 0, sizeof(value.value)); 
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < MAX_CHARACTERSTRING_VALUES) 
     {   
-        status = characterstring_copy(&value, &Present_Value[index]);
+        status = characterstring_copy(value, &Present_Value[index]);
         if(status == true)
         {
             return value;
@@ -301,22 +288,6 @@ BACNET_CHARACTER_STRING CharacterString_Value_Present_Value(
  *
  * @return  true if values are within range and present-value is set.
  */
-// bool CharacterString_Value_Present_Value_Set(
-//     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
-// {
-//     bool status = false;
-//     unsigned index = 0; /* offset from instance lookup */
-
-//     index = CharacterString_Value_Instance_To_Index(object_instance);
-//     if (index < MAX_CHARACTERSTRING_VALUES) {
-//         if (!characterstring_same(&Present_Value[index], object_name)) {
-//             Changed[index] = true;
-//         }
-//         status = characterstring_copy(&Present_Value[index], object_name);
-//     }
-
-//     return status;
-// }
 
 bool CharacterString_Value_Present_Value_Set(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
@@ -327,7 +298,7 @@ bool CharacterString_Value_Present_Value_Set(
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
     if (index < MAX_CHARACTERSTRING_VALUES) {
-         if (!characterstring_same(&Present_Value[index], &object_name)) {
+         if (!characterstring_same(&Present_Value[index], object_name)) {
              Changed[index] = true;
          }
 
