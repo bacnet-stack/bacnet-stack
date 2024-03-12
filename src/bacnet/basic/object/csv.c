@@ -115,7 +115,7 @@ void CharacterString_Value_Init(void)
         snprintf(CSV_Descr->Object_Description[i], sizeof(CSV_Descr->Object_Description[i]),
             "A Character String Value Example");
         CSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_CHARACTERSTRING_VALUE));
-        characterstring_init_ansi(&Present_Value[i], "");
+        characterstring_init_ansi(&Present_Value[i], "0"); // changed 
         Changed[i] = false;
     }
 
@@ -178,7 +178,7 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-
+    // Possibly change CSV_Max_Index to MAX
     for (index = 0; index < CSV_Max_Index; index++) {
         if (CSV_Descr[index].Instance == object_instance) {
             return true;
@@ -235,7 +235,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     {
         strcpy(CSV_Descr->Object_Description[i], pInit_data->Object_Init_Values[i].Description);
     }
-
+    
   }
 
     CSV_Max_Index = (int) pInit_data->length;
@@ -272,7 +272,7 @@ BACNET_CHARACTER_STRING CharacterString_Value_Present_Value(
 {
     bool status = false;
     BACNET_CHARACTER_STRING value;
-    //memset(value, 0, sizeof(value));
+    memset(value.value, 0, sizeof(value.value)); // changed
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
@@ -326,7 +326,7 @@ bool CharacterString_Value_Present_Value_Set(
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
     if (index < MAX_CHARACTERSTRING_VALUES) {
-         if (!characterstring_same(&Present_Value[index], object_name)) {
+         if (!characterstring_same(&Present_Value[index], &object_name)) {
              Changed[index] = true;
          }
 
