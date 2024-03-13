@@ -26,9 +26,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "bacnet/bacenum.h"
-#include "bacnet/bacint.h"
 #include "bacnet/config.h"
+#include "bacnet/bacenum.h"
 
 #if defined(_MSC_VER)
 /* Silence the warnings about unsafe versions of library functions */

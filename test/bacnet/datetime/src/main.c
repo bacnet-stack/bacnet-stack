@@ -70,7 +70,7 @@ static void datetime_print(const char *title, BACNET_DATE_TIME *bdatetime)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetDateTimeWildcard)
+ZTEST(bacnet_datetime, testBACnetDateTimeWildcard)
 #else
 static void testBACnetDateTimeWildcard(void)
 #endif
@@ -88,7 +88,7 @@ static void testBACnetDateTimeWildcard(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetDateTimeAdd)
+ZTEST(bacnet_datetime, testBACnetDateTimeAdd)
 #else
 static void testBACnetDateTimeAdd(void)
 #endif
@@ -156,7 +156,7 @@ static void testBACnetDateTimeSeconds(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetDate)
+ZTEST(bacnet_datetime, testBACnetDate)
 #else
 static void testBACnetDate(void)
 #endif
@@ -221,7 +221,7 @@ static void testBACnetDate(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetTime)
+ZTEST(bacnet_datetime, testBACnetTime)
 #else
 static void testBACnetTime(void)
 #endif
@@ -274,7 +274,7 @@ static void testBACnetTime(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetDateTime)
+ZTEST(bacnet_datetime, testBACnetDateTime)
 #else
 static void testBACnetDateTime(void)
 #endif
@@ -344,7 +344,7 @@ static void testBACnetDateTime(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testWildcardDateTime)
+ZTEST(bacnet_datetime, testWildcardDateTime)
 #else
 static void testWildcardDateTime(void)
 #endif
@@ -433,7 +433,7 @@ static void testDateEpochConversionCompare(uint16_t year,
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testDateEpochConversion)
+ZTEST(bacnet_datetime, testDateEpochConversion)
 #else
 static void testDateEpochConversion(void)
 #endif
@@ -476,7 +476,7 @@ static void testDateEpoch(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetDayOfWeek)
+ZTEST(bacnet_datetime, testBACnetDayOfWeek)
 #else
 static void testBACnetDayOfWeek(void)
 #endif
@@ -508,7 +508,7 @@ static void testBACnetDayOfWeek(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testDatetimeCodec)
+ZTEST(bacnet_datetime, testDatetimeCodec)
 #else
 static void testDatetimeCodec(void)
 #endif
@@ -630,7 +630,7 @@ static void testDatetimeConvertUTC(void)
  */
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST_SUITE(datetime_tests, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(bacnet_datetime, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
@@ -639,7 +639,7 @@ void test_main(void)
      ztest_unit_test(testBACnetDateTimeSeconds),
      ztest_unit_test(testDayOfYear),
 #endif
-    ztest_test_suite(datetime_tests,
+    ztest_test_suite(bacnet_datetime,
         ztest_unit_test(testBACnetDate),
         ztest_unit_test(testBACnetTime),
         ztest_unit_test(testBACnetDateTime),
@@ -653,6 +653,6 @@ void test_main(void)
         ztest_unit_test(testDayOfYear),
         ztest_unit_test(testDatetimeConvertUTC));
 
-    ztest_run_test_suite(datetime_tests);
+    ztest_run_test_suite(bacnet_datetime);
 }
 #endif

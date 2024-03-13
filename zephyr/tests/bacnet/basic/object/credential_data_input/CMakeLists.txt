@@ -76,5 +76,6 @@ else()
     ${TEST_OBJECT_INCLUDE})
   target_sources(app PRIVATE
     ${BACNET_TEST_PATH}/src/main.c
+    ${TEST_OBJECT_SRC}/property_test.c
     )
 endif()

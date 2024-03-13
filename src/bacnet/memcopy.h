@@ -28,6 +28,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 
 #ifdef __cplusplus
 extern "C" {

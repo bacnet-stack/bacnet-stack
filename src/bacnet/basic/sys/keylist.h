@@ -24,6 +24,7 @@
 #ifndef KEYLIST_H
 #define KEYLIST_H
 
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/basic/sys/platform.h"
 #include "bacnet/basic/sys/key.h"

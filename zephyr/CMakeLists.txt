@@ -484,3 +484,7 @@ target_compile_definitions(
   PRINT_ENABLED=1
   )
 
+zephyr_compile_definitions(
+  BACNET_CONFIG_H=1         # Use ports/zephyr/bacnet-config.h
+  )
+

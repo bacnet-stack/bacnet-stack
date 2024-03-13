@@ -24,6 +24,8 @@
 #ifndef BITS_H
 #define BITS_H
 
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
+
 /********************************************************************
 * Bit Masks
 *********************************************************************/
