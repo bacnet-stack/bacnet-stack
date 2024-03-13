@@ -253,7 +253,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     PRINTF(" LENGTH  %d\r\n", pInit_data->length);
     PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
     PRINTF(" LENGTH MAX %d\r\n", MAX_CHARACTERSTRING_VALUES);
-    CSV_Max_Index = (int) pInit_data->length;
+    CSV_Max_Index = 10005;//(int) pInit_data->length;
 
   return true;
 }
