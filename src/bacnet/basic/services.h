@@ -25,6 +25,8 @@
 #ifndef BASIC_SERVICES_H
 #define BASIC_SERVICES_H
 
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
+
 /* NPDU layer handlers */
 #include "bacnet/basic/npdu/h_npdu.h"
 #include "bacnet/basic/npdu/h_routed_npdu.h"

@@ -20,6 +20,7 @@
 #ifndef MSTIMER_H_
 #define MSTIMER_H_
 
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/bacnet_stack_exports.h"
 
 /**

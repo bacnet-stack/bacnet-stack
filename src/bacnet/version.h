@@ -10,6 +10,8 @@
 #ifndef _BACNET_VERSION_H_
 #define _BACNET_VERSION_H_
 
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
+
 /* This BACnet protocol stack version 0.0.0 - 255.255.255 */
 #ifndef BACNET_VERSION
 #define BACNET_VERSION(x,y,z) (((x)<<16)+((y)<<8)+(z))

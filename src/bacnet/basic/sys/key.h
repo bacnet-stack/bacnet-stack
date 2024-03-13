@@ -25,6 +25,7 @@
 #define KEY_H
 
 #include <stdint.h>
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 
 /* This file has the macros that encode and decode the */
 /* keys for the keylist when used with BACnet Object Id's */

@@ -20,6 +20,7 @@
 
 #include <stddef.h>
 #include <math.h>
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 
 #ifndef islessgreater
 #define islessgreater(x, y) ((x) < (y) || (x) > (y))

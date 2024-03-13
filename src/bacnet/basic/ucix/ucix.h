@@ -19,6 +19,7 @@
 #ifndef _UCI_H__
 #define _UCI_H__
 
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/bacnet_stack_exports.h"
 
 BACNET_STACK_EXPORT

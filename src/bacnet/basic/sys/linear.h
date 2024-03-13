@@ -6,6 +6,8 @@
 #ifndef LINEAR_H
 #define LINEAR_H
 
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

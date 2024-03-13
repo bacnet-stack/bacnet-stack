@@ -1,10 +1,6 @@
-/**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic GetEventInformation service send
+/**************************************************************************
 *
-* @section LICENSE
+* Copyright (c) 2024 Legrand North America, LLC.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -24,33 +20,16 @@
 * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-#ifndef SEND_GET_EVENT_INFORMATION_H
-#define SEND_GET_EVENT_INFORMATION_H
+*
+*********************************************************************/
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacapp.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/apdu.h"
+#ifndef BACNET_PORTS_ZEPHYR_BACNET_CONFIG_H
+#define BACNET_PORTS_ZEPHYR_BACNET_CONFIG_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-BACNET_STACK_EXPORT
-uint8_t Send_Get_Event_Information_Address(
-    BACNET_ADDRESS *dest, uint16_t max_apdu,
-    BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
-BACNET_STACK_EXPORT
-uint8_t Send_Get_Event_Information(
-    uint32_t device_id, BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+#if ! defined BACNET_CONFIG_H || ! BACNET_CONFIG_H
+#error bacnet-config.h included outside of BACNET_CONFIG_H control
 #endif
+
+#include <zephyr/sys/util.h>  // Provides platform-specific defn of ARRAY_SIZE()
+
+#endif // BACNET_PORTS_ZEPHYR_BACNET_CONFIG_H

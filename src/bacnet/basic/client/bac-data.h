@@ -9,7 +9,7 @@
 #define BAC_DATA_H
 
 #include <stdint.h>
-#include "bacnet/bacdef.h"
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/rp.h"

@@ -24,6 +24,7 @@
 #ifndef BACNET_STACK_EXPORTS_H
 #define BACNET_STACK_EXPORTS_H
 
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 
 #ifdef BACNET_STACK_STATIC_DEFINE
     /* We want a static library */

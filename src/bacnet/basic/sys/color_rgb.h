@@ -8,6 +8,7 @@
 #define COLOR_RGB_H
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/bacnet_stack_exports.h"
 
 #ifdef __cplusplus
