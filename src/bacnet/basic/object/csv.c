@@ -133,19 +133,19 @@ void CharacterString_Value_Init(void)
  */
 unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 {
-    // unsigned index = 0;
+    unsigned index = 0;
 
     // for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
 
     // return index;
-
-    unsigned index = MAX_CHARACTERSTRING_VALUES;
-
-    if (object_instance < MAX_CHARACTERSTRING_VALUES) {
-        index = object_instance;
+    if (index < MAX_CHARACTERSTRING_VALUES) {
+        return CSV_Descr[index].Instance;
+    } else {
+        PRINT("index out of bounds");
     }
 
-    return index;
+    return 0;
+    
 }
 
 /**
