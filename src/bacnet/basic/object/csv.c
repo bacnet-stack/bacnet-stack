@@ -115,7 +115,7 @@ void CharacterString_Value_Init(void)
         snprintf(CSV_Descr[i].Description, sizeof(CSV_Descr[i].Description),
             "A Character String Value Example");
         CSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_CHARACTERSTRING_VALUE));
-        characterstring_init_ansi(&Present_Value[i], "hello world"); 
+        characterstring_init_ansi(&Present_Value[i], "0"); 
         Changed[i] = false;
     }
 
@@ -133,9 +133,17 @@ void CharacterString_Value_Init(void)
  */
 unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = 0;
+    // unsigned index = 0;
 
-    for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
+    // for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
+
+    // return index;
+
+    unsigned index = MAX_CHARACTERSTRING_VALUES;
+
+    if (object_instance < MAX_CHARACTERSTRING_VALUES) {
+        index = object_instance;
+    }
 
     return index;
 }
@@ -209,6 +217,14 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   }
 
   for (i = 0; i < pInit_data->length; i++) {
+
+    PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
+    PRINTF("name to \"%128s\" \r\n", pInit_data->Object_Init_Values[i].Object_Name);
+    PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
+
+    PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
+    PRINTF("description to \"%128s\" \r\n", pInit_data->Object_Init_Values[i].Description);
+    PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
         CSV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
     } else {
