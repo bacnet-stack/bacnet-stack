@@ -253,9 +253,9 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   }
       
     PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
-    PRINTF(" LENGTH \"%128s\" \r\n", pInit_data->length);
+    PRINTF(" LENGTH  %d\r\n", pInit_data->length);
     PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
-
+    PRINTF(" LENGTH MAX %d\r\n", MAX_CHARACTERSTRING_VALUES);
     CSV_Max_Index = (int) pInit_data->length;
 
   return true;
@@ -279,7 +279,7 @@ bool CharacterString_Value_Present_Value(
     unsigned index = 0; /* offset from instance lookup */
     
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) 
+    if (index < CSV_Max_Index) 
     {   
         status = characterstring_copy(object_name, &Present_Value[index]);
         // PRINTF("#########  PRESENT_VALUE \r\n");
@@ -315,7 +315,7 @@ bool CharacterString_Value_Present_Value_Set(
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
+    if (index < CSV_Max_Index) {
          if (!characterstring_same(&Present_Value[index], object_name)) {
              Changed[index] = true;
          }
@@ -441,7 +441,7 @@ static char *CharacterString_Value_Description(uint32_t object_instance)
     char *pName = NULL; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
+    if (index < CSV_Max_Index) {
         pName = CSV_Descr[index].Description;
         if(pName != NULL){
             return pName;
@@ -469,7 +469,7 @@ bool CharacterString_Value_Description_Set(
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if(index < MAX_CHARACTERSTRING_VALUES)
+    if(index < CSV_Max_Index)
     {
         status = true;
         if(new_descr)
@@ -507,7 +507,7 @@ bool CharacterString_Value_Object_Name(
     }
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
+    if (index < CSV_Max_Index) {
         status = characterstring_init_ansi(object_name, CSV_Descr[index].Name);
     }
 
@@ -531,7 +531,7 @@ bool CharacterString_Value_Name_Set(uint32_t object_instance, char *new_name)
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
+    if (index < CSV_Max_Index) {
         status = true;
         /* FIXME: check to see if there is a matching name */
         if (new_name) {
