@@ -115,7 +115,7 @@ void CharacterString_Value_Init(void)
         snprintf(CSV_Descr[i].Description, sizeof(CSV_Descr[i].Description),
             "A Character String Value Example");
         CSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_CHARACTERSTRING_VALUE));
-        characterstring_init_ansi(&Present_Value[i], "0"); 
+        characterstring_init_ansi(&Present_Value[i], "00000"); 
         Changed[i] = false;
     }
 
@@ -135,17 +135,9 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = 0;
 
-    // for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
+    for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
 
-    // return index;
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        return CSV_Descr[index].Instance;
-    } else {
-        PRINT("index out of bounds");
-    }
-
-    return 0;
-    
+    return index;
 }
 
 /**
@@ -219,7 +211,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   for (i = 0; i < pInit_data->length; i++) {
 
     PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
-    PRINTF("name to \"%128s\" \r\n", pInit_data->Object_Init_Values[i].Object_Name);
+    PRINTF(" to \"%128s\" \r\n", pInit_data->Object_Init_Values[i].Object_Name);
     PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
 
     PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
@@ -239,6 +231,9 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
     else
     {   
+        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
+        PRINTF(" NAME \"%128s\" \r\n", pInit_data->Object_Init_Values[i].Object_Name);
+        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
         strcpy(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name);
     }
 
@@ -249,6 +244,9 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
     else
     {
+        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
+        PRINTF(" DESCR \"%128s\" \r\n", pInit_data->Object_Init_Values[i].Description);
+        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
         strcpy(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description);
     }
     
@@ -274,19 +272,16 @@ bool CharacterString_Value_Present_Value(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
-   // BACNET_CHARACTER_STRING value; 
-   // characterstring_init_ansi(&value, ""); // init value
-    //memset(value.value, 0, sizeof(value.value)); 
     unsigned index = 0; /* offset from instance lookup */
     
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < MAX_CHARACTERSTRING_VALUES) 
     {   
         status = characterstring_copy(object_name, &Present_Value[index]);
-        PRINTF("#########  PRESENT_VALUE \r\n");
-        PRINTF("value \r\n", object_name->value);
-        PRINTF("%s present value index\r\n", Present_Value[index].value);
-        PRINTF("#########\r\n");
+        // PRINTF("#########  PRESENT_VALUE \r\n");
+        // PRINTF("value \r\n", object_name->value);
+        // PRINTF("%s present value index\r\n", Present_Value[index].value);
+        // PRINTF("#########\r\n");
         if(status == true)
         {
             return status;
