@@ -209,8 +209,6 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   }
 
   for (i = 0; i < pInit_data->length; i++) {
-
-
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
         PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
         PRINTF("Instance to %u\r\n", pInit_data->Object_Init_Values[i].Object_Instance);
@@ -252,8 +250,8 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
     PRINTF(" LENGTH  %d\r\n", pInit_data->length);
     PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
-    PRINTF(" LENGTH MAX %d\r\n", MAX_CHARACTERSTRING_VALUES);
-    CSV_Max_Index = 10005;//(int) pInit_data->length;
+    PRINTF(" LENGTH  %d\r\n", MAX_CHARACTERSTRING_VALUES);
+    CSV_Max_Index = (int) pInit_data->length;
 
   return true;
 }
