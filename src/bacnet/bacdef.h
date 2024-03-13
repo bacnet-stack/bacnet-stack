@@ -126,6 +126,15 @@
 #error MAX_ASHRAE_OBJECT_TYPE and MAX_BACNET_SERVICES_SUPPORTED not defined!
 #endif
 
+/* Support 64b integers when available */
+#ifdef UINT64_MAX
+typedef uint64_t BACNET_UNSIGNED_INTEGER;
+#define BACNET_UNSIGNED_INTEGER_MAX UINT64_MAX
+#else
+typedef uint32_t BACNET_UNSIGNED_INTEGER;
+#define BACNET_UNSIGNED_INTEGER_MAX UINT32_MAX
+#endif
+
 /* largest BACnet Instance Number */
 /* Also used as a device instance number wildcard address */
 #define BACNET_MAX_INSTANCE (0x3FFFFF)
