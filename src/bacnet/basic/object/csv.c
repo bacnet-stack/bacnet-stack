@@ -210,14 +210,11 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 
   for (i = 0; i < pInit_data->length; i++) {
 
-    PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
-    PRINTF(" Name \"%128s\" \r\n", pInit_data->Object_Init_Values[i].Object_Name);
-    PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
 
-    PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
-    PRINTF("description to \"%128s\" \r\n", pInit_data->Object_Init_Values[i].Description);
-    PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+        PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
+        PRINTF("Instance to %u\r\n", pInit_data->Object_Init_Values[i].Object_Instance);
+        PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
         CSV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
     } else {
       PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
