@@ -26,9 +26,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "bacnet/bacenum.h"
-#include "bacnet/bacint.h"
 #include "bacnet/config.h"
+#include "bacnet/bacenum.h"
 
 #if defined(_MSC_VER)
 /* Silence the warnings about unsafe versions of library functions */
@@ -125,6 +124,15 @@
 #define MAX_BACNET_SERVICES_SUPPORTED 47
 #else
 #error MAX_ASHRAE_OBJECT_TYPE and MAX_BACNET_SERVICES_SUPPORTED not defined!
+#endif
+
+/* Support 64b integers when available */
+#ifdef UINT64_MAX
+typedef uint64_t BACNET_UNSIGNED_INTEGER;
+#define BACNET_UNSIGNED_INTEGER_MAX UINT64_MAX
+#else
+typedef uint32_t BACNET_UNSIGNED_INTEGER;
+#define BACNET_UNSIGNED_INTEGER_MAX UINT32_MAX
 #endif
 
 /* largest BACnet Instance Number */

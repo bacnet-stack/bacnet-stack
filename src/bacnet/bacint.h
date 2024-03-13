@@ -27,15 +27,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/bacnet_stack_exports.h"
-
-#ifdef UINT64_MAX
-typedef uint64_t BACNET_UNSIGNED_INTEGER;
-#define BACNET_UNSIGNED_INTEGER_MAX UINT64_MAX
-#else
-typedef uint32_t BACNET_UNSIGNED_INTEGER;
-#define BACNET_UNSIGNED_INTEGER_MAX UINT32_MAX
-#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -26,7 +26,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacdef.h"
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/bacenum.h"
 
 typedef struct _confirmed_service_data {

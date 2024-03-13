@@ -27,6 +27,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdint.h>
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/datalink/bvlc.h"
 
 #include "bacnet/bacnet_stack_exports.h"

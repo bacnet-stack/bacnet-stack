@@ -29,6 +29,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 
 /* MS/TP Auto MAC address functionality */
 /* starting number available for AutoMAC */

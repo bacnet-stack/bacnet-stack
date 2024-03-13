@@ -10,6 +10,7 @@
 #define BACNET_TASK_H
 
 #include <stdint.h>
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/bacnet_stack_exports.h"
 
 #ifdef __cplusplus

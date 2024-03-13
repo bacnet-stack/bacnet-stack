@@ -30,8 +30,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
 #include "bacnet/alarm_ack.h"

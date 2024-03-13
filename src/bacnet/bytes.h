@@ -27,6 +27,7 @@
 /* Defines the bit/byte/word/long conversions that are used in code */
 
 #include <stdint.h>
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 
 #ifndef LO_NIB
 #define LO_NIB(b) ((b) & 0xF)
