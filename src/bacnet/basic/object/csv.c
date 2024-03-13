@@ -179,7 +179,7 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     // Possibly change CSV_Max_Index to MAX
-    for (index = 0; index < CSV_Max_Index; index++) {
+    for (index = 0; index < MAX_CHARACTERSTRING_VALUES; index++) {
         if (CSV_Descr[index].Instance == object_instance) {
             return true;
         }
@@ -300,17 +300,12 @@ bool CharacterString_Value_Present_Value_Set(
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-
     if (index < MAX_CHARACTERSTRING_VALUES) {
          if (!characterstring_same(&Present_Value[index], object_name)) {
              Changed[index] = true;
          }
 
-        status = characterstring_copy(&Present_Value[index], object_name); //added 
-       // strcpy(Present_Value[index].value, object_name->value);
-        PRINTF("#########  PRESENT_VALUE_SET \r\n");
-        PRINTF("%s present value index\r\n", Present_Value[index].value);
-        PRINTF("#########\r\n");
+        status = characterstring_copy(&Present_Value[index], object_name);  
         
     }
 
