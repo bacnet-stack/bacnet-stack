@@ -140,8 +140,10 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
     {
         PRINTF("+++++++++++++++++++++\r\n");
         PRINTF("Instance to %u\r\n", object_instance);
+        PRINTF(" NAME \"%128s\" \r\n", CSV_Descr[i].Name);
         if(CSV_Descr[i].Instance == object_instance)
-        {
+        {   
+            PRINTF(" PASS NAME \"%128s\" \r\n", CSV_Descr[i].Name);
             PRINTF("------------------------\r\n");
             PRINTF("Instance to %u\r\n", object_instance);
             PRINTF("+++++++++++++++++++++\r\n");
@@ -192,8 +194,13 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     // Possibly change CSV_Max_Index to MAX
-    for (index = 0; index < MAX_CHARACTERSTRING_VALUES; index++) {
+    for (index = 0; index < CSV_Max_Index; index++) {
+            PRINTF("£££££££££££££££££££\r\n");
+            PRINTF(" NAME \"%128s\" \r\n", CSV_Descr[index].Name);
+            PRINTF("-----------------\r\n");
         if (CSV_Descr[index].Instance == object_instance) {
+            PRINTF(" PASS NAME \"%128s\" \r\n", CSV_Descr[index].Name);
+            PRINTF("£££££££££££££££££££\r\n");
             return true;
         }
     }
@@ -239,10 +246,10 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
     else
     {   
-        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
-        PRINTF(" NAME \"%128s\" \r\n", pInit_data->Object_Init_Values[i].Object_Name);
-        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
         strcpy(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name);
+        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
+        PRINTF(" DESCR \"%128s\" \r\n", CSV_Descr[i].Name);
+        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
     }
 
     if(!strcmp(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description))
@@ -252,10 +259,10 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
     else
     {
-        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
-        PRINTF(" DESCR \"%128s\" \r\n", pInit_data->Object_Init_Values[i].Description);
-        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
         strcpy(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description);
+        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
+        PRINTF(" DESCR \"%128s\" \r\n", CSV_Descr[i].Description);
+        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
     }
     
   }
