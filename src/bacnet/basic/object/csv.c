@@ -135,7 +135,20 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = 0;
 
-    for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
+    //for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
+    for(int i = 0; i < CSV_Max_Index; i++)
+    {
+        PRINTF("+++++++++++++++++++++\r\n");
+        PRINTF("Instance to %u\r\n", object_instance);
+        if(CSV_Descr[i].Instance == object_instance)
+        {
+            PRINTF("------------------------\r\n");
+            PRINTF("Instance to %u\r\n", object_instance);
+            PRINTF("+++++++++++++++++++++\r\n");
+            return index;
+        }
+
+    }
 
     return index;
 }
