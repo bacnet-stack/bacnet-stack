@@ -43,6 +43,8 @@
 #define MAX_MULTISTATE_VALUES 4
 #endif
 
+#define PRINTF printf
+
 /* how many states? 1 to 254 states - 0 is not allowed. */
 #ifndef MULTISTATE_NUMBER_OF_STATES
 #define MULTISTATE_NUMBER_OF_STATES (254)
@@ -55,9 +57,9 @@ static bool Out_Of_Service[MAX_MULTISTATE_VALUES];
 /* Change of Value flag */
 static bool Change_Of_Value[MAX_MULTISTATE_VALUES];
 /* object name storage */
-static char Object_Name[MAX_MULTISTATE_VALUES][64];
+//static char Object_Name[MAX_MULTISTATE_VALUES][MAX_CHARACTER_STRING_BYTES];
 /* object description storage */
-static char Object_Description[MAX_MULTISTATE_VALUES][64];
+//static char Object_Description[MAX_MULTISTATE_VALUES][MAX_CHARACTER_STRING_BYTES];
 /* object state text storage */
 static char State_Text[MAX_MULTISTATE_VALUES][MULTISTATE_NUMBER_OF_STATES][64];
 
@@ -70,6 +72,16 @@ static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
     -1 };
 
 static const int Properties_Proprietary[] = { -1 };
+
+typedef struct Multistate_Value_descr 
+{
+    uint32_t Instance;
+    char Name[MAX_CHARACTER_STRING_BYTES];
+    char Description[MAX_CHARACTER_STRING_BYTES];
+} MULTISTATE_VALUE_DESCR;
+
+static MULTISTATE_VALUE_DESCR MSV_Descr[MAX_MULTISTATE_VALUES];
+static int MSV_Max_Index = MAX_MULTISTATE_VALUES;
 
 void Multistate_Value_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
@@ -94,8 +106,8 @@ void Multistate_Value_Init(void)
     /* initialize all the analog output priority arrays to NULL */
     for (i = 0; i < MAX_MULTISTATE_VALUES; i++) {
         Present_Value[i] = 1;
-        sprintf(&Object_Name[i][0], "MULTISTATE VALUE %u", i);
-        sprintf(&Object_Description[i][0], "MULTISTATE VALUE %u", i);
+        sprintf(MSV_Descr[i].Name, "MULTISTATE VALUE %u", i);
+        sprintf(MSV_Descr[i].Description, "MULTISTATE VALUE %u", i);
     }
 
     return;
@@ -135,33 +147,27 @@ bool Multistate_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     return false;
   }
 
-  // for (i = 0; i < pInit_data->length; i++) {
-  //   if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-  //     AI_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
-  //   } else {
-  //     PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
-  //     return false;
-  //   }
+    if(!strcmp(MSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name))
+    {
+        PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+        //return false;       
+    }
+    else
+    {   
+        strcpy(MSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name);
+    }
 
-  //   if (!characterstring_init_ansi(&AI_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-  //     PRINT("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-  //     return false;
-  //   }
-
-  //   if (!characterstring_init_ansi(&AI_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
-  //     PRINT("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-  //     return false;
-  //   }
-
-  //   if (pInit_data->Object_Init_Values[i].Units < UNITS_PROPRIETARY_RANGE_MAX2) {
-  //     AI_Descr[i].Units = pInit_data->Object_Init_Values[i].Units;
-  //   } else {
-  //     PRINT("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
-  //     return false;
-  //   }
-  // }
-
-  //AI_Max_Index = (int) pInit_data->length;
+    if(!strcmp(MSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description))
+    {
+        PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+        //return false;       
+    }
+    else
+    {
+        strcpy(MSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description);
+    }
+      
+  MSV_Max_Index = (int) pInit_data->length;
 
   return true;
 }
@@ -260,7 +266,7 @@ char *Multistate_Value_Description(uint32_t object_instance)
 
     index = Multistate_Value_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_VALUES) {
-        pName = Object_Description[index];
+        pName = MSV_Descr[index].Description;
     }
 
     return pName;
@@ -276,18 +282,17 @@ bool Multistate_Value_Description_Set(uint32_t object_instance, char *new_name)
     if (index < MAX_MULTISTATE_VALUES) {
         status = true;
         if (new_name) {
-            for (i = 0; i < sizeof(Object_Description[index]); i++) {
-                Object_Description[index][i] = new_name[i];
-                if (new_name[i] == 0) {
-                    break;
-                }
-            }
+          //  for (i = 0; i < sizeof(MSV_Descr[index].Description); i++) {
+                strcpy(MSV_Descr[index].Description, new_name[i]);
+          //      if (new_name[i] == 0) {
+            //        break;
+             //   }
+           // }
         } else {
-            for (i = 0; i < sizeof(Object_Description[index]); i++) {
-                Object_Description[index][i] = 0;
+                memset(&MSV_Descr->Description[index], 0,
+                  sizeof(MSV_Descr->Description[index]));
             }
         }
-    }
 
     return status;
 }
@@ -300,7 +305,7 @@ bool Multistate_Value_Object_Name(
 
     index = Multistate_Value_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_VALUES) {
-        status = characterstring_init_ansi(object_name, Object_Name[index]);
+        status = characterstring_init_ansi(object_name, MSV_Descr[index].Name);
     }
 
     return status;
@@ -318,16 +323,15 @@ bool Multistate_Value_Name_Set(uint32_t object_instance, char *new_name)
         status = true;
         /* FIXME: check to see if there is a matching name */
         if (new_name) {
-            for (i = 0; i < sizeof(Object_Name[index]); i++) {
-                Object_Name[index][i] = new_name[i];
-                if (new_name[i] == 0) {
-                    break;
-                }
-            }
+         //   for (i = 0; i < sizeof(MSV_Descr[index].Name); i++) {
+                strcpy(MSV_Descr[index].Name, new_name[i]);
+           //     if (new_name[i] == 0) {
+           //         break;
+           //     }
+          //  }
         } else {
-            for (i = 0; i < sizeof(Object_Name[index]); i++) {
-                Object_Name[index][i] = 0;
-            }
+                memset(&MSV_Descr->Name[index], 0,
+                  sizeof(MSV_Descr->Name[index]));
         }
     }
 
