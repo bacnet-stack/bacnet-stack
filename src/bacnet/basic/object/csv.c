@@ -135,7 +135,8 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = 0;
 
-    //for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
+    for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
+    #if 0
     for(index = 0; index < CSV_Max_Index; index++)
     {
     //    PRINTF("+++++++++++++++++++++\r\n");
@@ -153,7 +154,7 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
         }
 
     }
-
+    # endif 
     return index;
 }
 
@@ -273,6 +274,8 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
     
   }
+
+
       
     PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
     PRINTF(" LENGTH  %d\r\n", pInit_data->length);
