@@ -108,6 +108,7 @@ void Multistate_Value_Init(void)
         Present_Value[i] = 1;
         sprintf(MSV_Descr[i].Name, "MULTISTATE VALUE %u", i);
         sprintf(MSV_Descr[i].Description, "MULTISTATE VALUE %u", i);
+        MSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, MULTISTATE_NUMBER_OF_STATES));
     }
 
     return;
@@ -147,26 +148,27 @@ bool Multistate_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     return false;
   }
 
-    if(!strcmp(MSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name))
-    {
-        PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-        //return false;       
-    }
-    else
-    {   
-        strcpy(MSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name);
-    }
+    for (i = 0; i < pInit_data->length; i++) {
+        if(!strcmp(MSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name))
+        {
+            PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+            //return false;       
+        }
+        else
+        {   
+            strcpy(MSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name);
+        }
 
-    if(!strcmp(MSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description))
-    {
-        PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-        //return false;       
+        if(!strcmp(MSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description))
+        {
+            PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+            //return false;       
+        }
+        else
+        {
+            strcpy(MSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description);
+        }
     }
-    else
-    {
-        strcpy(MSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description);
-    }
-      
   MSV_Max_Index = (int) pInit_data->length;
 
   return true;

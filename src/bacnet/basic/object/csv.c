@@ -138,17 +138,17 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
     //for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
     for(index = 0; index < CSV_Max_Index; index++)
     {
-       PRINTF("+++++++++++++++++++++\r\n");
-       PRINTF("Instance to %u\r\n", object_instance);
-       PRINTF(" NAME \"%128s\" \r\n", CSV_Descr[index].Name);
-       PRINTF(" INSTANCE %u\r\n", CSV_Descr[index].Instance);
+    //    PRINTF("+++++++++++++++++++++\r\n");
+    //    PRINTF("Instance to %u\r\n", object_instance);
+    //    PRINTF(" NAME \"%128s\" \r\n", CSV_Descr[index].Name);
+    //    PRINTF(" INSTANCE %u\r\n", CSV_Descr[index].Instance);
         if(index == object_instance)
         {   
-           PRINTF("------------------------\r\n");
-           PRINTF("Instance to %u\r\n", object_instance);
-           PRINTF(" PASS NAME \"%128s\" \r\n", CSV_Descr[index].Name);
-           PRINTF(" PASS INSTANCE %u\r\n", CSV_Descr[index].Instance);
-           PRINTF("+++++++++++++++++++++\r\n");
+        //    PRINTF("------------------------\r\n");
+        //    PRINTF("Instance to %u\r\n", object_instance);
+        //    PRINTF(" PASS NAME \"%128s\" \r\n", CSV_Descr[index].Name);
+        //    PRINTF(" PASS INSTANCE %u\r\n", CSV_Descr[index].Instance);
+        //    PRINTF("+++++++++++++++++++++\r\n");
             return index;
         }
 
@@ -197,17 +197,17 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
     index = CharacterString_Value_Instance_To_Index(object_instance);
     // Possibly change CSV_Max_Index to MAX
     for (index = 0; index < CSV_Max_Index; index++) {
-           PRINTF("£££££££££££££££££££\r\n");
-           PRINTF("Instance to %u\r\n", object_instance);
-           PRINTF(" NAME \"%128s\" \r\n", CSV_Descr[index].Name);
-           PRINTF(" INSTANCE  %u\r\n", CSV_Descr[index].Instance);
+        //    PRINTF("£££££££££££££££££££\r\n");
+        //    PRINTF("Instance to %u\r\n", object_instance);
+        //    PRINTF(" NAME \"%128s\" \r\n", CSV_Descr[index].Name);
+        //    PRINTF(" INSTANCE  %u\r\n", CSV_Descr[index].Instance);
         if (index == object_instance) 
         {
-           PRINTF("-----------------\r\n");
-           PRINTF("Instance to %u\r\n", object_instance);
-           PRINTF(" PASS NAME \"%128s\" \r\n", CSV_Descr[index].Name);
-           PRINTF(" INSTANCE PASS %u\r\n", CSV_Descr[index].Instance);
-           PRINTF("£££££££££££££££££££\r\n");
+        //    PRINTF("-----------------\r\n");
+        //    PRINTF("Instance to %u\r\n", object_instance);
+        //    PRINTF(" PASS NAME \"%128s\" \r\n", CSV_Descr[index].Name);
+        //    PRINTF(" INSTANCE PASS %u\r\n", CSV_Descr[index].Instance);
+        //    PRINTF("£££££££££££££££££££\r\n");
             return true;
         }
     }
