@@ -152,10 +152,6 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
 {
 
-    PRINTF("&&&&&&&&&&&&&&&&&&\r\n");
-    PRINTF("INDEX to %u\r\n", index);
-    PRINTF(" INSTANCE %u\r\n");
-    PRINTF("&&&&&&&&&&&&&&&&&&\r\n");
     if(index < CSV_Max_Index){
          return CSV_Descr[index].Instance;
     } else {
@@ -189,19 +185,9 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    // Possibly change CSV_Max_Index to MAX
     for (index = 0; index < CSV_Max_Index; index++) {
-        //    PRINTF("£££££££££££££££££££\r\n");
-        //    PRINTF("Instance to %u\r\n", object_instance);
-        //    PRINTF(" NAME \"%128s\" \r\n", CSV_Descr[index].Name);
-        //    PRINTF(" INSTANCE  %u\r\n", CSV_Descr[index].Instance);
-        if (object_instance == CSV_Descr[index].Instance) // changed 
+        if (object_instance == CSV_Descr[index].Instance) 
         {
-        //    PRINTF("-----------------\r\n");
-        //    PRINTF("Instance to %u\r\n", object_instance);
-        //    PRINTF(" PASS NAME \"%128s\" \r\n", CSV_Descr[index].Name);
-        //    PRINTF(" INSTANCE PASS %u\r\n", CSV_Descr[index].Instance);
-        //    PRINTF("£££££££££££££££££££\r\n");
             return true;
         }
     }
@@ -231,9 +217,6 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 
   for (i = 0; i < pInit_data->length; i++) {
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-        PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
-        PRINTF("Instance to %u\r\n", pInit_data->Object_Init_Values[i].Object_Instance);
-        PRINTF("@@@@@@@@@@@@@@@@@@@@@@@@@@@\r\n");
         CSV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
     } else {
       PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
@@ -248,9 +231,6 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     else
     {   
         strcpy(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name);
-        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
-        PRINTF(" DESCR \"%128s\" \r\n", CSV_Descr[i].Name);
-        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
     }
 
     if(!strcmp(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description))
@@ -261,20 +241,11 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     else
     {
         strcpy(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description);
-        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
-        PRINTF(" DESCR \"%128s\" \r\n", CSV_Descr[i].Description);
-        PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
     }
     
   }
 
-
-      
-    PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
-    PRINTF(" LENGTH  %d\r\n", pInit_data->length);
-    PRINTF("$$$$$$$$$$$$$$$$$$$$$$$$$$$\r\n");
-    PRINTF(" LENGTH  %d\r\n", MAX_CHARACTERSTRING_VALUES);
-    CSV_Max_Index = (int) pInit_data->length;
+  CSV_Max_Index = (int) pInit_data->length;
 
   return true;
 }
@@ -300,10 +271,6 @@ bool CharacterString_Value_Present_Value(
     if (index < CSV_Max_Index) 
     {   
         status = characterstring_copy(object_name, &Present_Value[index]);
-        // PRINTF("#########  PRESENT_VALUE \r\n");
-        // PRINTF("value \r\n", object_name->value);
-        // PRINTF("%s present value index\r\n", Present_Value[index].value);
-        // PRINTF("#########\r\n");
         if(status == true)
         {
             return status;
