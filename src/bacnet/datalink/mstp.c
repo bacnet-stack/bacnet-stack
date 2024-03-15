@@ -59,10 +59,6 @@
 #include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstptext.h"
 #include "bacnet/npdu.h"
-
-#ifndef DEBUG_ENABLED
-#define DEBUG_ENABLED 0
-#endif
 #include "bacnet/basic/sys/debug.h"
 
 #if PRINT_ENABLED

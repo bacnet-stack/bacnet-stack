@@ -25,16 +25,15 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bactext.h"
-#include "bacnet/config.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/schedule.h"
 
 #ifndef MAX_SCHEDULES

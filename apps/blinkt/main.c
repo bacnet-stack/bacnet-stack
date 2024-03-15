@@ -27,24 +27,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include "bacnet/config.h"
-#include "bacnet/basic/binding/address.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/datalink/dlenv.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/bacfile.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/dcc.h"
 #include "bacnet/getevent.h"
 #include "bacnet/lighting.h"
-#include "bacport.h"
+/* demo services */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/datalink/dlenv.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/color_rgb.h"
 #include "bacnet/basic/sys/filename.h"
@@ -53,10 +52,13 @@
 #include "bacnet/version.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/object/lo.h"
 #include "bacnet/basic/object/channel.h"
 #include "bacnet/basic/object/color_object.h"
 #include "bacnet/basic/object/color_temperature.h"
+/* local includes */
+#include "bacport.h"
 #include "blinkt.h"
 
 /** @file blinkt/main.c  Example application using the BACnet Stack. */

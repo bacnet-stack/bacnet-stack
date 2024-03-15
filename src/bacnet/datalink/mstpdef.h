@@ -27,7 +27,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /*  The value 255 is used to denote broadcast when used as a */
 /* destination address but is not allowed as a value for a station. */

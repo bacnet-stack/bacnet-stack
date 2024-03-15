@@ -18,7 +18,7 @@
 #undef BITMASK_FLIP
 #undef BITMASK_CHECK
 
-#include "bacnet/bits.h"
+#include "bacnet/basic/sys/bits.h"
 
 
 /* NOTE: These tests must be compatible with C90, so they do not

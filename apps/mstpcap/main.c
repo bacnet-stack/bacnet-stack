@@ -39,7 +39,9 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#include "bacnet/bytes.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/iam.h"
 #include "bacnet/version.h"
 #include "bacnet/datetime.h"

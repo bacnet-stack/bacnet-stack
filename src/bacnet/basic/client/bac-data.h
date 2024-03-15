@@ -9,11 +9,11 @@
 #define BAC_DATA_H
 
 #include <stdint.h>
-#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/rp.h"
-#include "bacnet/bacnet_stack_exports.h"
 
 struct bacnet_status_flags_t {
     bool in_alarm : 1;
