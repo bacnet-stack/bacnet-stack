@@ -602,7 +602,11 @@ static void testDatetimeConvertUTCSpecific(BACNET_DATE_TIME *utc_time,
         local_time->time.hundredths, test_local_time.time.hundredths, NULL);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_datetime, testDatetimeConvertUTC)
+#else
 static void testDatetimeConvertUTC(void)
+#endif
 {
     BACNET_DATE_TIME local_time;
     BACNET_DATE_TIME utc_time;
