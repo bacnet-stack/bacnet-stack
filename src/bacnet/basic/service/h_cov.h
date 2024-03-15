@@ -49,7 +49,7 @@ extern "C" {
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
     BACNET_STACK_EXPORT
     bool handler_cov_fsm(
-        void);
+        const bool reset);
     BACNET_STACK_EXPORT
     void handler_cov_task(
         void);

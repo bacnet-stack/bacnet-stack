@@ -593,7 +593,7 @@ void handler_cov_timer_seconds(uint32_t elapsed_seconds)
     }
 }
 
-bool handler_cov_fsm(void)
+bool handler_cov_fsm(const bool reset)
 {
     static int index = 0;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
@@ -609,6 +609,11 @@ bool handler_cov_fsm(void)
         COV_STATE_FREE,
         COV_STATE_SEND
     } cov_task_state = COV_STATE_IDLE;
+
+    if(reset) {
+      index = 0;
+      cov_task_state = COV_STATE_IDLE;
+    }
 
     switch (cov_task_state) {
         case COV_STATE_IDLE:
@@ -724,7 +729,7 @@ bool handler_cov_fsm(void)
 
 void handler_cov_task(void)
 {
-    handler_cov_fsm();
+    handler_cov_fsm(false);
 }
 
 static bool cov_subscribe(BACNET_ADDRESS *src,
