@@ -351,12 +351,13 @@ char *Multistate_Value_State_Text(
        PRINTF(" STATE INDEX %u\r\n", state_index);
        PRINTF("£££££££££££££££££££\r\n");
     index = Multistate_Value_Instance_To_Index(object_instance);
+        PRINTF("STATE TEXT VALUE %s\r\n", State_Text[index][state_index]); 
     if ((index < MAX_MULTISTATE_VALUES) && (state_index > 0) &&
         (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
         PRINTF("-----------------\r\n");
         state_index--;
         pName = State_Text[index][state_index];
-        PRINTF("%s pName \r\n", pName); 
+        PRINTF("pName %s\r\n", pName); 
         PRINTF("£££££££££££££££££££\r\n");    
     }
 

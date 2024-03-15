@@ -135,8 +135,8 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = 0;
 
-    for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
-    #if 0
+   // for (; index < CSV_Max_Index && CSV_Descr[index].Instance != object_instance; index++) ;
+    #if 1
     for(index = 0; index < CSV_Max_Index; index++)
     {
     //    PRINTF("+++++++++++++++++++++\r\n");
