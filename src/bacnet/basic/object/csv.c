@@ -139,17 +139,17 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
     #if 1
     for(index = 0; index < CSV_Max_Index; index++)
     {
-    //    PRINTF("+++++++++++++++++++++\r\n");
-    //    PRINTF("Instance to %u\r\n", object_instance);
-    //    PRINTF(" NAME \"%128s\" \r\n", CSV_Descr[index].Name);
-    //    PRINTF(" INSTANCE %u\r\n", CSV_Descr[index].Instance);
+       PRINTF("+++++++++++++++++++++\r\n");
+       PRINTF("Instance to %u\r\n", object_instance);
+       PRINTF(" NAME %s\r\n", CSV_Descr[index].Name);
+       PRINTF(" INSTANCE %u\r\n", CSV_Descr[index].Instance);
         if(index == object_instance)
         {   
-        //    PRINTF("------------------------\r\n");
-        //    PRINTF("Instance to %u\r\n", object_instance);
-        //    PRINTF(" PASS NAME \"%128s\" \r\n", CSV_Descr[index].Name);
-        //    PRINTF(" PASS INSTANCE %u\r\n", CSV_Descr[index].Instance);
-        //    PRINTF("+++++++++++++++++++++\r\n");
+           PRINTF("------------------------\r\n");
+           PRINTF("Instance to %u\r\n", object_instance);
+           PRINTF(" PASS NAME %s\r\n", CSV_Descr[index].Name);
+           PRINTF(" PASS INSTANCE %u\r\n", CSV_Descr[index].Instance);
+           PRINTF("+++++++++++++++++++++\r\n");
             return index;
         }
 
@@ -169,6 +169,10 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
  */
 uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
 {
+    PRINTF("&&&&&&&&&&&&&&&&&&\r\n");
+    PRINTF("INDEX to %u\r\n", index);
+    PRINTF("&&&&&&&&&&&&&&&&&&\r\n");
+
     return index;
 }
 
