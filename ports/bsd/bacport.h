@@ -88,7 +88,7 @@
 #include <sys/un.h>
 #include <sys/ioctl.h>
 #include <netdb.h>
-#include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/bacnet_stack_exports.h"
 
 /** @file bsd/net.h  Includes BSD network headers. */
 
