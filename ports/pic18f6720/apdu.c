@@ -34,10 +34,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bacnet/bits.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/dcc.h"
 #include "bacnet/basic/services.h"
 /* me */

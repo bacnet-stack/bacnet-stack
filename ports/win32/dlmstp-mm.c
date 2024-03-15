@@ -29,13 +29,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacaddr.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
-#include "rs485.h"
 #include "bacnet/npdu.h"
-#include "bacnet/bits.h"
+/* port specific */
+#include "rs485.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1

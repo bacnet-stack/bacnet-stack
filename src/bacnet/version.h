@@ -9,8 +9,8 @@
  */
 #ifndef _BACNET_VERSION_H_
 #define _BACNET_VERSION_H_
-
-#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /* This BACnet protocol stack version 0.0.0 - 255.255.255 */
 #ifndef BACNET_VERSION

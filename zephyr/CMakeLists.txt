@@ -235,8 +235,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/sys/sbuf.h
     ${BACNETSTACK_SRC}/bacnet/basic/tsm/tsm.c
     ${BACNETSTACK_SRC}/bacnet/basic/tsm/tsm.h
-    ${BACNETSTACK_SRC}/bacnet/bits.h
-    ${BACNETSTACK_SRC}/bacnet/bytes.h
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/bits.h
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/bytes.h
     ${BACNETSTACK_SRC}/bacnet/config.h
     ${BACNETSTACK_SRC}/bacnet/cov.c
     ${BACNETSTACK_SRC}/bacnet/cov.h

@@ -28,8 +28,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/apdu.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"

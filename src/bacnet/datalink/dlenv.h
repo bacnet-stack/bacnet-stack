@@ -27,10 +27,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdint.h>
-#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/bvlc.h"
-
-#include "bacnet/bacnet_stack_exports.h"
 
 #ifdef __cplusplus
 extern "C" {

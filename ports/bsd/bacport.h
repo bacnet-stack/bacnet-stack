@@ -23,8 +23,8 @@
 *
 *********************************************************************/
 
-#ifndef NET_H
-#define NET_H
+#ifndef BACPORT_H
+#define BACPORT_H
 
 /* common unix sockets headers needed */
 #include	<sys/types.h>   /* basic system data types */

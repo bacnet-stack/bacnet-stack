@@ -6,7 +6,8 @@
 #ifndef LINEAR_H
 #define LINEAR_H
 
-#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 #ifdef __cplusplus
 extern "C" {

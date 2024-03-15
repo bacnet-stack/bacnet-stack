@@ -30,15 +30,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacaddr.h"
-#include "bacnet/bits.h"
 #include "bacnet/npdu.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
+/* OS common includes */
 #include "bacport.h"
+/* port specific */
 #include "rs485.h"
 
 /* Number of MS/TP Packets Rx/Tx */

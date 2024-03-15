@@ -9,7 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zephyr/ztest.h>
-#include <bacnet/bytes.h>
+#/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacint.h"
 #include <bacnet/datalink/crc.h>
 #include <bacnet/datalink/cobs.h>
 #include <bacnet/datalink/datalink.h>
@@ -17,6 +20,7 @@
 #include <bacnet/datalink/mstpdef.h>
 #include <bacnet/datalink/mstptext.h>
 #include <bacnet/datalink/crc.h>
+#include <bacnet/basic/sys/bytes.h>
 #include <bacnet/basic/sys/fifo.h>
 
 /**

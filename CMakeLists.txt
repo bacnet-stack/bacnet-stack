@@ -411,8 +411,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/sbuf.h
     src/bacnet/basic/tsm/tsm.c
     src/bacnet/basic/tsm/tsm.h
-    src/bacnet/bits.h
-    src/bacnet/bytes.h
+    src/bacnet/basic/sys/bits.h
+    src/bacnet/basic/sys/bytes.h
     src/bacnet/config.h
     src/bacnet/calendar_entry.c
     src/bacnet/calendar_entry.h

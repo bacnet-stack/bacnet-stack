@@ -29,12 +29,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "stm32f4xx.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/basic/sys/mstimer.h"
-#include "bacnet/bits.h"
 #include "bacnet/basic/sys/fifo.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
+/* port specific */
+#include "stm32f4xx.h"
 #include "rs485.h"
 
 #ifndef RS485_LINKSPRITE_ENABLED

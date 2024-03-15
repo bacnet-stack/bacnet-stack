@@ -23,9 +23,9 @@
 *********************************************************************/
 #ifndef READRANGE_H
 #define READRANGE_H
-
-#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
 

@@ -33,9 +33,10 @@
 ####COPYRIGHTEND####*/
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/wp.h"
 
 /** @file wp.c  Encode/Decode BACnet Write Property APDUs  */

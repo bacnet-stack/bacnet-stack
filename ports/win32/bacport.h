@@ -26,7 +26,7 @@
 #ifndef BACPORT_H
 #define BACPORT_H
 
-#include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/bacnet_stack_exports.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
