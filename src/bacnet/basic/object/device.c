@@ -91,9 +91,6 @@ extern int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
 extern bool Routed_Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA *wp_data);
 
-/* may be overridden by outside table */
-static object_functions_t *Object_Table;
-
 static object_functions_t My_Object_Table[] = {
     { OBJECT_DEVICE, NULL /* Init - don't init Device or it will recourse! */,
         Device_Count, Device_Index_To_Instance,
@@ -410,10 +407,7 @@ static struct object_functions *Device_Objects_Find_Functions(
  */
 rr_info_function Device_Objects_RR_Info(BACNET_OBJECT_TYPE object_type)
 {
-    struct object_functions *pObject = NULL;
-
-    pObject = Device_Objects_Find_Functions(object_type);
-    return (pObject != NULL ? pObject->Object_RR_Info : NULL);
+    return handler_device_object_read_range_info(object_type);
 }
 
 /** For a given object type, returns the special property list.
@@ -431,38 +425,8 @@ void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     struct special_property_list_t *pPropertyList)
 {
-    struct object_functions *pObject = NULL;
-
-    (void)object_instance;
-    pPropertyList->Required.pList = NULL;
-    pPropertyList->Optional.pList = NULL;
-    pPropertyList->Proprietary.pList = NULL;
-
-    /* If we can find an entry for the required object type
-     * and there is an Object_List_RPM fn ptr then call it
-     * to populate the pointers to the individual list counters.
-     */
-
-    pObject = Device_Objects_Find_Functions(object_type);
-    if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
-        pObject->Object_RPM_List(&pPropertyList->Required.pList,
-            &pPropertyList->Optional.pList, &pPropertyList->Proprietary.pList);
-    }
-
-    /* Fetch the counts if available otherwise zero them */
-    pPropertyList->Required.count = pPropertyList->Required.pList == NULL
-        ? 0
-        : property_list_count(pPropertyList->Required.pList);
-
-    pPropertyList->Optional.count = pPropertyList->Optional.pList == NULL
-        ? 0
-        : property_list_count(pPropertyList->Optional.pList);
-
-    pPropertyList->Proprietary.count = pPropertyList->Proprietary.pList == NULL
-        ? 0
-        : property_list_count(pPropertyList->Proprietary.pList);
-
-    return;
+    handler_device_object_property_list(object_type, object_instance, 
+        pPropertyList);
 }
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -505,6 +469,34 @@ void Device_Property_Lists(
     }
 
     return;
+}
+
+/**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    (void)object_instance;
+    Device_Property_Lists(
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
 }
 
 /* note: you really only need to define variables for
@@ -943,19 +935,7 @@ void Device_Inc_Database_Revision(void)
  */
 unsigned Device_Object_List_Count(void)
 {
-    unsigned count = 0; /* number of objects */
-    struct object_functions *pObject = NULL;
-
-    /* initialize the default return values */
-    pObject = Object_Table;
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Count) {
-            count += pObject->Object_Count();
-        }
-        pObject++;
-    }
-
-    return count;
+    return handler_device_object_list_count();
 }
 
 /** Lookup the Object at the given array index in the Device's Object List.
@@ -971,50 +951,7 @@ unsigned Device_Object_List_Count(void)
 bool Device_Object_List_Identifier(
     uint32_t array_index, BACNET_OBJECT_TYPE *object_type, uint32_t *instance)
 {
-    bool status = false;
-    uint32_t count = 0;
-    uint32_t object_index = 0;
-    uint32_t temp_index = 0;
-    struct object_functions *pObject = NULL;
-
-    /* array index zero is length - so invalid */
-    if (array_index == 0) {
-        return status;
-    }
-    object_index = array_index - 1;
-    /* initialize the default return values */
-    pObject = Object_Table;
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Count) {
-            object_index -= count;
-            count = pObject->Object_Count();
-            if (object_index < count) {
-                /* Use the iterator function if available otherwise
-                 * look for the index to instance to get the ID */
-                if (pObject->Object_Iterator) {
-                    /* First find the first object */
-                    temp_index = pObject->Object_Iterator(~(unsigned)0);
-                    /* Then step through the objects to find the nth */
-                    while (object_index != 0) {
-                        temp_index = pObject->Object_Iterator(temp_index);
-                        object_index--;
-                    }
-                    /* set the object_index up before falling through to next
-                     * bit */
-                    object_index = temp_index;
-                }
-                if (pObject->Object_Index_To_Instance) {
-                    *object_type = pObject->Object_Type;
-                    *instance = pObject->Object_Index_To_Instance(object_index);
-                    status = true;
-                    break;
-                }
-            }
-        }
-        pObject++;
-    }
-
-    return status;
+    return handler_device_object_list_identifier(array_index, object_type, instance);
 }
 
 /**
@@ -1074,15 +1011,7 @@ bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name,
 bool Device_Valid_Object_Id(
     BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
-    bool status = false; /* return value */
-    struct object_functions *pObject = NULL;
-
-    pObject = Device_Objects_Find_Functions(object_type);
-    if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
-        status = pObject->Object_Valid_Instance(object_instance);
-    }
-
-    return status;
+    return handler_device_object_instance_valid(object_type, object_instance);
 }
 
 /** Copy a child object's object_name value, given its ID.
@@ -1305,33 +1234,11 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], Device_Protocol_Revision());
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
-            /* Note: list of services that are executed, not initiated. */
-            bitstring_init(&bit_string);
-            for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
-                /* automatic lookup based on handlers set */
-                bitstring_set_bit(&bit_string, (uint8_t)i,
-                    apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
-            }
+            handler_device_services_supported(&bit_string);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
-            /* Note: this is the list of objects that can be in this device,
-               not a list of objects that this device can access */
-            bitstring_init(&bit_string);
-            for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
-                /* initialize all the object types to not-supported */
-                bitstring_set_bit(&bit_string, (uint8_t)i, false);
-            }
-            /* set the object types with objects to supported */
-
-            pObject = Object_Table;
-            while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-                if ((pObject->Object_Count) && (pObject->Object_Count() > 0)) {
-                    bitstring_set_bit(
-                        &bit_string, (uint8_t)pObject->Object_Type, true);
-                }
-                pObject++;
-            }
+            handler_device_object_types_supported(&bit_string);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_OBJECT_LIST:
@@ -1482,27 +1389,7 @@ static int Read_Property_Common(
  */
 int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int apdu_len = BACNET_STATUS_ERROR;
-    struct object_functions *pObject = NULL;
-
-    /* initialize the default return values */
-    rpdata->error_class = ERROR_CLASS_OBJECT;
-    rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = Device_Objects_Find_Functions(rpdata->object_type);
-    if (pObject != NULL) {
-        if (pObject->Object_Valid_Instance &&
-            pObject->Object_Valid_Instance(rpdata->object_instance)) {
-            apdu_len = Read_Property_Common(pObject, rpdata);
-        } else {
-            rpdata->error_class = ERROR_CLASS_OBJECT;
-            rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-        }
-    } else {
-        rpdata->error_class = ERROR_CLASS_OBJECT;
-        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    }
-
-    return apdu_len;
+    return handler_device_read_property(rpdata);
 }
 
 /* returns true if successful */
@@ -1681,13 +1568,6 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-#else
-        case PROP_TIME_SYNCHRONIZATION_INTERVAL:
-        case PROP_ALIGN_INTERVALS:
-        case PROP_INTERVAL_OFFSET:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            break;
 #endif
         case PROP_UTC_OFFSET:
             status = write_property_type_valid(
@@ -1732,39 +1612,16 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-#else
-        case PROP_MAX_INFO_FRAMES:
-        case PROP_MAX_MASTER:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            break;
 #endif
-        case PROP_OBJECT_TYPE:
-        case PROP_VENDOR_NAME:
-        case PROP_FIRMWARE_REVISION:
-        case PROP_APPLICATION_SOFTWARE_VERSION:
-        case PROP_LOCAL_TIME:
-        case PROP_LOCAL_DATE:
-        case PROP_DAYLIGHT_SAVINGS_STATUS:
-        case PROP_PROTOCOL_VERSION:
-        case PROP_PROTOCOL_REVISION:
-        case PROP_PROTOCOL_SERVICES_SUPPORTED:
-        case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
-        case PROP_OBJECT_LIST:
-        case PROP_MAX_APDU_LENGTH_ACCEPTED:
-        case PROP_SEGMENTATION_SUPPORTED:
-        case PROP_DEVICE_ADDRESS_BINDING:
-        case PROP_DATABASE_REVISION:
-        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
-#if defined(BACNET_TIME_MASTER)
-        case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
-#endif
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -2170,7 +2027,7 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
  */
 void Device_Init(object_functions_t *object_table)
 {
-    struct object_functions *pObject = NULL;
+    object_functions_t *pObject = NULL;
     characterstring_init_ansi(&My_Object_Name, "SimpleServer");
     datetime_init();
     if (object_table) {

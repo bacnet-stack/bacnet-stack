@@ -854,6 +854,52 @@ void handler_device_object_cov_clear(
     }
 }
 
+/**
+ * @brief Get the Device Object's services supported
+ * @param The bit string representing the services supported
+ */
+void handler_device_services_supported(
+    BACNET_BIT_STRING *bit_string)
+{
+    uint8_t i = 0;
+
+    /* Note: list of services that are executed, not initiated. */
+    bitstring_init(&bit_string);
+    for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
+        /* automatic lookup based on handlers set */
+        bitstring_set_bit(&bit_string, i,
+            apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
+    }
+}
+
+/**
+ * @brief Get the Device Object's supported objects
+ * @param The bit string representing the supported objects
+ */
+void handler_device_object_types_supported(
+    BACNET_BIT_STRING *bit_string)
+{
+    unsigned i = 0;
+    object_functions_t *pObject = NULL;
+
+    /* Note: this is the list of objects that can be in this device,
+       not a list of objects that this device can access */
+    bitstring_init(bit_string);
+    for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
+        /* initialize all the object types to not-supported */
+        bitstring_set_bit(bit_string, (uint8_t)i, false);
+    }
+    /* set the object types with objects to supported */
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        if ((pObject->Object_Count) && (pObject->Object_Count() > 0)) {
+            bitstring_set_bit(
+                &bit_string, (uint8_t)pObject->Object_Type, true);
+        }
+        pObject++;
+    }
+}
+
 /** Looks up the common Object and Property, and encodes its Value in an
  * APDU. Sets the error class and code if request is not appropriate.
  * @param pObject - object table

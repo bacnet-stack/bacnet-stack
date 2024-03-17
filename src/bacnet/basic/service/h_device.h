@@ -228,6 +228,14 @@ bool handler_device_valid_object_instance(
     BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
 BACNET_STACK_EXPORT
+void handler_device_services_supported(
+    BACNET_BIT_STRING *bit_string);
+
+BACNET_STACK_EXPORT
+void handler_device_object_types_supported(
+    BACNET_BIT_STRING *bit_string);
+
+BACNET_STACK_EXPORT
 void handler_device_intrinsic_reporting(void);
 
 BACNET_STACK_EXPORT

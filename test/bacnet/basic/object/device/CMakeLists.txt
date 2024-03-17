@@ -27,6 +27,7 @@ add_compile_definitions(
 
 include_directories(
 	${SRC_DIR}
+	${TST_DIR}/bacnet/basic/object
 	${TST_DIR}/ztest/include
 	)
 
@@ -76,6 +77,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/object/trendlog.c
 	${SRC_DIR}/bacnet/basic/service/h_apdu.c
 	${SRC_DIR}/bacnet/basic/service/h_cov.c
+	${SRC_DIR}/bacnet/basic/service/h_device.c
 	${SRC_DIR}/bacnet/basic/service/h_wp.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
 	${SRC_DIR}/bacnet/basic/sys/debug.c
@@ -103,6 +105,7 @@ add_executable(${PROJECT_NAME}
 	./stubs.c
     # Test and test library files
 	./src/main.c
+	${TST_DIR}/bacnet/basic/object/property_test.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)
