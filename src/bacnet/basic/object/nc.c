@@ -48,8 +48,9 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
+#include "device.h"
 /* me */
-#include "bacnet/basic/object/nc.h"
+#include "nc.h"
 
 #define PRINTF debug_perror
 
@@ -558,7 +559,7 @@ void Notification_Class_common_reporting_function(
     /* Initiating Device Identifier */
     event_data->initiatingObjectIdentifier.type = OBJECT_DEVICE;
     event_data->initiatingObjectIdentifier.instance =
-        handler_device_object_instance_number();
+        Device_Object_Instance_Number();
 
     /* Priority and AckRequired */
     switch (event_data->toState) {

@@ -207,6 +207,9 @@ bool handler_device_object_list_identifier(
     uint32_t array_index, BACNET_OBJECT_TYPE *object_type, uint32_t *instance);
 BACNET_STACK_EXPORT
 unsigned handler_device_object_list_count(void);
+BACNET_STACK_EXPORT
+int handler_device_object_list_element_encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
 
 BACNET_STACK_EXPORT
 int handler_device_object_list_element_add(
@@ -251,6 +254,9 @@ BACNET_STACK_EXPORT
 void handler_device_object_cov_clear(
     BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
+BACNET_STACK_EXPORT
+int handler_device_read_property_common(
+    struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 int handler_device_read_property(BACNET_READ_PROPERTY_DATA *rpdata);
 

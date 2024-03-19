@@ -12,6 +12,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "bacnet/dcc.h"
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/service/h_apdu.h"
+#include "bacnet/basic/service/h_cov.h"
 #include "bacnet/basic/service/h_device.h"
 
 /* Object services */
@@ -185,6 +188,9 @@ static struct object_functions *handler_device_object_functions(
 {
     struct object_functions *pObject = NULL;
 
+    if (Object_Table == NULL) {
+        return NULL;
+    }
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         /* handle each object type */
@@ -507,6 +513,9 @@ unsigned handler_device_object_list_count(void)
     unsigned count = 0; /* number of objects */
     struct object_functions *pObject = NULL;
 
+    if (Object_Table == NULL) {
+        return 0;
+    }
     /* initialize the default return values */
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
@@ -540,6 +549,15 @@ bool handler_device_object_list_identifier(
 
     /* array index zero is length - so invalid */
     if (array_index == 0) {
+        return status;
+    }
+    if (Object_Table == NULL) {
+        /* special case for default value - one device object */
+        if (array_index == 1) {
+            *object_type = OBJECT_DEVICE;
+            *instance = Object_Instance_Number;
+            status = true;
+        }
         return status;
     }
     object_index = array_index - 1;
@@ -576,6 +594,39 @@ bool handler_device_object_list_identifier(
     }
 
     return status;
+}
+
+/**
+ * @brief Encode a BACnetARRAY object list element
+ * @param object_instance [in] BACnet device object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+int handler_device_object_list_element_encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t instance;
+    bool found;
+
+    if (object_instance == Object_Instance_Number) {
+        /* single element uses offset of zero,
+           add 1 for BACnetARRAY which uses offset of one */
+        array_index++;
+        found = handler_device_object_list_identifier(array_index, 
+            &object_type, &instance);
+        if (found) {
+            apdu_len =
+                encode_application_object_id(apdu, object_type, instance);
+        }
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -864,10 +915,10 @@ void handler_device_services_supported(
     uint8_t i = 0;
 
     /* Note: list of services that are executed, not initiated. */
-    bitstring_init(&bit_string);
+    bitstring_init(bit_string);
     for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
         /* automatic lookup based on handlers set */
-        bitstring_set_bit(&bit_string, i,
+        bitstring_set_bit(bit_string, i,
             apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
     }
 }
@@ -882,6 +933,9 @@ void handler_device_object_types_supported(
     unsigned i = 0;
     object_functions_t *pObject = NULL;
 
+    if (Object_Table == NULL) {
+        return;
+    }
     /* Note: this is the list of objects that can be in this device,
        not a list of objects that this device can access */
     bitstring_init(bit_string);
@@ -894,7 +948,7 @@ void handler_device_object_types_supported(
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if ((pObject->Object_Count) && (pObject->Object_Count() > 0)) {
             bitstring_set_bit(
-                &bit_string, (uint8_t)pObject->Object_Type, true);
+                bit_string, (uint8_t)pObject->Object_Type, true);
         }
         pObject++;
     }
@@ -907,7 +961,7 @@ void handler_device_object_types_supported(
  *  on entry, and APDU message on return.
  * @return The length of the APDU on success, else BACNET_STATUS_ERROR
  */
-static int handler_device_read_property_common(
+int handler_device_read_property_common(
     struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
@@ -953,6 +1007,146 @@ static int handler_device_read_property_common(
     return apdu_len;
 }
 
+/**
+ * @brief Encodes the requested device object property default value
+ * @param rpdata [in,out] Structure with the requested Object & Property info
+ * on entry, and APDU message on return.
+ * @return The length of the APDU on success, else BACNET_STATUS_ERROR
+ */
+int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata)
+{
+    int apdu_len = 0; /* return value */
+    uint8_t *apdu = NULL;
+    uint16_t apdu_max = 0;
+    BACNET_BIT_STRING bit_string = { 0 };
+    BACNET_CHARACTER_STRING char_string = { 0 };
+
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    apdu_max = rpdata->application_data_len;
+    switch (rpdata->object_property) {
+        case PROP_OBJECT_IDENTIFIER:
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
+            break;
+        case PROP_OBJECT_NAME:
+            characterstring_init_ansi(&char_string, "Default Device Name");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_OBJECT_TYPE:
+            apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
+            break;
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(&char_string, 
+                "Default Device Description");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_SYSTEM_STATUS:
+            apdu_len = encode_application_enumerated(&apdu[0], 
+                STATUS_OPERATIONAL);
+            break;
+        case PROP_VENDOR_NAME:
+            characterstring_init_ansi(&char_string, "Default Vendor Name");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_VENDOR_IDENTIFIER:
+            apdu_len = encode_application_unsigned(&apdu[0], BACNET_VENDOR_ID);
+            break;
+        case PROP_MODEL_NAME:
+            characterstring_init_ansi(&char_string, "Default Model Name");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_FIRMWARE_REVISION:
+            characterstring_init_ansi(&char_string, "Default Firmware Revision");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_APPLICATION_SOFTWARE_VERSION:
+            characterstring_init_ansi(
+                &char_string,  "Default Application Software Version");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_LOCATION:
+            characterstring_init_ansi(&char_string, "Default Location");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_PROTOCOL_VERSION:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], BACNET_PROTOCOL_VERSION);
+            break;
+        case PROP_PROTOCOL_REVISION:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], BACNET_PROTOCOL_REVISION);
+            break;
+        case PROP_PROTOCOL_SERVICES_SUPPORTED:
+            handler_device_services_supported(&bit_string);
+            apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
+            break;
+        case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
+            bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
+            apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
+            break;
+        case PROP_OBJECT_LIST:
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index, handler_device_object_list_element_encode, 
+                1, apdu, apdu_max);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+            break;
+        case PROP_MAX_APDU_LENGTH_ACCEPTED:
+            apdu_len = encode_application_unsigned(&apdu[0], MAX_APDU);
+            break;
+        case PROP_SEGMENTATION_SUPPORTED:
+            apdu_len = encode_application_enumerated(
+                &apdu[0], SEGMENTATION_NONE);
+            break;
+        case PROP_APDU_TIMEOUT:
+            apdu_len = encode_application_unsigned(&apdu[0], apdu_timeout());
+            break;
+        case PROP_NUMBER_OF_APDU_RETRIES:
+            apdu_len = encode_application_unsigned(&apdu[0], apdu_retries());
+            break;
+        case PROP_DEVICE_ADDRESS_BINDING:
+            apdu_len = address_list_encode(&apdu[0], apdu_max);
+            break;
+        case PROP_DATABASE_REVISION:
+            apdu_len = encode_application_unsigned(&apdu[0], 
+                handler_device_object_database_revision());
+            break;
+        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+            apdu_len = handler_cov_encode_subscriptions(&apdu[0], apdu_max);
+            break;
+        default:
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            apdu_len = BACNET_STATUS_ERROR;
+            break;
+    }
+    /*  only array properties can have array options */
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        apdu_len = BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}
+
 /** Looks up the requested Object and Property, and encodes its Value in an
  * APDU.
  * @ingroup ObjIntf
@@ -979,6 +1173,9 @@ int handler_device_read_property(BACNET_READ_PROPERTY_DATA *rpdata)
             rpdata->error_class = ERROR_CLASS_OBJECT;
             rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         }
+    } else if (rpdata->object_type == OBJECT_DEVICE) {
+        /* no object data - so use some defaults for minimal device */
+        apdu_len = handler_device_read_property_default(rpdata);
     } else {
         rpdata->error_class = ERROR_CLASS_OBJECT;
         rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -1100,6 +1297,9 @@ void handler_device_timer(uint16_t milliseconds)
     unsigned count = 0;
     uint32_t instance;
 
+    if (Object_Table == NULL) {
+        return;
+    }
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Count) {
@@ -1135,6 +1335,9 @@ void handler_device_object_init(void)
 {
     object_functions_t *pObject;
 
+    if (Object_Table == NULL) {
+        return;
+    }
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
         if (pObject->Object_Init) {

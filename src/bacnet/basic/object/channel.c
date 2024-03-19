@@ -49,7 +49,7 @@
 #include "bacnet/lighting.h"
 #endif
 /* me! */
-#include "bacnet/basic/object/channel.h"
+#include "channel.h"
 
 #ifndef CONTROL_GROUPS_MAX
 #define CONTROL_GROUPS_MAX 8
@@ -1770,6 +1770,4 @@ void Channel_Cleanup(void)
 void Channel_Init(void)
 {
     Object_List = Keylist_Create();
-    Channel_Write_Property_Internal_Callback_Set(
-        handler_device_write_property);
 }
