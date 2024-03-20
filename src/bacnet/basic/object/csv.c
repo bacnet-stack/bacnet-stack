@@ -120,7 +120,7 @@ void CharacterString_Value_Init(void)
     
         PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
         PRINTF("INIT INSTANCE %u\r\n", CSV_Descr[i].Instance);
-        PRINTF("PRESENT VALUE SET %u\r\n", Present_Value[i].value);
+        PRINTF("PRESENT VALUE SET %s\r\n", Present_Value[i].value);
         PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
 
     }
@@ -273,7 +273,7 @@ bool CharacterString_Value_Present_Value(
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
 
-    PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
+    PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%%%\r\n");
     PRINTF("OBJECT INSTANCE %u\r\n", object_instance);
     //PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
     PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
@@ -630,10 +630,14 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_CHARACTERSTRING_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            CharacterString_Value_Present_Value(
-                rpdata->object_instance, &char_string);
+            if(CharacterString_Value_Present_Value(
+                rpdata->object_instance, &char_string)){
+                    PRINTF("??????????????????\r\n");
+                    PRINTF(" CHAR STRING %s '%u'\r\n", char_string.value, char_string.length);
+                    PRINTF("??????????????????\r\n");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
+            }
             break;
         case PROP_STATUS_FLAGS:
             /* note: see the details in the standard on how to use these */
