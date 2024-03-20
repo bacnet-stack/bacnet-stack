@@ -281,7 +281,6 @@ bool CharacterString_Value_Present_Value(
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
     PRINTF("INDEX %u\r\n", index);
-    PRINTF("INDEX %u\r\n", CSV_Max_Index);
     PRINTF("--------------------------\r\n");
     PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
 
