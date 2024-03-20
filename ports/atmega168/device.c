@@ -25,8 +25,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-/* BACnet library core */
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet library core */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/apdu.h"

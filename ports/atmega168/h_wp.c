@@ -27,10 +27,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
-#include "bacnet/datalink/datalink.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/services.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet core library */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
@@ -38,10 +37,14 @@
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/wp.h"
-/* demo objects */
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/av.h"
-#include "bacnet/basic/object/bv.h"
+/* BACnet basic library */
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/services.h"
+/* local objects */
+#include "device.h"
+#include "av.h"
+#include "bv.h"
 
 /* too big to reside on stack frame for PIC */
 static BACNET_WRITE_PROPERTY_DATA wp_data;

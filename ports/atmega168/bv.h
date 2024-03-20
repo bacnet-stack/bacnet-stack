@@ -27,8 +27,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet core library */
 #include "bacnet/bacerror.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -57,7 +58,7 @@ extern "C" {
     void Binary_Value_Init(
         void);
 
-    int Binary_Value_Encode_Property_APDU(
+    int Binary_Value_Read_Property(
         BACNET_READ_PROPERTY_DATA *rpdata);
 
     bool Binary_Value_Write_Property(

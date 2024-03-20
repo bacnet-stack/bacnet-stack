@@ -25,17 +25,24 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet core library */
+#include "bacnet/npdu.h"
+#include "bacnet/dcc.h"
+#include "bacnet/iam.h"
+/* BACnet basic library */
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
+/* local objects */
+#include "device.h"
+#include "av.h"
+#include "bv.h"
+/* local hardware */
 #include "hardware.h"
 #include "timer.h"
 #include "rs485.h"
-#include "bacnet/datalink/datalink.h"
-#include "bacnet/npdu.h"
-#include "bacnet/dcc.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/iam.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/av.h"
 
 /* From the WhoIs hander - performed by the DLMSTP module */
 extern bool Send_I_Am_Flag;

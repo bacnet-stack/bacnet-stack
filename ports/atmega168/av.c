@@ -28,11 +28,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet library core */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/rp.h"
-#include "bacnet/wp.h"
 /* me */
 #include "av.h"
 

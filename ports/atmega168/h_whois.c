@@ -27,15 +27,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
-#include "bacnet/basic/tsm/tsm.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet core library */
 #include "bacnet/bacdcode.h"
 #include "bacnet/whois.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/object/device.h"
+/* BACnet basic library */
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+/* local objects */
+#include "device.h"
 
 bool Send_I_Am_Flag = true;
 

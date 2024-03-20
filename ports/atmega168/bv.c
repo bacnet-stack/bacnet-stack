@@ -29,10 +29,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "hardware.h"
-#include "bacnet/config.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet core library */
 #include "bacnet/bacdcode.h"
+/* me! */
 #include "bv.h"
 
 #ifndef MAX_BINARY_VALUES

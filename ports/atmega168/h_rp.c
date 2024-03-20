@@ -27,21 +27,23 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/datalink/datalink.h"
-#include "bacnet/basic/services.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet core library */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/rp.h"
+/* BACnet basic library */
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/datalink/datalink.h"
 /* demo objects */
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/av.h"
-#include "bacnet/basic/object/bv.h"
+#include "device.h"
+#include "av.h"
+#include "bv.h"
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
