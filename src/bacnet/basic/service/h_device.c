@@ -11,7 +11,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet core library */
 #include "bacnet/dcc.h"
+/* BACnet basic library */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/service/h_apdu.h"
 #include "bacnet/basic/service/h_cov.h"

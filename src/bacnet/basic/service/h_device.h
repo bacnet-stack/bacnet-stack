@@ -14,20 +14,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/basic/sys/platform.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet core library */
 #include "bacnet/create_object.h"
 #include "bacnet/delete_object.h"
 #include "bacnet/list_element.h"
-#include "bacnet/wp.h"
+#include "bacnet/readrange.h"
 #include "bacnet/rd.h"
 #include "bacnet/rp.h"
 #include "bacnet/rpm.h"
-#include "bacnet/readrange.h"
+#include "bacnet/wp.h"
 
 /** Called so a BACnet object can perform any necessary initialization.
  * @ingroup ObjHelpers
