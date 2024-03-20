@@ -275,13 +275,15 @@ bool CharacterString_Value_Present_Value(
 
     PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
     PRINTF("OBJECT INSTANCE %u\r\n", object_instance);
-    PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
+    //PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
     PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
     
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
     PRINTF("INDEX %u\r\n", index);
+    PRINTF("INDEX %u\r\n", CSV_Max_Index);
     PRINTF("--------------------------\r\n");
+    PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
 
     if (index < CSV_Max_Index) 
     {   
@@ -322,7 +324,7 @@ bool CharacterString_Value_Present_Value_Set(
 
     PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
     PRINTF("OBJECT INSTANCE %u\r\n", object_instance);
-    PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
+    //PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
     PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
     
 
@@ -330,6 +332,7 @@ bool CharacterString_Value_Present_Value_Set(
 
     PRINTF("INDEX %u\r\n", index);
     PRINTF("--------------------------\r\n");
+    PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
     if (index < CSV_Max_Index) {
          if (!characterstring_same(&Present_Value[index], object_name)) {
              Changed[index] = true;
