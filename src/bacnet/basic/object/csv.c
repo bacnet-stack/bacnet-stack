@@ -119,6 +119,12 @@ void CharacterString_Value_Init(void)
         Changed[i] = false;
     }
 
+    PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
+    PRINTF("INIT INSTANCE %u\r\n", CSV_Descr[i].Instance);
+    PRINTF("PRESENT VALUE SET %u\r\n", Present_Value[i].value);
+    PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
+
+
     return;
 }
 
@@ -276,11 +282,11 @@ bool CharacterString_Value_Present_Value(
             return status;
         }
 
-        PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%");
-        PRINTF("OBJECT INSTANCE &u\r\n", object_instance);
+        PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%\r\n");
+        PRINTF("OBJECT INSTANCE %u\r\n", object_instance);
         PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
         PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
-        PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%\r\n");
 
     }
 
@@ -310,11 +316,11 @@ bool CharacterString_Value_Present_Value_Set(
          if (!characterstring_same(&Present_Value[index], object_name)) {
              Changed[index] = true;
          }
-        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&");
-        PRINTF("OBJECT INSTANCE &u\r\n", object_instance);
+        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
+        PRINTF("OBJECT INSTANCE %u\r\n", object_instance);
         PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
         PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
-        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
         
         status = characterstring_copy(&Present_Value[index], object_name);  
         
