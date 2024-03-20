@@ -277,9 +277,9 @@ bool CharacterString_Value_Present_Value(
         }
 
         PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%");
-        PRINTF("OBJECT INSTANCE &u\r\n" object_instance)
-        PRINTF("PRESENT VALUE %s\r\n" Present_Value[index].Value);
-        PRINTF("OBJECT NAME VALUE %s\r\n", object_name.value);
+        PRINTF("OBJECT INSTANCE &u\r\n", object_instance);
+        PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
+        PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
         PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
     }
@@ -310,12 +310,12 @@ bool CharacterString_Value_Present_Value_Set(
          if (!characterstring_same(&Present_Value[index], object_name)) {
              Changed[index] = true;
          }
-        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&");
-        PRINTF("OBJECT INSTANCE &u\r\n" object_instance)
-        PRINTF("PRESENT VALUE %s\r\n" Present_Value[index].Value);
-        PRINTF("OBJECT NAME VALUE %s\r\n", object_name.value);
-        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&");
-
+        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&");
+        PRINTF("OBJECT INSTANCE &u\r\n", object_instance);
+        PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
+        PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
+        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+        
         status = characterstring_copy(&Present_Value[index], object_name);  
         
     }
