@@ -115,15 +115,15 @@ void CharacterString_Value_Init(void)
         snprintf(CSV_Descr[i].Description, sizeof(CSV_Descr[i].Description),
             "A Character String Value Example");
         CSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_CHARACTERSTRING_VALUE));
-        characterstring_init_ansi(&Present_Value[i], "00000"); 
+        characterstring_init_ansi(&Present_Value[i], "0"); 
         Changed[i] = false;
+    
+        PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
+        PRINTF("INIT INSTANCE %u\r\n", CSV_Descr[i].Instance);
+        PRINTF("PRESENT VALUE SET %u\r\n", Present_Value[i].value);
+        PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
+
     }
-
-    PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
-    PRINTF("INIT INSTANCE %u\r\n", CSV_Descr[i].Instance);
-    PRINTF("PRESENT VALUE SET %u\r\n", Present_Value[i].value);
-    PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
-
 
     return;
 }
@@ -310,6 +310,12 @@ bool CharacterString_Value_Present_Value_Set(
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
+
+    PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
+    PRINTF("OBJECT INSTANCE %u\r\n", object_instance);
+    PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
+    PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
+    PRINTF("--------------------------\r\n");
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < CSV_Max_Index) {
