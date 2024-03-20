@@ -9,10 +9,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/config.h"
 #include "bacnet/datalink/mstpdef.h"
 #include "bacnet/datalink/automac.h"
 

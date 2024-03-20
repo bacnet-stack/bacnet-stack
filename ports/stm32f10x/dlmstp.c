@@ -36,11 +36,11 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/dlmstp.h"
-#include "rs485.h"
 #include "bacnet/npdu.h"
-#include "bacnet/bits.h"
 #include "bacnet/bacaddr.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/ringbuf.h"
@@ -48,6 +48,8 @@
 #include "bacnet/datalink/mstpdef.h"
 #include "bacnet/datalink/automac.h"
 #include "bacnet/basic/object/device.h"
+/* port specific */
+#include "rs485.h"
 
 /* This file has been customized for use with small microprocessors */
 /* Assumptions:

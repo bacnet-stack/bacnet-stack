@@ -24,8 +24,9 @@
 #ifndef KEYLIST_H
 #define KEYLIST_H
 
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/basic/sys/platform.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/basic/sys/key.h"
 
 /* This is a key sorted linked list data library that */
@@ -87,6 +88,11 @@ extern "C" {
     void *Keylist_Data_Pop(
         OS_Keylist list);
 
+/* removes and frees all data from the list */
+    BACNET_STACK_EXPORT
+    void Keylist_Data_Free(
+        OS_Keylist list);
+
 /* returns the data from the node specified by key */
     BACNET_STACK_EXPORT
     void *Keylist_Data(
@@ -115,8 +121,8 @@ extern "C" {
 /* returns the node key specified by the index */
     BACNET_STACK_EXPORT
     bool Keylist_Index_Key(
-        OS_Keylist list, 
-        int index, 
+        OS_Keylist list,
+        int index,
         KEY *pKey);
 
 /* returns the next empty key from the list */

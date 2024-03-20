@@ -27,11 +27,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "hardware.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/basic/sys/mstimer.h"
-#include "bacnet/bits.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/basic/sys/fifo.h"
+/* port specific */
+#include "hardware.h"
 #include "led.h"
 #include "rs485.h"
 

@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2020 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (c) 2024 Legrand North America, LLC.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -20,34 +20,16 @@
 * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*
 *********************************************************************/
-#ifndef BACNET_STACK_EXPORTS_H
-#define BACNET_STACK_EXPORTS_H
 
+#ifndef BACNET_PORTS_ZEPHYR_BACNET_CONFIG_H
+#define BACNET_PORTS_ZEPHYR_BACNET_CONFIG_H
 
-#ifdef BACNET_STACK_STATIC_DEFINE
-    /* We want a static library */
-# define BACNET_STACK_EXPORT
-#else
-    /* We want a shared library */
-# ifdef _MSC_VER
-#   define BACNET_STACK_LIBRARY_IMPORT __declspec(dllimport)
-#   define BACNET_STACK_LIBRARY_EXPORT __declspec(dllexport)
-# else
-#   define BACNET_STACK_LIBRARY_IMPORT
-#   define BACNET_STACK_LIBRARY_EXPORT __attribute__((visibility("default")))
-# endif
+#if ! defined BACNET_CONFIG_H || ! BACNET_CONFIG_H
+#error bacnet-config.h included outside of BACNET_CONFIG_H control
 #endif
 
+#include <zephyr/sys/util.h>  // Provides platform-specific defn of ARRAY_SIZE()
 
-#ifndef BACNET_STACK_EXPORT
-#  ifdef bacnet_stack_EXPORTS
-      /* We are building this library */
-#    define BACNET_STACK_EXPORT BACNET_STACK_LIBRARY_EXPORT
-#  else
-      /* We are using this library */
-#    define BACNET_STACK_EXPORT BACNET_STACK_LIBRARY_IMPORT
-#  endif
-#endif
-
-#endif  /* BACNET_STACK_EXPORTS_H */
+#endif // BACNET_PORTS_ZEPHYR_BACNET_CONFIG_H

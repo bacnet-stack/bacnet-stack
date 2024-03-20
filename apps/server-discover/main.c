@@ -13,11 +13,10 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-
-/* core library */
-#include "bacnet/config.h"
-#include "bacnet/apdu.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/apdu.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/bacstr.h"

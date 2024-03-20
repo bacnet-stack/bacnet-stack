@@ -13,7 +13,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactimevalue.h"
 #include "bacnet/calendar_entry.h"
 #include "bacnet/dailyschedule.h"

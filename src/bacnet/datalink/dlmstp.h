@@ -27,10 +27,11 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/datalink/mstpdef.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 
 /* defines specific to MS/TP */

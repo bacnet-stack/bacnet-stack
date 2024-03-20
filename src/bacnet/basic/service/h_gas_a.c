@@ -35,8 +35,9 @@
  * not equal to NORMAL and a Notify_Type property whose value is ALARM.
  */
 #include <assert.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"

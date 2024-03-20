@@ -26,9 +26,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
 
 typedef struct BACnet_Read_Property_Data {
     BACNET_OBJECT_TYPE object_type;

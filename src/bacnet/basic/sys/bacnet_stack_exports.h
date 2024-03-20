@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2020 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -21,72 +21,34 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *********************************************************************/
-#ifndef BYTES_H
-#define BYTES_H
+#ifndef BACNET_STACK_EXPORTS_H
+#define BACNET_STACK_EXPORTS_H
 
-/* Defines the bit/byte/word/long conversions that are used in code */
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 
-#include <stdint.h>
-
-#ifndef LO_NIB
-#define LO_NIB(b) ((b) & 0xF)
-#endif
-
-#ifndef HI_NIB
-#define HI_NIB(b) ((b) >> 4)
-
-#endif
-
-
-
-#ifndef LO_BYTE
-
-#define LO_BYTE(w) ((uint8_t)(w))
-
+#ifdef BACNET_STACK_STATIC_DEFINE
+    /* We want a static library */
+# define BACNET_STACK_EXPORT
+#else
+    /* We want a shared library */
+# ifdef _MSC_VER
+#   define BACNET_STACK_LIBRARY_IMPORT __declspec(dllimport)
+#   define BACNET_STACK_LIBRARY_EXPORT __declspec(dllexport)
+# else
+#   define BACNET_STACK_LIBRARY_IMPORT
+#   define BACNET_STACK_LIBRARY_EXPORT __attribute__((visibility("default")))
+# endif
 #endif
 
 
-
-#ifndef HI_BYTE
-
-#define HI_BYTE(w) ((uint8_t)((uint16_t)(w) >> 8))
-
+#ifndef BACNET_STACK_EXPORT
+#  ifdef bacnet_stack_EXPORTS
+      /* We are building this library */
+#    define BACNET_STACK_EXPORT BACNET_STACK_LIBRARY_EXPORT
+#  else
+      /* We are using this library */
+#    define BACNET_STACK_EXPORT BACNET_STACK_LIBRARY_IMPORT
+#  endif
 #endif
 
-
-
-#ifndef LO_WORD
-
-#define LO_WORD(x) ((uint16_t)(x))
-
-#endif
-
-
-
-#ifndef HI_WORD
-
-#define HI_WORD(x) ((uint16_t)((uint32_t)(x) >> 16))
-
-#endif
-
-
-
-#ifndef MAKE_WORD
-
-#define MAKE_WORD(lo,hi) \
-    ((uint16_t)(((uint8_t)(lo))|(((uint16_t)((uint8_t)(hi)))<<8)))
-
-#endif
-
-
-
-#ifndef MAKE_LONG
-
-#define MAKE_LONG(lo,hi) \
-    ((uint32_t)(((uint16_t)(lo))|(((uint32_t)((uint16_t)(hi)))<<16)))
-
-#endif
-
-
-
-#endif /* end of header file */
+#endif  /* BACNET_STACK_EXPORTS_H */

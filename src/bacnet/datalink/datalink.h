@@ -24,8 +24,7 @@
 #ifndef DATALINK_H
 #define DATALINK_H
 
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 
 #if defined(BACDL_ETHERNET)

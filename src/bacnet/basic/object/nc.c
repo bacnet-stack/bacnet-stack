@@ -32,17 +32,17 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdest.h"
-#include "bacnet/config.h"
 #include "bacnet/datetime.h"
 #include "bacnet/event.h"
 #include "bacnet/wp.h"
-/* basic binding, services, debug, TSM, and datalink */
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/nc.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"

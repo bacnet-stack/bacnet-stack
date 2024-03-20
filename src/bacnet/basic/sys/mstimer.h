@@ -20,7 +20,8 @@
 #ifndef MSTIMER_H_
 #define MSTIMER_H_
 
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /**
  * A timer.

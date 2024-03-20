@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.1.0
+  VERSION 1.3.4
   LANGUAGES C)
 
 #
@@ -88,8 +88,8 @@ else ()
 endif ()
 
 option(
-  BACNET_STACK_DEPRECATED_DISABLE 
-  "Disable deprecation compile warnings" 
+  BACNET_STACK_DEPRECATED_DISABLE
+  "Disable deprecation compile warnings"
   ON)
 
 if(BACNET_STACK_DEPRECATED_DISABLE)
@@ -236,6 +236,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/lo.h
     src/bacnet/basic/object/lsp.c
     src/bacnet/basic/object/lsp.h
+    src/bacnet/basic/object/lsz.c
+    src/bacnet/basic/object/lsz.h
     src/bacnet/basic/object/ms-input.c
     src/bacnet/basic/object/ms-input.h
     src/bacnet/basic/object/mso.c
@@ -408,8 +410,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/sbuf.h
     src/bacnet/basic/tsm/tsm.c
     src/bacnet/basic/tsm/tsm.h
-    src/bacnet/bits.h
-    src/bacnet/bytes.h
+    src/bacnet/basic/sys/bits.h
+    src/bacnet/basic/sys/bytes.h
     src/bacnet/config.h
     src/bacnet/calendar_entry.c
     src/bacnet/calendar_entry.h

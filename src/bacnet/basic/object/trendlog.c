@@ -26,19 +26,24 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "bacnet/apdu.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdevobjpropref.h"
-#include "bacnet/config.h" /* the custom stuff */
+#include "bacnet/apdu.h"
 #include "bacnet/datetime.h"
+#include "bacnet/wp.h" /* write property handling */
 #include "bacnet/version.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
-#include "device.h"
-#include "trendlog.h"
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/trendlog.h"
+#include "bacnet/datalink/datalink.h"
+#if defined(BACFILE)
+#include "bacnet/basic/object/bacfile.h" /* object list dependency */
+#endif
 
 /* number of demo objects */
 #ifndef MAX_TREND_LOGS

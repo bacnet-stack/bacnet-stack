@@ -27,13 +27,13 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/bacdevobjpropref.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
-
 
 #ifndef MAX_ACCESS_ZONES
 #define MAX_ACCESS_ZONES 4

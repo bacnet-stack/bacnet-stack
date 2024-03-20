@@ -15,28 +15,82 @@ The git repositories are hosted at the following sites:
 ## [Unreleased]
 
 ### Security
+### Added
+### Changed
+### Fixed
+### Removed
+
+## [1.3.4] - 2024-03-02
+
+### Security
+
+* Secured bacapp_decode_application_data_safe(),bacapp_decode_application_data_len(),
+  bacapp_decode_context_data(), bacapp_decode_known_property() for timestamp,
+  bacapp_decode_context_data_len(), and bacapp_data_len() functions. (#578)
 
 ### Added
 
+* Added SHIELD=dfr0259 or SHIELD=linksprite build options to RS485
+  driver for stm32f4xx port.
+* Added FAQ 18 for firewall info (#587)
+* Added a BASH script for parallel EPICS clients registering as foreign devices
+  to a BBMD (#586)
+* Added an example application - bacdiscover - to discover devices and their
+  objects and properties on a specific destination network. The application
+  uses a BACnet Discovery FSM module along with the BACnet R/W FSM.
+  The BACnet Discovery module stores the binary property data in Keylists
+  and includes device object property queries and iterators. (#583)
+* Added callback from BACnet R/W FSM module for I-Am messages. (#583)
+* Added an example application - bacapdu - to send an arbitrary
+  APDU string of hex-ASCII. (#580)
+* Added a clean target recipe in apps to remove stale libbacnet.a file.
+* Added missing binary input functions to set custom object names. (#574)
+* Added Keylist_Index_Key to deprecate Keylist_Key function in
+  keylist module. Added unit test for Keylist_Index_Key API. Changed
+  modules using Keylist_Key. Changed keylist module to use bool and
+  stdint value for key not found. (#572)
+* Added missing object functions to analog inputs and values. (#568)
+
 ### Changed
+
+* Changed BACnet R/W FSM module to remove dependency on
+  rpm_ack_decode_service_request() which uses large calloc/free
+  value lists. Created an alternate RPM-ACK to RP-ACK processing 
+  function. (#583)
+* Changed basic RPM handler to skip over unknown property values. (#583)
+* Changed the release script to use tag option and remove tag reminder.
+  Fixed release tool to have a prefix folder with the tag version name.
+  Enabled rebuilding tagged release code and zips in a working tree in temp folder.
 
 ### Fixed
 
+* Fixed makefile for building the Linux router application. (#585)
+* Fixed Command, Credential Data Input, and Schedule objects unit tests. (#578)
+* Fixed apps/Makefile to use apps/lib/libbacnet.a library file instead of
+  a library file in system /usr/lib folder.
+* Fixed example Analog Output to set proper bounds for
+  Analog_Output_Present_Value_Set and Analog_Output_Present_Value_Write. (#575)
+* Fixed the Network Port object subnet mask for IP example. (#573)
+* Fixed bacnet_address_init() when setting only the dnet value. (#570)
+* Fixed MSVC snprintf from C99 in platform.h file. (#570)
+
 ### Removed
+
+* Removed the ARM math library binary files in the stm32f4xx port
 
 ## [1.3.3] - 2024-02-2
 
 ### Security
 
- * Secured the following services by refactoring the size check
-   and refactoring the service requests from the service header,
-   adding APDU size checking and length features, and adding unit
-   tests to check for length when passing NULL buffer:
-   ARF/AWF/COV/CO/DO/DCC/Event/GE/ALE/RLE/LSO/RD/RR/RP/WP. (#553)
+* Secured the following services by refactoring the size check
+  and refactoring the service requests from the service header,
+  adding APDU size checking and length features, and adding unit
+  tests to check for length when passing NULL buffer:
+  ARF/AWF/COV/CO/DO/DCC/Event/GE/ALE/RLE/LSO/RD/RR/RP/WP. (#553)
 
 ### Added
 
-* Added bacapp decoding for accumulator SCALE property (#566)
+* Added bacapp decoding for accumulator SCALE property. (#566)
 * Added a MS/TP zero-config (automatically choose an unused MAC address)
   using an algorithm that starts with MAC=64 and waits for a random number
   of PFM (minimum of 8 plus modulo 64) before attempting to choose a MAC

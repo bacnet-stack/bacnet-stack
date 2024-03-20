@@ -26,7 +26,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /* number of bytes needed for COBS encoded CRC */
 #define COBS_ENCODED_CRC_SIZE 5

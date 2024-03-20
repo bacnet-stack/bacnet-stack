@@ -12,8 +12,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/basic/sys/mstimer.h"

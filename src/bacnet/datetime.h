@@ -15,8 +15,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/basic/sys/platform.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /* define our epic beginnings */
 #define BACNET_DATE_YEAR_EPOCH 1900

@@ -36,7 +36,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/basic/sys/keylist.h"
 /* me! */

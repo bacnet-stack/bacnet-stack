@@ -15,6 +15,7 @@
   #define _CONCAT(x, y) _DO_CONCAT(x, y)
 
 #endif
+#include "bacnet/bacdef.h"  // Must be before all other bacnet/*.h files
 #include "bacnet/basic/sys/keylist.h"
 
 
