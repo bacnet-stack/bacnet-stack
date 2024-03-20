@@ -153,7 +153,7 @@ uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
 {
 
     if(index < CSV_Max_Index){
-         return CSV_Descr[index].Instance;
+        return CSV_Descr[index].Instance;
     } else {
         PRINTF("index out of bounds");
     }
@@ -276,6 +276,12 @@ bool CharacterString_Value_Present_Value(
             return status;
         }
 
+        PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        PRINTF("OBJECT INSTANCE &u\r\n" object_instance)
+        PRINTF("PRESENT VALUE %s\r\n" Present_Value[index].Value);
+        PRINTF("OBJECT NAME VALUE %s\r\n", object_name.value);
+        PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%");
+
     }
 
     return status;
@@ -304,6 +310,11 @@ bool CharacterString_Value_Present_Value_Set(
          if (!characterstring_same(&Present_Value[index], object_name)) {
              Changed[index] = true;
          }
+        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&");
+        PRINTF("OBJECT INSTANCE &u\r\n" object_instance)
+        PRINTF("PRESENT VALUE %s\r\n" Present_Value[index].Value);
+        PRINTF("OBJECT NAME VALUE %s\r\n", object_name.value);
+        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&");
 
         status = characterstring_copy(&Present_Value[index], object_name);  
         
