@@ -29,12 +29,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "hardware.h"
+#include "bacnet/config.h"
+#include "bacnet/bacenum.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/config.h" /* the custom stuff */
-#include "bacnet/wp.h"
-#include "bacnet/basic/object/bv.h"
+#include "bv.h"
 
 #ifndef MAX_BINARY_VALUES
 #define MAX_BINARY_VALUES 10

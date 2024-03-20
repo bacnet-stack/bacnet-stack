@@ -25,22 +25,23 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+/* BACnet library core */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacstr.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
 #include "bacnet/dcc.h"
-#include "bacnet/datalink/dlmstp.h"
-#include "rs485.h"
 #include "bacnet/version.h"
-#include "stack.h"
-/* objects */
+/* BACnet library basic */
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/av.h"
-#include "bacnet/basic/object/bv.h"
-#include "bacnet/wp.h"
+#include "bacnet/datalink/dlmstp.h"
+/* local objects */
+#include "device.h"
+#include "av.h"
+#include "bv.h"
+/* local ports */
+#include "rs485.h"
+#include "stack.h"
 
 /* note: you really only need to define variables for
    properties that are writable or that may change.
@@ -50,9 +51,8 @@ static uint32_t Object_Instance_Number = 260001;
 static char Object_Name[20] = "My Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
-void Device_Init(object_functions_t *object_table)
+void Device_Init(void)
 {
-    (void)object_table;
     /* Reinitialize_State = BACNET_REINIT_IDLE; */
     /* dcc_set_status_duration(COMMUNICATION_ENABLE, 0); */
     /* FIXME: Get the data from the eeprom */
@@ -489,4 +489,15 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
+}
+
+/* device object service handler functions */
+uint16_t handler_device_vendor_identifier(void)
+{
+    return BACNET_VENDOR_ID;
+}
+
+uint32_t handler_device_object_instance_number(void)
+{
+    return Object_Instance_Number;
 }

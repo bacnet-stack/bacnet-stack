@@ -168,6 +168,10 @@
       <SubType>compile</SubType>
       <Link>BACnet Handlers\h_noserv.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\basic\service\h_device.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Handlers\h_device.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\basic\service\s_iam.c">
       <SubType>compile</SubType>
       <Link>BACnet Handlers\s_iam.c</Link>

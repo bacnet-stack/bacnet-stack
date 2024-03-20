@@ -30,11 +30,11 @@
 #include "hardware.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
+#include "bacnet/rp.h"
 #include "bacnet/wp.h"
-#include "bacnet/basic/object/av.h"
+/* me */
+#include "av.h"
 
 #ifndef MAX_ANALOG_VALUES
 #define MAX_ANALOG_VALUES 10

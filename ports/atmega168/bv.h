@@ -27,14 +27,15 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacerror.h"
+#include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
 #ifndef MAX_BINARY_VALUES
 #define MAX_BINARY_VALUES 10
 #endif
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,17 +58,10 @@ extern "C" {
         void);
 
     int Binary_Value_Encode_Property_APDU(
-        uint8_t * apdu,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        uint32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_READ_PROPERTY_DATA *rpdata);
 
     bool Binary_Value_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef __cplusplus
 }

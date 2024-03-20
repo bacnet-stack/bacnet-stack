@@ -34,11 +34,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bacnet/bits.h"
-#include "bacnet/apdu.h"
 #include "bacnet/bacdef.h"
+#include "bacnet/apdu.h"
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/basic/services.h"
 
 bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)

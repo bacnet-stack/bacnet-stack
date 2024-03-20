@@ -37,31 +37,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+#include "bacnet/rp.h"
 #include "bacnet/wp.h"
-#include "bacnet/readrange.h"
-
-typedef unsigned (
-    *object_count_function) (
-    void);
-typedef uint32_t(
-    *object_index_to_instance_function)
-        (
-    unsigned index);
-typedef char *(
-    *object_name_function)
-     (
-    uint32_t object_instance);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-    void Device_Object_Function_Set(
-        BACNET_OBJECT_TYPE object_type,
-        object_count_function count_function,
-        object_index_to_instance_function index_function,
-        object_name_function name_function);
 
     void Device_Init(
         void);
@@ -149,26 +130,11 @@ extern "C" {
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance);
 
-    int Device_Encode_Property_APDU(
-        uint8_t * apdu,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        uint32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+    int Device_Read_Property(
+        BACNET_READ_PROPERTY_DATA *rpdata);
 
     bool Device_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
-
-    bool DeviceGetRRInfo(
-        uint32_t Object,        /* Which particular object - obviously not important for device object */
-        BACNET_PROPERTY_ID Property,    /* Which property */
-        RR_PROP_INFO * pInfo,   /* Where to put the information */
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
-
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef __cplusplus
 }
