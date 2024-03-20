@@ -158,13 +158,13 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
 {
 
-    if(index < CSV_Max_Index){
+    //if(index < CSV_Max_Index){
         return CSV_Descr[index].Instance;
-    } else {
-        PRINTF("index out of bounds");
-    }
+   // } else {
+     //   PRINTF("index out of bounds");
+   // }
 
-    return NULL;
+   // return NULL;
 }
 
 /**
