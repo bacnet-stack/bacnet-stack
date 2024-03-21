@@ -42,6 +42,8 @@
 #include "bacnet/rp.h"
 #include "bacnet/rpm.h"
 #include "bacnet/readrange.h"
+/* BACnet Stack basics */
+#include "bacnet/basic/services.h"
 
 /* String Lengths - excluding any nul terminator */
 #define MAX_DEV_NAME_LEN 32
