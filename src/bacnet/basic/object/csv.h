@@ -79,7 +79,7 @@ extern "C" {
         char *new_name);
 
     BACNET_STACK_EXPORT
-    char* CharacterString_Value_Present_Value(
+    bool CharacterString_Value_Present_Value(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Present_Value_Set(
