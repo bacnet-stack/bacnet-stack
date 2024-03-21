@@ -272,7 +272,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  *          is returned.
  */
 
-bool CharacterString_Value_Present_Value(
+char* CharacterString_Value_Present_Value(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
@@ -294,7 +294,7 @@ bool CharacterString_Value_Present_Value(
         status = characterstring_copy(object_name, &Present_Value[index]);
         if(status == true)
         {
-            return status;
+            return object_name->value;
         }
 
         PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%\r\n");
@@ -305,7 +305,7 @@ bool CharacterString_Value_Present_Value(
 
     }
 
-    return status;
+    return NULL;
 
 }
 
