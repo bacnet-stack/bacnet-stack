@@ -51,8 +51,6 @@
 static BACNET_CHARACTER_STRING Present_Value[MAX_CHARACTERSTRING_VALUES];
 /* Writable out-of-service allows others to manipulate our Present Value */
 static bool Out_Of_Service[MAX_CHARACTERSTRING_VALUES];
-//static char Object_Name[MAX_CHARACTERSTRING_VALUES][MAX_CHARACTER_STRING_BYTES];
-//static char Description[MAX_CHARACTERSTRING_VALUES][MAX_CHARACTER_STRING_BYTES];
 static bool Changed[MAX_CHARACTERSTRING_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -104,13 +102,13 @@ void CharacterString_Value_Property_Lists(
  * Initialize the character string values.
  */
 void CharacterString_Value_Init(void)
-{       /// needs memset to change in memory //////
+{       
     unsigned i;
 
     /* initialize all Present Values */
     for (i = 0; i < MAX_CHARACTERSTRING_VALUES; i++) {
         memset(&CSV_Descr[i], 0x00, sizeof(CHARACTERSTRING_VALUE_DESCR));
-        memset(&Present_Value[i], 0x00, sizeof(MAX_CHARACTERSTRING_VALUES)); // added DC 
+        memset(&Present_Value[i], 0x00, sizeof(MAX_CHARACTERSTRING_VALUES)); 
         snprintf(CSV_Descr[i].Name, sizeof(CSV_Descr[i].Name),
             "CHARACTER STRING VALUE %u", i + 1);
         snprintf(CSV_Descr[i].Description, sizeof(CSV_Descr[i].Description),
@@ -118,11 +116,6 @@ void CharacterString_Value_Init(void)
         CSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_CHARACTERSTRING_VALUE));
         characterstring_init_ansi(&Present_Value[i], ""); 
         Changed[i] = false;
-    
-        PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
-        PRINTF("INIT INSTANCE %u\r\n", CSV_Descr[i].Instance);
-        PRINTF("PRESENT VALUE SET %s\r\n", Present_Value[i].value);
-        PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
 
     }
 
@@ -159,13 +152,13 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
 {
 
-    //if(index < CSV_Max_Index){
+    if(index < CSV_Max_Index){
         return CSV_Descr[index].Instance;
-   // } else {
-     //   PRINTF("index out of bounds");
-   // }
+    } else {
+        PRINTF("index out of bounds");
+    }
 
-   // return NULL;
+    return NULL;
 }
 
 /**
@@ -232,8 +225,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 
     if(!strcmp(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name))
     {
-        PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-        //return false;       
+        PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);       
     }
     else
     {   
@@ -242,18 +234,13 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 
     if(!strcmp(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description))
     {
-        PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-        //return false;       
+        PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);   
     }
     else
     {
         strcpy(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description);
     }
     
-
-    PRINTF("@@@@@@@@@@@@@@@@@@@\r\n");
-    PRINTF(" PRESENT VALUE SETUP TEST %s\r\n", Present_Value[i].value);
-    PRINTF("@@@@@@@@@@@@@@@@@@@\r\n");
   }
 
   CSV_Max_Index = (int) pInit_data->length;
@@ -277,17 +264,8 @@ bool CharacterString_Value_Present_Value(
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
-
-    PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%%%\r\n");
-    PRINTF("OBJECT INSTANCE %u\r\n", object_instance);
-    //PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
-    PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
     
     index = CharacterString_Value_Instance_To_Index(object_instance);
-
-    PRINTF("INDEX %u\r\n", index);
-    PRINTF("--------------------------\r\n");
-    PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
 
     if (index < CSV_Max_Index) 
     {   
@@ -296,12 +274,6 @@ bool CharacterString_Value_Present_Value(
         {
             return status;
         }
-
-        PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%\r\n");
-        PRINTF("OBJECT INSTANCE %u\r\n", object_instance);
-        PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
-        PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
-        PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%\r\n");
 
     }
 
@@ -326,26 +298,12 @@ bool CharacterString_Value_Present_Value_Set(
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
 
-    PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
-    PRINTF("OBJECT INSTANCE %u\r\n", object_instance);
-    //PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
-    PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
-    
-
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
-    PRINTF("INDEX %u\r\n", index);
-    PRINTF("--------------------------\r\n");
-    PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
     if (index < CSV_Max_Index) {
          if (!characterstring_same(&Present_Value[index], object_name)) {
              Changed[index] = true;
          }
-        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
-        PRINTF("PASS OBJECT INSTANCE %u\r\n", object_instance);
-        PRINTF("PASS PRESENT VALUE %s\r\n", Present_Value[index].value);
-        PRINTF("PASS OBJECT NAME VALUE %s\r\n", object_name->value);
-        PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
         
         status = characterstring_copy(&Present_Value[index], object_name);  
         
@@ -637,10 +595,6 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_PRESENT_VALUE:
             if(CharacterString_Value_Present_Value(
                 rpdata->object_instance, &char_string)){
-                    PRINTF("??????????????????\r\n");
-                    PRINTF(" CHAR STRING %s '%u'\r\n", char_string.value, char_string.length);
-                    PRINTF("??????????????????\r\n");
-            apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             }
             break;
