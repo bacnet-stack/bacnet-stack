@@ -250,6 +250,10 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
         strcpy(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description);
     }
     
+
+    PRINTF("@@@@@@@@@@@@@@@@@@@\r\n");
+    PRINTF(" PRESENT VALUE SETUP TEST %s\r\n", Present_Value[i].value);
+    PRINTF("@@@@@@@@@@@@@@@@@@@\r\n");
   }
 
   CSV_Max_Index = (int) pInit_data->length;
