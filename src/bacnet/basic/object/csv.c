@@ -294,7 +294,7 @@ bool CharacterString_Value_Present_Value(
         status = characterstring_copy(object_name, &Present_Value[index]);
         if(status == true)
         {
-            return object_name->value;
+            return status;
         }
 
         PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%\r\n");
@@ -305,7 +305,7 @@ bool CharacterString_Value_Present_Value(
 
     }
 
-    return NULL;
+    return status;
 
 }
 
@@ -347,11 +347,15 @@ char* CharacterString_Value_Present_Value_Set(
         PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
         PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
         
-        status = characterstring_copy(&Present_Value[index], object_name);  
-        
+        //status = characterstring_copy(&Present_Value[index], object_name);  
+        if(characterstring_copy(&Present_Value[index], object_name))
+        {
+            return object_name->value;
+        }
+
     }
 
-    return status;
+    return NULL;
 }
 
 
