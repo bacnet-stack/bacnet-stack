@@ -110,6 +110,7 @@ void CharacterString_Value_Init(void)
     /* initialize all Present Values */
     for (i = 0; i < MAX_CHARACTERSTRING_VALUES; i++) {
         memset(&CSV_Descr[i], 0x00, sizeof(CHARACTERSTRING_VALUE_DESCR));
+        memset(&Present_Value[i], 0x00, sizeof(MAX_CHARACTERSTRING_VALUES)); // added DC 
         snprintf(CSV_Descr[i].Name, sizeof(CSV_Descr[i].Name),
             "CHARACTER STRING VALUE %u", i + 1);
         snprintf(CSV_Descr[i].Description, sizeof(CSV_Descr[i].Description),
