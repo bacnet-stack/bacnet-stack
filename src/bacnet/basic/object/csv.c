@@ -272,7 +272,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  *          is returned.
  */
 
-char* CharacterString_Value_Present_Value(
+bool CharacterString_Value_Present_Value(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
@@ -320,7 +320,7 @@ char* CharacterString_Value_Present_Value(
  * @return  true if values are within range and present-value is set.
  */
 
-bool CharacterString_Value_Present_Value_Set(
+char* CharacterString_Value_Present_Value_Set(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
