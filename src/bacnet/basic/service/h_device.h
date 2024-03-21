@@ -188,9 +188,15 @@ rr_info_function handler_device_object_read_range_info(
     BACNET_OBJECT_TYPE object_type);
 
 BACNET_STACK_EXPORT
-void handler_device_object_property_list(BACNET_OBJECT_TYPE object_type,
+void handler_device_object_property_list(
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     struct special_property_list_t *pPropertyList);
+BACNET_STACK_EXPORT
+bool handler_device_object_property_list_member(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    int object_property);
 
 BACNET_STACK_EXPORT
 bool handler_device_object_instance_valid(

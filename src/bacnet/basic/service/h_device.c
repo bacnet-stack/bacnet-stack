@@ -18,7 +18,6 @@
 /* BACnet basic library */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/service/h_apdu.h"
-#include "bacnet/basic/service/h_cov.h"
 #include "bacnet/basic/service/h_device.h"
 
 /* Object services */
@@ -274,6 +273,41 @@ void handler_device_object_property_list(BACNET_OBJECT_TYPE object_type,
         : property_list_count(pPropertyList->Proprietary.pList);
 
     return;
+}
+
+/**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_type [in] The desired BACNET_OBJECT_TYPE whose properties
+ *  are to be listed.
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+bool handler_device_object_property_list_member(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    int object_property)
+{
+    bool found = false;
+    struct object_functions *pObject = NULL;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    (void)object_instance;
+    pObject = handler_device_object_functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
+        pObject->Object_RPM_List(&pRequired,&pOptional, &pProprietary);
+    }
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
 }
 
 /**
@@ -1130,9 +1164,6 @@ int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_DATABASE_REVISION:
             apdu_len = encode_application_unsigned(&apdu[0], 
                 handler_device_object_database_revision());
-            break;
-        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
-            apdu_len = handler_cov_encode_subscriptions(&apdu[0], apdu_max);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
