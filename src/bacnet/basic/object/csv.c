@@ -272,7 +272,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  *          is returned.
  */
 
-bool CharacterString_Value_Present_Value(
+char* CharacterString_Value_Present_Value(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
@@ -294,7 +294,7 @@ bool CharacterString_Value_Present_Value(
         status = characterstring_copy(object_name, &Present_Value[index]);
         if(status == true)
         {
-            return status;
+            return object_name->value;
         }
 
         PRINTF("%%%%%%%%%%%%%%%%%%%%%%%%%%\r\n");
@@ -305,7 +305,7 @@ bool CharacterString_Value_Present_Value(
 
     }
 
-    return status;
+    return NULL;
 
 }
 
@@ -342,9 +342,9 @@ bool CharacterString_Value_Present_Value_Set(
              Changed[index] = true;
          }
         PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
-        PRINTF("OBJECT INSTANCE %u\r\n", object_instance);
-        PRINTF("PRESENT VALUE %s\r\n", Present_Value[index].value);
-        PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
+        PRINTF("PASS OBJECT INSTANCE %u\r\n", object_instance);
+        PRINTF("PASS PRESENT VALUE %s\r\n", Present_Value[index].value);
+        PRINTF("PASS OBJECT NAME VALUE %s\r\n", object_name->value);
         PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
         
         status = characterstring_copy(&Present_Value[index], object_name);  
@@ -635,14 +635,18 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_CHARACTERSTRING_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            if(CharacterString_Value_Present_Value(
-                rpdata->object_instance, &char_string)){
-                    PRINTF("??????????????????\r\n");
-                    PRINTF(" CHAR STRING %s '%u'\r\n", char_string.value, char_string.length);
-                    PRINTF("??????????????????\r\n");
+            // if(CharacterString_Value_Present_Value(
+            //     rpdata->object_instance, &char_string)){
+            //         PRINTF("??????????????????\r\n");
+            //         PRINTF(" CHAR STRING %s '%u'\r\n", char_string.value, char_string.length);
+            //         PRINTF("??????????????????\r\n");
+
+            *char_string.value = CharacterString_Value_Present_Value(rpdata->object_instance, &char_string);
+            
+
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
-            }
+            //}
             break;
         case PROP_STATUS_FLAGS:
             /* note: see the details in the standard on how to use these */
