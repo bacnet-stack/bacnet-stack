@@ -1,28 +1,13 @@
-/**************************************************************************
- *
- * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
+/**
+ * @file
+ * @author Steve Karg
+ * @date 2007
+ * @brief Base "class" for handling all BACnet objects belonging
+ *  to a BACnet device, as well as Device-specific properties.
+ * @copyright
+ *  Copyright 2007 by Steve Karg <skarg@users.sourceforge.net>
+ *  SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -615,8 +600,6 @@ void Device_Init(object_functions_t *object_table)
     }
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
     handler_device_reinitialize_password_set("rehmite");
-    handler_device_vendor_identifier_set(BACNET_VENDOR_ID);
     handler_device_object_instance_number_set(12345);
-    handler_device_object_database_revision_set(1);
     handler_device_object_init();
 }

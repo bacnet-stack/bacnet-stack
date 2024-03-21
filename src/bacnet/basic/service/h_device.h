@@ -174,10 +174,12 @@ BACNET_STACK_EXPORT
 BACNET_REINITIALIZED_STATE handler_device_reinitialized_state(void);
 BACNET_STACK_EXPORT
 void handler_device_reinitialized_state_set(BACNET_REINITIALIZED_STATE state);
+
 BACNET_STACK_EXPORT
 uint16_t handler_device_vendor_identifier(void);
 BACNET_STACK_EXPORT
 void handler_device_vendor_identifier_set(uint16_t vendor_id);
+
 BACNET_STACK_EXPORT
 void handler_device_reinitialize_backup_restore_enabled_set(bool enable);
 BACNET_STACK_EXPORT
