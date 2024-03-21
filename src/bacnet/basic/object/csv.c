@@ -116,7 +116,7 @@ void CharacterString_Value_Init(void)
         snprintf(CSV_Descr[i].Description, sizeof(CSV_Descr[i].Description),
             "A Character String Value Example");
         CSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_CHARACTERSTRING_VALUE));
-        characterstring_init_ansi(&Present_Value[i], "0"); 
+        characterstring_init_ansi(&Present_Value[i], ""); 
         Changed[i] = false;
     
         PRINTF("$$$$$$$$$$$$$$$$$$$$$$\r\n");
