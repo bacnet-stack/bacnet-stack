@@ -320,7 +320,7 @@ bool CharacterString_Value_Present_Value(
  * @return  true if values are within range and present-value is set.
  */
 
-char* CharacterString_Value_Present_Value_Set(
+bool CharacterString_Value_Present_Value_Set(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
@@ -347,15 +347,11 @@ char* CharacterString_Value_Present_Value_Set(
         PRINTF("OBJECT NAME VALUE %s\r\n", object_name->value);
         PRINTF("&&&&&&&&&&&&&&&&&&&&&&&&&&&\r\n");
         
-        //status = characterstring_copy(&Present_Value[index], object_name);  
-        if(characterstring_copy(&Present_Value[index], object_name))
-        {
-            return object_name->value;
-        }
-
+        status = characterstring_copy(&Present_Value[index], object_name);  
+        
     }
 
-    return NULL;
+    return status;
 }
 
 
