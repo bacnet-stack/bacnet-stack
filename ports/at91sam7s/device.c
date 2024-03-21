@@ -419,7 +419,9 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0], apdu_retries());
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
+#if (MAX_ADDRESS_CACHE > 0)
             apdu_len = address_list_encode(&apdu[0], apdu_max);
+#endif
             break;
         case PROP_DATABASE_REVISION:
             apdu_len = encode_application_unsigned(
@@ -465,7 +467,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     uint8_t encoding = 0;
     size_t length = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(

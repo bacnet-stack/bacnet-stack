@@ -53,19 +53,19 @@
 #if (BACNET_PROTOCOL_REVISION >= 16)
 #include "blo.h"
 #endif
-#include "bacnet/basic/object/bo.h"
-#include "bacnet/basic/object/bv.h"
-#include "bacnet/basic/object/calendar.h"
-#include "bacnet/basic/object/channel.h"
-#include "bacnet/basic/object/command.h"
-#include "bacnet/basic/object/csv.h"
-#include "bacnet/basic/object/iv.h"
-#include "bacnet/basic/object/lc.h"
-#include "bacnet/basic/object/lsp.h"
-#include "bacnet/basic/object/lsz.h"
-#include "bacnet/basic/object/ms-input.h"
-#include "bacnet/basic/object/mso.h"
-#include "bacnet/basic/object/msv.h"
+#include "bo.h"
+#include "bv.h"
+#include "calendar.h"
+#include "channel.h"
+#include "command.h"
+#include "csv.h"
+#include "iv.h"
+#include "lc.h"
+#include "lsp.h"
+#include "lsz.h"
+#include "ms-input.h"
+#include "mso.h"
+#include "msv.h"
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "netport.h"
 #endif
@@ -1211,7 +1211,9 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0], apdu_retries());
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
+#if (MAX_ADDRESS_CACHE > 0)
             apdu_len = address_list_encode(&apdu[0], apdu_max);
+#endif
             break;
         case PROP_DATABASE_REVISION:
             apdu_len = encode_application_unsigned(&apdu[0], 

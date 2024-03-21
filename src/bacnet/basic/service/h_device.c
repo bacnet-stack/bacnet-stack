@@ -1159,7 +1159,9 @@ int handler_device_read_property_default(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0], apdu_retries());
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
+#if (MAX_ADDRESS_CACHE > 0)
             apdu_len = address_list_encode(&apdu[0], apdu_max);
+#endif
             break;
         case PROP_DATABASE_REVISION:
             apdu_len = encode_application_unsigned(&apdu[0], 

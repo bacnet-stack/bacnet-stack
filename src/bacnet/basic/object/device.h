@@ -104,12 +104,10 @@ extern "C" {
     void Device_Init(
         object_functions_t * object_table);
 
-    BACNET_STACK_DEPRECATED("Use handler_device_timer() instead")
     BACNET_STACK_EXPORT
     void Device_Timer(
         uint16_t milliseconds);
 
-    BACNET_STACK_DEPRECATED("Use handler_device_reinitialize() instead")
     BACNET_STACK_EXPORT
     bool Device_Reinitialize(
         BACNET_REINITIALIZE_DEVICE_DATA * rd_data);
@@ -122,12 +120,10 @@ extern "C" {
     bool Device_Reinitialize_Password_Set(
         const char *password);
 
-    BACNET_STACK_DEPRECATED("Use handler_device_object_read_range_info() instead")
     BACNET_STACK_EXPORT
     rr_info_function Device_Objects_RR_Info(
         BACNET_OBJECT_TYPE object_type);
 
-    BACNET_STACK_DEPRECATED("Use datetime_local() instead")
     BACNET_STACK_EXPORT
     void Device_getCurrentDateTime(
         BACNET_DATE_TIME * DateTime);
@@ -157,27 +153,22 @@ extern "C" {
         const int **pOptional,
         const int **pProprietary);
 
-    BACNET_STACK_DEPRECATED("Use handler_device_object_property_list() instead")
     BACNET_STACK_EXPORT
     void Device_Objects_Property_List(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         struct special_property_list_t *pPropertyList);
-    BACNET_STACK_DEPRECATED("Use handler_device_object_value_list() instead")
     BACNET_STACK_EXPORT
     bool Device_Encode_Value_List(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         BACNET_PROPERTY_VALUE * value_list);
-    BACNET_STACK_DEPRECATED("Use handler_device_object_value_list_supported() instead")
     bool Device_Value_List_Supported(
         BACNET_OBJECT_TYPE object_type);
-    BACNET_STACK_DEPRECATED("Use handler_device_object_cov() instead")
     BACNET_STACK_EXPORT
     bool Device_COV(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance);
-    BACNET_STACK_DEPRECATED("Use handler_device_object_cov_clear() instead")
     BACNET_STACK_EXPORT
     void Device_COV_Clear(
         BACNET_OBJECT_TYPE object_type,
@@ -207,11 +198,9 @@ extern "C" {
         BACNET_ARRAY_INDEX array_index, 
         uint8_t *apdu);
 
-    BACNET_STACK_DEPRECATED("Use handler_device_object_create() instead")
     BACNET_STACK_EXPORT
     bool Device_Create_Object(
         BACNET_CREATE_OBJECT_DATA *data);
-    BACNET_STACK_DEPRECATED("Use handler_device_object_delete() instead")
     BACNET_STACK_EXPORT
     bool Device_Delete_Object(
         BACNET_DELETE_OBJECT_DATA *data);
@@ -235,19 +224,16 @@ extern "C" {
     BACNET_STACK_EXPORT
     char * Device_Object_Name_ANSI(void);
     
-    BACNET_STACK_DEPRECATED("Use handler_device_object_name_copy() instead")
     BACNET_STACK_EXPORT
     bool Device_Object_Name_Copy(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
-BACNET_STACK_DEPRECATED("Use handler_device_valid_object_name() instead")
     BACNET_STACK_EXPORT
     bool Device_Valid_Object_Name(
         BACNET_CHARACTER_STRING * object_name,
         BACNET_OBJECT_TYPE *object_type,
         uint32_t * object_instance);
-    BACNET_STACK_DEPRECATED("Use handler_device_valid_object_instance() instead")
     BACNET_STACK_EXPORT
     bool Device_Valid_Object_Id(
         BACNET_OBJECT_TYPE object_type,
@@ -357,7 +343,6 @@ BACNET_STACK_DEPRECATED("Use handler_device_valid_object_name() instead")
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #if defined(INTRINSIC_REPORTING)
-    BACNET_STACK_DEPRECATED("Use handler_device_intrinsic_reporting() instead")
     BACNET_STACK_EXPORT
     void Device_local_reporting(
         void);

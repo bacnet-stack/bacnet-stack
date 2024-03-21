@@ -258,10 +258,15 @@ void handler_device_object_cov_clear(
     BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-int handler_device_read_property_common(
-    struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata);
+int handler_device_read_property_default(
+    BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
-int handler_device_read_property(BACNET_READ_PROPERTY_DATA *rpdata);
+int handler_device_read_property_common(
+    struct object_functions *pObject, 
+    BACNET_READ_PROPERTY_DATA *rpdata);
+BACNET_STACK_EXPORT
+int handler_device_read_property(
+    BACNET_READ_PROPERTY_DATA *rpdata);
 
 BACNET_STACK_EXPORT
 bool handler_device_object_create(BACNET_CREATE_OBJECT_DATA *data);
