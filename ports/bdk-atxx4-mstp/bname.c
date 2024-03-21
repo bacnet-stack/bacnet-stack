@@ -27,12 +27,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hardware.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet core library */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacstr.h"
+/* local object follows basic/object API */
+#include "bacnet/basic/object/device.h"
+/* local port */
 #include "nvdata.h"
 #include "seeprom.h"
-#include "bacnet/basic/object/device.h"
+/* me! */
 #include "bname.h"
 
 static bool bacnet_name_isvalid(uint8_t encoding, uint8_t length, char *str)

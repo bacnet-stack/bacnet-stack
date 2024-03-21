@@ -99,7 +99,10 @@ HALSRC = main.c \
 
 # common demo files needed
 BASICSRC = $(BACNET_BASIC)/service/h_dcc.c \
+	$(BACNET_BASIC)/binding/address.c \
+	$(BACNET_BASIC)/npdu/h_npdu.c \
 	$(BACNET_BASIC)/service/h_apdu.c \
+	$(BACNET_BASIC)/service/h_device.c \
 	$(BACNET_BASIC)/service/h_rd.c \
 	$(BACNET_BASIC)/service/h_rp.c \
 	$(BACNET_BASIC)/service/h_rpm.c \
@@ -114,7 +117,6 @@ BASICSRC = $(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/sys/fifo.c \
 	$(BACNET_BASIC)/sys/mstimer.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
-	$(BACNET_BASIC)/npdu/h_npdu.c \
 	$(BACNET_BASIC)/tsm/tsm.c
 
 # core BACnet stack files
@@ -210,6 +212,7 @@ BFLAGS = -DBACDL_MSTP
 BFLAGS += -DMAX_APDU=128
 BFLAGS += -DBIG_ENDIAN=0
 BFLAGS += -DMAX_TSM_TRANSACTIONS=0
+BFLAGS += -DMAX_ADDRESS_CACHE=0
 BFLAGS += -DMSTP_PDU_PACKET_COUNT=2
 BFLAGS += -DMAX_CHARACTER_STRING_BYTES=64
 BFLAGS += -DMAX_OCTET_STRING_BYTES=64

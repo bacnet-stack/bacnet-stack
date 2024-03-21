@@ -145,6 +145,7 @@
             <Value>BACDL_MSTP</Value>
             <Value>MAX_APDU=128</Value>
             <Value>MAX_TSM_TRANSACTIONS=0</Value>
+            <Value>MAX_ADDRESS_CACHE=0</Value>
             <Value>MSTP_PDU_PACKET_COUNT=2</Value>
             <Value>MAX_CHARACTER_STRING_BYTES=64</Value>
             <Value>MAX_OCTET_STRING_BYTES=64</Value>
@@ -203,13 +204,21 @@
     <ExternalMakeFilePath>D:\code\bacnet-stack\ports\bdk-atxx4-mstp\Makefile</ExternalMakeFilePath>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\src\bacnet\basic\service\h_dcc.c">
+    <Compile Include="..\..\src\bacnet\basic\binding\address.c">
       <SubType>compile</SubType>
-      <Link>BACnet Handlers\h_dcc.c</Link>
+      <Link>BACnet Handlers\address.c</Link>
     </Compile>
     <Compile Include="..\..\src\bacnet\basic\npdu\h_npdu.c">
       <SubType>compile</SubType>
       <Link>BACnet Handlers\h_npdu.c</Link>
+    </Compile>
+    <Compile Include="..\..\src\bacnet\basic\service\h_dcc.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Handlers\h_dcc.c</Link>
+    </Compile>
+    <Compile Include="..\..\src\bacnet\basic\service\h_device.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Handlers\h_device.c</Link>
     </Compile>
     <Compile Include="..\..\src\bacnet\basic\service\h_apdu.c">
       <SubType>compile</SubType>

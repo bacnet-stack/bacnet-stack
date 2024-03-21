@@ -257,6 +257,7 @@
                     <state>BACDL_MSTP</state>
                     <state>MAX_APDU=128</state>
                     <state>MAX_TSM_TRANSACTIONS=0</state>
+                    <state>MAX_ADDRESS_CACHE=0</state>
                     <state>MSTP_PDU_PACKET_COUNT=2</state>
                     <state>MAX_CHARACTER_STRING_BYTES=64</state>
                     <state>MAX_OCTET_STRING_BYTES=64</state>
@@ -4268,16 +4269,22 @@
     <group>
         <name>BACnet Basic</name>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\binding\address.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\npdu\h_npdu.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_apdu.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_dcc.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_noserv.c</name>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_device.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\src\bacnet\basic\npdu\h_npdu.c</name>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_noserv.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_rd.c</name>
