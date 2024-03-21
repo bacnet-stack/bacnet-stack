@@ -74,11 +74,13 @@ DEMOSRC = ai.c \
 	$(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
+	$(BACNET_BASIC)/binding/address.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
 	$(BACNET_BASIC)/service/h_noserv.c \
 	$(BACNET_BASIC)/service/h_apdu.c \
 	$(BACNET_BASIC)/service/h_whohas.c \
 	$(BACNET_BASIC)/service/h_whois.c \
+	$(BACNET_BASIC)/service/h_device.c \
 	$(BACNET_BASIC)/service/h_rd.c \
 	$(BACNET_BASIC)/service/h_rp.c \
 	$(BACNET_BASIC)/service/h_rpm.c \

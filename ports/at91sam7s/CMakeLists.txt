@@ -116,6 +116,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/service/h_dcc.c
     ${LIBRARY_BACNET_BASIC}/service/h_apdu.c
     ${LIBRARY_BACNET_BASIC}/npdu/h_npdu.c
+    ${LIBRARY_BACNET_BASIC}/service/h_device.c
     ${LIBRARY_BACNET_BASIC}/service/h_rd.c
     ${LIBRARY_BACNET_BASIC}/service/h_rp.c
     ${LIBRARY_BACNET_BASIC}/service/h_rpm.c
