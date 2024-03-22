@@ -281,7 +281,6 @@ bool CharacterString_Value_Present_Value(
 
 }
 
-
 /**
  * For a given object instance-number, sets the present-value,
  * taken from another BACnet string.
