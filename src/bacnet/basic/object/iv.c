@@ -192,12 +192,10 @@ bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 
     if (!characterstring_init_ansi(&IV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
       PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-      return false;
     }
 
     if (!characterstring_init_ansi(&IV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
       PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-      return false;
     }
    }
 
