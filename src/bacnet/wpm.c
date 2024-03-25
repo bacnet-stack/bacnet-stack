@@ -416,8 +416,8 @@ int wpm_encode_apdu(uint8_t *apdu,
     int apdu_len = 0;
     int len = 0;
 
-    apdu_len = wpm_encode_apdu_init(NULL, invoke_id);
-    if (apdu_len > apdu_size) {
+    len = wpm_encode_apdu_init(NULL, invoke_id);
+    if (len > apdu_size) {
         /* too big for buffer */
         return 0;
     }
