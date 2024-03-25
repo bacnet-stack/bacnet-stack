@@ -179,7 +179,6 @@ bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     PRINTF("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
     return false;
   } 
-  PRINTF("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
 
   for (i = 0; i < pInit_data->length; i++) {
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
@@ -318,7 +317,7 @@ bool Integer_Value_Description(
     index = Integer_Value_Instance_To_Index(object_instance);
     if (index < IV_Max_Index) {
         *description = IV_Descr[index].Description;
-        status = true;
+        return true;
     }
 
     return status;
