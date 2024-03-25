@@ -101,7 +101,7 @@ void CharacterString_Value_Property_Lists(
  * Initialize the character string values.
  */
 void CharacterString_Value_Init(void)
-{       
+{
     unsigned i;
 
     /* initialize all Present Values */
@@ -112,7 +112,7 @@ void CharacterString_Value_Init(void)
         snprintf(CSV_Descr[i].Description, sizeof(CSV_Descr[i].Description),
             "A Character String Value Example");
         CSV_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_CHARACTERSTRING_VALUE));
-        characterstring_init_ansi(&Present_Value[i], ""); 
+        characterstring_init_ansi(&Present_Value[i], "");
         Changed[i] = false;
 
     }
@@ -221,17 +221,17 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
 
     if(!strncmp(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name, strlen(pInit_data->Object_Init_Values[i].Object_Name))) {
-        PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);       
-    } else {   
+        PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+    } else {
         strncpy(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name, sizeof(pInit_data->Object_Init_Values[i].Object_Name));
     }
 
     if(!strncmp(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description, strlen(pInit_data->Object_Init_Values[i].Description))) {
-        PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);   
+        PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
     } else {
         strncpy(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description, sizeof(pInit_data->Object_Init_Values[i].Description));
     }
-    
+
   }
 
   CSV_Max_Index = (int) pInit_data->length;
@@ -255,10 +255,10 @@ bool CharacterString_Value_Present_Value(
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
-    
+
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
-    if (index < CSV_Max_Index) {   
+    if (index < CSV_Max_Index) {
         status = characterstring_copy(present_value, &Present_Value[index]);
         if(status == true) {
             return status;
@@ -292,9 +292,9 @@ bool CharacterString_Value_Present_Value_Set(
          if (!characterstring_same(&Present_Value[index], object_name)) {
              Changed[index] = true;
          }
-        
-        status = characterstring_copy(&Present_Value[index], object_name);  
-        
+
+        status = characterstring_copy(&Present_Value[index], object_name);
+
     }
 
     return status;
@@ -438,14 +438,15 @@ bool CharacterString_Value_Description_Set(
     uint32_t object_instance, BACNET_CHARACTER_STRING *new_descr)
 {
     unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if(index < CSV_Max_Index) {
+    if(index < CSV_Max_Index)
+    {
         status = true;
-        if(new_descr) {
-            strncpy(CSV_Descr[index].Description, new_descr->value, sizeof(new_descr->value));                                                                                                                                                                                                                                                                                     ); 
+        if(new_descr)
+        {
+            strncpy(CSV_Descr[index].Description, new_descr->value, sizeof(CSV_Descr[index].Description));
         } else {
              memset(&CSV_Descr->Description[index], 0,
                   sizeof(CSV_Descr->Description[index]));
@@ -495,7 +496,6 @@ bool CharacterString_Value_Object_Name(
 bool CharacterString_Value_Name_Set(uint32_t object_instance, char *new_name)
 {
     unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
@@ -503,12 +503,11 @@ bool CharacterString_Value_Name_Set(uint32_t object_instance, char *new_name)
         status = true;
         /* FIXME: check to see if there is a matching name */
         if (new_name) {
-            strncpy(CSV_Descr[index].Name, new_name, sizeof(new_name));
+            strncpy(CSV_Descr[index].Name, new_name, sizeof(CSV_Descr[index].Name));
             }
         } else {
             memset(&CSV_Descr[index].Name, 0, sizeof(CSV_Descr[index].Name));
         }
-    
 
     return status;
 }

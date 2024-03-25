@@ -178,7 +178,7 @@ bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   if ((int) pInit_data->length > MAX_INTEGER_VALUES) {
     PRINTF("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
     return false;
-  } 
+  }
 
   for (i = 0; i < pInit_data->length; i++) {
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
@@ -187,7 +187,6 @@ bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
       PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
       return false;
     }
-       
 
     if (!characterstring_init_ansi(&IV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
       PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
