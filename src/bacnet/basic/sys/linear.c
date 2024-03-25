@@ -89,10 +89,10 @@ float linear_interpolate_round(float x1,
 
     y2 = linear_interpolate(x1, x2, x3, y1, y3);
     /* round away from zero */
-    if (y2 > 0.0) {
-        y2 += 0.5;
-    } else if (y2 < 0.0) {
-        y2 -= 0.5;
+    if (y2 > 0.0f) {
+        y2 += 0.5f;
+    } else if (y2 < 0.0f) {
+        y2 -= 0.5f;
     }
 
     return y2;
