@@ -33,7 +33,7 @@
 ####COPYRIGHTEND####*/
 
 #include <string.h>
-#include "stdio.h"
+
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
@@ -1507,8 +1507,7 @@ int encode_application_character_string(
         apdu_offset = &apdu[len];
     }
     len += encode_bacnet_character_string(apdu_offset, char_string);
-    printf("££££££££££££££££££ CGAR STRING LEN: %u \r\n");
-    printf("££££££££££££££££££ CHAR_STRING & LEN : %d '%s' \r\n", len, char_string->value);
+
     return len;
 }
 
