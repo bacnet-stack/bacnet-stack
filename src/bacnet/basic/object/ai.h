@@ -189,7 +189,7 @@ extern "C" {
 #endif
 
     BACNET_STACK_EXPORT
-    bool Analog_Input_Create(
+    uint32_t Analog_Input_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Analog_Input_Delete(

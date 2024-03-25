@@ -202,7 +202,7 @@ extern "C" {
 #endif
 
     BACNET_STACK_EXPORT
-    bool Analog_Value_Create(
+    uint32_t Analog_Value_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Analog_Value_Delete(
