@@ -156,7 +156,7 @@ uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
         PRINTF("index out of bounds %d", CSV_Descr[index].Instance);
     }
 
-    return NULL;
+    return 0;
 }
 
 /**
@@ -183,10 +183,9 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    for (index = 0; index < CSV_Max_Index; index++) {
-        if (object_instance == CSV_Descr[index].Instance) {
-            return true;
-        }
+
+    if (object_instance == CSV_Descr[index].Instance) {
+        return true;
     }
 
     return false;
