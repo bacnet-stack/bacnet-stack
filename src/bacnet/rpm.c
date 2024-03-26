@@ -238,7 +238,11 @@ int rpm_encode_apdu(uint8_t *apdu,
         }
         len = read_property_multiple_request_service_encode(
             apdu, apdu_size-apdu_len, data);
-        apdu_len += len;
+        if (len > 0) {
+            apdu_len += len;
+        } else {
+            apdu_len = 0;
+        }
     }
 
     return apdu_len;
