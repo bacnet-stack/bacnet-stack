@@ -401,7 +401,7 @@ extern "C" {
         RR_PROP_INFO * pInfo);
 
     BACNET_STACK_EXPORT
-    bool Network_Port_Create(
+    uint32_t Network_Port_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Network_Port_Delete(

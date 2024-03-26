@@ -173,7 +173,7 @@ extern "C" {
         uint32_t object_instance,
         BACNET_POLARITY polarity);
     BACNET_STACK_EXPORT
-    bool Binary_Value_Create(
+    uint32_t Binary_Value_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Binary_Value_Delete(
