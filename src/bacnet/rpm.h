@@ -109,6 +109,16 @@ extern "C" {
         uint8_t * apdu);
 
     BACNET_STACK_EXPORT
+    int read_property_multiple_request_encode(
+        uint8_t *apdu,
+        BACNET_READ_ACCESS_DATA *data); 
+    BACNET_STACK_EXPORT
+    size_t read_property_multiple_request_service_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_READ_ACCESS_DATA *data);
+
+    BACNET_STACK_EXPORT
     int rpm_encode_apdu(
         uint8_t * apdu,
         size_t max_apdu,

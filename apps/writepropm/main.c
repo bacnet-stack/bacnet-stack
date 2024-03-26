@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
             return 0;
         }
     }
-    if (argc < 9) {
+    if (argc < 8) {
         print_usage(filename);
         return 0;
     }
@@ -523,6 +523,10 @@ int main(int argc, char *argv[])
                 Request_Invoke_ID = Send_Write_Property_Multiple_Request(
                     &buffer[0], sizeof(buffer), Target_Device_Object_Instance,
                     Write_Access_Data);
+                if (Request_Invoke_ID == 0) {
+                    fprintf(stderr, "\rError: failed to send request!\n");
+                    break;
+                }
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
