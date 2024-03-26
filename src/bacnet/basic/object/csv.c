@@ -248,7 +248,6 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  * @return  true if values are within range and present-value
  *          is returned.
  */
-
 bool CharacterString_Value_Present_Value(
     uint32_t object_instance, BACNET_CHARACTER_STRING *present_value)
 {
@@ -259,10 +258,6 @@ bool CharacterString_Value_Present_Value(
 
     if (index < CSV_Max_Index) {
         status = characterstring_copy(present_value, &Present_Value[index]);
-        if(status == true) {
-            return status;
-        }
-
     }
 
     return status;
@@ -278,7 +273,6 @@ bool CharacterString_Value_Present_Value(
  *
  * @return  true if values are within range and present-value is set.
  */
-
 bool CharacterString_Value_Present_Value_Set(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
