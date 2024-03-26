@@ -332,43 +332,43 @@ set(BACNETSTACK_BASIC_SRCS
     $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/h_bbmd6.c>
     $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/vmac.c>
     ${BACNETSTACK_SRC}/bacnet/basic/npdu/s_router.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_credential.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_door.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_point.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_rights.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_user.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_zone.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/acc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/ao.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bi.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bo.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/calendar.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/channel.c
-    #${BACNETSTACK_SRC}/bacnet/basic/object/client/device-client.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/command.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/color_object.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/color_temperature.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/credential_data_input.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/csv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/device.c
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECTS_ACCESS}>:${BACNETSTACK_SRC}/bacnet/basic/object/access_credential.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECTS_ACCESS}>:${BACNETSTACK_SRC}/bacnet/basic/object/access_door.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECTS_ACCESS}>:${BACNETSTACK_SRC}/bacnet/basic/object/access_point.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECTS_ACCESS}>:${BACNETSTACK_SRC}/bacnet/basic/object/access_rights.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECTS_ACCESS}>:${BACNETSTACK_SRC}/bacnet/basic/object/access_user.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECTS_ACCESS}>:${BACNETSTACK_SRC}/bacnet/basic/object/access_zone.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_ACCUMULATOR}>:${BACNETSTACK_SRC}/bacnet/basic/object/acc.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_ANALOG_OUTPUT}>:${BACNETSTACK_SRC}/bacnet/basic/object/ao.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_FILE}>:${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_BINARY_INPUT}>:${BACNETSTACK_SRC}/bacnet/basic/object/bi.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_BINARY_OUTPUT}>:${BACNETSTACK_SRC}/bacnet/basic/object/bo.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_BINARY_VALUE}>:${BACNETSTACK_SRC}/bacnet/basic/object/bv.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_CALENDAR}>:${BACNETSTACK_SRC}/bacnet/basic/object/calendar.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_CHANNEL}>:${BACNETSTACK_SRC}/bacnet/basic/object/channel.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_COMMAND}>:${BACNETSTACK_SRC}/bacnet/basic/object/command.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_COLOR}>:${BACNETSTACK_SRC}/bacnet/basic/object/color_object.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_COLOR_TEMPERATURE}>:${BACNETSTACK_SRC}/bacnet/basic/object/color_temperature.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECTS_ACCESS}>:${BACNETSTACK_SRC}/bacnet/basic/object/credential_data_input.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_CHARACTERSTRING_VALUE}>:${BACNETSTACK_SRC}/bacnet/basic/object/csv.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_DEVICE_CLIENT}>:${BACNETSTACK_SRC}/bacnet/basic/object/client/device-client.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_DEVICE_SERVER}>:${BACNETSTACK_SRC}/bacnet/basic/object/device.c>
     $<$<BOOL:${CONFIG_BAC_ROUTING}>:${BACNETSTACK_SRC}/bacnet/basic/object/gateway/gw_device.c>
-    ${BACNETSTACK_SRC}/bacnet/basic/object/iv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/lc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/lo.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/lsp.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/ms-input.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/mso.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/msv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/nc.c
-    $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/object/netport.c>
-    ${BACNETSTACK_SRC}/bacnet/basic/object/objects.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/osv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/piv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/schedule.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/time_value.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_INTEGER_VALUE}>:${BACNETSTACK_SRC}/bacnet/basic/object/iv.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_LOAD_CONTROL}>:${BACNETSTACK_SRC}/bacnet/basic/object/lc.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT}>:${BACNETSTACK_SRC}/bacnet/basic/object/lo.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_POINT}>:${BACNETSTACK_SRC}/bacnet/basic/object/lsp.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_INPUT}>:${BACNETSTACK_SRC}/bacnet/basic/object/ms-input.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_OUTPUT}>:${BACNETSTACK_SRC}/bacnet/basic/object/mso.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_MULTISTATE_VALUE}>:${BACNETSTACK_SRC}/bacnet/basic/object/msv.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_NOTIFICATION_CLASS}>:${BACNETSTACK_SRC}/bacnet/basic/object/nc.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_NETWORK_PORT}>:${BACNETSTACK_SRC}/bacnet/basic/object/netport.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECTS}>:${BACNETSTACK_SRC}/bacnet/basic/object/objects.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_OCTET_STRING_VALUE}>:${BACNETSTACK_SRC}/bacnet/basic/object/osv.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_POSITIVE_INTEGER_VALUE}>:${BACNETSTACK_SRC}/bacnet/basic/object/piv.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_SCHEDULE}>:${BACNETSTACK_SRC}/bacnet/basic/object/schedule.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE}>:${BACNETSTACK_SRC}/bacnet/basic/object/time_value.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_TRENDLOG}>:${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c>
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_alarm_ack.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf_a.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf.c
@@ -450,6 +450,7 @@ zephyr_library_compile_definitions(
   $<$<BOOL:${CONFIG_BACDL_MSTP}>:BACDL_MSTP>
   $<$<BOOL:${CONFIG_BACDL_ETHERNET}>:BACDL_ETHERNET>
   $<$<BOOL:${CONFIG_BACDL_NONE}>:BACDL_NONE>
+  $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECTS}>:BACNET_BASIC_OBJECTS>
   $<$<BOOL:${CONFIG_BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
   $<$<BOOL:${CONFIG_BACNET_ROUTING}>:BACNET_ROUTING>
   $<$<BOOL:${CONFIG_BACAPP_PRINT_ENABLED}>:BACAPP_PRINT_ENABLED=1>
