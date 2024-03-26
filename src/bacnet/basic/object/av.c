@@ -87,6 +87,34 @@ void Analog_Value_Property_Lists(
 }
 
 /**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    (void)object_instance;
+    Analog_Value_Property_Lists(
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
  * Initialize the analog values.
  */
 void Analog_Value_Init(void)
