@@ -428,9 +428,6 @@ list(
       $<$<BOOL:${CONFIG_BACDL_ETHERNET}>:${BACNETSTACK_PORT}/ethernet.c>
       ${BACNETSTACK_PORT}/main.c
       ${BACNETSTACK_PORT}/mstimer-init.c
-      ${BACNETSTACK_PORT}/ai.c
-      ${BACNETSTACK_PORT}/av.c
-      ${BACNETSTACK_PORT}/event.c
   )
 
 
