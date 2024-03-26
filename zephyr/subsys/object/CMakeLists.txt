@@ -5,8 +5,6 @@
 #
 
 zephyr_compile_definitions(
-  _POSIX_C_SOURCE=200809    # Expose `strdup()` for bacfile, ao, bo, mso
-  CONFIG_NEWLIB_LIBC        # Choose library providing `strdup()` impl.
   BACNET_STACK_DEPRECATED_DISABLE
   )
 
