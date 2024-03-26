@@ -116,7 +116,7 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     BACNET_STACK_EXPORT
-    bool Access_Credential_Create(
+    uint32_t Access_Credential_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Access_Credential_Delete(

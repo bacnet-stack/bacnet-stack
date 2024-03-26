@@ -87,6 +87,34 @@ void Analog_Value_Property_Lists(
 }
 
 /**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    (void)object_instance;
+    Analog_Value_Property_Lists(
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
  * Initialize the analog values.
  */
 void Analog_Value_Init(void)
@@ -98,7 +126,7 @@ void Analog_Value_Init(void)
 
     for (i = 0; i < MAX_ANALOG_VALUES; i++) {
         memset(&AV_Descr[i], 0x00, sizeof(ANALOG_VALUE_DESCR));
-        AV_Descr[i].Present_Value = 0.0;
+        AV_Descr[i].Present_Value = 0.0f;
         AV_Descr[i].Units = UNITS_NO_UNITS;
         AV_Descr[i].Prior_Value = 0.0f;
         AV_Descr[i].COV_Increment = 1.0f;
@@ -201,9 +229,9 @@ unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
  */
 static void Analog_Value_COV_Detect(unsigned int index, float value)
 {
-    float prior_value = 0.0;
-    float cov_increment = 0.0;
-    float cov_delta = 0.0;
+    float prior_value = 0.0f;
+    float cov_increment = 0.0f;
+    float cov_delta = 0.0f;
 
     if (index < MAX_ANALOG_VALUES) {
         prior_value = AV_Descr[index].Prior_Value;
@@ -896,7 +924,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
-                if (value.type.Real >= 0.0) {
+                if (value.type.Real >= 0.0f) {
                     Analog_Value_COV_Increment_Set(
                         wp_data->object_instance, value.type.Real);
                 } else {
@@ -997,24 +1025,15 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
 #endif
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_EVENT_STATE:
-        case PROP_DESCRIPTION:
-#if defined(INTRINSIC_REPORTING)
-        case PROP_ACKED_TRANSITIONS:
-        case PROP_EVENT_TIME_STAMPS:
-#endif
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
-        case PROP_RELINQUISH_DEFAULT:
-        case PROP_PRIORITY_ARRAY:
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

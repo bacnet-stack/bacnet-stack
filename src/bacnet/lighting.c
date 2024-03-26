@@ -497,7 +497,8 @@ int lighting_command_to_ascii(
                 priority = value->priority;
             }
             len = snprintf(buf, buf_size, "%u,%f,%lu,%u", value->operation,
-                target_level, (unsigned long)fade_time, (unsigned)priority);
+                (float)target_level, (unsigned long)fade_time, 
+                (unsigned)priority);
             break;
         case BACNET_LIGHTS_RAMP_TO:
             if (value->use_target_level) {
@@ -510,8 +511,8 @@ int lighting_command_to_ascii(
                 priority = value->priority;
             }
             len = snprintf(buf, buf_size, "%u,%f,%f,%u",
-                (unsigned)value->operation, target_level, ramp_rate,
-                (unsigned)priority);
+                (unsigned)value->operation, (float)target_level, 
+                (float)ramp_rate, (unsigned)priority);
             break;
         case BACNET_LIGHTS_STEP_UP:
         case BACNET_LIGHTS_STEP_DOWN:
@@ -524,7 +525,8 @@ int lighting_command_to_ascii(
                 priority = value->priority;
             }
             len = snprintf(buf, buf_size, "%u,%f,%u",
-                (unsigned)value->operation, step_increment, (unsigned)priority);
+                (unsigned)value->operation, (float)step_increment, 
+                (unsigned)priority);
             break;
         case BACNET_LIGHTS_WARN:
         case BACNET_LIGHTS_WARN_OFF:
@@ -943,7 +945,8 @@ bool xy_color_same(BACNET_XY_COLOR *value1, BACNET_XY_COLOR *value2)
 int xy_color_to_ascii(const BACNET_XY_COLOR *value, char *buf, size_t buf_size)
 {
     return snprintf(
-        buf, buf_size, "(%f,%f)", value->x_coordinate, value->x_coordinate);
+        buf, buf_size, "(%f,%f)", (float)value->x_coordinate, 
+        (float)value->x_coordinate);
 }
 
 /**
