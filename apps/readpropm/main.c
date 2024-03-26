@@ -549,6 +549,10 @@ int main(int argc, char *argv[])
                 Request_Invoke_ID = Send_Read_Property_Multiple_Request(
                     &buffer[0], sizeof(buffer), Target_Device_Object_Instance,
                     Read_Access_Data);
+                if (Request_Invoke_ID == 0) {
+                    fprintf(stderr, "\rError: failed to send request!\n");
+                    break;
+                }
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
