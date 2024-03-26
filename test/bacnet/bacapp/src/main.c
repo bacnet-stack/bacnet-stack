@@ -355,79 +355,83 @@ static void test_bacapp_same_value(void)
     value.tag = test_value.tag;
 #if defined(BACAPP_BOOLEAN)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
+    value.type.Boolean = !test_value.type.Boolean;
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-    value.type.Boolean = !test_value.type.Boolean;
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
     value = test_value; /* Struct copy */
 #if defined(BACAPP_UNSIGNED)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
+    value.type.Unsigned_Int = ~test_value.type.Unsigned_Int;
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-    value.type.Unsigned_Int = ~test_value.type.Unsigned_Int;
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_SIGNED_INT;
     value = test_value; /* Struct copy */
 #if defined(BACAPP_SIGNED)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
+    value.type.Signed_Int = test_value.type.Signed_Int + 1;
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-    value.type.Signed_Int = test_value.type.Signed_Int + 1;
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_REAL;
     value = test_value; /* Struct copy */
 #if defined(BACAPP_REAL)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
+    value.type.Real = test_value.type.Real + 1.0f;
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-    value.type.Real = test_value.type.Real + 1.0f;
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_DOUBLE;
     value = test_value; /* Struct copy */
 #if defined(BACAPP_DOUBLE)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
+    value.type.Double = test_value.type.Double + 1.0;
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-    value.type.Double = test_value.type.Double + 1.0;
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
     value = test_value; /* Struct copy */
 #if defined(BACAPP_ENUMERATED)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
+    value.type.Enumerated = test_value.type.Enumerated + 1;
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-    value.type.Enumerated = test_value.type.Enumerated + 1;
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_DATE;
     value = test_value; /* Struct copy */
 #if defined(BACAPP_DATE)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
+    value.type.Date.day = test_value.type.Date.day + 1;
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
+    value = test_value; /* Struct copy */
+    value.type.Date.month = test_value.type.Date.month + 1;
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
+    value = test_value; /* Struct copy */
+    value.type.Date.year = test_value.type.Date.year + 1;
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-
-    value = test_value; /* Struct copy */
-    value.type.Date.day = test_value.type.Date.day + 1;
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
 
 #if 0 /*REVISIT: wday is not compared! */
     value = test_value;  /* Struct copy */
@@ -435,23 +439,11 @@ static void test_bacapp_same_value(void)
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
 
-    value = test_value; /* Struct copy */
-    value.type.Date.month = test_value.type.Date.month + 1;
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
-
-    value = test_value; /* Struct copy */
-    value.type.Date.year = test_value.type.Date.year + 1;
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
-
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_TIME;
     value = test_value; /* Struct copy */
 #if defined(BACAPP_TIME)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
-#else
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
-#endif
-
     value = test_value; /* Struct copy */
     value.type.Time.hour = test_value.type.Time.hour + 1;
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
@@ -467,16 +459,15 @@ static void test_bacapp_same_value(void)
     value = test_value; /* Struct copy */
     value.type.Time.hundredths = test_value.type.Time.hundredths + 1;
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
+#else
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
+#endif
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_OBJECT_ID;
     value = test_value; /* Struct copy */
 #if defined(BACAPP_OBJECT_ID)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
-#else
-    zassert_false(bacapp_same_value(&value, &test_value), NULL);
-#endif
-
     value = test_value; /* Struct copy */
     value.type.Object_Id.type = test_value.type.Object_Id.type + 1;
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
@@ -484,6 +475,9 @@ static void test_bacapp_same_value(void)
     value = test_value; /* Struct copy */
     value.type.Object_Id.instance = test_value.type.Object_Id.instance + 1;
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
+#else
+    zassert_false(bacapp_same_value(&value, &test_value), NULL);
+#endif
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
@@ -493,7 +487,6 @@ static void test_bacapp_same_value(void)
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-    // TODO: Verify .type.Character_String value compared
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_OCTET_STRING;
@@ -503,7 +496,6 @@ static void test_bacapp_same_value(void)
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-    // TODO: Verify .type.Octet_String value compared
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
@@ -513,17 +505,15 @@ static void test_bacapp_same_value(void)
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-    // TODO: Verify .type.Bit_String value compared
 
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
     value = test_value; /* Struct copy */
-#if defined(BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_LIGHTING_COMMAND)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
 #endif
-    // TODO: Verify .type.Lighting_Command value compared
 }
 
 /**
@@ -811,6 +801,23 @@ static void testBACnetApplicationDataLength(void)
     /* verify the length of the data inside the opening/closing tags */
     len = bacapp_data_len(&apdu[0], apdu_len, PROP_REQUESTED_SHED_LEVEL);
     zassert_equal(test_len, len, NULL);
+
+    /* 7. context opening & closing tag */
+    test_len = 0;
+    apdu_len = 0;
+    len = encode_opening_tag(&apdu[apdu_len], 3);
+    apdu_len += len;
+    len = encode_opening_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+    test_len += len;
+    len = encode_closing_tag(&apdu[apdu_len], 0);
+    apdu_len += len;
+    test_len += len;
+    len = encode_closing_tag(&apdu[apdu_len], 3);
+    apdu_len += len;
+    /* verify the length of the data inside the opening/closing tags */
+    len = bacapp_data_len(&apdu[0], apdu_len, PROP_WEEKLY_SCHEDULE);
+    zassert_equal(test_len, len, NULL);
 }
 
 /**
@@ -822,16 +829,32 @@ static bool verifyBACnetApplicationDataValue(
     uint8_t apdu[480] = { 0 };
     int apdu_len = 0;
     int null_len = 0;
+    int test_len = 0;
+    bool status = false;
     BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
 
     apdu_len = bacapp_encode_application_data(&apdu[0], value);
     zassert_true(apdu_len > 0, NULL);
     null_len = bacapp_encode_application_data(NULL, value);
     zassert_equal(apdu_len, null_len, NULL);
-    apdu_len = bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
-    zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
+    test_len = bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
+    zassert_true(test_len != BACNET_STATUS_ERROR, NULL);
+    status = bacapp_same_value(value, &test_value);
+    while (apdu_len) {
+        apdu_len--;
+        test_len =
+            bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
+        if (apdu_len == 0) {
+            zassert_equal(test_len, 0, "tag=%u apdu_len=%d test_len=%d\n",
+                value->tag, apdu_len, test_len);
+        } else {
+            zassert_equal(test_len, BACNET_STATUS_ERROR,
+                "tag=%u apdu_len=%d test_len=%d null_len=%d\n", value->tag,
+                apdu_len, test_len, null_len);
+        }
+    }
 
-    return bacapp_same_value(value, &test_value);
+    return status;
 }
 
 /**

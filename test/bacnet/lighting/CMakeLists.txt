@@ -23,6 +23,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
+	BACAPP_PRINT_ENABLED=1
 	)
 
 include_directories(
@@ -39,6 +40,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bacreal.c
 	${SRC_DIR}/bacnet/bacstr.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
+	${SRC_DIR}/bacnet/bactext.c
+	${SRC_DIR}/bacnet/indtext.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

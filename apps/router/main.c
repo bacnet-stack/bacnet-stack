@@ -517,6 +517,8 @@ bool parse_cmd(int argc, char *argv[])
                                     current->route_info.net = port_count;
                                 }
                                 break;
+                            default:
+                                break;
                         }
                         dev_opt =
                             getopt_long(argc, argv, bipString, Options, &index);
@@ -620,6 +622,8 @@ bool parse_cmd(int argc, char *argv[])
                                     current->route_info.net = (uint16_t)result;
                                 }
                                 break;
+                            default:
+                                break;
                         }
                         dev_opt = getopt_long(
                             argc, argv, mstpString, Options, &index);
@@ -629,6 +633,8 @@ bool parse_cmd(int argc, char *argv[])
                     PRINT(ERROR, "Error: %s unknown\n", optarg);
                     return false;
                 }
+                break;
+            default:
                 break;
         }
     }
@@ -648,8 +654,9 @@ void init_port_threads(ROUTER_PORT *port_list)
             case MSTP:
                 port->func = &dl_mstp_thread;
                 break;
+            default:
+                break;
         }
-
         port->state = INIT;
         thread = (pthread_t *)malloc(sizeof(pthread_t));
         pthread_create(thread, NULL, port->func, port);

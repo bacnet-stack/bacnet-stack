@@ -122,7 +122,7 @@ extern "C" {
     bool Binary_Output_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-    bool Binary_Output_Create(
+    uint32_t Binary_Output_Create(
         uint32_t object_instance);
     bool Binary_Output_Delete(
         uint32_t object_instance);

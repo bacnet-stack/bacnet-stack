@@ -77,11 +77,12 @@ static bool BVLC_NAT_Handling = false;
 static BACNET_IP_ADDRESS Remote_BBMD;
 /** if we are a foreign device, store the Time-To-Live Seconds here */
 static uint16_t Remote_BBMD_TTL_Seconds;
-#if BBMD_ENABLED
+#if BBMD_ENABLED || BBMD_CLIENT_ENABLED
 /* local buffer & length for sending */
 static uint8_t BVLC_Buffer[BIP_MPDU_MAX];
 static uint16_t BVLC_Buffer_Len;
-/* Broadcast Distribution Table */
+#endif
+#if BBMD_ENABLED/* Broadcast Distribution Table */
 #ifndef MAX_BBMD_ENTRIES
 #define MAX_BBMD_ENTRIES 128
 #endif
@@ -123,6 +124,9 @@ static void debug_print_bip(const char *str, const BACNET_IP_ADDRESS *addr)
             (unsigned)addr->address[1], (unsigned)addr->address[2],
             (unsigned)addr->address[3], (unsigned)addr->port);
     }
+#else
+    (void)str;
+    (void)addr;
 #endif
 }
 
@@ -137,6 +141,9 @@ static void debug_print_unsigned(const char *str, const unsigned int value)
     if (BVLC_Debug) {
         printf("BVLC: %s %u\n", str, value);
     }
+#else
+    (void)str;
+    (void)value;
 #endif
 }
 
@@ -152,6 +159,10 @@ static void debug_print_npdu(
     if (BVLC_Debug) {
         printf("BVLC: %s NPDU=MTU[%u] len=%u\n", str, offset, length);
     }
+#else
+    (void)str;
+    (void)offset;
+    (void)length;
 #endif
 }
 
@@ -165,6 +176,8 @@ static void debug_print_string(const char *str)
     if (BVLC_Debug) {
         printf("BVLC: %s\n", str);
     }
+#else
+    (void)str;
 #endif
 }
 
@@ -255,6 +268,8 @@ void bvlc_maintenance_timer(uint16_t seconds)
 {
 #if BBMD_ENABLED
     bvlc_foreign_device_table_maintenance_timer(&FD_Table[0], seconds);
+#else
+    (void)seconds;
 #endif
 }
 
@@ -512,6 +527,10 @@ static void bbmd_read_bdt_ack_handler(
             break;
         }
     }
+#else 
+    (void)addr;
+    (void)npdu;
+    (void)npdu_length;
 #endif
 }
 
@@ -554,6 +573,10 @@ static void bbmd_read_fdt_ack_handler(
             break;
         }
     }
+#else
+    (void)addr;
+    (void)npdu;
+    (void)npdu_length;
 #endif
 }
 #endif

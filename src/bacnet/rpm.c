@@ -32,10 +32,11 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 #include <stdint.h>
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/memcopy.h"
 #include "bacnet/rpm.h"
@@ -44,26 +45,22 @@
 
 #if BACNET_SVC_RPM_A
 
-/** Encode the initial portion of the service
- *
- * @param apdu  Pointer to the buffer for encoding.
+/** 
+ * @brief Encode the initial portion of the service
+ * @param apdu  Pointer to the buffer for encoding, or NULL for length
  * @param invoke_id  Invoke ID
- *
- * @return Bytes encoded (usually 4) or zero on error.
+ * @return number of bytes encoded
  */
 int rpm_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
 {
-    int apdu_len = 0; /* total length of the apdu, return value */
-
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_READ_PROP_MULTIPLE; /* service choice */
-        apdu_len = 4;
     }
 
-    return apdu_len;
+    return 4;
 }
 
 /** Encode the beginning, including
@@ -133,95 +130,123 @@ int rpm_encode_apdu_object_end(uint8_t *apdu)
     return apdu_len;
 }
 
-/** Encode an RPM request, to be sent.
- *
- * @param apdu [in,out] Buffer to hold encoded bytes.
- * @param max_apdu [in] Length of apdu buffer.
- * @param invoke_id [in] The Invoke ID to use for this message.
+/**
+ * @brief Encode the ReadPropertyMultiple-Request
+ * @param apdu Buffer to hold encoded bytes, or NULL for length
  * @param read_access_data [in] The RPM data to be requested.
  * @return Length of encoded bytes, or 0 on failure.
  */
-int rpm_encode_apdu(uint8_t *apdu,
-    size_t max_apdu,
-    uint8_t invoke_id,
-    BACNET_READ_ACCESS_DATA *read_access_data)
+int read_property_multiple_request_encode(
+    uint8_t *apdu,
+    BACNET_READ_ACCESS_DATA *data)    
 {
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
-    int len = 0; /* length of the data */
     BACNET_READ_ACCESS_DATA *rpm_object; /* current object */
-    uint8_t apdu_temp[16]; /* temp for data before copy */
     BACNET_PROPERTY_REFERENCE *rpm_property; /* current property */
 
-    len = rpm_encode_apdu_init(&apdu_temp[0], invoke_id);
-    len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len, (size_t)len,
-        (size_t)max_apdu);
-    if (len == 0) {
-        return 0;
-    }
-    apdu_len += len;
-    rpm_object = read_access_data;
+    rpm_object = data;
     while (rpm_object) {
-        /* The encode function will return a length not more than 12. So the
-         * temp buffer being 16 bytes is fine enough. */
-        len = encode_context_object_id(&apdu_temp[0], 0,
+        len = encode_context_object_id(apdu, 0,
             rpm_object->object_type, rpm_object->object_instance);
-        len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
-            (size_t)len, (size_t)max_apdu);
-        if (len == 0) {
-            return 0;
-        }
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         /* Tag 1: sequence of ReadAccessSpecification */
-        len = encode_opening_tag(&apdu_temp[0], 1);
-        len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
-            (size_t)len, (size_t)max_apdu);
-        if (len == 0) {
-            return 0;
-        }
+        len = encode_opening_tag(apdu, 1);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         rpm_property = rpm_object->listOfProperties;
         while (rpm_property) {
-            /* The encode function will return a length not more than 12. So the
-             * temp buffer being 16 bytes is fine enough. Stuff as many
-             * properties into it as APDU length will allow. */
             len = encode_context_enumerated(
-                &apdu_temp[0], 0, rpm_property->propertyIdentifier);
-            len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
-                (size_t)len, (size_t)max_apdu);
-            if (len == 0) {
-                return 0;
-            }
+                apdu, 0, rpm_property->propertyIdentifier);
             apdu_len += len;
+            if (apdu) {
+                apdu += len;
+            }
             /* optional array index */
             if (rpm_property->propertyArrayIndex != BACNET_ARRAY_ALL) {
                 len = encode_context_unsigned(
-                    &apdu_temp[0], 1, rpm_property->propertyArrayIndex);
-                len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
-                    (size_t)len, (size_t)max_apdu);
-                if (len == 0) {
-                    return 0;
-                }
+                    apdu, 1, rpm_property->propertyArrayIndex);
                 apdu_len += len;
+                if (apdu) {
+                    apdu += len;
+                }
             }
             rpm_property = rpm_property->next;
-            /* Full? */
-            if ((unsigned)apdu_len >= max_apdu) {
-                return 0;
-            }
         }
-        len = encode_closing_tag(&apdu_temp[0], 1);
-        len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
-            (size_t)len, (size_t)max_apdu);
-        if (len == 0) {
-            return 0;
-        }
+        len = encode_closing_tag(apdu, 1);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         rpm_object = rpm_object->next;
     }
 
     return apdu_len;
 }
 
+/**
+ * @brief Encode the ReadPropertyMultiple-Request service
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t read_property_multiple_request_service_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_READ_ACCESS_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = read_property_multiple_request_encode(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = read_property_multiple_request_encode(apdu, data);
+    }
+
+    return apdu_len;
+}
+
+/** Encode an RPM request, to be sent.
+ *
+ * @param apdu [in,out] Buffer to hold encoded bytes.
+ * @param apdu_size [in] Length of apdu buffer.
+ * @param invoke_id [in] The Invoke ID to use for this message.
+ * @param data [in] The RPM data to be requested.
+ * @return Length of encoded bytes, or 0 on failure.
+ */
+int rpm_encode_apdu(uint8_t *apdu,
+    size_t apdu_size,
+    uint8_t invoke_id,
+    BACNET_READ_ACCESS_DATA *data)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+    int len = 0; /* length of the data */
+
+    len = rpm_encode_apdu_init(NULL, invoke_id);
+    if (len > apdu_size) {
+        return 0;
+    } else {
+        len = rpm_encode_apdu_init(apdu, invoke_id);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = read_property_multiple_request_service_encode(
+            apdu, apdu_size-apdu_len, data);
+        if (len > 0) {
+            apdu_len += len;
+        } else {
+            apdu_len = 0;
+        }
+    }
+
+    return apdu_len;
+}
 #endif
 
 /** Decode the object portion of the service request only. Bails out if
@@ -586,5 +611,138 @@ int rpm_ack_decode_object_property(uint8_t *apdu,
     }
 
     return (int)len;
+}
+
+/**
+ * @brief Decode the RPM Ack and call the ReadProperty-ACK function to 
+ *  process each property value of the reply.
+ * 
+ *  ReadAccessResult ::= SEQUENCE {
+ *      object-identifier [0] BACnetObjectIdentifier,
+ *      list-of-results [1] SEQUENCE OF SEQUENCE {
+ *          property-identifier [2] BACnetPropertyIdentifier,
+ *          property-array-index [3] Unsigned OPTIONAL,
+ *          -- used only with array datatype
+ *          -- if omitted with an array the entire
+ *          -- array is referenced
+ *          read-result CHOICE {
+ *              property-value [4] ABSTRACT-SYNTAX.&Type,
+ *              property-access-error [5] Error
+ *          }
+ *      }
+ *  }
+ *
+ * @param apdu [in] Buffer of bytes received.
+ * @param apdu_len [in] Count of valid bytes in the buffer.
+ * @param device_id [in] The device ID of the device that replied.
+ * @param rp_data [in] The data structure to be filled.
+ * @param callback [in] The function to call for each property value.
+*/
+void rpm_ack_object_property_process(
+    uint8_t *apdu,
+    unsigned apdu_len,
+    uint32_t device_id,
+    BACNET_READ_PROPERTY_DATA *rp_data,
+    read_property_ack_process callback)
+{
+    int len = 0;
+    uint16_t application_data_len;
+    uint32_t error_value = 0; /* decoded error value */
+
+    if (!apdu) {
+        return;
+    }
+    if (!rp_data) {
+        return;
+    }
+    while (apdu_len) {
+        /*  object-identifier [0] BACnetObjectIdentifier */
+        /*      list-of-results [1] SEQUENCE OF SEQUENCE */
+        len = rpm_ack_decode_object_id(
+            apdu, apdu_len, &rp_data->object_type, &rp_data->object_instance);
+        if (len <= 0) {
+            /* malformed */
+            return;
+        }
+        apdu_len -= len;
+        apdu += len;
+        while (apdu_len) {
+            len = rpm_ack_decode_object_property(apdu, apdu_len,
+                &rp_data->object_property, &rp_data->array_index);
+            if (len <= 0) {
+                /* malformed */
+                return;
+            }
+            apdu_len -= len;
+            apdu += len;
+            if (bacnet_is_opening_tag_number(apdu, apdu_len, 4, &len)) {
+                application_data_len = bacapp_data_len(
+                    apdu, apdu_len, rp_data->object_property);
+                /* propertyValue */
+                apdu_len -= len;
+                apdu += len;
+                if (application_data_len) {
+                    rp_data->application_data_len = application_data_len;
+                    rp_data->application_data = apdu;
+                    apdu_len -= application_data_len;
+                    apdu += application_data_len;
+                }
+                if (bacnet_is_closing_tag_number(apdu, apdu_len, 4, &len)) {
+                    apdu_len -= len;
+                    apdu += len;
+                } else {
+                    /* malformed */
+                    return;
+                }
+                rp_data->error_class = ERROR_CLASS_PROPERTY;
+                rp_data->error_code = ERROR_CODE_SUCCESS;
+                if (callback) {
+                    callback(device_id, rp_data);
+                }
+            } else if (bacnet_is_opening_tag_number(
+                            apdu, apdu_len, 5, &len)) {
+                apdu_len -= len;
+                apdu += len;
+                /* property-access-error */
+                len = bacnet_enumerated_application_decode(
+                    apdu, apdu_len, &error_value);
+                if (len > 0) {
+                    rp_data->error_class = (BACNET_ERROR_CLASS)error_value;
+                    apdu_len -= len;
+                    apdu += len;
+                } else {
+                    /* malformed */
+                    return;
+                }
+                len = bacnet_enumerated_application_decode(
+                    apdu, apdu_len, &error_value);
+                if (len > 0) {
+                    rp_data->error_code = (BACNET_ERROR_CODE)error_value;
+                    apdu_len -= len;
+                    apdu += len;
+                } else {
+                    /* malformed */
+                    return;
+                }
+                if (bacnet_is_closing_tag_number(apdu, apdu_len, 5, &len)) {
+                    apdu_len -= len;
+                    apdu += len;
+                } else {
+                    /* malformed */
+                    return;
+                }
+                if (callback) {
+                    callback(device_id, rp_data);
+                }
+            }
+        }
+        len = rpm_decode_object_end(apdu, apdu_len);
+        if (len) {
+            apdu_len -= len;
+            apdu += len;
+        }
+    }
+
+    return;
 }
 #endif

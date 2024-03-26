@@ -30,9 +30,7 @@
 #include <stdio.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
 #include "bacnet/rp.h"
 #include "bacnet/basic/object/bv.h"

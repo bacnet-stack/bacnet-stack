@@ -24,6 +24,8 @@
 *********************************************************************/
 #ifndef BASIC_SERVICES_H
 #define BASIC_SERVICES_H
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /* NPDU layer handlers */
 #include "bacnet/basic/npdu/h_npdu.h"

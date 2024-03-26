@@ -29,12 +29,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h> /* for memcpy */
+#include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/datetime.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/basic/object/lc.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/wp.h"

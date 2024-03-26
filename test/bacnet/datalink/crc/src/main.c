@@ -10,7 +10,7 @@
 
 #include <zephyr/ztest.h>
 #include <bacnet/datalink/crc.h>
-#include <bacnet/bytes.h>
+#include <bacnet/basic/sys/bytes.h>
 
 /**
  * @addtogroup bacnet_tests

@@ -217,7 +217,7 @@ uint32_t RS485_Get_Baud_Rate(void)
  * ALGORITHM:   none
  * NOTES:       none
  *****************************************************************************/
-uint32_t RS485_Get_Port_Baud_Rate(volatile struct mstp_port_struct_t *mstp_port)
+uint32_t RS485_Get_Port_Baud_Rate(struct mstp_port_struct_t *mstp_port)
 {
     uint32_t baud = 0;
     SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
@@ -382,7 +382,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
  * NOTES:       none
  *****************************************************************************/
 void RS485_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port, /* port specific data */
+    struct mstp_port_struct_t *mstp_port, /* port specific data */
     uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 { /* number of bytes of data (up to 501) */
@@ -458,7 +458,7 @@ void RS485_Send_Frame(
  * ALGORITHM:   none
  * NOTES:       none
  *****************************************************************************/
-void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
+void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
 {
     fd_set input;
     struct timeval waiter;
@@ -694,7 +694,7 @@ void RS485_Print_Ports(void)
 #include <string.h>
 int main(int argc, char *argv[])
 {
-    volatile struct mstp_port_struct_t mstp_port = { 0 };
+    struct mstp_port_struct_t mstp_port = { 0 };
     uint8_t token_buf[8] = { 0x55, 0xFF, 0x00, 0x7E, 0x07, 0x00, 0x00, 0xFD };
     uint8_t pfm_buf[8] = { 0x55, 0xFF, 0x01, 0x67, 0x07, 0x00, 0x00, 0x3E };
     long baud = 38400;

@@ -26,10 +26,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/basic/sys/platform.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
 
 /** Hop count default is required by BTL to be maximum */
 #ifndef HOP_COUNT_DEFAULT
@@ -77,6 +75,14 @@ extern "C" {
     BACNET_STACK_EXPORT
     int npdu_encode_pdu(
         uint8_t * npdu,
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src,
+        BACNET_NPDU_DATA * npdu_data);
+
+    BACNET_STACK_EXPORT
+    int bacnet_npdu_encode_pdu(
+        uint8_t * pdu,
+        uint16_t pdu_size,
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src,
         BACNET_NPDU_DATA * npdu_data);

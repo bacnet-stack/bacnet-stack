@@ -24,3 +24,5 @@ find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})
 target_include_directories(testbinary PRIVATE
   ${ZEPHYR_CURRENT_MODULE_DIR}/src
   )
+
+add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig

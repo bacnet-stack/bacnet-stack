@@ -303,3 +303,40 @@ bool host_n_port_same(BACNET_HOST_N_PORT *host1, BACNET_HOST_N_PORT *host2)
     }
     return status;
 }
+
+/**
+ * @brief Parse value from ASCII string (as entered by user)
+ * @param value - struct to populate with data from the ASCII string
+ * @param argv - ASCII string, zero terminated
+ * @return true on success
+ */
+bool host_n_port_from_ascii(BACNET_HOST_N_PORT *value, const char *argv)
+{
+    bool status = false;
+    unsigned a[4] = { 0 }, p = 0;
+    int count;
+
+    count = sscanf(argv, "%3u.%3u.%3u.%3u:%5u", &a[0], &a[1], &a[2],
+        &a[3], &p);
+    if ((count == 4) || (count == 5)) {
+        uint8_t address[4];
+        value->host_ip_address = true;
+        value->host_name = false;
+        address[0] = (uint8_t)a[0];
+        address[1] = (uint8_t)a[1];
+        address[2] = (uint8_t)a[2];
+        address[3] = (uint8_t)a[3];
+        octetstring_init(
+            &value->host.ip_address, address, 4);
+        if (count == 4) {
+            value->port = 0xBAC0U;
+        } else {
+            value->port = (uint16_t)p;
+        }
+        status = true;
+    } else {
+        status = false;
+    }
+
+    return status;
+}

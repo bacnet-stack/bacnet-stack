@@ -182,6 +182,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bi.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bo.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\calendar.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\channel.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\command.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\csv.c" />
@@ -197,6 +198,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\osv.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\piv.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\time_value.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c" />
   </ItemGroup>
   <ItemGroup>

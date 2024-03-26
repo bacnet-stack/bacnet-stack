@@ -50,12 +50,15 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/indtext.c
 	${SRC_DIR}/bacnet/hostnport.c
 	${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/proplist.c
 	${SRC_DIR}/bacnet/timestamp.c
 	${SRC_DIR}/bacnet/memcopy.c
 	${SRC_DIR}/bacnet/wp.c
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
+	${SRC_DIR}/bacnet/calendar_entry.c
+	${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

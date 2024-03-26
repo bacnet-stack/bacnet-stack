@@ -29,17 +29,19 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacaddr.h"
+#include "bacnet/npdu.h"
 #include "bacnet/datalink/mstp.h"
-/*#include "bacnet/datalink/dlmstp.h" */
+#include "bacnet/basic/sys/ringbuf.h"
+/* port specific */
 #include "dlmstp_linux.h"
 #include "rs485.h"
-#include "bacnet/npdu.h"
-#include "bacnet/bits.h"
 /* OS Specific include */
 #include "bacport.h"
-#include "bacnet/basic/sys/ringbuf.h"
 
 /** @file linux/dlmstp.c  Provides Linux-specific DataLink functions for MS/TP.
  */
@@ -228,7 +230,7 @@ void *dlmstp_receive_fsm_task(void *pArg)
             do {
                 RS485_Check_UART_Data(mstp_port);
                 MSTP_Receive_Frame_FSM(
-                    (volatile struct mstp_port_struct_t *)pArg);
+                    (struct mstp_port_struct_t *)pArg);
                 received_frame = mstp_port->ReceivedValidFrame ||
                     mstp_port->ReceivedInvalidFrame;
                 if (received_frame) {
@@ -274,11 +276,11 @@ void *dlmstp_master_fsm_task(void *pArg)
                         run_master = true;
                     break;
                 case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-                    if (silence >= poSharedData->Treply_timeout)
+                    if (silence >= mstp_port->Treply_timeout)
                         run_master = true;
                     break;
                 case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-                    if (silence >= poSharedData->Tusage_timeout)
+                    if (silence >= mstp_port->Tusage_timeout)
                         run_master = true;
                     break;
                 default:
@@ -324,7 +326,7 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     uint16_t pdu_len = 0;
     SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
@@ -353,7 +355,7 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
     uint8_t frame_type = 0;
@@ -382,6 +384,20 @@ uint16_t MSTP_Get_Send(
     (void)Ringbuf_Pop(&poSharedData->PDU_Queue, NULL);
 
     return pdu_len;
+}
+
+/**
+ * @brief Send an MSTP frame
+ * @param mstp_port - port specific data
+ * @param buffer - data to send
+ * @param nbytes - number of bytes of data to send
+ */
+void MSTP_Send_Frame(
+    struct mstp_port_struct_t *mstp_port,
+    uint8_t * buffer,
+    uint16_t nbytes)
+{
+    RS485_Send_Frame(mstp_port, buffer, nbytes);
 }
 
 bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
@@ -541,7 +557,7 @@ bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
 
 /* Get the reply to a DATA_EXPECTING_REPLY frame, or nothing */
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0; /* return value */
     bool matched = false;
@@ -549,10 +565,10 @@ uint16_t MSTP_Get_Reply(
     struct mstp_pdu_packet *pkt;
     SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
 
+    (void)timeout;
     if (!poSharedData) {
         return 0;
     }
-
     if (Ringbuf_Empty(&poSharedData->PDU_Queue)) {
         return 0;
     }

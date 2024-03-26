@@ -30,13 +30,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/object/av.h"
@@ -88,6 +87,34 @@ void Analog_Value_Property_Lists(
 }
 
 /**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    (void)object_instance;
+    Analog_Value_Property_Lists(
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
  * Initialize the analog values.
  */
 void Analog_Value_Init(void)
@@ -99,11 +126,12 @@ void Analog_Value_Init(void)
 
     for (i = 0; i < MAX_ANALOG_VALUES; i++) {
         memset(&AV_Descr[i], 0x00, sizeof(ANALOG_VALUE_DESCR));
-        AV_Descr[i].Present_Value = 0.0;
+        AV_Descr[i].Present_Value = 0.0f;
         AV_Descr[i].Units = UNITS_NO_UNITS;
         AV_Descr[i].Prior_Value = 0.0f;
         AV_Descr[i].COV_Increment = 1.0f;
         AV_Descr[i].Changed = false;
+        AV_Descr[i].Object_Name = NULL;
 #if defined(INTRINSIC_REPORTING)
         AV_Descr[i].Event_State = EVENT_STATE_NORMAL;
         /* notification class not connected */
@@ -201,9 +229,9 @@ unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
  */
 static void Analog_Value_COV_Detect(unsigned int index, float value)
 {
-    float prior_value = 0.0;
-    float cov_increment = 0.0;
-    float cov_delta = 0.0;
+    float prior_value = 0.0f;
+    float cov_increment = 0.0f;
+    float cov_delta = 0.0f;
 
     if (index < MAX_ANALOG_VALUES) {
         prior_value = AV_Descr[index].Prior_Value;
@@ -280,13 +308,36 @@ float Analog_Value_Present_Value(uint32_t object_instance)
 bool Analog_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text_string[32] = "";
     bool status = false;
 
     if (object_instance < MAX_ANALOG_VALUES) {
-        sprintf(
-            text_string, "ANALOG VALUE %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        if (AV_Descr[object_instance].Object_Name) {
+            status = characterstring_init_ansi(object_name, AV_Descr[object_instance].Object_Name);
+        } else {
+            snprintf(text_string, sizeof(text_string), "ANALOG VALUE %u",
+                object_instance);
+            status = characterstring_init_ansi(object_name, text_string);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Analog_Value_Name_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false;
+    if (object_instance < MAX_ANALOG_VALUES) {
+        status = true;
+        AV_Descr[object_instance].Object_Name = new_name;
     }
 
     return status;
@@ -309,9 +360,45 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
     if (index < MAX_ANALOG_VALUES) {
         state = AV_Descr[index].Event_State;
     }
+#else 
+    (void)object_instance;
 #endif
 
     return state;
+}
+
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+char *Analog_Value_Description(uint32_t object_instance)
+{
+    char *name = NULL;
+
+    if (object_instance < MAX_ANALOG_VALUES) {
+        name = AV_Descr[object_instance].Description;
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if object-name was set
+ */
+bool Analog_Value_Description_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false; /* return value */
+
+    if (object_instance < MAX_ANALOG_VALUES && new_name) {
+        status = true;
+        AV_Descr[object_instance].Description = new_name;
+    }
+
+    return status;
 }
 
 /**
@@ -431,6 +518,44 @@ void Analog_Value_COV_Increment_Set(uint32_t object_instance, float value)
     }
 }
 
+/**
+ * For a given object instance-number, returns the units property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  units property value
+ */
+uint16_t Analog_Value_Units(uint32_t object_instance)
+{
+	uint16_t units = UNITS_NO_UNITS;
+
+	if (object_instance < MAX_ANALOG_VALUES) {
+		units = AV_Descr[object_instance].Units;
+	}
+
+	return units;
+}
+
+/**
+ * For a given object instance-number, sets the units property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param units - units property value
+ *
+ * @return true if the units property value was set
+ */
+bool Analog_Value_Units_Set(uint32_t object_instance, uint16_t units)
+{
+	bool status = false;
+
+	if (object_instance < MAX_ANALOG_VALUES) {
+		AV_Descr[object_instance].Units = units;
+		status = true;
+	}
+
+	return status;
+}
+
 bool Analog_Value_Out_Of_Service(uint32_t object_instance)
 {
     unsigned index = 0;
@@ -506,12 +631,18 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             if (Analog_Value_Object_Name(
                     rpdata->object_instance, &char_string)) {
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
             }
+            break;
+
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(&char_string,
+                Analog_Value_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
 
         case PROP_OBJECT_TYPE:
@@ -793,7 +924,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
-                if (value.type.Real >= 0.0) {
+                if (value.type.Real >= 0.0f) {
                     Analog_Value_COV_Increment_Set(
                         wp_data->object_instance, value.type.Real);
                 } else {
@@ -894,24 +1025,15 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
 #endif
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_EVENT_STATE:
-        case PROP_DESCRIPTION:
-#if defined(INTRINSIC_REPORTING)
-        case PROP_ACKED_TRANSITIONS:
-        case PROP_EVENT_TIME_STAMPS:
-#endif
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
-        case PROP_RELINQUISH_DEFAULT:
-        case PROP_PRIORITY_ARRAY:
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

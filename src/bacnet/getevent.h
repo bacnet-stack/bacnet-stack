@@ -26,9 +26,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/timestamp.h"
 #include "bacnet/event.h"
 
@@ -61,6 +61,11 @@ extern "C" {
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
+
+    BACNET_STACK_EXPORT
+    size_t getevent_service_request_encode(
+        uint8_t *apdu, size_t apdu_size, 
+        BACNET_OBJECT_ID *data);
 
     BACNET_STACK_EXPORT
     int getevent_decode_service_request(

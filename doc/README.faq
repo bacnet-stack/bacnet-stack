@@ -152,3 +152,10 @@ A-17: Yes, static address binding is supported as of version 0.4.3. Use a file c
 ;DeviceID MAC SNET SADR MAX-APDU
 4194302 05 0 0 50
 55555 C0:A8:00:18:BA:C0 26001 19 50
+
+Q-18: I have downloaded the BACnet stack but can't get Who-Is or EPICS applications to work. When I capture their packets with WireShark, I see Who-Is broadcast packet sent by the client application, but Wireshark shows no I-Am packets.  How do I make it work?
+
+A-18: Firewalls on modern OS block incoming and outgoing network traffic and require you to 'allow' the port that BACnet/IP uses.  To allow the default BACnet/IP UDP port 47808 Linux with UFW:
+
+$ sudo ufw allow 47808/udp
+

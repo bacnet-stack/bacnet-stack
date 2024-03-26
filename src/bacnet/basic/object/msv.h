@@ -27,8 +27,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -127,7 +128,7 @@ extern "C" {
         uint32_t state_index);
 
     BACNET_STACK_EXPORT
-    bool Multistate_Value_Create(
+    uint32_t Multistate_Value_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Multistate_Value_Delete(

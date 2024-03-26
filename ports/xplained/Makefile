@@ -196,12 +196,12 @@ CFLAGS += -fsigned-char -std=gnu99
 CFLAGS += -fno-strict-aliasing
 CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wmissing-prototypes
-CFLAGS += -Werror-implicit-function-declaration
 CFLAGS += -Wpointer-arith
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
 CFLAGS += -DIOPORT_XMEGA_COMPAT
 # silence some warnings
 CFLAGS += -Wno-switch
+CFLAGS += -std=gnu99
 
 ## Assembly specific flags
 AFLAGS = $(SDK_FLAGS)
