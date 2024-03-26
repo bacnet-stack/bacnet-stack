@@ -22,7 +22,7 @@
 #define islessgreater(x, y) ((x) < (y) || (x) > (y))
 #endif
 
-/* ARRAY_SIZE is defined here exsept Zephyr platform
+/* ARRAY_SIZE is defined here except Zephyr platform
  * Use CONFIG_KERNEL_BIN_NAME instead of ZEPHYR because ZEPHYR is defined in
  * unit tests for different platforms and is not a unique Zephyr criterion.
  */
