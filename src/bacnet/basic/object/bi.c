@@ -171,7 +171,9 @@ void Binary_Input_Init(void)
 
     /* initialize all the values */
     for (i = 0; i < BI_Max_Index; i++) {
+#if (BINARY_INPUT_INTRINSIC_REPORTING)
       unsigned j;
+#endif
 
       memset(&BI_Descr[i], 0x00, sizeof(BINARY_INPUT_DESCR));
       BI_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_BINARY_INPUT));
@@ -706,8 +708,10 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     unsigned int object_index = 0;
-    BINARY_INPUT_DESCR *CurrentBI = NULL;
     BACNET_APPLICATION_DATA_VALUE value;
+#if (BINARY_INPUT_INTRINSIC_REPORTING)
+    BINARY_INPUT_DESCR *CurrentBI = NULL;
+#endif
 
     /* decode the some of the request */
     int len = bacapp_decode_application_data(
@@ -729,7 +733,9 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     object_index = Binary_Input_Instance_To_Index(wp_data->object_instance);
     if (object_index < BI_Max_Index) {
+#if (BINARY_INPUT_INTRINSIC_REPORTING)
         CurrentBI = &BI_Descr[object_index];
+#endif
     } else {
         return false;
     }

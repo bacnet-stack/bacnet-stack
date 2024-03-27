@@ -29,13 +29,31 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/bacint.h"
 #include "bacnet/config.h"
+#if 0
+201112L for C11 😃
+199901L for C99 🚀
+199409L
+#endif
 
 #if !defined(PRINT)
 #  ifdef DEBUG_PRINT
-#    define PRINT(...) do {printf("%s:%d::%s(): ", __FILE__, __LINE__, __func__); printf(__VA_ARGS__); printf("\r\n");} while(0)
+#    if (__STDC_VERSION__  >= 199901L)
+#      define PRINT(...) do {printf("%s:%d::%s(): ", __FILE__, __LINE__, __func__); printf(__VA_ARGS__); printf("\r\n");} while(0)
+#    else
+#      include <stdarg.h>
+       static inline void __PRINT(const char *format, ...) {
+         va_list args;
+         va_start(Args, format);
+         printf("%s:%d(): ", __FILE__, __LINE__);
+         vprintf(format "\r\n", args);
+         va_end(args);
+       }
+#    endif
 #  else
-#  define PRINT(...)
+#    include <stdarg.h>
+     static inline void __PRINT(const char *format, ...) { (void) format; }
 #  endif
+#    define PRINT __PRINT
 #endif
 
 #if defined(_MSC_VER)
