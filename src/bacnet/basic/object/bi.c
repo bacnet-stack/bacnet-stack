@@ -171,16 +171,18 @@ void Binary_Input_Init(void)
 
     /* initialize all the values */
     for (i = 0; i < BI_Max_Index; i++) {
+      unsigned j;
+
       memset(&BI_Descr[i], 0x00, sizeof(BINARY_INPUT_DESCR));
       BI_Descr[i].Instance = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_BINARY_INPUT));
       Present_Value[i] = BINARY_INACTIVE;
-#if (INTRINSIC_REPORTING)
+#if (BINARY_INPUT_INTRINSIC_REPORTING)
       BI_Descr[i].Event_State = EVENT_STATE_NORMAL;
       BI_Descr[i].Event_Detection_Enable = true;
       /* notification class not connected */
       BI_Descr[i].Notification_Class = BACNET_MAX_INSTANCE;
       /* initialize Event time stamps using wildcards and set Acked_transitions */
-      for (unsigned j = 0; j < MAX_BACNET_EVENT_TRANSITION; j++) {
+      for (j = 0; j < MAX_BACNET_EVENT_TRANSITION; j++) {
         datetime_wildcard_set(&BI_Descr[i].Event_Time_Stamps[j]);
         BI_Descr[i].Acked_Transitions[j].bIsAcked = true;
       }
@@ -229,12 +231,12 @@ bool Binary_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
 
     if (!characterstring_init_ansi(&BI_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-      PRINT("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+      PRINT("Fail to set Object name to \".%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
       return false;
     }
 
     if (!characterstring_init_ansi(&BI_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
-      PRINT("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+      PRINT("Fail to set Object description to \".%128s\"", pInit_data->Object_Init_Values[i].Description);
       return false;
     }
   }
@@ -504,10 +506,12 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    BINARY_INPUT_DESCR *CurrentBI = NULL;
     unsigned object_index = 0;
     uint8_t *apdu = NULL;
     bool state = false;
+#if (BINARY_INPUT_INTRINSIC_REPORTING)
+    BINARY_INPUT_DESCR *CurrentBI = NULL;
+#endif
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -516,7 +520,9 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
     object_index = Binary_Input_Instance_To_Index(rpdata->object_instance);
     if (object_index < BI_Max_Index) {
+#if (BINARY_INPUT_INTRINSIC_REPORTING)
         CurrentBI = &BI_Descr[object_index];
+#endif
     } else {
         return BACNET_STATUS_ERROR;
     }
@@ -872,6 +878,9 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 unsigned Binary_Input_Event_State(uint32_t object_instance)
 {
     unsigned state = EVENT_STATE_NORMAL;
+#if !(BINARY_INPUT_INTRINSIC_REPORTING)
+  (void) object_instance;
+#endif
 #if (BINARY_INPUT_INTRINSIC_REPORTING)
     unsigned index = Binary_Input_Instance_To_Index(object_instance);
 
@@ -894,6 +903,9 @@ unsigned Binary_Input_Event_State(uint32_t object_instance)
 bool Binary_Input_Event_Detection_Enable(uint32_t object_instance)
 {
     bool retval = false;
+#if !(BINARY_INPUT_INTRINSIC_REPORTING)
+    (void) object_instance;
+#endif
 #if (BINARY_INPUT_INTRINSIC_REPORTING)
     unsigned index = Binary_Input_Instance_To_Index(object_instance);
 
@@ -915,6 +927,10 @@ bool Binary_Input_Event_Detection_Enable(uint32_t object_instance)
 bool Binary_Input_Event_Detection_Enable_Set(uint32_t object_instance, bool value)
 {
     bool retval = false;
+#if !(BINARY_INPUT_INTRINSIC_REPORTING)
+    (void) object_instance;
+    (void) value;
+#endif
 #if (BINARY_INPUT_INTRINSIC_REPORTING)
     unsigned index = Binary_Input_Instance_To_Index(object_instance);
 
@@ -1010,11 +1026,7 @@ bool Binary_Input_Alarm_Value_Set(
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < BI_Max_Index) {
         if (Polarity[index] != POLARITY_NORMAL) {
-            if (value == BINARY_INACTIVE) {
-                value = BINARY_ACTIVE;
-            } else {
-                value = BINARY_INACTIVE;
-            }
+          value = (value == BINARY_INACTIVE) ? BINARY_ACTIVE : BINARY_INACTIVE;
         }
         BI_Descr[index].Alarm_Value = value;
         status = true;
@@ -1026,6 +1038,9 @@ bool Binary_Input_Alarm_Value_Set(
 
 void Binary_Input_Intrinsic_Reporting(uint32_t object_instance)
 {
+#if !(BINARY_INPUT_INTRINSIC_REPORTING)
+  (void) object_instance;
+#endif
 #if (BINARY_INPUT_INTRINSIC_REPORTING)
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
     BACNET_CHARACTER_STRING msgText = { 0 };
@@ -1125,7 +1140,7 @@ void Binary_Input_Intrinsic_Reporting(uint32_t object_instance)
                 default:
                     break;
             } /* switch (ToState) */
-            PRINT("Binary-Input[%d]: Event_State goes from %128s to %128s.\n",
+            PRINT("Binary-Input[%d]: Event_State goes from %.128s to %.128s.\n",
                 object_instance, bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
             /* Notify Type */
