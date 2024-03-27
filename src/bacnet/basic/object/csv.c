@@ -182,11 +182,13 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
-    if (object_instance == CSV_Descr[index].Instance) {
-        return true;
+    if(index > CSV_Max_Index)
+    {
+        return false;
     }
 
-    return false;
+    return object_instance == CSV_Descr[index].Instance;
+
 }
 
 /**
@@ -236,7 +238,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
  * For a given object instance-number, read the present-value.
  *
  * @param  object_instance - object-instance number of the object
- * @param  Name - Pointer to the new BACnet string value,
+ * @param  present_value - Pointer to the new BACnet string value,
  *                       taking the value.
  *
  * @return  true if values are within range and present-value
