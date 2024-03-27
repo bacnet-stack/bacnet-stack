@@ -51,6 +51,8 @@
 #define MAX_INTEGER_VALUES 1
 #endif
 
+#define PRINTF printf
+
 struct integer_object {
     bool Out_Of_Service : 1;
     int32_t Present_Value;
@@ -63,10 +65,23 @@ static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_UNITS, -1 };
 
-static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE,
+static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE, 
+    PROP_DESCRIPTION,
     -1 };
 
 static const int Integer_Value_Properties_Proprietary[] = { -1 };
+
+typedef BACNET_CHARACTER_STRING INTEGER_VALUE_CHARACTER_STRING;
+
+typedef struct integer_value_descr {
+    uint32_t Instance;
+    BACNET_CHARACTER_STRING Name;
+    BACNET_CHARACTER_STRING Description;
+} INTERGER_VALUE_DESCR;
+
+
+static INTERGER_VALUE_DESCR IV_Descr[MAX_INTEGER_VALUES];
+static int IV_Max_Index = MAX_INTEGER_VALUES;
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -106,9 +121,10 @@ bool Integer_Value_Valid_Instance(uint32_t object_instance)
 {
     unsigned int index;
 
-    index = Integer_Value_Instance_To_Index(object_instance);
-    if (index < MAX_INTEGER_VALUES) {
-        return true;
+    for (index = 0; index < IV_Max_Index; index++) {
+        if (IV_Descr[index].Instance == object_instance) {
+            return true;
+        }
     }
 
     return false;
@@ -121,7 +137,7 @@ bool Integer_Value_Valid_Instance(uint32_t object_instance)
  */
 unsigned Integer_Value_Count(void)
 {
-    return MAX_INTEGER_VALUES;
+    return IV_Max_Index;
 }
 
 /**
@@ -134,11 +150,55 @@ unsigned Integer_Value_Count(void)
  */
 uint32_t Integer_Value_Index_To_Instance(unsigned index)
 {
-    uint32_t instance = 1;
+    if (index < IV_Max_Index) {
+        return IV_Descr[index].Instance;
+    } else {
+        PRINT("index out of bounds");
+    }
 
-    instance += index;
+    return 0;
+}
 
-    return instance;
+/**
+ * Initialize the Inetger Value Inputs. Returns false if there are errors.
+ *
+ * @param pInit_data pointer to initialisation values
+ *
+ * @return true/false
+ */
+bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
+{
+  unsigned i;
+
+  if (!pInit_data) {
+    return false;
+  }
+
+  if ((int) pInit_data->length > MAX_INTEGER_VALUES) {
+    PRINTF("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_INTEGER_VALUES);
+    return false;
+  }
+
+  for (i = 0; i < pInit_data->length; i++) {
+    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+      IV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
+    } else {
+      PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+      return false;
+    }
+
+    if (!characterstring_init_ansi(&IV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+      PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+    }
+
+    if (!characterstring_init_ansi(&IV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
+      PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+    }
+   }
+
+   IV_Max_Index = (int) pInit_data->length;
+
+   return true;
 }
 
 /**
@@ -152,14 +212,9 @@ uint32_t Integer_Value_Index_To_Instance(unsigned index)
  */
 unsigned Integer_Value_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_INTEGER_VALUES;
+    unsigned index = 0;
 
-    if (object_instance) {
-        index = object_instance - 1;
-        if (index > MAX_INTEGER_VALUES) {
-            index = MAX_INTEGER_VALUES;
-        }
-    }
+    for (; index < IV_Max_Index && IV_Descr[index].Instance != object_instance; index++) ;
 
     return index;
 }
@@ -221,19 +276,51 @@ bool Integer_Value_Present_Value_Set(
 bool Integer_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text_string[32] = "";
-    unsigned int index;
     bool status = false;
+    unsigned index = 0;
+
+    if (!object_name) {
+        return false;
+    }
 
     index = Integer_Value_Instance_To_Index(object_instance);
-    if (index < MAX_INTEGER_VALUES) {
-        sprintf(
-            text_string, "INTEGER VALUE %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+    if (index < IV_Max_Index) {
+        *object_name = IV_Descr[index].Name;
+        status = true;
     }
 
     return status;
 }
+
+/**
+ * For a given object instance-number, return the description.
+ *
+ * Note: the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  description - description pointer
+ *
+ * @return  true/false
+ */
+bool Integer_Value_Description(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    if (!description) {
+        return false;
+    }
+
+    index = Integer_Value_Instance_To_Index(object_instance);
+    if (index < IV_Max_Index) {
+        *description = IV_Descr[index].Description;
+        return true;
+    }
+
+    return status;
+}
+
 
 /**
  * For a given object instance-number, returns the units property value
@@ -348,9 +435,19 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_INTEGER_VALUE, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-            Integer_Value_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            if (Integer_Value_Object_Name(
+                    rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            if (Integer_Value_Description(
+                    rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
+
             break;
         case PROP_OBJECT_TYPE:
             apdu_len =
@@ -448,6 +545,7 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_NAME:
+        case PROP_DESCRIPTION:
         case PROP_OBJECT_TYPE:
         case PROP_STATUS_FLAGS:
         case PROP_UNITS:
