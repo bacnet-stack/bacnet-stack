@@ -182,7 +182,7 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
-    if(index > CSV_Max_Index)
+    if(index >= CSV_Max_Index)
     {
         return false;
     }
@@ -400,15 +400,10 @@ bool CharacterString_Value_Encode_Value_List(
 static char *CharacterString_Value_Description(uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
-    char *pName = NULL; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < CSV_Max_Index) {
-        pName = CSV_Descr[index].Description;
-        if(pName != NULL){
-            return pName;
-        }
-
+        return CSV_Descr[index].Description;
     }
 
     return NULL;
