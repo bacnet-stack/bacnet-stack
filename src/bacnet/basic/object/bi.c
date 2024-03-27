@@ -1028,6 +1028,11 @@ int Binary_Input_Alarm_Ack(
     BINARY_INPUT_DESCR *CurrentBI;
     unsigned int object_index;
 
+    if((error_code == NULL) || (alarmack_data == NULL)) {
+      PRINT("[%s %d]: NULL pointer parameter! error_code = %p; alarmack_data = %p\r\n", __FILE__, __LINE__, error_code, alarmack_data);
+      return -2;
+    }
+
     object_index = Binary_Input_Instance_To_Index(
         alarmack_data->eventObjectIdentifier.instance);
 
@@ -1040,8 +1045,6 @@ int Binary_Input_Alarm_Ack(
 
     switch (alarmack_data->eventStateAcked) {
         case EVENT_STATE_OFFNORMAL:
-        case EVENT_STATE_HIGH_LIMIT:
-        case EVENT_STATE_LOW_LIMIT:
             if (CurrentBI->Acked_Transitions[TRANSITION_TO_OFFNORMAL]
                     .bIsAcked == false) {
                 if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
@@ -1131,6 +1134,10 @@ int Binary_Input_Alarm_Ack(
 int Binary_Input_Alarm_Summary(
     unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data)
 {
+    if(getalarm_data == NULL) {
+      PRINT("[%s %d]: NULL pointer parameter! getalarm_data = %p\r\n", __FILE__, __LINE__, getalarm_data);
+      return -2;
+    }
     /* check index */
     if (index < BI_Max_Index) {
         /* Event_State is not equal to NORMAL  and
