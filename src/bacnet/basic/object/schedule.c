@@ -357,8 +357,9 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         default:
-            if (Property_List_Member(
-                    wp_data->object_instance, wp_data->object_property)) {
+            if (property_lists_member(
+                Schedule_Properties_Required, Schedule_Properties_Optional, 
+                Schedule_Properties_Proprietary, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
