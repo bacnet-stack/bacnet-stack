@@ -182,8 +182,7 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
 
-    if(index >= CSV_Max_Index)
-    {
+    if(index >= CSV_Max_Index) {
         return false;
     }
 
