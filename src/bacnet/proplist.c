@@ -86,6 +86,33 @@ bool property_list_member(const int *pList, int object_property)
 }
 
 /**
+ * @brief Determine if the object property is a member of any of the lists
+ * @param pRequired - array of type 'int' that is a list of BACnet properties
+ * @param pOptional - array of type 'int' that is a list of BACnet properties
+ * @param pProprietary - array of type 'int' that is a list of BACnet properties
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of any of these lists
+ */
+bool property_lists_member(
+    const int *pRequired,
+    const int *pOptional,
+    const int *pProprietary,
+    int object_property)
+{
+    bool found = false;
+
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
  * ReadProperty handler for this property.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *

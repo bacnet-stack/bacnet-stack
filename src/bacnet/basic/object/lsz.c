@@ -93,32 +93,6 @@ void Life_Safety_Zone_Property_Lists(
 }
 
 /**
- * @brief Determine if the object property is a member of this object instance
- * @param object_instance - object-instance number of the object
- * @param object_property - object-property to be checked
- * @return true if the property is a member of this object instance
- */
-static bool Property_List_Member(uint32_t object_instance, int object_property)
-{
-    bool found = false;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
-
-    (void)object_instance;
-    Life_Safety_Zone_Property_Lists(&pRequired, &pOptional, &pProprietary);
-    found = property_list_member(pRequired, object_property);
-    if (!found) {
-        found = property_list_member(pOptional, object_property);
-    }
-    if (!found) {
-        found = property_list_member(pProprietary, object_property);
-    }
-
-    return found;
-}
-
-/**
  * @brief Determines if a given object instance is valid
  * @param  object_instance - object-instance number of the object
  * @return  true if the instance is valid, and false if not
@@ -832,8 +806,11 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = Life_Safety_Zone_Members_Write(wp_data);
             break;
         default:
-            if (Property_List_Member(
-                    wp_data->object_instance, wp_data->object_property)) {
+            if (property_lists_member(
+                Life_Safety_Zone_Properties_Required, 
+                Life_Safety_Zone_Properties_Optional, 
+                Life_Safety_Zone_Properties_Proprietary, 
+                wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
