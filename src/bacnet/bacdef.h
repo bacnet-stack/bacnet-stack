@@ -29,11 +29,6 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/bacint.h"
 #include "bacnet/config.h"
-#if 0
-201112L for C11 😃
-199901L for C99 🚀
-199409L
-#endif
 
 #if !defined(PRINT)
 #  ifdef DEBUG_PRINT
