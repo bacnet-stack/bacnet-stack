@@ -8,12 +8,12 @@ string(REGEX REPLACE
   BACNET_BASE
   ${CMAKE_CURRENT_SOURCE_DIR})
 string(REGEX REPLACE
-  "/zephyr/tests/" "/src/"
-  BACNET_SRC_PATH
-  ${CMAKE_CURRENT_SOURCE_DIR})
-string(REGEX REPLACE
   "/zephyr/tests/" "/test/"
   BACNET_TEST_PATH
+  ${CMAKE_CURRENT_SOURCE_DIR})
+string(REGEX REPLACE
+  "/zephyr/tests/" "/src/"
+  BACNET_SRC_PATH
   ${CMAKE_CURRENT_SOURCE_DIR})
 get_filename_component(BACNET_NAME ${BACNET_BASE} NAME)
 
@@ -25,12 +25,13 @@ list(APPEND TEST_OBJECT_INCLUDE ${TEST_OBJECT_SRC})
 
 if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
+file(RELATIVE_PATH TEST_OBJECT_INCLUDE $ENV{ZEPHYR_BASE} ${TEST_OBJECT_SRC})
   list(APPEND INCLUDE ${BACNET_INCLUDE} ${TEST_OBJECT_INCLUDE})
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
     ${BACNET_TEST_PATH}/stubs.c
-    ${BACNET_TEST_PATH}/../property_test.c
+    ${TEST_OBJECT_SRC}/property_test.c
     ${BACNET_TEST_PATH}/../mock/device_mock.c
     )
 
@@ -55,11 +56,12 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/lighting.c
     ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/wp.c
+    ${BACNET_SRC}/bactimevalue.c
     ${BACNET_SRC}/hostnport.c
-    ${BACNET_SRC}/calendar_entry.c
     ${BACNET_SRC}/dailyschedule.c
-    ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/calendar_entry.c
+    ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
     )
