@@ -27,6 +27,7 @@ add_compile_definitions(
 
 include_directories(
 	${SRC_DIR}
+	${TST_DIR}/bacnet/basic/object
 	${TST_DIR}/ztest/include
 	)
 
@@ -64,6 +65,7 @@ add_executable(${PROJECT_NAME}
 	./src/main.c
 	./stubs.c
 	../mock/device_mock.c
+	../property_test.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)
