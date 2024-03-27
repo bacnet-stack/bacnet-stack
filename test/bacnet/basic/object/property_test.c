@@ -170,6 +170,7 @@ void bacnet_object_properties_read_write_test(BACNET_OBJECT_TYPE object_type,
     const int *pProprietary = NULL;
     unsigned count = 0;
     int len = 0;
+    bool status = false;
 
     /* ReadProperty parameters */
     rpdata.application_data = &apdu[0];
@@ -207,4 +208,13 @@ void bacnet_object_properties_read_write_test(BACNET_OBJECT_TYPE object_type,
             &wpdata, write_property, skip_fail_property_list);
         pProprietary++;
     }
+    /* check for unsupported property - use ALL */
+    rpdata.object_property = PROP_ALL;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    len = read_property(&rpdata);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    wpdata.object_property = PROP_ALL;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    status = write_property(&wpdata);
+    zassert_false(status, NULL);
 }

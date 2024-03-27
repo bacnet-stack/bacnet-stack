@@ -354,24 +354,16 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
-
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_PRESENT_VALUE:
-        case PROP_EFFECTIVE_PERIOD:
-        case PROP_WEEKLY_SCHEDULE:
-        case PROP_SCHEDULE_DEFAULT:
-        case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-        case PROP_PRIORITY_FOR_WRITING:
-        case PROP_STATUS_FLAGS:
-        case PROP_RELIABILITY:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                Schedule_Properties_Required, Schedule_Properties_Optional, 
+                Schedule_Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

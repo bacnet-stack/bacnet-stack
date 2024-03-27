@@ -55,6 +55,12 @@ extern "C" {
         const int *pList,
         int object_property);
     BACNET_STACK_EXPORT
+    bool property_lists_member(
+        const int *pRequired,
+        const int *pOptional,
+        const int *pProprietary,
+        int object_property);
+    BACNET_STACK_EXPORT
     int property_list_encode(
         BACNET_READ_PROPERTY_DATA * rpdata,
         const int *pListRequired,
