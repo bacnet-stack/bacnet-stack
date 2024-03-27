@@ -48,12 +48,13 @@
          vprintf(format "\r\n", args);
          va_end(args);
        }
+#      define PRINT __PRINT
 #    endif
 #  else
 #    include <stdarg.h>
      static inline void __PRINT(const char *format, ...) { (void) format; }
-#  endif
 #    define PRINT __PRINT
+#  endif
 #endif
 
 #if defined(_MSC_VER)
