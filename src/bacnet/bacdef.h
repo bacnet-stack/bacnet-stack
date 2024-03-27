@@ -41,6 +41,7 @@
 #      define PRINT(...) do {printf("%s:%d::%s(): ", __FILE__, __LINE__, __func__); printf(__VA_ARGS__); printf("\r\n");} while(0)
 #    else
 #      include <stdarg.h>
+#      include <stdio.h>
        static inline void __PRINT(const char *format, ...) {
          va_list args;
          va_start(args, format);
