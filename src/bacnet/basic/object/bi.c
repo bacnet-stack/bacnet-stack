@@ -1022,6 +1022,151 @@ int Binary_Input_Event_Information(
         return 0; /* no active event at this index */
 }
 
+int Binary_Input_Alarm_Ack(
+    BACNET_ALARM_ACK_DATA *alarmack_data, BACNET_ERROR_CODE *error_code)
+{
+    BINARY_INPUT_DESCR *CurrentBI;
+    unsigned int object_index;
+
+    object_index = Binary_Input_Instance_To_Index(
+        alarmack_data->eventObjectIdentifier.instance);
+
+    if (object_index < BI_Max_Index)
+        CurrentBI = &BI_Descr[object_index];
+    else {
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return -1;
+    }
+
+    switch (alarmack_data->eventStateAcked) {
+        case EVENT_STATE_OFFNORMAL:
+        case EVENT_STATE_HIGH_LIMIT:
+        case EVENT_STATE_LOW_LIMIT:
+            if (CurrentBI->Acked_Transitions[TRANSITION_TO_OFFNORMAL]
+                    .bIsAcked == false) {
+                if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                if (datetime_compare(
+                        &CurrentBI->Acked_Transitions[TRANSITION_TO_OFFNORMAL]
+                             .Time_Stamp,
+                        &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                /* Send ack notification */
+                CurrentBI->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked =
+                    true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentBI->Event_State) {
+                /* Send ack notification */
+            } else {
+                *error_code = ERROR_CODE_INVALID_EVENT_STATE;
+                return -1;
+            }
+            break;
+
+        case EVENT_STATE_FAULT:
+            if (CurrentBI->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
+                false) {
+                if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                if (datetime_compare(
+                        &CurrentBI->Acked_Transitions[TRANSITION_TO_FAULT]
+                             .Time_Stamp,
+                        &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                /* Send ack notification */
+                CurrentBI->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
+                    true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentBI->Event_State) {
+                /* Send ack notification */
+            } else {
+                *error_code = ERROR_CODE_INVALID_EVENT_STATE;
+                return -1;
+            }
+            break;
+
+        case EVENT_STATE_NORMAL:
+            if (CurrentBI->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
+                false) {
+                if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                if (datetime_compare(
+                        &CurrentBI->Acked_Transitions[TRANSITION_TO_NORMAL]
+                             .Time_Stamp,
+                        &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                /* Send ack notification */
+                CurrentBI->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked =
+                    true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentBI->Event_State) {
+                /* Send ack notification */
+            } else {
+                *error_code = ERROR_CODE_INVALID_EVENT_STATE;
+                return -1;
+            }
+            break;
+
+        default:
+            return -2;
+    }
+    CurrentBI->Ack_notify_data.bSendAckNotify = true;
+    CurrentBI->Ack_notify_data.EventState = alarmack_data->eventStateAcked;
+
+    return 1;
+}
+
+int Binary_Input_Alarm_Summary(
+    unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data)
+{
+    /* check index */
+    if (index < BI_Max_Index) {
+        /* Event_State is not equal to NORMAL  and
+           Notify_Type property value is ALARM */
+        if ((BI_Descr[index].Event_State != EVENT_STATE_NORMAL) &&
+            (BI_Descr[index].Notify_Type == NOTIFY_ALARM)) {
+            /* Object Identifier */
+            getalarm_data->objectIdentifier.type = OBJECT_BINARY_INPUT;
+            getalarm_data->objectIdentifier.instance =
+                Binary_Input_Index_To_Instance(index);
+            /* Alarm State */
+            getalarm_data->alarmState = BI_Descr[index].Event_State;
+            /* Acknowledged Transitions */
+            bitstring_init(&getalarm_data->acknowledgedTransitions);
+            bitstring_set_bit(&getalarm_data->acknowledgedTransitions,
+                TRANSITION_TO_OFFNORMAL,
+                BI_Descr[index]
+                    .Acked_Transitions[TRANSITION_TO_OFFNORMAL]
+                    .bIsAcked);
+            bitstring_set_bit(&getalarm_data->acknowledgedTransitions,
+                TRANSITION_TO_FAULT,
+                BI_Descr[index]
+                    .Acked_Transitions[TRANSITION_TO_FAULT]
+                    .bIsAcked);
+            bitstring_set_bit(&getalarm_data->acknowledgedTransitions,
+                TRANSITION_TO_NORMAL,
+                BI_Descr[index]
+                    .Acked_Transitions[TRANSITION_TO_NORMAL]
+                    .bIsAcked);
+
+            return 1; /* active alarm */
+        } else
+            return 0; /* no active alarm at this index */
+    } else
+        return -1; /* end of list  */
+}
 
 bool Binary_Input_Alarm_Value_Set(
     uint32_t object_instance, BACNET_BINARY_PV value)
