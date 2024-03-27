@@ -37,7 +37,7 @@
 
 #if !defined(PRINT)
 #  ifdef DEBUG_PRINT
-#    if (__STDC_VERSION__  >= 199901L)
+#    if (__STDC_VERSION__  >= 199901L) || defined(_MSC_VER)
 #      define PRINT(...) do {printf("%s:%d::%s(): ", __FILE__, __LINE__, __func__); printf(__VA_ARGS__); printf("\r\n");} while(0)
 #    else
 #      include <stdarg.h>
