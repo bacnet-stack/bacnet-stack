@@ -424,11 +424,9 @@ bool CharacterString_Value_Description_Set(
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if(index < CSV_Max_Index)
-    {
+    if(index < CSV_Max_Index) {
         status = true;
-        if(new_descr)
-        {
+        if(new_descr) {
             strncpy(CSV_Descr[index].Description, new_descr->value, sizeof(CSV_Descr[index].Description));
         } else {
              memset(&CSV_Descr->Description[index], 0,
