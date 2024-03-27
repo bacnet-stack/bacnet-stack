@@ -43,7 +43,7 @@
 #      include <stdarg.h>
        static inline void __PRINT(const char *format, ...) {
          va_list args;
-         va_start(Args, format);
+         va_start(args, format);
          printf("%s:%d(): ", __FILE__, __LINE__);
          vprintf(format "\r\n", args);
          va_end(args);
