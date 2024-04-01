@@ -20,6 +20,63 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
+## [1.3.5] - 2024-04-01
+
+### Security
+
+* Secured the WPM and RPM client service encoders. (#604)
+
+### Added
+
+* Added test for unsupported property to common property test.(#609)
+* Added a few core stack headers as includes into bacdef.h file.(#602)
+* Added Kconfig and bacnet-config.h options in ports/zephyr to keep small
+  footprint for MCUs having less RAM.(#606)
+* Added Keylist_Data_Free function to free all nodes and data in a list.(#595)
+* Added basic Life Safety Zone object type in the apps/server example,
+  with unit testing.(#595)
+* Added extended frame client unit test.(#592)
+
+### Changed
+
+* Changed property lists member function for WriteProperty default case
+  by refactoring.(#609)
+* Changed time-value object unit testing by refactoring.(#609)  
+* Changed ports/zephry for BACnet/IP and date-time with latest
+  Zephyr OS.(#606)
+* Changed Zephyr OS west manifest to target zephyr v3.6.0.(#601)
+* Changed ZTEST_NEW_API adjustments as deprecated.(#601)
+* Changed position of bacnet/bacdef.h to be the first bacnet header
+  to include. BACnet headers need to pull in optional configuration and
+  optional ecosystem overrides to allow integrators to control
+  builds.  This change places bacnet/bacdef.h to the top of the BACnet 
+  Stack header files to consistently introduce integrator and ports
+  header files.(#598)(#600)
+* Added dependent BACnet stack headers into bacdef.h file.(#602)
+* Changed bacdef.h and other stack includes in c/h files to have a
+  common pattern.(#602)
+* Moved bits.h, bytes.h, and bacnet_stack_exports.h under
+  bacnet/basic/sys/ folder.(#602)
+
+### Fixed
+
+* Fix double promotion in format specifier %f by casting floats
+  to double.(#608)
+* Fixed the implementation of object-instance and object index
+  differentiation object/basic/ai.c module.(#607)
+* Fixed RPM and WPM apps when fail to encode request.(#604)
+* Fixed WPM app number of arguments checking.(#604)
+* Fixed routing to a remote network in the router-mstp example.(#592)
+* Fixed handling of received MS/TP extended frames.(#592)
+* Fixed MSTP_Master_Node_FSM and MSTP_Slave_Node_FSM for extended frames.(#592)
+* Fixed MSTP COBS frame encoding.(#592)
+* Fixed router-ipv6 application for remote networks.(#592)
+
+### Removed
+
+* Removed BACnet objects from ports/zephyr. There should only be datalink
+  and OS related interfaces in OS ports.(#606)
+
 ## [1.3.4] - 2024-03-02
 
 ### Security
