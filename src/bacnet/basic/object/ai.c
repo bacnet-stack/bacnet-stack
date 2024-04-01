@@ -1219,6 +1219,8 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
             }
         }
     }
+#else
+    (void)object_instance;
 #endif /* defined(INTRINSIC_REPORTING) */
 }
 
