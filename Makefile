@@ -77,6 +77,10 @@ ack-alarm:
 add-list-element:
 	$(MAKE) -s -C apps $@
 
+.PHONY: apdu
+apdu:
+	$(MAKE) -s -C apps $@
+
 .PHONY: blinkt
 blinkt:
 	$(MAKE) -s -C apps $@
@@ -152,6 +156,14 @@ netnumis:
 .PHONY: server
 server:
 	$(MAKE) -s -C apps $@
+
+.PHONY: server-client
+server-client:
+	$(MAKE) LEGACY=true -s -C apps $@
+
+.PHONY: server-discover
+server-discover:
+	$(MAKE) LEGACY=true -s -C apps $@
 
 .PHONY: mstpcap
 mstpcap:

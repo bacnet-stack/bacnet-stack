@@ -33,11 +33,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 #include "bacnet/lighting.h"
@@ -174,7 +174,11 @@ unsigned Lighting_Output_Count(void)
  */
 uint32_t Lighting_Output_Index_To_Instance(unsigned index)
 {
-    return Keylist_Key(Object_List, index);
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, index, &key);
+
+    return key;
 }
 
 /**

@@ -27,9 +27,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/bvlc.h"
-
-#include "bacnet/bacnet_stack_exports.h"
 
 #ifdef __cplusplus
 extern "C" {

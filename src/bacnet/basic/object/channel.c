@@ -36,11 +36,11 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
@@ -154,7 +154,11 @@ unsigned Channel_Count(void)
  */
 uint32_t Channel_Index_To_Instance(unsigned index)
 {
-    return Keylist_Key(Object_List, index);
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, index, &key);
+
+    return key;
 }
 
 /**

@@ -27,14 +27,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/basic/sys/platform.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datetime.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
-#include "bacnet/bits.h"
 
 /**
  * @brief Encode a BACnetARRAY property element; a function template

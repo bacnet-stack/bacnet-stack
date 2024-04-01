@@ -27,23 +27,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bacnet/config.h"
-#include "bacnet/basic/binding/address.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/datetime.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/arf.h"
 #include "bacnet/awf.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
-#include "bacnet/basic/services.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/bacfile.h"
+#include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
+#include "bacnet/basic/tsm/tsm.h"
 
 #ifndef FILE_RECORD_SIZE
 #define FILE_RECORD_SIZE MAX_OCTET_STRING_BYTES
@@ -159,18 +160,20 @@ uint32_t bacfile_pathname_instance(
     struct object_data *pObject;
     int count = 0;
     int index = 0;
+    KEY key = BACNET_MAX_INSTANCE;
 
     count = Keylist_Count(Object_List);
     while (count) {
         pObject = Keylist_Data_Index(Object_List, index);
         if (strcmp(pathname, pObject->Pathname) == 0) {
-            return Keylist_Key(Object_List, index);
+            Keylist_Index_Key(Object_List, index, &key);
+            break;
         }
         count--;
         index++;
     }
 
-    return BACNET_MAX_INSTANCE;
+    return key;
 }
 
 /**
@@ -262,7 +265,11 @@ uint32_t bacfile_count(void)
  */
 uint32_t bacfile_index_to_instance(unsigned find_index)
 {
-    return Keylist_Key(Object_List, find_index);
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, find_index, &key);
+
+    return key;
 }
 
 /**

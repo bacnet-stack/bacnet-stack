@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.1.0
+  VERSION 1.3.5
   LANGUAGES C)
 
 #
@@ -33,6 +33,11 @@ option(
   BACNET_BUILD_BACPOLL_APP
   "compile the bacpoll app"
   ON)
+
+  option(
+    BACNET_BUILD_BACDISCOVER_APP
+    "compile the bacdiscover app"
+    ON)
 
 option(
   BACDL_ETHERNET
@@ -70,9 +75,21 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+# Build types
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    message(STATUS "Maximum optimization for speed")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+    message(STATUS "Maximum optimization for speed, debug info included")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
+    message(STATUS "Maximum optimization for size")
+else ()
+    message(STATUS "Minimal optimization, debug info included")
+    add_compile_definitions(DEBUG_ENABLED=1)
+endif ()
+
 option(
-  BACNET_STACK_DEPRECATED_DISABLE 
-  "Disable deprecation compile warnings" 
+  BACNET_STACK_DEPRECATED_DISABLE
+  "Disable deprecation compile warnings"
   ON)
 
 if(BACNET_STACK_DEPRECATED_DISABLE)
@@ -222,6 +239,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/lo.h
     src/bacnet/basic/object/lsp.c
     src/bacnet/basic/object/lsp.h
+    src/bacnet/basic/object/lsz.c
+    src/bacnet/basic/object/lsz.h
     src/bacnet/basic/object/ms-input.c
     src/bacnet/basic/object/ms-input.h
     src/bacnet/basic/object/mso.c
@@ -392,8 +411,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/sbuf.h
     src/bacnet/basic/tsm/tsm.c
     src/bacnet/basic/tsm/tsm.h
-    src/bacnet/bits.h
-    src/bacnet/bytes.h
+    src/bacnet/basic/sys/bits.h
+    src/bacnet/basic/sys/bytes.h
     src/bacnet/config.h
     src/bacnet/calendar_entry.c
     src/bacnet/calendar_entry.h
@@ -616,6 +635,9 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(add-list-element apps/add-list-element/main.c)
   target_link_libraries(add-list-element PRIVATE ${PROJECT_NAME})
 
+  add_executable(apdu apps/apdu/main.c)
+  target_link_libraries(apdu PRIVATE ${PROJECT_NAME})
+
   add_executable(create-object apps/create-object/main.c)
   target_link_libraries(create-object PRIVATE ${PROJECT_NAME})
 
@@ -667,6 +689,14 @@ if(BACNET_STACK_BUILD_APPS)
         src/bacnet/basic/client/bac-rw.c)
     target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_BACPOLL_APP)
+
+  if(BACNET_BUILD_BACDISCOVER_APP)
+  add_executable(bacdiscover
+        apps/server-discover/main.c
+        src/bacnet/basic/client/bac-discover.c
+        src/bacnet/basic/client/bac-rw.c)
+  target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+  endif(BACNET_BUILD_BACDISCOVER_APP)
 
   if(NOT BACDL_ETHERNET)
     add_executable(readbdt apps/readbdt/main.c)

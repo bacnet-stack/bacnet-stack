@@ -32,9 +32,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include "msgqueue.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/npdu.h"
+/* router utils */
+#include "msgqueue.h"
 
 #define ERROR 1
 #define INFO 2

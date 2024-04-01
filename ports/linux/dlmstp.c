@@ -30,17 +30,19 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/time.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacaddr.h"
+#include "bacnet/npdu.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
-#include "rs485.h"
-#include "bacnet/npdu.h"
-#include "bacnet/bits.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/basic/sys/debug.h"
 /* OS Specific include */
 #include "bacport.h"
+/* port specific */
+#include "rs485.h"
 
 /** @file linux/dlmstp.c  Provides Linux-specific DataLink functions for MS/TP.
  */

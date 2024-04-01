@@ -34,9 +34,9 @@
 #include <conio.h>
 #endif
 #define PRINT_ENABLED 1
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"

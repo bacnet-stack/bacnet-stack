@@ -36,10 +36,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
@@ -156,7 +156,11 @@ unsigned Analog_Output_Count(void)
  */
 uint32_t Analog_Output_Index_To_Instance(unsigned index)
 {
-    return Keylist_Key(Object_List, index);
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, index, &key);
+
+    return key;
 }
 
 /**
@@ -336,7 +340,8 @@ bool Analog_Output_Present_Value_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
+                value >= pObject->Min_Pres_Value && value <= pObject->Max_Pres_Value) {
             pObject->Relinquished[priority - 1] = false;
             pObject->Priority_Array[priority - 1] = value;
             Analog_Output_Present_Value_COV_Detect(
@@ -398,7 +403,7 @@ static bool Analog_Output_Present_Value_Write(uint32_t object_instance,
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
-            (value >= 0.0) && (value <= 100.0)) {
+            (value >= pObject->Min_Pres_Value) && (value <= pObject->Max_Pres_Value)) {
             if (priority != 6) {
                 old_value = Analog_Output_Present_Value(object_instance);
                 Analog_Output_Present_Value_Set(

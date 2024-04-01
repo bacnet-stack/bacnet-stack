@@ -46,6 +46,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/bactext.c
     ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/lighting.c
+    ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/wp.c
     ${BACNET_SRC}/hostnport.c
     ${BACNET_SRC}/dailyschedule.c
@@ -68,3 +69,5 @@ else()
     ${BACNET_TEST_PATH}/src/main.c
     )
 endif()
+
+add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig

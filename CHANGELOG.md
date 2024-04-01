@@ -15,28 +15,139 @@ The git repositories are hosted at the following sites:
 ## [Unreleased]
 
 ### Security
+### Added
+### Changed
+### Fixed
+### Removed
+
+## [1.3.5] - 2024-04-01
+
+### Security
+
+* Secured the WPM and RPM client service encoders. (#604)
 
 ### Added
 
+* Added test for unsupported property to common property test.(#609)
+* Added a few core stack headers as includes into bacdef.h file.(#602)
+* Added Kconfig and bacnet-config.h options in ports/zephyr to keep small
+  footprint for MCUs having less RAM.(#606)
+* Added Keylist_Data_Free function to free all nodes and data in a list.(#595)
+* Added basic Life Safety Zone object type in the apps/server example,
+  with unit testing.(#595)
+* Added extended frame client unit test.(#592)
+
 ### Changed
+
+* Changed property lists member function for WriteProperty default case
+  by refactoring.(#609)
+* Changed time-value object unit testing by refactoring.(#609)  
+* Changed ports/zephry for BACnet/IP and date-time with latest
+  Zephyr OS.(#606)
+* Changed Zephyr OS west manifest to target zephyr v3.6.0.(#601)
+* Changed ZTEST_NEW_API adjustments as deprecated.(#601)
+* Changed position of bacnet/bacdef.h to be the first bacnet header
+  to include. BACnet headers need to pull in optional configuration and
+  optional ecosystem overrides to allow integrators to control
+  builds.  This change places bacnet/bacdef.h to the top of the BACnet 
+  Stack header files to consistently introduce integrator and ports
+  header files.(#598)(#600)
+* Added dependent BACnet stack headers into bacdef.h file.(#602)
+* Changed bacdef.h and other stack includes in c/h files to have a
+  common pattern.(#602)
+* Moved bits.h, bytes.h, and bacnet_stack_exports.h under
+  bacnet/basic/sys/ folder.(#602)
 
 ### Fixed
 
+* Fix double promotion in format specifier %f by casting floats
+  to double.(#608)
+* Fixed the implementation of object-instance and object index
+  differentiation object/basic/ai.c module.(#607)
+* Fixed RPM and WPM apps when fail to encode request.(#604)
+* Fixed WPM app number of arguments checking.(#604)
+* Fixed routing to a remote network in the router-mstp example.(#592)
+* Fixed handling of received MS/TP extended frames.(#592)
+* Fixed MSTP_Master_Node_FSM and MSTP_Slave_Node_FSM for extended frames.(#592)
+* Fixed MSTP COBS frame encoding.(#592)
+* Fixed router-ipv6 application for remote networks.(#592)
+
 ### Removed
+
+* Removed BACnet objects from ports/zephyr. There should only be datalink
+  and OS related interfaces in OS ports.(#606)
+
+## [1.3.4] - 2024-03-02
+
+### Security
+
+* Secured bacapp_decode_application_data_safe(),bacapp_decode_application_data_len(),
+  bacapp_decode_context_data(), bacapp_decode_known_property() for timestamp,
+  bacapp_decode_context_data_len(), and bacapp_data_len() functions. (#578)
+
+### Added
+
+* Added SHIELD=dfr0259 or SHIELD=linksprite build options to RS485
+  driver for stm32f4xx port.
+* Added FAQ 18 for firewall info (#587)
+* Added a BASH script for parallel EPICS clients registering as foreign devices
+  to a BBMD (#586)
+* Added an example application - bacdiscover - to discover devices and their
+  objects and properties on a specific destination network. The application
+  uses a BACnet Discovery FSM module along with the BACnet R/W FSM.
+  The BACnet Discovery module stores the binary property data in Keylists
+  and includes device object property queries and iterators. (#583)
+* Added callback from BACnet R/W FSM module for I-Am messages. (#583)
+* Added an example application - bacapdu - to send an arbitrary
+  APDU string of hex-ASCII. (#580)
+* Added a clean target recipe in apps to remove stale libbacnet.a file.
+* Added missing binary input functions to set custom object names. (#574)
+* Added Keylist_Index_Key to deprecate Keylist_Key function in
+  keylist module. Added unit test for Keylist_Index_Key API. Changed
+  modules using Keylist_Key. Changed keylist module to use bool and
+  stdint value for key not found. (#572)
+* Added missing object functions to analog inputs and values. (#568)
+
+### Changed
+
+* Changed BACnet R/W FSM module to remove dependency on
+  rpm_ack_decode_service_request() which uses large calloc/free
+  value lists. Created an alternate RPM-ACK to RP-ACK processing 
+  function. (#583)
+* Changed basic RPM handler to skip over unknown property values. (#583)
+* Changed the release script to use tag option and remove tag reminder.
+  Fixed release tool to have a prefix folder with the tag version name.
+  Enabled rebuilding tagged release code and zips in a working tree in temp folder.
+
+### Fixed
+
+* Fixed makefile for building the Linux router application. (#585)
+* Fixed Command, Credential Data Input, and Schedule objects unit tests. (#578)
+* Fixed apps/Makefile to use apps/lib/libbacnet.a library file instead of
+  a library file in system /usr/lib folder.
+* Fixed example Analog Output to set proper bounds for
+  Analog_Output_Present_Value_Set and Analog_Output_Present_Value_Write. (#575)
+* Fixed the Network Port object subnet mask for IP example. (#573)
+* Fixed bacnet_address_init() when setting only the dnet value. (#570)
+* Fixed MSVC snprintf from C99 in platform.h file. (#570)
+
+### Removed
+
+* Removed the ARM math library binary files in the stm32f4xx port
 
 ## [1.3.3] - 2024-02-2
 
 ### Security
 
- * Secured the following services by refactoring the size check
-   and refactoring the service requests from the service header,
-   adding APDU size checking and length features, and adding unit
-   tests to check for length when passing NULL buffer:
-   ARF/AWF/COV/CO/DO/DCC/Event/GE/ALE/RLE/LSO/RD/RR/RP/WP. (#553)
+* Secured the following services by refactoring the size check
+  and refactoring the service requests from the service header,
+  adding APDU size checking and length features, and adding unit
+  tests to check for length when passing NULL buffer:
+  ARF/AWF/COV/CO/DO/DCC/Event/GE/ALE/RLE/LSO/RD/RR/RP/WP. (#553)
 
 ### Added
 
-* Added bacapp decoding for accumulator SCALE property (#566)
+* Added bacapp decoding for accumulator SCALE property. (#566)
 * Added a MS/TP zero-config (automatically choose an unused MAC address)
   using an algorithm that starts with MAC=64 and waits for a random number
   of PFM (minimum of 8 plus modulo 64) before attempting to choose a MAC

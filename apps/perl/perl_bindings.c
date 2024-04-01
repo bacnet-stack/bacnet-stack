@@ -1,9 +1,11 @@
+#include <time.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/basic/services.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/object/device.h"
-#include <time.h>
 #include "bacnet/arf.h"
 
 /* Free is redefined as a macro, but Perl does not like that. */

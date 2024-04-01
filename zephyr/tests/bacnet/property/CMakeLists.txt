@@ -54,3 +54,5 @@ else()
     ${BACNET_TEST_PATH}/src/main.c
     )
 endif()
+
+add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig

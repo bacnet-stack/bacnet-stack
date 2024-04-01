@@ -1,40 +1,24 @@
-/**************************************************************************
+/**
+ * @file
+ * @brief Analog Input Objects - customize for your use
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @date 2005
+ * @section LICENSE
  *
  * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
  * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* Analog Input Objects customize for your use */
-
+ * SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bactext.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
@@ -97,6 +81,7 @@ void Analog_Input_Init(void)
         AI_Descr[i].Prior_Value = 0.0f;
         AI_Descr[i].COV_Increment = 1.0f;
         AI_Descr[i].Changed = false;
+        AI_Descr[i].Object_Name = NULL;
 #if defined(INTRINSIC_REPORTING)
         AI_Descr[i].Event_State = EVENT_STATE_NORMAL;
         /* notification class not connected */
@@ -166,7 +151,7 @@ unsigned Analog_Input_Instance_To_Index(uint32_t object_instance)
 
 float Analog_Input_Present_Value(uint32_t object_instance)
 {
-    float value = 0.0;
+    float value = 0.0f;
     unsigned int index;
 
     index = Analog_Input_Instance_To_Index(object_instance);
@@ -179,9 +164,9 @@ float Analog_Input_Present_Value(uint32_t object_instance)
 
 static void Analog_Input_COV_Detect(unsigned int index, float value)
 {
-    float prior_value = 0.0;
-    float cov_increment = 0.0;
-    float cov_delta = 0.0;
+    float prior_value = 0.0f;
+    float cov_increment = 0.0f;
+    float cov_delta = 0.0f;
 
     if (index < MAX_ANALOG_INPUTS) {
         prior_value = AI_Descr[index].Prior_Value;
@@ -209,17 +194,54 @@ void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
     }
 }
 
+/**
+ * For a given object instance-number, return the name.
+ *
+ * Note: the object name must be unique within this device
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - object name/string pointer
+ *
+ * @return  true/false
+ */
 bool Analog_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
-    unsigned int index;
+    unsigned int index = 0;
+    static char text_string[32] = "";
     bool status = false;
 
     index = Analog_Input_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_INPUTS) {
-        sprintf(text_string, "ANALOG INPUT %lu", (unsigned long)index);
-        status = characterstring_init_ansi(object_name, text_string);
+        if (AI_Descr[index].Object_Name) {
+            status = characterstring_init_ansi(object_name, AI_Descr[index].Object_Name);
+        } else {
+            snprintf(text_string, sizeof(text_string), "ANALOG INPUT %u",
+                object_instance);
+            status = characterstring_init_ansi(object_name, text_string);
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Analog_Input_Name_Set(uint32_t object_instance, char *new_name)
+{
+    unsigned int index = 0;
+    bool status = false;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        status = true;
+        AI_Descr[index].Object_Name = new_name;
     }
 
     return status;
@@ -242,9 +264,49 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
     if (index < MAX_ANALOG_INPUTS) {
         state = AI_Descr[index].Event_State;
     }
+#else
+    (void)object_instance;
 #endif
 
     return state;
+}
+
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+char *Analog_Input_Description(uint32_t object_instance)
+{
+    char *name = NULL;
+    unsigned index = 0;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        name = AI_Descr[index].Description;
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if object-name was set
+ */
+bool Analog_Input_Description_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false; /* return value */
+    unsigned index = 0;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS && new_name) {
+        AI_Descr[index].Description = new_name;
+        status = true;
+    }
+
+    return status;
 }
 
 bool Analog_Input_Change_Of_Value(uint32_t object_instance)
@@ -286,7 +348,7 @@ bool Analog_Input_Encode_Value_List(
     bool out_of_service = false;
     const bool fault = false;
     const bool overridden = false;
-    float present_value = 0.0;
+    float present_value = 0.0f;
     unsigned index = 0; /* offset from instance lookup */
 
     index = Analog_Input_Instance_To_Index(object_instance);
@@ -325,6 +387,48 @@ void Analog_Input_COV_Increment_Set(uint32_t object_instance, float value)
         AI_Descr[index].COV_Increment = value;
         Analog_Input_COV_Detect(index, AI_Descr[index].Present_Value);
     }
+}
+
+/**
+ * For a given object instance-number, returns the units property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  units property value
+ */
+uint16_t Analog_Input_Units(uint32_t object_instance)
+{
+    uint16_t units = UNITS_NO_UNITS;
+    unsigned index = 0;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        units = AI_Descr[index].Units;
+    }
+
+    return units;
+}
+
+/**
+ * For a given object instance-number, sets the units property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param units - units property value
+ *
+ * @return true if the units property value was set
+ */
+bool Analog_Input_Units_Set(uint32_t object_instance, uint16_t units)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        AI_Descr[index].Units = units;
+        status = true;
+    }
+
+    return status;
 }
 
 bool Analog_Input_Out_Of_Service(uint32_t object_instance)
@@ -396,8 +500,14 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             Analog_Input_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(&char_string,
+                Analog_Input_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -663,7 +773,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
-                if (value.type.Real >= 0.0) {
+                if (value.type.Real >= 0.0f) {
                     Analog_Input_COV_Increment_Set(
                         wp_data->object_instance, value.type.Real);
                 } else {
@@ -764,26 +874,16 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
 #endif
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_EVENT_STATE:
-        case PROP_DESCRIPTION:
-        case PROP_RELIABILITY:
-#if defined(INTRINSIC_REPORTING)
-        case PROP_ACKED_TRANSITIONS:
-        case PROP_EVENT_TIME_STAMPS:
-#endif
-        case 9997:
-        case 9998:
-        case 9999:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                Properties_Required, Properties_Optional, 
+                Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -1119,6 +1219,8 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
             }
         }
     }
+#else
+    (void)object_instance;
 #endif /* defined(INTRINSIC_REPORTING) */
 }
 

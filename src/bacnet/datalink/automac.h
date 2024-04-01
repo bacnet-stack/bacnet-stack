@@ -29,6 +29,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /* MS/TP Auto MAC address functionality */
 /* starting number available for AutoMAC */

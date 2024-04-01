@@ -12,11 +12,12 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/version.h"
+/* some demo stuff needed */
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/mstimer.h"

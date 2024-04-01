@@ -12,10 +12,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 
 /**

@@ -829,16 +829,32 @@ static bool verifyBACnetApplicationDataValue(
     uint8_t apdu[480] = { 0 };
     int apdu_len = 0;
     int null_len = 0;
+    int test_len = 0;
+    bool status = false;
     BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
 
     apdu_len = bacapp_encode_application_data(&apdu[0], value);
     zassert_true(apdu_len > 0, NULL);
     null_len = bacapp_encode_application_data(NULL, value);
     zassert_equal(apdu_len, null_len, NULL);
-    apdu_len = bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
-    zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
+    test_len = bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
+    zassert_true(test_len != BACNET_STATUS_ERROR, NULL);
+    status = bacapp_same_value(value, &test_value);
+    while (apdu_len) {
+        apdu_len--;
+        test_len =
+            bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
+        if (apdu_len == 0) {
+            zassert_equal(test_len, 0, "tag=%u apdu_len=%d test_len=%d\n",
+                value->tag, apdu_len, test_len);
+        } else {
+            zassert_equal(test_len, BACNET_STATUS_ERROR,
+                "tag=%u apdu_len=%d test_len=%d null_len=%d\n", value->tag,
+                apdu_len, test_len, null_len);
+        }
+    }
 
-    return bacapp_same_value(value, &test_value);
+    return status;
 }
 
 /**

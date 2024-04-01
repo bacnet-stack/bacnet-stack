@@ -36,9 +36,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/apdu.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -401,7 +401,7 @@ extern "C" {
         RR_PROP_INFO * pInfo);
 
     BACNET_STACK_EXPORT
-    bool Network_Port_Create(
+    uint32_t Network_Port_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Network_Port_Delete(

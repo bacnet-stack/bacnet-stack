@@ -28,8 +28,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/wp.h"
 #include "bacnet/rp.h"
@@ -52,6 +53,8 @@ extern "C" {
         float Prior_Value;
         float COV_Increment;
         bool Changed;
+        char* Object_Name;
+        char* Description;
 #if defined(INTRINSIC_REPORTING)
         uint32_t Time_Delay;
         uint32_t Notification_Class;
@@ -199,7 +202,7 @@ extern "C" {
 #endif
 
     BACNET_STACK_EXPORT
-    bool Analog_Value_Create(
+    uint32_t Analog_Value_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Analog_Value_Delete(

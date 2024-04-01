@@ -16,13 +16,14 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacaddr.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/basic/binding/address.h"
-#include "bacdest.h"
 
 /**
  * @brief Initialize the BACnetDestination data structure with defaults

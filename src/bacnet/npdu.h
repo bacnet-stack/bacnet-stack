@@ -26,10 +26,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/basic/sys/platform.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
 
 /** Hop count default is required by BTL to be maximum */
 #ifndef HOP_COUNT_DEFAULT

@@ -24,12 +24,12 @@
  *********************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacaddr.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacaddr.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bits.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/basic/services.h"

@@ -11,7 +11,7 @@
 #include <zephyr/ztest.h>
 #include <stdlib.h>
 #include <bacnet/datalink/cobs.h>
-#include <bacnet/bytes.h>
+#include <bacnet/basic/sys/bytes.h>
 
 /**
  * @addtogroup bacnet_tests

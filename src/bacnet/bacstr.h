@@ -27,9 +27,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
 
 /* bit strings
    They could be as large as 256/8=32 octets */

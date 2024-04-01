@@ -36,9 +36,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
-#include "bacnet/config.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/bacaddr.h"
@@ -156,7 +157,7 @@ bool bacnet_address_init(BACNET_ADDRESS *dest,
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->mac[i] = 0;
         }
-        dest->mac_len = mac->len;
+        dest->mac_len = 0;
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = 0;
         }

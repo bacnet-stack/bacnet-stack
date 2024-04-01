@@ -24,7 +24,8 @@
 #ifndef MSTPTEXT_H
 #define MSTPTEXT_H
 
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 #ifdef __cplusplus
 extern "C" {

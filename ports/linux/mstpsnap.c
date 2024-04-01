@@ -38,17 +38,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-/* OS specific include*/
-#include "bacport.h"
+#/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/basic/sys/mstimer.h"
-/* local includes */
-#include "bacnet/bytes.h"
-#include "rs485.h"
+#include "bacnet/basic/sys/bytes.h"
 #include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstptext.h"
 #include "bacnet/bacint.h"
+/* OS specific include*/
+#include "bacport.h"
+/* local includes */
+#include "rs485.h"
 
 /** @file linux/mstpsnap.c  Example application testing BACnet MS/TP on Linux.
  */

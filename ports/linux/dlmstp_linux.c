@@ -29,17 +29,19 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacaddr.h"
+#include "bacnet/npdu.h"
 #include "bacnet/datalink/mstp.h"
-/*#include "bacnet/datalink/dlmstp.h" */
+#include "bacnet/basic/sys/ringbuf.h"
+/* port specific */
 #include "dlmstp_linux.h"
 #include "rs485.h"
-#include "bacnet/npdu.h"
-#include "bacnet/bits.h"
 /* OS Specific include */
 #include "bacport.h"
-#include "bacnet/basic/sys/ringbuf.h"
 
 /** @file linux/dlmstp.c  Provides Linux-specific DataLink functions for MS/TP.
  */
@@ -563,10 +565,10 @@ uint16_t MSTP_Get_Reply(
     struct mstp_pdu_packet *pkt;
     SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
 
+    (void)timeout;
     if (!poSharedData) {
         return 0;
     }
-
     if (Ringbuf_Empty(&poSharedData->PDU_Queue)) {
         return 0;
     }
