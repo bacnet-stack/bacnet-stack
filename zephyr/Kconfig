@@ -16,6 +16,12 @@ module-str = Log level for BACnet
 module-help = Enable BACnet library to output debug messages
 source "$(ZEPHYR_BASE)/subsys/logging/Kconfig.template.log_config"
 
+config BACNET_PROTOCOL_REVISION
+	int "BACnet Stack protocol-revision number"
+	default 24
+	help
+		BACnet Stack protocol-revision number
+
 config BAC_ROUTING
 	bool "BACnet Routing"
 	help
@@ -115,30 +121,25 @@ config BACDL_BIP6_PORT
 	help
 		UDP port to listen on (default=47808)
 
-config BACNET_CONFIG_H
-	bool "Use bacnet-config.h file functionality"
-	help
-		Use bacnet-config.h file functionality
-
-config MAX_TSM_TRANSACTIONS
+config BACNET_MAX_TSM_TRANSACTIONS
 	int "Number of initiated confirmed-message transactions"
-	default 0
+	default 1
 	help
 		Number of initiated confirmed-message transactions
 
-config MAX_ADDRESS_CACHE
+config BACNET_MAX_ADDRESS_CACHE
 	int "Number of address entries for I-Am bindings"
 	default 1
 	help
 		Number of address entries for I-Am bindings
 
-config MAX_CHARACTER_STRING_BYTES
+config BACNET_MAX_CHARACTER_STRING_BYTES
 	int "Maximum number of bytes in a BACnet character string"
 	default 64
 	help
 		Maximum number of bytes in a BACnet character string
 
-config MAX_OCTET_STRING_BYTES
+config BACNET_MAX_OCTET_STRING_BYTES
 	int "Maximum number of bytes in a BACnet octet string"
 	default 64
 	help
