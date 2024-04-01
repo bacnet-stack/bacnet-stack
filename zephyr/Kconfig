@@ -16,6 +16,18 @@ module-str = Log level for BACnet
 module-help = Enable BACnet library to output debug messages
 source "$(ZEPHYR_BASE)/subsys/logging/Kconfig.template.log_config"
 
+config BACNET_VENDOR_NAME
+	string "BACnet Vendor Name"
+	default "BACnet Stack at SourceForge"
+	help
+		BACnet Vendor Name string
+
+config BACNET_VENDOR_IDENTIFIER
+	int "BACnet Vendor Identifier"
+	default 260
+	help
+		BACnet Vendir Identifier
+
 config BACNET_PROTOCOL_REVISION
 	int "BACnet Stack protocol-revision number"
 	default 24
