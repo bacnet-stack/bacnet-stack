@@ -10,6 +10,7 @@
 
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/ao.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -37,12 +38,14 @@ static void testAnalogOutput(void)
     test_object_instance = Analog_Output_Index_To_Instance(0);
     zassert_equal(object_instance, test_object_instance, NULL);
     bacnet_object_properties_read_write_test(
-        OBJECT_ANALOG_INPUT,
+        OBJECT_ANALOG_OUTPUT,
         object_instance,
         Analog_Output_Property_Lists,
         Analog_Output_Read_Property,
         Analog_Output_Write_Property,
         skip_fail_property_list);
+    status = Analog_Output_Delete(object_instance);
+    zassert_true(status, NULL);
 }
 /**
  * @}
