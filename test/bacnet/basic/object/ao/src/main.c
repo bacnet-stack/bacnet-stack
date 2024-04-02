@@ -1,13 +1,12 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
+/**
+ * @file
+ * @brief Unit test for object
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date April 2024
+ * @section LICENSE
  *
  * SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/ao.h>
 #include <property_test.h>

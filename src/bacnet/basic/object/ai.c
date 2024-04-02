@@ -354,7 +354,7 @@ bool Analog_Input_Encode_Value_List(
     bool status = false;
     bool in_alarm = false;
     bool out_of_service = false;
-    const bool fault = false;
+    bool fault = false;
     const bool overridden = false;
     float present_value = 0.0f;
     struct analog_input_descr *pObject;
@@ -363,6 +363,9 @@ bool Analog_Input_Encode_Value_List(
     if (pObject) {
         if (pObject->Event_State != EVENT_STATE_NORMAL) {
             in_alarm = true;
+        }
+        if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
+            fault = true;
         }
         out_of_service = pObject->Out_Of_Service;
         present_value = pObject->Present_Value;
@@ -559,7 +562,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     switch ((int)rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
-                &apdu[0], OBJECT_ANALOG_INPUT, rpdata->object_instance);
+                &apdu[0], Object_Type, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             Analog_Input_Object_Name(rpdata->object_instance, &char_string);
@@ -568,7 +571,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_TYPE:
             apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_ANALOG_INPUT);
+                encode_application_enumerated(&apdu[0], Object_Type);
             break;
         case PROP_PRESENT_VALUE:
             apdu_len = encode_application_real(
@@ -711,6 +714,13 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
     struct analog_input_descr *pObject;
 
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
+    if (wp_data->application_data_len == 0) {
+        return false;
+    }
     pObject = Analog_Input_Object(wp_data->object_instance);
     if (!pObject) {
         return false;
@@ -1050,7 +1060,7 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     }
     if (SendNotify) {
         /* Event Object Identifier */
-        event_data.eventObjectIdentifier.type = OBJECT_ANALOG_INPUT;
+        event_data.eventObjectIdentifier.type = Object_Type;
         event_data.eventObjectIdentifier.instance = object_instance;
         /* Time Stamp */
         event_data.timeStamp.tag = TIME_STAMP_DATETIME;
@@ -1222,7 +1232,7 @@ int Analog_Input_Event_Information(
 
     if ((IsActiveEvent) || (IsNotAckedTransitions)) {
         /* Object Identifier */
-        getevent_data->objectIdentifier.type = OBJECT_ANALOG_INPUT;
+        getevent_data->objectIdentifier.type = Object_Type;
         getevent_data->objectIdentifier.instance =
             Analog_Input_Index_To_Instance(index);
         /* Event State */
@@ -1393,7 +1403,7 @@ int Analog_Input_Alarm_Summary(
         if ((pObject->Event_State != EVENT_STATE_NORMAL) &&
             (pObject->Notify_Type == NOTIFY_ALARM)) {
             /* Object Identifier */
-            getalarm_data->objectIdentifier.type = OBJECT_ANALOG_INPUT;
+            getalarm_data->objectIdentifier.type = Object_Type;
             getalarm_data->objectIdentifier.instance =
                 Analog_Input_Index_To_Instance(index);
             /* Alarm State */
@@ -1456,8 +1466,8 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
             pObject->Units = UNITS_PERCENT;
             pObject->Out_Of_Service = false;
             pObject->Changed = false;
-#if defined(INTRINSIC_REPORTING)
             pObject->Event_State = EVENT_STATE_NORMAL;
+#if defined(INTRINSIC_REPORTING)
             /* notification class not connected */
             pObject->Notification_Class = BACNET_MAX_INSTANCE;
             /* initialize Event time stamps using wildcards
@@ -1530,11 +1540,11 @@ void Analog_Input_Init(void)
 #if defined(INTRINSIC_REPORTING)
     /* Set handler for GetEventInformation function */
     handler_get_event_information_set(
-        OBJECT_ANALOG_INPUT, Analog_Input_Event_Information);
+        Object_Type, Analog_Input_Event_Information);
     /* Set handler for AcknowledgeAlarm function */
-    handler_alarm_ack_set(OBJECT_ANALOG_INPUT, Analog_Input_Alarm_Ack);
+    handler_alarm_ack_set(Object_Type, Analog_Input_Alarm_Ack);
     /* Set handler for GetAlarmSummary Service */
     handler_get_alarm_summary_set(
-        OBJECT_ANALOG_INPUT, Analog_Input_Alarm_Summary);
+        Object_Type, Analog_Input_Alarm_Summary);
 #endif
 }

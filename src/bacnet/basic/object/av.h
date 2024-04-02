@@ -41,39 +41,38 @@
 #include "bacnet/get_alarm_sum.h"
 #endif
 
+typedef struct analog_value_descr {
+    unsigned Event_State:3;
+    bool Out_Of_Service;
+    uint16_t Units;
+    float Present_Value;
+    float Prior_Value;
+    float COV_Increment;
+    bool Changed;
+    char* Object_Name;
+    char* Description;
+    BACNET_RELIABILITY Reliability;
+#if defined(INTRINSIC_REPORTING)
+    uint32_t Time_Delay;
+    uint32_t Notification_Class;
+    float High_Limit;
+    float Low_Limit;
+    float Deadband;
+    unsigned Limit_Enable:2;
+    unsigned Event_Enable:3;
+    unsigned Notify_Type:1;
+    ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
+    BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
+    /* time to generate event notification */
+    uint32_t Remaining_Time_Delay;
+    /* AckNotification information */
+    ACK_NOTIFICATION Ack_notify_data;
+#endif
+} ANALOG_VALUE_DESCR;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-    typedef struct analog_value_descr {
-        unsigned Event_State:3;
-        bool Out_Of_Service;
-        uint16_t Units;
-        float Present_Value;
-        float Prior_Value;
-        float COV_Increment;
-        bool Changed;
-        char* Object_Name;
-        char* Description;
-#if defined(INTRINSIC_REPORTING)
-        uint32_t Time_Delay;
-        uint32_t Notification_Class;
-        float High_Limit;
-        float Low_Limit;
-        float Deadband;
-        unsigned Limit_Enable:2;
-        unsigned Event_Enable:3;
-        unsigned Notify_Type:1;
-        ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
-        BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
-        /* time to generate event notification */
-        uint32_t Remaining_Time_Delay;
-        /* AckNotification information */
-        ACK_NOTIFICATION Ack_notify_data;
-#endif
-    } ANALOG_VALUE_DESCR;
-
-
     BACNET_STACK_EXPORT
     void Analog_Value_Property_Lists(
         const int **pRequired,
