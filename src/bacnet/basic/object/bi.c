@@ -109,7 +109,7 @@ bool Binary_Input_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * @brief Determines the number of Analog Value objects
+ * @brief Determines the number of objects
  * @return  Number of Analog Value objects
  */
 unsigned Binary_Input_Count(void)
@@ -130,10 +130,9 @@ uint32_t Binary_Input_Index_To_Instance(unsigned index)
 
 /**
  * @brief For a given object instance-number, determines a 0..N index
- * of Analog Value objects where N is Analog_Output_Count().
+ * of objects where N is the count.
  * @param  object_instance - object-instance number of the object
- * @return  index for the given instance-number, or MAX_ANALOG_OUTPUTS
- * if not valid.
+ * @return  index for the given instance-number, or count if not valid.
  */
 unsigned Binary_Input_Instance_To_Index(uint32_t object_instance)
 {
@@ -406,6 +405,12 @@ static bool Binary_Input_Present_Value_Write(
     return status;
 }
 
+/**
+ * @brief Get the object name
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - holds the object-name to be retrieved
+ * @return  true if object-name was retrieved
+ */
 bool Binary_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {

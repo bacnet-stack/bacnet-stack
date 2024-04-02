@@ -911,11 +911,12 @@ bool Binary_Output_Encode_Value_List(
     bool status = false;
     struct object_data *pObject;
     const bool in_alarm = false;
-    const bool fault = false;
+    bool fault = false;
     const bool overridden = false;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        fault = Binary_Output_Object_Fault(pObject);
         status =
             cov_value_list_encode_enumerated(value_list, pObject->Present_Value,
                 in_alarm, fault, overridden, pObject->Out_Of_Service);
