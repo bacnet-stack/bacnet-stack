@@ -44,6 +44,8 @@ static void testAnalogInput(void)
         Analog_Input_Read_Property,
         Analog_Input_Write_Property,
         skip_fail_property_list);
+    status = Analog_Input_Delete(object_instance);
+    zassert_true(status, NULL);
 }
 /**
  * @}
