@@ -1,29 +1,15 @@
-/**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-#ifndef MS_INPUT_H
-#define MS_INPUT_H
+/**
+ * @file
+ * @author Steve Karg
+ * @date 2009
+ * @brief Multi-State object is an input object with a present-value that
+ * uses an integer data type with a sequence of 1 to N values.
+ * @section LICENSE
+ * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+ * SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_MULTI_STATE_INPUT_H
+#define BACNET_MULTI_STATE_INPUT_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -33,6 +19,16 @@
 #include "bacnet/bacerror.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
+
+/**
+ * @brief Callback for gateway write present value request
+ * @param  object_instance - object-instance number of the object
+ * @param  old_value - multistate preset-value prior to write
+ * @param  value - multistate preset-value of the write
+ */
+typedef void (*multistate_input_write_present_value_callback)(
+    uint32_t object_instance, uint32_t old_value,
+    uint32_t value);
 
 #ifdef __cplusplus
 extern "C" {
