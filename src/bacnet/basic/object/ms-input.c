@@ -25,11 +25,6 @@
 /* me! */
 #include "bacnet/basic/object/ms-input.h"
 
-/* state text for the list*/
-struct object_state_data {
-    char *State_Text;
-};
-
 struct object_data {
     bool Out_Of_Service : 1;
     bool Change_Of_Value : 1;
@@ -61,6 +56,14 @@ static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
 
 static const int Properties_Proprietary[] = { -1 };
 
+/**
+ * Initialize the pointers for the required, the optional and the properitary
+ * value properties.
+ *
+ * @param pRequired - Pointer to the pointer of required values.
+ * @param pOptional - Pointer to the pointer of optional values.
+ * @param pProprietary - Pointer to the pointer of properitary values.
+ */
 void Multistate_Input_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
@@ -785,12 +788,7 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    int element_len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
-    uint32_t max_states = 0;
-    uint32_t array_index = 0;
-    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
-    uint32_t object_instance = 0;
 
     /* decode the first chunk of the request */
     len = bacapp_decode_application_data(
