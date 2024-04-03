@@ -547,13 +547,13 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #endif
     struct analog_input_descr *pObject;
 
-    pObject = Analog_Input_Object(rpdata->object_instance);
-    if (!pObject) {
-        return BACNET_STATUS_ERROR;
-    }
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
+    }
+    pObject = Analog_Input_Object(rpdata->object_instance);
+    if (!pObject) {
+        return BACNET_STATUS_ERROR;
     }
     apdu = rpdata->application_data;
 #if defined(INTRINSIC_REPORTING)
@@ -885,7 +885,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
- * @brief Handles the Instrinsic Reporting Service for the Analog Input Object
+ * @brief Handles the Intrinsic Reporting Service for the Analog Input Object
  * @param  object_instance - object-instance number of the object
  */
 void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
