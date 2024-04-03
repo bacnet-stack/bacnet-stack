@@ -683,7 +683,6 @@ int Multistate_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t present_value = 0;
-    unsigned i = 0;
     uint32_t max_states = 0;
     bool state = false;
     uint8_t *apdu = NULL;
@@ -828,9 +827,9 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         default:
             if (property_lists_member(
-                Properties_Required, 
-                Properties_Optional, 
-                Properties_Proprietary, 
+                Properties_Required,
+                Properties_Optional,
+                Properties_Proprietary,
                 wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -863,7 +862,6 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
 {
     struct object_data *pObject = NULL;
     int index = 0;
-    unsigned priority = 0;
 
     if (object_instance > BACNET_MAX_INSTANCE) {
         return BACNET_MAX_INSTANCE;

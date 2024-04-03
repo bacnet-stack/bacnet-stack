@@ -242,7 +242,7 @@ bool Analog_Value_Object_Name(
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
         if (pObject->Object_Name) {
-            status = characterstring_init_ansi(object_name, 
+            status = characterstring_init_ansi(object_name,
             pObject->Object_Name);
         } else {
             snprintf(text_string, sizeof(text_string), "ANALOG VALUE %u",
@@ -341,14 +341,14 @@ bool Analog_Value_Description_Set(uint32_t object_instance, char *new_name)
 */
 BACNET_RELIABILITY Analog_Value_Reliability(
     uint32_t object_instance)
-{    
+{
     BACNET_RELIABILITY value = RELIABILITY_NO_FAULT_DETECTED;
     struct analog_value_descr *pObject;
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
         value = pObject->Reliability;
-    }    
+    }
 
     return value;
 }
@@ -441,7 +441,7 @@ bool Analog_Value_Encode_Value_List(
         }
         out_of_service = pObject->Out_Of_Service;
         present_value = pObject->Present_Value;
-        status = cov_value_list_encode_real(value_list, present_value, 
+        status = cov_value_list_encode_real(value_list, present_value,
             in_alarm, fault, overridden, out_of_service);
     }
 
@@ -630,8 +630,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     ANALOG_VALUE_DESCR *CurrentAV;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
-    int len = 0;
-    unsigned i = 0;
 #endif
 
     /* Valid data? */
@@ -810,7 +808,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     ANALOG_VALUE_DESCR *CurrentAV;
@@ -986,9 +983,9 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #endif
         default:
             if (property_lists_member(
-                Analog_Value_Properties_Required, 
-                Analog_Value_Properties_Optional, 
-                Analog_Value_Properties_Proprietary, 
+                Analog_Value_Properties_Required,
+                Analog_Value_Properties_Optional,
+                Analog_Value_Properties_Proprietary,
                 wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -1012,7 +1009,6 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
     BACNET_EVENT_NOTIFICATION_DATA event_data;
     BACNET_CHARACTER_STRING msgText;
     ANALOG_VALUE_DESCR *CurrentAV;
-    unsigned int object_index;
     uint8_t FromState = 0;
     uint8_t ToState;
     float ExceededLimit = 0.0f;
@@ -1406,7 +1402,6 @@ int Analog_Value_Alarm_Ack(
     BACNET_ALARM_ACK_DATA *alarmack_data, BACNET_ERROR_CODE *error_code)
 {
     ANALOG_VALUE_DESCR *CurrentAV;
-    unsigned int object_index;
 
     if (!alarmack_data) {
         return -1;
@@ -1569,7 +1564,6 @@ uint32_t Analog_Value_Create(uint32_t object_instance)
 {
     struct analog_value_descr *pObject = NULL;
     int index = 0;
-    unsigned priority = 0;
 #if defined(INTRINSIC_REPORTING)
     unsigned j;
 #endif

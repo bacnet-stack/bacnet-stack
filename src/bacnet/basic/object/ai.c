@@ -542,8 +542,6 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
-    unsigned i = 0;
-    int len = 0;
 #endif
     struct analog_input_descr *pObject;
 
@@ -709,7 +707,6 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     struct analog_input_descr *pObject;
@@ -894,7 +891,6 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
     BACNET_CHARACTER_STRING msgText = { 0 };
     struct analog_input_descr *CurrentAI = NULL;
-    unsigned int object_index = 0;
     uint8_t FromState = 0;
     uint8_t ToState = 0;
     float ExceededLimit = 0.0f;
@@ -1282,7 +1278,6 @@ int Analog_Input_Event_Information(
 int Analog_Input_Alarm_Ack(
     BACNET_ALARM_ACK_DATA *alarmack_data, BACNET_ERROR_CODE *error_code)
 {
-    unsigned int object_index;
     struct analog_input_descr *CurrentAI;
 
     if (!alarmack_data) {
@@ -1438,7 +1433,6 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
 {
     struct analog_input_descr *pObject = NULL;
     int index = 0;
-    unsigned priority = 0;
 #if defined(INTRINSIC_REPORTING)
     unsigned j;
 #endif

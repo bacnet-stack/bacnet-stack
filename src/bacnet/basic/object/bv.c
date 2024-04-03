@@ -730,9 +730,6 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    unsigned int object_index = 0;
-    unsigned int priority = 0;
-    BACNET_BINARY_PV level = BINARY_NULL;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
