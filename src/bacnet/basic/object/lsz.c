@@ -170,7 +170,7 @@ BACNET_LIFE_SAFETY_STATE Life_Safety_Zone_Present_Value(
 /**
  * @brief For a given object instance-number, sets the present-value
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog output relinquish-default value
+ * @param  value - present-value property value
  * @return  true if values are within range and relinquish-default value is set.
  */
 bool Life_Safety_Zone_Present_Value_Set(
@@ -211,7 +211,7 @@ bool Life_Safety_Zone_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "LIFE-SAFETY-POINT-%u",
+            snprintf(name_text, sizeof(name_text), "LIFE-SAFETY-ZONE-%u",
                 object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
@@ -807,9 +807,9 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         default:
             if (property_lists_member(
-                Life_Safety_Zone_Properties_Required, 
-                Life_Safety_Zone_Properties_Optional, 
-                Life_Safety_Zone_Properties_Proprietary, 
+                Life_Safety_Zone_Properties_Required,
+                Life_Safety_Zone_Properties_Optional,
+                Life_Safety_Zone_Properties_Proprietary,
                 wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
