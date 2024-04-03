@@ -3,10 +3,10 @@
  * @brief Unit test for object
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date July 2023
+ * @section LICENSE
  *
  * SPDX-License-Identifier: MIT
  */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/channel.h>
 #include <bacnet/bactext.h>
