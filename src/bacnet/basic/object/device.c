@@ -1,31 +1,13 @@
-/**************************************************************************
- *
- * Copyright (C) 2005,2006,2009 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/** @file device.c Base "class" for handling all BACnet objects belonging
- *                 to a BACnet device, as well as Device-specific properties. */
-
+/**
+ * @file
+ * @author Steve Karg
+ * @date 2005
+ * @brief Base "class" for handling all BACnet objects belonging
+ * to a BACnet device, as well as Device-specific properties.
+ * @section LICENSE
+ * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+ * SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -255,8 +237,9 @@ static object_functions_t My_Object_Table[] = {
         Multistate_Output_Valid_Instance, Multistate_Output_Object_Name,
         Multistate_Output_Read_Property, Multistate_Output_Write_Property,
         Multistate_Output_Property_Lists, NULL /* ReadRangeInfo */,
-        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
-        NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Iterator */, 
+        Multistate_Output_Encode_Value_List, Multistate_Output_Change_Of_Value,
+        Multistate_Output_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         Multistate_Output_Create, Multistate_Output_Delete, NULL /* Timer */ },
     { OBJECT_MULTI_STATE_VALUE, Multistate_Value_Init, Multistate_Value_Count,
@@ -267,7 +250,7 @@ static object_functions_t My_Object_Table[] = {
         Multistate_Value_Encode_Value_List, Multistate_Value_Change_Of_Value,
         Multistate_Value_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+        Multistate_Value_Create, Multistate_Value_Delete, NULL /* Timer */ },
     { OBJECT_TRENDLOG, Trend_Log_Init, Trend_Log_Count,
         Trend_Log_Index_To_Instance, Trend_Log_Valid_Instance,
         Trend_Log_Object_Name, Trend_Log_Read_Property,
