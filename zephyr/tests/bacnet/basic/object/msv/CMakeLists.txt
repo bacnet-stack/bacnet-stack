@@ -6,7 +6,7 @@ string(REGEX REPLACE
   "/zephyr/tests/[a-zA-Z_/-]*$" ""
   BACNET_BASE
   ${CMAKE_CURRENT_SOURCE_DIR})
-  string(REGEX REPLACE
+string(REGEX REPLACE
   "/zephyr/tests/" "/test/"
   BACNET_TEST_PATH
   ${CMAKE_CURRENT_SOURCE_DIR})
