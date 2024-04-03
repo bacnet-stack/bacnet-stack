@@ -227,11 +227,11 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     //     strncpy(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name, sizeof(pInit_data->Object_Init_Values[i].Object_Name));
     // }
 
-    if (!characterstring_init_ansi(&CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+    if (!characterstring_ansi_copy(&CSV_Descr[i].Name, sizeof(CSV_Descr[i].Name), pInit_data->Object_Init_Values[i].Object_Name)) {
       PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
     }
 
-    if (!characterstring_init_ansi(&CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
+    if (!characterstring_ansi_copy(&CSV_Descr[i].Description, sizeof(CSV_Descr[i].Description), pInit_data->Object_Init_Values[i].Description)) {
       PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
     }
 
