@@ -181,10 +181,9 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
     unsigned index = 0; /* offset from instance lookup */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    for (index = 0; index < CSV_Max_Index; index++) {
-        if (object_instance == CSV_Descr[index].Instance) {
-            return true;
-        }
+
+    if (object_instance == CSV_Descr[index].Instance) {
+        return true;
     }
 
     return false;
@@ -416,14 +415,13 @@ bool CharacterString_Value_Description_Set(
     uint32_t object_instance, BACNET_CHARACTER_STRING *new_descr)
 {
     unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if(index < CSV_Max_Index) {
         status = true;
         if(new_descr) {
-            strcpy(CSV_Descr[index].Description, new_descr->value); // strcpy
+            strncpy(CSV_Descr[index].Description, new_descr->value, sizeof(CSV_Descr[index].Description));
         } else {
              memset(&CSV_Descr->Description[index], 0,
                   sizeof(CSV_Descr->Description[index]));
@@ -473,7 +471,6 @@ bool CharacterString_Value_Object_Name(
 bool CharacterString_Value_Name_Set(uint32_t object_instance, char *new_name)
 {
     unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
