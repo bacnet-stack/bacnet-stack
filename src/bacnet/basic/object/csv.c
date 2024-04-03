@@ -152,7 +152,7 @@ uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
         return CSV_Descr[index].Instance;
     } else {
        PRINT("index out of bounds");
-   }
+    }
 
    return 0;
 }
@@ -182,8 +182,7 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     for (index = 0; index < CSV_Max_Index; index++) {
-        if (object_instance == CSV_Descr[index].Instance)
-        {
+        if (object_instance == CSV_Descr[index].Instance) {
             return true;
         }
     }
@@ -397,18 +396,13 @@ bool CharacterString_Value_Encode_Value_List(
 static char *CharacterString_Value_Description(uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
-    char *pName = NULL; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < CSV_Max_Index) {
-        pName = CSV_Descr[index].Description;
-        if(pName != NULL){
-            return pName;
-        }
-
+        return CSV_Descr[index].Description;
     }
 
-    return NULL;
+    return 0;
 }
 
 /**
@@ -428,18 +422,13 @@ bool CharacterString_Value_Description_Set(
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
-    if(index < CSV_Max_Index)
-    {
+    if(index < CSV_Max_Index) {
         status = true;
-        if(new_descr)
-        {
+        if(new_descr) {
             strcpy(CSV_Descr[index].Description, new_descr->value); // strcpy
-        }
-        else
-        {
+        } else {
              memset(&CSV_Descr->Description[index], 0,
                   sizeof(CSV_Descr->Description[index]));
-
         }
     }
 
