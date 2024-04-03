@@ -221,17 +221,25 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
       return false;
     }
 
-    if(!strncmp(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name, strlen(pInit_data->Object_Init_Values[i].Object_Name))) {
-        PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-    } else {
-        strncpy(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name, sizeof(pInit_data->Object_Init_Values[i].Object_Name));
+    // if(!strncmp(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name, strlen(pInit_data->Object_Init_Values[i].Object_Name))) {
+    //     PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+    // } else {
+    //     strncpy(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name, sizeof(pInit_data->Object_Init_Values[i].Object_Name));
+    // }
+
+    if (!characterstring_init_ansi(&CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name)) {
+      PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
     }
 
-    if(!strncmp(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description, strlen(pInit_data->Object_Init_Values[i].Description))) {
-        PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-    } else {
-        strncpy(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description, sizeof(pInit_data->Object_Init_Values[i].Description));
+    if (!characterstring_init_ansi(&CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
+      PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
     }
+
+    // if(!strncmp(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description, strlen(pInit_data->Object_Init_Values[i].Description))) {
+    //     PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
+    // } else {
+    //     strncpy(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description, sizeof(pInit_data->Object_Init_Values[i].Description));
+    // }
   }
 
   CSV_Max_Index = (int) pInit_data->length;
