@@ -81,6 +81,7 @@ static struct analog_value_descr *Analog_Value_Object(uint32_t object_instance)
     return Keylist_Data(Object_List, object_instance);
 }
 
+#if defined(INTRINSIC_REPORTING)
 /**
  * @brief Gets an object from the list using its index in the list
  * @param index - index of the object in the list
@@ -90,6 +91,7 @@ static struct analog_value_descr *Analog_Value_Object_Index(int index)
 {
     return Keylist_Data_Index(Object_List, index);
 }
+#endif
 
 /**
  * @brief Determines if a given Analog Value instance is valid

@@ -119,6 +119,10 @@ extern "C" {
         BACNET_RELIABILITY value);
 
     BACNET_STACK_EXPORT
+    bool Multistate_Input_State_Text_List_Set(
+        uint32_t object_instance,
+        const char *state_text_list);
+    BACNET_STACK_EXPORT
     bool Multistate_Input_State_Text_Set(
         uint32_t object_instance,
         uint32_t state_index,

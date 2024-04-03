@@ -222,6 +222,25 @@ void Binary_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 }
 
 /**
+ * @brief For a given object instance-number, returns the reliability property value
+ * @param object_instance - object-instance number of the object
+ * @return reliability property value
+ */
+BACNET_RELIABILITY Binary_Value_Reliability(
+    uint32_t object_instance)
+{
+    BACNET_RELIABILITY value = RELIABILITY_NO_FAULT_DETECTED;
+    struct object_data *pObject;
+
+    pObject = Binary_Value_Object(object_instance);
+    if (pObject) {
+        value = pObject->Reliability;
+    }
+
+    return value;
+}
+
+/**
  * @brief For a given object, gets the Fault status flag
  * @param  object_instance - object-instance number of the object
  * @return  true the status flag is in Fault
@@ -237,6 +256,36 @@ static bool Binary_Value_Object_Fault(struct object_data *pObject)
     }
 
     return fault;
+}
+
+/**
+ * For a given object instance-number, sets the reliability
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - reliability enumerated value
+ *
+ * @return  true if values are within range and property is set.
+ */
+bool Binary_Value_Reliability_Set(
+    uint32_t object_instance, BACNET_RELIABILITY value)
+{
+    struct object_data *pObject;
+    bool status = false;
+    bool fault = false;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (value <= 255) {
+            fault = Binary_Value_Object_Fault(pObject);
+            pObject->Reliability = value;
+            if (fault != Binary_Value_Object_Fault(pObject)) {
+                pObject->Change_Of_Value = true;
+            }
+            status = true;
+        }
+    }
+
+    return status;
 }
 
 /**
