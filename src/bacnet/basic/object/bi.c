@@ -222,6 +222,25 @@ void Binary_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
 }
 
 /**
+ * @brief For a given object instance-number, returns the reliability property value
+ * @param object_instance - object-instance number of the object
+ * @return reliability property value
+ */
+BACNET_RELIABILITY Binary_Input_Reliability(
+    uint32_t object_instance)
+{
+    BACNET_RELIABILITY value = RELIABILITY_NO_FAULT_DETECTED;
+    struct object_data *pObject;
+
+    pObject = Binary_Input_Object(object_instance);
+    if (pObject) {
+        value = pObject->Reliability;
+    }
+
+    return value;
+}
+
+/**
  * @brief For a given object, gets the Fault status flag
  * @param  object_instance - object-instance number of the object
  * @return  true the status flag is in Fault
@@ -237,6 +256,36 @@ static bool Binary_Input_Object_Fault(struct object_data *pObject)
     }
 
     return fault;
+}
+
+/**
+ * For a given object instance-number, sets the reliability
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - reliability enumerated value
+ *
+ * @return  true if values are within range and property is set.
+ */
+bool Binary_Input_Reliability_Set(
+    uint32_t object_instance, BACNET_RELIABILITY value)
+{
+    struct object_data *pObject;
+    bool status = false;
+    bool fault = false;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (value <= 255) {
+            fault = Binary_Input_Object_Fault(pObject);
+            pObject->Reliability = value;
+            if (fault != Binary_Input_Object_Fault(pObject)) {
+                pObject->Change_Of_Value = true;
+            }
+            status = true;
+        }
+    }
+
+    return status;
 }
 
 /**
@@ -529,6 +578,89 @@ bool Binary_Input_Description_Set(uint32_t object_instance, char *new_name)
     if (pObject) {
         status = true;
         pObject->Description = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the inactive-text property value
+ * @param object_instance - object-instance number of the object
+ * @return inactive-text property value
+ */
+char *Binary_Input_Inactive_Text(
+    uint32_t object_instance)
+{
+    char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Binary_Input_Object(object_instance);
+    if (pObject) {
+        name = (char *)pObject->Inactive_Text;
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets the inactive-text property value
+ * @param object_instance - object-instance number of the object
+ * @param new_name - holds the inactive-text to be set
+ * @return true if the inactive-text property value was set
+ */
+bool Binary_Input_Inactive_Text_Set(
+    uint32_t object_instance,
+    char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Binary_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Inactive_Text = new_name;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the active-text property value
+ * @param object_instance - object-instance number of the object
+ * @return active-text property value
+*/
+char *Binary_Input_Active_Text(
+    uint32_t object_instance)
+{
+    char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Binary_Input_Object(object_instance);
+    if (pObject) {
+        name = (char *)pObject->Active_Text;
+    }
+
+    return name;
+
+}
+
+/**
+ * @brief For a given object instance-number, sets the active-text property value
+ * @param object_instance - object-instance number of the object
+ * @param new_name - holds the active-text to be set
+ * @return true if the active-text property value was set
+ */
+bool Binary_Input_Active_Text_Set(
+    uint32_t object_instance,
+    char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Binary_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Inactive_Text = new_name;
+        status = true;
     }
 
     return status;
