@@ -44,8 +44,6 @@
 #define MAX_CHARACTERSTRING_VALUES 1
 #endif
 
-#define PRINTF printf
-
 
 /* Here is our Present Value */
 static BACNET_CHARACTER_STRING Present_Value[MAX_CHARACTERSTRING_VALUES];
@@ -150,13 +148,13 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
 {
 
-    //if(index < CSV_Max_Index){
+    if(index < CSV_Max_Index) {
         return CSV_Descr[index].Instance;
-   // } else {
-     //   PRINTF("index out of bounds");
-   // }
+    } else {
+       PRINT("index out of bounds");
+   }
 
-   // return NULL;
+   return 0;
 }
 
 /**
@@ -209,7 +207,7 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   }
 
   if ((int) pInit_data->length > MAX_CHARACTERSTRING_VALUES) {
-    PRINTF("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_CHARACTERSTRING_VALUES);
+    PRINT("pInit_data->length = %d >= %d", (int) pInit_data->length, MAX_CHARACTERSTRING_VALUES);
     return false;
   }
 
@@ -217,29 +215,14 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
         CSV_Descr[i].Instance = pInit_data->Object_Init_Values[i].Object_Instance;
     } else {
-      PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+      PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
       return false;
     }
 
-    // if(!strncmp(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name, strlen(pInit_data->Object_Init_Values[i].Object_Name))) {
-    //     PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-    // } else {
-    //     strncpy(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name, sizeof(pInit_data->Object_Init_Values[i].Object_Name));
-    // }
+    strncpy(CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name, sizeof(CSV_Descr[i].Name));
 
-    if (!characterstring_ansi_copy(&CSV_Descr[i].Name, sizeof(CSV_Descr[i].Name), pInit_data->Object_Init_Values[i].Object_Name)) {
-      PRINTF("Fail to set Object name to \"%128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-    }
+    strncpy(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description, sizeof(CSV_Descr[i].Description));
 
-    if (!characterstring_ansi_copy(&CSV_Descr[i].Description, sizeof(CSV_Descr[i].Description), pInit_data->Object_Init_Values[i].Description)) {
-      PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-    }
-
-    // if(!strncmp(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description, strlen(pInit_data->Object_Init_Values[i].Description))) {
-    //     PRINTF("Fail to set description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
-    // } else {
-    //     strncpy(CSV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description, sizeof(pInit_data->Object_Init_Values[i].Description));
-    // }
   }
 
   CSV_Max_Index = (int) pInit_data->length;
