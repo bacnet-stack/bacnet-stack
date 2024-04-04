@@ -406,9 +406,9 @@ int main(int argc, char *argv[])
         } else {
             if (target_args == 0) {
                 Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
-                if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
+                if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
                     fprintf(stderr,
-                        "device-instance=%u - it must be less than %u\n",
+                        "device-instance=%u - not greater than %u\n",
                         Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -445,9 +445,9 @@ int main(int argc, char *argv[])
                     rpm_object->object_instance = strtol(argv[argi], NULL, 0);
                     if (rpm_object->object_instance > BACNET_MAX_INSTANCE) {
                         fprintf(stderr,
-                            "object-instance=%u - it must be less than %u\n",
+                            "object-instance=%u - not greater than %u\n",
                             rpm_object->object_instance,
-                            BACNET_MAX_INSTANCE + 1);
+                            BACNET_MAX_INSTANCE);
                         return 1;
                     }
                     tag_value_arg++;

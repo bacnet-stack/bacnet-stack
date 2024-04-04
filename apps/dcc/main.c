@@ -157,7 +157,7 @@ static void print_help(char *filename)
         "If you want disable Device Communications in Device 123\n"
         "for 60 minutes with password 'filister', use the following command:\n"
         "%s 123 1 60 filister\n",
-        (unsigned long)(BACNET_MAX_INSTANCE - 1), filename);
+        (unsigned long)BACNET_MAX_INSTANCE, filename);
 }
 
 int main(int argc, char *argv[])
@@ -207,8 +207,8 @@ int main(int argc, char *argv[])
     if (argc > 4) {
         Communication_Password = argv[4];
     }
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }

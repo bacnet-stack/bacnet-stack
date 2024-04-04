@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
     Target_Object_Range_Type = strtol(argv[5], NULL, 0);
     /* some bounds checking */
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - not greater than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }

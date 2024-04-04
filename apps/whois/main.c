@@ -462,13 +462,13 @@ int main(int argc, char *argv[])
         }
     }
     if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance-min=%u - it must be less than %u\n",
-            Target_Object_Instance_Min, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "device-instance-min=%u - not greater than %u\n",
+            Target_Object_Instance_Min, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Instance_Max > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance-max=%u - it must be less than %u\n",
-            Target_Object_Instance_Max, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "device-instance-max=%u - not greater than %u\n",
+            Target_Object_Instance_Max, BACNET_MAX_INSTANCE);
         return 1;
     }
     /* setup my info */
