@@ -49,13 +49,14 @@ static binary_input_write_present_value_callback
     Binary_Input_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Input_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_POLARITY, -1 };
 
-static const int Binary_Input_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int Properties_Optional[] = { PROP_RELIABILITY,
+    PROP_DESCRIPTION, PROP_ACTIVE_TEXT, PROP_INACTIVE_TEXT, -1 };
 
-static const int Binary_Input_Properties_Proprietary[] = { -1 };
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * Initialize the pointers for the required, the optional and the properitary
@@ -69,13 +70,13 @@ void Binary_Input_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired) {
-        *pRequired = Binary_Input_Properties_Required;
+        *pRequired = Properties_Required;
     }
     if (pOptional) {
-        *pOptional = Binary_Input_Properties_Optional;
+        *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = Binary_Input_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
     }
 
     return;
@@ -731,9 +732,25 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(
                 &apdu[0], Binary_Input_Polarity(rpdata->object_instance));
             break;
+        case PROP_RELIABILITY:
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Binary_Input_Reliability(rpdata->object_instance));
+            break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
                 Binary_Input_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_ACTIVE_TEXT:
+            characterstring_init_ansi(&char_string,
+                Binary_Input_Active_Text(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_INACTIVE_TEXT:
+            characterstring_init_ansi(&char_string,
+                Binary_Input_Inactive_Text(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -819,9 +836,9 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         default:
             if (property_lists_member(
-                Binary_Input_Properties_Required, 
-                Binary_Input_Properties_Optional, 
-                Binary_Input_Properties_Proprietary, 
+                Properties_Required, 
+                Properties_Optional, 
+                Properties_Proprietary, 
                 wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
