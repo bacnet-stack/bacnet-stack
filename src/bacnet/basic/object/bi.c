@@ -660,7 +660,7 @@ bool Binary_Input_Active_Text_Set(
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        pObject->Inactive_Text = new_name;
+        pObject->Active_Text = new_name;
         status = true;
     }
 

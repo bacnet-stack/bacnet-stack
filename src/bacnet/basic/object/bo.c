@@ -812,7 +812,7 @@ bool Binary_Output_Active_Text_Set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Active_Text = new_name;
     }
@@ -854,7 +854,7 @@ bool Binary_Output_Inactive_Text_Set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Inactive_Text = new_name;
     }
