@@ -1135,8 +1135,8 @@ static int CheckCommandLineArgs(int argc, char *argv[])
             Target_Device_Object_Instance = strtol(anArg, NULL, 0);
             if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
                 fprintf(stdout,
-                    "Error: device-instance=%u - it must be less than %u\n",
-                    Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
+                    "Error: device-instance=%u - not greater than %u\n",
+                    Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                 print_usage(filename);
                 exit(0);
             }

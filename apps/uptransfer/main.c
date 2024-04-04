@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
     Target_Service_Number = strtol(argv[3], NULL, 0);
     if ((!Target_Broadcast) &&
         (Target_Device_Object_Instance > BACNET_MAX_INSTANCE)) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }

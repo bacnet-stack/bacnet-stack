@@ -313,8 +313,8 @@ int main(int argc, char *argv[])
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -357,8 +357,8 @@ int main(int argc, char *argv[])
             return 1;
         }
         if (wpm_object->object_instance > BACNET_MAX_INSTANCE) {
-            fprintf(stderr, "object-instance=%u - it must be less than %u\n",
-                wpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
+            fprintf(stderr, "object-instance=%u - not greater than %u\n",
+                wpm_object->object_instance, BACNET_MAX_INSTANCE);
             return 1;
         }
         do {

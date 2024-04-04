@@ -174,14 +174,14 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     Target_File_Object_Instance = strtol(argv[2], NULL, 0);
     Local_File_Name = argv[3];
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "device-instance=%u - not greater than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-    if (Target_File_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "file-instance=%u - it must be less than %u\r\n",
-            Target_File_Object_Instance, BACNET_MAX_INSTANCE + 1);
+    if (Target_File_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "file-instance=%u - not greater than %u\r\n",
+            Target_File_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (argc > 4) {

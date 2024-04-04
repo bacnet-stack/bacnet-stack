@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
         }
     }
     if (device_id > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device=%u - it must be less than %u\n", device_id,
+        fprintf(stderr, "device=%u - not greater than %u\n", device_id,
             BACNET_MAX_INSTANCE);
         return 1;
     }

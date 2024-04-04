@@ -304,8 +304,8 @@ int main(int argc, char *argv[])
         Target_Object_Property_Index = BACNET_ARRAY_ALL;
     }
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
@@ -314,8 +314,8 @@ int main(int argc, char *argv[])
         return 1;
     }
     if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\n",
-            Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "object-instance=%u - not greater than %u\n",
+            Target_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
