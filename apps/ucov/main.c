@@ -176,8 +176,8 @@ int main(int argc, char *argv[])
         value_list.propertyArrayIndex = BACNET_ARRAY_ALL;
     }
 
-    if (cov_data.initiatingDeviceIdentifier >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (cov_data.initiatingDeviceIdentifier > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             cov_data.initiatingDeviceIdentifier, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -187,15 +187,15 @@ int main(int argc, char *argv[])
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\n",
+        fprintf(stderr, "object-instance=%u - not greater than %u\n",
             cov_data.monitoredObjectIdentifier.instance,
-            BACNET_MAX_INSTANCE + 1);
+            BACNET_MAX_INSTANCE);
         return 1;
     }
     if (cov_data.listOfValues->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "property-identifier=%u - it must be less than %u\n",
+        fprintf(stderr, "property-identifier=%u - not greater than %u\n",
             cov_data.listOfValues->propertyIdentifier,
-            MAX_BACNET_PROPERTY_ID + 1);
+            MAX_BACNET_PROPERTY_ID);
         return 1;
     }
     if (tag >= MAX_BACNET_APPLICATION_TAG) {
