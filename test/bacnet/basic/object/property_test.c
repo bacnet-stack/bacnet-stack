@@ -136,7 +136,7 @@ int bacnet_object_property_read_test(BACNET_READ_PROPERTY_DATA *rpdata,
     } else if (read_len == 0) {
         /* empty response is valid for some properties */
     } else {
-        zassert_not_equal(len, BACNET_STATUS_ERROR,
+        zassert_not_equal(read_len, BACNET_STATUS_ERROR,
             "property '%s': failed to read!\n",
             bactext_property_name(rpdata->object_property));
     }

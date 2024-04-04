@@ -733,6 +733,10 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(
                 &apdu[0], Binary_Value_Polarity(rpdata->object_instance));
             break;
+        case PROP_RELIABILITY:
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Binary_Value_Reliability(rpdata->object_instance));
+            break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
                 Binary_Value_Description(rpdata->object_instance));
