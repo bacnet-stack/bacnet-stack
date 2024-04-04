@@ -132,6 +132,9 @@ extern "C" {
         uint32_t instance,
         uint32_t max_states_requested);
     BACNET_STACK_EXPORT
+    uint32_t Multistate_Input_Max_States(
+        uint32_t instance);
+    BACNET_STACK_EXPORT
     char *Multistate_Input_State_Text(
         uint32_t object_instance,
         uint32_t state_index);

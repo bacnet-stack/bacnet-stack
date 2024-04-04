@@ -224,7 +224,7 @@ static const char *state_name_by_index(const char *state_names, unsigned index)
  * @param  object_instance - object-instance number of the object
  * @return  number of states
  */
-static uint32_t Multistate_Output_Max_States(uint32_t object_instance)
+uint32_t Multistate_Output_Max_States(uint32_t object_instance)
 {
     uint32_t count = 0;
     struct object_data *pObject;
