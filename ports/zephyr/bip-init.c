@@ -178,7 +178,7 @@ bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&BIP_Address.s_addr, &addr->address[0], IP_ADDRESS_MAX);
-        memcpy(&BIP_Port, &addr->port, sizeof(addr->port));
+        BIP_Port = htons(addr->port);
         return true;
     }
     return false;
@@ -193,7 +193,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&addr->address[0], &BIP_Address.s_addr, IP_ADDRESS_MAX);
-        memcpy(&addr->port, &BIP_Port, sizeof(addr->port));
+        addr->port = ntohs(BIP_Port);
         return true;
     }
     return false;
