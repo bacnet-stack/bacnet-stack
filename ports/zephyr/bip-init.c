@@ -437,11 +437,10 @@ void bip_set_interface(char *ifname)
     BACNET_IP_ADDRESS broadcast = { 0 };
 
     /* Network byte order */
-    unicast.port = BIP_Port;
-    broadcast.port = BIP_Port;
+    unicast.port = ntohs(BIP_Port);
+    broadcast.port = ntohs(BIP_Port);
     LOG_INF("bip_set_interface()");
-    LOG_INF("UDP port: %d", ntohs(BIP_Port));
-
+    LOG_INF("UDP port: %d", unicast.port);
     if (ifname) {
         index = atoi(ifname);
         /* if index is zero, discern between "0" and a parse error */
@@ -507,8 +506,9 @@ void bip_set_interface(char *ifname)
         }
         bip_set_addr(&unicast);
         bip_set_broadcast_addr(&broadcast);
-        LOG_INF("BACnet/IP Unicast: %u.%u.%u.%u", unicast.address[0],
-            unicast.address[1], unicast.address[2], unicast.address[3]);
+        LOG_INF("BACnet/IP Unicast: %u.%u.%u.%u:%d", unicast.address[0],
+            unicast.address[1], unicast.address[2], unicast.address[3], 
+            unicast.port);
         LOG_INF("BACnet/IP Broadcast: %u.%u.%u.%u", broadcast.address[0],
             broadcast.address[1], broadcast.address[2], broadcast.address[3]);
     } else {
