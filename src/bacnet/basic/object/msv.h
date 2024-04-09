@@ -140,6 +140,9 @@ extern "C" {
     void Multistate_Value_Init(
         void);
 
+    BACNET_STACK_EXPORT
+    bool Multistata_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

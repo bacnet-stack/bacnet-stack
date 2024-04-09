@@ -38,6 +38,8 @@
 #include "bacnet/basic/object/msv.h"
 #include "bacnet/basic/services.h"
 
+#define PRINTF printf
+
 /* number of demo objects */
 #ifndef MAX_MULTISTATE_VALUES
 #define MAX_MULTISTATE_VALUES 4
@@ -60,6 +62,8 @@ static char Object_Name[MAX_MULTISTATE_VALUES][64];
 static char Object_Description[MAX_MULTISTATE_VALUES][64];
 /* object state text storage */
 static char State_Text[MAX_MULTISTATE_VALUES][MULTISTATE_NUMBER_OF_STATES][64];
+/* Here is out Instance */
+static uint32_t Instance[MAX_MULTISTATE_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -70,6 +74,8 @@ static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
     -1 };
 
 static const int Properties_Proprietary[] = { -1 };
+
+static int MSV_Max_Index = MAX_MULTISTATE_VALUES;
 
 void Multistate_Value_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
@@ -96,9 +102,49 @@ void Multistate_Value_Init(void)
         Present_Value[i] = 1;
         sprintf(&Object_Name[i][0], "MULTISTATE VALUE %u", i);
         sprintf(&Object_Description[i][0], "MULTISTATE VALUE %u", i);
+        Instance[i] = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_MULTI_STATE_VALUE));
     }
 
     return;
+}
+
+/**
+ * Initialize the Multistate Value Inputs. Returns false if there are errors.
+ *
+ * @param pInit_data pointer to initialisation values
+ *
+ * @return true/false
+ */
+bool Multistate_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
+{
+  unsigned i;
+
+  if (!pInit_data) {
+    return false;
+  }
+
+  if ((int) pInit_data->length > MAX_MULTISTATE_VALUES) {
+    PRINTF("pInit_data->length = %d > %d", (int) pInit_data->length, MAX_MULTISTATE_VALUES);
+    return false;
+  }
+
+  for (i = 0; i < pInit_data->length; i++) {
+    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+        Instance[i] = pInit_data->Object_Init_Values[i].Object_Instance;
+    } else {
+      PRINTF("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+      return false;
+    }
+
+    PRINTF("%%%%%%%% OBJECT NAME %s\r\n",  pInit_data->Object_Init_Values[i].Object_Name);
+    PRINTF("%%%%%%%% OBJECT DESCR %s\r\n",  pInit_data->Object_Init_Values[i].Description);
+
+
+   }
+
+   MSV_Max_Index = (int) pInit_data->length;
+
+   return true;
 }
 
 /* we simply have 0-n object instances.  Yours might be */
@@ -291,10 +337,12 @@ char *Multistate_Value_State_Text(
     char *pName = NULL; /* return value */
 
     index = Multistate_Value_Instance_To_Index(object_instance);
+    PRINTF("#######  INDEX %u\r\n",index);
     if ((index < MAX_MULTISTATE_VALUES) && (state_index > 0) &&
         (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
         state_index--;
         pName = State_Text[index][state_index];
+        PRINTF("####### STATE INDEX %s\r\n",State_Text[index][state_index]);
     }
 
     return pName;
