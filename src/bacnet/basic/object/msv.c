@@ -99,7 +99,7 @@ void Multistate_Value_Init(void)
 
     /* initialize all the analog output priority arrays to NULL */
     for (i = 0; i < MAX_MULTISTATE_VALUES; i++) {
-        Present_Value[i] = 0;
+        Present_Value[i] = 1;
         sprintf(&Object_Name[i][0], "MULTISTATE VALUE %u", i);
         sprintf(&Object_Description[i][0], "MULTISTATE VALUE %u", i);
         Instance[i] = BACNET_INSTANCE(BACNET_ID_VALUE(i, OBJECT_MULTI_STATE_VALUE));
@@ -115,7 +115,7 @@ void Multistate_Value_Init(void)
  *
  * @return true/false
  */
-bool Multistate_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
+bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 {
   unsigned i;
 
@@ -136,8 +136,8 @@ bool Multistate_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
       return false;
     }
 
-    // PRINTF("%%%%%%%% OBJECT NAME %s\r\n",  pInit_data->Object_Init_Values[i].Object_Name);
-    // PRINTF("%%%%%%%% OBJECT DESCR %s\r\n",  pInit_data->Object_Init_Values[i].Description);
+  //  PRINTF("%%%%%%%% OBJECT NAME %s\r\n",  pInit_data->Object_Init_Values[i].Object_Name);
+   // PRINTF("%%%%%%%% OBJECT DESCR %s\r\n",  pInit_data->Object_Init_Values[i].Description);
 
     strncpy(Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name, sizeof(Object_Name[i]));
 
@@ -296,9 +296,9 @@ bool Multistate_Value_Object_Name(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
-    if(!object_instance) {
-        return false;
-    }
+    // if(!object_instance) { // removed @ 14:00
+    //     return false;
+    // }
 
     index = Multistate_Value_Instance_To_Index(object_instance);
     if (index < MSV_Max_Index) {
@@ -335,15 +335,15 @@ char *Multistate_Value_State_Text(
 {
     unsigned index = 0; /* offset from instance lookup */
     char *pName = NULL; /* return value */
-    PRINTF("#######  OBJECT INSTANCE %u\r\n",object_instance);
-    PRINTF("#######  STATE_INDEX %u\r\n",state_index);
+   // PRINTF("#######  OBJECT INSTANCE %u\r\n",object_instance);
+   // PRINTF("#######  STATE_INDEX %u\r\n",state_index);
     index = Multistate_Value_Instance_To_Index(object_instance);
-    PRINTF("#######  INDEX %u\r\n",index);
+   // PRINTF("#######  INDEX %u\r\n",index);
     if ((index < MSV_Max_Index) && (state_index > 0) &&
         (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
         state_index--;
         pName = State_Text[index][state_index];
-        PRINTF("####### STATE TEXT %s\r\n",State_Text[index][state_index]);
+     //   PRINTF("####### STATE TEXT %s\r\n",State_Text[index][state_index]);
     }
 
     return pName;
@@ -362,7 +362,7 @@ bool Multistate_Value_State_Text_Set(
     PRINTF("*******  NEW_NAME %s\r\n",new_name);
     index = Multistate_Value_Instance_To_Index(object_instance);
     PRINTF("*******  INDEX %u\r\n",index);
-    if ((index < MAX_MULTISTATE_VALUES) && (state_index > 0) &&
+    if ((index < MSV_Max_Index) && (state_index > 0) &&
         (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
         state_index--;
         status = true;
@@ -382,7 +382,7 @@ bool Multistate_Value_State_Text_Set(
     }
 
     return status;
-    ;
+
 }
 
 bool Multistate_Value_Change_Of_Value(uint32_t object_instance)

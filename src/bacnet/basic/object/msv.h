@@ -141,7 +141,7 @@ extern "C" {
         void);
 
     BACNET_STACK_EXPORT
-    bool Multistate_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
+    bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 
 #ifdef __cplusplus
 }
