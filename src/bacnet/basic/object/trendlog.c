@@ -147,7 +147,7 @@ static bacnet_time_t Trend_Log_Epoch_Seconds_Now(void)
 {
     BACNET_DATE_TIME bdatetime = { 0 };
 
-    Device_getCurrentDateTime(&bdatetime);
+    datetime_local(&bdatetime.date, &bdatetime.time, NULL, NULL);
 
     return datetime_seconds_since_epoch(&bdatetime);
 }
@@ -220,7 +220,7 @@ void Trend_Log_Init(void)
             LogInfo[iLog].ulTotalRecordCount = 10000;
 
             LogInfo[iLog].Source.deviceIdentifier.instance =
-                Device_Object_Instance_Number();
+                handler_device_object_instance_number();
             LogInfo[iLog].Source.deviceIdentifier.type = OBJECT_DEVICE;
             LogInfo[iLog].Source.objectIdentifier.instance = iLog;
             LogInfo[iLog].Source.objectIdentifier.type = OBJECT_ANALOG_INPUT;
@@ -692,7 +692,7 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* We only support references to objects in ourself for now */
             if ((TempSource.deviceIdentifier.type == OBJECT_DEVICE) &&
                 (TempSource.deviceIdentifier.instance !=
-                    Device_Object_Instance_Number())) {
+                    handler_device_object_instance_number())) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code =
                     ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
@@ -1532,7 +1532,7 @@ static int local_read_property(uint8_t *value,
         rpdata.object_property = Source->propertyIdentifier;
         rpdata.array_index = Source->arrayIndex;
         /* Try to fetch the required property */
-        len = Device_Read_Property(&rpdata);
+        len = handler_device_read_property(&rpdata);
         if (len < 0) {
             *error_class = rpdata.error_class;
             *error_code = rpdata.error_code;
@@ -1545,7 +1545,7 @@ static int local_read_property(uint8_t *value,
         rpdata.application_data_len = MAX_APDU;
         rpdata.object_property = PROP_STATUS_FLAGS;
         rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Device_Read_Property(&rpdata);
+        len = handler_device_read_property(&rpdata);
         if (len < 0) {
             *error_class = rpdata.error_class;
             *error_code = rpdata.error_code;

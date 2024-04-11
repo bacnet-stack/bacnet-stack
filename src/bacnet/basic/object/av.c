@@ -294,9 +294,6 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
     if (pObject) {
         state = pObject->Event_State;
     }
-#else
-    (void)object_instance;
-#endif
 
     return state;
 }

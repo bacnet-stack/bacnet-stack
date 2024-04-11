@@ -648,11 +648,9 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
     int apdu_size = 0;
-    struct object_functions *pObject = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {

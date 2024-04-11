@@ -1077,10 +1077,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
-    uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
-    struct object_functions *pObject = NULL;
     uint16_t apdu_max = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -1503,73 +1501,6 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             }
             break;
-    }
-
-    return status;
-}
-
-/**
- * @brief Handles the writing of the object name property
- * @param wp_data [in,out] WriteProperty data structure
- * @param Object_Write_Property object specific function to write the property
- * @return True on success, else False if there is an error.
- */
-static bool Device_Write_Property_Object_Name(
-    BACNET_WRITE_PROPERTY_DATA *wp_data,
-    write_property_function Object_Write_Property)
-{
-    bool status = false; /* return value */
-    int len = 0;
-    BACNET_CHARACTER_STRING value;
-    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
-    uint32_t object_instance = 0;
-    int apdu_size = 0;
-    uint8_t *apdu = NULL;
-
-    if (!wp_data) {
-        return false;
-    }
-    if (wp_data->array_index != BACNET_ARRAY_ALL) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        return false;
-    }
-    apdu = wp_data->application_data;
-    apdu_size = wp_data->application_data_len;
-    len = bacnet_character_string_application_decode(apdu, apdu_size, &value);
-    if (len > 0) {
-        if ((characterstring_encoding(&value) != CHARACTER_ANSI_X34) ||
-            (characterstring_length(&value) == 0) ||
-            (!characterstring_printable(&value))) {
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        } else {
-            status = true;
-        }
-    } else if (len == 0) {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-    } else {
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-    }
-    if (status) {
-        /* All the object names in a device must be unique */
-        if (Device_Valid_Object_Name(&value, &object_type, &object_instance)) {
-            if ((object_type == wp_data->object_type) &&
-                (object_instance == wp_data->object_instance)) {
-                /* writing same name to same object */
-                status = true;
-            } else {
-                /* name already exists in some object */
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
-                status = false;
-            }
-        } else {
-            status = Object_Write_Property(wp_data);
-        }
     }
 
     return status;

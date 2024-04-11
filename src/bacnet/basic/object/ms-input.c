@@ -308,7 +308,7 @@ uint32_t Multistate_Input_Present_Value(uint32_t object_instance)
         value = pObject->Present_Value;
     }
 
-    return count;
+    return value;
 }
 
 /**
@@ -491,7 +491,7 @@ bool Multistate_Input_Name_Set(uint32_t object_instance, char *new_name)
         pObject->Object_Name = new_name;
     }
 
-    return fault;
+    return status;
 }
 
 /**

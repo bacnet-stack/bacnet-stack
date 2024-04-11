@@ -341,7 +341,7 @@ static void handler_timesync_update(
             interval = current_minutes / device_interval;
             interval++;
             next_minutes = interval * device_interval;
-            offset_minutes = Interval_Offset % device_interval;
+            offset_minutes = Interval_Offset_Minutes % device_interval;
             next_minutes += offset_minutes;
             delta_minutes = next_minutes - current_minutes;
             datetime_add_minutes(&Next_Sync_Time, delta_minutes);
@@ -357,7 +357,7 @@ static void handler_timesync_update(
             interval = current_minutes / device_interval;
             interval++;
             next_minutes = interval * device_interval;
-            offset_minutes = Interval_Offset % device_interval;
+            offset_minutes = Interval_Offset_Minutes % device_interval;
             next_minutes += offset_minutes;
             delta_minutes = next_minutes - current_minutes;
             datetime_add_minutes(&Next_Sync_Time, delta_minutes);
