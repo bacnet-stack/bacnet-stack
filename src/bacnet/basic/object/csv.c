@@ -57,6 +57,8 @@ static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     -1 };
 
 static const int Properties_Optional[] = {
+    #if (CHARACTERSTRING_INTRINSIC_REPORTING) PROP_EVENT_STATE,
+    #endif
     PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
