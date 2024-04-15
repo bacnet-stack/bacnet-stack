@@ -56,7 +56,7 @@ static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     -1 };
 
-static const int Properties_Optional[] = { PROP_EVENT_STATE,
+static const int Properties_Optional[] = {
     PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
