@@ -24,8 +24,7 @@
 #ifndef DATALINK_H
 #define DATALINK_H
 
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 
 #if defined(BACDL_ETHERNET)
@@ -76,9 +75,15 @@
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #ifdef BAC_ROUTING
+#ifdef __cplusplus
+extern "C" {
+#endif
 BACNET_STACK_EXPORT
 void routed_get_my_address(
     BACNET_ADDRESS * my_address);
+#ifdef __cplusplus
+}
+#endif
 #define datalink_get_my_address routed_get_my_address
 #else
 #define datalink_get_my_address bip_get_my_address
@@ -99,7 +104,7 @@ void routed_get_my_address(
 #define datalink_get_my_address bip6_get_my_address
 #define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
 
-#elif defined(BACDL_ALL) || defined(BACDL_NONE)
+#elif defined(BACDL_ALL) || defined(BACDL_NONE) || defined(BACDL_CUSTOM)
 #include "bacnet/npdu.h"
 
 #define MAX_HEADER (8)
@@ -174,6 +179,7 @@ extern "C" {
  * - BACDL_ALL      -- Unspecified for the build, so the transport can be
  *                     chosen at runtime from among these choices.
  * - BACDL_NONE      -- Unspecified for the build for unit testing
+ * - BACDL_CUSTOM    -- For externally linked datalink_xxx functions
  * - Clause 10 POINT-TO-POINT (PTP) and Clause 11 EIA/CEA-709.1 ("LonTalk") LAN
  *   are not currently supported by this project.
                                                                                                                                                                                               *//** @defgroup DLTemplates DataLink Template Functions

@@ -77,7 +77,7 @@ uint32_t cobs_crc32k(uint8_t dataValue, uint32_t crc32kValue)
 
 /**
  * @brief Encodes 'length' octets of data located at 'from' and
- * writes one or more COBS code blocks at 'to', removing
+ * writes one or more COBS code blocks at 'buffer', removing
  * any 0x55 octets that may present be in the encoded data.
  * @param buffer - encoded buffer
  * @param buffer_size - encoded buffer size
@@ -86,8 +86,7 @@ uint32_t cobs_crc32k(uint8_t dataValue, uint32_t crc32kValue)
  * @return the length of the encoded data, or 0 if error
  * @note This function is copied mostly from the BACnet standard.
  */
-size_t cobs_encode(
-    uint8_t *buffer,
+size_t cobs_encode(uint8_t *buffer,
     size_t buffer_size,
     const uint8_t *from,
     size_t length,
@@ -97,9 +96,10 @@ size_t cobs_encode(
     size_t read_index = 0;
     size_t write_index = 1;
     uint8_t code = 1;
-    uint8_t data, last_code;
+    uint8_t data = 0;
+    uint8_t last_code = 0;
 
-    if (buffer_size < 1) {
+    if ((buffer_size < 1) || (length < 1)) {
         /* error - buffer too small */
         return 0;
     }
@@ -154,7 +154,7 @@ size_t cobs_encode(
 }
 /**
  * @brief Encodes 'length' octets of client data located at 'from' and writes
- * the COBS-encoded Encoded Data and Encoded CRC-32K fields at 'to'.
+ * the COBS-encoded Encoded Data and Encoded CRC-32K fields at 'buffer'.
  * @param buffer - encoded buffer
  * @param buffer_size - encoded buffer size
  * @param from - buffer to encode
@@ -163,10 +163,7 @@ size_t cobs_encode(
  * @note This function is copied mostly from the BACnet standard.
  */
 size_t cobs_frame_encode(
-    uint8_t *buffer,
-    size_t buffer_size,
-    const uint8_t *from,
-    size_t length)
+    uint8_t *buffer, size_t buffer_size, const uint8_t *from, size_t length)
 {
     size_t cobs_data_len, cobs_crc_len;
     uint32_t crc32K;
@@ -176,8 +173,8 @@ size_t cobs_frame_encode(
     /*
      * Prepare the Encoded Data field for transmission.
      */
-    cobs_data_len = cobs_encode(buffer, buffer_size, from, length,
-        MSTP_PREAMBLE_X55);
+    cobs_data_len =
+        cobs_encode(buffer, buffer_size, from, length, MSTP_PREAMBLE_X55);
     if (cobs_data_len == 0) {
         return 0;
     }
@@ -193,7 +190,7 @@ size_t cobs_frame_encode(
      * Prepare the Encoded CRC-32K field for transmission.
      */
     crc32K = ~crc32K;
-    cobs_crc32k_encode(crc_buffer, sizeof(crc_buffer), crc32K);
+    (void)cobs_crc32k_encode(crc_buffer, sizeof(crc_buffer), crc32K);
     cobs_crc_len = cobs_encode((uint8_t *)(buffer + cobs_data_len),
         buffer_size - cobs_data_len, crc_buffer, sizeof(crc_buffer),
         MSTP_PREAMBLE_X55);
@@ -209,7 +206,7 @@ size_t cobs_frame_encode(
 
 /**
  * @brief Decodes 'length' octets of data located at 'from' and
- * writes the original client data at 'to', restoring any
+ * writes the original client data at 'buffer', restoring any
  * 'mask' octets that may present in the encoded data.
  * @param buffer - decoded buffer
  * @param buffer_size - decoded buffer size
@@ -218,8 +215,7 @@ size_t cobs_frame_encode(
  * @return the length of the decoded buffer, or 0 if error
  * @note This function is copied directly from the BACnet standard.
  */
-size_t cobs_decode(
-    uint8_t *buffer,
+size_t cobs_decode(uint8_t *buffer,
     size_t buffer_size,
     const uint8_t *from,
     size_t length,
@@ -270,7 +266,7 @@ size_t cobs_decode(
 
 /**
  * Decodes Encoded Data and Encoded CRC-32K fields at 'from' and
- * writes the decoded client data at 'to'. Assumes 'length' contains
+ * writes the decoded client data at 'buffer'. Assumes 'length' contains
  * the actual combined length of these fields in octets (that is, the
  * MS/TP header Length field plus two).
  * @param buffer - decoded buffer
@@ -282,10 +278,7 @@ size_t cobs_decode(
  * @note This function is copied directly from the BACnet standard.
  */
 size_t cobs_frame_decode(
-    uint8_t *buffer,
-    size_t buffer_size,
-    const uint8_t *from,
-    size_t length)
+    uint8_t *buffer, size_t buffer_size, const uint8_t *from, size_t length)
 {
     size_t data_len, crc_len;
     uint32_t crc32K;
@@ -306,8 +299,8 @@ size_t cobs_frame_decode(
         /* See Clause G.3.1 */
         crc32K = cobs_crc32k(from[i], crc32K);
     }
-    data_len = cobs_decode(buffer, buffer_size, from, data_len,
-        MSTP_PREAMBLE_X55);
+    data_len =
+        cobs_decode(buffer, buffer_size, from, data_len, MSTP_PREAMBLE_X55);
     if (data_len == 0) {
         /* error during decode */
         return 0;
@@ -315,8 +308,7 @@ size_t cobs_frame_decode(
     /*
      * Decode the Encoded CRC-32K field
      */
-    crc_len = cobs_decode(crc_buffer,
-        sizeof(crc_buffer),
+    crc_len = cobs_decode(crc_buffer, sizeof(crc_buffer),
         (uint8_t *)(from + length - COBS_ENCODED_CRC_SIZE),
         COBS_ENCODED_CRC_SIZE, MSTP_PREAMBLE_X55);
     /*

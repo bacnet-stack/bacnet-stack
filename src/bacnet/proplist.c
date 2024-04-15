@@ -32,10 +32,10 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 #include <stdint.h>
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/rpm.h"
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
@@ -86,6 +86,33 @@ bool property_list_member(const int *pList, int object_property)
 }
 
 /**
+ * @brief Determine if the object property is a member of any of the lists
+ * @param pRequired - array of type 'int' that is a list of BACnet properties
+ * @param pOptional - array of type 'int' that is a list of BACnet properties
+ * @param pProprietary - array of type 'int' that is a list of BACnet properties
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of any of these lists
+ */
+bool property_lists_member(
+    const int *pRequired,
+    const int *pOptional,
+    const int *pProprietary,
+    int object_property)
+{
+    bool found = false;
+
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
  * ReadProperty handler for this property.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -118,6 +145,12 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
     if (required_count >= 3) {
         /* less the 3 always required properties */
         count -= 3;
+        if (property_list_member(pListRequired, PROP_PROPERTY_LIST)) {
+            /* property-list should not be in the required list
+               because this module handles it transparently.
+               Handle the case where it might be in the required list. */
+            count -= 1;
+        }
     }
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -138,7 +171,8 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
                     for (i = 0; i < required_count; i++) {
                         if ((pListRequired[i] == PROP_OBJECT_TYPE) ||
                             (pListRequired[i] == PROP_OBJECT_IDENTIFIER) ||
-                            (pListRequired[i] == PROP_OBJECT_NAME)) {
+                            (pListRequired[i] == PROP_OBJECT_NAME) ||
+                            (pListRequired[i] == PROP_PROPERTY_LIST)) {
                             continue;
                         } else {
                             len = encode_application_enumerated(
@@ -192,7 +226,8 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
                         for (i = 0; i < required_count; i++) {
                             if ((pListRequired[i] == PROP_OBJECT_TYPE) ||
                                 (pListRequired[i] == PROP_OBJECT_IDENTIFIER) ||
-                                (pListRequired[i] == PROP_OBJECT_NAME)) {
+                                (pListRequired[i] == PROP_OBJECT_NAME) ||
+                                (pListRequired[i] == PROP_PROPERTY_LIST)) {
                                 continue;
                             } else {
                                 count++;
@@ -242,4 +277,85 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
     }
 
     return apdu_len;
+}
+
+/**
+ * ReadProperty handler for common properties.  For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  rpdata - ReadProperty data, including requested data and
+ * data for the reply, or error response.
+ * @param device_instance_number - device instance number
+ *
+ * @return number of APDU bytes in the response, or
+ * BACNET_STATUS_ERROR on error.
+ */
+int property_list_common_encode(
+    BACNET_READ_PROPERTY_DATA *rpdata, uint32_t device_instance_number)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    uint8_t *apdu = NULL;
+
+    if (!rpdata) {
+        return 0;
+    }
+    if ((rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
+        case PROP_OBJECT_IDENTIFIER:
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                /* Device Object exception: requested instance
+                   may not match our instance if a wildcard */
+                if (rpdata->object_type == OBJECT_DEVICE) {
+                    rpdata->object_instance = device_instance_number;
+                }
+                apdu_len = encode_application_object_id(
+                    &apdu[0], rpdata->object_type, rpdata->object_instance);
+            }
+            break;
+        case PROP_OBJECT_TYPE:
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                apdu_len = encode_application_enumerated(
+                    &apdu[0], rpdata->object_type);
+            }
+            break;
+        default:
+            break;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Determine if the property is a common property
+ * @param property - property value for comparison
+ * @return true if the property is a common object property
+ */
+bool property_list_common(BACNET_PROPERTY_ID property)
+{
+    bool status = false;
+
+    switch (property) {
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_OBJECT_TYPE:
+            status = true;
+            break;
+        default:
+            break;
+    }
+
+    return status;
 }

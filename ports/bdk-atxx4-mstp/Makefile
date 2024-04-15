@@ -110,6 +110,7 @@ BASICSRC = $(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
 	$(BACNET_BASIC)/sys/bigend.c \
+	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/fifo.c \
 	$(BACNET_BASIC)/sys/mstimer.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
@@ -127,6 +128,7 @@ CORESRC =  \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
+	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
@@ -221,6 +223,10 @@ BFLAGS += -DBACAPP_ENUMERATED
 BFLAGS += -DBACAPP_CHARACTER_STRING
 BFLAGS += -DBACAPP_OCTET_STRING
 BFLAGS += -DWRITE_PROPERTY
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BFLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 ## Compile options for C files
 CFLAGS = $(COMMON)
@@ -237,6 +243,7 @@ CFLAGS += -fshort-enums
 CFLAGS += -Wall
 CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wmissing-prototypes
+CFLAGS += -Wno-char-subscripts
 # put it all together
 CFLAGS += -gdwarf-2 $(BFLAGS) $(OPTIMIZATION)
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d

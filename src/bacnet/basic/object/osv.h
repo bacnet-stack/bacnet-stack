@@ -27,8 +27,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/wp.h"
 #include "bacnet/rp.h"

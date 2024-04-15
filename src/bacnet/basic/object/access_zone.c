@@ -28,14 +28,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
-#include "access_zone.h"
 #include "bacnet/basic/services.h"
+/* me! */
+#include "access_zone.h"
 
 static bool Access_Zone_Initialized = false;
 
@@ -301,8 +302,8 @@ bool Access_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     object_index = Access_Zone_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_GLOBAL_IDENTIFIER:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 az_descr[object_index].global_identifier =
                     value.type.Unsigned_Int;
@@ -310,8 +311,8 @@ bool Access_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_RELIABILITY:
             if (Access_Zone_Out_Of_Service(wp_data->object_instance)) {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_ENUMERATED);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
                 if (status) {
                     az_descr[object_index].reliability =
                         (BACNET_RELIABILITY)value.type.Enumerated;

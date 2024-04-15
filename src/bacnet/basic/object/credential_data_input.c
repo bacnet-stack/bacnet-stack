@@ -29,14 +29,15 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
-#include "bacnet/basic/object/credential_data_input.h"
 #include "bacnet/basic/services.h"
+/* me! */
+#include "bacnet/basic/object/credential_data_input.h"
 
 static bool Credential_Data_Input_Initialized = false;
 
@@ -333,8 +334,8 @@ bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_RELIABILITY:
             if (Credential_Data_Input_Out_Of_Service(
                     wp_data->object_instance)) {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_ENUMERATED);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
                 if (status) {
                     cdi_descr[object_index].reliability =
                         (BACNET_RELIABILITY)value.type.Enumerated;

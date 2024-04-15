@@ -27,7 +27,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/npdu.h"
 
 /**
@@ -510,6 +512,17 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     const char *bvlc_result_code_name(uint16_t result_code);
+
+    BACNET_STACK_EXPORT
+    int bvlc_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP_ADDRESS *ip_address);
+
+    BACNET_STACK_EXPORT
+    int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
+        uint16_t apdu_len,
+        BACNET_ERROR_CODE *error_code,
+        BACNET_IP_ADDRESS *ip_address);
 
 #ifdef __cplusplus
 }

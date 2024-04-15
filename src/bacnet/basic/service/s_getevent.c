@@ -26,14 +26,14 @@
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/dcc.h"
 #include "bacnet/getevent.h"
-#include "bacnet/bacenum.h"
 /* some demo stuff needed */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"

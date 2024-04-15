@@ -38,19 +38,10 @@
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacstr.h"
-#include "bacnet/bits.h"
-
-/* TODO: For some reason my Zephyr build for non-native targets does not
- *       see a definition for strnlen(), but it is visible in when
- *       compiling for native_posix. This results in the compiler
- *       emitting a warning, forcing Zephyr's sanitycheck() script to stop.
- *       Until this is chased down, the definition is being provided here.
- */
-#if __ZEPHYR__ && ! CONFIG_NATIVE_APPLICATION
-size_t	 strnlen (const char *, size_t);
-#endif
 
 /** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
 #ifndef BACNET_STRING_UTF8_VALIDATION
@@ -58,7 +49,7 @@ size_t	 strnlen (const char *, size_t);
 #endif
 
 /* check the limits of bitstring capacity */
-#if ((MAX_BITSTRING_BYTES * 8) > (UINT8_MAX+1))
+#if ((MAX_BITSTRING_BYTES * 8) > (UINT8_MAX + 1))
 #error "MAX_BITSTRING_BYTES cannot exceed 32!"
 #endif
 #if (((MAX_BITSTRING_BYTES * 8) > UINT8_MAX) && (UINT_MAX <= UINT8_MAX))
@@ -231,9 +222,7 @@ bool bitstring_set_octet(
  * @return true on success or false on error.
  */
 bool bitstring_set_bits_used(
-    BACNET_BIT_STRING * bit_string,
-    uint8_t bytes_used,
-    uint8_t unused_bits)
+    BACNET_BIT_STRING *bit_string, uint8_t bytes_used, uint8_t unused_bits)
 {
     bool status = false;
 
@@ -256,10 +245,10 @@ bool bitstring_set_bits_used(
 unsigned bitstring_bits_capacity(BACNET_BIT_STRING *bit_string)
 {
     if (bit_string) {
-        if ((MAX_BITSTRING_BYTES * 8) <= (UINT8_MAX+1)) {
+        if ((MAX_BITSTRING_BYTES * 8) <= (UINT8_MAX + 1)) {
             return (MAX_BITSTRING_BYTES * 8);
         } else {
-            return (UINT8_MAX+1);
+            return (UINT8_MAX + 1);
         }
     } else {
         return 0;
@@ -479,7 +468,7 @@ bool characterstring_copy(
 {
     if (dest && src) {
         return characterstring_init(dest, characterstring_encoding(src),
-               characterstring_value(src), characterstring_length(src));
+            characterstring_value(src), characterstring_length(src));
     }
 
     return false;
@@ -500,7 +489,8 @@ bool characterstring_ansi_copy(
     size_t i; /* counter */
 
     if (dest && src) {
-        if ((src->encoding == CHARACTER_ANSI_X34) && (src->length < dest_max_len)) {
+        if ((src->encoding == CHARACTER_ANSI_X34) &&
+            (src->length < dest_max_len)) {
             for (i = 0; i < dest_max_len; i++) {
                 if (i < src->length) {
                     dest[i] = src->value[i];
@@ -839,7 +829,7 @@ bool utf8_isvalid(const char *str, size_t length)
         return false;
     }
     /* Check characters. */
-    pend = (unsigned char *) str + length;
+    pend = (unsigned char *)str + length;
     for (p = (const unsigned char *)str; p < pend; p++) {
         c = *p;
         /* null in middle of string */
@@ -900,6 +890,8 @@ bool utf8_isvalid(const char *str, size_t length)
                 if (c == 0xfe || c == 0xff || (c == 0xfc && (*p & 0x3c) == 0)) {
                     return false;
                 }
+                break;
+            default:
                 break;
         }
 
@@ -993,7 +985,7 @@ bool octetstring_init(
 /** @brief Converts an null terminated ASCII Hex string to an octet string.
  *
  * @param octet_string  Pointer to the octet string.
- * @param ascii_hex  Pointer to the HEx-ASCII string.
+ * @param ascii_hex  Pointer to the HEX-ASCII string.
  *
  * @return true if successfully converted and fits; false if too long */
 bool octetstring_init_ascii_hex(
@@ -1011,12 +1003,14 @@ bool octetstring_init_ascii_hex(
             status = true;
         } else {
             while (ascii_hex[index] != 0) {
-                if (!isalnum(ascii_hex[index])) {
+                if (!isalnum((int)ascii_hex[index])) {
                     /* skip non-numeric or alpha */
                     index++;
                     continue;
                 }
                 if (ascii_hex[index + 1] == 0) {
+                    /* not a hex pair */
+                    status = false;
                     break;
                 }
                 hex_pair_string[0] = ascii_hex[index];
@@ -1028,8 +1022,9 @@ bool octetstring_init_ascii_hex(
                     /* at least one pair was decoded */
                     status = true;
                 } else {
-                    break;
+                    /* too long */
                     status = false;
+                    break;
                 }
                 /* set up for next pair */
                 index += 2;

@@ -1,3 +1,6 @@
 tests:
   bacnet.datetime:
     tags: bacnet
+  bacnet.datetime.unit:
+    tags: bacnet
+    type: unit

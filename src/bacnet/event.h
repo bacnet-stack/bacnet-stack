@@ -26,8 +26,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/bacpropstates.h"
@@ -47,6 +48,18 @@ typedef enum {
 /*
 ** Based on UnconfirmedEventNotification-Request
 */
+
+
+/** Enable decoding of complex-event-type property-values. If set to 0, the values are decoded and discarded. */
+#ifndef BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS
+#define BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS 1
+#endif
+
+/** Max complex-event-type property-values to decode. Events with more values fail to decode. */
+#ifndef BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS
+#define BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS 5
+#endif
+
 
 typedef struct BACnet_Event_Notification_Data {
     uint32_t processIdentifier;
@@ -168,6 +181,14 @@ typedef struct BACnet_Event_Notification_Data {
             /* OPTIONAL - Set authenticationFactor.format_type to
                AUTHENTICATION_FACTOR_MAX if not being used */
         } accessEvent;
+#if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
+        /*
+         * complex-event-type - a sequence of values, used for proprietary event types
+         */
+        struct {
+            BACNET_PROPERTY_VALUE values[BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS];
+        } complexEventType;
+#endif
     } notificationParams;
 } BACNET_EVENT_NOTIFICATION_DATA;
 
@@ -206,6 +227,12 @@ extern "C" {
     int event_notify_encode_service_request(
         uint8_t * apdu,
         BACNET_EVENT_NOTIFICATION_DATA * data);
+
+    BACNET_STACK_EXPORT
+    size_t event_notification_service_request_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **

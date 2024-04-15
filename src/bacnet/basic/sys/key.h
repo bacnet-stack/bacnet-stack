@@ -25,6 +25,8 @@
 #define KEY_H
 
 #include <stdint.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /* This file has the macros that encode and decode the */
 /* keys for the keylist when used with BACnet Object Id's */

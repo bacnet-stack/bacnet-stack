@@ -30,9 +30,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/apdu.h"
 
 #ifdef __cplusplus
@@ -96,6 +96,15 @@ extern "C" {
         BACNET_ERROR_CLASS error_class,
         BACNET_ERROR_CODE error_code);
 
+/* complex error reply function */
+    typedef void (
+        *complex_error_function) (
+        BACNET_ADDRESS * src,
+        uint8_t invoke_id,
+        uint8_t service_choice,
+        uint8_t * service_request,
+        uint16_t service_len);
+
 /* generic abort reply function */
     typedef void (
         *abort_function) (
@@ -115,6 +124,10 @@ extern "C" {
     void apdu_set_confirmed_ack_handler(
         BACNET_CONFIRMED_SERVICE service_choice,
         confirmed_ack_function pFunction);
+
+    BACNET_STACK_EXPORT
+    bool apdu_confirmed_simple_ack_service(
+        BACNET_CONFIRMED_SERVICE service_choice);
 
     BACNET_STACK_EXPORT
     void apdu_set_confirmed_simple_ack_handler(
@@ -150,11 +163,19 @@ extern "C" {
         size_t * index,
         bool * bIsConfirmed);
 
+    BACNET_STACK_EXPORT
+    bool apdu_complex_error(
+        uint8_t service_choice);
 
     BACNET_STACK_EXPORT
     void apdu_set_error_handler(
         BACNET_CONFIRMED_SERVICE service_choice,
         error_function pFunction);
+
+    BACNET_STACK_EXPORT
+    void apdu_set_complex_error_handler(
+        BACNET_CONFIRMED_SERVICE service_choice,
+        complex_error_function pFunction);
 
     BACNET_STACK_EXPORT
     void apdu_set_abort_handler(

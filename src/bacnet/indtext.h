@@ -27,7 +27,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /* index and text pairs */
 typedef const struct {

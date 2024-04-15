@@ -27,9 +27,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/bvlc.h"
-
-#include "bacnet/bacnet_stack_exports.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,7 +41,19 @@ extern "C" {
         void);
 
     BACNET_STACK_EXPORT
+    void bip_dl_debug_enable(
+        void);
+
+    BACNET_STACK_EXPORT
+    void bip_dl_debug_disable(
+        void);
+
+    BACNET_STACK_EXPORT
     int dlenv_register_as_foreign_device(
+        void);
+
+    BACNET_STACK_EXPORT
+    void dlenv_network_port_init(
         void);
 
     BACNET_STACK_EXPORT

@@ -3192,6 +3192,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\bigend.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\debug.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\datalink\crc.c</name>
         </file>
         <file>

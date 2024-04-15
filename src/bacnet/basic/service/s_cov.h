@@ -33,12 +33,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacapp.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
+#include "bacnet/bacapp.h"
 #include "bacnet/apdu.h"
 #include "bacnet/cov.h"
+#include "bacnet/npdu.h"
 
 #ifdef __cplusplus
 extern "C" {

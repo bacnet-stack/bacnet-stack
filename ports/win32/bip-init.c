@@ -45,16 +45,10 @@
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacport.h"
 
-/* alternate methods of choosing broadcast address */
-#ifndef USE_INADDR
-#define USE_INADDR 0
-#endif
-#ifndef USE_CLASSADDR
-#define USE_CLASSADDR 0
-#endif
-
-/* Windows socket */
+/* Windows sockets */
 static SOCKET BIP_Socket = INVALID_SOCKET;
+static SOCKET BIP_Broadcast_Socket = INVALID_SOCKET;
+static bool BIP_Initialized;
 
 /* NOTE: we store address and port in network byte order
    since BACnet/IP uses network byte order for all address byte arrays
@@ -65,10 +59,12 @@ static uint16_t BIP_Port;
 /* IP address - stored here in network byte order */
 static struct in_addr BIP_Address;
 /* IP broadcast address - stored here in network byte order */
-static struct in_addr BIP_Broadcast_Address;
-
+static struct in_addr BIP_Broadcast_Addr;
+/* broadcast binding mechanism */
+static bool BIP_Broadcast_Binding_Address_Override;
+static struct in_addr BIP_Broadcast_Binding_Address;
 /* enable debugging */
-static bool BIP_Debug = false;
+static bool BIP_Debug;
 
 /**
  * @brief Print the IPv4 address with debug info
@@ -90,12 +86,25 @@ static void debug_print_ipv4(const char *str,
 /**
  * @brief Return the active BIP socket.
  * @return The active BIP socket, or INVALID_SOCKET if uninitialized.
- * @note Strictly, the return type should be SOCKET, however in practice 
+ * @note Strictly, the return type should be SOCKET, however in practice
  *  Windows never returns values large enough that truncation is an issue.
+ * @see bip_get_broadcast_socket
  */
 int bip_get_socket(void)
 {
     return (int)BIP_Socket;
+}
+
+/**
+ * @brief Return the active BIP Broadcast socket.
+ * @return The active BIP Broadcast socket, or INVALID_SOCKET if uninitialized.
+ * @note Strictly, the return type should be SOCKET, however in practice
+ *  Windows never returns values large enough that truncation is an issue.
+ * @see bip_get_socket
+ */
+int bip_get_broadcast_socket(void)
+{
+    return (int)BIP_Broadcast_Socket;
 }
 
 /**
@@ -104,6 +113,14 @@ int bip_get_socket(void)
 void bip_debug_enable(void)
 {
     BIP_Debug = true;
+}
+
+/**
+ * @brief Disalbe debug printing of BACnet/IPv4
+ */
+void bip_debug_disable(void)
+{
+    BIP_Debug = false;
 }
 
 /**
@@ -242,18 +259,17 @@ static void print_last_error(const char *info)
  */
 static void bip_init_windows(void)
 {
-    static bool initialized = false;
     int Result;
     WSADATA wd;
 
-    if (!initialized) {
+    if (!BIP_Initialized) {
         Result = WSAStartup((1 << 8) | 1, &wd);
         /*Result = WSAStartup(MAKEWORD(2,2), &wd); */
         if (Result != 0) {
             print_last_error("TCP/IP stack initialization failed");
             exit(1);
         }
-        initialized = true;
+        BIP_Initialized = true;
         atexit(bip_cleanup);
     }
 }
@@ -310,7 +326,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 
     if (dest) {
         dest->mac_len = 6;
-        memcpy(&dest->mac[0], &BIP_Broadcast_Address.s_addr, 4);
+        memcpy(&dest->mac[0], &BIP_Broadcast_Addr.s_addr, 4);
         memcpy(&dest->mac[4], &BIP_Port, 2);
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0; /* no SLEN */
@@ -330,6 +346,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
  */
 bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 {
+    (void)addr;
     /* not something we do here within this application */
     return false;
 }
@@ -356,6 +373,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  */
 bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
 {
+    (void)addr;
     /* not something we do within this application */
     return false;
 }
@@ -368,7 +386,7 @@ bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
 bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
-        memcpy(&addr->address[0], &BIP_Broadcast_Address.s_addr, 4);
+        memcpy(&addr->address[0], &BIP_Broadcast_Addr.s_addr, 4);
         addr->port = ntohs(BIP_Port);
     }
 
@@ -381,6 +399,7 @@ bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
  */
 bool bip_set_subnet_prefix(uint8_t prefix)
 {
+    (void)prefix;
     /* not something we do within this application */
     return false;
 }
@@ -393,16 +412,14 @@ uint8_t bip_get_subnet_prefix(void)
 {
     uint32_t address = 0;
     uint32_t broadcast = 0;
-    uint32_t test_broadcast = 0;
     uint32_t mask = 0xFFFFFFFE;
     uint8_t prefix = 0;
 
-    address = BIP_Broadcast_Address.s_addr;
-    broadcast = BIP_Broadcast_Address.s_addr;
+    address = BIP_Address.s_addr;
+    broadcast = BIP_Broadcast_Addr.s_addr;
     /* calculate the subnet prefix from the broadcast address */
     for (prefix = 1; prefix <= 32; prefix++) {
-        test_broadcast = (address & mask) | (~mask);
-        if (test_broadcast == broadcast) {
+        if ((address | mask) == broadcast) {
             break;
         }
         mask = mask << 1;
@@ -469,11 +486,12 @@ uint16_t bip_receive(
     int max = 0;
     struct timeval select_timeout;
     struct sockaddr_in sin = { 0 };
-    BACNET_IP_ADDRESS addr = { { 0 } };
+    BACNET_IP_ADDRESS addr = { 0 };
     socklen_t sin_len = sizeof(sin);
     int received_bytes = 0;
     int offset = 0;
     uint16_t i = 0;
+    SOCKET socket;
 
     /* Make sure the socket is open */
     if (BIP_Socket == INVALID_SOCKET) {
@@ -492,10 +510,15 @@ uint16_t bip_receive(
     }
     FD_ZERO(&read_fds);
     FD_SET(BIP_Socket, &read_fds);
-    max = BIP_Socket;
+    FD_SET(BIP_Broadcast_Socket, &read_fds);
+
+    max = BIP_Socket > BIP_Broadcast_Socket ? BIP_Socket : BIP_Broadcast_Socket;
+
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes = recvfrom(max, (char *)&npdu[0], max_npdu, 0,
+        socket = FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket :
+            BIP_Broadcast_Socket;
+        received_bytes = recvfrom(socket, (char *)&npdu[0], max_npdu, 0,
             (struct sockaddr *)&sin, &sin_len);
     } else {
         return 0;
@@ -533,7 +556,9 @@ uint16_t bip_receive(
     debug_print_ipv4(
         "Received MPDU->", &sin.sin_addr, sin.sin_port, received_bytes);
     /* pass the packet into the BBMD handler */
-    offset = bvlc_handler(&addr, src, npdu, received_bytes);
+    offset = socket == BIP_Socket ?
+        bvlc_handler(&addr, src, npdu, received_bytes) :
+        bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
     if (offset > 0) {
         npdu_len = received_bytes - offset;
         if (npdu_len <= max_npdu) {
@@ -624,7 +649,6 @@ static long gethostaddr(void)
     return *(long *)host_ent->h_addr;
 }
 
-#if ((USE_INADDR == 0) || (USE_CLASSADDR == 0))
 /* returns the subnet mask in network byte order */
 static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
 {
@@ -667,16 +691,38 @@ static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
 
     return ipMask;
 }
-#endif
+
+/**
+ * @brief Get the netmask of the BACnet/IP's interface via an ioctl() call.
+ * @param netmask [out] The netmask, in host order.
+ * @return 0 on success, else the error from the ioctl() call.
+ */
+int bip_get_local_netmask(struct in_addr *netmask)
+{
+    if (netmask) {
+        netmask->s_addr = getIpMaskForIpAddress(BIP_Address.s_addr);
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Set the broadcast socket binding address
+ * @param baddr The broadcast socket binding address, in host order.
+ * @return 0 on success
+ */
+int bip_set_broadcast_binding(
+    const char *ip4_broadcast)
+{
+    BIP_Broadcast_Binding_Address.s_addr = inet_addr(ip4_broadcast);
+    BIP_Broadcast_Binding_Address_Override = true;
+
+    return 0;
+}
 
 static void set_broadcast_address(uint32_t net_address)
 {
-#if USE_INADDR
-    /*   Note: sometimes INADDR_BROADCAST does not let me get
-       any unicast messages.  Not sure why... */
-    (void)net_address;
-    BIP_Broadcast_Address.s_addr = INADDR_BROADCAST;
-#elif USE_CLASSADDR
+#ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
     long broadcast_address = 0;
 
     if (IN_CLASSA(ntohl(net_address)))
@@ -693,7 +739,7 @@ static void set_broadcast_address(uint32_t net_address)
             (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
     else
         broadcast_address = INADDR_BROADCAST;
-    BIP_Broadcast_Address.s_addr = htonl(broadcast_address));
+    BIP_Broadcast_Addr.s_addr = htonl(broadcast_address);
 #else
     /* these are network byte order variables */
     long broadcast_address = 0;
@@ -707,7 +753,7 @@ static void set_broadcast_address(uint32_t net_address)
         fflush(stderr);
     }
     broadcast_address = (net_address & net_mask) | (~net_mask);
-    BIP_Broadcast_Address.s_addr = broadcast_address;
+    BIP_Broadcast_Addr.s_addr = broadcast_address;
 #endif
 }
 
@@ -720,7 +766,6 @@ static void set_broadcast_address(uint32_t net_address)
  */
 void bip_set_interface(char *ifname)
 {
-    bip_init_windows();
     /* setup local address */
     if (BIP_Address.s_addr == 0) {
         BIP_Address.s_addr = inet_addr(ifname);
@@ -731,9 +776,48 @@ void bip_set_interface(char *ifname)
         fflush(stderr);
     }
     /* setup local broadcast address */
-    if (BIP_Broadcast_Address.s_addr == 0) {
+    if (BIP_Broadcast_Addr.s_addr == 0) {
         set_broadcast_address(BIP_Address.s_addr);
     }
+}
+
+static SOCKET createSocket(struct sockaddr_in *sin)
+{
+    int rv = 0; /* return from socket lib calls */
+    int value = 1;
+    SOCKET sock_fd = INVALID_SOCKET;
+
+    /* assumes that the driver has already been initialized */
+    sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock_fd == INVALID_SOCKET) {
+        print_last_error("failed to allocate a socket");
+        return sock_fd;
+    }
+    /* Allow us to use the same socket for sending and receiving */
+    /* This makes sure that the src port is correct when sending */
+    rv = setsockopt(
+        sock_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&value, sizeof(value));
+    if (rv == SOCKET_ERROR) {
+        print_last_error("failed to set REUSEADDR socket option");
+        closesocket(sock_fd);
+        return rv;
+    }
+    /* Enables transmission and receipt of broadcast messages on the socket. */
+    rv = setsockopt(
+        sock_fd, SOL_SOCKET, SO_BROADCAST, (char *)&value, sizeof(value));
+    if (rv == SOCKET_ERROR) {
+        print_last_error("failed to set BROADCAST socket option");
+        closesocket(sock_fd);
+        return rv;
+    }
+
+    rv = bind(sock_fd, (const struct sockaddr *)sin, sizeof(struct sockaddr));
+    if (rv == SOCKET_ERROR) {
+        print_last_error("failed to bind");
+        closesocket(sock_fd);
+        return rv;
+    }
+    return sock_fd;
 }
 
 /** Initialize the BACnet/IP services at the given interface.
@@ -755,9 +839,7 @@ void bip_set_interface(char *ifname)
  */
 bool bip_init(char *ifname)
 {
-    int rv = 0; /* return from socket lib calls */
-    struct sockaddr_in sin = { -1 };
-    int value = 1;
+    struct sockaddr_in sin;
     SOCKET sock_fd = INVALID_SOCKET;
 
     bip_init_windows();
@@ -769,78 +851,54 @@ bool bip_init(char *ifname)
         BIP_Address.s_addr = gethostaddr();
     }
     /* has broadcast address been set? */
-    if (BIP_Broadcast_Address.s_addr == 0) {
+    if (BIP_Broadcast_Addr.s_addr == 0) {
         set_broadcast_address(BIP_Address.s_addr);
     }
     if (BIP_Debug) {
         fprintf(stderr, "BIP: Address: %s\n", inet_ntoa(BIP_Address));
         fprintf(stderr, "BIP: Broadcast Address: %s\n",
-            inet_ntoa(BIP_Broadcast_Address));
+            inet_ntoa(BIP_Broadcast_Addr));
         fprintf(stderr, "BIP: UDP Port: 0x%04X [%hu]\n", ntohs(BIP_Port),
             ntohs(BIP_Port));
         fflush(stderr);
     }
-    /* assumes that the driver has already been initialized */
-    sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    BIP_Socket = sock_fd;
-    if (sock_fd < 0) {
-        print_last_error("failed to allocate a socket");
-        return false;
-    }
-    /* Allow us to use the same socket for sending and receiving */
-    /* This makes sure that the src port is correct when sending */
-    rv = setsockopt(
-        sock_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&value, sizeof(value));
-    if (rv < 0) {
-        print_last_error("failed to set REUSEADDR socket option");
-        closesocket(sock_fd);
-        BIP_Socket = INVALID_SOCKET;
-        return false;
-    }
-    /* Enables transmission and receipt of broadcast messages on the socket. */
-    rv = setsockopt(
-        sock_fd, SOL_SOCKET, SO_BROADCAST, (char *)&value, sizeof(value));
-    if (rv < 0) {
-        print_last_error("failed to set BROADCAST socket option");
-        closesocket(sock_fd);
-        BIP_Socket = INVALID_SOCKET;
-        return false;
-    }
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
-#if USE_INADDR
-    /* by setting sin.sin_addr.s_addr to INADDR_ANY,
-       I am telling the IP stack to automatically fill
-       in the IP address of the machine the process
-       is running on.
-
-       Some server computers have multiple IP addresses.
-       A socket bound to one of these will not accept
-       connections to another address. Frequently you prefer
-       to allow any one of the computer's IP addresses
-       to be used for connections.  Use INADDR_ANY (0L) to
-       allow clients to connect using any one of the host's
-       IP addresses. */
-    sin.sin_addr.s_addr = htonl(INADDR_ANY);
-#else
-    /* or we could use the specific adapter address
-       note: already in network byte order */
-    sin.sin_addr.s_addr = BIP_Address.s_addr;
-#endif
     sin.sin_port = BIP_Port;
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
+    sin.sin_addr.s_addr = BIP_Address.s_addr;
     if (BIP_Debug) {
         fprintf(stderr, "BIP: bind %s:%hu\n", inet_ntoa(sin.sin_addr),
             ntohs(sin.sin_port));
         fflush(stderr);
     }
-    rv = bind(sock_fd, (const struct sockaddr *)&sin, sizeof(struct sockaddr));
-    if (rv < 0) {
-        print_last_error("failed to bind");
-        closesocket(sock_fd);
-        BIP_Socket = INVALID_SOCKET;
+    sock_fd = createSocket(&sin);
+    BIP_Socket = sock_fd;
+    if (sock_fd == INVALID_SOCKET) {
         return false;
     }
+    if (BIP_Broadcast_Binding_Address_Override) {
+        sin.sin_addr.s_addr = BIP_Broadcast_Binding_Address.s_addr;
+    } else {
+#if defined(BACNET_IP_BROADCAST_USE_INADDR_ANY)
+        sin.sin_addr.s_addr = htonl(INADDR_ANY);
+#elif defined(BACNET_IP_BROADCAST_USE_INADDR_BROADCAST)
+        sin.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+#else
+        sin.sin_addr.s_addr = BIP_Address.s_addr;
+#endif
+    }
+    if (BIP_Debug) {
+        fprintf(stderr, "BIP: broadcast bind %s:%hu\n", inet_ntoa(sin.sin_addr),
+            ntohs(sin.sin_port));
+        fflush(stderr);
+    }
+    sock_fd = createSocket(&sin);
+    BIP_Broadcast_Socket = sock_fd;
+    if (sock_fd == INVALID_SOCKET) {
+        return false;
+    }
+    bvlc_init();
 
     return true;
 }
@@ -866,7 +924,17 @@ void bip_cleanup(void)
         closesocket(sock_fd);
     }
     BIP_Socket = INVALID_SOCKET;
-    WSACleanup();
+
+    if (BIP_Broadcast_Socket != INVALID_SOCKET) {
+        sock_fd = BIP_Broadcast_Socket;
+        closesocket(sock_fd);
+    }
+    BIP_Broadcast_Socket = INVALID_SOCKET;
+
+    if (BIP_Initialized) {
+        BIP_Initialized = false;
+        WSACleanup();
+    }
 
     return;
 }

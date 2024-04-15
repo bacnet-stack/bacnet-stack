@@ -29,13 +29,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/object/piv.h"
@@ -140,11 +139,13 @@ bool PositiveInteger_Value_Present_Value_Set(
     unsigned index = 0;
     bool status = false;
 
+    (void)priority;
     index = PositiveInteger_Value_Instance_To_Index(object_instance);
     if (index < MAX_POSITIVEINTEGER_VALUES) {
         PIV_Descr[index].Present_Value = value;
         status = true;
     }
+
     return status;
 }
 
@@ -309,8 +310,8 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
@@ -333,8 +334,8 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_OUT_OF_SERVICE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 CurrentAV->Out_Of_Service = value.type.Boolean;
             }
@@ -359,4 +360,5 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 void PositiveInteger_Value_Intrinsic_Reporting(uint32_t object_instance)
 {
+    (void)object_instance;
 }

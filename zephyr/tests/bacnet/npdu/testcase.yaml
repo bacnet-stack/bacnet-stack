@@ -1,3 +1,6 @@
 tests:
   bacnet.npdu:
     tags: bacnet
+  bacnet.npdu.unit:
+    tags: bacnet
+    type: unit

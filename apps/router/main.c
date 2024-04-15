@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        // blocking dequeue here
+        /* blocking dequeue here */
         bacmsg = recv_from_msgbox(head->main_id, &msg_storage, 0);
         if (bacmsg) {
             switch (bacmsg->type) {
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    // print_msg(bacmsg);
+                    /* print_msg(bacmsg); */
 
                     if (is_network_msg(bacmsg)) {
                         buff_len =
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
                         msg_storage.type = DATA;
                         msg_storage.data = msg_data;
 
-                        // print_msg(bacmsg);
+                        /* print_msg(bacmsg); */
 
                         if (is_network_msg(bacmsg)) {
                             msg_data->ref_count = 1;
@@ -272,7 +272,7 @@ bool read_config(char *filepath)
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
                     current->iface =
-                      (char *)calloc(sizeof(char), strlen(iface) + 1);
+                        (char *)calloc(sizeof(char), strlen(iface) + 1);
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -314,7 +314,7 @@ bool read_config(char *filepath)
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
                     current->iface =
-                      (char *)calloc(sizeof(char), strlen(iface) + 1);
+                        (char *)calloc(sizeof(char), strlen(iface) + 1);
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -517,6 +517,8 @@ bool parse_cmd(int argc, char *argv[])
                                     current->route_info.net = port_count;
                                 }
                                 break;
+                            default:
+                                break;
                         }
                         dev_opt =
                             getopt_long(argc, argv, bipString, Options, &index);
@@ -569,7 +571,7 @@ bool parse_cmd(int argc, char *argv[])
                                         current->route_info.mac[0]) {
                                         current->params.mstp_params.max_master =
                                             current->route_info.mac[0];
-}
+                                    }
 
                                     if (argv[optind + 1][0] != '-') {
                                         current->params.mstp_params.max_frames =
@@ -620,6 +622,8 @@ bool parse_cmd(int argc, char *argv[])
                                     current->route_info.net = (uint16_t)result;
                                 }
                                 break;
+                            default:
+                                break;
                         }
                         dev_opt = getopt_long(
                             argc, argv, mstpString, Options, &index);
@@ -629,6 +633,8 @@ bool parse_cmd(int argc, char *argv[])
                     PRINT(ERROR, "Error: %s unknown\n", optarg);
                     return false;
                 }
+                break;
+            default:
                 break;
         }
     }
@@ -648,8 +654,9 @@ void init_port_threads(ROUTER_PORT *port_list)
             case MSTP:
                 port->func = &dl_mstp_thread;
                 break;
+            default:
+                break;
         }
-
         port->state = INIT;
         thread = (pthread_t *)malloc(sizeof(pthread_t));
         pthread_create(thread, NULL, port->func, port);
@@ -766,7 +773,8 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
     memmove(data, msg->data, sizeof(MSG_DATA));
 
-    apdu_offset = npdu_decode(data->pdu, &data->dest, &addr, &npdu_data);
+    apdu_offset = bacnet_npdu_decode(data->pdu, data->pdu_len, &data->dest,
+        &addr, &npdu_data);
     apdu_len = data->pdu_len - apdu_offset;
 
     srcport = find_snet(msg->origin);
@@ -781,7 +789,7 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
         if (addr.net > 0 && addr.net < BACNET_BROADCAST_NETWORK &&
             data->src.net != addr.net) {
             memmove(&data->src, &addr, sizeof(BACNET_ADDRESS));
-}
+        }
 
         /* encode both source and destination for broadcast and router-to-router
          * communication */

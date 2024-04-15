@@ -41,13 +41,14 @@
 #include <errno.h>
 #include <time.h>
 #include <ctype.h>
-/* OS specific include*/
-#include "bacport.h"
-/* local includes */
-#include "bacnet/bytes.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/crc.h"
 #include "bacnet/version.h"
+/* OS specific include*/
+#include "bacport.h"
 
 #ifndef max
 #define max(a, b) (((a)(b)) ? (a) : (b))

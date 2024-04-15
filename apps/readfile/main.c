@@ -30,26 +30,29 @@
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
 #include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
+#endif
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -134,8 +137,8 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
                         data.endOfFile = true;
                     }
                 } else {
-                    result = fseek(pFile, data.type.stream.fileStartPosition,
-                        SEEK_SET);
+                    result = fseek(
+                        pFile, data.type.stream.fileStartPosition, SEEK_SET);
                     if (result == 0) {
                         /* unit to write in bytes -
                            in our case, an octet is one byte */
@@ -150,8 +153,8 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
                             Target_File_Start_Position =
                                 data.type.stream.fileStartPosition +
                                 octets_written;
-                            printf("\r%d bytes",
-                                (int)Target_File_Start_Position);
+                            printf(
+                                "\r%d bytes", (int)Target_File_Start_Position);
                         }
                         fflush(pFile);
                     } else {
@@ -229,22 +232,23 @@ static void print_usage(char *filename)
 static void print_help(char *filename)
 {
     printf(
-        "Read a file from a BACnet device and save it locally.\n"
-        "device-instance:\n"
+        "Read a file from a BACnet device and save it locally.\n");
+    printf("\n");
+    printf("device-instance:\n"
         "BACnet Device Object Instance number that you are trying to\n"
         "communicate to.  This number will be used to try and bind with\n"
         "the device using Who-Is and I-Am services.  For example, if you were\n"
-        "reading from Device Object 123, the device-instance would be 123.\n"
-        "\n"
-        "file-instance:\n"
+        "reading from Device Object 123, the device-instance would be 123.\n");
+    printf("\n");
+    printf("file-instance:\n"
         "This is the file object instance number that you are reading from.\n"
         "For example, if you were reading from File 2, \n"
-        "the file-instance would be 2.\n"
-        "\n"
-        "local-name:\n"
-        "The name of the file that will be stored locally.\n"
-        "\n"
-        "Example:\n"
+        "the file-instance would be 2.\n");
+    printf("\n");
+    printf("local-name:\n"
+        "The name of the file that will be stored locally.\n");
+    printf("\n");
+    printf("Example:\n"
         "If you want read File 2 from Device 123 and save it to temp.txt,\n"
         "use the following command:\n"
         "%s 123 2 temp.txt\n",
@@ -293,14 +297,14 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     Target_File_Object_Instance = strtol(argv[2], NULL, 0);
     Local_File_Name = argv[3];
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-    if (Target_File_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "file-instance=%u - it must be less than %u\n",
-            Target_File_Object_Instance, BACNET_MAX_INSTANCE + 1);
+    if (Target_File_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "file-instance=%u - not greater than %u\n",
+            Target_File_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     /* setup my info */

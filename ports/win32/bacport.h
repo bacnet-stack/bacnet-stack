@@ -26,7 +26,7 @@
 #ifndef BACPORT_H
 #define BACPORT_H
 
-#include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/bacnet_stack_exports.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
@@ -39,8 +39,7 @@
 #endif
 
 #include <windows.h>
-#if (!defined(USE_INADDR) || (USE_INADDR == 0)) && \
- (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
+#ifndef BACNET_IP_BROADCAST_USE_CLASSADDR
 #include <iphlpapi.h>
 #if defined(_MSC_VER)
 #pragma comment(lib, "IPHLPAPI.lib")
@@ -70,12 +69,6 @@ and globals in favor of more secure versions.  */
 #endif
 #include <sys/timeb.h>
 
-#if defined(__BORLANDC__) || defined(_WIN32)
-/* seems to not be defined in time.h as specified by The Open Group */
-/* difference from UTC and local standard time  */
-long int timezone;
-#endif
-
 #ifdef _MSC_VER
 #define inline __inline
 #endif
@@ -83,9 +76,15 @@ long int timezone;
 #define inline __inline
 #endif
 
-#ifdef _WIN32
-#define strncasecmp(x, y, z) _strnicmp(x, y, z)
-#define snprintf _snprintf
-#endif
+BACNET_STACK_EXPORT
+extern int bip_get_local_netmask(
+    struct in_addr *netmask);
+
+#define BACNET_OBJECT_TABLE(table_name, _type, _init, _count,               \
+                            _index_to_instance, _valid_instance, _object_name, \
+                            _read_property, _write_property, _RPM_list,     \
+                            _RR_info, _iterator, _value_list, _COV,         \
+                            _COV_clear, _intrinsic_reporting)               \
+    static_assert(false, "Unsupported BACNET_OBJECT_TABLE for this platform")
 
 #endif

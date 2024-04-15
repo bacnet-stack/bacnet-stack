@@ -27,8 +27,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
@@ -51,11 +52,11 @@ static get_event_info_function Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
 void ge_ack_print_data(
     BACNET_GET_EVENT_INFORMATION_DATA *data, uint32_t device_id)
 {
+    unsigned int count = 0;
     BACNET_GET_EVENT_INFORMATION_DATA *act_data = data;
     const char *state_strs[] = { "NO", "FA", "ON", "HL", "LL" };
     printf("DeviceID\tType\tInstance\teventState\n");
     printf("--------------- ------- --------------- ---------------\n");
-    int count = 0;
     while (act_data) {
         printf("%u\t\t%u\t%u\t\t%s\n", device_id,
             act_data->objectIdentifier.type,

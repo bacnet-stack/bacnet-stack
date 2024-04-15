@@ -25,12 +25,12 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/bactext.h"
 #include "bacnet/rp.h"
 /* some demo stuff needed */
@@ -38,6 +38,11 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/datalink/datalink.h"
+
+#define PRINTF debug_aprintf
+#define PRINTF_ERR debug_perror
 
 /** @file h_rp_a.c  Handles Read Property Acknowledgments. */
 
@@ -64,8 +69,17 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
         /* FIXME: what if application_data_len is bigger than 255? */
         /* value? need to loop until all of the len is gone... */
         for (;;) {
-            len = bacapp_decode_application_data(
-                application_data, (unsigned)application_data_len, &value);
+            len = bacapp_decode_known_property(application_data,
+                (unsigned)application_data_len, &value, data->object_type,
+                data->object_property);
+
+            if (len < 0) {
+                PRINTF_ERR("RP Ack: unable to decode! %s:%s\n",
+                    bactext_object_type_name(data->object_type),
+                    bactext_property_name(data->object_property));
+                break;
+            }
+
             if (first_value && (len < application_data_len)) {
                 first_value = false;
 #if PRINT_ENABLED

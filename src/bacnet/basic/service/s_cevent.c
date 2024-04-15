@@ -47,8 +47,10 @@
  * @return invoke id of outgoing message, or 0 if communication is disabled,
  *         or no tsm slot is available.
  */
-uint8_t Send_CEvent_Notify_Address(uint8_t *pdu, uint16_t pdu_size,
-    BACNET_EVENT_NOTIFICATION_DATA *data, BACNET_ADDRESS *dest)
+uint8_t Send_CEvent_Notify_Address(uint8_t *pdu,
+    uint16_t pdu_size,
+    BACNET_EVENT_NOTIFICATION_DATA *data,
+    BACNET_ADDRESS *dest)
 {
     int len = 0;
     int pdu_len = 0;
@@ -81,8 +83,8 @@ uint8_t Send_CEvent_Notify_Address(uint8_t *pdu, uint16_t pdu_size,
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((uint16_t)pdu_len < pdu_size) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, dest,
-                &npdu_data, pdu, (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, dest, &npdu_data, pdu, (uint16_t)pdu_len);
 #if PRINT_ENABLED
             bytes_sent =
 #endif
@@ -131,8 +133,7 @@ uint8_t Send_CEvent_Notify(
             max_apdu = sizeof(Handler_Transmit_Buffer);
         }
         invoke_id = Send_CEvent_Notify_Address(
-            Handler_Transmit_Buffer, max_apdu,
-            data, &dest);
+            Handler_Transmit_Buffer, max_apdu, data, &dest);
     }
 
     return invoke_id;

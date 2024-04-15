@@ -44,20 +44,31 @@
 #include "bacnet/basic/bbmd6/vmac.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 
-
 static bool BVLC6_Debug;
 #if PRINT_ENABLED
 #include <stdarg.h>
 #include <stdio.h>
-#define PRINTF(...) \
-    if (BVLC6_Debug) { \
-        fprintf(stderr,__VA_ARGS__); \
-        fflush(stderr); \
-    }
-#else
-#define PRINTF(...)
-#endif
+static int printf_stderr(const char *format, ...)
+{
+    int length = 0;
+    va_list ap;
 
+    if (BVLC6_Debug) {
+        va_start(ap, format);
+        length = vfprintf(stderr, format, ap);
+        va_end(ap);
+        fflush(stderr);
+    }
+
+    return length;
+}
+#else
+static int printf_stderr(const char *format, ...) {
+    (void)format;
+    return 0;
+}
+#endif
+#define PRINTF printf_stderr
 /** result from a client request */
 static uint16_t BVLC6_Result_Code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
 /** incoming function */
@@ -65,6 +76,8 @@ static uint8_t BVLC6_Function_Code = BVLC6_RESULT;
 
 /** if we are a foreign device, store the remote BBMD address/port here */
 static BACNET_IP6_ADDRESS Remote_BBMD;
+/** if we are a foreign device, store the Time-To-Live Seconds here */
+static uint16_t Remote_BBMD_TTL_Seconds;
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
 /* local buffer & length for sending */
 static uint8_t BVLC6_Buffer[BIP6_MPDU_MAX];
@@ -114,6 +127,8 @@ void bvlc6_maintenance_timer(uint16_t seconds)
             }
         }
     }
+#else
+    (void)seconds;    
 #endif
 }
 
@@ -173,38 +188,60 @@ static bool bbmd6_address_to_vmac(
  *
  * @param device_id - device ID used as the key-pair
  * @param addr - IPv6 source address
- *
- * @return true if the VMAC address was added
  */
-static bool bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
+static void bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
 {
-    bool status = false;
+    bool found = false;
+    uint32_t list_device_id = 0;
     struct vmac_data *vmac;
     struct vmac_data new_vmac;
+    unsigned i = 0;
 
-    if (addr) {
-        vmac = VMAC_Find_By_Key(device_id);
-        if (vmac) {
-            /* already exists - replace? */
-            PRINTF("VMAC existing %u [", (unsigned int)device_id);
-            for (unsigned i = 0; i < vmac->mac_len; i++) {
-                PRINTF("%02X", vmac->mac[i]);
+    if (bbmd6_address_to_vmac(&new_vmac, addr)) {
+        if (VMAC_Find_By_Data(&new_vmac, &list_device_id)) {
+            if (list_device_id == device_id) {
+                /* valid VMAC entry exists. */
+                found = true;
+            } else {
+                /* VMAC exists, but device ID changed */
+                VMAC_Delete(list_device_id);
+                PRINTF("BVLC6: VMAC existed for %u [", 
+                    (unsigned int)list_device_id);
+                for (i = 0; i < new_vmac.mac_len; i++) {
+                    PRINTF("%02X", new_vmac.mac[i]);
+                }
+                PRINTF("]\n");
+                PRINTF("BVLC6: Removed VMAC for %lu.\n", 
+                    (unsigned long)list_device_id);
             }
-            PRINTF("]\n");
-            PRINTF("VMAC ignoring %u [", (unsigned int)device_id);
-            for (unsigned i = 0; i < IP6_ADDRESS_MAX; i++) {
-                PRINTF("%02X", addr->address[i]);
+        }
+        if (!found) {
+            vmac = VMAC_Find_By_Key(device_id);
+            if (vmac) {
+                /* device ID already exists. Update MAC. */
+                memmove(vmac, &new_vmac, sizeof(struct vmac_data));
+                PRINTF("BVLC6: VMAC for %u [", 
+                    (unsigned int)device_id);
+                for (i = 0; i < new_vmac.mac_len; i++) {
+                    PRINTF("%02X", new_vmac.mac[i]);
+                }
+                PRINTF("]\n");
+                PRINTF("BVLC6: Updated VMAC for %lu.\n", 
+                    (unsigned long)device_id);
+            } else {
+                /* new entry - add it! */
+                VMAC_Add(device_id, &new_vmac);
+                PRINTF("BVLC6: VMAC for %u [", 
+                    (unsigned int)device_id);
+                for (i = 0; i < new_vmac.mac_len; i++) {
+                    PRINTF("%02X", new_vmac.mac[i]);
+                }
+                PRINTF("]\n");
+                PRINTF("BVLC6: Added VMAC for %lu.\n", 
+                    (unsigned long)device_id);
             }
-            PRINTF("%04X", addr->port);
-            PRINTF("]\n");
-        } else if (bbmd6_address_to_vmac(&new_vmac, addr)) {
-            /* new entry - add it! */
-            status = VMAC_Add(device_id, &new_vmac);
-            PRINTF("BVLC6: Adding VMAC %lu.\n", (unsigned long)device_id);
         }
     }
-
-    return status;
 }
 
 /**
@@ -216,7 +253,7 @@ static bool bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
  */
 static bool bbmd6_address_match_self(BACNET_IP6_ADDRESS *addr)
 {
-    BACNET_IP6_ADDRESS my_addr = { { 0 } };
+    BACNET_IP6_ADDRESS my_addr = { 0 };
     bool status = false;
 
     if (bip6_get_addr(&my_addr)) {
@@ -280,7 +317,7 @@ int bvlc6_send_pdu(BACNET_ADDRESS *dest,
     uint8_t *pdu,
     unsigned pdu_len)
 {
-    BACNET_IP6_ADDRESS bvlc_dest = { { 0 } };
+    BACNET_IP6_ADDRESS bvlc_dest = { 0 };
     uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
     uint32_t vmac_src = 0;
@@ -346,7 +383,7 @@ int bvlc6_send_pdu(BACNET_ADDRESS *dest,
  */
 static void bbmd6_send_pdu_bdt(uint8_t *mtu, unsigned int mtu_len)
 {
-    BACNET_IP6_ADDRESS my_addr = { { 0 } };
+    BACNET_IP6_ADDRESS my_addr = { 0 };
     unsigned i = 0; /* loop counter */
 
     if (mtu) {
@@ -373,7 +410,7 @@ static void bbmd6_send_pdu_bdt(uint8_t *mtu, unsigned int mtu_len)
  */
 static void bbmd6_send_pdu_fdt(uint8_t *mtu, unsigned int mtu_len)
 {
-    BACNET_IP6_ADDRESS my_addr = { { 0 } };
+    BACNET_IP6_ADDRESS my_addr = { 0 };
     unsigned i = 0; /* loop counter */
 
     if (mtu) {
@@ -653,7 +690,7 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
     uint16_t npdu_len = 0;
     bool send_result = false;
     uint16_t offset = 0;
-    BACNET_IP6_ADDRESS fwd_address = { { 0 } };
+    BACNET_IP6_ADDRESS fwd_address = { 0 };
 
     header_len =
         bvlc6_decode_header(mtu, mtu_len, &message_type, &message_length);
@@ -708,7 +745,7 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
                             offset = header_len + (function_len - npdu_len);
                         } else {
                             PRINTF("BIP6: Original-Unicast-NPDU: "
-                                         "VMAC is not me!\n");
+                                   "VMAC is not me!\n");
                         }
                     } else {
                         PRINTF(
@@ -739,13 +776,12 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
                         npdu = &mtu[offset];
                         if (npdu_confirmed_service(npdu, npdu_len)) {
                             offset = 0;
-                            PRINTF(
-                                "BIP6: Original-Broadcast-NPDU: "
-                                "Confirmed Service! Discard!");
+                            PRINTF("BIP6: Original-Broadcast-NPDU: "
+                                   "Confirmed Service! Discard!");
                         }
                     } else {
                         PRINTF("BIP6: Original-Broadcast-NPDU: Unable to "
-                                     "decode!\n");
+                               "decode!\n");
                     }
                 }
                 break;
@@ -765,8 +801,7 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
                         bvlc6_vmac_address_set(src, vmac_src);
                         offset = header_len + (function_len - npdu_len);
                     } else {
-                        PRINTF(
-                            "BIP6: Forwarded-NPDU: Unable to decode!\n");
+                        PRINTF("BIP6: Forwarded-NPDU: Unable to decode!\n");
                     }
                 }
                 break;
@@ -907,9 +942,8 @@ int bvlc6_bbmd_enabled_handler(BACNET_IP6_ADDRESS *addr,
                        network layer. */
                     if (npdu_confirmed_service(npdu, npdu_len)) {
                         offset = 0;
-                        PRINTF(
-                            "BIP6: Original-Broadcast-NPDU: "
-                            "Confirmed Service! Discard!");
+                        PRINTF("BIP6: Original-Broadcast-NPDU: "
+                               "Confirmed Service! Discard!");
                     } else {
                         /*  Upon receipt of a BVLL Original-Broadcast-NPDU
                             message from the local multicast domain, a BBMD
@@ -1027,22 +1061,45 @@ int bvlc6_handler(BACNET_IP6_ADDRESS *addr,
  * @param bbmd_address - IPv4 address (long) of BBMD to register with,
  *                       in network byte order.
  * @param bbmd_port - Network port of BBMD, in network byte order
- * @param time_to_live_seconds - Lease time to use when registering.
+ * @param ttl_seconds - Lease time to use when registering.
  * @return Positive number (of bytes sent) on success,
  *         0 if no registration request is sent, or
  *         -1 if registration fails.
  */
 int bvlc6_register_with_bbmd(BACNET_IP6_ADDRESS *bbmd_addr,
-    uint32_t vmac_src,
-    uint16_t time_to_live_seconds)
+    uint16_t ttl_seconds)
 {
     uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
+    uint32_t vmac_src = 0;
 
+    /* Store the BBMD address and port so that we won't broadcast locally. */
+    /* We are a foreign device! */
+    bvlc6_address_copy(&Remote_BBMD, bbmd_addr);
+    Remote_BBMD_TTL_Seconds = ttl_seconds;
+    vmac_src = Device_Object_Instance_Number();
     mtu_len = bvlc6_encode_register_foreign_device(
-        &mtu[0], sizeof(mtu), vmac_src, time_to_live_seconds);
+        &mtu[0], sizeof(mtu), vmac_src, ttl_seconds);
 
     return bip6_send_mpdu(bbmd_addr, &mtu[0], mtu_len);
+}
+
+/** Get the remote BBMD address that was used to Register as a foreign device
+ * @param bbmd_addr - IPv6 address of BBMD used to register
+ */
+void bvlc6_remote_bbmd_address(BACNET_IP6_ADDRESS *bbmd_addr)
+{
+    bvlc6_address_copy(bbmd_addr, &Remote_BBMD);
+}
+
+/**
+ * @brief Get the remote BBMD time-to-live seconds used to
+ *  Register Foreign Device
+ * @return Lease time in seconds to use when registering.
+ */
+uint16_t bvlc6_remote_bbmd_lifetime(void)
+{
+    return Remote_BBMD_TTL_Seconds;
 }
 
 /** Returns the last BVLL Result we received, either as the result of a BBMD

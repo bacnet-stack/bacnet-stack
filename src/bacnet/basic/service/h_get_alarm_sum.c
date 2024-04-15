@@ -26,8 +26,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
@@ -67,6 +68,8 @@ void handler_get_alarm_summary(uint8_t *service_request,
     BACNET_NPDU_DATA npdu_data;
     BACNET_GET_ALARM_SUMMARY_DATA getalarm_data;
 
+    (void)service_request;
+    (void)service_len;
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);

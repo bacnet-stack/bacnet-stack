@@ -59,3 +59,59 @@ void debug_printf(const char *format, ...)
     (void)format;
 }
 #endif
+
+#if PRINT_ENABLED
+int debug_aprintf(const char *format, ...)
+{
+    int length = 0;
+    va_list ap;
+
+    va_start(ap, format);
+    length = vfprintf(stdout, format, ap);
+    va_end(ap);
+    fflush(stdout);
+
+    return length;
+}
+
+int debug_fprintf(FILE *stream, const char *format, ...)
+{
+    int length = 0;
+    va_list ap;
+
+    va_start(ap, format);
+    length = vfprintf(stream, format, ap);
+    va_end(ap);
+    fflush(stream);
+
+    return length;
+}
+
+void debug_perror(const char *format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
+    fflush(stderr);
+}
+#else
+int debug_aprintf(const char *format, ...)
+{
+    (void)format;
+    return 0;
+}
+
+int debug_fprintf(FILE *stream, const char *format, ...)
+{
+    (void)stream;
+    (void)format;
+    return 0;
+}
+
+void debug_perror(const char *format, ...)
+{
+    (void)format;
+}
+#endif

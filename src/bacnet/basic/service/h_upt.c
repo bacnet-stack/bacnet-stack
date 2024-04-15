@@ -27,8 +27,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
@@ -111,6 +112,7 @@ void handler_unconfirmed_private_transfer(
     BACNET_PRIVATE_TRANSFER_DATA private_data;
     int len = 0;
 
+    (void)src;
 #if PRINT_ENABLED
     fprintf(stderr, "Received Unconfirmed Private Transfer Request!\n");
 #endif

@@ -26,9 +26,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
 
 /** Hop count default is required by BTL to be maximum */
 #ifndef HOP_COUNT_DEFAULT
@@ -61,6 +60,9 @@ typedef struct router_port_t {
     struct router_port_t *next;         /**< Point to next in linked list */
 } BACNET_ROUTER_PORT;
 
+#define NETWORK_NUMBER_LEARNED 0
+#define NETWORK_NUMBER_CONFIGURED 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -78,8 +80,23 @@ extern "C" {
         BACNET_NPDU_DATA * npdu_data);
 
     BACNET_STACK_EXPORT
+    int bacnet_npdu_encode_pdu(
+        uint8_t * pdu,
+        uint16_t pdu_size,
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src,
+        BACNET_NPDU_DATA * npdu_data);
+
+    BACNET_STACK_EXPORT
     void npdu_encode_npdu_data(
         BACNET_NPDU_DATA * npdu,
+        bool data_expecting_reply,
+        BACNET_MESSAGE_PRIORITY priority);
+
+    BACNET_STACK_EXPORT
+    void npdu_encode_npdu_network(
+        BACNET_NPDU_DATA *npdu_data,
+        BACNET_NETWORK_MESSAGE_TYPE network_message_type,
         bool data_expecting_reply,
         BACNET_MESSAGE_PRIORITY priority);
 
@@ -88,6 +105,7 @@ extern "C" {
         BACNET_NPDU_DATA * dest,
         BACNET_NPDU_DATA * src);
 
+    BACNET_STACK_DEPRECATED("Use bacnet_npdu_decode() instead")
     BACNET_STACK_EXPORT
     int npdu_decode(
         uint8_t * npdu,

@@ -31,25 +31,23 @@
 #include <time.h> /* for time */
 #include <errno.h>
 #include <ctype.h> /* for toupper */
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
-#include "bacnet/datalink/bvlc.h"
 /* some demo stuff needed */
-#ifndef DEBUG_ENABLED
-#define DEBUG_ENABLED 0
-#endif
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/bvlc.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
@@ -123,10 +121,9 @@ int main(int argc, char *argv[])
     int c = 0;
     uint16_t result_code = 0;
 
-
     if (argc < 2) {
         printf("Usage: %s IP port <IP:port[:mask]> [<IP:port[:mask]>]\r\n",
-        filename_remove_path(argv[0]));
+            filename_remove_path(argv[0]));
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
@@ -148,8 +145,8 @@ int main(int argc, char *argv[])
     if (argc > 1) {
         argi = 1;
         if (!bip_get_addr_by_name(argv[argi], &Target_BBMD_Address)) {
-            fprintf(stderr, "IP=%s - failed to convert address.\r\n",
-                argv[argi]);
+            fprintf(
+                stderr, "IP=%s - failed to convert address.\r\n", argv[argi]);
             return 1;
         }
     }
@@ -172,8 +169,8 @@ int main(int argc, char *argv[])
     argi = 3;
     while (argc > argi) {
         bdt_entry = &BBMD_Table_Entry[bdti];
-        c = sscanf(argv[argi], "%3u.%3u.%3u.%3u:%5u:%3u.%3u.%3u.%3u",
-            &a[0], &a[1], &a[2], &a[3], &p, &m[0], &m[1], &m[2], &m[3]);
+        c = sscanf(argv[argi], "%3u.%3u.%3u.%3u:%5u:%3u.%3u.%3u.%3u", &a[0],
+            &a[1], &a[2], &a[3], &p, &m[0], &m[1], &m[2], &m[3]);
         if ((c == 4) || (c == 5) || (c == 9)) {
             bvlc_address_set(&bdt_entry->dest_address, a[0], a[1], a[2], a[3]);
             if ((c == 5) || (c == 9)) {
@@ -216,8 +213,7 @@ int main(int argc, char *argv[])
         if (bvlc_get_function_code() != BVLC_INVALID) {
             if (bvlc_get_function_code() == BVLC_RESULT) {
                 result_code = bvlc_get_last_result();
-                printf("BVLC Result: %s\n",
-                    bvlc_result_code_name(result_code));
+                printf("BVLC Result: %s\n", bvlc_result_code_name(result_code));
                 break;
             }
             bvlc_set_function_code(BVLC_INVALID);

@@ -27,8 +27,9 @@
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
@@ -72,7 +73,7 @@ uint8_t Send_Private_Transfer_Request(uint32_t device_id,
     /* is there a tsm available? */
     if (status) {
         invoke_id = tsm_next_free_invokeID();
-}
+    }
     if (invoke_id) {
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);

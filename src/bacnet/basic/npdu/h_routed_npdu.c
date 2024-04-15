@@ -27,11 +27,11 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bits.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/bactext.h"
@@ -161,6 +161,12 @@ static void network_control_handler(BACNET_ADDRESS *src,
         case NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK:
             /* Do nothing - don't support PTP half-router control */
             break;
+        case NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER:
+            /* FIXME: add procedure for this message */
+            break;
+        case NETWORK_MESSAGE_NETWORK_NUMBER_IS:
+            /* FIXME: add procedure for this message */
+            break;
         default:
             /* An unrecognized message is bad; send an error response. */
             Send_Reject_Message_To_Network(
@@ -275,7 +281,7 @@ void routing_npdu_handler(
 
     /* only handle the version that we know how to handle */
     if (pdu[0] == BACNET_PROTOCOL_VERSION) {
-        apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
+        apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
         if (apdu_offset <= 0) {
             debug_printf("NPDU: Decoding failed; Discarded!\n");
         } else if (npdu_data.network_layer_message) {

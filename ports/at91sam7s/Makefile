@@ -23,6 +23,10 @@ BACNET_FLAGS += -DPRINT_ENABLED=0
 BACNET_FLAGS += -DMAX_APDU=480
 BACNET_FLAGS += -DCRC_USE_TABLE
 #BACNET_FLAGS += -DDLMSTP_TEST
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 BACNET_SRC = ../../src
 BACNET_CORE = $(BACNET_SRC)/bacnet
@@ -30,10 +34,14 @@ BACNET_BASIC = $(BACNET_CORE)/basic
 INCLUDES = -I. -I$(BACNET_SRC)
 #OPTIMIZATION = -O0
 OPTIMIZATION = -Os
-CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -Wall -g
+CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -g
 CFLAGS += -mno-thumb-interwork
 # dead code removal
 CFLAGS += -fdata-sections -ffunction-sections
+# warning control
+CFLAGS += -Wall
+CFLAGS += -Wno-char-subscripts
+
 LIBRARY = lib$(TARGET).a
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
@@ -45,6 +53,7 @@ LDFLAGS += -Wl,-nostdlib,-Map=$(TARGET).map,$(LIBRARIES),-T$(LDSCRIPT)
 LDFLAGS += -Wl,--gc-sections,-static
 CPFLAGS = --output-target=binary
 ODFLAGS	= -x --syms
+
 
 ASRC = crt.s
 
@@ -63,6 +72,7 @@ DEMOSRC = ai.c \
 	device.c \
 	netport.c \
 	$(BACNET_BASIC)/tsm/tsm.c \
+	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
 	$(BACNET_BASIC)/service/h_noserv.c \
@@ -81,6 +91,8 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacdest.c \
+	$(BACNET_CORE)/bacdevobjpropref.c \
 	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
@@ -90,6 +102,7 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
+	$(BACNET_CORE)/hostnport.c \
 	$(BACNET_CORE)/lighting.c \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/npdu.c \
@@ -98,6 +111,12 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
+	$(BACNET_CORE)/timestamp.c \
+	$(BACNET_CORE)/weeklyschedule.c \
+	$(BACNET_CORE)/dailyschedule.c \
+	$(BACNET_CORE)/bactimevalue.c \
+	$(BACNET_CORE)/calendar_entry.c \
+	$(BACNET_CORE)/special_event.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c

@@ -30,27 +30,26 @@
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/cov.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/event.h"
 #include "bacnet/whois.h"
-/* some demo stuff needed */
 #include "bacnet/version.h"
+/* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 
 static void Init_Service_Handlers(void)
 {
@@ -86,23 +85,23 @@ static void print_help(char *filename)
 {
     printf("Send BACnet UnconfirmedEventNotification message for a device.\n");
     printf("--mac A\n"
-           "Optional BACnet mac address."
-           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-           "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-           "\n"
-           "--dnet N\n"
-           "Optional BACnet network number N for directed requests.\n"
-           "Valid range is from 0 to 65535 where 0 is the local connection\n"
-           "and 65535 is network broadcast.\n"
-           "\n"
-           "--dadr A\n"
-           "Optional BACnet mac address on the destination BACnet network "
-           "number.\n"
-           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-           "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-           "\n");
+        "Optional BACnet mac address."
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--dnet N\n"
+        "Optional BACnet network number N for directed requests.\n"
+        "Valid range is from 0 to 65535 where 0 is the local connection\n"
+        "and 65535 is network broadcast.\n");
+    printf("\n");
+    printf("--dadr A\n"
+        "Optional BACnet mac address on the destination BACnet network\n"
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    (void)filename;
 }
 
 int main(int argc, char *argv[])
@@ -110,7 +109,7 @@ int main(int argc, char *argv[])
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
     BACNET_BIT_STRING *pBitString;
     BACNET_CHARACTER_STRING bcstring;
-    BACNET_PROPERTY_STATE_TYPE tag = BOOLEAN_VALUE;
+    BACNET_PROPERTY_STATES tag = PROP_STATE_BOOLEAN_VALUE;
     long dnet = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
@@ -138,7 +137,7 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--mac") == 0) {
             if (++argi < argc) {
-                if (address_mac_from_ascii(&mac, argv[argi])) {
+                if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
                     specific_address = true;
                 }
             }
@@ -151,7 +150,7 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--dadr") == 0) {
             if (++argi < argc) {
-                if (address_mac_from_ascii(&adr, argv[argi])) {
+                if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
                     specific_address = true;
                 }
             }
@@ -229,55 +228,55 @@ int main(int argc, char *argv[])
                             .tag = tag;
                         target_args++;
                     } else if (target_args == 10) {
-                        if (tag == BOOLEAN_VALUE) {
+                        if (tag == PROP_STATE_BOOLEAN_VALUE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.booleanValue =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == BINARY_VALUE) {
+                        } else if (tag == PROP_STATE_BINARY_VALUE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.binaryValue =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == EVENT_TYPE) {
+                        } else if (tag == PROP_STATE_EVENT_TYPE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.eventType = strtol(argv[argi], NULL, 0);
-                        } else if (tag == POLARITY) {
+                        } else if (tag == PROP_STATE_POLARITY) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.polarity = strtol(argv[argi], NULL, 0);
-                        } else if (tag == PROGRAM_CHANGE) {
+                        } else if (tag == PROP_STATE_PROGRAM_CHANGE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.programChange =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == PROGRAM_STATE) {
+                        } else if (tag == PROP_STATE_PROGRAM_STATE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.programState =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == REASON_FOR_HALT) {
+                        } else if (tag == PROP_STATE_REASON_FOR_HALT) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.programError =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == RELIABILITY) {
+                        } else if (tag == PROP_STATE_RELIABILITY) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.reliability =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == STATE) {
+                        } else if (tag == PROP_STATE_EVENT_STATE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.state = strtol(argv[argi], NULL, 0);
-                        } else if (tag == SYSTEM_STATUS) {
+                        } else if (tag == PROP_STATE_SYSTEM_STATUS) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.systemStatus =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == UNITS) {
+                        } else if (tag == PROP_STATE_UNITS) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.units = strtol(argv[argi], NULL, 0);
-                        } else if (tag == UNSIGNED_VALUE) {
+                        } else if (tag == PROP_STATE_UNSIGNED_VALUE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.unsignedValue =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == LIFE_SAFETY_MODE) {
+                        } else if (tag == PROP_STATE_LIFE_SAFETY_MODE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.lifeSafetyMode =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == LIFE_SAFETY_STATE) {
+                        } else if (tag == PROP_STATE_LIFE_SAFETY_STATE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.lifeSafetyState =
                                 strtol(argv[argi], NULL, 0);

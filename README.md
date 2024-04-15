@@ -1,6 +1,7 @@
 # BACnet Stack 
 
-BACnet open source protocol stack for embedded systems, Linux, and Windows
+BACnet open source protocol stack C library for embedded systems,
+Linux, MacOS, BSD, and Windows
 http://bacnet.sourceforge.net/
 
 Welcome to the wonderful world of BACnet and true device interoperability!
@@ -176,4 +177,4 @@ skarg@users.sourceforge.net
 
 ASHRAE® and BACnet® are registered trademarks of the 
 American Society of Heating, Refrigerating and Air-Conditioning Engineers, Inc.
-1791 Tullie Circle NE, Atlanta, GA 30329.
+180 Technology Parkway NW, Peachtree Corners, Georgia 30092 US.

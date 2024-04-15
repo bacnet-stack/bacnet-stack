@@ -27,15 +27,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "bacnet/bacnet_stack_exports.h"
-
-#ifdef UINT64_MAX
-typedef uint64_t BACNET_UNSIGNED_INTEGER;
-#define BACNET_UNSIGNED_INTEGER_MAX UINT64_MAX
-#else
-typedef uint32_t BACNET_UNSIGNED_INTEGER;
-#define BACNET_UNSIGNED_INTEGER_MAX UINT32_MAX
-#endif
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,9 +93,14 @@ extern "C" {
         uint8_t * buffer,
         uint64_t * value);
 #endif
+
     BACNET_STACK_EXPORT
     int bacnet_unsigned_length(
         BACNET_UNSIGNED_INTEGER value);
+    BACNET_STACK_EXPORT
+    int bacnet_signed_length(
+        int32_t value);
+
     /* signed value encoding and decoding */
     BACNET_STACK_EXPORT
     int encode_signed8(

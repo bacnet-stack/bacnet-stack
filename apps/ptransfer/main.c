@@ -34,9 +34,9 @@
 #include <conio.h>
 #endif
 #define PRINT_ENABLED 1
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
@@ -99,6 +99,20 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     /*    Error_Detected = true; */
 }
 
+/* complex error reply function */
+static void MyPrivateTransferErrorHandler(BACNET_ADDRESS *src,
+    uint8_t invoke_id,
+    uint8_t service_choice,
+    uint8_t *service_request,
+    uint16_t service_len)
+{
+    (void)src;
+    (void)invoke_id;
+    (void)service_choice;
+    (void)service_request;
+    (void)service_len;
+}
+
 static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
@@ -148,7 +162,8 @@ static void Init_Service_Handlers(void)
 
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
-    apdu_set_error_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER, MyErrorHandler);
+    apdu_set_complex_error_handler(
+        SERVICE_CONFIRMED_PRIVATE_TRANSFER, MyPrivateTransferErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
@@ -222,7 +237,7 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1 + Target_Mode], NULL, 0);
 
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - not greater than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -301,12 +316,12 @@ int main(int argc, char *argv[])
             }
             if (Error_Detected) {
                 break;
-}
+            }
             /* wait until the device is bound, or timeout and quit */
             if (!found) {
                 found = address_bind_request(
                     Target_Device_Object_Instance, &max_apdu, &Target_Address);
-}
+            }
             if (found) {
                 if (invoke_id == 0) { /* Safe to send a new request */
                     switch (iType) {
@@ -398,6 +413,6 @@ int main(int argc, char *argv[])
     }
     if (Error_Detected) {
         return 1;
-}
+    }
     return 0;
 }

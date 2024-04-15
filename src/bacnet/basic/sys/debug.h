@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 
 #ifndef DEBUG_ENABLED
@@ -40,6 +40,19 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     void debug_printf(
+        const char *format,
+        ...);
+    BACNET_STACK_EXPORT
+    int debug_aprintf(
+        const char *format,
+        ...);
+    BACNET_STACK_EXPORT
+    int debug_fprintf(
+        FILE *stream,
+        const char *format,
+        ...);
+    BACNET_STACK_EXPORT
+    void debug_perror(
         const char *format,
         ...);
 #if DEBUG_ENABLED

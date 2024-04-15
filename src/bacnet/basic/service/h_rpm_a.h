@@ -32,9 +32,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/apdu.h"
 #include "bacnet/rpm.h"
 
@@ -56,6 +56,9 @@ extern "C" {
     BACNET_STACK_EXPORT
     void rpm_ack_print_data(
         BACNET_READ_ACCESS_DATA * rpm_data);
+    BACNET_STACK_EXPORT
+    BACNET_READ_ACCESS_DATA *rpm_data_free(
+        BACNET_READ_ACCESS_DATA *rpm_data);
 
 #ifdef __cplusplus
 }

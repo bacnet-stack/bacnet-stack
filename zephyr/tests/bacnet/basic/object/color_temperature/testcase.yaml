@@ -1,0 +1,6 @@
+tests:
+  bacnet.basic.object.color_temperature:
+    tags: bacnet
+  bacnet.basic.object.color_temperature.unit:
+    tags: bacnet
+    type: unit

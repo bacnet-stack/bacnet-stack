@@ -32,11 +32,11 @@
                 </option>
                 <option>
                     <name>Input description</name>
-                    <state>Automatic choice of formatter, without multibyte support.</state>
+                    <state>Full formatting, without multibyte support.</state>
                 </option>
                 <option>
                     <name>Output description</name>
-                    <state>Automatic choice of formatter, without multibyte support.</state>
+                    <state>Full formatting, without multibyte support.</state>
                 </option>
                 <option>
                     <name>GOutputBinary</name>
@@ -173,7 +173,7 @@
                 <option>
                     <name>OGPrintfVariant</name>
                     <version>0</version>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>OGPrintfMultibyteSupport</name>
@@ -182,7 +182,7 @@
                 <option>
                     <name>OGScanfVariant</name>
                     <version>0</version>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>OGScanfMultibyteSupport</name>
@@ -224,7 +224,7 @@
                     <state>USE_STDPERIPH_DRIVER</state>
                     <state>STM32F4XX</state>
                     <state>BACDL_MSTP</state>
-                    <state>MAX_APDU=480</state>
+                    <state>MAX_APDU=1476</state>
                     <state>BIG_ENDIAN=0</state>
                     <state>MAX_TSM_TRANSACTIONS=1</state>
                 </option>
@@ -266,7 +266,7 @@
                 </option>
                 <option>
                     <name>CCDiagSuppress</name>
-                    <state>Pe550</state>
+                    <state>Pe550,Pa084</state>
                 </option>
                 <option>
                     <name>CCDiagRemark</name>
@@ -1061,6 +1061,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\bacdcode.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\bacdest.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\bacdevobjpropref.c</name>
         </file>
         <file>
@@ -1085,10 +1088,16 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\dcc.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\indtext.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\iam.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\ihave.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\hostnport.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\lighting.c</name>
@@ -1115,6 +1124,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\rpm.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\timestamp.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\timesync.c</name>
         </file>
         <file>
@@ -1130,7 +1142,19 @@
     <group>
         <name>BACnet Datalink</name>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\cobs.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\datalink\crc.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\dlmstp.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\mstp.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\mstptext.c</name>
         </file>
     </group>
     <group>
@@ -1140,7 +1164,7 @@
         </file>
     </group>
     <group>
-        <name>BACnet Service Handlers</name>
+        <name>BACnet Basic Services</name>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_apdu.c</name>
         </file>
@@ -1176,7 +1200,13 @@
         </file>
     </group>
     <group>
-        <name>BACnet System</name>
+        <name>BACnet Basic System</name>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\bigend.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\debug.c</name>
+        </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\fifo.c</name>
         </file>
@@ -1204,6 +1234,12 @@
         <file>
             <name>$PROJ_DIR$\rs485.c</name>
         </file>
+        <file>
+            <name>$PROJ_DIR$\stm32f4xx_it.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\system_stm32f4xx.c</name>
+        </file>
     </group>
     <group>
         <name>NUCLEO-BACnet</name>
@@ -1212,9 +1248,6 @@
         </file>
         <file>
             <name>$PROJ_DIR$\device.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\dlmstp.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\netport.c</name>
@@ -1261,11 +1294,5 @@
     </group>
     <file>
         <name>$PROJ_DIR$\main.c</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\stm32f4xx_it.c</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\system_stm32f4xx.c</name>
     </file>
 </project>

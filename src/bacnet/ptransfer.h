@@ -26,7 +26,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 typedef struct BACnet_Private_Transfer_Data {
     uint16_t vendorID;

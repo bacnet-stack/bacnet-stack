@@ -32,8 +32,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/bvlc6.h"
 
 #ifdef __cplusplus
@@ -69,8 +70,15 @@ extern "C" {
     BACNET_STACK_EXPORT
     int bvlc6_register_with_bbmd(
         BACNET_IP6_ADDRESS *bbmd_addr,
-        uint32_t vmac_src,
         uint16_t time_to_live_seconds);
+
+    BACNET_STACK_EXPORT
+    void bvlc6_remote_bbmd_address(
+        BACNET_IP6_ADDRESS *bbmd_addr);
+
+    BACNET_STACK_EXPORT
+    uint16_t bvlc6_remote_bbmd_lifetime(
+        void);
 
     BACNET_STACK_EXPORT
     uint16_t bvlc6_get_last_result(

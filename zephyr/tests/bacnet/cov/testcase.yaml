@@ -1,3 +1,6 @@
 tests:
+  bacnet.cov.unit:
+    tags: bacnet
+    type: unit
   bacnet.cov:
     tags: bacnet

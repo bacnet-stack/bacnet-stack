@@ -38,6 +38,7 @@ Goto lib/stack and copy the requested files from Steve code :
 	h_whois.c
 	h_wp.c
 	iam.c
+	hostnport.c
 	lighting.c
 	memcopy.c
 	noserv.c

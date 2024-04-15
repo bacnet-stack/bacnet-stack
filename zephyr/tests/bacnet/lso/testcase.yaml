@@ -1,3 +1,6 @@
 tests:
   bacnet.lso:
     tags: bacnet
+  bacnet.lso.unit:
+    tags: bacnet
+    type: unit

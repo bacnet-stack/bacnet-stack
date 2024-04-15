@@ -27,8 +27,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/apdu.h"
@@ -143,7 +144,7 @@ void handler_atomic_read_file(uint8_t *service_request,
         if (!bacfile_valid_instance(data.object_instance)) {
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
-            if (data.type.stream.requestedOctetCount <
+            if (data.type.stream.requestedOctetCount <=
                 octetstring_capacity(&data.fileData[0])) {
                 bacfile_read_stream_data(&data);
 #if PRINT_ENABLED
@@ -173,7 +174,7 @@ void handler_atomic_read_file(uint8_t *service_request,
 #if PRINT_ENABLED
                 fprintf(stderr, "ARF: fileStartRecord %d, %u RecordCount.\n",
                     (int)data.type.record.fileStartRecord,
-                    (int)data.type.record.RecordCount);
+                    (unsigned)data.type.record.RecordCount);
 #endif
                 len = arf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id, &data);

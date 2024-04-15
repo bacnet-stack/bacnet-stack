@@ -37,8 +37,9 @@
  * (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE.
  */
 #include <assert.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
@@ -72,6 +73,8 @@ void get_event_ack_handler(uint8_t *service_request,
        multiple get event data in APDU */
     BACNET_GET_EVENT_INFORMATION_DATA get_event_data[MAX_NUMBER_OF_EVENTS];
 
+    (void)src;
+    (void)service_data;
     for (i = 1; i < MAX_NUMBER_OF_EVENTS; i++) {
         /* Create linked list */
         get_event_data[i - 1].next = &get_event_data[i];

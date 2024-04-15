@@ -1,0 +1,9 @@
+# Ignore formatting change commits when determining blame
+# git config --global blame.ignoreRevsFile .git-blame-ignore-revs
+# Mark any lines that have had a commit skipped using --ignore-rev with a `?`
+# git config --global blame.markIgnoredLines true
+# Mark any lines that were added in a skipped commit and can not be attributed with a `*`
+# git config --global blame.markUnblamableLines true
+
+# make pretty - apps/ and src/ with clang-format version 14
+cc4911a185c39ea3211530f6ad6b2007b1855d79
