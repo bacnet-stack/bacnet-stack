@@ -571,11 +571,13 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
+        #if (CHARACTERSTRING_INTRINSIC_REPORTING)
         case PROP_EVENT_STATE:
             /* note: see the details in the standard on how to use this */
             apdu_len =
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
+        #endif
         case PROP_OUT_OF_SERVICE:
             state = Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
@@ -665,10 +667,12 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_DESCRIPTION:
         case PROP_OBJECT_TYPE:
         case PROP_STATUS_FLAGS:
+        #if (CHARACTERSTRING_INTRINSIC_REPORTING)
         case PROP_EVENT_STATE:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
+        #endif
         default:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
