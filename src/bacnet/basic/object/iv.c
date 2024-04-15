@@ -65,7 +65,7 @@ static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_UNITS, -1 };
 
-static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE, 
+static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE,
     PROP_DESCRIPTION,
     -1 };
 
@@ -194,7 +194,14 @@ bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     if (!characterstring_init_ansi(&IV_Descr[i].Description, pInit_data->Object_Init_Values[i].Description)) {
       PRINTF("Fail to set Object description to \"%128s\"", pInit_data->Object_Init_Values[i].Description);
     }
-     PRINTF("TESTING UNIT VALUES IV: %u\r\n", pInit_data->Object_Init_Values[i].Units);
+
+    if (pInit_data->Object_Init_Values[i].Units < UNITS_PROPRIETARY_RANGE_MAX2) {
+      Integer_Value[i].Units = pInit_data->Object_Init_Values[i].Units;
+    } else {
+      PRINTF("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
+      return false;
+    }
+
    }
    IV_Max_Index = (int) pInit_data->length;
 
