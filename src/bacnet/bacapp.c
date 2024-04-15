@@ -310,7 +310,6 @@ int bacapp_decode_application_data(
         value->context_specific = false;
         tag_len = bacnet_tag_number_and_value_decode(
             &apdu[0], apdu_len_max, &tag_number, &len_value_type);
-	printf("tag_len %i %i\n", tag_len, tag_number);
         if (tag_len > 0) {
             len += tag_len;
             value->tag = tag_number;
