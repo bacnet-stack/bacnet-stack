@@ -136,9 +136,6 @@ bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
       return false;
     }
 
-  //  PRINTF("%%%%%%%% OBJECT NAME %s\r\n",  pInit_data->Object_Init_Values[i].Object_Name);
-   // PRINTF("%%%%%%%% OBJECT DESCR %s\r\n",  pInit_data->Object_Init_Values[i].Description);
-
     strncpy(Object_Name[i], pInit_data->Object_Init_Values[i].Object_Name, sizeof(Object_Name[i]));
 
     strncpy(Object_Description[i], pInit_data->Object_Init_Values[i].Description, sizeof(Object_Description[i]));
