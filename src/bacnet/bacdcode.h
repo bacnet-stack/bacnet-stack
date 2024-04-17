@@ -39,8 +39,7 @@
  * @brief Encode a BACnetARRAY property element; a function template
  * @param object_instance [in] BACnet network port object instance number
  * @param array_index [in] array index requested:
- *    0 for the array size
- *    1 to n for individual array members
+ *    0 to N for individual array members
  * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
  * return the length of buffer if it had been built
  * @return The length of the apdu encoded or
