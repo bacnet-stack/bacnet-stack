@@ -294,7 +294,7 @@ static long fsize(FILE *pFile)
 /**
  * @brief Read the entire file into a buffer
  * @param  object_instance - object-instance number of the object
- * @param  buffer - pointer to buffer pointer where heap data will be stored
+ * @param  buffer - data store from the file
  * @param  buffer_size - in bytes
  * @return  file size in bytes
  */
@@ -314,6 +314,35 @@ uint32_t bacfile_read(uint32_t object_instance, uint8_t *buffer,
                 if (fread(buffer, file_size, 1, pFile) == 0) {
                     file_size = 0;
                 }
+            }
+            fclose(pFile);
+        }
+    }
+
+    return (uint32_t)file_size;
+}
+
+/**
+ * @brief Write the entire file from a buffer
+ * @param  object_instance - object-instance number of the object
+ * @param  buffer - data store for the file
+ * @param  buffer_size - in bytes
+ * @return  file size in bytes
+ */
+uint32_t bacfile_write(uint32_t object_instance, uint8_t *buffer,
+    uint32_t buffer_size)
+{
+    const char *pFilename = NULL;
+    FILE *pFile = NULL;
+    long file_size = 0;
+
+    pFilename = bacfile_pathname(object_instance);
+    if (pFilename) {
+        /* open the file as a clean slate when starting at 0 */
+        pFile = fopen(pFilename, "wb");
+        if (pFile) {
+            if (fwrite(buffer, buffer_size, 1, pFile) == 1) {
+                file_size = buffer_size;
             }
             fclose(pFile);
         }
@@ -1053,5 +1082,7 @@ void bacfile_cleanup(void)
  */
 void bacfile_init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }
