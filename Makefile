@@ -56,6 +56,12 @@ bip-client:
 ethernet:
 	$(MAKE) BACDL=ethernet -s -C apps all
 
+# note: requires additional libraries to be installed
+# see .github/workflows/gcc.yml
+.PHONY: bsc
+bsc:
+	$(MAKE) BACDL=bsc -s -C apps all
+
 .PHONY: apps
 apps:
 	$(MAKE) -s -C apps all
@@ -175,6 +181,10 @@ server-client:
 .PHONY: server-discover
 server-discover:
 	$(MAKE) LEGACY=true -s -C apps $@
+
+.PHONY: sc-hub
+sc-hub:
+	$(MAKE) BACDL=bsc -s -C apps $@
 
 .PHONY: mstpcap
 mstpcap:
