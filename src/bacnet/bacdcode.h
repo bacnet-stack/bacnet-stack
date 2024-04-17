@@ -27,14 +27,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/basic/sys/platform.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datetime.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
-#include "bacnet/bits.h"
 
 /**
  * @brief Encode a BACnetARRAY property element; a function template
@@ -87,7 +86,8 @@ bool bacnet_is_context_specific(uint8_t *apdu, uint32_t apdu_size);
 
 BACNET_STACK_EXPORT
 bool bacnet_is_context_tag_number(
-    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length);
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length,
+    uint32_t *len_value_type);
 BACNET_STACK_EXPORT
 int bacnet_tag_number_decode(
     uint8_t *apdu, uint32_t apdu_size, uint8_t *tag_number);

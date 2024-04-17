@@ -20,7 +20,8 @@
 #ifndef MSTIMER_H_
 #define MSTIMER_H_
 
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /**
  * A timer.
@@ -57,6 +58,8 @@ BACNET_STACK_EXPORT
 void mstimer_restart(struct mstimer *t);
 BACNET_STACK_EXPORT
 int mstimer_expired(struct mstimer *t);
+BACNET_STACK_EXPORT
+void mstimer_expire(struct mstimer *t);
 BACNET_STACK_EXPORT
 unsigned long mstimer_remaining(struct mstimer *t);
 BACNET_STACK_EXPORT

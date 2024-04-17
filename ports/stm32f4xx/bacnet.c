@@ -44,13 +44,14 @@
 /* timer for device communications control */
 static struct mstimer DCC_Timer;
 #define DCC_CYCLE_SECONDS 1
+/* Device ID to track changes */
+static uint32_t Device_ID = 0xFFFFFFFF;
 
+/** 
+ * @brief Initialize the BACnet device object, the service handlers, and timers
+ */
 void bacnet_init(void)
 {
-    dlmstp_set_mac_address(2);
-    dlmstp_set_max_master(127);
-    /* initialize datalink layer */
-    dlmstp_init(NULL);
     /* initialize objects */
     Device_Init(NULL);
 
@@ -74,23 +75,35 @@ void bacnet_init(void)
         handler_device_communication_control);
     /* start the cyclic 1 second timer for DCC */
     mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
-    /* Hello World! */
-    Send_I_Am(&Handler_Transmit_Buffer[0]);
 }
 
+/* local buffer for incoming PDUs to process */
 static uint8_t PDUBuffer[MAX_MPDU];
+
+/**
+ * @brief non-blocking BACnet task
+ */
 void bacnet_task(void)
 {
-    uint16_t pdu_len;
-    BACNET_ADDRESS src; /* source address */
+    bool hello_world = false;
+    uint16_t pdu_len = 0;
+    BACNET_ADDRESS src = { 0 };
 
+    /* hello, World! */
+    if (Device_ID != Device_Object_Instance_Number()) {
+        Device_ID = Device_Object_Instance_Number();
+        hello_world = true;
+    }
+    if (hello_world) {
+        Send_I_Am(&Handler_Transmit_Buffer[0]);
+    }
     /* handle the communication timer */
     if (mstimer_expired(&DCC_Timer)) {
         mstimer_reset(&DCC_Timer);
         dcc_timer_seconds(DCC_CYCLE_SECONDS);
     }
     /* handle the messaging */
-    pdu_len = dlmstp_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
+    pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
     if (pdu_len) {
         npdu_handler(&src, &PDUBuffer[0], pdu_len);
     }

@@ -38,6 +38,6 @@
 #endif
 #endif
 #include "iar2gcc.h"
-#include "bacnet/bits.h"
+#include "bacnet/basic/sys/bits.h"
 
 #endif

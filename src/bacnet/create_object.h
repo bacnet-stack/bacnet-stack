@@ -12,10 +12,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 
 /**
@@ -51,6 +51,9 @@ typedef uint32_t (*create_object_function)(uint32_t object_instance);
 extern "C" {
 #endif /* __cplusplus */
 
+BACNET_STACK_EXPORT
+size_t create_object_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
 int create_object_encode_service_request(
     uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data);

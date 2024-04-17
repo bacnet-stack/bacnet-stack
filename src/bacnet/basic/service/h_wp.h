@@ -32,9 +32,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacapp.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
 

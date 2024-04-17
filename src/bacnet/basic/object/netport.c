@@ -36,15 +36,16 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bacnet/config.h"
-#include "bacnet/basic/binding/address.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
@@ -269,6 +270,33 @@ void Network_Port_Property_Lists(
 {
     Network_Port_Property_List(
         Object_List[0].Instance_Number, pRequired, pOptional, pProprietary);
+}
+
+/**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    Network_Port_Property_List(object_instance,
+        &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
 }
 
 /**
@@ -1061,7 +1089,7 @@ bool Network_Port_IP_Subnet(
     bool status = false;
     uint32_t mask = 0;
     uint32_t prefix = 0;
-    uint8_t ip_mask[4] = { 0 };
+    uint8_t ip_mask[4] = { 255, 255, 255, 255 };
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
@@ -1070,9 +1098,8 @@ bool Network_Port_IP_Subnet(
             if ((prefix > 0) && (prefix <= 32)) {
                 mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF;
                 encode_unsigned32(ip_mask, mask);
-                status =
-                    octetstring_init(subnet_mask, ip_mask, sizeof(ip_mask));
             }
+            status = octetstring_init(subnet_mask, ip_mask, sizeof(ip_mask));
         }
     }
 
@@ -2880,168 +2907,15 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             write_property_unsigned_decode(wp_data, &value, 
                 Network_Port_MSTP_Max_Info_Frames_setter, 255);
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_RELIABILITY:
-        case PROP_OUT_OF_SERVICE:
-        case PROP_NETWORK_TYPE:
-        case PROP_PROTOCOL_LEVEL:
-        case PROP_NETWORK_NUMBER:
-        case PROP_NETWORK_NUMBER_QUALITY:
-        case PROP_MAC_ADDRESS:
-        case PROP_LINK_SPEED:
-        case PROP_CHANGES_PENDING:
-        case PROP_APDU_LENGTH:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
-#ifdef BACDL_BSC
-        case PROP_MAX_BVLC_LENGTH_ACCEPTED:
-            write_property_unsigned_decode(wp_data, &value,
-                Network_Port_Max_BVLC_Length_Accepted_Dirty_Set,
-                BACNET_UNSIGNED_INTEGER_MAX);
-            break;
-        case PROP_MAX_NPDU_LENGTH_ACCEPTED:
-            write_property_unsigned_decode(wp_data, &value,
-                Network_Port_Max_NPDU_Length_Accepted_Dirty_Set,
-                BACNET_UNSIGNED_INTEGER_MAX);
-            break;
-        case PROP_SC_MINIMUM_RECONNECT_TIME:
-            write_property_unsigned_decode(wp_data, &value,
-                Network_Port_SC_Minimum_Reconnect_Time_Dirty_Set,
-                BACNET_UNSIGNED_INTEGER_MAX);
-            break;
-        case PROP_SC_MAXIMUM_RECONNECT_TIME:
-            write_property_unsigned_decode(wp_data, &value,
-                Network_Port_SC_Maximum_Reconnect_Time_Dirty_Set,
-                BACNET_UNSIGNED_INTEGER_MAX);
-            break;
-        case PROP_SC_CONNECT_WAIT_TIMEOUT:
-            write_property_unsigned_decode(wp_data, &value,
-                Network_Port_SC_Connect_Wait_Timeout_Dirty_Set,
-                BACNET_UNSIGNED_INTEGER_MAX);
-            break;
-        case PROP_SC_DISCONNECT_WAIT_TIMEOUT:
-            write_property_unsigned_decode(wp_data, &value,
-                Network_Port_SC_Disconnect_Wait_Timeout_Dirty_Set,
-                BACNET_UNSIGNED_INTEGER_MAX);
-            break;
-        case PROP_SC_HEARTBEAT_TIMEOUT:
-            write_property_unsigned_decode(wp_data, &value,
-                Network_Port_SC_Heartbeat_Timeout_Dirty_Set,
-                BACNET_UNSIGNED_INTEGER_MAX);
-            break;
-            /* SC optionals */
-#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
-        case PROP_SC_PRIMARY_HUB_URI:
-            status = write_property_empty_string_valid(
-                wp_data, &value, MAX_DEV_DESC_LEN);
-            if (status) {
-                status = Network_Port_SC_Primary_Hub_URI_Dirty_Set(
-                    wp_data->object_instance,
-                    characterstring_value(&value.type.Character_String));
-            }
-            break;
-        case PROP_SC_FAILOVER_HUB_URI:
-            status = write_property_empty_string_valid(
-                wp_data, &value, MAX_DEV_DESC_LEN);
-            if (status) {
-                status = Network_Port_SC_Failover_Hub_URI_Dirty_Set(
-                    wp_data->object_instance,
-                    characterstring_value(&value.type.Character_String));
-            }
-            break;
-        case PROP_SC_HUB_FUNCTION_ENABLE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
-            if (status) {
-                status = Network_Port_SC_Hub_Function_Enable_Dirty_Set(
-                    wp_data->object_instance, value.type.Boolean);
-            }
-            break;
-        case PROP_SC_HUB_FUNCTION_ACCEPT_URIS:
-            status = write_property_empty_string_valid(
-                wp_data, &value, BACNET_URI_LENGTH);
-            if (status) {
-                status = Network_Port_SC_Hub_Function_Accept_URI_Dirty_Set(
-                    wp_data->object_instance, wp_data->array_index - 1,
-                    characterstring_value(&value.type.Character_String));
-            }
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            }
-            break;
-        case PROP_SC_HUB_FUNCTION_BINDING:
-            status = write_property_empty_string_valid(
-                wp_data, &value, MAX_DEV_DESC_LEN);
-            if (status) {
-                status = Network_Port_SC_Hub_Function_Binding_Dirty_Set(
-                    wp_data->object_instance,
-                    characterstring_value(&value.type.Character_String));
-            }
-            break;
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
-#if BSC_CONF_HUB_CONNECTORS_NUM != 0
-        case PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
-            if (status) {
-                status =
-                    Network_Port_SC_Direct_Connect_Initiate_Enable_Dirty_Set(
-                        wp_data->object_instance, value.type.Boolean);
-            }
-            break;
-        case PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
-            if (status) {
-                status = Network_Port_SC_Direct_Connect_Accept_Enable_Dirty_Set(
-                    wp_data->object_instance, value.type.Boolean);
-            }
-            break;
-        case PROP_SC_DIRECT_CONNECT_ACCEPT_URIS:
-            status = write_property_empty_string_valid(
-                wp_data, &value, BACNET_URI_LENGTH);
-            if (status) {
-                status = Network_Port_SC_Direct_Connect_Accept_URI_Dirty_Set(
-                    wp_data->object_instance, wp_data->array_index - 1,
-                    characterstring_value(&value.type.Character_String));
-            }
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            }
-            break;
-        case PROP_SC_DIRECT_CONNECT_BINDING:
-            status = write_property_empty_string_valid(
-                wp_data, &value, MAX_DEV_DESC_LEN);
-            if (status) {
-                status = Network_Port_SC_Direct_Connect_Binding_Dirty_Set(
-                    wp_data->object_instance,
-                    characterstring_value(&value.type.Character_String));
-            }
-            break;
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
-        case PROP_SC_HUB_CONNECTOR_STATE:
-        case PROP_OPERATIONAL_CERTIFICATE_FILE:
-        case PROP_ISSUER_CERTIFICATE_FILES:
-        case PROP_CERTIFICATE_SIGNING_REQUEST_FILE:
-        case PROP_ROUTING_TABLE:
-        case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
-        case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
-        case PROP_SC_FAILED_CONNECTION_REQUESTS:
-        case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
-        case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
-#endif /* BACDL_BSC */
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -3142,6 +3016,7 @@ bool Network_Port_Read_Range(
             (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            (void)pInfo;
 #endif
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
@@ -3153,6 +3028,7 @@ bool Network_Port_Read_Range(
             (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            (void)pInfo;
 #endif
             break;
         default:

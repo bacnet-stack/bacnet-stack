@@ -36,7 +36,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacint.h"
 
 /** @file bacint.c  Encode/Decode Integer Types */

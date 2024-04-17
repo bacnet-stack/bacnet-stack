@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.1.0
+  VERSION 1.3.5
   LANGUAGES C)
 
 #
@@ -33,6 +33,11 @@ option(
   BACNET_BUILD_BACPOLL_APP
   "compile the bacpoll app"
   ON)
+
+  option(
+    BACNET_BUILD_BACDISCOVER_APP
+    "compile the bacdiscover app"
+    ON)
 
 option(
   BACDL_ETHERNET
@@ -77,9 +82,42 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+# Build types
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    message(STATUS "Maximum optimization for speed")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+    message(STATUS "Maximum optimization for speed, debug info included")
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
+    message(STATUS "Maximum optimization for size")
+else ()
+    message(STATUS "Minimal optimization, debug info included")
+    add_compile_definitions(DEBUG_ENABLED=1)
+endif ()
+
+option(
+  BACNET_STACK_DEPRECATED_DISABLE
+  "Disable deprecation compile warnings"
+  ON)
+
+if(BACNET_STACK_DEPRECATED_DISABLE)
+  add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
+endif()
+
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+  add_compile_options(-Wall -Wextra -pedantic)
+  add_compile_options(-Wfloat-equal -Wconversion -Wparentheses)
+  add_compile_options(-Wunused-value -Wreturn-type -Wswitch-default)
+  add_compile_options(-Wuninitialized -Winit-self)
+  add_compile_options(-Wno-sign-conversion -Wno-conversion)
+  add_compile_options(-Wno-sign-compare -Wno-long-long)
+  add_compile_options(-Wno-implicit-fallthrough -Wno-attributes)
+  add_compile_options(-Wunused-variable -Wunused-function)
+  add_compile_options(-Wunused-parameter)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  add_compile_options(-Wall -Wextra -pedantic -g -O3)
+endif()
 
 #
 # library
@@ -142,8 +180,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/dailyschedule.h
     src/bacnet/weeklyschedule.c
     src/bacnet/weeklyschedule.h
-    src/bacnet/sc_status.c
-    src/bacnet/sc_status.h
+    src/bacnet/special_event.c
+    src/bacnet/special_event.h
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
@@ -170,8 +208,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/binding/address.h
     src/bacnet/basic/npdu/h_npdu.c
     src/bacnet/basic/npdu/h_npdu.h
-    src/bacnet/basic/npdu/h_routed_npdu.c
-    src/bacnet/basic/npdu/h_routed_npdu.h
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.c>
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.h>
     src/bacnet/basic/npdu/s_router.c
     src/bacnet/basic/npdu/s_router.h
     src/bacnet/basic/object/access_credential.c
@@ -197,12 +235,16 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/bacfile.h
     src/bacnet/basic/object/bi.c
     src/bacnet/basic/object/bi.h
+    src/bacnet/basic/object/blo.c
+    src/bacnet/basic/object/blo.h
     src/bacnet/basic/object/bo.c
     src/bacnet/basic/object/bo.h
     src/bacnet/basic/object/bv.c
     src/bacnet/basic/object/bv.h
     src/bacnet/basic/object/channel.c
     src/bacnet/basic/object/channel.h
+    src/bacnet/basic/object/calendar.c
+    src/bacnet/basic/object/calendar.h
     src/bacnet/basic/object/color_object.c
     src/bacnet/basic/object/color_object.h
     src/bacnet/basic/object/color_temperature.c
@@ -225,6 +267,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/lo.h
     src/bacnet/basic/object/lsp.c
     src/bacnet/basic/object/lsp.h
+    src/bacnet/basic/object/lsz.c
+    src/bacnet/basic/object/lsz.h
     src/bacnet/basic/object/ms-input.c
     src/bacnet/basic/object/ms-input.h
     src/bacnet/basic/object/mso.c
@@ -245,6 +289,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/piv.h
     src/bacnet/basic/object/schedule.c
     src/bacnet/basic/object/schedule.h
+    src/bacnet/basic/object/time_value.c
+    src/bacnet/basic/object/time_value.h
     src/bacnet/basic/object/trendlog.c
     src/bacnet/basic/object/trendlog.h
     src/bacnet/basic/service/h_alarm_ack.c
@@ -385,6 +431,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/key.h
     src/bacnet/basic/sys/keylist.c
     src/bacnet/basic/sys/keylist.h
+    src/bacnet/basic/sys/linear.c
+    src/bacnet/basic/sys/linear.h
     src/bacnet/basic/sys/mstimer.c
     src/bacnet/basic/sys/mstimer.h
     src/bacnet/basic/sys/ringbuf.c
@@ -393,9 +441,11 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/sbuf.h
     src/bacnet/basic/tsm/tsm.c
     src/bacnet/basic/tsm/tsm.h
-    src/bacnet/bits.h
-    src/bacnet/bytes.h
+    src/bacnet/basic/sys/bits.h
+    src/bacnet/basic/sys/bytes.h
     src/bacnet/config.h
+    src/bacnet/calendar_entry.c
+    src/bacnet/calendar_entry.h
     src/bacnet/cov.c
     src/bacnet/cov.h
     src/bacnet/create_object.c
@@ -413,6 +463,7 @@ add_library(${PROJECT_NAME}
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.h>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
     src/bacnet/datalink/datalink.c
     src/bacnet/datalink/datalink.h
@@ -555,11 +606,6 @@ endif()
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
-    $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-event.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-cli.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-srv.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-global.c>
-    # ports/linux/rx_fsm.c
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     ports/linux/mstimer-init.c)
 
@@ -579,13 +625,14 @@ endif()
     $<$<BOOL:${BACDL_BIP}>:ws2_32>
     $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
 
-  add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
+  if(MSVC)
+    add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
+  endif()
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
     $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
-    # ports/win32/rx_fsm.c
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
@@ -615,6 +662,16 @@ endif()
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-global.c>
     ports/bsd/stdbool.h)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+  message(STATUS "BACNET: building for FreeBSD")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    ports/bsd/bacport.h
+    ports/bsd/bip-init.c
+    ports/bsd/datetime-init.c
+    ports/bsd/mstimer-init.c
+    ports/bsd/stdbool.h)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -637,6 +694,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(add-list-element apps/add-list-element/main.c)
   target_link_libraries(add-list-element PRIVATE ${PROJECT_NAME})
+
+  add_executable(apdu apps/apdu/main.c)
+  target_link_libraries(apdu PRIVATE ${PROJECT_NAME})
 
   add_executable(create-object apps/create-object/main.c)
   target_link_libraries(create-object PRIVATE ${PROJECT_NAME})
@@ -690,7 +750,15 @@ if(BACNET_STACK_BUILD_APPS)
     target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_BACPOLL_APP)
 
-  if(NOT BACDL_ETHERNET AND (NOT BACDL_BSC))
+  if(BACNET_BUILD_BACDISCOVER_APP)
+  add_executable(bacdiscover
+        apps/server-discover/main.c
+        src/bacnet/basic/client/bac-discover.c
+        src/bacnet/basic/client/bac-rw.c)
+  target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+  endif(BACNET_BUILD_BACDISCOVER_APP)
+
+  if(NOT BACDL_ETHERNET)
     add_executable(readbdt apps/readbdt/main.c)
     target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
 

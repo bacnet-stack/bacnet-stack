@@ -36,9 +36,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/apdu.h"
 #include "bacnet/readrange.h"
 #include "bacnet/rp.h"
@@ -307,9 +307,18 @@ uint32_t Network_Port_Index_To_Instance(unsigned find_index);
 BACNET_STACK_EXPORT
 unsigned Network_Port_Instance_To_Index(uint32_t object_instance);
 
-BACNET_STACK_EXPORT
-bool Network_Port_Object_Instance_Number_Set(
-    unsigned index, uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    uint32_t Network_Port_Create(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Network_Port_Delete(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    void Network_Port_Cleanup(
+        void);
+    BACNET_STACK_EXPORT
+    void Network_Port_Init(
+        void);
 
 BACNET_STACK_EXPORT
 int Network_Port_Read_Range_BDT(

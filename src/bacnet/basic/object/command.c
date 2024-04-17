@@ -43,16 +43,17 @@
 #include <stdint.h>
 #include <stdio.h>
 
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bactext.h"
-#include "bacnet/config.h" /* the custom stuff */
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/lighting.h"
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/services.h"
+/* me!*/
 #include "bacnet/basic/object/command.h"
 
 /*BACnetActionCommand ::= SEQUENCE {
@@ -797,21 +798,17 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 status = false;
             }
-
-            break;
-
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_IN_PROCESS:
-        case PROP_ALL_WRITES_SUCCESSFUL:
-        case PROP_ACTION:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                Command_Properties_Required, Command_Properties_Optional, 
+                Command_Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

@@ -36,17 +36,18 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
 #include "bacnet/datalink/crc.h"
-#include "rs485.h"
 #include "bacnet/npdu.h"
-#include "bacnet/bits.h"
-#include "bacnet/bytes.h"
 #include "bacnet/bacaddr.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/basic/sys/mstimer.h"
+/* port specific */
+#include "rs485.h"
 
 /* This file has been customized for use with small microprocessors */
 /* Assumptions:
@@ -1309,7 +1310,10 @@ uint16_t dlmstp_receive(BACNET_ADDRESS *src, /* source address */
     }
     /* if there is a packet that needs processed, do it now. */
     if (MSTP_Flag.ReceivePacketPending) {
-        MSTP_Flag.ReceivePacketPending = false;
+        if (This_Station <= 127) {
+            /* master nodes clear immediately */
+            MSTP_Flag.ReceivePacketPending = false;
+        }
         pdu_len = DataLength;
         src->mac_len = 1;
         src->mac[0] = SourceAddress;

@@ -31,23 +31,20 @@
 #include <time.h> /* for time */
 #include <errno.h>
 #include <ctype.h> /* for toupper */
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/bvlc.h"
 /* some demo stuff needed */
-#ifndef DEBUG_ENABLED
-#define DEBUG_ENABLED 0
-#endif
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/filename.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"

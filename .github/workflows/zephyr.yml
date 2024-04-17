@@ -1,6 +1,12 @@
 name: Zephyr OS CMake
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
 
 jobs:
   build:
@@ -42,7 +48,7 @@ jobs:
             done
 
       - name: Archive firmware
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: firmware
           path: bacnet-stack/twister-out.unit_testing

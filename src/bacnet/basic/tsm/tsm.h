@@ -27,9 +27,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/npdu.h"
 
 /* note: TSM functionality is optional - only needed if we are

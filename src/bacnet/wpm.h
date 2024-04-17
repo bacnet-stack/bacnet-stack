@@ -27,7 +27,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/wp.h"
@@ -75,6 +77,16 @@ extern "C" {
     BACNET_STACK_EXPORT
     int wpm_encode_apdu_object_end(
         uint8_t * apdu);
+        
+    BACNET_STACK_EXPORT
+    int write_property_multiple_request_encode(uint8_t *apdu, 
+        BACNET_WRITE_ACCESS_DATA *data);
+    BACNET_STACK_EXPORT
+    size_t write_property_multiple_request_service_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_WRITE_ACCESS_DATA *data);
+
     BACNET_STACK_EXPORT
     int wpm_encode_apdu(
         uint8_t * apdu,

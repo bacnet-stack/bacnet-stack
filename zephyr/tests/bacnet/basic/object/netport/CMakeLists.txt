@@ -20,23 +20,17 @@ get_filename_component(BACNET_NAME ${BACNET_BASE} NAME)
 # Update include path for this module
 list(APPEND BACNET_INCLUDE ${BACNET_BASE}/src)
 
-add_compile_definitions(
-	BACNET_SECURE_CONNECT_ROUTING_TABLE=1
-	BSC_CONF_HUB_FUNCTIONS_NUM=1
-	BSC_CONF_HUB_CONNECTORS_NUM=1
-	BACNET_SC_DIRECT_ACCEPT_URI_MAX=6
-	BSC_CONF_TX_PRE=0
-	BACDL_BSC
-	MAX_TSM_TRANSACTIONS=0
-)
+set(TEST_OBJECT_SRC ${BACNET_BASE}/test/bacnet/basic/object)
+list(APPEND TEST_OBJECT_INCLUDE ${TEST_OBJECT_SRC})
 
 if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
-  list(APPEND INCLUDE ${BACNET_INCLUDE})
+  file(RELATIVE_PATH TEST_OBJECT_INCLUDE $ENV{ZEPHYR_BASE} ${TEST_OBJECT_SRC})
+  list(APPEND INCLUDE ${BACNET_INCLUDE} ${TEST_OBJECT_INCLUDE})
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
-    ${BACNET_TEST_PATH}/../mock/device_mock.c
+    ${TEST_OBJECT_SRC}/property_test.c
     )
 
   get_filename_component(BACNET_OBJECT_SRC ${BACNET_SRC_PATH} PATH)
@@ -58,6 +52,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/bactext.c
     ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/lighting.c
+    ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/wp.c
     ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/datalink/bvlc.c
@@ -67,6 +62,8 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/hostnport.c
     ${BACNET_SRC}/dailyschedule.c
     ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/calendar_entry.c
+    ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
     ${BACNET_SRC}/datalink/bsc/bsc-util.c
@@ -80,8 +77,13 @@ else()
   find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 
-  target_include_directories(app PRIVATE ${BACNET_INCLUDE})
+  target_include_directories(app PRIVATE
+    ${BACNET_INCLUDE}
+    ${TEST_OBJECT_INCLUDE})
   target_sources(app PRIVATE
     ${BACNET_TEST_PATH}/src/main.c
+    ${TEST_OBJECT_SRC}/property_test.c
     )
 endif()
+
+add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig

@@ -26,7 +26,7 @@
 #ifndef BACPORT_H
 #define BACPORT_H
 
-#include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/basic/sys/bacnet_stack_exports.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
@@ -74,11 +74,6 @@ and globals in favor of more secure versions.  */
 #endif
 #ifdef __BORLANDC__
 #define inline __inline
-#endif
-
-#ifdef _WIN32
-#define strncasecmp(x, y, z) _strnicmp(x, y, z)
-#define snprintf _snprintf
 #endif
 
 BACNET_STACK_EXPORT

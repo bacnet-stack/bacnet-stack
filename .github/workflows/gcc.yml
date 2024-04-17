@@ -21,19 +21,19 @@ jobs:
       run: |
         gcc --version
         make clean
-        make CSTANDARD="-std=gnu89" all
+        make LEGACY=true CSTANDARD="-std=gnu89" all
     - name: Build Demo Apps GNU99
       run: |
         make clean
         make CSTANDARD="-std=gnu99" all
-    - name: Build Demo Apps GNU11
+    - name: LEGACY=true Build Demo Apps GNU11
       run: |
         make clean
-        make CSTANDARD="-std=gnu11" all
+        make LEGACY=true CSTANDARD="-std=gnu11" all
     - name: Build Demo Apps GNU17
       run: |
         make clean
-        make CSTANDARD="-std=gnu17" all
+        make LEGACY=true CSTANDARD="-std=gnu17" all
 
   bip-no-bbmd-apps:
     runs-on: ubuntu-latest
@@ -47,8 +47,22 @@ jobs:
       run: |
         gcc --version
         make clean
-        make BBMD=none all
+        make LEGACY=true BBMD=none all
 
+  bip-client-bbmd-apps:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Demo Apps BBMD=client
+      run: |
+        gcc --version
+        make clean
+        make LEGACY=true BBMD=client all
+    
   gateway:
     runs-on: ubuntu-latest
     steps:
@@ -61,7 +75,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make gateway
+        make LEGACY=true gateway
 
   bacnet-sc-hub:
     runs-on: ubuntu-latest
@@ -101,7 +115,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make router
+        make LEGACY=true router
 
   router-ipv6:
     runs-on: ubuntu-latest
@@ -115,7 +129,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make router-ipv6
+        make LEGACY=true router-ipv6
 
   router-mstp:
     runs-on: ubuntu-latest
@@ -129,7 +143,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make router-mstp
+        make LEGACY=true router-mstp
 
   bip6:
     runs-on: ubuntu-latest
@@ -143,7 +157,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make bip6
+        make LEGACY=true bip6
 
   mstp:
     runs-on: ubuntu-latest
@@ -157,7 +171,7 @@ jobs:
       run: |
         gcc --version
         make clean
-        make mstp
+        make LEGACY=true mstp
 
   ethernet:
     runs-on: ubuntu-latest
@@ -172,29 +186,9 @@ jobs:
       run: |
         gcc --version
         make clean
-        make ethernet
+        make LEGACY=true ethernet
 
-  bacnet-sc:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Create BACnet/SC Build Environment
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -qq libconfig-dev
-        sudo apt-get install -qq libcap-dev
-        sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libuv1-dev
-        git clone https://github.com/warmcat/libwebsockets.git
-        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
-        sudo bash -c 'cd libwebsockets;cd build;make install'
-    - name: Build BACnet Secure Connect Demo Apps
-      run: |
-        gcc --version
-        make clean
-        make bsc
-
-  ports-arm:
+  ports-arm-makefile:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -204,14 +198,31 @@ jobs:
         sudo apt-get install -qq build-essential
         sudo apt-get install -qq gcc-arm-none-eabi
         sudo apt-get install -qq libnewlib-arm-none-eabi
-    - name: ports-arm
+    - name: ports-arm-makefile
       run: |
         make clean
         arm-none-eabi-gcc --version
-        make stm32f10x
-        make stm32f4xx
-        make at91sam7s
+        make LEGACY=true stm32f10x
+        make LEGACY=true stm32f4xx
+        make LEGACY=true at91sam7s
 
+  ports-arm-cmake:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq build-essential
+        sudo apt-get install -qq gcc-arm-none-eabi
+        sudo apt-get install -qq libnewlib-arm-none-eabi
+        sudo apt-get install -qq cmake
+    - name: ports-arm-cmake
+      run: |
+        arm-none-eabi-gcc --version
+        make stm32f4xx-cmake
+        make at91sam7s-cmake
+      
   ports-avr:
     runs-on: ubuntu-latest
     steps:
@@ -224,9 +235,9 @@ jobs:
     - name: ports-avr
       run: |
         avr-gcc --version
-        make atmega168
-        make bdk-atxx4-mstp
-        make xplained
+        make LEGACY=true atmega168
+        make LEGACY=true bdk-atxx4-mstp
+        make LEGACY=true xplained
 
   ports-lwip:
     runs-on: ubuntu-latest

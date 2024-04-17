@@ -18,14 +18,18 @@
 #undef BITMASK_FLIP
 #undef BITMASK_CHECK
 
-#include "bacnet/bits.h"
+#include "bacnet/basic/sys/bits.h"
 
 
 /* NOTE: These tests must be compatible with C90, so they do not
  * verify support for ULL.
  */
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bits, test_BIT)
+#else
 static void test_BIT(void)
+#endif
 {
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
@@ -35,7 +39,11 @@ static void test_BIT(void)
     } while (bitpos > 0);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bits, test__BV)
+#else
 static void test__BV(void)
+#endif
 {
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
@@ -45,7 +53,11 @@ static void test__BV(void)
     } while (bitpos > 0);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bits, test_BIT_SET)
+#else
 static void test_BIT_SET(void)
+#endif
 {
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
@@ -57,7 +69,11 @@ static void test_BIT_SET(void)
     } while (bitpos > 0);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bits, test_BIT_CLEAR)
+#else
 static void test_BIT_CLEAR(void)
+#endif
 {
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
@@ -69,7 +85,11 @@ static void test_BIT_CLEAR(void)
     } while (bitpos > 0);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bits, test_BIT_FLIP)
+#else
 static void test_BIT_FLIP(void)
+#endif
 {
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
@@ -90,7 +110,11 @@ static void test_BIT_FLIP(void)
     } while (bitpos > 0);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bits, test_BIT_CHECK)
+#else
 static void test_BIT_CHECK(void)
+#endif
 {
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
@@ -105,7 +129,11 @@ static void test_BIT_CHECK(void)
     } while (bitpos > 0);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bits, test_BITMASK_SET)
+#else
 static void test_BITMASK_SET(void)
+#endif
 {
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
@@ -117,7 +145,11 @@ static void test_BITMASK_SET(void)
     } while (bitpos > 0);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bits, test_BITMASK_CLEAR)
+#else
 static void test_BITMASK_CLEAR(void)
+#endif
 {
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
@@ -129,7 +161,11 @@ static void test_BITMASK_CLEAR(void)
     } while (bitpos > 0);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bits, test_BITMASK_FLIP)
+#else
 static void test_BITMASK_FLIP(void)
+#endif
 {
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
@@ -150,7 +186,11 @@ static void test_BITMASK_FLIP(void)
     } while (bitpos > 0);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bits, test_BITMASK_CHECK)
+#else
 static void test_BITMASK_CHECK(void)
+#endif
 {
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
@@ -165,6 +205,9 @@ static void test_BITMASK_CHECK(void)
     } while (bitpos > 0);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST_SUITE(bacnet_bits, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacnet_bits,
@@ -181,3 +224,4 @@ void test_main(void)
      );
     ztest_run_test_suite(bacnet_bits);
 }
+#endif

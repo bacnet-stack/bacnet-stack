@@ -14,8 +14,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacstr.h"
 #include "bacnet/datalink/bvlc.h"
 
@@ -71,6 +72,10 @@ extern "C" {
     bool host_n_port_same(
         BACNET_HOST_N_PORT * dst,
         BACNET_HOST_N_PORT * src);
+    BACNET_STACK_EXPORT
+    bool host_n_port_from_ascii(
+        BACNET_HOST_N_PORT *value, 
+        const char *argv);
 
 #ifdef __cplusplus
 }

@@ -27,7 +27,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"

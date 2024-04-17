@@ -30,37 +30,26 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h> /* for memmove */
-/* OS specific include*/
-#include "bacnet/basic/sys/mstimer.h"
-/* BACnet includes */
+#include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/datetime.h"
 #include "bacnet/apdu.h"
-#include "bacnet/wp.h" /* WriteProperty handling */
+#include "bacnet/proplist.h"
 #include "bacnet/rp.h" /* ReadProperty handling */
 #include "bacnet/dcc.h" /* DeviceCommunicationControl handling */
 #include "bacnet/version.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
-#include "bacnet/proplist.h"
-#if defined(BACFILE)
-#include "bacnet/basic/object/bacfile.h"
-#endif
-#include "bacnet/basic/object/ao.h"
-#include "bacnet/basic/object/lc.h"
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
-#include "bacnet/basic/object/trendlog.h"
-#if defined(INTRINSIC_REPORTING)
-#include "bacnet/basic/object/nc.h"
-#endif /* defined(INTRINSIC_REPORTING) */
+/* OS specific include*/
+#include "bacnet/basic/sys/mstimer.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h" /* me */
 
@@ -129,7 +118,7 @@ static object_functions_t Object_Table[] = {
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
@@ -138,7 +127,7 @@ static object_functions_t Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 #endif
 #if defined(BACDL_BSC)
     { OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
@@ -156,7 +145,7 @@ static object_functions_t Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */ },
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 };
 
 /** Glue function to let the Device object, when called by a handler,
@@ -1169,172 +1158,32 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
-/** Looks up the requested Object and Property, and set the new Value in it,
- *  if allowed.
- * If the Object or Property can't be found, sets the error class and code.
- * @ingroup ObjIntf
- *
- * @param wp_data [in,out] Structure with the desired Object and Property info
- *              and new Value on entry, and APDU message on return.
- * @return True on success, else False if there is an error.
+/**
+ * @brief Updates all the object timers with elapsed milliseconds
+ * @param milliseconds - number of milliseconds elapsed
  */
-bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
+void Device_Timer(
+    uint16_t milliseconds)
 {
-    bool status = false; /* Ever the pessamist! */
-    struct object_functions *pObject = NULL;
+    struct object_functions *pObject;
+    unsigned count = 0;
+    uint32_t instance;
 
-    /* initialize the default return values */
-    wp_data->error_class = ERROR_CLASS_OBJECT;
-    wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    pObject = Device_Objects_Find_Functions(wp_data->object_type);
-    if (pObject != NULL) {
-        if (pObject->Object_Valid_Instance &&
-            pObject->Object_Valid_Instance(wp_data->object_instance)) {
-            if (pObject->Object_Write_Property) {
-#if (BACNET_PROTOCOL_REVISION >= 14)
-                if (wp_data->object_property == PROP_PROPERTY_LIST) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                } else
-#endif
-                {
-                    status = pObject->Object_Write_Property(wp_data);
-                }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            }
-        } else {
-            wp_data->error_class = ERROR_CLASS_OBJECT;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    pObject = Object_Table;
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        if (pObject->Object_Count) {
+            count = pObject->Object_Count();
         }
-    } else {
-        wp_data->error_class = ERROR_CLASS_OBJECT;
-        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    }
-
-    return (status);
-}
-
-/** Looks up the requested Object, and fills the Property Value list.
- * If the Object or Property can't be found, returns false.
- * @ingroup ObjHelpers
- * @param [in] The object type to be looked up.
- * @param [in] The object instance number to be looked up.
- * @param [out] The value list
- * @return True if the object instance supports this feature and value changed.
- */
-bool Device_Encode_Value_List(BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance,
-    BACNET_PROPERTY_VALUE *value_list)
-{
-    bool status = false; /* Ever the pessamist! */
-    struct object_functions *pObject = NULL;
-
-    pObject = Device_Objects_Find_Functions(object_type);
-    if (pObject != NULL) {
-        if (pObject->Object_Valid_Instance &&
-            pObject->Object_Valid_Instance(object_instance)) {
-            if (pObject->Object_Value_List) {
-                status =
-                    pObject->Object_Value_List(object_instance, value_list);
+        while (count) {
+            count--;
+            if ((pObject->Object_Timer) &&
+                (pObject->Object_Index_To_Instance)) {
+                instance = pObject->Object_Index_To_Instance(count);
+                pObject->Object_Timer(instance, milliseconds);
             }
         }
+        pObject++;
     }
-
-    return (status);
-}
-
-/** Checks the COV flag in the requested Object
- * @ingroup ObjHelpers
- * @param [in] The object type to be looked up.
- * @param [in] The object instance to be looked up.
- * @return True if the COV flag is set
- */
-bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
-{
-    bool status = false; /* Ever the pessamist! */
-    struct object_functions *pObject = NULL;
-
-    pObject = Device_Objects_Find_Functions(object_type);
-    if (pObject != NULL) {
-        if (pObject->Object_Valid_Instance &&
-            pObject->Object_Valid_Instance(object_instance)) {
-            if (pObject->Object_COV) {
-                status = pObject->Object_COV(object_instance);
-            }
-        }
-    }
-
-    return (status);
-}
-
-/** Clears the COV flag in the requested Object
- * @ingroup ObjHelpers
- * @param [in] The object type to be looked up.
- * @param [in] The object instance to be looked up.
- */
-void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
-{
-    struct object_functions *pObject = NULL;
-
-    pObject = Device_Objects_Find_Functions(object_type);
-    if (pObject != NULL) {
-        if (pObject->Object_Valid_Instance &&
-            pObject->Object_Valid_Instance(object_instance)) {
-            if (pObject->Object_COV_Clear) {
-                pObject->Object_COV_Clear(object_instance);
-            }
-        }
-    }
-}
-
-#if defined(INTRINSIC_REPORTING)
-void Device_local_reporting(void)
-{
-    struct object_functions *pObject = NULL;
-    uint32_t objects_count = 0;
-    uint32_t object_instance = 0;
-    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
-    uint32_t idx = 0;
-
-    objects_count = Device_Object_List_Count();
-
-    /* loop for all objects */
-    for (idx = 1; idx <= objects_count; idx++) {
-        Device_Object_List_Identifier(idx, &object_type, &object_instance);
-
-        pObject = Device_Objects_Find_Functions(object_type);
-        if (pObject != NULL) {
-            if (pObject->Object_Valid_Instance &&
-                pObject->Object_Valid_Instance(object_instance)) {
-                if (pObject->Object_Intrinsic_Reporting) {
-                    pObject->Object_Intrinsic_Reporting(object_instance);
-                }
-            }
-        }
-    }
-}
-#endif
-
-/** Looks up the requested Object to see if the functionality is supported.
- * @ingroup ObjHelpers
- * @param [in] The object type to be looked up.
- * @return True if the object instance supports this feature.
- */
-bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
-{
-    bool status = false; /* Ever the pessamist! */
-    struct object_functions *pObject = NULL;
-
-    pObject = Device_Objects_Find_Functions(object_type);
-    if (pObject != NULL) {
-        if (pObject->Object_Value_List) {
-            status = true;
-        }
-    }
-
-    return (status);
 }
 
 /** Initialize the Device Object.

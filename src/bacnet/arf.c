@@ -32,9 +32,10 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 #include <stdint.h>
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/arf.h"
 
 /** @file arf.c  Atomic Read File */
@@ -116,6 +117,28 @@ int arf_service_encode_apdu(uint8_t *apdu, BACNET_ATOMIC_READ_FILE_DATA *data)
             break;
         default:
             break;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the AtomicReadFile service request
+ * @param apdu Pointer to the buffer for encoded values
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t atomicreadfile_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_ATOMIC_READ_FILE_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = arf_service_encode_apdu(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = arf_service_encode_apdu(apdu, data);
     }
 
     return apdu_len;

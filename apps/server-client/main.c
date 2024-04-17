@@ -12,11 +12,12 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/version.h"
+/* some demo stuff needed */
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -25,6 +26,10 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
+#endif
 
 /* print with flush by default */
 #define PRINTF debug_aprintf
@@ -120,7 +125,7 @@ int main(int argc, char *argv[])
             if (++argi < argc) {
                 device_id = strtol(argv[argi], NULL, 0);
                 if (device_id > BACNET_MAX_INSTANCE) {
-                    fprintf(stderr, "device=%u - it must be less than %u\n",
+                    fprintf(stderr, "device=%u - not greater than %u\n",
                         device_id, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -156,7 +161,7 @@ int main(int argc, char *argv[])
     }
     Device_Set_Object_Instance_Number(device_id);
     if (target_device_object_instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             target_device_object_instance, BACNET_MAX_INSTANCE);
         return 1;
     }

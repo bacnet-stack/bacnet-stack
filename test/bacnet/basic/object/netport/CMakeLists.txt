@@ -39,6 +39,7 @@ add_compile_definitions(
 
 include_directories(
 	${SRC_DIR}
+	${TST_DIR}/bacnet/basic/object
 	${TST_DIR}/ztest/include
 	)
 
@@ -80,13 +81,12 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
-	${SRC_DIR}/bacnet/datetime.c
-	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
-	${SRC_DIR}/bacnet/basic/sys/debug.c
-	${SRC_DIR}/bacnet/sc_status.c
+	${SRC_DIR}/bacnet/calendar_entry.c
+	${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
 	./src/main.c
+	${TST_DIR}/bacnet/basic/object/property_test.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
     )

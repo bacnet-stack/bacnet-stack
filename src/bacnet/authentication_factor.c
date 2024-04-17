@@ -26,27 +26,37 @@
 #include "bacnet/authentication_factor.h"
 #include "bacnet/bacdcode.h"
 
+/**
+ * @brief Encode the BACnetAuthenticationFactor complex data
+ * @param apdu  Pointer to the buffer for encoding into, or NULL for length
+ * @param data  Pointer used for encoding the value
+ * @return number of bytes encoded, or zero if unable to encode
+ */
 int bacapp_encode_authentication_factor(
     uint8_t *apdu, BACNET_AUTHENTICATION_FACTOR *af)
 {
     int len;
     int apdu_len = 0;
 
-    len = encode_context_enumerated(&apdu[apdu_len], 0, af->format_type);
+    len = encode_context_enumerated(apdu, 0, af->format_type);
     if (len < 0) {
         return -1;
     } else {
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
     }
-
-    len = encode_context_unsigned(&apdu[apdu_len], 1, af->format_class);
+    len = encode_context_unsigned(apdu, 1, af->format_class);
     if (len < 0) {
         return -1;
     } else {
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
     }
-
-    len = encode_context_octet_string(&apdu[apdu_len], 2, &af->value);
+    len = encode_context_octet_string(apdu, 2, &af->value);
     if (len < 0) {
         return -1;
     } else {
@@ -56,24 +66,40 @@ int bacapp_encode_authentication_factor(
     return apdu_len;
 }
 
+/**
+ * @brief Encode the BACnetAuthenticationFactor context tagged complex data
+ * @param apdu  Pointer to the buffer for encoding into, or NULL for length
+ * @param data  Pointer used for encoding the value
+ * @return number of bytes encoded, or zero if unable to encode
+ */
 int bacapp_encode_context_authentication_factor(
     uint8_t *apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR *af)
 {
     int len;
     int apdu_len = 0;
 
-    len = encode_opening_tag(&apdu[apdu_len], tag);
+    len = encode_opening_tag(apdu, tag);
     apdu_len += len;
-
-    len = bacapp_encode_authentication_factor(&apdu[apdu_len], af);
+    if (apdu) {
+        apdu += len;
+    }
+    len = bacapp_encode_authentication_factor(apdu, af);
     apdu_len += len;
-
-    len = encode_closing_tag(&apdu[apdu_len], tag);
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_closing_tag(apdu, tag);
     apdu_len += len;
 
     return apdu_len;
 }
 
+/**
+ * @brief Decode the BACnetAuthenticationFactor complex data
+ * @param apdu  Pointer to the buffer for decoding.
+ * @param af  Pointer to the property decoded data to be stored
+ * @return Bytes decoded or BACNET_STATUS_REJECT on error.
+ */
 int bacapp_decode_authentication_factor(
     uint8_t *apdu, BACNET_AUTHENTICATION_FACTOR *af)
 {
@@ -123,6 +149,13 @@ int bacapp_decode_authentication_factor(
     return apdu_len;
 }
 
+/**
+ * @brief Decode the context tagged BACnetAuthenticationFactor complex data
+ * @param apdu  Pointer to the buffer for decoding.
+ * @param tag  context tag number wrapping the complex data
+ * @param af  Pointer to the property decoded data to be stored
+ * @return Bytes decoded or BACNET_STATUS_REJECT on error.
+ */
 int bacapp_decode_context_authentication_factor(
     uint8_t *apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR *af)
 {

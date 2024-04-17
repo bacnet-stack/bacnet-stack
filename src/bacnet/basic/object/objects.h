@@ -27,10 +27,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacstr.h"
-#include "bacnet/bacenum.h"
 
 typedef struct object_device_t {
     BACNET_OBJECT_ID Object_Identifier;

@@ -36,12 +36,12 @@
 #endif
 #include <errno.h>
 #include <assert.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacport.h"
@@ -53,7 +53,6 @@
 /* some demo stuff needed */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/keylist.h"
@@ -1136,8 +1135,8 @@ static int CheckCommandLineArgs(int argc, char *argv[])
             Target_Device_Object_Instance = strtol(anArg, NULL, 0);
             if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
                 fprintf(stdout,
-                    "Error: device-instance=%u - it must be less than %u\n",
-                    Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
+                    "Error: device-instance=%u - not greater than %u\n",
+                    Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                 print_usage(filename);
                 exit(0);
             }

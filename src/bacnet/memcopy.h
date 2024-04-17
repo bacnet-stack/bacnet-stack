@@ -28,6 +28,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 #ifdef __cplusplus
 extern "C" {

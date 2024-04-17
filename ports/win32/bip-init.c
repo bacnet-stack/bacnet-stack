@@ -48,6 +48,7 @@
 /* Windows sockets */
 static SOCKET BIP_Socket = INVALID_SOCKET;
 static SOCKET BIP_Broadcast_Socket = INVALID_SOCKET;
+static bool BIP_Initialized;
 
 /* NOTE: we store address and port in network byte order
    since BACnet/IP uses network byte order for all address byte arrays
@@ -258,18 +259,17 @@ static void print_last_error(const char *info)
  */
 static void bip_init_windows(void)
 {
-    static bool initialized = false;
     int Result;
     WSADATA wd;
 
-    if (!initialized) {
+    if (!BIP_Initialized) {
         Result = WSAStartup((1 << 8) | 1, &wd);
         /*Result = WSAStartup(MAKEWORD(2,2), &wd); */
         if (Result != 0) {
             print_last_error("TCP/IP stack initialization failed");
             exit(1);
         }
-        initialized = true;
+        BIP_Initialized = true;
         atexit(bip_cleanup);
     }
 }
@@ -412,16 +412,14 @@ uint8_t bip_get_subnet_prefix(void)
 {
     uint32_t address = 0;
     uint32_t broadcast = 0;
-    uint32_t test_broadcast = 0;
     uint32_t mask = 0xFFFFFFFE;
     uint8_t prefix = 0;
 
-    address = BIP_Broadcast_Addr.s_addr;
+    address = BIP_Address.s_addr;
     broadcast = BIP_Broadcast_Addr.s_addr;
     /* calculate the subnet prefix from the broadcast address */
     for (prefix = 1; prefix <= 32; prefix++) {
-        test_broadcast = (address & mask) | (~mask);
-        if (test_broadcast == broadcast) {
+        if ((address | mask) == broadcast) {
             break;
         }
         mask = mask << 1;
@@ -933,7 +931,10 @@ void bip_cleanup(void)
     }
     BIP_Broadcast_Socket = INVALID_SOCKET;
 
-    WSACleanup();
+    if (BIP_Initialized) {
+        BIP_Initialized = false;
+        WSACleanup();
+    }
 
     return;
 }

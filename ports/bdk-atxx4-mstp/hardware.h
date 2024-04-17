@@ -62,7 +62,7 @@
 #endif
 
 #include "iar2gcc.h"
-#include "bacnet/bits.h"
+#include "bacnet/basic/sys/bits.h"
 
 /* SEEPROM is 24LC128 */
 /*#define SEEPROM_PAGE_SIZE 64 */

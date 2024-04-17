@@ -23,8 +23,9 @@
 *********************************************************************/
 #ifndef READRANGE_H
 #define READRANGE_H
-
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
 
@@ -137,6 +138,16 @@ extern "C" {
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_READ_RANGE_DATA * rrdata);
+
+    BACNET_STACK_EXPORT
+    int read_range_encode(
+        uint8_t *apdu, 
+        BACNET_READ_RANGE_DATA *data);
+    BACNET_STACK_EXPORT
+    size_t read_range_request_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_READ_RANGE_DATA *data);
 
     BACNET_STACK_EXPORT
     int rr_decode_service_request(
