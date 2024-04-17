@@ -231,6 +231,7 @@
                     <state>PRINT_ENABLED=0</state>
                     <state>MAX_APDU=480</state>
                     <state>CRC_USE_TABLE</state>
+                    <state>BACAPP_MINIMAL</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>

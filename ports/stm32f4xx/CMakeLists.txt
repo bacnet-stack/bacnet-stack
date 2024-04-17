@@ -221,6 +221,7 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
     -DMAX_APDU=480
     -DBIG_ENDIAN=0
     -DMAX_TSM_TRANSACTIONS=1
+    -DBACAPP_MINIMAL
 )
 
 # inhibit pedantic warnings

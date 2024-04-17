@@ -188,6 +188,7 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
     -DPRINT_ENABLED=0
     -DMAX_TSM_TRANSACTIONS=0
     -DCRC_USE_TABLE
+    -DBACAPP_MINIMAL
 )
 
 # inhibit pedantic warnings
