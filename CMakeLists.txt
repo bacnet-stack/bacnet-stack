@@ -618,7 +618,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-  $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>)
+  $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>
+)
 
 #
 # examples
