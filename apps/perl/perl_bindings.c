@@ -418,29 +418,25 @@ static void Wait_For_Answer_Or_Timeout(unsigned timeout_ms, waitAction action)
 
     while (true) {
         time_t current_seconds = time(NULL);
-
         /* If error was detected then bail out */
         if (Error_Detected) {
             LogError("Some other error occurred");
             break;
         }
-
         if (elapsed_seconds > timeout_seconds) {
             LogError("APDU Timeout");
             break;
         }
-
         /* Process PDU if one comes in */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout_ms);
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
-
         /* at least one second has passed */
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
-
         if (action == waitAnswer) {
             /* Response was received. Exit. */
             if (tsm_invoke_id_free(Request_Invoke_ID)) {
@@ -459,7 +455,6 @@ static void Wait_For_Answer_Or_Timeout(unsigned timeout_ms, waitAction action)
             LogError("Invalid waitAction requested");
             break;
         }
-
         /* Keep track of time */
         elapsed_seconds += (current_seconds - last_seconds);
         last_seconds = current_seconds;

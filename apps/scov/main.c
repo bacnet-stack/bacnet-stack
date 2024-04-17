@@ -360,6 +360,7 @@ int main(int argc, char *argv[])
             delta_seconds = current_seconds - last_seconds;
             elapsed_seconds += delta_seconds;
             tsm_timer_milliseconds((delta_seconds * 1000));
+            datalink_maintenance_timer(delta_seconds);
             /* keep track of time for next check */
             last_seconds = current_seconds;
         }
