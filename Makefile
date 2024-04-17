@@ -17,6 +17,17 @@ bsd:
 win32:
 	$(MAKE) BACNET_PORT=win32 -s -C apps all
 
+.PHONY: mingw32
+mingw32:
+	i686-w64-mingw32-gcc --version
+	ORIGINAL_CC=$(CC) ; \
+	ORIGINAL_LD=$(LD) ; \
+	export CC=i686-w64-mingw32-gcc ; \
+	export LD=i686-w64-mingw32-ld ; \
+	$(MAKE) BACNET_PORT=win32 -s -C apps all ; \
+	export CC=$(ORIGINAL_CC) ; \
+	export LD=$(ORIGINAL_LD)
+
 .PHONY: mstpwin32
 mstpwin32:
 	$(MAKE) BACDL=mstp BACNET_PORT=win32 -s -C apps all
@@ -85,8 +96,16 @@ apdu:
 blinkt:
 	$(MAKE) -s -C apps $@
 
+.PHONY: create-object
+create-object:
+	$(MAKE) -s -C apps $@
+
 .PHONY: dcc
 dcc:
+	$(MAKE) -s -C apps $@
+
+.PHONY: delete-object
+delete-object:
 	$(MAKE) -s -C apps $@
 
 .PHONY: epics
