@@ -4,9 +4,9 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
  * @section LICENSE
- * 
+ *
  * Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
- * 
+ *
  * SPDX-License-Identifier: MIT
  */
 #ifndef CONFIG_H
@@ -177,6 +177,7 @@
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
@@ -201,7 +202,7 @@
 #define BACAPP_OBJECT_ID
 #endif
 
-#if defined (BACAPP_TYPES_EXTRA) 
+#if defined (BACAPP_TYPES_EXTRA)
 #define BACAPP_DOUBLE
 #define BACAPP_TIMESTAMP
 #define BACAPP_DATETIME
@@ -217,6 +218,7 @@
 #define BACAPP_DEVICE_OBJECT_REFERENCE
 #define BACAPP_OBJECT_PROPERTY_REFERENCE
 #define BACAPP_DESTINATION
+#define BACAPP_SECURE_CONNECT
 #endif
 
 #if defined(BACAPP_DOUBLE) || \
@@ -232,7 +234,8 @@
     defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
-    defined(BACAPP_DESTINATION)
+    defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_SECURE_CONNECT)
 #define BACAPP_COMPLEX_TYPES
 #endif
 
@@ -261,8 +264,8 @@
 */
 
 /*
-** Note: these are enabled by default for the example apps to build. 
-** Use a local copy named "bacnet-config.h" with settings configured for 
+** Note: these are enabled by default for the example apps to build.
+** Use a local copy named "bacnet-config.h" with settings configured for
 ** the product specific needs for code space reductions in your device.
 ** Alternately, use a compiler and linker the have code reduction features.
 **/
