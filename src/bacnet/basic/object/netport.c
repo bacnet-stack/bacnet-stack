@@ -300,6 +300,23 @@ bool Network_Port_Name_Set(uint32_t object_instance, char *new_name)
 }
 
 /**
+ * @brief For a given object instance-number, returns the ASCII object-name
+ * @param  object_instance - object-instance number of the object
+ * @return ASCII C string object name, or NULL if not found or not set.
+ */
+const char *Network_Port_Object_Name_ASCII(uint32_t object_instance)
+{
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        return Object_List[index].Object_Name;
+    }
+
+    return NULL;
+}
+
+/**
  * Determines if a given Network Port instance is valid
  *
  * @param  object_instance - object-instance number of the object
@@ -1128,6 +1145,33 @@ bool Network_Port_IP_DNS_Server(uint32_t object_instance,
 }
 
 /**
+ * @brief Encode a BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to (array size - 1) for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or
+ *    NULL to return the length of buffer if it had been built
+ * @return The length of the apdu encoded, or
+ *    BACNET_STATUS_ERROR for an invalid array index
+ */
+static int Network_Port_IP_DNS_Server_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    BACNET_OCTET_STRING ip_address = { 0 };
+
+    if (index >= BIP_DNS_MAX) {
+        apdu_len = BACNET_STATUS_ERROR;
+    } else {
+        if (Network_Port_IP_DNS_Server(object_instance, index, &ip_address)) {
+            apdu_len = encode_application_octet_string(apdu, &ip_address);
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * For a given object instance-number, sets the ip-address
  * Note: depends on Network_Type being set for this object
  *
@@ -1883,6 +1927,33 @@ bool Network_Port_IPv6_DNS_Server(uint32_t object_instance,
 }
 
 /**
+ * @brief Encode a BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to (array size - 1) for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or
+ *    NULL to return the length of buffer if it had been built
+ * @return The length of the apdu encoded, or
+ *    BACNET_STATUS_ERROR for an invalid array index
+ */
+static int Network_Port_IPv6_DNS_Server_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    BACNET_OCTET_STRING ip_address = { 0 };
+
+    if (index >= BIP_DNS_MAX) {
+        apdu_len = BACNET_STATUS_ERROR;
+    } else {
+        if (Network_Port_IPv6_DNS_Server(object_instance, index, &ip_address)) {
+            apdu_len = encode_application_octet_string(apdu, &ip_address);
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * For a given object instance-number, sets the ip-address
  * Note: depends on Network_Type being set for this object
  *
@@ -2187,6 +2258,34 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 }
 
 /**
+ * Determine if the object property is a BACnetARRAY datatype
+ * @param  object_property [in] BACnet object property
+ * @return true if the object property is a BACnetARRAY datatype
+ */
+bool Network_Port_BACnetArray_Property(BACNET_PROPERTY_ID object_property)
+{
+    bool status = false;
+
+    switch (object_property) {
+        case PROP_EVENT_TIME_STAMPS:
+        case PROP_EVENT_MESSAGE_TEXTS:
+        case PROP_EVENT_MESSAGE_TEXTS_CONFIG:
+        case PROP_PROPERTY_LIST:
+        case PROP_TAGS:
+        case PROP_LINK_SPEEDS:
+        case PROP_IP_DNS_SERVER:
+        case PROP_IPV6_DNS_SERVER:
+        case PROP_ISSUER_CERTIFICATE_FILES:
+            status = true;
+            break;
+        default:
+            break;
+    }
+
+    return status;
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -2328,32 +2427,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
         case PROP_IP_DNS_SERVER:
-            if (rpdata->array_index == 0) {
-                /* Array element zero is the number of objects in the list */
-                apdu_len = encode_application_unsigned(&apdu[0], BIP_DNS_MAX);
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                /* if no index was specified, then try to encode the entire list
-                 */
-                /* into one packet. */
-                int len;
-                unsigned index;
-                for (index = 0; index < BIP_DNS_MAX; index++) {
-                    Network_Port_IP_DNS_Server(
-                        rpdata->object_instance, index, &octet_string);
-                    len = encode_application_octet_string(
-                        &apdu[apdu_len], &octet_string);
-                    apdu_len += len;
-                }
-            } else if (rpdata->array_index <= BIP_DNS_MAX) {
-                /* index was specified; encode a single array element */
-                unsigned index;
-                index = rpdata->array_index - 1;
-                Network_Port_IP_DNS_Server(
-                    rpdata->object_instance, index, &octet_string);
-                apdu_len =
-                    encode_application_octet_string(&apdu[0], &octet_string);
-            } else {
-                /* index was specified, but out of range */
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index, Network_Port_IP_DNS_Server_Encode,
+                BIP_DNS_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
                 rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                 apdu_len = BACNET_STATUS_ERROR;
@@ -2412,32 +2492,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
         case PROP_IPV6_DNS_SERVER:
-            if (rpdata->array_index == 0) {
-                /* Array element zero is the number of objects in the list */
-                apdu_len = encode_application_unsigned(&apdu[0], BIP_DNS_MAX);
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                /* if no index was specified, then try to encode the entire list
-                 */
-                /* into one packet. */
-                int len;
-                unsigned index;
-                for (index = 0; index < BIP_DNS_MAX; index++) {
-                    Network_Port_IPv6_DNS_Server(
-                        rpdata->object_instance, index, &octet_string);
-                    len = encode_application_octet_string(
-                        &apdu[apdu_len], &octet_string);
-                    apdu_len += len;
-                }
-            } else if (rpdata->array_index <= BIP_DNS_MAX) {
-                /* index was specified; encode a single array element */
-                unsigned index;
-                index = rpdata->array_index - 1;
-                Network_Port_IPv6_DNS_Server(
-                    rpdata->object_instance, index, &octet_string);
-                apdu_len =
-                    encode_application_octet_string(&apdu[0], &octet_string);
-            } else {
-                /* index was specified, but out of range */
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index, Network_Port_IPv6_DNS_Server_Encode,
+                BIP_DNS_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
                 rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                 apdu_len = BACNET_STATUS_ERROR;
@@ -2468,6 +2529,14 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             (void)apdu_size;
             break;
+    }
+    /*  only array properties can have optional array indices */
+    if ((apdu_len >= 0) &&
+        (!Network_Port_BACnetArray_Property(rpdata->object_property)) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -2596,6 +2665,14 @@ int Network_Port_Read_Range_FDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     return 0;
 }
 
+/**
+ * ReadRange service handler
+ *
+ * @param  apdu - place to encode the data
+ * @param  pInfo - RR_PROP_INFO data
+ *
+ * @return number of bytes encoded
+ */
 bool Network_Port_Read_Range(
     BACNET_READ_RANGE_DATA *pRequest, RR_PROP_INFO *pInfo)
 {
@@ -2670,6 +2747,14 @@ bool Network_Port_Read_Range(
     }
 
     return status;
+}
+
+/**
+ * @brief Cleanup - useful if network port object are allocated on the heap
+ */
+void Network_Port_Cleanup(void)
+{
+    /* do something interesting */
 }
 
 /**
