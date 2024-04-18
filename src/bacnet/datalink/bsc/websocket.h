@@ -10,12 +10,11 @@
  *
  * SPDX-License-Identifier: MIT
  */
-
-#ifndef __BSC__WEBSOCKET__INCLUDED__
-#define __BSC__WEBSOCKET__INCLUDED__
-
+#ifndef BACNET_DATALINK_BSC_WEBSOCKET_H
+#define BACNET_DATALINK_BSC_WEBSOCKET_H
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/bsc/bsc-conf.h"
 
 /**
@@ -117,7 +116,7 @@ typedef enum {
     BSC_WEBSOCKET_SERVER_STOPPED = 5
 } BSC_WEBSOCKET_EVENT;
 
-/* 
+/*
    values of ws_reason and ws_reason_desc parameters are actual
    only for BSC_WEBSOCKET_DISCONNECTED event.
 */
@@ -436,7 +435,7 @@ extern void bws_dispatch_unlock_dbg(char *f, int line);
  * @param ip_str - buffer to store null terminated string of ip address.
  * @param ip_str_len - size of ip_str buffer
  * @param  port- pointer to store port of a remote node.
- * 
+ *
  * @return true if function succeeded otherwise returns false
  *         if peer's address information can't be retrieved from
  *         underlying websocket library.

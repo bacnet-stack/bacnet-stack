@@ -10,8 +10,10 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#ifndef __BSC__RETCODES__INCLUDED__
-#define __BSC__RETCODES__INCLUDED__
+#ifndef BACNET_DATALINK_BSC_RETCODES_H
+#define BACNET_DATALINK_BSC_RETCODES_H
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 typedef enum {
     BSC_SC_SUCCESS = 0,

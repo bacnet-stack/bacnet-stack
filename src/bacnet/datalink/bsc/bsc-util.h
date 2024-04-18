@@ -10,19 +10,19 @@
  *
  * SPDX-License-Identifier: MIT
  */
-
-#ifndef __BACNET__SC__UTIL__INCLUDED__
-#define __BACNET__SC__UTIL__INCLUDED__
-
+#ifndef BACNET_DATALINK_BSC_UTIL_H
+#define BACNET_DATALINK_BSC_UTIL_H
+#include <stdbool.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/basic/sys/mstimer.h"
-#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-node.h"
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/datetime.h"
-#include <stdbool.h>
 
 BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret);
 

@@ -10,9 +10,10 @@
  *
  * SPDX-License-Identifier: MIT
  */
-
-#ifndef __BSC__EVENT__INCLUDED__
-#define __BSC__EVENT__INCLUDED__
+#ifndef BACNET_DATALINK_BSC_EVENT_H
+#define BACNET_DATALINK_BSC_EVENT_H
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 struct BSC_Event;
 typedef struct BSC_Event BSC_EVENT;
@@ -103,3 +104,4 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout);
 void bsc_event_signal(BSC_EVENT *ev);
 
 #endif
+

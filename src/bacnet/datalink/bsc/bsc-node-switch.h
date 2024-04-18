@@ -12,14 +12,15 @@
  *
  * SPDX-License-Identifier: MIT
  */
-
-#ifndef __BACNET__NODE__SWITCH__INCLUDED__
-#define __BACNET__NODE__SWITCH__INCLUDED__
-
+#ifndef BACNET_DATALINK_BSC_NODE_SWITCH_H
+#define BACNET_DATALINK_BSC_NODE_SWITCH_H
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bacnet/datalink/bsc/bsc-retcodes.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+\#include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bsc-node.h"
 
 typedef void* BSC_NODE_SWITCH_HANDLE;
@@ -110,11 +111,11 @@ bool bsc_node_switch_connected(
     char** urls, size_t urls_cnt);
 
 BACNET_STACK_EXPORT
-void bsc_node_switch_disconnect(BSC_NODE_SWITCH_HANDLE h, 
+void bsc_node_switch_disconnect(BSC_NODE_SWITCH_HANDLE h,
                                 BACNET_SC_VMAC_ADDRESS *dest);
 
-BACNET_STACK_EXPORT 
-void bsc_node_switch_process_address_resolution(BSC_NODE_SWITCH_HANDLE h, 
+BACNET_STACK_EXPORT
+void bsc_node_switch_process_address_resolution(BSC_NODE_SWITCH_HANDLE h,
                                                 BSC_ADDRESS_RESOLUTION* r);
 
 BACNET_STACK_EXPORT

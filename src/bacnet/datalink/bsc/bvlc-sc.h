@@ -1,26 +1,26 @@
 /**
- * @file 
+ * @file
  * @brief API for encoding/decoding of BACnet/SC BVLC messages
  * @author Kirill Neznamov
  * @date May 2022
  * @section LICENSE
  *
- * Copyright (C) 2022 Legrand North America, LLC 
+ * Copyright (C) 2022 Legrand North America, LLC
  * as an unpublished work.
  *
  * SPDX-License-Identifier: MIT
  */
-#ifndef BVLCSC_H
-#define BVLCSC_H
-
+#ifndef BACNET_DATALINK_BSC_BVLC_SC_H
+#define BACNET_DATALINK_BSC_BVLC_SC_H
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/npdu.h"
-#include "bacnet/bacenum.h"
 
 #ifndef BVLC_SC_NPDU_SIZE_CONF
 #define BVLC_SC_NPDU_SIZE 1440

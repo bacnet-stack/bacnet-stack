@@ -12,13 +12,14 @@
  *
  * SPDX-License-Identifier: MIT
  */
-
-#ifndef __BACNET__HUB__FUNCTION__INCLUDED__
-#define __BACNET__HUB__FUNCTION__INCLUDED__
-
+#ifndef BACNET_DATALINK_BSC_HUB_FUNCTION_H
+#define BACNET_DATALINK_BSC_HUB_FUNCTION_H
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/basic/object/sc_netport.h"
 

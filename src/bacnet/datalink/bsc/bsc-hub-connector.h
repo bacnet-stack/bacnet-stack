@@ -12,13 +12,14 @@
  *
  * SPDX-License-Identifier: MIT
  */
-
-#ifndef __BACNET__HUB__CONNECTOR__INCLUDED__
-#define __BACNET__HUB__CONNECTOR__INCLUDED__
-
+#ifndef BACNET_DATALINK_BSC_HUB_CONNECTOR_H
+#define BACNET_DATALINK_BSC_HUB_CONNECTOR_H
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 
 typedef void* BSC_HUB_CONNECTOR_HANDLE;

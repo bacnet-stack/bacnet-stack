@@ -10,10 +10,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
-
+#ifndef BACNET_DATALINK_BSC_DATALINK_H
+#define BACNET_DATALINK_BSC_DATALINK_H
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/npdu.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 
@@ -162,7 +164,7 @@ bool bsc_direct_connection_established(
  *        remote node for acceptance of direct connections.
  *        Can contain 1 elem.
  * @param urls_cnt - size of urls array.
- * 
+ *
  * @return BSC_SC_SUCCESS if process of a establishing of a BACNet/SC
  *         connection was started successfully, otherwise returns
  *         any retcode from BSC_SC_RET enum.
@@ -178,3 +180,5 @@ void bsc_disconnect_direct(BACNET_SC_VMAC_ADDRESS *dest);
 
 BACNET_STACK_EXPORT
 void bsc_maintenance_timer(uint16_t seconds);
+
+#endif

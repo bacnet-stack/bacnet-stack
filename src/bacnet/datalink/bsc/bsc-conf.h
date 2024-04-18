@@ -10,11 +10,11 @@
  *
  * SPDX-License-Identifier: MIT
  */
-
-#ifndef __BSC__CONF__INCLUDED__
-#define __BSC__CONF__INCLUDED__
-
+#ifndef BACNET_DATALINK_BSC_CONF_H
+#define BACNET_DATALINK_BSC_CONF_H
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bvlc-sc.h"
 
 #if !defined(BACDL_BSC)
