@@ -183,10 +183,10 @@ uint8_t FIFO_Peek(FIFO_BUFFER const *b)
  */
 unsigned FIFO_Peek_Ahead(FIFO_BUFFER const *b, uint8_t* buffer, unsigned length)
 {
+    unsigned count = 0;
     unsigned index;
     unsigned tail;
     unsigned i;
-    unsigned count;
 
     if (b) {
         count = FIFO_Count(b);
