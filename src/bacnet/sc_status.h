@@ -26,15 +26,16 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef SC_STATUS_H
-#define SC_STATUS_H
-
+#ifndef BACNET_SC_STATUS_H
+#define BACNET_SC_STATUS_H
 #include <stdbool.h>
 #include <stdint.h>
-#include <bacnet/datetime.h>
-#include <bacnet/datalink/bsc/bsc-conf.h>
-#include <bacnet/datalink/bsc/bvlc-sc.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/datetime.h"
+#include "bacnet/datalink/bsc/bsc-conf.h"
+#include "bacnet/datalink/bsc/bvlc-sc.h"
 
 #ifdef __cplusplus
 extern "C" {

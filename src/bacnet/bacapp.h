@@ -41,6 +41,7 @@
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
+#include "bacnet/sc_status.h"
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {

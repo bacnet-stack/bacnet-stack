@@ -27,21 +27,19 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef SC_NETPORT_H
-#define SC_NETPORT_H
-
+#ifndef BACNET_SC_NETPORT_H
+#define BACNET_SC_NETPORT_H
 #include <stdbool.h>
 #include <stdint.h>
-#include <bacnet/basic/sys/keylist.h>
-#include <bacnet/bacnet_stack_exports.h>
-#include <bacnet/bacapp.h>
-#include <bacnet/bacdef.h>
-#include <bacnet/bacenum.h>
-#include <bacnet/apdu.h>
-#include <bacnet/sc_status.h>
-#include <bacnet/datalink/bsc/bsc-conf.h>
-#include <bacnet/datalink/bsc/bvlc-sc.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/basic/sys/keylist.h"
+#include "bacnet/bacapp.h"
+#include "bacnet/apdu.h"
+#include "bacnet/sc_status.h"
+#include "bacnet/datalink/bsc/bsc-conf.h"
+#include "bacnet/datalink/bsc/bvlc-sc.h"
 
 /* BACnet file instance numbers */
 #ifndef BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE

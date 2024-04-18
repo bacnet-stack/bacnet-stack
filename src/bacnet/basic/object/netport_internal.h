@@ -27,22 +27,20 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef NETPORT_INTERNAL_H
-#define NETPORT_INTERNAL_H
-
+#ifndef BACNET_NETPORT_INTERNAL_H
+#define BACNET_NETPORT_INTERNAL_H
 #include <stdbool.h>
 #include <stdint.h>
-#include <bacnet/basic/sys/keylist.h>
-#include <bacnet/bacnet_stack_exports.h>
-#include <bacnet/bacdef.h>
-#include <bacnet/bacenum.h>
-#include <bacnet/apdu.h>
-#include <bacnet/datetime.h>
-#include <bacnet/hostnport.h>
-#include <bacnet/datalink/bsc/bsc-conf.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/basic/sys/keylist.h"
+#include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/apdu.h"
+#include "bacnet/datetime.h"
+#include "bacnet/hostnport.h"
+#include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/basic/object/sc_netport.h"
-/*#include "bacnet/basic/object/netport.h" */
 
 #ifdef __cplusplus
 extern "C" {
