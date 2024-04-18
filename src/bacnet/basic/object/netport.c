@@ -856,6 +856,34 @@ bool Network_Port_Changes_Pending_Set(uint32_t object_instance, bool value)
 }
 
 /**
+ * @brief For a given object instance-number, activates any pending changes
+ * @param object_instance - object-instance number of the object
+ */
+void Network_Port_Changes_Pending_Activate(uint32_t object_instance)
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        /* callback? something else? */
+    }
+}
+
+/**
+ * @brief For a given object instance-number, discards any pending changes
+ * @param object_instance - object-instance number of the object
+ */
+void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        /* callback? something else? */
+    }
+}
+
+/**
  * For a given object instance-number, gets the MS/TP Max_Master value
  * Note: depends on Network_Type being set to PORT_TYPE_MSTP for this object
  *
@@ -2747,6 +2775,36 @@ bool Network_Port_Read_Range(
     }
 
     return status;
+}
+
+/**
+ * @brief Activate any of the changes pending for all network port objects
+ */
+void Network_Port_Changes_Activate(void)
+{
+    unsigned i = 0;
+
+    for (i = 0; i < BACNET_NETWORK_PORTS_MAX; i++) {
+        if (Object_List[i].Changes_Pending) {
+            Network_Port_Changes_Pending_Activate(i);
+            Object_List[i].Changes_Pending = false;
+        }
+    }
+}
+
+/**
+ * @brief Activate any of the changes pending for all network port objects
+ */
+void Network_Port_Changes_Discard(void)
+{
+    unsigned i = 0;
+
+    for (i = 0; i < BACNET_NETWORK_PORTS_MAX; i++) {
+        if (Object_List[i].Changes_Pending) {
+            Network_Port_Changes_Pending_Discard(i);
+            Object_List[i].Changes_Pending = false;
+        }
+    }
 }
 
 /**

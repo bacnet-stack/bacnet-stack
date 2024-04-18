@@ -372,6 +372,12 @@ extern "C" {
     bool Network_Port_Changes_Pending_Set(
         uint32_t instance,
         bool flag);
+    BACNET_STACK_EXPORT
+    void Network_Port_Changes_Pending_Activate(
+        uint32_t instance);
+    BACNET_STACK_EXPORT
+    void Network_Port_Changes_Pending_Discard(
+        uint32_t instance);
 
     BACNET_STACK_EXPORT
     bool Network_Port_Valid_Instance(
@@ -410,6 +416,12 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_Delete(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    void Network_Port_Changes_Activate(
+        void);
+    BACNET_STACK_EXPORT
+    void Network_Port_Changes_Discard(
+        void);
     BACNET_STACK_EXPORT
     void Network_Port_Cleanup(
         void);
