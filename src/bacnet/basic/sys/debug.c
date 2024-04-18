@@ -229,6 +229,12 @@ void debug_perror(const char *format, ...)
 #endif
 }
 
+/**
+ * @brief Print with a printf string that does nothing
+ * @param format - printf format string
+ * @param ... - variable arguments
+ * @note useful when used with defines such as PRINTF
+ */
 void debug_printf_disabled(const char *format, ...)
 {
     (void)format;

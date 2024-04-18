@@ -66,6 +66,11 @@ extern "C" {
         size_t buffer_length,
         const char *format, ...);
 
+    BACNET_STACK_EXPORT
+    void debug_printf_disabled(
+        const char *format,
+        ...);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
