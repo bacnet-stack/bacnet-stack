@@ -2115,8 +2115,8 @@ typedef enum BACnetBinaryLightingPV {
     BINARY_LIGHTING_PV_WARN_RELINQUISH = 4,
     BINARY_LIGHTING_PV_STOP = 5,
     BINARY_LIGHTING_PV_MAX = 6,
-    /* -- Enumerated values 0-63 are reserved for definition by ASHRAE. 
-    -- Enumerated values 64-255 may be used by others 
+    /* -- Enumerated values 0-63 are reserved for definition by ASHRAE.
+    -- Enumerated values 64-255 may be used by others
     -- subject to the procedures and constraints described in Clause 23. */
     BINARY_LIGHTING_PV_PROPRIETARY_MIN = 64,
     BINARY_LIGHTING_PV_PROPRIETARY_MAX = 255
@@ -2323,8 +2323,8 @@ typedef enum BACnetAccessZoneOccupancyState {
     ACCESS_ZONE_OCCUPANCY_STATE_ABOVE_UPPER_LIMIT = 4,
     ACCESS_ZONE_OCCUPANCY_STATE_DISABLED = 5,
     ACCESS_ZONE_OCCUPANCY_STATE_NOT_SUPPORTED = 6,
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE. 
-    Enumerated values 64-65535 may be used by others subject 
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+    Enumerated values 64-65535 may be used by others subject
     to the procedures and constraints described in Clause 23. */
     ACCESS_ZONE_OCCUPANCY_STATE_PROPRIETARY_MIN = 64,
     ACCESS_ZONE_OCCUPANCY_STATE_PROPRIETARY_MAX = 65535
@@ -2636,18 +2636,18 @@ typedef enum BACnetEscalatorFault {
     ESCALATOR_FAULT_PROPRIETARY_MAX = 65535
 } BACNET_ESCALATOR_FAULT;
 
-typedef enum BACnetEscalatorMode { 
+typedef enum BACnetEscalatorMode {
     ESCALATOR_MODE_UNKNOWN = 0,
-    ESCALATOR_MODE_STOP = 1, 
-    ESCALATOR_MODE_UP = 2, 
+    ESCALATOR_MODE_STOP = 1,
+    ESCALATOR_MODE_UP = 2,
     ESCALATOR_MODE_DOWN = 3,
-    ESCALATOR_MODE_INSPECTION = 4, 
+    ESCALATOR_MODE_INSPECTION = 4,
     ESCALATOR_MODE_OUT_OF_SERVICE = 5,
     /* Enumerated values 0-1023 are reserved for definition by ASHRAE.
     Enumerated values 1024-65535 may be used by others subject to
     the procedures and constraints described in Clause 23. */
     ESCALATOR_MODE_PROPRIETARY_MIN = 1024,
-    ESCALATOR_MODE_PROPRIETARY_MAX = 65535 
+    ESCALATOR_MODE_PROPRIETARY_MAX = 65535
 } BACNET_ESCALATOR_MODE;
 
 typedef enum BACnetEscalatorOperationDirection {
@@ -2791,11 +2791,24 @@ typedef enum BACnetAuditOperation {
     /* Enumerated values 0-31 are reserved for definition by ASHRAE.
     Enumerated values 32-63 may be used by others subject to
     the procedures and constraints described in Clause 23.
-    
-    The enumerated values match the bit positions in 
+
+    The enumerated values match the bit positions in
     BACnetAuditOperationFlags. */
     AUDIT_OPERATION_PROPRIETARY_MIN = 32,
     AUDIT_OPERATION_PROPRIETARY_MAX = 63
 } BACNET_AUDIT_OPERATION;
+
+typedef enum BACnetSCHubConnectorState_T {
+    BACNET_NO_HUB_CONNECTION = 0,
+    BACNET_CONNECTED_TO_PRIMARY = 1,
+    BACNET_CONNECTED_TO_FAILOVER = 2
+} BACNET_SC_HUB_CONNECTOR_STATE;
+
+typedef enum BACnetSCnetSCConnectionState_T {
+    BACNET_NOT_CONNECTED = 0,
+    BACNET_CONNECTED = 1,
+    BACNET_DISCONNECTED_WITH_ERRORS = 2,
+    BACNET_FAILED_TO_CONNECT = 3
+} BACNET_SC_CONNECTION_STATE;
 
 #endif /* end of BACENUM_H */
