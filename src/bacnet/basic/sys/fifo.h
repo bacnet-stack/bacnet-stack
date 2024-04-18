@@ -78,6 +78,12 @@ extern "C" {
         FIFO_BUFFER const *b);
 
     BACNET_STACK_EXPORT
+    unsigned FIFO_Peek_Ahead(
+        FIFO_BUFFER const *b,
+        uint8_t* data_bytes,
+        unsigned length);
+
+    BACNET_STACK_EXPORT
     uint8_t FIFO_Get(
         FIFO_BUFFER * b);
 
