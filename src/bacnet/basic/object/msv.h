@@ -155,7 +155,7 @@ extern "C" {
     bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 
     BACNET_STACK_EXPORT
-    void Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *msv_state_text_options);
+    bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *msv_state_text_options);
 
 #ifdef __cplusplus
 }

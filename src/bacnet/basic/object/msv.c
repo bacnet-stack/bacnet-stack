@@ -293,9 +293,6 @@ bool Multistate_Value_Object_Name(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
-    // if(!object_instance) { // removed @ 14:00
-    //     return false;
-    // }
 
     index = Multistate_Value_Instance_To_Index(object_instance);
     if (index < MSV_Max_Index) {
@@ -332,15 +329,13 @@ char *Multistate_Value_State_Text(
 {
     unsigned index = 0; /* offset from instance lookup */
     char *pName = NULL; /* return value */
-   // PRINTF("#######  OBJECT INSTANCE %u\r\n",object_instance);
-   // PRINTF("#######  STATE_INDEX %u\r\n",state_index);
+
     index = Multistate_Value_Instance_To_Index(object_instance);
-   // PRINTF("#######  INDEX %u\r\n",index);
+
     if ((index < MSV_Max_Index) && (state_index > 0) &&
         (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
         state_index--;
         pName = State_Text[index][state_index];
-     //   PRINTF("####### STATE TEXT %s\r\n",State_Text[index][state_index]);
     }
 
     return pName;
@@ -354,11 +349,11 @@ bool Multistate_Value_State_Text_Set(
     size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
-    PRINTF("*******  OBJECT INSTANCE %u\r\n",object_instance);
-    PRINTF("*******  STATE_INDEX %u\r\n",state_index);
-    PRINTF("*******  NEW_NAME %s\r\n",new_name);
+    // PRINTF("*******  OBJECT INSTANCE %u\r\n",object_instance);
+    // PRINTF("*******  STATE_INDEX %u\r\n",state_index);
+    // PRINTF("*******  NEW_NAME %s\r\n",new_name);
     index = Multistate_Value_Instance_To_Index(object_instance);
-    PRINTF("*******  INDEX %u\r\n",index);
+
     if ((index < MSV_Max_Index) && (state_index > 0) &&
         (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
         state_index--;
@@ -380,6 +375,13 @@ bool Multistate_Value_State_Text_Set(
 
     return status;
 
+}
+
+bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *msv_state_text_options) {
+
+    PRINTF("******** STATE TEXT INIT");
+
+    return true;
 }
 
 bool Multistate_Value_Change_Of_Value(uint32_t object_instance)
