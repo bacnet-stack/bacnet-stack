@@ -43,25 +43,22 @@
 #include <wchar.h>
 #include <wctype.h>
 #endif
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
 #include "bacnet/datetime.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/lighting.h"
 #include "bacnet/hostnport.h"
-#include "bacnet/sc_status.h"
+#include "bacnet/secure_connect.h"
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
-#include "bacnet/basic/sys/platform.h"
-#if defined(BACDL_BSC)
-#include "bacnet/basic/object/sc_netport.h"
-#endif
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
 
@@ -243,7 +240,8 @@ int bacapp_encode_application_data(
                 apdu_len =
                     bacnet_destination_encode(apdu, &value->type.Destination);
                 break;
-#if defined(BACDL_BSC)
+#endif
+#if defined (BACAPP_SECURE_CONNECT)
             case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
                 apdu_len = bacapp_encode_SCFailedConnectionRequest(
                     apdu, &value->type.SC_Failed_Req);
@@ -260,7 +258,6 @@ int bacapp_encode_application_data(
                 apdu_len = bacapp_encode_SCHubConnection(
                     apdu, &value->type.SC_Hub_Status);
                 break;
-#endif /* BACDL_BSC */
 #endif
             default:
                 break;
@@ -860,6 +857,8 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 apdu_len = bacnet_destination_context_encode(
                     apdu, context_tag_number, &value->type.Destination);
                 break;
+#endif
+#if defined(BACAPP_SECURE_CONNECT)
             case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
                 apdu_len = bacapp_encode_context_SCFailedConnectionRequest(
                     apdu, context_tag_number, &value->type.SC_Failed_Req);
@@ -876,7 +875,7 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 apdu_len = bacapp_encode_context_SCHubConnection(
                     apdu, context_tag_number, &value->type.SC_Hub_Status);
                 break;
-#endif /* BACAPP_TYPES_EXTRA */
+#endif
             default:
                 break;
         }
@@ -1639,25 +1638,31 @@ int bacapp_decode_known_property(uint8_t *apdu,
                 apdu, max_apdu_len, &value->type.Weekly_Schedule);
 #endif
             break;
-#ifdef BACAPP_SECURE_CONNECT
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
+#ifdef BACAPP_SECURE_CONNECT
             len = bacapp_decode_SCFailedConnectionRequest(
                 apdu, max_apdu_len, &value->type.SC_Failed_Req);
+#endif
             break;
         case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
+#ifdef BACAPP_SECURE_CONNECT
             len = bacapp_decode_SCHubFunctionConnection(
                 apdu, max_apdu_len, &value->type.SC_Hub_Function_Status);
+#endif
             break;
         case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
+#ifdef BACAPP_SECURE_CONNECT
             len = bacapp_decode_SCDirectConnection(
                 apdu, max_apdu_len, &value->type.SC_Direct_Status);
+#endif
             break;
         case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
         case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
+#ifdef BACAPP_SECURE_CONNECT
             len = bacapp_decode_SCHubConnection(
                 apdu, max_apdu_len, &value->type.SC_Hub_Status);
-            break;
 #endif
+            break;
         case PROP_RECIPIENT_LIST:
 #ifdef BACAPP_DESTINATION
             len = bacnet_destination_decode(
@@ -2777,7 +2782,8 @@ int bacapp_snprintf_value(
                     ret_val += slen;
                 }
                 break;
-
+#endif
+#if defined(BACAPP_SECURE_CONNECT)
             case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
                 ret_val = bacapp_snprintf_SCFailedConnectionRequest(
                     str, str_len, &value->type.SC_Failed_Req);

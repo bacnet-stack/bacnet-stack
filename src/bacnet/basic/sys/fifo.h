@@ -79,12 +79,6 @@ extern "C" {
     BACNET_STACK_EXPORT
 
     BACNET_STACK_EXPORT
-    void FIFO_PeekBytes(
-        FIFO_BUFFER const *b,
-        uint8_t* buf,
-        unsigned length);
-
-    BACNET_STACK_EXPORT
     unsigned FIFO_Peek_Ahead(
         FIFO_BUFFER const *b,
         uint8_t* data_bytes,

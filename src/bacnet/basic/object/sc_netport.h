@@ -37,7 +37,7 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/apdu.h"
-#include "bacnet/sc_status.h"
+#include "bacnet/secure_connect.h"
 #include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 

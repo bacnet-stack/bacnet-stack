@@ -32,11 +32,12 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <bacnet/config.h>
-#include <bacnet/bacdef.h>
-#include <bacnet/bacapp.h>
-#include <bacnet/bacint.h>
-#include <bacnet/sc_status.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacapp.h"
+#include "bacnet/bacint.h"
+#include "bacnet/secure_connect.h"
 
 /**
  * @brief convert a BACNET_HOST_N_PORT to a BACNET_HOST_N_PORT_DATA
