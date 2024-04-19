@@ -33,6 +33,12 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
+typedef struct MSV_State_Text_options {
+    unsigned int state_text_option_index;
+    unsigned int index;
+    char option[254];
+} MSV_STATE_TEXT_OPTIONS;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
