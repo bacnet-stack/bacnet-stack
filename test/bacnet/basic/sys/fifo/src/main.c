@@ -37,6 +37,7 @@ static void testFIFOBuffer(void)
     unsigned index = 0;
     unsigned count = 0;
     unsigned test_count = 0;
+    unsigned peek = 0, i = 0;
     bool status = 0;
 
     FIFO_Init(&test_buffer, data_store, sizeof(data_store));
@@ -61,7 +62,7 @@ static void testFIFOBuffer(void)
         test_data = FIFO_Peek(&test_buffer);
         zassert_equal(test_data, index, NULL);
         for(peek = FIFO_Count(&test_buffer); peek > 0; peek--) {
-          FIFO_PeekBytes(&test_buffer, peek_buf, peek);
+          FIFO_Peek_Ahead(&test_buffer, peek_buf, peek);
           for(i = 0; i < peek; i++) {
             zassert_equal(peek_buf[i], index + i, NULL);
           }
@@ -92,7 +93,7 @@ static void testFIFOBuffer(void)
             test_data = FIFO_Peek(&test_buffer);
             zassert_equal(test_data, count, NULL);
             for(peek = FIFO_Count(&test_buffer); peek > 0; peek--) {
-              FIFO_PeekBytes(&test_buffer, peek_buf, peek);
+              FIFO_Peek_Ahead(&test_buffer, peek_buf, peek);
               for(i = 0; i < peek; i++) {
                 zassert_equal(peek_buf[i], count + i, NULL);
               }
@@ -115,7 +116,7 @@ static void testFIFOBuffer(void)
         test_data = FIFO_Peek(&test_buffer);
         zassert_equal(test_data, add_data[index], NULL);
         for(peek = FIFO_Count(&test_buffer); peek > 0; peek--) {
-          FIFO_PeekBytes(&test_buffer, peek_buf, peek);
+          FIFO_Peek_Ahead(&test_buffer, peek_buf, peek);
           for(i = 0; i < peek; i++) {
             zassert_equal(peek_buf[i], add_data[index + i], NULL);
           }
