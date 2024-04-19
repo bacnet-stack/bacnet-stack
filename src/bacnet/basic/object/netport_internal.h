@@ -35,7 +35,6 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/basic/sys/keylist.h"
-#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/apdu.h"
 #include "bacnet/datetime.h"
 #include "bacnet/hostnport.h"
