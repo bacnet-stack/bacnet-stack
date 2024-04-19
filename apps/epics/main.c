@@ -1522,8 +1522,8 @@ int main(int argc, char *argv[])
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
-
         /* OK to proceed; see what we are up to now */
         switch (myState) {
             case INITIAL_BINDING:

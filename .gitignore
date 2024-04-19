@@ -1,6 +1,7 @@
 *.log
 *.a
 *.o
+*.obj
 *.exe
 *.bak
 *~

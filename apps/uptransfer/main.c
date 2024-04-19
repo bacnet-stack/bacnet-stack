@@ -314,7 +314,8 @@ int main(int argc, char *argv[])
             /* increment timer - exit if timed out */
             delta_seconds = current_seconds - last_seconds;
             elapsed_seconds += delta_seconds;
-            tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            tsm_timer_milliseconds(delta_seconds * 1000);
+            datalink_maintenance_timer(delta_seconds);
         }
         if (Error_Detected) {
             break;

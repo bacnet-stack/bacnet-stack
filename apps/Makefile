@@ -274,8 +274,16 @@ apdu: $(BACNET_LIB_TARGET)
 blinkt:
 	$(MAKE) -C $@
 
+.PHONY: create-object
+create-object: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
 .PHONY: dcc
 dcc: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: delete-object
+delete-object: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: epics

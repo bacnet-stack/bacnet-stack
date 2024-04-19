@@ -34,6 +34,10 @@
 #define DEBUG_ENABLED 0
 #endif
 
+#ifndef DEBUG_PRINTF_WITH_TIMESTAMP
+#define DEBUG_PRINTF_WITH_TIMESTAMP 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -55,17 +59,18 @@ extern "C" {
     void debug_perror(
         const char *format,
         ...);
-#if DEBUG_ENABLED
-    /* Nothing more here */
-#else
-    /* If your compiler supports it, this is more compact:
-       inline void debug_printf(
-       const char *format,
-       ...) {
-       format = format;
-       }
-     */
-#endif
+    BACNET_STACK_EXPORT
+    void debug_printf_hex(
+        uint32_t offset,
+        const uint8_t *buffer,
+        size_t buffer_length,
+        const char *format, ...);
+
+    BACNET_STACK_EXPORT
+    void debug_printf_disabled(
+        const char *format,
+        ...);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -370,6 +370,8 @@ int main(int argc, char *argv[])
         if (mstimer_expired(&maintenance_timer)) {
             mstimer_reset(&maintenance_timer);
             tsm_timer_milliseconds(mstimer_interval(&maintenance_timer));
+            datalink_maintenance_timer(
+                mstimer_interval(&maintenance_timer)/1000L);
         }
         if (mstimer_expired(&apdu_timer)) {
             MyPrintHandler(Target_Object_Type, Target_Object_Instance,

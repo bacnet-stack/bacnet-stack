@@ -268,7 +268,6 @@ int main(int argc, char *argv[])
 
             /* returns 0 bytes on timeout */
             pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-
             /* process */
             if (pdu_len) {
                 npdu_handler(&src, &Rx_Buf[0], pdu_len);
@@ -279,8 +278,8 @@ int main(int argc, char *argv[])
                 last_seconds = current_seconds;
                 tsm_timer_milliseconds(
                     ((current_seconds - last_seconds) * 1000));
+                datalink_maintenance_timer(current_seconds - last_seconds);
             }
-
             if (_kbhit()) {
                 iKey = toupper(_getch());
                 if (iKey == 'Q') {
@@ -313,6 +312,7 @@ int main(int argc, char *argv[])
             if (current_seconds != last_seconds) {
                 tsm_timer_milliseconds(
                     ((current_seconds - last_seconds) * 1000));
+                datalink_maintenance_timer(current_seconds - last_seconds);
             }
             if (Error_Detected) {
                 break;

@@ -647,9 +647,6 @@
     <ClInclude Include="..\..\..\..\src\bacnet\bacint.h">
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\src\bacnet\bacnet_stack_exports.h">
-      <Filter>Source Files\src\bacnet</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\bacprop.h">
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
@@ -666,15 +663,6 @@
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\bactimevalue.h">
-      <Filter>Source Files\src\bacnet</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\src\bacnet\bits.h">
-      <Filter>Source Files\src\bacnet</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\src\bacnet\bytes.h">
-      <Filter>Source Files\src\bacnet</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\src\bacnet\config.h">
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\cov.h">
