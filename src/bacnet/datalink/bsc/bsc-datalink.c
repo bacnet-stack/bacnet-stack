@@ -345,7 +345,7 @@ void bsc_get_my_address(BACNET_ADDRESS *my_address)
     bws_dispatch_lock();
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         my_address->mac_len = BVLC_SC_VMAC_SIZE;
-        memcpy(&my_address->mac[0], &bsc_conf.local_vmac->address[0],
+        memcpy(&my_address->mac[0], &bsc_conf.local_vmac.address[0],
             BVLC_SC_VMAC_SIZE);
     }
     bws_dispatch_unlock();

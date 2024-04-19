@@ -20,7 +20,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-\#include "bacnet/datalink/bsc/bsc-retcodes.h"
+#include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bsc-node.h"
 
 typedef void* BSC_NODE_SWITCH_HANDLE;

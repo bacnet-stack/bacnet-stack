@@ -594,6 +594,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
     bool password_success = false;
+    unsigned i;
 
     /* From 16.4.1.1.2 Password
         This optional parameter shall be a CharacterString of up to

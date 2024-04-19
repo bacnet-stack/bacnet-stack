@@ -660,7 +660,7 @@ BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
 
     if (!conf->ca_cert_chain || !conf->ca_cert_chain_size ||
         !conf->cert_chain || !conf->cert_chain_size || !conf->key ||
-        !conf->key_size || !conf->local_uuid || !conf->local_vmac ||
+        !conf->key_size || !conf->local_uuid ||
         conf->connect_timeout_s <= 0 || conf->heartbeat_timeout_s <= 0 ||
         conf->disconnect_timeout_s <= 0 || conf->reconnnect_timeout_s <= 0 ||
         conf->address_resolution_timeout_s <= 0 ||
@@ -715,16 +715,16 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             sizeof(BSC_ADDRESS_RESOLUTION) *
                 BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
     } else {
-        bsc_generate_random_vmac(node->conf->local_vmac);
+        bsc_generate_random_vmac(&node->conf->local_vmac);
         DEBUG_PRINTF("bsc_node_start_state() generated random vmac %s for node %p\n",
-            bsc_vmac_to_string(node->conf->local_vmac), node);
+            bsc_vmac_to_string(&node->conf->local_vmac), node);
     }
 
     if (node->conf->primaryURL) {
         ret = bsc_hub_connector_start(node->conf->ca_cert_chain,
             node->conf->ca_cert_chain_size, node->conf->cert_chain,
             node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
-            node->conf->local_uuid, node->conf->local_vmac,
+            node->conf->local_uuid, &node->conf->local_vmac,
             node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
             node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
             node->conf->disconnect_timeout_s, node->conf->primaryURL,
@@ -744,7 +744,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             node->conf->ca_cert_chain_size, node->conf->cert_chain,
             node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
             node->conf->hub_server_port, node->conf->hub_iface,
-            node->conf->local_uuid, node->conf->local_vmac,
+            node->conf->local_uuid, &node->conf->local_vmac,
             node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
             node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
             node->conf->disconnect_timeout_s, bsc_hub_function_event, node,
@@ -763,7 +763,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             node->conf->ca_cert_chain_size, node->conf->cert_chain,
             node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
             node->conf->direct_server_port, node->conf->direct_iface,
-            node->conf->local_uuid, node->conf->local_vmac,
+            node->conf->local_uuid, &node->conf->local_vmac,
             node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
             node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
             node->conf->disconnect_timeout_s, node->conf->reconnnect_timeout_s,
@@ -883,7 +883,7 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, size_t pdu_len)
 
     DEBUG_PRINTF("bsc_node_send() >>> p_node = %p(%s), pdu = %p, "
                  "pdu_len = %d\n",
-        p_node, p_node ? bsc_vmac_to_string(p_node->conf->local_vmac) : NULL,
+        p_node, p_node ? bsc_vmac_to_string(&p_node->conf->local_vmac) : NULL,
         pdu, pdu_len);
 
     if (!node) {

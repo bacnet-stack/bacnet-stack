@@ -59,7 +59,7 @@ typedef struct {
    uint8_t *key;
    size_t key_size;
    BACNET_SC_UUID *local_uuid;
-   BACNET_SC_VMAC_ADDRESS *local_vmac;
+   BACNET_SC_VMAC_ADDRESS local_vmac;
    uint16_t max_local_bvlc_len;
    uint16_t max_local_npdu_len;
    uint16_t connect_timeout_s;

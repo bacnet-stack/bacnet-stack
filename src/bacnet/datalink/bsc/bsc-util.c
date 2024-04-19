@@ -121,7 +121,7 @@ static bool bsc_node_load_cert_bacfile(
     if (buf == NULL)
         return false;
 
-    file_length = 
+    file_length =
         bacfile_read(file_instance, buf, (uint32_t) (*psize - ZERO_BYTE));
 #ifdef CONFIG_MBEDTLS
     buf[*psize - 1] = 0;
@@ -167,12 +167,10 @@ bool bsc_node_conf_fill_from_netport(
         bsc_node_conf_cleanup(bsc_conf);
         return false;
     }
-
     bsc_conf->local_uuid =
         (BACNET_SC_UUID *)Network_Port_SC_Local_UUID(instance);
-
-    bsc_conf->local_vmac =
-        (BACNET_SC_VMAC_ADDRESS *)Network_Port_MAC_Address_pointer(instance);
+    Network_Port_MAC_Address_Value(instance, bsc_conf->local_vmac.address,
+        sizeof(bsc_conf->local_vmac.address));
     bsc_conf->max_local_bvlc_len =
         (uint16_t) Network_Port_Max_BVLC_Length_Accepted(instance);
     bsc_conf->max_local_npdu_len =
