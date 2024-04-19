@@ -953,7 +953,7 @@ bool Network_Port_Changes_Pending_Set(uint32_t object_instance, bool value)
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Changes_Pending = value;
         if (value == false) {
-            Network_Port_Pending_Params_Discard(object_instance);
+            Network_Port_Changes_Pending_Discard(object_instance);
         }
         status = true;
     }
@@ -2900,11 +2900,11 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_MAX_MASTER:
-            write_property_unsigned_decode(wp_data, &value, 
+            write_property_unsigned_decode(wp_data, &value,
                 Network_Port_MSTP_Max_Master_setter, 255);
             break;
         case PROP_MAX_INFO_FRAMES:
-            write_property_unsigned_decode(wp_data, &value, 
+            write_property_unsigned_decode(wp_data, &value,
                 Network_Port_MSTP_Max_Info_Frames_setter, 255);
             break;
         default:
@@ -3088,7 +3088,7 @@ void Network_Port_Cleanup(void)
 #endif
 }
 
-void Network_Port_Pending_Params_Apply(uint32_t object_instance)
+void Network_Port_Changes_Pending_Activate(uint32_t object_instance)
 {
 #ifdef BACDL_BSC
     Network_Port_SC_Pending_Params_Apply(object_instance);
@@ -3097,7 +3097,7 @@ void Network_Port_Pending_Params_Apply(uint32_t object_instance)
 #endif /* BACDL_BSC */
 }
 
-void Network_Port_Pending_Params_Discard(uint32_t object_instance)
+void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
 {
 #ifdef BACDL_BSC
     Network_Port_SC_Pending_Params_Discard(object_instance);

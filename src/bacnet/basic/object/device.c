@@ -111,7 +111,7 @@ static object_functions_t My_Object_Table[] = {
         Analog_Output_Index_To_Instance, Analog_Output_Valid_Instance,
         Analog_Output_Object_Name, Analog_Output_Read_Property,
         Analog_Output_Write_Property, Analog_Output_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, 
+        NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Analog_Output_Encode_Value_List, Analog_Output_Change_Of_Value,
         Analog_Output_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
@@ -138,7 +138,7 @@ static object_functions_t My_Object_Table[] = {
         Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
         Binary_Output_Object_Name, Binary_Output_Read_Property,
         Binary_Output_Write_Property, Binary_Output_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, 
+        NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Binary_Output_Encode_Value_List, Binary_Output_Change_Of_Value,
         Binary_Output_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
@@ -147,7 +147,7 @@ static object_functions_t My_Object_Table[] = {
         Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance,
         Binary_Value_Object_Name, Binary_Value_Read_Property,
         Binary_Value_Write_Property, Binary_Value_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, 
+        NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Binary_Value_Encode_Value_List, Binary_Value_Change_Of_Value,
         Binary_Value_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
@@ -227,7 +227,7 @@ static object_functions_t My_Object_Table[] = {
         Multistate_Input_Index_To_Instance, Multistate_Input_Valid_Instance,
         Multistate_Input_Object_Name, Multistate_Input_Read_Property,
         Multistate_Input_Write_Property, Multistate_Input_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, 
+        NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Multistate_Input_Encode_Value_List, Multistate_Input_Change_Of_Value,
         Multistate_Input_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
@@ -237,7 +237,7 @@ static object_functions_t My_Object_Table[] = {
         Multistate_Output_Valid_Instance, Multistate_Output_Object_Name,
         Multistate_Output_Read_Property, Multistate_Output_Write_Property,
         Multistate_Output_Property_Lists, NULL /* ReadRangeInfo */,
-        NULL /* Iterator */, 
+        NULL /* Iterator */,
         Multistate_Output_Encode_Value_List, Multistate_Output_Change_Of_Value,
         Multistate_Output_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
@@ -628,7 +628,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
             case BACNET_REINIT_WARMSTART:
                 dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
                 for (i = 0; i < Network_Port_Count(); i++) {
-                    Network_Port_Pending_Params_Apply(
+                    Network_Port_Changes_Pending_Activate(
                         Network_Port_Index_To_Instance(i));
                 }
                 /* note: you probably want to restart *after* the
@@ -653,7 +653,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 break;
             case BACNET_REINIT_ACTIVATE_CHANGES:
                 for (i = 0; i < Network_Port_Count(); i++) {
-                    Network_Port_Pending_Params_Apply(
+                    Network_Port_Changes_Pending_Activate(
                         Network_Port_Index_To_Instance(i));
                 }
                 Reinitialize_State = rd_data->state;

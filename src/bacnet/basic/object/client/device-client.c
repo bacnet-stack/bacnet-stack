@@ -313,7 +313,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
             case BACNET_REINIT_WARMSTART:
                 dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
                 for (i = 0; i < Network_Port_Count(); i++) {
-                    Network_Port_Pending_Params_Apply(
+                    Network_Port_Changes_Pending_Activate(
                         Network_Port_Index_To_Instance(i));
                 }
                 /* note: you probably want to restart *after* the
@@ -338,7 +338,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 break;
             case BACNET_REINIT_ACTIVATE_CHANGES:
                 for (i = 0; i < Network_Port_Count(); i++) {
-                    Network_Port_Pending_Params_Apply(
+                    Network_Port_Changes_Pending_Activate(
                         Network_Port_Index_To_Instance(i));
                 }
                 Reinitialize_State = rd_data->state;
