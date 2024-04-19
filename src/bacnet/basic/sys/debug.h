@@ -60,25 +60,17 @@ extern "C" {
         const char *format,
         ...);
     BACNET_STACK_EXPORT
+    void debug_printf_hex(
+        uint32_t offset,
+        const uint8_t *buffer,
+        size_t buffer_length,
+        const char *format, ...);
+
+    BACNET_STACK_EXPORT
     void debug_printf_disabled(
         const char *format,
         ...);
-    BACNET_STACK_EXPORT
-    void debug_dump_buffer(
-        const char *message,
-        const uint8_t *buffer,
-        size_t len);
-#if DEBUG_ENABLED
-    /* Nothing more here */
-#else
-    /* If your compiler supports it, this is more compact:
-       inline void debug_printf(
-       const char *format,
-       ...) {
-       format = format;
-       }
-     */
-#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

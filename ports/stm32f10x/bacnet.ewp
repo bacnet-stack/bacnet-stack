@@ -229,6 +229,7 @@
                     <state>BACDL_MSTP</state>
                     <state>MAX_APDU=480</state>
                     <state>MAX_TSM_TRANSACTIONS=0</state>
+                    <state>BACAPP_MINIMAL</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>

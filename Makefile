@@ -102,8 +102,16 @@ apdu:
 blinkt:
 	$(MAKE) -s -C apps $@
 
+.PHONY: create-object
+create-object:
+	$(MAKE) -s -C apps $@
+
 .PHONY: dcc
 dcc:
+	$(MAKE) -s -C apps $@
+
+.PHONY: delete-object
+delete-object:
 	$(MAKE) -s -C apps $@
 
 .PHONY: epics

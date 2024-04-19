@@ -360,6 +360,23 @@ bool Network_Port_Name_Set(uint32_t object_instance, char *new_name)
 }
 
 /**
+ * @brief For a given object instance-number, returns the ASCII object-name
+ * @param  object_instance - object-instance number of the object
+ * @return ASCII C string object name, or NULL if not found or not set.
+ */
+const char *Network_Port_Object_Name_ASCII(uint32_t object_instance)
+{
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        return Object_List[index].Object_Name;
+    }
+
+    return NULL;
+}
+
+/**
  * Determines if a given Network Port instance is valid
  *
  * @param  object_instance - object-instance number of the object
@@ -961,6 +978,34 @@ bool Network_Port_Changes_Pending_Set(uint32_t object_instance, bool value)
 }
 
 /**
+ * @brief For a given object instance-number, activates any pending changes
+ * @param object_instance - object-instance number of the object
+ */
+void Network_Port_Changes_Pending_Activate(uint32_t object_instance)
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        /* callback? something else? */
+    }
+}
+
+/**
+ * @brief For a given object instance-number, discards any pending changes
+ * @param object_instance - object-instance number of the object
+ */
+void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        /* callback? something else? */
+    }
+}
+
+/**
  * For a given object instance-number, gets the MS/TP Max_Master value
  * Note: depends on Network_Type being set to PORT_TYPE_MSTP for this object
  *
@@ -1247,6 +1292,33 @@ bool Network_Port_IP_DNS_Server(uint32_t object_instance,
     }
 
     return status;
+}
+
+/**
+ * @brief Encode a BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to (array size - 1) for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or
+ *    NULL to return the length of buffer if it had been built
+ * @return The length of the apdu encoded, or
+ *    BACNET_STATUS_ERROR for an invalid array index
+ */
+static int Network_Port_IP_DNS_Server_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    BACNET_OCTET_STRING ip_address = { 0 };
+
+    if (index >= BIP_DNS_MAX) {
+        apdu_len = BACNET_STATUS_ERROR;
+    } else {
+        if (Network_Port_IP_DNS_Server(object_instance, index, &ip_address)) {
+            apdu_len = encode_application_octet_string(apdu, &ip_address);
+        }
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -2032,6 +2104,33 @@ bool Network_Port_IPv6_DNS_Server(uint32_t object_instance,
 }
 
 /**
+ * @brief Encode a BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to (array size - 1) for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or
+ *    NULL to return the length of buffer if it had been built
+ * @return The length of the apdu encoded, or
+ *    BACNET_STATUS_ERROR for an invalid array index
+ */
+static int Network_Port_IPv6_DNS_Server_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    BACNET_OCTET_STRING ip_address = { 0 };
+
+    if (index >= BIP_DNS_MAX) {
+        apdu_len = BACNET_STATUS_ERROR;
+    } else {
+        if (Network_Port_IPv6_DNS_Server(object_instance, index, &ip_address)) {
+            apdu_len = encode_application_octet_string(apdu, &ip_address);
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * For a given object instance-number, sets the ip-address
  * Note: depends on Network_Type being set for this object
  *
@@ -2379,28 +2478,6 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 }
 
 /**
- * For a given object instance-number, gets SC parameters structure
- *
- * @param  object_instance - object-instance number of the object
- *
- * @return SC params structure
- */
-BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
-{
-    BACNET_SC_PARAMS *param = NULL;
-    unsigned index = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BSC) {
-            param = &Object_List[index].Network.BSC.Parameters;
-        }
-    }
-
-    return param;
-}
-
-/**
  * Determine if the object property is a BACnetARRAY datatype
  * @param  object_property [in] BACnet object property
  * @return true if the object property is a BACnetARRAY datatype
@@ -2419,8 +2496,6 @@ bool Network_Port_BACnetArray_Property(BACNET_PROPERTY_ID object_property)
         case PROP_IP_DNS_SERVER:
         case PROP_IPV6_DNS_SERVER:
         case PROP_ISSUER_CERTIFICATE_FILES:
-        case PROP_SC_HUB_FUNCTION_ACCEPT_URIS:
-        case PROP_SC_DIRECT_CONNECT_ACCEPT_URIS:
             status = true;
             break;
         default:
@@ -3038,6 +3113,44 @@ bool Network_Port_Read_Range(
     }
 
     return status;
+}
+
+/**
+ * @brief Activate any of the changes pending for all network port objects
+ */
+void Network_Port_Changes_Activate(void)
+{
+    unsigned i = 0;
+
+    for (i = 0; i < BACNET_NETWORK_PORTS_MAX; i++) {
+        if (Object_List[i].Changes_Pending) {
+            Network_Port_Changes_Pending_Activate(i);
+            Object_List[i].Changes_Pending = false;
+        }
+    }
+}
+
+/**
+ * @brief Activate any of the changes pending for all network port objects
+ */
+void Network_Port_Changes_Discard(void)
+{
+    unsigned i = 0;
+
+    for (i = 0; i < BACNET_NETWORK_PORTS_MAX; i++) {
+        if (Object_List[i].Changes_Pending) {
+            Network_Port_Changes_Pending_Discard(i);
+            Object_List[i].Changes_Pending = false;
+        }
+    }
+}
+
+/**
+ * @brief Cleanup - useful if network port object are allocated on the heap
+ */
+void Network_Port_Cleanup(void)
+{
+    /* do something interesting */
 }
 
 /**

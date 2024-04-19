@@ -507,7 +507,7 @@ void bip_set_interface(char *ifname)
         bip_set_addr(&unicast);
         bip_set_broadcast_addr(&broadcast);
         LOG_INF("BACnet/IP Unicast: %u.%u.%u.%u:%d", unicast.address[0],
-            unicast.address[1], unicast.address[2], unicast.address[3], 
+            unicast.address[1], unicast.address[2], unicast.address[3],
             unicast.port);
         LOG_INF("BACnet/IP Broadcast: %u.%u.%u.%u", broadcast.address[0],
             broadcast.address[1], broadcast.address[2], broadcast.address[3]);

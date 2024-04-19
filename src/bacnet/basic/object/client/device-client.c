@@ -301,7 +301,6 @@ static const char *Reinit_Password = "filister";
 bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
-    int i;
 
     /* Note: you could use a mix of state and password to multiple things */
     if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
@@ -316,13 +315,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 break;
             case BACNET_REINIT_WARMSTART:
                 dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-                for (i = 0; i < Network_Port_Count(); i++) {
-                    Network_Port_Changes_Pending_Activate(
-                        Network_Port_Index_To_Instance(i));
-                }
-                /* note: you probably want to restart *after* the
-                   simple ack has been sent from the return handler
-                   so just set a flag from here */
+                /* note: restart *after* the simple ack has been sent */
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
@@ -341,10 +334,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 }
                 break;
             case BACNET_REINIT_ACTIVATE_CHANGES:
-                for (i = 0; i < Network_Port_Count(); i++) {
-                    Network_Port_Changes_Pending_Activate(
-                        Network_Port_Index_To_Instance(i));
-                }
+                /* note: activate changes *after* the simple ack is sent */
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;

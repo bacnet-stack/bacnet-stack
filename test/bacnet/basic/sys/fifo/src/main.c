@@ -36,8 +36,7 @@ static void testFIFOBuffer(void)
     uint8_t peek_buf[64] = {0};
     unsigned index = 0;
     unsigned count = 0;
-    unsigned peek = 0;
-    unsigned i = 0;
+    unsigned test_count = 0;
     bool status = 0;
 
     FIFO_Init(&test_buffer, data_store, sizeof(data_store));
@@ -154,6 +153,15 @@ static void testFIFOBuffer(void)
     zassert_false(FIFO_Empty(&test_buffer), NULL);
     FIFO_Flush(&test_buffer);
     zassert_true(FIFO_Empty(&test_buffer), NULL);
+    /* check the peak ahead feature */
+    status = FIFO_Add(&test_buffer, add_data, sizeof(add_data));
+    zassert_true(status, NULL);
+    count = FIFO_Count(&test_buffer);
+    test_count = FIFO_Peek_Ahead(&test_buffer, &test_add_data[0], count-1);
+    zassert_equal(count-1, test_count, NULL);
+    for (index = 0; index < test_count; index++) {
+        zassert_equal(test_add_data[index], add_data[index], NULL);
+    }
 
     return;
 }
