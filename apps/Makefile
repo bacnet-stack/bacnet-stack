@@ -289,10 +289,6 @@ blinkt:
 dcc: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
-.PHONY: delete-object
-dcc: $(BACNET_LIB_TARGET)
-	$(MAKE) -B -C $@
-
 .PHONY: epics
 epics: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
