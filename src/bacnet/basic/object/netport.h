@@ -128,7 +128,7 @@ extern "C" {
     uint8_t Network_Port_MAC_Address_Value(
         uint32_t object_instance,
         uint8_t *mac_address,
-        uint8_t mac_size);
+        size_t mac_size);
     BACNET_STACK_EXPORT
     bool Network_Port_MAC_Address_Set(
         uint32_t object_instance,

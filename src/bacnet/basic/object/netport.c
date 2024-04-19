@@ -635,7 +635,7 @@ bool Network_Port_Quality_Set(
  * @return the length of the mac-address retrieved, or zero if not found
  */
 uint8_t Network_Port_MAC_Address_Value(
-    uint32_t object_instance, uint8_t *mac_address, uint8_t mac_size)
+    uint32_t object_instance, uint8_t *mac_address, size_t mac_size)
 {
     unsigned index = 0; /* offset from instance lookup */
     uint8_t *mac = NULL;
@@ -699,7 +699,7 @@ bool Network_Port_MAC_Address(
 
     if (mac_address) {
         mac_len = Network_Port_MAC_Address_Value(object_instance,
-            mac_address->value, (uint8_t)sizeof(mac_address->value));
+            mac_address->value, sizeof(mac_address->value));
     }
 
     return mac_len > 0;
