@@ -987,7 +987,9 @@ void Network_Port_Changes_Pending_Activate(uint32_t object_instance)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        /* callback? something else? */
+#ifdef BACDL_BSC
+        Network_Port_SC_Pending_Params_Apply(object_instance);
+#endif
     }
 }
 
@@ -1001,7 +1003,9 @@ void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        /* callback? something else? */
+#ifdef BACDL_BSC
+        Network_Port_SC_Pending_Params_Discard(object_instance);
+#endif
     }
 }
 
@@ -1357,33 +1361,6 @@ bool Network_Port_IP_DNS_Server_Set(uint32_t object_instance,
     }
 
     return status;
-}
-
-/**
- * @brief Encode a BACnetARRAY property element; a function template
- * @param object_instance [in] BACnet network port object instance number
- * @param index [in] array index requested:
- *    0 to (array size - 1) for individual array members
- * @param apdu [out] Buffer in which the APDU contents are built, or
- *    NULL to return the length of buffer if it had been built
- * @return The length of the apdu encoded, or
- *    BACNET_STATUS_ERROR for an invalid array index
- */
-int Network_Port_IP_DNS_Server_Encode(
-    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
-{
-    int apdu_len = 0;
-    BACNET_OCTET_STRING ip_address = { 0 };
-
-    if (index >= BIP_DNS_MAX) {
-        apdu_len = BACNET_STATUS_ERROR;
-    } else {
-        if (Network_Port_IP_DNS_Server(object_instance, index, &ip_address)) {
-            apdu_len = encode_application_octet_string(apdu, &ip_address);
-        }
-    }
-
-    return apdu_len;
 }
 
 /**
@@ -2159,33 +2136,6 @@ bool Network_Port_IPv6_DNS_Server_Set(
     }
 
     return status;
-}
-
-/**
- * @brief Encode a BACnetARRAY property element; a function template
- * @param object_instance [in] BACnet network port object instance number
- * @param index [in] array index requested:
- *    0 to (array size - 1) for individual array members
- * @param apdu [out] Buffer in which the APDU contents are built, or
- *    NULL to return the length of buffer if it had been built
- * @return The length of the apdu encoded, or
- *    BACNET_STATUS_ERROR for an invalid array index
- */
-int Network_Port_IPv6_DNS_Server_Encode(
-    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
-{
-    int apdu_len = 0;
-    BACNET_OCTET_STRING ip_address = { 0 };
-
-    if (index >= BIP_DNS_MAX) {
-        apdu_len = BACNET_STATUS_ERROR;
-    } else {
-        if (Network_Port_IPv6_DNS_Server(object_instance, index, &ip_address)) {
-            apdu_len = encode_application_octet_string(apdu, &ip_address);
-        }
-    }
-
-    return apdu_len;
 }
 
 /**
@@ -3150,7 +3100,16 @@ void Network_Port_Changes_Discard(void)
  */
 void Network_Port_Cleanup(void)
 {
-    /* do something interesting */
+#if defined(BACDL_BSC) && defined(BACNET_SECURE_CONNECT_ROUTING_TABLE)
+    unsigned index = 0;
+    for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
+        BACNET_SC_PARAMS *sc = &Object_List[index].Network.BSC.Parameters;
+        if (sc->Routing_Table) {
+            Keylist_Delete(sc->Routing_Table);
+            sc->Routing_Table = NULL;
+        }
+    }
+#endif
 }
 
 /**
@@ -3186,34 +3145,26 @@ void Network_Port_Init(void)
     }
 }
 
-void Network_Port_Cleanup(void)
+#ifdef BACDL_BSC
+/**
+ * For a given object instance-number, gets SC parameters structure
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return SC params structure
+ */
+BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
 {
-#if defined(BACDL_BSC) && defined(BACNET_SECURE_CONNECT_ROUTING_TABLE)
+    BACNET_SC_PARAMS *param = NULL;
     unsigned index = 0;
-    for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
-        BACNET_SC_PARAMS *sc = &Object_List[index].Network.BSC.Parameters;
-        if (sc->Routing_Table) {
-            Keylist_Delete(sc->Routing_Table);
-            sc->Routing_Table = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BSC) {
+            param = &Object_List[index].Network.BSC.Parameters;
         }
     }
+
+    return param;
+}
 #endif
-}
-
-void Network_Port_Changes_Pending_Activate(uint32_t object_instance)
-{
-#ifdef BACDL_BSC
-    Network_Port_SC_Pending_Params_Apply(object_instance);
-#else
-    (void)object_instance;
-#endif /* BACDL_BSC */
-}
-
-void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
-{
-#ifdef BACDL_BSC
-    Network_Port_SC_Pending_Params_Discard(object_instance);
-#else
-    (void)object_instance;
-#endif /* BACDL_BSC */
-}

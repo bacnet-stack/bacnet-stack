@@ -30,7 +30,7 @@
 LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 
 #if CONFIG_BACNETSTACK_LOG_LEVEL == LOG_LEVEL_DBG
-#define DUMP_BUFFER debug_dump_buffer
+#define DUMP_BUFFER debug_printf_hex
 #else
 #define DUMP_BUFFER(...)
 #endif
@@ -854,7 +854,7 @@ static void bws_cli_worker(void *p1, void *p2, void *p3)
                 (message_type &
                     (WEBSOCKET_FLAG_TEXT | WEBSOCKET_FLAG_BINARY))) {
                 LOG_DBG("Receive message Data, len %d h %d", ctx->length, h);
-                DUMP_BUFFER("Client receive", ctx->buf, ctx->length);
+                DUMP_BUFFER(0, ctx->buf, ctx->length, "Client receive");
                 ctx->dispatch(h, BSC_WEBSOCKET_RECEIVED, 0, NULL, ctx->buf,
                     ctx->length, ctx->user_param);
                 ctx->length = 0;
@@ -915,7 +915,7 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
         goto DISPATCH_SEND_EXIT;
     }
 
-    DUMP_BUFFER("Client send", payload, payload_size);
+    DUMP_BUFFER(0, payload, payload_size, "Client send");
     ret = websocket_send_msg(ctx->websock, payload, payload_size,
               WEBSOCKET_OPCODE_DATA_BINARY, false, true, ctx->timeout) >= 0
         ? BSC_WEBSOCKET_SUCCESS

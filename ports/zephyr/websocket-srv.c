@@ -25,7 +25,7 @@
 LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 
 #if CONFIG_BACNETSTACK_LOG_LEVEL == LOG_LEVEL_DBG
-#define DUMP_BUFFER debug_dump_buffer
+#define DUMP_BUFFER debug_printf_hex
 #else
 #define DUMP_BUFFER(...)
 #endif
@@ -380,7 +380,8 @@ static void bws_srv_websocket_event(
             LOG_DBG("bws_srv_websocket_event() ctx %p proto %d "
                     "received %d bytes of data for websocket %d",
                     ctx, ctx->proto, wm->data.len, h);
-            DUMP_BUFFER("Server receive", (uint8_t*)wm->data.ptr, wm->data.len);
+            DUMP_BUFFER(0, (uint8_t*)wm->data.ptr, wm->data.len,
+                "Server receive");
             bws_call_dispatch_func(ctx, h, BSC_WEBSOCKET_RECEIVED, 0, NULL,
                 (uint8_t*)wm->data.ptr, wm->data.len);
             break;
@@ -445,7 +446,7 @@ static void bws_srv_worker(void *p1, void *p2, void *p3)
            (state == BSC_WEBSOCKET_SERVER_STATE_STOPPING) ) {
 
         mg_mgr_poll(&ctx->mgr, timeout);
-        
+
         if ((state == BSC_WEBSOCKET_SERVER_STATE_STOPPING) &&
             (bws_open_connect_number(ctx) == 0)) {
                  break;
@@ -709,7 +710,7 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
 
-    DUMP_BUFFER("Server send", payload, payload_size);
+    DUMP_BUFFER(0, payload, payload_size, "Server send");
     written = mg_ws_send(ctx->conn[h].ws, payload, payload_size,
         WEBSOCKET_OP_BINARY);
 

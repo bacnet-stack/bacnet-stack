@@ -82,7 +82,8 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
             p->address[i] = (p->address[i] & 0xF0) | 0x02;
         }
     }
-    debug_dump_buffer("bsc_generate_random_vmac", p->address, BVLC_SC_VMAC_SIZE);
+    debug_printf_hex(0, p->address, BVLC_SC_VMAC_SIZE,
+        "bsc_generate_random_vmac");
 }
 
 void bsc_generate_random_uuid(BACNET_SC_UUID *p)
@@ -92,7 +93,7 @@ void bsc_generate_random_uuid(BACNET_SC_UUID *p)
     for (i = 0; i < BVLC_SC_UUID_SIZE; i++) {
         p->uuid[i] = rand() % 255;
     }
-    debug_dump_buffer("bsc_generate_random_uuid", p->uuid, BVLC_SC_UUID_SIZE);
+    debug_printf_hex(0, p->uuid, BVLC_SC_UUID_SIZE, "bsc_generate_random_uuid");
 }
 
 /*
