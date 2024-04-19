@@ -625,19 +625,19 @@ bool Network_Port_Quality_Set(
 
 /**
  * For a given object instance-number, loads the mac-address into
- * an octet string.
+ * a buffer and returns the length of the mac-address.
  * Note: depends on Network_Type being set for this object
  *
  * @param  object_instance - object-instance number of the object
  * @param  mac_address - holds the mac-address retrieved
+ * @param  mac_size - size of the mac-address buffer
  *
- * @return  true if mac-address was retrieved
+ * @return the length of the mac-address retrieved, or zero if not found
  */
-bool Network_Port_MAC_Address(
-    uint32_t object_instance, BACNET_OCTET_STRING *mac_address)
+uint8_t Network_Port_MAC_Address_Value(
+    uint32_t object_instance, uint8_t *mac_address, uint8_t mac_size)
 {
     unsigned index = 0; /* offset from instance lookup */
-    bool status = false;
     uint8_t *mac = NULL;
     uint8_t ip_mac[4 + 2] = { 0 };
     size_t mac_len = 0;
@@ -670,12 +670,39 @@ bool Network_Port_MAC_Address(
             default:
                 break;
         }
-        if (mac) {
-            status = octetstring_init(mac_address, mac, mac_len);
+        if (mac_len > 0) {
+            if (mac_size >= mac_len) {
+                memcpy(mac_address, mac, mac_len);
+            } else {
+                mac_len = 0;
+            }
         }
     }
 
-    return status;
+    return mac_len;
+}
+
+/**
+ * For a given object instance-number, loads the mac-address into
+ * an octet string.
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  mac_address - holds the mac-address retrieved
+ *
+ * @return  true if mac-address was retrieved
+ */
+bool Network_Port_MAC_Address(
+    uint32_t object_instance, BACNET_OCTET_STRING *mac_address)
+{
+    uint8_t mac_len = 0;
+
+    if (mac_address) {
+        mac_len = Network_Port_MAC_Address_Value(object_instance,
+            mac_address->value, (uint8_t)sizeof(mac_address->value));
+    }
+
+    return mac_len > 0;
 }
 
 /**
