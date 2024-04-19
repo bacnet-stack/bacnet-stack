@@ -459,6 +459,8 @@ int bacapp_data_decode(uint8_t *apdu,
                 len = bacnet_destination_decode(
                     apdu, apdu_size, &value->type.Destination);
                 break;
+#endif
+#if defined(BACAPP_SECURE_CONNECT)
             case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
                 len = bacapp_decode_SCFailedConnectionRequest(
                     apdu, len_value_type, &value->type.SC_Failed_Req);
@@ -1637,28 +1639,25 @@ int bacapp_decode_known_property(uint8_t *apdu,
                 apdu, max_apdu_len, &value->type.Weekly_Schedule);
 #endif
             break;
-
+#ifdef BACAPP_SECURE_CONNECT
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
             len = bacapp_decode_SCFailedConnectionRequest(
                 apdu, max_apdu_len, &value->type.SC_Failed_Req);
             break;
-
         case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
             len = bacapp_decode_SCHubFunctionConnection(
                 apdu, max_apdu_len, &value->type.SC_Hub_Function_Status);
             break;
-
         case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
             len = bacapp_decode_SCDirectConnection(
                 apdu, max_apdu_len, &value->type.SC_Direct_Status);
             break;
-
         case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
         case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
             len = bacapp_decode_SCHubConnection(
                 apdu, max_apdu_len, &value->type.SC_Hub_Status);
             break;
-
+#endif
         case PROP_RECIPIENT_LIST:
 #ifdef BACAPP_DESTINATION
             len = bacnet_destination_decode(
