@@ -62,7 +62,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
-    ${BACNET_SRC}/sc_status.c
+    ${BACNET_SRC}/secure_connect.c
     )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
@@ -72,8 +72,8 @@ else()
   find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 
-  target_include_directories(app PRIVATE 
-    ${BACNET_INCLUDE} 
+  target_include_directories(app PRIVATE
+    ${BACNET_INCLUDE}
     ${TEST_OBJECT_INCLUDE})
   target_sources(app PRIVATE
     ${BACNET_TEST_PATH}/src/main.c

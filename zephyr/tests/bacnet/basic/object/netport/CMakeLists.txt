@@ -57,7 +57,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/datalink/bvlc.c
     ${BACNET_SRC}/basic/object/bacfile.c
-    ${BACNET_SRC}/sc_status.c
+    ${BACNET_SRC}/secure_connect.c
     ${BACNET_SRC}/basic/object/sc_netport.c
     ${BACNET_SRC}/hostnport.c
     ${BACNET_SRC}/dailyschedule.c

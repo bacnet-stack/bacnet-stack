@@ -121,7 +121,7 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c \
-	$(BACNET_CORE)/sc_status.c
+	$(BACNET_CORE)/secure_connect.c
 
 CSRC = $(PORTSRC) $(DEMOSRC)
 #CSRC = $(PORTSRC)

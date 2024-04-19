@@ -100,8 +100,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/dailyschedule.h
     ${BACNETSTACK_SRC}/bacnet/weeklyschedule.c
     ${BACNETSTACK_SRC}/bacnet/weeklyschedule.h
-    ${BACNETSTACK_SRC}/bacnet/sc_status.c
-    ${BACNETSTACK_SRC}/bacnet/sc_status.h
+    ${BACNETSTACK_SRC}/bacnet/secure_connect.c
+    ${BACNETSTACK_SRC}/bacnet/secure_connect.h
     $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd/h_bbmd.c>
     $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/h_bbmd6.c>
@@ -622,4 +622,3 @@ target_compile_definitions(
 zephyr_compile_definitions(
   BACNET_CONFIG_H=1         # Use ports/zephyr/bacnet-config.h
   )
-  
