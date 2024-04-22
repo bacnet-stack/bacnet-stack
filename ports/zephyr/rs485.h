@@ -37,7 +37,9 @@
 #define RS485_H
 
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/mstp.h"
 
 #ifdef __cplusplus
