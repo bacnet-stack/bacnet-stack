@@ -195,6 +195,7 @@ extern "C" {
         unsigned apdu_len,
         BACNET_PROPERTY_ID * object_property,
         BACNET_ARRAY_INDEX * array_index);
+    BACNET_STACK_EXPORT
     void rpm_ack_object_property_process(
         uint8_t *apdu,
         unsigned apdu_len,
