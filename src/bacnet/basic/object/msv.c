@@ -383,16 +383,18 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
     PRINTF("******** MAX_MULTISTATE_VALUES %s \r\n", MAX_MULTISTATE_VALUES);
     unsigned int option_index = 0;
     unsigned int object_index;
-    unsigned int i, j, k = 0;
+    unsigned int i, j = 0;
+    signed int k = -1;
     bool status = false;
     // static char State_Text[MAX_MULTISTATE_VALUES][MULTISTATE_NUMBER_OF_STATES][64];
 
     for (i = 0; i < MSV_Max_Index; i++) {
 
         for(j = option_index; j < pInit_state_text_data->length; j++) {
-           // strncpy(State_Text[i][j][k], pInit_state_text_data->MSV_State_Text_Init_Objects[j].option, sizeof(State_Text[i][j][k]));
-            memcpy(State_Text[i][j][k], pInit_state_text_data->MSV_State_Text_Init_Objects[j].option, sizeof(State_Text[i][j][k]));
-            PRINTF("@@@@@@@@@@@@@@@@@ STATE INIT %u %S \r\n", j,State_Text[i][j][k]);
+            k++;
+            strncpy(State_Text[i][j], pInit_state_text_data->MSV_State_Text_Init_Objects[j].option, 64);
+            //memcpy(State_Text[i][j][k], pInit_state_text_data->MSV_State_Text_Init_Objects[j].option, strlen(State_Text[i][j][k]));
+            PRINTF("@@@@@@@@@@@@@@@@@ STATE INIT %u %S \r\n", j,State_Text[i][j]);
             if(pInit_state_text_data->MSV_State_Text_Init_Objects[j].state_text_option_index != i) {
                 option_index = j -1;
                 k = 0;
