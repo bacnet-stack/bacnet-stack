@@ -379,7 +379,7 @@ bool Multistate_Value_State_Text_Set(
 
 bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pInit_state_text_data) {
 
-    PRINTF("******** STATE TEXT INIT");
+    PRINTF("******** MAX_MULTISTATE_VALUES %s \r\n", MAX_MULTISTATE_VALUES);
     unsigned int option_index = 0;
     unsigned int object_index;
     unsigned int i, j, k = 0;
@@ -389,10 +389,10 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
     for (i = 0; i < MSV_Max_Index; i++) {
 
         for(j = option_index; j < pInit_state_text_data->length; j++) {
-         //   strncpy(State_Text[i][j][k], pInit_state_text_data->MSV_State_Text_Init_Objects[j].option, sizeof(State_Text[i][j][k]));
+            strncpy(State_Text[i][j][k], pInit_state_text_data->MSV_State_Text_Init_Objects[j].option, sizeof(State_Text[i][j][k]));
             PRINTF("@@@@@@@@@@@@@@@@@ STATE INIT %u \r\n", j);
             if(pInit_state_text_data->MSV_State_Text_Init_Objects[j].state_text_option_index != i) {
-                option_index = j;
+                option_index = j -1;
                 k = 0;
                 PRINTF("@@@@@@@@@@@@@@@@@ NEW OPTIONS %u \r\n", j);
                 break;
