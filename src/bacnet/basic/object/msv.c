@@ -377,11 +377,32 @@ bool Multistate_Value_State_Text_Set(
 
 }
 
-bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *msv_state_text_options) {
+bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pInit_state_text_data) {
 
     PRINTF("******** STATE TEXT INIT");
+    unsigned int option_index = 0;
+    unsigned int object_index;
+    unsigned int i, j, k = 0;
+    bool status = false;
+    // static char State_Text[MAX_MULTISTATE_VALUES][MULTISTATE_NUMBER_OF_STATES][64];
 
-    return true;
+    for (i = 0; i < MSV_Max_Index; i++) {
+
+        for(j = option_index; j < pInit_state_text_data->length; j++) {
+
+            State_Text[i][j][k] = pInit_state_text_data->MSV_State_Text_Init_Objects[j].index;
+            strncpy(State_Text[i][j][k], pInit_state_text_data->MSV_State_Text_Init_Objects[j].option, sizeof(State_Text[i][j][k]));
+            PRINTF("************* STATE TEXT OPTION %s \r\n", State_Text[i][j][k]);
+            if(pInit_state_text_data->MSV_State_Text_Init_Objects[j].state_text_option_index != i) {
+                option_index = j;
+                k = 0;
+                break;
+            }
+        }
+
+    }
+
+    return status;
 }
 
 bool Multistate_Value_Change_Of_Value(uint32_t object_instance)
