@@ -63,8 +63,7 @@ PORTSRC = main.c \
 	init.c \
 	blinker.c \
 	rs485.c \
-	dlmstp.c \
-	syscalls.c
+	dlmstp.c
 
 DEMOSRC = ai.c \
 	av.c \
@@ -120,8 +119,7 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/special_event.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
-	$(BACNET_CORE)/wp.c \
-	$(BACNET_CORE)/secure_connect.c
+	$(BACNET_CORE)/wp.c
 
 CSRC = $(PORTSRC) $(DEMOSRC)
 #CSRC = $(PORTSRC)
