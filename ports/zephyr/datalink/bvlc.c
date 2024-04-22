@@ -31,7 +31,9 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/bvlc.h"
 
 /**
