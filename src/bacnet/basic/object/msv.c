@@ -391,8 +391,8 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
         for(j = option_index; j < pInit_state_text_data->length; j++) {
 
             State_Text[i][j][k] = pInit_state_text_data->MSV_State_Text_Init_Objects[j].index;
-            strncpy(State_Text[i][j][k], pInit_state_text_data->MSV_State_Text_Init_Objects[j].option, sizeof(State_Text[i][j][k]));
-            PRINTF("************* STATE TEXT OPTION %s \r\n", State_Text[i][j][k]);
+           // strncpy(State_Text[i][j][k], pInit_state_text_data->MSV_State_Text_Init_Objects[j].option, sizeof(State_Text[i][j][k]));
+            PRINTF("************* STATE TEXT OPTION %s \r\n", pInit_state_text_data->MSV_State_Text_Init_Objects[j].option);
             if(pInit_state_text_data->MSV_State_Text_Init_Objects[j].state_text_option_index != i) {
                 option_index = j;
                 k = 0;
