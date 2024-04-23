@@ -102,84 +102,121 @@ static void host_n_port_from_data(
 int bacapp_encode_SCHubConnection(
     uint8_t *apdu, BACNET_SC_HUB_CONNECTION_STATUS *value)
 {
-    int apdu_len = 0;
+    int apdu_len = 0, len = 0;
     BACNET_CHARACTER_STRING str;
 
     if (apdu && value) {
-        apdu_len += encode_context_enumerated(&apdu[0], 0, value->State);
-        apdu_len += bacapp_encode_context_datetime(
-            &apdu[apdu_len], 1, &value->Connect_Timestamp);
-        apdu_len += bacapp_encode_context_datetime(
-            &apdu[apdu_len], 2, &value->Disconnect_Timestamp);
-
+        len = encode_context_enumerated(apdu, 0, value->State);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len =
+            bacapp_encode_context_datetime(apdu, 1, &value->Connect_Timestamp);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = bacapp_encode_context_datetime(
+            apdu, 2, &value->Disconnect_Timestamp);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
         if (value->State == BACNET_DISCONNECTED_WITH_ERRORS ||
             value->State == BACNET_FAILED_TO_CONNECT) {
-            apdu_len +=
-                encode_context_enumerated(&apdu[apdu_len], 3, value->Error);
-
+            len = encode_context_enumerated(apdu, 3, value->Error);
+            apdu_len += len;
+            if (apdu) {
+                apdu += len;
+            }
             if (characterstring_init_ansi(&str, value->Error_Details)) {
-                apdu_len +=
-                    encode_context_character_string(&apdu[apdu_len], 4, &str);
+                len = encode_context_character_string(apdu, 4, &str);
+                apdu_len += len;
             }
         }
     }
+
     return apdu_len;
 }
 
 /**
  * @brief Decode a SCHubConnection complex data type
  * @param apdu - the APDU buffer
- * @param max_apdu_len - the length of the APDU buffer
+ * @param apdu_size - the length of the APDU buffer
  * @param value - the structure to hold the decoded data
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
-int bacapp_decode_SCHubConnection(uint8_t *apdu,
-    uint32_t max_apdu_len,
-    BACNET_SC_HUB_CONNECTION_STATUS *value)
+int bacapp_decode_SCHubConnection(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_SC_HUB_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
     int len;
     BACNET_CHARACTER_STRING str;
+    BACNET_DATE_TIME datetime;
     uint32_t ui32;
 
-    if ((len = bacnet_enumerated_context_decode(
-             &apdu[apdu_len], max_apdu_len - apdu_len, 0, &ui32)) == -1) {
-        return BACNET_STATUS_ERROR;
-    }
-    value->State = (BACNET_SC_CONNECTION_STATE)ui32;
-
-    apdu_len += len;
-
-    if ((len = bacnet_datetime_context_decode(&apdu[apdu_len],
-             max_apdu_len - apdu_len, 1, &value->Connect_Timestamp)) == -1) {
-        return BACNET_STATUS_ERROR;
-    }
-    apdu_len += len;
-
-    if ((len = bacnet_datetime_context_decode(&apdu[apdu_len],
-             max_apdu_len - apdu_len, 2, &value->Disconnect_Timestamp)) == -1) {
-        return BACNET_STATUS_ERROR;
-    }
-    apdu_len += len;
-
-    if ((len = bacnet_enumerated_context_decode(
-             &apdu[apdu_len], max_apdu_len - apdu_len, 3, &ui32)) > 0) {
-        value->Error = (BACNET_ERROR_CODE)ui32;
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &ui32);
+    if (len > 0) {
         apdu_len += len;
     } else {
-        value->Error = ERROR_CODE_OTHER;
+        return BACNET_STATUS_ERROR;
     }
-
-    if ((len = bacnet_character_string_context_decode(
-             &apdu[apdu_len], max_apdu_len - apdu_len, 4, &str)) > 0) {
-        snprintf(value->Error_Details, sizeof(value->Error_Details), "%s",
-            characterstring_value(&str));
+    if (ui32 > BACNET_SC_CONNECTION_STATE_MAX) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        if (value) {
+            value->State = (BACNET_SC_CONNECTION_STATE)ui32;
+        }
+    }
+    len = bacnet_datetime_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &datetime);
+    if (len > 0) {
         apdu_len += len;
     } else {
-        value->Error_Details[0] = 0;
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        datetime_copy(&value->Connect_Timestamp, &datetime);
+    }
+    len = bacnet_datetime_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &datetime);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        datetime_copy(&value->Disconnect_Timestamp, &datetime);
+    }
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 3, &ui32);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (ui32 > ERROR_CODE_PROPRIETARY_LAST) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        if (value) {
+            value->Error = (BACNET_ERROR_CODE)ui32;
+        }
+    }
+    len = bacnet_character_string_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 4, &str);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        characterstring_ansi_copy(
+            value->Error_Details, sizeof(value->Error_Details), &str);
     }
 
-    return (apdu_len <= max_apdu_len) ? apdu_len : -1;
+    return apdu_len;
 }
 
 /**
@@ -195,50 +232,60 @@ int bacapp_encode_context_SCHubConnection(
     int len = 0; /* length of each encoding */
     int apdu_len = 0;
 
-    if (value && apdu) {
-        len = encode_opening_tag(&apdu[apdu_len], tag_number);
+    if (value) {
+        len = encode_opening_tag(apdu, tag_number);
         apdu_len += len;
-        len = bacapp_encode_SCHubConnection(&apdu[apdu_len], value);
+        if (apdu) {
+            apdu += len;
+        }
+        len = bacapp_encode_SCHubConnection(apdu, value);
         apdu_len += len;
-        len = encode_closing_tag(&apdu[apdu_len], tag_number);
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_number);
         apdu_len += len;
     }
+
     return apdu_len;
 }
 
 /**
  * @brief Decode a context tagged SCHubConnection complex data type
  * @param apdu - the APDU buffer
- * @param max_apdu_len - the length of the APDU buffer
+ * @param apdu_size - the length of the APDU buffer
  * @param tag_number - the tag number
  * @param value - the structure to hold the decoded data
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_context_SCHubConnection(uint8_t *apdu,
-    uint32_t max_apdu_len,
+    uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_SC_HUB_CONNECTION_STATUS *value)
 {
-    int len = 0;
-    int section_len;
+    int apdu_len = 0, len = 0;
     int tag_length;
 
-    if (bacnet_is_opening_tag_number(
-            &apdu[len], max_apdu_len, tag_number, &tag_length)) {
-        len += tag_length;
-        section_len = bacapp_decode_SCHubConnection(
-            &apdu[len], max_apdu_len - len, value);
-        if (section_len > 0) {
-            len += section_len;
-            if (bacnet_is_closing_tag_number(
-                    &apdu[len], max_apdu_len - len, tag_number, &tag_length)) {
-                len += tag_length;
-            } else {
-                return BACNET_STATUS_ERROR;
-            }
-        }
+    if (bacnet_is_opening_tag_number(&apdu[len], apdu_size, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
     }
-    return len;
+    len =
+        bacapp_decode_SCHubConnection(&apdu[len], apdu_size - apdu_len, value);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -449,15 +496,15 @@ int bacapp_encode_context_SCHubFunctionConnection(uint8_t *apdu,
 
     if (value) {
         len = encode_opening_tag(apdu, tag_number);
+        apdu_len += len;
         if (apdu) {
             apdu += len;
         }
-        apdu_len += len;
         len = bacapp_encode_SCHubFunctionConnection(apdu, value);
+        apdu_len += len;
         if (apdu) {
             apdu += len;
         }
-        apdu_len += len;
         len = encode_closing_tag(apdu, tag_number);
         apdu_len += len;
     }
@@ -468,36 +515,39 @@ int bacapp_encode_context_SCHubFunctionConnection(uint8_t *apdu,
 /**
  * @brief Decode a context tagged SCHubFunctionConnection complex data type
  * @param apdu - the APDU buffer
- * @param max_apdu_len - the length of the APDU buffer
+ * @param apdu_size - the length of the APDU buffer
  * @param tag_number - the tag number
  * @param value - the structure to hold the decoded data
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_context_SCHubFunctionConnection(uint8_t *apdu,
-    uint32_t max_apdu_len,
+    uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
 {
-    int len = 0;
-    int tag_length;
-    int section_len;
+    int apdu_len = 0, len = 0;
 
     if (bacnet_is_opening_tag_number(
-            &apdu[len], max_apdu_len - len, tag_number, &tag_length)) {
-        len += tag_length;
-        section_len = bacapp_decode_SCHubFunctionConnection(
-            &apdu[len], max_apdu_len - len, value);
-        if (section_len > 0) {
-            len += section_len;
-            if (bacnet_is_closing_tag_number(
-                    &apdu[len], max_apdu_len - len, tag_number, &tag_length)) {
-                len += tag_length;
-            } else {
-                return BACNET_STATUS_ERROR;
-            }
-        }
+            &apdu[len], apdu_size, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
     }
-    return len;
+    len = bacapp_decode_SCHubFunctionConnection(
+            &apdu[len], apdu_size - apdu_len, value);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -672,15 +722,15 @@ int bacapp_encode_context_SCFailedConnectionRequest(uint8_t *apdu,
 
     if (value) {
         len = encode_opening_tag(apdu, tag_number);
+        apdu_len += len;
         if (apdu) {
             apdu += len;
         }
-        apdu_len += len;
         len = bacapp_encode_SCFailedConnectionRequest(apdu, value);
+        apdu_len += len;
         if (apdu) {
             apdu += len;
         }
-        apdu_len += len;
         len = encode_closing_tag(apdu, tag_number);
         apdu_len += len;
     }
@@ -701,26 +751,29 @@ int bacapp_decode_context_SCFailedConnectionRequest(uint8_t *apdu,
     uint8_t tag_number,
     BACNET_SC_FAILED_CONNECTION_REQUEST *value)
 {
-    int len = 0;
-    int tag_length;
-    int section_len;
+    int apdu_len = 0, len = 0;
 
     if (bacnet_is_opening_tag_number(
-            &apdu[len], apdu_size - len, tag_number, &tag_length)) {
-        len += tag_length;
-        section_len = bacapp_decode_SCFailedConnectionRequest(
-            &apdu[len], apdu_size - len, value);
-        if (section_len > 0) {
-            len += section_len;
-            if (bacnet_is_closing_tag_number(
-                    &apdu[len], apdu_size - len, tag_number, &tag_length)) {
-                len += tag_length;
-            } else {
-                return BACNET_STATUS_ERROR;
-            }
-        }
+            &apdu[len], apdu_size - apdu_len, tag_number, &len) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
     }
-    return len;
+    len = bacapp_decode_SCFailedConnectionRequest(
+            &apdu[len], apdu_size - apdu_len, value);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_closing_tag_number(
+                    &apdu[len], apdu_size - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
 }
 
 /**
