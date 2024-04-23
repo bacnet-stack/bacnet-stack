@@ -181,6 +181,7 @@ typedef struct object_functions {
     create_object_function Object_Create;
     delete_object_function Object_Delete;
     object_timer_function Object_Timer;
+    write_property_storage_function Object_Write_Property_Storage;
 } object_functions_t;
 
 /* String Lengths - excluding any nul terminator */

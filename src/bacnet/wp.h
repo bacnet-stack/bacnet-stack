@@ -64,6 +64,20 @@ typedef bool(
     *write_property_function) (
     BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+/** Attempts to store a new value to one property for this object type
+ *  of a given instance in a persistent storage. When specified for an object type, it is being invoked
+ *  after successful call to write_property_function handler.
+ * A function  implementation is the system specific and subject to the application requirements.
+ * @ingroup ObjHelpers
+ *
+ * @param wp_data [in] Pointer to the BACnet_Write_Property_Data structure,
+ *                     which is packed with the information from the WP request.
+ * @return 0 on success, error code on failure.
+ */
+typedef int(
+    *write_property_storage_function) (
+    BACNET_WRITE_PROPERTY_DATA * wp_data);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
