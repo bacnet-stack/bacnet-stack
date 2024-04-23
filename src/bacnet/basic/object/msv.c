@@ -384,17 +384,19 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
     bool status = false;
 
     for (i = 0; i < MSV_Max_Index; i++) {
-
-        for(j = option_index; j < pInit_state_text_data->length; j++) {
+          // 0
+        for(j = option_index ; j < pInit_state_text_data->length; j++) {
+                                                                                        // 0
+            if(pInit_state_text_data->MSV_State_Text_Objects[j].state_text_option_index != i) {
+                option_index = j + 1; //7  
+                PRINTF("@@@@@@@@@@@@@@@@@ NEW OPTIONS %u \r\n", option_index);
+                break;
+            }
             strncpy(State_Text[i][j], pInit_state_text_data->MSV_State_Text_Objects[j].option, sizeof(State_Text[i][j]));
 
             PRINTF("@@@@@@@@@@@@@@@@@ STATE INIT %u %s \r\n", j,pInit_state_text_data->MSV_State_Text_Objects[j].option);
             PRINTF("@@@@@@@@@@@@@@@@@ I & STATE INDEX %u %u \r\n", i, pInit_state_text_data->MSV_State_Text_Objects[j].state_text_option_index);
-            if(pInit_state_text_data->MSV_State_Text_Objects[j].state_text_option_index != i) {
-                option_index = j - 1;
-                PRINTF("@@@@@@@@@@@@@@@@@ NEW OPTIONS %u \r\n", option_index);
-                break;
-            }
+            
         }
 
     }
