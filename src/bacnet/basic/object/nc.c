@@ -492,7 +492,7 @@ bool Notification_Class_Get_Recipient_List(
   uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
 
   if (object_index < MAX_NOTIFICATION_CLASSES) {
-    NOTIFICATION_CLASS_INFO *CurrentNotify = CurrentNotify = &NC_Info[object_index];
+    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
     int i;
 
     for (i = 0; i < NC_MAX_RECIPIENTS; i++)
