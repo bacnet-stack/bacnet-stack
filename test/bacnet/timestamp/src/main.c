@@ -54,6 +54,8 @@ static void testTimestampTime(void)
     BACNET_TIMESTAMP testTimestampIn;
     BACNET_TIMESTAMP testTimestampOut;
     uint8_t buffer[MAX_APDU];
+    bool status = false;
+    char str[64] = "";
     int len;
     int test_len;
 
@@ -78,6 +80,12 @@ static void testTimestampTime(void)
         testTimestampIn.value.time.sec, testTimestampOut.value.time.sec, NULL);
     zassert_equal(testTimestampIn.value.time.hundredths,
         testTimestampOut.value.time.hundredths, NULL);
+
+    bacapp_timestamp_to_ascii(str, sizeof(str), &testTimestampIn);
+    status = bacapp_timestamp_init_ascii(&testTimestampOut, str);
+    zassert_true(status, NULL);
+    status = bacapp_timestamp_same(&testTimestampIn, &testTimestampOut);
+    zassert_true(status, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
