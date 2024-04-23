@@ -496,20 +496,20 @@ static bool IsRecipientActive(
         case EVENT_STATE_OFFNORMAL:
         case EVENT_STATE_HIGH_LIMIT:
         case EVENT_STATE_LOW_LIMIT:
-            if (bitstring_bit(
+            if (!bitstring_bit(
                     &pBacDest->Transitions, TRANSITION_TO_OFFNORMAL)) {
                 return false;
             }
             break;
 
         case EVENT_STATE_FAULT:
-            if (bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_FAULT)) {
+            if (!bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_FAULT)) {
                 return false;
             }
             break;
 
         case EVENT_STATE_NORMAL:
-            if (bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_NORMAL)) {
+            if (!bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_NORMAL)) {
                 return false;
             }
             break;
