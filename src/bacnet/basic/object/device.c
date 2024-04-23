@@ -1927,7 +1927,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 } else {
                     status = pObject->Object_Write_Property(wp_data);
                 }
-                if(status = pObject->Object_Write_Property(wp_data)) {
+                if (status) {
                   /* Call persistent storage hook if specified for the object */
                   if(pObject->Object_Write_Property_Storage) {
                     (void) pObject->Object_Write_Property_Storage(wp_data);
