@@ -1431,9 +1431,9 @@ int datetime_time_to_ascii(BACNET_TIME *btime, char *str, size_t str_size)
 }
 
 /**
- * @brief Parse an ascii string for the date+time 2021/12/31 23:59:59.99
+ * @brief Parse an ascii string for the date+time 2021/12/31-23:59:59.99
  * @param bdate - #BACNET_DATE_TIME structure
- * @param argv - C string with date+time formatted 2021/12/31 23:59:59.99
+ * @param argv - C string with date+time formatted 2021/12/31-23:59:59.99
  * @return true if parsed successfully
  */
 bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii)
@@ -1456,4 +1456,32 @@ bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii)
     }
 
     return status;
+}
+
+/**
+ * @brief Print the date and time as an ascii string 2021/12/31-23:59:59.99
+ * @param btime - pointer to a BACnetTime
+ * @param str - pointer to the string, or NULL for length only
+ * @param str_size - size of the string, or 0 for length only
+ * @return number of characters printed
+ */
+int datetime_to_ascii(BACNET_DATE_TIME *bdatetime, char *str, size_t str_size)
+{
+    int str_len = 0;
+
+    if (!bdatetime) {
+        return 0;
+    }
+    /* 2021/12/31-23:59:59.99 */
+    str_len = snprintf(str, str_size,
+        "%04u/%02u/%02u-%02u:%02u:%02u.%02u",
+        (unsigned)bdatetime->date.year,
+        (unsigned)bdatetime->date.month,
+        (unsigned)bdatetime->date.day,
+        (unsigned)bdatetime->time.hour,
+        (unsigned)bdatetime->time.min,
+        (unsigned)bdatetime->time.sec,
+        (unsigned)bdatetime->time.hundredths);
+
+    return str_len;
 }
