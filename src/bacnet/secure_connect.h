@@ -103,10 +103,17 @@ typedef struct BACnetSCFailedConnectionRequest_T {
     char Error_Details[BACNET_ERROR_STRING_LENGTH];
 } BACNET_SC_FAILED_CONNECTION_REQUEST;
 
+typedef enum BACnetRouterStatus {
+    BACNET_ROUTER_STATUS_AVAILABLE = 0,
+    BACNET_ROUTER_STATUS_BUSY = 1,
+    BACNET_ROUTER_STATUS_DISCONNECTED = 2,
+    BACNET_ROUTER_STATUS_MAX = 2
+} BACNET_ROUTER_STATUS;
+
 typedef struct BACnetRouterEntry_T {
     uint16_t Network_Number;
     uint8_t Mac_Address[6];
-    enum { Available = 0, Busy = 1, Disconnected = 2 } Status;
+    BACNET_ROUTER_STATUS Status;
     uint8_t Performance_Index;
 } BACNET_ROUTER_ENTRY;
 

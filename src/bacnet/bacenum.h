@@ -2799,16 +2799,20 @@ typedef enum BACnetAuditOperation {
 } BACNET_AUDIT_OPERATION;
 
 typedef enum BACnetSCHubConnectorState_T {
+    /* FIXME: prefix with typedef name as much as possible */
     BACNET_NO_HUB_CONNECTION = 0,
     BACNET_CONNECTED_TO_PRIMARY = 1,
-    BACNET_CONNECTED_TO_FAILOVER = 2
+    BACNET_CONNECTED_TO_FAILOVER = 2,
+    BACNET_SC_HUB_CONNECTOR_STATE_MAX = 2
 } BACNET_SC_HUB_CONNECTOR_STATE;
 
 typedef enum BACnetSCnetSCConnectionState_T {
+    /* FIXME: prefix with typedef name as much as possible */
     BACNET_NOT_CONNECTED = 0,
     BACNET_CONNECTED = 1,
     BACNET_DISCONNECTED_WITH_ERRORS = 2,
-    BACNET_FAILED_TO_CONNECT = 3
+    BACNET_FAILED_TO_CONNECT = 3,
+    BACNET_SC_CONNECTION_STATE_MAX = 2
 } BACNET_SC_CONNECTION_STATE;
 
 #endif /* end of BACENUM_H */
