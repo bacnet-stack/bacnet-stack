@@ -103,6 +103,26 @@ void Notification_Class_Get_Priorities(
     uint32_t Object_Instance, uint32_t *pPriorityArray);
 
 BACNET_STACK_EXPORT
+void Notification_Class_Set_Priorities(
+    uint32_t Object_Instance, uint32_t *pPriorityArray);
+
+BACNET_STACK_EXPORT
+void Notification_Class_Get_Ack_Required(
+    uint32_t Object_Instance, uint8_t *pAckRequired);
+
+BACNET_STACK_EXPORT
+void Notification_Class_Set_Ack_Required(
+    uint32_t Object_Instance, uint8_t Ack_Required);
+
+BACNET_STACK_EXPORT
+bool Notification_Class_Get_Recipient_List(
+    uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList);
+
+BACNET_STACK_EXPORT
+bool Notification_Class_Set_Recipient_List(
+    uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList);
+
+BACNET_STACK_EXPORT
 void Notification_Class_common_reporting_function(
     BACNET_EVENT_NOTIFICATION_DATA *event_data);
 
