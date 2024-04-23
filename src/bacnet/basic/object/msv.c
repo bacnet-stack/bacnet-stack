@@ -383,12 +383,17 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
     unsigned int j;
     bool status = false;
 
-    for (i = 0; i < MSV_Max_Index; i++) {
-          // 0
+    for (i = 0; i <= MSV_Max_Index; i++) {
+          // 8
+        if(i == MSV_Max_Index)
+        {
+        status = true;
+        }
+
         for(j = option_index ; j < pInit_state_text_data->length; j++) {
-                                                                                        // 0
+                                                                                        // 1
             if(pInit_state_text_data->MSV_State_Text_Objects[j].state_text_option_index != i) {
-                option_index = j + 1; //7  
+                option_index = j - 1; // 8 
                 PRINTF("@@@@@@@@@@@@@@@@@ NEW OPTIONS %u \r\n", option_index);
                 break;
             }
@@ -400,6 +405,7 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
         }
 
     }
+
 
     return status;
 }
