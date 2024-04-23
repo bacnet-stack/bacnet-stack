@@ -2237,51 +2237,6 @@ static int bacapp_snprintf_weeklyschedule(char *str,
 }
 #endif
 
-#if defined(BACAPP_DATE) && defined(BACAPP_TIME)
-int bacapp_snprintf_timestamp(char *str, size_t str_len, BACNET_DATE_TIME *ts)
-{
-    int ret_val = 0;
-    int slen;
-    bool is_real_str = (str != NULL);
-
-    slen = bacapp_snprintf_date(str, str_len, &ts->date);
-    ret_val += slen;
-    if (is_real_str) {
-        str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
-    }
-
-    slen = snprintf(str, str_len, " ");
-    ret_val += slen;
-    if (is_real_str) {
-        str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
-    }
-
-    slen = bacapp_snprintf_time(str, str_len, &ts->time);
-    ret_val += slen;
-
-    return ret_val;
-}
-#else
-int bacapp_snprintf_timestamp(char *str, size_t str_len, BACNET_DATE_TIME *ts)
-{
-    (void)str;
-    (void)str_len;
-    (void)ts;
-
-    return 0;
-}
-#endif
-
 /**
  * @brief Extract the value into a text string
  * @param str - the buffer to store the extracted value, or NULL for length
