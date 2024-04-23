@@ -590,6 +590,15 @@ static void testDatetimeCodec(void)
     }
     diff = datetime_compare(&datetimeOut, &datetimeIn);
     zassert_equal(diff, 0, NULL);
+    /* test datetime stringify */
+    status = datetime_init_ascii(&datetimeIn, "1904/2/1-5:06:07.8");
+    zassert_true(status, NULL);
+    str_len = datetime_to_ascii(&datetimeIn, str, sizeof(str));
+    zassert_true(str_len > 0, NULL);
+    status = datetime_init_ascii(&datetimeOut, str);
+    zassert_true(status, NULL);
+    diff = datetime_compare(&datetimeOut, &datetimeIn);
+    zassert_equal(diff, 0, NULL);
 }
 
 static void testDatetimeConvertUTCSpecific(BACNET_DATE_TIME *utc_time,
