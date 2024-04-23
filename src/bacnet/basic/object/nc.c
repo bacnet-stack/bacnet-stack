@@ -489,13 +489,10 @@ void Notification_Class_Get_Priorities(
 bool Notification_Class_Get_Recipient_List(
     uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList)
 {
-  NOTIFICATION_CLASS_INFO *CurrentNotify;
-  uint32_t object_index;
-
-  object_index = Notification_Class_Instance_To_Index(Object_Instance);
+  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
 
   if (object_index < MAX_NOTIFICATION_CLASSES) {
-    CurrentNotify = &NC_Info[object_index];
+    NOTIFICATION_CLASS_INFO *CurrentNotify = CurrentNotify = &NC_Info[object_index];
     int i;
 
     for (i = 0; i < NC_MAX_RECIPIENTS; i++)
@@ -510,13 +507,10 @@ bool Notification_Class_Get_Recipient_List(
 bool Notification_Class_Set_Recipient_List(
     uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList)
 {
-  NOTIFICATION_CLASS_INFO *CurrentNotify;
-  uint32_t object_index;
-
-  object_index = Notification_Class_Instance_To_Index(Object_Instance);
+  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
 
   if (object_index < MAX_NOTIFICATION_CLASSES) {
-    CurrentNotify = &NC_Info[object_index];
+    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
     int i;
 
     for (i = 0; i < NC_MAX_RECIPIENTS; i++)
@@ -546,17 +540,15 @@ void Notification_Class_Set_Priorities(
 void Notification_Class_Get_Ack_Required(
     uint32_t Object_Instance, uint8_t *pAckRequired)
 {
-    NOTIFICATION_CLASS_INFO *CurrentNotify;
     uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
 
     if (object_index < MAX_NOTIFICATION_CLASSES) {
-        CurrentNotify = &NC_Info[object_index];
+      NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+      *pAckRequired = CurrentNotify->Ack_Required;
     } else {
         *pAckRequired = 0;
         return; /* unknown object */
     }
-
-    *pAckRequired = CurrentNotify->Ack_Required;
 }
 
 void Notification_Class_Set_Ack_Required(
