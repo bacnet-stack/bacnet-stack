@@ -31,9 +31,11 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
+#include <stdbool.h>
 #include <stdint.h>
-#include <assert.h>
+#include <stdio.h>
 #include "bacnet/bacapp.h"
+#include "bacnet/datetime.h"
 #include "bacnet/timestamp.h"
 
 /** @file timestamp.c  Encode/Decode BACnet Timestamps  */
@@ -182,7 +184,6 @@ int bacapp_encode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
 
             default:
                 len = 0;
-                assert(len);
                 break;
         }
     }
@@ -456,4 +457,53 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
     }
 
     return status;
+}
+
+/**
+ * @brief Print the timestamp to a string
+ * @param str - pointer to the string, or NULL for length only
+ * @param str_size - size of the string, or 0 for length only
+ * @param ts - pointer to the timestamp
+ * @return number of characters printed
+*/
+int bacapp_timestamp_to_ascii(char *str, size_t str_size, 
+    BACNET_TIMESTAMP *timestamp)
+{
+    int str_len = 0;
+
+    if (!timestamp) {
+        return 0;
+    }
+    switch (timestamp->tag) {
+        case TIME_STAMP_TIME:
+            /* 23:59:59.99 */
+            str_len = snprintf(str, str_size,
+                "%02u:%02u:%02u.%02u",
+                (unsigned)timestamp->value.time.hour,
+                (unsigned)timestamp->value.time.min,
+                (unsigned)timestamp->value.time.sec,
+                (unsigned)timestamp->value.time.hundredths);
+            break;
+        case TIME_STAMP_SEQUENCE:
+            /* 65535 */
+            str_len = snprintf(str, str_size, "%u", 
+                (unsigned)timestamp->value.sequenceNum);
+            break;
+        case TIME_STAMP_DATETIME:
+            /* 2021/12/31-23:59:59.99 */
+            str_len = snprintf(str, str_size,
+                "%04u/%02u/%02u-%02u:%02u:%02u.%02u",
+                (unsigned)timestamp->value.dateTime.date.year,
+                (unsigned)timestamp->value.dateTime.date.month,
+                (unsigned)timestamp->value.dateTime.date.day,
+                (unsigned)timestamp->value.dateTime.time.hour,
+                (unsigned)timestamp->value.dateTime.time.min,
+                (unsigned)timestamp->value.dateTime.time.sec,
+                (unsigned)timestamp->value.dateTime.time.hundredths);
+            break;
+        default:
+            break;
+    }
+
+    return str_len;
 }

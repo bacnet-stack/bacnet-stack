@@ -250,7 +250,11 @@ bool datetime_utc_to_local(BACNET_DATE_TIME *local_time,
 BACNET_STACK_EXPORT
 bool datetime_date_init_ascii(BACNET_DATE *bdate, const char *ascii);
 BACNET_STACK_EXPORT
+int datetime_date_to_ascii(BACNET_DATE *bdate, char *str, size_t str_size);
+BACNET_STACK_EXPORT
 bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii);
+BACNET_STACK_EXPORT
+int datetime_time_to_ascii(BACNET_TIME *btime, char *str, size_t str_size);
 BACNET_STACK_EXPORT
 bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii);
 

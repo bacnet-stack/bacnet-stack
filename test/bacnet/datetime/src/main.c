@@ -520,6 +520,8 @@ static void testDatetimeCodec(void)
     int apdu_len;
     int test_len;
     int null_len;
+    int str_len;
+    char str[64];
     int diff;
     bool status;
 
@@ -539,6 +541,20 @@ static void testDatetimeCodec(void)
     zassert_equal(apdu_len, null_len, NULL);
     zassert_equal(apdu_len, test_len, NULL);
     zassert_true(apdu_len > 0, NULL);
+    diff = datetime_compare(&datetimeOut, &datetimeIn);
+    zassert_equal(diff, 0, NULL);
+    /* test time stringify */
+    str_len = datetime_time_to_ascii(&datetimeIn.time, str, sizeof(str));
+    zassert_true(str_len > 0, NULL);
+    status = datetime_time_init_ascii(&datetimeIn.time, str);
+    zassert_true(status, NULL);
+    diff = datetime_compare(&datetimeOut, &datetimeIn);
+    zassert_equal(diff, 0, NULL);
+    /* test date stringify */
+    str_len = datetime_date_to_ascii(&datetimeIn.date, str, sizeof(str));
+    zassert_true(str_len > 0, NULL);
+    status = datetime_date_init_ascii(&datetimeIn.date, str);
+    zassert_true(status, NULL);
     diff = datetime_compare(&datetimeOut, &datetimeIn);
     zassert_equal(diff, 0, NULL);
     /* test for invalid date tag */
