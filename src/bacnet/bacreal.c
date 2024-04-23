@@ -33,11 +33,10 @@
 ####COPYRIGHTEND####*/
 
 #include <string.h>
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bits.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"

@@ -36,13 +36,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bacnet/bits.h"
-#include "bacnet/config.h"
-#include "bacnet/bacaddr.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacaddr.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/readrange.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/binding/address.h"
 
 /* we are likely compiling the demo command line tools if print enabled */

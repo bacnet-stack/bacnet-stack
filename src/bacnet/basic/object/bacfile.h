@@ -36,9 +36,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/bacint.h"
 #include "bacnet/datetime.h"
 #include "bacnet/apdu.h"
@@ -173,9 +173,14 @@ extern "C" {
         uint32_t object_instance,
         uint8_t *buffer,
         uint32_t buffer_size);
+    BACNET_STACK_EXPORT
+    uint32_t bacfile_write(
+        uint32_t object_instance,
+        uint8_t *buffer,
+        uint32_t buffer_size);
 
     BACNET_STACK_EXPORT
-    bool bacfile_create(
+    uint32_t bacfile_create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool bacfile_delete(

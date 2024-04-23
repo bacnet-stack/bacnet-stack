@@ -41,6 +41,9 @@
 #include <net/net_ip.h>
 #include <net/socket.h>
 #include <net/socket_select.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip6.h"
@@ -93,7 +96,7 @@ static char* inet6_ntoa(struct in6_addr *a)
 
     /* Avoid overwhelming the logging system */
     while(log_buffered_cnt())
-    {  
+    {
         k_sleep(K_MSEC(1));
     }
 
@@ -316,7 +319,7 @@ uint16_t bip6_receive(
     /* we could just use a non-blocking socket, but that consumes all
        the CPU time.  We can use a timeout; it is only supported as
        a select. */
-    
+
     if (timeout >= 1000) {
         select_timeout.tv_sec = timeout / 1000;
         select_timeout.tv_usec =
@@ -334,7 +337,7 @@ uint16_t bip6_receive(
         received_bytes = zsock_recvfrom(BIP6_Socket, (char *)&npdu[0], max_npdu,
             0, (struct sockaddr *)&sin, &sin_len);
     }
-    else 
+    else
     {
         return 0;
     }
@@ -439,13 +442,13 @@ void bip6_set_interface(char *ifname)
         for(x=0; x<NET_IF_MAX_IPV6_ADDR; x++)
         {
             inet6_ntoa(&interface->config.ip.ipv6->unicast[x].address.in6_addr );
-            LOG_INF("  unicast[%d]: %s", x, log_strdup(ipv6_addr_str));
+            LOG_INF("  unicast[%d]: %s", x, ipv6_addr_str);
         }
 
         for(x=0; x<NET_IF_MAX_IPV6_MADDR; x++)
         {
             inet6_ntoa(&interface->config.ip.ipv6->mcast[x].address.in6_addr );
-            LOG_INF(" multicast[%d]: %s", x, log_strdup(ipv6_addr_str));
+            LOG_INF(" multicast[%d]: %s", x, ipv6_addr_str);
         }
 
         if(CONFIG_BACDL_BIP6_ADDRESS_INDEX >= NET_IF_MAX_IPV6_ADDR)
@@ -459,7 +462,7 @@ void bip6_set_interface(char *ifname)
 
         memcpy(&unicast.address, &interface->config.ip.ipv6->unicast
             [CONFIG_BACDL_BIP6_ADDRESS_INDEX].address.in6_addr, IP6_ADDRESS_MAX);
-    
+
         if(net_addr_pton(AF_INET6, CONFIG_BACDL_BIP6_MCAST_ADDRESS, &multicast.address))
         {
             LOG_ERR("%s:%d - Failed to parse IPv6 multicast address: %s", THIS_FILE, __LINE__, CONFIG_BACDL_BIP6_MCAST_ADDRESS);
@@ -468,8 +471,8 @@ void bip6_set_interface(char *ifname)
         bip6_set_addr(&unicast);
         bip6_set_broadcast_addr(&multicast);
 
-        LOG_INF("   Unicast: %s", log_strdup(inet6_ntoa((struct in6_addr*)&unicast.address)));
-        LOG_INF(" Multicast: %s", log_strdup(inet6_ntoa((struct in6_addr*)&multicast.address)));
+        LOG_INF("   Unicast: %s", inet6_ntoa((struct in6_addr*)&unicast.address));
+        LOG_INF(" Multicast: %s", inet6_ntoa((struct in6_addr*)&multicast.address));
     }
     else
     {
@@ -490,7 +493,7 @@ bool bip6_init(char *ifname)
     bip6_set_interface(ifname);
 
     if (BIP6_Address.s6_addr == 0) {
-        LOG_ERR("%s:%d - Failed to get an IPv6 address on interface: %s\n", THIS_FILE, __LINE__, log_strdup(ifname ? ifname : "[default]"));
+        LOG_ERR("%s:%d - Failed to get an IPv6 address on interface: %s\n", THIS_FILE, __LINE__, ifname ? ifname : "[default]");
         return false;
     }
 

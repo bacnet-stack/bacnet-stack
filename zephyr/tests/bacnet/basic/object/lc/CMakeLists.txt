@@ -52,6 +52,8 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/hostnport.c
     ${BACNET_SRC}/dailyschedule.c
     ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/calendar_entry.c
+    ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
     )
@@ -72,3 +74,5 @@ else()
  #   ${BACNET_BASE}/test/ztest/src/ztest.c
     )
 endif()
+
+add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig

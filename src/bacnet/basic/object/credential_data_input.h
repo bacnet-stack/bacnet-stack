@@ -27,8 +27,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/bacdevobjpropref.h"
@@ -109,7 +110,7 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     BACNET_STACK_EXPORT
-    bool Credential_Data_Input_Create(
+    uint32_t Credential_Data_Input_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Credential_Data_Input_Delete(

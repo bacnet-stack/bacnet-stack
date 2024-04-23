@@ -28,11 +28,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
 #include "access_point.h"
 #include "bacnet/basic/services.h"
@@ -290,6 +290,10 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             }
+            break;
+        case PROP_PRIORITY_FOR_WRITING:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], ap_descr[object_index].priority_for_writing);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;

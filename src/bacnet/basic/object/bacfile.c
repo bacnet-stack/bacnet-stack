@@ -27,24 +27,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bacnet/config.h"
-#include "bacnet/basic/binding/address.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/datetime.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/arf.h"
 #include "bacnet/awf.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
-#include "bacnet/basic/services.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/bacfile.h"
+#include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
+#include "bacnet/basic/tsm/tsm.h"
 
 #ifndef FILE_RECORD_SIZE
 #define FILE_RECORD_SIZE MAX_OCTET_STRING_BYTES
@@ -160,18 +160,20 @@ uint32_t bacfile_pathname_instance(
     struct object_data *pObject;
     int count = 0;
     int index = 0;
+    KEY key = BACNET_MAX_INSTANCE;
 
     count = Keylist_Count(Object_List);
     while (count) {
         pObject = Keylist_Data_Index(Object_List, index);
         if (strcmp(pathname, pObject->Pathname) == 0) {
-            return Keylist_Key(Object_List, index);
+            Keylist_Index_Key(Object_List, index, &key);
+            break;
         }
         count--;
         index++;
     }
 
-    return BACNET_MAX_INSTANCE;
+    return key;
 }
 
 /**
@@ -218,30 +220,12 @@ bool bacfile_object_name(
 bool bacfile_object_name_set(uint32_t object_instance, char *new_name)
 {
     bool status = false; /* return value */
-    BACNET_CHARACTER_STRING object_name;
-    BACNET_OBJECT_TYPE found_type = 0;
-    uint32_t found_instance = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject && new_name) {
-        /* All the object names in a device must be unique */
-        characterstring_init_ansi(&object_name, new_name);
-        if (Device_Valid_Object_Name(
-                &object_name, &found_type, &found_instance)) {
-            if ((found_type == Object_Type) &&
-                (found_instance == object_instance)) {
-                /* writing same name to same object */
-                status = true;
-            } else {
-                /* duplicate name! */
-                status = false;
-            }
-        } else {
-            status = true;
-            pObject->Object_Name = new_name;
-            Device_Inc_Database_Revision();
-        }
+        status = true;
+        pObject->Object_Name = new_name;
     }
 
     return status;
@@ -281,7 +265,11 @@ uint32_t bacfile_count(void)
  */
 uint32_t bacfile_index_to_instance(unsigned find_index)
 {
-    return Keylist_Key(Object_List, find_index);
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, find_index, &key);
+
+    return key;
 }
 
 /**
@@ -306,7 +294,7 @@ static long fsize(FILE *pFile)
 /**
  * @brief Read the entire file into a buffer
  * @param  object_instance - object-instance number of the object
- * @param  buffer - pointer to buffer pointer where heap data will be stored
+ * @param  buffer - data store from the file
  * @param  buffer_size - in bytes
  * @return  file size in bytes
  */
@@ -326,6 +314,35 @@ uint32_t bacfile_read(uint32_t object_instance, uint8_t *buffer,
                 if (fread(buffer, file_size, 1, pFile) == 0) {
                     file_size = 0;
                 }
+            }
+            fclose(pFile);
+        }
+    }
+
+    return (uint32_t)file_size;
+}
+
+/**
+ * @brief Write the entire file from a buffer
+ * @param  object_instance - object-instance number of the object
+ * @param  buffer - data store for the file
+ * @param  buffer_size - in bytes
+ * @return  file size in bytes
+ */
+uint32_t bacfile_write(uint32_t object_instance, uint8_t *buffer,
+    uint32_t buffer_size)
+{
+    const char *pFilename = NULL;
+    FILE *pFile = NULL;
+    long file_size = 0;
+
+    pFilename = bacfile_pathname(object_instance);
+    if (pFilename) {
+        /* open the file as a clean slate when starting at 0 */
+        pFile = fopen(pFilename, "wb");
+        if (pFile) {
+            if (fwrite(buffer, buffer_size, 1, pFile) == 1) {
+                file_size = buffer_size;
             }
             fclose(pFile);
         }
@@ -977,16 +994,25 @@ bool bacfile_read_ack_record_data(
 
 
 /**
- * @brief Creates an object
+ * @brief Creates a File object
  * @param object_instance - object-instance number of the object
- * @return true if the object-instance was created
+ * @return the object-instance that was created, or BACNET_MAX_INSTANCE
  */
-bool bacfile_create(uint32_t object_instance)
+uint32_t bacfile_create(uint32_t object_instance)
 {
-    bool status = false;
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        /* wildcard instance */
+        /* the Object_Identifier property of the newly created object
+            shall be initialized to a value that is unique within the
+            responding BACnet-user device. The method used to generate
+            the object identifier is a local matter.*/
+        object_instance = Keylist_Next_Empty_Key(Object_List, 1);
+    }
     pObject = Keylist_Data(Object_List, object_instance);
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
@@ -1001,14 +1027,16 @@ bool bacfile_create(uint32_t object_instance)
             pObject->File_Access_Stream = true;
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
-            if (index >= 0) {
-                status = true;
-                Device_Inc_Database_Revision();
+            if (index < 0) {
+                free(pObject);
+                return BACNET_MAX_INSTANCE;
             }
+        } else {
+            return BACNET_MAX_INSTANCE;
         }
     }
 
-    return status;
+    return object_instance;
 }
 
 /**
@@ -1025,7 +1053,6 @@ bool bacfile_delete(uint32_t object_instance)
     if (pObject) {
         free(pObject);
         status = true;
-        Device_Inc_Database_Revision();
     }
 
     return status;
@@ -1043,7 +1070,6 @@ void bacfile_cleanup(void)
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
                 free(pObject);
-                Device_Inc_Database_Revision();
             }
         } while (pObject);
         Keylist_Delete(Object_List);
@@ -1056,5 +1082,7 @@ void bacfile_cleanup(void)
  */
 void bacfile_init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

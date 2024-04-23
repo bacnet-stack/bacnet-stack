@@ -53,3 +53,5 @@ else()
     ${SRC_TEST}
     )
 endif()
+
+add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig

@@ -27,8 +27,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
@@ -76,13 +77,7 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         /* We try and do some of the more generic error checking here to cut
          * down on duplication of effort */
 
-        if ((pRequest->RequestType == RR_BY_POSITION) &&
-            (pRequest->Range.RefIndex ==
-                0)) { /* First index is 1 so can't accept 0 */
-            pRequest->error_code =
-                ERROR_CODE_OTHER; /* I couldn't see anything more appropriate
-                                     so... */
-        } else if (((PropInfo.RequestTypes & RR_ARRAY_OF_LISTS) == 0) &&
+        if (((PropInfo.RequestTypes & RR_ARRAY_OF_LISTS) == 0) &&
             (pRequest->array_index != 0) &&
             (pRequest->array_index != BACNET_ARRAY_ALL)) {
             /* Array access attempted on a non array property */

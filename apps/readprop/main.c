@@ -32,29 +32,31 @@
 #if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
 #include <locale.h>
 #endif
-
 #define PRINT_ENABLED 1
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
 #include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
+#endif
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -192,8 +194,8 @@ static void print_help(char *filename)
            "number.\n"
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
            "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-           "\n");
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
     printf("device-instance:\n"
            "BACnet Device Object Instance number that you are\n"
            "trying to communicate to.  This number will be used\n"
@@ -343,7 +345,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -415,6 +417,7 @@ int main(int argc, char *argv[])
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         if (Error_Detected) {
             break;

@@ -32,28 +32,32 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h> /* toupper */
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 
 #ifndef MAX_PROPERTY_VALUES
 #define MAX_PROPERTY_VALUES 64
+#endif
+
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
 #endif
 
 /* buffer used for receive */
@@ -300,8 +304,8 @@ int main(int argc, char *argv[])
         Target_Object_Property_Index = BACNET_ARRAY_ALL;
     }
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
@@ -310,8 +314,8 @@ int main(int argc, char *argv[])
         return 1;
     }
     if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\n",
-            Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "object-instance=%u - not greater than %u\n",
+            Target_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
@@ -423,6 +427,7 @@ int main(int argc, char *argv[])
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         if (Error_Detected) {
             break;

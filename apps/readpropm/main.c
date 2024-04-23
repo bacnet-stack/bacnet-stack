@@ -32,31 +32,33 @@
 #if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
 #include <locale.h>
 #endif
-
 #define PRINT_ENABLED 1
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
+#include "bacnet/rpm.h"
 #include "bacnet/whois.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
-#include "bacnet/rpm.h"
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
+
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
+#endif
+
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -404,9 +406,9 @@ int main(int argc, char *argv[])
         } else {
             if (target_args == 0) {
                 Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
-                if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
+                if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
                     fprintf(stderr,
-                        "device-instance=%u - it must be less than %u\n",
+                        "device-instance=%u - not greater than %u\n",
                         Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -443,9 +445,9 @@ int main(int argc, char *argv[])
                     rpm_object->object_instance = strtol(argv[argi], NULL, 0);
                     if (rpm_object->object_instance > BACNET_MAX_INSTANCE) {
                         fprintf(stderr,
-                            "object-instance=%u - it must be less than %u\n",
+                            "object-instance=%u - not greater than %u\n",
                             rpm_object->object_instance,
-                            BACNET_MAX_INSTANCE + 1);
+                            BACNET_MAX_INSTANCE);
                         return 1;
                     }
                     tag_value_arg++;
@@ -533,6 +535,7 @@ int main(int argc, char *argv[])
         /* at least one second has passed */
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         if (Error_Detected) {
             break;
@@ -547,6 +550,10 @@ int main(int argc, char *argv[])
                 Request_Invoke_ID = Send_Read_Property_Multiple_Request(
                     &buffer[0], sizeof(buffer), Target_Device_Object_Instance,
                     Read_Access_Data);
+                if (Request_Invoke_ID == 0) {
+                    fprintf(stderr, "\rError: failed to send request!\n");
+                    break;
+                }
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {

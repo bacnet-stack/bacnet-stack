@@ -19,7 +19,8 @@
 #ifndef _UCI_H__
 #define _UCI_H__
 
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 BACNET_STACK_EXPORT
 struct uci_context *ucix_init(

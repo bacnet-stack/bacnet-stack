@@ -24,7 +24,8 @@
 #ifndef MSTPTEXT_H
 #define MSTPTEXT_H
 
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,6 +39,9 @@ extern "C" {
         unsigned index);
     BACNET_STACK_EXPORT
     const char *mstptext_frame_type(
+        unsigned index);
+    BACNET_STACK_EXPORT
+    const char *mstptext_zero_config_state(
         unsigned index);
 
 #ifdef __cplusplus

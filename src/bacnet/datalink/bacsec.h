@@ -38,10 +38,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
 
 typedef struct BACnet_Security_Wrapper {
     bool payload_net_or_bvll_flag;      /* true if NPDU or BVLL */

@@ -41,14 +41,16 @@ static double clamp(double d, double min, double max)
  * @param x_coordinate - return x of CIE xy 0.0..1.0
  * @param y_coordinate - return y of CIE xy 0.0..1.0
  * @param brightness - return brightness of the CIE xy color 0..255
+ * @param gamma_correction - true if gamma correction is applied
  * @note http://en.wikipedia.org/wiki/Srgb
  */
-void color_rgb_to_xy(uint8_t r,
+static void color_rgb_to_xy_gamma_correction(uint8_t r,
     uint8_t g,
     uint8_t b,
     float *x_coordinate,
     float *y_coordinate,
-    uint8_t *brightness)
+    uint8_t *brightness,
+    bool gamma_correction)
 {
     float X, Y, Z;
     float x, y;
@@ -63,18 +65,20 @@ void color_rgb_to_xy(uint8_t r,
     green /= 255.0f;
     blue /= 255.0f;
 
-    /* Apply a gamma correction to the RGB values,
-       which makes the color more vivid and more the
-       like the color displayed on the screen of your device.
-       This gamma correction is also applied to the screen
-       of your computer or phone, thus we need this to create
-       the same color on the light as on screen. */
-    red = (red > 0.04045f) ? pow((red + 0.055f) / (1.0f + 0.055f), 2.4f)
-                           : (red / 12.92f);
-    green = (green > 0.04045f) ? pow((green + 0.055f) / (1.0f + 0.055f), 2.4f)
-                               : (green / 12.92f);
-    blue = (blue > 0.04045f) ? pow((blue + 0.055f) / (1.0f + 0.055f), 2.4f)
-                             : (blue / 12.92f);
+    if (gamma_correction) {
+        /* Apply a gamma correction to the RGB values,
+           which makes the color more vivid and more the
+           like the color displayed on the screen of your device.
+           This gamma correction is also applied to the screen
+           of your computer or phone, thus we need this to create
+           the same color on the light as on screen. */
+        red = (red > 0.04045f) ? pow((red + 0.055f) / (1.0f + 0.055f), 2.4f)
+                               : (red / 12.92f);
+        green = (green > 0.04045f) ? pow((green + 0.055f) / (1.0f + 0.055f), 2.4f)
+                                   : (green / 12.92f);
+        blue = (blue > 0.04045f) ? pow((blue + 0.055f) / (1.0f + 0.055f), 2.4f)
+                                 : (blue / 12.92f);
+    }
 
     /*  Convert the RGB values to XYZ using the
         Wide RGB D65 conversion formula */
@@ -108,6 +112,48 @@ void color_rgb_to_xy(uint8_t r,
 }
 
 /**
+ * @brief Convert sRGB to CIE xy
+ * @param r - R value of sRGB 0..255
+ * @param g - G value of sRGB 0..255
+ * @param b - B value of sRGB 0..255
+ * @param x_coordinate - return x of CIE xy 0.0..1.0
+ * @param y_coordinate - return y of CIE xy 0.0..1.0
+ * @param brightness - return brightness of the CIE xy color 0..255
+ * @note http://en.wikipedia.org/wiki/Srgb
+ */
+void color_rgb_to_xy(uint8_t r,
+    uint8_t g,
+    uint8_t b,
+    float *x_coordinate,
+    float *y_coordinate,
+    uint8_t *brightness)
+{
+    color_rgb_to_xy_gamma_correction(r, g, b,
+        x_coordinate, y_coordinate, brightness, false);
+}
+
+/**
+ * @brief Convert sRGB to CIE xy, with gamma correction
+ * @param r - R value of sRGB 0..255
+ * @param g - G value of sRGB 0..255
+ * @param b - B value of sRGB 0..255
+ * @param x_coordinate - return x of CIE xy 0.0..1.0
+ * @param y_coordinate - return y of CIE xy 0.0..1.0
+ * @param brightness - return brightness of the CIE xy color 0..255
+ * @note http://en.wikipedia.org/wiki/Srgb
+ */
+void color_rgb_to_xy_gamma(uint8_t r,
+    uint8_t g,
+    uint8_t b,
+    float *x_coordinate,
+    float *y_coordinate,
+    uint8_t *brightness)
+{
+    color_rgb_to_xy_gamma_correction(r, g, b,
+        x_coordinate, y_coordinate, brightness, true);
+}
+
+/**
  * @brief Convert sRGB from CIE xy and brightness
  * @param red - return R value of sRGB
  * @param green - return G value of sRGB
@@ -115,14 +161,16 @@ void color_rgb_to_xy(uint8_t r,
  * @param x_coordinate - x of CIE xy
  * @param y_coordinate - y of CIE xy
  * @param brightness - brightness of the CIE xy color
+ * @param gamma_correction - true if gamma correction is needed
  * @note http://en.wikipedia.org/wiki/Srgb
  */
-void color_rgb_from_xy(uint8_t *red,
+static void color_rgb_from_xy_gamma_correction(uint8_t *red,
     uint8_t *green,
     uint8_t *blue,
     float x_coordinate,
     float y_coordinate,
-    uint8_t brightness)
+    uint8_t brightness,
+    bool gamma_correction)
 {
     float r, g, b;
     float x, y, z, X, Y, Z;
@@ -142,13 +190,15 @@ void color_rgb_from_xy(uint8_t *red,
     g = -X * 0.5217933f + Y * 1.4472381f + Z * 0.0677227f;
     b = X * 0.0349342f - Y * 0.0968930f + Z * 1.2884099f;
 
-    /*  Apply reverse gamma correction */
-    r = r <= 0.0031308f ? 12.92f * r
-                        : (1.0f + 0.055f) * pow(r, (1.0f / 2.4f)) - 0.055f;
-    g = g <= 0.0031308f ? 12.92f * g
-                        : (1.0f + 0.055f) * pow(g, (1.0f / 2.4f)) - 0.055f;
-    b = b <= 0.0031308f ? 12.92f * b
-                        : (1.0f + 0.055f) * pow(b, (1.0f / 2.4f)) - 0.055f;
+    if (gamma_correction) {
+        /*  Apply reverse gamma correction */
+        r = r <= 0.0031308f ? 12.92f * r
+                            : (1.0f + 0.055f) * pow(r, (1.0f / 2.4f)) - 0.055f;
+        g = g <= 0.0031308f ? 12.92f * g
+                            : (1.0f + 0.055f) * pow(g, (1.0f / 2.4f)) - 0.055f;
+        b = b <= 0.0031308f ? 12.92f * b
+                            : (1.0f + 0.055f) * pow(b, (1.0f / 2.4f)) - 0.055f;
+    }
 
     /*  Convert the RGB values to your color object
         The rgb values from the above formulas are
@@ -169,6 +219,48 @@ void color_rgb_from_xy(uint8_t *red,
     if (blue) {
         *blue = (uint8_t)b;
     }
+}
+
+/**
+ * @brief Convert sRGB from CIE xy and brightness
+ * @param red - return R value of sRGB
+ * @param green - return G value of sRGB
+ * @param blue - return B value of sRGB
+ * @param x_coordinate - x of CIE xy
+ * @param y_coordinate - y of CIE xy
+ * @param brightness - brightness of the CIE xy color
+ * @note http://en.wikipedia.org/wiki/Srgb
+ */
+void color_rgb_from_xy(uint8_t *red,
+    uint8_t *green,
+    uint8_t *blue,
+    float x_coordinate,
+    float y_coordinate,
+    uint8_t brightness)
+{
+    color_rgb_from_xy_gamma_correction(red, green, blue,
+        x_coordinate, y_coordinate, brightness, false);
+}
+
+/**
+ * @brief Convert sRGB from CIE xy and brightness, with gamma correction
+ * @param red - return R value of sRGB
+ * @param green - return G value of sRGB
+ * @param blue - return B value of sRGB
+ * @param x_coordinate - x of CIE xy
+ * @param y_coordinate - y of CIE xy
+ * @param brightness - brightness of the CIE xy color
+ * @note http://en.wikipedia.org/wiki/Srgb
+ */
+void color_rgb_from_xy_gamma(uint8_t *red,
+    uint8_t *green,
+    uint8_t *blue,
+    float x_coordinate,
+    float y_coordinate,
+    uint8_t brightness)
+{
+    color_rgb_from_xy_gamma_correction(red, green, blue,
+        x_coordinate, y_coordinate, brightness, true);
 }
 
 /* table for converting RGB to and from ASCII color names */

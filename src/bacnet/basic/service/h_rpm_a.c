@@ -25,13 +25,13 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/bactext.h"
 #include "bacnet/rpm.h"
 /* some demo stuff needed */
@@ -39,6 +39,7 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 
 #define PRINTF debug_aprintf
 #define PERROR debug_perror
@@ -62,6 +63,7 @@ int rpm_ack_decode_service_request(
     int len = 0; /* number of bytes returned from decoding */
     uint8_t tag_number = 0; /* decoded tag number */
     uint32_t len_value = 0; /* decoded length value */
+    int data_len = 0; /* data blob length */
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -110,6 +112,8 @@ int rpm_ack_decode_service_request(
             apdu_len -= len;
             apdu += len;
             if (apdu_len && decode_is_opening_tag_number(apdu, 4)) {
+                data_len = bacapp_data_len(apdu, (unsigned)apdu_len, 
+                    rpm_property->propertyIdentifier);
                 /* propertyValue */
                 decoded_len++;
                 apdu_len--;
@@ -118,40 +122,58 @@ int rpm_ack_decode_service_request(
                    more than one element to decode */
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
-                while (value && (apdu_len > 0)) {
-                    len = bacapp_decode_known_property(apdu, (unsigned)apdu_len,
-                        value, rpm_object->object_type,
-                        rpm_property->propertyIdentifier);
-                    /* If len == 0 then it's an empty structure, which is OK. */
-                    if (len < 0) {
-                        /* problem decoding */
-                        PERROR("RPM Ack: unable to decode! %s:%s\n",
-                            bactext_object_type_name(rpm_object->object_type),
-                            bactext_property_name(
-                                rpm_property->propertyIdentifier));
-                        /* note: caller will free the memory */
-                        return BACNET_STATUS_ERROR;
-                    }
-                    decoded_len += len;
-                    apdu_len -= len;
-                    apdu += len;
-                    if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
-                        decoded_len++;
-                        apdu_len--;
-                        apdu++;
-                        break;
-                    } else if (len > 0) {
-                        old_value = value;
-                        value =
-                            calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
-                        old_value->next = value;
-                    } else {
-                        PERROR("RPM Ack: decoded %s:%s len=%d\n",
-                            bactext_object_type_name(rpm_object->object_type),
-                            bactext_property_name(
-                                rpm_property->propertyIdentifier),
-                            len);
-                        break;
+
+                /* Special case for an empty array - we decode it as null */
+                if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
+                    bacapp_value_list_init(value, 1);
+                    decoded_len++;
+                    apdu_len--;
+                    apdu++;
+                } else {
+                    while (value && (apdu_len > 0)) {
+                        len = bacapp_decode_known_property(apdu,
+                            (unsigned)apdu_len, value, rpm_object->object_type,
+                            rpm_property->propertyIdentifier);
+                        /* If len == 0 then it's an empty structure, which is
+                         * OK. */
+                        if (len < 0) {
+                            /* problem decoding */
+                            if (data_len >= 0) {
+                                /* valid data that we'll skip over */
+                                len = data_len;
+                                bacapp_value_list_init(value, 1);
+                            } else {
+                                PERROR("RPM Ack: unable to decode! %s:%s\n",
+                                    bactext_object_type_name(
+                                        rpm_object->object_type),
+                                    bactext_property_name(
+                                        rpm_property->propertyIdentifier));
+                                /* note: caller will free the memory */
+                                return BACNET_STATUS_ERROR;
+                            }
+                        }
+                        decoded_len += len;
+                        apdu_len -= len;
+                        apdu += len;
+                        if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
+                            decoded_len++;
+                            apdu_len--;
+                            apdu++;
+                            break;
+                        } else if (len > 0) {
+                            old_value = value;
+                            value = calloc(
+                                1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+                            old_value->next = value;
+                        } else {
+                            PERROR("RPM Ack: decoded %s:%s len=%d\n",
+                                bactext_object_type_name(
+                                    rpm_object->object_type),
+                                bactext_property_name(
+                                    rpm_property->propertyIdentifier),
+                                len);
+                            break;
+                        }
                     }
                 }
             } else if (apdu_len && decode_is_opening_tag_number(apdu, 5)) {

@@ -36,12 +36,12 @@
 #include <stdio.h>
 #include <string.h>
 
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 /* me! */
@@ -134,11 +134,7 @@ unsigned Integer_Value_Count(void)
  */
 uint32_t Integer_Value_Index_To_Instance(unsigned index)
 {
-    uint32_t instance = 1;
-
-    instance += index;
-
-    return instance;
+    return index;
 }
 
 /**
@@ -154,11 +150,8 @@ unsigned Integer_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_INTEGER_VALUES;
 
-    if (object_instance) {
-        index = object_instance - 1;
-        if (index > MAX_INTEGER_VALUES) {
-            index = MAX_INTEGER_VALUES;
-        }
+    if (object_instance < MAX_INTEGER_VALUES) {
+        index = object_instance;
     }
 
     return index;

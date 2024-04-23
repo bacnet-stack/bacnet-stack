@@ -173,6 +173,39 @@ uint8_t FIFO_Peek(FIFO_BUFFER const *b)
 }
 
 /**
+ * Peeks ahead from the front of the FIFO without removing any data.
+ * Limit the number of bytes peeked to the number of bytes available.
+ *
+ * @param b - pointer to FIFO_BUFFER structure
+ * @param buffer [out] - buffer to hold the peeked bytes
+ * @param length [in] - number of bytes to peek from the FIFO
+ * @return number of bytes peeked
+ */
+unsigned FIFO_Peek_Ahead(FIFO_BUFFER const *b, uint8_t* buffer, unsigned length)
+{
+    unsigned count = 0;
+    unsigned index;
+    unsigned tail;
+    unsigned i;
+
+    if (b) {
+        count = FIFO_Count(b);
+        if (count > length) {
+            /* adjust to limit the number of bytes peeked */
+            count = length;
+        }
+        tail = b->tail;
+        for(i = 0; i < count; i++) {
+            index = tail % b->buffer_len;
+            buffer[i] = b->buffer[index];
+            tail++;
+        }
+    }
+
+    return count;
+}
+
+/**
  * Gets a byte from the front of the FIFO, and removes it.
  * Use FIFO_Empty() or FIFO_Available() function to see if there is
  * data to retrieve since this function doesn't return a flag indicating

@@ -34,9 +34,9 @@
 #include <conio.h>
 #endif
 #define PRINT_ENABLED 1
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1 + Target_Mode], NULL, 0);
 
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - not greater than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -268,7 +268,6 @@ int main(int argc, char *argv[])
 
             /* returns 0 bytes on timeout */
             pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-
             /* process */
             if (pdu_len) {
                 npdu_handler(&src, &Rx_Buf[0], pdu_len);
@@ -279,8 +278,8 @@ int main(int argc, char *argv[])
                 last_seconds = current_seconds;
                 tsm_timer_milliseconds(
                     ((current_seconds - last_seconds) * 1000));
+                datalink_maintenance_timer(current_seconds - last_seconds);
             }
-
             if (_kbhit()) {
                 iKey = toupper(_getch());
                 if (iKey == 'Q') {
@@ -313,6 +312,7 @@ int main(int argc, char *argv[])
             if (current_seconds != last_seconds) {
                 tsm_timer_milliseconds(
                     ((current_seconds - last_seconds) * 1000));
+                datalink_maintenance_timer(current_seconds - last_seconds);
             }
             if (Error_Detected) {
                 break;

@@ -32,9 +32,10 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 #include <stdint.h>
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/timesync.h"
 

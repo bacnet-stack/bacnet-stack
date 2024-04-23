@@ -22,7 +22,11 @@ BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
 BACNET_FLAGS += -DPRINT_ENABLED=0
 BACNET_FLAGS += -DMAX_APDU=480
 BACNET_FLAGS += -DCRC_USE_TABLE
-#BACNET_FLAGS += -DDLMSTP_TEST
+BACNET_FLAGS += -DBACAPP_MINIMAL
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 BACNET_SRC = ../../src
 BACNET_CORE = $(BACNET_SRC)/bacnet
@@ -111,6 +115,8 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/weeklyschedule.c \
 	$(BACNET_CORE)/dailyschedule.c \
 	$(BACNET_CORE)/bactimevalue.c \
+	$(BACNET_CORE)/calendar_entry.c \
+	$(BACNET_CORE)/special_event.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c

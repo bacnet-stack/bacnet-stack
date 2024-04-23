@@ -35,10 +35,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
@@ -49,7 +49,6 @@
 #include "bacnet/reject.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
 /* me! */
@@ -80,7 +79,7 @@ static binary_output_write_present_value_callback
     Binary_Output_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Output_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_POLARITY, PROP_PRIORITY_ARRAY,
     PROP_RELINQUISH_DEFAULT,
@@ -89,10 +88,10 @@ static const int Binary_Output_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
 #endif
     -1 };
 
-static const int Binary_Output_Properties_Optional[] = { PROP_RELIABILITY,
+static const int Properties_Optional[] = { PROP_RELIABILITY,
     PROP_DESCRIPTION, PROP_ACTIVE_TEXT, PROP_INACTIVE_TEXT, -1 };
 
-static const int Binary_Output_Properties_Proprietary[] = { -1 };
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -109,13 +108,13 @@ void Binary_Output_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired) {
-        *pRequired = Binary_Output_Properties_Required;
+        *pRequired = Properties_Required;
     }
     if (pOptional) {
-        *pOptional = Binary_Output_Properties_Optional;
+        *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = Binary_Output_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
     }
 
     return;
@@ -160,7 +159,11 @@ unsigned Binary_Output_Count(void)
  */
 uint32_t Binary_Output_Index_To_Instance(unsigned index)
 {
-    return Keylist_Key(Object_List, index);
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, index, &key);
+
+    return key;
 }
 
 /**
@@ -337,7 +340,7 @@ bool Binary_Output_Present_Value_Relinquish(
  * @brief For a given object instance-number, writes the present-value to the
  * remote node
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog value
+ * @param  value - present-value
  * @param  priority - priority-array index value 1..16
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
@@ -531,30 +534,12 @@ bool Binary_Output_Object_Name(
 bool Binary_Output_Name_Set(uint32_t object_instance, char *new_name)
 {
     bool status = false; /* return value */
-    BACNET_CHARACTER_STRING object_name;
-    BACNET_OBJECT_TYPE found_type = OBJECT_NONE;
-    uint32_t found_instance = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject && new_name) {
-        /* All the object names in a device must be unique */
-        characterstring_init_ansi(&object_name, new_name);
-        if (Device_Valid_Object_Name(
-                &object_name, &found_type, &found_instance)) {
-            if ((found_type == Object_Type) &&
-                (found_instance == object_instance)) {
-                /* writing same name to same object */
-                status = true;
-            } else {
-                /* duplicate name! */
-                status = false;
-            }
-        } else {
-            status = true;
-            pObject->Object_Name = new_name;
-            Device_Inc_Database_Revision();
-        }
+        status = true;
+        pObject->Object_Name = new_name;
     }
 
     return status;
@@ -827,7 +812,7 @@ bool Binary_Output_Active_Text_Set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Active_Text = new_name;
     }
@@ -869,7 +854,7 @@ bool Binary_Output_Inactive_Text_Set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Inactive_Text = new_name;
     }
@@ -926,11 +911,12 @@ bool Binary_Output_Encode_Value_List(
     bool status = false;
     struct object_data *pObject;
     const bool in_alarm = false;
-    const bool fault = false;
+    bool fault = false;
     const bool overridden = false;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        fault = Binary_Output_Object_Fault(pObject);
         status =
             cov_value_list_encode_enumerated(value_list, pObject->Present_Value,
                 in_alarm, fault, overridden, pObject->Out_Of_Service);
@@ -1132,29 +1118,19 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_TYPE:
-        case PROP_OBJECT_NAME:
-        case PROP_STATUS_FLAGS:
-        case PROP_EVENT_STATE:
-        case PROP_DESCRIPTION:
-        case PROP_POLARITY:
-        case PROP_RELIABILITY:
-        case PROP_ACTIVE_TEXT:
-        case PROP_INACTIVE_TEXT:
-#if (BACNET_PROTOCOL_REVISION >= 17)
-        case PROP_CURRENT_COMMAND_PRIORITY:
-#endif
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
     /* not using len at this time */
-    len = len;
+    (void)len;
 
     return status;
 }
@@ -1170,16 +1146,25 @@ void Binary_Output_Write_Present_Value_Callback_Set(
 }
 
 /**
- * @brief Determines a object write-enabled flag state
+ * @brief Creates a Binary Output object
  * @param object_instance - object-instance number of the object
- * @return  write-enabled status flag
+ * @return the object-instance that was created, or BACNET_MAX_INSTANCE
  */
-bool Binary_Output_Create(uint32_t object_instance)
+uint32_t Binary_Output_Create(uint32_t object_instance)
 {
-    bool status = false;
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        /* wildcard instance */
+        /* the Object_Identifier property of the newly created object
+            shall be initialized to a value that is unique within the
+            responding BACnet-user device. The method used to generate
+            the object identifier is a local matter.*/
+        object_instance = Keylist_Next_Empty_Key(Object_List, 1);
+    }
     pObject = Keylist_Data(Object_List, object_instance);
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
@@ -1193,14 +1178,16 @@ bool Binary_Output_Create(uint32_t object_instance)
             pObject->Changed = false;
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
-            if (index >= 0) {
-                status = true;
-                Device_Inc_Database_Revision();
+            if (index < 0) {
+                free(pObject);
+                return BACNET_MAX_INSTANCE;
             }
+        } else {
+            return BACNET_MAX_INSTANCE;
         }
     }
 
-    return status;
+    return object_instance;
 }
 
 /**
@@ -1215,7 +1202,6 @@ void Binary_Output_Cleanup(void)
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
                 free(pObject);
-                Device_Inc_Database_Revision();
             }
         } while (pObject);
         Keylist_Delete(Object_List);
@@ -1235,7 +1221,6 @@ bool Binary_Output_Delete(uint32_t object_instance)
     if (pObject) {
         free(pObject);
         status = true;
-        Device_Inc_Database_Revision();
     }
 
     return status;
