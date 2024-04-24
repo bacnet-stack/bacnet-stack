@@ -42,9 +42,11 @@ static void testBACnetLightingCommand(BACNET_LIGHTING_COMMAND *data)
     /* encode/decode */
     len = lighting_command_encode(apdu, data);
     apdu_len = lighting_command_decode(apdu, len, &test_data);
-    zassert_true(len > 0, "lighting-command[%s] failed to encode!",
+    zassert_true(
+        len > 0, "lighting-command[%s] failed to encode!",
         bactext_lighting_operation_name(data->operation));
-    zassert_true(apdu_len > 0, "lighting-command[%s] failed to decode!",
+    zassert_true(
+        apdu_len > 0, "lighting-command[%s] failed to decode!",
         bactext_lighting_operation_name(data->operation));
     status = lighting_command_same(&test_data, data);
     while (len) {
@@ -69,7 +71,8 @@ static void testBACnetLightingCommand(BACNET_LIGHTING_COMMAND *data)
     status = lighting_command_from_ascii(&test_data, command_text);
     zassert_true(status, NULL);
     status = lighting_command_same(&test_data, data);
-    zassert_true(status,  "lighting-command[%s] \"%s\" is different!",
+    zassert_true(
+        status, "lighting-command[%s] \"%s\" is different!",
         bactext_lighting_operation_name(data->operation), command_text);
 }
 
@@ -94,40 +97,41 @@ static void testBACnetLightingCommandAll(void)
     */
     BACNET_LIGHTING_COMMAND test_data[] = {
         { BACNET_LIGHTS_NONE, false, false, false, false, false, 0.0, 100.0,
-            1.0, 100, 1 },
+          1.0, 100, 1 },
         { BACNET_LIGHTS_FADE_TO, true, false, false, true, true, 100.0, 100.0,
-            1.0, 100, 1 },
+          1.0, 100, 1 },
         { BACNET_LIGHTS_FADE_TO, true, false, false, false, false, 0.0, 100.0,
-            1.0, 100, 1 },
+          1.0, 100, 1 },
         { BACNET_LIGHTS_RAMP_TO, true, true, false, false, true, 0.0, 100.0,
-            1.0, 100, 1 },
+          1.0, 100, 1 },
         { BACNET_LIGHTS_RAMP_TO, true, false, false, false, false, 100.0, 100.0,
-            1.0, 100, 1 },
+          1.0, 100, 1 },
         { BACNET_LIGHTS_STEP_UP, false, false, true, false, true, 100.0, 100.0,
-            1.0, 100, 1 },
+          1.0, 100, 1 },
         { BACNET_LIGHTS_STEP_UP, false, false, true, false, false, 100.0, 100.0,
-            2.0, 100, 1 },
+          2.0, 100, 1 },
         { BACNET_LIGHTS_STEP_DOWN, false, false, true, false, true, 100.0,
-            100.0, 1.0, 100, 1 },
+          100.0, 1.0, 100, 1 },
         { BACNET_LIGHTS_STEP_DOWN, false, false, true, false, false, 100.0,
-            100.0, 2.0, 100, 1 },
+          100.0, 2.0, 100, 1 },
         { BACNET_LIGHTS_STEP_ON, false, false, true, false, true, 100.0, 100.0,
-            1.0, 100, 1 },
+          1.0, 100, 1 },
         { BACNET_LIGHTS_STEP_ON, false, false, true, false, false, 100.0, 100.0,
-            2.0, 100, 1 },
+          2.0, 100, 1 },
         { BACNET_LIGHTS_STEP_OFF, false, false, true, false, true, 100.0, 100.0,
-            1.0, 100, 1 },
+          1.0, 100, 1 },
         { BACNET_LIGHTS_STEP_OFF, false, false, true, false, false, 100.0,
-            100.0, 2.0, 100, 1 },
+          100.0, 2.0, 100, 1 },
         { BACNET_LIGHTS_STOP, false, false, false, false, true, 100.0, 100.0,
-            1.0, 100, 1 },
+          1.0, 100, 1 },
         { BACNET_LIGHTS_STOP, false, false, false, false, false, 100.0, 100.0,
-            2.0, 100, 1 },
+          2.0, 100, 1 },
     };
     unsigned i;
 
     for (i = 0; i < ARRAY_SIZE(test_data); i++) {
-        printf("test-lighting-command[%s]\n",
+        printf(
+            "test-lighting-command[%s]\n",
             bactext_lighting_operation_name(test_data[i].operation));
         testBACnetLightingCommand(&test_data[i]);
     }
@@ -157,9 +161,11 @@ static void testBACnetColorCommand(BACNET_COLOR_COMMAND *data)
     zassert_true(status, NULL);
     len = color_command_encode(apdu, data);
     apdu_len = color_command_decode(apdu, len, &error_code, &test_data);
-    zassert_true(len > 0, "color-command[%s] failed to encode!",
+    zassert_true(
+        len > 0, "color-command[%s] failed to encode!",
         bactext_color_operation_name(data->operation));
-    zassert_true(apdu_len > 0, "color-command[%s] failed to decode!",
+    zassert_true(
+        apdu_len > 0, "color-command[%s] failed to decode!",
         bactext_color_operation_name(data->operation));
     status = color_command_same(&test_data, data);
     while (len) {
@@ -176,43 +182,43 @@ static void testBACnetColorCommandAll(void)
 {
     BACNET_COLOR_COMMAND test_data[] = {
         { .operation = BACNET_COLOR_OPERATION_NONE,
-            .target.color_temperature = 0,
-            .transit.fade_time = 0 },
+          .target.color_temperature = 0,
+          .transit.fade_time = 0 },
         { .operation = BACNET_COLOR_OPERATION_STOP,
-            .target.color_temperature = 0,
-            .transit.fade_time = 0 },
+          .target.color_temperature = 0,
+          .transit.fade_time = 0 },
         { .operation = BACNET_COLOR_OPERATION_FADE_TO_COLOR,
-            .target.color.x_coordinate = 0.0,
-            .target.color.y_coordinate = 0.0,
-            .transit.fade_time = 0 },
+          .target.color.x_coordinate = 0.0,
+          .target.color.y_coordinate = 0.0,
+          .transit.fade_time = 0 },
         { .operation = BACNET_COLOR_OPERATION_FADE_TO_COLOR,
-            .target.color.x_coordinate = 0.0,
-            .target.color.y_coordinate = 0.0,
-            .transit.fade_time = 2000 },
+          .target.color.x_coordinate = 0.0,
+          .target.color.y_coordinate = 0.0,
+          .transit.fade_time = 2000 },
         { .operation = BACNET_COLOR_OPERATION_FADE_TO_CCT,
-            .target.color_temperature = 1800,
-            .transit.fade_time = 0 },
+          .target.color_temperature = 1800,
+          .transit.fade_time = 0 },
         { .operation = BACNET_COLOR_OPERATION_FADE_TO_CCT,
-            .target.color_temperature = 1800,
-            .transit.fade_time = 2000 },
+          .target.color_temperature = 1800,
+          .transit.fade_time = 2000 },
         { .operation = BACNET_COLOR_OPERATION_RAMP_TO_CCT,
-            .target.color_temperature = 1800,
-            .transit.ramp_rate = 0 },
+          .target.color_temperature = 1800,
+          .transit.ramp_rate = 0 },
         { .operation = BACNET_COLOR_OPERATION_RAMP_TO_CCT,
-            .target.color_temperature = 1800,
-            .transit.ramp_rate = 20 },
+          .target.color_temperature = 1800,
+          .transit.ramp_rate = 20 },
         { .operation = BACNET_COLOR_OPERATION_STEP_UP_CCT,
-            .target.color_temperature = 1800,
-            .transit.step_increment = 0 },
+          .target.color_temperature = 1800,
+          .transit.step_increment = 0 },
         { .operation = BACNET_COLOR_OPERATION_STEP_UP_CCT,
-            .target.color_temperature = 1800,
-            .transit.step_increment = 1 },
+          .target.color_temperature = 1800,
+          .transit.step_increment = 1 },
         { .operation = BACNET_COLOR_OPERATION_STEP_DOWN_CCT,
-            .target.color_temperature = 5000,
-            .transit.step_increment = 0 },
+          .target.color_temperature = 5000,
+          .transit.step_increment = 0 },
         { .operation = BACNET_COLOR_OPERATION_STEP_DOWN_CCT,
-            .target.color_temperature = 5000,
-            .transit.step_increment = 1 },
+          .target.color_temperature = 5000,
+          .transit.step_increment = 1 },
     };
     unsigned i;
 
@@ -263,8 +269,8 @@ ZTEST_SUITE(lighting_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(lighting_tests,
-        ztest_unit_test(testBACnetLightingCommandAll),
+    ztest_test_suite(
+        lighting_tests, ztest_unit_test(testBACnetLightingCommandAll),
         ztest_unit_test(testBACnetColorCommandAll),
         ztest_unit_test(testBACnetXYColor));
 

@@ -20,7 +20,8 @@
  * @brief Decode stub for WriteProperty service
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR
  */
-static int wp_decode_apdu(uint8_t *apdu,
+static int wp_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_WRITE_PROPERTY_DATA *wpdata)
@@ -48,8 +49,8 @@ static int wp_decode_apdu(uint8_t *apdu,
     len = 4;
     apdu_len += len;
     if (apdu_len < apdu_size) {
-        len =
-            wp_decode_service_request(&apdu[apdu_len], apdu_size - apdu_len, wpdata);
+        len = wp_decode_service_request(
+            &apdu[apdu_len], apdu_size - apdu_len, wpdata);
         if (len > 0) {
             apdu_len += len;
         } else {
@@ -109,8 +110,9 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
     len = wp_encode_apdu(&apdu[0], invoke_id, &wpdata);
     apdu_len = wp_decode_apdu(&apdu[0], len, &test_invoke_id, &test_data);
     apdu_len = len;
-    len = bacapp_decode_application_data(test_data.application_data,
-        test_data.application_data_len, &test_value);
+    len = bacapp_decode_application_data(
+        test_data.application_data, test_data.application_data_len,
+        &test_value);
     zassert_equal(test_value.tag, value->tag, NULL);
     status = write_property_type_valid(&wpdata, value, test_value.tag);
     zassert_equal(status, true, NULL);
@@ -129,8 +131,8 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
                 test_value.type.Signed_Int, value->type.Signed_Int, NULL);
             break;
         case BACNET_APPLICATION_TAG_REAL:
-            zassert_false(islessgreater(test_value.type.Real, value->type.Real), 
-                NULL);
+            zassert_false(
+                islessgreater(test_value.type.Real, value->type.Real), NULL);
             break;
         case BACNET_APPLICATION_TAG_ENUMERATED:
             zassert_equal(
@@ -150,13 +152,16 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
                 test_value.type.Time.hour, value->type.Time.hour, NULL);
             zassert_equal(test_value.type.Time.min, value->type.Time.min, NULL);
             zassert_equal(test_value.type.Time.sec, value->type.Time.sec, NULL);
-            zassert_equal(test_value.type.Time.hundredths,
-                value->type.Time.hundredths, NULL);
+            zassert_equal(
+                test_value.type.Time.hundredths, value->type.Time.hundredths,
+                NULL);
             break;
         case BACNET_APPLICATION_TAG_OBJECT_ID:
-            zassert_equal(test_value.type.Object_Id.type,
-                value->type.Object_Id.type, NULL);
-            zassert_equal(test_value.type.Object_Id.instance,
+            zassert_equal(
+                test_value.type.Object_Id.type, value->type.Object_Id.type,
+                NULL);
+            zassert_equal(
+                test_value.type.Object_Id.instance,
                 value->type.Object_Id.instance, NULL);
             break;
         default:

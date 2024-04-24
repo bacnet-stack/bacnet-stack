@@ -57,28 +57,28 @@ void testPropList(void)
         property_list_special((BACNET_OBJECT_TYPE)i, &property_list);
         zassert_true(
             property_list_member(
-                property_list.Required.pList, PROP_OBJECT_TYPE), NULL);
+                property_list.Required.pList, PROP_OBJECT_TYPE),
+            NULL);
         zassert_true(
             property_list_member(
-                property_list.Required.pList, PROP_OBJECT_IDENTIFIER), NULL);
+                property_list.Required.pList, PROP_OBJECT_IDENTIFIER),
+            NULL);
         zassert_true(
             property_list_member(
-                property_list.Required.pList, PROP_OBJECT_NAME), NULL);
+                property_list.Required.pList, PROP_OBJECT_NAME),
+            NULL);
     }
 }
 /**
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(property_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(property_tests,
-     ztest_unit_test(testPropList)
-     );
+    ztest_test_suite(property_tests, ztest_unit_test(testPropList));
 
     ztest_run_test_suite(property_tests);
 }

@@ -38,12 +38,9 @@ static void testMultistateInput(void)
     test_object_instance = Multistate_Input_Index_To_Instance(0);
     zassert_equal(object_instance, test_object_instance, NULL);
     bacnet_object_properties_read_write_test(
-        OBJECT_MULTI_STATE_INPUT,
-        object_instance,
-        Multistate_Input_Property_Lists,
-        Multistate_Input_Read_Property,
-        Multistate_Input_Write_Property,
-        skip_fail_property_list);
+        OBJECT_MULTI_STATE_INPUT, object_instance,
+        Multistate_Input_Property_Lists, Multistate_Input_Read_Property,
+        Multistate_Input_Write_Property, skip_fail_property_list);
     status = Multistate_Input_Delete(object_instance);
     zassert_true(status, NULL);
 }
@@ -51,15 +48,12 @@ static void testMultistateInput(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(ms_input_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(ms_input_tests,
-     ztest_unit_test(testMultistateInput)
-     );
+    ztest_test_suite(ms_input_tests, ztest_unit_test(testMultistateInput));
 
     ztest_run_test_suite(ms_input_tests);
 }
