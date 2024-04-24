@@ -554,10 +554,12 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     len = encode_application_character_string(
                         &apdu[apdu_len], &char_string);
                         PRINTF("#### LEN FOR ENCODE %u \r\n", len);
+                        PRINTF("#### apdu len FOR ENCODE %u \r\n", apdu_len);
                     /* add it if we have room */
                     if ((apdu_len + len) < MAX_APDU) {
                         PRINTF("#### SUCCESS LEN %u \r\n", len);
                         apdu_len += len;
+                        PRINTF("#### apdu len SUCCES ENCODE %u \r\n", apdu_len);
                     } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
