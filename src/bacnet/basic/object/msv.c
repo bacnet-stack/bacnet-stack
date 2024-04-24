@@ -386,19 +386,15 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
     unsigned int option_index = 0;
     unsigned int i = 0;
     unsigned int j;
-    bool status = false;
 
     if((int) pInit_state_text_data->length > MSV_Max_Index) {
         PRINT("pInit_state_text_data->length = %d >= %d", (int) pInit_state_text_data->length, MSV_Max_Index);
         return false;
     }
 
-    status = true;
-
     for (i = 0; i <= MSV_Max_Index; i++) {
 
         if(i == MSV_Max_Index) {
-            status = true;
             break;
         }
 
@@ -412,7 +408,7 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
         option_index = j;
     }
 
-    return status;
+    return true;
 }
 
 bool Multistate_Value_Change_Of_Value(uint32_t object_instance)
@@ -563,8 +559,10 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        apdu_len = BACNET_STATUS_ABORT;
                         PRINTF("#### BREAK LEN %u \r\n", len);
+                        apdu_len += len;
+                        PRINTF("#### apdu len SUCCES ENCODE %u \r\n", apdu_len);
+                        apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
