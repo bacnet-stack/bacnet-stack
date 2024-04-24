@@ -409,10 +409,9 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
             break;
         }
 
-        for(j = option_index; j < pInit_state_text_data->length; j++) {
+        for(j = option_index; j < pInit_state_text_data->options_len; j++) {
 
             if(pInit_state_text_data->MSV_State_Text_Objects[j].state_text_option_index != i) {
-                option_index = j;
                 PRINTF("@@@@@@@@@@@@@@@@@ NEW OPTIONS %u \r\n", option_index);
                 break;
             }
@@ -422,6 +421,7 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
             PRINTF("@@@@@@@@@@@@@@@@@ I & STATE INDEX %u & %u \r\n", pInit_state_text_data->MSV_State_Text_Objects[j - option_index].state_text_option_index, i);
 
         }
+        option_index = j;
 
     }
 
