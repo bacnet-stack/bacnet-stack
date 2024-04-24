@@ -41,6 +41,7 @@ typedef struct MSV_State_Text_Init_Options {
 
 typedef struct MSV_State_Text_Options_List {
     uint32_t length;
+    unsigned int options_len;
     MSV_STATE_TEXT_INIT_OPTIONS MSV_State_Text_Objects[254];
 } MSV_STATE_TEXT_INIT_OPTIONS_LIST;
 
