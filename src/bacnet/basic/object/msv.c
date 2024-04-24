@@ -415,10 +415,10 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
                 PRINTF("@@@@@@@@@@@@@@@@@ NEW OPTIONS %u \r\n", option_index);
                 break;
             }
-            strncpy(State_Text[i][j - option_index], pInit_state_text_data->MSV_State_Text_Objects[j - option_index].option, sizeof(State_Text[i][j - option_index]));
+            strncpy(State_Text[i][j - option_index], pInit_state_text_data->MSV_State_Text_Objects[j].option, sizeof(State_Text[i][j]));
 
-            PRINTF("@@@@@@@@@@@@@@@@@ STATE INIT %s & %u \r\n", pInit_state_text_data->MSV_State_Text_Objects[j - option_index].option, j);
-            PRINTF("@@@@@@@@@@@@@@@@@ I & STATE INDEX %u & %u \r\n", pInit_state_text_data->MSV_State_Text_Objects[j - option_index].state_text_option_index, i);
+            PRINTF("@@@@@@@@@@@@@@@@@ STATE INIT %s & %u \r\n", pInit_state_text_data->MSV_State_Text_Objects[j].option, j);
+            PRINTF("@@@@@@@@@@@@@@@@@ I & STATE INDEX %u & %u \r\n", pInit_state_text_data->MSV_State_Text_Objects[j].state_text_option_index, i);
 
         }
         option_index = j;
