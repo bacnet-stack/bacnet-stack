@@ -66,12 +66,6 @@ static char State_Text[MAX_MULTISTATE_VALUES][MULTISTATE_NUMBER_OF_STATES][254];
 /* Here is out Instance */
 static uint32_t Instance[MAX_MULTISTATE_VALUES];
 
-//static MSV_STATE_TEXT_INIT_OPTIONS state_text[MAX_MULTISTATE_VALUES];
-//typedef struct state_text {
-//    char state_text_option_per_object[60][254];
-//} STATE_TEXT;
-
-//static STATE_TEXT MSV_state_text_options[MAX_MULTISTATE_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -380,17 +374,16 @@ bool Multistate_Value_State_Text_Set(
     return status;
 
 }
-
-// typedef struct state_text {
-//     char state_text_option_per_object[60][254];
-// } STATE_TEXT;
-
-// static STATE_TEXT MSV_state_text_options[MAX_MULTISTATE_VALUES];
-
+/**
+ * Initialize the Multistate Value State Text Inputs. Returns false if there are errors.
+ *
+ * @param pInit_state_text_data pointer to  state text initialisation values
+ *
+ * @return true/false
+ */
 bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pInit_state_text_data) {
 
     unsigned int option_index = 0;
-    /*unsigned int object_index;*/
     unsigned int i = 0;
     unsigned int j;
     bool status = false;
@@ -399,11 +392,11 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
         PRINT("pInit_state_text_data->length = %d >= %d", (int) pInit_state_text_data->length, MSV_Max_Index);
         return false;
     }
-    // NOT finished a second for loop may be needed
+
     status = true;
-    // MULTISTATE_NUMBER_OF_STATES
+
     for (i = 0; i <= MSV_Max_Index; i++) {
-          // 8
+
         if(i == MSV_Max_Index) {
             status = true;
             break;
@@ -412,17 +405,11 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
         for(j = option_index; j < pInit_state_text_data->options_len; j++) {
 
             if(pInit_state_text_data->MSV_State_Text_Objects[j].state_text_option_index != i) {
-                PRINTF("@@@@@@@@@@@@@@@@@ NEW OPTIONS %u \r\n", option_index);
                 break;
             }
             strncpy(State_Text[i][j - option_index], pInit_state_text_data->MSV_State_Text_Objects[j].option, sizeof(State_Text[i][j]));
-
-            PRINTF("@@@@@@@@@@@@@@@@@ STATE INIT %s & %u \r\n", pInit_state_text_data->MSV_State_Text_Objects[j].option, j);
-            PRINTF("@@@@@@@@@@@@@@@@@ I & STATE INDEX %u & %u \r\n", pInit_state_text_data->MSV_State_Text_Objects[j].state_text_option_index, i);
-
         }
         option_index = j;
-
     }
 
     return status;
@@ -566,13 +553,16 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     /* FIXME: this might go beyond MAX_APDU length! */
                     len = encode_application_character_string(
                         &apdu[apdu_len], &char_string);
+                        PRINTF("#### LEN FOR ENCODE %u \r\n", len);
                     /* add it if we have room */
                     if ((apdu_len + len) < MAX_APDU) {
+                        PRINTF("#### SUCCESS LEN %u \r\n", len);
                         apdu_len += len;
                     } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
+                        PRINTF("#### BREAK LEN %u \r\n", len);
                         break;
                     }
                 }
