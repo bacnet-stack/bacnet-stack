@@ -615,11 +615,11 @@ static bool dlenv_hub_connection_status_check(void)
     BACNET_SC_HUB_CONNECTION_STATUS *status;
 
     status = Network_Port_SC_Primary_Hub_Connection_Status(instance);
-    if (status && status->State == BACNET_CONNECTED)
+    if (status && status->State == BACNET_SC_CONNECTION_STATE_CONNECTED)
         return true;
 
     status = Network_Port_SC_Failover_Hub_Connection_Status(instance);
-    if (status && status->State == BACNET_CONNECTED)
+    if (status && status->State == BACNET_SC_CONNECTION_STATE_CONNECTED)
         return true;
 
     return false;

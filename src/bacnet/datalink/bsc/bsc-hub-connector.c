@@ -36,7 +36,8 @@ typedef enum {
     BSC_HUB_CONN_FAILOVER = 1
 } BSC_HUB_CONN_TYPE;
 
-static void hub_connector_socket_event(BSC_SOCKET *c,
+static void hub_connector_socket_event(
+    BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
@@ -79,15 +80,16 @@ static BSC_HUB_CONNECTOR bsc_hub_connector[BSC_CONF_HUB_CONNECTORS_NUM] = { 0 };
 static BSC_HUB_CONNECTOR *bsc_hub_connector = NULL;
 #endif
 
-static BSC_SOCKET_CTX_FUNCS bsc_hub_connector_ctx_funcs = { NULL, NULL,
-    hub_connector_socket_event, hub_connector_context_event, NULL };
+static BSC_SOCKET_CTX_FUNCS bsc_hub_connector_ctx_funcs = {
+    NULL, NULL, hub_connector_socket_event, hub_connector_context_event, NULL
+};
 
 static void hub_connector_reset_status(BACNET_SC_HUB_CONNECTION_STATUS *s)
 {
     /* set timestamps to unspecified values */
     memset(&s->Connect_Timestamp, 0xFF, sizeof(s->Connect_Timestamp));
     memset(&s->Disconnect_Timestamp, 0xFF, sizeof(s->Disconnect_Timestamp));
-    s->Error = ERROR_CODE_OTHER;
+    s->Error = ERROR_CODE_DEFAULT;
     s->Error_Details[0] = 0;
 }
 
@@ -115,16 +117,19 @@ static void hub_connector_free(BSC_HUB_CONNECTOR *c)
     c->used = false;
 }
 
-static void hub_conector_update_status(BACNET_SC_HUB_CONNECTION_STATUS *s,
+static void hub_conector_update_status(
+    BACNET_SC_HUB_CONNECTION_STATUS *s,
     BACNET_SC_CONNECTION_STATE state,
     BACNET_ERROR_CODE err,
     const char *err_desc)
 {
     s->State = state;
-    if (state == BACNET_NOT_CONNECTED ||
-        state == BACNET_DISCONNECTED_WITH_ERRORS) {
+    if (state == BACNET_SC_CONNECTION_STATE_NOT_CONNECTED ||
+        state == BACNET_SC_CONNECTION_STATE_DISCONNECTED_WITH_ERRORS) {
         bsc_set_timestamp(&s->Disconnect_Timestamp);
-    } else if (state == BACNET_CONNECTED || state == BACNET_FAILED_TO_CONNECT) {
+    } else if (
+        state == BACNET_SC_CONNECTION_STATE_CONNECTED ||
+        state == BACNET_SC_CONNECTION_STATE_FAILED_TO_CONNECT) {
         bsc_set_timestamp(&s->Connect_Timestamp);
     }
     s->Error = err;
@@ -158,8 +163,9 @@ static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
 
 #if DEBUG_ENABLED == 1
     if (ret != BSC_SC_SUCCESS) {
-        DEBUG_PRINTF("hub_connector_connect() got error while "
-                     "connecting to hub type %d, err = %d\n",
+        DEBUG_PRINTF(
+            "hub_connector_connect() got error while "
+            "connecting to hub type %d, err = %d\n",
             type, ret);
     }
 #endif
@@ -188,7 +194,8 @@ void bsc_hub_connector_maintenance_timer(uint16_t seconds)
     bws_dispatch_unlock();
 }
 
-static void hub_connector_socket_event(BSC_SOCKET *c,
+static void hub_connector_socket_event(
+    BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BACNET_ERROR_CODE disconnect_reason,
     const char *disconnect_reason_desc,
@@ -197,34 +204,42 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     BSC_HUB_CONNECTOR *hc;
-    BACNET_SC_CONNECTION_STATE st = BACNET_DISCONNECTED_WITH_ERRORS;
+    BACNET_SC_CONNECTION_STATE st =
+        BACNET_SC_CONNECTION_STATE_DISCONNECTED_WITH_ERRORS;
 
     bws_dispatch_lock();
     hc = (BSC_HUB_CONNECTOR *)c->ctx->user_arg;
-    DEBUG_PRINTF("hub_connector_socket_event() >>> hub_connector = %p, socket "
-                 "= %p, ev = %d, reason = %d, reason_desc = %p,"
-                 "pdu = %p, pdu_len = %d\n",
+    DEBUG_PRINTF(
+        "hub_connector_socket_event() >>> hub_connector = %p, socket "
+        "= %p, ev = %d, reason = %d, reason_desc = %p,"
+        "pdu = %p, pdu_len = %d\n",
         hc, c, ev, disconnect_reason, disconnect_reason_desc, pdu, pdu_len);
     DEBUG_PRINTF("hub_connector_socket_event() state = %d\n", hc->state);
     if (ev == BSC_SOCKET_EVENT_CONNECTED) {
         if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
-            DEBUG_PRINTF("hub_connector_socket_event() hub_connector = %p "
-                         "connected primary\n",
+            DEBUG_PRINTF(
+                "hub_connector_socket_event() hub_connector = %p "
+                "connected primary\n",
                 hc);
             hc->state = BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY;
             hub_conector_update_status(
-                &hc->primary_status, BACNET_CONNECTED, ERROR_CODE_OTHER, NULL);
-            hc->event_func(BSC_HUBC_EVENT_CONNECTED_PRIMARY, hc, hc->user_arg,
-                NULL, 0, NULL);
+                &hc->primary_status, BACNET_SC_CONNECTION_STATE_CONNECTED,
+                ERROR_CODE_DEFAULT, NULL);
+            hc->event_func(
+                BSC_HUBC_EVENT_CONNECTED_PRIMARY, hc, hc->user_arg, NULL, 0,
+                NULL);
         } else if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER) {
-            DEBUG_PRINTF("hub_connector_socket_event() hub_connector = %p "
-                         "connected failover\n",
+            DEBUG_PRINTF(
+                "hub_connector_socket_event() hub_connector = %p "
+                "connected failover\n",
                 hc);
             hc->state = BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER;
             hub_conector_update_status(
-                &hc->failover_status, BACNET_CONNECTED, ERROR_CODE_OTHER, NULL);
-            hc->event_func(BSC_HUBC_EVENT_CONNECTED_FAILOVER, hc, hc->user_arg,
-                NULL, 0, NULL);
+                &hc->failover_status, BACNET_SC_CONNECTION_STATE_CONNECTED,
+                ERROR_CODE_DEFAULT, NULL);
+            hc->event_func(
+                BSC_HUBC_EVENT_CONNECTED_FAILOVER, hc, hc->user_arg, NULL, 0,
+                NULL);
         }
     } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
         if (disconnect_reason == ERROR_CODE_NODE_DUPLICATE_VMAC &&
@@ -232,56 +247,65 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
             DEBUG_PRINTF("hub_connector_socket_event() "
                          "got ERROR_CODE_NODE_DUPLICATE_VMAC error\n");
             if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
-                hub_conector_update_status(&hc->primary_status,
-                    BACNET_FAILED_TO_CONNECT, disconnect_reason,
-                    disconnect_reason_desc);
-            } else if (hc->state ==
-                BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER) {
-                hub_conector_update_status(&hc->failover_status,
-                    BACNET_FAILED_TO_CONNECT, disconnect_reason,
-                    disconnect_reason_desc);
+                hub_conector_update_status(
+                    &hc->primary_status,
+                    BACNET_SC_CONNECTION_STATE_FAILED_TO_CONNECT,
+                    disconnect_reason, disconnect_reason_desc);
+            } else if (
+                hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER) {
+                hub_conector_update_status(
+                    &hc->failover_status,
+                    BACNET_SC_CONNECTION_STATE_FAILED_TO_CONNECT,
+                    disconnect_reason, disconnect_reason_desc);
             }
             hc->state = BSC_HUB_CONNECTOR_STATE_DUPLICATED_VMAC;
-            hc->event_func(BSC_HUBC_EVENT_ERROR_DUPLICATED_VMAC, hc,
-                hc->user_arg, NULL, 0, NULL);
+            hc->event_func(
+                BSC_HUBC_EVENT_ERROR_DUPLICATED_VMAC, hc, hc->user_arg, NULL, 0,
+                NULL);
         } else if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
             DEBUG_PRINTF("hub_connector_socket_event() try to connect to "
                          "failover hub\n");
-            hub_conector_update_status(&hc->primary_status,
-                BACNET_FAILED_TO_CONNECT, disconnect_reason,
+            hub_conector_update_status(
+                &hc->primary_status,
+                BACNET_SC_CONNECTION_STATE_FAILED_TO_CONNECT, disconnect_reason,
                 disconnect_reason_desc);
             hub_connector_connect(hc, BSC_HUB_CONN_FAILOVER);
         } else if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER) {
-            DEBUG_PRINTF("hub_connector_socket_event() wait for %d seconds\n",
+            DEBUG_PRINTF(
+                "hub_connector_socket_event() wait for %d seconds\n",
                 hc->reconnect_timeout_s);
-            hub_conector_update_status(&hc->failover_status,
-                BACNET_FAILED_TO_CONNECT, disconnect_reason,
+            hub_conector_update_status(
+                &hc->failover_status,
+                BACNET_SC_CONNECTION_STATE_FAILED_TO_CONNECT, disconnect_reason,
                 disconnect_reason_desc);
             hc->state = BSC_HUB_CONNECTOR_STATE_WAIT_FOR_RECONNECT;
             mstimer_set(&hc->t, hc->reconnect_timeout_s * 1000);
-        } else if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY ||
+        } else if (
+            hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY ||
             hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER) {
             if (disconnect_reason == ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER ||
                 disconnect_reason == ERROR_CODE_SUCCESS) {
-                st = BACNET_NOT_CONNECTED;
+                st = BACNET_SC_CONNECTION_STATE_NOT_CONNECTED;
             }
             if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY) {
                 hub_conector_update_status(
-                    &hc->primary_status, st, ERROR_CODE_OTHER, NULL);
+                    &hc->primary_status, st, ERROR_CODE_DEFAULT, NULL);
             } else {
                 hub_conector_update_status(
-                    &hc->failover_status, st, ERROR_CODE_OTHER, NULL);
+                    &hc->failover_status, st, ERROR_CODE_DEFAULT, NULL);
             }
             DEBUG_PRINTF(
                 "hub_connector_socket_event() try to connect to primary hub\n");
             hub_connector_connect(hc, BSC_HUB_CONN_PRIMARY);
         }
     } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {
-        DEBUG_PRINTF("hub_connector_socket_event() hub_connector = %p pdu of "
-                     "%d len is received\n",
+        DEBUG_PRINTF(
+            "hub_connector_socket_event() hub_connector = %p pdu of "
+            "%d len is received\n",
             hc, pdu_len);
-        hc->event_func(BSC_HUBC_EVENT_RECEIVED, hc, hc->user_arg, pdu,
-            pdu_len, decoded_pdu);
+        hc->event_func(
+            BSC_HUBC_EVENT_RECEIVED, hc, hc->user_arg, pdu, pdu_len,
+            decoded_pdu);
     }
     bws_dispatch_unlock();
     DEBUG_PRINTF("hub_connector_socket_event() <<<\n");
@@ -309,7 +333,8 @@ static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
     DEBUG_PRINTF("hub_connector_context_event() <<<\n");
 }
 
-BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
+BSC_SC_RET bsc_hub_connector_start(
+    uint8_t *ca_cert_chain,
     size_t ca_cert_chain_size,
     uint8_t *cert_chain,
     size_t cert_chain_size,
@@ -370,17 +395,20 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
 
     c->event_func = event_func;
 
-    bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &c->cfg,
-        BSC_WEBSOCKET_HUB_PROTOCOL, 0, NULL, ca_cert_chain, ca_cert_chain_size,
-        cert_chain, cert_chain_size, key, key_size, local_uuid, local_vmac,
-        max_local_bvlc_len, max_local_npdu_len, connect_timeout_s,
-        heartbeat_timeout_s, disconnect_timeout_s);
+    bsc_init_ctx_cfg(
+        BSC_SOCKET_CTX_INITIATOR, &c->cfg, BSC_WEBSOCKET_HUB_PROTOCOL, 0, NULL,
+        ca_cert_chain, ca_cert_chain_size, cert_chain, cert_chain_size, key,
+        key_size, local_uuid, local_vmac, max_local_bvlc_len,
+        max_local_npdu_len, connect_timeout_s, heartbeat_timeout_s,
+        disconnect_timeout_s);
 
-    DEBUG_PRINTF("bsc_hub_connector_start() uuid = %s, vmac = %s\n",
+    DEBUG_PRINTF(
+        "bsc_hub_connector_start() uuid = %s, vmac = %s\n",
         bsc_uuid_to_string(&c->cfg.local_uuid),
         bsc_vmac_to_string(&c->cfg.local_vmac));
 
-    ret = bsc_init_ctx(&c->ctx, &c->cfg, &bsc_hub_connector_ctx_funcs, c->sock,
+    ret = bsc_init_ctx(
+        &c->ctx, &c->cfg, &bsc_hub_connector_ctx_funcs, c->sock,
         sizeof(c->sock) / sizeof(BSC_SOCKET), (void *)c);
 
     if (ret == BSC_SC_SUCCESS) {
@@ -403,7 +431,8 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
                 DEBUG_PRINTF(
                     "bsc_hub_connector_start() hub = %p connecting to url %s\n",
                     c, c->primary_url);
-                ret = bsc_connect(&c->ctx, &c->sock[BSC_HUB_CONN_FAILOVER],
+                ret = bsc_connect(
+                    &c->ctx, &c->sock[BSC_HUB_CONN_FAILOVER],
                     (char *)c->failover_url);
                 if (ret != BSC_SC_SUCCESS) {
                     c->state = BSC_HUB_CONNECTOR_STATE_IDLE;
@@ -442,8 +471,8 @@ void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
     DEBUG_PRINTF("bsc_hub_connector_stop() <<<\n");
 }
 
-BSC_SC_RET bsc_hub_connector_send(
-    BSC_HUB_CONNECTOR_HANDLE h, uint8_t *pdu, size_t pdu_len)
+BSC_SC_RET
+bsc_hub_connector_send(BSC_HUB_CONNECTOR_HANDLE h, uint8_t *pdu, size_t pdu_len)
 {
     BSC_SC_RET ret;
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
@@ -460,9 +489,10 @@ BSC_SC_RET bsc_hub_connector_send(
     }
     if (c->state == BSC_HUB_CONNECTOR_STATE_IDLE ||
         (c->state != BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY &&
-            c->state != BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER)) {
-        DEBUG_PRINTF("bsc_hub_connector_send() pdu is dropped, state of "
-                     "hub_connector %p is %d\n",
+         c->state != BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER)) {
+        DEBUG_PRINTF(
+            "bsc_hub_connector_send() pdu is dropped, state of "
+            "hub_connector %p is %d\n",
             c, c->state);
         DEBUG_PRINTF(
             "bsc_hub_connector_send() <<< ret = BSC_SC_INVALID_OPERATION\n");
@@ -494,8 +524,8 @@ bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h)
     return ret;
 }
 
-BACNET_SC_HUB_CONNECTION_STATUS *bsc_hub_connector_status(
-    BSC_HUB_CONNECTOR_HANDLE h, bool primary)
+BACNET_SC_HUB_CONNECTION_STATUS *
+bsc_hub_connector_status(BSC_HUB_CONNECTOR_HANDLE h, bool primary)
 {
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
     BACNET_SC_HUB_CONNECTION_STATUS *ret = NULL;
@@ -511,17 +541,18 @@ BACNET_SC_HUB_CONNECTION_STATUS *bsc_hub_connector_status(
     return ret;
 }
 
-BACNET_SC_HUB_CONNECTOR_STATE bsc_hub_connector_state(
-    BSC_HUB_CONNECTOR_HANDLE h)
+BACNET_SC_HUB_CONNECTOR_STATE
+bsc_hub_connector_state(BSC_HUB_CONNECTOR_HANDLE h)
 {
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
-    BACNET_SC_HUB_CONNECTOR_STATE ret = BACNET_NO_HUB_CONNECTION;
+    BACNET_SC_HUB_CONNECTOR_STATE ret =
+        BACNET_SC_HUB_CONNECTOR_STATE_NO_HUB_CONNECTION;
     bws_dispatch_lock();
     if (c) {
         if (c->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY) {
-            ret = BACNET_CONNECTED_TO_PRIMARY;
+            ret = BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_PRIMARY;
         } else if (c->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER) {
-            ret = BACNET_CONNECTED_TO_FAILOVER;
+            ret = BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_FAILOVER;
         }
     }
     bws_dispatch_unlock();

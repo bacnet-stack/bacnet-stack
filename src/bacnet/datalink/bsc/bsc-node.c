@@ -464,8 +464,8 @@ static void bsc_node_process_received(BSC_NODE *node,
                 bsc_get_next_message_id(), NULL, decoded_pdu->hdr.origin,
                 bsc_hub_connector_state(node->hub_connector),
                 node_switch_enabled(node->conf)
-                    ? BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_SUPPORTED
-                    : BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_UNSUPPORTED,
+                    ? BVLC_SC_DIRECT_CONNECTION_ACCEPT_SUPPORTED
+                    : BVLC_SC_DIRECT_CONNECTION_ACCEPT_UNSUPPORTED,
                 node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len);
             if (bufsize) {
                 ret = bsc_node_send(node, buf, bufsize);
@@ -1005,7 +1005,7 @@ bool bsc_node_direct_connection_established(
 BACNET_SC_HUB_CONNECTOR_STATE
 bsc_node_hub_connector_state(BSC_NODE *node)
 {
-    BACNET_SC_HUB_CONNECTOR_STATE ret = BACNET_NO_HUB_CONNECTION;
+    BACNET_SC_HUB_CONNECTOR_STATE ret = BACNET_SC_HUB_CONNECTOR_STATE_NO_HUB_CONNECTION;
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED) {
         ret = bsc_hub_connector_state(node->hub_connector);
@@ -1158,7 +1158,7 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
        non connected status */
 
     for (i = 0; i < BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM; i++) {
-        if (node->direct_status[i].State != BACNET_CONNECTED &&
+        if (node->direct_status[i].State != BACNET_SC_CONNECTION_STATE_CONNECTED &&
             datetime_is_valid(&node->direct_status[i].Disconnect_Timestamp.date,
                 &node->direct_status[i].Disconnect_Timestamp.time)) {
             if (index == -1 ||
@@ -1216,7 +1216,7 @@ BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_find_hub_status_for_vmac(
        non connected status */
 
     for (i = 0; i < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; i++) {
-        if (node->hub_status[i].State != BACNET_CONNECTED &&
+        if (node->hub_status[i].State != BACNET_SC_CONNECTION_STATE_CONNECTED &&
             datetime_is_valid(&node->hub_status[i].Disconnect_Timestamp.date,
                 &node->hub_status[i].Disconnect_Timestamp.time)) {
             if (index == -1 ||

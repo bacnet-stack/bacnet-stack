@@ -484,7 +484,7 @@ bool Network_Port_SC_Heartbeat_Timeout_Dirty_Set(
 BACNET_SC_HUB_CONNECTOR_STATE Network_Port_SC_Hub_Connector_State(
     uint32_t object_instance)
 {
-    BACNET_SC_HUB_CONNECTOR_STATE state = BACNET_NO_HUB_CONNECTION;
+    BACNET_SC_HUB_CONNECTOR_STATE state = BACNET_SC_HUB_CONNECTOR_STATE_NO_HUB_CONNECTION;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
 
     if (params)
