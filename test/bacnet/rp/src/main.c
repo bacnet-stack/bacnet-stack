@@ -20,7 +20,8 @@
 /**
  * @brief Test
  */
-static int rp_decode_apdu(uint8_t *apdu,
+static int rp_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_READ_PROPERTY_DATA *rpdata)
@@ -58,7 +59,8 @@ static int rp_decode_apdu(uint8_t *apdu,
     return apdu_len;
 }
 
-static int rp_ack_decode_apdu(uint8_t *apdu,
+static int rp_ack_decode_apdu(
+    uint8_t *apdu,
     int apdu_size,
     uint8_t *invoke_id,
     BACNET_READ_PROPERTY_DATA *rpdata)
@@ -209,7 +211,8 @@ ZTEST_SUITE(rp_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(rp_tests, ztest_unit_test(testReadProperty),
+    ztest_test_suite(
+        rp_tests, ztest_unit_test(testReadProperty),
         ztest_unit_test(testReadPropertyAck));
 
     ztest_run_test_suite(rp_tests);

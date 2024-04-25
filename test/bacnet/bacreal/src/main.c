@@ -60,16 +60,14 @@ static void testBACdouble(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(bacreal_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacreal_tests,
-     ztest_unit_test(testBACreal),
-     ztest_unit_test(testBACdouble)
-     );
+    ztest_test_suite(
+        bacreal_tests, ztest_unit_test(testBACreal),
+        ztest_unit_test(testBACdouble));
 
     ztest_run_test_suite(bacreal_tests);
 }

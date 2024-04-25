@@ -54,32 +54,43 @@ static void testAlarmAck(void)
 
     zassert_equal(inLen, outLen, "inlen=%d outlen=%d", inLen, outLen);
 
-    zassert_equal(testAlarmAckIn.ackProcessIdentifier,
+    zassert_equal(
+        testAlarmAckIn.ackProcessIdentifier,
         testAlarmAckOut.ackProcessIdentifier, NULL);
 
-    zassert_equal(testAlarmAckIn.ackTimeStamp.tag,
-        testAlarmAckOut.ackTimeStamp.tag, "in-tag=%d out-tag=%d",
-        testAlarmAckIn.ackTimeStamp.tag, testAlarmAckOut.ackTimeStamp.tag);
-    zassert_equal(testAlarmAckIn.ackTimeStamp.value.sequenceNum,
+    zassert_equal(
+        testAlarmAckIn.ackTimeStamp.tag, testAlarmAckOut.ackTimeStamp.tag,
+        "in-tag=%d out-tag=%d", testAlarmAckIn.ackTimeStamp.tag,
+        testAlarmAckOut.ackTimeStamp.tag);
+    zassert_equal(
+        testAlarmAckIn.ackTimeStamp.value.sequenceNum,
         testAlarmAckOut.ackTimeStamp.value.sequenceNum, NULL);
 
-    zassert_equal(testAlarmAckIn.ackProcessIdentifier,
+    zassert_equal(
+        testAlarmAckIn.ackProcessIdentifier,
         testAlarmAckOut.ackProcessIdentifier, NULL);
 
-    zassert_equal(testAlarmAckIn.eventObjectIdentifier.instance,
+    zassert_equal(
+        testAlarmAckIn.eventObjectIdentifier.instance,
         testAlarmAckOut.eventObjectIdentifier.instance, NULL);
-    zassert_equal(testAlarmAckIn.eventObjectIdentifier.type,
+    zassert_equal(
+        testAlarmAckIn.eventObjectIdentifier.type,
         testAlarmAckOut.eventObjectIdentifier.type, NULL);
 
-    zassert_equal(testAlarmAckIn.eventTimeStamp.tag,
-        testAlarmAckOut.eventTimeStamp.tag, NULL);
-    zassert_equal(testAlarmAckIn.eventTimeStamp.value.time.hour,
+    zassert_equal(
+        testAlarmAckIn.eventTimeStamp.tag, testAlarmAckOut.eventTimeStamp.tag,
+        NULL);
+    zassert_equal(
+        testAlarmAckIn.eventTimeStamp.value.time.hour,
         testAlarmAckOut.eventTimeStamp.value.time.hour, NULL);
-    zassert_equal(testAlarmAckIn.eventTimeStamp.value.time.min,
+    zassert_equal(
+        testAlarmAckIn.eventTimeStamp.value.time.min,
         testAlarmAckOut.eventTimeStamp.value.time.min, NULL);
-    zassert_equal(testAlarmAckIn.eventTimeStamp.value.time.sec,
+    zassert_equal(
+        testAlarmAckIn.eventTimeStamp.value.time.sec,
         testAlarmAckOut.eventTimeStamp.value.time.sec, NULL);
-    zassert_equal(testAlarmAckIn.eventTimeStamp.value.time.hundredths,
+    zassert_equal(
+        testAlarmAckIn.eventTimeStamp.value.time.hundredths,
         testAlarmAckOut.eventTimeStamp.value.time.hundredths, NULL);
 
     zassert_equal(

@@ -18,7 +18,8 @@
 #include "bacnet/get_alarm_sum.h"
 #include "bacnet/npdu.h"
 
-bool datetime_local(BACNET_DATE *bdate,
+bool datetime_local(
+    BACNET_DATE *bdate,
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active)

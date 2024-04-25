@@ -19,8 +19,9 @@
 /**
  * @brief Test
  */
-static INDTEXT_DATA data_list[] = { { 1, "Joshua" }, { 2, "Mary" },
-    { 3, "Anna" }, { 4, "Christopher" }, { 5, "Patricia" }, { 0, NULL } };
+static INDTEXT_DATA data_list[] = { { 1, "Joshua" },   { 2, "Mary" },
+                                    { 3, "Anna" },     { 4, "Christopher" },
+                                    { 5, "Patricia" }, { 0, NULL } };
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(indtext_tests, testIndexText)
@@ -42,7 +43,8 @@ static void testIndexText(void)
             zassert_true(valid, NULL);
             zassert_equal(index, i, NULL);
             zassert_equal(
-                index, indtext_by_string_default(data_list, pString, index), NULL);
+                index, indtext_by_string_default(data_list, pString, index),
+                NULL);
         }
     }
     zassert_equal(indtext_count(data_list), count, NULL);
@@ -63,15 +65,12 @@ static void testIndexText(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(indtext_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(indtext_tests,
-     ztest_unit_test(testIndexText)
-     );
+    ztest_test_suite(indtext_tests, ztest_unit_test(testIndexText));
 
     ztest_run_test_suite(indtext_tests);
 }
