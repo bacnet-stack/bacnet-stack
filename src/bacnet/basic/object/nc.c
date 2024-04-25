@@ -486,6 +486,83 @@ void Notification_Class_Get_Priorities(
         pPriorityArray[i] = CurrentNotify->Priority[i];
 }
 
+bool Notification_Class_Get_Recipient_List(
+    uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList)
+{
+  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+  if (object_index < MAX_NOTIFICATION_CLASSES) {
+    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    int i;
+
+    for (i = 0; i < NC_MAX_RECIPIENTS; i++)
+      pRecipientList[i] = CurrentNotify->Recipient_List[i];
+  } else {
+    return false; /* unknown object */
+  }
+
+  return true;
+}
+
+bool Notification_Class_Set_Recipient_List(
+    uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList)
+{
+  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+  if (object_index < MAX_NOTIFICATION_CLASSES) {
+    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    int i;
+
+    for (i = 0; i < NC_MAX_RECIPIENTS; i++)
+      CurrentNotify->Recipient_List[i] = pRecipientList[i];
+  } else {
+    return false; /* unknown object */
+  }
+
+  return true;
+}
+
+void Notification_Class_Set_Priorities(
+    uint32_t Object_Instance, uint32_t *pPriorityArray)
+{
+  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+  if (object_index < MAX_NOTIFICATION_CLASSES) {
+    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    int i;
+
+    for (i = 0; i < 3; i++)
+      if (pPriorityArray[i] <= 255)
+        CurrentNotify->Priority[i] = pPriorityArray[i];
+  }
+}
+
+void Notification_Class_Get_Ack_Required(
+    uint32_t Object_Instance, uint8_t *pAckRequired)
+{
+    uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+    if (object_index < MAX_NOTIFICATION_CLASSES) {
+      NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+      *pAckRequired = CurrentNotify->Ack_Required;
+    } else {
+        *pAckRequired = 0;
+        return; /* unknown object */
+    }
+}
+
+void Notification_Class_Set_Ack_Required(
+    uint32_t Object_Instance, uint8_t Ack_Required)
+{
+    uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+    if (object_index < MAX_NOTIFICATION_CLASSES) {
+        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+        CurrentNotify->Ack_Required = Ack_Required;
+    }
+}
+
+
 static bool IsRecipientActive(
     BACNET_DESTINATION *pBacDest, uint8_t EventToState)
 {
@@ -496,20 +573,20 @@ static bool IsRecipientActive(
         case EVENT_STATE_OFFNORMAL:
         case EVENT_STATE_HIGH_LIMIT:
         case EVENT_STATE_LOW_LIMIT:
-            if (bitstring_bit(
+            if (!bitstring_bit(
                     &pBacDest->Transitions, TRANSITION_TO_OFFNORMAL)) {
                 return false;
             }
             break;
 
         case EVENT_STATE_FAULT:
-            if (bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_FAULT)) {
+            if (!bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_FAULT)) {
                 return false;
             }
             break;
 
         case EVENT_STATE_NORMAL:
-            if (bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_NORMAL)) {
+            if (!bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_NORMAL)) {
                 return false;
             }
             break;
@@ -526,12 +603,14 @@ static bool IsRecipientActive(
         return false;
     }
     /* valid FromTime */
-    if (datetime_compare_time(&DateTime.time, &pBacDest->FromTime) < 0)
+    if (datetime_compare_time(&DateTime.time, &pBacDest->FromTime) < 0) {
         return false;
+    }
 
     /* valid ToTime */
-    if (datetime_compare_time(&pBacDest->ToTime, &DateTime.time) < 0)
+    if (datetime_compare_time(&pBacDest->ToTime, &DateTime.time) < 0) {
         return false;
+    }
 
     return true;
 }
