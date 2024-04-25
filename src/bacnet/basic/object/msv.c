@@ -555,7 +555,6 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        apdu_len += len;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
