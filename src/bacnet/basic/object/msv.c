@@ -372,8 +372,8 @@ bool Multistate_Value_State_Text_Set(
     }
 
     return status;
-
 }
+
 /**
  * Initialize the Multistate Value State Text Inputs. Returns false if there are errors.
  *
