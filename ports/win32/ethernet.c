@@ -59,8 +59,9 @@
 #include "remote-ext.h"
 
 /* commonly used comparison address for ethernet */
-uint8_t Ethernet_Broadcast[MAX_MAC_LEN] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF };
+uint8_t Ethernet_Broadcast[MAX_MAC_LEN] = {
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+};
 /* commonly used empty address for ethernet quick compare */
 uint8_t Ethernet_Empty_MAC[MAX_MAC_LEN] = { 0, 0, 0, 0, 0, 0 };
 
@@ -134,7 +135,7 @@ bool ethernet_init(char *if_name)
     BOOLEAN result;
     CHAR str[sizeof(PACKET_OID_DATA) + 128];
     int i;
-    char msgBuf[200];
+    char msg[200];
 
     if (ethernet_valid())
         ethernet_cleanup();
@@ -144,9 +145,10 @@ bool ethernet_init(char *if_name)
      */
     /* Retrieve the device list */
     if (pcap_findalldevs(&pcap_all_if, pcap_errbuf) == -1) {
-        sprintf(
-            msgBuf, "ethernet.c: error in pcap_findalldevs: %s\n", pcap_errbuf);
-        LogError(msgBuf);
+        snprintf(
+            msg, sizeof(msg), "ethernet.c: error in pcap_findalldevs: %s\n",
+            pcap_errbuf);
+        LogError(msg);
         return false;
     }
     /* Scan the list printing every entry */
@@ -156,9 +158,10 @@ bool ethernet_init(char *if_name)
     }
     pcap_freealldevs(pcap_all_if); /* we don't need it anymore */
     if (dev == NULL) {
-        sprintf(
-            msgBuf, "ethernet.c: specified interface not found: %s\n", if_name);
-        LogError(msgBuf);
+        snprintf(
+            msg, sizeof(msg), "ethernet.c: specified interface not found: %s\n",
+            if_name);
+        LogError(msg);
         return false;
     }
 
@@ -169,9 +172,10 @@ bool ethernet_init(char *if_name)
     lpAdapter = PacketOpenAdapter(if_name);
     if (lpAdapter == NULL) {
         ethernet_cleanup();
-        sprintf(msgBuf, "ethernet.c: error in PacketOpenAdapter(\"%s\")\n",
-            if_name);
-        LogError(msgBuf);
+        snprintf(
+            msg, sizeof(msg),
+            "ethernet.c: error in PacketOpenAdapter(\"%s\")\n", if_name);
+        LogError(msg);
         return false;
     }
     pOidData = (PPACKET_OID_DATA)str;
@@ -192,7 +196,8 @@ bool ethernet_init(char *if_name)
      * Open interface for subsequent sending and receiving
      */
     /* Open the output device */
-    pcap_eth802_fp = pcap_open(if_name, /* name of the device */
+    pcap_eth802_fp = pcap_open(
+        if_name, /* name of the device */
         ETHERNET_MPDU_MAX, /* portion of the packet to capture */
         PCAP_OPENFLAG_PROMISCUOUS, /* promiscuous mode */
         eth_timeout, /* read timeout */
@@ -202,11 +207,12 @@ bool ethernet_init(char *if_name)
     if (pcap_eth802_fp == NULL) {
         PacketCloseAdapter(lpAdapter);
         ethernet_cleanup();
-        sprintf(msgBuf,
+        snprintf(
+            msg, sizeof(msg),
             "ethernet.c: unable to open the adapter. %s is not supported by "
             "WinPcap\n",
             if_name);
-        LogError(msgBuf);
+        LogError(msg);
         return false;
     }
 
@@ -219,7 +225,8 @@ bool ethernet_init(char *if_name)
 
 /* function to send a packet out the 802.2 socket */
 /* returns bytes sent success, negative on failure */
-int ethernet_send(BACNET_ADDRESS *dest, /* destination address */
+int ethernet_send(
+    BACNET_ADDRESS *dest, /* destination address */
     BACNET_ADDRESS *src, /* source address */
     uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len /* number of bytes of data */
@@ -272,10 +279,11 @@ int ethernet_send(BACNET_ADDRESS *dest, /* destination address */
     /* Send the packet */
     if (pcap_sendpacket(pcap_eth802_fp, mtu, mtu_len) != 0) {
         /* did it get sent? */
-        char msgBuf[200];
-        sprintf(msgBuf, "ethernet.c: error sending packet: %s\n",
+        char msg[200];
+        snprintf(
+            msg, sizeof(msg), "ethernet.c: error sending packet: %s\n",
             pcap_geterr(pcap_eth802_fp));
-        LogError(msgBuf);
+        LogError(msg);
         return -5;
     }
 
@@ -284,7 +292,8 @@ int ethernet_send(BACNET_ADDRESS *dest, /* destination address */
 
 /* function to send a packet out the 802.2 socket */
 /* returns number of bytes sent on success, negative on failure */
-int ethernet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+int ethernet_send_pdu(
+    BACNET_ADDRESS *dest, /* destination address */
     uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len /* number of bytes of data */
 )
@@ -298,7 +307,8 @@ int ethernet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     }
     /* function to send a packet out the 802.2 socket */
     /* returns 1 on success, 0 on failure */
-    return ethernet_send(dest, /* destination address */
+    return ethernet_send(
+        dest, /* destination address */
         &src, /* source address */
         pdu, /* any data to be sent - may be null */
         pdu_len /* number of bytes of data */
@@ -307,7 +317,8 @@ int ethernet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
 
 /* receives an 802.2 framed packet */
 /* returns the number of octets in the PDU, or zero on failure */
-uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
+uint16_t ethernet_receive(
+    BACNET_ADDRESS *src, /* source address */
     uint8_t *pdu, /* PDU data */
     uint16_t max_pdu, /* amount of space available in the PDU  */
     unsigned timeout /* number of milliseconds to wait for a packet. we ommit it
@@ -328,8 +339,9 @@ uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
     /* Capture a packet */
     res = pcap_next_ex(pcap_eth802_fp, &header, &pkt_data);
     if (res < 0) {
-        char msgBuf[200];
-        sprintf(msgBuf, "ethernet.c: error in receiving packet: %s\n",
+        char msg[200];
+        snprintf(
+            msg, sizeof(), "ethernet.c: error in receiving packet: %s\n",
             pcap_geterr(pcap_eth802_fp));
         return 0;
     } else if (res == 0)
@@ -418,27 +430,30 @@ void ethernet_get_broadcast_address(BACNET_ADDRESS *dest)
 void ethernet_debug_address(const char *info, BACNET_ADDRESS *dest)
 {
     int i = 0; /* counter */
-    char msgBuf[200];
+    char msg[200];
 
     if (info) {
-        sprintf(msgBuf, "%s", info);
-        LogError(msgBuf);
+        snprintf(msg, sizeof(msg), "%s", info);
+        LogError(msg);
     }
     /* if */
     if (dest) {
-        sprintf(
-            msgBuf, "Address:\n  MAC Length=%d\n  MAC Address=", dest->mac_len);
-        LogInfo(msgBuf);
+        snprintf(
+            msg, sizeof(msg),
+            "Address:\n  MAC Length=%d\n  MAC Address=", dest->mac_len);
+        LogInfo(msg);
         for (i = 0; i < MAX_MAC_LEN; i++) {
-            sprintf(msgBuf, "%02X ", (unsigned)dest->mac[i]);
-            LogInfo(msgBuf);
+            snprintf(msg, sizeof(msg), "%02X ", (unsigned)dest->mac[i]);
+            LogInfo(msg);
         } /* for */
         LogInfo("\n");
-        sprintf(msgBuf, "  Net=%hu\n  Len=%d\n  Adr=", dest->net, dest->len);
-        LogInfo(msgBuf);
+        snprintf(
+            msg, sizeof(msg), "  Net=%hu\n  Len=%d\n  Adr=", dest->net,
+            dest->len);
+        LogInfo(msg);
         for (i = 0; i < MAX_MAC_LEN; i++) {
-            sprintf(msgBuf, "%02X ", (unsigned)dest->adr[i]);
-            LogInfo(msgBuf);
+            snprintf(msg, sizeof(msg), "%02X ", (unsigned)dest->adr[i]);
+            LogInfo(msg);
         } /* for */
         LogInfo("\n");
     }
