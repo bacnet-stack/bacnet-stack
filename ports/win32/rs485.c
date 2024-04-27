@@ -115,8 +115,11 @@ void RS485_Set_Interface(char *ifname)
         strupper(ifname);
         if (strncmp("COM", ifname, 3) == 0) {
             if (strlen(ifname) > 3) {
-                sprintf(RS485_Port_Name, "\\\\.\\COM%i", atoi(ifname + 3));
-                fprintf(stdout, "Adjusted interface name to %s\r\n",
+                snprintf(
+                    RS485_Port_Name, sizeof(RS485_Port_Name), "\\\\.\\COM%i",
+                    atoi(ifname + 3));
+                fprintf(
+                    stdout, "Adjusted interface name to %s\r\n",
                     RS485_Port_Name);
             }
         }
@@ -136,7 +139,7 @@ bool RS485_Interface_Valid(unsigned port_number)
     bool status = false;
     char ifname[255] = "";
 
-    sprintf(ifname, "\\\\.\\COM%u", port_number);
+    snprintf(ifname, sizeof(ifname), "\\\\.\\COM%u", port_number);
     h = CreateFile(
         ifname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
     if (h == INVALID_HANDLE_VALUE) {

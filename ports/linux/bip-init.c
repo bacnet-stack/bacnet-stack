@@ -597,7 +597,7 @@ static char *ntoa(uint32_t addr)
 {
     static char buffer[18];
 
-    sprintf(buffer, "%d.%d.%d.%d", (addr & 0x000000FF),
+    snprintf(buffer, sizeof(buffer), "%d.%d.%d.%d", (addr & 0x000000FF),
         (addr & 0x0000FF00) >> 8, (addr & 0x00FF0000) >> 16,
         (addr & 0xFF000000) >> 24);
 

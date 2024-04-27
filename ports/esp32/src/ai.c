@@ -204,7 +204,7 @@ void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
 bool Analog_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";
+    static char text[32] = "";
     unsigned int index;
     bool status = false;
 
@@ -215,8 +215,8 @@ bool Analog_Input_Object_Name(
     else {
         index = Analog_Input_Instance_To_Index(object_instance);
         if (index < MAX_ANALOG_INPUTS) {
-            sprintf(text_string, "ANALOG INPUT %lu", (unsigned long)index);
-            status = characterstring_init_ansi(object_name, text_string);
+            snprintf(text, sizeof(text), "ANALOG INPUT %lu", (unsigned long)index);
+            status = characterstring_init_ansi(object_name, text);
         }
     }
     return status;

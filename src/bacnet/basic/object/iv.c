@@ -214,15 +214,15 @@ bool Integer_Value_Present_Value_Set(
 bool Integer_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text_string[32] = "";
+    char text[32] = "";
     unsigned int index;
     bool status = false;
 
     index = Integer_Value_Instance_To_Index(object_instance);
     if (index < MAX_INTEGER_VALUES) {
-        sprintf(
-            text_string, "INTEGER VALUE %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(text, sizeof(text), "INTEGER VALUE %lu", 
+            (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;
