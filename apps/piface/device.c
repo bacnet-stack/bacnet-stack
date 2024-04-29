@@ -67,14 +67,14 @@ static object_functions_t My_Object_Table[] = {
         Device_Read_Property_Local, Device_Write_Property_Local,
         Device_Property_Lists, DeviceGetRRInfo, NULL /* Iterator */,
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */, NULL /* Write_Property_Storage */ },
+        NULL /* Intrinsic Reporting */ },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
         Network_Port_Object_Name, Network_Port_Read_Property,
         Network_Port_Write_Property, Network_Port_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
-        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */, NULL /* Write_Property_Storage */ },
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
 #endif
     { OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count,
         Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance,
@@ -82,20 +82,20 @@ static object_functions_t My_Object_Table[] = {
         Binary_Input_Write_Property, Binary_Input_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Binary_Input_Encode_Value_List, Binary_Input_Change_Of_Value,
-        Binary_Input_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */, NULL /* Write_Property_Storage */ },
+        Binary_Input_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */ },
     { OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
         Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
         Binary_Output_Object_Name, Binary_Output_Read_Property,
         Binary_Output_Write_Property, Binary_Output_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
-        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */, NULL /* Write_Property_Storage */ },
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,
         NULL /* Write_Property */, NULL /* Property_Lists */,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */, NULL /* Write_Property_Storage */ }
+        NULL /* Intrinsic Reporting */ }
 };
 
 /** Glue function to let the Device object, when called by a handler,
