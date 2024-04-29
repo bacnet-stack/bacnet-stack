@@ -387,7 +387,7 @@ bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pIni
     unsigned int i = 0;
     unsigned int j;
 
-    if((int) pInit_state_text_data->length > MSV_Max_Index) {
+    if ((int) pInit_state_text_data->length > MSV_Max_Index) {
         PRINT("pInit_state_text_data->length = %d >= %d", (int) pInit_state_text_data->length, MSV_Max_Index);
         return false;
     }
