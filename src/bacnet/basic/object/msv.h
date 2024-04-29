@@ -33,6 +33,18 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
+typedef struct MSV_State_Text_Init_Options {
+    unsigned int state_text_option_index;
+    unsigned int index;
+    char option[254];
+} MSV_STATE_TEXT_INIT_OPTIONS;
+
+typedef struct MSV_State_Text_Options_List {
+    uint32_t length;
+    unsigned int options_len;
+    MSV_STATE_TEXT_INIT_OPTIONS MSV_State_Text_Objects[254];
+} MSV_STATE_TEXT_INIT_OPTIONS_LIST;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -139,6 +151,12 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Multistate_Value_Init(
         void);
+
+    BACNET_STACK_EXPORT
+    bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
+
+    BACNET_STACK_EXPORT
+    bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pInit_state_text_data);
 
 #ifdef __cplusplus
 }

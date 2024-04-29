@@ -9,7 +9,7 @@ project(
 # options
 #
 #
-# <INSERT_CMAKE_INSTALL_PREFIX_HERE>
+set(CMAKE_INSTALL_PREFIX "/opt/poky/rzn1/sysroots/x86_64-pokysdk-linux/usr")
 #set(CMAKE_INSTALL_PREFIX "/opt/poky/rzn1/sysroots/x86_64-pokysdk-linux/usr")
 
 add_compile_options(-DDEBUG_PRINT)
@@ -515,6 +515,7 @@ target_compile_definitions(
   MAX_CHARACTERSTRING_VALUES=16
   MAX_INTEGER_VALUES=12
   MAX_MULTISTATE_VALUES=32
+  MULTISTATE_NUMBER_OF_STATES=64
   MAX_NOTIFICATION_CLASSES=2
   # NC_MAX_RECIPIENTS=4
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
