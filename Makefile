@@ -210,11 +210,19 @@ router:
 
 .PHONY: router-ipv6
 router-ipv6:
-	$(MAKE) -s -C apps $@
+	$(MAKE) -s -B BACDL=bip-bip6 -C apps $@
+
+.PHONY: router-ipv6-clean
+router-ipv6-clean:
+	$(MAKE) -C apps $@
 
 .PHONY: router-mstp
 router-mstp:
-	$(MAKE) -s -C apps $@
+	$(MAKE) -s -B BACDL=bip-mstp -C apps $@
+
+.PHONY: router-mstp-clean
+router-mstp-clean:
+	$(MAKE) -C apps $@
 
 .PHONY: fuzz-libfuzzer
 fuzz-libfuzzer:

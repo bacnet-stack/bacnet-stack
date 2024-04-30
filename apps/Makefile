@@ -38,6 +38,15 @@ endif
 ifeq (${BACDL},none)
 BACDL_DEFINE=-DBACDL_NONE=1
 endif
+ifeq (${BACDL},bip-mstp)
+BACDL_DEFINE=-DBACDL_ROUTER=1
+endif
+ifeq (${BACDL},bip-bip6)
+BACDL_DEFINE=-DBACDL_ROUTER=1
+endif
+ifeq (${BACDL},all)
+BACDL_DEFINE=-DBACDL_ALL=1
+endif
 ifeq (${BACDL},)
 BACDL_DEFINE ?= -DBACDL_BIP=1
 BBMD_DEFINE ?= -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
@@ -418,9 +427,17 @@ router:
 router-ipv6: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
+.PHONY: router-ipv6-clean
+router-ipv6-clean:
+	$(MAKE) -C router-ipv6 clean
+
 .PHONY: router-mstp
 router-mstp: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
+
+.PHONY: router-mstp-clean
+router-mstp-clean:
+	$(MAKE) -C router-mstp clean
 
 .PHONY: fuzz-libfuzzer
 fuzz-libfuzzer: $(BACNET_LIB_TARGET)
