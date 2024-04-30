@@ -168,7 +168,6 @@ typedef struct object_functions {
     object_intrinsic_reporting_function Object_Intrinsic_Reporting;
     list_element_function Object_Add_List_Element;
     list_element_function Object_Remove_List_Element;
-    write_property_storage_function Object_Write_Property_Storage;
 } object_functions_t;
 
 /* String Lengths - excluding any nul terminator */
