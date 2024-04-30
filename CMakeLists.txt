@@ -8,8 +8,7 @@ project(
 #
 # options
 #
-#
-set(CMAKE_INSTALL_PREFIX "/opt/poky/rzn1/sysroots/x86_64-pokysdk-linux/usr")
+# <INSERT_CMAKE_INSTALL_PREFIX_HERE>
 #set(CMAKE_INSTALL_PREFIX "/opt/poky/rzn1/sysroots/x86_64-pokysdk-linux/usr")
 
 add_compile_options(-DDEBUG_PRINT)
