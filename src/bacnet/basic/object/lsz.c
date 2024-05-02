@@ -524,7 +524,7 @@ static bool Life_Safety_Zone_Members_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
     uint8_t *apdu = NULL;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE data = { 0 };
 
-    if ((wp_data == NULL) || (wp_data->application_data == NULL)) {
+    if (wp_data == NULL) {
         return false;
     }
     /* empty the list */

@@ -203,7 +203,8 @@ static int bbmd_register_as_foreign_device(void)
     } else {
         for (entry_number = 1; entry_number <= 128; entry_number++) {
             bdt_entry_valid = false;
-            sprintf(bbmd_env, "BACNET_BDT_ADDR_%u", entry_number);
+            snprintf(
+                bbmd_env, sizeof(bbmd_env), "BACNET_BDT_ADDR_%u", entry_number);
             pEnv = getenv(bbmd_env);
             if (pEnv) {
                 bdt_entry_valid =
@@ -220,7 +221,9 @@ static int bbmd_register_as_foreign_device(void)
             }
             if (bdt_entry_valid) {
                 bdt_entry_port = 0xBAC0;
-                sprintf(bbmd_env, "BACNET_BDT_PORT_%u", entry_number);
+                snprintf(
+                    bbmd_env, sizeof(bbmd_env), "BACNET_BDT_PORT_%u",
+                    entry_number);
                 pEnv = getenv(bbmd_env);
                 if (pEnv) {
                     bdt_entry_port = strtol(pEnv, NULL, 0);
@@ -238,7 +241,9 @@ static int bbmd_register_as_foreign_device(void)
                 /* broadcast mask */
                 bvlc_broadcast_distribution_mask_from_host(
                     &BBMD_Table_Entry.broadcast_mask, 0xFFFFFFFF);
-                sprintf(bbmd_env, "BACNET_BDT_MASK_%u", entry_number);
+                snprintf(
+                    bbmd_env, sizeof(bbmd_env), "BACNET_BDT_MASK_%u",
+                    entry_number);
                 pEnv = getenv(bbmd_env);
                 if (pEnv) {
                     c = sscanf(

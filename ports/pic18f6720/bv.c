@@ -100,11 +100,11 @@ BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
 /* note: the object name must be unique within this device */
 char *Binary_Value_Name(uint32_t object_instance)
 {
-    static char text_string[16] = ""; /* okay for single thread */
+    static char text[16] = ""; /* okay for single thread */
 
     if (object_instance < MAX_BINARY_VALUES) {
-        sprintf(text_string, "BV-%lu", object_instance);
-        return text_string;
+        snprintf(text, sizeof(text), "BV-%lu", (unsigned long)object_instance);
+        return text;
     }
 
     return NULL;

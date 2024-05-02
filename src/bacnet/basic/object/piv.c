@@ -166,13 +166,13 @@ uint32_t PositiveInteger_Value_Present_Value(uint32_t object_instance)
 bool PositiveInteger_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_POSITIVEINTEGER_VALUES) {
-        sprintf(text_string, "POSITIVEINTEGER VALUE %lu",
+        snprintf(text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
             (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;

@@ -169,11 +169,11 @@ static void print_help(char *filename)
     printf("\n");
     printf(
         "object-type:\n"
-        "The object type is object that you are reading. It\n"
+        "The object type is object that you are writing. It\n"
         "can be defined either as the object-type name string\n"
         "as defined in the BACnet specification, or as the\n"
         "integer value of the enumeration BACNET_OBJECT_TYPE\n"
-        "in bacenum.h. For example if you were reading Analog\n"
+        "in bacenum.h. For example if you were writing Analog\n"
         "Output 2, the object-type would be analog-output or 1.\n");
     printf("\n");
     printf(
@@ -184,11 +184,11 @@ static void print_help(char *filename)
     printf("\n");
     printf(
         "property:\n"
-        "The property of the object that you are reading. It\n"
+        "The property of the object that you are writing. It\n"
         "can be defined either as the property name string as\n"
         "defined in the BACnet specification, or as an integer\n"
         "value of the enumeration BACNET_PROPERTY_ID in\n"
-        "bacenum.h. For example, if you were reading the Present\n"
+        "bacenum.h. For example, if you were writing the Present\n"
         "Value property, use present-value or 85 as the property.\n");
     printf("\n");
     printf(
@@ -214,6 +214,10 @@ static void print_help(char *filename)
         "Context tags are created using two tags in a row.  The context tag\n"
         "is preceded by a C, and followed by the application tag.\n"
         "Ctag atag. C2 4 creates a context 2 tagged REAL.\n");
+    printf(
+        "Complex data use the property argument and a tag number -1 to\n"
+        "lookup the appropriate internal application tag for the value.\n"
+        "The complex data value argument varies in its construction.\n");
     printf("\n");
     printf(
         "value:\n"

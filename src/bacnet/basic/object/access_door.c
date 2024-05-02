@@ -276,12 +276,13 @@ static int Access_Door_Priority_Array_Encode(
 bool Access_Door_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_ACCESS_DOORS) {
-        sprintf(text_string, "ACCESS DOOR %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(text, sizeof(text), "ACCESS DOOR %lu", 
+            (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;

@@ -284,11 +284,12 @@ uint32_t Device_Index_To_Instance(unsigned index)
 
 static char *Device_Name_Default(void)
 {
-    static char text_string[32]; /* okay for single thread */
+    static char text[32]; /* okay for single thread */
 
-    sprintf(text_string, "DEVICE-%lu", Object_Instance_Number);
+    snprintf(text, sizeof(text), "DEVICE-%lu", 
+        (unsigned long)Object_Instance_Number);
 
-    return text_string;
+    return text;
 }
 
 bool Device_Object_Name(

@@ -103,11 +103,11 @@ BACNET_BINARY_PV Binary_Input_Present_Value(uint32_t object_instance)
 
 char *Binary_Input_Name(uint32_t object_instance)
 {
-    static char text_string[16] = ""; /* okay for single thread */
+    static char text[16] = ""; /* okay for single thread */
 
     if (object_instance < MAX_BINARY_INPUTS) {
-        sprintf(text_string, "BI-%lu", object_instance);
-        return text_string;
+        snprintf(text, sizeof(text), "BI-%lu", (unsigned long)object_instance);
+        return text;
     }
 
     return NULL;

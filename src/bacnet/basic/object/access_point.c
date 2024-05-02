@@ -142,13 +142,13 @@ unsigned Access_Point_Instance_To_Index(uint32_t object_instance)
 bool Access_Point_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_ACCESS_POINTS) {
-        sprintf(
-            text_string, "ACCESS POINT %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(text, sizeof(text), "ACCESS POINT %lu", 
+            (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;

@@ -65,9 +65,9 @@ void debug_printf(const char *format, ...)
     BACNET_DATE date;
     BACNET_TIME time;
     datetime_local(&date, &time, NULL, NULL);
-    sprintf(stamp_str, "[%02d:%02d:%02d.%03d]: ", time.hour, time.min,
-        time.sec, time.hundredths * 10);
-
+    snprintf(
+        stamp_str, sizeof(stamp_str), "[%02d:%02d:%02d.%03d]: ", time.hour,
+        time.min, time.sec, time.hundredths * 10);
     va_start(ap, format);
     vsprintf(buf, format, ap);
     va_end(ap);
