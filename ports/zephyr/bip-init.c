@@ -41,6 +41,9 @@
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/net/socket_select.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip.h"
@@ -170,15 +173,15 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 }
 
 /**
- * Set the BACnet/IP address
- *
- * @param addr - network IPv4 address
+ * @brief Set the BACnet/IP address 
+ * @param addr - network IPv4 address (in network byte order)
+ * @return true if the address was set
  */
 bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&BIP_Address.s_addr, &addr->address[0], IP_ADDRESS_MAX);
-        BIP_Port = htons(addr->port);
+        BIP_Port = addr->port;
         return true;
     }
     return false;
@@ -186,14 +189,14 @@ bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 
 /**
  * @brief Get the BACnet/IP address
- * @param addr - network IPv4 address
+ * @param addr - network IPv4 address (in network byte order)
  * @return true if the address was retrieved
  */
 bool bip_get_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&addr->address[0], &BIP_Address.s_addr, IP_ADDRESS_MAX);
-        addr->port = ntohs(BIP_Port);
+        addr->port = BIP_Port;
         return true;
     }
     return false;
@@ -573,8 +576,8 @@ static int createSocket(struct sockaddr_in *sin)
  */
 bool bip_init(char *ifname)
 {
-    struct sockaddr_in sin = { 0 };
     int sock_fd;
+    struct sockaddr_in sin = { 0 };
 
     bip_set_interface(ifname);
 

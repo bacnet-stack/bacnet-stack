@@ -1,6 +1,12 @@
 name: BACNet/SC linux tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
 
 jobs:
   job_bsc_tests_linux:
@@ -14,7 +20,7 @@ jobs:
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
         sudo apt-get install -qq libuv1-dev
-        git clone https://github.com/warmcat/libwebsockets.git
+        git clone --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
         bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
         sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build and run bsc_event test

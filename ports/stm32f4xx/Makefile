@@ -86,8 +86,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bactimevalue.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
-	$(BACNET_CORE)/wp.c \
-	$(BACNET_CORE)/secure_connect.c
+	$(BACNET_CORE)/wp.c
 
 STM32_SRC = \
 	$(LIBRARY_STM32)/stm32f4xx_adc.c \

@@ -1956,15 +1956,20 @@ int bacapp_data_len(
 }
 
 #if defined(BACAPP_DATE)
-/* 135.1-4.4 Notational Rules for Parameter Values
-(j)
-dates are represented enclosed in parenthesis:
-(Monday, 24-January-1998).
-Any "wild card" or unspecified field is shown by an asterisk (X'2A'):
-(Monday, *-January-1998).
-The omission of day of week implies that the day is unspecified:
-(24-January-1998);
-*/
+/**
+ * @brief Print a date value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param bdate - date value to print
+ * @return number of characters written
+ * @note 135.1-4.4 Notational Rules for Parameter Values
+ * (j) dates are represented enclosed in parenthesis:
+ *     (Monday, 24-January-1998).
+ *     Any "wild card" or unspecified field is shown by an asterisk (X'2A'):
+ *     (Monday, *-January-1998).
+ *     The omission of day of week implies that the day is unspecified:
+ *     (24-January-1998);
+ */
 static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
 {
     int ret_val = 0;
@@ -1979,11 +1984,11 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
     slen = snprintf(str, str_len, "%s, %s", weekday_text, month_text);
     if (str) {
         str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
+    }
+    if (str_len >= slen) {
+        str_len -= slen;
+    } else {
+        str_len = 0;
     }
     ret_val += slen;
     if (bdate->day == 255) {
@@ -1993,11 +1998,11 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
     }
     if (str) {
         str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
+    }
+    if (str_len >= slen) {
+        str_len -= slen;
+    } else {
+        str_len = 0;
     }
     ret_val += slen;
     if (bdate->year == 2155) {
@@ -2012,11 +2017,17 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
 #endif
 
 #if defined(BACAPP_TIME)
-/* 135.1-4.4 Notational Rules for Parameter Values
-(k)
-times are represented as hours, minutes, seconds, hundredths in the format
-hh:mm:ss.xx: 2:05:44.00, 16:54:59.99. Any "wild card" field is shown by an
-asterisk (X'2A'): 16:54:*.*; */
+/**
+ * @brief Print a time value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param btime - date value to print
+ * @return number of characters written
+ * @note 135.1-4.4 Notational Rules for Parameter Values
+ * (k) times are represented as hours, minutes, seconds, hundredths 
+ *     in the format hh:mm:ss.xx: 2:05:44.00, 16:54:59.99. 
+ *     Any "wild card" field is shown by an asterisk (X'2A'): 16:54:*.*; 
+ */
 static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
 {
     int ret_val = 0;
@@ -2031,11 +2042,11 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
     }
     if (str) {
         str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
+    }
+    if (str_len >= slen) {
+        str_len -= slen;
+    } else {
+        str_len = 0;
     }
     ret_val += slen;
     if (btime->min == 255) {
@@ -2045,11 +2056,11 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
     }
     if (str) {
         str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
+    }
+    if (str_len >= slen) {
+        str_len -= slen;
+    } else {
+        str_len = 0;
     }
     ret_val += slen;
     if (btime->sec == 255) {
@@ -2059,11 +2070,11 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
     }
     if (str) {
         str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
+    }
+    if (str_len >= slen) {
+        str_len -= slen;
+    } else {
+        str_len = 0;
     }
     ret_val += slen;
     if (btime->hundredths == 255) {
@@ -2078,6 +2089,14 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
 #endif
 
 #if defined(BACAPP_WEEKLY_SCHEDULE)
+/**
+ * @brief Print a weekly schedule value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param ws - weekly schedule value to print
+ * @param arrayIndex - index of the weekly schedule to print
+ * @return number of characters written
+ */
 static int bacapp_snprintf_weeklyschedule(char *str,
     size_t str_len,
     BACNET_WEEKLY_SCHEDULE *ws,
@@ -2118,11 +2137,11 @@ static int bacapp_snprintf_weeklyschedule(char *str,
     ret_val += slen;
     if (str) {
         str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
+    }
+    if (str_len >= slen) {
+        str_len -= slen;
+    } else {
+        str_len = 0;
     }
 
     for (wi = 0; wi < loopend; wi++) {
@@ -2138,11 +2157,11 @@ static int bacapp_snprintf_weeklyschedule(char *str,
         ret_val += slen;
         if (str) {
             str += slen;
-            if (str_len >= slen) {
-                str_len -= slen;
-            } else {
-                str_len = 0;
-            }
+        }
+        if (str_len >= slen) {
+            str_len -= slen;
+        } else {
+            str_len = 0;
         }
 
         for (ti = 0; ti < ds->TV_Count; ti++) {
@@ -2162,13 +2181,12 @@ static int bacapp_snprintf_weeklyschedule(char *str,
             ret_val += slen;
             if (str) {
                 str += slen;
-                if (str_len >= slen) {
-                    str_len -= slen;
-                } else {
-                    str_len = 0;
-                }
             }
-
+            if (str_len >= slen) {
+                str_len -= slen;
+            } else {
+                str_len = 0;
+            }
             bacnet_primitive_to_application_data_value(
                 &dummyDataValue, &ds->Time_Values[ti].Value);
             dummyPropValue.value = &dummyDataValue;
@@ -2179,11 +2197,11 @@ static int bacapp_snprintf_weeklyschedule(char *str,
             ret_val += slen;
             if (str) {
                 str += slen;
-                if (str_len >= slen) {
-                    str_len -= slen;
-                } else {
-                    str_len = 0;
-                }
+            }
+            if (str_len >= slen) {
+                str_len -= slen;
+            } else {
+                str_len = 0;
             }
 
             if (ti < ds->TV_Count - 1) {
@@ -2191,11 +2209,11 @@ static int bacapp_snprintf_weeklyschedule(char *str,
                 ret_val += slen;
                 if (str) {
                     str += slen;
-                    if (str_len >= slen) {
-                        str_len -= slen;
-                    } else {
-                        str_len = 0;
-                    }
+                }
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
                 }
             }
         }
@@ -2205,11 +2223,11 @@ static int bacapp_snprintf_weeklyschedule(char *str,
             ret_val += slen;
             if (str) {
                 str += slen;
-                if (str_len >= slen) {
-                    str_len -= slen;
-                } else {
-                    str_len = 0;
-                }
+            }
+            if (str_len >= slen) {
+                str_len -= slen;
+            } else {
+                str_len = 0;
             }
         }
     }
@@ -2219,55 +2237,10 @@ static int bacapp_snprintf_weeklyschedule(char *str,
 }
 #endif
 
-#if defined(BACAPP_DATE) && defined(BACAPP_TIME)
-int bacapp_snprintf_timestamp(char *str, size_t str_len, BACNET_DATE_TIME *ts)
-{
-    int ret_val = 0;
-    int slen;
-    bool is_real_str = (str != NULL);
-
-    slen = bacapp_snprintf_date(str, str_len, &ts->date);
-    ret_val += slen;
-    if (is_real_str) {
-        str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
-    }
-
-    slen = snprintf(str, str_len, " ");
-    ret_val += slen;
-    if (is_real_str) {
-        str += slen;
-        if (str_len >= slen) {
-            str_len -= slen;
-        } else {
-            str_len = 0;
-        }
-    }
-
-    slen = bacapp_snprintf_time(str, str_len, &ts->time);
-    ret_val += slen;
-
-    return ret_val;
-}
-#else
-int bacapp_snprintf_timestamp(char *str, size_t str_len, BACNET_DATE_TIME *ts)
-{
-    (void)str;
-    (void)str_len;
-    (void)ts;
-
-    return 0;
-}
-#endif
-
 /**
  * @brief Extract the value into a text string
  * @param str - the buffer to store the extracted value, or NULL for length
- * @param str_len - the size of the buffer
+ * @param str_len - the size of the buffer, or 0 for length only
  * @param object_value - ptr to BACnet object value from which to extract str
  * @return number of bytes (excluding terminating NULL byte) that were stored
  *  to the output string.
@@ -2340,11 +2313,11 @@ int bacapp_snprintf_value(
                         octet_str++;
                         if (str) {
                             str += slen;
-                            if (str_len >= slen) {
-                                str_len -= slen;
-                            } else {
-                                str_len = 0;
-                            }
+                        }
+                        if (str_len >= slen) {
+                            str_len -= slen;
+                        } else {
+                            str_len = 0;
                         }
                         ret_val += slen;
                     }
@@ -2358,11 +2331,11 @@ int bacapp_snprintf_value(
                 slen = snprintf(str, str_len, "\"");
                 if (str) {
                     str += slen;
-                    if (str_len >= slen) {
-                        str_len -= slen;
-                    } else {
-                        str_len = 0;
-                    }
+                }
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
                 }
                 ret_val += slen;
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
@@ -2386,11 +2359,11 @@ int bacapp_snprintf_value(
                         slen = snprintf(str, str_len, "%lc", (wint_t)wc);
                         if (str) {
                             str += slen;
-                            if (str_len >= slen) {
-                                str_len -= slen;
-                            } else {
-                                str_len = 0;
-                            }
+                        }
+                        if (str_len >= slen) {
+                            str_len -= slen;
+                        } else {
+                            str_len = 0;
                         }
                         ret_val += slen;
                         if (len > wclen) {
@@ -2411,11 +2384,11 @@ int bacapp_snprintf_value(
                         }
                         if (str) {
                             str += slen;
-                            if (str_len >= slen) {
-                                str_len -= slen;
-                            } else {
-                                str_len = 0;
-                            }
+                        }
+                        if (str_len >= slen) {
+                            str_len -= slen;
+                        } else {
+                            str_len = 0;
                         }
                         ret_val += slen;
                         char_str++;
@@ -2431,11 +2404,11 @@ int bacapp_snprintf_value(
                 slen = snprintf(str, str_len, "{");
                 if (str) {
                     str += slen;
-                    if (str_len >= slen) {
-                        str_len -= slen;
-                    } else {
-                        str_len = 0;
-                    }
+                }
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
                 }
                 ret_val += slen;
                 for (i = 0; i < len; i++) {
@@ -2444,22 +2417,22 @@ int bacapp_snprintf_value(
                     slen = snprintf(str, str_len, "%s", bit ? "true" : "false");
                     if (str) {
                         str += slen;
-                        if (str_len >= slen) {
-                            str_len -= slen;
-                        } else {
-                            str_len = 0;
-                        }
+                    }
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
                     }
                     ret_val += slen;
                     if (i < (len - 1)) {
                         slen = snprintf(str, str_len, ",");
                         if (str) {
                             str += slen;
-                            if (str_len >= slen) {
-                                str_len -= slen;
-                            } else {
-                                str_len = 0;
-                            }
+                        }
+                        if (str_len >= slen) {
+                            str_len -= slen;
+                        } else {
+                            str_len = 0;
                         }
                         ret_val += slen;
                     }
@@ -2584,11 +2557,11 @@ int bacapp_snprintf_value(
                 slen = snprintf(str, str_len, "(");
                 if (str) {
                     str += slen;
-                    if (str_len >= slen) {
-                        str_len -= slen;
-                    } else {
-                        str_len = 0;
-                    }
+                }
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
                 }
                 ret_val += slen;
                 if (value->type.Object_Id.type <= BACNET_OBJECT_TYPE_LAST) {
@@ -2604,11 +2577,11 @@ int bacapp_snprintf_value(
                 }
                 if (str) {
                     str += slen;
-                    if (str_len >= slen) {
-                        str_len -= slen;
-                    } else {
-                        str_len = 0;
-                    }
+                }
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
                 }
                 ret_val += slen;
                 slen = snprintf(str, str_len, "%lu)",
@@ -2623,16 +2596,22 @@ int bacapp_snprintf_value(
                 ret_val += slen;
                 if (str) {
                     str += slen;
-                    if (str_len >= slen) {
-                        str_len -= slen;
-                    } else {
-                        str_len = 0;
-                    }
                 }
-
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
+                }
                 slen = snprintf(str, str_len, "..");
                 ret_val += slen;
-
+                if (str) {
+                    str += slen;
+                }
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
+                }
                 slen = bacapp_snprintf_date(
                     str, str_len, &value->type.Date_Range.enddate);
                 ret_val += slen;
@@ -2640,17 +2619,8 @@ int bacapp_snprintf_value(
 #endif
 #if defined(BACAPP_TIMESTAMP)
             case BACNET_APPLICATION_TAG_TIMESTAMP:
-                /*ISO 8601 format */
-                slen = snprintf(str, str_len,
-                    "%04u-%02u-%02uT%02u:%02u:%02u.%03u",
-                    (unsigned)value->type.Time_Stamp.value.dateTime.date.year,
-                    (unsigned)value->type.Time_Stamp.value.dateTime.date.month,
-                    (unsigned)value->type.Time_Stamp.value.dateTime.date.day,
-                    (unsigned)value->type.Time_Stamp.value.dateTime.time.hour,
-                    (unsigned)value->type.Time_Stamp.value.dateTime.time.min,
-                    (unsigned)value->type.Time_Stamp.value.dateTime.time.sec,
-                    (unsigned)
-                        value->type.Time_Stamp.value.dateTime.time.hundredths);
+                slen = bacapp_timestamp_to_ascii(str, str_len, 
+                    &value->type.Time_Stamp);
                 ret_val += slen;
                 break;
 #endif
@@ -2661,11 +2631,21 @@ int bacapp_snprintf_value(
                 ret_val += slen;
                 if (str) {
                     str += slen;
-                    if (str_len >= slen) {
-                        str_len -= slen;
-                    } else {
-                        str_len = 0;
-                    }
+                }
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
+                }
+                slen = snprintf(str, str_len, "-");
+                ret_val += slen;
+                if (str) {
+                    str += slen;
+                }
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
                 }
                 slen = bacapp_snprintf_time(
                     str, str_len, &value->type.Date_Time.time);

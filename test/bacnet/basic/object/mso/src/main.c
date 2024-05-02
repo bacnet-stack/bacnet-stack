@@ -37,12 +37,9 @@ static void testMultistateOutput(void)
     test_object_instance = Multistate_Output_Index_To_Instance(0);
     zassert_equal(object_instance, test_object_instance, NULL);
     bacnet_object_properties_read_write_test(
-        OBJECT_MULTI_STATE_OUTPUT,
-        object_instance,
-        Multistate_Output_Property_Lists,
-        Multistate_Output_Read_Property,
-        Multistate_Output_Write_Property,
-        skip_fail_property_list);
+        OBJECT_MULTI_STATE_OUTPUT, object_instance,
+        Multistate_Output_Property_Lists, Multistate_Output_Read_Property,
+        Multistate_Output_Write_Property, skip_fail_property_list);
     status = Multistate_Output_Delete(object_instance);
     zassert_true(status, NULL);
 }
@@ -50,15 +47,12 @@ static void testMultistateOutput(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(mso_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(mso_tests,
-     ztest_unit_test(testMultistateOutput)
-     );
+    ztest_test_suite(mso_tests, ztest_unit_test(testMultistateOutput));
 
     ztest_run_test_suite(mso_tests);
 }

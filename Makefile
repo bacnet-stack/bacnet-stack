@@ -332,7 +332,7 @@ pretty-ports:
 
 .PHONY: pretty-test
 pretty-test:
-	find ./test/bacnet -maxdepth 2 -type f -iname *.h -o -iname *.c -exec \
+	find ./test/bacnet -type f -iname *.h -o -iname *.c -exec \
 	clang-format -i -style=file -fallback-style=none {} \;
 
 CLANG_TIDY_OPTIONS = -fix-errors -checks="readability-braces-around-statements"

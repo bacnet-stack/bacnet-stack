@@ -88,6 +88,7 @@ list(APPEND testdirs
   bacnet/reject
   bacnet/rp
   bacnet/rpm
+  bacnet/secure_connect
   bacnet/specialevent
   bacnet/timestamp
   bacnet/timesync

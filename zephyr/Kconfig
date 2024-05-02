@@ -276,7 +276,7 @@ config BACNET_BASIC_OBJECT_DEVICE_CLIENT
 	bool "Use the BACnet basic device-client object"
 	default false
 	help
-		Use the BACnet basic device-server object
+		Use the BACnet basic device-client object
 
 config BACNET_BASIC_OBJECT_INTEGER_VALUE
 	bool "Use the BACnet basic integer value object"

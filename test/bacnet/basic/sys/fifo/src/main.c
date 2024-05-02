@@ -158,8 +158,8 @@ static void testFIFOBuffer(void)
     status = FIFO_Add(&test_buffer, add_data, sizeof(add_data));
     zassert_true(status, NULL);
     count = FIFO_Count(&test_buffer);
-    test_count = FIFO_Peek_Ahead(&test_buffer, &test_add_data[0], count-1);
-    zassert_equal(count-1, test_count, NULL);
+    test_count = FIFO_Peek_Ahead(&test_buffer, &test_add_data[0], count - 1);
+    zassert_equal(count - 1, test_count, NULL);
     for (index = 0; index < test_count; index++) {
         zassert_equal(test_add_data[index], add_data[index], NULL);
     }
@@ -170,15 +170,12 @@ static void testFIFOBuffer(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(fifo_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(fifo_tests,
-     ztest_unit_test(testFIFOBuffer)
-     );
+    ztest_test_suite(fifo_tests, ztest_unit_test(testFIFOBuffer));
 
     ztest_run_test_suite(fifo_tests);
 }

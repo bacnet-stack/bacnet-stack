@@ -1240,7 +1240,4 @@
     <file>
         <name>$PROJ_DIR$\timer.c</name>
     </file>
-    <file>
-        <name>$PROJ_DIR$\syscalls.c</name>
-    </file>
 </project>
