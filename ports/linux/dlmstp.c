@@ -746,7 +746,6 @@ bool dlmstp_init(char *ifname)
     debug_fprintf(
         stderr, "MS/TP Max_Info_Frames: %u\n", MSTP_Port.Nmax_info_frames);
     fflush(stderr);
-#endif
     /* start one thread */
     run_thread = true;
     rv = pthread_create(&hThread, NULL, dlmstp_master_fsm_task, NULL);
