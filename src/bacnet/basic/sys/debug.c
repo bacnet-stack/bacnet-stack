@@ -203,6 +203,7 @@ int debug_fprintf(FILE *stream, const char *format, ...)
     va_end(ap);
     fflush(stream);
 #else
+    (void)stream;
     (void)format;
 #endif
     return length;
