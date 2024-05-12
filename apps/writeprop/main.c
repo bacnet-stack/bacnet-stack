@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     bool found = false;
-    char *value_string = NULL;
+    char *value_string;
     bool status = false;
     int args_remaining = 0, tag_value_arg = 0, i = 0;
     long property_tag;
