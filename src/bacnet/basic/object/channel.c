@@ -1528,7 +1528,6 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
     int element_len = 0;
     uint32_t count = 0;
-    uint32_t array_index = 0;
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -1589,7 +1588,6 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
                     count = CONTROL_GROUPS_MAX;
-                    array_index = 1;
                     /* extra elements still encoded in application data */
                     element_len = len;
                     do {
@@ -1611,7 +1609,6 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                             }
                         }
                         count--;
-                        array_index++;
                         if (count) {
                             element_len = bacapp_decode_application_data(
                                 &wp_data->application_data[len],
