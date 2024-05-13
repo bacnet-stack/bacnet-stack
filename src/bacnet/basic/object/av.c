@@ -17,9 +17,12 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacdcode.h"
 #include "bacnet/bactext.h"
+#include "bacnet/datetime.h"
+#include "bacnet/proplist.h"
+#include "bacnet/timestamp.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/sys/debug.h"
@@ -1445,33 +1448,6 @@ int Analog_Value_Alarm_Ack(
             break;
 
         case EVENT_STATE_FAULT:
-            if (CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
-                false) {
-                if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
-                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
-                    return -1;
-                }
-                if (datetime_compare(
-                        &CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL]
-                             .Time_Stamp,
-                        &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
-                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
-                    return -1;
-                }
-
-                /* Clean transitions flag. */
-                CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
-                    true;
-            } else if (alarmack_data->eventStateAcked ==
-                CurrentAV->Event_State) {
-                /* Send ack notification */
-            } else {
-                *error_code = ERROR_CODE_INVALID_EVENT_STATE;
-                return -1;
-            }
-            break;
-
-        case EVENT_STATE_NORMAL:
             if (CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
                 false) {
                 if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
@@ -1485,8 +1461,33 @@ int Analog_Value_Alarm_Ack(
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
+                /* Send ack notification */
+                CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
+                    true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAV->Event_State) {
+                /* Send ack notification */
+            } else {
+                *error_code = ERROR_CODE_INVALID_EVENT_STATE;
+                return -1;
+            }
+            break;
 
-                /* Clean transitions flag. */
+        case EVENT_STATE_NORMAL:
+            if (CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
+                false) {
+                if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                if (datetime_compare(
+                        &CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL]
+                             .Time_Stamp,
+                        &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                /* Send ack notification */
                 CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked =
                     true;
             } else if (alarmack_data->eventStateAcked ==
@@ -1501,7 +1502,6 @@ int Analog_Value_Alarm_Ack(
         default:
             return -2;
     }
-
     /* Need to send AckNotification. */
     CurrentAV->Ack_notify_data.bSendAckNotify = true;
     CurrentAV->Ack_notify_data.EventState = alarmack_data->eventStateAcked;

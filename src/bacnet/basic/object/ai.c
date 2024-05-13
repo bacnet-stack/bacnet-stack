@@ -18,6 +18,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/bacapp.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bactext.h"
 #include "bacnet/datetime.h"
@@ -1375,6 +1376,7 @@ int Analog_Input_Alarm_Ack(
         default:
             return -2;
     }
+    /* Need to send AckNotification. */
     CurrentAI->Ack_notify_data.bSendAckNotify = true;
     CurrentAI->Ack_notify_data.EventState = alarmack_data->eventStateAcked;
 
