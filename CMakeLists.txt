@@ -69,6 +69,13 @@ option(
   "compile without datalink"
   OFF)
 
+# TODO: turn this off by default
+
+option(
+  BACDL_BSC
+  "compile with secure-connect support"
+  OFF)
+
 set(BACNET_PROTOCOL_REVISION 19)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -117,6 +124,11 @@ endif()
 #
 
 find_package(Threads)
+
+if(BACDL_BSC)
+  find_package(libwebsockets CONFIG REQUIRED)
+  include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
+endif()
 
 add_library(${PROJECT_NAME}
   src/bacnet/abort.c
@@ -170,12 +182,30 @@ add_library(${PROJECT_NAME}
   src/bacnet/weeklyschedule.h
   src/bacnet/special_event.c
   src/bacnet/special_event.h
+  src/bacnet/secure_connect.c
+  src/bacnet/secure_connect.h
   $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
   $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
   $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-socket.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-socket.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-util.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-util.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-connector.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-connector.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-function.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-function.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node-switch.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node-switch.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node.c>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-datalink.h>
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-datalink.c>
   src/bacnet/basic/binding/address.c
   src/bacnet/basic/binding/address.h
   src/bacnet/basic/npdu/h_npdu.c
@@ -251,6 +281,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/nc.h
   src/bacnet/basic/object/netport.c
   src/bacnet/basic/object/netport.h
+  $<$<BOOL:${BACDL_BSC}>:src/bacnet/basic/object/sc_netport.c>
+  src/bacnet/basic/object/sc_netport.h
   src/bacnet/basic/object/objects.c
   src/bacnet/basic/object/objects.h
   src/bacnet/basic/object/osv.c
@@ -524,6 +556,7 @@ target_compile_definitions(
   PUBLIC
   BACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
+  $<$<BOOL:${BACDL_BSC}>:BACDL_BSC>
   $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
   $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
   $<$<BOOL:${BACDL_MSTP}>:BACDL_MSTP>
@@ -534,7 +567,12 @@ target_compile_definitions(
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
   PRINT_ENABLED=1)
-target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+
+if(BACDL_BSC)
+  target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads ${LIB_WEBSOCKETS_LIBRARIES} )
+else()
+  target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+endif()
 
 add_library(
   ${PROJECT_NAME}::${PROJECT_NAME}
@@ -553,6 +591,11 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNET: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   target_link_libraries(${PROJECT_NAME} PUBLIC m)
+  add_compile_definitions(BACNET_PORT=linux)
+
+  if(BACDL_BSC)
+    find_package(OpenSSL)
+  endif()
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
@@ -571,6 +614,11 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 elseif(WIN32)
   message(STATUS "BACNET: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
+  add_compile_definitions(BACNET_PORT=win32)
+
+  if(BACDL_BSC)
+    find_package(OpenSSL)
+  endif()
 
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
 
@@ -599,11 +647,22 @@ elseif(APPLE)
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_compile_definitions(BACNET_PORT=bsd)
 
+  if(BACDL_BSC)
+    execute_process (
+      COMMAND bash -c "brew --prefix openssl"
+      OUTPUT_VARIABLE OPEN_SSL_DIR OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+  endif()
+
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
     ports/bsd/bip-init.c
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-event.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-global.c>
     ports/bsd/stdbool.h)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
@@ -619,7 +678,8 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>
-)
+  $<$<BOOL:${BACDL_BSC}>:${OPEN_SSL_DIR}/include>
+  )
 
 #
 # examples
@@ -703,7 +763,6 @@ if(BACNET_STACK_BUILD_APPS)
   if(BACDL_BIP OR BACDL_BIP6)
     add_executable(readbdt apps/readbdt/main.c)
     target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
-
     add_executable(readfdt apps/readfdt/main.c)
     target_link_libraries(readfdt PRIVATE ${PROJECT_NAME})
   endif()
@@ -797,6 +856,13 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
+if(BACDL_BSC)
+  #add_executable(sc-node apps/sc-node/main.c)
+  #target_link_libraries(sc-node PRIVATE ${PROJECT_NAME})
+
+  add_executable(sc-hub apps/sc-hub/main.c)
+  target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})
+endif()
 endif()
 
 #
@@ -856,6 +922,7 @@ message(STATUS "BACNET: CMAKE_INSTALL_PREFIX:...........\"${CMAKE_INSTALL_PREFIX
 message(STATUS "BACNET: BACNET_PROTOCOL_REVISION:.......\"${BACNET_PROTOCOL_REVISION}\"")
 message(STATUS "BACNET: BACDL_BIP6:.....................\"${BACDL_BIP6}\"")
 message(STATUS "BACNET: BACDL_BIP:......................\"${BACDL_BIP}\"")
+message(STATUS "BACNET: BACDL_BSC:......................\"${BACDL_BSC}\"")
 message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")

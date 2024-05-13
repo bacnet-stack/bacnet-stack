@@ -1,3 +1,58 @@
 #!/bin/sh
 # Nothing to do
+sudo apt-get update -qq
+# install core development packages
+sudo apt-get install -qq build-essential
+sudo apt-get install -qq cmake
+sudo apt-get install -qq lcov
+sudo apt-get install -qq clang
+sudo apt-get install -qq gcc
+sudo apt-get install -qq libconfig-dev
+sudo apt-get install -qq liblwip-dev
+sudo apt-get install -qq mingw-w64
 
+# install git and useful tools packages
+sudo apt-get install -qq git
+sudo apt-get install -qq gitk
+sudo apt-get install -qq gitg
+
+# install source code format packages
+sudo apt-get install -qq tofrodos
+sudo apt-get install -qq clang-format
+sudo apt-get install -qq sloccount
+sudo apt-get install -qq complexity
+sudo apt-get install -qq pmccabe
+
+# install ARM compiler and debugging tools
+sudo apt-get install -qq gcc-arm-none-eabi
+sudo apt-get install -qq binutils-arm-none-eabi
+sudo apt-get install -qq picolibc-arm-none-eabi
+sudo apt-get install -qq gdb-multiarch
+
+# install AVR compiler and debugging tools
+sudo apt-get install -qq gcc-avr
+sudo apt-get install -qq avarice
+sudo apt-get install -qq avr-libc
+sudo apt-get install -qq avrdude
+sudo apt-get install -qq gdb-avr
+sudo apt-get install -qq avrdude-doc
+
+# install static analysis tools
+sudo apt-get install -qq flawfinder
+sudo apt-get install -qq cppcheck
+sudo apt-get install -qq splint
+sudo apt-get install -qq clang-tools
+sudo apt-get install -qq clang-tidy
+sudo apt-get install -qq codespell
+
+# install BACnet Secure Connect (BACnet/SC) dependencies
+sudo apt-get install -qq libconfig-dev
+sudo apt-get install -qq libcap-dev
+sudo apt-get install -qq libssl-dev
+sudo apt-get install -qq libuv1-dev
+git clone  --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
+bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+sudo bash -c 'cd libwebsockets;cd build;make install'
+
+# all complete!
+echo "🚀  ALL GOOD TO GO"

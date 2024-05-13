@@ -443,7 +443,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

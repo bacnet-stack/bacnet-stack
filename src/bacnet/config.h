@@ -4,9 +4,9 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
  * @section LICENSE
- * 
+ *
  * Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
- * 
+ *
  * SPDX-License-Identifier: MIT
  */
 #ifndef CONFIG_H
@@ -25,7 +25,7 @@
 #if !(defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || \
     defined(BACDL_MSTP) || defined(BACDL_BIP) || defined(BACDL_BIP6) || \
     defined(BACDL_TEST) || defined(BACDL_ALL) || defined(BACDL_NONE) || \
-    defined(BACDL_CUSTOM))
+    defined(BACDL_CUSTOM) || defined(BACDL_BSC))
 #define BACDL_BIP
 #endif
 
@@ -104,6 +104,27 @@
 #endif
 #endif
 
+#if defined(BACDL_BSC)
+#ifndef SC_NETPORT_BVLC_MAX
+#define SC_NETPORT_BVLC_MAX 1500
+#endif
+#ifndef SC_NETPORT_NPDU_MAX
+#define SC_NETPORT_NPDU_MAX 1500
+#endif
+#ifndef SC_NETPORT_CONNECT_TIMEOUT
+#define SC_NETPORT_CONNECT_TIMEOUT 5
+#endif
+#ifndef SC_NETPORT_HEARTBEAT_TIMEOUT
+#define SC_NETPORT_HEARTBEAT_TIMEOUT 60
+#endif
+#ifndef SC_NETPORT_DISCONNECT_TIMEOUT
+#define SC_NETPORT_DISCONNECT_TIMEOUT 150
+#endif
+#ifndef SC_NETPORT_RECONNECT_TIME
+#define SC_NETPORT_RECONNECT_TIME 2
+#endif
+#endif
+
 /* for confirmed messages, this is the number of transactions */
 /* that we hold in a queue waiting for timeout. */
 /* Configure to zero if you don't want any confirmed messages */
@@ -156,6 +177,7 @@
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
@@ -180,7 +202,7 @@
 #define BACAPP_OBJECT_ID
 #endif
 
-#if defined (BACAPP_TYPES_EXTRA) 
+#if defined (BACAPP_TYPES_EXTRA)
 #define BACAPP_DOUBLE
 #define BACAPP_TIMESTAMP
 #define BACAPP_DATETIME
@@ -196,6 +218,7 @@
 #define BACAPP_DEVICE_OBJECT_REFERENCE
 #define BACAPP_OBJECT_PROPERTY_REFERENCE
 #define BACAPP_DESTINATION
+#define BACAPP_SECURE_CONNECT
 #endif
 
 #if defined(BACAPP_DOUBLE) || \
@@ -211,7 +234,8 @@
     defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
-    defined(BACAPP_DESTINATION)
+    defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_SECURE_CONNECT)
 #define BACAPP_COMPLEX_TYPES
 #endif
 
@@ -240,8 +264,8 @@
 */
 
 /*
-** Note: these are enabled by default for the example apps to build. 
-** Use a local copy named "bacnet-config.h" with settings configured for 
+** Note: these are enabled by default for the example apps to build.
+** Use a local copy named "bacnet-config.h" with settings configured for
 ** the product specific needs for code space reductions in your device.
 ** Alternately, use a compiler and linker the have code reduction features.
 **/

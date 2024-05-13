@@ -45,3 +45,9 @@ manifest:
         name-allowlist:
         - cmsis
         - picolibc
+        - mbedtls
+        - littlefs
+    - name: mongoose
+      revision: '7.9'
+      path: modules/lib/mongoose
+      url: https://github.com/cesanta/mongoose.git

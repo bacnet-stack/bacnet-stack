@@ -45,12 +45,12 @@ static void test_network_port(void)
     };
 
     while (port_type[port] != PORT_TYPE_MAX) {
+        Network_Port_Init();
         object_instance = 1234;
         status = Network_Port_Object_Instance_Number_Set(0, object_instance);
         zassert_true(status, NULL);
         status = Network_Port_Type_Set(object_instance, port_type[port]);
         zassert_true(status, NULL);
-        Network_Port_Init();
         count = Network_Port_Count();
         zassert_true(count > 0, NULL);
         bacnet_object_properties_read_write_test(
@@ -58,6 +58,7 @@ static void test_network_port(void)
             Network_Port_Read_Property, Network_Port_Write_Property,
             known_fail_property_list);
         port++;
+        Network_Port_Cleanup();
     }
 
     return;

@@ -63,7 +63,8 @@ TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
 SRCS := $(SRC) $(BACNET_OBJECT_SRC) $(BACNET_BASIC_SRC)
 
-OBJS := $(SRCS:.c=.o)
+# TRICK! Use .obj extension to be sure Make doesn't skip lib .o files
+OBJS := $(SRCS:.c=.obj)
 
 CFLAGS += -DBAC_ROUTING
 
@@ -75,7 +76,8 @@ ${TARGET_BIN}: ${OBJS}
 	size $@
 	cp $@ ../../bin
 
-.c.o:
+# TRICK! overridden object files use .obj extension
+%.obj:%.c
 	${CC} -c ${CFLAGS} $*.c -o $@
 
 .PHONY: depend

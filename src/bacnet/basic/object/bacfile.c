@@ -22,6 +22,11 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  *********************************************************************/
+
+#if __ZEPHYR__
+#include <libc_extensions.h>
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -1069,6 +1074,7 @@ void bacfile_cleanup(void)
         do {
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
+                free(pObject->Pathname);
                 free(pObject);
             }
         } while (pObject);

@@ -227,6 +227,7 @@ static void testDevice(void)
 
     return;
 }
+
 /**
  * @}
  */

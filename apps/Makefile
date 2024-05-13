@@ -35,6 +35,10 @@ endif
 ifeq (${BACDL},bip6)
 BACDL_DEFINE=-DBACDL_BIP6=1
 endif
+ifeq (${BACDL},bsc)
+BACDL_DEFINE=-DBACDL_BSC=1
+BACNET_DEFINE=-DBACFILE=1
+endif
 ifeq (${BACDL},none)
 BACDL_DEFINE=-DBACDL_NONE=1
 endif
@@ -107,12 +111,20 @@ endif
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
-SYSTEM_LIB=-lc,-lgcc,-lrt,-lm
+SYSTEM_LIB = -lc,-lgcc,-lrt,-lm
+ifeq (${BACDL},bsc)
+# note: install libwebsocket libssl libcrypto and lcap to build for BACnet/SC
+SYSTEM_LIB += /usr/local/lib/libwebsockets.a -lssl -lcrypto -lcap
+endif
 endif
 ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
+ifeq (${BACDL},bsc)
+# note: install libwebsocket libcrypto and libssl to build for BACnet/SC
+SYSTEM_LIB += /usr/local/lib/libwebsockets.a /usr/local/opt/openssl@3/lib/libcrypto.a /usr/local/opt/openssl@3/lib/libssl.a
+endif
 CSTANDARD = -std=c99
 endif
 ifeq (${BACNET_PORT},win32)
@@ -451,3 +463,6 @@ fuzz-afl: $(BACNET_LIB_TARGET)
 writepropm: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
+.PHONY: sc-hub
+sc-hub: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@

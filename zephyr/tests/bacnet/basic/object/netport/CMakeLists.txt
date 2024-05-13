@@ -47,6 +47,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/datetime.c
     ${BACNET_SRC}/timestamp.c
     ${BACNET_SRC}/basic/sys/days.c
+    ${BACNET_SRC}/basic/sys/keylist.c
     ${BACNET_SRC}/bacdevobjpropref.c
     ${BACNET_SRC}/bactext.c
     ${BACNET_SRC}/indtext.c
@@ -55,6 +56,9 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/wp.c
     ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/datalink/bvlc.c
+    ${BACNET_SRC}/basic/object/bacfile.c
+    ${BACNET_SRC}/secure_connect.c
+    ${BACNET_SRC}/basic/object/sc_netport.c
     ${BACNET_SRC}/hostnport.c
     ${BACNET_SRC}/dailyschedule.c
     ${BACNET_SRC}/weeklyschedule.c
@@ -62,6 +66,8 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
+    ${BACNET_SRC}/datalink/bsc/bsc-util.c
+    ${BACNET_SRC}/basic/sys/debug.c
     )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")

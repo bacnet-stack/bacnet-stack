@@ -41,6 +41,7 @@
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
+#include "bacnet/secure_connect.h"
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
@@ -129,6 +130,12 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined (BACAPP_SPECIAL_EVENT)
         BACNET_SPECIAL_EVENT Special_Event;
+#endif
+#if defined (BACAPP_SECURE_CONNECT)
+        BACNET_SC_FAILED_CONNECTION_REQUEST SC_Failed_Req;
+        BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS SC_Hub_Function_Status;
+        BACNET_SC_DIRECT_CONNECTION_STATUS SC_Direct_Status;
+        BACNET_SC_HUB_CONNECTION_STATUS SC_Hub_Status;
 #endif
     } type;
     /* simple linked list if needed */

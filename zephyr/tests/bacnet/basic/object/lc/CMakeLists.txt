@@ -56,6 +56,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
+    ${BACNET_SRC}/secure_connect.c
     )
 
   add_definitions(-DUNIT_TESTING)
