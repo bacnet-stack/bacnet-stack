@@ -17,9 +17,12 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacdcode.h"
 #include "bacnet/bactext.h"
+#include "bacnet/datetime.h"
+#include "bacnet/proplist.h"
+#include "bacnet/timestamp.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/sys/debug.h"
@@ -37,7 +40,7 @@ static const int Analog_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_UNITS, -1 };
 
 static const int Analog_Value_Properties_Optional[] = { PROP_DESCRIPTION,
-    PROP_COV_INCREMENT,
+    PROP_RELIABILITY, PROP_COV_INCREMENT,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT, PROP_LOW_LIMIT,
     PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE, PROP_ACKED_TRANSITIONS,
@@ -94,7 +97,7 @@ static struct analog_value_descr *Analog_Value_Object_Index(int index)
 #endif
 
 /**
- * @brief Determines if a given Analog Value instance is valid
+ * @brief Determines if a given object instance is valid
  * @param  object_instance - object-instance number of the object
  * @return  true if the instance is valid, and false if not
  */
@@ -111,8 +114,8 @@ bool Analog_Value_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * @brief Determines the number of Analog Value objects
- * @return  Number of Analog Value objects
+ * @brief Determines the number of objects
+ * @return  Number of objects
  */
 unsigned Analog_Value_Count(void)
 {
@@ -120,9 +123,9 @@ unsigned Analog_Value_Count(void)
 }
 
 /**
- * @brief Determines the object instance-number for a given 0..N index
- * of Analog Value objects where N is Analog_Output_Count().
- * @param  index - 0..MAX_ANALOG_OUTPUTS value
+ * @brief Determines the object instance-number for a given 0..(N-1) index
+ * of objects where N is Analog_Value_Count().
+ * @param  index - 0..(N-1) where N is Analog_Value_Count().
  * @return  object instance-number for the given index
  */
 uint32_t Analog_Value_Index_To_Instance(unsigned index)
@@ -135,15 +138,33 @@ uint32_t Analog_Value_Index_To_Instance(unsigned index)
 }
 
 /**
- * @brief For a given object instance-number, determines a 0..N index
- * of Analog Value objects where N is Analog_Output_Count().
+ * @brief For a given object instance-number, determines a 0..(N-1) index
+ * of objects where N is Analog_Value_Count().
  * @param  object_instance - object-instance number of the object
- * @return  index for the given instance-number, or MAX_ANALOG_OUTPUTS
+ * @return  index for the given instance-number, or >= Analog_Value_Count()
  * if not valid.
  */
 unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
 {
     return Keylist_Index(Object_List, object_instance);
+}
+
+/**
+ * @brief For a given object instance-number, determines the present value.
+ * @param  object_instance - object-instance number of the object
+ * @return  present-value of the object
+ */
+float Analog_Value_Present_Value(uint32_t object_instance)
+{
+    float value = 0;
+    struct analog_value_descr *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        value = pObject->Present_Value;
+    }
+
+    return value;
 }
 
 /**
@@ -156,7 +177,8 @@ unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
  * @param index  Object index
  * @param value  Given present value.
  */
-static void Analog_Value_COV_Detect(struct analog_value_descr *pObject, float value)
+static void Analog_Value_COV_Detect(
+    struct analog_value_descr *pObject, float value)
 {
     float prior_value = 0.0f;
     float cov_increment = 0.0f;
@@ -202,26 +224,6 @@ bool Analog_Value_Present_Value_Set(
     }
 
     return status;
-}
-
-/**
- * For a given object instance-number, return the present value.
- *
- * @param  object_instance - object-instance number of the object
- *
- * @return  Present value
- */
-float Analog_Value_Present_Value(uint32_t object_instance)
-{
-    float value = 0;
-    struct analog_value_descr *pObject;
-
-    pObject = Analog_Value_Object(object_instance);
-    if (pObject) {
-        value = pObject->Present_Value;
-    }
-
-    return value;
 }
 
 /**
@@ -329,8 +331,8 @@ bool Analog_Value_Description_Set(uint32_t object_instance, char *new_name)
 
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
-        status = true;
         pObject->Description = new_name;
+        status = true;
     }
 
     return status;
@@ -379,11 +381,8 @@ bool Analog_Value_Reliability_Set(
 }
 
 /**
- * For a given object instance-number, determines if the COV flag
- * has been triggered.
- *
+ * @brief For a given object instance-number, determines the COV status
  * @param  object_instance - object-instance number of the object
- *
  * @return  true if the COV flag is set
  */
 bool Analog_Value_Change_Of_Value(uint32_t object_instance)
@@ -400,8 +399,7 @@ bool Analog_Value_Change_Of_Value(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, clears the COV flag
- *
+ * @brief For a given object instance-number, clears the COV flag
  * @param  object_instance - object-instance number of the object
  */
 void Analog_Value_Change_Of_Value_Clear(uint32_t object_instance)
@@ -615,10 +613,8 @@ static int Analog_Value_Event_Time_Stamps_Encode(
 #endif
 
 /**
- * Return the requested property of the analog value.
- *
+ * @brief For a given object instance-number, handles the ReadProperty service
  * @param rpdata  Property requested, see for BACNET_READ_PROPERTY_DATA details.
- *
  * @return apdu len, or BACNET_STATUS_ERROR on error
  */
 int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
@@ -627,7 +623,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     float real_value = (float)1.414;
-    bool state = false;
     uint8_t *apdu = NULL;
     ANALOG_VALUE_DESCR *CurrentAV;
 #if defined(INTRINSIC_REPORTING)
@@ -664,12 +659,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     encode_application_character_string(&apdu[0], &char_string);
             }
             break;
-        case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Analog_Value_Description(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
-            break;
         case PROP_OBJECT_TYPE:
             apdu_len =
                 encode_application_enumerated(&apdu[0], Object_Type);
@@ -693,13 +682,23 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_enumerated(&apdu[0], CurrentAV->Event_State);
             break;
+        case PROP_RELIABILITY:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], CurrentAV->Reliability);
+            break;
         case PROP_OUT_OF_SERVICE:
-            state = CurrentAV->Out_Of_Service;
-            apdu_len = encode_application_boolean(&apdu[0], state);
+            apdu_len = encode_application_boolean(&apdu[0], 
+                CurrentAV->Out_Of_Service);
             break;
         case PROP_UNITS:
             apdu_len =
                 encode_application_enumerated(&apdu[0], CurrentAV->Units);
+            break;
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(&char_string,
+                Analog_Value_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_COV_INCREMENT:
             apdu_len =
@@ -710,24 +709,19 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_unsigned(&apdu[0], CurrentAV->Time_Delay);
             break;
-
         case PROP_NOTIFICATION_CLASS:
             apdu_len = encode_application_unsigned(
                 &apdu[0], CurrentAV->Notification_Class);
             break;
-
         case PROP_HIGH_LIMIT:
             apdu_len = encode_application_real(&apdu[0], CurrentAV->High_Limit);
             break;
-
         case PROP_LOW_LIMIT:
             apdu_len = encode_application_real(&apdu[0], CurrentAV->Low_Limit);
             break;
-
         case PROP_DEADBAND:
             apdu_len = encode_application_real(&apdu[0], CurrentAV->Deadband);
             break;
-
         case PROP_LIMIT_ENABLE:
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, 0,
@@ -738,7 +732,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                                                                     : false);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
-
         case PROP_EVENT_ENABLE:
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, TRANSITION_TO_OFFNORMAL,
@@ -752,7 +745,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                                                                    : false);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
-
         case PROP_ACKED_TRANSITIONS:
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, TRANSITION_TO_OFFNORMAL,
@@ -763,7 +755,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
-
         case PROP_NOTIFY_TYPE:
             apdu_len = encode_application_enumerated(
                 &apdu[0], CurrentAV->Notify_Type ? NOTIFY_EVENT : NOTIFY_ALARM);
@@ -800,12 +791,11 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
- * Set the requested property of the analog value.
- *
- * @param wp_data  Property requested, see for BACNET_WRITE_PROPERTY_DATA
- * details.
- *
- * @return true if successful
+ * @brief WriteProperty handler for this object.  For the given WriteProperty
+ * data, the application_data is loaded or the error flags are set.
+ * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ * @return false if an error is loaded, true if no errors
  */
 bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
@@ -1445,33 +1435,6 @@ int Analog_Value_Alarm_Ack(
             break;
 
         case EVENT_STATE_FAULT:
-            if (CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
-                false) {
-                if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
-                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
-                    return -1;
-                }
-                if (datetime_compare(
-                        &CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL]
-                             .Time_Stamp,
-                        &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
-                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
-                    return -1;
-                }
-
-                /* Clean transitions flag. */
-                CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
-                    true;
-            } else if (alarmack_data->eventStateAcked ==
-                CurrentAV->Event_State) {
-                /* Send ack notification */
-            } else {
-                *error_code = ERROR_CODE_INVALID_EVENT_STATE;
-                return -1;
-            }
-            break;
-
-        case EVENT_STATE_NORMAL:
             if (CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
                 false) {
                 if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
@@ -1485,8 +1448,33 @@ int Analog_Value_Alarm_Ack(
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
+                /* Send ack notification */
+                CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
+                    true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAV->Event_State) {
+                /* Send ack notification */
+            } else {
+                *error_code = ERROR_CODE_INVALID_EVENT_STATE;
+                return -1;
+            }
+            break;
 
-                /* Clean transitions flag. */
+        case EVENT_STATE_NORMAL:
+            if (CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
+                false) {
+                if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                if (datetime_compare(
+                        &CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL]
+                             .Time_Stamp,
+                        &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
+                    *error_code = ERROR_CODE_INVALID_TIME_STAMP;
+                    return -1;
+                }
+                /* Send ack notification */
                 CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked =
                     true;
             } else if (alarmack_data->eventStateAcked ==
@@ -1501,7 +1489,6 @@ int Analog_Value_Alarm_Ack(
         default:
             return -2;
     }
-
     /* Need to send AckNotification. */
     CurrentAV->Ack_notify_data.bSendAckNotify = true;
     CurrentAV->Ack_notify_data.EventState = alarmack_data->eventStateAcked;
