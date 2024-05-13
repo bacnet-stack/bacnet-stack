@@ -123,9 +123,9 @@ unsigned Analog_Value_Count(void)
 }
 
 /**
- * @brief Determines the object instance-number for a given 0..N index
+ * @brief Determines the object instance-number for a given 0..(N-1) index
  * of objects where N is Analog_Value_Count().
- * @param  index - 0..MAX_ANALOG_OUTPUTS value
+ * @param  index - 0..(N-1) where N is Analog_Value_Count().
  * @return  object instance-number for the given index
  */
 uint32_t Analog_Value_Index_To_Instance(unsigned index)
@@ -138,10 +138,10 @@ uint32_t Analog_Value_Index_To_Instance(unsigned index)
 }
 
 /**
- * @brief For a given object instance-number, determines a 0..N index
+ * @brief For a given object instance-number, determines a 0..(N-1) index
  * of objects where N is Analog_Value_Count().
  * @param  object_instance - object-instance number of the object
- * @return  index for the given instance-number, or MAX_ANALOG_OUTPUTS
+ * @return  index for the given instance-number, or >= Analog_Value_Count()
  * if not valid.
  */
 unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
