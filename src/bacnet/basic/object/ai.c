@@ -53,6 +53,14 @@ static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
 
 static const int Properties_Proprietary[] = { -1 };
 
+/**
+ * Initialize the pointers for the required, the optional and the properitary
+ * value properties.
+ *
+ * @param pRequired - Pointer to the pointer of required values.
+ * @param pOptional - Pointer to the pointer of optional values.
+ * @param pProprietary - Pointer to the pointer of properitary values.
+ */
 void Analog_Input_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
@@ -91,9 +99,11 @@ static struct analog_input_descr *Analog_Input_Object_Index(int index)
 }
 #endif
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need validate that the */
-/* given instance exists */
+/**
+ * @brief Determines if a given object instance is valid
+ * @param  object_instance - object-instance number of the object
+ * @return  true if the instance is valid, and false if not
+ */
 bool Analog_Input_Valid_Instance(uint32_t object_instance)
 {
     struct analog_input_descr *pObject;
@@ -106,16 +116,21 @@ bool Analog_Input_Valid_Instance(uint32_t object_instance)
     return false;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then count how many you have */
+/**
+ * @brief Determines the number of objects
+ * @return  Number of objects
+ */
 unsigned Analog_Input_Count(void)
 {
     return Keylist_Count(Object_List);
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the instance */
-/* that correlates to the correct index */
+/**
+ * @brief Determines the object instance-number for a given 0..N index
+ * of objects where N is Analog_Input_Count().
+ * @param  index - 0..MAX_ANALOG_OUTPUTS value
+ * @return  object instance-number for the given index
+ */
 uint32_t Analog_Input_Index_To_Instance(unsigned index)
 {
     KEY key = UINT32_MAX;
@@ -125,9 +140,13 @@ uint32_t Analog_Input_Index_To_Instance(unsigned index)
     return key;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the index */
-/* that correlates to the correct instance number */
+/**
+ * @brief For a given object instance-number, determines a 0..N index
+ * of objects where N is Analog_Input_Count().
+ * @param  object_instance - object-instance number of the object
+ * @return  index for the given instance-number, or MAX_ANALOG_OUTPUTS
+ * if not valid.
+ */
 unsigned Analog_Input_Instance_To_Index(uint32_t object_instance)
 {
     return Keylist_Index(Object_List, object_instance);
@@ -152,10 +171,14 @@ float Analog_Input_Present_Value(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, checks the present-value for COV
+ * This function is used to detect a value change,
+ * using the new value compared against the prior
+ * value, using a delta as threshold.
  *
- * @param  pObject - specific object with valid data
- * @param  value - floating point analog value
+ * This method will update the COV-changed attribute.
+ *
+ * @param index  Object index
+ * @param value  Given present value.
  */
 static void Analog_Input_COV_Detect(
     struct analog_input_descr *pObject, float value)
@@ -306,17 +329,57 @@ bool Analog_Input_Description_Set(uint32_t object_instance, char *new_name)
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
-        if (new_name) {
-            pObject->Description = new_name;
-            status = true;
-        }
+        pObject->Description = new_name;
+        status = true;
     }
 
     return status;
 }
 
 /**
- * @brief For a given object instance-number, returns the COV status
+ * @brief For a given object instance-number, returns the reliability
+ * @param  object_instance - object-instance number of the object
+ * @return reliability property value
+*/
+BACNET_RELIABILITY Analog_Input_Reliability(
+    uint32_t object_instance)
+{
+    BACNET_RELIABILITY value = RELIABILITY_NO_FAULT_DETECTED;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        value = pObject->Reliability;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the reliability
+ * @param  object_instance - object-instance number of the object
+ * @param  value - reliability property value
+ * @return  true if the reliability property value was set
+ */
+bool Analog_Input_Reliability_Set(
+    uint32_t object_instance,
+    BACNET_RELIABILITY value)
+{
+    bool status = false;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Reliability = value;
+        status = true;
+    }
+
+    return status;
+
+}
+
+/**
+ * @brief For a given object instance-number, determines the COV status
  * @param  object_instance - object-instance number of the object
  * @return  true if the COV flag is set
  */
@@ -333,6 +396,10 @@ bool Analog_Input_Change_Of_Value(uint32_t object_instance)
     return changed;
 }
 
+/**
+ * @brief For a given object instance-number, clears the COV flag
+ * @param  object_instance - object-instance number of the object
+ */
 void Analog_Input_Change_Of_Value_Clear(uint32_t object_instance)
 {
     struct analog_input_descr *pObject;
@@ -455,6 +522,12 @@ bool Analog_Input_Units_Set(uint32_t object_instance, uint16_t units)
     return status;
 }
 
+/**
+ * @brief For a given object instance-number, returns the out-of-service
+ * property value
+ * @param object_instance - object-instance number of the object
+ * @return out-of-service property value
+ */
 bool Analog_Input_Out_Of_Service(uint32_t object_instance)
 {
     bool value = false;
@@ -468,6 +541,12 @@ bool Analog_Input_Out_Of_Service(uint32_t object_instance)
     return value;
 }
 
+/**
+ * @brief For a given object instance-number, sets the out-of-service property value
+ * @param object_instance - object-instance number of the object
+ * @param value - boolean out-of-service value
+ * @return true if the out-of-service property value was set
+ */
 void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     struct analog_input_descr *pObject;
@@ -533,9 +612,8 @@ static int Analog_Input_Event_Time_Stamps_Encode(
 
 /**
  * @brief For a given object instance-number, handles the ReadProperty service
- * @param  rpdata - BACNET_READ_PROPERTY_DATA data, including the requested
- * property
- * @return number of bytes encoded in the APDU
+ * @param  rpdata Property requested, see for BACNET_READ_PROPERTY_DATA details.
+ * @return apdu len, or BACNET_STATUS_ERROR on error
  */
 int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
@@ -543,6 +621,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint8_t *apdu = NULL;
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
+    float real_value = (float)1.414;
 #if defined(INTRINSIC_REPORTING)
     int apdu_size = 0;
 #endif
@@ -575,17 +654,16 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], Object_Type);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len = encode_application_real(
-                &apdu[0], Analog_Input_Present_Value(rpdata->object_instance));
+            real_value = Analog_Input_Present_Value(rpdata->object_instance);
+            apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM,
-                Analog_Input_Event_State(rpdata->object_instance) !=
-                    EVENT_STATE_NORMAL);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN,
+                pObject->Event_State != EVENT_STATE_NORMAL);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, 
                 pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
                 pObject->Out_Of_Service);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
@@ -721,10 +799,6 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data->application_data_len == 0) {
         return false;
     }
-    pObject = Analog_Input_Object(wp_data->object_instance);
-    if (!pObject) {
-        return false;
-    }
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
@@ -740,6 +814,10 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
+    pObject = Analog_Input_Object(wp_data->object_instance);
+    if (!pObject) {
         return false;
     }
     switch (wp_data->object_property) {
