@@ -1185,7 +1185,7 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                     ExceededLimit = 0;
                     break;
             } /* switch (ToState) */
-            debug_printf(("Event_State for (%s,%u) goes from %s to %s.\n",
+            debug_printf("Event_State for (%s,%u) goes from %s to %s.\n",
                 bactext_object_type_name(Object_Type),
                 (unsigned)object_instance, bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
