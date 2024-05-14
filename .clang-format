@@ -8,6 +8,7 @@ AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AlignEscapedNewlines: Left
+AlignArrayOfStructures: None
 PointerAlignment: Right
 BreakBeforeBraces: Linux
 BreakBeforeBinaryOperators: None
