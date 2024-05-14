@@ -259,6 +259,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/piv.h
   src/bacnet/basic/object/schedule.c
   src/bacnet/basic/object/schedule.h
+  src/bacnet/basic/object/structured_view.c
+  src/bacnet/basic/object/structured_view.h
   src/bacnet/basic/object/time_value.c
   src/bacnet/basic/object/time_value.h
   src/bacnet/basic/object/trendlog.c

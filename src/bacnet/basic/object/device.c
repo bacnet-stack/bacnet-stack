@@ -55,6 +55,7 @@
 #include "bacnet/basic/object/osv.h"
 #include "bacnet/basic/object/piv.h"
 #include "bacnet/basic/object/schedule.h"
+#include "bacnet/basic/object/structured_view.h"
 #include "bacnet/basic/object/time_value.h"
 #include "bacnet/basic/object/trendlog.h"
 #if defined(INTRINSIC_REPORTING)
@@ -78,6 +79,7 @@ extern bool Routed_Device_Write_Property_Local(
 /* may be overridden by outside table */
 static object_functions_t *Object_Table;
 
+/* clang format off */
 static object_functions_t My_Object_Table[] = {
     { OBJECT_DEVICE, NULL /* Init - don't init Device or it will recourse! */,
         Device_Count, Device_Index_To_Instance,
@@ -343,6 +345,14 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Intrinsic Reporting */, NULL /* Add_List_Element */,
         NULL /* Remove_List_Element */, NULL /* Create */, NULL /* Delete */,
         NULL /* Timer */ },
+    { OBJECT_STRUCTURED_VIEW, Structured_View_Init, Structured_View_Count,
+        Structured_View_Index_To_Instance, Structured_View_Valid_Instance,
+        Structured_View_Object_Name, Structured_View_Read_Property, 
+        NULL /* Write_Property */, Structured_View_Property_Lists, 
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */, 
+        NULL /* COV */, NULL /* COV Clear */,  NULL /* Intrinsic Reporting */, 
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */, 
+        Structured_View_Create, Structured_View_Delete, NULL /* Timer */ },
     { OBJECT_TIME_VALUE, Time_Value_Init, Time_Value_Count,
         Time_Value_Index_To_Instance, Time_Value_Valid_Instance,
         Time_Value_Object_Name, Time_Value_Read_Property,
@@ -368,6 +378,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 };
+/* clang format on */
 
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
@@ -462,16 +473,19 @@ void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
     return;
 }
 
+/* clang format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_SYSTEM_STATUS, PROP_VENDOR_NAME,
-    PROP_VENDOR_IDENTIFIER, PROP_MODEL_NAME, PROP_FIRMWARE_REVISION,
-    PROP_APPLICATION_SOFTWARE_VERSION, PROP_PROTOCOL_VERSION,
-    PROP_PROTOCOL_REVISION, PROP_PROTOCOL_SERVICES_SUPPORTED,
-    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, PROP_OBJECT_LIST,
-    PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_SEGMENTATION_SUPPORTED,
-    PROP_APDU_TIMEOUT, PROP_NUMBER_OF_APDU_RETRIES, PROP_DEVICE_ADDRESS_BINDING,
-    PROP_DATABASE_REVISION, -1 };
+static const int Device_Properties_Required[] = { 
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE, 
+    PROP_SYSTEM_STATUS, PROP_VENDOR_NAME, PROP_VENDOR_IDENTIFIER, 
+    PROP_MODEL_NAME, PROP_FIRMWARE_REVISION, PROP_APPLICATION_SOFTWARE_VERSION, 
+    PROP_PROTOCOL_VERSION, PROP_PROTOCOL_REVISION, 
+    PROP_PROTOCOL_SERVICES_SUPPORTED, PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, 
+    PROP_OBJECT_LIST, PROP_MAX_APDU_LENGTH_ACCEPTED, 
+    PROP_SEGMENTATION_SUPPORTED, PROP_APDU_TIMEOUT, 
+    PROP_NUMBER_OF_APDU_RETRIES, PROP_DEVICE_ADDRESS_BINDING,
+    PROP_DATABASE_REVISION, -1 
+};
 
 static const int Device_Properties_Optional[] = {
 #if defined(BACDL_MSTP)
@@ -486,7 +500,10 @@ static const int Device_Properties_Optional[] = {
     -1
 };
 
-static const int Device_Properties_Proprietary[] = { -1 };
+static const int Device_Properties_Proprietary[] = { 
+    -1 
+};
+/* clang format on */
 
 void Device_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
