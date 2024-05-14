@@ -58,6 +58,9 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/dailyschedule.c
 	${SRC_DIR}/bacnet/calendar_entry.c
 	${SRC_DIR}/bacnet/special_event.c
+	${SRC_DIR}/bacnet/basic/sys/bigend.c
+	${SRC_DIR}/bacnet/basic/sys/debug.c
+	${SRC_DIR}/bacnet/basic/sys/keylist.c
     # Test and test library files
 	./src/main.c
 	${TST_DIR}/bacnet/basic/object/property_test.c

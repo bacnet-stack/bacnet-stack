@@ -16,6 +16,8 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacerror.h"
+#include "bacnet/bacstr.h"
+#include "bacnet/bacdevobjpropref.h"
 #include "bacnet/rp.h"
 
 struct BACnetSubordinateData;
