@@ -49,30 +49,30 @@ static OS_Keylist Object_List;
 
 /* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { 
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE, 
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
     PROP_NODE_TYPE, PROP_SUBORDINATE_LIST,
-    -1 
+    -1
 };
 
-static const int Properties_Optional[] = { 
+static const int Properties_Optional[] = {
     PROP_DESCRIPTION, PROP_NODE_SUBTYPE, PROP_SUBORDINATE_ANNOTATIONS,
-    PROP_SUBORDINATE_NODE_TYPES, PROP_SUBORDINATE_RELATIONSHIPS, 
+    PROP_SUBORDINATE_NODE_TYPES, PROP_SUBORDINATE_RELATIONSHIPS,
     PROP_DEFAULT_SUBORDINATE_RELATIONSHIP,
     PROP_REPRESENTS,
-    -1 
+    -1
 };
 
 static const int Properties_Proprietary[] = {
-    -1 
+    -1
 };
 
 /* standard properties that are arrays for this object,
    but not necessary supported in this object */
-static const int BACnetARRAY_Properties[] = { 
-    PROP_SUBORDINATE_LIST, PROP_SUBORDINATE_ANNOTATIONS, PROP_SUBORDINATE_TAGS, 
-    PROP_SUBORDINATE_NODE_TYPES, PROP_SUBORDINATE_RELATIONSHIPS,  PROP_TAGS, 
-    -1 
+static const int BACnetARRAY_Properties[] = {
+    PROP_SUBORDINATE_LIST, PROP_SUBORDINATE_ANNOTATIONS, PROP_SUBORDINATE_TAGS,
+    PROP_SUBORDINATE_NODE_TYPES, PROP_SUBORDINATE_RELATIONSHIPS,  PROP_TAGS,
+    -1
 };
 /* clang-format on */
 
@@ -816,9 +816,10 @@ uint32_t Structured_View_Create(uint32_t object_instance)
         pObject->Node_Subtype = NULL;
         pObject->Subordinate_List = NULL;
         pObject->Default_Subordinate_Relationship = BACNET_RELATIONSHIP_DEFAULT;
+        pObject->Represents.deviceIdentifier.type = OBJECT_NONE;
         pObject->Represents.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
+        pObject->Represents.objectIdentifier.type = OBJECT_DEVICE;
         pObject->Represents.objectIdentifier.instance = BACNET_MAX_INSTANCE;
-        pObject->Represents.objectIdentifier.type = OBJECT_NONE;
         pObject->Node_Type = BACNET_NODE_UNKNOWN;
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);

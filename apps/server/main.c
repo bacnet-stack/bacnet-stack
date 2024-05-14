@@ -59,6 +59,7 @@
 #endif
 #include "bacnet/basic/object/lc.h"
 #include "bacnet/basic/object/trendlog.h"
+#include "bacnet/basic/object/structured_view.h"
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
@@ -93,6 +94,50 @@ static struct mstimer BACnet_Object_Timer;
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
+/* configure a structured view object */
+static BACNET_SUBORDINATE_DATA Lighting_Subordinate[] =
+{
+    {0, OBJECT_ACCUMULATOR, 1, "watt-hours", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
+    {0, OBJECT_LOAD_CONTROL, 1, "demand-response", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
+    {0, OBJECT_CHANNEL, 1, "scene", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
+    {0, OBJECT_LIGHTING_OUTPUT, 1, "light", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
+    {0, OBJECT_BINARY_LIGHTING_OUTPUT, 1, "relay", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
+    {0, OBJECT_COLOR, 1, "color", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
+    {0, OBJECT_COLOR_TEMPERATURE, 1, "color-temperature", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
+};
+
+/**
+ * @brief Update the strcutured view static data with device ID and linked lists
+ * @param device_id Device Instance to assign to every subordinate
+ */
+static void Structured_View_Update(void)
+{
+    uint32_t device_id, instance;
+    BACNET_DEVICE_OBJECT_REFERENCE represents = { 0 };
+    size_t array_size = sizeof(Lighting_Subordinate) / sizeof(Lighting_Subordinate[0]);
+    size_t i;
+
+    device_id = Device_Object_Instance_Number();
+    /* link the lists, and update the device instance to internal */
+    for (i = 0; i < array_size; i++) {
+        if (i < (array_size-1)) {
+            Lighting_Subordinate[i].next = &Lighting_Subordinate[i+1];
+        }
+        Lighting_Subordinate[i].Device_Instance = device_id;
+    }
+    instance = Structured_View_Index_To_Instance(0);
+    Structured_View_Subordinate_List_Set(instance, Lighting_Subordinate);
+    /* In some cases, the Structure View object will abstractly represent
+       this entity by itself, and this property will either be absent,
+       unconfigured, or point to itself. */
+    represents.deviceIdentifier.type = OBJECT_NONE;
+    represents.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
+    represents.objectIdentifier.type = OBJECT_DEVICE;
+    represents.objectIdentifier.instance = Device_Object_Instance_Number();
+    Structured_View_Represents_Set(instance, &represents);
+    Structured_View_Node_Type_Set(instance, BACNET_NODE_ROOM);
+}
+
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
  */
@@ -104,13 +149,15 @@ static void Init_Service_Handlers(void)
     Device_Init(NULL);
     /* create some dynamically created objects as examples */
     object_data.object_instance = BACNET_MAX_INSTANCE;
-    for (i = 0; i < BACNET_OBJECT_TYPE_LAST; i++) {
+    for (i = 0; i <= BACNET_OBJECT_TYPE_LAST; i++) {
         object_data.object_type = i;
         if (Device_Create_Object(&object_data)) {
             printf("Created object %s-%u\n", bactext_object_type_name(i),
                 (unsigned)object_data.object_instance);
         }
     }
+    /* update structured view with this device instance */
+    Structured_View_Update();
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
@@ -309,7 +356,6 @@ int main(int argc, char *argv[])
     if (Device_Object_Name(Device_Object_Instance_Number(), &DeviceName)) {
         printf("BACnet Device Name: %s\n", DeviceName.value);
     }
-
     dlenv_init();
     atexit(datalink_cleanup);
     /* broadcast an I-Am on startup */
