@@ -94,16 +94,46 @@ static struct mstimer BACnet_Object_Timer;
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
-/* configure a structured view object */
+/* configure an example structured view object subordinate list */
+#if (BACNET_PROTOCOL_REVISION >= 4)
+#define LIGHTING_OBJECT_WATTS OBJECT_ACCUMULATOR
+#else
+#define LIGHTING_OBJECT_WATTS OBJECT_ANALOG_INPUT
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 6)
+#define LIGHTING_OBJECT_ADR OBJECT_LOAD_CONTROL
+#else
+#define LIGHTING_OBJECT_ADR OBJECT_MULTISTATE_OUTPUT
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 6)
+#define LIGHTING_OBJECT_ADR OBJECT_LOAD_CONTROL
+#else
+#define LIGHTING_OBJECT_ADR OBJECT_MULTISTATE_OUTPUT
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 14)
+#define LIGHTING_OBJECT_SCENE OBJECT_CHANNEL
+#define LIGHTING_OBJECT_LIGHT OBJECT_LIGHTING_OUTPUT
+#else
+#define LIGHTING_OBJECT_SCENE OBJECT_ANALOG_VALUE
+#define LIGHTING_OBJECT_LIGHT OBJECT_ANALOG_OUTPUT
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 16)
+#define LIGHTING_OBJECT_RELAY OBJECT_BINARY_LIGHTING_OUTPUT
+#else
+#define LIGHTING_OBJECT_RELAY OBJECT_BINARY_OUTPUT
+#endif
+
 static BACNET_SUBORDINATE_DATA Lighting_Subordinate[] =
 {
-    {0, OBJECT_ACCUMULATOR, 1, "watt-hours", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
-    {0, OBJECT_LOAD_CONTROL, 1, "demand-response", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
-    {0, OBJECT_CHANNEL, 1, "scene", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
-    {0, OBJECT_LIGHTING_OUTPUT, 1, "light", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
-    {0, OBJECT_BINARY_LIGHTING_OUTPUT, 1, "relay", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
-    {0, OBJECT_COLOR, 1, "color", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
-    {0, OBJECT_COLOR_TEMPERATURE, 1, "color-temperature", BACNET_NODE_ROOM, BACNET_RELATIONSHIP_CONTAINS, NULL},
+    {0, LIGHTING_OBJECT_WATTS, 1, "watt-hours", 0, 0, NULL},
+    {0, LIGHTING_OBJECT_ADR, 1, "demand-response", 0, 0, NULL},
+    {0, LIGHTING_OBJECT_SCENE, 1, "scene",  0, 0, NULL},
+    {0, LIGHTING_OBJECT_LIGHT, 1, "light",  0, 0, NULL},
+    {0, LIGHTING_OBJECT_RELAY, 1, "relay",  0, 0, NULL},
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    {0, OBJECT_COLOR, 1, "color", 0, 0, NULL},
+    {0, OBJECT_COLOR_TEMPERATURE, 1, "color-temperature", 0, 0, NULL},
+#endif
 };
 
 /**
@@ -114,16 +144,19 @@ static void Structured_View_Update(void)
 {
     uint32_t device_id, instance;
     BACNET_DEVICE_OBJECT_REFERENCE represents = { 0 };
-    size_t array_size = sizeof(Lighting_Subordinate) / sizeof(Lighting_Subordinate[0]);
     size_t i;
 
     device_id = Device_Object_Instance_Number();
-    /* link the lists, and update the device instance to internal */
-    for (i = 0; i < array_size; i++) {
-        if (i < (array_size-1)) {
+    for (i = 0; i < ARRAY_SIZE(Lighting_Subordinate); i++) {
+        /* link the lists */
+        if (i < (ARRAY_SIZE(Lighting_Subordinate)-1)) {
             Lighting_Subordinate[i].next = &Lighting_Subordinate[i+1];
         }
+        /* update the device instance to internal */
         Lighting_Subordinate[i].Device_Instance = device_id;
+        /* update the common node data */
+        Lighting_Subordinate[i].Node_Type = BACNET_NODE_ROOM;
+        Lighting_Subordinate[i].Relationship = BACNET_RELATIONSHIP_CONTAINS;
     }
     instance = Structured_View_Index_To_Instance(0);
     Structured_View_Subordinate_List_Set(instance, Lighting_Subordinate);
