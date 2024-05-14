@@ -31,12 +31,13 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bacdcode.h"
 #include "bacnet/apdu.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bactext.h"
 #include "bacnet/dcc.h"
+#include "bacnet/getevent.h"
 #include "bacnet/iam.h"
 #include "bacnet/npdu.h"
-#include "bacnet/getevent.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
 #include "bacnet/basic/binding/address.h"
@@ -97,7 +98,19 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
  */
 static void Init_Service_Handlers(void)
 {
+    BACNET_CREATE_OBJECT_DATA object_data = { 0 };
+    unsigned int i = 0;
+
     Device_Init(NULL);
+    /* create some dynamically created objects as examples */
+    object_data.object_instance = BACNET_MAX_INSTANCE;
+    for (i = 0; i < BACNET_OBJECT_TYPE_LAST; i++) {
+        object_data.object_type = i;
+        if (Device_Create_Object(&object_data)) {
+            printf("Created object %s-%u\n", bactext_object_type_name(i),
+                (unsigned)object_data.object_instance);
+        }
+    }
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
