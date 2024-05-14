@@ -1018,11 +1018,11 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
 {
 #if defined(INTRINSIC_REPORTING)
-    BACNET_EVENT_NOTIFICATION_DATA event_data;
-    BACNET_CHARACTER_STRING msgText;
-    ANALOG_VALUE_DESCR *CurrentAV;
+    BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
+    BACNET_CHARACTER_STRING msgText = { 0 };
+    ANALOG_VALUE_DESCR *CurrentAV = NULL;
     uint8_t FromState = 0;
-    uint8_t ToState;
+    uint8_t ToState = 0;
     float ExceededLimit = 0.0f;
     float PresentVal = 0.0f;
     bool SendNotify = false;
