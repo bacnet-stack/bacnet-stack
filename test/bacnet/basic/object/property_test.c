@@ -221,6 +221,8 @@ void bacnet_object_properties_read_write_test(
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     wpdata.object_property = PROP_ALL;
     wpdata.array_index = BACNET_ARRAY_ALL;
-    status = write_property(&wpdata);
-    zassert_false(status, NULL);
+    if (write_property) {
+        status = write_property(&wpdata);
+        zassert_false(status, NULL);
+    }
 }

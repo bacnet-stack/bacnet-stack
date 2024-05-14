@@ -372,6 +372,7 @@ set(BACNETSTACK_BASIC_SRCS
     $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_OCTET_STRING_VALUE}>:${BACNETSTACK_SRC}/bacnet/basic/object/osv.c>
     $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_POSITIVE_INTEGER_VALUE}>:${BACNETSTACK_SRC}/bacnet/basic/object/piv.c>
     $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_SCHEDULE}>:${BACNETSTACK_SRC}/bacnet/basic/object/schedule.c>
+    $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW}>:${BACNETSTACK_SRC}/bacnet/basic/object/structured_view.c>
     $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_TIME_VALUE}>:${BACNETSTACK_SRC}/bacnet/basic/object/time_value.c>
     $<$<BOOL:${CONFIG_BACNET_BASIC_OBJECT_TRENDLOG}>:${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c>
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_alarm_ack.c

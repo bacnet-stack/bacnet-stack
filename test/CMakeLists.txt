@@ -140,6 +140,7 @@ list(APPEND testdirs
   bacnet/basic/object/osv
   bacnet/basic/object/piv
   bacnet/basic/object/schedule
+  bacnet/basic/object/structured_view
   bacnet/basic/object/time_value
   bacnet/basic/object/trendlog
   # basic/sys
