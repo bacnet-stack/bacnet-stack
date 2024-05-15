@@ -27,6 +27,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
 #include "bacnet/proplist.h"
+#include "bacnet/property.h"
 #include "bacnet/reject.h"
 #include "bacnet/rp.h"
 #include "bacnet/basic/services.h"
@@ -64,14 +65,6 @@ static const int Properties_Optional[] = {
 };
 
 static const int Properties_Proprietary[] = {
-    -1
-};
-
-/* standard properties that are arrays for this object,
-   but not necessary supported in this object */
-static const int BACnetARRAY_Properties[] = {
-    PROP_SUBORDINATE_LIST, PROP_SUBORDINATE_ANNOTATIONS, PROP_SUBORDINATE_TAGS,
-    PROP_SUBORDINATE_NODE_TYPES, PROP_SUBORDINATE_RELATIONSHIPS,  PROP_TAGS,
     -1
 };
 /* clang-format on */
@@ -634,16 +627,6 @@ int Structured_View_Subordinate_Relationships_Element_Encode(
 }
 
 /**
- * @brief Determine if the object property is a BACnetARRAY property
- * @param object_property - object-property to be checked
- * @return true if the property is a BACnetARRAY property
- */
-static bool BACnetARRAY_Property(int object_property)
-{
-    return property_list_member(BACnetARRAY_Properties, object_property);
-}
-
-/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -660,12 +643,12 @@ int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint32_t count = 0;
     uint8_t *apdu = NULL;
     uint16_t apdu_max = 0;
+    bool is_array = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
-
     apdu = rpdata->application_data;
     apdu_max = rpdata->application_data_len;
     switch (rpdata->object_property) {
@@ -775,7 +758,9 @@ int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (!BACnetARRAY_Property(rpdata->object_property)) &&
+    is_array = property_list_bacnet_array_member(
+        rpdata->object_type, rpdata->object_property);
+    if ((apdu_len >= 0) && (!is_array) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
