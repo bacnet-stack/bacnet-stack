@@ -44,6 +44,11 @@ config BACNET_PROPERTY_LISTS
 	help
 	  Enable BACnet Property Lists
 
+config BACNET_PROPERTY_ARRAY_LISTS
+	bool "BACnetARRAY Property Lists"
+	help
+	  Enable BACnetARRAY Property Lists
+
 config BACDL_ETHERNET
 	bool "BACnet Ethernet datalink"
 	help
