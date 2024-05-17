@@ -70,7 +70,8 @@ int ucov_notify_decode_apdu(
     return len;
 }
 
-static int cov_subscribe_decode_apdu(uint8_t *apdu,
+static int cov_subscribe_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     BACNET_SUBSCRIBE_COV_DATA *data)
@@ -98,7 +99,8 @@ static int cov_subscribe_decode_apdu(uint8_t *apdu,
     return len;
 }
 
-static int cov_subscribe_property_decode_apdu(uint8_t *apdu,
+static int cov_subscribe_property_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     BACNET_SUBSCRIBE_COV_DATA *data)
@@ -132,13 +134,17 @@ static void testCOVNotifyData(BACNET_COV_DATA *data, BACNET_COV_DATA *test_data)
     BACNET_PROPERTY_VALUE *value = NULL;
     BACNET_PROPERTY_VALUE *test_value = NULL;
 
-    zassert_equal(test_data->subscriberProcessIdentifier,
+    zassert_equal(
+        test_data->subscriberProcessIdentifier,
         data->subscriberProcessIdentifier, NULL);
-    zassert_equal(test_data->initiatingDeviceIdentifier,
-        data->initiatingDeviceIdentifier, NULL);
-    zassert_equal(test_data->monitoredObjectIdentifier.type,
+    zassert_equal(
+        test_data->initiatingDeviceIdentifier, data->initiatingDeviceIdentifier,
+        NULL);
+    zassert_equal(
+        test_data->monitoredObjectIdentifier.type,
         data->monitoredObjectIdentifier.type, NULL);
-    zassert_equal(test_data->monitoredObjectIdentifier.instance,
+    zassert_equal(
+        test_data->monitoredObjectIdentifier.instance,
         data->monitoredObjectIdentifier.instance, NULL);
     zassert_equal(test_data->timeRemaining, data->timeRemaining, NULL);
     /* test the listOfValues in some clever manner */
@@ -147,12 +153,14 @@ static void testCOVNotifyData(BACNET_COV_DATA *data, BACNET_COV_DATA *test_data)
     while (value) {
         zassert_not_null(test_value, NULL);
         if (test_value) {
-            zassert_equal(test_value->propertyIdentifier,
-                value->propertyIdentifier, "property=%u test_property=%u",
+            zassert_equal(
+                test_value->propertyIdentifier, value->propertyIdentifier,
+                "property=%u test_property=%u",
                 (unsigned)value->propertyIdentifier,
                 (unsigned)test_value->propertyIdentifier);
-            zassert_equal(test_value->propertyArrayIndex,
-                value->propertyArrayIndex, NULL);
+            zassert_equal(
+                test_value->propertyArrayIndex, value->propertyArrayIndex,
+                NULL);
             zassert_equal(test_value->priority, value->priority, NULL);
             zassert_true(
                 bacapp_same_value(&test_value->value, &value->value), NULL);
@@ -241,11 +249,14 @@ static void testCOVNotify(void)
 static void testCOVSubscribeData(
     BACNET_SUBSCRIBE_COV_DATA *data, BACNET_SUBSCRIBE_COV_DATA *test_data)
 {
-    zassert_equal(test_data->subscriberProcessIdentifier,
+    zassert_equal(
+        test_data->subscriberProcessIdentifier,
         data->subscriberProcessIdentifier, NULL);
-    zassert_equal(test_data->monitoredObjectIdentifier.type,
+    zassert_equal(
+        test_data->monitoredObjectIdentifier.type,
         data->monitoredObjectIdentifier.type, NULL);
-    zassert_equal(test_data->monitoredObjectIdentifier.instance,
+    zassert_equal(
+        test_data->monitoredObjectIdentifier.instance,
         data->monitoredObjectIdentifier.instance, NULL);
     zassert_equal(
         test_data->cancellationRequest, data->cancellationRequest, NULL);
@@ -253,7 +264,8 @@ static void testCOVSubscribeData(
         printf("cancellation request failed!\n");
     }
     if (!test_data->cancellationRequest) {
-        zassert_equal(test_data->issueConfirmedNotifications,
+        zassert_equal(
+            test_data->issueConfirmedNotifications,
             data->issueConfirmedNotifications, NULL);
         zassert_equal(test_data->lifetime, data->lifetime, NULL);
     }
@@ -263,20 +275,22 @@ static void testCOVSubscribePropertyData(
     BACNET_SUBSCRIBE_COV_DATA *data, BACNET_SUBSCRIBE_COV_DATA *test_data)
 {
     testCOVSubscribeData(data, test_data);
-    zassert_equal(test_data->monitoredProperty.propertyIdentifier,
+    zassert_equal(
+        test_data->monitoredProperty.propertyIdentifier,
         data->monitoredProperty.propertyIdentifier, NULL);
-    zassert_equal(test_data->monitoredProperty.propertyArrayIndex,
+    zassert_equal(
+        test_data->monitoredProperty.propertyArrayIndex,
         data->monitoredProperty.propertyArrayIndex, NULL);
     zassert_equal(
         test_data->covIncrementPresent, data->covIncrementPresent, NULL);
     if (test_data->covIncrementPresent) {
-        zassert_false(islessgreater(test_data->covIncrement, 
-            data->covIncrement), NULL);
+        zassert_false(
+            islessgreater(test_data->covIncrement, data->covIncrement), NULL);
     }
 }
 
-static void testCOVSubscribeEncoding(
-    uint8_t invoke_id, BACNET_SUBSCRIBE_COV_DATA *data)
+static void
+testCOVSubscribeEncoding(uint8_t invoke_id, BACNET_SUBSCRIBE_COV_DATA *data)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -375,7 +389,8 @@ ZTEST_SUITE(cov_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(cov_tests, ztest_unit_test(testCOVNotify),
+    ztest_test_suite(
+        cov_tests, ztest_unit_test(testCOVNotify),
         ztest_unit_test(testCOVSubscribe),
         ztest_unit_test(testCOVSubscribeProperty));
 

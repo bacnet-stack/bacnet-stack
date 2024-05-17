@@ -27,8 +27,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/bacdevobjpropref.h"
 #include "bacnet/access_rule.h"
@@ -100,7 +101,7 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     BACNET_STACK_EXPORT
-    bool Access_Rights_Create(
+    uint32_t Access_Rights_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Access_Rights_Delete(

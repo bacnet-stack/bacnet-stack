@@ -30,35 +30,32 @@
 #include <ctype.h>
 #include <errno.h>
 #include <time.h> /* for time */
-
 #define PRINT_ENABLED 1
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bactext.h"
+#include "bacnet/bacerror.h"
+#include "bacnet/iam.h"
+#include "bacnet/apdu.h"
+#include "bacnet/arf.h"
+#include "bacnet/npdu.h"
+#include "bacnet/rpm.h"
+#include "bacnet/whois.h"
+#include "bacnet/version.h"
+/* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 
 #if BACNET_SVC_SERVER
 #error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
 #endif
-
-#include "bacnet/bacdef.h"
-#include "bacnet/config.h"
-#include "bacnet/bactext.h"
-#include "bacnet/bacerror.h"
-#include "bacnet/iam.h"
-#include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/npdu.h"
-#include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
-#include "bacnet/whois.h"
-#include "bacnet/version.h"
-/* some demo stuff needed */
-#include "bacnet/rpm.h"
-#include "bacnet/basic/sys/filename.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -201,11 +198,11 @@ static void print_help(char *filename)
         "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("object-type:\n"
-        "The object type is object that you are reading. It\n"
+        "The object type is object that you are writing. It\n"
         "can be defined either as the object-type name string\n"
         "as defined in the BACnet specification, or as the\n"
         "integer value of the enumeration BACNET_OBJECT_TYPE\n"
-        "in bacenum.h. For example if you were reading Analog\n"
+        "in bacenum.h. For example if you were writing Analog\n"
         "Output 2, the object-type would be analog-output or 1.\n");
     printf("\n");
     printf("object-instance:\n"
@@ -238,6 +235,10 @@ static void print_help(char *filename)
         "use a tag of 4.\n"
         "Context tags are created using two tags in a row.  The context tag\n"
         "is preceded by a C.  Ctag tag. C2 4 creates a context 2 tagged REAL.\n");
+    printf(
+        "Complex data use the property argument and a tag number -1 to\n"
+        "lookup the appropriate internal application tag for the value.\n"
+        "The complex data value argument varies in its construction.\n");
     printf("\n");
     printf("value:\n"
         "The value is an ASCII representation of some type of data that you\n"
@@ -310,14 +311,14 @@ int main(int argc, char *argv[])
             return 0;
         }
     }
-    if (argc < 9) {
+    if (argc < 8) {
         print_usage(filename);
         return 0;
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -360,8 +361,8 @@ int main(int argc, char *argv[])
             return 1;
         }
         if (wpm_object->object_instance > BACNET_MAX_INSTANCE) {
-            fprintf(stderr, "object-instance=%u - it must be less than %u\n",
-                wpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
+            fprintf(stderr, "object-instance=%u - not greater than %u\n",
+                wpm_object->object_instance, BACNET_MAX_INSTANCE);
             return 1;
         }
         do {
@@ -508,6 +509,7 @@ int main(int argc, char *argv[])
         /* at least one second has passed */
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         if (Error_Detected) {
             break;
@@ -526,6 +528,10 @@ int main(int argc, char *argv[])
                 Request_Invoke_ID = Send_Write_Property_Multiple_Request(
                     &buffer[0], sizeof(buffer), Target_Device_Object_Instance,
                     Write_Access_Data);
+                if (Request_Invoke_ID == 0) {
+                    fprintf(stderr, "\rError: failed to send request!\n");
+                    break;
+                }
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {

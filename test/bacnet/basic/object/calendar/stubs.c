@@ -11,10 +11,10 @@
 #include "bacnet/datetime.h"
 
 bool datetime_local(
-    BACNET_DATE * bdate,
-    BACNET_TIME * btime,
-    int16_t * utc_offset_minutes,
-    bool * dst_active)
+    BACNET_DATE *bdate,
+    BACNET_TIME *btime,
+    int16_t *utc_offset_minutes,
+    bool *dst_active)
 {
     bdate->year = 2023;
     bdate->month = 6;

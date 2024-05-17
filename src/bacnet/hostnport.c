@@ -246,6 +246,59 @@ int host_n_port_decode(uint8_t *apdu,
 }
 
 /**
+ * @brief Decode a context encoded BACnetHostNPort complex data
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param tag_number - context tag number to be decoded
+ * @param error_code - error or reject or abort when error occurs
+ * @param address - IP address and port number
+ * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
+ */
+int host_n_port_context_decode(uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_HOST_N_PORT *address)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    /* default reject code */
+    if (error_code) {
+        *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+    }
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+
+        return BACNET_STATUS_REJECT;
+    }
+    apdu_len += len;
+    len = host_n_port_decode(&apdu[apdu_len], apdu_size - apdu_len,
+            error_code, address);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_OTHER;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
  * @brief Copy the BACnetHostNPort complex data from src to dst
  * @param dst - destination structure
  * @param src - source structure

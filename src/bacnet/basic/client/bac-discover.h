@@ -10,11 +10,11 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/rp.h"
-#include "bacnet/bacnet_stack_exports.h"
 
 /**
  * @brief Callback function for iterating the results of the device discovery.

@@ -41,8 +41,9 @@ static void testTimestampSequence(void)
 
     zassert_equal(len, test_len, NULL);
     zassert_equal(testTimestampIn.tag, testTimestampOut.tag, NULL);
-    zassert_equal(testTimestampIn.value.sequenceNum,
-        testTimestampOut.value.sequenceNum, NULL);
+    zassert_equal(
+        testTimestampIn.value.sequenceNum, testTimestampOut.value.sequenceNum,
+        NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -54,6 +55,8 @@ static void testTimestampTime(void)
     BACNET_TIMESTAMP testTimestampIn;
     BACNET_TIMESTAMP testTimestampOut;
     uint8_t buffer[MAX_APDU];
+    bool status = false;
+    char str[64] = "";
     int len;
     int test_len;
 
@@ -70,14 +73,22 @@ static void testTimestampTime(void)
 
     zassert_equal(len, test_len, NULL);
     zassert_equal(testTimestampIn.tag, testTimestampOut.tag, NULL);
-    zassert_equal(testTimestampIn.value.time.hour,
-        testTimestampOut.value.time.hour, NULL);
+    zassert_equal(
+        testTimestampIn.value.time.hour, testTimestampOut.value.time.hour,
+        NULL);
     zassert_equal(
         testTimestampIn.value.time.min, testTimestampOut.value.time.min, NULL);
     zassert_equal(
         testTimestampIn.value.time.sec, testTimestampOut.value.time.sec, NULL);
-    zassert_equal(testTimestampIn.value.time.hundredths,
+    zassert_equal(
+        testTimestampIn.value.time.hundredths,
         testTimestampOut.value.time.hundredths, NULL);
+
+    bacapp_timestamp_to_ascii(str, sizeof(str), &testTimestampIn);
+    status = bacapp_timestamp_init_ascii(&testTimestampOut, str);
+    zassert_true(status, NULL);
+    status = bacapp_timestamp_same(&testTimestampIn, &testTimestampOut);
+    zassert_true(status, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -111,12 +122,12 @@ static void testTimestampTimeDate(void)
         test_len = bacnet_timestamp_decode(buffer, len, &testTimestampOut);
         zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     }
-    null_len = bacapp_encode_context_timestamp(NULL, tag_number, &testTimestampIn);
+    null_len =
+        bacapp_encode_context_timestamp(NULL, tag_number, &testTimestampIn);
     len = bacapp_encode_context_timestamp(buffer, tag_number, &testTimestampIn);
     zassert_equal(null_len, len, NULL);
     zassert_true(len > 0, NULL);
-    null_len = bacnet_timestamp_context_decode(
-        buffer, len, tag_number, NULL);
+    null_len = bacnet_timestamp_context_decode(buffer, len, tag_number, NULL);
     test_len = bacnet_timestamp_context_decode(
         buffer, len, tag_number, &testTimestampOut);
     zassert_equal(null_len, test_len, NULL);
@@ -130,22 +141,30 @@ static void testTimestampTimeDate(void)
     }
     /* test for valid values */
     zassert_equal(testTimestampIn.tag, testTimestampOut.tag, NULL);
-    zassert_equal(testTimestampIn.value.dateTime.time.hour,
+    zassert_equal(
+        testTimestampIn.value.dateTime.time.hour,
         testTimestampOut.value.dateTime.time.hour, NULL);
-    zassert_equal(testTimestampIn.value.dateTime.time.min,
+    zassert_equal(
+        testTimestampIn.value.dateTime.time.min,
         testTimestampOut.value.dateTime.time.min, NULL);
-    zassert_equal(testTimestampIn.value.dateTime.time.sec,
+    zassert_equal(
+        testTimestampIn.value.dateTime.time.sec,
         testTimestampOut.value.dateTime.time.sec, NULL);
-    zassert_equal(testTimestampIn.value.dateTime.time.hundredths,
+    zassert_equal(
+        testTimestampIn.value.dateTime.time.hundredths,
         testTimestampOut.value.dateTime.time.hundredths, NULL);
 
-    zassert_equal(testTimestampIn.value.dateTime.date.year,
+    zassert_equal(
+        testTimestampIn.value.dateTime.date.year,
         testTimestampOut.value.dateTime.date.year, NULL);
-    zassert_equal(testTimestampIn.value.dateTime.date.month,
+    zassert_equal(
+        testTimestampIn.value.dateTime.date.month,
         testTimestampOut.value.dateTime.date.month, NULL);
-    zassert_equal(testTimestampIn.value.dateTime.date.wday,
+    zassert_equal(
+        testTimestampIn.value.dateTime.date.wday,
         testTimestampOut.value.dateTime.date.wday, NULL);
-    zassert_equal(testTimestampIn.value.dateTime.date.day,
+    zassert_equal(
+        testTimestampIn.value.dateTime.date.day,
         testTimestampOut.value.dateTime.date.day, NULL);
 }
 /**
@@ -157,7 +176,8 @@ ZTEST_SUITE(timestamp_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(timestamp_tests, ztest_unit_test(testTimestampSequence),
+    ztest_test_suite(
+        timestamp_tests, ztest_unit_test(testTimestampSequence),
         ztest_unit_test(testTimestampTime),
         ztest_unit_test(testTimestampTimeDate));
 

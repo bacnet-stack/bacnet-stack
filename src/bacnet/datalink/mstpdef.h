@@ -27,6 +27,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 
 /*  The value 255 is used to denote broadcast when used as a */

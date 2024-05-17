@@ -21,7 +21,6 @@
 #define MAX_LOAD_CONTROLS 4
 #endif
 
-
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -52,8 +51,8 @@ static void test_Load_Control_Count(void)
     zassert_equal(Load_Control_Count(), MAX_LOAD_CONTROLS, NULL);
 }
 
-static void Load_Control_WriteProperty_Request_Shed_Level(
-    int instance, unsigned level)
+static void
+Load_Control_WriteProperty_Request_Shed_Level(int instance, unsigned level)
 {
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -75,8 +74,7 @@ static void Load_Control_WriteProperty_Request_Shed_Level(
     zassert_true(status, NULL);
 }
 
-static void Load_Control_WriteProperty_Enable(
-    int instance, bool enable)
+static void Load_Control_WriteProperty_Enable(int instance, bool enable)
 {
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -99,8 +97,8 @@ static void Load_Control_WriteProperty_Enable(
     zassert_true(status, NULL);
 }
 
-static void Load_Control_WriteProperty_Shed_Duration(
-    int instance, unsigned duration)
+static void
+Load_Control_WriteProperty_Shed_Duration(int instance, unsigned duration)
 {
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -122,8 +120,8 @@ static void Load_Control_WriteProperty_Shed_Duration(
     zassert_true(status, NULL);
 }
 
-static void Load_Control_WriteProperty_Duty_Window(
-    int instance, unsigned duration)
+static void
+Load_Control_WriteProperty_Duty_Window(int instance, unsigned duration)
 {
     bool status = false;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -145,8 +143,7 @@ static void Load_Control_WriteProperty_Duty_Window(
     zassert_true(status, NULL);
 }
 
-static void Load_Control_WriteProperty_Start_Time_Wildcards(
-    int instance)
+static void Load_Control_WriteProperty_Start_Time_Wildcards(int instance)
 {
     int len = 0;
     bool status = false;
@@ -220,18 +217,19 @@ ZTEST(lc_tests, testLoadControlStateMachine)
 static void testLoadControlStateMachine(void)
 #endif
 {
-//TODO:    unsigned i = 0, j = 0;
+    // TODO:    unsigned i = 0, j = 0;
     uint8_t level = 0;
 
     Load_Control_Init();
 
-//TODO:    /* validate the triggers for each state change */
-//TODO:    for (j = 0; j < 20; j++) {
-//TODO:        Load_Control_State_Machine(0);
-//TODO:        for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
-//TODO:            zassert_equal(Load_Control_State[i], SHED_INACTIVE, NULL);
-//TODO:        }
-//TODO:    }
+    // TODO:    /* validate the triggers for each state change */
+    // TODO:    for (j = 0; j < 20; j++) {
+    // TODO:        Load_Control_State_Machine(0);
+    // TODO:        for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
+    // TODO:            zassert_equal(Load_Control_State[i], SHED_INACTIVE,
+    // NULL);
+    // TODO:        }
+    // TODO:    }
 
     /* SHED_REQUEST_PENDING */
     /* CancelShed - Start time has wildcards */
@@ -239,20 +237,22 @@ static void testLoadControlStateMachine(void)
     Load_Control_WriteProperty_Shed_Duration(0, 60);
     Load_Control_WriteProperty_Start_Time_Wildcards(0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
 
     /* CancelShed - Requested_Shed_Level equal to default value */
     Load_Control_Init();
     Load_Control_WriteProperty_Request_Shed_Level(0, 0);
     Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 0);
     Load_Control_WriteProperty_Shed_Duration(0, 5);
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 15, 0, 0, 0);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 15, 0, 0, 0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
 
     /* CancelShed - Non-default values, but Start time is passed */
     Load_Control_Init();
@@ -260,11 +260,12 @@ static void testLoadControlStateMachine(void)
     Load_Control_WriteProperty_Request_Shed_Level(0, 1);
     Load_Control_WriteProperty_Shed_Duration(0, 5);
     Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 0);
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 28, 15, 0, 0, 0);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 28, 15, 0, 0, 0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
 
     /* ReconfigurePending - new write received while pending */
     Load_Control_Init();
@@ -272,27 +273,35 @@ static void testLoadControlStateMachine(void)
     Load_Control_WriteProperty_Request_Shed_Level(0, 1);
     Load_Control_WriteProperty_Shed_Duration(0, 5);
     Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 0);
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_WriteProperty_Request_Shed_Level(0, 2);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_WriteProperty_Shed_Duration(0, 6);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_WriteProperty_Duty_Window(0, 60);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 1);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
 
     /* CannotMeetShed -> FinishedUnsuccessfulShed */
     Load_Control_Init();
@@ -300,22 +309,24 @@ static void testLoadControlStateMachine(void)
     Load_Control_WriteProperty_Request_Shed_Level(0, 1);
     Load_Control_WriteProperty_Shed_Duration(0, 120);
     Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 0);
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     /* set to lowest value so we cannot meet the shed level */
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 0, 0);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 0, 0);
     Analog_Output_Present_Value_Set(0, 0, 16);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
     /* FinishedUnsuccessfulShed */
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 23, 0, 0, 0);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 23, 0, 0, 0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
 
     /* CannotMeetShed -> UnsuccessfulShedReconfigured */
     Load_Control_Init();
@@ -323,43 +334,46 @@ static void testLoadControlStateMachine(void)
     Load_Control_WriteProperty_Request_Shed_Level(0, 1);
     Load_Control_WriteProperty_Shed_Duration(0, 120);
     Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 0);
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     /* set to lowest value so we cannot meet the shed level */
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 0, 0);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 0, 0);
     Analog_Output_Present_Value_Set(0, 0, 16);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
     /* FinishedUnsuccessfulShed */
     Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 16, 0, 0, 0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING, NULL);
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 1, 0);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
+    // NULL);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 1, 0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
     /* CanNowComplyWithShed */
     Analog_Output_Present_Value_Set(0, 100, 16);
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 2, 0);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 2, 0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_COMPLIANT, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_COMPLIANT, NULL);
     level = Analog_Output_Present_Value(0);
-//TODO: Fails:    zassert_equal(level, 90, NULL);
+    // TODO: Fails:    zassert_equal(level, 90, NULL);
     /* FinishedSuccessfulShed */
-//TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 23, 0, 0, 0);
+    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 23, 0, 0, 0);
     Load_Control_State_Machine(0);
-//TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
+    // TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
     level = Analog_Output_Present_Value(0);
-//TODO: Fails:    zassert_equal(level, 100, NULL);
+    // TODO: Fails:    zassert_equal(level, 100, NULL);
     (void)level; // TODO: remove when level will be checked
 }
-
 
 #ifndef MAX_LOAD_CONTROLS
 #define MAX_LOAD_CONTROLS (4)
@@ -376,12 +390,18 @@ static void test_api_stubs(void)
     zassert_equal(Load_Control_Count(), MAX_LOAD_CONTROLS, NULL);
 
     zassert_false(Load_Control_Valid_Instance(MAX_LOAD_CONTROLS), NULL);
-    zassert_equal(Load_Control_Index_To_Instance(MAX_LOAD_CONTROLS), Load_Control_Count(), NULL);
-    zassert_equal(Load_Control_Instance_To_Index(MAX_LOAD_CONTROLS), Load_Control_Count(), NULL);
+    zassert_equal(
+        Load_Control_Index_To_Instance(MAX_LOAD_CONTROLS), Load_Control_Count(),
+        NULL);
+    zassert_equal(
+        Load_Control_Instance_To_Index(MAX_LOAD_CONTROLS), Load_Control_Count(),
+        NULL);
 
     zassert_false(Load_Control_Valid_Instance(UINT32_MAX), NULL);
-    zassert_equal(Load_Control_Index_To_Instance(UINT32_MAX), Load_Control_Count(), NULL);
-    zassert_equal(Load_Control_Instance_To_Index(UINT32_MAX), Load_Control_Count(), NULL);
+    zassert_equal(
+        Load_Control_Index_To_Instance(UINT32_MAX), Load_Control_Count(), NULL);
+    zassert_equal(
+        Load_Control_Instance_To_Index(UINT32_MAX), Load_Control_Count(), NULL);
 
     zassert_true(Load_Control_Valid_Instance(0), NULL);
     zassert_equal(Load_Control_Index_To_Instance(0), 0, NULL);
@@ -389,7 +409,6 @@ static void test_api_stubs(void)
 
     zassert_false(Load_Control_Object_Name(0, NULL), NULL);
     zassert_false(Load_Control_Object_Name(UINT32_MAX, &object_name_st), NULL);
-
 
     zassert_true(Load_Control_Object_Name(0, &object_name_st), NULL);
     zassert_true(characterstring_valid(&object_name_st), NULL);
@@ -414,7 +433,6 @@ static void test_Load_Control_Read_Write_Property(void)
     unsigned count = 0;
     uint32_t object_instance = 0;
 
-
     zassert_equal(Load_Control_Read_Property(NULL), 0, NULL);
     zassert_false(Load_Control_Write_Property(NULL), NULL);
 
@@ -428,58 +446,57 @@ static void test_Load_Control_Read_Write_Property(void)
     rpdata.object_instance = object_instance;
     Load_Control_Property_Lists(&pRequired, &pOptional, &pProprietary);
     while ((*pRequired) != -1) {
-	rpdata.object_property = *pRequired;
-	rpdata.array_index = BACNET_ARRAY_ALL;
-	len = Load_Control_Read_Property(&rpdata);
-	zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
-	if (len > 0) {
-	    test_len = bacapp_decode_application_data(
-		rpdata.application_data,
-		(uint8_t)rpdata.application_data_len, &value);
-	    zassert_true(test_len >= 0, NULL);
-	}
-	pRequired++;
+        rpdata.object_property = *pRequired;
+        rpdata.array_index = BACNET_ARRAY_ALL;
+        len = Load_Control_Read_Property(&rpdata);
+        zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+        if (len > 0) {
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
+            zassert_true(test_len >= 0, NULL);
+        }
+        pRequired++;
     }
     while ((*pOptional) != -1) {
-	rpdata.object_property = *pOptional;
-	rpdata.array_index = BACNET_ARRAY_ALL;
-	len = Load_Control_Read_Property(&rpdata);
-	zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
-	if (len > 0) {
-	    test_len = bacapp_decode_application_data(
-		rpdata.application_data,
-		(uint8_t)rpdata.application_data_len, &value);
-	    zassert_true(test_len >= 0, NULL);
-	}
-	pOptional++;
+        rpdata.object_property = *pOptional;
+        rpdata.array_index = BACNET_ARRAY_ALL;
+        len = Load_Control_Read_Property(&rpdata);
+        zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+        if (len > 0) {
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
+            zassert_true(test_len >= 0, NULL);
+        }
+        pOptional++;
     }
 }
 
 static bool init_wp_data_and_value(
-    BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE * value)
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_APPLICATION_DATA_VALUE *value)
 {
     bool status = false;
-    if ((wp_data != NULL) && (value != NULL))
-    {
-	memset(value, 0, sizeof(*value));
-	memset(wp_data, 0, sizeof(*wp_data));
+    if ((wp_data != NULL) && (value != NULL)) {
+        memset(value, 0, sizeof(*value));
+        memset(wp_data, 0, sizeof(*wp_data));
 
-	wp_data->object_type = OBJECT_LOAD_CONTROL;
-	wp_data->object_instance = 0;
-	wp_data->array_index = BACNET_ARRAY_ALL;
-	wp_data->priority = BACNET_NO_PRIORITY;
-	wp_data->object_property = PROP_SHED_DURATION;
-	value->context_specific = false;
-	value->context_tag = 0;
-	value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
-	value->type.Unsigned_Int = 0;  /* duration */
-	wp_data->application_data_len = bacapp_encode_application_data(&wp_data->application_data[0], value);
-	zassert_true(wp_data->application_data_len >= 0, NULL);
-	zassert_equal(wp_data->error_class, 0, NULL);
-	zassert_equal(wp_data->error_code, 0, NULL);
+        wp_data->object_type = OBJECT_LOAD_CONTROL;
+        wp_data->object_instance = 0;
+        wp_data->array_index = BACNET_ARRAY_ALL;
+        wp_data->priority = BACNET_NO_PRIORITY;
+        wp_data->object_property = PROP_SHED_DURATION;
+        value->context_specific = false;
+        value->context_tag = 0;
+        value->tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+        value->type.Unsigned_Int = 0; /* duration */
+        wp_data->application_data_len = bacapp_encode_application_data(
+            &wp_data->application_data[0], value);
+        zassert_true(wp_data->application_data_len >= 0, NULL);
+        zassert_equal(wp_data->error_class, 0, NULL);
+        zassert_equal(wp_data->error_code, 0, NULL);
 
-	status = true;
+        status = true;
     }
 
     return status;
@@ -513,12 +530,11 @@ static void test_ShedInactive_gets_RcvShedRequests(void)
     zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
     zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
 
-
     /* Verify calls to dependencies are properly made */
-    // object_property == PROP_REQUESTED_SHED_LEVEL calls bacapp_decode_context_data()
-    // object_property == PROP_START_TIME calls bacapp_decode_application_data()
-    // object_property == PROP_SHED_DURATION calls nothing
-    // object_property == PROP_DUTY_WINDOW calls nothing
+    // object_property == PROP_REQUESTED_SHED_LEVEL calls
+    // bacapp_decode_context_data() object_property == PROP_START_TIME calls
+    // bacapp_decode_application_data() object_property == PROP_SHED_DURATION
+    // calls nothing object_property == PROP_DUTY_WINDOW calls nothing
     // object_property == PROP_SHED_LEVELS calls nothing
     // object_property == PROP_ENABLE calls nothing
     // default returns error
@@ -649,30 +665,28 @@ static void test_ShedCommpliant_gets_CanNoLongerComplyWithShed(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(lc_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(lc_tests,
-     ztest_unit_test(test_api_stubs),
-     ztest_unit_test(test_Load_Control_Count),
-     ztest_unit_test(test_Load_Control_Read_Write_Property),
-     ztest_unit_test(testLoadControlStateMachine),
-     ztest_unit_test(test_ShedInactive_gets_RcvShedRequests),
-     ztest_unit_test(test_ShedReqPending_gets_ReconfigPending),
-     ztest_unit_test(test_ShedReqPending_gets_CancelShed),
-     ztest_unit_test(test_ShedReqPending_gets_CannotMeetShed),
-     ztest_unit_test(test_ShedReqPending_gets_PrepareToShed),
-     ztest_unit_test(test_ShedReqPending_gets_AbleToMeetShed),
-     ztest_unit_test(test_ShedNonCommpliant_gets_UnsuccessfulShedReconfig),
-     ztest_unit_test(test_ShedNonCommpliant_gets_FinishedUnsuccessfulShed),
-     ztest_unit_test(test_ShedNonCommpliant_gets_CanNowComplyWithShed),
-     ztest_unit_test(test_ShedCommpliant_gets_FinishedSuccessfulShed),
-     ztest_unit_test(test_ShedCommpliant_gets_SuccessfulShedReconfig),
-     ztest_unit_test(test_ShedCommpliant_gets_CanNoLongerComplyWithShed)
-     );
+    ztest_test_suite(
+        lc_tests, ztest_unit_test(test_api_stubs),
+        ztest_unit_test(test_Load_Control_Count),
+        ztest_unit_test(test_Load_Control_Read_Write_Property),
+        ztest_unit_test(testLoadControlStateMachine),
+        ztest_unit_test(test_ShedInactive_gets_RcvShedRequests),
+        ztest_unit_test(test_ShedReqPending_gets_ReconfigPending),
+        ztest_unit_test(test_ShedReqPending_gets_CancelShed),
+        ztest_unit_test(test_ShedReqPending_gets_CannotMeetShed),
+        ztest_unit_test(test_ShedReqPending_gets_PrepareToShed),
+        ztest_unit_test(test_ShedReqPending_gets_AbleToMeetShed),
+        ztest_unit_test(test_ShedNonCommpliant_gets_UnsuccessfulShedReconfig),
+        ztest_unit_test(test_ShedNonCommpliant_gets_FinishedUnsuccessfulShed),
+        ztest_unit_test(test_ShedNonCommpliant_gets_CanNowComplyWithShed),
+        ztest_unit_test(test_ShedCommpliant_gets_FinishedSuccessfulShed),
+        ztest_unit_test(test_ShedCommpliant_gets_SuccessfulShedReconfig),
+        ztest_unit_test(test_ShedCommpliant_gets_CanNoLongerComplyWithShed));
 
     ztest_run_test_suite(lc_tests);
 }

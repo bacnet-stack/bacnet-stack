@@ -35,9 +35,9 @@
 #include <signal.h>
 #include <time.h>
 #include <assert.h>
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
@@ -62,6 +62,7 @@
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
+static uint32_t Device_Instance_Number = BACNET_MAX_INSTANCE;
 
 /**
  * 6.6.1 Routing Tables
@@ -602,6 +603,8 @@ static void who_is_router_to_network_handler(uint16_t snet,
     uint16_t network = 0;
     uint16_t len = 0;
 
+    (void)src;
+    (void)npdu_data;
     if (npdu) {
         if (npdu_len >= 2) {
             len += decode_unsigned16(&npdu[len], &network);
@@ -865,6 +868,7 @@ static void routed_apdu_handler(uint16_t snet,
         }
         return;
     }
+    remote_dest = *dest;
     port = dnet_find(dest->net, &remote_dest);
     if (port) {
         if (port->net == dest->net) {
@@ -917,7 +921,7 @@ static void routed_apdu_handler(uint16_t snet,
         port = Router_Table_Head;
         while (port != NULL) {
             if (port->net != snet) {
-                datalink_send_pdu(port->net, dest, npdu, &Tx_Buffer[0], 
+                datalink_send_pdu(port->net, dest, npdu, &Tx_Buffer[0],
                 	npdu_len + apdu_len);
             }
             port = port->next;
@@ -947,12 +951,16 @@ static void my_routing_npdu_handler(
     uint16_t snet, BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
 {
     int apdu_offset = 0;
+    unsigned protocol_version = 0;
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
 
     if (!pdu) {
         /* no packet */
-    } else if (pdu[0] == BACNET_PROTOCOL_VERSION) {
+    } else {
+        protocol_version = pdu[0];
+    }
+    if (protocol_version == BACNET_PROTOCOL_VERSION) {
         apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
         if (apdu_offset <= 0) {
             fprintf(stderr, "NPDU: Decoding failed; Discarded!\n");
@@ -993,7 +1001,9 @@ static void my_routing_npdu_handler(
             }
         }
     } else {
-        /* unsupported protocol version */
+        fprintf(
+            stderr, "NPDU: unsupported protocol version %u.  Discarded!\n", 
+                protocol_version);
     }
 
     return;
@@ -1126,6 +1136,17 @@ static void control_c_hooks(void)
 #endif
 
 /**
+ * @brief Get the Device object instance number
+ * @return The Device object instance number
+ * @note This is a proxy function to satisfy the BACnet Stack IPv6 port layer
+ * requirements since this application omits a Device object.
+ */
+uint32_t Device_Object_Instance_Number(void) 
+{
+    return Device_Instance_Number;
+}
+
+/**
  * Main function of simple router demo.
  *
  * @param argc [in] Arg count.
@@ -1140,8 +1161,11 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
 
-    printf("BACnet Simple IP Router Demo\n");
+    printf("BACnet Simple IP to IPv6 Router Demo\n");
     printf("BACnet Stack Version %s\n", BACnet_Version);
+    if (argc > 1) {
+        Device_Instance_Number = strtol(argv[1], NULL, 0);
+    }
     datalink_init();
     atexit(cleanup);
     control_c_hooks();

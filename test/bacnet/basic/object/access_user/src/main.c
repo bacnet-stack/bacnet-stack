@@ -52,15 +52,12 @@ static void testAccessUser(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(access_user_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(access_user_tests,
-     ztest_unit_test(testAccessUser)
-     );
+    ztest_test_suite(access_user_tests, ztest_unit_test(testAccessUser));
 
     ztest_run_test_suite(access_user_tests);
 }

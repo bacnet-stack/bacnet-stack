@@ -127,7 +127,8 @@ static void testWritePropertyMultiple(void)
                 &apdu[offset], apdu_len - offset, &wp_data);
             zassert_not_equal(len, 0, NULL);
             offset += len;
-            printf("WPM: type=%lu instance=%lu property=%lu "
+            printf(
+                "WPM: type=%lu instance=%lu property=%lu "
                 "priority=%lu index=%ld\n",
                 (unsigned long)wp_data.object_type,
                 (unsigned long)wp_data.object_instance,

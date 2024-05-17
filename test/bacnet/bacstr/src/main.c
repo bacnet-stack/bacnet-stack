@@ -69,7 +69,8 @@ static void testBitString(void)
         /* Set the first bit of bit_string2 and the last bit of bit_string3 to
          * be different */
         bitstring_set_bit(&bit_string2, 0, !bitstring_bit(&bit_string, 0));
-        bitstring_set_bit(&bit_string3, max_bit - 1,
+        bitstring_set_bit(
+            &bit_string3, max_bit - 1,
             !bitstring_bit(&bit_string, max_bit - 1));
         zassert_false(bitstring_same(&bit_string, &bit_string2), NULL);
         zassert_false(bitstring_same(&bit_string, &bit_string3), NULL);
@@ -80,8 +81,8 @@ static void testBitString(void)
     zassert_true(status, NULL);
     status = bitstring_same(&bit_string, &bit_string2);
     zassert_false(status, NULL);
-    zassert_equal(bitstring_bits_capacity(&bit_string),
-        (MAX_BITSTRING_BYTES * 8), NULL);
+    zassert_equal(
+        bitstring_bits_capacity(&bit_string), (MAX_BITSTRING_BYTES * 8), NULL);
 }
 
 /**
@@ -107,10 +108,11 @@ static void testCharacterString(void)
     status = characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL, 0);
     zassert_true(status, NULL);
     zassert_equal(characterstring_length(&bacnet_string), 0, NULL);
-    zassert_equal(characterstring_encoding(&bacnet_string), CHARACTER_ANSI_X34,
-		  NULL);
+    zassert_equal(
+        characterstring_encoding(&bacnet_string), CHARACTER_ANSI_X34, NULL);
     /* bounds check */
-    status = characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL,
+    status = characterstring_init(
+        &bacnet_string, CHARACTER_ANSI_X34, NULL,
         characterstring_capacity(&bacnet_string) + 1);
     zassert_false(status, NULL);
     status = characterstring_truncate(
@@ -173,10 +175,10 @@ static void testCharacterString(void)
     status = characterstring_ansi_same(&bacnet_string, NULL);
     zassert_true(status, NULL);
     /* alternate API for init and copy */
-    status = characterstring_init_ansi_safe(&bacnet_string, value,
-        strlen(value));
-    status = characterstring_ansi_copy(test_append_string,
-        sizeof(test_append_string), &bacnet_string);
+    status =
+        characterstring_init_ansi_safe(&bacnet_string, value, strlen(value));
+    status = characterstring_ansi_copy(
+        test_append_string, sizeof(test_append_string), &bacnet_string);
     zassert_equal(strncmp(value, test_append_string, strlen(value)), 0, NULL);
 }
 
@@ -196,10 +198,10 @@ static void testOctetString(void)
     uint8_t test_value_twin[MAX_APDU] = "PATRICIA";
     uint8_t test_append_value[MAX_APDU] = " and the Kids";
     uint8_t test_append_string[MAX_APDU] = "";
-    const char * hex_value_valid = "1234567890ABCDEF";
-    const char * hex_value_skips = "12:34:56:78:90:AB:CD:EF";
-    const char * hex_value_odd = "1234567890ABCDE";
-    char hex_value_long[MAX_APDU+MAX_APDU] = "";
+    const char *hex_value_valid = "1234567890ABCDEF";
+    const char *hex_value_skips = "12:34:56:78:90:AB:CD:EF";
+    const char *hex_value_odd = "1234567890ABCDE";
+    char hex_value_long[MAX_APDU + MAX_APDU] = "";
     bool status = false;
     size_t length = 0;
     size_t test_length = 0;
@@ -255,8 +257,8 @@ static void testOctetString(void)
     status = octetstring_init(&bacnet_string, &test_value[0], test_length);
     zassert_true(status, NULL);
     test_length = strlen((char *)test_value_twin);
-    status = octetstring_init(&bacnet_string_twin, &test_value_twin[0],
-        test_length);
+    status =
+        octetstring_init(&bacnet_string_twin, &test_value_twin[0], test_length);
     zassert_true(status, NULL);
     status = octetstring_value_same(&bacnet_string, &bacnet_string_twin);
     zassert_false(status, NULL);
@@ -268,7 +270,7 @@ static void testOctetString(void)
     status = octetstring_value_same(NULL, NULL);
     zassert_false(status, NULL);
     /* self-healing length too long */
-    bacnet_string.length = MAX_OCTET_STRING_BYTES+1;
+    bacnet_string.length = MAX_OCTET_STRING_BYTES + 1;
     length = octetstring_length(&bacnet_string);
     zassert_equal(length, MAX_OCTET_STRING_BYTES, NULL);
     /* valid case - empty string */
@@ -277,7 +279,7 @@ static void testOctetString(void)
     /* valid case - valid hex string */
     status = octetstring_init_ascii_hex(&bacnet_string, hex_value_valid);
     zassert_true(status, NULL);
-    test_length = strlen(hex_value_valid)/2;
+    test_length = strlen(hex_value_valid) / 2;
     length = octetstring_length(&bacnet_string);
     zassert_equal(length, test_length, NULL);
     /* valid case - with non-hex characters interspersed */
@@ -290,7 +292,7 @@ static void testOctetString(void)
     zassert_false(status, NULL);
     /* invalid case - too long */
     memset(hex_value_long, 'F', sizeof(hex_value_long));
-    hex_value_long[sizeof(hex_value_long)-1] = 0;
+    hex_value_long[sizeof(hex_value_long) - 1] = 0;
     status = octetstring_init_ascii_hex(&bacnet_string, hex_value_long);
     zassert_false(status, NULL);
     /* invalid case - null arguments */
@@ -305,17 +307,14 @@ static void testOctetString(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(bacstr_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacstr_tests,
-     ztest_unit_test(testBitString),
-     ztest_unit_test(testCharacterString),
-     ztest_unit_test(testOctetString)
-     );
+    ztest_test_suite(
+        bacstr_tests, ztest_unit_test(testBitString),
+        ztest_unit_test(testCharacterString), ztest_unit_test(testOctetString));
 
     ztest_run_test_suite(bacstr_tests);
 }

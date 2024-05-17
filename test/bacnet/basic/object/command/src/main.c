@@ -34,12 +34,8 @@ static void test_object_command(void)
     zassert_true(count > 0, NULL);
     object_instance = Command_Index_To_Instance(0);
     bacnet_object_properties_read_write_test(
-        OBJECT_COMMAND,
-        object_instance,
-        Command_Property_Lists,
-        Command_Read_Property,
-        Command_Write_Property,
-        skip_fail_property_list);
+        OBJECT_COMMAND, object_instance, Command_Property_Lists,
+        Command_Read_Property, Command_Write_Property, skip_fail_property_list);
 }
 /**
  * @}

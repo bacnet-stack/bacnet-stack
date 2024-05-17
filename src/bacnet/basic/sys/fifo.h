@@ -8,7 +8,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /**
 * FIFO buffer power of two alignment macro
@@ -75,6 +76,12 @@ extern "C" {
     BACNET_STACK_EXPORT
     uint8_t FIFO_Peek(
         FIFO_BUFFER const *b);
+
+    BACNET_STACK_EXPORT
+    unsigned FIFO_Peek_Ahead(
+        FIFO_BUFFER const *b,
+        uint8_t* data_bytes,
+        unsigned length);
 
     BACNET_STACK_EXPORT
     uint8_t FIFO_Get(

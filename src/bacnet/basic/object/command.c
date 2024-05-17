@@ -43,16 +43,17 @@
 #include <stdint.h>
 #include <stdio.h>
 
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bactext.h"
-#include "bacnet/config.h" /* the custom stuff */
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/lighting.h"
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/services.h"
+/* me!*/
 #include "bacnet/basic/object/command.h"
 
 /*BACnetActionCommand ::= SEQUENCE {
@@ -380,34 +381,6 @@ void Command_Property_Lists(
 }
 
 /**
- * @brief Determine if the object property is a member of this object instance
- * @param object_instance - object-instance number of the object
- * @param object_property - object-property to be checked
- * @return true if the property is a member of this object instance
- */
-static bool Property_List_Member(
-    uint32_t object_instance, int object_property)
-{
-    bool found = false;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
-
-    (void)object_instance;
-    Command_Property_Lists(
-        &pRequired, &pOptional, &pProprietary);
-    found = property_list_member(pRequired, object_property);
-    if (!found) {
-        found = property_list_member(pOptional, object_property);
-    }
-    if (!found) {
-        found = property_list_member(pProprietary, object_property);
-    }
-
-    return found;
-}
-
-/**
  * Initializes the Command object data
  */
 void Command_Init(void)
@@ -626,14 +599,15 @@ bool Command_All_Writes_Successful_Set(uint32_t object_instance, bool value)
 bool Command_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text[32] = ""; /* okay for single thread */
     unsigned int index;
     bool status = false;
 
     index = Command_Instance_To_Index(object_instance);
     if (index < MAX_COMMANDS) {
-        sprintf(text_string, "COMMAND %lu", (unsigned long)index);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(text, sizeof(text), "COMMAND %lu", 
+            (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;
@@ -827,8 +801,9 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         default:
-            if (Property_List_Member(
-                    wp_data->object_instance, wp_data->object_property)) {
+            if (property_lists_member(
+                Command_Properties_Required, Command_Properties_Optional, 
+                Command_Properties_Proprietary, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {

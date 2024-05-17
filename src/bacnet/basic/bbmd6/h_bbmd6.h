@@ -32,8 +32,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/bvlc6.h"
 
 #ifdef __cplusplus

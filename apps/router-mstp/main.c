@@ -36,9 +36,9 @@
 #include <time.h>
 #include <assert.h>
 #include <stdarg.h>
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
@@ -891,6 +891,7 @@ static void routed_apdu_handler(uint16_t snet,
         }
         return;
     }
+    remote_dest = *dest;
     port = dnet_find(dest->net, &remote_dest);
     if (port) {
         if (port->net == dest->net) {

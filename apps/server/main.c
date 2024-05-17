@@ -28,23 +28,25 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack API */
 #include "bacnet/apdu.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bactext.h"
 #include "bacnet/dcc.h"
+#include "bacnet/getevent.h"
 #include "bacnet/iam.h"
 #include "bacnet/npdu.h"
-#include "bacnet/getevent.h"
 #include "bacnet/version.h"
+/* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
-#include "bacnet/basic/binding/address.h"
+#include "bacnet/datalink/dlenv.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h"
 /* objects that have tasks inside them */
@@ -57,6 +59,7 @@
 #endif
 #include "bacnet/basic/object/lc.h"
 #include "bacnet/basic/object/trendlog.h"
+#include "bacnet/basic/object/structured_view.h"
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
@@ -91,12 +94,103 @@ static struct mstimer BACnet_Object_Timer;
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
+/* configure an example structured view object subordinate list */
+#if (BACNET_PROTOCOL_REVISION >= 4)
+#define LIGHTING_OBJECT_WATTS OBJECT_ACCUMULATOR
+#else
+#define LIGHTING_OBJECT_WATTS OBJECT_ANALOG_INPUT
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 6)
+#define LIGHTING_OBJECT_ADR OBJECT_LOAD_CONTROL
+#else
+#define LIGHTING_OBJECT_ADR OBJECT_MULTISTATE_OUTPUT
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 6)
+#define LIGHTING_OBJECT_ADR OBJECT_LOAD_CONTROL
+#else
+#define LIGHTING_OBJECT_ADR OBJECT_MULTISTATE_OUTPUT
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 14)
+#define LIGHTING_OBJECT_SCENE OBJECT_CHANNEL
+#define LIGHTING_OBJECT_LIGHT OBJECT_LIGHTING_OUTPUT
+#else
+#define LIGHTING_OBJECT_SCENE OBJECT_ANALOG_VALUE
+#define LIGHTING_OBJECT_LIGHT OBJECT_ANALOG_OUTPUT
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 16)
+#define LIGHTING_OBJECT_RELAY OBJECT_BINARY_LIGHTING_OUTPUT
+#else
+#define LIGHTING_OBJECT_RELAY OBJECT_BINARY_OUTPUT
+#endif
+
+static BACNET_SUBORDINATE_DATA Lighting_Subordinate[] =
+{
+    {0, LIGHTING_OBJECT_WATTS, 1, "watt-hours", 0, 0, NULL},
+    {0, LIGHTING_OBJECT_ADR, 1, "demand-response", 0, 0, NULL},
+    {0, LIGHTING_OBJECT_SCENE, 1, "scene",  0, 0, NULL},
+    {0, LIGHTING_OBJECT_LIGHT, 1, "light",  0, 0, NULL},
+    {0, LIGHTING_OBJECT_RELAY, 1, "relay",  0, 0, NULL},
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    {0, OBJECT_COLOR, 1, "color", 0, 0, NULL},
+    {0, OBJECT_COLOR_TEMPERATURE, 1, "color-temperature", 0, 0, NULL},
+#endif
+};
+
+/**
+ * @brief Update the strcutured view static data with device ID and linked lists
+ * @param device_id Device Instance to assign to every subordinate
+ */
+static void Structured_View_Update(void)
+{
+    uint32_t device_id, instance;
+    BACNET_DEVICE_OBJECT_REFERENCE represents = { 0 };
+    size_t i;
+
+    device_id = Device_Object_Instance_Number();
+    for (i = 0; i < ARRAY_SIZE(Lighting_Subordinate); i++) {
+        /* link the lists */
+        if (i < (ARRAY_SIZE(Lighting_Subordinate)-1)) {
+            Lighting_Subordinate[i].next = &Lighting_Subordinate[i+1];
+        }
+        /* update the device instance to internal */
+        Lighting_Subordinate[i].Device_Instance = device_id;
+        /* update the common node data */
+        Lighting_Subordinate[i].Node_Type = BACNET_NODE_ROOM;
+        Lighting_Subordinate[i].Relationship = BACNET_RELATIONSHIP_CONTAINS;
+    }
+    instance = Structured_View_Index_To_Instance(0);
+    Structured_View_Subordinate_List_Set(instance, Lighting_Subordinate);
+    /* In some cases, the Structure View object will abstractly represent
+       this entity by itself, and this property will either be absent,
+       unconfigured, or point to itself. */
+    represents.deviceIdentifier.type = OBJECT_NONE;
+    represents.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
+    represents.objectIdentifier.type = OBJECT_DEVICE;
+    represents.objectIdentifier.instance = Device_Object_Instance_Number();
+    Structured_View_Represents_Set(instance, &represents);
+    Structured_View_Node_Type_Set(instance, BACNET_NODE_ROOM);
+}
+
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
  */
 static void Init_Service_Handlers(void)
 {
+    BACNET_CREATE_OBJECT_DATA object_data = { 0 };
+    unsigned int i = 0;
+
     Device_Init(NULL);
+    /* create some dynamically created objects as examples */
+    object_data.object_instance = BACNET_MAX_INSTANCE;
+    for (i = 0; i <= BACNET_OBJECT_TYPE_LAST; i++) {
+        object_data.object_type = i;
+        if (Device_Create_Object(&object_data)) {
+            printf("Created object %s-%u\n", bactext_object_type_name(i),
+                (unsigned)object_data.object_instance);
+        }
+    }
+    /* update structured view with this device instance */
+    Structured_View_Update();
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
@@ -295,7 +389,6 @@ int main(int argc, char *argv[])
     if (Device_Object_Name(Device_Object_Instance_Number(), &DeviceName)) {
         printf("BACnet Device Name: %s\n", DeviceName.value);
     }
-
     dlenv_init();
     atexit(datalink_cleanup);
     /* broadcast an I-Am on startup */

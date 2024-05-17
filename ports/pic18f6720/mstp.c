@@ -49,15 +49,17 @@
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/mstp.h"
-#include "bacnet/bytes.h"
-#include "bacnet/bits.h"
-#include "crc.h"
 #include "bacnet/bacaddr.h"
-#include "rs485.h"
 #if PRINT_ENABLED
 #include "bacnet/datalink/mstptext.h"
 #endif
+/* port specific */
+#include "crc.h"
+#include "rs485.h"
 
 /* debug print statements */
 #if PRINT_ENABLED

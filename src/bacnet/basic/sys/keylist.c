@@ -301,6 +301,20 @@ void *Keylist_Data_Delete(OS_Keylist list, KEY key)
     return data;
 }
 
+/**
+ * @brief Pops every node data, removing it from the list,
+ *  and frees the data memory
+ * @param list Pointer to the list
+ * */
+void Keylist_Data_Free(OS_Keylist list)
+{
+    void *data;
+    while (Keylist_Count(list) > 0) {
+        data = Keylist_Data_Pop(list);
+        free(data);
+    }
+}
+
 /** Returns the data from last node, and
  * removes it from the list.
  *
@@ -411,7 +425,7 @@ KEY Keylist_Key(OS_Keylist list, int index)
     return key;
 }
 
-/** 
+/**
  * Determine if there is a node key at the given index.
  *
  * @param list  Pointer to the list

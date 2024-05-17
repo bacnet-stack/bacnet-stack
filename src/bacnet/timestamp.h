@@ -24,9 +24,9 @@
 #ifndef _TIMESTAMP_H_
 #define _TIMESTAMP_H_
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/basic/sys/platform.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 
 typedef enum {
@@ -113,6 +113,11 @@ extern "C" {
     bool bacapp_timestamp_init_ascii(
         BACNET_TIMESTAMP *timestamp,
         const char *ascii);
+    BACNET_STACK_EXPORT
+    int bacapp_timestamp_to_ascii(
+        char *str, 
+        size_t str_size, 
+        BACNET_TIMESTAMP *timestamp);
 
 #ifdef __cplusplus
 }

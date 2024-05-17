@@ -26,7 +26,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactimevalue.h"
 
 /* arbitrary value, shall be unlimited for B-OWS but we don't care, 640k shall be enough */

@@ -9,11 +9,11 @@
 #define BAC_RW_H
 
 #include <stdint.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/rp.h"
-#include "bacnet/bacnet_stack_exports.h"
 
 /**
  * Save the requested ReadProperty data to a data store

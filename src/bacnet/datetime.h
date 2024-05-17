@@ -15,8 +15,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/basic/sys/platform.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /* define our epic beginnings */
 #define BACNET_DATE_YEAR_EPOCH 1900
@@ -250,9 +250,15 @@ bool datetime_utc_to_local(BACNET_DATE_TIME *local_time,
 BACNET_STACK_EXPORT
 bool datetime_date_init_ascii(BACNET_DATE *bdate, const char *ascii);
 BACNET_STACK_EXPORT
+int datetime_date_to_ascii(BACNET_DATE *bdate, char *str, size_t str_size);
+BACNET_STACK_EXPORT
 bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii);
 BACNET_STACK_EXPORT
+int datetime_time_to_ascii(BACNET_TIME *btime, char *str, size_t str_size);
+BACNET_STACK_EXPORT
 bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii);
+BACNET_STACK_EXPORT
+int datetime_to_ascii(BACNET_DATE_TIME *bdatetime, char *str, size_t str_size);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value);

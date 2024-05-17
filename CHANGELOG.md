@@ -20,6 +20,139 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
+## [1.3.6] - 2024-05-12
+
+### Security
+
+* Fixed bacapp snprintf to account for string size zero behavior of snprintf.
+* Changed all the sprintf to use snprintf instead. (#628)
+
+### Added
+
+* Added Get/Set functions in the basic notification class object to support
+  properties relative permanence requirement. (#629)
+* Added help text to explain how to decode complex data in the WriteProperty
+  example app. (#627)
+* Added host_n_port_context_decode function.
+* Added timestamp & datetime snprintf ASCII function.
+* Added required linux Ethernet library for ethernet build. (#620)
+* Added .obj to gitignore. (#620)
+* Added create-object and delete-object recipes in GCC Makefile. (#620)
+* Added datalink timer to all example OS apps. (#620)
+* Added writefile API to basic file object example. (#620)
+* Added API to device-client to make it more robust. (#620)
+* Added API in network-port object for getting the ASCII object-name. (#620)
+* Added debug print with a timestamp option. (#620)
+* Added debug print with hex dump print. (#620)
+* Added API to network port object for activate and discard. (#620)
+* Added default define for debug with timestamp. (#620)
+* Added prototype in header for disabled debug printf. (#620)
+* Added fifo peek ahead function to peek at more than one byte. (#620)
+* Added get-mac value for network port that uses buffer rather than
+  octetstring. (#620)
+* Added API for basic multistate objects number-of-states.
+* Added reliability, active-text, inactive-text to basic binary-input object.
+* Added reliability property to basic binary-value object.
+* Added API for setting multi state text with null-terminated name lists
+  in basic objects. (#614)
+* Added Create/Delete object services to Analog Input, Analog Value,
+  Binary Input, Binary Value, Multistate Input, Multistate Value basic
+  object examples, and updated their units tests. (#612)
+
+### Changed
+
+* Changed clang-format to include AlignAfterOpenBracket: AlwaysBreak and
+  BinPackArguments: true. Used make pretty-test to reformat the test/bacnet
+  .c/.h files with the updated format.
+* Changed most microcontroller ports to use BACAPP_MINIMAL to specify
+  which datatypes can be written. (#620)
+* Changed format in CMake to enable cleaner SC merge. (#620)
+* Changed the first instance of a basic integer value object from 1 to 0. (#619)
+* Changed basic time-value object present-value to be decoupled from 
+current time, and changed out-of-service property to be writable.
+
+### Fixed
+    
+* Fixed nuisance print messages in ports/linux/dlmstp by changing
+  to debug print only. (#633)
+* Fixed compile warnings in basic objects. (#630)
+* Added API for setting multi state text with null-terminated name lists
+  in basic objects. (#630)
+* Fixed example app router-ipv6 to build under ports/win32. (#630)
+* Fixed example app router-mstp to build under ports/win32 with MinGW. (#630)
+* Fixed invalid comparison in life-safety-zone basic object.
+* Fixed CMake build for BDT and FDT to only apply to BIP and BIP6
+* Fixed basic notification class object logic behind valid transitions. (#623)
+* Fixed export build that uses rpm_ack_object_property_process(). (#622)
+* Fixed zephyr bip_get_addr endian UDP port number
+* Fixed BACnet port for APPLE to use BSD in CMake. (#620)
+* Fixed zephyr OS for BACnet/IP warning. (#620)
+* Fixed zephyr OS log to not require log_strdup. (#620)
+* Fixed UDP port endian for zephyr os BACnet/IP
+* Fixed basic network port object header dependency on readrange.h file
+* Fixed basic binary object active and inactive text setting.
+* Fixed unit test checking for unknown property in basic objects.
+* Fixed example apps to enable binding to device instance 4194303. (#615)
+* Fixed compile warnings in basic objects. (#614)
+* Fixed life safety zone default object name. (#613)
+
+## [1.3.5] - 2024-04-01
+
+### Security
+
+* Secured the WPM and RPM client service encoders. (#604)
+
+### Added
+
+* Added test for unsupported property to common property test.(#609)
+* Added a few core stack headers as includes into bacdef.h file.(#602)
+* Added Kconfig and bacnet-config.h options in ports/zephyr to keep small
+  footprint for MCUs having less RAM.(#606)
+* Added Keylist_Data_Free function to free all nodes and data in a list.(#595)
+* Added basic Life Safety Zone object type in the apps/server example,
+  with unit testing.(#595)
+* Added extended frame client unit test.(#592)
+
+### Changed
+
+* Changed property lists member function for WriteProperty default case
+  by refactoring.(#609)
+* Changed time-value object unit testing by refactoring.(#609)  
+* Changed ports/zephry for BACnet/IP and date-time with latest
+  Zephyr OS.(#606)
+* Changed Zephyr OS west manifest to target zephyr v3.6.0.(#601)
+* Changed ZTEST_NEW_API adjustments as deprecated.(#601)
+* Changed position of bacnet/bacdef.h to be the first bacnet header
+  to include. BACnet headers need to pull in optional configuration and
+  optional ecosystem overrides to allow integrators to control
+  builds.  This change places bacnet/bacdef.h to the top of the BACnet 
+  Stack header files to consistently introduce integrator and ports
+  header files.(#598)(#600)
+* Added dependent BACnet stack headers into bacdef.h file.(#602)
+* Changed bacdef.h and other stack includes in c/h files to have a
+  common pattern.(#602)
+* Moved bits.h, bytes.h, and bacnet_stack_exports.h under
+  bacnet/basic/sys/ folder.(#602)
+
+### Fixed
+
+* Fix double promotion in format specifier %f by casting floats
+  to double.(#608)
+* Fixed the implementation of object-instance and object index
+  differentiation object/basic/ai.c module.(#607)
+* Fixed RPM and WPM apps when fail to encode request.(#604)
+* Fixed WPM app number of arguments checking.(#604)
+* Fixed routing to a remote network in the router-mstp example.(#592)
+* Fixed handling of received MS/TP extended frames.(#592)
+* Fixed MSTP_Master_Node_FSM and MSTP_Slave_Node_FSM for extended frames.(#592)
+* Fixed MSTP COBS frame encoding.(#592)
+* Fixed router-ipv6 application for remote networks.(#592)
+
+### Removed
+
+* Removed BACnet objects from ports/zephyr. There should only be datalink
+  and OS related interfaces in OS ports.(#606)
+
 ## [1.3.4] - 2024-03-02
 
 ### Security

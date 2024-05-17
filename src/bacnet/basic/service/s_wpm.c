@@ -31,8 +31,9 @@
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
@@ -91,8 +92,10 @@ uint8_t Send_Write_Property_Multiple_Request(uint8_t *pdu,
         /* encode the APDU portion of the packet */
         len = wpm_encode_apdu(
             &pdu[pdu_len], max_pdu - pdu_len, invoke_id, write_access_data);
+        if (len <= 0) {
+            return 0;
+        }
         pdu_len += len;
-
         /* will it fit in the sender?
            note: if there is a bottleneck router in between
            us and the destination, we won't know unless

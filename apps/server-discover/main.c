@@ -13,11 +13,10 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-
-/* core library */
-#include "bacnet/config.h"
-#include "bacnet/apdu.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/apdu.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/bacstr.h"
@@ -255,7 +254,7 @@ int main(int argc, char *argv[])
         }
     }
     if (device_id > BACNET_MAX_INSTANCE) {
-        debug_perror("device-instance=%u - it must be less than %u\n",
+        debug_perror("device-instance=%u - not greater than %u\n",
             device_id, BACNET_MAX_INSTANCE);
         return 1;
     }

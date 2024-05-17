@@ -29,6 +29,7 @@ BACNET_OBJECT_SRC := \
 	$(BACNET_OBJECT_DIR)/lc.c \
 	$(BACNET_OBJECT_DIR)/lo.c \
 	$(BACNET_OBJECT_DIR)/lsp.c \
+	$(BACNET_OBJECT_DIR)/lsz.c \
 	$(BACNET_OBJECT_DIR)/ms-input.c \
 	$(BACNET_OBJECT_DIR)/mso.c \
 	$(BACNET_OBJECT_DIR)/msv.c \
@@ -39,6 +40,7 @@ BACNET_OBJECT_SRC := \
 	$(BACNET_OBJECT_DIR)/time_value.c \
 	$(BACNET_OBJECT_DIR)/trendlog.c \
 	$(BACNET_OBJECT_DIR)/schedule.c \
+	$(BACNET_OBJECT_DIR)/structured_view.c \
 	$(BACNET_OBJECT_DIR)/access_credential.c \
 	$(BACNET_OBJECT_DIR)/access_door.c \
 	$(BACNET_OBJECT_DIR)/access_point.c \

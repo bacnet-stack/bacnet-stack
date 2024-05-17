@@ -27,8 +27,8 @@ int Send_UEvent_Notify(
     return 0;
 }
 
-uint8_t Send_CEvent_Notify(
-    uint32_t device_id, BACNET_EVENT_NOTIFICATION_DATA *data)
+uint8_t
+Send_CEvent_Notify(uint32_t device_id, BACNET_EVENT_NOTIFICATION_DATA *data)
 {
     (void)device_id;
     (void)data;
@@ -42,10 +42,10 @@ void Send_WhoIs(int32_t low_limit, int32_t high_limit)
 }
 
 bool datetime_local(
-    BACNET_DATE * bdate,
-    BACNET_TIME * btime,
-    int16_t * utc_offset_minutes,
-    bool * dst_active)
+    BACNET_DATE *bdate,
+    BACNET_TIME *btime,
+    int16_t *utc_offset_minutes,
+    bool *dst_active)
 {
     (void)bdate;
     (void)btime;

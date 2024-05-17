@@ -41,19 +41,14 @@ static void test_HostNPortCodec(BACNET_HOST_N_PORT *data)
     zassert_equal(apdu_len, null_len, NULL);
     zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
 
-    status = bacnet_is_opening_tag_number(apdu, apdu_len, tag_number, &len);
-    zassert_true(status, NULL);
-    zassert_true(len > 0, "len=%d", len);
-
-    null_len = host_n_port_decode(&apdu[len], apdu_len-len, NULL, NULL);
-    test_len = host_n_port_decode(&apdu[len], apdu_len-len, &error_code, &test_data);
+    null_len = host_n_port_context_decode(
+        apdu, apdu_len, tag_number, &error_code, NULL);
+    test_len = host_n_port_context_decode(
+        apdu, apdu_len, tag_number, &error_code, &test_data);
     zassert_equal(test_len, null_len, NULL);
     zassert_true(test_len > 0, "test_len=%d", len);
-    len += test_len;
-
-    status = bacnet_is_closing_tag_number(&apdu[len], apdu_len-len, tag_number, &len);
+    status = host_n_port_same(&test_data, data);
     zassert_true(status, NULL);
-    zassert_true(len > 0, "len=%d", len);
 
     status = host_n_port_copy(&test_data, data);
     zassert_true(status, NULL);

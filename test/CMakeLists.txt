@@ -130,6 +130,7 @@ list(APPEND testdirs
   #bacnet/basic/object/lc		#Tests skipped, redesign to use only API
   bacnet/basic/object/lo
   bacnet/basic/object/lsp
+  bacnet/basic/object/lsz
   bacnet/basic/object/ms-input
   bacnet/basic/object/mso
   bacnet/basic/object/msv
@@ -139,6 +140,7 @@ list(APPEND testdirs
   bacnet/basic/object/osv
   bacnet/basic/object/piv
   bacnet/basic/object/schedule
+  bacnet/basic/object/structured_view
   bacnet/basic/object/time_value
   bacnet/basic/object/trendlog
   # basic/sys

@@ -62,7 +62,8 @@
  */
 static void datetime_print(const char *title, BACNET_DATE_TIME *bdatetime)
 {
-    printf("%s: %04u/%02u/%02u %02u:%02u:%02u.%03u\n", title,
+    printf(
+        "%s: %04u/%02u/%02u %02u:%02u:%02u.%03u\n", title,
         (unsigned int)bdatetime->date.year, (unsigned int)bdatetime->date.month,
         (unsigned int)bdatetime->date.wday, (unsigned int)bdatetime->time.hour,
         (unsigned int)bdatetime->time.min, (unsigned int)bdatetime->time.sec,
@@ -70,7 +71,7 @@ static void datetime_print(const char *title, BACNET_DATE_TIME *bdatetime)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetDateTimeWildcard)
+ZTEST(bacnet_datetime, testBACnetDateTimeWildcard)
 #else
 static void testBACnetDateTimeWildcard(void)
 #endif
@@ -88,7 +89,7 @@ static void testBACnetDateTimeWildcard(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetDateTimeAdd)
+ZTEST(bacnet_datetime, testBACnetDateTimeAdd)
 #else
 static void testBACnetDateTimeAdd(void)
 #endif
@@ -156,7 +157,7 @@ static void testBACnetDateTimeSeconds(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetDate)
+ZTEST(bacnet_datetime, testBACnetDate)
 #else
 static void testBACnetDate(void)
 #endif
@@ -221,7 +222,7 @@ static void testBACnetDate(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetTime)
+ZTEST(bacnet_datetime, testBACnetTime)
 #else
 static void testBACnetTime(void)
 #endif
@@ -274,7 +275,7 @@ static void testBACnetTime(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetDateTime)
+ZTEST(bacnet_datetime, testBACnetDateTime)
 #else
 static void testBACnetDateTime(void)
 #endif
@@ -344,7 +345,7 @@ static void testBACnetDateTime(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testWildcardDateTime)
+ZTEST(bacnet_datetime, testWildcardDateTime)
 #else
 static void testWildcardDateTime(void)
 #endif
@@ -400,14 +401,16 @@ static void testDayOfYear(void)
                 datetime_set_date(&bdate, year, month, day);
                 days = datetime_day_of_year(&bdate);
                 datetime_day_of_year_into_date(days, year, &test_bdate);
-                zassert_equal(datetime_compare_date(&bdate, &test_bdate), 0,
+                zassert_equal(
+                    datetime_compare_date(&bdate, &test_bdate), 0,
                     "year=%u month=%u day=%u", year, month, day);
             }
         }
     }
 }
 
-static void testDateEpochConversionCompare(uint16_t year,
+static void testDateEpochConversionCompare(
+    uint16_t year,
     uint8_t month,
     uint8_t day,
     uint8_t hour,
@@ -433,7 +436,7 @@ static void testDateEpochConversionCompare(uint16_t year,
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testDateEpochConversion)
+ZTEST(bacnet_datetime, testDateEpochConversion)
 #else
 static void testDateEpochConversion(void)
 #endif
@@ -465,8 +468,9 @@ static void testDateEpoch(void)
         for (month = 1; month <= 12; month++) {
             for (day = 1; day <= days_per_month(year, month); day++) {
                 days = days_since_epoch(BACNET_EPOCH_YEAR, year, month, day);
-                days_since_epoch_to_date(BACNET_EPOCH_YEAR, days, &test_year,
-                    &test_month, &test_day);
+                days_since_epoch_to_date(
+                    BACNET_EPOCH_YEAR, days, &test_year, &test_month,
+                    &test_day);
                 zassert_equal(year, test_year, NULL);
                 zassert_equal(month, test_month, NULL);
                 zassert_equal(day, test_day, NULL);
@@ -476,7 +480,7 @@ static void testDateEpoch(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testBACnetDayOfWeek)
+ZTEST(bacnet_datetime, testBACnetDayOfWeek)
 #else
 static void testBACnetDayOfWeek(void)
 #endif
@@ -508,7 +512,7 @@ static void testBACnetDayOfWeek(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(wp_tests, testDatetimeCodec)
+ZTEST(bacnet_datetime, testDatetimeCodec)
 #else
 static void testDatetimeCodec(void)
 #endif
@@ -520,6 +524,8 @@ static void testDatetimeCodec(void)
     int apdu_len;
     int test_len;
     int null_len;
+    int str_len;
+    char str[64];
     int diff;
     bool status;
 
@@ -541,14 +547,28 @@ static void testDatetimeCodec(void)
     zassert_true(apdu_len > 0, NULL);
     diff = datetime_compare(&datetimeOut, &datetimeIn);
     zassert_equal(diff, 0, NULL);
+    /* test time stringify */
+    str_len = datetime_time_to_ascii(&datetimeIn.time, str, sizeof(str));
+    zassert_true(str_len > 0, NULL);
+    status = datetime_time_init_ascii(&datetimeIn.time, str);
+    zassert_true(status, NULL);
+    diff = datetime_compare(&datetimeOut, &datetimeIn);
+    zassert_equal(diff, 0, NULL);
+    /* test date stringify */
+    str_len = datetime_date_to_ascii(&datetimeIn.date, str, sizeof(str));
+    zassert_true(str_len > 0, NULL);
+    status = datetime_date_init_ascii(&datetimeIn.date, str);
+    zassert_true(status, NULL);
+    diff = datetime_compare(&datetimeOut, &datetimeIn);
+    zassert_equal(diff, 0, NULL);
     /* test for invalid date tag */
     apdu_len = bacapp_encode_datetime(apdu, &datetimeIn);
-    encode_tag(apdu, BACNET_APPLICATION_TAG_REAL, false, 4);    
+    encode_tag(apdu, BACNET_APPLICATION_TAG_REAL, false, 4);
     test_len = bacnet_datetime_decode(&apdu[0], apdu_len, &datetimeOut);
     zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     /* test for invalid time tag */
     apdu_len = bacapp_encode_datetime(apdu, &datetimeIn);
-    encode_tag(&apdu[5], BACNET_APPLICATION_TAG_REAL, false, 4);    
+    encode_tag(&apdu[5], BACNET_APPLICATION_TAG_REAL, false, 4);
     test_len = bacnet_datetime_decode(apdu, apdu_len, &datetimeOut);
     zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     /* ERROR too short APDU */
@@ -574,9 +594,19 @@ static void testDatetimeCodec(void)
     }
     diff = datetime_compare(&datetimeOut, &datetimeIn);
     zassert_equal(diff, 0, NULL);
+    /* test datetime stringify */
+    status = datetime_init_ascii(&datetimeIn, "1904/2/1-5:06:07.8");
+    zassert_true(status, NULL);
+    str_len = datetime_to_ascii(&datetimeIn, str, sizeof(str));
+    zassert_true(str_len > 0, NULL);
+    status = datetime_init_ascii(&datetimeOut, str);
+    zassert_true(status, NULL);
+    diff = datetime_compare(&datetimeOut, &datetimeIn);
+    zassert_equal(diff, 0, NULL);
 }
 
-static void testDatetimeConvertUTCSpecific(BACNET_DATE_TIME *utc_time,
+static void testDatetimeConvertUTCSpecific(
+    BACNET_DATE_TIME *utc_time,
     BACNET_DATE_TIME *local_time,
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes)
@@ -602,7 +632,11 @@ static void testDatetimeConvertUTCSpecific(BACNET_DATE_TIME *utc_time,
         local_time->time.hundredths, test_local_time.time.hundredths, NULL);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_datetime, testDatetimeConvertUTC)
+#else
 static void testDatetimeConvertUTC(void)
+#endif
 {
     BACNET_DATE_TIME local_time;
     BACNET_DATE_TIME utc_time;
@@ -630,7 +664,7 @@ static void testDatetimeConvertUTC(void)
  */
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST_SUITE(datetime_tests, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(bacnet_datetime, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
@@ -639,10 +673,9 @@ void test_main(void)
      ztest_unit_test(testBACnetDateTimeSeconds),
      ztest_unit_test(testDayOfYear),
 #endif
-    ztest_test_suite(datetime_tests,
-        ztest_unit_test(testBACnetDate),
-        ztest_unit_test(testBACnetTime),
-        ztest_unit_test(testBACnetDateTime),
+    ztest_test_suite(
+        bacnet_datetime, ztest_unit_test(testBACnetDate),
+        ztest_unit_test(testBACnetTime), ztest_unit_test(testBACnetDateTime),
         ztest_unit_test(testBACnetDayOfWeek),
         ztest_unit_test(testDateEpochConversion),
         ztest_unit_test(testBACnetDateTimeAdd),
@@ -653,6 +686,6 @@ void test_main(void)
         ztest_unit_test(testDayOfYear),
         ztest_unit_test(testDatetimeConvertUTC));
 
-    ztest_run_test_suite(datetime_tests);
+    ztest_run_test_suite(bacnet_datetime);
 }
 #endif

@@ -78,15 +78,12 @@ static void testStaticBuffer(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(sbuf_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(sbuf_tests,
-     ztest_unit_test(testStaticBuffer)
-     );
+    ztest_test_suite(sbuf_tests, ztest_unit_test(testStaticBuffer));
 
     ztest_run_test_suite(sbuf_tests);
 }

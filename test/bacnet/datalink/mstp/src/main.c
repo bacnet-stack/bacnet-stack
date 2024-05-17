@@ -9,13 +9,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zephyr/ztest.h>
-#include <bacnet/bytes.h>
+#/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacint.h"
 #include <bacnet/datalink/crc.h>
+#include <bacnet/datalink/cobs.h>
 #include <bacnet/datalink/datalink.h>
 #include <bacnet/datalink/mstp.h>
 #include <bacnet/datalink/mstpdef.h>
 #include <bacnet/datalink/mstptext.h>
 #include <bacnet/datalink/crc.h>
+#include <bacnet/basic/sys/bytes.h>
 #include <bacnet/basic/sys/fifo.h>
 
 /**
@@ -424,8 +429,8 @@ static void testReceiveNodeFSM(void)
     /* BadCRC in header check */
     mstp_port.ReceivedInvalidFrame = false;
     mstp_port.ReceivedValidFrame = false;
-    len = MSTP_Create_Frame(buffer, sizeof(buffer), FRAME_TYPE_TOKEN,
-        0x10, /* destination */
+    len = MSTP_Create_Frame(
+        buffer, sizeof(buffer), FRAME_TYPE_TOKEN, 0x10, /* destination */
         my_mac, /* source */
         NULL, /* data */
         0); /* data size */
@@ -439,8 +444,9 @@ static void testReceiveNodeFSM(void)
         MSTP_Receive_Frame_FSM(&mstp_port);
         zassert_true(mstp_port.DataAvailable == false, NULL);
         zassert_true(mstp_port.SilenceTimer(&mstp_port) == 0, NULL);
-        zassert_true(mstp_port.EventCount == EventCount, "i=%u %u!=%u len=%u",
-            i, mstp_port.EventCount, EventCount, len);
+        zassert_true(
+            mstp_port.EventCount == EventCount, "i=%u %u!=%u len=%u", i,
+            mstp_port.EventCount, EventCount, len);
     }
     zassert_true(mstp_port.ReceivedInvalidFrame == true, NULL);
     zassert_true(mstp_port.ReceivedValidFrame == false, NULL);
@@ -448,8 +454,8 @@ static void testReceiveNodeFSM(void)
     /* NoData for us */
     mstp_port.ReceivedInvalidFrame = false;
     mstp_port.ReceivedValidFrame = false;
-    len = MSTP_Create_Frame(buffer, sizeof(buffer), FRAME_TYPE_TOKEN,
-        my_mac, /* destination */
+    len = MSTP_Create_Frame(
+        buffer, sizeof(buffer), FRAME_TYPE_TOKEN, my_mac, /* destination */
         my_mac, /* source */
         NULL, /* data */
         0); /* data size */
@@ -469,8 +475,8 @@ static void testReceiveNodeFSM(void)
     /* FrameTooLong */
     mstp_port.ReceivedInvalidFrame = false;
     mstp_port.ReceivedValidFrame = false;
-    len = MSTP_Create_Frame(buffer, sizeof(buffer), FRAME_TYPE_TOKEN,
-        my_mac, /* destination */
+    len = MSTP_Create_Frame(
+        buffer, sizeof(buffer), FRAME_TYPE_TOKEN, my_mac, /* destination */
         my_mac, /* source */
         NULL, /* data */
         0); /* data size */
@@ -493,8 +499,9 @@ static void testReceiveNodeFSM(void)
     mstp_port.ReceivedInvalidFrame = false;
     mstp_port.ReceivedValidFrame = false;
     memset(data_proprietary, 0, sizeof(data_proprietary));
-    len = MSTP_Create_Frame(buffer, sizeof(buffer), FRAME_TYPE_PROPRIETARY_MIN,
-        my_mac, my_mac, data_proprietary, sizeof(data_proprietary));
+    len = MSTP_Create_Frame(
+        buffer, sizeof(buffer), FRAME_TYPE_PROPRIETARY_MIN, my_mac, my_mac,
+        data_proprietary, sizeof(data_proprietary));
     zassert_true(len > 0, NULL);
     Load_Input_Buffer(buffer, len);
     RS485_Check_UART_Data(&mstp_port);
@@ -507,7 +514,53 @@ static void testReceiveNodeFSM(void)
     zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
     zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
     zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
-    return;
+    /* Extended-Data-Expecting-Reply */
+    zassert_true(Nmin_COBS_length_BACnet <= sizeof(data), NULL);
+    mstp_port.ReceivedInvalidFrame = false;
+    mstp_port.ReceivedValidFrame = false;
+    memset(data, 0, sizeof(data));
+    len = MSTP_Create_Frame(
+        buffer, sizeof(buffer), FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY,
+        my_mac, my_mac, data, Nmin_COBS_length_BACnet);
+    zassert_true(len > 0, NULL);
+    Load_Input_Buffer(buffer, len);
+    RS485_Check_UART_Data(&mstp_port);
+    MSTP_Receive_Frame_FSM(&mstp_port);
+    while (mstp_port.receive_state != MSTP_RECEIVE_STATE_IDLE) {
+        RS485_Check_UART_Data(&mstp_port);
+        MSTP_Receive_Frame_FSM(&mstp_port);
+    }
+    zassert_true(mstp_port.DataLength == Nmin_COBS_length_BACnet, NULL);
+    zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
+    zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
+    zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
+    zassert_true(
+        mstp_port.FrameType == FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY,
+        NULL);
+    /* Extended-Data-Not-Expecting-Reply */
+    mstp_port.ReceivedInvalidFrame = false;
+    mstp_port.ReceivedValidFrame = false;
+    memset(data, 0, sizeof(data));
+    len = MSTP_Create_Frame(
+        buffer, sizeof(buffer),
+        FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY, my_mac, my_mac,
+        data, Nmin_COBS_length_BACnet);
+    zassert_true(len > 0, NULL);
+    Load_Input_Buffer(buffer, len);
+    RS485_Check_UART_Data(&mstp_port);
+    MSTP_Receive_Frame_FSM(&mstp_port);
+    while (mstp_port.receive_state != MSTP_RECEIVE_STATE_IDLE) {
+        RS485_Check_UART_Data(&mstp_port);
+        MSTP_Receive_Frame_FSM(&mstp_port);
+    }
+    zassert_true(mstp_port.DataLength == Nmin_COBS_length_BACnet, NULL);
+    zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
+    zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
+    zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
+    zassert_true(
+        mstp_port.FrameType ==
+            FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY,
+        NULL);
 }
 
 static void testMasterNodeFSM(void)
@@ -620,8 +673,8 @@ static void testZeroConfigNode_Init(struct mstp_port_struct_t *mstp_port)
     zassert_true(mstp_port->Zero_Config_Max_Master == 0, NULL);
 }
 
-static void testZeroConfigNode_No_Events_Timeout(
-    struct mstp_port_struct_t *mstp_port)
+static void
+testZeroConfigNode_No_Events_Timeout(struct mstp_port_struct_t *mstp_port)
 {
     bool transition_now, non_zero;
     unsigned slots, silence, i;
@@ -649,8 +702,8 @@ static void testZeroConfigNode_Test_Request_Unsupported(
         mstp_port->This_Station == mstp_port->Zero_Config_Station, NULL);
 }
 
-static void testZeroConfigNode_Test_Request_Supported(
-    struct mstp_port_struct_t *mstp_port)
+static void
+testZeroConfigNode_Test_Request_Supported(struct mstp_port_struct_t *mstp_port)
 {
     bool transition_now, non_zero;
     unsigned slots, silence, i;
@@ -669,8 +722,8 @@ static void testZeroConfigNode_Test_Request_Supported(
         mstp_port->This_Station == mstp_port->Zero_Config_Station, NULL);
 }
 
-static void testZeroConfigNode_Test_IDLE_InvalidFrame(
-    struct mstp_port_struct_t *mstp_port)
+static void
+testZeroConfigNode_Test_IDLE_InvalidFrame(struct mstp_port_struct_t *mstp_port)
 {
     bool transition_now, non_zero;
     unsigned slots, silence, i;
@@ -718,8 +771,8 @@ static void testZeroConfigNode_Test_IDLE_ValidFrameTimeout(
         mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
 }
 
-static void testZeroConfigNode_Test_IDLE_ValidFrame(
-    struct mstp_port_struct_t *mstp_port)
+static void
+testZeroConfigNode_Test_IDLE_ValidFrame(struct mstp_port_struct_t *mstp_port)
 {
     bool transition_now, non_zero;
     unsigned slots, silence, i;
@@ -736,8 +789,8 @@ static void testZeroConfigNode_Test_IDLE_ValidFrame(
     zassert_true(mstp_port->ReceivedValidFrame == true, NULL);
 }
 
-static void testZeroConfigNode_Test_LURK_AddressInUse(
-    struct mstp_port_struct_t *mstp_port)
+static void
+testZeroConfigNode_Test_LURK_AddressInUse(struct mstp_port_struct_t *mstp_port)
 {
     bool transition_now, non_zero;
     unsigned slots, silence, i;
@@ -757,7 +810,8 @@ static void testZeroConfigNode_Test_LURK_AddressInUse(
         zassert_true(
             mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_LURK, NULL);
         zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
-        zassert_true(mstp_port->Zero_Config_Station != src, "src=%u zc=%u", src,
+        zassert_true(
+            mstp_port->Zero_Config_Station != src, "src=%u zc=%u", src,
             mstp_port->Zero_Config_Station);
     }
 }
@@ -785,8 +839,8 @@ static void testZeroConfigNode_Test_LURK_LearnMaxMaster(
     }
 }
 
-static void testZeroConfigNode_Test_LURK_Claim(
-    struct mstp_port_struct_t *mstp_port)
+static void
+testZeroConfigNode_Test_LURK_Claim(struct mstp_port_struct_t *mstp_port)
 {
     bool transition_now, non_zero;
     unsigned slots, silence, i;
@@ -811,8 +865,8 @@ static void testZeroConfigNode_Test_LURK_Claim(
             zassert_true(
                 mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_CLAIM,
                 NULL);
-        } else if (mstp_port->Zero_Config_State ==
-            MSTP_ZERO_CONFIG_STATE_LURK) {
+        } else if (
+            mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_LURK) {
             zassert_true(
                 mstp_port->Poll_Count == (count + 1), "count=%u", count);
             zassert_true(
@@ -823,9 +877,11 @@ static void testZeroConfigNode_Test_LURK_Claim(
         }
     }
     /* verify the Reply To Poll For Master was sent for confirmation */
-    zassert_equal(mstp_port->OutputBuffer[2], FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER, NULL);
+    zassert_equal(
+        mstp_port->OutputBuffer[2], FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER, NULL);
     zassert_equal(mstp_port->OutputBuffer[3], mstp_port->SourceAddress, NULL);
-    zassert_equal(mstp_port->OutputBuffer[4], mstp_port->Zero_Config_Station, NULL);
+    zassert_equal(
+        mstp_port->OutputBuffer[4], mstp_port->Zero_Config_Station, NULL);
 }
 
 static void testZeroConfigNode_Test_LURK_ClaimTokenForUs(
@@ -843,11 +899,13 @@ static void testZeroConfigNode_Test_LURK_ClaimTokenForUs(
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
-    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_CONFIRM, NULL);
+    zassert_equal(
+        mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_CONFIRM, NULL);
     /* verify the Test Request Frame was sent for confirmation */
     zassert_equal(mstp_port->OutputBuffer[2], FRAME_TYPE_TEST_REQUEST, NULL);
     zassert_equal(mstp_port->OutputBuffer[3], mstp_port->SourceAddress, NULL);
-    zassert_equal(mstp_port->OutputBuffer[4], mstp_port->Zero_Config_Station, NULL);
+    zassert_equal(
+        mstp_port->OutputBuffer[4], mstp_port->Zero_Config_Station, NULL);
 }
 
 static void testZeroConfigNode_Test_LURK_ConfirmationSuccessful(
@@ -867,8 +925,10 @@ static void testZeroConfigNode_Test_LURK_ConfirmationSuccessful(
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_true(transition_now, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
-    zassert_equal(mstp_port->This_Station, mstp_port->Zero_Config_Station, NULL);
-    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_USE, NULL);
+    zassert_equal(
+        mstp_port->This_Station, mstp_port->Zero_Config_Station, NULL);
+    zassert_equal(
+        mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_USE, NULL);
 }
 
 static void testZeroConfigNode_Test_LURK_ConfirmationAddressInUse(
@@ -885,7 +945,7 @@ static void testZeroConfigNode_Test_LURK_ConfirmationAddressInUse(
     mstp_port->FrameType = FRAME_TYPE_PROPRIETARY_MIN;
     encode_unsigned16(&mstp_port->InputBuffer[0], BACNET_VENDOR_ID);
     memcpy(&mstp_port->InputBuffer[2], mstp_port->UUID, MSTP_UUID_SIZE);
-    mstp_port->DataLength = MSTP_UUID_SIZE+2;
+    mstp_port->DataLength = MSTP_UUID_SIZE + 2;
     mstp_port->ReceivedValidFrame = true;
     test_station = mstp_port->Zero_Config_Station + 1;
 
@@ -893,7 +953,8 @@ static void testZeroConfigNode_Test_LURK_ConfirmationAddressInUse(
     zassert_false(transition_now, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
     zassert_equal(test_station, mstp_port->Zero_Config_Station, NULL);
-    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_LURK, NULL);
+    zassert_equal(
+        mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_LURK, NULL);
 }
 
 static void testZeroConfigNode_Test_LURK_ConfirmationUnuccessful_UUID_Size(
@@ -909,12 +970,13 @@ static void testZeroConfigNode_Test_LURK_ConfirmationUnuccessful_UUID_Size(
     mstp_port->FrameType = FRAME_TYPE_TEST_RESPONSE;
     memcpy(mstp_port->InputBuffer, mstp_port->UUID, MSTP_UUID_SIZE);
     /* set to an invalid size */
-    mstp_port->DataLength = MSTP_UUID_SIZE-1;
+    mstp_port->DataLength = MSTP_UUID_SIZE - 1;
     mstp_port->ReceivedValidFrame = true;
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
-    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
+    zassert_equal(
+        mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
 }
 
 static void testZeroConfigNode_Test_LURK_ConfirmationUnuccessful_UUID(
@@ -936,7 +998,8 @@ static void testZeroConfigNode_Test_LURK_ConfirmationUnuccessful_UUID(
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
-    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
+    zassert_equal(
+        mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
 }
 
 static void testZeroConfigNode_Test_LURK_ClaimAddressInUse(
@@ -954,7 +1017,8 @@ static void testZeroConfigNode_Test_LURK_ClaimAddressInUse(
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(mstp_port->ReceivedValidFrame == false, NULL);
-    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_LURK, NULL);
+    zassert_equal(
+        mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_LURK, NULL);
     zassert_equal(mstp_port->Zero_Config_Station, station + 1, NULL);
 }
 
@@ -969,7 +1033,8 @@ static void testZeroConfigNode_Test_LURK_ClaimInvalidFrame(
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
     zassert_true(mstp_port->ReceivedInvalidFrame == false, NULL);
-    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_CLAIM, NULL);
+    zassert_equal(
+        mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_CLAIM, NULL);
 }
 
 static void testZeroConfigNode_Test_LURK_ClaimLostToken(
@@ -983,9 +1048,9 @@ static void testZeroConfigNode_Test_LURK_ClaimLostToken(
     SilenceTime = mstp_port->Zero_Config_Silence + 1;
     transition_now = MSTP_Master_Node_FSM(mstp_port);
     zassert_false(transition_now, NULL);
-    zassert_equal(mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
+    zassert_equal(
+        mstp_port->Zero_Config_State, MSTP_ZERO_CONFIG_STATE_IDLE, NULL);
 }
-
 
 static void testZeroConfigNodeFSM(void)
 {
@@ -1009,14 +1074,14 @@ static void testZeroConfigNodeFSM(void)
     testZeroConfigNode_Init(&MSTP_Port);
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
     testZeroConfigNode_Test_LURK_LearnMaxMaster(&MSTP_Port);
-    /* test case: valid frame event LURK PFMs: ClaimAddress 
+    /* test case: valid frame event LURK PFMs: ClaimAddress
        ConfirmationSuccessful */
     testZeroConfigNode_Init(&MSTP_Port);
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
     testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
     testZeroConfigNode_Test_LURK_ClaimTokenForUs(&MSTP_Port);
     testZeroConfigNode_Test_LURK_ConfirmationSuccessful(&MSTP_Port);
-    /* test case: valid frame event LURK PFMs: ClaimAddress 
+    /* test case: valid frame event LURK PFMs: ClaimAddress
        ConfirmationAddressInUse */
     testZeroConfigNode_Init(&MSTP_Port);
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
@@ -1060,7 +1125,8 @@ static void testZeroConfigNodeFSM(void)
 
 void test_main(void)
 {
-    ztest_test_suite(crc_tests, ztest_unit_test(testReceiveNodeFSM),
+    ztest_test_suite(
+        crc_tests, ztest_unit_test(testReceiveNodeFSM),
         ztest_unit_test(testMasterNodeFSM), ztest_unit_test(testSlaveNodeFSM),
         ztest_unit_test(testZeroConfigNodeFSM));
 

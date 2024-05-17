@@ -36,15 +36,16 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
 #include "bacnet/npdu.h"
-#include "bacnet/bits.h"
-#include "bacnet/bytes.h"
 #include "bacnet/bacaddr.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/datalink/crc.h"
+/* port specific */
 #include "rs485.h"
 #include "timer.h"
 #include "board.h"

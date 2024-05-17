@@ -26,9 +26,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/rp.h"
 
 /** @file Property_List property encode decode helper */
@@ -53,6 +53,12 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool property_list_member(
         const int *pList,
+        int object_property);
+    BACNET_STACK_EXPORT
+    bool property_lists_member(
+        const int *pRequired,
+        const int *pOptional,
+        const int *pProprietary,
         int object_property);
     BACNET_STACK_EXPORT
     int property_list_encode(

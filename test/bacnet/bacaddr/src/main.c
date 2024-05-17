@@ -258,7 +258,8 @@ ZTEST_SUITE(bacnet_address_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacnet_address_tests, ztest_unit_test(test_BACNET_ADDRESS),
+    ztest_test_suite(
+        bacnet_address_tests, ztest_unit_test(test_BACNET_ADDRESS),
         ztest_unit_test(test_BACNET_MAC_ADDRESS),
         ztest_unit_test(test_BACnetAddress_Codec));
 

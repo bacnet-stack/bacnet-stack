@@ -9,14 +9,16 @@
  */
 #ifndef _BACNET_VERSION_H_
 #define _BACNET_VERSION_H_
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /* This BACnet protocol stack version 0.0.0 - 255.255.255 */
 #ifndef BACNET_VERSION
 #define BACNET_VERSION(x,y,z) (((x)<<16)+((y)<<8)+(z))
 #endif
 
-#define BACNET_VERSION_TEXT "1.3.4"
-#define BACNET_VERSION_CODE BACNET_VERSION(1,3,4)
+#define BACNET_VERSION_TEXT "1.3.6"
+#define BACNET_VERSION_CODE BACNET_VERSION(1,3,6)
 #define BACNET_VERSION_MAJOR ((BACNET_VERSION_CODE>>16)&0xFF)
 #define BACNET_VERSION_MINOR ((BACNET_VERSION_CODE>>8)&0xFF)
 #define BACNET_VERSION_MAINTENANCE (BACNET_VERSION_CODE&0xFF)
