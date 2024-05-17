@@ -1601,7 +1601,7 @@ unsigned property_list_special_count(
 /* standard properties that are arrays 
    but not necessary supported in every object */
 
-/* clang format off */
+/* clang-format off */
 static const int Properties_BACnetARRAY[] = { 
     PROP_AUTHENTICATION_FACTORS, PROP_ASSIGNED_ACCESS_RIGHTS, 
     PROP_PRIORITY_ARRAY, PROP_VALUE_SOURCE_ARRAY, PROP_COMMAND_TIME_ARRAY, 
@@ -1622,7 +1622,7 @@ static const int Properties_BACnetARRAY[] = {
     PROP_STAGES, PROP_STAGE_NAMES, PROP_TARGET_REFERENCES,
     PROP_MONITORED_OBJECTS, PROP_TAGS, -1
 };
-/* clang format on */
+/* clang-format on */
 
 /**
  * Function that returns the list of Required properties

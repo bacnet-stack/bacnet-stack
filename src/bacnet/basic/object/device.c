@@ -82,7 +82,7 @@ extern bool Routed_Device_Write_Property_Local(
 /* may be overridden by outside table */
 static object_functions_t *Object_Table;
 
-/* clang format off */
+/* clang-format off */
 static object_functions_t My_Object_Table[] = {
     { OBJECT_DEVICE, NULL /* Init - don't init Device or it will recourse! */,
         Device_Count, Device_Index_To_Instance,
@@ -381,7 +381,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 };
-/* clang format on */
+/* clang-format on */
 
 /** Glue function to let the Device object, when called by a handler,
  * lookup which Object type needs to be invoked.
@@ -476,7 +476,7 @@ void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
     return;
 }
 
-/* clang format off */
+/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
@@ -506,7 +506,7 @@ static const int Device_Properties_Optional[] = {
 static const int Device_Properties_Proprietary[] = {
     -1
 };
-/* clang format on */
+/* clang-format on */
 
 void Device_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)

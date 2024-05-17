@@ -478,6 +478,51 @@ int bacnet_tag_number_decode(
 }
 
 /**
+ * @brief Encode a BACnet BACnet Tag Number and Value
+ * as defined in clause 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param tag - tag value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_tag_encode(uint8_t *apdu, uint32_t apdu_size, BACNET_TAG *tag)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    if (!tag) {
+        return 0;
+    }
+    if (tag->application) {
+        apdu_len = encode_tag(NULL, tag->number, false, tag->len_value_type);
+    } else if (tag->context) {
+        apdu_len = encode_tag(NULL, tag->number, true, tag->len_value_type);
+    } else if (tag->opening) {
+        apdu_len = encode_opening_tag(NULL, tag->number);
+    } else if (tag->closing) {
+        apdu_len = encode_closing_tag(NULL, tag->number);
+    }
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        if (tag->application) {
+            apdu_len =
+                encode_tag(apdu, tag->number, false, tag->len_value_type);
+        } else if (tag->context) {
+            apdu_len = encode_tag(apdu, tag->number, true, tag->len_value_type);
+        } else if (tag->opening) {
+            apdu_len = encode_opening_tag(apdu, tag->number);
+        } else if (tag->closing) {
+            apdu_len = encode_closing_tag(apdu, tag->number);
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode the BACnet Tag Number and Value
  * as defined in clause 20.2.1 General Rules For Encoding BACnet Tags
  *
@@ -1053,6 +1098,33 @@ bool decode_boolean(uint32_t len_value)
 }
 
 /**
+ * @brief Encode an application tagged boolean value.
+ * From clause 20.2.3 Encoding of a Boolean Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags.
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode.
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_boolean_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, bool value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_boolean(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_boolean(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode the Boolean Value when application encoded
  * From clause 20.2.3 Encoding of a Boolean Value
  * and 20.2.1 General Rules for Encoding BACnet Tags
@@ -1257,7 +1329,7 @@ int decode_bitstring(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding
- * @param value - the unsigned value decoded
+ * @param value - value to decode into
  *
  * @return  number of bytes decoded, or zero if errors occur
  */
@@ -1294,6 +1366,33 @@ int bacnet_bitstring_decode(uint8_t *apdu,
     }
 
     return len;
+}
+
+/**
+ * @brief Encode an application tagged BACnet bit string value.
+ * From clause 20.2.10 Encoding of a Bit String Value.
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode.
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_bitstring_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_BIT_STRING *value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_bitstring(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_bitstring(apdu, value);
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -1342,7 +1441,7 @@ int bacnet_bitstring_application_decode(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_value - context tag number expected
- * @param value - the character string value decoded
+ * @param value - decoded value, if decoded
  *
  * @return  number of bytes decoded, or zero if tag number mismatch, or
  * #BACNET_STATUS_ERROR (-1) if malformed
@@ -1567,7 +1666,7 @@ int decode_object_id(
  * @param apdu - buffer of data to be decoded
  * @param apdu_size - number of bytes in the buffer
  * @param object_type - decoded object type, if decoded
- * @param object_instance - decoded object instance, if decoded
+ * @param instance - decoded object instance, if decoded
  *
  * @return the number of apdu bytes consumed, or 0 if apdu is too small
  */
@@ -1586,6 +1685,37 @@ int bacnet_object_id_decode(uint8_t *apdu,
     }
 
     return 0;
+}
+
+/**
+ * @brief Encode an application tagged BACnet object identifier value.
+ * From clause 20.2.14 Encoding of an Object Identifier Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_object_id_application_encode(
+    uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_object_id(NULL, object_type, object_instance);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len =
+            encode_application_object_id(apdu, object_type, object_instance);
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -1878,7 +2008,7 @@ int encode_context_octet_string(
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding, may be
  * zero
- * @param value - the unsigned value decoded, or NULL for length
+ * @param value - the value decoded, or NULL for length
  *
  * @return  number of bytes decoded (0..N), or BACNET_STATUS_ERROR on error
  */
@@ -1961,6 +2091,33 @@ int decode_context_octet_string(
 }
 
 /**
+ * @brief Encode an application tagged BACnet Octet String Value
+ * From clause 20.2.8 Encoding of an Octet String Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_octet_string_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_OCTET_STRING *value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_octet_string(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_octet_string(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decodes from bytes into a BACnet Octet String application encoding
  * from clause 20.2.8 Encoding of an Octet String Value
  * and 20.2.1 General Rules for Encoding BACnet Tags
@@ -2006,7 +2163,7 @@ int bacnet_octet_string_application_decode(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_value - context tag number expected
- * @param value - the octet string value decoded, or NULL for length
+ * @param value - the value decoded, or NULL for length
  *
  * @return  number of bytes decoded, or zero if tag number mismatch, or
  * #BACNET_STATUS_ERROR (-1) if malformed
@@ -2171,7 +2328,7 @@ int encode_context_character_string(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding
- * @param value - the unsigned value decoded
+ * @param value - the value decoded, if decoded
  *
  * @return  number of bytes decoded, or zero if errors occur
  */
@@ -2221,6 +2378,33 @@ int decode_character_string(
 }
 
 /**
+ * @brief Encode an application tagged BACnet Character String value
+ * From clause 20.2.9 Encoding of a Character String Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_character_string_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_CHARACTER_STRING *value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_character_string(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_character_string(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decodes from bytes into a BACnet Character String value
  * from clause 20.2.9 Encoding of a Character String Value
  * and 20.2.1 General Rules for Encoding BACnet Tags
@@ -2266,7 +2450,7 @@ int bacnet_character_string_application_decode(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_value - context tag number expected
- * @param value - the character string value decoded
+ * @param value - the value decoded, if decoded
  *
  * @return  number of bytes decoded, or zero if tag number mismatch, or
  * #BACNET_STATUS_ERROR (-1) if malformed
@@ -2335,7 +2519,7 @@ int decode_context_character_string(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding
- * @param value - the unsigned value decoded
+ * @param value - the value decoded, if decoded
  *
  * @return  number of bytes decoded, or zero if errors occur
  */
@@ -2429,7 +2613,7 @@ int bacnet_unsigned_decode(uint8_t *apdu,
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_value - context tag number expected
- * @param value - the unsigned value decoded
+ * @param value - the value decoded, if decoded
  *
  * @return  number of bytes decoded, zero if wrong tag number,
  * or #BACNET_STATUS_ERROR (-1) if malformed
@@ -2458,6 +2642,33 @@ int bacnet_unsigned_context_decode(uint8_t *apdu,
             /* mismatched tag number */
             apdu_len = 0;
         }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode an application tagged BACnet Unsigned value
+ * From clause 20.2.4 Encoding of an Unsigned Integer Value 
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_unsigned_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_UNSIGNED_INTEGER value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_unsigned(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_unsigned(apdu, value);
     }
 
     return apdu_len;
@@ -2694,6 +2905,33 @@ int decode_enumerated(uint8_t *apdu, uint32_t len_value, uint32_t *value)
     const uint32_t apdu_size = 4;
 
     return bacnet_enumerated_decode(apdu, apdu_size, len_value, value);
+}
+
+/**
+ * @brief Encode an application tagged BACnet Enumerated value
+ * From clause 20.2.11 Encoding of an Enumerated Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - bit string value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_enumerated_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, uint32_t value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_enumerated(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_enumerated(apdu, value);
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -2958,6 +3196,33 @@ int bacnet_signed_context_decode(
 }
 
 /**
+ * @brief Encode an application tagged  BACnet Signed Integer Value
+ * From clause 20.2.5 Encoding of a Signed Integer Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_signed_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, int32_t value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_signed(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_signed(apdu, value);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode the BACnet Signed Integer Value when application encoded
  * as defined in clause 20.2.5 Encoding of a Signed Integer Value
  * and 20.2.1 General Rules for Encoding BACnet Tags
@@ -3183,7 +3448,7 @@ int encode_context_real(uint8_t *apdu, uint8_t tag_number, float value)
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding
- * @param value - the signed value decoded
+ * @param value - the value decoded, if decoded
  *
  * @return  number of bytes decoded, or zero if errors occur
  */
@@ -3207,7 +3472,7 @@ int bacnet_real_decode(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_value - context tag number expected
- * @param value - the signed value decoded
+ * @param value - the value decoded, if decoded
  *
  * @return  number of bytes decoded, zero if wrong tag number,
  * or error (-1) if malformed
@@ -3233,6 +3498,33 @@ int bacnet_real_context_decode(
         } else {
             apdu_len = 0;
         }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode an application tagged BACnet Real Number Value
+ * From clause 20.2.6 Encoding of a Real Number Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_real_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, float value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_real(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_real(apdu, value);
     }
 
     return apdu_len;
@@ -3364,7 +3656,7 @@ int encode_context_double(uint8_t *apdu, uint8_t tag_number, double value)
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes in the unsigned value encoding
- * @param value - the signed value decoded
+ * @param value - the value decoded
  *
  * @return  number of bytes decoded, or zero if errors occur
  */
@@ -3388,7 +3680,7 @@ int bacnet_double_decode(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_value - context tag number expected
- * @param value - the signed value decoded
+ * @param value - the value decoded
  *
  * @return  number of bytes decoded, zero if wrong tag number,
  * or error (-1) if malformed
@@ -3414,6 +3706,33 @@ int bacnet_double_context_decode(
         } else {
             apdu_len = 0;
         }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode an application tagged Double Precision Real Number Value
+ * From clause 20.2.7 Encoding of a Double Precision Real Number Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_double_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, double value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_double(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_double(apdu, value);
     }
 
     return apdu_len;
@@ -3567,7 +3886,7 @@ int encode_context_time(uint8_t *apdu, uint8_t tag_number, BACNET_TIME *btime)
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param len_value - number of bytes encoded
- * @param value - the unsigned value decoded
+ * @param value - the value decoded, if decoded
  *
  * @return  number of bytes decoded, or zero if errors occur
  */
@@ -3598,7 +3917,7 @@ int bacnet_time_decode(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_value - context tag number expected
- * @param value - the unsigned value decoded
+ * @param value - the value decoded, if decoded
  *
  * @return  number of bytes decoded, zero if wrong tag number,
  * or error (-1) if malformed
@@ -3624,6 +3943,33 @@ int bacnet_time_context_decode(
         } else {
             apdu_len = 0;
         }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode an application tagged BACnet Time Value
+ * From clause 20.2.13 Encoding of a Time Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_time_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_TIME *value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_time(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_time(apdu, value);
     }
 
     return apdu_len;
@@ -3942,7 +4288,7 @@ int bacnet_date_decode(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_value - context tag number expected
- * @param value - the unsigned value decoded
+ * @param value - the value decoded, if decoded
  *
  * @return  number of bytes decoded, zero if wrong tag number,
  * or error (-1) if malformed
@@ -3968,6 +4314,33 @@ int bacnet_date_context_decode(
         } else {
             apdu_len = 0;
         }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode an application tagged BACnet Date Value
+ * From clause 20.2.12 Encoding of a Date Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the data to be encoded, or NULL for length
+ * @param apdu_size - number of bytes in the buffer
+ * @param value - value to encode
+ *
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
+ */
+int bacnet_date_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, BACNET_DATE *value)
+{
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = encode_application_date(NULL, value);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = encode_application_date(apdu, value);
     }
 
     return apdu_len;
