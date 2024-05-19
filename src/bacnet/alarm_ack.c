@@ -16,7 +16,7 @@
  * @brief Creates a Confirmed BACnetAcknowledgeAlarmInfo service request.
  * @param apdu  application data buffer, or NULL for length
  * @param invoke_id  Invoked ID
- * @param data  Alarm BACnetAcknowledgeAlarmInfo data to be encoded
+ * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded
  */
 int alarm_ack_encode_apdu(
@@ -51,7 +51,7 @@ int alarm_ack_encode_apdu(
  *  }
  * 
  * @param apdu  application data buffer, or NULL for length
- * @param data  Alarm BACnetAcknowledgeAlarmInfo data to be encoded
+ * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded
  */
 int alarm_ack_encode_service_request(uint8_t *apdu, BACNET_ALARM_ACK_DATA *data)
@@ -92,6 +92,31 @@ int alarm_ack_encode_service_request(uint8_t *apdu, BACNET_ALARM_ACK_DATA *data)
     apdu_len += len;
 
     return apdu_len;
+}
+
+/**
+ * @brief Encode the BACnetAcknowledgeAlarmInfo-Request service
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t bacnet_acknowledge_alarm_info_request_encode(
+    uint8_t *apdu, 
+    size_t apdu_size,
+    BACNET_ALARM_ACK_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = alarm_ack_encode_service_request(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = alarm_ack_encode_service_request(apdu, data);
+    }
+
+    return apdu_len;
+
 }
 
 /**
