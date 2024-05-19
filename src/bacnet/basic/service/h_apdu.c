@@ -584,7 +584,7 @@ void apdu_handler(
     switch (pdu_type) {
         case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
             len = apdu_decode_confirmed_service_request(
-                &apdu[0], apdu_len, &service_data, &service_choice,
+                apdu, apdu_len, &service_data, &service_choice,
                 &service_request, &service_request_len);
             if (len == 0) {
                 /* service data unable to be decoded - simply drop */
@@ -607,16 +607,13 @@ void apdu_handler(
             }
             break;
         case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
-            if (apdu_len < 3) {
+            if (apdu_len < 2) {
                 break;
             }
             service_choice = apdu[1];
+            /* prepare the service request buffer and length */
             service_request_len = apdu_len - 2;
-            if (service_request_len > 0) {
-                service_request = &apdu[2];
-            } else {
-                service_request = NULL;
-            }
+            service_request = &apdu[2];
             if (apdu_unconfirmed_dcc_disabled(service_choice)) {
                 /* When network communications are disabled,
                     only DeviceCommunicationControl and
@@ -665,12 +662,9 @@ void apdu_handler(
                 service_ack_data.proposed_window_number = apdu[len++];
             }
             service_choice = apdu[len++];
+            /* prepare the service request buffer and length */
             service_request_len = apdu_len - (uint16_t)len;
-            if (service_request_len > 0) {
-                service_request = &apdu[len];
-            } else {
-                service_request = NULL;
-            }
+            service_request = &apdu[len];
             if (!apdu_confirmed_simple_ack_service(service_choice)) {
                 if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
                     if (Confirmed_ACK_Function[service_choice].complex !=
@@ -694,12 +688,9 @@ void apdu_handler(
             }
             invoke_id = apdu[1];
             service_choice = apdu[2];
+            /* prepare the service request buffer and length */
             service_request_len = apdu_len - 3;
-            if (service_request_len > 0) {
-                service_request = &apdu[3];
-            } else {
-                service_request = NULL;
-            }
+            service_request = &apdu[3];
             if (apdu_complex_error(service_choice)) {
                 if (Error_Function[service_choice].complex) {
                     Error_Function[service_choice].complex(
