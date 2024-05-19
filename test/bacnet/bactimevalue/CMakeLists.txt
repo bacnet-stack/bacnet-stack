@@ -24,6 +24,7 @@ add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
 	BACAPP_ALL
+	BACAPP_PRINT_ENABLED
 	)
 
 include_directories(
