@@ -45,7 +45,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     int bacnet_weeklyschedule_decode(
         uint8_t * apdu,
-        int max_apdu_len,
+        int apdu_size,
         BACNET_WEEKLY_SCHEDULE * value);
 
     /** Encode WeeklySchedule */
@@ -60,7 +60,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int bacnet_weeklyschedule_context_decode(
-        uint8_t *apdu, int max_apdu_len, uint8_t tag_number,
+        uint8_t *apdu, int apdu_size, uint8_t tag_number,
         BACNET_WEEKLY_SCHEDULE *value);
 
     BACNET_STACK_EXPORT
