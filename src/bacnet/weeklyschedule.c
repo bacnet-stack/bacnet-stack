@@ -1,8 +1,9 @@
 /**
  * @file
  * @brief BACnetWeeklySchedule complex data type encode and decode
+ * @author Ondřej Hruška <ondra@ondrovo.com>
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2022
+ * @date September 2022
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
