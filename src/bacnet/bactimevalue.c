@@ -342,6 +342,10 @@ int bacnet_time_values_context_encode(
 
     /* day-schedule [x] SEQUENCE OF BACnetTimeValue */
     len = encode_opening_tag(apdu, tag_number);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
     for (j = 0; j < max_time_values; j++) {
         /* Encode only non-null values (NULL,00:00:00.00) */
         if (time_values[j].Value.tag != BACNET_APPLICATION_TAG_NULL ||

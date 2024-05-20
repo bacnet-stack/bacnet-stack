@@ -1,13 +1,11 @@
 /**
  * @file
  * @brief Unit test for BACnetSpecialEvent. This test also indirectly tests
- *  BACnetCalendarEntry
+ *  BACnetCalendarEntry, BACnetDailySchedule, and BACnetTimeValue.
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @date Aug 2023
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
