@@ -516,7 +516,8 @@ void handler_read_property_multiple(uint8_t *service_request,
         bytes_sent = datalink_send_pdu(
             src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
         if (bytes_sent <= 0) {
-            debug_fprintf(stderr, "RPM: Failed to send PDU (%s)!\n", strerror(errno));
+            debug_fprintf(stderr, "RPM: Failed to send PDU (errno=%d)!\n", 
+            errno);
         }
     }
 }
