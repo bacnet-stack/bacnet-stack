@@ -1,13 +1,11 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief BACnet ReadPropertyMultiple -Request and -Ack codec unit test
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/bacerror.h> /* For bacerror_decode_error_class_and_code() */
 #include <bacnet/bacdcode.h>
