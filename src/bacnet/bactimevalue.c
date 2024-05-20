@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief BACnetTimeValue complex data type encode and decode
- * @author Nikola Jelic
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2015
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
