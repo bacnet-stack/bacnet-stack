@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief BACnetTimeStamp service encode and decode
- * @author John Minack
+ * @author John Minack <minack@users.sourceforge.net>
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2008
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
