@@ -217,7 +217,6 @@ ODFLAGS	= -x --syms
 AOBJ = $(ASRC:.s=.o)
 COBJ = $(CSRC:.c=.o)
 CSTACK = $(CSRC:.c=.su)
-CEXPAND = $(CSRC:.c=.c.237r.expand)
 
 all: $(TARGET).bin $(TARGET).hex $(TARGET).elf
 	$(OBJDUMP) $(ODFLAGS) $(TARGET).elf > $(TARGET).dmp
@@ -236,7 +235,7 @@ $(TARGET).elf: $(COBJ) $(AOBJ) Makefile
 ram-usage:
 	@$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
 	@echo "=ADDRESS= ==SIZE== = ==VARIABLE NAME=="
-	@tail $(TARGET).
+	@tail $(TARGET).nm
 	
 .PHONY: cstack
 cstack:
