@@ -13,6 +13,9 @@ LIBRARY_STM32 = ./STM32F4xx_StdPeriph_Driver/src
 LIBRARY_STM32_INCLUDES = ./STM32F4xx_StdPeriph_Driver/inc
 LIBRARY_CMSIS = ./CMSIS
 
+CSTACK_TOOL := $(BACNET_DIR)/tools/avstack/avstack.pl
+MEMAP_TOOL := $(BACNET_DIR)/tools/memap/memap.py
+
 INCLUDES = -I$(PLATFORM_DIR)
 INCLUDES += -I$(LIBRARY_STM32_INCLUDES)
 INCLUDES += -I$(LIBRARY_CMSIS)
@@ -173,6 +176,8 @@ CFLAGS += $(BACNET_FLAGS)
 CFLAGS += $(INCLUDES)
 # enable garbage collection of unused functions and data to shrink binary
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
+# enable stack usage tracking
+CFLAGS += -fstack-usage
 # function calls will not use any special __builtin_xx to allow debug/linking
 CFLAGS += -fno-builtin
 # place uninitialized global variables in the data section of the object file.
@@ -211,6 +216,8 @@ ODFLAGS	= -x --syms
 
 AOBJ = $(ASRC:.s=.o)
 COBJ = $(CSRC:.c=.o)
+CSTACK = $(CSRC:.c=.su)
+CEXPAND = $(CSRC:.c=.c.237r.expand)
 
 all: $(TARGET).bin $(TARGET).hex $(TARGET).elf
 	$(OBJDUMP) $(ODFLAGS) $(TARGET).elf > $(TARGET).dmp
@@ -225,9 +232,22 @@ $(TARGET).hex:  $(TARGET).elf
 $(TARGET).elf: $(COBJ) $(AOBJ) Makefile
 	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@
 
-: ram-usage
+.PHONY: ram-usage
 ram-usage:
-	$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
+	@$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
+	@echo "=ADDRESS= ==SIZE== = ==VARIABLE NAME=="
+	@tail $(TARGET).
+	
+.PHONY: cstack
+cstack:
+	@$(CSTACK_TOOL) $(COBJ) 2> /dev/null 1> $(TARGET).su
+	@head -n 25 $(TARGET).su
+
+.PHONY: memap
+memap:
+	# memmap needs Python and PrettyPrint and IntelHex
+	# sudo apt install python3-prettytable python3-intelhex
+	$(MEMAP_TOOL) -t GCC_ARM $(TARGET).map
 
 # GDB using st-util (GDB server for ST Link)
 GDB_PORT = 3333
@@ -282,6 +302,7 @@ install: $(TARGET).bin
 .PHONY: clean
 clean:
 	-rm -rf $(COBJ) $(AOBJ) $(COREOBJ)
+	-rm -rf $(CSTACK) $(CEXPAND)
 	-rm -rf $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
 	-rm -rf $(TARGET).su $(TARGET).nm
 	-rm -rf *.lst
