@@ -585,6 +585,7 @@ int rpm_ack_decode_object_property(
     int len = 0;
     int apdu_len = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0; /* for decoding */
+    uint32_t enum_value = 0; /* for decoding */
 
     /* check for valid pointers */
     if (!apdu) {
@@ -595,9 +596,12 @@ int rpm_ack_decode_object_property(
     }
     /* Tag 2: propertyIdentifier */
     len = bacnet_enumerated_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 2, object_property);
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &enum_value);
     if (len > 0) {
         apdu_len += len;
+        if (object_property) {
+            *object_property = (BACNET_PROPERTY_ID)enum_value;
+        }
     } else {
         return BACNET_STATUS_ERROR;
     }
