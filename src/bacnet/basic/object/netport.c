@@ -918,6 +918,59 @@ void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
  *
  * @return MS/TP Max_Master value
  */
+uint8_t Network_Port_MSTP_MAC_Address(uint32_t object_instance)
+{
+    uint8_t value = 0;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
+            value = Object_List[index].Network.MSTP.MAC_Address;
+        }
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the MS/TP Max_Master value
+ * Note: depends on Network_Type being set to PORT_TYPE_MSTP for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - MS/TP Max_Master value 0..127
+ *
+ * @return  true if values are within range and property is set.
+ */
+bool Network_Port_MSTP_MAC_Address_Set(uint32_t object_instance, uint8_t value)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
+            if (value <= 127) {
+                if (Object_List[index].Network.MSTP.MAC_Address != value) {
+                    Object_List[index].Changes_Pending = true;
+                }
+                Object_List[index].Network.MSTP.MAC_Address = value;
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the MS/TP Max_Master value
+ * Note: depends on Network_Type being set to PORT_TYPE_MSTP for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return MS/TP Max_Master value
+ */
 uint8_t Network_Port_MSTP_Max_Master(uint32_t object_instance)
 {
     uint8_t value = 0;
