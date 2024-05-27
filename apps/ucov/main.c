@@ -132,7 +132,7 @@ static void print_usage(char *filename)
 
 int main(int argc, char *argv[])
 {
-    char *value_string = NULL;
+    char *value_string;
     bool status = false;
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list;

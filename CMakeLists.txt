@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.3.5
+  VERSION 1.3.6
   LANGUAGES C)
 
 #
@@ -22,6 +22,11 @@ option(
 option(
   BACNET_PROPERTY_LISTS
   "enable property lists"
+  ON)
+
+option(
+  BACNET_PROPERTY_ARRAY_LISTS
+  "enable property array lists"
   ON)
 
 option(
@@ -259,6 +264,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/piv.h
   src/bacnet/basic/object/schedule.c
   src/bacnet/basic/object/schedule.h
+  src/bacnet/basic/object/structured_view.c
+  src/bacnet/basic/object/structured_view.h
   src/bacnet/basic/object/time_value.c
   src/bacnet/basic/object/time_value.h
   src/bacnet/basic/object/trendlog.c
@@ -529,7 +536,8 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_MSTP}>:BACDL_MSTP>
   $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
-  $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>
+  $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
+  $<$<BOOL:${BACNET_PROPERTY_ARRAY_LISTS}>:BACNET_PROPERTY_ARRAY_LISTS=1>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE

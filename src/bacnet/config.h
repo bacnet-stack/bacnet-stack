@@ -9,10 +9,15 @@
  * 
  * SPDX-License-Identifier: MIT
  */
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef BACNET_CONFIG_H_
+#define BACNET_CONFIG_H_
 
-/* Include BACnet Specific conf */
+/**
+ * @note configurations are default to values used in the example apps build. 
+ * Use a local copy named "bacnet-config.h" with settings configured for 
+ * the product specific needs for code space reductions in your device.
+ * Alternately, use a compiler and linker to override these defines.
+ */
 #if defined(BACNET_CONFIG_H)
 #include "bacnet-config.h"
 #endif
@@ -230,33 +235,32 @@
 #define MAX_OCTET_STRING_BYTES (MAX_APDU-6)
 #endif
 
-/*
-** Control the selection of services etc to enable code size reduction for those
-** compiler suites which do not handle removing of unused functions in modules
-** so well.
-**
-** We will start with the A type services code first as these are least likely
-** to be required in embedded systems using the stack.
-*/
+/**
+ * @note Control the selection of services etc to enable code size reduction 
+ * for those compiler suites which do not handle removing of unused functions 
+ * in modules so well.
+ *
+ * We will start with the A type services code first as these are least likely
+ * to be required in embedded systems using the stack.
+ */
+#ifndef BACNET_SVC_SERVER       
+    /* default to client-server device for the example apps to build. */
+    #define BACNET_SVC_SERVER      0
+#endif
 
-/*
-** Note: these are enabled by default for the example apps to build. 
-** Use a local copy named "bacnet-config.h" with settings configured for 
-** the product specific needs for code space reductions in your device.
-** Alternately, use a compiler and linker the have code reduction features.
-**/
-
-#define BACNET_SVC_I_HAVE_A    1
-#define BACNET_SVC_WP_A        1
-#define BACNET_SVC_RP_A        1
-#define BACNET_SVC_RPM_A       1
-#define BACNET_SVC_DCC_A       1
-#define BACNET_SVC_RD_A        1
-#define BACNET_SVC_TS_A        1
-#define BACNET_SVC_SERVER      0
-#define BACNET_USE_OCTETSTRING 1
-#define BACNET_USE_DOUBLE      1
-#define BACNET_USE_SIGNED      1
+#if (BACNET_SVC_SERVER == 0)
+    /* client-server device */
+    #define BACNET_SVC_I_HAVE_A    1
+    #define BACNET_SVC_WP_A        1
+    #define BACNET_SVC_RP_A        1
+    #define BACNET_SVC_RPM_A       1
+    #define BACNET_SVC_DCC_A       1
+    #define BACNET_SVC_RD_A        1
+    #define BACNET_SVC_TS_A        1
+    #define BACNET_USE_OCTETSTRING 1
+    #define BACNET_USE_DOUBLE      1
+    #define BACNET_USE_SIGNED      1
+#endif
 
 /* Do them one by one */
 #ifndef BACNET_SVC_I_HAVE_A     /* Do we send I_Have requests? */
@@ -281,10 +285,6 @@
 
 #ifndef BACNET_SVC_RD_A /* Do we send ReinitialiseDevice requests? */
 #define BACNET_SVC_RD_A 0
-#endif
-
-#ifndef BACNET_SVC_SERVER       /* Are we a pure server type device? */
-#define BACNET_SVC_SERVER 1
 #endif
 
 #ifndef BACNET_USE_OCTETSTRING  /* Do we need any octet strings? */

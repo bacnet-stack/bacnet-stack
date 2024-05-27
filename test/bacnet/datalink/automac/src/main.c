@@ -59,7 +59,7 @@ static void test_automac_init(void)
     mac = automac_free_address_mac(1);
     zassert_equal(mac, (MSTP_MAC_SLOTS_OFFSET + 2), NULL);
     mac = automac_free_address_random();
-    options = (mac == (MSTP_MAC_SLOTS_OFFSET + 1)) || 
+    options = (mac == (MSTP_MAC_SLOTS_OFFSET + 1)) ||
         (mac == (MSTP_MAC_SLOTS_OFFSET + 2));
     zassert_true(options, NULL);
     /* test 3 free addresses */
@@ -71,9 +71,8 @@ static void test_automac_init(void)
     mac = automac_free_address_mac(2);
     zassert_equal(mac, 126, NULL);
     mac = automac_free_address_random();
-    options = (mac == (MSTP_MAC_SLOTS_OFFSET + 1)) || 
-        (mac == (MSTP_MAC_SLOTS_OFFSET + 2)) ||
-        (mac == 126);
+    options = (mac == (MSTP_MAC_SLOTS_OFFSET + 1)) ||
+        (mac == (MSTP_MAC_SLOTS_OFFSET + 2)) || (mac == 126);
     zassert_true(options, NULL);
     /* test the stored address */
     mac = automac_address();

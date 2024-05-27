@@ -252,12 +252,12 @@ static BACNET_SHED_STATE Load_Control_Present_Value(uint32_t object_instance)
 bool Load_Control_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_LOAD_CONTROLS) {
-        sprintf(text_string, "LOAD CONTROL %u", object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(text, sizeof(text), "LOAD CONTROL %lu", (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;

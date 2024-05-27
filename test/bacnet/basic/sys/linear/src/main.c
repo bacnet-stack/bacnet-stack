@@ -17,8 +17,8 @@
  */
 
 /**
-* Unit Test for linear interpolation of floating point values, rounded
-*/
+ * Unit Test for linear interpolation of floating point values, rounded
+ */
 void testLinearInterpolateRound(void)
 {
     uint16_t x2 = 0;
@@ -82,8 +82,8 @@ void testLinearInterpolateRound(void)
 }
 
 /**
-* Unit Test for linear interpolation of integers
-*/
+ * Unit Test for linear interpolation of integers
+ */
 void testLinearInterpolateInt(void)
 {
     uint16_t y2 = 0;
@@ -103,7 +103,7 @@ void testLinearInterpolateInt(void)
 
     y2 = linear_interpolate_int(1, (65535 / 2), 65535, 1, 100);
     zassert_equal(y2, 50, NULL);
-    
+
     y2 = linear_interpolate_int(1, ((65535 * 3) / 4), 65535, 1, 100);
     zassert_equal(y2, 75, NULL);
 
@@ -126,10 +126,9 @@ ZTEST_SUITE(Linear_Interpolate, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(Linear_Interpolate,
-     ztest_unit_test(testLinearInterpolateRound),
-     ztest_unit_test(testLinearInterpolateInt)
-     );
+    ztest_test_suite(
+        Linear_Interpolate, ztest_unit_test(testLinearInterpolateRound),
+        ztest_unit_test(testLinearInterpolateInt));
 
     ztest_run_test_suite(Linear_Interpolate);
 }

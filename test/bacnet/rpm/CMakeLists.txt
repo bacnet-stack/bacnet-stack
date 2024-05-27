@@ -24,12 +24,12 @@ add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
 	BACAPP_ALL
-	)
+)
 
 include_directories(
 	${SRC_DIR}
 	${TST_DIR}/ztest/include
-	)
+)
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
@@ -62,4 +62,4 @@ add_executable(${PROJECT_NAME}
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
-	)
+)

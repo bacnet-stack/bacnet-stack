@@ -464,16 +464,16 @@ static bool Binary_Input_Present_Value_Write(
 bool Binary_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text[32] = ""; /* okay for single thread */
     bool status = false;
     struct object_data *pObject;
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
         if (pObject->Object_Name == NULL) {
-            sprintf(
-                text_string, "BINARY INPUT %lu", (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, text_string);
+            snprintf(text, sizeof(text), "BINARY INPUT %lu", 
+                (unsigned long)object_instance);
+            status = characterstring_init_ansi(object_name, text);
         } else {
             status = characterstring_init_ansi(object_name, pObject->Object_Name);
         }

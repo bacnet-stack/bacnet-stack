@@ -130,11 +130,11 @@ getevent:
 
 .PHONY: gateway
 gateway:
-	$(MAKE) -s -C apps $@
+	$(MAKE) -s -B -C apps $@
 
 .PHONY: gateway-win32
 gateway-win32:
-	$(MAKE) BACNET_PORT=win32 -s -C apps gateway
+	$(MAKE) BACNET_PORT=win32 -s -B -C apps gateway
 
 .PHONY: piface
 piface:
@@ -210,11 +210,27 @@ router:
 
 .PHONY: router-ipv6
 router-ipv6:
-	$(MAKE) -s -C apps $@
+	$(MAKE) -s -B BACDL=bip-bip6 -C apps $@
+
+.PHONY: router-ipv6-win32
+router-ipv6-win32:
+	$(MAKE) BACNET_PORT=win32 -s -B BACDL=bip-bip6 -C apps router-ipv6
+
+.PHONY: router-ipv6-clean
+router-ipv6-clean:
+	$(MAKE) -C apps $@
 
 .PHONY: router-mstp
 router-mstp:
-	$(MAKE) -s -C apps $@
+	$(MAKE) -s -B BACDL=bip-mstp -C apps $@
+
+.PHONY: router-mstp-win32
+router-mstp-win32:
+	$(MAKE) BACNET_PORT=win32 -s -B BACDL=bip-mstp -C apps router-mstp
+
+.PHONY: router-mstp-clean
+router-mstp-clean:
+	$(MAKE) -C apps $@
 
 .PHONY: fuzz-libfuzzer
 fuzz-libfuzzer:
@@ -322,7 +338,7 @@ pretty-ports:
 
 .PHONY: pretty-test
 pretty-test:
-	find ./test/bacnet -maxdepth 2 -type f -iname *.h -o -iname *.c -exec \
+	find ./test/bacnet -type f -iname *.h -o -iname *.c -exec \
 	clang-format -i -style=file -fallback-style=none {} \;
 
 CLANG_TIDY_OPTIONS = -fix-errors -checks="readability-braces-around-statements"

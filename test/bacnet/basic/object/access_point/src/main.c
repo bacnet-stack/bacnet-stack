@@ -30,7 +30,7 @@ static void testAccessPoint(void)
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = {0};
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int *required_property = NULL;
     unsigned count = 0;
     uint32_t object_instance = 0;
@@ -50,10 +50,12 @@ static void testAccessPoint(void)
         len = Access_Point_Read_Property(&rpdata);
         if (len >= 0) {
             zassert_true(len >= 0, NULL);
-            test_len = bacapp_decode_known_property(rpdata.application_data,
-                len, &value, rpdata.object_type, rpdata.object_property);
+            test_len = bacapp_decode_known_property(
+                rpdata.application_data, len, &value, rpdata.object_type,
+                rpdata.object_property);
             if (len != test_len) {
-                printf("property '%s': failed to decode!\n",
+                printf(
+                    "property '%s': failed to decode!\n",
                     bactext_property_name(rpdata.object_property));
             }
             if (rpdata.object_property == PROP_ACCESS_DOORS) {
@@ -62,7 +64,8 @@ static void testAccessPoint(void)
             }
             zassert_equal(len, test_len, NULL);
         } else {
-            printf("property '%s': failed to read!\n",
+            printf(
+                "property '%s': failed to read!\n",
                 bactext_property_name(rpdata.object_property));
         }
         required_property++;
@@ -71,7 +74,6 @@ static void testAccessPoint(void)
 /**
  * @}
  */
-
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(access_point_tests, NULL, NULL, NULL, NULL, NULL);

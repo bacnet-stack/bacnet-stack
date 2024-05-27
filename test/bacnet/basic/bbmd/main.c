@@ -97,7 +97,7 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     Test_Sent_Message_Length = message_length;
     bvlc_address_copy(&Test_Sent_Message_Dest, dest);
     if ((header_len == 4) && (mtu_len >= 4)) {
-        memcpy(&Test_Sent_Message_Buffer[0], &mtu[4], mtu_len-4);
+        memcpy(&Test_Sent_Message_Buffer[0], &mtu[4], mtu_len - 4);
         Test_Sent_Message_Buffer_Length = mtu_len - 4;
     } else {
         Test_Sent_Message_Buffer_Length = 0;
@@ -151,7 +151,6 @@ static void test_setup(void)
 
 static void test_cleanup(void)
 {
-
 }
 
 /**
@@ -159,13 +158,13 @@ static void test_cleanup(void)
  */
 static void test_Initiate_Original_Broadcast_NPDU(Test *pTest)
 {
-    uint8_t pdu[MAX_MPDU] = {0};
+    uint8_t pdu[MAX_MPDU] = { 0 };
     int npdu_len = 0;
     int apdu_len = 0;
     int pdu_len = 0;
-    BACNET_ADDRESS dest = {0};
-    BACNET_NPDU_DATA npdu_data = {0};
-    uint8_t test_pdu[MAX_MPDU] = {0};
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    uint8_t test_pdu[MAX_MPDU] = { 0 };
     uint16_t test_pdu_len = 0;
     int function_len = 0;
 
@@ -174,23 +173,25 @@ static void test_Initiate_Original_Broadcast_NPDU(Test *pTest)
     dest.net = BACNET_BROADCAST_NETWORK;
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(&pdu[0], &dest, &IUT.BACnet_Address, &npdu_data);
-    apdu_len = iam_encode_apdu(&pdu[npdu_len], IUT.Device_ID, MAX_APDU,
-        SEGMENTATION_NONE, BACNET_VENDOR_ID);
+    apdu_len = iam_encode_apdu(
+        &pdu[npdu_len], IUT.Device_ID, MAX_APDU, SEGMENTATION_NONE,
+        BACNET_VENDOR_ID);
     pdu_len = npdu_len + apdu_len;
     bvlc_send_pdu(&dest, &npdu_data, pdu, pdu_len);
     /* DA=Link Local Multicast Address */
-    ct_test(pTest, !bvlc_address_different(&TD.BIP_Broadcast_Addr,
-        &Test_Sent_Message_Dest));
+    ct_test(
+        pTest,
+        !bvlc_address_different(
+            &TD.BIP_Broadcast_Addr, &Test_Sent_Message_Dest));
     /* SA = IUT - done in port layer */
     /* Original-Broadcast-NPDU */
-    ct_test(pTest, Test_Sent_Message_Type ==
-        BVLC_ORIGINAL_BROADCAST_NPDU);
+    ct_test(pTest, Test_Sent_Message_Type == BVLC_ORIGINAL_BROADCAST_NPDU);
     if (Test_Sent_Message_Type == BVLC_ORIGINAL_BROADCAST_NPDU) {
         function_len = bvlc_decode_original_broadcast(
-            Test_Sent_Message_Buffer, Test_Sent_Message_Buffer_Length,
-            test_pdu, sizeof(test_pdu), &test_pdu_len);
-        printf("len=%u pdu[%u] test_pdu[%u]\n",
-            (unsigned)function_len,
+            Test_Sent_Message_Buffer, Test_Sent_Message_Buffer_Length, test_pdu,
+            sizeof(test_pdu), &test_pdu_len);
+        printf(
+            "len=%u pdu[%u] test_pdu[%u]\n", (unsigned)function_len,
             (unsigned)Test_Sent_Message_Buffer_Length,
             (unsigned)sizeof(test_pdu));
         ct_test(pTest, function_len > 0);
@@ -204,13 +205,15 @@ static void test_Initiate_Original_Broadcast_NPDU(Test *pTest)
 static void test_BBMD_Result(Test *pTest)
 {
     int result = 0;
-    uint16_t result_code[] = { BVLC_RESULT_SUCCESSFUL_COMPLETION,
+    uint16_t result_code[] = {
+        BVLC_RESULT_SUCCESSFUL_COMPLETION,
         BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK,
         BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK,
         BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK,
         BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK,
         BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK,
-        BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK };
+        BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK
+    };
     size_t result_code_max = sizeof(result_code) / sizeof(result_code[0]);
     uint16_t test_result_code = 0;
     uint8_t test_function_code = 0;

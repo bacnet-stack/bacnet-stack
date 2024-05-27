@@ -144,6 +144,14 @@ extern "C" {
         uint16_t value);
 
     BACNET_STACK_EXPORT
+    uint8_t Network_Port_MSTP_MAC_Address(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Network_Port_MSTP_MAC_Address_Set(
+        uint32_t object_instance,
+        uint8_t value);
+    
+    BACNET_STACK_EXPORT
     uint8_t Network_Port_MSTP_Max_Master(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
