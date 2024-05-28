@@ -1,4 +1,5 @@
 *.su
+*.nm
 *.pyc
 *.log
 *.a
