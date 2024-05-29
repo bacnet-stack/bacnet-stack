@@ -117,7 +117,7 @@ static void test_BACnetDestination_ASCII(void)
 #endif
 {
     BACNET_DESTINATION destination = { 0 }, test_destination = { 0 };
-    int len = 0, test_len = 0;
+    int len = 0, test_len = 0, null_len = 0;
     const char *ascii = "("
                         "ValidDays=[1,2,3,4,5,6,7];"
                         "FromTime=0:00:00.0;ToTime=23:59:59.99;"
@@ -135,13 +135,17 @@ static void test_BACnetDestination_ASCII(void)
     status = bacnet_destination_same(&destination, &test_destination);
     zassert_true(status, NULL);
     /* get the length */
-    len = bacnet_destination_to_ascii(&test_destination, NULL, 0);
-    if (len > 0) {
-        test_ascii = calloc(len, 1);
+    null_len = bacnet_destination_to_ascii(&test_destination, NULL, 0);
+    if (null_len > 0) {
+        test_ascii = calloc(null_len, 1);
         if (test_ascii) {
             test_len =
-                bacnet_destination_to_ascii(&test_destination, test_ascii, len);
-            zassert_equal(len, test_len, NULL);
+                bacnet_destination_to_ascii(&test_destination, test_ascii, null_len);
+            zassert_equal(null_len, test_len, NULL);
+            while (--test_len) {
+                len = bacnet_destination_to_ascii(&test_destination, test_ascii, test_len);
+                zassert_equal(len, null_len, NULL);
+            }            
             free(test_ascii);
         }
     }
