@@ -35,7 +35,10 @@
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <stdio.h>
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacapp.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bvlc6.h"
@@ -689,41 +692,17 @@ int bvlc6_address_to_ascii(BACNET_IP6_ADDRESS *addr, char *buf, size_t buf_size)
         if ((a == 0) && (f >= 0)) {
             if (f++ == 0) {
                 len = snprintf(buf, buf_size, "::");
-                if (buf) {
-                    buf += len;
-                }
-                if (len > buf_size) {
-                    buf_size = 0;
-                } else {
-                    buf_size -= len;
-                }
-                n += len;
+                n += bacapp_snprintf_next(len, &buf, &buf_size);
             }
         } else {
             if (f > 0) {
                 f = -1;
             } else if (i > 0) {
                 len = snprintf(buf, buf_size, ":");
-                if (buf) {
-                    buf += len;
-                }
-                if (len > buf_size) {
-                    buf_size = 0;
-                } else {
-                    buf_size -= len;
-                }
-                n += len;
+                n += bacapp_snprintf_next(len, &buf, &buf_size);
             }
             len = snprintf(buf, buf_size, "%x", a);
-            if (buf) {
-                buf += len;
-            }
-            if (len > buf_size) {
-                buf_size = 0;
-            } else {
-                buf_size -= len;
-            }
-            n += len;
+            n += bacapp_snprintf_next(len, &buf, &buf_size);
         }
     }
 
