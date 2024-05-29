@@ -10,7 +10,11 @@
 #include <string.h> // for memset(), memcpy
 #include <limits.h>
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_unsigned16)
+#else
 static void test_unsigned16(void)
+#endif
 {
     uint8_t apdu[8] = { 0 };
     uint8_t test_apdu[8] = { 0 };
@@ -80,7 +84,11 @@ static void test_unsigned16(void)
     zassert_equal(test_value, value, NULL);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_unsigned24)
+#else
 static void test_unsigned24(void)
+#endif
 {
     uint8_t apdu[8] = { 0 };
     uint8_t test_apdu[8] = { 0 };
@@ -154,7 +162,11 @@ static void test_unsigned24(void)
     zassert_equal(test_value, value, NULL);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_unsigned32)
+#else
 static void test_unsigned32(void)
+#endif
 {
     uint8_t apdu[8] = { 0 };
     uint8_t test_apdu[8] = { 0 };
@@ -232,7 +244,11 @@ static void test_unsigned32(void)
     zassert_equal(test_value, value, NULL);
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_unsigned40)
+#else
 static void test_unsigned40(void)
+#endif
 {
 #ifdef UINT64_MAX
     uint8_t apdu[12] = { 0 };
@@ -322,7 +338,11 @@ static void test_unsigned40(void)
 #endif /* defined(UINT64_MAX) */
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_unsigned48)
+#else
 static void test_unsigned48(void)
+#endif
 {
 #ifdef UINT64_MAX
     uint8_t apdu[12] = { 0 };
@@ -416,7 +436,11 @@ static void test_unsigned48(void)
 #endif /* defined(UINT64_MAX) */
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_unsigned56)
+#else
 static void test_unsigned56(void)
+#endif
 {
 #ifdef UINT64_MAX
     uint8_t apdu[12] = { 0 };
@@ -514,7 +538,11 @@ static void test_unsigned56(void)
 #endif /* defined(UINT64_MAX) */
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_unsigned64)
+#else
 static void test_unsigned64(void)
+#endif
 {
 #ifdef UINT64_MAX
     uint8_t apdu[12] = { 0 };
@@ -616,7 +644,11 @@ static void test_unsigned64(void)
 #endif /* defined(UINT64_MAX) */
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_unsigned_length)
+#else
 static void test_unsigned_length(void)
+#endif
 {
     zassert_equal(1, bacnet_unsigned_length(0), NULL);
     zassert_equal(1, bacnet_unsigned_length(0x7EUL), NULL);
@@ -660,7 +692,11 @@ static void test_unsigned_length(void)
 #endif
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_signed8)
+#else
 static void test_signed8(void)
+#endif
 {
 #if BACNET_USE_SIGNED
     uint8_t apdu[8] = { 0 };
@@ -734,7 +770,11 @@ static void test_signed8(void)
 #endif /* BACNET_USE_SIGNED */
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_signed16)
+#else
 static void test_signed16(void)
+#endif
 {
 #if BACNET_USE_SIGNED
     uint8_t apdu[8] = { 0 };
@@ -808,7 +848,11 @@ static void test_signed16(void)
 #endif /* BACNET_USE_SIGNED */
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_signed24)
+#else
 static void test_signed24(void)
+#endif
 {
 #if BACNET_USE_SIGNED
     uint8_t apdu[8] = { 0 };
@@ -886,7 +930,11 @@ static void test_signed24(void)
 #endif /* BACNET_USE_SIGNED */
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_signed32)
+#else
 static void test_signed32(void)
+#endif
 {
 #if BACNET_USE_SIGNED
     uint8_t apdu[8] = { 0 };
@@ -968,7 +1016,11 @@ static void test_signed32(void)
 #endif /* BACNET_USE_SIGNED */
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_signed_length)
+#else
 static void test_signed_length(void)
+#endif
 {
 #if BACNET_USE_SIGNED
     const int32_t sint24_max = 0x7FFFFFL;
@@ -1000,6 +1052,9 @@ static void test_signed_length(void)
 }
 
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST_SUITE(bacnet_bacint, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacnet_bacint,
@@ -1019,3 +1074,4 @@ void test_main(void)
      );
     ztest_run_test_suite(bacnet_bacint);
 }
+#endif

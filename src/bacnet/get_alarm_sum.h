@@ -28,7 +28,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/timestamp.h"
 

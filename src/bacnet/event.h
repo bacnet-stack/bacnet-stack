@@ -26,8 +26,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/bacpropstates.h"
@@ -226,6 +227,12 @@ extern "C" {
     int event_notify_encode_service_request(
         uint8_t * apdu,
         BACNET_EVENT_NOTIFICATION_DATA * data);
+
+    BACNET_STACK_EXPORT
+    size_t event_notification_service_request_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **

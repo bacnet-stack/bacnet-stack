@@ -44,7 +44,8 @@ static void set_address(unsigned index, BACNET_ADDRESS *dest)
     }
 }
 
-static void set_file_address(const char *pFilename,
+static void set_file_address(
+    const char *pFilename,
     uint32_t device_id,
     BACNET_ADDRESS *dest,
     uint16_t max_apdu)
@@ -80,7 +81,11 @@ static void set_file_address(const char *pFilename,
 
 #ifdef BACNET_ADDRESS_CACHE_FILE
 /* Validate that the address data in the file */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(address_tests, testAddressFile)
+#else
 static void testAddressFile(void)
+#endif
 {
     BACNET_ADDRESS src = { 0 };
     uint32_t device_id = 0;
@@ -110,7 +115,6 @@ static void testAddressFile(void)
     address_remove_device(device_id);
     zassert_equal(address_count(), 0, NULL);
 
-
     /* create a fake address */
     device_id = 55555;
     src.mac_len = 6;
@@ -138,7 +142,11 @@ static void testAddressFile(void)
 }
 #endif
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(address_tests, testAddress)
+#else
 static void testAddress(void)
+#endif
 {
     unsigned i, count;
     BACNET_ADDRESS src;
@@ -162,12 +170,14 @@ static void testAddress(void)
         set_address(i, &src);
         /* test the lookup by device id */
         zassert_true(
-            address_get_by_device(device_id, &test_max_apdu, &test_address), NULL);
+            address_get_by_device(device_id, &test_max_apdu, &test_address),
+            NULL);
         zassert_equal(test_max_apdu, max_apdu, NULL);
         zassert_true(bacnet_address_same(&test_address, &src), NULL);
         zassert_true(
             address_get_by_index(
-                i, &test_device_id, &test_max_apdu, &test_address), NULL);
+                i, &test_device_id, &test_max_apdu, &test_address),
+            NULL);
         zassert_equal(test_device_id, device_id, NULL);
         zassert_equal(test_max_apdu, max_apdu, NULL);
         zassert_true(bacnet_address_same(&test_address, &src), NULL);
@@ -181,7 +191,8 @@ static void testAddress(void)
         device_id = i * 255;
         address_remove_device(device_id);
         zassert_false(
-            address_get_by_device(device_id, &test_max_apdu, &test_address), NULL);
+            address_get_by_device(device_id, &test_max_apdu, &test_address),
+            NULL);
         count = address_count();
         zassert_equal(count, (MAX_ADDRESS_CACHE - i - 1), NULL);
     }
@@ -190,22 +201,21 @@ static void testAddress(void)
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(address_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
 #ifdef BACNET_ADDRESS_CACHE_FILE
-    ztest_test_suite(address_tests,
-     ztest_unit_test(testAddressFile),
-     ztest_unit_test(testAddress)
-     );
+    ztest_test_suite(
+        address_tests, ztest_unit_test(testAddressFile),
+        ztest_unit_test(testAddress));
 
     ztest_run_test_suite(address_tests);
 #else
-    ztest_test_suite(address_tests,
-     ztest_unit_test(testAddress)
-     );
+    ztest_test_suite(address_tests, ztest_unit_test(testAddress));
 
     ztest_run_test_suite(address_tests);
 #endif
-
 }
+#endif

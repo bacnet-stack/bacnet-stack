@@ -2,8 +2,9 @@ BACnet Simple Router Demo
 =========================
 
 The Simple Router demo connects one BACnet/IP and one BACnet MS/TP network.
-It also includes a BBMD so that Foreign Device Registration can be used
-to tunnel local command line demos to BACnet/IP and BACnet MS/TP networks.
+The router demo also includes a BBMD so that Foreign Device Registration can
+be used to tunnel local command line demos to BACnet/IP and BACnet MS/TP
+networks.
 
 Configuration
 =============
@@ -32,3 +33,19 @@ set BACNET_IP_NET=1
 set BACNET_MSTP_NET=2
 
 Note: NET number must be unique and 1..65534 (never 0 or 65535)
+
+Example Usage
+=============
+Build the demo applications for BACnet/IP:
+$ make
+Build the simple router demo:
+$ make router-mstp
+Configure the router demo:
+$ ./bin/router-mstp.sh enp0s3 /dev/ttyUSB0
+Run the router demo:
+$ ./bin/router-mstp
+
+In another terminal, configure client apps for Foreign Device Registration:
+$ ./bin/bvlc.sh 192.168.0.1
+$ ./bin/bacwi -1
+$ ./bin/bacepics 123

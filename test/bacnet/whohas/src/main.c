@@ -58,19 +58,25 @@ static void testWhoHasData(BACNET_WHO_HAS_DATA *data)
     /* Object ID */
     if (data->is_object_name == false) {
         zassert_equal(
-            test_data.object.identifier.type, data->object.identifier.type, NULL);
+            test_data.object.identifier.type, data->object.identifier.type,
+            NULL);
         zassert_equal(
             test_data.object.identifier.instance,
-                data->object.identifier.instance, NULL);
+            data->object.identifier.instance, NULL);
     }
     /* Object Name */
     else {
         zassert_true(
-            characterstring_same(&test_data.object.name, &data->object.name), NULL);
+            characterstring_same(&test_data.object.name, &data->object.name),
+            NULL);
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(whohas_tests, testWhoHas)
+#else
 static void testWhoHas(void)
+#endif
 {
     BACNET_WHO_HAS_DATA data;
 
@@ -105,12 +111,13 @@ static void testWhoHas(void)
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(whohas_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(whohas_tests,
-     ztest_unit_test(testWhoHas)
-     );
+    ztest_test_suite(whohas_tests, ztest_unit_test(testWhoHas));
 
     ztest_run_test_suite(whohas_tests);
 }
+#endif

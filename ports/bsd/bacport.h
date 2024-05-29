@@ -23,8 +23,8 @@
 *
 *********************************************************************/
 
-#ifndef NET_H
-#define NET_H
+#ifndef BACPORT_H
+#define BACPORT_H
 
 /* common unix sockets headers needed */
 #include	<sys/types.h>   /* basic system data types */
@@ -88,10 +88,12 @@
 #include <sys/un.h>
 #include <sys/ioctl.h>
 #include <netdb.h>
+#include "bacnet/basic/sys/bacnet_stack_exports.h"
 
 /** @file bsd/net.h  Includes BSD network headers. */
 
 /* Local helper functions for this port */
+BACNET_STACK_EXPORT
 extern int bip_get_local_netmask(
     struct in_addr *netmask);
 

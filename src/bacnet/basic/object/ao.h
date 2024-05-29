@@ -36,10 +36,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/config.h"
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+#include "bacnet/bacdef.h"  /* Must be before all other bacnet *.h files */
 #include "bacnet/bacerror.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -184,6 +181,7 @@ extern "C" {
     bool Analog_Output_Max_Pres_Value_Set(
         uint32_t object_instance, float value);
 
+    BACNET_STACK_EXPORT
     int Analog_Output_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
     BACNET_STACK_EXPORT
@@ -191,7 +189,7 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     BACNET_STACK_EXPORT
-    bool Analog_Output_Create(
+    uint32_t Analog_Output_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Analog_Output_Delete(

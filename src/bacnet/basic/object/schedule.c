@@ -25,16 +25,15 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bactext.h"
-#include "bacnet/config.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/schedule.h"
 
 #ifndef MAX_SCHEDULES
@@ -131,14 +130,14 @@ unsigned Schedule_Instance_To_Index(uint32_t instance)
 bool Schedule_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text[32] = ""; /* okay for single thread */
     unsigned int index;
     bool status = false;
 
     index = Schedule_Instance_To_Index(object_instance);
     if (index < MAX_SCHEDULES) {
-        sprintf(text_string, "SCHEDULE %lu", (unsigned long)index);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(text, sizeof(text), "SCHEDULE %lu", (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;
@@ -355,24 +354,16 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
-
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_PRESENT_VALUE:
-        case PROP_EFFECTIVE_PERIOD:
-        case PROP_WEEKLY_SCHEDULE:
-        case PROP_SCHEDULE_DEFAULT:
-        case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-        case PROP_PRIORITY_FOR_WRITING:
-        case PROP_STATUS_FLAGS:
-        case PROP_RELIABILITY:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                Schedule_Properties_Required, Schedule_Properties_Optional, 
+                Schedule_Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

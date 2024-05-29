@@ -39,6 +39,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/iam.c
 	${SRC_DIR}/bacnet/npdu.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
+	${SRC_DIR}/bacnet/basic/sys/debug.c
 	${SRC_DIR}/bacnet/basic/sys/keylist.c
 	${SRC_DIR}/bacnet/basic/bbmd6/h_bbmd6.c
 	${SRC_DIR}/bacnet/basic/bbmd6/vmac.c

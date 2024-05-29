@@ -26,11 +26,12 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/proplist.h"
+#include "bacnet/rp.h"
 /*
  * Bundle together commonly used data items for convenience when calling
  * rpm helper functions.
@@ -106,6 +107,16 @@ extern "C" {
     BACNET_STACK_EXPORT
     int rpm_encode_apdu_object_end(
         uint8_t * apdu);
+
+    BACNET_STACK_EXPORT
+    int read_property_multiple_request_encode(
+        uint8_t *apdu,
+        BACNET_READ_ACCESS_DATA *data); 
+    BACNET_STACK_EXPORT
+    size_t read_property_multiple_request_service_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_READ_ACCESS_DATA *data);
 
     BACNET_STACK_EXPORT
     int rpm_encode_apdu(
@@ -184,6 +195,13 @@ extern "C" {
         unsigned apdu_len,
         BACNET_PROPERTY_ID * object_property,
         BACNET_ARRAY_INDEX * array_index);
+    BACNET_STACK_EXPORT
+    void rpm_ack_object_property_process(
+        uint8_t *apdu,
+        unsigned apdu_len,
+        uint32_t device_id,
+        BACNET_READ_PROPERTY_DATA *rp_data,
+        read_property_ack_process callback);
 
 #ifdef __cplusplus
 }

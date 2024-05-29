@@ -24,7 +24,11 @@ add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
 	MAX_APDU=50
-	)
+	BACAPP_MINIMAL=1
+	BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE=1
+	BACAPP_DEVICE_OBJECT_REFERENCE=1
+	BACAPP_OBJECT_PROPERTY_REFERENCE=1
+)
 
 include_directories(
 	${SRC_DIR}
@@ -53,6 +57,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
+	${SRC_DIR}/bacnet/calendar_entry.c
+	${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

@@ -8,7 +8,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 /* define the max MAC as big as IPv6 + port number */
 #define VMAC_MAC_MAX 18

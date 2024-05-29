@@ -34,11 +34,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bacnet/bits.h"
-#include "bacnet/apdu.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/apdu.h"
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/dcc.h"
 #include "bacnet/iam.h"
@@ -92,7 +92,7 @@ static BACNET_SERVICES_SUPPORTED
         SERVICE_SUPPORTED_UNCONFIRMED_PRIVATE_TRANSFER,
         SERVICE_SUPPORTED_UNCONFIRMED_TEXT_MESSAGE,
         SERVICE_SUPPORTED_TIME_SYNCHRONIZATION, SERVICE_SUPPORTED_WHO_HAS,
-        SERVICE_SUPPORTED_WHO_IS, 
+        SERVICE_SUPPORTED_WHO_IS,
         SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION,
         SERVICE_SUPPORTED_WRITE_GROUP,
         SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION_MULTIPLE,
@@ -251,7 +251,7 @@ static union {
     confirmed_ack_function complex;
 } Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
-/** 
+/**
  * @brief Determine if the BACnet service is a Simple Ack Service
  * @param service_choice [in] BACnet confirmed service choice
  */
@@ -293,6 +293,11 @@ bool apdu_confirmed_simple_ack_service(
     return status;
 }
 
+/**
+ * @brief Set the the BACnet Simple Ack Service handler
+ * @param service_choice [in] BACnet confirmed service choice
+ * @param pFunction [in] handler for the service
+ */
 void apdu_set_confirmed_simple_ack_handler(
     BACNET_CONFIRMED_SERVICE service_choice,
     confirmed_simple_ack_function pFunction)
@@ -302,11 +307,18 @@ void apdu_set_confirmed_simple_ack_handler(
     }
 }
 
+/**
+ * @brief Set the the BACnet Confirmed Ack Service handler
+ * @param service_choice [in] BACnet confirmed service choice
+ * @param pFunction [in] handler for the service
+ */
 void apdu_set_confirmed_ack_handler(
     BACNET_CONFIRMED_SERVICE service_choice, confirmed_ack_function pFunction)
 {
     if (!apdu_confirmed_simple_ack_service(service_choice)) {
-        Confirmed_ACK_Function[service_choice].complex = pFunction;
+        if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
+            Confirmed_ACK_Function[service_choice].complex = pFunction;
+        }
     }
 }
 
@@ -519,9 +531,10 @@ static bool apdu_unconfirmed_dcc_disabled(uint8_t service_choice)
            can be processed in this state */
         status = true;
     } else if (dcc_communication_initiation_disabled()) {
-        /* WhoIs will be processed and I-Am initiated as response. */
+        /* WhoIs & WhoHas will be processed */
         switch (service_choice) {
             case SERVICE_UNCONFIRMED_WHO_IS:
+            case SERVICE_UNCONFIRMED_WHO_HAS:
                 break;
             default:
                 status = true;
@@ -546,16 +559,18 @@ void apdu_handler(BACNET_ADDRESS *src,
     uint16_t apdu_len)
 {
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
-    BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = { 0 };
-    uint8_t invoke_id = 0;
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
     int len = 0; /* counts where we are in PDU */
+#if !BACNET_SVC_SERVER
+    uint8_t invoke_id = 0;
+    BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = { 0 };
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
     uint8_t reason = 0;
     bool server = false;
+#endif
 
     if (apdu) {
         /* PDU Type */
@@ -607,6 +622,7 @@ void apdu_handler(BACNET_ADDRESS *src,
                     }
                 }
                 break;
+#if !BACNET_SVC_SERVER
             case PDU_TYPE_SIMPLE_ACK:
                 if (apdu_len < 3) {
                     break;
@@ -640,11 +656,13 @@ void apdu_handler(BACNET_ADDRESS *src,
                 service_request = &apdu[len];
                 service_request_len = apdu_len - (uint16_t)len;
                 if (!apdu_confirmed_simple_ack_service(service_choice)) {
-                    if (Confirmed_ACK_Function[service_choice]
+                    if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
+                        if (Confirmed_ACK_Function[service_choice]
                             .complex != NULL) {
-                        Confirmed_ACK_Function[service_choice].complex(
-                            service_request, service_request_len, src,
-                            &service_ack_data);
+                            Confirmed_ACK_Function[service_choice].complex(
+                                service_request, service_request_len, src,
+                                &service_ack_data);
+                        }
                     }
                     tsm_free_invoke_id(invoke_id);
                 }
@@ -654,7 +672,7 @@ void apdu_handler(BACNET_ADDRESS *src,
                    we could check src to see if that matched the tsm */
                 tsm_free_invoke_id(invoke_id);
                 break;
-            case PDU_TYPE_ERROR:            
+            case PDU_TYPE_ERROR:
                 if (apdu_len < 3) {
                     break;
                 }
@@ -701,6 +719,7 @@ void apdu_handler(BACNET_ADDRESS *src,
                 }
                 tsm_free_invoke_id(invoke_id);
                 break;
+#endif
             default:
                 break;
         }

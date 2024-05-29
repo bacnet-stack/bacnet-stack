@@ -36,10 +36,11 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/apdu.h"
+#include "bacnet/readrange.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
@@ -67,6 +68,9 @@ extern "C" {
     bool Network_Port_Name_Set(
         uint32_t object_instance,
         char *new_name);
+    BACNET_STACK_EXPORT
+    const char *Network_Port_Object_Name_ASCII(
+        uint32_t object_instance);
 
     BACNET_STACK_EXPORT
     char *Network_Port_Description(
@@ -120,6 +124,11 @@ extern "C" {
     bool Network_Port_MAC_Address(
         uint32_t object_instance,
         BACNET_OCTET_STRING *mac_address);
+    BACNET_STACK_EXPORT
+    uint8_t Network_Port_MAC_Address_Value(
+        uint32_t object_instance,
+        uint8_t *mac_address,
+        size_t mac_size);
     BACNET_STACK_EXPORT
     bool Network_Port_MAC_Address_Set(
         uint32_t object_instance,
@@ -429,6 +438,12 @@ extern "C" {
     bool Network_Port_Changes_Pending_Set(
         uint32_t instance,
         bool flag);
+    BACNET_STACK_EXPORT
+    void Network_Port_Changes_Pending_Activate(
+        uint32_t instance);
+    BACNET_STACK_EXPORT
+    void Network_Port_Changes_Pending_Discard(
+        uint32_t instance);
 
     BACNET_STACK_EXPORT
     bool Network_Port_Valid_Instance(
@@ -462,11 +477,17 @@ extern "C" {
         RR_PROP_INFO * pInfo);
 
     BACNET_STACK_EXPORT
-    bool Network_Port_Create(
+    uint32_t Network_Port_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Network_Port_Delete(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    void Network_Port_Changes_Activate(
+        void);
+    BACNET_STACK_EXPORT
+    void Network_Port_Changes_Discard(
+        void);
     BACNET_STACK_EXPORT
     void Network_Port_Cleanup(
         void);

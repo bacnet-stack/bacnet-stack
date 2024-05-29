@@ -36,18 +36,21 @@ License.
 #include "bacnet/dailyschedule.h"
 #include "bacnet/bactimevalue.h"
 
-int bacnet_dailyschedule_decode(
-    uint8_t *apdu, int max_apdu_len, BACNET_DAILY_SCHEDULE *day)
+int bacnet_dailyschedule_context_decode(uint8_t *apdu,
+    int max_apdu_len,
+    uint8_t tag_number,
+    BACNET_DAILY_SCHEDULE *day)
 {
     unsigned int tv_count = 0;
-    int retval = bacnet_time_values_context_decode(apdu, max_apdu_len, 0,
-        &day->Time_Values[0], MAX_DAY_SCHEDULE_VALUES, &tv_count);
+    int retval = bacnet_time_values_context_decode(apdu, max_apdu_len,
+        tag_number, &day->Time_Values[0], MAX_DAY_SCHEDULE_VALUES, &tv_count);
     day->TV_Count = (uint16_t)tv_count;
     return retval;
 }
 
-int bacnet_dailyschedule_encode(uint8_t *apdu, BACNET_DAILY_SCHEDULE *day)
+int bacnet_dailyschedule_context_encode(
+    uint8_t *apdu, uint8_t tag_number, BACNET_DAILY_SCHEDULE *day)
 {
     return bacnet_time_values_context_encode(
-        apdu, 0, &day->Time_Values[0], day->TV_Count);
+        apdu, tag_number, &day->Time_Values[0], day->TV_Count);
 }

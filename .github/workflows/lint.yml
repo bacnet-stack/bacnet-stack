@@ -12,7 +12,7 @@ jobs:
   scan-build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create LLVM clang-tools scan-build Workspace
       run: |
         sudo apt-get update -qq
@@ -25,7 +25,7 @@ jobs:
   splint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create SPLint Workspace
       run: |
         sudo apt-get update --quiet --assume-yes
@@ -37,7 +37,7 @@ jobs:
   cppcheck:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create CPPcheck Workspace
       run: |
         sudo apt-get update -qq
@@ -51,7 +51,7 @@ jobs:
   flawfinder:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Flawfinder Workspace
       run: |
         sudo apt-get update -qq
@@ -65,7 +65,7 @@ jobs:
   codespell:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create codespell Workspace
       run: |
         sudo apt-get update -qq
@@ -76,7 +76,7 @@ jobs:
   unittest:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq

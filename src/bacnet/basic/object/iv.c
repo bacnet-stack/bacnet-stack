@@ -36,7 +36,9 @@
 #include <stdio.h>
 #include <string.h>
 
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
@@ -50,8 +52,6 @@
 #ifndef MAX_INTEGER_VALUES
 #define MAX_INTEGER_VALUES 1
 #endif
-
-#define PRINTF printf
 
 struct integer_object {
     bool Out_Of_Service : 1;
@@ -327,7 +327,6 @@ bool Integer_Value_Description(
 
     return status;
 }
-
 
 /**
  * For a given object instance-number, returns the units property value

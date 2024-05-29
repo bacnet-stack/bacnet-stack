@@ -30,25 +30,24 @@
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whohas.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -197,24 +196,24 @@ int main(int argc, char *argv[])
         }
     } else {
         if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-            fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
-                Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
+            fprintf(stderr, "object-instance=%u - not greater than %u\r\n",
+                Target_Object_Instance, BACNET_MAX_INSTANCE);
             return 1;
         }
         if (Target_Object_Type > BACNET_MAX_OBJECT) {
-            fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-                Target_Object_Type, BACNET_MAX_OBJECT + 1);
+            fprintf(stderr, "object-type=%u - not greater than %u\r\n",
+                Target_Object_Type, BACNET_MAX_OBJECT);
             return 1;
         }
     }
     if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance-min=%u - it must be less than %u\r\n",
-            Target_Object_Instance_Min, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "object-instance-min=%u - not greater than %u\r\n",
+            Target_Object_Instance_Min, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Instance_Max > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance-max=%u - it must be less than %u\r\n",
-            Target_Object_Instance_Max, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "object-instance-max=%u - not greater than %u\r\n",
+            Target_Object_Instance_Max, BACNET_MAX_INSTANCE);
         return 1;
     }
     /* setup my info */

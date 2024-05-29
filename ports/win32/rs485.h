@@ -37,7 +37,6 @@
 #define RS485_H
 
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacport.h"
 
@@ -58,13 +57,13 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     void RS485_Send_Frame(
-        volatile struct mstp_port_struct_t *mstp_port,  /* port specific data */
+        struct mstp_port_struct_t *mstp_port,  /* port specific data */
         uint8_t * buffer,       /* frame to send (up to 501 bytes of data) */
         uint16_t nbytes);       /* number of bytes of data (up to 501) */
 
     BACNET_STACK_EXPORT
     void RS485_Check_UART_Data(
-        volatile struct mstp_port_struct_t *mstp_port); /* port specific data */
+        struct mstp_port_struct_t *mstp_port); /* port specific data */
 
     BACNET_STACK_EXPORT
     uint32_t RS485_Get_Baud_Rate(

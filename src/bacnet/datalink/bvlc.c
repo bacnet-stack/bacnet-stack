@@ -35,10 +35,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/hostnport.h"
 #include "bacnet/datalink/bvlc.h"
 
@@ -2138,7 +2139,6 @@ bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *addr, const char *addrstr)
     uint16_t tmp = 0;
     char c = 0;
     unsigned char i = 0, j = 0;
-    uint8_t charsread = 0;
 
     if (!addr) {
         return false;
@@ -2167,7 +2167,6 @@ bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *addr, const char *addrstr)
                 return false;
             }
             ++addrstr;
-            ++charsread;
         } while ((c != '.') && (c != 0) && (c != ' '));
     }
 

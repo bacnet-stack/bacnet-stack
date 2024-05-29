@@ -19,7 +19,8 @@
 /**
  * @brief Test
  */
-static int iam_decode_apdu(uint8_t *apdu,
+static int iam_decode_apdu(
+    uint8_t *apdu,
     uint32_t *pDevice_id,
     unsigned *pMax_apdu,
     int *pSegmentation,
@@ -41,7 +42,11 @@ static int iam_decode_apdu(uint8_t *apdu,
     return apdu_len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(iam_tests, testIAm)
+#else
 static void testIAm(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -58,8 +63,9 @@ static void testIAm(void)
         iam_encode_apdu(&apdu[0], device_id, max_apdu, segmentation, vendor_id);
     zassert_not_equal(len, 0, NULL);
 
-    len = iam_decode_apdu(&apdu[0], &test_device_id, &test_max_apdu,
-        &test_segmentation, &test_vendor_id);
+    len = iam_decode_apdu(
+        &apdu[0], &test_device_id, &test_max_apdu, &test_segmentation,
+        &test_vendor_id);
 
     zassert_not_equal(len, -1, NULL);
     zassert_equal(test_device_id, device_id, NULL);
@@ -71,12 +77,13 @@ static void testIAm(void)
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(iam_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(iam_tests,
-     ztest_unit_test(testIAm)
-     );
+    ztest_test_suite(iam_tests, ztest_unit_test(testIAm));
 
     ztest_run_test_suite(iam_tests);
 }
+#endif

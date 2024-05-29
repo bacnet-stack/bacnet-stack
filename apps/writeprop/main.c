@@ -32,28 +32,32 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h> /* toupper */
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 
 #ifndef MAX_PROPERTY_VALUES
 #define MAX_PROPERTY_VALUES 64
+#endif
+
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
 #endif
 
 /* buffer used for receive */
@@ -165,11 +169,11 @@ static void print_help(char *filename)
     printf("\n");
     printf(
         "object-type:\n"
-        "The object type is object that you are reading. It\n"
+        "The object type is object that you are writing. It\n"
         "can be defined either as the object-type name string\n"
         "as defined in the BACnet specification, or as the\n"
         "integer value of the enumeration BACNET_OBJECT_TYPE\n"
-        "in bacenum.h. For example if you were reading Analog\n"
+        "in bacenum.h. For example if you were writing Analog\n"
         "Output 2, the object-type would be analog-output or 1.\n");
     printf("\n");
     printf(
@@ -180,11 +184,11 @@ static void print_help(char *filename)
     printf("\n");
     printf(
         "property:\n"
-        "The property of the object that you are reading. It\n"
+        "The property of the object that you are writing. It\n"
         "can be defined either as the property name string as\n"
         "defined in the BACnet specification, or as an integer\n"
         "value of the enumeration BACNET_PROPERTY_ID in\n"
-        "bacenum.h. For example, if you were reading the Present\n"
+        "bacenum.h. For example, if you were writing the Present\n"
         "Value property, use present-value or 85 as the property.\n");
     printf("\n");
     printf(
@@ -210,6 +214,10 @@ static void print_help(char *filename)
         "Context tags are created using two tags in a row.  The context tag\n"
         "is preceded by a C, and followed by the application tag.\n"
         "Ctag atag. C2 4 creates a context 2 tagged REAL.\n");
+    printf(
+        "Complex data use the property argument and a tag number -1 to\n"
+        "lookup the appropriate internal application tag for the value.\n"
+        "The complex data value argument varies in its construction.\n");
     printf("\n");
     printf(
         "value:\n"
@@ -246,10 +254,11 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     bool found = false;
-    char *value_string = NULL;
+    char *value_string;
     bool status = false;
     int args_remaining = 0, tag_value_arg = 0, i = 0;
-    BACNET_APPLICATION_TAG property_tag;
+    long property_tag;
+    long priority;
     uint8_t context_tag = 0;
     int argi = 0;
 
@@ -288,14 +297,19 @@ int main(int argc, char *argv[])
         return 1;
     }
     Target_Object_Property = object_property;
-    Target_Object_Property_Priority = (uint8_t)strtol(argv[5], NULL, 0);
+    priority = strtol(argv[5], NULL, 0);
+    if ((priority < BACNET_MIN_PRIORITY) ||
+        (priority > BACNET_MAX_PRIORITY)) {
+        priority = BACNET_NO_PRIORITY;
+    }
+    Target_Object_Property_Priority = priority;
     Target_Object_Property_Index = strtol(argv[6], NULL, 0);
     if (Target_Object_Property_Index == -1) {
         Target_Object_Property_Index = BACNET_ARRAY_ALL;
     }
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
@@ -304,8 +318,8 @@ int main(int argc, char *argv[])
         return 1;
     }
     if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\n",
-            Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "object-instance=%u - not greater than %u\n",
+            Target_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
@@ -341,7 +355,7 @@ int main(int argc, char *argv[])
             property_tag = bacapp_known_property_tag(
                 Target_Object_Type, Target_Object_Property);
         } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-            fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
+            fprintf(stderr, "Error: tag=%ld - it must be less than %u\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
@@ -354,11 +368,9 @@ int main(int argc, char *argv[])
                 return 1;
             }
         } else {
-            /* FIXME: show the expected entry format for the tag */
             fprintf(stderr,
-                "Error: unable to parse the known property"
-                " \"%s\"\r\n",
-                value_string);
+                "Error: parser for property %s is not implemented\n",
+                bactext_property_name(Target_Object_Property));
             return 1;
         }
 
@@ -419,6 +431,7 @@ int main(int argc, char *argv[])
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         if (Error_Detected) {
             break;

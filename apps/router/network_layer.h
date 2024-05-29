@@ -34,9 +34,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/npdu.h"
+/* router utils */
 #include "bacport.h"
 #include "portthread.h"
 

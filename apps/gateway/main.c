@@ -34,30 +34,31 @@
 #include <string.h>
 #include <signal.h>
 #include <time.h>
-#include "bacnet/config.h"
-#include "gateway.h"
-#include "bacnet/basic/binding/address.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/datalink/dlenv.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/object/bacfile.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/dcc.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/object/lc.h"
-#include "bacnet/basic/sys/debug.h"
 #include "bacnet/version.h"
+/* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/dlenv.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/bacfile.h"
+#include "bacnet/basic/object/lc.h"
 #ifdef BACNET_TEST_VMAC
 #include "bacnet/basic/bbmd6/vmac.h"
 #endif
+/* me! */
+#include "gateway.h"
 
 /** @file gateway/main.c  Example virtual gateway application using the BACnet
  * Stack. */
@@ -246,10 +247,10 @@ int main(int argc, char *argv[])
     if (argc > 1) {
         first_object_instance = strtol(argv[1], NULL, 0);
         if ((first_object_instance == 0) ||
-            (first_object_instance >= BACNET_MAX_INSTANCE)) {
+            (first_object_instance > BACNET_MAX_INSTANCE)) {
             printf("Error: Invalid Object Instance %s \n", argv[1]);
             printf(
-                "Provide a number from 1 to %ul \n", BACNET_MAX_INSTANCE - 1);
+                "Provide a number from 1 to %ul \n", BACNET_MAX_INSTANCE);
             exit(1);
         }
     }

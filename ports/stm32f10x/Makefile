@@ -20,7 +20,6 @@ INCLUDES += -I$(BACNET_INCLUDE)
 
 PLATFORM_SRC = \
 	$(PLATFORM_DIR)/main.c \
-	$(PLATFORM_DIR)/automac.c \
 	$(PLATFORM_DIR)/bacnet.c \
 	$(PLATFORM_DIR)/bo.c \
 	$(PLATFORM_DIR)/device.c \
@@ -62,6 +61,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
+	$(BACNET_CORE)/datalink/automac.c \
 	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \
@@ -80,6 +80,8 @@ BACNET_SRC = \
 	$(BACNET_CORE)/weeklyschedule.c \
 	$(BACNET_CORE)/dailyschedule.c \
 	$(BACNET_CORE)/bactimevalue.c \
+	$(BACNET_CORE)/calendar_entry.c \
+	$(BACNET_CORE)/special_event.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c
@@ -139,7 +141,7 @@ OPTIMIZE_FLAGS := -Os -ggdb
 OPTIMIZE_FLAGS += -DNDEBUG
 
 BACNET_FLAGS = -DBACDL_MSTP=1
-BACNET_FLAGS += -DBACAPP_ALL
+BACNET_FLAGS += -DBACAPP_MINIMAL
 BACNET_FLAGS += -DMAX_APDU=480
 BACNET_FLAGS += -DBIG_ENDIAN=0
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
@@ -148,6 +150,10 @@ BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
 # if called from root Makefile, PRINT was already defined
 BACNET_FLAGS += -UPRINT_ENABLED
 BACNET_FLAGS += -DPRINT_ENABLED=0
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 CFLAGS += $(MCU_FLAGS)
 CFLAGS += $(OPTIMIZE_FLAGS)

@@ -10,7 +10,7 @@
 
 #include <zephyr/ztest.h>
 #include <bacnet/datalink/crc.h>
-#include <bacnet/bytes.h>
+#include <bacnet/basic/sys/bytes.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -20,7 +20,11 @@
 /**
  * @brief Test CRC8 from Annex G 1.0 of BACnet Standard
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(crc_tests, testCRC8)
+#else
 static void testCRC8(void)
+#endif
 {
     uint8_t crc = 0xff; /* accumulates the crc value */
     uint8_t frame_crc; /* appended to the end of the frame */
@@ -47,7 +51,11 @@ static void testCRC8(void)
 /**
  * @brief Test CRC8 from Annex G 2.0 of BACnet Standard
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(crc_tests, testCRC16)
+#else
 static void testCRC16(void)
+#endif
 {
     uint16_t crc = 0xffff;
     uint16_t data_crc;
@@ -71,7 +79,11 @@ static void testCRC16(void)
 /**
  * @brief "Test" to create/log generated CRC8 table
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(crc_tests, testCRC8CreateTable)
+#else
 static void testCRC8CreateTable(void)
+#endif
 {
     uint8_t crc = 0xff; /* accumulates the crc value */
     int i;
@@ -95,7 +107,11 @@ static void testCRC8CreateTable(void)
 /**
  * @brief "Test" to create/log generated CRC16 table
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(crc_tests, testCRC16CreateTable)
+#else
 static void testCRC16CreateTable(void)
+#endif
 {
     uint16_t crc;
     int i;
@@ -119,15 +135,16 @@ static void testCRC16CreateTable(void)
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(crc_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(crc_tests,
-     ztest_unit_test(testCRC8),
-     ztest_unit_test(testCRC16),
-     ztest_unit_test(testCRC8CreateTable),
-     ztest_unit_test(testCRC16CreateTable)
-     );
+    ztest_test_suite(
+        crc_tests, ztest_unit_test(testCRC8), ztest_unit_test(testCRC16),
+        ztest_unit_test(testCRC8CreateTable),
+        ztest_unit_test(testCRC16CreateTable));
 
     ztest_run_test_suite(crc_tests);
 }
+#endif

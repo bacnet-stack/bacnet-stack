@@ -35,10 +35,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/config.h"
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/cov.h"
 #include "bacnet/rp.h"
@@ -140,6 +139,10 @@ extern "C" {
         char *text_string);
 
     BACNET_STACK_EXPORT
+    bool Multistate_Output_State_Text_List_Set(
+        uint32_t object_instance,
+        const char *state_text_list);
+    BACNET_STACK_EXPORT
     bool Multistate_Output_State_Text_Set(
         uint32_t object_instance,
         uint32_t state_index,
@@ -149,13 +152,12 @@ extern "C" {
         uint32_t instance,
         uint32_t max_states_requested);
     BACNET_STACK_EXPORT
+    uint32_t Multistate_Output_Max_States(
+        uint32_t instance);
+    BACNET_STACK_EXPORT
     char *Multistate_Output_State_Text(
         uint32_t object_instance,
         uint32_t state_index);
-    BACNET_STACK_EXPORT
-    bool Multistate_Output_State_Text_List_Set(
-        uint32_t object_instance,
-        const char *state_text_list);
 
     BACNET_STACK_EXPORT
     BACNET_RELIABILITY Multistate_Output_Reliability(
@@ -174,7 +176,7 @@ extern "C" {
         uint32_t value);
 
     BACNET_STACK_EXPORT
-    bool Multistate_Output_Create(
+    uint32_t Multistate_Output_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Multistate_Output_Delete(

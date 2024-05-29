@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
@@ -175,8 +174,8 @@ void handler_device_communication_control(uint8_t *service_request,
         if (len > 0)
             goto DCC_ABORT;
 #endif
-
-        if (characterstring_ansi_same(&password, My_Password)) {
+        if ((My_Password[0] == '\0') ||
+            characterstring_ansi_same(&password, My_Password)) {
             len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                 service_data->invoke_id,
                 SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL);

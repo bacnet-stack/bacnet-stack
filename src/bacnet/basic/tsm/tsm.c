@@ -35,13 +35,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bacnet/bits.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/apdu.h"
 #include "bacnet/bacaddr.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/config.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
@@ -415,3 +414,4 @@ bool tsm_invoke_id_failed(uint8_t invokeID)
     return status;
 }
 #endif
+

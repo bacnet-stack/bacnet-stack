@@ -23,6 +23,7 @@ SRCS = main.c \
 	${BACNET_SRC_DIR}/bacnet/basic/sys/filename.c \
 	${BACNET_SRC_DIR}/bacnet/basic/sys/mstimer.c \
 	${BACNET_SRC_DIR}/bacnet/basic/sys/ringbuf.c \
+	${BACNET_SRC_DIR}/bacnet/datalink/cobs.c \
 	${BACNET_SRC_DIR}/bacnet/datalink/mstp.c \
 	${BACNET_SRC_DIR}/bacnet/datalink/mstptext.c \
 	${BACNET_SRC_DIR}/bacnet/datalink/crc.c
