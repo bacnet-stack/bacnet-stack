@@ -62,9 +62,7 @@
 /* os specific includes */
 #include "bacnet/basic/sys/mstimer.h"
 
-/* local forward and external prototypes */
-extern int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
-extern bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
+/* forward prototypes */
 int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
 bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
