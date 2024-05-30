@@ -2733,6 +2733,14 @@ bool bacapp_print_value(
 
     return retval;
 }
+#else
+bool bacapp_print_value(
+    FILE *stream, BACNET_OBJECT_PROPERTY_VALUE *object_value)
+{
+    (void)stream;
+    (void)object_value;
+    return false;
+}
 #endif
 
 #ifdef BACAPP_PRINT_ENABLED
@@ -3164,6 +3172,16 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
     }
 
     return status;
+}
+#else
+bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
+    char *argv,
+    BACNET_APPLICATION_DATA_VALUE *value)
+{
+    (void)tag_number;
+    (void)argv;
+    (void)value;
+    return false;
 }
 #endif /* BACAPP_PRINT_ENABLED */
 
