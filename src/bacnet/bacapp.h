@@ -42,6 +42,12 @@
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
 
+#ifndef BACAPP_PRINT_ENABLED
+#if PRINT_ENABLED
+#define BACAPP_PRINT_ENABLED
+#endif
+#endif
+
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
     bool context_specific;      /* true if context specific data */
@@ -309,12 +315,6 @@ extern "C" {
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
 
-#ifndef BACAPP_PRINT_ENABLED
-#if PRINT_ENABLED
-#define BACAPP_PRINT_ENABLED
-#endif
-#endif
-
     BACNET_STACK_EXPORT
     int bacapp_snprintf_shift(
         int len, 
@@ -326,21 +326,16 @@ extern "C" {
         size_t str_len,
         BACNET_OBJECT_PROPERTY_VALUE * object_value);
 
-#ifdef BACAPP_PRINT_ENABLED
     BACNET_STACK_EXPORT
     bool bacapp_parse_application_data(
         BACNET_APPLICATION_TAG tag_number,
         char *argv,
         BACNET_APPLICATION_DATA_VALUE * value);
+
     BACNET_STACK_EXPORT
     bool bacapp_print_value(
         FILE * stream,
         BACNET_OBJECT_PROPERTY_VALUE * value);
-#else
-/* Provide harmless return values */
-#define bacapp_parse_application_data(x,y,z)   false
-#define bacapp_print_value(x,y) 			   false
-#endif
 
     BACNET_STACK_EXPORT
     bool bacapp_same_value(

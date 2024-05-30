@@ -177,14 +177,25 @@ CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin
 # place uninitialized global variables in the data section of the object file.
 CFLAGS += -fno-common
-# enable all relevant warnings
-CFLAGS += -Wall
+# enable all relevant warnings that find bugs
+WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
+# don't warn about conversion, sign, compares, long long and attributes
+# since they are common in embedded
+WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+WARNING_ALL += -Wno-long-long -Wno-attributes
+# don't warn about implicit fallthrough since it's common in network protocols
+WARNING_ALL += -Wno-implicit-fallthrough
 # don't warn about missing braces since GCC is over-achiever for this
-CFLAGS += -Wno-missing-braces
+WARNING_ALL += -Wno-missing-braces
 # don't warn about missing prototypes since STM32 library doesn't have some
-CFLAGS += -Wno-missing-prototypes
+WARNING_ALL += -Wno-missing-prototypes
 # don't warn about array subscript being char
-CFLAGS += -Wno-char-subscripts
+WARNING_ALL += -Wno-char-subscripts
+# FIXME later
+WARNING_ALL += -Wno-unused-parameter
+#WARNING_ALL += -Werror
+CFLAGS += $(WARNING_ALL)
 
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)

@@ -226,10 +226,24 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
 
 # inhibit pedantic warnings
 target_compile_options(${EXECUTABLE} PRIVATE
-    -Wall
+    -Wall -Wextra -pedantic
+    -Wfloat-equal -Wconversion -Wredundant-decls 
+    -Wswitch-default
+    # don't warn about conversion, sign, compares, long long and attributes
+    # since they are common in embedded
+    -Wno-sign-conversion 
+    -Wno-conversion
+    -Wno-sign-compare 
+    -Wno-long-long
+    -Wno-attributes
+    # don't warn about implicit fallthrough since it is common in network protocols
+    -Wno-implicit-fallthrough
+    # the SDK does not meet coding guidelines
     -Wno-comment
     -Wno-missing-braces
     -Wno-unused-variable
+    -Wno-unused-parameter
+    -Wno-char-subscripts
 )
 
 target_include_directories(${EXECUTABLE} PRIVATE
