@@ -316,6 +316,11 @@ extern "C" {
         BACNET_PROPERTY_ID property);
 
     BACNET_STACK_EXPORT
+    int bacapp_snprintf_shift(
+        int len, 
+        char **buf, 
+        size_t *buf_size);
+    BACNET_STACK_EXPORT
     int bacapp_snprintf_value(
         char *str,
         size_t str_len,
