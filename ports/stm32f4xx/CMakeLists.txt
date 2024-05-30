@@ -242,6 +242,7 @@ target_compile_options(${EXECUTABLE} PRIVATE
     -Wno-comment
     -Wno-missing-braces
     -Wno-unused-variable
+    -Wno-unused-parameter
     -Wno-char-subscripts
 )
 

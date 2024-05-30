@@ -174,16 +174,16 @@ WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
 WARNING_ALL += -Wno-long-long -Wno-attributes
 # don't warn about implicit fallthrough since it's common in network protocols
 WARNING_ALL += -Wno-implicit-fallthrough
+# don't warn about missing braces since GCC is over-achiever for this
+WARNING_ALL += -Wno-missing-braces
+# don't warn about missing prototypes since STM32 library doesn't have some
+WARNING_ALL += -Wno-missing-prototypes
+# don't warn about array subscript being char
+WARNING_ALL += -Wno-char-subscripts
+# FIXME later
+WARNING_ALL += -Wno-unused-parameter
 #WARNING_ALL += -Werror
 CFLAGS += $(WARNING_ALL)
-# don't warn about missing braces since GCC is over-achiever for this
-CFLAGS += -Wno-missing-braces
-# don't warn about missing prototypes since STM32 library doesn't have some
-CFLAGS += -Wno-missing-prototypes
-# don't warn about array subscript being char
-CFLAGS += -Wno-char-subscripts
-# FIXME later
-CFLAGS += -Wno-unused-parameter
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
 
