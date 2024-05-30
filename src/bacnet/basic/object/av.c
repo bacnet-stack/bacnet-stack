@@ -111,7 +111,7 @@ bool Analog_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
   for (i = 0; i < pInit_data->length; i++) {
     if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
       if(Analog_Value_Create(pInit_data->Object_Init_Values[i].Object_Instance) < BACNET_MAX_INSTANCE) {
-        struct analog_input_descr *pObject = Analog_Value_Object(pInit_data->Object_Init_Values[i].Object_Instance);
+        struct analog_value_descr *pObject = Analog_Value_Object(pInit_data->Object_Init_Values[i].Object_Instance);
 
         if(pObject == NULL) {
           PRINT("Object instance %u not found right after its creation", pInit_data->Object_Init_Values[i].Object_Instance);
@@ -292,7 +292,7 @@ bool Analog_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
-    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
         if (characterstring_length(&pObject->Object_Name) > 0) {
@@ -321,7 +321,7 @@ bool Analog_Value_Object_Name(
 bool Analog_Value_Name_Set(uint32_t object_instance, char *new_name)
 {
     bool status = false;
-    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
         status =
@@ -359,7 +359,7 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
 BACNET_CHARACTER_STRING *Analog_Value_Description(uint32_t object_instance)
 {
     BACNET_CHARACTER_STRING *name = NULL;
-    struct analog_input_descr *pObject = Analog_Value_Object(object_instance);
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
         name = &pObject->Description;
@@ -377,7 +377,7 @@ BACNET_CHARACTER_STRING *Analog_Value_Description(uint32_t object_instance)
 bool Analog_Value_Description_Set(uint32_t object_instance, char *new_name)
 {
     bool status = false; /* return value */
-    struct analog_input_descr *pObject = Analog_Value_Object(object_instance);
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
         status =
@@ -1635,8 +1635,8 @@ uint32_t Analog_Value_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct analog_value_descr));
         if (pObject) {
-            pObject->Object_Name = NULL;
-            pObject->Description = NULL;
+            characterstring_init_ansi(&pObject->Object_Name, "");
+            characterstring_init_ansi(&pObject->Description, "");
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->COV_Increment = 1.0;
             pObject->Present_Value = 0.0f;

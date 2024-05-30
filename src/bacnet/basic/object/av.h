@@ -132,8 +132,8 @@ extern "C" {
         float value);
 
     BACNET_STACK_EXPORT
-    bool Analog_Value_Description(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
+    BACNET_CHARACTER_STRING *Analog_Value_Description(
+       uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Analog_Value_Description_Set(
         uint32_t instance,

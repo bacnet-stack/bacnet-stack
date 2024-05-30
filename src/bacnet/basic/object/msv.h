@@ -113,7 +113,7 @@ extern "C" {
         bool value);
 
     BACNET_STACK_EXPORT
-    char *Multistate_Value_Description(
+    BACNET_CHARACTER_STRING *Multistate_Value_Description(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool Multistate_Value_Description_Set(

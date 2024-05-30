@@ -81,8 +81,8 @@ extern "C" {
         BACNET_BINARY_PV value);
 
     BACNET_STACK_EXPORT
-    bool Binary_Input_Description(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
+    BACNET_CHARACTER_STRING *Binary_Input_Description(
+    uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Binary_Input_Description_Set(
         uint32_t instance,

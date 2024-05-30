@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -1513,8 +1514,8 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct analog_input_descr));
         if (pObject) {
-            pObject->Object_Name = NULL;
-            pObject->Description = NULL;
+            characterstring_init_ansi(&pObject->Object_Name, "");
+            characterstring_init_ansi(&pObject->Description, "");
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->COV_Increment = 1.0;
             pObject->Present_Value = 0.0f;

@@ -332,6 +332,46 @@ bool Multistate_Value_State_Text_Set(
 }
 
 /**
+ * Initialize the Multistate Value State Text Inputs. Returns false if there are errors.
+ *
+ * @param pInit_state_text_data pointer to  state text initialisation values
+ *
+ * @return true/false
+ */
+bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pInit_state_text_data) {
+#if 0
+    unsigned int option_index = 0;
+    unsigned int i = 0;
+    unsigned int j;
+
+    if ((int) pInit_state_text_data->length > MSV_Max_Index) {
+        PRINT("pInit_state_text_data->length = %d >= %d", (int) pInit_state_text_data->length, MSV_Max_Index);
+        return false;
+    }
+
+    for (i = 0; i <= MSV_Max_Index; i++) {
+
+        if(i == MSV_Max_Index) {
+            break;
+        }
+
+        for(j = option_index; j < pInit_state_text_data->options_len; j++) {
+
+            if(pInit_state_text_data->MSV_State_Text_Objects[j].state_text_option_index != i) {
+                break;
+            }
+            strncpy(State_Text[i][j - option_index], pInit_state_text_data->MSV_State_Text_Objects[j].option, sizeof(State_Text[i][j]));
+        }
+        option_index = j;
+    }
+#else
+    (void) pInit_state_text_data;
+
+#endif
+    return true;
+}
+
+/**
  * @brief For a given object instance-number, determines the present-value
  * @param  object_instance - object-instance number of the object
  * @return  present-value 1..N of the object
@@ -500,11 +540,11 @@ bool Multistate_Value_Object_Name(
             *object_name = pObject->Object_Name;
             status = true;
         } else {
-            char text_string[32] = "";
+            char name_text[32] = "";
 
             snprintf(name_text, sizeof(name_text), "MULTI-STATE VALUE %u",
                     object_instance);
-            status = characterstring_init_ansi(object_name, text_string);
+            status = characterstring_init_ansi(object_name, name_text);
         }
     }
 

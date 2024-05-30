@@ -16,13 +16,19 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/bactext.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/wp.h"
 #include "bacnet/rp.h"
+#include "bacnet/cov.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/keylist.h"
 /* me! */
 #include "bacnet/basic/object/bv.h"
+
+#define PRINTF debug_perror
 
 static const char *Default_Active_Text = "Active";
 static const char *Default_Inactive_Text = "Inactive";
@@ -32,6 +38,7 @@ struct object_data {
     bool Present_Value : 1;
     bool Write_Enabled : 1;
     bool Polarity : 1;
+    unsigned Event_State:3;
     uint8_t Reliability;
     BACNET_CHARACTER_STRING Object_Name;
     const char *Active_Text;
@@ -406,6 +413,7 @@ bool Binary_Value_Present_Value_Set(
     struct object_data *pObject;
 
     pObject = Binary_Value_Object(object_instance);
+    fprintf(stderr, "[%s %d %d]: instance = %u pv = %d; pObject = %p\r\n", __FILE__, __LINE__, __func__, object_instance, (int) value, pObject);
     if (pObject) {
         if (value <= MAX_BINARY_PV) {
             if (pObject->Polarity != POLARITY_NORMAL) {
@@ -701,10 +709,14 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
     bool state = false;
+    struct object_data *pObject;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
+    }
+    if(!(pObject = Binary_Value_Object(rpdata->object_instance))) {
+        return BACNET_STATUS_ERROR;
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
@@ -919,7 +931,7 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if(!pObject = Bnary_Input_Object(wp_data->object_instance)) {
+    if(!(pObject = Binary_Value_Object(wp_data->object_instance))) {
         return BACNET_STATUS_ERROR;
     }
     /* Only array properties can have array options. */
@@ -987,7 +999,7 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated <= MAX_BINARY_PV) {
-                    Binary_Input_Alarm_Value_Set(wp_data->object_instance,
+                    Binary_Value_Alarm_Value_Set(wp_data->object_instance,
                         (BACNET_BINARY_PV) value.type.Enumerated);
                 } else {
                     status = false;
@@ -1128,8 +1140,12 @@ uint32_t Binary_Value_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
-            pObject->Object_Name = NULL;
-            pObject->Description = NULL;
+#if (BINARY_VALUE_INTRINSIC_REPORTING)
+            unsigned j;
+#endif
+
+            characterstring_init_ansi(&pObject->Object_Name, "");
+            characterstring_init_ansi(&pObject->Description, "");
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->Present_Value = false;
             pObject->Out_Of_Service = false;
@@ -1138,6 +1154,26 @@ uint32_t Binary_Value_Create(uint32_t object_instance)
             pObject->Change_Of_Value = false;
             pObject->Write_Enabled = false;
             pObject->Polarity = false;
+#if (BINARY_VALUE_INTRINSIC_REPORTING)
+            pObject->Event_State = EVENT_STATE_NORMAL;
+            pObject->Event_Detection_Enable = true;
+            /* notification class not connected */
+            pObject->Notification_Class = BACNET_MAX_INSTANCE;
+            /* initialize Event time stamps using wildcards and set Acked_transitions */
+            for (j = 0; j < MAX_BACNET_EVENT_TRANSITION; j++) {
+                datetime_wildcard_set(&pObject->Event_Time_Stamps[j]);
+                pObject->Acked_Transitions[j].bIsAcked = true;
+            }
+
+            /* Set handler for GetEventInformation function */
+            handler_get_event_information_set(
+                    Object_Type, Binary_Value_Event_Information);
+            /* Set handler for AcknowledgeAlarm function */
+            handler_alarm_ack_set(Object_Type, Binary_Value_Alarm_Ack);
+            /* Set handler for GetAlarmSummary Service */
+            handler_get_alarm_summary_set(
+                    Object_Type, Binary_Value_Alarm_Summary);
+#endif
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
@@ -1316,10 +1352,22 @@ bool Binary_Value_Event_Detection_Enable_Set(uint32_t object_instance, bool valu
     return retval;
 }
 
+#if (BINARY_INPUT_INTRINSIC_REPORTING)
+/**
+ * @brief Gets an object from the list using its index in the list
+ * @param index - index of the object in the list
+ * @return object found in the list, or NULL if not found
+ */
+static struct object_data *Binary_Value_Object_Index(int index)
+{
+    return Keylist_Data_Index(Object_List, index);
+}
+#endif
+
 int Binary_Value_Event_Information(
     unsigned index, BACNET_GET_EVENT_INFORMATION_DATA *getevent_data)
 {
-    struct object_data *pObject = Binary_Value_Object(object_instance);
+    struct object_data *pObject = Binary_Value_Object_Index(index);
 
     bool IsNotAckedTransitions;
     bool IsActiveEvent;
@@ -1488,13 +1536,14 @@ int Binary_Value_Alarm_Ack(
     return 1;
 }
 
+
 int Binary_Value_Alarm_Summary(
     unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data)
 {
     struct object_data *pObject = Binary_Value_Object_Index(index);
 
     if(getalarm_data == NULL) {
-      PRINT("[%s %d]: NULL pointer parameter! getalarm_data = %p\r\n", __FILE__, __LINE__, getalarm_data);
+      PRINT("[%s %d]: NULL pointer parameter! getalarm_data = %p\r\n", __FILE__, __LINE__, (void *) getalarm_data);
       return -2;
     }
 
@@ -1531,12 +1580,11 @@ int Binary_Value_Alarm_Summary(
 bool Binary_Value_Alarm_Value_Set(
     uint32_t object_instance, BACNET_BINARY_PV value)
 {
-    unsigned index = 0;
     bool status = false;
-    struct object_data *pObject = Binary_Value_Object_Index(index);
+    struct object_data *pObject = Binary_Value_Object(object_instance);
 
     if (pObject) {
-        if (Polarity[index] != POLARITY_NORMAL) {
+        if (pObject->Polarity != POLARITY_NORMAL) {
           value = (value == BINARY_INACTIVE) ? BINARY_ACTIVE : BINARY_INACTIVE;
         }
         pObject->Alarm_Value = value;
@@ -1554,10 +1602,8 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
 #else
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
     BACNET_CHARACTER_STRING msgText = { 0 };
-    unsigned int object_index = 0;
     uint8_t FromState = 0;
     uint8_t ToState = 0;
-    BACNET_BINARY_PV Alarm_Value = BINARY_INACTIVE;
     BACNET_BINARY_PV PresentVal  = BINARY_INACTIVE;
     bool SendNotify = false;
     struct object_data *pObject = Binary_Value_Object(object_instance);
@@ -1731,7 +1777,7 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
         if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
             /* Value that exceeded a limit. */
             event_data.notificationParams.changeOfState.newState =
-                (BACNET_PROPERTY_STATE) { .tag = BINARY_VALUE, .state = { .binaryValue = Present_Value[object_index] } };
+                (BACNET_PROPERTY_STATE) { .tag = PROP_STATE_BINARY_VALUE, .state = { .binaryValue = pObject->Present_Value } };
             /* Status_Flags of the referenced object. */
             bitstring_init(
                 &event_data.notificationParams.changeOfState.statusFlags);
@@ -1796,3 +1842,5 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
         }
     }
 #endif /* (BINARY_VALUE_INTRINSIC_REPORTING) */
+}
+

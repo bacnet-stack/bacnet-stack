@@ -53,6 +53,8 @@
 #define MAX_INTEGER_VALUES 1
 #endif
 
+#define PRINTF debug_perror
+
 struct integer_object {
     bool Out_Of_Service : 1;
     int32_t Present_Value;
