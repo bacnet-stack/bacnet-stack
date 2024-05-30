@@ -72,35 +72,12 @@ extern "C" {
         uint32_t object_instance);
 
     BACNET_STACK_EXPORT
-    char *Binary_Value_Description(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    bool Binary_Value_Description_Set(
-        uint32_t instance,
-        char *new_name);
-
-    BACNET_STACK_EXPORT
     BACNET_RELIABILITY Binary_Value_Reliability(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Binary_Value_Reliability_Set(
         uint32_t object_instance,
         BACNET_RELIABILITY value);
-
-    BACNET_STACK_EXPORT
-    char *Binary_Value_Inactive_Text(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    bool Binary_Value_Inactive_Text_Set(
-        uint32_t instance,
-        char *new_name);
-    BACNET_STACK_EXPORT
-    char *Binary_Value_Active_Text(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    bool Binary_Value_Active_Text_Set(
-        uint32_t instance,
-        char *new_name);
 
     BACNET_STACK_EXPORT
     int Binary_Value_Read_Property(
