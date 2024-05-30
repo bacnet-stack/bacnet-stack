@@ -413,7 +413,6 @@ bool Binary_Value_Present_Value_Set(
     struct object_data *pObject;
 
     pObject = Binary_Value_Object(object_instance);
-    fprintf(stderr, "[%s %d %d]: instance = %u pv = %d; pObject = %p\r\n", __FILE__, __LINE__, __func__, object_instance, (int) value, pObject);
     if (pObject) {
         if (value <= MAX_BINARY_PV) {
             if (pObject->Polarity != POLARITY_NORMAL) {
@@ -424,7 +423,7 @@ bool Binary_Value_Present_Value_Set(
                 }
             }
             Binary_Value_Present_Value_COV_Detect(pObject, value);
-            pObject->Present_Value = true;
+            pObject->Present_Value = value;
             status = true;
         }
     }
@@ -1797,7 +1796,7 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
         }
 
         /* add data from notification class */
-        PRINT("Binary-Input[%d]: Notification Class[%d]-%s "
+        PRINT("Binary-Value[%d]: Notification Class[%d]-%s "
                "%u/%u/%u-%u:%u:%u.%u!\n",
             object_instance, event_data.notificationClass,
             bactext_event_type_name(event_data.eventType),
@@ -1813,7 +1812,7 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
         /* Ack required */
         if ((event_data.notifyType != NOTIFY_ACK_NOTIFICATION) &&
             (event_data.ackRequired == true)) {
-            PRINT("Binary-Input[%d]: Ack Required!\n", object_instance);
+            PRINT("Binary-Value[%d]: Ack Required!\n", object_instance);
             switch (event_data.toState) {
                 case EVENT_STATE_OFFNORMAL:
                     pObject->Acked_Transitions[TRANSITION_TO_OFFNORMAL]

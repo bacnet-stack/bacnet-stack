@@ -419,7 +419,7 @@ bool Binary_Input_Present_Value_Set(
                 }
             }
             Binary_Input_Present_Value_COV_Detect(pObject, value);
-            pObject->Present_Value = true;
+            pObject->Present_Value = value;
             status = true;
         }
     }
