@@ -165,15 +165,15 @@ CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin
 # place uninitialized global variables in the data section of the object file.
 CFLAGS += -fno-common
-WARNING_ALL := -Wall
 # enable all relevant warnings that find bugs
-#WARNING_ALL += -pedantic -Wextra -Wfloat-equal -Wconversion -Wparentheses
-#WARNING_ALL += -Wunused-parameter -Wunused-variable -Wreturn-type
-#WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
-#WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
-#WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
-#WARNING_ALL += -Wno-long-long
-#WARNING_ALL += -Wredundant-decls
+WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
+# don't warn about conversion, sign, compares, long long and attributes
+# since they are common in embedded
+WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+WARNING_ALL += -Wno-long-long -Wno-attributes
+# don't warn about implicit fallthrough since it's common in network protocols
+WARNING_ALL += -Wno-implicit-fallthrough
 #WARNING_ALL += -Werror
 CFLAGS += $(WARNING_ALL)
 # don't warn about missing braces since GCC is over-achiever for this

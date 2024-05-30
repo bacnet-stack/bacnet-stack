@@ -84,11 +84,6 @@ BACNET_STACK_EXPORT
 int create_object_error_ack_encode(
     uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data);
 
-BACNET_STACK_EXPORT
-int create_object_ack_encode(
-    uint8_t *apdu, uint8_t invoke_id,
-    BACNET_CREATE_OBJECT_DATA *data);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
