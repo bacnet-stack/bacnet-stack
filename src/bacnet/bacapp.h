@@ -316,7 +316,7 @@ extern "C" {
 #endif
 
     BACNET_STACK_EXPORT
-    int bacapp_snprintf_next(
+    int bacapp_snprintf_shift(
         int len, 
         char **buf, 
         size_t *buf_size);
