@@ -3,9 +3,7 @@
  * @brief API for DeleteObject service encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
- * @section LICENSE
-  *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_DELETE_OBJECT_H
 #define BACNET_DELETE_OBJECT_H

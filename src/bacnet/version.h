@@ -3,12 +3,10 @@
  * @author Steve Karg
  * @date 2004
  * @brief BACnet protocol stack version 0.0.0 - 255.255.255
- * @copyright
- * Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef _BACNET_VERSION_H_
-#define _BACNET_VERSION_H_
+#ifndef BACNET_VERSION_H_
+#define BACNET_VERSION_H_
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 
