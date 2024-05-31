@@ -5,8 +5,8 @@
  * @date 2012
  * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef PROPLIST_H
-#define PROPLIST_H
+#ifndef BACNET_PROPLIST_H
+#define BACNET_PROPLIST_H
 
 #include <stdint.h>
 #include <stdbool.h>

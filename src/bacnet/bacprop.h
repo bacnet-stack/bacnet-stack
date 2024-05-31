@@ -1,8 +1,8 @@
 /**
  * @file
  * @brief BACnet property tag lookup functions
- * @author Steve Karg <skarg@users.sourceforge.net>
  * @author John Goulah <bigjohngoulah@users.sourceforge.net>
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2005
  * @copyright SPDX-License-Identifier: MIT
  */

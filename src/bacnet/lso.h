@@ -3,7 +3,7 @@
  * @brief API for BACnetLifeSafetyOperation encoder and decoder
  * @author John Minack <minack@users.sourceforge.net>
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2006
+ * @date 2008
  * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_LIFE_SAFETY_OPERATION_H

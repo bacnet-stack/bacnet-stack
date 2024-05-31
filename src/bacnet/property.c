@@ -3,11 +3,7 @@
  * @brief Static sets of BACnet Property members for each object type
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2012
- * @section LICENSE
- * 
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- * 
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
 /* BACnet Stack defines - first */
