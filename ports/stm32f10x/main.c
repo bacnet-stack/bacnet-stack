@@ -35,6 +35,16 @@
 /* local version override */
 char *BACnet_Version = "1.0";
 
+/**
+ * @brief Called from _write() function from printf and friends
+ * @param[in] ch Character to send
+ */
+int __io_putchar(int ch)
+{
+    (void)ch;
+    return 0;
+}
+
 #ifdef USE_FULL_ASSERT
 
 /**
