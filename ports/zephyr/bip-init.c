@@ -174,14 +174,14 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 
 /**
  * @brief Set the BACnet/IP address 
- * @param addr - network IPv4 address (in network byte order)
+ * @param addr - network IPv4 address 
  * @return true if the address was set
  */
 bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&BIP_Address.s_addr, &addr->address[0], IP_ADDRESS_MAX);
-        BIP_Port = addr->port;
+        BIP_Port = htons(addr->port);
         return true;
     }
     return false;
@@ -196,7 +196,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&addr->address[0], &BIP_Address.s_addr, IP_ADDRESS_MAX);
-        addr->port = BIP_Port;
+        addr->port = ntohs(BIP_Port);
         return true;
     }
     return false;
@@ -627,7 +627,6 @@ void bip_cleanup(void)
 {
     LOG_DBG("bip_cleanup()");
 
-    BIP_Port = 0;
     memset(&BIP_Address, 0, sizeof(BIP_Address));
     memset(&BIP_Broadcast_Addr, 0, sizeof(BIP_Broadcast_Addr));
 

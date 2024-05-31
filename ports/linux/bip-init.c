@@ -899,7 +899,7 @@ bool bip_init(char *ifname)
     int sock_fd = -1;
 
     if (ifname) {
-        strncpy(BIP_Interface_Name, ifname, sizeof(BIP_Interface_Name));
+        snprintf(BIP_Interface_Name, sizeof(BIP_Interface_Name), "%s", ifname);
         bip_set_interface(ifname);
     } else {
         bip_set_interface(ifname_default());

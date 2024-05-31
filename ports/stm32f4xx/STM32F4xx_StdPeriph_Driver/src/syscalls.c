@@ -20,8 +20,6 @@
 extern int errno;
 extern int __io_putchar(int ch);
 
-register char * stack_ptr asm("sp");
-
 char *__env[1] = { 0 };
 char **environ = __env;
 
@@ -61,6 +59,7 @@ int _write(int file, char *ptr, int len)
 
 caddr_t _sbrk(int incr)
 {
+	register char * stack_ptr asm("sp");
 	extern char end asm("end");
 	static char *heap_end;
 	char *prev_heap_end;

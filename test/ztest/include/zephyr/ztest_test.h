@@ -24,6 +24,10 @@
 #ifndef ZEPHYR_TESTSUITE_ZTEST_TEST_H_
 #define ZEPHYR_TESTSUITE_ZTEST_TEST_H_
 
+#include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
+
 #if 0 /* __ZEPHYR__ */
 #include <app_memory/app_memdomain.h>
 #endif /* __ZEPHYR__ */

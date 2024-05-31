@@ -74,13 +74,196 @@ config BACDL_NONE
 	help
 	  Enable BACnet without datalink
 
+config BACAPP_ALL
+	bool "BACnet data types supported for WriteProperty: all = minimal + extra"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: all = minimal + extra
+
+config BACAPP_MINIMAL
+	bool "BACnet data types supported for WriteProperty: minimal"
+	default true
+	help
+	   BACnet data types supported for WriteProperty include:
+	   NULL, BOOLEAN, UNSIGNED, SIGNED, REAL, CHARACTER_STRING,
+	   OCTET_STRING, BIT_STRING, ENUMERATED, DATE, TIME, OBJECT_ID
+
+config BACAPP_TYPES_EXTRA
+	bool "BACnet data types supported for WriteProperty: extra"
+	default false
+	help
+	   BACnet data types supported for WriteProperty include:
+	   DOUBLE, TIMESTAMP, DATETIME, DATERANGE,
+	   LIGHTING_COMMAND, XY_COLOR, COLOR_COMMAND, WEEKLY_SCHEDULE,
+	   CALENDAR_ENTRY, SPECIAL_EVENT, HOST_N_PORT,
+	   DEVICE_OBJECT_PROPERTY_REFERENCE, DEVICE_OBJECT_REFERENCE,
+	   OBJECT_PROPERTY_REFERENCE, DESTINATION
+
+config BACAPP_NULL
+	bool "BACnet data types supported for WriteProperty: NULL"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: NULL
+
+config BACAPP_BOOLEAN
+	bool "BACnet data types supported for WriteProperty: BOOLEAN"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: BOOLEAN
+
+config BACAPP_UNSIGNED
+	bool "BACnet data types supported for WriteProperty: UNSIGNED"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: UNSIGNED
+
+config BACAPP_SIGNED
+	bool "BACnet data types supported for WriteProperty: SIGNED"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: SIGNED
+
+config BACAPP_REAL
+	bool "BACnet data types supported for WriteProperty: REAL"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: REAL
+
+config BACAPP_DOUBLE
+	bool "BACnet data types supported for WriteProperty: DOUBLE"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: DOUBLE
+
+config BACAPP_OCTET_STRING
+	bool "BACnet data types supported for WriteProperty: OCTET_STRING"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: OCTET_STRING
+
+config BACAPP_CHARACTER_STRING
+	bool "BACnet data types supported for WriteProperty: CHARACTER_STRING"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: CHARACTER_STRING
+
+config BACAPP_BIT_STRING
+	bool "BACnet data types supported for WriteProperty: BIT_STRING"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: BIT_STRING
+
+config BACAPP_ENUMERATED
+	bool "BACnet data types supported for WriteProperty: ENUMERATED"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: ENUMERATED
+
+config BACAPP_DATE
+	bool "BACnet data types supported for WriteProperty: DATE"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: DATE
+
+config BACAPP_TIME
+	bool "BACnet data types supported for WriteProperty: TIME"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: TIME
+
+config BACAPP_OBJECT_ID
+	bool "BACnet data types supported for WriteProperty: OBJECT_ID"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: OBJECT_ID
+
+config BACAPP_DATETIME
+	bool "BACnet data types supported for WriteProperty: DATETIME"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: DATETIME
+
+config BACAPP_DATERANGE
+	bool "BACnet data types supported for WriteProperty: DATERANGE"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: DATERANGE
+
+config BACAPP_LIGHTING_COMMAND
+	bool "BACnet data types supported for WriteProperty: LIGHTING_COMMAND"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: LIGHTING_COMMAND
+
+config BACAPP_XY_COLOR
+	bool "BACnet data types supported for WriteProperty: XY_COLOR"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: XY_COLOR
+
+config BACAPP_COLOR_COMMAND
+	bool "BACnet data types supported for WriteProperty: COLOR_COMMAND"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: COLOR_COMMAND
+
+config BACAPP_WEEKLY_SCHEDULE
+	bool "BACnet data types supported for WriteProperty: WEEKLY_SCHEDULE"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: WEEKLY_SCHEDULE
+
+config BACAPP_CALENDAR_ENTRY
+	bool "BACnet data types supported for WriteProperty: CALENDAR_ENTRY"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: CALENDAR_ENTRY
+
+config BACAPP_SPECIAL_EVENT
+	bool "BACnet data types supported for WriteProperty: SPECIAL_EVENT"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: SPECIAL_EVENT
+
+config BACAPP_HOST_N_PORT
+	bool "BACnet data types supported for WriteProperty: HOST_N_PORT"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: HOST_N_PORT
+
+config BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE
+	bool "BACnet data types supported for WriteProperty: DEVICE_OBJECT_PROPERTY_REFERENCE"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: DEVICE_OBJECT_PROPERTY_REFERENCE
+
+config BACAPP_DEVICE_OBJECT_REFERENCE
+	bool "BACnet data types supported for WriteProperty: DEVICE_OBJECT_REFERENCE"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: DEVICE_OBJECT_REFERENCE
+
+config BACAPP_OBJECT_PROPERTY_REFERENCE
+	bool "BACnet data types supported for WriteProperty: OBJECT_PROPERTY_REFERENCE"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: OBJECT_PROPERTY_REFERENCE
+
+config BACAPP_DESTINATION
+	bool "BACnet data types supported for WriteProperty: DESTINATION"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: DESTINATION
+
 config BACAPP_PRINT_ENABLED
 	bool "BACnet app print"
+	default false
 	help
 		Enable BACnet app print
 
 config BACAPP_SNPRINTF_ENABLED
 	bool "BACnet app snprintf"
+	default false
 	help
 		Enable BACnet app snprintf
 
@@ -161,6 +344,12 @@ config BACNET_MAX_OCTET_STRING_BYTES
 	default 64
 	help
 		Maximum number of bytes in a BACnet octet string
+
+config BACNET_STORAGE_BASE_NAME
+	string "BACnet storage base name for settings subsystem"
+	default "bacnet"
+	help
+		BACnet storage base name for settings subsystem
 
 config BACNET_ADDRESS_CACHE_FILE
 	bool "BACnet Address Cache file functionality"

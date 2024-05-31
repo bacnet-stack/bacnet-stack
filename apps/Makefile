@@ -145,13 +145,14 @@ CSTANDARD ?= -std=gnu89
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
 DEBUGGING ?=
-WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion -Wparentheses
-WARNING_ALL += -pedantic -Wunused-parameter -Wunused-variable -Wreturn-type
-WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
-WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
+# enable all relevant warnings that find bugs
+WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
+# don't warn about conversion, sign, compares, long long and attributes
+# since they are common in embedded
 WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
-WARNING_ALL += -Wno-long-long -Wno-implicit-fallthrough -Wno-attributes
-#WARNING_ALL += -Wredundant-decls
+WARNING_ALL += -Wno-long-long -Wno-attributes
+WARNING_ALL += -Wno-implicit-fallthrough
 #WARNING_ALL += -Werror
 WARNINGS ?= $(WARNING_ALL)
 # dead code removal

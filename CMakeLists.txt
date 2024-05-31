@@ -103,14 +103,15 @@ endif()
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic)
-  add_compile_options(-Wfloat-equal -Wconversion -Wparentheses)
-  add_compile_options(-Wunused-value -Wreturn-type -Wswitch-default)
-  add_compile_options(-Wuninitialized -Winit-self)
+  add_compile_options(-Wfloat-equal -Wconversion)
+  add_compile_options(-Wredundant-decls -Wswitch-default)
+  # don't warn about conversion, sign, compares, long long and attributes
+  # since they are common in embedded
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
   add_compile_options(-Wno-sign-compare -Wno-long-long)
-  add_compile_options(-Wno-implicit-fallthrough -Wno-attributes)
-  add_compile_options(-Wunused-variable -Wunused-function)
-  add_compile_options(-Wunused-parameter)
+  add_compile_options(-Wno-attributes)
+  # don't warn about implicit fallthrough since it's common in network protocols
+  add_compile_options(-Wno-implicit-fallthrough)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")

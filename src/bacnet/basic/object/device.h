@@ -508,10 +508,6 @@ extern "C" {
         int idx);
 
     BACNET_STACK_EXPORT
-    void routed_get_my_address(
-        BACNET_ADDRESS * my_address);
-
-    BACNET_STACK_EXPORT
     bool Routed_Device_Address_Lookup(
         int idx,
         uint8_t address_len,

@@ -1,29 +1,9 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date April 2020
  * @brief Test file for a basic BBMD for BVLC IPv4 handler
- *
- * @section LICENSE
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h> /* for standard i/o, like printing */
 #include <stdint.h> /* for standard integer types uint8_t etc. */
@@ -31,6 +11,7 @@
 #include <string.h> /* for memcpy */
 #include <assert.h>
 #include <string.h>
+#include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/iam.h"
 #include "bacnet/npdu.h"
@@ -39,7 +20,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
-#include "ctest.h"
 
 struct device_info_t {
     uint32_t Device_ID;
@@ -53,7 +33,7 @@ static struct device_info_t IUT;
 /* for the reply sent from the handler */
 static uint8_t Test_Sent_Message_Type;
 static uint8_t Test_Sent_Message_Length;
-static uint8_t Test_Sent_Message_Buffer[MAX_MPDU];
+static uint8_t Test_Sent_Message_Buffer[MAX_APDU];
 static uint16_t Test_Sent_Message_Buffer_Length;
 static BACNET_IP_ADDRESS Test_Sent_Message_Dest;
 
@@ -156,15 +136,15 @@ static void test_cleanup(void)
 /**
  * @brief Test 15.2.1.1 Initiate Original-Broadcast-NPDU
  */
-static void test_Initiate_Original_Broadcast_NPDU(Test *pTest)
+static void test_Initiate_Original_Broadcast_NPDU(void)
 {
-    uint8_t pdu[MAX_MPDU] = { 0 };
+    uint8_t pdu[MAX_APDU] = { 0 };
     int npdu_len = 0;
     int apdu_len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
-    uint8_t test_pdu[MAX_MPDU] = { 0 };
+    uint8_t test_pdu[MAX_APDU] = { 0 };
     uint16_t test_pdu_len = 0;
     int function_len = 0;
 
@@ -179,30 +159,28 @@ static void test_Initiate_Original_Broadcast_NPDU(Test *pTest)
     pdu_len = npdu_len + apdu_len;
     bvlc_send_pdu(&dest, &npdu_data, pdu, pdu_len);
     /* DA=Link Local Multicast Address */
-    ct_test(
-        pTest,
-        !bvlc_address_different(
-            &TD.BIP_Broadcast_Addr, &Test_Sent_Message_Dest));
+    assert(!bvlc_address_different(
+        &TD.BIP_Broadcast_Addr, &Test_Sent_Message_Dest));
     /* SA = IUT - done in port layer */
     /* Original-Broadcast-NPDU */
-    ct_test(pTest, Test_Sent_Message_Type == BVLC_ORIGINAL_BROADCAST_NPDU);
+    assert(Test_Sent_Message_Type == BVLC_ORIGINAL_BROADCAST_NPDU);
     if (Test_Sent_Message_Type == BVLC_ORIGINAL_BROADCAST_NPDU) {
         function_len = bvlc_decode_original_broadcast(
             Test_Sent_Message_Buffer, Test_Sent_Message_Buffer_Length, test_pdu,
             sizeof(test_pdu), &test_pdu_len);
         printf(
-            "len=%u pdu[%u] test_pdu[%u]\n", (unsigned)function_len,
+            "len=%u pdu[%u] test_pdu[%u] %s\n", (unsigned)function_len,
             (unsigned)Test_Sent_Message_Buffer_Length,
-            (unsigned)sizeof(test_pdu));
-        ct_test(pTest, function_len > 0);
+            (unsigned)sizeof(test_pdu), (function_len > 0) ? "PASS" : "FAIL");
+        assert(function_len > 0);
         /* (any valid BACnet-Unconfirmed-Request-PDU,
             with any valid broadcast network options */
-        ct_test(pTest, test_pdu_len == pdu_len);
+        assert(test_pdu_len == pdu_len);
     }
     test_cleanup();
 }
 
-static void test_BBMD_Result(Test *pTest)
+static void test_BBMD_Result(void)
 {
     int result = 0;
     uint16_t result_code[] = {
@@ -220,7 +198,7 @@ static void test_BBMD_Result(Test *pTest)
     BACNET_IP_ADDRESS addr;
     BACNET_ADDRESS src;
     unsigned int i = 0;
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[MAX_APDU] = { 0 };
     uint16_t mtu_len = 0;
 
     bvlc_address_port_from_ascii(&addr, "192.168.0.1", "0xBAC0");
@@ -228,43 +206,26 @@ static void test_BBMD_Result(Test *pTest)
         mtu_len = bvlc_encode_result(&mtu[0], sizeof(mtu), result_code[i]);
         result = bvlc_bbmd_disabled_handler(&addr, &src, &mtu[0], mtu_len);
         /* validate that the result is handled (0) */
-        ct_test(pTest, result == 0);
+        assert(result == 0);
         test_result_code = bvlc_get_last_result();
-        ct_test(pTest, test_result_code == result_code[i]);
+        assert(test_result_code == result_code[i]);
         test_function_code = bvlc_get_function_code();
-        ct_test(pTest, test_function_code == BVLC_RESULT);
+        assert(test_function_code == BVLC_RESULT);
         result = bvlc_bbmd_enabled_handler(&addr, &src, &mtu[0], mtu_len);
         /* validate that the result is handled (0) */
-        ct_test(pTest, result == 0);
+        assert(result == 0);
         test_result_code = bvlc_get_last_result();
-        ct_test(pTest, test_result_code == result_code[i]);
+        assert(test_result_code == result_code[i]);
         test_function_code = bvlc_get_function_code();
-        ct_test(pTest, test_function_code == BVLC_RESULT);
+        assert(test_function_code == BVLC_RESULT);
     }
-}
-
-static void test_BBMD_Handler(Test *pTest)
-{
-    bool rc;
-
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, test_BBMD_Result);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_Initiate_Original_Broadcast_NPDU);
-    assert(rc);
 }
 
 int main(void)
 {
-    Test *pTest;
-
-    pTest = ct_create("BACnet Broadcast Management Device IP/v4", NULL);
-    test_BBMD_Handler(pTest);
-    /* configure output */
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
+    /* individual tests */
+    test_BBMD_Result();
+    test_Initiate_Original_Broadcast_NPDU();
 
     return 0;
 }

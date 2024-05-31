@@ -102,8 +102,7 @@ static uint32_t Database_Revision = 0;
 /* Slave_Address_Binding */
 /* Profile_Name */
 
-/* local forward (semi-private) and external prototypes */
-int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
+/* external prototypes */
 extern int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
 extern bool Routed_Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA *wp_data);
