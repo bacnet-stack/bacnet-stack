@@ -277,9 +277,16 @@ add_custom_command(TARGET ${EXECUTABLE}
     COMMAND ${CMAKE_OBJCOPY} -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin
 )
 
-# sort the RAM usage by size and place into a file
+# Print executable size
 add_custom_command(TARGET ${EXECUTABLE}
     POST_BUILD
+    COMMAND ${CMAKE_SIZE} ${EXECUTABLE}
+)
+
+# sort the RAM usage by size and place into a file
+add_custom_target(symbols
+    DEPENDS ${EXECUTABLE}
+    COMMENT "Print memory symbols by size"
     COMMAND ${CMAKE_NM} -t d -S --size-sort ${EXECUTABLE} 1> ${PROJECT_NAME}.nm
     COMMAND echo "RAM usage by size analysis in ${PROJECT_NAME}.nm"
     COMMAND echo "=ADDRESS= ==RAM=== = ==VARIABLE-NAME=="
@@ -287,8 +294,9 @@ add_custom_command(TARGET ${EXECUTABLE}
 )
 
 # calculate the worst case CSTACK memory usage by size and place into a file
-add_custom_command(TARGET ${EXECUTABLE}
-    POST_BUILD
+add_custom_target(cstack 
+    DEPENDS ${EXECUTABLE}
+    COMMENT "Print CSTACK memory depth by size"
     COMMAND ${CMAKE_CSTACK} ${EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR} 1> ${PROJECT_NAME}.su
     COMMAND echo "C-Stack maxium depth analysis in ${PROJECT_NAME}.su"
     COMMAND echo "==DEPTH== : == Functions called =="
@@ -296,13 +304,8 @@ add_custom_command(TARGET ${EXECUTABLE}
 )
 
 # Print file and library sizes
-add_custom_command(TARGET ${EXECUTABLE}
-    POST_BUILD
+add_custom_target(memmap 
+    DEPENDS ${PROJECT_NAME}.map
+    COMMENT "Print file and library memory usage by size"
     COMMAND ${CMAKE_MEMAP} -t GCC_ARM ${PROJECT_NAME}.map
-)
-
-# Print executable size
-add_custom_command(TARGET ${EXECUTABLE}
-    POST_BUILD
-    COMMAND ${CMAKE_SIZE} ${EXECUTABLE}
 )
