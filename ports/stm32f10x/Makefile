@@ -26,7 +26,6 @@ PLATFORM_SRC = \
 	$(PLATFORM_DIR)/bacnet.c \
 	$(PLATFORM_DIR)/bo.c \
 	$(PLATFORM_DIR)/device.c \
-	$(PLATFORM_DIR)/dlmstp.c \
 	$(PLATFORM_DIR)/netport.c \
 	$(PLATFORM_DIR)/led.c \
 	$(PLATFORM_DIR)/rs485.c \
@@ -64,13 +63,15 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
-	$(BACNET_CORE)/datalink/automac.c \
-	$(BACNET_CORE)/datalink/crc.c \
+	$(BACNET_CORE)/bactimevalue.c \
+	$(BACNET_CORE)/calendar_entry.c \
 	$(BACNET_CORE)/datetime.c \
+	$(BACNET_CORE)/dailyschedule.c \
 	$(BACNET_CORE)/dcc.c \
+	$(BACNET_CORE)/hostnport.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
-	$(BACNET_CORE)/hostnport.c \
+	$(BACNET_CORE)/indtext.c \
 	$(BACNET_CORE)/lighting.c \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/npdu.c \
@@ -79,15 +80,19 @@ BACNET_SRC = \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
+	$(BACNET_CORE)/special_event.c \
 	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/weeklyschedule.c \
-	$(BACNET_CORE)/dailyschedule.c \
-	$(BACNET_CORE)/bactimevalue.c \
-	$(BACNET_CORE)/calendar_entry.c \
-	$(BACNET_CORE)/special_event.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c
+
+DATALINK_SRC = \
+	$(BACNET_CORE)/datalink/cobs.c \
+	$(BACNET_CORE)/datalink/crc.c \
+	$(BACNET_CORE)/datalink/dlmstp.c \
+	$(BACNET_CORE)/datalink/mstp.c \
+	$(BACNET_CORE)/datalink/mstptext.c
 
 STM32_SRC = \
 	$(LIBRARY_STM32)/stm32f10x_adc.c \
@@ -118,6 +123,7 @@ STM32_SRC = \
 CSRC = $(PLATFORM_SRC)
 CSRC += $(BASIC_SRC)
 CSRC += $(BACNET_SRC)
+CSRC += $(DATALINK_SRC)
 CSRC += $(STM32_SRC)
 
 ASRC = $(LIBRARY_CMSIS)/gcc_ride7/startup_stm32f10x_xl.s
@@ -147,7 +153,7 @@ OPTIMIZE_FLAGS += -DNDEBUG
 
 BACNET_FLAGS = -DBACDL_MSTP=1
 BACNET_FLAGS += -DBACAPP_MINIMAL
-BACNET_FLAGS += -DMAX_APDU=480
+BACNET_FLAGS += -DMAX_APDU=1476
 BACNET_FLAGS += -DBIG_ENDIAN=0
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
 BACNET_FLAGS += -DMAX_CHARACTER_STRING_BYTES=64
@@ -245,6 +251,7 @@ memap:
 clean:
 	-rm -rf $(COBJ) $(AOBJ) $(COREOBJ) $(CSTACK)
 	-rm -rf $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
+	-rm -rf $(TARGET).su $(TARGET).nm
 	-rm -rf *.lst
 
 ## Other dependencies
