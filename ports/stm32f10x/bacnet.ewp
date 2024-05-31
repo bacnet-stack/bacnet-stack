@@ -227,7 +227,7 @@
                     <state>STM32F10X_XL</state>
                     <state>USE_STDPERIPH_DRIVER</state>
                     <state>BACDL_MSTP</state>
-                    <state>MAX_APDU=480</state>
+                    <state>MAX_APDU=1476</state>
                     <state>MAX_TSM_TRANSACTIONS=0</state>
                     <state>BACAPP_MINIMAL</state>
                 </option>
@@ -1080,6 +1080,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\dcc.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\indtext.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\iam.c</name>
         </file>
         <file>
@@ -1131,13 +1134,19 @@
     <group>
         <name>BACnet-Datalink</name>
         <file>
-            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\automac.c</name>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\cobs.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\datalink\crc.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\dlmstp.c</name>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\dlmstp.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\mstp.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\mstptext.c</name>
         </file>
     </group>
     <group>

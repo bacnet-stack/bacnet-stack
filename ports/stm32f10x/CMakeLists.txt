@@ -1,11 +1,12 @@
-# This is a CMake example for AT91SAM7S-EK development board
-# using the ARM GCC compiler
+# This is a CMake example for STM32 ARM Cortex-M3 STM32F103RGT6 on
+# a STM32 Discovery Kit evaluation board using the ARM GCC compiler 
+# and STM32 CMSIS library.
 #
-# MCU AT91SAM7S64
-# CPU ARM7
-# Clock 180MHz
-# RAM 16K
-# Flash 64K
+# Board STM32F103 Discovery Kit
+# MCU STM32F103RGT6
+# CPU Cortex-M3
+# RAM 96KB
+# Flash 1024KB
 #
 # To build this project you need to install:
 # - ARM GCC compiler
@@ -19,7 +20,7 @@
 # - st-flash write build/bacnet-mstp.hex 0x8000000
 #
 # To debug this project you need to run:
-# - arm-none-eabi-gdb -q build/bacnet-mstp.elf
+# - arm-none-eabi-gdb -q build/bacnet-mstp.out
 # - (gdb) target extended-remote localhost:3333
 # - (gdb) monitor reset halt
 # - (gdb) load
@@ -34,6 +35,7 @@
 # This example was tested with:
 # - ARM GCC 10.3.1
 # - CMake 3.22.1
+# - stm32f10x_StdPeriph_Driver V1.0.0
 # - BACnet Stack V1.3.2
 #
 cmake_minimum_required(VERSION 3.20)
@@ -47,7 +49,6 @@ set(CMAKE_ASM_COMPILER arm-none-eabi-gcc)
 set(CMAKE_AR arm-none-eabi-ar)
 set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 set(CMAKE_OBJDUMP arm-none-eabi-objdump)
-set(SIZE arm-none-eabi-size)
 set(CMAKE_SIZE arm-none-eabi-size)
 set(CMAKE_NM arm-none-eabi-nm)
 set(CMAKE_CSTACK "${CMAKE_SOURCE_DIR}/../../tools/check-stack-usage/checkStackUsage.py")
@@ -63,15 +64,16 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
 # Specific ARM microcontroller compiler and linker settings
-add_compile_options(-mcpu=arm7tdmi)
-add_compile_options(-mno-thumb-interwork)
-add_link_options(-mcpu=arm7tdmi)
-add_link_options(-mno-thumb-interwork)
-# Code size reduction using garbage collection sections
+add_compile_options(-mcpu=cortex-m3)
+add_compile_options(-mthumb -mno-thumb-interwork -mabi=aapcs)
+add_link_options(-mcpu=cortex-m3)
+add_link_options(-mthumb -mno-thumb-interwork -mabi=aapcs)
+# Compiler and linker settings for garbage collection and memory usage
 add_compile_options(-ffunction-sections -fdata-sections)
 add_compile_options(-fno-common -fmessage-length=0)
 add_compile_options(-fstack-usage -fdump-rtl-dfinish)
 add_link_options(-Wl,-gc-sections,--print-memory-usage)
+
 # Build types
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     message(STATUS "Maximum optimization for speed")
@@ -94,31 +96,56 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
-set(LIBRARY_BACNET_INC "../../src")
-set(LIBRARY_BACNET_CORE "../../src/bacnet")
-set(LIBRARY_BACNET_BASIC "../../src/bacnet/basic")
+set(LIBRARY_BACNET_INC "${CMAKE_SOURCE_DIR}/../../src")
+set(LIBRARY_BACNET_CORE "${CMAKE_SOURCE_DIR}/../../src/bacnet")
+set(LIBRARY_BACNET_BASIC "${CMAKE_SOURCE_DIR}/../../src/bacnet/basic")
+set(LIBRARY_STM32_SRC "${CMAKE_SOURCE_DIR}/drivers/src")
+set(LIBRARY_STM32_INC "${CMAKE_SOURCE_DIR}/drivers/inc")
+set(LIBRARY_CMSIS_INC "${CMAKE_SOURCE_DIR}/CMSIS")
+set(LIBRARY_CMSIS_GCC_INC "${CMAKE_SOURCE_DIR}/CMSIS/gcc_ride7")
 
 set(BACNET_PROJECT_SOURCE
-    ${CMAKE_SOURCE_DIR}/crt.s
-    ${CMAKE_SOURCE_DIR}/at91sam7s256.h
-    ${CMAKE_SOURCE_DIR}/board.h
-    # CPU interfaces
+    ${LIBRARY_STM32_SRC}/stm32f10x_adc.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_bkp.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_can.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_cec.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_crc.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_dac.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_dbgmcu.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_dma.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_exti.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_flash.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_fsmc.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_gpio.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_i2c.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_iwdg.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_misc.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_pwr.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_rcc.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_rtc.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_sdio.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_spi.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_tim.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_usart.c
+    ${LIBRARY_STM32_SRC}/stm32f10x_wwdg.c
+    ${LIBRARY_STM32_SRC}/syscalls.c
+
+    ${CMAKE_SOURCE_DIR}/stm32f10x_conf.h
+    # main entry and STM32 hardware setup
     ${CMAKE_SOURCE_DIR}/main.c
-    ${CMAKE_SOURCE_DIR}/init.c
-    ${CMAKE_SOURCE_DIR}/isr.c
-    ${CMAKE_SOURCE_DIR}/blinker.c
+    ${CMAKE_SOURCE_DIR}/stm32f10x_it.c
+    ${CMAKE_SOURCE_DIR}/stm32f10x_it.h
+    ${CMAKE_SOURCE_DIR}/system_stm32f10x.c
+    # BACnet specific hardware abstraction, configuration and tasks
+    ${CMAKE_SOURCE_DIR}/bacnet.c
+    ${CMAKE_SOURCE_DIR}/led.c
+    ${CMAKE_SOURCE_DIR}/mstimer-init.c
     ${CMAKE_SOURCE_DIR}/rs485.c
-    ${CMAKE_SOURCE_DIR}/timer.c
-    # MSTP datalink
-    ${CMAKE_SOURCE_DIR}/dlmstp.c
-    # BACnet objects
+    # BACnet objects in this device
     ${CMAKE_SOURCE_DIR}/device.c
     ${CMAKE_SOURCE_DIR}/netport.c
-    ${CMAKE_SOURCE_DIR}/ai.c
-    ${CMAKE_SOURCE_DIR}/av.c
-    ${CMAKE_SOURCE_DIR}/bi.c
-    ${CMAKE_SOURCE_DIR}/bv.c
-    # BACnet basic services
+    ${CMAKE_SOURCE_DIR}/bo.c
+    # BACnet services library
     ${LIBRARY_BACNET_BASIC}/service/h_dcc.c
     ${LIBRARY_BACNET_BASIC}/service/h_apdu.c
     ${LIBRARY_BACNET_BASIC}/npdu/h_npdu.c
@@ -132,12 +159,11 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/service/s_iam.c
     ${LIBRARY_BACNET_BASIC}/service/s_ihave.c
     ${LIBRARY_BACNET_BASIC}/tsm/tsm.c
-    # BACnet basic system modules
     ${LIBRARY_BACNET_BASIC}/sys/debug.c
     ${LIBRARY_BACNET_BASIC}/sys/ringbuf.c
     ${LIBRARY_BACNET_BASIC}/sys/fifo.c
     ${LIBRARY_BACNET_BASIC}/sys/mstimer.c
-    # BACnet core modules
+    # BACnet core library
     ${LIBRARY_BACNET_CORE}/abort.c
     ${LIBRARY_BACNET_CORE}/bacaddr.c
     ${LIBRARY_BACNET_CORE}/bacapp.c
@@ -150,8 +176,8 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/bacstr.c
     ${LIBRARY_BACNET_CORE}/datalink/cobs.c
     ${LIBRARY_BACNET_CORE}/datalink/crc.c
-#   ${LIBRARY_BACNET_CORE}/datalink/dlmstp.c
-#   ${LIBRARY_BACNET_CORE}/datalink/mstp.c
+    ${LIBRARY_BACNET_CORE}/datalink/dlmstp.c
+    ${LIBRARY_BACNET_CORE}/datalink/mstp.c
     ${LIBRARY_BACNET_CORE}/datalink/mstptext.c
     ${LIBRARY_BACNET_CORE}/datetime.c
     ${LIBRARY_BACNET_CORE}/dcc.c
@@ -176,9 +202,12 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/whohas.c
     ${LIBRARY_BACNET_CORE}/whois.c
     ${LIBRARY_BACNET_CORE}/wp.c
+
+    ${LIBRARY_CMSIS_GCC_INC}/startup_stm32f10x_xl.s
+    CMSIS/stm32f10x.h
 )
 
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/at91sam7s256.ld)
+set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/stm32f10x.ld)
 
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 
@@ -186,17 +215,21 @@ add_executable(${EXECUTABLE} ${BACNET_PROJECT_SOURCE})
 
 target_compile_definitions(${EXECUTABLE} PRIVATE
     -DNDEBUG
+    # STM32 CMSIS library
     -DUSE_STDPERIPH_DRIVER
-    -DSTM32F4XX
+    -DSTM32F10X_CL
+    -DHSE_VALUE=25000000
+    # BACnet Stack library
     -DBACDL_MSTP
-    -DMAX_APDU=480
+    -DMAX_APDU=1476
     -DBIG_ENDIAN=0
-    -DPRINT_ENABLED=0
     -DMAX_TSM_TRANSACTIONS=0
-    -DCRC_USE_TABLE
     -DBACAPP_MINIMAL
+    -DMAX_CHARACTER_STRING_BYTES=64
+    -DMAX_OCTET_STRING_BYTES=64
 )
 
+# inhibit pedantic warnings
 target_compile_options(${EXECUTABLE} PRIVATE
     -Wall -Wextra -pedantic
     -Wfloat-equal -Wconversion -Wredundant-decls 
@@ -210,10 +243,13 @@ target_compile_options(${EXECUTABLE} PRIVATE
     -Wno-attributes
     # don't warn about implicit fallthrough since it is common in network protocols
     -Wno-implicit-fallthrough
-    # the older Atmel SDK does not meet coding guidelines
+    # the SDK does not meet coding guidelines
     -Wno-comment
     -Wno-missing-braces
     -Wno-unused-variable
+    # reference the linker file for CSTACK size
+    -Wstack-usage=16384
+    -Wno-unused-parameter
     -Wno-char-subscripts
 )
 
@@ -234,17 +270,17 @@ target_link_options(${EXECUTABLE} PRIVATE
     -Wl,--gc-sections
 )
 
+# Create hex and bin files
+add_custom_command(TARGET ${EXECUTABLE}
+    POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
+    COMMAND ${CMAKE_OBJCOPY} -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin
+)
+
 # Print executable size
 add_custom_command(TARGET ${EXECUTABLE}
     POST_BUILD
-    COMMAND arm-none-eabi-size ${EXECUTABLE}
-)
-
-# Create hex file
-add_custom_command(TARGET ${EXECUTABLE}
-    POST_BUILD
-    COMMAND arm-none-eabi-objcopy -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
-    COMMAND arm-none-eabi-objcopy -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin
+    COMMAND ${CMAKE_SIZE} ${EXECUTABLE}
 )
 
 # sort the RAM usage by size and place into a file
