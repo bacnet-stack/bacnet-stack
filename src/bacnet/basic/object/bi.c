@@ -917,6 +917,17 @@ uint32_t Binary_Input_Create(uint32_t object_instance)
     struct object_data *pObject = NULL;
     int index = 0;
 
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        /* wildcard instance */
+        /* the Object_Identifier property of the newly created object
+            shall be initialized to a value that is unique within the
+            responding BACnet-user device. The method used to generate
+            the object identifier is a local matter.*/
+        object_instance = Keylist_Next_Empty_Key(Object_List, 1);
+    }
+
     pObject = Binary_Input_Object(object_instance);
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
