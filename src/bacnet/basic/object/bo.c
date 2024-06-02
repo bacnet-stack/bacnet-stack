@@ -1231,5 +1231,7 @@ bool Binary_Output_Delete(uint32_t object_instance)
  */
 void Binary_Output_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

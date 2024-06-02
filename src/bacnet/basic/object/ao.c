@@ -1279,5 +1279,7 @@ void Analog_Output_Cleanup(void)
  */
 void Analog_Output_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }
