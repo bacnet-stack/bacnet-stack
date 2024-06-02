@@ -1657,5 +1657,7 @@ void Color_Temperature_Cleanup(void)
  */
 void Color_Temperature_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }
