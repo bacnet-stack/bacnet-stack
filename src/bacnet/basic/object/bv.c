@@ -1006,5 +1006,7 @@ bool Binary_Value_Delete(uint32_t object_instance)
  */
 void Binary_Value_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }
