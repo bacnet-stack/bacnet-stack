@@ -860,8 +860,7 @@ void Structured_View_Cleanup(void)
  */
 void Structured_View_Init(void)
 {
-    Object_List = Keylist_Create();
-    if (Object_List) {
-        atexit(Structured_View_Cleanup);
+    if (!Object_List) {
+        Object_List = Keylist_Create();
     }
 }

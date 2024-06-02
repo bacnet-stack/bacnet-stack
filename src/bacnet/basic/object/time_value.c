@@ -809,8 +809,7 @@ void Time_Value_Cleanup(void)
  */
 void Time_Value_Init(void)
 {
-    Object_List = Keylist_Create();
-    if (Object_List) {
-        atexit(Time_Value_Cleanup);
+    if (!Object_List) {
+        Object_List = Keylist_Create();
     }
 }

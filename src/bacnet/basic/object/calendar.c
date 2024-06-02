@@ -772,8 +772,7 @@ void Calendar_Cleanup(void)
  */
 void Calendar_Init(void)
 {
-    Object_List = Keylist_Create();
-    if (Object_List) {
-        atexit(Calendar_Cleanup);
+    if (!Object_List) {
+        Object_List = Keylist_Create();
     }
 }
