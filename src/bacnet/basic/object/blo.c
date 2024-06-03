@@ -1554,5 +1554,7 @@ void Binary_Lighting_Output_Cleanup(void)
  */
 void Binary_Lighting_Output_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }
