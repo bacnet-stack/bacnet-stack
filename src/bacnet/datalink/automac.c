@@ -3,8 +3,7 @@
  * @brief BACnet MSTP zero-config auto MAC address
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2010
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
