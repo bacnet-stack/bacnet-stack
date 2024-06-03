@@ -2,8 +2,10 @@
  * @file
  * @brief BACnet ARCNET datalink interface and defines
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2007
+ * @date 2004
  * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLARCNET BACnet ARCNET DataLink Network Layer
+ * @ingroup DataLink
  */
 #ifndef BACNET_ARCNET_H
 #define BACNET_ARCNET_H

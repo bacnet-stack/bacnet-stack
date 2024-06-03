@@ -1,14 +1,14 @@
 /**
-* @file
-* @author Steve Karg
-* @date 2015
-*
-* Implementation of the BACnet Virtual Link Layer using IPv6,
-* as described in Annex J.
-*/
-#ifndef BVLC6_H
-#define BVLC6_H
-
+ * @file
+ * @brief Implementation of the BACnet Virtual Link Layer using IPv6
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @defgroup DLBIP BACnet/IP DataLink Network Layer
+ * @ingroup DataLink
+ */
+#ifndef BACNET_BVLC6_H
+#define BACNET_BVLC6_H
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>

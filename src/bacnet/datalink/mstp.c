@@ -1,51 +1,24 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2003-2007 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
-/** @file mstp.c  BACnet Master-Slave Twisted Pair (MS/TP) functions */
-
-/* This clause describes a Master-Slave/Token-Passing (MS/TP) data link  */
-/* protocol, which provides the same services to the network layer as  */
-/* ISO 8802-2 Logical Link Control. It uses services provided by the  */
-/* EIA-485 physical layer. Relevant clauses of EIA-485 are deemed to be  */
-/* included in this standard by reference. The following hardware is assumed: */
-/* (a)  A UART (Universal Asynchronous Receiver/Transmitter) capable of */
-/*      transmitting and receiving eight data bits with one stop bit  */
-/*      and no parity. */
-/* (b)  An EIA-485 transceiver whose driver may be disabled.  */
-/* (c)  A timer with a resolution of five milliseconds or less */
-
+/**
+ * @file
+ * @brief Implementation of the finite state machines 
+ *  and BACnet Master-Slave Twisted Pair (MS/TP) functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2003
+ * @details This clause describes a Master-Slave/Token-Passing (MS/TP) 
+ *  data link protocol, which provides the same services to the network layer
+ *  as ISO 8802-2 Logical Link Control. It uses services provided by the
+ *  EIA-485 physical layer. Relevant clauses of EIA-485 are deemed to be
+ *  included in this standard by reference. The following hardware is assumed:
+ *  (a) A UART (Universal Asynchronous Receiver/Transmitter) capable of
+ *      transmitting and receiving eight data bits with one stop bit
+ *      and no parity.
+ *  (b) An EIA-485 transceiver whose driver may be disabled.
+ *  (c) A timer with a resolution of five milliseconds or less
+ * 
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @defgroup DLMSTP BACnet MS/TP DataLink Network Layer
+ * @ingroup DataLink
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
