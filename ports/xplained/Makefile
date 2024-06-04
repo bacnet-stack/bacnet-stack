@@ -45,7 +45,6 @@ CSRC = main.c \
 	bacnet.c \
 	bname.c \
 	device.c \
-	dlmstp.c \
 	led.c \
 	mstimer-init.c \
 	netport.c \
@@ -77,9 +76,16 @@ BASICSRC = $(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/service/s_wp.c \
 	$(BACNET_BASIC)/service/h_noserv.c
 
+# core BACnet MS/TP files
+MSTPSRC =  \
+	$(BACNET_CORE)/datalink/cobs.c \
+	$(BACNET_CORE)/datalink/crc.c \
+	$(BACNET_CORE)/datalink/dlmstp.c \
+	$(BACNET_CORE)/datalink/mstp.c \
+	$(BACNET_CORE)/datalink/mstptext.c
+
 # core BACnet stack files
 CORESRC =  \
-	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
@@ -93,6 +99,7 @@ CORESRC =  \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
+	$(BACNET_CORE)/indtext.c \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/hostnport.c \
 	$(BACNET_CORE)/npdu.c \
@@ -163,6 +170,7 @@ INCLUDES = -I. -I./config -I$(BACNET_DIR) $(SDK_INCLUDES)
 COBJ = $(CSRC:.c=.o)
 BASICOBJ = $(BASICSRC:.c=.o)
 COREOBJ = $(CORESRC:.c=.o)
+MSTPOBJ = $(MSTPSRC:.c=.o)
 SDK_COBJ = $(SDK_CSRC:.c=.o)
 SDK_AOBJ = $(SDK_ASRC:.S=.o)
 
@@ -242,8 +250,8 @@ $(TARGET_ELF): $(OBJECTS) $(LIBRARY)
 
 lib: $(LIBRARY)
 
-$(LIBRARY): $(COREOBJ) Makefile
-	$(AR) rcs $@ $(COREOBJ)
+$(LIBRARY): $(COREOBJ) $(MSTPOBJ) Makefile
+	$(AR) rcs $@ $(COREOBJ) $(MSTPOBJ)
 	$(OBJDUMP) --syms $@ > $(LIBRARY:.a=.lst)
 
 .c.o:

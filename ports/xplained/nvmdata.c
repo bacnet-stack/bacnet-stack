@@ -1,9 +1,9 @@
 /**
  * @file
+ * @brief Store and retrieve non-volatile data
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2013
- * @brief Store and retrieve non-volatile data
- *
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
 #include <stdbool.h>
