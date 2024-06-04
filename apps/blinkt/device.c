@@ -1,3 +1,5 @@
+/** @file device.c Base "class" for handling all BACnet objects belonging
+ *                 to a BACnet device, as well as Device-specific properties. */
 /**************************************************************************
  *
  * Copyright (C) 2005,2006,2009 Steve Karg <skarg@users.sourceforge.net>
@@ -22,10 +24,6 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  *********************************************************************/
-
-/** @file device.c Base "class" for handling all BACnet objects belonging
- *                 to a BACnet device, as well as Device-specific properties. */
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>

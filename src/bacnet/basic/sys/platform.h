@@ -22,6 +22,14 @@
 #define islessgreater(x, y) ((x) < (y) || (x) > (y))
 #endif
 
+#ifndef isgreaterequal
+#define isgreaterequal(x, y) ((x) > (y) || !islessgreater((x),(y)))
+#endif
+
+#ifndef islessequal
+#define islessequal(x, y) ((x) < (y) || !islessgreater((x),(y)))
+#endif
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(array) ((size_t)(sizeof(array) / sizeof((array)[0])))
 #endif
