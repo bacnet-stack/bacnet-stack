@@ -20,17 +20,6 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
-typedef struct MSV_State_Text_Init_Options {
-    unsigned int state_text_option_index;
-    unsigned int index;
-    char option[254];
-} MSV_STATE_TEXT_INIT_OPTIONS;
-
-typedef struct MSV_State_Text_Options_List {
-    uint32_t length;
-    unsigned int options_len;
-    MSV_STATE_TEXT_INIT_OPTIONS MSV_State_Text_Objects[254];
-} MSV_STATE_TEXT_INIT_OPTIONS_LIST;
 /**
  * @brief Callback for gateway write present value request
  * @param  object_instance - object-instance number of the object
@@ -125,15 +114,6 @@ extern "C" {
         uint32_t object_instance,
         const char *state_text_list);
     BACNET_STACK_EXPORT
-    bool Multistate_Value_State_Text_Set(
-        uint32_t object_instance,
-        uint32_t state_index,
-        char *new_name);
-    BACNET_STACK_EXPORT
-    bool Multistate_Value_Max_States_Set(
-        uint32_t instance,
-        uint32_t max_states_requested);
-    BACNET_STACK_EXPORT
     uint32_t Multistate_Value_Max_States(
         uint32_t instance);
     BACNET_STACK_EXPORT
@@ -157,9 +137,6 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
-
-    BACNET_STACK_EXPORT
-    bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pInit_state_text_data);
 
 #ifdef __cplusplus
 }
