@@ -715,6 +715,9 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
     if(!(pObject = Binary_Value_Object(rpdata->object_instance))) {
+#if (!BINARY_VALUE_INTRINSIC_REPORTING)
+        (void) pObject;
+#endif
         return BACNET_STATUS_ERROR;
     }
     apdu = rpdata->application_data;
@@ -931,6 +934,9 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     if(!(pObject = Binary_Value_Object(wp_data->object_instance))) {
+#if (!BINARY_VALUE_INTRINSIC_REPORTING)
+        (void) pObject;
+#endif
         return BACNET_STATUS_ERROR;
     }
     /* Only array properties can have array options. */

@@ -708,6 +708,9 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
     if(!(pObject = Binary_Input_Object(rpdata->object_instance))) {
+#if (!BINARY_INPUT_INTRINSIC_REPORTING)
+        (void) pObject;
+#endif
         return BACNET_STATUS_ERROR;
     }
     apdu = rpdata->application_data;
