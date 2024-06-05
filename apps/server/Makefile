@@ -10,6 +10,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/ao.c \
 	$(BACNET_OBJECT_DIR)/av.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
+	$(BACNET_OBJECT_DIR)/bitstring_value.c \
 	$(BACNET_OBJECT_DIR)/bo.c \
 	$(BACNET_OBJECT_DIR)/blo.c \
 	$(BACNET_OBJECT_DIR)/bv.c \

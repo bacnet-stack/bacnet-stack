@@ -837,6 +837,31 @@ int cov_subscribe_property_decode_service_request(
     return len;
 }
 
+/**
+ * @brief Link an array or buffer of BACNET_PROPERTY_VALUE elements
+ * @param value_list - One or more BACNET_PROPERTY_VALUE elements in
+ * a buffer or array.
+ * @param count - number of BACNET_PROPERTY_VALUE elements
+ */
+void cov_property_value_list_link(
+    BACNET_PROPERTY_VALUE *value_list, size_t count)
+{
+    BACNET_PROPERTY_VALUE *current_value_list = NULL;
+
+    if (value_list) {
+        while (count) {
+            if (count > 1) {
+                current_value_list = value_list;
+                value_list++;
+                current_value_list->next = value_list;
+            } else {
+                value_list->next = NULL;
+            }
+            count--;
+        }
+    }
+}
+
 /** Link an array or buffer of BACNET_PROPERTY_VALUE elements and add them
  * to the BACNET_COV_DATA structure.  It is used prior to encoding or
  * decoding the APDU data into the structure.
@@ -850,20 +875,9 @@ int cov_subscribe_property_decode_service_request(
 void cov_data_value_list_link(
     BACNET_COV_DATA *data, BACNET_PROPERTY_VALUE *value_list, size_t count)
 {
-    BACNET_PROPERTY_VALUE *current_value_list = NULL;
-
     if (data && value_list) {
         data->listOfValues = value_list;
-        while (count) {
-            if (count > 1) {
-                current_value_list = value_list;
-                value_list++;
-                current_value_list->next = value_list;
-            } else {
-                value_list->next = NULL;
-            }
-            count--;
-        }
+        cov_property_value_list_link(value_list, count);
     }
 }
 
@@ -1054,6 +1068,62 @@ bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
         characterstring_copy(&value_list->value.type.Character_String, value);
+        value_list->value.next = NULL;
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list = value_list->next;
+    }
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        bitstring_init(&value_list->value.type.Bit_String);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, in_alarm);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, fault);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OVERRIDDEN, overridden);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OUT_OF_SERVICE, out_of_service);
+        value_list->value.next = NULL;
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list->next = NULL;
+        status = true;
+    }
+
+    return status;
+}
+#endif
+
+#if defined(BACAPP_BIT_STRING)
+/**
+ * @brief Encode the Value List for CHARACTER_STRING Present-Value and
+ * Status-Flags
+ * @param value_list - #BACNET_PROPERTY_VALUE with at least 2 entries
+ * @param value - CHARACTER_STRING present-value
+ * @param in_alarm - value of in-alarm status-flags
+ * @param fault - value of in-alarm status-flags
+ * @param overridden - value of overridden status-flags
+ * @param out_of_service - value of out-of-service status-flags
+ *
+ * @return true if values were encoded
+ */
+bool cov_value_list_encode_bit_string(BACNET_PROPERTY_VALUE *value_list,
+    BACNET_BIT_STRING *value,
+    bool in_alarm,
+    bool fault,
+    bool overridden,
+    bool out_of_service)
+{
+    bool status = false;
+
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        bitstring_copy(&value_list->value.type.Bit_String, value);
         value_list->value.next = NULL;
         value_list->priority = BACNET_NO_PRIORITY;
         value_list = value_list->next;

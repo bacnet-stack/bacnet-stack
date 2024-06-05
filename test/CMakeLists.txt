@@ -122,6 +122,7 @@ list(APPEND testdirs
   bacnet/basic/object/av
   bacnet/basic/object/bacfile
   bacnet/basic/object/bi
+  bacnet/basic/object/bitstring_value
   bacnet/basic/object/blo
   bacnet/basic/object/bo
   bacnet/basic/object/bv

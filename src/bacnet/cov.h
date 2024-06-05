@@ -129,8 +129,14 @@ int cov_subscribe_encode_apdu(uint8_t *apdu,
     BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
+void cov_property_value_list_link(
+    BACNET_PROPERTY_VALUE *value_list,
+    size_t count);
+BACNET_STACK_EXPORT
 void cov_data_value_list_link(
-    BACNET_COV_DATA *data, BACNET_PROPERTY_VALUE *value_list, size_t count);
+    BACNET_COV_DATA *data, 
+    BACNET_PROPERTY_VALUE *value_list,
+    size_t count);
 
 BACNET_STACK_EXPORT
 bool cov_value_list_encode_real(BACNET_PROPERTY_VALUE *value_list,
@@ -160,6 +166,13 @@ bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
     bool fault,
     bool overridden,
     bool out_of_service);
+    BACNET_STACK_EXPORT
+    bool cov_value_list_encode_bit_string(BACNET_PROPERTY_VALUE *value_list,
+        BACNET_BIT_STRING *value,
+        bool in_alarm,
+        bool fault,
+        bool overridden,
+        bool out_of_service);
 
 #ifdef __cplusplus
 }
