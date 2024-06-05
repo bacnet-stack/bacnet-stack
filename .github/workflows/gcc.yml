@@ -197,22 +197,6 @@ jobs:
         make stm32f4xx-cmake
         make at91sam7s-cmake
 
-  ports-avr:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Create Build Environment
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -qq build-essential
-        sudo apt-get install -qq gcc-avr avr-libc binutils-avr
-    - name: ports-avr
-      run: |
-        avr-gcc --version
-        make LEGACY=true atmega168
-        make LEGACY=true bdk-atxx4-mstp
-        make LEGACY=true xplained
-
   ports-lwip:
     runs-on: ubuntu-latest
     steps:
