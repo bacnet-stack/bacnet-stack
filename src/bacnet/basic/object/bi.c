@@ -918,6 +918,9 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     if(!(pObject = Binary_Input_Object(wp_data->object_instance))) {
+#if (!BINARY_INPUT_INTRINSIC_REPORTING)
+        (void) pObject;
+#endif
         return BACNET_STATUS_ERROR;
     }
     /*  only array properties can have array options */

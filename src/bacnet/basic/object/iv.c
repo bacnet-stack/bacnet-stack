@@ -48,6 +48,7 @@
 #include "bacnet/basic/services.h"
 /* me! */
 #include "bacnet/basic/object/iv.h"
+#include "bacnet/basic/sys/debug.h"
 
 #ifndef MAX_INTEGER_VALUES
 #define MAX_INTEGER_VALUES 1
