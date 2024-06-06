@@ -166,43 +166,62 @@ static void testRingBuf(
 /**
  * Unit Test for the ring buffer with 16 data elements
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ringbuf_tests, testRingBufSizeSmall)
+#else
 static void testRingBufSizeSmall(void)
+#endif
 {
     uint8_t data_element[5];
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(16)];
 
-    testRingBuf(data_store, data_element, sizeof(data_element),
+    testRingBuf(
+        data_store, data_element, sizeof(data_element),
         sizeof(data_store) / sizeof(data_element));
 }
 
 /**
  * Unit Test for the ring buffer with 32 data elements
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ringbuf_tests, testRingBufSizeLarge)
+#else
 static void testRingBufSizeLarge(void)
+#endif
 {
     uint8_t data_element[16];
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(99)];
 
-    testRingBuf(data_store, data_element, sizeof(data_element),
+    testRingBuf(
+        data_store, data_element, sizeof(data_element),
         sizeof(data_store) / sizeof(data_element));
 }
 
 /**
  * Unit Test for the ring buffer with 32 data elements
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ringbuf_tests, testRingBufSizeInvalid)
+#else
 static void testRingBufSizeInvalid(void)
+#endif
 {
     RING_BUFFER test_buffer;
     uint8_t data_element[16];
     uint8_t data_store[sizeof(data_element) * 99];
 
-    zassert_false(Ringbuf_Init(&test_buffer,
-		     data_store, sizeof(data_element),
-                     sizeof(data_store) / sizeof(data_element)),
-		  NULL);
+    zassert_false(
+        Ringbuf_Init(
+            &test_buffer, data_store, sizeof(data_element),
+            sizeof(data_store) / sizeof(data_element)),
+        NULL);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ringbuf_tests, testRingBufPowerOfTwo)
+#else
 static void testRingBufPowerOfTwo(void)
+#endif
 {
     zassert_equal(NEXT_POWER_OF_2(3), 4, NULL);
     zassert_equal(NEXT_POWER_OF_2(100), 128, NULL);
@@ -318,30 +337,37 @@ static bool testRingBufNextElement(
 /**
  * Unit Test for the ring buffer with 16 data elements
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ringbuf_tests, testRingBufNextElementSizeSmall)
+#else
 static void testRingBufNextElementSizeSmall(void)
+#endif
 {
     bool status;
     uint8_t data_element[5];
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(16)];
 
-    status = testRingBufNextElement(data_store, data_element,
-        sizeof(data_element), sizeof(data_store) / sizeof(data_element));
+    status = testRingBufNextElement(
+        data_store, data_element, sizeof(data_element),
+        sizeof(data_store) / sizeof(data_element));
     zassert_true(status, NULL);
 }
 /**
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(ringbuf_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(ringbuf_tests,
-     ztest_unit_test(testRingBufPowerOfTwo),
-     ztest_unit_test(testRingBufSizeSmall),
-     ztest_unit_test(testRingBufSizeLarge),
-     ztest_unit_test(testRingBufSizeInvalid),
-     ztest_unit_test(testRingBufNextElementSizeSmall)
-     );
+    ztest_test_suite(
+        ringbuf_tests, ztest_unit_test(testRingBufPowerOfTwo),
+        ztest_unit_test(testRingBufSizeSmall),
+        ztest_unit_test(testRingBufSizeLarge),
+        ztest_unit_test(testRingBufSizeInvalid),
+        ztest_unit_test(testRingBufNextElementSizeSmall));
 
     ztest_run_test_suite(ringbuf_tests);
 }
+#endif

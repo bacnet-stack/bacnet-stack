@@ -1,34 +1,21 @@
-/**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-#ifndef BI_H
-#define BI_H
+/**
+ * @file
+ * @author Steve Karg
+ * @date 2006
+ * @brief Binary Input object is an input object with a present-value that
+ * uses an enumerated two state active/inactive data type.
+ * @section LICENSE
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ * SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_BINARY_INPUT_OBJECT_H
+#define BACNET_BINARY_INPUT_OBJECT_H
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/cov.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -40,6 +27,15 @@
 #include "bacnet/get_alarm_sum.h"
 #endif
 
+/**
+ * @brief Callback for gateway write present value request
+ * @param  object_instance - object-instance number of the object
+ * @param  old_value - binary preset-value prior to write
+ * @param  value - binary preset-value of the write
+ */
+typedef void (*binary_input_write_present_value_callback)(
+    uint32_t object_instance, BACNET_BINARY_PV old_value,
+    BACNET_BINARY_PV value);
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,8 +81,8 @@ extern "C" {
         BACNET_BINARY_PV value);
 
     BACNET_STACK_EXPORT
-    bool Binary_Input_Description(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
+    BACNET_CHARACTER_STRING *Binary_Input_Description(
+    uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Binary_Input_Description_Set(
         uint32_t instance,
@@ -107,6 +103,7 @@ extern "C" {
     bool Binary_Input_Inactive_Text_Set(
         uint32_t instance,
         char *new_name);
+
     BACNET_STACK_EXPORT
     char *Binary_Input_Active_Text(
         uint32_t instance);
@@ -149,13 +146,15 @@ extern "C" {
     BACNET_STACK_EXPORT
     int Binary_Input_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
-
     BACNET_STACK_EXPORT
     bool Binary_Input_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
-
     BACNET_STACK_EXPORT
-    bool Binary_Input_Create(
+    void Binary_Input_Write_Present_Value_Callback_Set(
+        binary_input_write_present_value_callback cb);
+    
+    BACNET_STACK_EXPORT
+    uint32_t Binary_Input_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Binary_Input_Delete(

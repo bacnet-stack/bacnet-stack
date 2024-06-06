@@ -22,7 +22,6 @@ PLATFORM_SRC = \
 	$(PLATFORM_DIR)/main.c \
 	$(PLATFORM_DIR)/bacnet.c \
 	$(PLATFORM_DIR)/device.c \
-	$(PLATFORM_DIR)/dlmstp.c \
 	$(PLATFORM_DIR)/led.c \
 	$(PLATFORM_DIR)/netport.c \
 	$(PLATFORM_DIR)/rs485.c \
@@ -31,9 +30,9 @@ PLATFORM_SRC = \
 	$(PLATFORM_DIR)/system_stm32f4xx.c
 
 BASIC_SRC = \
-	$(BACNET_BASIC)/service/h_dcc.c \
-	$(BACNET_BASIC)/service/h_apdu.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/service/h_apdu.c \
+	$(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/h_rd.c \
 	$(BACNET_BASIC)/service/h_rp.c \
 	$(BACNET_BASIC)/service/h_rpm.c \
@@ -43,11 +42,11 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/h_noserv.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
-	$(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/sys/fifo.c \
-	$(BACNET_BASIC)/sys/mstimer.c
+	$(BACNET_BASIC)/sys/mstimer.c \
+	$(BACNET_BASIC)/tsm/tsm.c
 
 BACNET_SRC = \
 	$(BACNET_CORE)/abort.c \
@@ -60,9 +59,14 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
+	$(BACNET_CORE)/datalink/cobs.c \
 	$(BACNET_CORE)/datalink/crc.c \
+	$(BACNET_CORE)/datalink/dlmstp.c \
+	$(BACNET_CORE)/datalink/mstp.c \
+	$(BACNET_CORE)/datalink/mstptext.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \
+	$(BACNET_CORE)/indtext.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
 	$(BACNET_CORE)/hostnport.c \
@@ -77,6 +81,8 @@ BACNET_SRC = \
 	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/weeklyschedule.c \
 	$(BACNET_CORE)/dailyschedule.c \
+	$(BACNET_CORE)/calendar_entry.c \
+	$(BACNET_CORE)/special_event.c \
 	$(BACNET_CORE)/bactimevalue.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
@@ -117,12 +123,14 @@ CSRC += $(STM32_SRC)
 ASRC = $(LIBRARY_CMSIS)/gcc_ride7/startup_stm32f4xx.s
 
 #Set the toolchain command names (only the ones needed are defined)
+# sudo apt install gcc-arm-none-eabi
 PREFIX ?= arm-none-eabi-
 
 CC = $(PREFIX)gcc
 OBJCOPY = $(PREFIX)objcopy
 OBJDUMP = $(PREFIX)objdump
 AR = $(PREFIX)ar
+NM = $(PREFIX)nm
 SIZE = $(PREFIX)size
 
 LDSCRIPT = $(PLATFORM_DIR)/stm32f4xx.ld
@@ -136,15 +144,28 @@ OPTIMIZE_FLAGS := -Os -ggdb
 OPTIMIZE_FLAGS += -DNDEBUG
 
 BACNET_FLAGS = -DBACDL_MSTP=1
-BACNET_FLAGS += -DBACAPP_ALL
-BACNET_FLAGS += -DMAX_APDU=480
+BACNET_FLAGS += -DMAX_APDU=1476
 BACNET_FLAGS += -DBIG_ENDIAN=0
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
 BACNET_FLAGS += -DMAX_CHARACTER_STRING_BYTES=64
 BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
+BACNET_FLAGS += -DBACAPP_MINIMAL
 # if called from root Makefile, PRINT was already defined
 BACNET_FLAGS += -UPRINT_ENABLED
 BACNET_FLAGS += -DPRINT_ENABLED=0
+ifeq (${SHIELD},)
+BACNET_FLAGS += -DRS485_DFR0259_ENABLED=1
+endif
+ifeq (${SHIELD},dfr0259)
+BACNET_FLAGS += -DRS485_DFR0259_ENABLED=1
+endif
+ifeq (${SHIELD},linksprite)
+BACNET_FLAGS += -DRS485_LINKSPRITE_ENABLED=1
+endif
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 CFLAGS += $(MCU_FLAGS)
 CFLAGS += $(OPTIMIZE_FLAGS)
@@ -175,34 +196,71 @@ LDFLAGS = -nostartfiles
 LDFLAGS += -Wl,-nostdlib,-Map=$(TARGET).map,$(LIBRARIES),-T$(LDSCRIPT)
 # dead code removal
 LDFLAGS += -Wl,--gc-sections,-static
-CPFLAGS = --output-target=binary
 ODFLAGS	= -x --syms
 
 AOBJ = $(ASRC:.s=.o)
 COBJ = $(CSRC:.c=.o)
 
-all: $(TARGET).bin $(TARGET).elf
+all: $(TARGET).bin $(TARGET).hex $(TARGET).elf
 	$(OBJDUMP) $(ODFLAGS) $(TARGET).elf > $(TARGET).dmp
 	$(SIZE) $(TARGET).elf
 
 $(TARGET).bin:  $(TARGET).elf
-	$(OBJCOPY) $(TARGET).elf $(CPFLAGS) $(TARGET).bin
+	$(OBJCOPY) $(TARGET).elf --output-target=binary $(TARGET).bin
+
+$(TARGET).hex:  $(TARGET).elf
+	$(OBJCOPY) $(TARGET).elf --output-target=ihex $(TARGET).hex
 
 $(TARGET).elf: $(COBJ) $(AOBJ) Makefile
 	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@
 
-# allow a single file to be unoptimized for debugging purposes
-#dlmstp.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
-#
-#main.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
-#
-#$(BACNET_CORE)/npdu.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
-#
-#$(BACNET_CORE)/apdu.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
+: ram-usage
+ram-usage:
+	$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
+
+# GDB using st-util (GDB server for ST Link)
+GDB_PORT = 3333
+.PHONY: debug
+debug:
+	st-util --listen $(GDB_PORT)
+
+# Note: STLink is built into Nucleo board
+OPENOCD_FLAGS = -f interface/stlink.cfg -f target/stm32f4x.cfg
+# GDB using openocd (GDB server for ST Link)
+# sudo apt install openocd
+.PHONY: openocd
+openocd:
+	openocd $(OPENOCD_FLAGS)
+
+flash: $(TARGET).elf
+	openocd $(OPENOCD_FLAGS) -c "program $< verify reset" -c "shutdown"
+
+# graphical GDB debugging tool
+# note: relies on .gdbinit containing:
+# file "./release/target.elf"
+# target extended-remote :3333
+# load
+# break main
+# sudo apt install ddd
+.PHONY: ddd
+ddd:
+	ddd --debugger $(GDB) $(realpath $(TARGET).elf)
+
+# web based graphical GDB debugging tool
+# pip install gdbgui
+.PHONY: gdbgui
+gdbgui:
+	gdbgui -g $(GDB) $(realpath $(TARGET).elf)
+
+# sudo apt install stlink-tools
+# note: might require adding rule file to /etc/udev/rules.d/
+# SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", MODE="0666"
+# SUBSYSTEM=="usb_device", ATTRS{idVendor}=="0483", MODE="0666"
+# and reloading with
+# $ sudo udevadm control --reload-rules
+# or unplug and plugin the stlink after adding the rules file
+install: $(TARGET).bin
+	st-flash write $(TARGET).bin 0x08000000
 
 .c.o:
 	$(CC) -c $(OPTIMIZATION) $(CFLAGS) $*.c -o $@
@@ -214,6 +272,7 @@ $(TARGET).elf: $(COBJ) $(AOBJ) Makefile
 clean:
 	-rm -rf $(COBJ) $(AOBJ) $(COREOBJ)
 	-rm -rf $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
+	-rm -rf $(TARGET).su $(TARGET).nm
 	-rm -rf *.lst
 
 ## Other dependencies

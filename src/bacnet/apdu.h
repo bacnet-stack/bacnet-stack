@@ -26,8 +26,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
 
 typedef struct _confirmed_service_data {
     bool segmented_message;

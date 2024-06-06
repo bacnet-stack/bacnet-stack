@@ -29,13 +29,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacaddr.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
-#include "rs485.h"
 #include "bacnet/npdu.h"
-#include "bacnet/bits.h"
+/* port specific */
+#include "rs485.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
@@ -52,7 +54,7 @@ static HANDLE Receive_Packet_Flag;
 HANDLE Received_Frame_Flag;
 static DLMSTP_PACKET Transmit_Packet;
 /* local MS/TP port data - shared with RS-485 */
-volatile struct mstp_port_struct_t MSTP_Port;
+static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t TxBuffer[DLMSTP_MPDU_MAX];
 static uint8_t RxBuffer[DLMSTP_MPDU_MAX];
@@ -62,11 +64,12 @@ static uint32_t TimeBeginPeriod;
 /* 1-millisecond target resolution */
 #define TARGET_RESOLUTION 1
 
-static uint16_t Timer_Silence(void)
+static uint16_t Timer_Silence(void *arg)
 {
     uint32_t now = timeGetTime();
     uint32_t delta_time = 0;
 
+    (void)arg;  
     if (SilenceStartTime < now) {
         delta_time = now - SilenceStartTime;
     } else {
@@ -79,8 +82,9 @@ static uint16_t Timer_Silence(void)
     return (uint16_t)delta_time;
 }
 
-static void Timer_Silence_Reset(void)
+static void Timer_Silence_Reset(void *arg)
 {
+    (void)arg;
     SilenceStartTime = timeGetTime();
 }
 
@@ -241,7 +245,7 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
 }
 
 /* for the MS/TP state machine to use for putting received data */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     uint16_t pdu_len = 0;
     BOOL rc;
@@ -266,7 +270,7 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
     uint8_t destination = 0; /* destination address */
@@ -296,6 +300,20 @@ uint16_t MSTP_Get_Send(
     return pdu_len;
 }
 
+/**
+ * @brief Send an MSTP frame
+ * @param mstp_port - port specific data
+ * @param buffer - data to send
+ * @param nbytes - number of bytes of data to send
+ */
+void MSTP_Send_Frame(
+    struct mstp_port_struct_t *mstp_port,
+    uint8_t * buffer,
+    uint16_t nbytes)
+{
+    RS485_Send_Frame(mstp_port, buffer, nbytes);
+}
+
 bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,
@@ -323,8 +341,8 @@ bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = npdu_decode(
-        &request_pdu[0], NULL, &request.address, &request.npdu_data);
+    offset = bacnet_npdu_decode(request_pdu, request_pdu_len, NULL,
+        &request.address, &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -340,7 +358,8 @@ bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
         request.service_choice = request_pdu[offset + 3];
     /* decode the reply data */
     bacnet_address_copy(&reply.address, dest_address);
-    offset = npdu_decode(&reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
+    offset = bacnet_npdu_decode(
+        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
@@ -405,7 +424,7 @@ bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
 
 /* Get the reply to a DATA_EXPECTING_REPLY frame, or nothing */
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+    struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0; /* return value */
     uint8_t destination = 0; /* destination address */

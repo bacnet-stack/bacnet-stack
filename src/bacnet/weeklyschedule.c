@@ -37,6 +37,13 @@ License.
 #include "bacnet/bacdcode.h"
 #include "bacapp.h"
 
+/**
+ * @brief decode a BACnetWeeklySchedule
+ * @param apdu - buffer of data to be decoded
+ * @param max_apdu_len - number of bytes in the buffer
+ * @param value - stores the decoded property value
+ * @return  number of bytes decoded, or BACNET_STATUS_ERROR if errors occur
+ */
 int bacnet_weeklyschedule_decode(
     uint8_t *apdu, int max_apdu_len, BACNET_WEEKLY_SCHEDULE *value)
 {
@@ -44,22 +51,39 @@ int bacnet_weeklyschedule_decode(
     int apdu_len = 0;
     int wi;
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (max_apdu_len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
     value->singleDay = false;
     for (wi = 0; wi < 7; wi++) {
-        len = bacnet_dailyschedule_decode(&apdu[apdu_len],
-            max_apdu_len - apdu_len, &value->weeklySchedule[wi]);
+        len = bacnet_dailyschedule_context_decode(&apdu[apdu_len],
+            max_apdu_len - apdu_len, 0, &value->weeklySchedule[wi]);
         if (len < 0) {
             if (wi == 1) {
                 value->singleDay = true;
                 break;
             }
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
     }
+
     return apdu_len;
 }
 
+/**
+ * @brief Encode the Weekly_Schedule property
+ *  from clause 12 Schedule Object Type
+ *  BACnetARRAY[7] of BACnetDailySchedule
+ *
+ * @param apdu - buffer of data to be encoded, or NULL for length
+ * @param tag_number - context tag number to be encoded
+ * @param value - value to be encoded
+ * @return the number of apdu bytes encoded, or BACNET_STATUS_ERROR
+ */
 int bacnet_weeklyschedule_encode(uint8_t *apdu, BACNET_WEEKLY_SCHEDULE *value)
 {
     int apdu_len = 0;
@@ -72,18 +96,20 @@ int bacnet_weeklyschedule_encode(uint8_t *apdu, BACNET_WEEKLY_SCHEDULE *value)
         if (apdu) {
             apdu_offset = &apdu[apdu_len];
         }
-        len = bacnet_dailyschedule_encode(
-            apdu_offset, &value->weeklySchedule[wi]);
-        if (len < 0)
-            return -1;
+        len = bacnet_dailyschedule_context_encode(
+            apdu_offset, 0, &value->weeklySchedule[wi]);
+        if (len < 0) {
+            return BACNET_STATUS_ERROR;
+        }
         apdu_len += len;
     }
+
     return apdu_len;
 }
 
 /**
- * @brief Encode a context tagged WeeklySchedule complex data type
- * @param apdu - the APDU buffer
+ * @brief Encode a context tagged Weekly_Schedule complex data type
+ * @param apdu - the APDU buffer, or NULL for buffer length
  * @param tag_number - the APDU buffer size
  * @param value - WeeklySchedule structure
  * @return length of the APDU buffer, or 0 if not able to encode
@@ -103,6 +129,9 @@ int bacnet_weeklyschedule_context_encode(
             apdu_offset = &apdu[apdu_len];
         }
         len = bacnet_weeklyschedule_encode(apdu_offset, value);
+        if (len == BACNET_STATUS_ERROR) {
+            return 0;
+        }
         apdu_len += len;
         if (apdu) {
             apdu_offset = &apdu[apdu_len];
@@ -114,6 +143,14 @@ int bacnet_weeklyschedule_context_encode(
     return apdu_len;
 }
 
+/**
+ * @brief decode a context encoded Weekly_Schedule property
+ * @param apdu - buffer of data to be decoded
+ * @param max_apdu_len - number of bytes in the buffer
+ * @param tag_number - context tag number to match
+ * @param value - stores the decoded property value
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
+ */
 int bacnet_weeklyschedule_context_decode(uint8_t *apdu,
     int max_apdu_len,
     uint8_t tag_number,
@@ -122,34 +159,33 @@ int bacnet_weeklyschedule_context_decode(uint8_t *apdu,
     int apdu_len = 0;
     int len;
 
-    if ((max_apdu_len - apdu_len) >= 1 &&
-        decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
-        apdu_len += 1;
-    } else {
-        return -1;
-    }
-
-    if (-1 ==
-        (len = bacnet_weeklyschedule_decode(
-             &apdu[apdu_len], max_apdu_len - apdu_len, value))) {
-        return -1;
-    } else {
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], max_apdu_len - apdu_len, tag_number, &len)) {
         apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_weeklyschedule_decode(
+        &apdu[apdu_len], max_apdu_len - apdu_len, value);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], max_apdu_len - apdu_len, tag_number, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
     }
 
-    if ((max_apdu_len - apdu_len) >= 1 &&
-        decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
-        apdu_len += 1;
-    } else {
-        return -1;
-    }
     return apdu_len;
 }
 
 /**
  * @brief Compare the BACnetWeeklySchedule complex data
- * @param value1 - BACNET_COLOR_COMMAND structure
- * @param value2 - BACNET_COLOR_COMMAND structure
+ * @param value1 - BACNET_WEEKLY_SCHEDULE structure
+ * @param value2 - BACNET_WEEKLY_SCHEDULE structure
  * @return true if the same
  */
 bool bacnet_weeklyschedule_same(

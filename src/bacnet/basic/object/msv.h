@@ -1,49 +1,34 @@
-/**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-#ifndef MULTISTATE_VALUE_H
-#define MULTISTATE_VALUE_H
+/**
+ * @file
+ * @author Steve Karg
+ * @date 2009
+ * @brief Multi-State object is an input object with a present-value that
+ * uses an integer data type with a sequence of 1 to N values.
+ * @section LICENSE
+ * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+ * SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_MULTI_STATE_VALUE_H
+#define BACNET_MULTI_STATE_VALUE_H
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
-typedef struct MSV_State_Text_Init_Options {
-    unsigned int state_text_option_index;
-    unsigned int index;
-    char option[254];
-} MSV_STATE_TEXT_INIT_OPTIONS;
-
-typedef struct MSV_State_Text_Options_List {
-    uint32_t length;
-    unsigned int options_len;
-    MSV_STATE_TEXT_INIT_OPTIONS MSV_State_Text_Objects[254];
-} MSV_STATE_TEXT_INIT_OPTIONS_LIST;
+/**
+ * @brief Callback for gateway write present value request
+ * @param  object_instance - object-instance number of the object
+ * @param  old_value - multistate preset-value prior to write
+ * @param  value - multistate preset-value of the write
+ */
+typedef void (*multistate_value_write_present_value_callback)(
+    uint32_t object_instance, uint32_t old_value,
+    uint32_t value);
 
 #ifdef __cplusplus
 extern "C" {
@@ -117,7 +102,7 @@ extern "C" {
         bool value);
 
     BACNET_STACK_EXPORT
-    char *Multistate_Value_Description(
+    BACNET_CHARACTER_STRING *Multistate_Value_Description(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool Multistate_Value_Description_Set(
@@ -125,21 +110,19 @@ extern "C" {
         char *text_string);
 
     BACNET_STACK_EXPORT
-    bool Multistate_Value_State_Text_Set(
+    bool Multistate_Value_State_Text_List_Set(
         uint32_t object_instance,
-        uint32_t state_index,
-        char *new_name);
+        const char *state_text_list);
     BACNET_STACK_EXPORT
-    bool Multistate_Value_Max_States_Set(
-        uint32_t instance,
-        uint32_t max_states_requested);
+    uint32_t Multistate_Value_Max_States(
+        uint32_t instance);
     BACNET_STACK_EXPORT
     char *Multistate_Value_State_Text(
         uint32_t object_instance,
         uint32_t state_index);
 
     BACNET_STACK_EXPORT
-    bool Multistate_Value_Create(
+    uint32_t Multistate_Value_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Multistate_Value_Delete(
@@ -154,9 +137,6 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
-
-    BACNET_STACK_EXPORT
-    bool Multistate_Value_Set_State_text_init(MSV_STATE_TEXT_INIT_OPTIONS_LIST *pInit_state_text_data);
 
 #ifdef __cplusplus
 }

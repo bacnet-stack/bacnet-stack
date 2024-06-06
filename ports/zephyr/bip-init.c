@@ -41,6 +41,9 @@
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/net/socket_select.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip.h"
@@ -71,22 +74,21 @@ static struct in_addr BIP_Broadcast_Addr;
 
 /* Used by inet_ntoa */
 #if CONFIG_BACNETSTACK_LOG_LEVEL
-static char ipv4_addr_str[16]={0};
+static char ipv4_addr_str[16] = { 0 };
 #else
-static char ipv4_addr_str[]="";
+static char ipv4_addr_str[] = "";
 #endif
 
 /**
-* @brief Return a string representation of an IPv4 address
-* @param a - IPv4 address
-* @return Pointer to global string
-*/
-char* inet_ntoa(struct in_addr *a)
+ * @brief Return a string representation of an IPv4 address
+ * @param a - IPv4 address
+ * @return Pointer to global string
+ */
+char *inet_ntoa(struct in_addr *a)
 {
     if (IS_ENABLED(CONFIG_BACNETSTACK_LOG_LEVEL)) {
-
         snprintf(ipv4_addr_str, sizeof(ipv4_addr_str), "%d.%d.%d.%d",
-            a->s4_addr[0],a->s4_addr[1],a->s4_addr[2],a->s4_addr[3]);
+            a->s4_addr[0], a->s4_addr[1], a->s4_addr[2], a->s4_addr[3]);
     }
 
     return &ipv4_addr_str[0];
@@ -97,13 +99,14 @@ char* inet_ntoa(struct in_addr *a)
  * @param str - debug info string
  * @param addr - IPv4 address
  */
-static void debug_print_ipv4(const char *str, const struct in_addr *addr,
-    const unsigned int port, const unsigned int count)
+static void debug_print_ipv4(const char *str,
+    const struct in_addr *addr,
+    const unsigned int port,
+    const unsigned int count)
 {
-    LOG_DBG("%s %s:%hu (%u bytes)", log_strdup(str), log_strdup(inet_ntoa((struct in_addr*) &addr)),
+    LOG_DBG("%s %s:%hu (%u bytes)", str, inet_ntoa((struct in_addr *)&addr),
         ntohs(port), count);
 }
-
 
 /**
  * @brief Set the BACnet IPv4 UDP port number
@@ -154,7 +157,7 @@ void bip_get_my_address(BACNET_ADDRESS *addr)
 
 void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 {
-    int i = 0; 
+    int i = 0;
 
     if (dest) {
         dest->mac_len = BIP_ADDRESS_MAX;
@@ -169,17 +172,16 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
     return;
 }
 
-
 /**
- * Set the BACnet/IP address
- *
- * @param addr - network IPv4 address
+ * @brief Set the BACnet/IP address 
+ * @param addr - network IPv4 address (in network byte order)
+ * @return true if the address was set
  */
 bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&BIP_Address.s_addr, &addr->address[0], IP_ADDRESS_MAX);
-        memcpy(&BIP_Port, &addr->port, sizeof(addr->port));
+        BIP_Port = addr->port;
         return true;
     }
     return false;
@@ -187,14 +189,14 @@ bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 
 /**
  * @brief Get the BACnet/IP address
- * @param addr - network IPv4 address
+ * @param addr - network IPv4 address (in network byte order)
  * @return true if the address was retrieved
  */
 bool bip_get_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&addr->address[0], &BIP_Address.s_addr, IP_ADDRESS_MAX);
-        memcpy(&addr->port, &BIP_Port, sizeof(addr->port));
+        addr->port = BIP_Port;
         return true;
     }
     return false;
@@ -247,7 +249,6 @@ uint8_t bip_get_subnet_prefix(void)
 {
     uint32_t address = 0;
     uint32_t broadcast = 0;
-    uint32_t test_broadcast = 0;
     uint32_t mask = 0xFFFFFFFE;
     uint8_t prefix = 0;
 
@@ -255,11 +256,10 @@ uint8_t bip_get_subnet_prefix(void)
     broadcast = BIP_Broadcast_Addr.s_addr;
     /* calculate the subnet prefix from the broadcast address */
     for (prefix = 1; prefix <= 32; prefix++) {
-        test_broadcast = (address & mask) | (~mask);
-        if (test_broadcast == broadcast) {
+        if ((address | mask) == broadcast) {
             break;
         }
-        mask = mask<<1;
+        mask = mask << 1;
     }
 
     return prefix;
@@ -292,8 +292,8 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     bip_dest.sin_port = htons(dest->port);
 
     /* Send the packet */
-    debug_print_ipv4("Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port,
-        mtu_len);
+    debug_print_ipv4(
+        "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
     return zsock_sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
 }
@@ -341,25 +341,24 @@ uint16_t bip_receive(
     }
     ZSOCK_FD_ZERO(&read_fds);
     ZSOCK_FD_SET(BIP_Socket, &read_fds);
-    FD_SET(BIP_Broadcast_Socket, &read_fds);
+    ZSOCK_FD_SET(BIP_Broadcast_Socket, &read_fds);
 
     max = BIP_Socket > BIP_Broadcast_Socket ? BIP_Socket : BIP_Broadcast_Socket;
 
     /* see if there is a packet for us */
     if (zsock_select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        socket = FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket :
-            BIP_Broadcast_Socket;
-        received_bytes = zsock_recvfrom(socket, (char *)&npdu[0], max_npdu,
-            0, (struct sockaddr *)&sin, &sin_len);
-    }
-    else 
-    {
+        socket =
+            FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket : BIP_Broadcast_Socket;
+        received_bytes = zsock_recvfrom(socket, (char *)&npdu[0], max_npdu, 0,
+            (struct sockaddr *)&sin, &sin_len);
+    } else {
         return 0;
     }
 
     /* See if there is a problem */
     if (received_bytes < 0) {
-        LOG_WRN("%s:%d - RX zsock_recvfrom() error: %d", THIS_FILE, __LINE__, received_bytes);
+        LOG_WRN("%s:%d - RX zsock_recvfrom() error: %d", THIS_FILE, __LINE__,
+            received_bytes);
         return 0;
     }
     /* no problem, just no bytes */
@@ -371,26 +370,26 @@ uint16_t bip_receive(
         LOG_WRN("%s:%d - RX bad packet", THIS_FILE, __LINE__);
         return 0;
     }
-    
+
     /* Data link layer addressing between B/IPv4 nodes consists of a 32-bit
        IPv4 address followed by a two-octet UDP port number (both of which
        shall be transmitted with the most significant octet first). This
        address shall be referred to as a B/IPv4 address.
     */
-   
+
     memcpy(&addr.address[0], &sin.sin_addr.s_addr, IP_ADDRESS_MAX);
     addr.port = ntohs(sin.sin_port);
-  
-    debug_print_ipv4("Received MPDU->", &sin.sin_addr, sin.sin_port,
-        received_bytes);
+
+    debug_print_ipv4(
+        "Received MPDU->", &sin.sin_addr, sin.sin_port, received_bytes);
     /* pass the packet into the BBMD handler */
-    offset = socket == BIP_Socket ?
-        bvlc_handler(&addr, src, npdu, received_bytes) :
-        bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
+    offset = socket == BIP_Socket
+        ? bvlc_handler(&addr, src, npdu, received_bytes)
+        : bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
     if (offset > 0) {
         npdu_len = received_bytes - offset;
-        debug_print_ipv4("Received NPDU->", &sin.sin_addr, sin.sin_port,
-            npdu_len);
+        debug_print_ipv4(
+            "Received NPDU->", &sin.sin_addr, sin.sin_port, npdu_len);
         if (npdu_len <= max_npdu) {
             /* shift the buffer to return a valid NPDU */
             for (i = 0; i < npdu_len; i++) {
@@ -434,81 +433,89 @@ int bip_send_pdu(BACNET_ADDRESS *dest,
  */
 void bip_set_interface(char *ifname)
 {
-    struct net_if *interface = 0;
+    struct net_if *iface = 0;
     int index = -1;
-    uint8_t x=0;
-
-    BACNET_IP_ADDRESS unicast = {0};
-    BACNET_IP_ADDRESS broadcast = {0};
+    uint8_t x = 0;
+    BACNET_IP_ADDRESS unicast = { 0 };
+    BACNET_IP_ADDRESS broadcast = { 0 };
 
     /* Network byte order */
-    unicast.port = BIP_Port;
-    broadcast.port = BIP_Port;
-
+    unicast.port = ntohs(BIP_Port);
+    broadcast.port = ntohs(BIP_Port);
     LOG_INF("bip_set_interface()");
-    LOG_INF("UDP port: %d", ntohs(BIP_Port));
-
-    if(ifname)
-    {
+    LOG_INF("UDP port: %d", unicast.port);
+    if (ifname) {
         index = atoi(ifname);
-
         /* if index is zero, discern between "0" and a parse error */
-        if(!index && strcmp(ifname,"0"))
-        {
-            LOG_ERR("%s:%d - Argument must parse to an integer", THIS_FILE, __LINE__);
-        }
-        else
-        {
-            interface = net_if_get_by_index(index);
-            if(interface)
-            {
-                LOG_INF("Using interface %d", index);
-            }
-            else
-            {
-                LOG_ERR("%s:%d - No interface at index %d", THIS_FILE, __LINE__, index);
+        if (!index && strcmp(ifname, "0")) {
+            LOG_ERR("%s:%d - Argument must parse to an integer", THIS_FILE,
+                __LINE__);
+        } else {
+            iface = net_if_get_by_index(index);
+            if (iface) {
+                LOG_INF("Using iface %d", index);
+            } else {
+                LOG_ERR(
+                    "%s:%d - No iface at index %d", THIS_FILE, __LINE__, index);
             }
         }
     }
-
-    if(index == -1)
-    {
-        LOG_WRN("%s:%d - No valid interface specified - using default ",THIS_FILE, __LINE__);
-        interface = net_if_get_default();
+    if (index == -1) {
+        LOG_WRN("%s:%d - No valid interface specified - using default ",
+            THIS_FILE, __LINE__);
+        iface = net_if_get_default();
     }
+    if (iface) {
+        LOG_INF("Interface set.");
+#if defined(CONFIG_BACDL_BIP_ADDRESS_INDEX)
+        LOG_INF("Config unicast address %d/%d",
+            CONFIG_BACDL_BIP_ADDRESS_INDEX, NET_IF_MAX_IPV4_ADDR);
+        index = CONFIG_BACDL_BIP_ADDRESS_INDEX;
+#else
+        int i;
+        char hr_addr[NET_IPV4_ADDR_LEN];
+        index = 0;
+        for (i = 0; i < NET_IF_MAX_IPV4_ADDR; i++) {
+            struct net_if_addr *if_addr = &iface->config.ip.ipv4->unicast[i];
 
-    if(interface)
-    {
-        LOG_INF("Interface set");
-
-        if(CONFIG_BACDL_BIP_ADDRESS_INDEX >= NET_IF_MAX_IPV4_ADDR)
-        {
-            LOG_ERR("%s:%d - IPv4 address index of %d is out of range (0-%d)",THIS_FILE, __LINE__, CONFIG_BACDL_BIP_ADDRESS_INDEX, NET_IF_MAX_IPV4_ADDR-1);
+            if (!if_addr->is_used) {
+                continue;
+            }
+            index = i;
+            LOG_INF("IPv4 address: %s",
+                net_addr_ntop(AF_INET, &if_addr->address.in_addr, hr_addr,
+                    NET_IPV4_ADDR_LEN));
+            LOG_INF("Subnet: %s",
+                net_addr_ntop(AF_INET, &iface->config.ip.ipv4->netmask, hr_addr,
+                    NET_IPV4_ADDR_LEN));
+            LOG_INF("Router: %s",
+                net_addr_ntop(AF_INET, &iface->config.ip.ipv4->gw, hr_addr,
+                    NET_IPV4_ADDR_LEN));
+            break;
+        }
+#endif
+        if (index >= NET_IF_MAX_IPV4_ADDR) {
+            LOG_ERR("%s:%d - IPv4 address index of %d is out of range (0-%d)",
+                THIS_FILE, __LINE__, index, NET_IF_MAX_IPV4_ADDR - 1);
             return;
         }
-
-        LOG_INF("Using IPv4 address at index %d", CONFIG_BACDL_BIP_ADDRESS_INDEX);
-
+        LOG_INF("Using IPv4 address at index %d", index);
         /* Build the broadcast address from the unicast and netmask */
-        for(x=0; x<IP_ADDRESS_MAX; x++)
-        {
-            broadcast.address[x] = interface->config.ip.ipv4->unicast[CONFIG_BACDL_BIP_ADDRESS_INDEX].address.in_addr.s4_addr[x] |
-                ~interface->config.ip.ipv4->netmask.s4_addr[x];
-
-            unicast.address[x] = interface->config.ip.ipv4->unicast[CONFIG_BACDL_BIP_ADDRESS_INDEX].address.in_addr.s4_addr[x];
+        struct net_if_addr *if_addr = &iface->config.ip.ipv4->unicast[index];
+        for (x = 0; x < IP_ADDRESS_MAX; x++) {
+            unicast.address[x] = if_addr->address.in_addr.s4_addr[x];
+            broadcast.address[x] = if_addr->address.in_addr.s4_addr[x] |
+                ~iface->config.ip.ipv4->netmask.s4_addr[x];
         }
-
         bip_set_addr(&unicast);
         bip_set_broadcast_addr(&broadcast);
-
-        /* net_if -> net_if_config . net_if_ip . net_if_ipv4 -> net_if_addr . net_addr . in_addr . s4_addr[4] */
-        LOG_INF("   Unicast: %s", log_strdup(inet_ntoa(&interface->config.ip.ipv4->unicast->address.in_addr))); 
-        LOG_INF(" Broadcast: %s", log_strdup(inet_ntoa(&BIP_Broadcast_Addr)));
-        LOG_INF("   Netmask: %s", log_strdup(inet_ntoa(&interface->config.ip.ipv4->netmask)) );
-    }
-    else
-    {
-        LOG_ERR("%s:%d - Failed to set interface", THIS_FILE, __LINE__);
+        LOG_INF("BACnet/IP Unicast: %u.%u.%u.%u:%d", unicast.address[0],
+            unicast.address[1], unicast.address[2], unicast.address[3],
+            unicast.port);
+        LOG_INF("BACnet/IP Broadcast: %u.%u.%u.%u", broadcast.address[0],
+            broadcast.address[1], broadcast.address[2], broadcast.address[3]);
+    } else {
+        LOG_ERR("%s:%d - Failed to set iface", THIS_FILE, __LINE__);
     }
 }
 
@@ -523,9 +530,7 @@ static int createSocket(struct sockaddr_in *sin)
     if (sock_fd < 0) {
         LOG_ERR("%s:%d - Failed to create socket", THIS_FILE, __LINE__);
         return sock_fd;
-    }
-    else
-    {
+    } else {
         LOG_DBG("Socket created");
     }
 
@@ -539,15 +544,13 @@ static int createSocket(struct sockaddr_in *sin)
     }
 
     /* bind the socket to the local port number and IP address */
-    status =
-        zsock_bind(sock_fd, (const struct sockaddr *)sin, sizeof(struct sockaddr));
+    status = zsock_bind(
+        sock_fd, (const struct sockaddr *)sin, sizeof(struct sockaddr));
     if (status < 0) {
         zsock_close(sock_fd);
         LOG_ERR("%s:%d - zsock_bind() failure", THIS_FILE, __LINE__);
         return status;
-    }
-    else
-    {
+    } else {
         LOG_DBG("Socket bound");
     }
 
@@ -579,7 +582,8 @@ bool bip_init(char *ifname)
     bip_set_interface(ifname);
 
     if (BIP_Address.s_addr == 0) {
-        LOG_ERR("%s:%d - Failed to get an IP address on interface: %s\n", THIS_FILE, __LINE__, log_strdup(ifname ? ifname : "[default]"));
+        LOG_ERR("%s:%d - Failed to get an IP address on interface: %s\n",
+            THIS_FILE, __LINE__, ifname ? ifname : "[default]");
         return false;
     }
 

@@ -12,10 +12,11 @@
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 /* some demo stuff needed */
@@ -149,7 +150,7 @@ static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
 
-    apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
+    apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
         My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
             (uint16_t)(pdu_len - apdu_offset));

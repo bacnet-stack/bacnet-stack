@@ -27,8 +27,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/npdu.h"
 #include "bacnet/datalink/bvlc.h"
 
@@ -121,6 +122,10 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int bip_get_broadcast_socket(void);
+
+    BACNET_STACK_EXPORT
+    int bip_set_broadcast_binding(
+        const char *ip4_broadcast);
 
 #ifdef __cplusplus
 }

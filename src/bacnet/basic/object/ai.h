@@ -28,8 +28,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 #if defined(INTRINSIC_REPORTING)
@@ -39,39 +40,34 @@
 #include "bacnet/get_alarm_sum.h"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-    typedef struct analog_input_descr {
-        unsigned Event_State:3;
-        float Present_Value;
-        BACNET_RELIABILITY Reliability;
-        bool Out_Of_Service;
-        uint8_t Units;
-        float Prior_Value;
-        float COV_Increment;
-        bool Changed;
-        uint32_t Instance;
-        BACNET_CHARACTER_STRING Name;
-        BACNET_CHARACTER_STRING Description;
+typedef struct analog_input_descr {
+    unsigned Event_State:3;
+    float Present_Value;
+    BACNET_RELIABILITY Reliability;
+    bool Out_Of_Service;
+    uint8_t Units;
+    float Prior_Value;
+    float COV_Increment;
+    bool Changed;
+    BACNET_CHARACTER_STRING Object_Name;
+    BACNET_CHARACTER_STRING Description;
 #if defined(INTRINSIC_REPORTING)
-        uint32_t Time_Delay;
-        uint32_t Notification_Class;
-        float High_Limit;
-        float Low_Limit;
-        float Deadband;
-        unsigned Limit_Enable:2;
-        unsigned Event_Enable:3;
-        unsigned Notify_Type:1;
-        ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
-        BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
-        /* time to generate event notification */
-        uint32_t Remaining_Time_Delay;
-        /* AckNotification information */
-        ACK_NOTIFICATION Ack_notify_data;
+    uint32_t Time_Delay;
+    uint32_t Notification_Class;
+    float High_Limit;
+    float Low_Limit;
+    float Deadband;
+    unsigned Limit_Enable:2;
+    unsigned Event_Enable:3;
+    unsigned Notify_Type:1;
+    ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
+    BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
+    /* time to generate event notification */
+    uint32_t Remaining_Time_Delay;
+    /* AckNotification information */
+    ACK_NOTIFICATION Ack_notify_data;
 #endif
-    } ANALOG_INPUT_DESCR;
+} ANALOG_INPUT_DESCR;
 
     BACNET_STACK_EXPORT
     void Analog_Input_Property_Lists(
@@ -105,8 +101,8 @@ extern "C" {
         char *new_name);
 
     BACNET_STACK_EXPORT
-    bool Analog_Input_Description(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
+    BACNET_CHARACTER_STRING *Analog_Input_Description(
+        uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Analog_Input_Description_Set(
         uint32_t instance,
@@ -189,7 +185,7 @@ extern "C" {
 #endif
 
     BACNET_STACK_EXPORT
-    bool Analog_Input_Create(
+    uint32_t Analog_Input_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Analog_Input_Delete(

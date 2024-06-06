@@ -1467,15 +1467,15 @@ int bvlc6_decode_secure_bvll(uint8_t *pdu,
     int bytes_consumed = 0;
     uint16_t i = 0;
 
-    (void) sbuf_size;
-
-    if (pdu && sbuf) {
+    if (pdu) {
         if (sbuf_len) {
             *sbuf_len = pdu_len;
         }
-        if (pdu_len) {
+        if (pdu_len && sbuf && sbuf_size) {
             for (i = 0; i < pdu_len; i++) {
-                sbuf[i] = pdu[i];
+                if (i < sbuf_size) {
+                    sbuf[i] = pdu[i];
+                }
             }
         }
         bytes_consumed = (int)pdu_len;

@@ -12,14 +12,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#if CONFIG_NATIVE_APPLICATION
-#include <sys/time.h>
-#elif defined(__ZEPHYR__)
-#include <zephyr/posix/sys/time.h>
-#else
-#include <posix/sys/time.h>
-#endif
 #include <time.h>
+#include <sys/time.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datetime.h"
 
 

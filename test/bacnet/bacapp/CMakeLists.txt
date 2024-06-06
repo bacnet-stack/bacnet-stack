@@ -7,7 +7,6 @@ project(test_${basename}
 	VERSION 1.0.0
 	LANGUAGES C)
 
-
 string(REGEX REPLACE
     "/test/bacnet/[a-zA-Z_/-]*$"
     "/src"
@@ -25,6 +24,7 @@ add_compile_definitions(
 	CONFIG_ZTEST=1
 	PRINT_ENABLED=1
 	BACAPP_ALL=1
+	BACAPP_PRINT_ENABLED=1
 	)
 
 include_directories(
@@ -55,6 +55,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
+	${SRC_DIR}/bacnet/calendar_entry.c
+	${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

@@ -21,13 +21,13 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *********************************************************************/
-#ifndef REJECT_H
-#define REJECT_H
+#ifndef BACNET_REJECT_H
+#define BACNET_REJECT_H
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,6 +35,9 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     BACNET_REJECT_REASON reject_convert_error_code(
+        BACNET_ERROR_CODE error_code);
+    BACNET_STACK_EXPORT
+    bool reject_valid_error_code(
         BACNET_ERROR_CODE error_code);
     BACNET_STACK_EXPORT
     BACNET_ERROR_CODE reject_convert_to_error_code(

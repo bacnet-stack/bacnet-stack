@@ -24,8 +24,9 @@
  *********************************************************************/
 #ifndef NC_H
 #define NC_H
-
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdest.h"
 #include "bacnet/event.h"
 #include "bacnet/list_element.h"

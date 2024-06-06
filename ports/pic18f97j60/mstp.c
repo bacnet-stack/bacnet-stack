@@ -49,15 +49,17 @@
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/mstp.h"
-#include "bacnet/bytes.h"
-#include "bacnet/bits.h"
-#include "crc.h"
 #include "bacnet/bacaddr.h"
-#include "rs485.h"
 #if PRINT_ENABLED
 #include "bacnet/datalink/mstptext.h"
 #endif
+/* port specific */
+#include "crc.h"
+#include "rs485.h"
 
 /* debug print statements */
 #if PRINT_ENABLED
@@ -567,8 +569,8 @@ static bool mstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = npdu_decode(
-        &request_pdu[0], NULL, &request.address, &request.npdu_data);
+    offset = bacnet_npdu_decode(request_pdu, request_pdu_len, NULL,
+        &request.address, &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -585,7 +587,8 @@ static bool mstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the reply data */
     reply.address.mac[0] = dest_address;
     reply.address.mac_len = 1;
-    offset = npdu_decode(&reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
+    offset = bacnet_npdu_decode(
+        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
@@ -761,9 +764,9 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                             break;
                         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                             if ((mstp_port->DestinationAddress ==
-                                MSTP_BROADCAST_ADDRESS) &&
+                                    MSTP_BROADCAST_ADDRESS) &&
                                 (npdu_confirmed_service(mstp_port->InputBuffer,
-                                mstp_port->DataLength))) {
+                                    mstp_port->DataLength))) {
                                 /* BTL test: verifies that the IUT will quietly
                                    discard any Confirmed-Request-PDU, whose
                                    destination address is a multicast or

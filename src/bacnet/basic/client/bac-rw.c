@@ -32,6 +32,8 @@ static struct mstimer Cache_Timer;
 static struct mstimer Read_Write_Timer;
 /* where the data from the read is stored */
 static bacnet_read_write_value_callback_t bacnet_read_write_value_callback;
+/* where the data from the I-Am is called */
+static bacnet_read_write_device_callback_t bacnet_read_write_device_callback;
 
 /* states for client task */
 typedef enum {
@@ -170,6 +172,10 @@ static void My_I_Am_Bind(
             }
             if (bind) {
                 address_add_binding(device_id, max_apdu, src);
+                if (bacnet_read_write_device_callback) {
+                    bacnet_read_write_device_callback(
+                        device_id, max_apdu, segmentation, vendor_id);
+                }
             }
         }
     }
@@ -191,6 +197,64 @@ static void MyWritePropertySimpleAckHandler(
     }
 }
 
+/**
+ * @brief Process a ReadProperty-ACK message
+ * @param device_id [in] The device ID of the source of the message
+ * @param rp_data [in] The contents of the service request.
+ */
+static void bacnet_read_property_ack_process(
+    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data)
+{
+    BACNET_APPLICATION_DATA_VALUE *value;
+    uint8_t *apdu;
+    int apdu_len, len;
+    BACNET_ARRAY_INDEX array_index = 0;
+
+    if (rp_data) {
+        apdu = rp_data->application_data;
+        apdu_len = rp_data->application_data_len;
+        while (apdu_len) {
+            value = &Target_Decoded_Property_Value;
+            len = bacapp_decode_known_property(apdu, (unsigned)apdu_len, value,
+                rp_data->object_type, rp_data->object_property);
+            if (len > 0) {
+                if ((len < apdu_len) &&
+                    (rp_data->array_index == BACNET_ARRAY_ALL)) {
+                    /* assume that since there is more data that this
+                       is an array and split full array of elements
+                       into separate RP Acks */
+                    array_index = 1;
+                }
+                rp_data->error_class = ERROR_CLASS_SERVICES;
+                rp_data->error_code = ERROR_CODE_SUCCESS;
+                if (array_index) {
+                    rp_data->array_index = array_index;
+                }
+                if (bacnet_read_write_value_callback) {
+                    bacnet_read_write_value_callback(device_id, rp_data, value);
+                }
+                /* see if there is any more data */
+                if (len < apdu_len) {
+                    apdu += len;
+                    apdu_len -= len;
+                    if (array_index) {
+                        array_index++;
+                    }
+                } else {
+                    break;
+                }
+            } else {
+                rp_data->error_class = ERROR_CLASS_SERVICES;
+                rp_data->error_code = ERROR_CODE_SUCCESS;
+                if (bacnet_read_write_value_callback) {
+                    bacnet_read_write_value_callback(device_id, rp_data, NULL);
+                }
+                break;
+            }
+        }
+    }
+}
+
 /** Handler for a ReadProperty ACK.
  *  Saves the data from a matching read-property request
  *
@@ -207,13 +271,11 @@ static void My_Read_Property_Ack_Handler(uint8_t *service_request,
 {
     int len = 0;
     BACNET_READ_PROPERTY_DATA rp_data;
-    uint8_t *application_data;
-    int application_data_len;
-    BACNET_APPLICATION_DATA_VALUE *value;
     uint32_t device_id = 0;
 
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
+        address_get_device_id(src, &device_id);
         len = rp_ack_decode_service_request(
             service_request, service_len, &rp_data);
         if (len < 0) {
@@ -222,68 +284,7 @@ static void My_Read_Property_Ack_Handler(uint8_t *service_request,
             Error_Class = ERROR_CLASS_SERVICES;
             Error_Code = ERROR_CODE_INTERNAL_ERROR;
         } else {
-            address_get_device_id(src, &device_id);
-            application_data = rp_data.application_data;
-            application_data_len = rp_data.application_data_len;
-            /* value? need to loop until all of the len is gone... */
-            for (;;) {
-                value = &Target_Decoded_Property_Value;
-                len = bacapp_decode_application_data(
-                    application_data, (uint8_t)application_data_len, value);
-                if (len > 0) {
-                    /* handle the data */
-                    rp_data.error_class = ERROR_CLASS_SERVICES;
-                    rp_data.error_code = ERROR_CODE_SUCCESS;
-                    if (bacnet_read_write_value_callback) {
-                        bacnet_read_write_value_callback(
-                            device_id, &rp_data, value);
-                    }
-                    /* see if there is any more data */
-                    if (len < application_data_len) {
-                        application_data += len;
-                        application_data_len -= len;
-                    } else {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-        }
-    }
-}
-
-static void bacnet_rpm_process(
-    uint32_t device_id, BACNET_READ_ACCESS_DATA *rpm_data)
-{
-    BACNET_PROPERTY_REFERENCE *listOfProperties;
-    BACNET_APPLICATION_DATA_VALUE *value;
-    BACNET_READ_PROPERTY_DATA rp_data;
-
-    if (rpm_data) {
-        rp_data.error_class = ERROR_CLASS_SERVICES;
-        rp_data.error_code = ERROR_CODE_SUCCESS;
-        rp_data.object_type = rpm_data->object_type;
-        rp_data.object_instance = rpm_data->object_instance;
-        listOfProperties = rpm_data->listOfProperties;
-        while (listOfProperties) {
-            rp_data.object_property = listOfProperties->propertyIdentifier;
-            rp_data.array_index = listOfProperties->propertyArrayIndex;
-            if (listOfProperties->propertyArrayIndex == BACNET_ARRAY_ALL) {
-                rp_data.array_index = 1;
-            }
-            value = listOfProperties->value;
-            while (value) {
-                if (bacnet_read_write_value_callback) {
-                    bacnet_read_write_value_callback(
-                        device_id, &rp_data, value);
-                }
-                value = value->next;
-                if (listOfProperties->propertyArrayIndex == BACNET_ARRAY_ALL) {
-                    rp_data.array_index++;
-                }
-            }
-            listOfProperties = listOfProperties->next;
+            bacnet_read_property_ack_process(device_id, &rp_data);
         }
     }
 }
@@ -297,67 +298,20 @@ static void bacnet_rpm_process(
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  * decoded from the APDU header of this message.
  */
-static void My_Read_Property_Multiple_Ack_Handler(uint8_t *service_request,
-    uint16_t service_len,
+static void My_Read_Property_Multiple_Ack_Handler(uint8_t *apdu,
+    uint16_t apdu_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
-    int len = 0;
-    BACNET_READ_ACCESS_DATA *rpm_data;
-    BACNET_READ_ACCESS_DATA *old_rpm_data;
-    BACNET_PROPERTY_REFERENCE *rpm_property;
-    BACNET_PROPERTY_REFERENCE *old_rpm_property;
-    BACNET_APPLICATION_DATA_VALUE *value;
-    BACNET_APPLICATION_DATA_VALUE *old_value;
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
     uint32_t device_id = 0;
 
+    address_get_device_id(src, &device_id);
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
-        rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
-        if (rpm_data) {
-            len = rpm_ack_decode_service_request(
-                service_request, service_len, rpm_data);
-        }
-        if (len > 0) {
-            address_get_device_id(src, &device_id);
-            while (rpm_data) {
-                rpm_ack_print_data(rpm_data);
-                bacnet_rpm_process(device_id, rpm_data);
-                rpm_property = rpm_data->listOfProperties;
-                while (rpm_property) {
-                    value = rpm_property->value;
-                    while (value) {
-                        old_value = value;
-                        value = value->next;
-                        free(old_value);
-                    }
-                    old_rpm_property = rpm_property;
-                    rpm_property = rpm_property->next;
-                    free(old_rpm_property);
-                }
-                old_rpm_data = rpm_data;
-                rpm_data = rpm_data->next;
-                free(old_rpm_data);
-            }
-        } else {
-            while (rpm_data) {
-                rpm_property = rpm_data->listOfProperties;
-                while (rpm_property) {
-                    value = rpm_property->value;
-                    while (value) {
-                        old_value = value;
-                        value = value->next;
-                        free(old_value);
-                    }
-                    old_rpm_property = rpm_property;
-                    rpm_property = rpm_property->next;
-                    free(old_rpm_property);
-                }
-                old_rpm_data = rpm_data;
-                rpm_data = rpm_data->next;
-                free(old_rpm_data);
-            }
-        }
+        rpm_ack_object_property_process(apdu, apdu_len,
+            device_id, &rp_data,
+            bacnet_read_property_ack_process);
     }
 }
 
@@ -544,6 +498,17 @@ void bacnet_read_write_value_callback_set(
     bacnet_read_write_value_callback_t callback)
 {
     bacnet_read_write_value_callback = callback;
+}
+
+/**
+ * @brief Sets the callback for when an I-Am returns device data
+ *
+ * @param callback - function for callback
+ */
+void bacnet_read_write_device_callback_set(
+    bacnet_read_write_device_callback_t callback)
+{
+    bacnet_read_write_device_callback = callback;
 }
 
 /**
@@ -877,6 +842,16 @@ bool bacnet_read_write_busy(void)
 void bacnet_read_write_vendor_id_filter_set(uint16_t vendor_id)
 {
     Target_Vendor_ID = vendor_id;
+}
+
+/**
+ * @brief Gets a Vendor ID filter on I-Am bindings to limit the address
+ *  cache usage when we are only reading/writing to a specific vendor ID
+ * @return vendor_id - vendor ID to filter, 0=no filter
+ */
+uint16_t bacnet_read_write_vendor_id_filter(void)
+{
+    return Target_Vendor_ID;
 }
 
 /**

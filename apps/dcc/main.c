@@ -30,27 +30,26 @@
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
 #include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 #include "bacnet/dcc.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/sys/filename.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/datalink/datalink.h"
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -158,7 +157,7 @@ static void print_help(char *filename)
         "If you want disable Device Communications in Device 123\n"
         "for 60 minutes with password 'filister', use the following command:\n"
         "%s 123 1 60 filister\n",
-        (unsigned long)(BACNET_MAX_INSTANCE - 1), filename);
+        (unsigned long)BACNET_MAX_INSTANCE, filename);
 }
 
 int main(int argc, char *argv[])
@@ -208,8 +207,8 @@ int main(int argc, char *argv[])
     if (argc > 4) {
         Communication_Password = argv[4];
     }
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -245,6 +244,7 @@ int main(int argc, char *argv[])
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         if (Error_Detected) {
             break;

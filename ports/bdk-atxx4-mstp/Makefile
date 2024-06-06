@@ -223,6 +223,10 @@ BFLAGS += -DBACAPP_ENUMERATED
 BFLAGS += -DBACAPP_CHARACTER_STRING
 BFLAGS += -DBACAPP_OCTET_STRING
 BFLAGS += -DWRITE_PROPERTY
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BFLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 ## Compile options for C files
 CFLAGS = $(COMMON)

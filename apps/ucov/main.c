@@ -30,25 +30,24 @@
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/cov.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 
 static void Init_Service_Handlers(void)
 {
@@ -124,17 +123,16 @@ static void print_usage(char *filename)
     printf("Example:\n"
         "If you want generate an unconfirmed COV,\n"
         "you could send one of the following command:\n"
-        "%s 1 2 analog-value 4 5 prevent-value 4 100.0\n"
+        "%s 1 2 analog-value 4 5 present-value 4 100.0\n"
         "%s 1 2 3 4 5 85 4 100.0\n"
         "where 1=pid, 2=device-id, 3=AV, 4=object-id, 5=time,\n"
         "85=Present-Value, 4=REAL, 100.0=value\n",
         filename, filename);
-
 }
 
 int main(int argc, char *argv[])
 {
-    char *value_string = NULL;
+    char *value_string;
     bool status = false;
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list;
@@ -178,8 +176,8 @@ int main(int argc, char *argv[])
         value_list.propertyArrayIndex = BACNET_ARRAY_ALL;
     }
 
-    if (cov_data.initiatingDeviceIdentifier >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (cov_data.initiatingDeviceIdentifier > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             cov_data.initiatingDeviceIdentifier, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -189,15 +187,15 @@ int main(int argc, char *argv[])
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\n",
+        fprintf(stderr, "object-instance=%u - not greater than %u\n",
             cov_data.monitoredObjectIdentifier.instance,
-            BACNET_MAX_INSTANCE + 1);
+            BACNET_MAX_INSTANCE);
         return 1;
     }
     if (cov_data.listOfValues->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "property-identifier=%u - it must be less than %u\n",
+        fprintf(stderr, "property-identifier=%u - not greater than %u\n",
             cov_data.listOfValues->propertyIdentifier,
-            MAX_BACNET_PROPERTY_ID + 1);
+            MAX_BACNET_PROPERTY_ID);
         return 1;
     }
     if (tag >= MAX_BACNET_APPLICATION_TAG) {

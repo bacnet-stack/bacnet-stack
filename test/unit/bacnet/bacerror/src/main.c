@@ -149,7 +149,11 @@ static int decode_enumerated_custom_fake(
  * Tests:
  */
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacint, test_bacerror_encode_apdu)
+#else
 static void test_bacerror_encode_apdu(void)
+#endif
 {
     uint8_t test_apdu[32] = { 0 };
 
@@ -358,7 +362,11 @@ static void test_bacerror_encode_apdu(void)
     }
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_bacerror, test_bacerror_decode_error_class_and_code)
+#else
 static void test_bacerror_decode_error_class_and_code(void)
+#endif
 {
 #if !BACNET_SVC_SERVER
     uint8_t test_apdu[32] = { 0 };
@@ -461,7 +469,7 @@ static void test_bacerror_decode_error_class_and_code(void)
 
             .expected_call_history =
                 (void *[]) {
-                    decode_tag_number_and_value, NULL, /* mark end of array */
+                    bacnet_enumerated_application_decode, NULL, /* mark end of array */
                 },
 
             .decode_tag_number_and_value_custom_fake_contexts_len = 2,
@@ -1118,6 +1126,9 @@ static void test_bacerror_decode_error_class_and_code(void)
 #endif
 }
 
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST_SUITE(bacnet_error, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(bacnet_bacerror,
@@ -1125,3 +1136,4 @@ void test_main(void)
         ztest_unit_test(test_bacerror_decode_error_class_and_code));
     ztest_run_test_suite(bacnet_bacerror);
 }
+#endif

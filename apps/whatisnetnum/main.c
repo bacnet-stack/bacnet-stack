@@ -12,10 +12,11 @@
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 /* some demo stuff needed */
@@ -76,7 +77,6 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
     uint16_t npdu_len)
 {
     uint16_t dnet = 0;
-    uint16_t len = 0;
     uint16_t j = 0;
 
     switch (npdu_data->network_message_type) {
@@ -93,7 +93,7 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
                 /*  It shall be transmitted with a local broadcast address,
                     and shall never be routed. */
                 if (npdu_len >= 2) {
-                    len += decode_unsigned16(npdu, &dnet);
+                    (void)decode_unsigned16(npdu, &dnet);
                     printf(": network number = %u\n", (unsigned)dnet);
                 } else {
                     printf(": network number = missing!\n");
@@ -103,7 +103,7 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
                     contain SNET/SADR or DNET/DADR information In the NPCI or
                     that are sent with a local unicast address. */
                 if (npdu_len >= 2) {
-                    len += decode_unsigned16(npdu, &dnet);
+                    (void)decode_unsigned16(npdu, &dnet);
                     printf(": network number = %u. SNET=%u\n", (unsigned)dnet,
                         (unsigned)src->net);
                 } else {
@@ -134,7 +134,7 @@ static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
 
-    apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
+    apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
         My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
             (uint16_t)(pdu_len - apdu_offset));

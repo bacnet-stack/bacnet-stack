@@ -108,6 +108,11 @@ BFLAGS += -DBACAPP_CHARACTER_STRING
 BFLAGS += -DWRITE_PROPERTY
 BFLAGS += -DMAX_ANALOG_VALUES=10
 BFLAGS += -DMAX_BINARY_VALUES=10
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BFLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
+
 CFLAGS = $(COMMON)
 # dead code removal
 CFLAGS += -ffunction-sections -fdata-sections

@@ -241,11 +241,12 @@ uint32_t Device_Index_To_Instance(unsigned index)
 
 static char *Device_Name_Default(void)
 {
-    static char text_string[32]; /* okay for single thread */
+    static char text[32]; /* okay for single thread */
 
-    sprintf(text_string, "DEVICE-%lu", Object_Instance_Number);
+    snprintf(text, sizeof(text), "DEVICE-%lu", 
+        (unsigned long)Object_Instance_Number);
 
-    return text_string;
+    return text;
 }
 
 bool Device_Object_Name(
@@ -615,8 +616,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
-    int apdu_len = 0;
     struct my_object_functions *pObject = NULL;
+    int apdu_max;
 
     if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {

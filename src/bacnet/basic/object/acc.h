@@ -1,10 +1,20 @@
-#ifndef ACC_H
-#define ACC_H
+/**
+ * @file
+ * @brief Accumulator object header file
+ * @author Steve Karg
+ * @date 2017
+ * @copyright 2017 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_BASIC_OBJECT_ACCUMULATOR_H
+#define BACNET_BASIC_OBJECT_ACCUMULATOR_H
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacint.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"

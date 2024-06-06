@@ -30,26 +30,23 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/bactext.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
-#if defined(BACDL_MSTP)
-#include "rs485.h"
-#endif
+#include "bacnet/basic/object/device.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacport.h"
 
@@ -465,13 +462,13 @@ int main(int argc, char *argv[])
         }
     }
     if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance-min=%u - it must be less than %u\n",
-            Target_Object_Instance_Min, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "device-instance-min=%u - not greater than %u\n",
+            Target_Object_Instance_Min, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Instance_Max > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance-max=%u - it must be less than %u\n",
-            Target_Object_Instance_Max, BACNET_MAX_INSTANCE + 1);
+        fprintf(stderr, "device-instance-max=%u - not greater than %u\n",
+            Target_Object_Instance_Max, BACNET_MAX_INSTANCE);
         return 1;
     }
     /* setup my info */

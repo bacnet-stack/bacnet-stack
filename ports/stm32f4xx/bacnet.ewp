@@ -224,9 +224,10 @@
                     <state>USE_STDPERIPH_DRIVER</state>
                     <state>STM32F4XX</state>
                     <state>BACDL_MSTP</state>
-                    <state>MAX_APDU=480</state>
+                    <state>MAX_APDU=1476</state>
                     <state>BIG_ENDIAN=0</state>
                     <state>MAX_TSM_TRANSACTIONS=1</state>
+                    <state>BACAPP_MINIMAL</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -1088,6 +1089,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\dcc.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\indtext.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\iam.c</name>
         </file>
         <file>
@@ -1139,7 +1143,19 @@
     <group>
         <name>BACnet Datalink</name>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\cobs.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\datalink\crc.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\dlmstp.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\mstp.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\mstptext.c</name>
         </file>
     </group>
     <group>
@@ -1219,6 +1235,12 @@
         <file>
             <name>$PROJ_DIR$\rs485.c</name>
         </file>
+        <file>
+            <name>$PROJ_DIR$\stm32f4xx_it.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\system_stm32f4xx.c</name>
+        </file>
     </group>
     <group>
         <name>NUCLEO-BACnet</name>
@@ -1227,9 +1249,6 @@
         </file>
         <file>
             <name>$PROJ_DIR$\device.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\dlmstp.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\netport.c</name>
@@ -1276,11 +1295,5 @@
     </group>
     <file>
         <name>$PROJ_DIR$\main.c</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\stm32f4xx_it.c</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\system_stm32f4xx.c</name>
     </file>
 </project>

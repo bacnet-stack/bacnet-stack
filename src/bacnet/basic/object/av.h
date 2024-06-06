@@ -1,35 +1,22 @@
-/**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-* Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-#ifndef AV_H
-#define AV_H
+/**
+ * @file
+ * @author Steve Karg
+ * @date 2006
+ * @brief Analog Value object is an input object with a present-value that
+ * uses an single precision floating point data type.
+ * @section LICENSE
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_ANALOG_VALUE_OBJECT_H
+#define BACNET_ANALOG_VALUE_OBJECT_H
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/wp.h"
 #include "bacnet/rp.h"
@@ -40,40 +27,38 @@
 #include "bacnet/get_alarm_sum.h"
 #endif
 
+typedef struct analog_value_descr {
+    unsigned Event_State:3;
+    bool Out_Of_Service;
+    uint16_t Units;
+    float Present_Value;
+    float Prior_Value;
+    float COV_Increment;
+    bool Changed;
+    BACNET_CHARACTER_STRING Object_Name;
+    BACNET_CHARACTER_STRING Description;
+    BACNET_RELIABILITY Reliability;
+#if defined(INTRINSIC_REPORTING)
+    uint32_t Time_Delay;
+    uint32_t Notification_Class;
+    float High_Limit;
+    float Low_Limit;
+    float Deadband;
+    unsigned Limit_Enable:2;
+    unsigned Event_Enable:3;
+    unsigned Notify_Type:1;
+    ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
+    BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
+    /* time to generate event notification */
+    uint32_t Remaining_Time_Delay;
+    /* AckNotification information */
+    ACK_NOTIFICATION Ack_notify_data;
+#endif
+} ANALOG_VALUE_DESCR;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-    typedef struct analog_value_descr {
-        unsigned Event_State:3;
-        bool Out_Of_Service;
-        uint16_t Units;
-        float Present_Value;
-        float Prior_Value;
-        float COV_Increment;
-        bool Changed;
-        uint32_t Instance;
-        BACNET_CHARACTER_STRING Name;
-        BACNET_CHARACTER_STRING Description;
-#if defined(INTRINSIC_REPORTING)
-        uint32_t Time_Delay;
-        uint32_t Notification_Class;
-        float High_Limit;
-        float Low_Limit;
-        float Deadband;
-        unsigned Limit_Enable:2;
-        unsigned Event_Enable:3;
-        unsigned Notify_Type:1;
-        ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
-        BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
-        /* time to generate event notification */
-        uint32_t Remaining_Time_Delay;
-        /* AckNotification information */
-        ACK_NOTIFICATION Ack_notify_data;
-#endif
-    } ANALOG_VALUE_DESCR;
-
-
     BACNET_STACK_EXPORT
     void Analog_Value_Property_Lists(
         const int **pRequired,
@@ -147,8 +132,8 @@ extern "C" {
         float value);
 
     BACNET_STACK_EXPORT
-    bool Analog_Value_Description(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description);
+    BACNET_CHARACTER_STRING *Analog_Value_Description(
+       uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Analog_Value_Description_Set(
         uint32_t instance,
@@ -202,7 +187,7 @@ extern "C" {
 #endif
 
     BACNET_STACK_EXPORT
-    bool Analog_Value_Create(
+    uint32_t Analog_Value_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Analog_Value_Delete(

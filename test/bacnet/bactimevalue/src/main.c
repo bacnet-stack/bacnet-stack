@@ -18,7 +18,6 @@
 #include "bacnet/datetime.h"
 #include "bacnet/bacapp.h"
 
-
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -43,51 +42,61 @@ static void test_BACnetTimeValue(BACNET_TIME_VALUE *value)
     diff = datetime_compare_time(&test_value.Time, &value->Time);
     zassert_true(diff == 0, NULL);
     status = bacapp_same_value(
-        (BACNET_APPLICATION_DATA_VALUE *) &test_value.Value,
-        (BACNET_APPLICATION_DATA_VALUE *) &value->Value);
+        (BACNET_APPLICATION_DATA_VALUE *)&test_value.Value,
+        (BACNET_APPLICATION_DATA_VALUE *)&value->Value);
     zassert_true(status, NULL);
 
     len = bacnet_time_value_context_encode(apdu, tag_number, value);
-    apdu_len = bacnet_time_value_context_decode(apdu, len, tag_number, &test_value);
+    apdu_len =
+        bacnet_time_value_context_decode(apdu, len, tag_number, &test_value);
     zassert_true(len > 0, NULL);
     zassert_true(apdu_len > 0, NULL);
     diff = datetime_compare_time(&test_value.Time, &value->Time);
     zassert_true(diff == 0, NULL);
     status = bacapp_same_value(
-        (BACNET_APPLICATION_DATA_VALUE *) &test_value.Value,
-        (BACNET_APPLICATION_DATA_VALUE *) &value->Value);
+        (BACNET_APPLICATION_DATA_VALUE *)&test_value.Value,
+        (BACNET_APPLICATION_DATA_VALUE *)&value->Value);
     zassert_true(status, NULL);
     /* negative testing */
     tag_number++;
-    apdu_len = bacnet_time_value_context_decode(apdu, len, tag_number, &test_value);
+    apdu_len =
+        bacnet_time_value_context_decode(apdu, len, tag_number, &test_value);
     zassert_true(apdu_len < 0, NULL);
 }
 
 /**
  * @brief Test encode/decode API
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(BACnetTimeValue_tests, test_BACnetTimeValues)
+#else
 static void test_BACnetTimeValues(void)
+#endif
 {
     BACNET_TIME_VALUE time_value = { 0 };
 
     test_BACnetTimeValue(&time_value);
-    bacapp_parse_application_data(BACNET_APPLICATION_TAG_REAL, "4.2",
-        &time_value.Value);
+    bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_REAL, "4.2", &time_value.Value);
     datetime_time_init_ascii(&time_value.Time, "12:00");
     test_BACnetTimeValue(&time_value);
-    bacapp_parse_application_data(BACNET_APPLICATION_TAG_UNSIGNED_INT, "99999",
-        &time_value.Value);
+    bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_UNSIGNED_INT, "99999", &time_value.Value);
     datetime_time_init_ascii(&time_value.Time, "23:59:59");
     test_BACnetTimeValue(&time_value);
 }
 /**
  * @}
  */
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(BACnetTimeValue_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(BACnetTimeValue_tests,
-     ztest_unit_test(test_BACnetTimeValues)
-     );
+    ztest_test_suite(
+        BACnetTimeValue_tests, ztest_unit_test(test_BACnetTimeValues));
 
     ztest_run_test_suite(BACnetTimeValue_tests);
 }
+#endif

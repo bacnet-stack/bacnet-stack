@@ -30,25 +30,25 @@
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/cov.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
 #include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/event.h"
 #include "bacnet/whois.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
     BACNET_BIT_STRING *pBitString;
     BACNET_CHARACTER_STRING bcstring;
-    BACNET_PROPERTY_STATE_TYPE tag = BOOLEAN_VALUE;
+    BACNET_PROPERTY_STATES tag = PROP_STATE_BOOLEAN_VALUE;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     unsigned timeout = 100; /* milliseconds */
     uint16_t pdu_len = 0;
@@ -406,55 +406,55 @@ int main(int argc, char *argv[])
                             .tag = tag;
                         target_args++;
                     } else if (target_args == 15) {
-                        if (tag == BOOLEAN_VALUE) {
+                        if (tag == PROP_STATE_BOOLEAN_VALUE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.booleanValue =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == BINARY_VALUE) {
+                        } else if (tag == PROP_STATE_BINARY_VALUE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.binaryValue =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == EVENT_TYPE) {
+                        } else if (tag == PROP_STATE_EVENT_TYPE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.eventType = strtol(argv[argi], NULL, 0);
-                        } else if (tag == POLARITY) {
+                        } else if (tag == PROP_STATE_POLARITY) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.polarity = strtol(argv[argi], NULL, 0);
-                        } else if (tag == PROGRAM_CHANGE) {
+                        } else if (tag == PROP_STATE_PROGRAM_CHANGE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.programChange =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == PROGRAM_STATE) {
+                        } else if (tag == PROP_STATE_PROGRAM_STATE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.programState =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == REASON_FOR_HALT) {
+                        } else if (tag == PROP_STATE_REASON_FOR_HALT) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.programError =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == RELIABILITY) {
+                        } else if (tag == PROP_STATE_RELIABILITY) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.reliability =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == STATE) {
+                        } else if (tag == PROP_STATE_EVENT_STATE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.state = strtol(argv[argi], NULL, 0);
-                        } else if (tag == SYSTEM_STATUS) {
+                        } else if (tag == PROP_STATE_SYSTEM_STATUS) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.systemStatus =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == UNITS) {
+                        } else if (tag == PROP_STATE_UNITS) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.units = strtol(argv[argi], NULL, 0);
-                        } else if (tag == UNSIGNED_VALUE) {
+                        } else if (tag == PROP_STATE_UNSIGNED_VALUE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.unsignedValue =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == LIFE_SAFETY_MODE) {
+                        } else if (tag == PROP_STATE_LIFE_SAFETY_MODE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.lifeSafetyMode =
                                 strtol(argv[argi], NULL, 0);
-                        } else if (tag == LIFE_SAFETY_STATE) {
+                        } else if (tag == PROP_STATE_LIFE_SAFETY_STATE) {
                             event_data.notificationParams.changeOfState.newState
                                 .state.lifeSafetyState =
                                 strtol(argv[argi], NULL, 0);
@@ -584,11 +584,11 @@ int main(int argc, char *argv[])
     for (;;) {
         /* increment timer - exit if timed out */
         current_seconds = time(NULL);
-
         /* at least one second has passed */
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         if (Error_Detected) {
             break;

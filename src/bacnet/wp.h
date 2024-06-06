@@ -26,7 +26,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 
@@ -68,6 +70,15 @@ extern "C" {
 
     /* encode service */
     BACNET_STACK_EXPORT
+    size_t writeproperty_apdu_encode(
+        uint8_t *apdu, 
+        BACNET_WRITE_PROPERTY_DATA *data);
+    BACNET_STACK_EXPORT
+    size_t writeproperty_service_request_encode(
+        uint8_t *apdu, 
+        size_t apdu_size, 
+        BACNET_WRITE_PROPERTY_DATA *data);
+    BACNET_STACK_EXPORT
     int wp_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
@@ -89,12 +100,12 @@ extern "C" {
     bool write_property_string_valid(
         BACNET_WRITE_PROPERTY_DATA * wp_data,
         BACNET_APPLICATION_DATA_VALUE * value,
-        int len_max);
+        size_t len_max);
     BACNET_STACK_EXPORT
     bool write_property_empty_string_valid(
         BACNET_WRITE_PROPERTY_DATA * wp_data,
         BACNET_APPLICATION_DATA_VALUE * value,
-        int len_max);
+        size_t len_max);
 
 #ifdef __cplusplus
 }

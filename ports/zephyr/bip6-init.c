@@ -41,6 +41,9 @@
 #include <net/net_ip.h>
 #include <net/socket.h>
 #include <net/socket_select.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip6.h"
@@ -55,8 +58,10 @@ LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 
 #define THIS_FILE "bip6-init.c"
 
-#if (MAX_MAC_LEN < BIP6_ADDRESS_MAX) /* Make sure an 18 byte address can be stored */
-#error "BACNET_ADDRESS.mac (bacdef.h) is not large enough to store an IPv6 address."
+#if (MAX_MAC_LEN < BIP6_ADDRESS_MAX) /* Make sure an 18 byte address can be \
+                                        stored */
+#error \
+    "BACNET_ADDRESS.mac (bacdef.h) is not large enough to store an IPv6 address."
 #endif
 
 /* zephyr socket */
@@ -74,48 +79,45 @@ static struct in6_addr BIP6_Multicast_Addr;
 
 /* Used by inet6_ntoa */
 #if CONFIG_BACNETSTACK_LOG_LEVEL
-static char ipv6_addr_str[42]={0};
+static char ipv6_addr_str[42] = { 0 };
 #else
-static char ipv6_addr_str[]="";
+static char ipv6_addr_str[] = "";
 #endif
 
 /**
-* @brief Return a string representation of an IPv6 address
-* @param a - IPv6 address
-* @return Pointer to global string
-*/
-static char* inet6_ntoa(struct in6_addr *a)
+ * @brief Return a string representation of an IPv6 address
+ * @param a - IPv6 address
+ * @return Pointer to global string
+ */
+static char *inet6_ntoa(struct in6_addr *a)
 {
-    #if CONFIG_BACNETSTACK_LOG_LEVEL
-    uint8_t x=0;
-    uint8_t d=0;
+#if CONFIG_BACNETSTACK_LOG_LEVEL
+    uint8_t x = 0;
+    uint8_t d = 0;
     uint8_t non_zero_count = 0;
 
     /* Avoid overwhelming the logging system */
-    while(log_buffered_cnt())
-    {  
+    while (log_buffered_cnt()) {
         k_sleep(K_MSEC(1));
     }
 
-    for(x=0; x<IP6_ADDRESS_MAX; x+=2)
-    {
-        if(a->s6_addr[x] | a->s6_addr[x+1])
-        {
+    for (x = 0; x < IP6_ADDRESS_MAX; x += 2) {
+        if (a->s6_addr[x] | a->s6_addr[x + 1]) {
             non_zero_count++;
-            d+=sprintf(&ipv6_addr_str[d], "%02X%02X", a->s6_addr[x], a->s6_addr[x+1]);
+            d += snprintf(
+                &ipv6_addr_str[d], sizeof(ipv6_addr_str), "%02X%02X",
+                a->s6_addr[x], a->s6_addr[x + 1]);
         }
 
-        if(x<14)
-        {
-            d+=sprintf(&ipv6_addr_str[d], ":");
+        if (x < 14) {
+            d += snprintf(&ipv6_addr_str[d], sizeof(ipv6_addr_str), ":");
         }
     }
 
-    if(!non_zero_count)
-    {
-        sprintf(&ipv6_addr_str[0], "undefined");
+    if (!non_zero_count) {
+        snprintf(&ipv6_addr_str[0], sizeof(ipv6_addr_str), "undefined");
     }
-    #endif
+#endif
     return &ipv6_addr_str[0];
 }
 
@@ -176,7 +178,7 @@ void bip6_get_broadcast_address(BACNET_ADDRESS *dest)
     if (dest) {
         dest->mac_len = BIP6_ADDRESS_MAX;
         memcpy(&dest->mac[0], &BIP6_Multicast_Addr.s6_addr, IP6_ADDRESS_MAX);
-        memcpy(&dest->mac[IP6_ADDRESS_MAX], &BIP6_Port, sizeof(BIP6_Port) );
+        memcpy(&dest->mac[IP6_ADDRESS_MAX], &BIP6_Port, sizeof(BIP6_Port));
         memset(&dest->adr, 0, sizeof(dest->adr));
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->len = 0;
@@ -222,7 +224,8 @@ bool bip6_get_addr(BACNET_IP6_ADDRESS *addr)
 bool bip6_set_broadcast_addr(BACNET_IP6_ADDRESS *addr)
 {
     if (addr) {
-        memcpy(&BIP6_Multicast_Addr.s6_addr, &addr->address[0], IP6_ADDRESS_MAX);
+        memcpy(
+            &BIP6_Multicast_Addr.s6_addr, &addr->address[0], IP6_ADDRESS_MAX);
         return true;
     }
     return false;
@@ -236,7 +239,8 @@ bool bip6_set_broadcast_addr(BACNET_IP6_ADDRESS *addr)
 bool bip6_get_broadcast_addr(BACNET_IP6_ADDRESS *addr)
 {
     if (addr) {
-        memcpy(&addr->address[0], &BIP6_Multicast_Addr.s6_addr, IP6_ADDRESS_MAX);
+        memcpy(
+            &addr->address[0], &BIP6_Multicast_Addr.s6_addr, IP6_ADDRESS_MAX);
         addr->port = ntohs(BIP6_Port);
         return true;
     }
@@ -290,8 +294,9 @@ int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     bip6_dest.sin6_port = htons(dest->port);
 
     /* Send the packet */
-    return zsock_sendto(BIP6_Socket, (char *)mtu, mtu_len, 0,
-        (struct sockaddr *)&bip6_dest, sizeof(struct sockaddr));
+    return zsock_sendto(
+        BIP6_Socket, (char *)mtu, mtu_len, 0, (struct sockaddr *)&bip6_dest,
+        sizeof(struct sockaddr));
 }
 
 uint16_t bip6_receive(
@@ -316,7 +321,7 @@ uint16_t bip6_receive(
     /* we could just use a non-blocking socket, but that consumes all
        the CPU time.  We can use a timeout; it is only supported as
        a select. */
-    
+
     if (timeout >= 1000) {
         select_timeout.tv_sec = timeout / 1000;
         select_timeout.tv_usec =
@@ -331,17 +336,18 @@ uint16_t bip6_receive(
 
     /* see if there is a packet for us */
     if (zsock_select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes = zsock_recvfrom(BIP6_Socket, (char *)&npdu[0], max_npdu,
-            0, (struct sockaddr *)&sin, &sin_len);
-    }
-    else 
-    {
+        received_bytes = zsock_recvfrom(
+            BIP6_Socket, (char *)&npdu[0], max_npdu, 0, (struct sockaddr *)&sin,
+            &sin_len);
+    } else {
         return 0;
     }
 
     /* See if there is a problem */
     if (received_bytes < 0) {
-        LOG_WRN("%s:%d - RX zsock_recvfrom() error: %d", THIS_FILE, __LINE__, received_bytes);
+        LOG_WRN(
+            "%s:%d - RX zsock_recvfrom() error: %d", THIS_FILE, __LINE__,
+            received_bytes);
         return 0;
     }
     /* no problem, just no bytes */
@@ -379,7 +385,8 @@ uint16_t bip6_receive(
     return npdu_len;
 }
 
-int bip6_send_pdu(BACNET_ADDRESS *dest,
+int bip6_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
@@ -392,10 +399,10 @@ void bip6_set_interface(char *ifname)
 {
     struct net_if *interface = 0;
     int index = -1;
-    int x=0;
+    int x = 0;
 
-    BACNET_IP6_ADDRESS unicast = {0};
-    BACNET_IP6_ADDRESS multicast = {0};
+    BACNET_IP6_ADDRESS unicast = { 0 };
+    BACNET_IP6_ADDRESS multicast = { 0 };
 
     unicast.port = BIP6_Port;
     multicast.port = BIP6_Port;
@@ -403,80 +410,83 @@ void bip6_set_interface(char *ifname)
     LOG_INF("bip6_set_interface()");
     LOG_INF("UDP port: %d", ntohs(BIP6_Port));
 
-    if(ifname)
-    {
+    if (ifname) {
         index = atoi(ifname);
 
         /* if index is zero, discern between "0" and a parse error */
-        if(!index && strcmp(ifname,"0"))
-        {
-            LOG_ERR("%s:%d - Argument must parse to an integer", THIS_FILE, __LINE__);
-        }
-        else
-        {
+        if (!index && strcmp(ifname, "0")) {
+            LOG_ERR(
+                "%s:%d - Argument must parse to an integer", THIS_FILE,
+                __LINE__);
+        } else {
             interface = net_if_get_by_index(index);
-            if(interface)
-            {
+            if (interface) {
                 LOG_INF("Using interface %d", index);
-            }
-            else
-            {
-                LOG_ERR("%s:%d - No interface at index %d", THIS_FILE, __LINE__, index);
+            } else {
+                LOG_ERR(
+                    "%s:%d - No interface at index %d", THIS_FILE, __LINE__,
+                    index);
             }
         }
     }
 
-    if(index == -1)
-    {
-        LOG_WRN("%s:%d - No valid interface specified - using default ",THIS_FILE, __LINE__);
+    if (index == -1) {
+        LOG_WRN(
+            "%s:%d - No valid interface specified - using default ", THIS_FILE,
+            __LINE__);
         interface = net_if_get_default();
     }
 
-    if(interface)
-    {
+    if (interface) {
         LOG_INF("Interface set - Configured addresses:");
 
-        for(x=0; x<NET_IF_MAX_IPV6_ADDR; x++)
-        {
-            inet6_ntoa(&interface->config.ip.ipv6->unicast[x].address.in6_addr );
-            LOG_INF("  unicast[%d]: %s", x, log_strdup(ipv6_addr_str));
+        for (x = 0; x < NET_IF_MAX_IPV6_ADDR; x++) {
+            inet6_ntoa(&interface->config.ip.ipv6->unicast[x].address.in6_addr);
+            LOG_INF("  unicast[%d]: %s", x, ipv6_addr_str);
         }
 
-        for(x=0; x<NET_IF_MAX_IPV6_MADDR; x++)
-        {
-            inet6_ntoa(&interface->config.ip.ipv6->mcast[x].address.in6_addr );
-            LOG_INF(" multicast[%d]: %s", x, log_strdup(ipv6_addr_str));
+        for (x = 0; x < NET_IF_MAX_IPV6_MADDR; x++) {
+            inet6_ntoa(&interface->config.ip.ipv6->mcast[x].address.in6_addr);
+            LOG_INF(" multicast[%d]: %s", x, ipv6_addr_str);
         }
 
-        if(CONFIG_BACDL_BIP6_ADDRESS_INDEX >= NET_IF_MAX_IPV6_ADDR)
-        {
-            LOG_ERR("%s:%d - IPv6 address index of %d is out of range (0-%d)", THIS_FILE,
-                __LINE__, CONFIG_BACDL_BIP6_ADDRESS_INDEX, NET_IF_MAX_IPV6_ADDR-1);
+        if (CONFIG_BACDL_BIP6_ADDRESS_INDEX >= NET_IF_MAX_IPV6_ADDR) {
+            LOG_ERR(
+                "%s:%d - IPv6 address index of %d is out of range (0-%d)",
+                THIS_FILE, __LINE__, CONFIG_BACDL_BIP6_ADDRESS_INDEX,
+                NET_IF_MAX_IPV6_ADDR - 1);
             return;
         }
 
-        LOG_INF("Using IPv6 address at index %d", CONFIG_BACDL_BIP6_ADDRESS_INDEX);
+        LOG_INF(
+            "Using IPv6 address at index %d", CONFIG_BACDL_BIP6_ADDRESS_INDEX);
 
-        memcpy(&unicast.address, &interface->config.ip.ipv6->unicast
-            [CONFIG_BACDL_BIP6_ADDRESS_INDEX].address.in6_addr, IP6_ADDRESS_MAX);
-    
-        if(net_addr_pton(AF_INET6, CONFIG_BACDL_BIP6_MCAST_ADDRESS, &multicast.address))
-        {
-            LOG_ERR("%s:%d - Failed to parse IPv6 multicast address: %s", THIS_FILE, __LINE__, CONFIG_BACDL_BIP6_MCAST_ADDRESS);
+        memcpy(
+            &unicast.address,
+            &interface->config.ip.ipv6->unicast[CONFIG_BACDL_BIP6_ADDRESS_INDEX]
+                 .address.in6_addr,
+            IP6_ADDRESS_MAX);
+
+        if (net_addr_pton(
+                AF_INET6, CONFIG_BACDL_BIP6_MCAST_ADDRESS,
+                &multicast.address)) {
+            LOG_ERR(
+                "%s:%d - Failed to parse IPv6 multicast address: %s", THIS_FILE,
+                __LINE__, CONFIG_BACDL_BIP6_MCAST_ADDRESS);
         }
 
         bip6_set_addr(&unicast);
         bip6_set_broadcast_addr(&multicast);
 
-        LOG_INF("   Unicast: %s", log_strdup(inet6_ntoa((struct in6_addr*)&unicast.address)));
-        LOG_INF(" Multicast: %s", log_strdup(inet6_ntoa((struct in6_addr*)&multicast.address)));
-    }
-    else
-    {
+        LOG_INF(
+            "   Unicast: %s", inet6_ntoa((struct in6_addr *)&unicast.address));
+        LOG_INF(
+            " Multicast: %s",
+            inet6_ntoa((struct in6_addr *)&multicast.address));
+    } else {
         LOG_ERR("%s:%d - Failed to set interface", THIS_FILE, __LINE__);
     }
 }
-
 
 bool bip6_init(char *ifname)
 {
@@ -490,19 +500,19 @@ bool bip6_init(char *ifname)
     bip6_set_interface(ifname);
 
     if (BIP6_Address.s6_addr == 0) {
-        LOG_ERR("%s:%d - Failed to get an IPv6 address on interface: %s\n", THIS_FILE, __LINE__, log_strdup(ifname ? ifname : "[default]"));
+        LOG_ERR(
+            "%s:%d - Failed to get an IPv6 address on interface: %s\n",
+            THIS_FILE, __LINE__, ifname ? ifname : "[default]");
         return false;
     }
 
     /* assumes that the driver has already been initialized */
     sock_fd = zsock_socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
     BIP6_Socket = sock_fd;
-     if (sock_fd < 0) {
+    if (sock_fd < 0) {
         LOG_ERR("%s:%d - Failed to create socket", THIS_FILE, __LINE__);
         return false;
-    }
-    else
-    {
+    } else {
         LOG_INF("Socket created");
     }
 
@@ -523,16 +533,14 @@ bool bip6_init(char *ifname)
 
     LOG_INF("Binding to port %d", ntohs(BIP6_Port));
 
-    status =
-        zsock_bind(sock_fd, (const struct sockaddr*)&sin6, sizeof(struct sockaddr));
+    status = zsock_bind(
+        sock_fd, (const struct sockaddr *)&sin6, sizeof(struct sockaddr));
     if (status < 0) {
         zsock_close(sock_fd);
         BIP6_Socket = -1;
         LOG_ERR("%s:%d - zsock_bind() failure", THIS_FILE, __LINE__);
         return false;
-    }
-    else
-    {
+    } else {
         LOG_INF("Socket bound");
     }
 

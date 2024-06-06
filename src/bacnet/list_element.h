@@ -14,10 +14,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 
 /**
  *  AddListElement-Request ::= SEQUENCE {
@@ -67,6 +67,9 @@ BACNET_STACK_EXPORT
 int list_element_encode_service_request(
     uint8_t *apdu, BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
+size_t list_element_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_LIST_ELEMENT_DATA *list_element);
+BACNET_STACK_EXPORT
 int list_element_decode_service_request(
     uint8_t *apdu, unsigned apdu_len, BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
@@ -81,3 +84,4 @@ int list_element_error_ack_decode(
 #endif /* __cplusplus */
 
 #endif
+

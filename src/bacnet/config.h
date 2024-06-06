@@ -1,27 +1,14 @@
-/**************************************************************************
-*
-* Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+/**
+ * @file
+ * @brief Default configuration for BACnet Stack library
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @section LICENSE
+ * 
+ * Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
+ * 
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -44,12 +31,11 @@
 
 /* optional configuration for BACnet/IP datalink layer */
 #if (defined(BACDL_BIP) || defined(BACDL_ALL))
-/* other BIP defines (define as 1 to enable):
-    USE_INADDR - uses INADDR_BROADCAST for broadcast and binds using INADDR_ANY
-    USE_CLASSADDR = uses IN_CLASSx_HOST where x=A,B,C or D for broadcast
-*/
 #if !defined(BBMD_ENABLED)
 #define BBMD_ENABLED 1
+#endif
+#if !defined(BBMD_CLIENT_ENABLED)
+#define BBMD_CLIENT_ENABLED 1
 #endif
 #endif
 
@@ -81,7 +67,7 @@
 /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
 /* This is used in constructing messages and to tell others our limits */
 /* 50 is the minimum; adjust to your memory and physical layer constraints */
-/* Lon=206, MS/TP=480, ARCNET=480, Ethernet=1476, BACnet/IP=1476 */
+/* Lon=206, MS/TP=480 or 1476, ARCNET=480, Ethernet=1476, BACnet/IP=1476 */
 #if !defined(MAX_APDU)
     /* #define MAX_APDU 50 */
     /* #define MAX_APDU 1476 */
@@ -94,6 +80,18 @@
 #elif defined (BACDL_ETHERNET)
 #if defined(BACNET_SECURITY)
 #define MAX_APDU 1420
+#else
+#define MAX_APDU 1476
+#endif
+#elif defined (BACDL_ARCNET)
+#if defined(BACNET_SECURITY)
+#define MAX_APDU 412
+#else
+#define MAX_APDU 480
+#endif
+#elif defined (BACDL_MSTP)
+#if defined(BACNET_SECURITY)
+#define MAX_APDU 412
 #else
 #define MAX_APDU 1476
 #endif
@@ -145,37 +143,76 @@
     defined(BACAPP_DATE) || \
     defined(BACAPP_TIME) || \
     defined(BACAPP_OBJECT_ID) || \
+    defined(BACAPP_DATETIME) || \
+    defined(BACAPP_DATERANGE) || \
+    defined(BACAPP_LIGHTING_COMMAND) || \
+    defined(BACAPP_XY_COLOR) || \
+    defined(BACAPP_COLOR_COMMAND) || \
+    defined(BACAPP_WEEKLY_SCHEDULE) || \
+    defined(BACAPP_CALENDAR_ENTRY) || \
+    defined(BACAPP_SPECIAL_EVENT) || \
+    defined(BACAPP_HOST_N_PORT) || \
+    defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE) || \
+    defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
+    defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
+    defined(BACAPP_DESTINATION) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
 
 #if defined (BACAPP_ALL)
-#define BACAPP_NULL
-#define BACAPP_BOOLEAN
-#define BACAPP_UNSIGNED
-#define BACAPP_SIGNED
-#define BACAPP_REAL
-#define BACAPP_DOUBLE
-#define BACAPP_OCTET_STRING
-#define BACAPP_CHARACTER_STRING
-#define BACAPP_BIT_STRING
-#define BACAPP_ENUMERATED
-#define BACAPP_DATE
-#define BACAPP_TIME
-#define BACAPP_OBJECT_ID
+#define BACAPP_MINIMAL
 #define BACAPP_TYPES_EXTRA
-#elif defined (BACAPP_MINIMAL)
+#endif
+
+#if defined (BACAPP_MINIMAL)
 #define BACAPP_NULL
 #define BACAPP_BOOLEAN
 #define BACAPP_UNSIGNED
 #define BACAPP_SIGNED
 #define BACAPP_REAL
 #define BACAPP_CHARACTER_STRING
+#define BACAPP_OCTET_STRING
 #define BACAPP_BIT_STRING
 #define BACAPP_ENUMERATED
 #define BACAPP_DATE
 #define BACAPP_TIME
 #define BACAPP_OBJECT_ID
+#endif
+
+#if defined (BACAPP_TYPES_EXTRA) 
+#define BACAPP_DOUBLE
+#define BACAPP_TIMESTAMP
+#define BACAPP_DATETIME
+#define BACAPP_DATERANGE
+#define BACAPP_LIGHTING_COMMAND
+#define BACAPP_XY_COLOR
+#define BACAPP_COLOR_COMMAND
+#define BACAPP_WEEKLY_SCHEDULE
+#define BACAPP_CALENDAR_ENTRY
+#define BACAPP_SPECIAL_EVENT
+#define BACAPP_HOST_N_PORT
+#define BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE
+#define BACAPP_DEVICE_OBJECT_REFERENCE
+#define BACAPP_OBJECT_PROPERTY_REFERENCE
+#define BACAPP_DESTINATION
+#endif
+
+#if defined(BACAPP_DOUBLE) || \
+    defined(BACAPP_DATETIME) || \
+    defined(BACAPP_DATERANGE) || \
+    defined(BACAPP_LIGHTING_COMMAND) || \
+    defined(BACAPP_XY_COLOR) || \
+    defined(BACAPP_COLOR_COMMAND) || \
+    defined(BACAPP_WEEKLY_SCHEDULE) || \
+    defined(BACAPP_CALENDAR_ENTRY) || \
+    defined(BACAPP_SPECIAL_EVENT) || \
+    defined(BACAPP_HOST_N_PORT) || \
+    defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE) || \
+    defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
+    defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
+    defined(BACAPP_DESTINATION)
+#define BACAPP_COMPLEX_TYPES
 #endif
 
 /*
@@ -203,9 +240,10 @@
 */
 
 /*
-** Note: I've left everything enabled here in the default config.h. You should
-** use a local copy of config.h with settings configured for your needs to
-** make use of any code space reductions in your device.
+** Note: these are enabled by default for the example apps to build. 
+** Use a local copy named "bacnet-config.h" with settings configured for 
+** the product specific needs for code space reductions in your device.
+** Alternately, use a compiler and linker the have code reduction features.
 **/
 
 #define BACNET_SVC_I_HAVE_A    1
