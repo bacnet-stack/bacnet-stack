@@ -452,12 +452,19 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     } else {
                         if (mstp_port->DataLength == 0) {
                             /* NoData */
-                            printf_receive_data("%s",
-                                mstptext_frame_type(
+                            if ((mstp_port->DestinationAddress ==
+                                    mstp_port->This_Station) ||
+                                (mstp_port->DestinationAddress ==
+                                    MSTP_BROADCAST_ADDRESS) || 
+                                (mstp_port->This_Station == 
+                                    MSTP_BROADCAST_ADDRESS)) {
+                                printf_receive_data("%s",
+                                    mstptext_frame_type(
                                     (unsigned)mstp_port->FrameType));
-                            /* indicate that a frame with no data has been
-                                * received */
-                            mstp_port->ReceivedValidFrame = true;
+                                /* indicate that a frame with no data has been
+                                    * received */
+                                mstp_port->ReceivedValidFrame = true;
+                            }
                             /* wait for the start of the next frame. */
                             mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                         } else {
@@ -465,6 +472,8 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                             if ((mstp_port->DestinationAddress ==
                                     mstp_port->This_Station) ||
                                 (mstp_port->DestinationAddress ==
+                                    MSTP_BROADCAST_ADDRESS) || 
+                                (mstp_port->This_Station == 
                                     MSTP_BROADCAST_ADDRESS)) {
                                 if (mstp_port->DataLength <=
                                     mstp_port->InputBufferSize) {
@@ -641,6 +650,8 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 if (mstp_port->This_Station != 255) {
                     /* indicate that the next station is unknown */
                     mstp_port->Next_Station = mstp_port->This_Station;
+                    /* Send a Poll For Master since we just received 
+                       the token */
                     mstp_port->Poll_Station = (mstp_port->Next_Station + 1) %
                         (mstp_port->Zero_Config_Max_Master + 1);
                     mstp_port->TokenCount = Npoll;
@@ -689,14 +700,12 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                         mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
                     }
                     mstp_port->ReceivedValidFrame = false;
-                } else if ((mstp_port->DestinationAddress ==
-                               mstp_port->This_Station) ||
-                    (mstp_port->DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
+                } else {
                     /* destined for me! */
                     switch (mstp_port->FrameType) {
                         case FRAME_TYPE_TOKEN:
                             /* ReceivedToken */
-                            /* tokens can't be broadcast */
+                            /* tokens cannot be broadcast */
                             if (mstp_port->DestinationAddress ==
                                 MSTP_BROADCAST_ADDRESS) {
                                 break;
