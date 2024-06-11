@@ -143,6 +143,8 @@ int host_n_port_decode(uint8_t *apdu,
     BACNET_TAG tag = { 0 };
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
+    apdu--;
+    apdu_size++;
     /* default reject code */
     if (error_code) {
         *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
@@ -153,10 +155,13 @@ int host_n_port_decode(uint8_t *apdu,
         if (error_code) {
             *error_code = ERROR_CODE_REJECT_INVALID_TAG;
         }
+    fprintf(stderr, "[%s %d %s] ! opening tag  returning = %u; apdu[apdu_len] = %02x\r\n", __FILE__, __LINE__, __func__, (unsigned) BACNET_STATUS_REJECT,
+            (int) apdu[apdu_len]);
         return BACNET_STATUS_REJECT;
     }
     apdu_len += len;
     len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
+    fprintf(stderr, "[%s %d %s] ! len = %d \r\n", __FILE__, __LINE__, __func__, (int) len);
     if (len <= 0) {
         if (error_code) {
             *error_code = ERROR_CODE_REJECT_INVALID_TAG;
@@ -164,6 +169,7 @@ int host_n_port_decode(uint8_t *apdu,
         return BACNET_STATUS_REJECT;
     }
     apdu_len += len;
+    fprintf(stderr, "[%s %d %s] ! tag.context = %d; tag.number = %d \r\n", __FILE__, __LINE__, __func__, (int) tag.context, (int) tag.number);
     if (tag.context && (tag.number == 0)) {
         /* CHOICE - none [0] NULL */
         if (address) {
@@ -179,6 +185,7 @@ int host_n_port_decode(uint8_t *apdu,
         }
         len = bacnet_octet_string_decode(&apdu[apdu_len], apdu_size - apdu_len,
             tag.len_value_type, octet_string);
+        fprintf(stderr, "[%s %d %s] decoded octet string length = %d; \r\n", __FILE__, __LINE__, __func__, (int) len);
         if (len < 0) {
             if (error_code) {
                 *error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
@@ -213,12 +220,14 @@ int host_n_port_decode(uint8_t *apdu,
         if (error_code) {
             *error_code = ERROR_CODE_REJECT_INVALID_TAG;
         }
+        fprintf(stderr, "[%s %d %s] bad closing apdu[apdu_len] = %d\r\n", __FILE__, __LINE__, __func__, (int) apdu[apdu_len]);
         return BACNET_STATUS_REJECT;
     }
     apdu_len += len;
     /* port [1] Unsigned16 */
     len = bacnet_unsigned_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
+    fprintf(stderr, "[%s %d %s] decoded unsigned16 length = %d; \r\n", __FILE__, __LINE__, __func__, (int) len);
     if (len > 0) {
         if (unsigned_value <= UINT16_MAX) {
             if (address) {
