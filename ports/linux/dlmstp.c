@@ -693,7 +693,7 @@ bool dlmstp_init(char *ifname)
 {
     pthread_condattr_t attr;
     int rv = 0;
-
+    fprintf(stderr, "%%%% INIT DLMSTP");
     pthread_condattr_init(&attr);
     if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {
         fprintf(
