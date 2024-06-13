@@ -6,8 +6,8 @@
  * uses a BACnetBitString data type.
  * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BITSTRING_VALUE_H
-#define BITSTRING_VALUE_H
+#ifndef BACNET_BASIC_OBJECT_BITSTRING_VALUE_H
+#define BACNET_BASIC_OBJECT_BITSTRING_VALUE_H
 
 #include <stdbool.h>
 #include <stdint.h>

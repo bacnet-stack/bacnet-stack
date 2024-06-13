@@ -1,11 +1,9 @@
 /**
  * @file
  * @brief Accumulator object header file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2017
- * @copyright 2017 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_BASIC_OBJECT_ACCUMULATOR_H
 #define BACNET_BASIC_OBJECT_ACCUMULATOR_H

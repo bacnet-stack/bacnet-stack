@@ -1,12 +1,11 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006
- * @brief Binary Input object is an input object with a present-value that
+ * @brief A basic BACnet Binary Input Object implementation.
+ * Binary Input objects are input objects with a present-value that
  * uses an enumerated two state active/inactive data type.
- * @section LICENSE
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>

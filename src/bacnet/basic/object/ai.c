@@ -1,15 +1,10 @@
 /**
  * @file
- * @brief Analog Input Objects - customize for your use
+ * @brief A basic BACnet Analog Input Object implementation.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
- * @date 2005
- * @section LICENSE
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- *
- * SPDX-License-Identifier: MIT
+ * @date 2005, 2011
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>

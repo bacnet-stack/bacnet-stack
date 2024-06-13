@@ -1,11 +1,9 @@
 /**
  * @file
  * @brief BACnet accumulator Objects used to represent meter registers
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2017
- * @copyright 2017 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>

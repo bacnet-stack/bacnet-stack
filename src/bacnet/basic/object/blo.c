@@ -1,10 +1,9 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2023
- * @brief Binary Lighting Output object
- *
- * SPDX-License-Identifier: MIT
+ * @brief A basic BACnet Binary Lighting Output object implementation.
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
