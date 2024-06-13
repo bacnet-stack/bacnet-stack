@@ -796,6 +796,7 @@ static void Color_Fade_To_Color_Handler(
 {
     BACNET_XY_COLOR old_value;
     struct object_data *pObject;
+    float x1, x2, x3, y1, y3;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (!pObject) {
@@ -819,14 +820,17 @@ static void Color_Fade_To_Color_Handler(
             pObject->Color_Command.transit.fade_time = 0;
         } else {
             /* fading */
-            pObject->Tracking_Value.x_coordinate = linear_interpolate(0,
-                milliseconds, pObject->Color_Command.transit.fade_time,
-                old_value.x_coordinate,
-                pObject->Color_Command.target.color.x_coordinate);
-            pObject->Tracking_Value.y_coordinate = linear_interpolate(0,
-                milliseconds, pObject->Color_Command.transit.fade_time,
-                old_value.y_coordinate,
-                pObject->Color_Command.target.color.y_coordinate);
+            x1 = 0.0f;
+            x2 = (float)milliseconds;
+            x3 = (float)pObject->Color_Command.transit.fade_time;
+            y1 = old_value.x_coordinate;
+            y3 = pObject->Color_Command.target.color.x_coordinate;
+            pObject->Tracking_Value.x_coordinate = linear_interpolate(x1, x2, 
+                x3, y1, y3);
+            y1 = old_value.y_coordinate;
+            y3 = pObject->Color_Command.target.color.y_coordinate;
+            pObject->Tracking_Value.y_coordinate = linear_interpolate(x1, x2, 
+                x3, y1, y3);
             pObject->Color_Command.transit.fade_time -= milliseconds;
             pObject->In_Progress =
                 BACNET_COLOR_OPERATION_IN_PROGRESS_FADE_ACTIVE;
