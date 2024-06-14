@@ -1536,7 +1536,7 @@ int Analog_Input_Alarm_Summary(
 #endif /* defined(INTRINSIC_REPORTING) */
 
 /**
- * @brief Creates a Analog Value object
+ * @brief Creates a Analog Input object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
  */
@@ -1597,7 +1597,7 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
 }
 
 /**
- * @brief Deletes an Analog Value object
+ * @brief Deletes an Analog Input object
  * @param object_instance - object-instance number of the object
  * @return true if the object-instance was deleted
  */
@@ -1616,7 +1616,7 @@ bool Analog_Input_Delete(uint32_t object_instance)
 }
 
 /**
- * @brief Deletes all the Analog Values and their data
+ * @brief Deletes all the Analog Inputs and their data
  */
 void Analog_Input_Cleanup(void)
 {
@@ -1635,7 +1635,7 @@ void Analog_Input_Cleanup(void)
 }
 
 /**
- * @brief Initializes the Analog Value object data
+ * @brief Initializes the Analog Input object data
  */
 void Analog_Input_Init(void)
 {
