@@ -99,7 +99,7 @@ void Analog_Output_Property_Lists(
 }
 
 /**
- * @brief Determines if a given Analog Value instance is valid
+ * @brief Determines if a given Analog Output instance is valid
  * @param  object_instance - object-instance number of the object
  * @return  true if the instance is valid, and false if not
  */
@@ -116,8 +116,8 @@ bool Analog_Output_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * @brief Determines the number of Analog Value objects
- * @return  Number of Analog Value objects
+ * @brief Determines the number of Analog Output objects
+ * @return  Number of Analog Output objects
  */
 unsigned Analog_Output_Count(void)
 {
@@ -126,7 +126,7 @@ unsigned Analog_Output_Count(void)
 
 /**
  * @brief Determines the object instance-number for a given 0..N index
- * of Analog Value objects where N is Analog_Output_Count().
+ * of Analog Output objects where N is Analog_Output_Count().
  * @param  index - 0..MAX_ANALOG_OUTPUTS value
  * @return  object instance-number for the given index
  */
@@ -141,7 +141,7 @@ uint32_t Analog_Output_Index_To_Instance(unsigned index)
 
 /**
  * @brief For a given object instance-number, determines a 0..N index
- * of Analog Value objects where N is Analog_Output_Count().
+ * of Analog Output objects where N is Analog_Output_Count().
  * @param  object_instance - object-instance number of the object
  * @return  index for the given instance-number, or MAX_ANALOG_OUTPUTS
  * if not valid.
@@ -1159,7 +1159,7 @@ void Analog_Output_Write_Present_Value_Callback_Set(
 }
 
 /**
- * @brief Creates a Analog Value object
+ * @brief Creates a Analog Output object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
  */
@@ -1213,7 +1213,7 @@ uint32_t Analog_Output_Create(uint32_t object_instance)
 }
 
 /**
- * @brief Deletes an Analog Value object
+ * @brief Deletes an Analog Output object
  * @param object_instance - object-instance number of the object
  * @return true if the object-instance was deleted
  */
@@ -1232,7 +1232,7 @@ bool Analog_Output_Delete(uint32_t object_instance)
 }
 
 /**
- * @brief Deletes all the Analog Values and their data
+ * @brief Deletes all the Analog Outputs and their data
  */
 void Analog_Output_Cleanup(void)
 {
@@ -1251,7 +1251,7 @@ void Analog_Output_Cleanup(void)
 }
 
 /**
- * @brief Initializes the Analog Value object data
+ * @brief Initializes the Analog Output object data
  */
 void Analog_Output_Init(void)
 {
