@@ -3,13 +3,10 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date May 2024
  * @brief API for a Structured View object used by a BACnet device object
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_STRUCTURED_VIEW_OBJECT_H
-#define BACNET_STRUCTURED_VIEW_OBJECT_H
-
+#ifndef BACNET_BASIC_STRUCTURED_VIEW_OBJECT_H
+#define BACNET_BASIC_STRUCTURED_VIEW_OBJECT_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */

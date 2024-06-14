@@ -5,9 +5,7 @@
  * @brief API for a basic BACnet Binary Value object implementation.
  * Binary Value objects are input objects with a present-value that
  * uses an enumerated two state active/inactive data type.
- * @section LICENSE
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_BASIC_OBJECT_BINARY_VALUE_H
 #define BACNET_BASIC_OBJECT_BINARY_VALUE_H

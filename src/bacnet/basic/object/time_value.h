@@ -3,12 +3,10 @@
  * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date June 2023
  * @brief API for a Time Value object used by a BACnet device object
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_TIME_VALUE_OBJECT_H
-#define BACNET_TIME_VALUE_OBJECT_H
+#ifndef BACNET_BASIC_TIME_VALUE_OBJECT_H
+#define BACNET_BASIC_TIME_VALUE_OBJECT_H
 
 #include <stdbool.h>
 #include <stdint.h>

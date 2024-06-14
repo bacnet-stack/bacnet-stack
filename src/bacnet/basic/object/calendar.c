@@ -3,17 +3,10 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date June 2022
- * @brief Calendar objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Calendar object is an object with a present-value that
- * uses a BOOLEAN data type, and features a Date_List
- * that is a BACnetLIST of BACnetCalendarEntry.
- *
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @brief The Calendar object is an object with a present-value that
+ * uses a BOOLEAN data type, and features a Date_List that is a
+ * BACnetLIST of BACnetCalendarEntry.
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>

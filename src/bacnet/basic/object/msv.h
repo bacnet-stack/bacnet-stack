@@ -1,16 +1,13 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2009
- * @brief Multi-State object is an input object with a present-value that
+ * @brief Multi-State object is an object with a present-value that
  * uses an integer data type with a sequence of 1 to N values.
- * @section LICENSE
- * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_MULTI_STATE_VALUE_H
-#define BACNET_MULTI_STATE_VALUE_H
-
+#ifndef BACNET_BASIC_OBJECT_MULTI_STATE_VALUE_H
+#define BACNET_BASIC_OBJECT_MULTI_STATE_VALUE_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */

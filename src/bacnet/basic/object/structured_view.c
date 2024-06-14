@@ -6,10 +6,7 @@
  * to hold references to subordinate objects, which may include other
  * Structured View objects, thereby allowing multilevel hierarchies
  * to be created.
- *
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
