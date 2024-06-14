@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include <stdio.h>
+
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -656,7 +656,7 @@ void dlmstp_set_baud_rate(uint32_t baud)
 {
     struct dlmstp_user_data_t *user;
     struct dlmstp_rs485_driver *driver;
-    fprintf(stderr, "SRC DLMSTP BAUD");
+
 
     if (!MSTP_Port) {
         return;
