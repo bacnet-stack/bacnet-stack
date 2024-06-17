@@ -93,14 +93,6 @@ extern "C" {
         char *new_name);
 
     BACNET_STACK_EXPORT
-    char *Binary_Output_Description(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    bool Binary_Output_Description_Set(
-        uint32_t instance,
-        char *new_name);
-
-    BACNET_STACK_EXPORT
     char *Binary_Output_Inactive_Text(
         uint32_t instance);
     BACNET_STACK_EXPORT
@@ -114,25 +106,6 @@ extern "C" {
     bool Binary_Output_Active_Text_Set(
         uint32_t instance,
         char *new_name);
-
-    BACNET_STACK_EXPORT
-    int Binary_Output_Read_Property(
-        BACNET_READ_PROPERTY_DATA * rpdata);
-
-    BACNET_STACK_EXPORT
-    bool Binary_Output_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
-
-    BACNET_STACK_EXPORT
-    bool Binary_Output_Encode_Value_List(
-        uint32_t object_instance,
-        BACNET_PROPERTY_VALUE * value_list);
-    BACNET_STACK_EXPORT
-    bool Binary_Output_Change_Of_Value(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    void Binary_Output_Change_Of_Value_Clear(
-        uint32_t instance);
 
     BACNET_STACK_EXPORT
     BACNET_BINARY_PV Binary_Output_Present_Value(
@@ -169,21 +142,6 @@ extern "C" {
     bool Binary_Output_Description_Set(
         uint32_t object_instance,
         char *text_string);
-
-    BACNET_STACK_EXPORT
-    char *Binary_Output_Inactive_Text(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    bool Binary_Output_Inactive_Text_Set(
-        uint32_t instance,
-        char *new_name);
-    BACNET_STACK_EXPORT
-    char *Binary_Output_Active_Text(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    bool Binary_Output_Active_Text_Set(
-        uint32_t instance,
-        char *new_name);
 
     BACNET_STACK_EXPORT
     BACNET_POLARITY Binary_Output_Polarity(

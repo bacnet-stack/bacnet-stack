@@ -36,33 +36,34 @@ extern "C" {
 
     void rs485_init(
         void);
+
     void rs485_rts_enable(
         bool enable);
+    bool rs485_rts_enabled(
+        void);
+
     bool rs485_byte_available(
         uint8_t * data_register);
     bool rs485_receive_error(
         void);
     void rs485_bytes_send(
-        uint8_t * buffer,       /* data to send */
-        uint16_t nbytes);       /* number of bytes of data */
+        uint8_t * buffer,
+        uint16_t nbytes);
+
     uint32_t rs485_baud_rate(
         void);
     bool rs485_baud_rate_set(
         uint32_t baud);
-    /* a granular approach */
-    void rs485_byte_send(
-        uint8_t data_register);
-    bool rs485_byte_sent(
-        void);
-    bool rs485_frame_sent(
-        void);
-    bool rs485_turnaround_elapsed(
-        void);
 
+    uint32_t rs485_silence_milliseconds(
+        void);
     void rs485_silence_reset(
         void);
-    bool rs485_silence_elapsed(
-        uint32_t interval);
+
+    uint32_t rs485_bytes_transmitted(
+        void);
+    uint32_t rs485_bytes_received(
+        void);
 
 #ifdef __cplusplus
 }

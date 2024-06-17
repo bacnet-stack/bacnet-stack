@@ -65,12 +65,6 @@ extern "C" {
         const char *search_name,
         unsigned *found_index);
     BACNET_STACK_EXPORT
-    const char *bactext_notify_type_name(
-        unsigned index);
-    BACNET_STACK_EXPORT
-    const char *bactext_event_type_name(
-        unsigned index);
-    BACNET_STACK_EXPORT
     bool bactext_property_name_proprietary(
         unsigned index);
     BACNET_STACK_EXPORT

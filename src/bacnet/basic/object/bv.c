@@ -47,12 +47,16 @@ static binary_value_write_present_value_callback
     Binary_Value_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1 };
+static const int Binary_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,      PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    -1
+};
 
-static const int Binary_Value_Properties_Optional[] = { PROP_DESCRIPTION,
-    PROP_RELIABILITY, PROP_ACTIVE_TEXT, PROP_INACTIVE_TEXT, -1 };
+static const int Binary_Value_Properties_Optional[] = {
+    PROP_DESCRIPTION, PROP_RELIABILITY, PROP_ACTIVE_TEXT, PROP_INACTIVE_TEXT, -1
+};
 
 static const int Binary_Value_Properties_Proprietary[] = { -1 };
 
@@ -139,6 +143,70 @@ unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
 }
 
 /**
+ * @brief Convert from boolean to BACNET_BINARY_PV enumeration
+ * @param  value - boolean value
+ * @return  BACNET_BINARY_PV enumeration
+ */
+static BACNET_BINARY_PV Binary_Present_Value(bool value)
+{
+    BACNET_BINARY_PV binary_value = BINARY_INACTIVE;
+
+    if (value) {
+        binary_value = BINARY_ACTIVE;
+    }
+
+    return binary_value;
+}
+
+/**
+ * @brief Convert from BACNET_BINARY_PV enumeration to boolean
+ * @param binary_value BACNET_BINARY_PV enumeration
+ * @return boolean value
+ */
+static bool Binary_Present_Value_Boolean(BACNET_BINARY_PV binary_value)
+{
+    bool boolean_value = false;
+
+    if (binary_value == BINARY_ACTIVE) {
+        boolean_value = true;
+    }
+
+    return boolean_value;
+}
+
+/**
+ * @brief Convert from boolean to BACNET_POLARITY enumeration
+ * @param  value - boolean value
+ * @return  BACNET_POLARITY enumeration
+ */
+static BACNET_POLARITY Binary_Polarity(bool value)
+{
+    BACNET_POLARITY polarity = POLARITY_NORMAL;
+
+    if (value) {
+        polarity = POLARITY_REVERSE;
+    }
+
+    return polarity;
+}
+
+/**
+ * @brief Convert from BACNET_POLARITY enumeration to boolean
+ * @param binary_value BACNET_POLARITY enumeration
+ * @return boolean value
+ */
+static bool Binary_Polarity_Boolean(BACNET_POLARITY polarity)
+{
+    bool boolean_value = false;
+
+    if (polarity == POLARITY_REVERSE) {
+        boolean_value = true;
+    }
+
+    return boolean_value;
+}
+
+/**
  * For a given object instance-number, return the present value.
  *
  * @param  object_instance - object-instance number of the object
@@ -152,8 +220,8 @@ BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
-        value = pObject->Present_Value;
-        if (pObject->Polarity != POLARITY_NORMAL) {
+        value = Binary_Present_Value(pObject->Present_Value);
+        if (Binary_Polarity(pObject->Polarity) != POLARITY_NORMAL) {
             if (value == BINARY_INACTIVE) {
                 value = BINARY_ACTIVE;
             } else {
@@ -174,7 +242,7 @@ static void Binary_Value_Present_Value_COV_Detect(
     struct object_data *pObject, BACNET_BINARY_PV value)
 {
     if (pObject) {
-        if (pObject->Present_Value != value) {
+        if (Binary_Present_Value(pObject->Present_Value) != value) {
             pObject->Change_Of_Value = true;
         }
     }
@@ -222,12 +290,12 @@ void Binary_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 }
 
 /**
- * @brief For a given object instance-number, returns the reliability property value
+ * @brief For a given object instance-number, returns the reliability property
+ * value
  * @param object_instance - object-instance number of the object
  * @return reliability property value
  */
-BACNET_RELIABILITY Binary_Value_Reliability(
-    uint32_t object_instance)
+BACNET_RELIABILITY Binary_Value_Reliability(uint32_t object_instance)
 {
     BACNET_RELIABILITY value = RELIABILITY_NO_FAULT_DETECTED;
     struct object_data *pObject;
@@ -364,8 +432,9 @@ bool Binary_Value_Encode_Value_List(
         if (pObject->Present_Value) {
             present_value = BINARY_ACTIVE;
         }
-        status = cov_value_list_encode_enumerated(value_list, present_value,
-            in_alarm, fault, overridden, out_of_service);
+        status = cov_value_list_encode_enumerated(
+            value_list, present_value, in_alarm, fault, overridden,
+            out_of_service);
     }
 
     return status;
@@ -386,7 +455,8 @@ bool Binary_Value_Present_Value_Set(
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
         if (value <= MAX_BINARY_PV) {
-            if (pObject->Polarity != POLARITY_NORMAL) {
+            /* de-polarize */
+            if (Binary_Polarity(pObject->Polarity) != POLARITY_NORMAL) {
                 if (value == BINARY_INACTIVE) {
                     value = BINARY_ACTIVE;
                 } else {
@@ -394,7 +464,7 @@ bool Binary_Value_Present_Value_Set(
                 }
             }
             Binary_Value_Present_Value_COV_Detect(pObject, value);
-            pObject->Present_Value = true;
+            pObject->Present_Value = Binary_Present_Value_Boolean(value);
             status = true;
         }
     }
@@ -412,7 +482,8 @@ bool Binary_Value_Present_Value_Set(
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Binary_Value_Present_Value_Write(uint32_t object_instance,
+static bool Binary_Value_Present_Value_Write(
+    uint32_t object_instance,
     BACNET_BINARY_PV value,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -425,9 +496,9 @@ static bool Binary_Value_Present_Value_Write(uint32_t object_instance,
     if (pObject) {
         if (value <= MAX_BINARY_PV) {
             if (pObject->Write_Enabled) {
-                old_value = pObject->Present_Value;
+                old_value = Binary_Present_Value(pObject->Present_Value);
                 Binary_Value_Present_Value_COV_Detect(pObject, value);
-                pObject->Present_Value = value;
+                pObject->Present_Value = Binary_Present_Value_Boolean(value);
                 if (pObject->Out_Of_Service) {
                     /* The physical point that the object represents
                         is not in service. This means that changes to the
@@ -471,7 +542,8 @@ bool Binary_Value_Object_Name(
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
         if (pObject->Object_Name == NULL) {
-            snprintf(text, sizeof(text), "BINARY INPUT %lu",
+            snprintf(
+                text, sizeof(text), "BINARY INPUT %lu",
                 (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, text);
         } else {
@@ -517,7 +589,7 @@ BACNET_POLARITY Binary_Value_Polarity(uint32_t object_instance)
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
-        polarity = pObject->Polarity;
+        polarity = Binary_Polarity(pObject->Polarity);
     }
 
     return polarity;
@@ -537,7 +609,7 @@ bool Binary_Value_Polarity_Set(
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
-        pObject->Polarity = polarity;
+        pObject->Polarity = Binary_Polarity_Boolean(polarity);
     }
 
     return status;
@@ -738,19 +810,22 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], Binary_Value_Reliability(rpdata->object_instance));
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Binary_Value_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_ACTIVE_TEXT:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Binary_Value_Active_Text(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_INACTIVE_TEXT:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Binary_Value_Inactive_Text(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -816,10 +891,9 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                status =
-                    Binary_Value_Present_Value_Write(wp_data->object_instance,
-                        value.type.Enumerated,
-                        &wp_data->error_class, &wp_data->error_code);
+                status = Binary_Value_Present_Value_Write(
+                    wp_data->object_instance, value.type.Enumerated,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
         case PROP_OUT_OF_SERVICE:
@@ -835,7 +909,8 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
-                    Binary_Value_Polarity_Set(wp_data->object_instance,
+                    Binary_Value_Polarity_Set(
+                        wp_data->object_instance,
                         (BACNET_POLARITY)value.type.Enumerated);
                 } else {
                     status = false;
@@ -845,7 +920,8 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         default:
-            if (property_lists_member(Binary_Value_Properties_Required,
+            if (property_lists_member(
+                    Binary_Value_Properties_Required,
                     Binary_Value_Properties_Optional,
                     Binary_Value_Properties_Proprietary,
                     wp_data->object_property)) {
@@ -1006,5 +1082,7 @@ bool Binary_Value_Delete(uint32_t object_instance)
  */
 void Binary_Value_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

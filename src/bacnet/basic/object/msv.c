@@ -939,5 +939,7 @@ void Multistate_Value_Cleanup(void)
  */
 void Multistate_Value_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

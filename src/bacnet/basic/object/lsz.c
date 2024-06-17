@@ -915,5 +915,7 @@ void Life_Safety_Zone_Cleanup(void)
  */
 void Life_Safety_Zone_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

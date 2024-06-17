@@ -87,24 +87,39 @@ static lighting_output_write_present_value_callback
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
 static const int Lighting_Output_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE, PROP_TRACKING_VALUE, PROP_LIGHTING_COMMAND,
-    PROP_IN_PROGRESS, PROP_STATUS_FLAGS, PROP_OUT_OF_SERVICE,
-    PROP_BLINK_WARN_ENABLE, PROP_EGRESS_TIME, PROP_EGRESS_ACTIVE,
-    PROP_DEFAULT_FADE_TIME, PROP_DEFAULT_RAMP_RATE, PROP_DEFAULT_STEP_INCREMENT,
-    PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT,
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_TRACKING_VALUE,
+    PROP_LIGHTING_COMMAND,
+    PROP_IN_PROGRESS,
+    PROP_STATUS_FLAGS,
+    PROP_OUT_OF_SERVICE,
+    PROP_BLINK_WARN_ENABLE,
+    PROP_EGRESS_TIME,
+    PROP_EGRESS_ACTIVE,
+    PROP_DEFAULT_FADE_TIME,
+    PROP_DEFAULT_RAMP_RATE,
+    PROP_DEFAULT_STEP_INCREMENT,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
     PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
 #if (BACNET_PROTOCOL_REVISION >= 17)
     PROP_CURRENT_COMMAND_PRIORITY,
 #endif
     -1
 };
-static const int Lighting_Output_Properties_Optional[] = { PROP_DESCRIPTION,
+static const int Lighting_Output_Properties_Optional[] = {
+    PROP_DESCRIPTION,
     PROP_TRANSITION,
 #if (BACNET_PROTOCOL_REVISION >= 24)
-    PROP_COLOR_OVERRIDE, PROP_COLOR_REFERENCE, PROP_OVERRIDE_COLOR_REFERENCE,
+    PROP_COLOR_OVERRIDE,
+    PROP_COLOR_REFERENCE,
+    PROP_OVERRIDE_COLOR_REFERENCE,
 #endif
-    -1 };
+    -1
+};
 
 static const int Lighting_Output_Properties_Proprietary[] = { -1 };
 
@@ -229,8 +244,8 @@ float Lighting_Output_Present_Value(uint32_t object_instance)
  *    0 to N for individual array members
  * @return the priority-array active status for the specific priority
  */
-static bool Priority_Array_Active(
-    struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+static bool
+Priority_Array_Active(struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     bool active = false;
 
@@ -275,8 +290,8 @@ static float Priority_Array_Next_Value(
  *    0 to N for individual array members
  * @return The priority-array value for the specific priority
  */
-static float Priority_Array_Value(
-    struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+static float
+Priority_Array_Value(struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     float real_value = 0.0;
 
@@ -352,8 +367,8 @@ static unsigned Present_Value_Priority(struct object_data *pObject)
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Present_Value_Relinquish(
-    struct object_data *pObject, unsigned priority)
+static bool
+Present_Value_Relinquish(struct object_data *pObject, unsigned priority)
 {
     bool status = false;
 
@@ -378,8 +393,8 @@ static bool Present_Value_Relinquish(
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Present_Value_Set(
-    struct object_data *pObject, float value, unsigned priority)
+static bool
+Present_Value_Set(struct object_data *pObject, float value, unsigned priority)
 {
     bool status = false;
 
@@ -455,7 +470,8 @@ bool Lighting_Output_Present_Value_Set(
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Lighting_Output_Present_Value_Write(uint32_t object_instance,
+static bool Lighting_Output_Present_Value_Write(
+    uint32_t object_instance,
     float value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
@@ -503,7 +519,8 @@ static bool Lighting_Output_Present_Value_Write(uint32_t object_instance,
                     (Priority_Array_Active(pObject, priority - 1)) &&
                     (isgreater(
                         Priority_Array_Value(pObject, priority - 1), 0.0)) &&
-                    (isgreater(Priority_Array_Next_Value(pObject, priority - 1),
+                    (isgreater(
+                        Priority_Array_Next_Value(pObject, priority - 1),
                         0.0))) {
                     /* The blink-warn notification shall not occur,
                        and the value at the specified priority shall be
@@ -531,7 +548,8 @@ static bool Lighting_Output_Present_Value_Write(uint32_t object_instance,
                     (Priority_Array_Active(pObject, priority - 1)) &&
                     (isgreater(
                         Priority_Array_Value(pObject, priority - 1), 0.0)) &&
-                    (isgreater(Priority_Array_Next_Value(pObject, priority - 1),
+                    (isgreater(
+                        Priority_Array_Next_Value(pObject, priority - 1),
                         0.0))) {
                     /* The blink-warn notification shall not occur and
                        the value 0.0% written at the specified
@@ -547,8 +565,8 @@ static bool Lighting_Output_Present_Value_Write(uint32_t object_instance,
                     Present_Value_Set(pObject, 0.0, priority);
                 }
                 status = true;
-            } else if (isgreaterequal(value, 0.0) &&
-                islessequal(value, 100.0)) {
+            } else if (
+                isgreaterequal(value, 0.0) && islessequal(value, 100.0)) {
                 Present_Value_Set(pObject, value, priority);
                 current_priority = Present_Value_Priority(pObject);
                 if (priority <= current_priority) {
@@ -559,7 +577,8 @@ static bool Lighting_Output_Present_Value_Write(uint32_t object_instance,
                             pObject->Default_Fade_Time;
                         pObject->Lighting_Command.operation =
                             BACNET_LIGHTS_FADE_TO;
-                    } else if (pObject->Transition ==
+                    } else if (
+                        pObject->Transition ==
                         BACNET_LIGHTING_TRANSITION_RAMP) {
                         pObject->Lighting_Command.ramp_rate =
                             pObject->Default_Ramp_Rate;
@@ -650,18 +669,19 @@ static bool Lighting_Output_Present_Value_Relinquish_Write(
             if (old_priority != new_priority) {
                 if (new_priority > BACNET_MAX_PRIORITY) {
                     /* BACNET_LIGHTS_WARN_RELINQUISH? */
-                    value = Lighting_Output_Relinquish_Default(object_instance);
+                    value = (float)Lighting_Output_Relinquish_Default(
+                        object_instance);
                 } else {
-                    value =
-                        Lighting_Output_Present_Value_Priority(object_instance);
+                    value = (float)Lighting_Output_Present_Value_Priority(
+                        object_instance);
                 }
                 /* we have priority - configure the Lighting Command */
                 if (pObject->Transition == BACNET_LIGHTING_TRANSITION_FADE) {
                     pObject->Lighting_Command.fade_time =
                         pObject->Default_Fade_Time;
                     pObject->Lighting_Command.operation = BACNET_LIGHTS_FADE_TO;
-                } else if (pObject->Transition ==
-                    BACNET_LIGHTING_TRANSITION_RAMP) {
+                } else if (
+                    pObject->Transition == BACNET_LIGHTING_TRANSITION_RAMP) {
                     pObject->Lighting_Command.ramp_rate =
                         pObject->Default_Ramp_Rate;
                     pObject->Lighting_Command.operation = BACNET_LIGHTS_RAMP_TO;
@@ -707,7 +727,8 @@ bool Lighting_Output_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "LIGHTING-OUTPUT-%u",
+            snprintf(
+                name_text, sizeof(name_text), "LIGHTING-OUTPUT-%u",
                 object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
@@ -837,8 +858,8 @@ bool Lighting_Output_Lighting_Command(
  *
  * @return the in-progress value of this object instance.
  */
-BACNET_LIGHTING_IN_PROGRESS Lighting_Output_In_Progress(
-    uint32_t object_instance)
+BACNET_LIGHTING_IN_PROGRESS
+Lighting_Output_In_Progress(uint32_t object_instance)
 {
     BACNET_LIGHTING_IN_PROGRESS value = BACNET_LIGHTING_IDLE;
     struct object_data *pObject;
@@ -1085,7 +1106,8 @@ bool Lighting_Output_Default_Fade_Time_Set(
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Lighting_Output_Default_Fade_Time_Write(uint32_t object_instance,
+static bool Lighting_Output_Default_Fade_Time_Write(
+    uint32_t object_instance,
     uint32_t value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
@@ -1163,15 +1185,16 @@ bool Lighting_Output_Default_Ramp_Rate_Set(
  * Handle a WriteProperty to a specific property.
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - property value to be written
+ * @param  percent_per_second - property value to be written
  * @param  priority - priority-array index value 1..16
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Lighting_Output_Default_Ramp_Rate_Write(uint32_t object_instance,
-    float value,
+static bool Lighting_Output_Default_Ramp_Rate_Write(
+    uint32_t object_instance,
+    float percent_per_second,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -1182,8 +1205,8 @@ static bool Lighting_Output_Default_Ramp_Rate_Write(uint32_t object_instance,
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
-        if ((value >= 0.1) && (value <= 100.0)) {
-            pObject->Default_Fade_Time = value;
+        if ((percent_per_second >= 0.1) && (percent_per_second <= 100.0)) {
+            pObject->Default_Ramp_Rate = percent_per_second;
             status = true;
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
@@ -1470,7 +1493,8 @@ bool Lighting_Output_Transition_Set(
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Lighting_Output_Transition_Write(uint32_t object_instance,
+static bool Lighting_Output_Transition_Write(
+    uint32_t object_instance,
     uint32_t value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
@@ -1773,9 +1797,10 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu, Lighting_Output_Transition(rpdata->object_instance));
             break;
         case PROP_PRIORITY_ARRAY:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index, Lighting_Output_Priority_Array_Encode,
-                BACNET_MAX_PRIORITY, apdu, apdu_size);
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Lighting_Output_Priority_Array_Encode, BACNET_MAX_PRIORITY,
+                apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -1806,7 +1831,8 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #endif
 #if (BACNET_PROTOCOL_REVISION >= 24)
         case PROP_COLOR_OVERRIDE:
-            apdu_len = encode_application_boolean(&apdu[0],
+            apdu_len = encode_application_boolean(
+                &apdu[0],
                 Lighting_Output_Color_Override(rpdata->object_instance));
             break;
         case PROP_COLOR_REFERENCE:
@@ -1823,7 +1849,8 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #endif
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Lighting_Output_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -1950,10 +1977,10 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                status =
-                    Lighting_Output_Transition_Write(wp_data->object_instance,
-                        value.type.Enumerated, wp_data->priority,
-                        &wp_data->error_class, &wp_data->error_code);
+                status = Lighting_Output_Transition_Write(
+                    wp_data->object_instance, value.type.Enumerated,
+                    wp_data->priority, &wp_data->error_class,
+                    &wp_data->error_code);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -1997,11 +2024,12 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * @param milliseconds - number of milliseconds elapsed since previously
  * called.  Works best when called about every 10 milliseconds.
  */
-static void Lighting_Output_Fade_Handler(
-    uint32_t object_instance, uint16_t milliseconds)
+static void
+Lighting_Output_Fade_Handler(uint32_t object_instance, uint16_t milliseconds)
 {
     struct object_data *pObject;
     float old_value;
+    float x1, x2, x3, y1, y3;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (!pObject) {
@@ -2015,7 +2043,8 @@ static void Lighting_Output_Fade_Handler(
         pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
         pObject->Lighting_Command.fade_time = 0;
     } else {
-        if (!islessgreater(pObject->Tracking_Value,
+        if (!islessgreater(
+                pObject->Tracking_Value,
                 pObject->Lighting_Command.target_level)) {
             /* stop fading */
             pObject->Tracking_Value = pObject->Lighting_Command.target_level;
@@ -2024,9 +2053,12 @@ static void Lighting_Output_Fade_Handler(
             pObject->Lighting_Command.fade_time = 0;
         } else {
             /* fading */
-            pObject->Tracking_Value = linear_interpolate(0, milliseconds,
-                pObject->Lighting_Command.fade_time, old_value,
-                pObject->Lighting_Command.target_level);
+            x1 = 0.0f;
+            x2 = (float)milliseconds;
+            x3 = (float)pObject->Lighting_Command.fade_time;
+            y1 = old_value;
+            y3 = pObject->Lighting_Command.target_level;
+            pObject->Tracking_Value = linear_interpolate(x1, x2, x3, y1, y3);
             pObject->Lighting_Command.fade_time -= milliseconds;
             pObject->In_Progress = BACNET_LIGHTING_FADE_ACTIVE;
         }
@@ -2052,8 +2084,8 @@ static void Lighting_Output_Fade_Handler(
  * @param  object_instance - object-instance number of the object
  * @param milliseconds - number of milliseconds elapsed
  */
-static void Lighting_Output_Ramp_Handler(
-    uint32_t object_instance, uint16_t milliseconds)
+static void
+Lighting_Output_Ramp_Handler(uint32_t object_instance, uint16_t milliseconds)
 {
     float old_value, target_value, min_value, max_value, step_value, steps;
     struct object_data *pObject;
@@ -2077,9 +2109,11 @@ static void Lighting_Output_Ramp_Handler(
     if (milliseconds <= 1000) {
         /* percent per second */
         steps = linear_interpolate(
-            0, milliseconds, 1000, 0, pObject->Lighting_Command.ramp_rate);
+            0.0f, (float)milliseconds, 1000.0f, 0.0f,
+            pObject->Lighting_Command.ramp_rate);
     } else {
-        steps = (milliseconds * pObject->Lighting_Command.ramp_rate) / 1000;
+        steps = ((float)milliseconds * pObject->Lighting_Command.ramp_rate) /
+            1000.0f;
     }
     if (!islessgreater(pObject->Tracking_Value, target_value)) {
         /* stop ramping */
@@ -2462,5 +2496,7 @@ void Lighting_Output_Cleanup(void)
  */
 void Lighting_Output_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }
