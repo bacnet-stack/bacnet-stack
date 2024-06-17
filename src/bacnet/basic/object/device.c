@@ -640,6 +640,11 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                         ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 }
                 break;
+            case BACNET_REINIT_ACTIVATE_CHANGES:
+                /* note: activate changes *after* the simple ack is sent */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
             default:
                 rd_data->error_class = ERROR_CLASS_SERVICES;
                 rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
