@@ -1353,18 +1353,24 @@ void MSTP_Zero_Config_UUID_Init(struct mstp_port_struct_t *mstp_port)
  */
 unsigned MSTP_Zero_Config_Station_Increment(unsigned station) 
 {
-#ifdef MSTP_ZERO_CONF_STATION_INCREMENT_MODULO
+    unsigned next_station;
+
+#ifdef MSTP_ZERO_CONFIG_STATION_INCREMENT_MODULO
     /* as defined by specification language */
-    return Nmin_poll_station +
+    next_station = Nmin_poll_station +
         ((station + 1) % ((Nmax_poll_station - Nmin_poll_station) + 1));
 #else
-    station++;
-    if (station > Nmax_poll_station) {
-        station = Nmin_poll_station;
+    if (station < Nmin_poll_station) {
+        next_station = Nmin_poll_station;
+    } else {
+        next_station = station + 1;
+        if (next_station > Nmax_poll_station) {
+            next_station = Nmin_poll_station;
+        }
     }
-
-    return station;
 #endif
+
+    return next_station;
 }
 
 /**

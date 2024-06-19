@@ -1055,6 +1055,7 @@ static void testZeroConfigNode_Test_LURK_ClaimLostToken(
 static void testZeroConfigNodeFSM(void)
 {
     struct mstp_port_struct_t MSTP_Port = { 0 }; /* port data */
+    unsigned station, next_station, test_station;
 
     /* test case: timeout event */
     testZeroConfigNode_Init(&MSTP_Port);
@@ -1117,6 +1118,27 @@ static void testZeroConfigNodeFSM(void)
     testZeroConfigNode_Test_IDLE_ValidFrame(&MSTP_Port);
     testZeroConfigNode_Test_LURK_Claim(&MSTP_Port);
     testZeroConfigNode_Test_LURK_ClaimLostToken(&MSTP_Port);
+    /* test next station rollover */
+    station = 0;
+    test_station = Nmin_poll_station;
+    next_station = MSTP_Zero_Config_Station_Increment(station);
+    zassert_equal(next_station, test_station, "station=%u next_station=%u", 
+        station, next_station);
+    station = Nmin_poll_station;
+    test_station = Nmin_poll_station + 1;
+    next_station = MSTP_Zero_Config_Station_Increment(station);
+    zassert_equal(next_station, test_station, "station=%u next_station=%u", 
+        station, next_station);
+    station = Nmax_poll_station - 1;
+    test_station = Nmax_poll_station;
+    next_station = MSTP_Zero_Config_Station_Increment(station);
+    zassert_equal(next_station, test_station,"station=%u next_station=%u", 
+        station, next_station);
+    station = Nmax_poll_station;
+    test_station = Nmin_poll_station;
+    next_station = MSTP_Zero_Config_Station_Increment(station);
+    zassert_equal(next_station, test_station, "station=%u next_station=%u", 
+        station, next_station);
 }
 
 /**
