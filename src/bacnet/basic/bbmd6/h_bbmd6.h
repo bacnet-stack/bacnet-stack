@@ -2,7 +2,7 @@
  * @file
  * @brief Header file for a basic BBMD for BVLC IPv6 handler
  * @author Steve Karg
- * @date October 2019
+ * @date October 2016
  * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_BASIC_BVLC6_HANDLER_H

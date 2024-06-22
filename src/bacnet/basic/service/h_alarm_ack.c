@@ -1,9 +1,10 @@
 /**
  * @file
- * @author Steve Karg <skarg@users.sourceforge.net>
- * @author 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- * @date 2005, 2011
  * @brief A basic AlarmAcknowledgment service Handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @author John Minack <minack@users.sourceforge.net>
+ * @date 2005, 2011
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>

@@ -2,7 +2,7 @@
  * @file
  * @brief API for Virtual MAC (VMAC) of BACnet/IPv6 neighbors
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2019
+ * @date 2016
  * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_BASIC_BBMD6_VMAC_H

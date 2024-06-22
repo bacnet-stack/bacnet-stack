@@ -1,8 +1,8 @@
 /**
  * @file
- * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2019
  * @brief Header file a basic Alarm Acknowledgment service Handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
  * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_BASIC_SERVICE_ALARM_ACK_H

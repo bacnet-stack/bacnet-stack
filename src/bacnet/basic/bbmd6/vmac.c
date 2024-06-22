@@ -2,7 +2,7 @@
  * @file
  * @brief Virtual MAC (VMAC) for BACnet/IPv6 neighbors
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2019
+ * @date 2016
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stddef.h>
