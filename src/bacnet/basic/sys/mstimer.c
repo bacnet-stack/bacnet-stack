@@ -1,12 +1,7 @@
 /**
  * @file
- * @author Steve Karg
- * @date 2009
  * @brief Millisecond timer library header file.
- *
- * @section DESCRIPTION
- *
- * The mstimer library provides functions for setting, resetting and
+ * @details The mstimer library provides functions for setting, resetting and
  * restarting timers, and for checking if a timer has expired. An
  * application must "manually" check if its timers have expired; this
  * is not done automatically.
@@ -14,13 +9,16 @@
  * A timer is declared as a \c struct \c mstimer and all access to the
  * timer is made by a pointer to the declared timer.
  *
- * Adapted from the Contiki operating system.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @note Adapted from the Contiki operating system.
  * Original Authors: Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+ * @copyright SPDX-License-Identifier: BSD-3-Clause
  */
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/basic/sys/mstimer.h"
+#include "mstimer.h"
 
 /* callback data head of list */
 static struct mstimer_callback_data_t *Callback_Head;

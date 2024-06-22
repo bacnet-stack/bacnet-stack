@@ -1,10 +1,12 @@
 /**
 * @file
-* @author Steve Karg
+* @brief API for linear interpolation library
+* @author Steve Karg <skarg@users.sourceforge.net>
 * @date 2011
+* @copyright SPDX-License-Identifier: MIT
 */
-#ifndef LINEAR_H
-#define LINEAR_H
+#ifndef BACNET_SYS_LINEAR_H
+#define BACNET_SYS_LINEAR_H
 
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"

@@ -1,17 +1,11 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2022
  * @brief Platform libc and compiler abstraction layer
- *
- * @section DESCRIPTION
- *
- * This libc and compiler abstraction layer assists with differences
+ * @details This libc and compiler abstraction layer assists with differences
  * between compiler and libc versions, capabilities, and C standards.
- *
- * @copyright 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_SYS_PLATFORM_H
 #define BACNET_SYS_PLATFORM_H

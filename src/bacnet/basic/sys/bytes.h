@@ -1,11 +1,9 @@
 /**
  * @file
- * @author Steve Karg
- * @date 2022
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
  * @brief Defines the bit/byte/word/long conversions that are used in code
- * @copyright 2012 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_SYS_BYTES_H
 #define BACNET_SYS_BYTES_H
