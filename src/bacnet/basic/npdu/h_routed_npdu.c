@@ -1,6 +1,7 @@
 /**
  * @file
- * @brief Handling for the basic BACnet routed NPDU layer of the BACnet stack
+ * @brief Handles messages at the NPDU level of the BACnet
+ * stack, including routing and network control messages.
  * @author Tom Brennan <tbrennan3@users.sourceforge.net>
  * @note Acknowledging the contribution of code and ideas used here that
  * came from Paul Chapman's vmac demo project.
@@ -25,9 +26,6 @@
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
-
-/** @file h_routed_npdu.c  Handles messages at the NPDU level of the BACnet
- * stack, including routing and network control messages. */
 
 /** Handler to manage the Network Layer Control Messages received in a packet.
  *  This handler is called if the NCPI bit 7 indicates that this packet is a

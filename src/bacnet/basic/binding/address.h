@@ -2,7 +2,7 @@
  * @file
  * @brief API for basic BACnet address binding table
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2012
+ * @date 2019
  * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_BASIC_ADDRESS_H

@@ -3,8 +3,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2013
  * @brief Store properties from other BACnet devices
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
 #include <stdbool.h>
@@ -14,8 +13,8 @@
 /* BACnet Stack API */
 #include "bacnet/basic/sys/mstimer.h"
 /* us */
-#include "bacnet/basic/client/bac-rw.h"
-#include "bacnet/basic/client/bac-data.h"
+#include "bac-rw.h"
+#include "bac-data.h"
 
 /* number of objects data stored */
 #ifndef BACNET_DATA_OBJECT_MAX

@@ -1,10 +1,9 @@
 /**
  * @file
+ * @brief Discover all BACnet devices on a destination network
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2024
- * @brief Discover all BACnet devices on a destination network
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
 #include <stdbool.h>
@@ -23,8 +22,8 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/property.h"
 /* us */
-#include "bacnet/basic/client/bac-rw.h"
-#include "bacnet/basic/client/bac-discover.h"
+#include "bac-rw.h"
+#include "bac-discover.h"
 
 /* send a Who-Is to discover new devices */
 static struct mstimer WhoIs_Timer;

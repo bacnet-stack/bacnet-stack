@@ -1,12 +1,12 @@
 /**
  * @file
+ * @brief API for basic BACnet data handling
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2013
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BAC_DATA_H
-#define BAC_DATA_H
+#ifndef BACNET_BASIC_CLIENT_DATA_H
+#define BACNET_BASIC_CLIENT_DATA_H
 
 #include <stdint.h>
 /* BACnet Stack defines - first */

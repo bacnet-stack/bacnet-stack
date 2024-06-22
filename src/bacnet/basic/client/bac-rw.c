@@ -1,10 +1,9 @@
 /**
  * @file
- * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2013
  * @brief Read properties from other BACnet devices, and store their values
- *
- * SPDX-License-Identifier: MIT
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2022
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
 #include <stdbool.h>
@@ -23,7 +22,7 @@
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/basic/tsm/tsm.h"
 /* me */
-#include "bacnet/basic/client/bac-rw.h"
+#include "bac-rw.h"
 
 /* timer for address cache */
 static struct mstimer Cache_Timer;

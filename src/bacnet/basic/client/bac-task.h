@@ -1,14 +1,12 @@
 /**
  * @file
- * @author Steve Karg
- * @date 2013
- * @brief High level BACnet task handling
- *
- * SPDX-License-Identifier: MIT
+ * @brief API for high level BACnet Task handling
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2022
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_TASK_H
-#define BACNET_TASK_H
-
+#ifndef BACNET_BASIC_CLIENT_TASK_H
+#define BACNET_BASIC_CLIENT_TASK_H
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
