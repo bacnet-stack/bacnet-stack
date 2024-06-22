@@ -14,8 +14,8 @@
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
-#include "vmac.h"
-#include "h_bbmd6.h"
+#include "bacnet/basic/bbmd6/vmac.h"
+#include "bacnet/basic/bbmd6/h_bbmd6.h"
 
 static bool BVLC6_Debug;
 #if PRINT_ENABLED

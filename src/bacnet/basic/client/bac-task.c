@@ -33,9 +33,9 @@
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/object/device.h"
 /* us */
-#include "bac-rw.h"
-#include "bac-data.h"
-#include "bac-task.h"
+#include "bacnet/basic/client/bac-rw.h"
+#include "bacnet/basic/client/bac-data.h"
+#include "bacnet/basic/client/bac-task.h"
 
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU];

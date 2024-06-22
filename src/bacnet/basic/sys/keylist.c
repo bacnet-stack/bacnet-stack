@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "keylist.h"
+#include "bacnet/basic/sys/keylist.h"
 
 /******************************************************************** */
 /* Generic node routines */

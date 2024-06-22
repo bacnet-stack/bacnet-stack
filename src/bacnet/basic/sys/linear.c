@@ -10,7 +10,7 @@
 */
 #include <stdbool.h>
 #include <stdint.h>
-#include "linear.h"
+#include "bacnet/basic/sys/linear.h"
 
 /**
 * Linearly Interpolate the values between y1 and y3 based on x.

@@ -13,8 +13,8 @@
 /* BACnet Stack API */
 #include "bacnet/basic/sys/mstimer.h"
 /* us */
-#include "bac-rw.h"
-#include "bac-data.h"
+#include "bacnet/basic/client/bac-rw.h"
+#include "bacnet/basic/client/bac-data.h"
 
 /* number of objects data stored */
 #ifndef BACNET_DATA_OBJECT_MAX

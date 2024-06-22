@@ -9,7 +9,7 @@
  */
 #include <stdint.h>
 #include <stdbool.h>
-#include "days.h"
+#include "bacnet/basic/sys/days.h"
 
 /**
  * Determines if a year is a leap year using Gregorian algorithm

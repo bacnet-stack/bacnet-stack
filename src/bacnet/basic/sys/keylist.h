@@ -10,7 +10,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "key.h"
+#include "bacnet/basic/sys/key.h"
 
 /* This is a key sorted linked list data library that */
 /* uses a key or index to access the data. */

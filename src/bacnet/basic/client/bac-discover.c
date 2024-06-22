@@ -22,8 +22,8 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/property.h"
 /* us */
-#include "bac-rw.h"
-#include "bac-discover.h"
+#include "bacnet/basic/client/bac-rw.h"
+#include "bacnet/basic/client/bac-discover.h"
 
 /* send a Who-Is to discover new devices */
 static struct mstimer WhoIs_Timer;

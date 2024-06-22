@@ -7,7 +7,7 @@
  * @date 2004
  * @copyright SPDX-License-Identifier: MIT
  */
-#include "bigend.h"
+#include "bacnet/basic/sys/bigend.h"
 
 #ifdef BACNET_BIG_ENDIAN
 /* workaround: warning: ISO C forbids an empty translation unit [-Wpedantic] */

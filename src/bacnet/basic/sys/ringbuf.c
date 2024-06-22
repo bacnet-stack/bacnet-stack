@@ -13,7 +13,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "ringbuf.h"
+#include "bacnet/basic/sys/ringbuf.h"
 
 /**
  * Returns the number of elements in the ring buffer

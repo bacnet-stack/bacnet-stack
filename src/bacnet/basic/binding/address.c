@@ -16,7 +16,7 @@
 #include "bacnet/bacaddr.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/readrange.h"
-#include "address.h"
+#include "bacnet/basic/binding/address.h"
 
 /* we are likely compiling the demo command line tools if print enabled */
 #if !defined(BACNET_ADDRESS_CACHE_FILE)

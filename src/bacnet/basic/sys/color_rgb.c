@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
-#include "color_rgb.h"
+#include "bacnet/basic/sys/color_rgb.h"
 
 /**
  * @brief Clamp a double precision value between two limits

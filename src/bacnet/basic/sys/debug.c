@@ -14,7 +14,7 @@
 #include <string.h>
 #include <ctype.h>
 #endif
-#include "debug.h"
+#include "bacnet/basic/sys/debug.h"
 #if DEBUG_PRINTF_WITH_TIMESTAMP
 #include "bacnet/datetime.h"
 #endif

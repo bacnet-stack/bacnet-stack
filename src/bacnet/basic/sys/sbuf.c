@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "sbuf.h"
+#include "bacnet/basic/sys/sbuf.h"
 
 void sbuf_init(STATIC_BUFFER *b, /* static buffer structure */
     char *data, /* data block */

@@ -7,7 +7,7 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include "filename.h"
+#include "bacnet/basic/sys/filename.h"
 
 char *filename_remove_path(const char *filename_in)
 {
