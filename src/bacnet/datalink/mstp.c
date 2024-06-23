@@ -1659,9 +1659,14 @@ void MSTP_Init(struct mstp_port_struct_t *mstp_port)
         mstp_port->Treply_delay = DEFAULT_Treply_delay;
         mstp_port->Treply_timeout = DEFAULT_Treply_timeout;
         mstp_port->Tusage_timeout = DEFAULT_Tusage_timeout;
+        mstp_port->SlaveNodeEnabled = false;
         /* FIXME: point to functions */
         mstp_port->SilenceTimer = Timer_Silence;
         mstp_port->SilenceTimerReset = Timer_Silence_Reset;
+        /* FIXME: set these in your dlmstp if you are zero-config */
+        mstp_port->ZeroConfigEnabled = true;
+        /* use the built in random number generator */
+        MSTP_Zero_Config_UUID_Init(&MSTP_Port);
 #endif
         if ((mstp_port->Tframe_abort < 6) || (mstp_port->Tframe_abort > 100)) {
             mstp_port->Tframe_abort = DEFAULT_Tframe_abort;
