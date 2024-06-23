@@ -52,6 +52,8 @@ BACNET_RECIPIENT_LIST Time_Sync_Recipients[MAX_TIME_SYNC_RECIPIENTS];
 static BACNET_DATE_TIME Next_Sync_Time;
 #endif
 
+extern float time_offset;
+
 #if PRINT_ENABLED
 static void show_bacnet_date_time(BACNET_DATE *bdate, BACNET_TIME *btime)
 {
@@ -106,7 +108,6 @@ void handler_timesync(
             tv_inp.tv_usec = btime.hundredths*10000;
             if (gettimeofday(&tv_sys, NULL) == 0) {
                 time_offset = timedifference(tv_inp, tv_sys);
-                printf("Time offset = %f\n",time_offset);
             }
         }
     }
@@ -145,13 +146,7 @@ void handler_timesync_utc(
             tv_inp.tv_usec = btime.hundredths*10000;
             if (gettimeofday(&tv_sys, NULL) == 0) {
                 time_offset = timedifference(tv_inp, tv_sys);
-                printf("Time offset = %f\n",time_offset);
-
             }
-            time_t t = time(NULL) + time_offset;
-            struct tm *tmi1 = localtime(&t);
-            strftime(buf,64,"%Y-%m-%d %H:%M:%S\n",tmi1);
-            printf("%s",buf);
         }
     }
 

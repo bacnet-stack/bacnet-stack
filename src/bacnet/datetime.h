@@ -23,8 +23,6 @@
 /* 1/1/1900 is a Monday */
 #define BACNET_DAY_OF_WEEK_EPOCH BACNET_WEEKDAY_MONDAY
 
-extern float time_offset;
-
 typedef enum BACnet_Weekday {
     BACNET_WEEKDAY_MONDAY = 1,
     BACNET_WEEKDAY_TUESDAY = 2,
