@@ -3,15 +3,10 @@
  * @brief API for AddListElement and RemoveListElement application handlers
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date December 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef HANDLER_LIST_ELEMENT_H
-#define HANDLER_LIST_ELEMENT_H
-
+#ifndef BACNET_BASIC_SERVICE_HANDLER_LIST_ELEMENT_H
+#define BACNET_BASIC_SERVICE_HANDLER_LIST_ELEMENT_H
 #include <stdint.h>
 #include <stdbool.h>
 /* BACnet Stack defines - first */

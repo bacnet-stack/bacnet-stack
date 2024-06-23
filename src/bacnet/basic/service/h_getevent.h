@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief Header file for a basic GetEventInformation service handler
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006
  * @copyright SPDX-License-Identifier: MIT
  */
