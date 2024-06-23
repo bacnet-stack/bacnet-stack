@@ -643,6 +643,7 @@ static void testZeroConfigNode_Init(struct mstp_port_struct_t *mstp_port)
     /* configure for Zero Config */
     mstp_port->ZeroConfigEnabled = true;
     mstp_port->This_Station = 255;
+    MSTP_Zero_Config_UUID_Init(mstp_port);
 
     MSTP_Init(mstp_port);
     zassert_true(mstp_port->master_state == MSTP_MASTER_STATE_INITIALIZE, NULL);
@@ -1122,22 +1123,22 @@ static void testZeroConfigNodeFSM(void)
     station = 0;
     test_station = Nmin_poll_station;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station, "station=%u next_station=%u", 
+    zassert_equal(next_station, test_station, "station=%u next_station=%u",
         station, next_station);
     station = Nmin_poll_station;
     test_station = Nmin_poll_station + 1;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station, "station=%u next_station=%u", 
+    zassert_equal(next_station, test_station, "station=%u next_station=%u",
         station, next_station);
     station = Nmax_poll_station - 1;
     test_station = Nmax_poll_station;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station,"station=%u next_station=%u", 
+    zassert_equal(next_station, test_station,"station=%u next_station=%u",
         station, next_station);
     station = Nmax_poll_station;
     test_station = Nmin_poll_station;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station, "station=%u next_station=%u", 
+    zassert_equal(next_station, test_station, "station=%u next_station=%u",
         station, next_station);
 }
 

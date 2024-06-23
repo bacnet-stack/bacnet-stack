@@ -44,7 +44,7 @@
 
 /* MS/TP port */
 static struct mstp_port_struct_t MSTP_Port;
-static struct dlmstp_rs485_driver RS485_Driver = { 
+static struct dlmstp_rs485_driver RS485_Driver = {
     .init = rs485_init,
     .send = rs485_bytes_send,
     .read = rs485_byte_available,
@@ -52,7 +52,7 @@ static struct dlmstp_rs485_driver RS485_Driver = {
     .baud_rate = rs485_baud_rate,
     .baud_rate_set = rs485_baud_rate_set,
     .silence_milliseconds = rs485_silence_milliseconds,
-    .silence_reset = rs485_silence_reset 
+    .silence_reset = rs485_silence_reset
 };
 static struct dlmstp_user_data_t MSTP_User_Data;
 static uint8_t Input_Buffer[DLMSTP_MPDU_MAX];
@@ -100,6 +100,7 @@ int main(void)
     /* user data */
     MSTP_Port.ZeroConfigEnabled = true;
     MSTP_Port.SlaveNodeEnabled = false;
+    MSTP_Zero_Config_UUID_Init(&MSTP_Port);
     MSTP_User_Data.RS485_Driver = &RS485_Driver;
     MSTP_Port.UserData = &MSTP_User_Data;
     dlmstp_init((char *)&MSTP_Port);
@@ -115,7 +116,7 @@ int main(void)
     bacnet_init();
     /* FIXME: get the device ID from EEPROM */
     Device_Set_Object_Instance_Number(103);
-    /* seed stdlib rand() with device-id to get pweudo consisten 
+    /* seed stdlib rand() with device-id to get pweudo consisten
        zero-config poll slot, or use hardware RNG to get a more random slot */
 #ifdef BACNET_ZERO_CONFIG_RNG_HARDWARE
     /* enable the random number generator hardware */

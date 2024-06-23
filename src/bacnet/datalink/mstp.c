@@ -455,8 +455,8 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                             if ((mstp_port->DestinationAddress ==
                                     mstp_port->This_Station) ||
                                 (mstp_port->DestinationAddress ==
-                                    MSTP_BROADCAST_ADDRESS) || 
-                                (mstp_port->This_Station == 
+                                    MSTP_BROADCAST_ADDRESS) ||
+                                (mstp_port->This_Station ==
                                     MSTP_BROADCAST_ADDRESS)) {
                                 printf_receive_data("%s",
                                     mstptext_frame_type(
@@ -472,8 +472,8 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                             if ((mstp_port->DestinationAddress ==
                                     mstp_port->This_Station) ||
                                 (mstp_port->DestinationAddress ==
-                                    MSTP_BROADCAST_ADDRESS) || 
-                                (mstp_port->This_Station == 
+                                    MSTP_BROADCAST_ADDRESS) ||
+                                (mstp_port->This_Station ==
                                     MSTP_BROADCAST_ADDRESS)) {
                                 if (mstp_port->DataLength <=
                                     mstp_port->InputBufferSize) {
@@ -650,7 +650,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 if (mstp_port->This_Station != 255) {
                     /* indicate that the next station is unknown */
                     mstp_port->Next_Station = mstp_port->This_Station;
-                    /* Send a Poll For Master since we just received 
+                    /* Send a Poll For Master since we just received
                        the token */
                     mstp_port->Poll_Station = (mstp_port->Next_Station + 1) %
                         (mstp_port->Zero_Config_Max_Master + 1);
@@ -1351,7 +1351,7 @@ void MSTP_Zero_Config_UUID_Init(struct mstp_port_struct_t *mstp_port)
  * @param station the current station address in the range of min..max
  * @return the next station address
  */
-unsigned MSTP_Zero_Config_Station_Increment(unsigned station) 
+unsigned MSTP_Zero_Config_Station_Increment(unsigned station)
 {
     unsigned next_station;
 
@@ -1387,13 +1387,12 @@ static void MSTP_Zero_Config_State_Init(struct mstp_port_struct_t *mstp_port)
     }
     mstp_port->Poll_Count = 0;
     mstp_port->Zero_Config_Station = Nmin_poll_station;
-    mstp_port->Npoll_slot = 1 + (rand() % Nmax_poll_slot);
+    mstp_port->Npoll_slot = 1 + (mstp_port->UUID[0] % Nmax_poll_slot);
     /* basic silence timeout is the dropped token time plus
         one Tslot after the last master node. Add one Tslot of
         silence timeout per zero config priority slot */
     slots = 128 + mstp_port->Npoll_slot;
     mstp_port->Zero_Config_Silence = Tno_token + Tslot * slots;
-    MSTP_Zero_Config_UUID_Init(mstp_port);
     mstp_port->Zero_Config_Max_Master = 0;
     mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
 }
@@ -1463,7 +1462,7 @@ static void MSTP_Zero_Config_State_Lurk(struct mstp_port_struct_t *mstp_port)
         if (src == mstp_port->Zero_Config_Station) {
             /* AddressInUse */
             /* monitor PFM from the next address */
-            mstp_port->Zero_Config_Station = 
+            mstp_port->Zero_Config_Station =
                 MSTP_Zero_Config_Station_Increment(
                     mstp_port->Zero_Config_Station);
             mstp_port->Poll_Count = 0;
@@ -1515,7 +1514,7 @@ static void MSTP_Zero_Config_State_Claim(struct mstp_port_struct_t *mstp_port)
         if (src == mstp_port->Zero_Config_Station) {
             /* ClaimAddressInUse */
             /* monitor PFM from the next address */
-            mstp_port->Zero_Config_Station = 
+            mstp_port->Zero_Config_Station =
                 MSTP_Zero_Config_Station_Increment(
                     mstp_port->Zero_Config_Station);
             mstp_port->Poll_Count = 0;
@@ -1584,7 +1583,7 @@ static void MSTP_Zero_Config_State_Confirm(struct mstp_port_struct_t *mstp_port)
         } else if (src == mstp_port->Zero_Config_Station) {
             /* ConfirmationAddressInUse */
             /* monitor PFM from the next address */
-            mstp_port->Zero_Config_Station = 
+            mstp_port->Zero_Config_Station =
                 MSTP_Zero_Config_Station_Increment(
                     mstp_port->Zero_Config_Station);
             mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
