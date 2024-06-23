@@ -3,13 +3,10 @@
  * @brief API for DeleteObject service handlers
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef HANDLER_DELETE_OBJECT_H
-#define HANDLER_DELETE_OBJECT_H
-
+#ifndef BACNET_BASIC_SERVICE_HANDLER_DELETE_OBJECT_H
+#define BACNET_BASIC_SERVICE_HANDLER_DELETE_OBJECT_H
 #include <stdint.h>
 #include <stdbool.h>
 /* BACnet Stack defines - first */
