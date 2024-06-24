@@ -1688,6 +1688,12 @@ bool Network_Port_Remote_BBMD_IP_Address_Set(
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            if((Object_List[index].Network.IPv4.BBMD_IP_Address[0] != a) ||
+                    (Object_List[index].Network.IPv4.BBMD_IP_Address[1] != b) ||
+                    (Object_List[index].Network.IPv4.BBMD_IP_Address[2] != c) ||
+                    (Object_List[index].Network.IPv4.BBMD_IP_Address[3] != d)) {
+                Object_List[index].Changes_Pending = true;
+            }
             Object_List[index].Network.IPv4.BBMD_IP_Address[0] = a;
             Object_List[index].Network.IPv4.BBMD_IP_Address[1] = b;
             Object_List[index].Network.IPv4.BBMD_IP_Address[2] = c;
