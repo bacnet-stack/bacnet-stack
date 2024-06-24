@@ -25,11 +25,13 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "hardware.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstp.h"
+#include "bacnet/basic/object/device.h"
 #include "rs485.h"
 #include "led.h"
 #include "bacnet.h"
@@ -164,6 +166,7 @@ static void mstp_configure(void)
 int main(void)
 {
     struct mstimer Blink_Timer;
+    uint32_t Object_Instance_Number = 103;
 
     /*At this stage the microcontroller clock setting is already configured,
        this is done through SystemInit() function which is called from startup
@@ -179,6 +182,10 @@ int main(void)
     mstimer_init();
     lse_init();
     led_init();
+    /* FIXME: get device instance from EEPROM */
+    (void)Device_Set_Object_Instance_Number(Object_Instance_Number);
+    /* seed libc random number generator */
+    srand(Object_Instance_Number);
     /* initialize MSTP datalink layer */
     mstp_configure();
     /* initialize application layer*/

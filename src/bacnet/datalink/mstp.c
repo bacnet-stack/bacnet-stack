@@ -1665,7 +1665,7 @@ void MSTP_Init(struct mstp_port_struct_t *mstp_port)
         mstp_port->SilenceTimerReset = Timer_Silence_Reset;
         /* FIXME: set these in your dlmstp if you are zero-config */
         mstp_port->ZeroConfigEnabled = true;
-        /* use the built in random number generator */
+        /* use the libc srand() and rand() generated random number*/
         MSTP_Zero_Config_UUID_Init(&MSTP_Port);
 #endif
         if ((mstp_port->Tframe_abort < 6) || (mstp_port->Tframe_abort > 100)) {

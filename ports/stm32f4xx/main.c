@@ -90,33 +90,9 @@ int main(void)
     led_init();
     rs485_init();
     mstimer_set(&Blink_Timer, 500);
-    /* initialize MSTP datalink layer */
-    MSTP_Port.Nmax_info_frames = DLMSTP_MAX_INFO_FRAMES;
-    MSTP_Port.Nmax_master = DLMSTP_MAX_MASTER;
-    MSTP_Port.InputBuffer = Input_Buffer;
-    MSTP_Port.InputBufferSize = sizeof(Input_Buffer);
-    MSTP_Port.OutputBuffer = Output_Buffer;
-    MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
-    /* user data */
-    MSTP_Port.ZeroConfigEnabled = true;
-    MSTP_Port.SlaveNodeEnabled = false;
-    MSTP_Zero_Config_UUID_Init(&MSTP_Port);
-    MSTP_User_Data.RS485_Driver = &RS485_Driver;
-    MSTP_Port.UserData = &MSTP_User_Data;
-    dlmstp_init((char *)&MSTP_Port);
-    if (MSTP_Port.ZeroConfigEnabled) {
-        dlmstp_set_mac_address(255);
-    } else {
-        /* FIXME: get the address from hardware DIP or from EEPROM */
-        dlmstp_set_mac_address(1);
-    }
-    /* FIXME: get the baud rate from hardware DIP or from EEPROM */
-    dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
-    /* initialize application layer*/
-    bacnet_init();
     /* FIXME: get the device ID from EEPROM */
     Device_Set_Object_Instance_Number(103);
-    /* seed stdlib rand() with device-id to get pweudo consisten
+    /* seed stdlib rand() with device-id to get pseudo consistent
        zero-config poll slot, or use hardware RNG to get a more random slot */
 #ifdef BACNET_ZERO_CONFIG_RNG_HARDWARE
     /* enable the random number generator hardware */
@@ -129,6 +105,33 @@ int main(void)
 #else
     srand(Device_Object_Instance_Number());
 #endif
+    /* initialize the Device UUID from rand() */
+    Device_UUID_Init();
+    Device_UUID_Get(&MSTP_Port.UUID, sizeof(MSTP_Port.UUID));
+    /* initialize MSTP datalink layer */
+    MSTP_Port.Nmax_info_frames = DLMSTP_MAX_INFO_FRAMES;
+    MSTP_Port.Nmax_master = DLMSTP_MAX_MASTER;
+    MSTP_Port.InputBuffer = Input_Buffer;
+    MSTP_Port.InputBufferSize = sizeof(Input_Buffer);
+    MSTP_Port.OutputBuffer = Output_Buffer;
+    MSTP_Port.OutputBufferSize = sizeof(Output_Buffer);
+    /* user data */
+    MSTP_Port.ZeroConfigEnabled = true;
+    MSTP_Port.SlaveNodeEnabled = false;
+    MSTP_User_Data.RS485_Driver = &RS485_Driver;
+    MSTP_Port.UserData = &MSTP_User_Data;
+    dlmstp_init((char *)&MSTP_Port);
+    if (MSTP_Port.ZeroConfigEnabled) {
+        /* set node to monitor address */
+        dlmstp_set_mac_address(255);
+    } else {
+        /* FIXME: get the address from hardware DIP or from EEPROM */
+        dlmstp_set_mac_address(1);
+    }
+    /* FIXME: get the baud rate from hardware DIP or from EEPROM */
+    dlmstp_set_baud_rate(DLMSTP_BAUD_RATE_DEFAULT);
+    /* initialize application layer*/
+    bacnet_init();
     for (;;) {
         if (mstimer_expired(&Blink_Timer)) {
             mstimer_reset(&Blink_Timer);
