@@ -107,7 +107,7 @@ int main(void)
 #endif
     /* initialize the Device UUID from rand() */
     Device_UUID_Init();
-    Device_UUID_Get(&MSTP_Port.UUID, sizeof(MSTP_Port.UUID));
+    Device_UUID_Get(MSTP_Port.UUID, sizeof(MSTP_Port.UUID));
     /* initialize MSTP datalink layer */
     MSTP_Port.Nmax_info_frames = DLMSTP_MAX_INFO_FRAMES;
     MSTP_Port.Nmax_master = DLMSTP_MAX_MASTER;
