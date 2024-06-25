@@ -170,6 +170,7 @@ static void Timer_Silence_Reset(void *pArg)
 
 static void get_abstime(struct timespec *abstime, unsigned long milliseconds)
 {
+    fprintf(stderr, "#### DLMSTP GET_ABSTIME %lu \r\n", );
     clock_gettime(CLOCK_MONOTONIC, abstime);
     if (milliseconds > 1000) {
         fprintf(
@@ -236,7 +237,7 @@ uint16_t dlmstp_receive(
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0;
     struct timespec abstime;
-
+    fprintf(stderr, "#### DLMSTP REC TIMEOUT %u \r\n", timeout);
     (void)max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
@@ -273,6 +274,7 @@ static void *dlmstp_master_fsm_task(void *pArg)
 
     (void)pArg;
     while (thread_alive) {
+        #if 0
         if (MSTP_Port.ReceivedValidFrame == false &&
             MSTP_Port.ReceivedInvalidFrame == false) {
             RS485_Check_UART_Data(&MSTP_Port);
@@ -315,6 +317,7 @@ static void *dlmstp_master_fsm_task(void *pArg)
                 MSTP_Slave_Node_FSM(&MSTP_Port);
             }
         }
+        #endif
         pthread_mutex_lock(&Thread_Mutex);
         thread_alive = run_thread;
         pthread_mutex_unlock(&Thread_Mutex);
