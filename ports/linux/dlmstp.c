@@ -170,7 +170,7 @@ static void Timer_Silence_Reset(void *pArg)
 
 static void get_abstime(struct timespec *abstime, unsigned long milliseconds)
 {
-    fprintf(stderr, "#### DLMSTP GET_ABSTIME %lu \r\n", );
+    fprintf(stderr, "#### DLMSTP GET_ABSTIME %lu \r\n", milliseconds);
     clock_gettime(CLOCK_MONOTONIC, abstime);
     if (milliseconds > 1000) {
         fprintf(
