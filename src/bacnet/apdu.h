@@ -38,6 +38,7 @@ typedef struct _confirmed_service_data {
     uint8_t invoke_id;
     uint8_t sequence_number;
     uint8_t proposed_window_number;
+    uint8_t priority;
 } BACNET_CONFIRMED_SERVICE_DATA;
 
 typedef struct _confirmed_service_ack_data {

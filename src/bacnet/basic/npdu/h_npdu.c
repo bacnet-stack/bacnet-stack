@@ -253,7 +253,8 @@ void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
                     /* then enter IDLE - ignore the PDU */
                 } else {
                     apdu_handler(src, &pdu[apdu_offset],
-                        (uint16_t)(pdu_len - apdu_offset));
+                        (uint16_t)(pdu_len - apdu_offset),
+                        (pdu[1]&0x03));
                 }
             } else {
 #if PRINT_ENABLED

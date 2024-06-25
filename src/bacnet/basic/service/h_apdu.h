@@ -192,7 +192,8 @@ extern "C" {
         BACNET_CONFIRMED_SERVICE_DATA * service_data,
         uint8_t * service_choice,
         uint8_t ** service_request,
-        uint16_t * service_request_len);
+        uint16_t * service_request_len,
+        uint8_t priority);
 
     BACNET_STACK_EXPORT
     uint16_t apdu_timeout(
@@ -211,7 +212,8 @@ extern "C" {
     void apdu_handler(
         BACNET_ADDRESS * src,   /* source address */
         uint8_t * apdu, /* APDU data */
-        uint16_t pdu_len);      /* for confirmed messages */
+        uint16_t pdu_len,      /* for confirmed messages */
+        uint8_t priority);
 
 #ifdef __cplusplus
 }
