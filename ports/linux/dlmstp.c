@@ -170,7 +170,6 @@ static void Timer_Silence_Reset(void *pArg)
 
 static void get_abstime(struct timespec *abstime, unsigned long milliseconds)
 {
-    fprintf(stderr, "#### DLMSTP GET_ABSTIME %lu \r\n", milliseconds);
     clock_gettime(CLOCK_MONOTONIC, abstime);
     if (milliseconds > 1000) {
         fprintf(
@@ -238,20 +237,7 @@ uint16_t dlmstp_receive(
     uint16_t pdu_len = 0;
     struct timespec abstime;
 
-    fprintf(stderr, "***** \r\n");
-    fprintf(stderr, "#### DLMSTP REC TIMEOUT %u \r\n", timeout);
-    fprintf(stderr, "#### DLMSTP MAC len %u \r\n", src->mac_len);
-
-    for (int i = 0; i < MAX_MAC_LEN; i++) {
-        fprintf(stderr, "MAC IP %02X ", src->mac[i]);
-    }
-
-    fprintf(stderr, "#### DLMSTP MAC len %u \r\n", src->net);
-
-    for (int i = 0; i < MAX_MAC_LEN; i++) {
-        fprintf(stderr, "HW MAC %02X ", src->adr[i]);
-    }
-    fprintf(stderr, "***** \r\n");
+    fprintf(stderr, "#### DLMSTP REC %u \r\n");
 
     (void)max_pdu;
     /* see if there is a packet available, and a place
@@ -289,7 +275,6 @@ static void *dlmstp_master_fsm_task(void *pArg)
 
     (void)pArg;
     while (thread_alive) {
-        //#if 1
         if (MSTP_Port.ReceivedValidFrame == false &&
             MSTP_Port.ReceivedInvalidFrame == false) {
             RS485_Check_UART_Data(&MSTP_Port);
@@ -297,7 +282,6 @@ static void *dlmstp_master_fsm_task(void *pArg)
         }
         if (MSTP_Port.ReceivedValidFrame || MSTP_Port.ReceivedInvalidFrame) {
             run_master = true;
-            fprintf(stderr, "@@@ RUN_MASTER TRUE \r\n");
         } else {
             silence = MSTP_Port.SilenceTimer(&MSTP_Port);
             switch (MSTP_Port.master_state) {
@@ -321,7 +305,6 @@ static void *dlmstp_master_fsm_task(void *pArg)
         if (run_master) {
             if (MSTP_Port.This_Station <= 127) {
                 run_loop = true;
-                fprintf(stderr, "RUN LOOP TRUE \r\n");
                 while (run_loop) {
                     /* do nothing while immediate transitioning */
                     run_loop = MSTP_Master_Node_FSM(&MSTP_Port);
@@ -331,11 +314,9 @@ static void *dlmstp_master_fsm_task(void *pArg)
                     pthread_mutex_unlock(&Thread_Mutex);
                 }
             } else if (MSTP_Port.This_Station < 255) {
-                fprintf(stderr, "SLAVE NODE \r\n");
                 MSTP_Slave_Node_FSM(&MSTP_Port);
             }
         }
-        //#endif
         pthread_mutex_lock(&Thread_Mutex);
         thread_alive = run_thread;
         pthread_mutex_unlock(&Thread_Mutex);
