@@ -20,7 +20,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.3.7] - 2024-06-02
+## [1.3.7] - 2024-06-26
 
 ### Security
 
@@ -32,9 +32,16 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added context to MS/TP user data to enable additional
+  user data. (#676)
+* Added activate-changes to the ReinitializeDevice options. (#674)
+* Added example basic bitstring value object. (#668)
+* Added floating point compares in cases where they don't exist in math
+  library. (#665)
 * Added memap, avstack, and checkstackusage tools to STM32F4xx and STM32F19x
   ports example Makefile and CMake builds to calculate CSTACK depth and RAM
-  usage. Added .nm and .su to .gitignore to skip the analysis file residue. (#661)
+  usage. Added .nm and .su to .gitignore to skip the analysis file
+  residue. (#661)
 * Added cmake to STM32F10x port example, using the common datalink
   dlmstp.c module with MS/TP extended frames and zero-config support. (#661)
 * Added existing BBMD unit test to coverage by converting to cmake (#657)
@@ -50,12 +57,22 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed MS/TP master node self destination checks to be
+  located in receive FSM. Changed MSTP zero configuration: modified 
+  comments for state transition names; modified next station increment;
+  refactored the UUID rand() to not be required by common
+  zero config implementation; added more unit tests. (#676)
+* Refactored ports/xplained to use common DLMSTP module to enable extended
+  frames (#665)
 * Refactored snprintf common subsequent shift usage into a function. (#656)
 * Changed config.h to default to client-server apps (#651)
 * Cleaned up code of BACnetWeeklySchedule (#646)
 
 ### Fixed
 
+* Fixed typos in ai.c and ao.c basic object examples (#673)
+* Fixed datatype conversion errors found by splint.
+  Fixed Binary input/value set. (#672)
 * Fixed wildcard check in create object for Binary Input objects. (#663)
 * Fixed memory leaks in create object initialization if repeated. (#664)(#662)
 * Fixed the Zephyr-OS BIP6 datalink module. (#659)    
