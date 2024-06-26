@@ -25,6 +25,9 @@ void rs485_bytes_send(uint8_t *buffer, uint16_t nbytes);
 uint32_t rs485_baud_rate(void);
 bool rs485_baud_rate_set(uint32_t baud);
 
+bool rs485_kbaud_rate_set(uint8_t baud_k);
+uint8_t rs485_kbaud_rate(void);
+
 uint32_t rs485_silence_milliseconds(void);
 void rs485_silence_reset(void);
 
