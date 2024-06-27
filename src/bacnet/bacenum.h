@@ -1598,8 +1598,8 @@ typedef enum BACnet_Services_Supported {
     SERVICE_SUPPORTED_PRIVATE_TRANSFER = 18,
     SERVICE_SUPPORTED_TEXT_MESSAGE = 19,
     SERVICE_SUPPORTED_REINITIALIZE_DEVICE = 20,
-    SERVICE_SUPPORTED_WHO_AM_I = 47,
-    SERVICE_SUPPORTED_YOU_ARE = 48,
+    SERVICE_SUPPORTED_WHO_AM_I = 47,    /* 2016 + bz    22*/
+    SERVICE_SUPPORTED_YOU_ARE = 48,     /* 2016 + bz    22*/
     /* Virtual Terminal Services */
     SERVICE_SUPPORTED_VT_OPEN = 21,
     SERVICE_SUPPORTED_VT_CLOSE = 22,
@@ -1619,11 +1619,14 @@ typedef enum BACnet_Services_Supported {
     SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION = 36,
     SERVICE_SUPPORTED_WHO_HAS = 33,
     SERVICE_SUPPORTED_WHO_IS = 34,
-    SERVICE_SUPPORTED_UNCONFIRMED_AUDIT_NOTIFICATION = 46,
+    SERVICE_SUPPORTED_UNCONFIRMED_AUDIT_NOTIFICATION = 46
     /* Other services to be added as they are defined. */
     /* All values in this production are reserved */
     /* for definition by ASHRAE. */
-    BACNET_SERVICES_SUPPORTED_MAX = 47
+
+    /* 2024-05-15 mods4bts - duplication of MAX_BACNET_SERVICES_SUPPORTED in bacdef.h - removing from here - cr3817423048721093412
+      BACNET_SERVICES_SUPPORTED_MAX = 49 */
+
 } BACNET_SERVICES_SUPPORTED;
 
 /* Bit String Enumerations */
