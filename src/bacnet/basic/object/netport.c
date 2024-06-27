@@ -3191,22 +3191,19 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    fprintf(stderr, "+++ [%s %d %s]\r\n", __FILE__, __LINE__, __func__);
-
     if (!Network_Port_Valid_Instance(wp_data->object_instance)) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
     /* decode the some of the request */
-#if !defined(BACAPP_TYPES_EXTRA)
+#if !defined(BACAPP_COMPLEX_TYPES)
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
 #else
     len = bacapp_decode_generic_property(
         wp_data->application_data, wp_data->application_data_len, &value, wp_data->object_property);
 #endif
-    fprintf(stderr, "+++ [%s %d %s] len = %d\r\n", __FILE__, __LINE__, __func__, len);
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -3226,8 +3223,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /* FIXME: len < application_data_len: more data? */
-    fprintf(stderr, "+++ [%s %d %s] prop = %d\r\n", __FILE__, __LINE__, __func__, wp_data->object_property);
-    fprintf(stderr, "+++ [%s %d %s] bbmd addr prop = %d\r\n", __FILE__, __LINE__, __func__, PROP_FD_BBMD_ADDRESS);
 
     switch (wp_data->object_property) {
         case PROP_MAX_MASTER:
@@ -3267,34 +3262,25 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 #if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
-            fprintf(stderr, "+++ [%s %d %s] PROP_FD_BBMD_ADDRESS \r\n", __FILE__, __LINE__, __func__);
-            fprintf(stderr, "+++ [%s %d %s] value->tag = %d == %d\r\n", __FILE__, __LINE__, __func__, value.tag, BACNET_APPLICATION_TAG_HOST_N_PORT);
             if(write_property_type_valid( wp_data, &value, BACNET_APPLICATION_TAG_HOST_N_PORT)) {
               switch(Network_Port_Type(wp_data->object_instance)) {
 #if (defined(BACDL_ALL) || defined(BACDL_BIP))
                 case PORT_TYPE_BIP:
-            fprintf(stderr, "+++ [%s %d %s] status = %d\r\n", __FILE__, __LINE__, __func__, status);
                   if(Network_Port_BIP_Mode(wp_data->object_instance) == BACNET_IP_MODE_FOREIGN) {
-            fprintf(stderr, "+++ [%s %d %s] status = %d; ip addr len = %u\r\n", __FILE__, __LINE__, __func__, status, (unsigned) value.type.Host_Address.host.ip_address.length);
-            fprintf(stderr, "+++ [%s %d %s] status = %d; instance = %u; port = %u\r\n", __FILE__, __LINE__, __func__, status, (unsigned) wp_data->object_instance, value.type.Host_Address.port);
                     if(value.type.Host_Address.host.ip_address.length == 4) {
-            fprintf(stderr, "+++ [%s %d %s] status = %d\r\n", __FILE__, __LINE__, __func__, status);
                       status =  Network_Port_Remote_BBMD_IP_Address_Set(
                           wp_data->object_instance,
                           value.type.Host_Address.host.ip_address.value[0],
                           value.type.Host_Address.host.ip_address.value[1],
                           value.type.Host_Address.host.ip_address.value[2],
                           value.type.Host_Address.host.ip_address.value[3]);
-            fprintf(stderr, "+++ [%s %d %s] status = %d\r\n", __FILE__, __LINE__, __func__, status);
 
                       if(status) {
                         status = Network_Port_Remote_BBMD_BIP_Port_Set(wp_data->object_instance, value.type.Host_Address.port);
-            fprintf(stderr, "+++ [%s %d %s] status = %d\r\n", __FILE__, __LINE__, __func__, status);
                       }
                     }
 
                     if (!status) {
-            fprintf(stderr, "+++ [%s %d %s] status = %d - err\r\n", __FILE__, __LINE__, __func__, status);
                       wp_data->error_class = ERROR_CLASS_PROPERTY;
                       wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     }
@@ -3328,13 +3314,13 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                   break;
 #endif
                 default:
-            fprintf(stderr, "+++ [%s %d %s] default\r\n", __FILE__, __LINE__, __func__);
                   wp_data->error_class = ERROR_CLASS_PROPERTY;
                   wp_data->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                   break;
               }
             } else {
-            fprintf(stderr, "+++ [%s %d %s] invalid tag!!\r\n", __FILE__, __LINE__, __func__);
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
