@@ -406,8 +406,16 @@ int bacapp_data_decode(uint8_t *apdu,
 #endif
 #if defined(BACAPP_HOST_N_PORT)
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                /* For input of i.e. 6.6.6.6:7777:
+                   0e 1c 06 06  06 06 0f 1a  1e 61
+                      ^________ the read windows is at the context tag with data
+
+                   Whereas the host_n_port_decode function expects it to be
+                   0e 1c 06 06  06 06 0f 1a  1e 61
+                   ^________ here
+                */
                 len = host_n_port_decode(
-                    apdu, apdu_size, NULL, &value->type.Host_Address);
+                    apdu-1, apdu_size+1, NULL, &value->type.Host_Address);
                 break;
 #endif
 #if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
@@ -496,7 +504,7 @@ int bacapp_decode_application_data(
         return 0;
     }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
+    if ((len > 0) && 1 /*tag.application*/) {
         value->context_specific = false;
         value->tag = tag.number;
         apdu_len += len;
