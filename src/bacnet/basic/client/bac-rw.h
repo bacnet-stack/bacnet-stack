@@ -1,13 +1,12 @@
 /**
  * @file
+ * @brief API to read properties from other BACnet devices
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2013
- *
- * SPDX-License-Identifier: MIT
+ * @date 2022
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BAC_RW_H
-#define BAC_RW_H
-
+#ifndef BACNET_BASIC_CLIENT_READ_WRITE_H
+#define BACNET_BASIC_CLIENT_READ_WRITE_H
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"

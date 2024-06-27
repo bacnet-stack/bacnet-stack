@@ -3,11 +3,7 @@
  * @brief API for AddListElement and RemoveListElement service codec
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date December 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_LIST_ELEMENT_H
 #define BACNET_LIST_ELEMENT_H

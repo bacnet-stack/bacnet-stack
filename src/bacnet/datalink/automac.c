@@ -2,9 +2,10 @@
  * @file
  * @brief BACnet MSTP zero-config auto MAC address
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2010
- *
- * SPDX-License-Identifier: MIT
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLMSTP BACnet MS/TP DataLink Network Layer
+ * @ingroup DataLink
  */
 #include <stdbool.h>
 #include <stdint.h>

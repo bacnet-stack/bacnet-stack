@@ -1,14 +1,11 @@
 /**
  * @file
- * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 1997
  * @brief computes days from date, days of the week, days in a month,
  *  days in a year
- *
- * @section LICENSE
- *
- * Public domain algorithms from ACM
- *
+ * @note Public domain algorithms from ACM
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 1997
+ * @copyright SPDX-License-Identifier: CC-PDDC
  */
 #include <stdint.h>
 #include <stdbool.h>

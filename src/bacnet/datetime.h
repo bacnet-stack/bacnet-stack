@@ -6,9 +6,7 @@
  * @author Greg Shue <greg.shue@outlook.com>
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @date 2012
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_DATE_TIME_H
 #define BACNET_DATE_TIME_H

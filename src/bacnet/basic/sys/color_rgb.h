@@ -1,11 +1,12 @@
 /**
  * @file
+ * @brief API Color sRGB to CIE xy and brightness
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2022
- * @brief API Color sRGB to CIE xy and brightness
+ * @copyright SPDX-License-Identifier: CC-PDDC
  */
-#ifndef COLOR_RGB_H
-#define COLOR_RGB_H
+#ifndef BACNET_SYS_COLOR_RGB_H
+#define BACNET_SYS_COLOR_RGB_H
 #include <stdint.h>
 #include <stdbool.h>
 /* BACnet Stack defines - first */

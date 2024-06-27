@@ -6,7 +6,6 @@
  * @date May 2022
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
-
 #include <stdint.h>
 #include "bacnet/special_event.h"
 #include "bacnet/bacdcode.h"

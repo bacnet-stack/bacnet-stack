@@ -3,11 +3,7 @@
  * @brief API for BACnetDestination complex data type encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date May 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_DESTINATION_H
 #define BACNET_DESTINATION_H

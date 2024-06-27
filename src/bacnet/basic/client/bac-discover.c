@@ -1,10 +1,9 @@
 /**
  * @file
+ * @brief Discover all BACnet devices on a destination network
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2024
- * @brief Discover all BACnet devices on a destination network
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
 #include <stdbool.h>

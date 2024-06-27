@@ -1,51 +1,14 @@
 /**
  * @file
- * @author Steve Karg
- * @date 2004
  * @brief  Generic ring buffer library for deeply embedded system.
- *
- * @section LICENSE
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- * The Free Software Foundation, Inc.
- * 59 Temple Place - Suite 330
- * Boston, MA  02111-1307
- * USA.
- *
- * As a special exception, if other files instantiate templates or
- * use macros or inline functions from this file, or you compile
- * this file and link it with other works to produce a work based
- * on this file, this file does not by itself cause the resulting
- * work to be covered by the GNU General Public License. However
- * the source code for this file must still be made available in
- * accordance with section (3) of the GNU General Public License.
- *
- * This exception does not invalidate any other reasons why a work
- * based on this file might be covered by the GNU General Public
- * License.
- *
- * @section DESCRIPTION
- *
- * Generic ring buffer library for deeply embedded system.
- * It uses a data store whose size is a power of 2 (8, 16, 32, 64, ...)
- * and doesn't waste any data bytes.  It has very low overhead, and
- * utilizes modulo for indexing the data in the data store.
- * It uses separate variables for consumer and producer so it can
- * be used in multithreaded environment.
- *
- * See the unit tests for usage examples.
- *
+ * @details Generic ring buffer library that uses a data store whose size
+ * is a power of 2 (8, 16, 32, 64, ...) and doesn't waste any data bytes.
+ * It has very low overhead, and utilizes modulo for indexing the data
+ * in the data store. The ring buffer uses separate variables for
+ * consumer and producer so it can be used in multithreaded environment.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stddef.h>
 #include <stdbool.h>

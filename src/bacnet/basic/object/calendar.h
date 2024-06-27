@@ -3,12 +3,10 @@
  * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date June 2022
  * @brief API for a Calendar object used by a BACnet device object
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_CALENDAR_OBJECT_H
-#define BACNET_CALENDAR_OBJECT_H
+#ifndef BACNET_BASIC_OBJECT_CALENDAR_H
+#define BACNET_BASIC_OBJECT_CALENDAR_H
 
 #include <stdbool.h>
 #include <stdint.h>

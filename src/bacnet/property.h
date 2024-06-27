@@ -1,13 +1,9 @@
 /**
  * @file
- * @brief Static sets of BACnet Property members for each object type
+ * @brief Library of all required and optional object properties
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2012
- * @section LICENSE
- * 
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- * 
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_PROPERTY_H
 #define BACNET_PROPERTY_H
@@ -19,8 +15,6 @@
 /* BACnet Stack API */
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
-
-/** @file property.h  Library of all required and optional object properties */
 
 #ifdef __cplusplus
 extern "C" {

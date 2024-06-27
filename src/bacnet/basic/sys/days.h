@@ -1,8 +1,9 @@
 /**
  * @file
+ * @brief This file contains the function prototypes for the days calculations
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 1997
- * @brief This file contains the function prototypes for the days calculations
+ * @copyright SPDX-License-Identifier: CC-PDDC
  */
 #ifndef DAYS_H
 #define DAYS_H

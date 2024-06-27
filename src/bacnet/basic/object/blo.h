@@ -1,14 +1,12 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2023
- * @brief Binary Lighting Output object
- *
- * SPDX-License-Identifier: MIT
+ * @brief API for a basic BACnet Binary Lighting Output object implementation.
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BINARY_LIGHTING_OUTPUT_H
-#define BINARY_LIGHTING_OUTPUT_H
-
+#ifndef BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT_H
+#define BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */

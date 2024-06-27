@@ -1,21 +1,15 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date March 2024
- * @brief Example of a Life Safety Zone object type
- *
- * The Life Safety Zone object type defines a standardized object
+ * @brief A basic BACnet Life Safety Zone object type implementation.
+ * @details The Life Safety Zone object type defines a standardized object
  * whose properties represent the externally visible characteristics
  * associated with an arbitrary group of BACnet Life Safety Point
  * and Life Safety Zone objects in fire, life safety and security
  * applications. The condition of a Life Safety Zone object is
  * represented by a mode and a state.
- *
- * @copyright
- *
- * Copyright (C) 2024 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>

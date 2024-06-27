@@ -1,43 +1,16 @@
 /**
 * @file
-* @author Steve Karg
-* @date 2011
 * @brief Performs linear interpolation using single precision floating
-* point math or integer math, or a mixture of both.
-*
-* @section LICENSE
-*
-* Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-* @section DESCRIPTION
-*
-* Performs linear interpolation using single precision floating
-* point math or integer math, or a mixture of both.
-* Linear interpolation is a method of constructing new data
-* points within the range of a discrete set of known data points.
+* point math or integer math, or a mixture of both. Linear interpolation
+* is a method of constructing new data points within the range of a discrete
+* set of known data points.
+* @author Steve Karg <skarg@users.sourceforge.net>
+* @date 2011
+* @copyright SPDX-License-Identifier: MIT
 */
 #include <stdbool.h>
 #include <stdint.h>
-#include "linear.h"
+#include "bacnet/basic/sys/linear.h"
 
 /**
 * Linearly Interpolate the values between y1 and y3 based on x.

@@ -1,13 +1,10 @@
 /**
  * @file
- * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2022
  * @brief computes sRGB to and from from CIE xy and brightness
- *
- * @section LICENSE
- *
- * Public domain algorithms from Philips and W3C
- *
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @note Public domain algorithms from Philips and W3C
+ * @date 2022
+ * @copyright SPDX-License-Identifier: CC-PDDC
  */
 #include <stddef.h>
 #include <stdint.h>

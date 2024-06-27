@@ -1,13 +1,12 @@
 /**
  * @file
+ * @brief API for basic BACnet client device discovery
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2024
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BAC_DISCOVER_H
-#define BAC_DISCOVER_H
-
+#ifndef BACNET_BASIC_CLIENT_DISCOVER_H
+#define BACNET_BASIC_CLIENT_DISCOVER_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
@@ -48,7 +47,7 @@ uint32_t bacnet_discover_device_instance(unsigned index);
 BACNET_STACK_EXPORT
 int bacnet_discover_device_object_count(uint32_t device_id);
 BACNET_STACK_EXPORT
-bool bacnet_discover_device_object_identifier(uint32_t device_id, 
+bool bacnet_discover_device_object_identifier(uint32_t device_id,
     unsigned index, BACNET_OBJECT_ID *object_id);
 BACNET_STACK_EXPORT
 unsigned long bacnet_discover_device_elapsed_milliseconds(
@@ -63,10 +62,10 @@ unsigned int bacnet_discover_object_property_count(
     uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool bacnet_discover_object_property_identifier(
-    uint32_t device_id, 
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
-    unsigned index, 
+    unsigned index,
     uint32_t *property_id);
 BACNET_STACK_EXPORT
 bool bacnet_discover_property_value(uint32_t device_id,

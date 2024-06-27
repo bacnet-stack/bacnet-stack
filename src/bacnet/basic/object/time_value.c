@@ -5,10 +5,7 @@
  * @date June 2023
  * @brief Time Value object is an object with a present-value that
  * uses an bacnet time data type.
- *
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
