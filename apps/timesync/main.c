@@ -56,6 +56,20 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 /* error flag */
 static bool Error_Detected = false;
 
+static void show_bacnet_date_time(BACNET_DATE *bdate, BACNET_TIME *btime)
+{
+    /* show the date received */
+    fprintf(stderr, "%u", (unsigned)bdate->year);
+    fprintf(stderr, "/%u", (unsigned)bdate->month);
+    fprintf(stderr, "/%u", (unsigned)bdate->day);
+    /* show the time received */
+    fprintf(stderr, " %02u", (unsigned)btime->hour);
+    fprintf(stderr, ":%02u", (unsigned)btime->min);
+    fprintf(stderr, ":%02u", (unsigned)btime->sec);
+    fprintf(stderr, ".%02u", (unsigned)btime->hundredths);
+    fprintf(stderr, "\r\n");
+}
+
 static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
@@ -283,7 +297,11 @@ int main(int argc, char *argv[])
         datetime_local_to_utc(&utc_time, &local_time, utc_offset_minutes,
             dst_adjust_minutes);
         Send_TimeSyncUTC_Remote(&dest, &utc_time.date, &utc_time.time);
+        printf("Setting UTC time\n");
+        show_bacnet_date_time(&utc_time.date, &utc_time.time);
     } else {
+        printf("Setting local time\n");
+        show_bacnet_date_time(&bdate, &btime);
         Send_TimeSync_Remote(&dest, &bdate, &btime);
     }
     mstimer_set(&apdu_timer, apdu_timeout());
