@@ -504,7 +504,7 @@ int bacapp_decode_application_data(
         return 0;
     }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && 1 /*tag.application*/) {
+    if ((len > 0) && tag.application) {
         value->context_specific = false;
         value->tag = tag.number;
         apdu_len += len;
