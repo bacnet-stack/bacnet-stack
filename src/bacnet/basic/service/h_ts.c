@@ -128,6 +128,7 @@ void handler_timesync_utc(
     timeinfo = localtime(&rawtime);
     (void)src;
     (void)service_len;
+    struct tm lt;
     len = timesync_decode_service_request(
         service_request, service_len, &bdate, &btime);
     if (len > 0) {
@@ -136,6 +137,7 @@ void handler_timesync_utc(
             fprintf(stderr, "Received UTC TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
 #endif
+            localtime_r(&rawtime, &lt) + lt.tm_gmtoff;
             timeinfo->tm_year = bdate.year-1900;
             timeinfo->tm_mon  = bdate.month-1;
             timeinfo->tm_mday  = bdate.day;
