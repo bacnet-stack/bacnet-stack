@@ -503,7 +503,6 @@ int bacnet_tag_decode(uint8_t *apdu, uint32_t apdu_size, BACNET_TAG *tag)
     }
     if (len > 0) {
         if (IS_EXTENDED_VALUE(apdu[0])) {
-            //fprintf(stderr, "[%s %d %s]: extended valtag\r\n", __FILE__, __LINE__, __func__);
             if (apdu_size > len) {
                 apdu_size -= len;
                 if ((apdu[len] == 255) && (apdu_size >= 5)) {
@@ -531,30 +530,22 @@ int bacnet_tag_decode(uint8_t *apdu, uint32_t apdu_size, BACNET_TAG *tag)
                 len = 0;
             }
         } else if (IS_OPENING_TAG(apdu[0])) {
-            //fprintf(stderr, "[%s %d %s]: opening tag\r\n", __FILE__, __LINE__, __func__);
             /* reserved value */
         } else if (IS_CLOSING_TAG(apdu[0])) {
-            //fprintf(stderr, "[%s %d %s]: closing tag\r\n", __FILE__, __LINE__, __func__);
             /* reserved value */
         } else {
             /* small value */
             len_value_type = apdu[0] & 0x07;
         }
         if (IS_CONTEXT_SPECIFIC(apdu[0])) {
-            fprintf(stderr, "[%s %d %s]: context tag apdu[0] = %02x\r\n", __FILE__, __LINE__, __func__, (int) apdu[0]);
-                context_tag = true;
+            context_tag = true;
+
             if (IS_OPENING_TAG(apdu[0])) {
-            //fprintf(stderr, "[%s %d %s]: opening tag \r\n", __FILE__, __LINE__, __func__);
                 opening_tag = true;
             } else if (IS_CLOSING_TAG(apdu[0])) {
-            //fprintf(stderr, "[%s %d %s]: closing tag \r\n", __FILE__, __LINE__, __func__);
                 closing_tag = true;
-            } else {
-            //fprintf(stderr, "[%s %d %s]: context tag \r\n", __FILE__, __LINE__, __func__);
-                context_tag = true;
             }
         } else {
-            //fprintf(stderr, "[%s %d %s]: application tag tag \r\n", __FILE__, __LINE__, __func__);
             application_tag = true;
         }
         if ((len > 0) && tag) {
@@ -564,10 +555,6 @@ int bacnet_tag_decode(uint8_t *apdu, uint32_t apdu_size, BACNET_TAG *tag)
             tag->opening = opening_tag;
             tag->closing = closing_tag;
             tag->len_value_type = len_value_type;
-            //fprintf(stderr, "=== [%s %d %s]: app ? '%s'\r\n", __FILE__, __LINE__, __func__, tag->application ? "true" : "false");
-            //fprintf(stderr, "=== [%s %d %s]: stx ? '%s'\r\n", __FILE__, __LINE__, __func__, tag->context ? "true" : "false");
-            //fprintf(stderr, "=== [%s %d %s]: ope ? '%s'\r\n", __FILE__, __LINE__, __func__, tag->opening ? "true" : "false");
-            //fprintf(stderr, "=== [%s %d %s]: len ? %d\r\n", __FILE__, __LINE__, __func__, len_value_type);
         }
     }
 
@@ -886,16 +873,7 @@ bool bacnet_is_opening_tag_number(
             if (tag_length) {
                 *tag_length = len;
             }
-        } else {
-            fprintf(stderr, "[%s %d %s]: context tag apdu[0] = %02x ; %d == 6?\r\n", __FILE__, __LINE__, __func__, (int) apdu[0], (int) (apdu[0] & 7));
-            fprintf(stderr, "[%s %d %s]: len = %d\r\n", __FILE__, __LINE__, __func__, (int) len);
-            fprintf(stderr, "[%s %d %s]: opening ? '%s'\r\n", __FILE__, __LINE__, __func__, tag.opening ? "true" : "false");
-            fprintf(stderr, "[%s %d %s]: appli ? '%s'\r\n", __FILE__, __LINE__, __func__, tag.application ? "true" : "false");
-            fprintf(stderr, "[%s %d %s]: tag_number = %d == tag.number = %d\r\n", __FILE__, __LINE__, __func__, (int) tag_number, (int) tag.number);
         }
-    } else {
-        fprintf(stderr, "[%s %d %s]: context tag apdu[0] = %02x\r\n", __FILE__, __LINE__, __func__, (int) apdu[0]);
-        fprintf(stderr, "[%s %d %s]: len = %d\r\n", __FILE__, __LINE__, __func__, (int) len);
     }
 
     return match;
