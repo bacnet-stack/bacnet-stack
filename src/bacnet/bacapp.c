@@ -406,10 +406,16 @@ int bacapp_data_decode(uint8_t *apdu,
 #endif
 #if defined(BACAPP_HOST_N_PORT)
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
-                fprintf(stderr, "[%s %d %s]: calling host_n_port_decode apdu_size = %d\r\n", __FILE__, __LINE__, __func__, (int) apdu_size);
+                /* For input of i.e. 6.6.6.6:7777:
+                   0e 1c 06 06  06 06 0f 1a  1e 61
+                      ^________ the read windows is at the context tag with data
+
+                   Whereas the host_n_port_decode function expects it to be
+                   0e 1c 06 06  06 06 0f 1a  1e 61
+                   ^________ here
+                */
                 len = host_n_port_decode(
-                    apdu, apdu_size, NULL, &value->type.Host_Address);
-                fprintf(stderr, "[%s %d %s]: decoded BACNET_APPLICATION_TAG_HOST_N_PORT len = %d\r\n", __FILE__, __LINE__, __func__, len);
+                    apdu-1, apdu_size+1, NULL, &value->type.Host_Address);
                 break;
 #endif
 #if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
@@ -498,7 +504,7 @@ int bacapp_decode_application_data(
         return 0;
     }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
-    if ((len > 0) && tag.application) {
+    if ((len > 0) && 1 /*tag.application*/) {
         value->context_specific = false;
         value->tag = tag.number;
         apdu_len += len;
@@ -1177,32 +1183,20 @@ int bacapp_decode_context_data(uint8_t *apdu,
         return apdu_len;
     }
     len = bacnet_tag_decode(&apdu[0], apdu_size, &tag);
-        fprintf(stderr, "+++ [%s %d %s]: len        = %d\r\n", __FILE__, __LINE__, __func__, len);
-        fprintf(stderr, "+++ [%s %d %s]: apdu = %02x %02x %02x %02x\r\n", __FILE__, __LINE__, __func__,
-            (int) apdu[0]
-            , (int) apdu[1]
-            , (int) apdu[2]
-            , (int) apdu[3]
-            );
     if (len > 0) {
         if (tag.closing) {
-        fprintf(stderr, "+++ [%s %d %s]: tag CLOSING len        = %d\r\n", __FILE__, __LINE__, __func__, len);
             /* Empty construct : (closing tag) */
             /* Don't advance over that closing tag. */
             apdu_len = 0;
         } else if (tag.context) {
-        fprintf(stderr, "+++ [%s %d %s]: tag CONTEXT len        = %d\r\n", __FILE__, __LINE__, __func__, len);
             apdu_len += len;
             value->context_specific = true;
             value->next = NULL;
             value->context_tag = tag.number;
             value->tag = bacapp_context_tag_type(property, tag.number);
-        fprintf(stderr, "+++ [%s %d %s]: tag_number     = %d\r\n", __FILE__, __LINE__, __func__, (int) tag.number);
-        fprintf(stderr, "+++ [%s %d %s]: value->tag = %d\r\n", __FILE__, __LINE__, __func__, (int) value->tag);
             if (value->tag != MAX_BACNET_APPLICATION_TAG) {
                 len = bacapp_data_decode(&apdu[apdu_len], apdu_size - apdu_len,
                     value->tag, tag.len_value_type, value);
-        fprintf(stderr, "+++ [%s %d %s]: data len decoded = %d\r\n", __FILE__, __LINE__, __func__, (int) len);
                 if ((len >= 0) && (value->tag != MAX_BACNET_APPLICATION_TAG)) {
                     apdu_len += len;
                 } else {
@@ -1216,8 +1210,6 @@ int bacapp_decode_context_data(uint8_t *apdu,
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
             }
-        } else {
-        fprintf(stderr, "+++ [%s %d %s]: NOT tag CONTEXT len        = %d\r\n", __FILE__, __LINE__, __func__, len);
         }
     }
 
@@ -1244,11 +1236,8 @@ int bacapp_decode_generic_property(uint8_t *apdu,
     if (apdu && (apdu_size > 0)) {
         if (IS_CONTEXT_SPECIFIC(*apdu)) {
             apdu_len = bacapp_decode_context_data(apdu, apdu_size, value, prop);
-            fprintf(stderr, "[%s %d %s]: context specific apdu_len = %d\r\n", __FILE__, __LINE__, __func__, apdu_len);
-            fprintf(stderr, "[%s %d %s]: context specific apdu_size = %d\r\n", __FILE__, __LINE__, __func__, apdu_size);
         } else {
             apdu_len = bacapp_decode_application_data(apdu, apdu_size, value);
-            fprintf(stderr, "[%s %d %s]: NOT context specific apdu_len = %d\r\n", __FILE__, __LINE__, __func__, apdu_len);
         }
     }
 
