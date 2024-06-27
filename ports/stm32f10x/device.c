@@ -77,7 +77,7 @@ static struct my_object_functions {
    properties that are writable or that may change.
    The properties that are constant can be hard coded
    into the read-property encoding. */
-static uint32_t Object_Instance_Number = 103;
+static uint32_t Object_Instance_Number = BACNET_MAX_INSTANCE;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static BACNET_CHARACTER_STRING My_Object_Name;
 static uint32_t Database_Revision;
@@ -453,9 +453,8 @@ void Device_Init(object_functions_t *object_table)
         pObject++;
     }
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-    if (Object_Instance_Number >= BACNET_MAX_INSTANCE) {
-        Object_Instance_Number = 103;
-        srand(Object_Instance_Number);
+    if (Object_Instance_Number > BACNET_MAX_INSTANCE) {
+        Object_Instance_Number = BACNET_MAX_INSTANCE;
     }
     characterstring_init_ansi(&My_Object_Name, "stm32-design-challenge-103");
 }

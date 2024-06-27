@@ -272,6 +272,9 @@ BACNET_STACK_EXPORT
 void MSTP_Zero_Config_UUID_Init(struct mstp_port_struct_t *mstp_port);
 
 BACNET_STACK_EXPORT
+unsigned MSTP_Zero_Config_Station_Increment(unsigned station);
+
+BACNET_STACK_EXPORT
 void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port);
 
 /* functions used by the MS/TP state machine to put or get data */
