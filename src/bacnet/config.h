@@ -98,7 +98,8 @@
 #if defined(BACNET_SECURITY)
 #define MAX_APDU 412
 #else
-#define MAX_APDU 1476
+/* note: MS/TP extended frames can be up to 1476 bytes */
+#define MAX_APDU 480
 #endif
 #else
 #if defined(BACNET_SECURITY)
