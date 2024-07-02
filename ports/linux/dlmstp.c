@@ -237,8 +237,6 @@ uint16_t dlmstp_receive(
     uint16_t pdu_len = 0;
     struct timespec abstime;
 
-    fprintf(stderr, "#### DLMSTP REC %u \r\n");
-
     (void)max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
@@ -651,7 +649,6 @@ uint8_t dlmstp_max_master(void)
 /* RS485 Baud Rate 9600, 19200, 38400, 57600, 115200 */
 void dlmstp_set_baud_rate(uint32_t baud)
 {
-    fprintf(stderr,"%%%% BAUD RATE %u \r\n", baud);
     RS485_Set_Baud_Rate(baud);
 }
 
@@ -696,7 +693,7 @@ bool dlmstp_init(char *ifname)
 {
     pthread_condattr_t attr;
     int rv = 0;
-    fprintf(stderr, "%%%% INIT DLMSTP");
+
     pthread_condattr_init(&attr);
     if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {
         fprintf(
