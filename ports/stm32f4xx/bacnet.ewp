@@ -1165,6 +1165,36 @@
         </file>
     </group>
     <group>
+        <name>BACnet Basic Objects</name>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\ai.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\ao.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\av.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\bi.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\bo.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\bv.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\ms-input.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\mso.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\msv.c</name>
+        </file>
+    </group>
+    <group>
         <name>BACnet Basic Services</name>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_apdu.c</name>
@@ -1210,6 +1240,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\fifo.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\keylist.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\mstimer.c</name>
