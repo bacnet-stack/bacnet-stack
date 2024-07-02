@@ -34,6 +34,15 @@ PLATFORM_SRC = \
 
 BASIC_SRC = \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/object/ai.c \
+	$(BACNET_BASIC)/object/ao.c \
+	$(BACNET_BASIC)/object/av.c \
+	$(BACNET_BASIC)/object/bi.c \
+	$(BACNET_BASIC)/object/bo.c \
+	$(BACNET_BASIC)/object/bv.c \
+	$(BACNET_BASIC)/object/ms-input.c \
+	$(BACNET_BASIC)/object/mso.c \
+	$(BACNET_BASIC)/object/msv.c \
 	$(BACNET_BASIC)/service/h_apdu.c \
 	$(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/h_rd.c \
@@ -48,6 +57,7 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/sys/fifo.c \
+	$(BACNET_BASIC)/sys/keylist.c \
 	$(BACNET_BASIC)/sys/mstimer.c \
 	$(BACNET_BASIC)/tsm/tsm.c
 
