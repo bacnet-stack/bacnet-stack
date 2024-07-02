@@ -44,6 +44,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/bbmd6/h_bbmd6.c
 	${SRC_DIR}/bacnet/basic/bbmd6/vmac.c
 	${SRC_DIR}/bacnet/datalink/bvlc6.c
+    ${BACNET_SRC}/hostnport.c
     # Test and test library files
 	./src/main.c
 	)
