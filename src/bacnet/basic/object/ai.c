@@ -249,8 +249,8 @@ bool Analog_Input_Object_Name(
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
             snprintf(
-                text_string, sizeof(text_string), "ANALOG INPUT %u",
-                object_instance);
+                text_string, sizeof(text_string), "ANALOG INPUT %lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, text_string);
         }
     }
