@@ -221,7 +221,8 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
     -DHSE_VALUE=25000000
     # BACnet Stack library
     -DBACDL_MSTP
-    -DMAX_APDU=1476
+    # note: MS/TP extended frames can be up to MAX_APDU=1476 bytes
+    -DMAX_APDU=480
     -DBIG_ENDIAN=0
     -DMAX_TSM_TRANSACTIONS=0
     -DBACAPP_MINIMAL

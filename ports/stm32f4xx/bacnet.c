@@ -37,7 +37,15 @@
 #include "bacnet/iam.h"
 /* BACnet objects */
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/ai.h"
+#include "bacnet/basic/object/ao.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/bo.h"
+#include "bacnet/basic/object/bv.h"
+#include "bacnet/basic/object/ms-input.h"
+#include "bacnet/basic/object/mso.h"
+#include "bacnet/basic/object/msv.h"
 /* me */
 #include "bacnet.h"
 
@@ -47,14 +55,69 @@ static struct mstimer DCC_Timer;
 /* Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
 
+#ifndef BACNET_ANALOG_INPUTS_MAX
+#define BACNET_ANALOG_INPUTS_MAX 12
+#endif
+#ifndef BACNET_ANALOG_OUTPUTS_MAX
+#define BACNET_ANALOG_OUTPUTS_MAX 12
+#endif
+#ifndef BACNET_ANALOG_VALUES_MAX
+#define BACNET_ANALOG_VALUES_MAX 12
+#endif
+#ifndef BACNET_BINARY_INPUTS_MAX
+#define BACNET_BINARY_INPUTS_MAX 12
+#endif
+#ifndef BACNET_BINARY_OUTPUTS_MAX
+#define BACNET_BINARY_OUTPUTS_MAX 12
+#endif
+#ifndef BACNET_BINARY_VALUES_MAX
+#define BACNET_BINARY_VALUES_MAX 12
+#endif
+#ifndef BACNET_MULTISTATE_INPUTS_MAX
+#define BACNET_MULTISTATE_INPUTS_MAX 12
+#endif
+#ifndef BACNET_MULTISTATE_OUTPUTS_MAX
+#define BACNET_MULTISTATE_OUTPUTS_MAX 12
+#endif
+#ifndef BACNET_MULTISTATE_VALUES_MAX
+#define BACNET_MULTISTATE_VALUES_MAX 12
+#endif
+
 /** 
  * @brief Initialize the BACnet device object, the service handlers, and timers
  */
 void bacnet_init(void)
-{
+{ 
+    uint32_t instance;
     /* initialize objects */
     Device_Init(NULL);
-
+    for (instance = 1; instance <= BACNET_ANALOG_INPUTS_MAX; instance++) {
+        Analog_Input_Create(instance);
+    }
+    for (instance = 1; instance <= BACNET_ANALOG_OUTPUTS_MAX; instance++) {
+        Analog_Output_Create(instance);
+    }
+    for (instance = 1; instance <= BACNET_ANALOG_VALUES_MAX; instance++) {
+        Analog_Value_Create(instance);
+    }
+    for (instance = 1; instance <= BACNET_BINARY_INPUTS_MAX; instance++) {
+        Binary_Input_Create(instance);
+    }
+    for (instance = 1; instance <= BACNET_BINARY_OUTPUTS_MAX; instance++) {
+        Binary_Output_Create(instance);
+    }
+    for (instance = 1; instance <= BACNET_BINARY_VALUES_MAX; instance++) {
+        Binary_Value_Create(instance);
+    }
+    for (instance = 1; instance <= BACNET_MULTISTATE_INPUTS_MAX; instance++) {
+        Multistate_Input_Create(instance);
+    }
+    for (instance = 1; instance <= BACNET_MULTISTATE_OUTPUTS_MAX; instance++) {
+        Multistate_Output_Create(instance);
+    }
+    for (instance = 1; instance <= BACNET_MULTISTATE_VALUES_MAX; instance++) {
+        Multistate_Value_Create(instance);
+    }
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */

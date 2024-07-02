@@ -151,6 +151,16 @@ set(BACNET_PROJECT_SOURCE
     ${CMAKE_SOURCE_DIR}/device.c
     ${CMAKE_SOURCE_DIR}/netport.c
 
+    ${LIBRARY_BACNET_BASIC}/object/ai.c
+    ${LIBRARY_BACNET_BASIC}/object/ao.c
+    ${LIBRARY_BACNET_BASIC}/object/av.c
+    ${LIBRARY_BACNET_BASIC}/object/bi.c
+    ${LIBRARY_BACNET_BASIC}/object/bo.c
+    ${LIBRARY_BACNET_BASIC}/object/bv.c
+    ${LIBRARY_BACNET_BASIC}/object/ms-input.c
+    ${LIBRARY_BACNET_BASIC}/object/mso.c
+    ${LIBRARY_BACNET_BASIC}/object/msv.c
+
     ${LIBRARY_BACNET_BASIC}/service/h_dcc.c
     ${LIBRARY_BACNET_BASIC}/service/h_apdu.c
     ${LIBRARY_BACNET_BASIC}/npdu/h_npdu.c
@@ -167,6 +177,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/sys/debug.c
     ${LIBRARY_BACNET_BASIC}/sys/ringbuf.c
     ${LIBRARY_BACNET_BASIC}/sys/fifo.c
+    ${LIBRARY_BACNET_BASIC}/sys/keylist.c
     ${LIBRARY_BACNET_BASIC}/sys/mstimer.c
 
     ${LIBRARY_BACNET_CORE}/abort.c
@@ -273,8 +284,9 @@ target_link_options(${EXECUTABLE} PRIVATE
 # Create hex and bin files
 add_custom_command(TARGET ${EXECUTABLE}
     POST_BUILD
-    COMMAND ${CMAKE_OBJCOPY} -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
     COMMAND ${CMAKE_OBJCOPY} -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin
+    COMMAND ${CMAKE_OBJCOPY} -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
+    COMMAND ${CMAKE_OBJCOPY} -O ihex ${EXECUTABLE}  ${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.hex
 )
 
 # Print executable size

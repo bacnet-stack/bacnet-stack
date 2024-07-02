@@ -34,6 +34,15 @@ PLATFORM_SRC = \
 
 BASIC_SRC = \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/object/ai.c \
+	$(BACNET_BASIC)/object/ao.c \
+	$(BACNET_BASIC)/object/av.c \
+	$(BACNET_BASIC)/object/bi.c \
+	$(BACNET_BASIC)/object/bo.c \
+	$(BACNET_BASIC)/object/bv.c \
+	$(BACNET_BASIC)/object/ms-input.c \
+	$(BACNET_BASIC)/object/mso.c \
+	$(BACNET_BASIC)/object/msv.c \
 	$(BACNET_BASIC)/service/h_apdu.c \
 	$(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/h_rd.c \
@@ -48,6 +57,7 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/sys/fifo.c \
+	$(BACNET_BASIC)/sys/keylist.c \
 	$(BACNET_BASIC)/sys/mstimer.c \
 	$(BACNET_BASIC)/tsm/tsm.c
 
@@ -149,8 +159,9 @@ MCU_FLAGS += -DUSE_STDPERIPH_DRIVER
 OPTIMIZE_FLAGS := -Os -ggdb
 OPTIMIZE_FLAGS += -DNDEBUG
 
-BACNET_FLAGS = -DBACDL_MSTP=1
-BACNET_FLAGS += -DMAX_APDU=1476
+BACNET_FLAGS = -DBACDL_MSTP=
+# note: MS/TP extended frames can be up to MAX_APDU=1476 bytes
+BACNET_FLAGS += -DMAX_APDU=480
 BACNET_FLAGS += -DBIG_ENDIAN=0
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
 BACNET_FLAGS += -DMAX_CHARACTER_STRING_BYTES=64
