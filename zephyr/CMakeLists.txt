@@ -440,7 +440,8 @@ list(
   )
 
 
-add_subdirectory(subsys)
+  zephyr_include_directories(include)
+  add_subdirectory(subsys)
 
 #
 # library
