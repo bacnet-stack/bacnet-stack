@@ -36,7 +36,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bacnet/config.h"
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -50,6 +49,10 @@
 #include "bacnet/basic/object/device.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
+
+#if defined(BACDL_BIP6) || defined(BACDL_ALL)
+#include  "bacnet/datalink/bvlc6.h"
+#endif
 
 #ifndef BBMD_ENABLED
 #define BBMD_ENABLED 1
@@ -1645,7 +1648,7 @@ bool Network_Port_BBMD_FD_Table_Set(uint32_t object_instance, void *fdt_head)
     return status;
 }
 
-#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
+#if (defined(BACDL_BIP) || defined(BACDL_ALL)) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
 /**
  * For a given object instance-number, gets the ip-address and port
  * Note: depends on Network_Type being set for this object
@@ -3107,7 +3110,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
             switch(network_type) {
-#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+#if (defined(BACDL_BIP) || defined(BACDL_ALL)) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
               case PORT_TYPE_BIP:
               Network_Port_Remote_BBMD_IP_Address_And_Port(
                   rpdata->object_instance, &ip_address);
