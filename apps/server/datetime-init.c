@@ -27,7 +27,7 @@ int timezonediff()
     time_t t = time(NULL);
     struct tm lt = {0};
     localtime_r(&t, &lt);
-    return lt.tm_gmtoff;
+    return -lt.tm_gmtoff;
 }
 
 /**
