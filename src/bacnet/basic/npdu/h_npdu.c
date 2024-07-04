@@ -43,6 +43,7 @@
 static uint16_t Local_Network_Number;
 static uint8_t Local_Network_Number_Status = NETWORK_NUMBER_LEARNED;
 
+extern uint8_t priority;  /* Fixing test 10.1.2 Network priority */
 /**
  * @brief get the local network number
  * @return local network number
@@ -252,9 +253,9 @@ void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
                     /* ConfirmedBroadcastReceived */
                     /* then enter IDLE - ignore the PDU */
                 } else {
+                    priority = pdu[1]&0x03; /* Fixing test 10.1.2 Network priority */
                     apdu_handler(src, &pdu[apdu_offset],
-                        (uint16_t)(pdu_len - apdu_offset),
-                        (pdu[1]&0x03));
+                        (uint16_t)(pdu_len - apdu_offset));
                 }
             } else {
 #if PRINT_ENABLED

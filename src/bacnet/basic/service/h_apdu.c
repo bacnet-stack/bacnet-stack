@@ -53,7 +53,7 @@
 static uint16_t Timeout_Milliseconds = 3000;
 /* Number of APDU Retries */
 static uint8_t Number_Of_Retries = 3;
-
+int priority; /* Fixing test 10.1.2 Network priority */
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
     confirmed_service_supported[MAX_BACNET_CONFIRMED_SERVICE] = {
@@ -427,8 +427,7 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
     BACNET_CONFIRMED_SERVICE_DATA *service_data,
     uint8_t *service_choice,
     uint8_t **service_request,
-    uint16_t *service_request_len,
-    uint8_t priority)
+    uint16_t *service_request_len)
 {
     uint16_t len = 0; /* counts where we are in PDU */
 
@@ -440,7 +439,14 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
         service_data->max_segs = decode_max_segs(apdu[1]);
         service_data->max_resp = decode_max_apdu(apdu[1]);
         service_data->invoke_id = apdu[2];
-        service_data->priority = priority;
+        if (apdu[3] == 0x0c) /* Read property */
+        {
+            service_data->priority = priority;
+        }
+        else
+        {
+            service_data->priority = MESSAGE_PRIORITY_NORMAL;
+        }
         len = 3;
         if (service_data->segmented_message) {
             if (apdu_len >= (len + 2)) {
@@ -559,8 +565,7 @@ static bool apdu_unconfirmed_dcc_disabled(uint8_t service_choice)
 void apdu_handler(
     BACNET_ADDRESS *src,
     uint8_t *apdu, /* APDU data */
-    uint16_t apdu_len,
-    uint8_t priority)
+    uint16_t apdu_len)
 {
     BACNET_PDU_TYPE pdu_type;
     BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
@@ -588,8 +593,7 @@ void apdu_handler(
         case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
             len = apdu_decode_confirmed_service_request(
                 apdu, apdu_len, &service_data, &service_choice,
-                &service_request, &service_request_len,
-                priority);
+                &service_request, &service_request_len);
             if (len == 0) {
                 /* service data unable to be decoded - simply drop */
                 break;
