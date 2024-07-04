@@ -137,7 +137,7 @@ void handler_timesync_utc(
             fprintf(stderr, "Received UTC TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
 #endif
-            localtime_r(&rawtime, &lt) + lt.tm_gmtoff;
+            localtime_r(&rawtime, &lt);
             timeinfo->tm_year = bdate.year-1900;
             timeinfo->tm_mon  = bdate.month-1;
             timeinfo->tm_mday  = bdate.day;
@@ -147,7 +147,8 @@ void handler_timesync_utc(
             tv_inp.tv_sec = mktime(timeinfo);
             tv_inp.tv_usec = btime.hundredths*10000;
             if (gettimeofday(&tv_sys, NULL) == 0) {
-                time_offset = timedifference(tv_inp, tv_sys);
+                time_offset = timedifference(tv_inp, tv_sys) + lt.tm_gmtoff;
+                printf("Time offset = %f\n",time_offset);
             }
         }
     }
