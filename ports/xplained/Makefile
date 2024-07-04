@@ -48,7 +48,6 @@ CSRC = main.c \
 	led.c \
 	mstimer-init.c \
 	netport.c \
-	nvmdata.c \
 	rs485.c \
 	stack.c
 

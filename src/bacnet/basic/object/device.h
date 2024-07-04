@@ -321,7 +321,19 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Device_Valid_Object_Instance_Number(
         uint32_t object_id);
-        
+
+    BACNET_STACK_EXPORT
+    void Device_UUID_Init(
+        void);
+    BACNET_STACK_EXPORT
+    void Device_UUID_Set(
+        uint8_t *new_uuid,
+        size_t length);
+    BACNET_STACK_EXPORT
+    void Device_UUID_Get(
+        uint8_t *uuid,
+        size_t length);
+
     BACNET_STACK_EXPORT
     unsigned Device_Object_List_Count(
         void);
@@ -332,8 +344,8 @@ extern "C" {
         uint32_t * instance);
     BACNET_STACK_EXPORT
     int Device_Object_List_Element_Encode(
-        uint32_t object_instance, 
-        BACNET_ARRAY_INDEX array_index, 
+        uint32_t object_instance,
+        BACNET_ARRAY_INDEX array_index,
         uint8_t *apdu);
 
     BACNET_STACK_EXPORT
