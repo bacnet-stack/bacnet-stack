@@ -25,6 +25,7 @@ add_compile_definitions(
 	CONFIG_ZTEST=1
 	BACDL_MSTP=1
 	MSTP_ZERO_CONFIG_STATION_INCREMENT_MODULO
+	MAX_APDU=1476
 	)
 
 include_directories(
