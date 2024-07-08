@@ -49,4 +49,7 @@ typedef struct _confirmed_service_ack_data {
     uint8_t proposed_window_number;
 } BACNET_CONFIRMED_SERVICE_ACK_DATA;
 
+uint16_t apdu_network_priority(void);
+void apdu_network_priority_set(uint16_t pri);
+
 #endif
