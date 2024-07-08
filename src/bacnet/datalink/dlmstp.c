@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -657,7 +656,6 @@ void dlmstp_set_baud_rate(uint32_t baud)
     struct dlmstp_user_data_t *user;
     struct dlmstp_rs485_driver *driver;
 
-
     if (!MSTP_Port) {
         return;
     }
@@ -673,7 +671,7 @@ void dlmstp_set_baud_rate(uint32_t baud)
         /* Tframe_abort=60 bit times, not to exceed 100 milliseconds.*/
         if (MSTP_Port->Tframe_abort <= 7) {
             /* within baud range, so auto-calculate range based on baud */
-            MSTP_Port->Tframe_abort = 1+((60*1000UL)/baud); 
+            MSTP_Port->Tframe_abort = 1+((60*1000UL)/baud);
         }
         /* Tturnaround=40 bit times */
         MSTP_Port->Tturnaround_timeout = 1 + ((Tturnaround * 1000) / baud);
