@@ -30,8 +30,10 @@ static void testInteger_Value(void)
     const int *pProprietary = NULL;
     unsigned count = 0;
     bool status = false;
+    uint32_t object_instance = BACNET_MAX_INSTANCE, test_object_instance = 0;
 
     Integer_Value_Init();
+    object_instance = Integer_Value_Create(object_instance);
     count = Integer_Value_Count();
     zassert_true(count > 0, NULL);
     rpdata.application_data = &apdu[0];
@@ -89,6 +91,8 @@ static void testInteger_Value(void)
         }
         pOptional++;
     }
+    status = Integer_Value_Delete(object_instance);
+    zassert_true(status, NULL);
 }
 /**
  * @}
