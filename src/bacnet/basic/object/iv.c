@@ -79,7 +79,8 @@ static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_UNITS, -1 };
 
 static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE,
-    PROP_DESCRIPTION, PROP_COV_INCREMENT,
+    PROP_DESCRIPTION,
+    PROP_COV_INCREMENT,
     -1 };
 
 static const int Integer_Value_Properties_Proprietary[] = { -1 };
@@ -581,6 +582,7 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 Integer_Value_COV_Increment_Set(
                     wp_data->object_instance, value.type.Unsigned_Int);
             }
+            break;
         case PROP_OUT_OF_SERVICE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
@@ -652,6 +654,34 @@ uint32_t Integer_Value_COV_Increment(uint32_t object_instance)
     }
 
     return value;
+}
+
+/**
+ * For a given object instance-number, loads the value_list with the COV data.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value_list - list of COV data
+ *
+ * @return  true if the value list is encoded
+ */
+bool Integer_Value_Encode_Value_List(
+    uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list)
+{
+    bool status = false;
+    struct integer_object *pObject = Integer_Value_Object(object_instance);
+
+    if (pObject) {
+        bool out_of_service = pObject->Out_Of_Service;
+        uint32_t present_value = pObject->Present_Value;
+        const bool in_alarm = false;
+        const bool fault = false;
+        const bool overridden = false;
+
+        status = cov_value_list_encode_unsigned(value_list, present_value,
+            in_alarm, fault, overridden, out_of_service);
+    }
+
+    return status;
 }
 
 /**
