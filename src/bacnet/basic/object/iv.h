@@ -143,7 +143,6 @@ extern "C" {
     bool Integer_Value_Delete(
             uint32_t object_instance);
 
-
     BACNET_STACK_EXPORT
     void Integer_Value_Cleanup(void);
 

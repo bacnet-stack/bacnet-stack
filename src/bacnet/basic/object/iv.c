@@ -486,7 +486,7 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_TYPE:
             apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_INTEGER_VALUE);
+                encode_application_enumerated(&apdu[0], Object_Type);
             break;
         case PROP_PRESENT_VALUE:
             integer_value =
