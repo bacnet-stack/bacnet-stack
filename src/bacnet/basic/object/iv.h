@@ -97,12 +97,13 @@ extern "C" {
         uint32_t object_instance,
         BACNET_PROPERTY_VALUE * value_list);
     BACNET_STACK_EXPORT
-    float Integer_Value_COV_Increment(
-        uint32_t instance);
+    uint32_t Integer_Value_COV_Increment(
+        uint32_t object_instance);
     BACNET_STACK_EXPORT
     void Integer_Value_COV_Increment_Set(
-        uint32_t instance,
-        float value);
+            uint32_t object_instance,
+            uint32_t value);
+
 
     BACNET_STACK_EXPORT
     bool Integer_Value_Description(
@@ -133,6 +134,20 @@ extern "C" {
         void);
     BACNET_STACK_EXPORT
     bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
+
+    BACNET_STACK_EXPORT
+    uint32_t Integer_Value_Create(
+        uint32_t object_instance);
+
+    BACNET_STACK_EXPORT
+    bool Integer_Value_Delete(
+            uint32_t object_instance);
+
+
+    BACNET_STACK_EXPORT
+    void Integer_Value_Cleanup(void);
+
+
 
 #ifdef __cplusplus
 }
