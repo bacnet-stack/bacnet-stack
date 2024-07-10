@@ -28,7 +28,8 @@
 /* me! */
 #include "bacnet/basic/object/bv.h"
 
-#define PRINTF debug_perror
+#include "bacnet/basic/sys/debug.h"
+#define PRINT debug_perror
 
 static const char *Default_Active_Text = "Active";
 static const char *Default_Inactive_Text = "Inactive";
