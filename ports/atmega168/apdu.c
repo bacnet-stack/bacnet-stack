@@ -47,7 +47,7 @@ static int Local_Network_Priority; /* Fixing test 10.1.2 Network priority */
  * @brief get the local network priority
  * @return local network priority
  */
-uint16_t apdu_network_priority(void)
+uint8_t apdu_network_priority(void)
 {
     return Local_Network_Priority;
 }
