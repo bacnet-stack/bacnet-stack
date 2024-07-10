@@ -32,6 +32,7 @@
 #include "bacnet/bacint.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
+#include "bacnet/basic/npdu/s_router.h" /* Needed for Send_Reject_Message_To_Network  */
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
@@ -194,11 +195,15 @@ static void network_control_handler(BACNET_ADDRESS *src,
         default:
             break;
     }
+/* FIXME GG The following doesn't compile for the microcontroller ports. An appropriate ifdef is needed.
+Using MSTP so far */
+#ifndef BACDL_MSTP
     if (npdu_data->network_message_type >= 0x14 && npdu_data->network_message_type < 0x80)
     {
         Send_Reject_Message_To_Network(
             src, NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE, 0);
     }
+#endif /* BACDL_MSTP */
 }
 
 /** Handler for the NPDU portion of a received packet.
