@@ -266,14 +266,8 @@ Integer_Value_COV_Detect(struct integer_object *pObject, int32_t value)
     if (pObject) {
         int32_t prior_value = pObject->Prior_Value;
         uint32_t cov_increment = pObject->COV_Increment;
-        uint32_t cov_delta = 0;
+        uint32_t cov_delta = (uint32_t) abs(prior_value - value);
 
-
-        if (prior_value > value) {
-            cov_delta = (uint32_t) abs(prior_value - value);
-        } else {
-            cov_delta = (uint32_t) abs(value - prior_value);
-        }
         if (cov_delta >= cov_increment) {
             pObject->Changed = true;
             pObject->Prior_Value = value;
