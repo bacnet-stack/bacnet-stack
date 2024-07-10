@@ -56,7 +56,7 @@ uint8_t apdu_network_priority(void)
  * @brief set the local network priority
  * @param net - local network priority
  */
-void apdu_network_priority_set(uint16_t pri)
+void apdu_network_priority_set(uint8_t pri)
 {
     Local_Network_Priority = pri & 0x03;
 }
