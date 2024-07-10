@@ -10,13 +10,13 @@
 
 #include <avr/eeprom.h>
 
-/* compatible functions could put in nvm.h to abstract more */
+/* compatible functions could put in header to abstract more */
 #define nvm_write(dst, src, len) \
     eeprom_write_block((uint8_t *)(src),(uint8_t *)(dst), (size_t)(len))
 
 #define nvm_read(src, dst, len) \
 	eeprom_read_block((uint8_t *)dst, (const uint8_t *)(src),(size_t)(len))
-    
+
 /*=============== EEPROM ================*/
 /* define EEPROM signature version */
 #define NVM_SIGNATURE 0
@@ -54,14 +54,4 @@
 
 /* free space 128..4096 */
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-void nvm_data_init(void);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 #endif
