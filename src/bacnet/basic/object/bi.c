@@ -28,6 +28,8 @@
 /* me! */
 #include "bacnet/basic/object/bi.h"
 
+#define PRINTF debug_perror
+
 static const char *Default_Active_Text = "Active";
 static const char *Default_Inactive_Text = "Inactive";
 struct object_data {
