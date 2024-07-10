@@ -194,6 +194,11 @@ static void network_control_handler(BACNET_ADDRESS *src,
         default:
             break;
     }
+    if (npdu_data->network_message_type >= 0x14 && npdu_data->network_message_type < 0x80)
+    {
+        Send_Reject_Message_To_Network(
+            src, NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE, 0);
+    }
 }
 
 /** Handler for the NPDU portion of a received packet.
