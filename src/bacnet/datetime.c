@@ -20,9 +20,6 @@
 #include "bacnet/datetime.h"
 #include "bacnet/bacdcode.h"
 
-
-float time_offset;
-
 /** @file datetime.c  Manipulate BACnet Date and Time values */
 
 /* BACnet Date */

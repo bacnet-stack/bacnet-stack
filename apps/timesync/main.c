@@ -300,7 +300,7 @@ int main(int argc, char *argv[])
         printf("Setting UTC time\n");
         show_bacnet_date_time(&utc_time.date, &utc_time.time);
     } else {
-        printf("Setting local time\n");
+        printf("Setting Local time\n");
         show_bacnet_date_time(&bdate, &btime);
         Send_TimeSync_Remote(&dest, &bdate, &btime);
     }

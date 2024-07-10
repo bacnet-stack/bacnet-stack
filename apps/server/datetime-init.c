@@ -16,11 +16,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
-//#include "bacport.h"
 #include <bacnet/datetime.h>
+#include <bacnet/basic/service/h_ts.h>
 
-
-extern float time_offset;
 
 int timezonediff()
 {
@@ -48,11 +46,12 @@ bool datetime_local(BACNET_DATE *bdate,
     bool status = false;
     struct tm *tblock = NULL;
     struct timeval tv;
+    float to;
 
     if (gettimeofday(&tv, NULL) == 0) {
-        //printf("datetime_local Time offset = %f\n",time_offset);
-        tv.tv_sec += (int) time_offset;
-        tv.tv_usec += fmodf(time_offset,1.0)*1000000;
+        to = time_offset();
+        tv.tv_sec += (int) to;
+        tv.tv_usec += fmodf(to,1.0)*1000000;
         tblock = (struct tm *)localtime((time_t *) &tv.tv_sec);
     }
     if (tblock) {
@@ -90,7 +89,6 @@ bool datetime_local(BACNET_DATE *bdate,
                 between Coordinated Universal Time (UTC) and
                 local standard time */
             *utc_offset_minutes = timezonediff() / 60;
-            //printf("Offset = %d\n",*utc_offset_minutes);
         }
     }
 
@@ -102,7 +100,7 @@ bool datetime_local(BACNET_DATE *bdate,
  */
 void datetime_init(void)
 {
-    time_offset = 0;
+    time_offset_set(0);
     /*printf("Time init\n");*/
     /* nothing to do */
 }

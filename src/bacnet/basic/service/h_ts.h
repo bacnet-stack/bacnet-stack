@@ -39,6 +39,9 @@
 #include "bacnet/datetime.h"
 #include "bacnet/wp.h"
 
+float time_offset();
+void time_offset_set(float offset);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
