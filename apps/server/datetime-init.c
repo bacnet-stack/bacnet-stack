@@ -38,13 +38,13 @@ bool datetime_local(BACNET_DATE *bdate,
     bool status = false;
     struct tm *tblock = NULL;
     struct timeval tv;
-    float to;
+    int32_t to;
 
     if (gettimeofday(&tv, NULL) == 0) {
-        to = time_offset();
-        tv.tv_sec += (int) to;
-        tv.tv_usec += fmodf(to,1.0)*1000000;
-        tblock = (struct tm *)localtime((time_t *) &tv.tv_sec);
+        to = handler_timesync_offset();
+        tv.tv_sec += (int) to/1000;
+        tv.tv_usec += (to%1000)*1000;
+        tblock = (struct tm *) localtime((time_t *) &tv.tv_sec);
     }
     if (tblock) {
         status = true;
@@ -92,7 +92,7 @@ bool datetime_local(BACNET_DATE *bdate,
  */
 void datetime_init(void)
 {
-    time_offset_set(0);
+    handler_timesync_offset_set(0);
     /*printf("Time init\n");*/
     /* nothing to do */
 }
