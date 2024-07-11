@@ -32,7 +32,7 @@
 #include "bacnet/bacint.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/npdu/s_router.h" /* Needed for Send_Reject_Message_To_Network  */
+#include "bacnet/basic/npdu/s_router.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
@@ -195,7 +195,6 @@ static void network_control_handler(BACNET_ADDRESS *src,
         default:
             break;
     }
-/* FIXME GG The following doesn't compile for the microcontroller port */
     if (npdu_data->network_message_type >= NETWORK_MESSAGE_ASHRAE_RESERVED_MIN && npdu_data->network_message_type <= NETWORK_MESSAGE_ASHRAE_RESERVED_MAX)
     {
         Send_Reject_Message_To_Network(
