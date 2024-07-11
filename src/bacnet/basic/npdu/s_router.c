@@ -172,11 +172,14 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
             break;
 
         default:
+#if PRINT_ENABLED
             debug_printf("Not sent: %s message unsupported \n",
                 bactext_network_layer_msg_name(network_message_type));
+#endif
             return 0;
     }
 
+#if PRINT_ENABLED
     if (dst != NULL) {
         debug_printf("Sending %s message to BACnet network %u \n",
             bactext_network_layer_msg_name(network_message_type), dst->net);
@@ -184,6 +187,7 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
         debug_printf("Sending %s message to local BACnet network \n",
             bactext_network_layer_msg_name(network_message_type));
     }
+#endif
 
     /* Now send the message */
     bytes_sent = datalink_send_pdu(
