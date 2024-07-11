@@ -37,6 +37,7 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/h_apdu.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/npdu/s_router.c \
 	$(BACNET_BASIC)/service/h_rd.c \
 	$(BACNET_BASIC)/service/h_rp.c \
 	$(BACNET_BASIC)/service/h_rpm.c \
