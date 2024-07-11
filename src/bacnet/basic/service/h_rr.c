@@ -101,11 +101,10 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     } else {
         /* Either we don't support RR for this property yet or it is not a list
          * or array of lists */
-        if (pRequest->array_index == BACNET_ARRAY_ALL) {
-            pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-        } else {
+        pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+        if (pRequest->array_index != BACNET_ARRAY_ALL) {
             pRequest->error_class = ERROR_CLASS_PROPERTY;
-           pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+            pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         }
     }
 

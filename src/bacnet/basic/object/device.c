@@ -2313,9 +2313,12 @@ bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
             }
             break;
         default:
-            pRequest->error_class = ERROR_CLASS_PROPERTY;
-            /* pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST; */
-            pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+            pRequest->error_class = ERROR_CLASS_SERVICES;
+            pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+            if (pRequest->array_index == BACNET_ARRAY_ALL) {
+                pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                pRequest->error_class = ERROR_CLASS_PROPERTY;
+            }
             break;
     }
 
