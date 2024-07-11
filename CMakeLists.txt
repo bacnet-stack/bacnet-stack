@@ -17,7 +17,7 @@ option(
 option(
   BAC_ROUTING
   "enable bac routing"
-  ON)
+  OFF)
 
 option(
   BACNET_PROPERTY_LISTS
@@ -52,7 +52,7 @@ option(
 option(
   BACDL_MSTP
   "compile with mstp support"
-  OFF)
+  ON)
 
 option(
   BACDL_ARCNET
@@ -62,7 +62,7 @@ option(
 option(
   BACDL_BIP
   "compile with ip support"
-  ON)
+  OFF)
 
 option(
   BACDL_BIP6

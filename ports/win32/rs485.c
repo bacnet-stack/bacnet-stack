@@ -217,7 +217,7 @@ static void RS485_Configure_Status(void)
     /* configure the COM port timeout values */
     ctNew.ReadIntervalTimeout = MAXDWORD;
     ctNew.ReadTotalTimeoutMultiplier = MAXDWORD;
-    ctNew.ReadTotalTimeoutConstant = 1000;
+    ctNew.ReadTotalTimeoutConstant = 1;
     ctNew.WriteTotalTimeoutMultiplier = 0;
     ctNew.WriteTotalTimeoutConstant = 0;
     if (!SetCommTimeouts(RS485_Handle, &ctNew)) {
@@ -442,10 +442,14 @@ void RS485_Send_Frame(
         else
             turnaround_time = 2;
         while (mstp_port->SilenceTimer(NULL) < turnaround_time) {
+            Sleep(1);
             /* do nothing - wait for timer to increment */
         };
     }
     WriteFile(RS485_Handle, buffer, nbytes, &dwWritten, NULL);
+    printf("Tx addr: %d, type: %d, len: %d, T: %u\n", 
+        buffer[3], buffer[2], nbytes, mstp_port->SilenceTimer(NULL));
+    //uint32_t silenceTimer = mstp_port->SilenceTimer(NULL);
 
     /* per MSTP spec, reset SilenceTimer after each byte is sent */
     if (mstp_port) {

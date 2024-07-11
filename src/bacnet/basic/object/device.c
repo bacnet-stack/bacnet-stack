@@ -122,6 +122,8 @@ static object_functions_t My_Object_Table[] = {
         Analog_Output_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         Analog_Output_Create, Analog_Output_Delete, NULL /* Timer */ },
+};
+#if 0
     { OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count,
         Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance,
         Analog_Value_Object_Name, Analog_Value_Read_Property,
@@ -361,6 +363,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         bacfile_create, bacfile_delete, NULL /* Timer */ },
 #endif
+#if 0
     { OBJECT_SCHEDULE, Schedule_Init, Schedule_Count,
         Schedule_Index_To_Instance, Schedule_Valid_Instance,
         Schedule_Object_Name, Schedule_Read_Property, Schedule_Write_Property,
@@ -385,6 +388,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+#endif    
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,
@@ -394,6 +398,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 };
+#endif
 /* clang-format on */
 
 /** Glue function to let the Device object, when called by a handler,

@@ -118,6 +118,8 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
         bacnet_address_copy(&Transmit_Packet.address, dest);
         bytes_sent = pdu_len + DLMSTP_HEADER_MAX;
         Transmit_Packet.ready = true;
+//        volatile uint32_t silenceTimer = MSTP_Port.SilenceTimer(NULL);
+        printf("Rply rdy: %u\n", MSTP_Port.SilenceTimer(NULL));
     }
 
     return bytes_sent;
@@ -149,6 +151,8 @@ uint16_t dlmstp_receive(BACNET_ADDRESS *src, /* source address */
                 }
                 pdu_len = Receive_Packet.pdu_len;
             }
+            //volatile uint32_t silenceTimer = MSTP_Port.SilenceTimer(NULL);
+            printf("Pkt rcvd: %u\n", MSTP_Port.SilenceTimer(NULL));
             Receive_Packet.ready = false;
         }
     }
@@ -161,7 +165,7 @@ static void dlmstp_receive_fsm_task(void *pArg)
     bool received_frame;
 
     (void)pArg;
-    (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+    (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
     for (;;) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
@@ -172,7 +176,13 @@ static void dlmstp_receive_fsm_task(void *pArg)
                 received_frame = MSTP_Port.ReceivedValidFrame ||
                     MSTP_Port.ReceivedInvalidFrame;
                 if (received_frame) {
+                    //volatile uint32_t silenceTimer = MSTP_Port.SilenceTimer(NULL);
                     ReleaseSemaphore(Received_Frame_Flag, 1, NULL);
+                    printf(
+                        "Rx addr: %d, type: %d, len: %d, T: %u\n",
+                        MSTP_Port.DestinationAddress, MSTP_Port.FrameType,
+                        MSTP_Port.DataLength, MSTP_Port.SilenceTimer(NULL));
+                    Sleep(10);
                     break;
                 }
             } while (MSTP_Port.DataAvailable);
@@ -180,12 +190,25 @@ static void dlmstp_receive_fsm_task(void *pArg)
     }
 }
 
+char* MasterState[] = { 
+    "init", 
+    "idle", 
+    "use token", 
+    "wait for reply", 
+    "done with token", 
+    "pass token", 
+    "no token", 
+    "poll master",
+    "Answer" 
+};
+
+
 static void dlmstp_master_fsm_task(void *pArg)
 {
     DWORD dwMilliseconds = 0;
 
     (void)pArg;
-    (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+    (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
     for (;;) {
         switch (MSTP_Port.master_state) {
             case MSTP_MASTER_STATE_IDLE:
@@ -197,13 +220,22 @@ static void dlmstp_master_fsm_task(void *pArg)
             case MSTP_MASTER_STATE_POLL_FOR_MASTER:
                 dwMilliseconds = Tusage_timeout;
                 break;
+            case MSTP_MASTER_STATE_PASS_TOKEN:
+                dwMilliseconds = 10;
+                break;
+            case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
+                dwMilliseconds = 100;
+                break;
             default:
                 dwMilliseconds = 0;
                 break;
         }
         if (dwMilliseconds)
             WaitForSingleObject(Received_Frame_Flag, dwMilliseconds);
-        MSTP_Master_Node_FSM(&MSTP_Port);
+        printf(
+            "State: %s, T: %u\n", MasterState[MSTP_Port.master_state],
+            MSTP_Port.SilenceTimer(NULL));
+        while(MSTP_Master_Node_FSM(&MSTP_Port));
     }
 }
 
