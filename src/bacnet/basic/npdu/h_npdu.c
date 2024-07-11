@@ -195,15 +195,12 @@ static void network_control_handler(BACNET_ADDRESS *src,
         default:
             break;
     }
-/* FIXME GG The following doesn't compile for the microcontroller ports. An appropriate ifdef is needed.
-Using MSTP so far */
-#ifndef BACDL_MSTP
-    if (npdu_data->network_message_type >= 0x14 && npdu_data->network_message_type < 0x80)
+/* FIXME GG The following doesn't compile for the microcontroller port */
+    if (npdu_data->network_message_type >= NETWORK_MESSAGE_ASHRAE_RESERVED_MIN && npdu_data->network_message_type <= NETWORK_MESSAGE_ASHRAE_RESERVED_MAX)
     {
         Send_Reject_Message_To_Network(
             src, NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE, 0);
     }
-#endif /* BACDL_MSTP */
 }
 
 /** Handler for the NPDU portion of a received packet.
