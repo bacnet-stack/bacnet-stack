@@ -81,6 +81,7 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             (pRequest->array_index != 0) &&
             (pRequest->array_index != BACNET_ARRAY_ALL)) {
             /* Array access attempted on a non array property */
+            pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         } else if ((pRequest->RequestType != RR_READ_ALL) &&
             ((PropInfo.RequestTypes & pRequest->RequestType) == 0)) {
@@ -103,7 +104,8 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         if (pRequest->array_index == BACNET_ARRAY_ALL) {
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
         } else {
-            pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+            pRequest->error_class = ERROR_CLASS_PROPERTY;
+           pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         }
     }
 
