@@ -41,7 +41,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/basic/services.h"
 
-static int Local_Network_Priority; /* Fixing test 10.1.2 Network priority */
+static uint8_t Local_Network_Priority; /* Fixing test 10.1.2 Network priority */
 
 /**
  * @brief get the local network priority

@@ -53,7 +53,7 @@
 static uint16_t Timeout_Milliseconds = 3000;
 /* Number of APDU Retries */
 static uint8_t Number_Of_Retries = 3;
-static int Local_Network_Priority; /* Fixing test 10.1.2 Network priority */
+static uint8_t Local_Network_Priority; /* Fixing test 10.1.2 Network priority */
 
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
