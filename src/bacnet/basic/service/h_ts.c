@@ -154,7 +154,7 @@ void handler_timesync_utc(
             tv_inp.tv_sec = mktime(timeinfo);
             tv_inp.tv_usec = btime.hundredths*10000;
             if (gettimeofday(&tv_sys, NULL) == 0) {
-                time_offset_set(timedifference(tv_inp, tv_sys) + lt.tm_gmtoff);
+                time_offset_set(timedifference(tv_inp, tv_sys) - Device_UTC_Offset()*60);
             }
 #if PRINT_ENABLED
             fprintf(stderr, "Received UTC TimeSyncronization Request\r\n");

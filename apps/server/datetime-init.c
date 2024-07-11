@@ -20,14 +20,6 @@
 #include <bacnet/basic/service/h_ts.h>
 
 
-int timezonediff()
-{
-    time_t t = time(NULL);
-    struct tm lt = {0};
-    localtime_r(&t, &lt);
-    return -lt.tm_gmtoff;
-}
-
 /**
  * @brief Get the date, time, timezone, and UTC offset from system
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
@@ -88,7 +80,7 @@ bool datetime_local(BACNET_DATE *bdate,
             /* timezone is set to the difference, in seconds,
                 between Coordinated Universal Time (UTC) and
                 local standard time */
-            *utc_offset_minutes = timezonediff() / 60;
+            *utc_offset_minutes = timezone/60 - tblock->tm_isdst*60;
         }
     }
 
