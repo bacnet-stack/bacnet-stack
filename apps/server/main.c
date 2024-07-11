@@ -126,10 +126,10 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static BACNET_SUBORDINATE_DATA Lighting_Subordinate[] =
 {
     {0, LIGHTING_OBJECT_WATTS, 1, "watt-hours", 0, 0, NULL},
-    //{0, LIGHTING_OBJECT_ADR, 1, "demand-response", 0, 0, NULL},
-    //{0, LIGHTING_OBJECT_SCENE, 1, "scene",  0, 0, NULL},
-    //{0, LIGHTING_OBJECT_LIGHT, 1, "light",  0, 0, NULL},
-    //{0, LIGHTING_OBJECT_RELAY, 1, "relay",  0, 0, NULL},
+    {0, LIGHTING_OBJECT_ADR, 1, "demand-response", 0, 0, NULL},
+    {0, LIGHTING_OBJECT_SCENE, 1, "scene",  0, 0, NULL},
+    {0, LIGHTING_OBJECT_LIGHT, 1, "light",  0, 0, NULL},
+    {0, LIGHTING_OBJECT_RELAY, 1, "relay",  0, 0, NULL},
 #if (BACNET_PROTOCOL_REVISION >= 24)
     {0, OBJECT_COLOR, 1, "color", 0, 0, NULL},
     {0, OBJECT_COLOR_TEMPERATURE, 1, "color-temperature", 0, 0, NULL},

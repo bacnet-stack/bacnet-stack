@@ -118,7 +118,6 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
         bacnet_address_copy(&Transmit_Packet.address, dest);
         bytes_sent = pdu_len + DLMSTP_HEADER_MAX;
         Transmit_Packet.ready = true;
-//        volatile uint32_t silenceTimer = MSTP_Port.SilenceTimer(NULL);
         printf("Rply rdy: %u\n", MSTP_Port.SilenceTimer(NULL));
     }
 
@@ -151,7 +150,6 @@ uint16_t dlmstp_receive(BACNET_ADDRESS *src, /* source address */
                 }
                 pdu_len = Receive_Packet.pdu_len;
             }
-            //volatile uint32_t silenceTimer = MSTP_Port.SilenceTimer(NULL);
             printf("Pkt rcvd: %u\n", MSTP_Port.SilenceTimer(NULL));
             Receive_Packet.ready = false;
         }
@@ -176,7 +174,6 @@ static void dlmstp_receive_fsm_task(void *pArg)
                 received_frame = MSTP_Port.ReceivedValidFrame ||
                     MSTP_Port.ReceivedInvalidFrame;
                 if (received_frame) {
-                    //volatile uint32_t silenceTimer = MSTP_Port.SilenceTimer(NULL);
                     ReleaseSemaphore(Received_Frame_Flag, 1, NULL);
                     printf(
                         "Rx addr: %d, type: %d, len: %d, T: %u\n",
@@ -232,10 +229,10 @@ static void dlmstp_master_fsm_task(void *pArg)
         }
         if (dwMilliseconds)
             WaitForSingleObject(Received_Frame_Flag, dwMilliseconds);
-        printf(
-            "State: %s, T: %u\n", MasterState[MSTP_Port.master_state],
-            MSTP_Port.SilenceTimer(NULL));
-        while(MSTP_Master_Node_FSM(&MSTP_Port));
+        do
+        {
+            printf("State: %s, T: %u\n", MasterState[MSTP_Port.master_state], MSTP_Port.SilenceTimer(NULL));
+        }while(MSTP_Master_Node_FSM(&MSTP_Port));
     }
 }
 
