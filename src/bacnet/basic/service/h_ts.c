@@ -139,12 +139,10 @@ void handler_timesync_utc(
     timeinfo = localtime(&rawtime);
     (void)src;
     (void)service_len;
-    struct tm lt;
     len = timesync_decode_service_request(
         service_request, service_len, &bdate, &btime);
     if (len > 0) {
         if (datetime_is_valid(&bdate, &btime)) {
-            localtime_r(&rawtime, &lt);
             timeinfo->tm_year = bdate.year-1900;
             timeinfo->tm_mon  = bdate.month-1;
             timeinfo->tm_mday  = bdate.day;
