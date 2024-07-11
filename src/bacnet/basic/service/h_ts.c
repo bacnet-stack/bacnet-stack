@@ -118,7 +118,7 @@ void handler_timesync(
 #if PRINT_ENABLED
             fprintf(stderr, "Received Local TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
-            printf("Time offset = %f\n",handler_timesync_offset());
+            printf("Time offset = %d\n",handler_timesync_offset());
 #endif
         }
     }
@@ -157,7 +157,7 @@ void handler_timesync_utc(
 #if PRINT_ENABLED
             fprintf(stderr, "Received UTC TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
-            printf("Time offset = %f\n",handler_timesync_offset());
+            printf("Time offset = %d\n",handler_timesync_offset());
 #endif
         }
     }
