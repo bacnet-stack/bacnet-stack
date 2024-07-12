@@ -394,7 +394,6 @@ int main(int argc, char *argv[])
     /* broadcast an I-Am on startup */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
     /* loop forever */
-
     for (;;) {
         /* input */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);

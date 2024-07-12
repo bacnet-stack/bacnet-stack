@@ -118,7 +118,6 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
         bacnet_address_copy(&Transmit_Packet.address, dest);
         bytes_sent = pdu_len + DLMSTP_HEADER_MAX;
         Transmit_Packet.ready = true;
-        printf("Rply rdy: %u\n", MSTP_Port.SilenceTimer(NULL));
     }
 
     return bytes_sent;
@@ -150,7 +149,6 @@ uint16_t dlmstp_receive(BACNET_ADDRESS *src, /* source address */
                 }
                 pdu_len = Receive_Packet.pdu_len;
             }
-            printf("Pkt rcvd: %u\n", MSTP_Port.SilenceTimer(NULL));
             Receive_Packet.ready = false;
         }
     }
@@ -175,10 +173,6 @@ static void dlmstp_receive_fsm_task(void *pArg)
                     MSTP_Port.ReceivedInvalidFrame;
                 if (received_frame) {
                     ReleaseSemaphore(Received_Frame_Flag, 1, NULL);
-                    printf(
-                        "Rx addr: %d, type: %d, len: %d, T: %u\n",
-                        MSTP_Port.DestinationAddress, MSTP_Port.FrameType,
-                        MSTP_Port.DataLength, MSTP_Port.SilenceTimer(NULL));
                     Sleep(10);
                     break;
                 }
@@ -186,19 +180,6 @@ static void dlmstp_receive_fsm_task(void *pArg)
         }
     }
 }
-
-char* MasterState[] = { 
-    "init", 
-    "idle", 
-    "use token", 
-    "wait for reply", 
-    "done with token", 
-    "pass token", 
-    "no token", 
-    "poll master",
-    "Answer" 
-};
-
 
 static void dlmstp_master_fsm_task(void *pArg)
 {
@@ -229,10 +210,7 @@ static void dlmstp_master_fsm_task(void *pArg)
         }
         if (dwMilliseconds)
             WaitForSingleObject(Received_Frame_Flag, dwMilliseconds);
-        do
-        {
-            printf("State: %s, T: %u\n", MasterState[MSTP_Port.master_state], MSTP_Port.SilenceTimer(NULL));
-        }while(MSTP_Master_Node_FSM(&MSTP_Port));
+        while(MSTP_Master_Node_FSM(&MSTP_Port));
     }
 }
 

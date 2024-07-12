@@ -447,9 +447,6 @@ void RS485_Send_Frame(
         };
     }
     WriteFile(RS485_Handle, buffer, nbytes, &dwWritten, NULL);
-    printf("Tx addr: %d, type: %d, len: %d, T: %u\n", 
-        buffer[3], buffer[2], nbytes, mstp_port->SilenceTimer(NULL));
-    //uint32_t silenceTimer = mstp_port->SilenceTimer(NULL);
 
     /* per MSTP spec, reset SilenceTimer after each byte is sent */
     if (mstp_port) {
