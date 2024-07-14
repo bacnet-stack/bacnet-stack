@@ -69,8 +69,9 @@ bool datetime_timesync(
 #if PRINT_ENABLED
         printf("Time offset = %d\n",handler_timesync_offset());
 #endif
+        return true;
     }
-    return;
+    return false;
 }
 
 /**
