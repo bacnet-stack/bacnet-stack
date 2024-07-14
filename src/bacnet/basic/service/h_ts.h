@@ -39,9 +39,6 @@
 #include "bacnet/datetime.h"
 #include "bacnet/wp.h"
 
-int32_t handler_timesync_offset();
-void handler_timesync_offset_set(int32_t offset);
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
