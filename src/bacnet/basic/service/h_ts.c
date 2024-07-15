@@ -66,6 +66,20 @@ static void show_bacnet_date_time(BACNET_DATE *bdate, BACNET_TIME *btime)
 }
 #endif
 
+static handler_timesync_set_callback_t handler_timesync_set_callback;
+
+static int32_t Time_Offset; /* Time offset in ms */
+
+int32_t handler_timesync_offset()
+{
+    return Time_Offset;
+}
+
+void handler_timesync_offset_set(int32_t offset)
+{
+    Time_Offset = offset;
+}
+
 void handler_timesync(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
@@ -80,7 +94,9 @@ void handler_timesync(
     if (len > 0) {
         if (datetime_is_valid(&bdate, &btime)) {
             /* fixme: only set the time if off by some amount */
-            datetime_timesync( &bdate, &btime, false);
+            if (handler_timesync_set_callback) {
+                handler_timesync_set_callback(&bdate, &btime, false);
+            }
 #if PRINT_ENABLED
             fprintf(stderr, "Received Local TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
@@ -104,7 +120,9 @@ void handler_timesync_utc(
         service_request, service_len, &bdate, &btime);
     if (len > 0) {
         if (datetime_is_valid(&bdate, &btime)) {
-            datetime_timesync( &bdate, &btime, true);
+            if (handler_timesync_set_callback) {
+                handler_timesync_set_callback(&bdate, &btime, true);
+            }
 #if PRINT_ENABLED
             fprintf(stderr, "Received UTC TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
@@ -273,3 +291,13 @@ void handler_timesync_init(void)
     }
 }
 #endif
+
+void handler_timesync_set_callback_set(
+    handler_timesync_set_callback_t cb)
+{
+    if (cb) {
+        handler_timesync_set_callback = cb;
+    } else {
+        handler_timesync_set_callback = NULL;
+    }
+}

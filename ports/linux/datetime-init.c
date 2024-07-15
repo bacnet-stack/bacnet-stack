@@ -15,24 +15,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include "bacnet/basic/service/h_ts.h"
 #include "bacport.h"
 #include "bacnet/datetime.h"
 
-static int32_t Time_Offset; /* Time offset in ms */
 
 static int32_t timedifference(struct timeval t0, struct timeval t1)
 {
     return (t0.tv_sec - t1.tv_sec)*1000 + (t0.tv_usec - t1.tv_usec) / 1000;
-}
-
-int32_t handler_timesync_offset()
-{
-    return Time_Offset;
-}
-
-void handler_timesync_offset_set(int32_t offset)
-{
-    Time_Offset = offset;
 }
 
 /**
@@ -42,7 +32,7 @@ void handler_timesync_offset_set(int32_t offset)
  * @param utc - True for UTC sync, False for Local time
  * @return True if time is set
  */
-bool datetime_timesync(
+void datetime_timesync(
     BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
     struct timeval tv_inp, tv_sys;
@@ -69,9 +59,8 @@ bool datetime_timesync(
 #if PRINT_ENABLED
         printf("Time offset = %d\n",handler_timesync_offset());
 #endif
-        return true;
     }
-    return false;
+    return;
 }
 
 /**
@@ -145,6 +134,5 @@ bool datetime_local(BACNET_DATE *bdate,
  */
 void datetime_init(void)
 {
-    handler_timesync_offset_set(0);
-    /* nothing to do */
+    handler_timesync_set_callback_set(&datetime_timesync);
 }
