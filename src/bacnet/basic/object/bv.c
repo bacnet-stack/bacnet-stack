@@ -773,7 +773,7 @@ bool Binary_Value_Inactive_Text_Set(uint32_t object_instance, char *new_name)
     return status;
 }
 
-#if defined(INTRINSIC_REPORTING) && defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
+#if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
 /**
  * @brief Encode a EventTimeStamps property element
  * @param object_instance [in] BACnet network port object instance number
@@ -1659,7 +1659,7 @@ bool Binary_Value_Alarm_Value_Set(
 
 void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
 {
-#if !(defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING))
+#if !defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
   (void) object_instance;
 #else
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
