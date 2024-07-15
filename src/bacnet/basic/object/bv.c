@@ -1659,7 +1659,7 @@ bool Binary_Value_Alarm_Value_Set(
 
 void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
 {
-#if !defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
+#if !(defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING))
   (void) object_instance;
 #else
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
