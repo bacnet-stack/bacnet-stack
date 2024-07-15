@@ -195,8 +195,8 @@ static void network_control_handler(BACNET_ADDRESS *src,
         default:
             break;
     }
-    if (npdu_data->network_message_type >= NETWORK_MESSAGE_ASHRAE_RESERVED_MIN && npdu_data->network_message_type <= NETWORK_MESSAGE_ASHRAE_RESERVED_MAX)
-    {
+    if ((npdu_data->network_message_type >= NETWORK_MESSAGE_ASHRAE_RESERVED_MIN) &&
+        (npdu_data->network_message_type <= NETWORK_MESSAGE_ASHRAE_RESERVED_MAX)) {
         Send_Reject_Message_To_Network(
             src, NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE, 0);
     }
