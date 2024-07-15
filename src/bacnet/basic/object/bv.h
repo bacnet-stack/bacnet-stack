@@ -170,7 +170,7 @@ extern "C" {
     unsigned Binary_Input_Event_State(
         uint32_t object_instance);
 
-#if (BINARY_VALUE_INTRINSIC_REPORTING)
+#if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
     BACNET_STACK_EXPORT
     bool Binary_Value_Event_Detection_Enable(
         uint32_t object_instance);
