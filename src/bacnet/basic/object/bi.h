@@ -152,7 +152,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Binary_Input_Write_Present_Value_Callback_Set(
         binary_input_write_present_value_callback cb);
-    
+
     BACNET_STACK_EXPORT
     uint32_t Binary_Input_Create(
         uint32_t object_instance);
