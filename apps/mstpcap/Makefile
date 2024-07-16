@@ -53,7 +53,6 @@ TARGET_BIN = ${TARGET}$(TARGET_EXT)
 all: Makefile ${TARGET_BIN}
 
 ${TARGET_BIN}: ${OBJS}
-	echo "LFLAGS=${LFLAGS}"
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 	size $@
 	cp $@ ../../bin
