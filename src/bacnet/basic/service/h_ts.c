@@ -66,11 +66,12 @@ static void show_bacnet_date_time(BACNET_DATE *bdate, BACNET_TIME *btime)
 }
 #endif
 
+/* Callback for timesync set */
 static handler_timesync_set_callback_t handler_timesync_set_callback;
 
 static int32_t Time_Offset; /* Time offset in ms */
 
-int32_t handler_timesync_offset()
+int32_t handler_timesync_offset(void)
 {
     return Time_Offset;
 }
@@ -292,12 +293,13 @@ void handler_timesync_init(void)
 }
 #endif
 
+/**
+ * Configures and enables a timesync callback function
+ *
+ * @param cb - pointer to #handler_timesync_set_callback_t
+ */
 void handler_timesync_set_callback_set(
     handler_timesync_set_callback_t cb)
 {
-    if (cb) {
-        handler_timesync_set_callback = cb;
-    } else {
-        handler_timesync_set_callback = NULL;
-    }
+    handler_timesync_set_callback = cb;
 }
