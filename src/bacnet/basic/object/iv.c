@@ -671,7 +671,7 @@ bool Integer_Value_Encode_Value_List(
         const bool fault = false;
         const bool overridden = false;
 
-        status = cov_value_list_encode_unsigned(value_list, present_value,
+        status = cov_value_list_encode_signed_int(value_list, present_value,
             in_alarm, fault, overridden, out_of_service);
     }
 
