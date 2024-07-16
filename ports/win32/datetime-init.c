@@ -104,6 +104,9 @@ int gettimeofday(struct timeval *tp, void *tzp)
 void datetime_timesync(
     BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
+    (void)bdate;
+    (void)btime;
+    (void)utc;
     return;
 }
 
