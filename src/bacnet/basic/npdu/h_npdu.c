@@ -32,7 +32,6 @@
 #include "bacnet/bacint.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/npdu/s_router.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
@@ -199,8 +198,8 @@ static void network_control_handler(BACNET_ADDRESS *src,
          NETWORK_MESSAGE_ASHRAE_RESERVED_MIN) &&
         (npdu_data->network_message_type <=
          NETWORK_MESSAGE_ASHRAE_RESERVED_MAX)) {
-        Send_Reject_Message_To_Network(
-            src, NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE, 0);
+        npdu_send_reject_message_to_network(
+            src, dnet, status);
     }
 }
 
@@ -277,4 +276,38 @@ void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
     }
 
     return;
+}
+
+/**
+ * Send NPDU reject message to network
+ *
+ * @param dst - the destination address for the message
+ * @param net - local network number
+ * @param status - 0=learned, 1=assigned
+ * @return number of bytes sent
+ */
+void npdu_send_reject_message_to_network(
+    BACNET_ADDRESS *dst, uint16_t net, uint8_t status)
+{
+    uint16_t len = 0;
+    int pdu_len = 0;
+    int bytes_sent = 0;
+    bool data_expecting_reply = false;
+    BACNET_NPDU_DATA npdu_data;
+    BACNET_ADDRESS my_address = { 0 };
+    uint8_t pdu[MAX_NPDU + 2 + 1] = { 0 };
+
+    datalink_get_my_address(&my_address);
+    npdu_encode_npdu_network(&npdu_data,
+        NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK,
+        data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(pdu, dst, &my_address, &npdu_data);
+    pdu[pdu_len++] = NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE;
+    if ((pdu_len > 0) && (pdu_len <= MAX_NPDU)) {
+        len = encode_unsigned16(&pdu[pdu_len], net);
+        pdu_len += len;
+        bytes_sent = datalink_send_pdu(dst, &npdu_data, pdu, pdu_len);
+    }
+
+    return bytes_sent;
 }
