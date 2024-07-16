@@ -211,6 +211,44 @@ uint32_t rs485_baud_rate(void)
 }
 
 /**
+ * @brief Set the baud in kili-baud
+ * @param baud_k baud rate in approximate kilobaud
+*/
+bool rs485_kbaud_rate_set(uint8_t baud_k)
+{
+    uint32_t baud = 38400;
+
+    if (baud_k == 255) {
+        baud = 38400;
+    } else if (baud_k >= 115) {
+        baud = 115200;
+    } else if (baud_k >= 76) {
+        baud = 76800;
+    } else if (baud_k >= 57) {
+        baud = 57600;
+    } else if (baud_k >= 38) {
+        baud = 38400;
+    } else if (baud_k >= 19) {
+        baud = 19200;
+    } else if (baud_k >= 9) {
+        baud = 9600;
+    }
+
+    return rs485_baud_rate_set(baud);
+}
+
+/**
+* Converts baud in bps to kili-baud
+*
+* @param baud - baud rate in bps
+* @return: baud rate in approximate kilo-baud
+*/
+uint8_t rs485_kbaud_rate(void)
+{
+    return Baud_Rate/1000;
+}
+
+/**
  * Initialize the RS-485 baud rate
  *
  * @param baud - RS-485 baud rate in bits per second (bps)

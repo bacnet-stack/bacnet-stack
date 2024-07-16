@@ -83,7 +83,7 @@ struct dlmstp_rs485_driver {
 };
 
 /**
- * A structure of BACnet Port Data for BACnet MS/TP
+ * An example structure of user data for BACnet MS/TP
  */
 struct dlmstp_user_data_t {
     struct dlmstp_statistics Statistics;
@@ -93,6 +93,7 @@ struct dlmstp_user_data_t {
     struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
     bool Initialized;
     bool ReceivePacketPending;
+    void *Context;
 };
 
 /* callback to signify the receipt of a preamble */

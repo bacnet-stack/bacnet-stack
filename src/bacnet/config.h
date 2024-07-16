@@ -9,8 +9,8 @@
 #define BACNET_CONFIG_H_
 
 /**
- * @note configurations are default to values used in the example apps build. 
- * Use a local copy named "bacnet-config.h" with settings configured for 
+ * @note configurations are default to values used in the example apps build.
+ * Use a local copy named "bacnet-config.h" with settings configured for
  * the product specific needs for code space reductions in your device.
  * Alternately, use a compiler and linker to override these defines.
  */
@@ -94,6 +94,7 @@
 #if defined(BACNET_SECURITY)
 #define MAX_APDU 412
 #else
+/* note: MS/TP extended frames can be up to 1476 bytes */
 #define MAX_APDU 1476
 #endif
 #else
@@ -181,7 +182,7 @@
 #define BACAPP_OBJECT_ID
 #endif
 
-#if defined (BACAPP_TYPES_EXTRA) 
+#if defined (BACAPP_TYPES_EXTRA)
 #define BACAPP_DOUBLE
 #define BACAPP_TIMESTAMP
 #define BACAPP_DATETIME
@@ -232,14 +233,14 @@
 #endif
 
 /**
- * @note Control the selection of services etc to enable code size reduction 
- * for those compiler suites which do not handle removing of unused functions 
+ * @note Control the selection of services etc to enable code size reduction
+ * for those compiler suites which do not handle removing of unused functions
  * in modules so well.
  *
  * We will start with the A type services code first as these are least likely
  * to be required in embedded systems using the stack.
  */
-#ifndef BACNET_SVC_SERVER       
+#ifndef BACNET_SVC_SERVER
     /* default to client-server device for the example apps to build. */
     #define BACNET_SVC_SERVER      0
 #endif

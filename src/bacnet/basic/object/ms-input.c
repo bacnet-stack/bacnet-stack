@@ -462,8 +462,8 @@ bool Multistate_Input_Object_Name(
             status = characterstring_init_ansi(object_name,
                 pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "MULTI-STATE INPUT %u",
-                object_instance);
+            snprintf(name_text, sizeof(name_text), "MULTI-STATE INPUT %lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }

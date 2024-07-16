@@ -1582,8 +1582,8 @@ typedef enum BACnet_Services_Supported {
     SERVICE_SUPPORTED_PRIVATE_TRANSFER = 18,
     SERVICE_SUPPORTED_TEXT_MESSAGE = 19,
     SERVICE_SUPPORTED_REINITIALIZE_DEVICE = 20,
-    SERVICE_SUPPORTED_WHO_AM_I = 47,
-    SERVICE_SUPPORTED_YOU_ARE = 48,
+    SERVICE_SUPPORTED_WHO_AM_I = 47,    /* Addendum 135-2016bz */
+    SERVICE_SUPPORTED_YOU_ARE = 48,     /* Addendum 135-2016bz */
     /* Virtual Terminal Services */
     SERVICE_SUPPORTED_VT_OPEN = 21,
     SERVICE_SUPPORTED_VT_CLOSE = 22,
@@ -1603,11 +1603,10 @@ typedef enum BACnet_Services_Supported {
     SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION = 36,
     SERVICE_SUPPORTED_WHO_HAS = 33,
     SERVICE_SUPPORTED_WHO_IS = 34,
-    SERVICE_SUPPORTED_UNCONFIRMED_AUDIT_NOTIFICATION = 46,
+    SERVICE_SUPPORTED_UNCONFIRMED_AUDIT_NOTIFICATION = 46
     /* Other services to be added as they are defined. */
     /* All values in this production are reserved */
     /* for definition by ASHRAE. */
-    BACNET_SERVICES_SUPPORTED_MAX = 47
 } BACNET_SERVICES_SUPPORTED;
 
 /* Bit String Enumerations */
