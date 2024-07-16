@@ -259,6 +259,11 @@ void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
                     /* ConfirmedBroadcastReceived */
                     /* then enter IDLE - ignore the PDU */
                 } else {
+                    if (npdu_data.data_expecting_reply ) {
+                        apdu_network_priority_set(npdu_data.priority);
+                    } else {
+                        apdu_network_priority_set(MESSAGE_PRIORITY_NORMAL);
+                    }
                     apdu_handler(src, &pdu[apdu_offset],
                         (uint16_t)(pdu_len - apdu_offset));
                 }
