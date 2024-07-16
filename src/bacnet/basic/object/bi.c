@@ -1760,7 +1760,9 @@ void Binary_Input_Intrinsic_Reporting(uint32_t object_instance)
         /* Time Stamp */
         event_data.timeStamp.tag = TIME_STAMP_DATETIME;
         if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
-            Device_getCurrentDateTime(&event_data.timeStamp.value.dateTime);
+            datetime_local(
+                &event_data.timeStamp.value.dateTime.date,
+                &event_data.timeStamp.value.dateTime.time, NULL, NULL);
             /* fill Event_Time_Stamps */
             switch (ToState) {
                 case EVENT_STATE_OFFNORMAL:
