@@ -85,7 +85,7 @@ extern "C" {
         uint16_t dnet,
         BACNET_ADDRESS * my_address);
     BACNET_STACK_EXPORT
-    void npdu_send_reject_message_to_network(
+    int npdu_send_reject_message_to_network(
         BACNET_ADDRESS *dst,
         uint16_t net,
         uint8_t status);

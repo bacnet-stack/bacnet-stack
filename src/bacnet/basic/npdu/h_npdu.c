@@ -286,7 +286,7 @@ void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
  * @param status - 0=learned, 1=assigned
  * @return number of bytes sent
  */
-void npdu_send_reject_message_to_network(
+int npdu_send_reject_message_to_network(
     BACNET_ADDRESS *dst, uint16_t net, uint8_t status)
 {
     uint16_t len = 0;
