@@ -134,5 +134,6 @@ bool datetime_local(BACNET_DATE *bdate,
  */
 void datetime_init(void)
 {
-    handler_timesync_set_callback_set(&datetime_timesync);
+    handler_timesync_offset_set(0);
+    /* nothing to do */
 }
