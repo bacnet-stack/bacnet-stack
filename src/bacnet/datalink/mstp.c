@@ -1419,7 +1419,7 @@ static void MSTP_Zero_Config_State_Idle(struct mstp_port_struct_t *mstp_port)
     } else if (mstp_port->Zero_Config_Silence > 0) {
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
-            /* ClaimAddress */
+            /* IdleTimeout */
             /* long silence indicates we are alone or
             with other silent devices */
             /* claim the token at the current zero-config address */
@@ -1487,6 +1487,7 @@ static void MSTP_Zero_Config_State_Lurk(struct mstp_port_struct_t *mstp_port)
     } else if (mstp_port->Zero_Config_Silence > 0) {
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
+            /* LurkingTimeout */
             mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
         }
     }

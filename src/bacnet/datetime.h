@@ -304,6 +304,11 @@ bool datetime_local(BACNET_DATE *bdate,
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active);
+
+BACNET_STACK_EXPORT
+void datetime_timesync(
+    BACNET_DATE *bdate, BACNET_TIME *btime, bool utc);
+
 BACNET_STACK_EXPORT
 void datetime_init(void);
 
