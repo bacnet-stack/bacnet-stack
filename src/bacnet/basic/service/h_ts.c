@@ -66,6 +66,21 @@ static void show_bacnet_date_time(BACNET_DATE *bdate, BACNET_TIME *btime)
 }
 #endif
 
+/* Callback for timesync set */
+static handler_timesync_set_callback_t handler_timesync_set_callback;
+
+static int32_t Time_Offset; /* Time offset in ms */
+
+int32_t handler_timesync_offset(void)
+{
+    return Time_Offset;
+}
+
+void handler_timesync_offset_set(int32_t offset)
+{
+    Time_Offset = offset;
+}
+
 void handler_timesync(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
@@ -80,12 +95,12 @@ void handler_timesync(
     if (len > 0) {
         if (datetime_is_valid(&bdate, &btime)) {
             /* fixme: only set the time if off by some amount */
+            if (handler_timesync_set_callback) {
+                handler_timesync_set_callback(&bdate, &btime, false);
+            }
 #if PRINT_ENABLED
-            fprintf(stderr, "Received TimeSyncronization Request\r\n");
+            fprintf(stderr, "Received Local TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
-#else
-            /* FIXME: set the time?
-               Maybe only set the time if off by some amount */
 #endif
         }
     }
@@ -106,12 +121,13 @@ void handler_timesync_utc(
         service_request, service_len, &bdate, &btime);
     if (len > 0) {
         if (datetime_is_valid(&bdate, &btime)) {
+            if (handler_timesync_set_callback) {
+                handler_timesync_set_callback(&bdate, &btime, true);
+            }
 #if PRINT_ENABLED
-            fprintf(stderr, "Received TimeSyncronization Request\r\n");
+            fprintf(stderr, "Received UTC TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
 #endif
-            /* FIXME: set the time?
-               only set the time if off by some amount */
         }
     }
 
@@ -276,3 +292,14 @@ void handler_timesync_init(void)
     }
 }
 #endif
+
+/**
+ * Configures and enables a timesync callback function
+ *
+ * @param cb - pointer to #handler_timesync_set_callback_t
+ */
+void handler_timesync_set_callback_set(
+    handler_timesync_set_callback_t cb)
+{
+    handler_timesync_set_callback = cb;
+}

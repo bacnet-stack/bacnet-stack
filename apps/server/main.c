@@ -47,6 +47,7 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/datetime.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h"
 /* objects that have tasks inside them */
@@ -369,6 +370,9 @@ int main(int argc, char *argv[])
        in our device bindings list */
     address_init();
     Init_Service_Handlers();
+    /* initialize timesync callback function. */
+    handler_timesync_set_callback_set(&datetime_timesync);
+
 #if defined(BAC_UCI)
     const char *uciname;
     ctx = ucix_init("bacnet_dev");
