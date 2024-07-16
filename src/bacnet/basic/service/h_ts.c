@@ -69,18 +69,6 @@ static void show_bacnet_date_time(BACNET_DATE *bdate, BACNET_TIME *btime)
 /* Callback for timesync set */
 static handler_timesync_set_callback_t handler_timesync_set_callback;
 
-static int32_t Time_Offset; /* Time offset in ms */
-
-int32_t handler_timesync_offset(void)
-{
-    return Time_Offset;
-}
-
-void handler_timesync_offset_set(int32_t offset)
-{
-    Time_Offset = offset;
-}
-
 void handler_timesync(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
