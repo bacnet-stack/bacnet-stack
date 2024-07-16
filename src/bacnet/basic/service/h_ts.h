@@ -39,10 +39,19 @@
 #include "bacnet/datetime.h"
 #include "bacnet/wp.h"
 
+typedef void (*handler_timesync_set_callback_t)(
+    BACNET_DATE *bdate,
+    BACNET_TIME *btime,
+    bool utc);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
+    int32_t handler_timesync_offset(void);
+    BACNET_STACK_EXPORT
+    void handler_timesync_offset_set(int32_t offset);
     /* time synchronization handlers */
     BACNET_STACK_EXPORT
     void handler_timesync(
@@ -81,7 +90,9 @@ extern "C" {
     bool handler_timesync_recipient_address_set(
         unsigned index,
         BACNET_ADDRESS * address);
-
+    BACNET_STACK_EXPORT
+    void handler_timesync_set_callback_set(
+        handler_timesync_set_callback_t cb);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

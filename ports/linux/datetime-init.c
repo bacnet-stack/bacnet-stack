@@ -15,8 +15,53 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include "bacnet/basic/service/h_ts.h"
 #include "bacport.h"
 #include "bacnet/datetime.h"
+
+
+static int32_t timedifference(struct timeval t0, struct timeval t1)
+{
+    return (t0.tv_sec - t1.tv_sec)*1000 + (t0.tv_usec - t1.tv_usec) / 1000;
+}
+
+/**
+ * @brief Set offset from the system clock.
+ * @param bdate BACnet Date structure to hold local time
+ * @param btime BACnet Time structure to hold local time
+ * @param utc - True for UTC sync, False for Local time
+ * @return True if time is set
+ */
+void datetime_timesync(
+    BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
+{
+    struct timeval tv_inp, tv_sys;
+    struct tm *timeinfo;
+    time_t rawtime;
+    time( &rawtime);
+    timeinfo = localtime(&rawtime);
+    /* fixme: only set the time if off by some amount */
+    timeinfo->tm_year = bdate->year-1900;
+    timeinfo->tm_mon  = bdate->month-1;
+    timeinfo->tm_mday  = bdate->day;
+    timeinfo->tm_hour = btime->hour;
+    timeinfo->tm_min  = btime->min;
+    timeinfo->tm_sec  = btime->sec;
+    tv_inp.tv_sec = mktime(timeinfo);
+    tv_inp.tv_usec = btime->hundredths*10000;
+    if (gettimeofday(&tv_sys, NULL) == 0) {
+        if (utc) {
+            handler_timesync_offset_set(timedifference(tv_inp, tv_sys) - (timezone - timeinfo->tm_isdst*3600)*1000);
+
+        } else {
+            handler_timesync_offset_set(timedifference(tv_inp, tv_sys));
+        }
+#if PRINT_ENABLED
+        printf("Time offset = %d\n",handler_timesync_offset());
+#endif
+    }
+    return;
+}
 
 /**
  * @brief Get the date, time, timezone, and UTC offset from system
@@ -35,8 +80,12 @@ bool datetime_local(BACNET_DATE *bdate,
     bool status = false;
     struct tm *tblock = NULL;
     struct timeval tv;
+    int32_t to;
 
     if (gettimeofday(&tv, NULL) == 0) {
+        to = handler_timesync_offset();
+        tv.tv_sec += (int) to/1000;
+        tv.tv_usec += (to%1000)*1000;
         tblock = (struct tm *)localtime((const time_t *)&tv.tv_sec);
     }
     if (tblock) {
