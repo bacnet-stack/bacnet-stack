@@ -15,8 +15,23 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include "bacnet/basic/service/h_ts.h"
 #include "bacport.h"
 #include "bacnet/datetime.h"
+
+
+/**
+ * @brief Set offset from the system clock.
+ * @param bdate BACnet Date structure to hold local time
+ * @param btime BACnet Time structure to hold local time
+ * @param utc - True for UTC sync, False for Local time
+ * @return True if time is set
+ */
+void datetime_timesync(
+    BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
+{
+    return;
+}
 
 /**
  * @brief Get the date, time, timezone, and UTC offset from system
@@ -86,5 +101,6 @@ bool datetime_local(BACNET_DATE *bdate,
  */
 void datetime_init(void)
 {
+    handler_timesync_offset_set(0);
     /* nothing to do */
 }
