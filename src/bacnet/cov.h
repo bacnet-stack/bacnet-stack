@@ -160,6 +160,13 @@ bool cov_value_list_encode_unsigned(BACNET_PROPERTY_VALUE *value_list,
     bool overridden,
     bool out_of_service);
 BACNET_STACK_EXPORT
+bool cov_value_list_encode_signed_int(BACNET_PROPERTY_VALUE *value_list,
+    int32_t value,
+    bool in_alarm,
+    bool fault,
+    bool overridden,
+    bool out_of_service);
+BACNET_STACK_EXPORT
 bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
     BACNET_CHARACTER_STRING *value,
     bool in_alarm,

@@ -432,6 +432,182 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
+ * @brief For a given object instance-number, determines the COV status
+ * @param  object_instance - object-instance number of the object
+ * @return  true if the COV flag is set
+ */
+bool Integer_Value_Change_Of_Value(uint32_t object_instance)
+{
+    bool changed = false;
+    struct integer_object *pObject = Integer_Value_Object(object_instance);
+
+    if (pObject) {
+        changed = pObject->Changed;
+    }
+
+    return changed;
+}
+
+/**
+ * @brief For a given object instance-number, clears the COV flag
+ * @param  object_instance - object-instance number of the object
+ */
+void Integer_Value_Change_Of_Value_Clear(uint32_t object_instance)
+{
+    struct integer_object *pObject = Integer_Value_Object(object_instance);
+
+    if (pObject) {
+        pObject->Changed = false;
+    }
+}
+
+/**
+ * @brief For a given object instance-number, returns the COV-Increment value
+ * @param  object_instance - object-instance number of the object
+ * @return  COV-Increment value
+ */
+uint32_t Integer_Value_COV_Increment(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct integer_object *pObject = Integer_Value_Object(object_instance);
+
+    if (pObject) {
+        value = pObject->COV_Increment;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, loads the value_list with the COV data.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value_list - list of COV data
+ *
+ * @return  true if the value list is encoded
+ */
+bool Integer_Value_Encode_Value_List(
+    uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list)
+{
+    bool status = false;
+    struct integer_object *pObject = Integer_Value_Object(object_instance);
+
+    if (pObject) {
+        bool out_of_service = pObject->Out_Of_Service;
+        uint32_t present_value = pObject->Present_Value;
+        const bool in_alarm = false;
+        const bool fault = false;
+        const bool overridden = false;
+
+        status = cov_value_list_encode_signed_int(value_list, present_value,
+            in_alarm, fault, overridden, out_of_service);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the COV-Increment value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - COV-Increment value
+ */
+void Integer_Value_COV_Increment_Set(uint32_t object_instance, uint32_t value)
+{
+    struct integer_object *pObject = Integer_Value_Object(object_instance);
+
+    if (pObject) {
+        pObject->COV_Increment = value;
+        Integer_Value_COV_Detect(pObject, pObject->Present_Value);
+    }
+}
+
+/**
+ * @brief Creates a Integer Value object
+ * @param object_instance - object-instance number of the object
+ * @return the object-instance that was created, or BACNET_MAX_INSTANCE
+ */
+uint32_t Integer_Value_Create(uint32_t object_instance)
+{
+    struct integer_object *pObject = NULL;
+
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        /* wildcard instance */
+        /* the Object_Identifier property of the newly created object
+            shall be initialized to a value that is unique within the
+            responding BACnet-user device. The method used to generate
+            the object identifier is a local matter.*/
+        object_instance = Keylist_Next_Empty_Key(Object_List, 1);
+    }
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (!pObject) {
+        pObject = calloc(1, sizeof(struct integer_object));
+        if (pObject) {
+            int index = Keylist_Data_Add(Object_List, object_instance, pObject);
+
+            if (index < 0) {
+                free(pObject);
+                return BACNET_MAX_INSTANCE;
+            }
+
+            characterstring_init_ansi(&pObject->Name, "");
+            characterstring_init_ansi(&pObject->Description, "");
+            pObject->COV_Increment = 1;
+            pObject->Present_Value = 0;
+            pObject->Prior_Value   = 0;
+            pObject->Units = UNITS_PERCENT;
+            pObject->Out_Of_Service = false;
+            pObject->Changed = false;
+
+            /* add to list */
+        } else {
+            return BACNET_MAX_INSTANCE;
+        }
+    }
+
+    return object_instance;
+}
+
+/**
+ * @brief Deletes an Integer Value object
+ * @param object_instance - object-instance number of the object
+ * @return true if the object-instance was deleted
+ */
+bool Integer_Value_Delete(uint32_t object_instance)
+{
+    bool status = false;
+    struct integer_object *pObject = Keylist_Data_Delete(Object_List, object_instance);
+
+    if (pObject) {
+        free(pObject);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Deletes all the Integer Values and their data
+ */
+void Integer_Value_Cleanup(void)
+{
+    if (Object_List) {
+        struct integer_object *pObject;
+
+        do {
+            pObject = Keylist_Data_Pop(Object_List);
+            if (pObject) {
+                free(pObject);
+            }
+        } while (pObject);
+
+        Keylist_Delete(Object_List);
+        Object_List = NULL;
+    }
+}
+
+/**
  * Initializes the Integer Value object data
  */
 void Integer_Value_Init(void)
