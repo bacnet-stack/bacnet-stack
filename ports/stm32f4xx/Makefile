@@ -34,7 +34,6 @@ PLATFORM_SRC = \
 
 BASIC_SRC = \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
-	$(BACNET_BASIC)/npdu/s_router.c \
 	$(BACNET_BASIC)/object/ai.c \
 	$(BACNET_BASIC)/object/ao.c \
 	$(BACNET_BASIC)/object/av.c \

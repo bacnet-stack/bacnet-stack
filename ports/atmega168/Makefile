@@ -50,7 +50,6 @@ CSRC = main.c \
 # common demo files needed
 BASICSRC = $(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
-	$(BACNET_BASIC)/npdu/s_router.c \
 	$(BACNET_BASIC)/sys/bigend.c \
 	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/service/s_iam.c \
