@@ -47,6 +47,10 @@ extern "C" {
 #endif /* __cplusplus */
 
     BACNET_STACK_EXPORT
+    int host_n_port_address_encode(
+        uint8_t *apdu, 
+        BACNET_HOST_N_PORT *address);
+    BACNET_STACK_EXPORT
     int host_n_port_encode(
         uint8_t * apdu,
         BACNET_HOST_N_PORT *address);
@@ -54,6 +58,11 @@ extern "C" {
     int host_n_port_context_encode(
         uint8_t * apdu,
         uint8_t tag_number,
+        BACNET_HOST_N_PORT *address);
+    BACNET_STACK_EXPORT
+    int host_n_port_address_decode(uint8_t *apdu,
+        uint32_t apdu_size,
+        BACNET_ERROR_CODE *error_code,
         BACNET_HOST_N_PORT *address);
     BACNET_STACK_EXPORT
     int host_n_port_decode(uint8_t *apdu,

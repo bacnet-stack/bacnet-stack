@@ -20,6 +20,33 @@
 #include "bacnet/bacdcode.h"
 
 /**
+ * @brief Encode the BACnetHostAddress CHOICE
+ * @param apdu - the APDU buffer
+ * @param address - IP address and port number
+ * @return length of the encoded APDU buffer
+ */
+int host_n_port_address_encode(uint8_t *apdu, BACNET_HOST_N_PORT *address)
+{
+    int len = 0;
+
+    if (address) {
+        if (address->host_ip_address) {
+            /* CHOICE - ip-address [1] OCTET STRING */
+            len =
+                encode_context_octet_string(apdu, 1, &address->host.ip_address);
+        } else if (address->host_name) {
+            /* CHOICE - name [2] CharacterString */
+            len = encode_context_character_string(apdu, 2, &address->host.name);
+        } else {
+            /* CHOICE - none [0] NULL */
+            len = encode_context_null(apdu, 0);
+        }
+    }
+
+    return len;
+}
+
+/**
  * @brief Encode a BACnetHostNPort complex data type
  *
  *  BACnetHostNPort ::= SEQUENCE {
@@ -50,17 +77,8 @@ int host_n_port_encode(uint8_t *apdu, BACNET_HOST_N_PORT *address)
         if (apdu) {
             apdu += len;
         }
-        if (address->host_ip_address) {
-            /* CHOICE - ip-address [1] OCTET STRING */
-            len =
-                encode_context_octet_string(apdu, 1, &address->host.ip_address);
-        } else if (address->host_name) {
-            /* CHOICE - name [2] CharacterString */
-            len = encode_context_character_string(apdu, 2, &address->host.name);
-        } else {
-            /* CHOICE - none [0] NULL */
-            len = encode_context_null(apdu, 0);
-        }
+        /* BACnetHostAddress ::= CHOICE */
+        len = host_n_port_address_encode(apdu, address);
         apdu_len += len;
         if (apdu) {
             apdu += len;
@@ -111,28 +129,14 @@ int host_n_port_context_encode(
 }
 
 /**
- * @brief Decode the BACnetHostNPort complex data
- *
- *  BACnetHostNPort ::= SEQUENCE {
- *      host [0] BACnetHostAddress,
- *          BACnetHostAddress ::= CHOICE {
- *          BACnetHostAddress ::= CHOICE {
- *              none [0] NULL,
- *              ip-address [1] OCTET STRING,
- *              -- 4 octets for B/IP or 16 octets for B/IPv6
- *              name [2] CharacterString
- *              -- Internet host name (see RFC 1123)
- *          }
- *      port [1] Unsigned16
- *  }
- *
+ * @brief  Decode the BACnetHostAddress
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer length
  * @param error_code - error or reject or abort when error occurs
- * @param ip_address - IP address and port number
- * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
+ * @param address - IP address and port number
+ * @return length of the APDU buffer decoded, or BACNET_STATUS_REJECT
  */
-int host_n_port_decode(uint8_t *apdu,
+int host_n_port_address_decode(uint8_t *apdu,
     uint32_t apdu_size,
     BACNET_ERROR_CODE *error_code,
     BACNET_HOST_N_PORT *address)
@@ -147,15 +151,6 @@ int host_n_port_decode(uint8_t *apdu,
     if (error_code) {
         *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
     }
-    /* host [0] BACnetHostAddress - opening */
-    if (!bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
-        if (error_code) {
-            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
-        }
-        return BACNET_STATUS_REJECT;
-    }
-    apdu_len += len;
     len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
     if (len <= 0) {
         if (error_code) {
@@ -205,6 +200,63 @@ int host_n_port_decode(uint8_t *apdu,
         if (error_code) {
             *error_code = ERROR_CODE_REJECT_INVALID_TAG;
         }
+        return BACNET_STATUS_REJECT;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode the BACnetHostNPort complex data
+ *
+ *  BACnetHostNPort ::= SEQUENCE {
+ *      host [0] BACnetHostAddress,
+ *          BACnetHostAddress ::= CHOICE {
+ *              none [0] NULL,
+ *              ip-address [1] OCTET STRING,
+ *              -- 4 octets for B/IP or 16 octets for B/IPv6
+ *              name [2] CharacterString
+ *              -- Internet host name (see RFC 1123)
+ *          }
+ *      port [1] Unsigned16
+ *  }
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param error_code - error or reject or abort when error occurs
+ * @param ip_address - IP address and port number
+ * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
+ */
+int host_n_port_decode(uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_HOST_N_PORT *address)
+{
+    int apdu_len = 0, len = 0;
+    BACNET_OCTET_STRING *octet_string = NULL;
+    BACNET_CHARACTER_STRING *char_string = NULL;
+    BACNET_TAG tag = { 0 };
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+
+    /* default reject code */
+    if (error_code) {
+        *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+    }
+    /* host [0] BACnetHostAddress - opening */
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    apdu_len += len;
+    /* BACnetHostAddress ::= CHOICE */
+    len = host_n_port_address_decode(&apdu[apdu_len], apdu_size - apdu_len,
+        error_code, address);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
         return BACNET_STATUS_REJECT;
     }
     /*  host [0] BACnetHostAddress - closing */

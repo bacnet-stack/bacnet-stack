@@ -1407,7 +1407,12 @@ int bacapp_known_property_tag(
             return -1;
 
         case PROP_ACTION:
+            /* FIXME: BACnetActionCommand */
             return -1;
+
+        case PROP_FD_BBMD_ADDRESS:
+        case PROP_BACNET_IP_GLOBAL_ADDRESS:
+            return BACNET_APPLICATION_TAG_HOST_N_PORT;
 
         default:
             return -1;
@@ -1599,6 +1604,13 @@ int bacapp_decode_known_property(uint8_t *apdu,
             /* BACnetDateRange  (Schedule) */
             len = bacnet_daterange_decode(
                 apdu, max_apdu_len, &value->type.Date_Range);
+#endif
+            break;
+        case PROP_FD_BBMD_ADDRESS:
+        case PROP_BACNET_IP_GLOBAL_ADDRESS:
+#ifdef BACAPP_HOST_N_PORT
+            len = host_n_port_decode(
+                apdu, max_apdu_len, NULL, &value->type.Host_Address);
 #endif
             break;
 
@@ -3367,6 +3379,13 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
                     &value->type.Bit_String, &test_value->type.Bit_String);
                 break;
 #endif
+#if defined(BACAPP_DATERANGE)
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                status =
+                    bacnet_daterange_same(&value->type.Date_Range, 
+                    &test_value->type.Date_Range);
+                break;
+#endif
 #if defined(BACAPP_TIMESTAMP)
             case BACNET_APPLICATION_TAG_TIMESTAMP:
                 status = bacapp_timestamp_same(
@@ -3456,6 +3475,9 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
                     &value->type.Destination, &test_value->type.Destination);
                 break;
 #endif
+            case BACNET_APPLICATION_TAG_EMPTYLIST:
+                status = true;
+                break;
             default:
                 status = false;
                 break;
