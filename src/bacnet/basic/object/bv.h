@@ -159,15 +159,9 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Binary_Value_Cleanup(
         void);
- BACNET_STACK_EXPORT
-    bool Binary_Value_Change_Of_Value(
-        uint32_t object_instance);
-    BACNET_STACK_EXPORT
-    void Binary_Value_Change_Of_Value_Clear(
-        uint32_t object_instance);
 
     BACNET_STACK_EXPORT
-    unsigned Binary_Input_Event_State(
+    unsigned Binary_Value_Event_State(
         uint32_t object_instance);
 
 #if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
