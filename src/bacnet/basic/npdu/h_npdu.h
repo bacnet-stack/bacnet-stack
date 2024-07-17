@@ -84,6 +84,11 @@ extern "C" {
     void npdu_router_get_my_address(
         uint16_t dnet,
         BACNET_ADDRESS * my_address);
+    BACNET_STACK_EXPORT
+    int npdu_send_reject_message_to_network(
+        BACNET_ADDRESS *dst,
+        uint16_t net,
+        uint8_t status);
 
 #ifdef __cplusplus
 }
