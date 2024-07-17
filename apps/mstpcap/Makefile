@@ -38,10 +38,9 @@ DEFINES = $(BACNET_DEFINES) -DBACDL_MSTP
 # put all the flags together
 INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
 CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
-LFLAGS += -Wl,$(SYSTEM_LIB)
-ifneq (${BACNET_LIB},)
-LFLAGS += -Wl,$(BACNET_LIB)
-endif
+# Linker Flags - we don't use any from originating caller
+LFLAGS := -Wl,$(SYSTEM_LIB)
+
 # GCC dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
 LFLAGS += -Wl,--gc-sections

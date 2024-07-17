@@ -48,10 +48,6 @@ typedef void (*handler_timesync_set_callback_t)(
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int32_t handler_timesync_offset(void);
-    BACNET_STACK_EXPORT
-    void handler_timesync_offset_set(int32_t offset);
     /* time synchronization handlers */
     BACNET_STACK_EXPORT
     void handler_timesync(
