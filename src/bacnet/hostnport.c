@@ -742,7 +742,7 @@ int bacnet_bdt_entry_to_ascii(
         ip_len = octetstring_length(&value->bbmd_address.host.ip_address);
         if (ip_len == 4) {
             len = snprintf(
-                str, str_size, "%3u.%3u.%3u.%3u:%5u,%3u.%3u.%3u.%3u",
+                str, str_size, "%u.%u.%u.%u:%u,%u.%u.%u.%u",
                 value->bbmd_address.host.ip_address.value[0],
                 value->bbmd_address.host.ip_address.value[1],
                 value->bbmd_address.host.ip_address.value[2],
@@ -754,7 +754,7 @@ int bacnet_bdt_entry_to_ascii(
             len = snprintf(
                 str, str_size,
                 "%02x%02x:%02x%02x:%02x%02x:%02x%02x:"
-                "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%5u",
+                "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%u",
                 value->bbmd_address.host.ip_address.value[0],
                 value->bbmd_address.host.ip_address.value[1],
                 value->bbmd_address.host.ip_address.value[2],
@@ -775,7 +775,7 @@ int bacnet_bdt_entry_to_ascii(
         }
     } else if (value->bbmd_address.host_name) {
         len = snprintf(
-            str, str_size, "%*s:%5u",
+            str, str_size, "%*s:%u",
             (int)characterstring_length(&value->bbmd_address.host.name),
             characterstring_value(&value->bbmd_address.host.name),
             value->bbmd_address.port);
@@ -1131,7 +1131,7 @@ int bacnet_fdt_entry_to_ascii(
     ip_len = octetstring_length(&value->bacnetip_address);
     if (ip_len == 6) {
         len = snprintf(
-            str, str_size, "%3u.%3u.%3u.%3u:%5u,%5u,%5u",
+            str, str_size, "%u.%u.%u.%u:%u,%u,%u",
             value->bacnetip_address.value[0], value->bacnetip_address.value[1],
             value->bacnetip_address.value[2], value->bacnetip_address.value[3],
             (value->bacnetip_address.value[4] << 8) |
@@ -1141,7 +1141,7 @@ int bacnet_fdt_entry_to_ascii(
         len = snprintf(
             str, str_size,
             "%02x%02x:%02x%02x:%02x%02x:%02x%02x:"
-            "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%5u,%5u,%5u",
+            "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%u,%u,%u",
             value->bacnetip_address.value[0], value->bacnetip_address.value[1],
             value->bacnetip_address.value[2], value->bacnetip_address.value[3],
             value->bacnetip_address.value[4], value->bacnetip_address.value[5],
