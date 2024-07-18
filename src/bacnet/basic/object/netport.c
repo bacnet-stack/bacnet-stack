@@ -677,7 +677,7 @@ uint8_t Network_Port_MAC_Address_Value(
             case PORT_TYPE_MSTP:
                 mac = &Object_List[index].Network.MSTP.MAC_Address;
                 mac_len = sizeof(Object_List[index].Network.MSTP.MAC_Address);
-                fprintf(stderr, "@@@@@ MSTP MAC Address\n");
+                fprintf(stderr, "@@@@@ MSTP MAC Address\r\n");
                 size_t i;
                 if (mac != NULL) {
                     for (i = 0; i < mac_len; i++) {
@@ -760,6 +760,15 @@ bool Network_Port_MAC_Address_Set(
     size_t mac_size = 0;
     uint8_t *mac_dest = NULL;
 
+    size_t i;
+    fprintf(stderr, "@@@@@@ MAC Address Set\r\n ");
+    for (i = 0; i < mac_len; i++) {
+        fprintf(stderr, "%02X", mac_src[i]);
+        if (i < mac_len - 1) {
+            fprintf(stderr, ":");
+        }
+    }
+    fprintf(stderr, "\r\n");
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         switch (Object_List[index].Network_Type) {
@@ -960,15 +969,13 @@ uint8_t Network_Port_MSTP_Max_Master(uint32_t object_instance)
     uint8_t value = 0;
     unsigned index = 0;
 
-    fprintf(stderr, "@@@@@@ Network_Port_MSTP_Max_Master\r\n");
-
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
             value = Object_List[index].Network.MSTP.Max_Master;
         }
     }
-
+    fprintf(stderr, "@@@@@@ Network_Port_MSTP_Max_Master: %d\r\n", value);
     return value;
 }
 
@@ -985,7 +992,7 @@ bool Network_Port_MSTP_Max_Master_Set(uint32_t object_instance, uint8_t value)
 {
     bool status = false;
     unsigned index = 0;
-
+    fprintf(stderr, "@@@@@@ Network_Port_MSTP_Max_Master_Set: %d\r\n", value);
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
@@ -2771,14 +2778,14 @@ uint8_t Network_Port_MSTP_Max_Info_Frames(uint32_t object_instance)
 {
     uint8_t value = 0;
     unsigned index = 0;
-    fprintf(stderr, "@@@@ Network_Port_MSTP_Max_Info_Frames\r\n");
+
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
             value = Object_List[index].Network.MSTP.Max_Info_Frames;
         }
     }
-
+    fprintf(stderr, "@@@@@@ Network_Port_MSTP_Max Info Frame: %d\r\n", value);
     return value;
 }
 
@@ -2796,7 +2803,7 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 {
     bool status = false;
     unsigned index = 0;
-
+    fprintf(stderr, "@@@@@@ Network_Port_MSTP_Max Info Frame: %d\r\n", value);
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
@@ -3245,6 +3252,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
+                    fprintf(stderr, "Network_Port_Write_Property: PROP_MAX_MASTER: %d\r\n", value.type.Unsigned_Int);
                     status = Network_Port_MSTP_Max_Master_Set(
                         wp_data->object_instance, value.type.Unsigned_Int);
                     if (!status) {
@@ -3261,6 +3269,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
+                fprintf(stderr, "Network_Port_Write_Property: PROP_MAX_INFO_FRAMES: %d\r\n", value.type.Unsigned_Int);
                 if (value.type.Unsigned_Int <= 255) {
                     status = Network_Port_MSTP_Max_Info_Frames_Set(
                         wp_data->object_instance, value.type.Unsigned_Int);
