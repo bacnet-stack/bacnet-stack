@@ -680,7 +680,7 @@ uint8_t Network_Port_MAC_Address_Value(
                 fprintf(stderr, "@@@@@ MSTP MAC Address\n");
                 size_t i;
                 if (mac != NULL) {
-                    for (size_t i = 0; i < mac_len; i++) {
+                    for (i = 0; i < mac_len; i++) {
                         fprintf(stderr, "%02X", mac[i]);
                         if (i < mac_len - 1) {
                             fprintf(stderr, ":");
