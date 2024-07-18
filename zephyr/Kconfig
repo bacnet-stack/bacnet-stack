@@ -255,6 +255,18 @@ config BACAPP_DESTINATION
 	help
 	   BACnet data types supported for WriteProperty: DESTINATION
 
+config BACAPP_BDT_ENTRY
+	bool "BACnet data types supported for WriteProperty: BDT_ENTRY"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: BDT_ENTRY
+
+config BACAPP_FDT_ENTRY
+	bool "BACnet data types supported for WriteProperty: FDT_ENTRY"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: FDT_ENTRY
+
 config BACAPP_PRINT_ENABLED
 	bool "BACnet app print"
 	default false

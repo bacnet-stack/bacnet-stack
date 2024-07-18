@@ -1461,7 +1461,11 @@ typedef enum {
     /* BACnetxyColor */
     BACNET_APPLICATION_TAG_XY_COLOR,
     /* BACnetColorCommand */
-    BACNET_APPLICATION_TAG_COLOR_COMMAND
+    BACNET_APPLICATION_TAG_COLOR_COMMAND,
+    /* BACnetBDTEntry */
+    BACNET_APPLICATION_TAG_BDT_ENTRY,
+    /* BACnetFDTEntry */
+    BACNET_APPLICATION_TAG_FDT_ENTRY
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */

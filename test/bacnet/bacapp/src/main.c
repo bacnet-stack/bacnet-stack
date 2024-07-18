@@ -92,7 +92,11 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
     /* BACnetxyColor */
     BACNET_APPLICATION_TAG_XY_COLOR,
     /* BACnetColorCommand */
-    BACNET_APPLICATION_TAG_COLOR_COMMAND
+    BACNET_APPLICATION_TAG_COLOR_COMMAND,
+    /* BACnetBDTEntry */
+    BACNET_APPLICATION_TAG_BDT_ENTRY,
+    /* BACnetFDTEntry */
+    BACNET_APPLICATION_TAG_FDT_ENTRY
 #endif
 };
 
@@ -919,7 +923,7 @@ verifyBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *value)
 /**
  * @brief Test
  */
-static bool verifyBACnetComplexDataValue(
+static void verifyBACnetComplexDataValue(
     BACNET_APPLICATION_DATA_VALUE *value, 
     BACNET_OBJECT_TYPE object_type,
     BACNET_PROPERTY_ID prop)
@@ -928,17 +932,24 @@ static bool verifyBACnetComplexDataValue(
     int apdu_len = 0;
     int null_len = 0;
     BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
+    bool status = false;
 
     apdu_len = bacapp_encode_application_data(&apdu[0], value);
     zassert_true(apdu_len > 0, NULL);
     null_len = bacapp_encode_application_data(NULL, value);
-    zassert_equal(apdu_len, null_len, NULL);
+    zassert_equal(apdu_len, null_len, "encoded length=%d", apdu_len);
     apdu_len =
         bacapp_decode_known_property(&apdu[0], apdu_len, &test_value, 
         object_type, prop);
-    zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
+    zassert_true(apdu_len != BACNET_STATUS_ERROR, "decoded length=%d", apdu_len);
+    zassert_true(apdu_len > 0, "decoded length=%d", apdu_len);
 
-    return bacapp_same_value(value, &test_value);
+    status = bacapp_same_value(value, &test_value);
+    if (!status) {
+        null_len = 0;        
+    }
+    zassert_true(status, "bacapp: same-value of tag=%s[%u]\n",
+            bactext_application_tag_name(value->tag), value->tag);
 }
 
 /**
@@ -1194,13 +1205,17 @@ static void testBACnetApplicationData(void)
     status = bacapp_parse_application_data(
         BACNET_APPLICATION_TAG_HOST_N_PORT, "192.168.1.1:47808", &value);
     zassert_true(status, NULL);
-    status = verifyBACnetComplexDataValue(&value, OBJECT_NETWORK_PORT, 
+    verifyBACnetComplexDataValue(&value, OBJECT_NETWORK_PORT, 
         PROP_FD_BBMD_ADDRESS);
-    zassert_true(status, NULL);
-    status =
-        verifyBACnetComplexDataValue(&value, OBJECT_NETWORK_PORT, 
+    verifyBACnetComplexDataValue(&value, OBJECT_NETWORK_PORT, 
         PROP_BACNET_IP_GLOBAL_ADDRESS);
+
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_BDT_ENTRY, "192.168.1.1:47808,255.255.255.255", 
+        &value);
     zassert_true(status, NULL);
+    verifyBACnetComplexDataValue(&value, OBJECT_NETWORK_PORT, 
+        PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE);
 
     return;
 }
