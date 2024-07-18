@@ -146,7 +146,6 @@ int host_n_port_address_decode(
     BACNET_OCTET_STRING *octet_string = NULL;
     BACNET_CHARACTER_STRING *char_string = NULL;
     BACNET_TAG tag = { 0 };
-    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     /* default reject code */
     if (error_code) {
@@ -237,9 +236,6 @@ int host_n_port_decode(
     BACNET_HOST_N_PORT *address)
 {
     int apdu_len = 0, len = 0;
-    BACNET_OCTET_STRING *octet_string = NULL;
-    BACNET_CHARACTER_STRING *char_string = NULL;
-    BACNET_TAG tag = { 0 };
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     /* default reject code */
@@ -534,7 +530,6 @@ int bacnet_bdt_entry_decode(
     BACNET_BDT_ENTRY *address)
 {
     int apdu_len = 0, len = 0;
-    BACNET_TAG tag = { 0 };
 
     /* default reject code */
     if (error_code) {
@@ -781,7 +776,7 @@ int bacnet_bdt_entry_to_ascii(
     } else if (value->bbmd_address.host_name) {
         len = snprintf(
             str, str_size, "%*s:%5u",
-            characterstring_length(&value->bbmd_address.host.name),
+            (int)characterstring_length(&value->bbmd_address.host.name),
             characterstring_value(&value->bbmd_address.host.name),
             value->bbmd_address.port);
     }   
@@ -877,7 +872,6 @@ int bacnet_fdt_entry_decode(
     BACNET_FDT_ENTRY *entry)
 {
     int apdu_len = 0, len = 0;
-    BACNET_TAG tag = { 0 };
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     /* default reject code */
@@ -900,7 +894,9 @@ int bacnet_fdt_entry_decode(
         entry->time_to_live = unsigned_value;
         apdu_len += len;
     } else {
-        *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+        }
         return BACNET_STATUS_REJECT;
     }
     /* remaining-time-to-live [2] Unsigned16 */
@@ -911,7 +907,9 @@ int bacnet_fdt_entry_decode(
         entry->remaining_time_to_live = unsigned_value;
         apdu_len += len;
     } else {
-        *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+        }
         return BACNET_STATUS_REJECT;
     }
 
