@@ -628,6 +628,12 @@ bool bacnet_bdt_entry_from_ascii(BACNET_BDT_ENTRY *value, const char *argv)
     unsigned a[16] = { 0 }, p = 0, m[4];
     int count;
 
+    if (!argv) {
+        return false;
+    }
+    if (!value) {
+        return false;
+    }
     count = sscanf(
         argv, "%3u.%3u.%3u.%3u:%5u,%3u.%3u.%3u.%3u", &a[0], &a[1], &a[2], &a[3],
         &p, &m[0], &m[1], &m[2], &m[3]);
@@ -1025,6 +1031,12 @@ bool bacnet_fdt_entry_from_ascii(BACNET_FDT_ENTRY *value, const char *argv)
     unsigned a[18] = { 0 }, p = 0, ttl = 0, rttl = 0;
     int count;
 
+    if (!argv) {
+        return false;
+    }
+    if (!value) {
+        return false;
+    }
     count = sscanf(
         argv, "%3u.%3u.%3u.%3u:%5u,%5u,%5u", &a[0], &a[1], &a[2], &a[3], &p,
         &ttl, &rttl);
