@@ -675,6 +675,18 @@ uint8_t Network_Port_MAC_Address_Value(
                     sizeof(Object_List[index].Network.Ethernet.MAC_Address);
                 break;
             case PORT_TYPE_MSTP:
+                fprintf(stderr, "@@@@@ MSTP MAC Address\n");
+                if (mac != NULL) {
+    for (size_t i = 0; i < mac_len; i++) {
+        printf("%02X", mac[i]);
+        if (i < mac_len - 1) {
+            printf(":");
+        }
+    }
+    printf("\n");
+} else {
+    printf("MAC address pointer is NULL\n");
+}
                 mac = &Object_List[index].Network.MSTP.MAC_Address;
                 mac_len = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 break;
@@ -946,6 +958,8 @@ uint8_t Network_Port_MSTP_Max_Master(uint32_t object_instance)
 {
     uint8_t value = 0;
     unsigned index = 0;
+
+    fprintf(stderr, "@@@@@@ Network_Port_MSTP_Max_Master\r\n");
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
@@ -2756,7 +2770,7 @@ uint8_t Network_Port_MSTP_Max_Info_Frames(uint32_t object_instance)
 {
     uint8_t value = 0;
     unsigned index = 0;
-
+    fprintf(stderr, "@@@@ Network_Port_MSTP_Max_Info_Frames\r\n");
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
