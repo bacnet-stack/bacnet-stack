@@ -678,6 +678,7 @@ uint8_t Network_Port_MAC_Address_Value(
                 mac = &Object_List[index].Network.MSTP.MAC_Address;
                 mac_len = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 fprintf(stderr, "@@@@@ MSTP MAC Address\n");
+                size_t i;
                 if (mac != NULL) {
                     for (size_t i = 0; i < mac_len; i++) {
                         fprintf(stderr, "%02X", mac[i]);
