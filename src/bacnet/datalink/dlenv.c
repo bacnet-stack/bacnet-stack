@@ -643,7 +643,7 @@ void dlenv_init(void)
     if (pEnv) {
         dlmstp_set_max_master(strtol(pEnv, NULL, 0));
     } else {
-        dlmstp_set_max_master(7);
+        dlmstp_set_max_master(127);
     }
     pEnv = getenv("BACNET_MSTP_BAUD");
     if (pEnv) {
@@ -655,7 +655,7 @@ void dlenv_init(void)
     if (pEnv) {
         dlmstp_set_mac_address(strtol(pEnv, NULL, 0));
     } else {
-        dlmstp_set_mac_address(5);
+        dlmstp_set_mac_address(127);
     }
 #endif
     pEnv = getenv("BACNET_APDU_TIMEOUT");
@@ -671,7 +671,7 @@ void dlenv_init(void)
         apdu_retries_set((uint8_t)strtol(pEnv, NULL, 0));
     }
     /* === Initialize the Datalink Here === */
-    if (!datalink_init("COM14")) {
+    if (!datalink_init(getenv("BACNET_IFACE"))) {
         exit(1);
     }
 #if (MAX_TSM_TRANSACTIONS)
