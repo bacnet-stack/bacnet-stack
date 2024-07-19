@@ -284,6 +284,9 @@ int bacapp_decode_context_datetime(uint8_t *apdu,
     BACNET_DATE_TIME *value);
 
 BACNET_STACK_EXPORT
+bool bacnet_daterange_same(BACNET_DATE_RANGE *value1, 
+    BACNET_DATE_RANGE *value2);
+BACNET_STACK_EXPORT
 int bacnet_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
 int bacnet_daterange_decode(uint8_t *apdu, 

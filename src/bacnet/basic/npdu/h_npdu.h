@@ -87,8 +87,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     int npdu_send_reject_message_to_network(
         BACNET_ADDRESS *dst,
-        uint16_t net,
-        uint8_t status);
+        uint16_t net);
 
 #ifdef __cplusplus
 }

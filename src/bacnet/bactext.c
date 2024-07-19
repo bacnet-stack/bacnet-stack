@@ -166,7 +166,10 @@ INDTEXT_DATA bacnet_application_tag_names[] = { { BACNET_APPLICATION_TAG_NULL,
     { BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION,
         "BACnetReadAccessSpecification" },
     { BACNET_APPLICATION_TAG_LIGHTING_COMMAND, "BACnetLightingCommand" },
-    { BACNET_APPLICATION_TAG_HOST_N_PORT, "BACnetHostNPort" }, { 0, NULL } };
+    { BACNET_APPLICATION_TAG_HOST_N_PORT, "BACnetHostNPort" },
+    { BACNET_APPLICATION_TAG_BDT_ENTRY, "BACnetBDTEntry" }, 
+    { BACNET_APPLICATION_TAG_FDT_ENTRY, "BACnetFDTEntry" }, 
+    { 0, NULL } };
 
 const char *bactext_application_tag_name(unsigned index)
 {
