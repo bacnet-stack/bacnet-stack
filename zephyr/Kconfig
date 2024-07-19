@@ -46,6 +46,7 @@ config BACNET_PROPERTY_LISTS
 
 config BACNET_PROPERTY_ARRAY_LISTS
 	bool "BACnetARRAY Property Lists"
+	default true
 	help
 	  Enable BACnetARRAY Property Lists
 
@@ -309,7 +310,7 @@ config BACDL_BIP6_ADDRESS_INDEX
 
 config BACDL_BIP6_MCAST_ADDRESS
 	string "IPv6 multicast destination"
-	default "FF0E::BAC0"
+	default "FF02::BAC0"
 	depends on BACDL_BIP6
 	help
 		IPv6 multicast group address for BACNET.

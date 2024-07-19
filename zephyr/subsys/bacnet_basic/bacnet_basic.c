@@ -26,7 +26,7 @@
 #endif
 #include "bacnet/basic/object/device.h"
 /* me */
-#include "basic_device/bacnet.h"
+#include "bacnet_basic/bacnet_basic.h"
 
 /* 1s timer for basic non-critical timed tasks */
 static struct mstimer BACnet_Task_Timer;
@@ -36,14 +36,14 @@ static struct mstimer BACnet_Object_Timer;
 static unsigned long BACnet_Uptime_Seconds;
 /* packet counter for BACnet task */
 static unsigned long BACnet_Packet_Count;
-/* Device ID to track changes */
+/* local Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
 
 /**
  * @brief Get the BACnet device uptime in seconds
  * @return The number of seconds the BACnet device has been running
  */
-unsigned long bacnet_uptime_seconds(void)
+unsigned long bacnet_basic_uptime_seconds(void)
 {
     return BACnet_Uptime_Seconds;
 }
@@ -52,7 +52,7 @@ unsigned long bacnet_uptime_seconds(void)
  * @brief Get the BACnet device uptime in seconds
  * @return The number of seconds the BACnet device has been running
  */
-unsigned long bacnet_packet_count(void)
+unsigned long bacnet_basic_packet_count(void)
 {
     return BACnet_Packet_Count;
 }
@@ -60,11 +60,8 @@ unsigned long bacnet_packet_count(void)
 /** 
  * @brief Initialize the BACnet device object, the service handlers, and timers
  */
-void bacnet_init(void)
+void bacnet_basic_init(void)
 {
-    /* initialize objects */
-    Device_Init(NULL);
-
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
@@ -99,7 +96,7 @@ static uint8_t PDUBuffer[MAX_MPDU];
 /**
  * @brief non-blocking BACnet task
  */
-void bacnet_task(void)
+void bacnet_basic_task(void)
 {
     bool hello_world = false;
     uint16_t pdu_len = 0;

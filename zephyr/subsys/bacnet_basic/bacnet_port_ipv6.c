@@ -19,7 +19,9 @@
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/datalink/datalink.h"
 /* me! */
-#include "basic_device/bacnet-port-ipv6.h"
+#include "bacnet_basic/bacnet_port_ipv6.h"
+
+#if defined(BACDL_BIP6)
 
 /* timer used to renew Foreign Device Registration */
 static uint16_t BBMD_Timer_Seconds;
@@ -99,3 +101,4 @@ bool bacnet_port_ipv6_init(void)
 
     return true;
 }
+#endif

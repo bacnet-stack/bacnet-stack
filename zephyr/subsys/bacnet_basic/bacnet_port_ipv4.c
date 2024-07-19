@@ -19,7 +19,9 @@
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/datalink/datalink.h"
 /* me! */
-#include "basic_device/bacnet-port-ipv4.h"
+#include "bacnet_basic/bacnet_port_ipv4.h"
+
+#if defined(BACDL_BIP)
 
 /* timer used to renew Foreign Device Registration */
 static uint16_t BBMD_Timer_Seconds;
@@ -96,3 +98,4 @@ bool bacnet_port_ipv4_init(void)
 
     return true;
 }
+#endif

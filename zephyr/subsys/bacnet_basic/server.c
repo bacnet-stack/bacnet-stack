@@ -14,8 +14,8 @@
 #include <zephyr/random/random.h>
 #include <bacnet_settings/bacnet_storage.h>
 #include "bacnet/datalink/datalink.h"
-#include "basic_device/bacnet-port.h"
-#include "basic_device/bacnet.h"
+#include "bacnet_basic/bacnet_basic.h"
+#include "bacnet_basic/bacnet_port.h"
 #if defined(CONFIG_BACNETSTACK_BACNET_SETTINGS)
 #include "bacnet_settings/bacnet_storage.h"
 #endif
@@ -55,9 +55,11 @@ static void server_thread(void)
 #if defined(CONFIG_BACNETSTACK_BACNET_SETTINGS)
     bacnet_storage_init();
 #endif
-    bacnet_init();
+    bacnet_basic_init();
     for (;;) {
-        if (!bacnet_port_init()) {
+        if (bacnet_port_init()) {
+            break;
+        } else {
             LOG_ERR("BACnet Server: port initialization failed");
             k_sleep(K_MSEC(1000));
         }
@@ -65,7 +67,7 @@ static void server_thread(void)
     LOG_INF("BACnet Server: initialized");
     for (;;) {
         k_sleep(K_MSEC(10));
-        bacnet_task();
+        bacnet_basic_task();
         bacnet_port_task();
     }
 }

@@ -17,12 +17,12 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/object/netport.h"
 #if defined(BACDL_BIP)
-#include "basic_device/bacnet-port-ipv4.h"
+#include "bacnet_basic/bacnet_port_ipv4.h"
 #elif defined(BACDL_BIP6)
-#include "basic_device/bacnet-port-ipv6.h"
+#include "bacnet_basic/bacnet_port_ipv6.h"
 #endif
 /* me! */
-#include "basic_device/bacnet-port.h"
+#include "bacnet_basic/bacnet_port.h"
 
 /* timer used to renew Foreign Device Registration */
 static struct mstimer BACnet_Task_Timer;
