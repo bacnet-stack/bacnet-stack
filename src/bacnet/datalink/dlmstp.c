@@ -246,7 +246,6 @@ uint16_t MSTP_Get_Reply(
 {
     uint16_t pdu_len = 0;
     bool matched = false;
-    struct dlmstp_packet packet = { 0 };
     struct dlmstp_user_data_t *user = NULL;
     struct dlmstp_packet *pkt;
 
@@ -270,7 +269,7 @@ uint16_t MSTP_Get_Reply(
     }
     /* convert the PDU into the MSTP Frame */
     pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
-        mstp_port->OutputBufferSize, pkt->frame_type, packet.address.mac[0],
+        mstp_port->OutputBufferSize, pkt->frame_type, pkt->address.mac[0],
         mstp_port->This_Station, &pkt->pdu[0], pkt->pdu_len);
     user->Statistics.transmit_pdu_counter++;
     (void)Ringbuf_Pop(&user->PDU_Queue, NULL);

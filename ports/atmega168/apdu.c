@@ -41,6 +41,26 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/basic/services.h"
 
+static uint8_t Local_Network_Priority; /* Fixing test 10.1.2 Network priority */
+
+/**
+ * @brief get the local network priority
+ * @return local network priority
+ */
+uint8_t apdu_network_priority(void)
+{
+    return Local_Network_Priority;
+}
+
+/**
+ * @brief set the local network priority
+ * @param net - local network priority
+ */
+void apdu_network_priority_set(uint8_t pri)
+{
+    Local_Network_Priority = pri & 0x03;
+}
+
 bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
 {
     bool status = false;
@@ -76,6 +96,7 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
     service_data->max_segs = decode_max_segs(apdu[1]);
     service_data->max_resp = decode_max_apdu(apdu[1]);
     service_data->invoke_id = apdu[2];
+    service_data->priority = apdu_network_priority();
     len = 3;
     if (service_data->segmented_message) {
         service_data->sequence_number = apdu[len++];

@@ -53,6 +53,7 @@
 static uint16_t Timeout_Milliseconds = 3000;
 /* Number of APDU Retries */
 static uint8_t Number_Of_Retries = 3;
+static uint8_t Local_Network_Priority; /* Fixing test 10.1.2 Network priority */
 
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
@@ -82,6 +83,24 @@ static BACNET_SERVICES_SUPPORTED
         SERVICE_SUPPORTED_CONFIRMED_AUDIT_NOTIFICATION,
         SERVICE_SUPPORTED_AUDIT_LOG_QUERY
     };
+
+/**
+ * @brief get the local network priority
+ * @return local network priority
+ */
+uint8_t apdu_network_priority(void)
+{
+    return Local_Network_Priority;
+}
+
+/**
+ * @brief set the local network priority
+ * @param net - local network priority
+ */
+void apdu_network_priority_set(uint8_t pri)
+{
+    Local_Network_Priority = pri & 0x03;
+}
 
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
@@ -439,6 +458,7 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
         service_data->max_segs = decode_max_segs(apdu[1]);
         service_data->max_resp = decode_max_apdu(apdu[1]);
         service_data->invoke_id = apdu[2];
+        service_data->priority = apdu_network_priority();
         len = 3;
         if (service_data->segmented_message) {
             if (apdu_len >= (len + 2)) {
@@ -448,7 +468,9 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
                 return 0;
             }
         }
-        if (apdu_len == (len + 1)) {
+        if (apdu_len > MAX_APDU){
+            return 0;
+        } else if (apdu_len == (len + 1)) {
             /* no request data as seen with Inneasoft BACnet Explorer */
             *service_choice = apdu[len++];
             *service_request = NULL;

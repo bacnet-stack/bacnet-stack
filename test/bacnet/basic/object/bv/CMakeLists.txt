@@ -23,6 +23,8 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
+	INTRINSIC_REPORTING=1
+    BINARY_VALUE_INTRINSIC_REPORTING=1
 	)
 
 include_directories(
@@ -63,6 +65,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/sys/keylist.c
     # Test and test library files
 	./src/main.c
+	./stubs.c
 	${TST_DIR}/bacnet/basic/object/property_test.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
