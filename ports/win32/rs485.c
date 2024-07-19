@@ -442,7 +442,6 @@ void RS485_Send_Frame(
         else
             turnaround_time = 2;
         while (mstp_port->SilenceTimer(NULL) < turnaround_time) {
-            Sleep(1);
             /* do nothing - wait for timer to increment */
         };
     }

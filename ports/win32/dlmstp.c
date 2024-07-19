@@ -197,12 +197,6 @@ static void dlmstp_master_fsm_task(void *pArg)
             case MSTP_MASTER_STATE_POLL_FOR_MASTER:
                 dwMilliseconds = Tusage_timeout;
                 break;
-            case MSTP_MASTER_STATE_PASS_TOKEN:
-                dwMilliseconds = 10;
-                break;
-            case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-                dwMilliseconds = 100;
-                break;
             default:
                 dwMilliseconds = 0;
                 break;
