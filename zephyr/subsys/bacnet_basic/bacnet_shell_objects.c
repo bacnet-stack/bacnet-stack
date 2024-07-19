@@ -38,17 +38,17 @@ static int cmd_objects(const struct shell *sh, size_t argc, char **argv)
 	(void)argv;
 	shell_print(sh, "List of BACnet Objects: [{");
 	count = Device_Object_List_Count();
-	for (array_index = 0; array_index < count; array_index++) {
+	for (array_index = 1; array_index <= count; array_index++) {
 		found = Device_Object_List_Identifier(array_index, &object_type,
 						      &instance);
 		if (found) {
 			shell_print(sh, "  \"%s-%u\"%c",
 				    bactext_object_type_name(object_type),
 				    instance,
-				    (array_index == count - 1) ? ' ' : ',');
+				    (array_index == count) ? ' ' : ',');
 		}
 	}
-	shell_print(sh, "}] -- %d objects found", count-1);
+	shell_print(sh, "}] -- %d objects found", count);
 
 	return 0;
 }

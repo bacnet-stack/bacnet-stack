@@ -28,7 +28,7 @@ static int cmd_uptime(const struct shell *sh, size_t argc, char **argv)
 {
     (void)argc;
     (void)argv;
-    shell_print(sh, "BACnet thread uptimeseconds: %ld",
+    shell_print(sh, "BACnet thread uptime: %ld seconds",
                 bacnet_basic_uptime_seconds());
 
     return 0;

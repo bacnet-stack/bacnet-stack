@@ -6,7 +6,7 @@ Hello BACnet-Stack
 Overview
 ********
 
-A simple ssample that can be used with any :ref:`supported board <boards>` and
+A simple sample that can be used with any :ref:`supported board <boards>` and
 prints "Hello BACnet-Stack" to the console.
 
 Building and Running

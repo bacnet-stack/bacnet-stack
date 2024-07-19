@@ -11,5 +11,5 @@ common:
         - "Hello BACnet-Stack! (.*)"
 tests:
   bacnet-stack.sample.basic.hello_bacnet_stack:
-    platform_allow: native_posix native_sim
+    platform_allow: native_posix
     tags: introduction
