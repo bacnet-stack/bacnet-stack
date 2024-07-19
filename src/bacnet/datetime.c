@@ -6,9 +6,7 @@
  * @author Greg Shue <greg.shue@outlook.com>
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @date 2012
- * @section LICENSE
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
 #include <stdbool.h>

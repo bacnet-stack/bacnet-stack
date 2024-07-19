@@ -3,11 +3,7 @@
  * @brief API for BACnetHostNPort complex data type encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date May 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_HOST_N_PORT_H
 #define BACNET_HOST_N_PORT_H

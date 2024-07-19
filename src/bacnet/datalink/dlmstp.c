@@ -2,10 +2,10 @@
  * @file
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date February 2023
- * @brief Datalink MS/TP Interface
- *
- * SPDX-License-Identifier: MIT
- *
+ * @brief Implementation of the Network Layer using BACnet MS/TP transport 
+ * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLMSTP BACnet MS/TP DataLink Network Layer
+ * @ingroup DataLink
  */
 #include <stdbool.h>
 #include <stdint.h>

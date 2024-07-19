@@ -1,3 +1,10 @@
+/**
+ * @file
+ * @brief BACnet error encode and decode helper functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
  Copyright (C) 2005 Steve Karg

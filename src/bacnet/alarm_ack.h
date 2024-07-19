@@ -17,7 +17,7 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/timestamp.h"
 
-typedef struct {
+typedef struct BACnetAcknowledgeAlarmInfo {
     uint32_t ackProcessIdentifier;
     BACNET_OBJECT_ID eventObjectIdentifier;
     BACNET_EVENT_STATE eventStateAcked;

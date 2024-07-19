@@ -1,15 +1,14 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006
- * @brief Binary Value object is an input object with a present-value that
+ * @brief API for a basic BACnet Binary Value object implementation.
+ * Binary Value objects are input objects with a present-value that
  * uses an enumerated two state active/inactive data type.
- * @section LICENSE
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_BINARY_VALUE_OBJECT_H
-#define BACNET_BINARY_VALUE_OBJECT_H
+#ifndef BACNET_BASIC_OBJECT_BINARY_VALUE_H
+#define BACNET_BASIC_OBJECT_BINARY_VALUE_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */

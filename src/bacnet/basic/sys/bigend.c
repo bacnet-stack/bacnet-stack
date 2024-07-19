@@ -1,8 +1,12 @@
-/* Derived from "Unix Incompatibility Notes: Byte Order" by Jan Wolter */
-/* http://unixpapa.com/incnote/byteorder.html */
-
-/** @file bigend.c  Determination of Endianness */
-
+/**
+ * @file
+ * @brief Determination of host Endianness
+ * Derived from "Unix Incompatibility Notes: Byte Order" by Jan Wolter
+ *  http://unixpapa.com/incnote/byteorder.html
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include "bacnet/basic/sys/bigend.h"
 
 #ifdef BACNET_BIG_ENDIAN

@@ -1,13 +1,12 @@
 /**
  * @file
- * @author Steve Karg
- * @date 2006
- * @brief Analog Value object is an input object with a present-value that
+ * @brief A basic BACnet Analog Input Object implementation.
+ * An analog value object is an I/O object with a present-value that
  * uses an single precision floating point data type.
- * @section LICENSE
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- * SPDX-License-Identifier: MIT
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @date 2006, 2011
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>

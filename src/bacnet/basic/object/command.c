@@ -1,12 +1,9 @@
 /**
  * @file
- * @author Nikola Jelic
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
  * @date 2014
  * @brief Command objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Command object type defines a standardized object whose
+ * @details The Command object type defines a standardized object whose
  * properties represent the externally visible characteristics of a
  * multi-action command procedure. A Command object is used to
  * write a set of values to a group of object properties, based on
@@ -15,29 +12,7 @@
  * Command object is written to, it triggers the Command object
  * to take a set of actions that change the values of a set of other
  * objects' properties.
- *
- * @section LICENSE
- *
- * Copyright (C) 2014 Nikola Jelic <nikola.jelic@euroicc.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -56,17 +31,21 @@
 /* me!*/
 #include "bacnet/basic/object/command.h"
 
-/*BACnetActionCommand ::= SEQUENCE {
-deviceIdentifier [0] BACnetObjectIdentifier OPTIONAL,
-objectIdentifier [1] BACnetObjectIdentifier,
-propertyIdentifier [2] BACnetPropertyIdentifier,
-propertyArrayIndex [3] Unsigned OPTIONAL, --used only with array datatype
-propertyValue [4] ABSTRACT-SYNTAX.&Type,
-priority [5] Unsigned (1..16) OPTIONAL, --used only when property is commandable
-postDelay [6] Unsigned OPTIONAL,
-quitOnFailure [7] BOOLEAN,
-writeSuccessful [8] BOOLEAN
-}*/
+/*  
+    BACnetActionCommand ::= SEQUENCE {
+        deviceIdentifier [0] BACnetObjectIdentifier OPTIONAL,
+        objectIdentifier [1] BACnetObjectIdentifier,
+        propertyIdentifier [2] BACnetPropertyIdentifier,
+        propertyArrayIndex [3] Unsigned OPTIONAL, 
+        --used only with array datatype
+        propertyValue [4] ABSTRACT-SYNTAX.&Type,
+        priority [5] Unsigned (1..16) OPTIONAL, 
+        --used only when property is commandable
+        postDelay [6] Unsigned OPTIONAL,
+        quitOnFailure [7] BOOLEAN,
+        writeSuccessful [8] BOOLEAN
+    }
+*/
 
 int cl_encode_apdu(uint8_t *apdu, BACNET_ACTION_LIST *bcl)
 {

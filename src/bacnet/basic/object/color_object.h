@@ -1,22 +1,13 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date June 2022
- * @brief Color object, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Color object is an object with a present-value that
+ * @brief The Color object is an object with a present-value that
  * uses an x,y color single precision floating point data type.
- *
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_COLOR_OBJECT_H
-#define BACNET_COLOR_OBJECT_H
+#ifndef BACNET_BASIC_OBJECT_COLOR_H
+#define BACNET_BASIC_OBJECT_COLOR_H
 
 #include <stdbool.h>
 #include <stdint.h>

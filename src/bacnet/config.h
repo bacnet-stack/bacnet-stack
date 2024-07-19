@@ -3,11 +3,7 @@
  * @brief Default configuration for BACnet Stack library
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
- * @section LICENSE
- *
- * Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_CONFIG_H_
 #define BACNET_CONFIG_H_
