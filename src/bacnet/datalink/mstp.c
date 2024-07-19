@@ -1392,7 +1392,7 @@ static void MSTP_Zero_Config_State_Idle(struct mstp_port_struct_t *mstp_port)
     } else if (mstp_port->Zero_Config_Silence > 0) {
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
-            /* ClaimAddress */
+            /* IdleTimeout */
             /* long silence indicates we are alone or
             with other silent devices */
             /* claim the token at the current zero-config address */
@@ -1460,6 +1460,7 @@ static void MSTP_Zero_Config_State_Lurk(struct mstp_port_struct_t *mstp_port)
     } else if (mstp_port->Zero_Config_Silence > 0) {
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
+            /* LurkingTimeout */
             mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
         }
     }
@@ -1644,7 +1645,7 @@ void MSTP_Init(struct mstp_port_struct_t *mstp_port)
         if ((mstp_port->Tframe_abort < 6) || (mstp_port->Tframe_abort > 100)) {
             mstp_port->Tframe_abort = DEFAULT_Tframe_abort;
         }
-        if (mstp_port->Treply_delay > 250) {
+        if ((mstp_port->Treply_delay == 0) || mstp_port->Treply_delay > 250) {
             mstp_port->Treply_delay = DEFAULT_Treply_delay;
         }
         if ((mstp_port->Treply_timeout < 20) ||

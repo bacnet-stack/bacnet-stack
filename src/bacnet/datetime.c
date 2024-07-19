@@ -296,7 +296,7 @@ bool datetime_is_valid(BACNET_DATE *bdate, BACNET_TIME *btime)
  * @param date1 - Pointer to a BACNET_DATE structure
  * @param date2 - Pointer to a BACNET_DATE structure
  *
- * @return -/0/+
+ * @return -/0=same/+
  */
 int datetime_compare_date(BACNET_DATE *date1, BACNET_DATE *date2)
 {
@@ -1171,6 +1171,27 @@ int bacapp_decode_context_datetime(
     uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value)
 {
     return bacnet_datetime_context_decode(apdu, MAX_APDU, tag_number, value);
+}
+
+/**
+ * @brief Compare BACnetDateRange complex data types
+ * @param value1 - complex data value 1 structure
+ * @param value2 - complex data value 2 structure
+ * @return true if the two complex data values are the same
+ */
+bool bacnet_daterange_same(BACNET_DATE_RANGE *value1, 
+    BACNET_DATE_RANGE *value2)
+{
+    bool status = false;
+
+    if (value1 && value2) {
+        if ((datetime_compare_date(&value1->startdate, &value2->startdate) == 0) &&
+            (datetime_compare_date(&value1->enddate, &value2->enddate) == 0)) {
+            status = true;
+        }
+    }
+
+    return status;
 }
 
 /**

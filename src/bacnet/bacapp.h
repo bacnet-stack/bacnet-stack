@@ -120,6 +120,12 @@ typedef struct BACnet_Application_Data_Value {
 #if defined (BACAPP_SPECIAL_EVENT)
         BACNET_SPECIAL_EVENT Special_Event;
 #endif
+#if defined (BACAPP_BDT_ENTRY)
+        BACNET_BDT_ENTRY BDT_Entry;
+#endif
+#if defined (BACAPP_FDT_ENTRY)
+        BACNET_FDT_ENTRY FDT_Entry;
+#endif
     } type;
     /* simple linked list if needed */
     struct BACnet_Application_Data_Value *next;

@@ -54,8 +54,49 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
     BACNET_APPLICATION_TAG_OBJECT_ID,
 #endif
 #if defined(BACAPP_TYPES_EXTRA)
+    BACNET_APPLICATION_TAG_EMPTYLIST,
+    /* BACnetWeeknday */
+    /* BACNET_APPLICATION_TAG_WEEKNDAY, --> not implemented! */
+    /* BACnetDateRange */
+    BACNET_APPLICATION_TAG_DATERANGE,
+    /* BACnetDateTime */
+    BACNET_APPLICATION_TAG_DATETIME,
+    /* BACnetTimeStamp */
+    BACNET_APPLICATION_TAG_TIMESTAMP,
+    /* Error Class, Error Code */
+    /* BACNET_APPLICATION_TAG_ERROR, --> not implemented! */
+    /* BACnetDeviceObjectPropertyReference */
+    BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE,
+    /* BACnetDeviceObjectReference */
+    BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE,
+    /* BACnetObjectPropertyReference */
+    BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE,
+    /* BACnetDestination (Recipient_List) */
+    BACNET_APPLICATION_TAG_DESTINATION,
+    /* BACnetRecipient */
+    /* BACNET_APPLICATION_TAG_RECIPIENT, --> not implemented! */
+    /* BACnetCOVSubscription */
+    /* BACNET_APPLICATION_TAG_COV_SUBSCRIPTION, --> not implemented! */
+    /* BACnetCalendarEntry */
+    BACNET_APPLICATION_TAG_CALENDAR_ENTRY,
+    /* BACnetWeeklySchedule */
+    BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,
+    /* BACnetSpecialEvent */
+    BACNET_APPLICATION_TAG_SPECIAL_EVENT,
+    /* BACnetReadAccessSpecification */
+    /* BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION, --> not implemented! */
+    /* BACnetLightingCommand */
     BACNET_APPLICATION_TAG_LIGHTING_COMMAND,
+    /* BACnetHostNPort */
     BACNET_APPLICATION_TAG_HOST_N_PORT,
+    /* BACnetxyColor */
+    BACNET_APPLICATION_TAG_XY_COLOR,
+    /* BACnetColorCommand */
+    BACNET_APPLICATION_TAG_COLOR_COMMAND,
+    /* BACnetBDTEntry */
+    BACNET_APPLICATION_TAG_BDT_ENTRY,
+    /* BACnetFDTEntry */
+    BACNET_APPLICATION_TAG_FDT_ENTRY
 #endif
 };
 
@@ -882,23 +923,33 @@ verifyBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *value)
 /**
  * @brief Test
  */
-static bool verifyBACnetComplexDataValue(
-    BACNET_APPLICATION_DATA_VALUE *value, BACNET_PROPERTY_ID prop)
+static void verifyBACnetComplexDataValue(
+    BACNET_APPLICATION_DATA_VALUE *value, 
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID prop)
 {
     uint8_t apdu[480] = { 0 };
     int apdu_len = 0;
     int null_len = 0;
     BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
+    bool status = false;
 
     apdu_len = bacapp_encode_application_data(&apdu[0], value);
     zassert_true(apdu_len > 0, NULL);
     null_len = bacapp_encode_application_data(NULL, value);
-    zassert_equal(apdu_len, null_len, NULL);
+    zassert_equal(apdu_len, null_len, "encoded length=%d", apdu_len);
     apdu_len =
-        bacapp_decode_generic_property(&apdu[0], apdu_len, &test_value, prop);
-    zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
+        bacapp_decode_known_property(&apdu[0], apdu_len, &test_value, 
+        object_type, prop);
+    zassert_true(apdu_len != BACNET_STATUS_ERROR, "decoded length=%d", apdu_len);
+    zassert_true(apdu_len > 0, "decoded length=%d", apdu_len);
 
-    return bacapp_same_value(value, &test_value);
+    status = bacapp_same_value(value, &test_value);
+    if (!status) {
+        null_len = 0;        
+    }
+    zassert_true(status, "bacapp: same-value of tag=%s[%u]\n",
+            bactext_application_tag_name(value->tag), value->tag);
 }
 
 /**
@@ -1154,9 +1205,17 @@ static void testBACnetApplicationData(void)
     status = bacapp_parse_application_data(
         BACNET_APPLICATION_TAG_HOST_N_PORT, "192.168.1.1:47808", &value);
     zassert_true(status, NULL);
-    status = verifyBACnetComplexDataValue(&value, PROP_FD_BBMD_ADDRESS);
-    status =
-        verifyBACnetComplexDataValue(&value, PROP_BACNET_IP_GLOBAL_ADDRESS);
+    verifyBACnetComplexDataValue(&value, OBJECT_NETWORK_PORT, 
+        PROP_FD_BBMD_ADDRESS);
+    verifyBACnetComplexDataValue(&value, OBJECT_NETWORK_PORT, 
+        PROP_BACNET_IP_GLOBAL_ADDRESS);
+
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_BDT_ENTRY, "192.168.1.1:47808,255.255.255.255", 
+        &value);
+    zassert_true(status, NULL);
+    verifyBACnetComplexDataValue(&value, OBJECT_NETWORK_PORT, 
+        PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE);
 
     return;
 }

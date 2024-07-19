@@ -425,10 +425,24 @@ extern "C" {
     int bvlc6_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
         uint16_t apdu_size,
         BACNET_IP6_ADDRESS *ip6_address);
+
+    BACNET_STACK_EXPORT
+    int bvlc6_broadcast_distribution_table_entry_encode(uint8_t *apdu,
+        BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
+    BACNET_STACK_EXPORT
+    int bvlc6_broadcast_distribution_table_list_encode(uint8_t *apdu,
+        BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
     BACNET_STACK_EXPORT
     int bvlc6_broadcast_distribution_table_encode(uint8_t *apdu,
         uint16_t apdu_size,
         BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+
+    BACNET_STACK_EXPORT
+    int bvlc6_foreign_device_table_entry_encode(uint8_t *apdu,
+        BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
+    BACNET_STACK_EXPORT
+    int bvlc6_foreign_device_table_list_encode(uint8_t *apdu,
+        BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
     BACNET_STACK_EXPORT
     int bvlc6_foreign_device_table_encode(uint8_t *apdu,
         uint16_t apdu_size,

@@ -67,8 +67,9 @@ int npdu_send_network_number_is(
         transmit a local broadcast Network-Number-Is message
         back to the source device. */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_NETWORK_NUMBER_IS,
-        data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_network(
+        &npdu_data, NETWORK_MESSAGE_NETWORK_NUMBER_IS, data_expecting_reply,
+        MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(pdu, dst, &my_address, &npdu_data);
     if ((pdu_len > 0) && (pdu_len <= MAX_NPDU)) {
         len = encode_unsigned16(&pdu[pdu_len], net);
@@ -102,7 +103,8 @@ int npdu_send_what_is_network_number(BACNET_ADDRESS *dst)
         datalink_get_broadcast_address(&daddr);
     }
     datalink_get_my_address(&saddr);
-    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER,
+    npdu_encode_npdu_network(
+        &npdu_data, NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER,
         data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(pdu, &daddr, &saddr, &npdu_data);
 
@@ -128,7 +130,8 @@ int npdu_send_what_is_network_number(BACNET_ADDRESS *dst)
  *  				 bytes that have already been decoded.
  *  @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
-static void network_control_handler(BACNET_ADDRESS *src,
+static void network_control_handler(
+    BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *npdu,
     uint16_t npdu_len)
@@ -177,6 +180,12 @@ static void network_control_handler(BACNET_ADDRESS *src,
         default:
             break;
     }
+    if ((npdu_data->network_message_type >=
+         NETWORK_MESSAGE_ASHRAE_RESERVED_MIN) &&
+        (npdu_data->network_message_type <=
+         NETWORK_MESSAGE_ASHRAE_RESERVED_MAX)) {
+        npdu_send_reject_message_to_network(src, dnet);
+    }
 }
 
 /** Handler for the NPDU portion of a received packet.
@@ -218,7 +227,8 @@ void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
             bacnet_npdu_decode(&pdu[0], pdu_len, &dest, src, &npdu_data);
         if (npdu_data.network_layer_message) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
-                network_control_handler(src, &npdu_data, &pdu[apdu_offset],
+                network_control_handler(
+                    src, &npdu_data, &pdu[apdu_offset],
                     (uint16_t)(pdu_len - apdu_offset));
             } else {
                 debug_printf("NPDU: message for router. Discarded!\n");
@@ -230,17 +240,18 @@ void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
                    routing information cause they are not for us */
                 if ((dest.net == BACNET_BROADCAST_NETWORK) &&
                     ((pdu[apdu_offset] & 0xF0) ==
-                        PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
+                     PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
                     /* hack for 5.4.5.1 - IDLE */
                     /* ConfirmedBroadcastReceived */
                     /* then enter IDLE - ignore the PDU */
                 } else {
-                    if (npdu_data.data_expecting_reply ) {
+                    if (npdu_data.data_expecting_reply) {
                         apdu_network_priority_set(npdu_data.priority);
                     } else {
                         apdu_network_priority_set(MESSAGE_PRIORITY_NORMAL);
                     }
-                    apdu_handler(src, &pdu[apdu_offset],
+                    apdu_handler(
+                        src, &pdu[apdu_offset],
                         (uint16_t)(pdu_len - apdu_offset));
                 }
             } else {
@@ -251,10 +262,43 @@ void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
         }
     } else {
 #if PRINT_ENABLED
-        printf("NPDU: BACnet Protocol Version=%u.  Discarded!\n",
+        printf(
+            "NPDU: BACnet Protocol Version=%u.  Discarded!\n",
             (unsigned)pdu[0]);
 #endif
     }
 
     return;
+}
+
+/**
+ * Send NPDU reject message to network
+ *
+ * @param dst - the destination address for the message
+ * @param net - local network number
+ * @return number of bytes sent
+ */
+int npdu_send_reject_message_to_network(BACNET_ADDRESS *dst, uint16_t net)
+{
+    uint16_t len = 0;
+    int pdu_len = 0;
+    int bytes_sent = 0;
+    bool data_expecting_reply = false;
+    BACNET_NPDU_DATA npdu_data;
+    BACNET_ADDRESS my_address = { 0 };
+    uint8_t pdu[MAX_NPDU + 2 + 1] = { 0 };
+
+    datalink_get_my_address(&my_address);
+    npdu_encode_npdu_network(
+        &npdu_data, NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK,
+        data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(pdu, dst, &my_address, &npdu_data);
+    pdu[pdu_len++] = NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE;
+    if ((pdu_len > 0) && (pdu_len <= MAX_NPDU)) {
+        len = encode_unsigned16(&pdu[pdu_len], net);
+        pdu_len += len;
+        bytes_sent = datalink_send_pdu(dst, &npdu_data, pdu, pdu_len);
+    }
+
+    return bytes_sent;
 }

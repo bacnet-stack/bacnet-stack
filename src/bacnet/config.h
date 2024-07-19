@@ -158,6 +158,8 @@
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_BDT_ENTRY) || \
+    defined(BACAPP_FDT_ENTRY) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
@@ -198,6 +200,8 @@
 #define BACAPP_DEVICE_OBJECT_REFERENCE
 #define BACAPP_OBJECT_PROPERTY_REFERENCE
 #define BACAPP_DESTINATION
+#define BACAPP_BDT_ENTRY
+#define BACAPP_FDT_ENTRY
 #endif
 
 #if defined(BACAPP_DOUBLE) || \
@@ -213,7 +217,9 @@
     defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
-    defined(BACAPP_DESTINATION)
+    defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_BDT_ENTRY) || \
+    defined(BACAPP_FDT_ENTRY)
 #define BACAPP_COMPLEX_TYPES
 #endif
 
