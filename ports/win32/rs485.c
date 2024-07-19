@@ -217,7 +217,7 @@ static void RS485_Configure_Status(void)
     /* configure the COM port timeout values */
     ctNew.ReadIntervalTimeout = MAXDWORD;
     ctNew.ReadTotalTimeoutMultiplier = MAXDWORD;
-    ctNew.ReadTotalTimeoutConstant = 1000;
+    ctNew.ReadTotalTimeoutConstant = 1;
     ctNew.WriteTotalTimeoutMultiplier = 0;
     ctNew.WriteTotalTimeoutConstant = 0;
     if (!SetCommTimeouts(RS485_Handle, &ctNew)) {
