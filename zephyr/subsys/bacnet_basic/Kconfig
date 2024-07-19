@@ -1,0 +1,34 @@
+# Kconfig - Subsystem configuration options
+#
+# @author Steve Karg <skarg@users.sourceforge.net>
+# @date May 2024
+# @copyright SPDX-License-Identifier: MIT
+menuconfig BACNETSTACK_BACNET_BASIC
+    bool "BACNETSTACK_BACNET_BASIC"
+	default n
+    help 
+      This option enables a basic BACnet Device object and tasking
+
+if BACNETSTACK_BACNET_BASIC
+
+    module = BACNETSTACK_BACNET_BASIC
+    module-str = bacnet_basic
+
+	config BACNET_BASIC_DEVICE_OBJECT_NAME
+		string "BACnet device object default name"
+		default "Basic Server"
+		help
+			BACnet device object default name
+
+	config BACNET_BASIC_DEVICE_OBJECT_VERSION
+		string "BACnet device object default application version string"
+		default "1.0.0"
+		help
+			BACnet device object default application version string
+			
+	config BACNET_BASIC_DEVICE_SHELL
+		bool "BACnet Basic Device subsystem shell"
+		depends on BACNETSTACK
+		default y if SHELL
+
+endif # BACNETSTACK_BACNET_SETTINGS

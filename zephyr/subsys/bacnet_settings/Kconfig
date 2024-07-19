@@ -1,0 +1,28 @@
+# Kconfig - Subsystem configuration options
+#
+# @author Steve Karg <skarg@users.sourceforge.net>
+# @date May 2024
+# @copyright SPDX-License-Identifier: MIT
+menuconfig BACNETSTACK_BACNET_SETTINGS
+    bool "BACNETSTACK_BACNET_SETTINGS"
+	default y if BACNETSTACK && SETTINGS
+    help 
+      This option enables BACnet Settings services
+
+if BACNETSTACK_BACNET_SETTINGS
+
+    module = BACNETSTACK_BACNET_SETTINGS
+    module-str = bac_settings
+
+	config BACNET_SETTINGS_BASE_NAME
+		string "BACnet object path base name for every setting"
+		default ".bacnet"
+		help
+			BACnet object path base name for every setting"
+
+	config BACNET_SETTINGS_SHELL
+		bool "BACnet settings subsystem shell"
+		depends on BACNETSTACK
+		default y if SHELL && SETTINGS
+
+endif # BACNETSTACK_BACNET_SETTINGS

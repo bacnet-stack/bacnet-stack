@@ -440,7 +440,8 @@ list(
   )
 
 
-add_subdirectory(subsys)
+  zephyr_include_directories(include)
+  add_subdirectory(subsys)
 
 #
 # library
@@ -466,6 +467,7 @@ zephyr_compile_definitions(
   BACNET_VENDOR_ID=${CONFIG_BACNET_VENDOR_IDENTIFIER}
   BACNET_VENDOR_NAME="${CONFIG_BACNET_VENDOR_NAME}"
   BACNET_PROTOCOL_REVISION=${CONFIG_BACNET_PROTOCOL_REVISION}
+  BACNET_STACK_DEPRECATED_DISABLE=1
   # datalink API
   $<$<BOOL:${CONFIG_BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${CONFIG_BACDL_NONE}>:BACAPP_ALL>
