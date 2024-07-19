@@ -173,7 +173,6 @@ static void dlmstp_receive_fsm_task(void *pArg)
                     MSTP_Port.ReceivedInvalidFrame;
                 if (received_frame) {
                     ReleaseSemaphore(Received_Frame_Flag, 1, NULL);
-                    Sleep(10);
                     break;
                 }
             } while (MSTP_Port.DataAvailable);

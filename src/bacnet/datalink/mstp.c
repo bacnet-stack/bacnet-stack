@@ -1672,7 +1672,7 @@ void MSTP_Init(struct mstp_port_struct_t *mstp_port)
         if ((mstp_port->Tframe_abort < 6) || (mstp_port->Tframe_abort > 100)) {
             mstp_port->Tframe_abort = DEFAULT_Tframe_abort;
         }
-        if ((mstp_port->Treply_delay == 0) || mstp_port->Treply_delay > 250)  {
+        if ((mstp_port->Treply_delay == 0) || mstp_port->Treply_delay > 250) {
             mstp_port->Treply_delay = DEFAULT_Treply_delay;
         }
         if ((mstp_port->Treply_timeout < 20) ||
