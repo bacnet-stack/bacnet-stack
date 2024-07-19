@@ -6,5 +6,6 @@
 comment "BACnet Subsystems"
 
 rsource "bacnet_settings/Kconfig"
+rsource "basic_device/Kconfig"
 rsource "object/Kconfig"
 rsource "server/Kconfig"

@@ -7,7 +7,7 @@ Overview
 ********
 
 This is a simple application demonstrating configuration of a
-BACnet B-SS device profile.
+BACnet B-SS (simple sensor) device profile.
 
 Requirements
 ************

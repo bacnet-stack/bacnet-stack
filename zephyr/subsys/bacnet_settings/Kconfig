@@ -1,7 +1,8 @@
-# Copyright (c) 2024 Legrand North America, LLC.
-# SPDX-License-Identifier: MIT
 # Kconfig - Subsystem configuration options
-
+#
+# @author Steve Karg <skarg@users.sourceforge.net>
+# @date May 2024
+# @copyright SPDX-License-Identifier: MIT
 menuconfig BACNETSTACK_BACNET_SETTINGS
     bool "BACNETSTACK_BACNET_SETTINGS"
 	default y if BACNETSTACK && SETTINGS

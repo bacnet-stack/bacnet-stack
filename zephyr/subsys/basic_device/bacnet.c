@@ -1,45 +1,33 @@
-/*
- * Copyright (C) 2020 Legrand North America, Inc.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief BACnet Stack initialization and task handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date March 2024
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-#include <zephyr/kernel.h>
 #include <stdint.h>
-
+#include <stdbool.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack core API */
-#include "bacnet/bacdcode.h"
-#include "bacnet/apdu.h"
+#include "bacnet/npdu.h"
 #include "bacnet/dcc.h"
 #include "bacnet/iam.h"
-#include "bacnet/npdu.h"
-#include "bacnet/getevent.h"
-#include "bacnet/version.h"
 /* BACnet Stack basic services */
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
-#include "bacnet/basic/binding/address.h"
 /* BACnet Stack basic objects */
 #include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/lc.h"
-#include "bacnet/basic/object/trendlog.h"
-#if defined(INTRINSIC_REPORTING)
-#include "bacnet/basic/object/nc.h"
-#endif /* defined(INTRINSIC_REPORTING) */
+/* objects */
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
+#include "bacnet/basic/object/device.h"
+/* me */
+#include "basic_device/bacnet.h"
 
-/* Logging module registration is already done in ports/zephyr/main.c */
-#include <zephyr/logging/log.h>
-LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
-
-/* local buffer for incoming PDUs to process */
-static uint8_t PDUBuffer[MAX_MPDU];
 /* 1s timer for basic non-critical timed tasks */
 static struct mstimer BACnet_Task_Timer;
 /* task timer for object functionality */
@@ -51,47 +39,67 @@ static unsigned long BACnet_Packet_Count;
 /* Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
 
-/** Initialize the handlers we will utilize.
- * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
+/**
+ * @brief Get the BACnet device uptime in seconds
+ * @return The number of seconds the BACnet device has been running
  */
-static void bacnet_init(void)
+unsigned long bacnet_uptime_seconds(void)
 {
-	Device_Init(NULL);
-	/* we need to handle who-is to support dynamic device binding */
-	apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-				     handler_who_is);
-	apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS,
-				     handler_who_has);
-	/* set the handler for all the services we don't implement */
-	/* It is required to send the proper reject message... */
-	apdu_set_unrecognized_service_handler_handler(
-		handler_unrecognized_service);
-	/* Set the handlers for any confirmed services that we support. */
-	/* We must implement read property - it's required! */
-	apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-				   handler_read_property);
-	apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-				   handler_read_property_multiple);
-	apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-				   handler_write_property);
-	apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
-				   handler_write_property_multiple);
-	apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-				   handler_reinitialize_device);
-	/* handle communication so we can shutup when asked */
-	apdu_set_confirmed_handler(
-		SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-		handler_device_communication_control);
+    return BACnet_Uptime_Seconds;
+}
+
+/**
+ * @brief Get the BACnet device uptime in seconds
+ * @return The number of seconds the BACnet device has been running
+ */
+unsigned long bacnet_packet_count(void)
+{
+    return BACnet_Packet_Count;
+}
+
+/** 
+ * @brief Initialize the BACnet device object, the service handlers, and timers
+ */
+void bacnet_init(void)
+{
+    /* initialize objects */
+    Device_Init(NULL);
+
+    /* set up our confirmed service unrecognized service handler - required! */
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
+    /* we need to handle who-is to support dynamic device binding */
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
+    /* Set the handlers for any confirmed services that we support. */
+    /* We must implement read property - it's required! */
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, handler_write_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
+    /* handle communication so we can shutup when asked, or restart */
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+        handler_device_communication_control);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
     /* start the 1 second timer for non-critical cyclic tasks */
     mstimer_set(&BACnet_Task_Timer, 1000L);
     /* start the timer for more time sensitive object specific cyclic tasks */
     mstimer_set(&BACnet_Object_Timer, 100UL);
 }
 
+/* local buffer for incoming PDUs to process */
+static uint8_t PDUBuffer[MAX_MPDU];
+
 /**
  * @brief non-blocking BACnet task
  */
-static void bacnet_task(void)
+void bacnet_task(void)
 {
     bool hello_world = false;
     uint16_t pdu_len = 0;
@@ -133,23 +141,5 @@ static void bacnet_task(void)
     if (pdu_len) {
         npdu_handler(&src, &PDUBuffer[0], pdu_len);
         BACnet_Packet_Count++;
-		LOG_INF("BACnet Packet Received! %lu packets", BACnet_Packet_Count);
     }
-}
-
-int main(void)
-{
-	LOG_INF("\n*** BACnet Profile B-SS Sample ***\n");
-	LOG_INF("BACnet Stack Version " BACNET_VERSION_TEXT);
-	LOG_INF("BACnet Device ID: %u", Device_Object_Instance_Number());
-	LOG_INF("BACnet Device Max APDU: %d", MAX_APDU);
-
-    bacnet_init();
-	datalink_init(NULL);
-    for (;;) {
-        k_sleep(K_MSEC(10));
-        bacnet_task();
-    }
-
-    return 0;
 }
