@@ -115,7 +115,7 @@ void mstimer_reset(struct mstimer *t)
  * current time.
  *
  * @note A periodic timer will drift if this function is used to reset
- * it. For preioric timers, use the mstimer_reset() function instead.
+ * it. For periodic timers, use the mstimer_reset() function instead.
  * @param t A pointer to the timer.
  * @sa mstimer_reset()
  */
