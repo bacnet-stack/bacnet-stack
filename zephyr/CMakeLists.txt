@@ -64,6 +64,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/authentication_factor.h
     ${BACNETSTACK_SRC}/bacnet/awf.c
     ${BACNETSTACK_SRC}/bacnet/awf.h
+    ${BACNETSTACK_SRC}/bacnet/bacaction.c
+    ${BACNETSTACK_SRC}/bacnet/bacaction.h
     ${BACNETSTACK_SRC}/bacnet/bacaddr.c
     ${BACNETSTACK_SRC}/bacnet/bacaddr.h
     ${BACNETSTACK_SRC}/bacnet/bacapp.c

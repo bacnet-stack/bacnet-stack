@@ -44,6 +44,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/authentication_factor.c
     ${BACNET_SRC}/bacpropstates.c
     # Dependencies of bacapp.c
+    ${BACNET_SRC}/bacaction.c
     ${BACNET_SRC}/bactext.c
     ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/weeklyschedule.c
