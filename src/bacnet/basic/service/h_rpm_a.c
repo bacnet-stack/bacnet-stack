@@ -112,8 +112,7 @@ int rpm_ack_decode_service_request(
             apdu_len -= len;
             apdu += len;
             if (apdu_len && decode_is_opening_tag_number(apdu, 4)) {
-                data_len = bacapp_data_len(apdu, (unsigned)apdu_len, 
-                    rpm_property->propertyIdentifier);
+                data_len = bacnet_enclosed_data_length(apdu, apdu_len);
                 /* propertyValue */
                 decoded_len++;
                 apdu_len--;

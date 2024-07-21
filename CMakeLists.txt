@@ -144,6 +144,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/awf.h
   src/bacnet/bacaddr.c
   src/bacnet/bacaddr.h
+  src/bacnet/bacaction.c
+  src/bacnet/bacaction.h
   src/bacnet/bacapp.c
   src/bacnet/bacapp.h
   src/bacnet/bacdcode.c

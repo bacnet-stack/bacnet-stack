@@ -84,6 +84,13 @@ BACNET_STACK_EXPORT
 bool bacnet_is_closing_tag_number(
     uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length);
 
+BACNET_STACK_EXPORT
+int bacnet_application_data_length(
+    uint8_t tag_number, uint32_t len_value_type);
+BACNET_STACK_EXPORT
+int bacnet_enclosed_data_length(
+    uint8_t *apdu, size_t apdu_size);
+
 BACNET_STACK_DEPRECATED("Use bacnet_tag_decode() instead")
 BACNET_STACK_EXPORT
 int bacnet_tag_number_and_value_decode(

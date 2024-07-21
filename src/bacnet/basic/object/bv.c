@@ -154,12 +154,16 @@ unsigned Binary_Value_Count(void)
 /**
  * @brief Determines the object instance-number for a given 0..N index
  * of objects where N is the count.
- * @param  index - 0..count value
- * @return  object instance-number for the given index
+ * @param  index - 0..N value
+ * @return  object instance-number for a valid given index, or UINT32_MAX
  */
 uint32_t Binary_Value_Index_To_Instance(unsigned index)
 {
-    return Keylist_Key(Object_List, index);
+    uint32_t instance = UINT32_MAX;
+
+    (void)Keylist_Index_Key(Object_List, index, &instance);
+
+    return instance;
 }
 
 /**

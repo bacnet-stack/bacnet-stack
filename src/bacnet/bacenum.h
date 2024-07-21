@@ -1449,7 +1449,9 @@ typedef enum {
     /* BACnetBDTEntry */
     BACNET_APPLICATION_TAG_BDT_ENTRY,
     /* BACnetFDTEntry */
-    BACNET_APPLICATION_TAG_FDT_ENTRY
+    BACNET_APPLICATION_TAG_FDT_ENTRY,
+    /* BACnetActionCommand */
+    BACNET_APPLICATION_TAG_ACTION_COMMAND
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */

@@ -759,6 +759,10 @@
       <SubType>compile</SubType>
       <Link>bacnet-stack\h_apdu.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\bacaction.c">
+      <SubType>compile</SubType>
+      <Link>bacnet-stack\bacaddr.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\bacaddr.c">
       <SubType>compile</SubType>
       <Link>bacnet-stack\bacaddr.c</Link>

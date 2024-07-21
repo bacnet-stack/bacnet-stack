@@ -14,6 +14,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/bacaction.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
@@ -125,6 +126,9 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined (BACAPP_FDT_ENTRY)
         BACNET_FDT_ENTRY FDT_Entry;
+#endif
+#if defined (BACAPP_ACTION_COMMAND)
+        BACNET_ACTION_LIST Action_Command;
 #endif
     } type;
     /* simple linked list if needed */
@@ -281,29 +285,19 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);
 
-    /* returns the length of data between an opening tag and a closing tag.
-       Expects that the first octet contain the opening tag.
-       Include a value property identifier for context specific data
-       such as the value received in a WriteProperty request */
+    BACNET_STACK_DEPRECATED("Use bacnet_enclosed_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_data_len(
         uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
+        
+    BACNET_STACK_DEPRECATED("Use bacnet_application_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_data_len(
         uint8_t * apdu,
         uint8_t tag_data_type,
         uint32_t len_value_type);
-    BACNET_STACK_EXPORT
-    int bacapp_decode_application_data_len(
-        uint8_t * apdu,
-        unsigned max_apdu_len);
-    BACNET_STACK_EXPORT
-    int bacapp_decode_context_data_len(
-        uint8_t * apdu,
-        unsigned max_apdu_len,
-        BACNET_PROPERTY_ID property);
 
     BACNET_STACK_EXPORT
     int bacapp_snprintf_shift(

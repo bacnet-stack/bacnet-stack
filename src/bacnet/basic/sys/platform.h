@@ -10,7 +10,12 @@
 #ifndef BACNET_SYS_PLATFORM_H
 #define BACNET_SYS_PLATFORM_H
 #include <stddef.h>
+#include <limits.h>
 #include <math.h>
+
+#ifndef INT_MAX
+#define (~0U >> 1U)
+#endif
 
 #ifndef islessgreater
 #define islessgreater(x, y) ((x) < (y) || (x) > (y))

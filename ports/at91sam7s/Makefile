@@ -102,6 +102,7 @@ DEMOSRC = ai.c \
 	$(BACNET_BASIC)/service/s_ihave.c
 
 CORESRC = $(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/bacaction.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \

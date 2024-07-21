@@ -1787,11 +1787,14 @@ int main(int argc, char *argv[])
                 do {
                     Object_List_Index++;
                     if (Object_List_Index < Keylist_Count(Object_List)) {
-                        nextKey = Keylist_Key(Object_List, Object_List_Index);
-                        myObject.type = KEY_DECODE_TYPE(nextKey);
-                        myObject.instance = KEY_DECODE_ID(nextKey);
-                        /* Don't re-list the Device Object among its objects */
-                        if (myObject.type == OBJECT_DEVICE) {
+                        if (Keylist_Index_Key(Object_List, Object_List_Index, &nextKey)) {
+                            myObject.type = KEY_DECODE_TYPE(nextKey);
+                            myObject.instance = KEY_DECODE_ID(nextKey);
+                            /* Don't re-list the Device Object among its objects */
+                            if (myObject.type == OBJECT_DEVICE) {
+                                continue;
+                            }
+                        } else {
                             continue;
                         }
                         /* Closing brace for the previous Object */
