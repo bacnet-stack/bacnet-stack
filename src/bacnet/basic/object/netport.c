@@ -3442,6 +3442,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 #if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
+#if defined(BACAPP_HOST_N_PORT)
             if (write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_HOST_N_PORT)) {
                 status = Network_Port_FD_BBMD_Address_Write(
@@ -3451,6 +3452,10 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
+#else
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+#endif
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
             if (write_property_type_valid(
