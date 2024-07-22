@@ -25,7 +25,19 @@ if BACNETSTACK_BACNET_BASIC
 		default "1.0.0"
 		help
 			BACnet device object default application version string
-			
+
+	config BACNET_BASIC_DEVICE_DESCRIPTION
+		string "BACnet device object default description string"
+		default "BACnet Basic Server"
+		help
+			BACnet device object default description string
+
+	config BACNET_BASIC_DEVICE_MODEL_NAME
+		string "BACnet device object default model name string"
+		default "Basic Server"
+		help
+			BACnet device object default model name string
+
 	config BACNET_BASIC_DEVICE_SHELL
 		bool "BACnet Basic Device subsystem shell"
 		depends on BACNETSTACK
