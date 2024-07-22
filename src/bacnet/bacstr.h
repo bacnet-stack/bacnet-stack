@@ -215,6 +215,11 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string1,
         BACNET_OCTET_STRING * octet_string2);
 
+    BACNET_STACK_EXPORT
+    int bacnet_stricmp(const char *s1, const char *s2);
+    BACNET_STACK_EXPORT
+    size_t bacnet_strnlen(const char *s, size_t maxlen);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

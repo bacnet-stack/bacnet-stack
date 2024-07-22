@@ -408,7 +408,7 @@ bool characterstring_init_ansi_safe(
     BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax)
 {
     return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
-        value ? strnlen(value, tmax) : 0);
+        value ? bacnet_strnlen(value, tmax) : 0);
 }
 
 /**
@@ -1191,3 +1191,44 @@ bool octetstring_value_same(
     return false;
 }
 #endif
+
+/**
+ * @brief Compare two strings ignoring case
+ * @param s1 - first string
+ * @param s2 - second string
+ * @return 0 if the strings are equal, otherwise non-zero
+  */
+int bacnet_stricmp(const char *s1, const char *s2)
+{
+    unsigned char c1, c2;
+
+    do {
+        c1 = (unsigned char)*s1;
+        c2 = (unsigned char)*s2;
+        c1 = (unsigned char)tolower(c1);
+        c2 = (unsigned char)tolower(c2);
+        s1++;
+        s2++;
+    } while ((c1 == c2) && (c1 != '\0'));
+
+    return (int)c1 - c2;
+}
+
+/**
+ * @brief non-standard strnlen function
+ * @param s - string to check
+ * @param maxlen - maximum length to check
+ * @return length of string, up to maxlen
+ */
+size_t bacnet_strnlen(const char *s, size_t maxlen)
+{
+	size_t len;
+
+	for (len = 0; len < maxlen; len++, s++) {
+		if (!*s) {
+			break;
+        }
+	}
+
+	return len;
+}
