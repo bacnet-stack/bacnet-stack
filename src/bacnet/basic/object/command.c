@@ -345,6 +345,7 @@ BACNET_ACTION_LIST * Command_Action_List_Entry(
 unsigned Command_Action_List_Count(
     uint32_t instance)
 {
+    (void)instance;
     return MAX_COMMAND_ACTIONS;
 }
 
@@ -386,7 +387,6 @@ static int Command_Action_List_Encode(
 int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    int len = 0;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
     int apdu_size = 0;
