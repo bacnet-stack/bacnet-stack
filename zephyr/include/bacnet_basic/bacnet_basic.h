@@ -10,12 +10,20 @@
 
 #include <stdint.h>
 
+typedef void (*bacnet_basic_callback)(void *context);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 void bacnet_basic_init(void);
+void bacnet_basic_init_callback_set(bacnet_basic_callback callback, 
+    void *context);
+
 void bacnet_basic_task(void);
+void bacnet_basic_task_callback_set(bacnet_basic_callback callback, 
+    void *context);
+
 unsigned long bacnet_basic_uptime_seconds(void);
 unsigned long bacnet_basic_packet_count(void);
 
