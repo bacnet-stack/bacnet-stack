@@ -358,7 +358,6 @@ int bacnet_action_command_decode(
     BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
     uint32_t property = 0; /* for decoding */
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
-    uint32_t enum_value = 0;
     bool boolean_value = false;
 
     if (!apdu) {
