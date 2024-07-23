@@ -33,6 +33,19 @@
 #endif
 #endif
 
+/** BACnetScale ::= CHOICE {
+        float-scale [0] REAL,
+        integer-scale [1] INTEGER
+    }
+*/
+typedef struct BACnetScale {
+    bool float_scale;
+    union {
+        float real_scale;
+        int32_t integer_scale;
+    } type;
+} BACNET_SCALE;
+
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
     bool context_specific;      /* true if context specific data */
@@ -130,6 +143,9 @@ typedef struct BACnet_Application_Data_Value {
 #if defined (BACAPP_ACTION_COMMAND)
         BACNET_ACTION_LIST Action_Command;
 #endif
+#if defined (BACAPP_SCALE)
+        BACNET_SCALE Scale;
+#endif
     } type;
     /* simple linked list if needed */
     struct BACnet_Application_Data_Value *next;
@@ -207,6 +223,12 @@ extern "C" {
         uint8_t * apdu,
         BACNET_APPLICATION_DATA_VALUE * value);
     BACNET_STACK_EXPORT
+    int bacapp_encode_known_property(
+        uint8_t *apdu,
+        BACNET_APPLICATION_DATA_VALUE *value,
+        BACNET_OBJECT_TYPE object_type,
+        BACNET_PROPERTY_ID property);
+    BACNET_STACK_EXPORT
     int bacapp_data_decode(
         uint8_t * apdu,
         uint32_t apdu_size,
@@ -245,6 +267,7 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 
+    BACNET_STACK_DEPRECATED("Use bacapp_encode_known_property() instead")
     BACNET_STACK_EXPORT
     int bacapp_encode_context_data(
         uint8_t * apdu,
@@ -257,17 +280,19 @@ extern "C" {
         uint8_t context_tag_number,
         BACNET_APPLICATION_DATA_VALUE * value);
 
+    BACNET_STACK_DEPRECATED("Use bacapp_known_property_tag() instead")
     BACNET_STACK_EXPORT
     BACNET_APPLICATION_TAG bacapp_context_tag_type(
         BACNET_PROPERTY_ID property,
         uint8_t tag_number);
-
+    BACNET_STACK_DEPRECATED("Use bacapp_encode_known_property() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_generic_property(
         uint8_t * apdu,
         int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID prop);
+        
     BACNET_STACK_EXPORT
     int bacapp_decode_known_property(uint8_t *apdu,
         int max_apdu_len,

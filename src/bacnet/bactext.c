@@ -143,6 +143,7 @@ INDTEXT_DATA bacnet_application_tag_names[] = { { BACNET_APPLICATION_TAG_NULL,
     { BACNET_APPLICATION_TAG_BDT_ENTRY, "BACnetBDTEntry" }, 
     { BACNET_APPLICATION_TAG_FDT_ENTRY, "BACnetFDTEntry" }, 
     { BACNET_APPLICATION_TAG_ACTION_COMMAND, "BACnetActionCommand" },
+    { BACNET_APPLICATION_TAG_SCALE, "BACnetScale" },  
     { 0, NULL } };
 
 const char *bactext_application_tag_name(unsigned index)
