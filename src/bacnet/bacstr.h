@@ -8,7 +8,7 @@
  */
 #ifndef BACNET_STRING_H
 #define BACNET_STRING_H
-
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -219,6 +219,10 @@ extern "C" {
     int bacnet_stricmp(const char *s1, const char *s2);
     BACNET_STACK_EXPORT
     size_t bacnet_strnlen(const char *s, size_t maxlen);
+    BACNET_STACK_EXPORT
+    int bacnet_snprintf(char *buffer, size_t count, const char *format, ...);
+    BACNET_STACK_EXPORT
+    int bacnet_snprintf_shift(int len, char **buf, size_t *buf_size);
 
 #ifdef __cplusplus
 }

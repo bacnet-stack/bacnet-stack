@@ -6,6 +6,7 @@
  * @date 2004
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -1231,4 +1232,52 @@ size_t bacnet_strnlen(const char *s, size_t maxlen)
 	}
 
 	return len;
+}
+
+/**
+ * @brief Common snprintf() function to suppress CPP check false positives
+ * @param buffer - destination string
+ * @param count - length of the destination string
+ * @param format - format string
+ * @return number of characters written
+ */
+int bacnet_snprintf(char *buffer, size_t count, const char *format, ...)
+{
+    int length = 0;
+    va_list args;
+
+    va_start(args, format);
+    /* false positive cppcheck - vsnprintf allows null pointers */
+    /* cppcheck-suppress nullPointer */
+    /* cppcheck-suppress ctunullpointer */
+    length = vsnprintf(buffer, count, format, args);
+    va_end(args);
+
+    return length;
+}
+
+/**
+ * @brief Shift the buffer pointer and decrease the size after an snprintf
+ * @param len - number of bytes (excluding terminating NULL byte) from
+ * snprintf operation
+ * @param buf - pointer to the buffer pointer
+ * @param buf_size - pointer to the buffer size
+ * @return number of bytes (excluding terminating NULL byte) from snprintf
+ */
+int bacnet_snprintf_shift(int len, char **buf, size_t *buf_size)
+{
+    if (buf) {
+        if (*buf) {
+            *buf += len;
+        }
+    }
+    if (buf_size) {
+        if ((*buf_size) >= len) {
+            *buf_size -= len;
+        } else {
+            *buf_size = 0;
+        }
+    }
+
+    return len;
 }

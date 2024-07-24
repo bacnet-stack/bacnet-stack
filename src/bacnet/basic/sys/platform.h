@@ -14,7 +14,7 @@
 #include <math.h>
 
 #ifndef INT_MAX
-#define (~0U >> 1U)
+#define INT_MAX (~0U >> 1U)
 #endif
 
 #ifndef islessgreater
