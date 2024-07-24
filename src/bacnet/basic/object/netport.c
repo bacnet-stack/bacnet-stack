@@ -779,7 +779,9 @@ bool Network_Port_MAC_Address_Set(
                 break;
             case PORT_TYPE_MSTP:
                 mac_dest = &Object_List[index].Network.MSTP.MAC_Address;
+                fprintf(stderr,"@@@@@ MSTP mac_dest: %p\r\n", mac_dest);
                 mac_size = sizeof(Object_List[index].Network.MSTP.MAC_Address);
+                fprintf(stderr,"@@@@@ MSTP mac_size: %d\r\n", mac_size);
                 break;
             case PORT_TYPE_BIP:
                 /* no need to set - created from IP address and UPD Port */
