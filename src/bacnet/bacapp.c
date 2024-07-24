@@ -1100,7 +1100,7 @@ int bacapp_known_property_tag(
  * @param value - stores the decoded property value
  * @return  number of bytes decoded (0..N), or #BACNET_STATUS_ERROR
  */
-int bacapp_decode_application_value(
+int bacapp_decode_application_tag_value(
     uint8_t *apdu,
     size_t apdu_size,
     BACNET_APPLICATION_TAG tag,
@@ -1250,8 +1250,7 @@ int bacapp_decode_application_value(
             break;
 #endif
         case BACNET_APPLICATION_TAG_EMPTYLIST:
-            /* Empty data list */
-            apdu_len = 0; /* EMPTY */
+            apdu_len = 0;
             break;
 #if defined(BACAPP_DATETIME)
         case BACNET_APPLICATION_TAG_DATETIME:
@@ -1403,7 +1402,9 @@ int bacapp_decode_known_property(
     BACNET_APPLICATION_TAG tag;
 
     if (bacnet_is_closing_tag(apdu, apdu_size)) {
-        tag = BACNET_APPLICATION_TAG_EMPTYLIST;
+        if (value) {
+            value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
+        }
         apdu_len = 0;
     } else if (property == PROP_PRIORITY_ARRAY) {
         /* BACnetPriorityValue */
@@ -1418,7 +1419,8 @@ int bacapp_decode_known_property(
         tag = bacapp_known_property_tag(object_type, property);
         if (tag != -1) {
             apdu_len =
-                bacapp_decode_application_value(apdu, apdu_size, tag, value);
+                bacapp_decode_application_tag_value(
+                    apdu, apdu_size, tag, value);
         } else {
             apdu_len = bacapp_decode_application_data(apdu, apdu_size, value);
         }
