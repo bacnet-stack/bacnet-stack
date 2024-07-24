@@ -35,12 +35,14 @@ if(BOARD STREQUAL unit_testing)
   list(APPEND SOURCES
     ${BACNET_SRC}/bacaction.c
     ${BACNET_SRC}/bacaddr.c
+    ${BACNET_SRC}/bacerror.c
     ${BACNET_SRC}/bacapp.c
     ${BACNET_SRC}/bacdcode.c
     ${BACNET_SRC}/bacdest.c
-    ${BACNET_SRC}/bacstr.c
     ${BACNET_SRC}/bacint.c
     ${BACNET_SRC}/bacreal.c
+    ${BACNET_SRC}/bacstr.c
+    ${BACNET_SRC}/bactimevalue.c
     ${BACNET_SRC}/calendar.c
     ${BACNET_SRC}/datetime.c
     ${BACNET_SRC}/timestamp.c
@@ -59,9 +61,6 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/reject.c
     ${BACNET_SRC}/abort.c
-    ${BACNET_SRC}/bacaddr.c
-    ${BACNET_SRC}/bactimevalue.c
-    ${BACNET_SRC}/bacerror.c
     ${BACNET_SRC}/basic/binding/address.c
     ${BACNET_SRC}/basic/object/acc.c
     ${BACNET_SRC}/basic/object/ai.c

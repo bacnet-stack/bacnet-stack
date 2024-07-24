@@ -2530,6 +2530,7 @@ static int bacapp_snprintf_action_property_value(
 }
 #endif
 
+#if defined(BACAPP_ACTION_COMMAND)
 /**
  * @brief Print a value to a string for EPICS
  * @param str - destination string, or NULL for length only
@@ -2598,6 +2599,7 @@ static int bacapp_snprintf_action_command(
 
     return ret_val;
 }
+#endif
 
 /**
  * @brief Extract the value into a text string

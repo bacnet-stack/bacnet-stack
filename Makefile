@@ -370,7 +370,7 @@ CPPCHECK_OPTIONS += --template=gcc
 CPPCHECK_OPTIONS += --inline-suppr
 CPPCHECK_OPTIONS += --suppress=selfAssignment
 CPPCHECK_OPTIONS += --suppress=integerOverflow
-CPPCHECK_OPTIONS += -I./src
+#CPPCHECK_OPTIONS += -I./src
 #CPPCHECK_OPTIONS += --enable=information --check-config
 CPPCHECK_OPTIONS += --error-exitcode=1
 .PHONY: cppcheck
