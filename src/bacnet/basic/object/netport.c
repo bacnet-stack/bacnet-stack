@@ -665,9 +665,10 @@ uint8_t Network_Port_MAC_Address_Value(
     uint8_t *mac = NULL;
     uint8_t ip_mac[4 + 2] = { 0 };
     size_t mac_len = 0;
-
+    fprintf(stderr, "@@@@@@ Network_Port_MAC_Address_Value\r\n");
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
+        fprintf(stderr, "@@@@@@ Network_Port_MAC_Address_Value index: %d\r\n", index);
         switch (Object_List[index].Network_Type) {
             case PORT_TYPE_ETHERNET:
                 mac = &Object_List[index].Network.Ethernet.MAC_Address[0];
@@ -738,7 +739,7 @@ bool Network_Port_MAC_Address(
         mac_len = Network_Port_MAC_Address_Value(object_instance,
             mac_address->value, sizeof(mac_address->value));
     }
-    fprintf(stderr, "@@@@@@ MAC Address\r\n ");
+    fprintf(stderr, "@@@@@@ mac_address->value: %p\r\n", mac_address->value);
     return mac_len > 0;
 }
 
@@ -781,7 +782,8 @@ bool Network_Port_MAC_Address_Set(
                 break;
             case PORT_TYPE_MSTP:
                 mac_dest = &Object_List[index].Network.MSTP.MAC_Address;
-                fprintf(stderr,"@@@@@ MSTP mac_dest: %p\r\n", mac_dest);
+
+                fprintf(stderr, "@@@@@@ &Object_List[index].Network.MSTP.MAC_Address: %p\r\n", &Object_List[index].Network.MSTP.MAC_Address);
                 mac_size = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 fprintf(stderr,"@@@@@ MSTP mac_size: %d\r\n", mac_size);
                 break;
