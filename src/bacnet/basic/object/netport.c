@@ -677,7 +677,7 @@ uint8_t Network_Port_MAC_Address_Value(
             case PORT_TYPE_MSTP:
                 mac = &Object_List[index].Network.MSTP.MAC_Address;
                 mac_len = sizeof(Object_List[index].Network.MSTP.MAC_Address);
-                fprintf(stderr, "@@@@@ MSTP MAC Address\r\n");
+                fprintf(stderr, "@@@@@ NETWORK PORT MSTP MAC Address\r\n");
                 size_t i;
                 if (mac != NULL) {
                     for (i = 0; i < mac_len; i++) {
@@ -738,7 +738,7 @@ bool Network_Port_MAC_Address(
         mac_len = Network_Port_MAC_Address_Value(object_instance,
             mac_address->value, sizeof(mac_address->value));
     }
-
+    fprintf(stderr, "@@@@@@ MAC Address\r\n ");
     return mac_len > 0;
 }
 
@@ -802,7 +802,7 @@ bool Network_Port_MAC_Address_Set(
             status = true;
         }
     }
-
+    fprintf(stderr, "@@@@@ status: %d\r\n", status);
     return status;
 }
 
