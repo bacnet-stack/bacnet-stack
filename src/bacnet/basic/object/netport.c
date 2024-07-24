@@ -2,7 +2,7 @@
  * @file
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2016
- * @brief A basic BACnet Network Port object provides access to the 
+ * @brief A basic BACnet Network Port object provides access to the
  * configuration and properties of any network ports of a device.
  * @copyright SPDX-License-Identifier: MIT
  */
@@ -2897,7 +2897,75 @@ static bool Network_Port_FD_BBMD_Address_Write(
 #endif
         default:
             *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            break;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Write the FD Subscription Lifetime
+ * @param object_instance [in] BACnet network port object instance number
+ * @param value [in] BACnet IP address and port
+ * @param error_class [out] BACnet error class
+ * @param error_code [out] BACnet error code
+ * @return true if the value was written
+ */
+static bool Network_Port_FD_Subscription_Lifetime_Write(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER value,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    uint16_t lifetime = 0;
+
+    if (!error_class || !error_code) {
+        return status;
+    }
+    if (value > UINT16_MAX) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return status;
+    }
+    lifetime = (uint16_t)value;
+    switch (Network_Port_Type(object_instance)) {
+#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+        case PORT_TYPE_BIP:
+            if (Network_Port_BIP_Mode(object_instance) ==
+                BACNET_IP_MODE_FOREIGN) {
+                status = Network_Port_Remote_BBMD_BIP_Lifetime_Set(
+                    object_instance, lifetime);
+                if (!status) {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            }
+            break;
+#endif
+#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+        case PORT_TYPE_BIP6:
+            if (Network_Port_BIP6_Mode(object_instance) ==
+                BACNET_IP_MODE_FOREIGN) {
+                status = Network_Port_Remote_BBMD_BIP6_Lifetime_Set(
+                    object_instance, lifetime);
+                if (!status) {
+                    *error_class = ERROR_CLASS_PROPERTY;
+                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            }
+            break;
+#endif
+        default:
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
@@ -3377,13 +3445,13 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /* decode the some of the request */
-#if !defined(BACAPP_COMPLEX_TYPES)
+#if defined(BACAPP_COMPLEX_TYPES)
+    len = bacapp_decode_known_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property);
+#else
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
-#else
-    len = bacapp_decode_generic_property(
-        wp_data->application_data, wp_data->application_data_len, &value,
-        wp_data->object_property);
 #endif
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -3455,60 +3523,12 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_FD_SUBSCRIPTION_LIFETIME:
             if (write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
-                if (value.type.Unsigned_Int <= 65535) {
-                    switch (Network_Port_Type(wp_data->object_instance)) {
-#if (defined(BACDL_ALL) || defined(BACDL_BIP))
-                        case PORT_TYPE_BIP:
-                            if (Network_Port_BIP_Mode(
-                                    wp_data->object_instance) ==
-                                BACNET_IP_MODE_FOREIGN) {
-                                status =
-                                    Network_Port_Remote_BBMD_BIP_Lifetime_Set(
-                                        wp_data->object_instance,
-                                        value.type.Unsigned_Int);
-                                if (!status) {
-                                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                                    wp_data->error_code =
-                                        ERROR_CODE_VALUE_OUT_OF_RANGE;
-                                }
-                            } else {
-                                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                                wp_data->error_code =
-                                    ERROR_CODE_WRITE_ACCESS_DENIED;
-                            }
-                            break;
-#endif
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
-                        case PORT_TYPE_BIP6:
-                            if (Network_Port_BIP6_Mode(
-                                    wp_data->object_instance) ==
-                                BACNET_IP_MODE_FOREIGN) {
-                                status =
-                                    Network_Port_Remote_BBMD_BIP6_Lifetime_Set(
-                                        wp_data->object_instance,
-                                        value.type.Unsigned_Int);
-                                if (!status) {
-                                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                                    wp_data->error_code =
-                                        ERROR_CODE_VALUE_OUT_OF_RANGE;
-                                }
-                            } else {
-                                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                                wp_data->error_code =
-                                    ERROR_CODE_WRITE_ACCESS_DENIED;
-                            }
-                            break;
-#endif
-                        default:
-                            wp_data->error_class = ERROR_CLASS_PROPERTY;
-                            wp_data->error_code =
-                                ERROR_CODE_INVALID_ARRAY_INDEX;
-                            break;
-                    }
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
+                status = Network_Port_FD_Subscription_Lifetime_Write(
+                    wp_data->object_instance, value.type.Unsigned_Int,
+                    &wp_data->error_class, &wp_data->error_code);
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
 #endif
