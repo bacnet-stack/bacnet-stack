@@ -501,8 +501,8 @@ int bacnet_destination_to_ascii(
     bool comma;
     int i;
 
-    len = snprintf(buf, buf_size, "(");
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    len = bacnet_snprintf(buf, buf_size, "(");
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
     /*
      BACnetDaysOfWeek ::= BIT STRING {
          monday     (0),
@@ -515,39 +515,39 @@ int bacnet_destination_to_ascii(
      }
     */
     /* Use numbers 1-7 (ISO 8601) */
-    len = snprintf(buf, buf_size, "ValidDays=[");
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    len = bacnet_snprintf(buf, buf_size, "ValidDays=[");
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
     comma = false;
     for (i = 0; i < 7; i++) {
         if (bitstring_bit((BACNET_BIT_STRING *)&bacdest->ValidDays, i)) {
             if (comma) {
-                len = snprintf(buf, buf_size, ",");
-                buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+                len = bacnet_snprintf(buf, buf_size, ",");
+                buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
             }
-            len = snprintf(buf, buf_size, "%d", i + 1);
-            buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+            len = bacnet_snprintf(buf, buf_size, "%d", i + 1);
+            buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
             comma = true;
         }
     }
-    len = snprintf(buf, buf_size, "];");
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
-    len = snprintf(
+    len = bacnet_snprintf(buf, buf_size, "];");
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
+    len = bacnet_snprintf(
         buf, buf_size, "FromTime=%d:%02d:%02d.%02d;", bacdest->FromTime.hour,
         bacdest->FromTime.min, bacdest->FromTime.sec,
         bacdest->FromTime.hundredths);
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
-    len = snprintf(
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
+    len = bacnet_snprintf(
         buf, buf_size, "ToTime=%d:%02d:%02d.%02d;", bacdest->ToTime.hour,
         bacdest->ToTime.min, bacdest->ToTime.sec, bacdest->ToTime.hundredths);
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
-    len = snprintf(buf, buf_size, "Recipient=");
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
+    len = bacnet_snprintf(buf, buf_size, "Recipient=");
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
     if (bacdest->Recipient.tag == BACNET_RECIPIENT_TAG_DEVICE) {
-        len = snprintf(
+        len = bacnet_snprintf(
             buf, buf_size, "Device(type=%d,instance=%lu)",
             bacdest->Recipient.type.device.type,
             (unsigned long)bacdest->Recipient.type.device.instance);
-        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+        buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
     } else {
         /*
           BACnetAddress ::= SEQUENCE {
@@ -556,38 +556,38 @@ int bacnet_destination_to_ascii(
           a broadcast
           }
         */
-        len = snprintf(
+        len = bacnet_snprintf(
             buf, buf_size,
             "Address(net=%d,mac=", bacdest->Recipient.type.address.net);
-        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+        buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
 
         /* TODO determine if it's IPv4+port or Ethernet mac address and print it
          * nicer - how? Both are 6 bytes long. */
 
         for (i = 0; i < bacdest->Recipient.type.address.mac_len; i++) {
             if (i > 0) {
-                len = snprintf(buf, buf_size, ":");
-                buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+                len = bacnet_snprintf(buf, buf_size, ":");
+                buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
             }
-            len = snprintf(
+            len = bacnet_snprintf(
                 buf, buf_size, "%02x", bacdest->Recipient.type.address.mac[i]);
-            buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+            buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
         }
-        len = snprintf(buf, buf_size, ")");
-        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+        len = bacnet_snprintf(buf, buf_size, ")");
+        buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
     }
-    len = snprintf(buf, buf_size, ";");
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    len = bacnet_snprintf(buf, buf_size, ";");
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
 
-    len = snprintf(
+    len = bacnet_snprintf(
         buf, buf_size, "ProcessIdentifier=%lu;",
         (unsigned long)bacdest->ProcessIdentifier);
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
 
-    len = snprintf(
+    len = bacnet_snprintf(
         buf, buf_size, "ConfirmedNotify=%s;",
         bacdest->ConfirmedNotify ? "true" : "false");
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
 
     /*
      BACnetEventTransitionBits ::= BIT STRING {
@@ -596,8 +596,8 @@ int bacnet_destination_to_ascii(
          to-normal    (2)
      }
     */
-    len = snprintf(buf, buf_size, "Transitions=[");
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    len = bacnet_snprintf(buf, buf_size, "Transitions=[");
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
 
     comma = false;
     /* TODO remove casting when bitstring_bit() has const added - Github issue
@@ -605,31 +605,31 @@ int bacnet_destination_to_ascii(
     if (bitstring_bit(
             (BACNET_BIT_STRING *)&bacdest->Transitions,
             TRANSITION_TO_OFFNORMAL)) {
-        len = snprintf(buf, buf_size, "to-offnormal");
-        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+        len = bacnet_snprintf(buf, buf_size, "to-offnormal");
+        buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
         comma = true;
     }
     if (bitstring_bit(
             (BACNET_BIT_STRING *)&bacdest->Transitions, TRANSITION_TO_FAULT)) {
         if (comma) {
-            len = snprintf(buf, buf_size, ",");
-            buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+            len = bacnet_snprintf(buf, buf_size, ",");
+            buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
         }
-        len = snprintf(buf, buf_size, "to-fault");
-        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+        len = bacnet_snprintf(buf, buf_size, "to-fault");
+        buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
         comma = true;
     }
     if (bitstring_bit(
             (BACNET_BIT_STRING *)&bacdest->Transitions, TRANSITION_TO_NORMAL)) {
         if (comma) {
-            len = snprintf(buf, buf_size, ",");
-            buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+            len = bacnet_snprintf(buf, buf_size, ",");
+            buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
         }
-        len = snprintf(buf, buf_size, "to-normal");
-        buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+        len = bacnet_snprintf(buf, buf_size, "to-normal");
+        buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
     }
-    len = snprintf(buf, buf_size, "])"); /* end of the outer paren */
-    buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
+    len = bacnet_snprintf(buf, buf_size, "])"); /* end of the outer paren */
+    buf_len += bacnet_snprintf_shift(len, &buf, &buf_size);
 
     return buf_len;
 }

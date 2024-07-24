@@ -331,11 +331,6 @@ extern "C" {
         uint32_t len_value_type);
 
     BACNET_STACK_EXPORT
-    int bacapp_snprintf_shift(
-        int len, 
-        char **buf, 
-        size_t *buf_size);
-    BACNET_STACK_EXPORT
     int bacapp_snprintf_value(
         char *str,
         size_t str_len,
