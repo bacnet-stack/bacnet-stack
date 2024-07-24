@@ -797,12 +797,15 @@ bool Network_Port_MAC_Address_Set(
             default:
                 break;
         }
+        fprintf(stderr, "@@@@@@ mac_len: %d\r\n", mac_len);
+        fprintf(stderr, "@@@@@ status: %d\r\n", status);
         if (mac_src && mac_dest && (mac_len == mac_size)) {
             memcpy(mac_dest, mac_src, mac_size);
             status = true;
+            fprintf(stderr, "@@@@@ status: mac_dest: %p\r\n", mac_dest);
+            fprintf(stderr, "@@@@@ status: %d\r\n", status);
         }
     }
-    fprintf(stderr, "@@@@@ status: %d\r\n", status);
     return status;
 }
 
