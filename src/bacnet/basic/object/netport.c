@@ -770,9 +770,11 @@ bool Network_Port_MAC_Address_Set(
     }
     fprintf(stderr, "\r\n");
     index = Network_Port_Instance_To_Index(object_instance);
+    fprintf(stderr, "@@@@@@ index: %d\r\n", index);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         switch (Object_List[index].Network_Type) {
             case PORT_TYPE_ETHERNET:
+                fprintf(stderr, "@@@@@@ Ethernet MAC Address\r\n");
                 mac_dest = &Object_List[index].Network.Ethernet.MAC_Address[0];
                 mac_size =
                     sizeof(Object_List[index].Network.Ethernet.MAC_Address);
@@ -784,9 +786,11 @@ bool Network_Port_MAC_Address_Set(
                 fprintf(stderr,"@@@@@ MSTP mac_size: %d\r\n", mac_size);
                 break;
             case PORT_TYPE_BIP:
+                fprintf(stderr, "@@@@@@ BIP MAC Address\r\n");
                 /* no need to set - created from IP address and UPD Port */
                 break;
             case PORT_TYPE_BIP6:
+                fprintf(stderr, "@@@@@@ BIP6 MAC Address\r\n");
                 mac_dest = &Object_List[index].Network.IPv6.MAC_Address[0];
                 mac_size = sizeof(Object_List[index].Network.IPv6.MAC_Address);
                 break;
