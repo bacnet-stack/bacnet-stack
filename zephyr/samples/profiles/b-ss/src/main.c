@@ -59,6 +59,9 @@ int main(void)
     bacnet_basic_init_callback_set(BACnet_Smart_Sensor_Init_Handler, NULL);
     bacnet_basic_task_callback_set(BACnet_Smart_Sensor_Task_Handler, NULL);
     /* work happens in server module */
+    for (;;) {
+        k_sleep(K_MSEC(1000));
+    }
 
     return 0;
 }
