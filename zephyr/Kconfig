@@ -67,6 +67,12 @@ config BACDL_ARCNET
 
 config BACDL_BIP
 	bool "BACnet BIP datalink"
+	select NETWORKING
+	select NET_SOCKETS
+	select NET_UDP
+	select NET_IPV4
+	select NET_DHCPV4
+	select NET_IPV4_AUTO
 	help
 	  Enable BACnet BIP datalink
 
@@ -566,6 +572,24 @@ config BACNET_BASIC_OBJECT_TRENDLOG
 	default false
 	help
 		Use the BACnet basic trendlog object
+
+# MINIMAL CONFIG_NET_RX_STACK_SIZE
+config NET_TX_STACK_SIZE
+	int
+	default 8192 if BACDL_BIP
+
+# MINIMAL CONFIG_NET_RX_STACK_SIZE
+config NET_RX_STACK_SIZE
+	int
+	default 8192 if BACDL_BIP
+
+config NET_IF_UNICAST_IPV4_ADDR_COUNT
+	int
+	default 4 if BACDL_BIP
+
+config NET_IF_LOG_LEVEL_DGB
+	bool
+	default y if BACDL_BIP
 
 rsource "subsys/Kconfig"
 
