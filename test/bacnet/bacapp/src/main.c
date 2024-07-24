@@ -1238,7 +1238,6 @@ ZTEST(bacapp_tests, test_bacapp_data)
 static void test_bacapp_data(void)
 #endif
 {
-    const uint8_t context_tag_number = 1;
     uint8_t apdu[480] = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     int apdu_len, null_len, test_len, len;

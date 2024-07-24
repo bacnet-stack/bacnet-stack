@@ -26,6 +26,11 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_TEST_PATH}/src/main.c
     )
 
+get_filename_component(BACNET_SRC ${BACNET_SRC_PATH} PATH)
+list(APPEND SOURCES
+  ${BACNET_SRC}/bacstr.c
+  )
+  
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
   find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
@@ -39,4 +44,7 @@ else()
     )
 endif()
 
-add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig
+add_compile_definitions(
+  CONFIG_ZTEST_NEW_API
+  BACNET_STACK_DEPRECATED_DISABLE
+  )
