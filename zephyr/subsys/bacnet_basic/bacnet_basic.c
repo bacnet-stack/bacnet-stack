@@ -38,6 +38,55 @@ static unsigned long BACnet_Uptime_Seconds;
 static unsigned long BACnet_Packet_Count;
 /* local Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
+/* callbacks for custom features in BACnet thread */
+static bacnet_basic_callback BACnet_Init_Callback;
+static void *BACnet_Init_Context;
+static bacnet_basic_callback BACnet_Task_Callback;
+static void *BACnet_Task_Context;
+
+/**
+ * @brief Set the callback for the BACnet initialization
+ * @param callback [in] The callback function called after initialization
+ * @param context [in] The context to pass to the callback function
+ */
+void bacnet_basic_init_callback_set(bacnet_basic_callback callback, 
+    void *context)
+{
+    BACnet_Init_Callback = callback;
+    BACnet_Init_Context = context;
+}
+
+/**
+ * @brief BACnet Task Callback Handler
+ */
+static void bacnet_init_callback_handler(void)
+{
+    if (BACnet_Init_Callback) {
+        BACnet_Init_Callback(BACnet_Init_Context);
+    }
+}
+
+/**
+ * @brief Set the callback for the BACnet Task
+ * @param callback [in] The callback function to call during the task
+ * @param context [in] The context to pass to the callback function
+ */
+void bacnet_basic_task_callback_set(bacnet_basic_callback callback, 
+    void *context)
+{
+    BACnet_Task_Callback = callback;
+    BACnet_Task_Context = context;
+}
+
+/**
+ * @brief BACnet Task Callback Handler
+ */
+static void bacnet_task_callback_handler(void)
+{
+    if (BACnet_Task_Callback) {
+        BACnet_Task_Callback(BACnet_Task_Context);
+    }
+}
 
 /**
  * @brief Get the BACnet device uptime in seconds
@@ -88,6 +137,8 @@ void bacnet_basic_init(void)
     mstimer_set(&BACnet_Task_Timer, 1000L);
     /* start the timer for more time sensitive object specific cyclic tasks */
     mstimer_set(&BACnet_Object_Timer, 100UL);
+    /* initialize user data in this thread */
+    bacnet_init_callback_handler();
 }
 
 /* local buffer for incoming PDUs to process */
@@ -139,4 +190,6 @@ void bacnet_basic_task(void)
         npdu_handler(&src, &PDUBuffer[0], pdu_len);
         BACnet_Packet_Count++;
     }
+    /* call user task in this thread */
+    bacnet_task_callback_handler();
 }

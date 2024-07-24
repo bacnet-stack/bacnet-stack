@@ -21,19 +21,77 @@
 #include "bacnet/version.h"
 #include "bacnet/basic/services.h"
 /* objects */
+#include "bacnet/basic/object/acc.h"
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/basic/object/av.h"
 #include "bacnet/basic/object/bi.h"
 #include "bacnet/basic/object/bo.h"
 #include "bacnet/basic/object/bv.h"
+#include "bacnet/basic/object/calendar.h"
+#include "bacnet/basic/object/command.h"
+#include "bacnet/basic/object/lc.h"
+#include "bacnet/basic/object/lsp.h"
+#include "bacnet/basic/object/lsz.h"
 #include "bacnet/basic/object/ms-input.h"
 #include "bacnet/basic/object/mso.h"
 #include "bacnet/basic/object/msv.h"
+#include "bacnet/basic/object/schedule.h"
+#include "bacnet/basic/object/structured_view.h"
+#include "bacnet/basic/object/trendlog.h"
+#if defined(INTRINSIC_REPORTING)
+#include "bacnet/basic/object/nc.h"
+#endif /* defined(INTRINSIC_REPORTING) */
+#if defined(BACFILE)
+#include "bacnet/basic/object/bacfile.h"
+#endif /* defined(BACFILE) */
+#if (BACNET_PROTOCOL_REVISION >= 10)
+#include "bacnet/basic/object/bitstring_value.h"
+#include "bacnet/basic/object/csv.h"
+#include "bacnet/basic/object/iv.h"
+#include "bacnet/basic/object/osv.h"
+#include "bacnet/basic/object/piv.h"
+#include "bacnet/basic/object/time_value.h"
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 14)
+#include "bacnet/basic/object/channel.h"
+#include "bacnet/basic/object/lo.h"
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 16)
+#include "bacnet/basic/object/blo.h"
+#endif
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+#include "bacnet/basic/object/color_object.h"
+#include "bacnet/basic/object/color_temperature.h"
+#endif
 #include "bacnet/basic/object/device.h"
+
+#ifdef CONFIG_BACNET_BASIC_DEVICE_OBJECT_VERSION
+#define BACNET_DEVICE_VERSION CONFIG_BACNET_BASIC_DEVICE_OBJECT_VERSION
+#else
+#define BACNET_DEVICE_VERSION "1.0.0"
+#endif
+
+#ifdef CONFIG_BACNET_BASIC_DEVICE_OBJECT_NAME
+#define BACNET_DEVICE_OBJECT_NAME CONFIG_BACNET_BASIC_DEVICE_OBJECT_NAME
+#else
+#define BACNET_DEVICE_OBJECT_NAME "BACnet Basic Device"
+#endif
+
+#ifdef CONFIG_BACNET_BASIC_DEVICE_DESCRIPTION
+#define BACNET_DEVICE_DESCRIPTION CONFIG_BACNET_BASIC_DEVICE_DESCRIPTION
+#else
+#define BACNET_DEVICE_DESCRIPTION "BACnet Basic Server Device"
+#endif
+
+#ifdef CONFIG_BACNET_BASIC_DEVICE_MODEL_NAME
+#define BACNET_DEVICE_MODEL_NAME CONFIG_BACNET_BASIC_DEVICE_MODEL_NAME
+#else
+#define BACNET_DEVICE_MODEL_NAME "GNU Basic Server Model 42"
+#endif
 
 static object_functions_t Object_Table[] = { 
     { OBJECT_DEVICE, NULL, /* don't init - recursive! */
@@ -161,6 +219,115 @@ static object_functions_t Object_Table[] = {
 #warning "Network Port is configured, but BACnet Protocol Revision < 17"
 #endif
 #endif
+#if defined (CONFIG_BACNET_BASIC_OBJECT_CALENDAR)
+    { OBJECT_CALENDAR, Calendar_Init, Calendar_Count,
+        Calendar_Index_To_Instance, Calendar_Valid_Instance,
+        Calendar_Object_Name, Calendar_Read_Property,
+        Calendar_Write_Property, Calendar_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Calendar_Create, Calendar_Delete, NULL /* Timer */ },
+        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+#endif
+#if defined (CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_POINT)
+    { OBJECT_LIFE_SAFETY_POINT, Life_Safety_Point_Init, Life_Safety_Point_Count,
+        Life_Safety_Point_Index_To_Instance, Life_Safety_Point_Valid_Instance,
+        Life_Safety_Point_Object_Name, Life_Safety_Point_Read_Property,
+        Life_Safety_Point_Write_Property, Life_Safety_Point_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Life_Safety_Point_Create, Life_Safety_Point_Delete, NULL /* Timer */ },
+#endif
+#if defined (CONFIG_BACNET_BASIC_OBJECT_LIFE_SAFETY_ZONE)
+    { OBJECT_LIFE_SAFETY_ZONE, Life_Safety_Zone_Init, Life_Safety_Zone_Count,
+        Life_Safety_Zone_Index_To_Instance, Life_Safety_Zone_Valid_Instance,
+        Life_Safety_Zone_Object_Name, Life_Safety_Zone_Read_Property,
+        Life_Safety_Zone_Write_Property, Life_Safety_Zone_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Life_Safety_Zone_Create, Life_Safety_Zone_Delete, NULL /* Timer */ },
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 14)
+#if defined (CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT)
+    { OBJECT_LIGHTING_OUTPUT, Lighting_Output_Init, Lighting_Output_Count,
+        Lighting_Output_Index_To_Instance, Lighting_Output_Valid_Instance,
+        Lighting_Output_Object_Name, Lighting_Output_Read_Property,
+        Lighting_Output_Write_Property, Lighting_Output_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Lighting_Output_Create, Lighting_Output_Delete, Lighting_Output_Timer },
+#endif
+#endif
+#if defined (CONFIG_BACNET_BASIC_OBJECT_CHANNEL)
+    { OBJECT_CHANNEL, Channel_Init, Channel_Count, Channel_Index_To_Instance,
+        Channel_Valid_Instance, Channel_Object_Name, Channel_Read_Property,
+        Channel_Write_Property, Channel_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Channel_Create, Channel_Delete, NULL /* Timer */ },
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 16)
+#if defined (CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT)
+    { OBJECT_BINARY_LIGHTING_OUTPUT, Binary_Lighting_Output_Init,
+        Binary_Lighting_Output_Count, Binary_Lighting_Output_Index_To_Instance,
+        Binary_Lighting_Output_Valid_Instance,
+        Binary_Lighting_Output_Object_Name,
+        Binary_Lighting_Output_Read_Property,
+        Binary_Lighting_Output_Write_Property,
+        Binary_Lighting_Output_Property_Lists, NULL /* ReadRangeInfo */,
+        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
+        NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Binary_Lighting_Output_Create, Binary_Lighting_Output_Delete,
+        Binary_Lighting_Output_Timer },
+#endif
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+#if defined (CONFIG_BACNET_BASIC_OBJECT_COLOR)
+    { OBJECT_COLOR, Color_Init, Color_Count, Color_Index_To_Instance,
+        Color_Valid_Instance, Color_Object_Name, Color_Read_Property,
+        Color_Write_Property, Color_Property_Lists, NULL /* ReadRangeInfo */,
+        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
+        NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Color_Create, Color_Delete, Color_Timer },
+#endif
+#if defined (CONFIG_BACNET_BASIC_OBJECT_COLOR_TEMPERATURE)
+    { OBJECT_COLOR_TEMPERATURE, Color_Temperature_Init, Color_Temperature_Count,
+        Color_Temperature_Index_To_Instance, Color_Temperature_Valid_Instance,
+        Color_Temperature_Object_Name, Color_Temperature_Read_Property,
+        Color_Temperature_Write_Property, Color_Temperature_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Color_Temperature_Create, Color_Temperature_Delete,
+        Color_Temperature_Timer },
+#endif
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_FILE)
+    { OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
+        bacfile_valid_instance, bacfile_object_name, bacfile_read_property,
+        bacfile_write_property, BACfile_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        bacfile_create, bacfile_delete, NULL /* Timer */ },
+#endif
+#if defined (CONFIG_BACNET_BASIC_OBJECT_STRUCTURED_VIEW)
+    { OBJECT_STRUCTURED_VIEW, Structured_View_Init, Structured_View_Count,
+        Structured_View_Index_To_Instance, Structured_View_Valid_Instance,
+        Structured_View_Object_Name, Structured_View_Read_Property,
+        NULL /* Write_Property */, Structured_View_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */,  NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Structured_View_Create, Structured_View_Delete, NULL /* Timer */ },
+#endif
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,
@@ -172,14 +339,13 @@ static object_functions_t Object_Table[] = {
 };
 
 /* local data */
-static const char *Application_Software_Version = 
-    CONFIG_BACNET_BASIC_DEVICE_OBJECT_VERSION;
+static const char *Application_Software_Version = BACNET_DEVICE_VERSION;
 static uint32_t Object_Instance_Number = BACNET_MAX_INSTANCE;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static BACNET_CHARACTER_STRING My_Object_Name;
-static const char *Device_Name_Default = "Basic Device";
-static const char *Device_Description_Default = "BACnet Basic Device";
-static const char *Model_Name = "Basic Device";
+static const char *Device_Name_Default = BACNET_DEVICE_OBJECT_NAME;
+static const char *Device_Description_Default = BACNET_DEVICE_DESCRIPTION;
+static const char *Model_Name = BACNET_DEVICE_MODEL_NAME;
 static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static BACNET_CHARACTER_STRING Reinit_Password;

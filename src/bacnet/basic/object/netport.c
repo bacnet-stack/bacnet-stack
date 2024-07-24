@@ -2824,6 +2824,7 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
     return status;
 }
 
+#if (BBMD_CLIENT_ENABLED) && defined(BACAPP_HOST_N_PORT)
 /**
  * @brief Write the FD BBMD Address
  * @param object_instance [in] BACnet network port object instance number
@@ -2971,6 +2972,7 @@ static bool Network_Port_FD_Subscription_Lifetime_Write(
 
     return status;
 }
+#endif
 
 /**
  * For a given object instance-number, gets the MS/TP Max_Info_Frames value
@@ -3510,6 +3512,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 #if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
+#if defined(BACAPP_HOST_N_PORT)
             if (write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_HOST_N_PORT)) {
                 status = Network_Port_FD_BBMD_Address_Write(
@@ -3519,6 +3522,10 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
+#else
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+#endif
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
             if (write_property_type_valid(
