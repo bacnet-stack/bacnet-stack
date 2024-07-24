@@ -1625,6 +1625,7 @@ int bacapp_snprintf_shift(int len, char **buf, size_t *buf_size)
  * @param str - destination string, or NULL for length only
  * @param str_len - length of the destination string, or 0 for length only
  * @param property - property identifier
+ * @return number of characters written
  */
 static int bacapp_snprintf_property_identifier(
     char *str,
@@ -1648,8 +1649,6 @@ static int bacapp_snprintf_property_identifier(
  * @brief Print an null value to a string for EPICS
  * @param str - destination string, or NULL for length only
  * @param str_len - length of the destination string, or 0 for length only
- * @param property - object property identifier
- * @param value - enumerated value to print
  * @return number of characters written
  */
 static int bacapp_snprintf_null(
@@ -1751,6 +1750,7 @@ static int bacapp_snprintf_double(
  * @brief Print an enumerated value to a string for EPICS
  * @param str - destination string, or NULL for length only
  * @param str_len - length of the destination string, or 0 for length only
+ * @param object_type - object type identifier
  * @param property - object property identifier
  * @param value - enumerated value to print
  * @return number of characters written
@@ -1946,15 +1946,11 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
 
 #if defined(BACAPP_OBJECT_ID) || defined(BACAPP_DEVICE_OBJECT_REFERENCE)
 /**
- * @brief Print a time value to a string for EPICS
+ * @brief Print a value to a string for EPICS
  * @param str - destination string, or NULL for length only
  * @param str_len - length of the destination string, or 0 for length only
- * @param btime - date value to print
+ * @param value - value to print
  * @return number of characters written
- * @note 135.1-4.4 Notational Rules for Parameter Values
- * (k) times are represented as hours, minutes, seconds, hundredths
- *     in the format hh:mm:ss.xx: 2:05:44.00, 16:54:59.99.
- *     Any "wild card" field is shown by an asterisk (X'2A'): 16:54:*.*;
  */
 static int bacapp_snprintf_object_id(char *str, size_t str_len, 
     BACNET_OBJECT_ID *object_id)
@@ -1988,13 +1984,103 @@ static int bacapp_snprintf_object_id(char *str, size_t str_len,
 }
 #endif
 
+#if defined(BACAPP_DATERANGE) || defined(BACAPP_CALENDAR_ENTRY)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_daterange(
+    char *str, 
+    size_t str_len, 
+    BACNET_DATE_RANGE *value)
+{
+    int ret_val = 0;
+    int slen = 0;
+
+    slen = snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf_date(
+        str, str_len, &value->startdate);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = snprintf(str, str_len, "..");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf_date(
+        str, str_len, &value->enddate);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    ret_val += snprintf(str, str_len, "}");
+
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_SPECIAL_EVENT) || defined(BACAPP_CALENDAR_ENTRY)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ * (j) dates are represented enclosed in parenthesis:
+ *     (Monday, 24-January-1998).
+ *     Any "wild card" or unspecified field is shown by an asterisk (X'2A'):
+ *     (Monday, *-January-1998).
+ *     The omission of day of week implies that the day is unspecified:
+ *     (24-January-1998);
+ */
+static int bacapp_snprintf_weeknday(
+    char *str, 
+    size_t str_len, 
+    BACNET_WEEKNDAY *value)
+{
+    int ret_val = 0;
+    int slen = 0;
+
+    slen = snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    /* 1=Jan 13=odd 14=even FF=any */
+    if (value->month == 255) {
+        slen = snprintf(str, str_len, "*, ");
+    } else if (value->month == 13) {
+        slen = snprintf(str, str_len, "odd, ");
+    } else if (value->month == 14) {
+        slen = snprintf(str, str_len, "even, ");
+    } else {
+        slen = snprintf(str, str_len, "%u, ", (unsigned)value->month);
+    }
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    /* 1=days 1-7, 2=days 8-14, 3=days 15-21, 4=days 22-28,
+       5=days 29-31, 6=last 7 days, FF=any week */
+    if (value->weekofmonth == 255) {
+        slen = snprintf(str, str_len, "*, ");
+    } else if (value->weekofmonth == 6) {
+        slen = snprintf(str, str_len, "last, ");
+    } else {
+        slen = snprintf(str, str_len, "%u, ", (unsigned)value->weekofmonth);
+    }
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    /* 1=Monday-7=Sunday, FF=any */
+    if (value->dayofweek == 255) {
+        slen = snprintf(str, str_len, "*");
+    } else {
+        slen = snprintf(str, str_len, "%s", 
+        bactext_day_of_week_name(value->dayofweek));
+    }
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    ret_val += snprintf(str, str_len, "}");
+
+    return ret_val;
+}
+#endif
+
 #if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
 /**
  * @brief Print a BACnetDeviceObjectPropertyReference for EPICS
  * @param str - destination string, or NULL for length only
  * @param str_len - length of the destination string, or 0 for length only
- * @param ws - weekly schedule value to print
- * @param arrayIndex - index of the weekly schedule to print
+ * @param value - value to print
  * @return number of characters written
  */
 static int bacapp_snprintf_device_object_property_reference(
@@ -2019,12 +2105,95 @@ static int bacapp_snprintf_device_object_property_reference(
     slen = snprintf(str, str_len, ",");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* property-array-index    [2] Unsigned OPTIONAL,*/
-    slen = snprintf(str, str_len, "%lu", (unsigned long)value->arrayIndex);
+    if (value->arrayIndex == BACNET_ARRAY_ALL) {
+        slen = snprintf(str, str_len, "-1");
+    } else {
+        slen = snprintf(str, str_len, "%lu", (unsigned long)value->arrayIndex);
+    }
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = snprintf(str, str_len, ",");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* device-identifier       [3] BACnetObjectIdentifier OPTIONAL */
     slen = bacapp_snprintf_object_id(str, str_len, &value->deviceIdentifier);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    ret_val += snprintf(str, str_len, "}");
+
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
+/**
+ * @brief Print a BACnetDeviceObjectReference for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_device_object_reference(
+    char *str,
+    size_t str_len,
+    BACNET_DEVICE_OBJECT_REFERENCE *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    /* BACnetDeviceObjectReference */
+    slen = snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    if (value->deviceIdentifier.type == OBJECT_DEVICE) {
+        slen = bacapp_snprintf_object_id(str, str_len, 
+            &value->deviceIdentifier);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = snprintf(str, str_len, ",");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
+    slen = bacapp_snprintf_object_id(str, str_len, 
+        &value->objectIdentifier);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = snprintf(str, str_len, "}");
+    ret_val += slen;
+
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
+/**
+ * @brief Print a BACnetObjectPropertyReference for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_object_property_reference(
+    char *str,
+    size_t str_len,
+    BACNET_OBJECT_PROPERTY_REFERENCE *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    slen = snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    if (value->object_identifier.type != OBJECT_NONE) {
+        /* object-identifier [0] BACnetObjectIdentifier */
+        slen = bacapp_snprintf_object_id(
+            str, str_len, &value->object_identifier);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = snprintf(str, str_len, ",");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
+    /* property-identifier [1] BACnetPropertyIdentifier */
+    slen = bacapp_snprintf_property_identifier(
+        str, str_len, value->property_identifier);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    if (value->property_array_index != BACNET_ARRAY_ALL) {
+        /* property-array-index [2] Unsigned OPTIONAL */
+        slen = snprintf(str, str_len, ", %lu",
+            (unsigned long)value->property_array_index);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     ret_val += snprintf(str, str_len, "}");
 
@@ -2121,6 +2290,252 @@ static int bacapp_snprintf_weeklyschedule(
 }
 #endif
 
+#if defined(BACAPP_HOST_N_PORT)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_host_n_port(
+    char *str,
+    size_t str_len,
+    BACNET_HOST_N_PORT *value)
+{
+    int slen, len, i;
+    char *char_str;
+    int ret_val = 0;
+
+    slen = snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    if (value->host_ip_address) {
+        uint8_t *octet_str;
+        octet_str = octetstring_value(
+            &value->host.ip_address);
+        slen = snprintf(
+            str, str_len, "%u.%u.%u.%u:%u", (unsigned)octet_str[0],
+            (unsigned)octet_str[1], (unsigned)octet_str[2],
+            (unsigned)octet_str[3],
+            (unsigned)value->port);
+        ret_val += slen;
+    } else if (value->host_name) {
+        BACNET_CHARACTER_STRING *name;
+        name = &value->host.name;
+        len = characterstring_length(name);
+        char_str = characterstring_value(name);
+        slen = snprintf(str, str_len, "\"");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        for (i = 0; i < len; i++) {
+            if (isprint(*((unsigned char *)char_str))) {
+                slen = snprintf(str, str_len, "%c", *char_str);
+            } else {
+                slen = snprintf(str, str_len, "%c", '.');
+            }
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+            char_str++;
+        }
+        slen = snprintf(str, str_len, "\"");
+        ret_val += slen;
+    }
+    slen = snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_SPECIAL_EVENT) || defined(BACAPP_CALENDAR_ENTRY)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_calendar_entry(
+    char *str,
+    size_t str_len,
+    BACNET_CALENDAR_ENTRY *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    slen = snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    switch (value->tag) {
+        case BACNET_CALENDAR_DATE:
+            slen = bacapp_snprintf_date(str, str_len, &value->type.Date);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+            break;
+        case BACNET_CALENDAR_DATE_RANGE:
+            slen = bacapp_snprintf_daterange(str, str_len, 
+                &value->type.DateRange);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+            break;
+        case BACNET_CALENDAR_WEEK_N_DAY:
+            slen = bacapp_snprintf_weeknday(str, str_len, 
+                &value->type.WeekNDay);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+           break;
+        default:
+            /* do nothing */
+            break;
+    }
+    slen = snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_SPECIAL_EVENT)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_primitive_data_value(
+    char *str,
+    size_t str_len,
+    BACNET_PRIMITIVE_DATA_VALUE *value)
+{
+    int ret_val = 0;
+
+    switch (value->tag) {
+#if defined(BACAPP_NULL)
+        case BACNET_APPLICATION_TAG_NULL:
+            ret_val = bacapp_snprintf_null(str, str_len);
+            break;
+#endif
+#if defined (BACAPP_BOOLEAN)
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            ret_val = bacapp_snprintf_boolean(str, str_len, value->type.Boolean);
+            break;
+#endif
+#if defined (BACAPP_UNSIGNED)
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            ret_val = bacapp_snprintf_unsigned_integer(
+                str, str_len, value->type.Unsigned_Int);
+            break;
+#endif
+#if defined (BACAPP_SIGNED)
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            ret_val = bacapp_snprintf_signed_integer(
+                str, str_len, value->type.Signed_Int);
+            break;
+#endif
+#if defined (BACAPP_REAL)
+        case BACNET_APPLICATION_TAG_REAL:
+            ret_val = bacapp_snprintf_real(str, str_len, value->type.Real);
+            break;
+#endif
+#if defined (BACAPP_DOUBLE)
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            ret_val = bacapp_snprintf_double(str, str_len, value->type.Double);
+            break;
+#endif
+#if defined (BACAPP_ENUMERATED)
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            ret_val = bacapp_snprintf_enumerated(
+                str, str_len, OBJECT_COMMAND, PROP_ACTION,
+                value->type.Enumerated);
+            break;
+#endif
+        case BACNET_APPLICATION_TAG_EMPTYLIST:
+            break;
+        default:
+            break;
+    }
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_SPECIAL_EVENT)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param ws - value to print
+ * @param arrayIndex - index of the to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_daily_schedule(
+    char *str,
+    size_t str_len,
+    BACNET_DAILY_SCHEDULE *value)
+{
+    int slen;
+    int ret_val = 0;
+    uint16_t i; 
+
+    slen = snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    for (i = 0; i < value->TV_Count; i++) {
+        if (i != 0) {
+            slen = snprintf(str, str_len, ", ");
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        }
+        slen = bacapp_snprintf_time(str, str_len, &value->Time_Values[i].Time);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = snprintf(str, str_len, ",");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = bacapp_snprintf_primitive_data_value(str, str_len, 
+            &value->Time_Values[i].Value);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
+    slen = snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_SPECIAL_EVENT)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param ws - value to print
+ * @param arrayIndex - index of the to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_special_event(
+    char *str,
+    size_t str_len,
+    BACNET_SPECIAL_EVENT *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    slen = snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    switch (value->periodTag) {
+        case BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY:
+            slen = bacapp_snprintf_calendar_entry(
+                str, str_len, &value->period.calendarEntry);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+            break;
+        case BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE:
+            slen = bacapp_snprintf_object_id(
+                str, str_len, &value->period.calendarReference);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+            break;
+        default:
+            break;
+    }
+    slen = bacapp_snprintf_daily_schedule(
+        str, str_len, &value->timeValues);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
+}
+#endif
+
 #if defined(BACAPP_ACTION_COMMAND)
 /**
  * @brief Print a weekly schedule value to a string for EPICS
@@ -2188,11 +2603,10 @@ static int bacapp_snprintf_action_property_value(
 #endif
 
 /**
- * @brief Print a weekly schedule value to a string for EPICS
+ * @brief Print a value to a string for EPICS
  * @param str - destination string, or NULL for length only
  * @param str_len - length of the destination string, or 0 for length only
- * @param ws - weekly schedule value to print
- * @param arrayIndex - index of the weekly schedule to print
+ * @param value - value to print
  * @return number of characters written
  */
 static int bacapp_snprintf_action_command(
@@ -2222,10 +2636,12 @@ static int bacapp_snprintf_action_command(
     slen = snprintf(str, str_len, ",");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* propertyArrayIndex [3] Unsigned OPTIONAL */
-    slen = snprintf(str, str_len, "%lu", 
-        (unsigned long)value->Property_Array_Index);
-    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    slen = snprintf(str, str_len, ",");
+    if (value->Property_Array_Index == BACNET_ARRAY_ALL) {
+        slen = snprintf(str, str_len, "-1,");
+    } else {
+        slen = snprintf(str, str_len, "%lu,",
+            (unsigned long)value->Property_Array_Index);
+    }
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* propertyValue [4] ABSTRACT-SYNTAX.&Type */
     slen = bacapp_snprintf_action_property_value(
@@ -2251,7 +2667,7 @@ static int bacapp_snprintf_action_command(
     /* writeSuccessful [8] BOOLEAN */
     slen = bacapp_snprintf_boolean(str, str_len, value->Write_Successful);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    slen = snprintf(str, str_len, ",");
+    slen = snprintf(str, str_len, "}");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
@@ -2426,18 +2842,6 @@ int bacapp_snprintf_value(
                     &value->type.Object_Id);
                 break;
 #endif
-#if defined(BACAPP_DATERANGE)
-            case BACNET_APPLICATION_TAG_DATERANGE:
-                slen = bacapp_snprintf_date(
-                    str, str_len, &value->type.Date_Range.startdate);
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                slen = snprintf(str, str_len, "..");
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                slen = bacapp_snprintf_date(
-                    str, str_len, &value->type.Date_Range.enddate);
-                ret_val += slen;
-                break;
-#endif
 #if defined(BACAPP_TIMESTAMP)
             case BACNET_APPLICATION_TAG_TIMESTAMP:
                 slen = bacapp_timestamp_to_ascii(
@@ -2455,6 +2859,12 @@ int bacapp_snprintf_value(
                 slen = bacapp_snprintf_time(
                     str, str_len, &value->type.Date_Time.time);
                 ret_val += slen;
+                break;
+#endif
+#if defined(BACAPP_DATERANGE)
+            case BACNET_APPLICATION_TAG_DATERANGE:
+                ret_val = bacapp_snprintf_daterange(
+                    str, str_len, &value->type.Date_Range);
                 break;
 #endif
 #if defined(BACAPP_LIGHTING_COMMAND)
@@ -2493,50 +2903,28 @@ int bacapp_snprintf_value(
                     object_value->array_index);
                 break;
 #endif
-#if defined(BACAPP_SPECIAL_EVENT)
-            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
-                /* FIXME: add printing for BACnetSpecialEvent */
-                ret_val = snprintf(str, str_len, "SpecialEvent(TODO)");
-                break;
-#endif
-#if defined(BACAPP_CALENDAR_ENTRY)
-            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
-                /* FIXME: add printing for BACnetCalendarEntry */
-                ret_val = snprintf(str, str_len, "CalendarEntry(TODO)");
-                break;
-#endif
 #if defined(BACAPP_HOST_N_PORT)
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
-                /* BACnetHostNPort */
-                if (value->type.Host_Address.host_ip_address) {
-                    uint8_t *octet_str;
-                    octet_str = octetstring_value(
-                        &value->type.Host_Address.host.ip_address);
-                    slen = snprintf(
-                        str, str_len, "%u.%u.%u.%u:%u", (unsigned)octet_str[0],
-                        (unsigned)octet_str[1], (unsigned)octet_str[2],
-                        (unsigned)octet_str[3],
-                        (unsigned)value->type.Host_Address.port);
-                    ret_val += slen;
-                } else if (value->type.Host_Address.host_name) {
-                    BACNET_CHARACTER_STRING *name;
-                    name = &value->type.Host_Address.host.name;
-                    len = characterstring_length(name);
-                    char_str = characterstring_value(name);
-                    slen = snprintf(str, str_len, "\"");
-                    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                    for (i = 0; i < len; i++) {
-                        if (isprint(*((unsigned char *)char_str))) {
-                            slen = snprintf(str, str_len, "%c", *char_str);
-                        } else {
-                            slen = snprintf(str, str_len, "%c", '.');
-                        }
-                        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                        char_str++;
-                    }
-                    slen = snprintf(str, str_len, "\"");
-                    ret_val += slen;
-                }
+                ret_val = bacapp_snprintf_host_n_port(str, str_len,
+                    &value->type.Host_Address);
+                break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
+                ret_val = bacapp_snprintf_device_object_property_reference(
+                    str, str_len, &value->type.Device_Object_Property_Reference);
+                break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
+                ret_val = bacapp_snprintf_device_object_reference(
+                    str, str_len, &value->type.Device_Object_Reference);
+                break;
+#endif
+#if defined (BACAPP_OBJECT_PROPERTY_REFERENCE)
+            case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
+                ret_val = bacapp_snprintf_object_property_reference(
+                    str, str_len, &value->type.Object_Property_Reference);
                 break;
 #endif
 #if defined(BACAPP_DESTINATION)
@@ -2545,16 +2933,38 @@ int bacapp_snprintf_value(
                     &value->type.Destination, str, str_len);
                 break;
 #endif
+#if defined(BACAPP_CALENDAR_ENTRY)
+            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
+                ret_val = bacapp_snprintf_calendar_entry(str, str_len, 
+                    &value->type.Calendar_Entry);
+                break;
+#endif
+#if defined(BACAPP_SPECIAL_EVENT)
+            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
+                ret_val = bacapp_snprintf_special_event(str, str_len, 
+                    &value->type.Special_Event);
+                break;
+#endif
 #if defined(BACAPP_BDT_ENTRY)
             case BACNET_APPLICATION_TAG_BDT_ENTRY:
-                ret_val = bacnet_bdt_entry_to_ascii(
+                slen = snprintf(str, str_len, "{");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = bacnet_bdt_entry_to_ascii(
                     str, str_len, &value->type.BDT_Entry);
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = snprintf(str, str_len, "}");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 break;
 #endif
 #if defined(BACAPP_FDT_ENTRY)
             case BACNET_APPLICATION_TAG_FDT_ENTRY:
-                ret_val = bacnet_fdt_entry_to_ascii(
+                slen = snprintf(str, str_len, "{");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = bacnet_fdt_entry_to_ascii(
                     str, str_len, &value->type.FDT_Entry);
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = snprintf(str, str_len, "}");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 break;
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
@@ -2572,29 +2982,6 @@ int bacapp_snprintf_value(
                     ret_val = snprintf(str, str_len, "%ld",
                         (long)value->type.Scale.type.integer_scale);
                 }
-                break;
-#endif
-#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
-            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
-                ret_val = bacapp_snprintf_device_object_property_reference(
-                    str, str_len, &value->type.Device_Object_Property_Reference);
-                break;
-#endif
-#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
-            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
-                /* BACnetDeviceObjectReference */
-                slen = snprintf(str, str_len, "{");
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                slen = bacapp_snprintf_object_id(str, str_len, 
-                    &value->type.Device_Object_Reference.deviceIdentifier);
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                slen = snprintf(str, str_len, ",");
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                slen = bacapp_snprintf_object_id(str, str_len, 
-                    &value->type.Device_Object_Reference.objectIdentifier);
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                slen = snprintf(str, str_len, "}");
-                ret_val += slen;
                 break;
 #endif
             default:
