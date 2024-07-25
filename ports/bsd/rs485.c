@@ -50,6 +50,7 @@
 /* Linux includes */
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/utsname.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -70,12 +71,12 @@
 #include <sys/select.h>
 #include <sys/time.h>
 
-#include "dlmstp_linux.h"
+#include "dlmstp_bsd.h"
 
 /*macOS-darwin includes*/
 #include <IOKit/serial/ioss.h>
 
-/* Posix serial programming reference-added by skarg. Link pdated by mpo 03/2024:
+/* Posix serial programming reference-added by skarg below. Link updated by mpo 03/2024:
 https://www.msweet.org/serial/serial.html */
 
 /* Use ionice wrapper to improve serial performance:
@@ -85,11 +86,23 @@ https://www.msweet.org/serial/serial.html */
 
 /* handle returned from open() */
 static int RS485_Handle = -1;
-/* baudrate settings are defined in <asm/termbits.h>, which is
-   included by <termios.h> */
+/* baudrate settings are defined in <asm/termbits.h>, 
+  which is included by <termios.h> 
+  Instead of being an int enum which would be bad/brittle enough,
+  they are #defines where the string label resolves to low consecutive
+  ordinals depending on the platform
+  e.g. on ESP, which doesn't appear to have native 76800 support:
+  #define B38400     15
+  #define B115200    17
+  vs. Apple/Darwin's /usr/include/sys/termios.h:
+  #define B76800  76800
+  #define B115200 115200
+  Anyways, a brittle, platform dependent way to have people thinking the underlying int
+  might be the actual baud rate in bps.
+  */
 static unsigned int RS485_Baud = B115200;
 
-// On macOS the serial ports will be named something like
+// On macOS/Darwin the serial ports will be named something like
 // /dev/cu.usbserial-xxxx
 static char *RS485_Port_Name= "/dev/cu.usbserial-7";
 
@@ -216,6 +229,11 @@ uint32_t RS485_Get_Baud_Rate(void)
         case B57600:
             baud = 57600;
             break;
+#ifdef B76800
+	 	case B76800:
+	 		baud = 76800;
+	 		break;
+#endif
         case B115200:
             baud = 115200;
             break;
@@ -225,7 +243,6 @@ uint32_t RS485_Get_Baud_Rate(void)
         default:
             baud = 9600;
     }
-
     return baud;
 }
 
@@ -372,8 +389,13 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
             RS485_Baud = B57600;
             break;
         case 76800:
-            RS485_Baud = B38400;
-            RS485_SpecBaud = true;
+#ifdef B76800
+	 		RS485_Baud = B76800;
+#else
+	 		RS485_Baud = B38400;
+     		RS485_SpecBaud = true;
+#endif
+           
             break;
         case 115200:
             RS485_Baud = B115200;
@@ -556,7 +578,7 @@ void RS485_Cleanup(void)
     closeSerialPort(RS485_Handle);
 }
 
-/*Try to be POSIX-ish. Adapting from 
+/*Trying to be POSIX-ish. Adapting from 
 https://github.com/stephane/libmodbus/blob/master/src/modbus-rtu.c*/
 void RS485_Initialize(void)
 {
@@ -570,14 +592,23 @@ void RS485_Print_Ports(void)
 {
     int n;
     struct dirent **namelist;
-    const char *sysdir = "/sys/class/tty/";
+    const char* sysdir = "/sys/class/tty/";
     struct stat st;
     char buffer[1024];
     char device_dir[1024];
     char *driver_name = NULL;
     int fd = 0;
     bool valid_port = false;
-
+	struct utsname unameData;
+	bool macOS = false;
+    if (uname(&unameData) < 0) {
+       perror("uname");
+       exit(EXIT_FAILURE);
+    }
+    if(strcmp(unameData.sysname,"Darwin") == 0){
+    	macOS = true;
+    	sysdir = "/dev/";
+    }
     /* Scan through /sys/class/tty -
        it contains all tty-devices in the system */
     n = scandir(sysdir, &namelist, NULL, NULL);
@@ -585,8 +616,20 @@ void RS485_Print_Ports(void)
         perror("RS485: scandir");
     } else {
         while (n--) {
-            if (strcmp(namelist[n]->d_name, "..") &&
-                strcmp(namelist[n]->d_name, ".")) {
+        if (strcmp(namelist[n]->d_name, "..") &&
+                	strcmp(namelist[n]->d_name, ".")) {
+        	if(macOS){
+                	if(strncmp(namelist[n]->d_name, "cu.",3) == 0){
+                	    printf("%s%s\n", sysdir, namelist[n]->d_name);
+                	    valid_port = true;
+                	    if (valid_port) {
+                	        /* print full absolute file path */
+                            printf("interface {value=/dev/%s}"
+                                "{display=MS/TP Capture on /dev/%s}\n",
+                                namelist[n]->d_name, namelist[n]->d_name);
+                        }
+                	}
+        	}else{
                 snprintf(device_dir, sizeof(device_dir), "%s%s/device", sysdir,
                     namelist[n]->d_name);
                 /* Stat the devicedir and handle it if it is a symlink */
@@ -620,6 +663,7 @@ void RS485_Print_Ports(void)
                 }
             }
             free(namelist[n]);
+        }
         }
         free(namelist);
     }
@@ -693,7 +737,7 @@ static int openSerialPort(const char* const bsdPath)
     options.c_cc[VTIME] = 10;
     
     // The baud rate, word length, and handshake options can be set as follows:
-    cfsetspeed(&options, B115200);		// Set 115200 baud
+    cfsetspeed(&options, RS485_Baud);		// Set 115200 baud
     options.c_cflag &= ~PARENB;         // No Parity
 	options.c_cflag &= ~CSTOPB;     	// 1 Stop Bit
 	options.c_cflag &= ~CSIZE;
@@ -703,14 +747,14 @@ static int openSerialPort(const char* const bsdPath)
 	// ultimately determines which baud rates can be used. This ioctl sets both the input
 	// and output speed.
 	
-	speed_t speed = 115200; // Set 115200 baud
+	speed_t speed = RS485_Get_Baud_Rate();//
     if (ioctl(fileDescriptor, IOSSIOSPEED, &speed) == -1) {
         printf("Error calling ioctl(..., IOSSIOSPEED, ...) %s - %s(%d).\n",
                bsdPath, strerror(errno), errno);
     }
     
     // Print the new input and output baud rates. Note that the IOSSIOSPEED ioctl interacts with the serial driver
-	// directly bypassing the termios struct. This means that the following two calls will not be able to read
+	// directly, bypassing the termios struct. This means that the following two calls will not be able to read
 	// the current baud rate if the IOSSIOSPEED ioctl was used but will instead return the speed set by the last call
 	// to cfsetspeed.
     

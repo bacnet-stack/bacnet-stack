@@ -55,15 +55,12 @@ TARGET_BIN = ${TARGET}$(TARGET_EXT)
 OBJS += ${SRCS:.c=.o}
 
 .PHONY: all
-all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
+all: Makefile ${TARGET_BIN}
 
-${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
+${TARGET_BIN}: ${OBJS} Makefile
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 	size $@
 	cp $@ ../../bin
-
-${BACNET_LIB_TARGET}:
-	( cd ${BACNET_LIB_DIR} ; $(MAKE) clean ; $(MAKE) -s )
 	
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@

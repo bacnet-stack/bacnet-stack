@@ -21,11 +21,10 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *********************************************************************/
-#ifndef DLMSTP_LINUX_H
-#define DLMSTP_LINUX_H
+#ifndef DLMSTP_BSD_H
+#define DLMSTP_BSD_H
 
 #include "bacnet/datalink/mstp.h"
-/*#include "bacnet/datalink/dlmstp.h" */
 #include <sys/types.h>
 #include <semaphore.h>
 
@@ -212,4 +211,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /*DLMSTP_LINUX_H */
+#endif /*DLMSTP_BSD_H */
