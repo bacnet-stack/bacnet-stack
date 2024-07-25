@@ -3292,7 +3292,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #endif
 #if (defined(BACDL_ALL) || defined(BACDL_BIP6))
                 case PORT_TYPE_BIP6:
-                  if(Network_Port_BIP_Mode(wp_data->object_instance) == BACNET_IP_MODE_FOREIGN) {
+                  if(Network_Port_BIP6_Mode(wp_data->object_instance) == BACNET_IP_MODE_FOREIGN) {
                     if(value.type.Host_Address.host.ip_address.length == 16) {
                       status =  Network_Port_Remote_BBMD_IP6_Address_Set(
                           wp_data->object_instance,
