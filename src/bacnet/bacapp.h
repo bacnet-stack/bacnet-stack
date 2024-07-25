@@ -330,6 +330,25 @@ extern "C" {
         uint8_t tag_data_type,
         uint32_t len_value_type);
 
+    BACNET_STACK_DEPRECATED("Use bacnet_enclosed_data_length() instead")
+    BACNET_STACK_EXPORT
+    int bacapp_decode_application_data_len(
+        uint8_t * apdu,
+        unsigned max_apdu_len);
+
+    BACNET_STACK_DEPRECATED("Use bacnet_enclosed_data_length() instead")
+    BACNET_STACK_EXPORT
+    int bacapp_decode_context_data_len(
+        uint8_t * apdu,
+        unsigned max_apdu_len,
+        BACNET_PROPERTY_ID property);
+
+    BACNET_STACK_EXPORT
+    int bacapp_snprintf_shift(
+        int len, 
+        char **buf, 
+        size_t *buf_size);        
+
     BACNET_STACK_EXPORT
     int bacapp_snprintf_value(
         char *str,

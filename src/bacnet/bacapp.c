@@ -615,10 +615,10 @@ bool bacapp_decode_application_data_safe(
 
 /**
  * @brief Decode the data to determine the data length
- *  @param apdu  Pointer to the received data.
- *  @param tag_number  Data type to be decoded.
- *  @param len_value_type  Length of the data in bytes.
- *  @return datalength for the given tag, or INT_MAX if out of range.
+ * @param apdu  Pointer to the received data.
+ * @param tag_number  Data type to be decoded.
+ * @param len_value_type  Length of the data in bytes.
+ * @return datalength for the given tag, or INT_MAX if out of range.
  * @deprecated Use bacnet_application_data_length() instead.
  */
 int bacapp_decode_data_len(
@@ -626,6 +626,33 @@ int bacapp_decode_data_len(
 {
     (void)apdu;
     return bacnet_application_data_length(tag_number, len_value_type);
+}
+
+/**
+ * @brief Determine the BACnet Application Data number of APDU bytes consumed
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_size - number of bytes in the buffer
+ * @return  number of bytes decoded, or zero if errors occur
+ * @deprecated Use bacnet_enclosed_data_length() instead.
+ */
+int bacapp_decode_application_data_len(uint8_t *apdu, unsigned apdu_size)
+{
+    int len = 0;
+    int tag_len = 0;
+    int decode_len = 0;
+    BACNET_TAG tag = {0};
+
+    if (!bacnet_is_context_specific(apdu, apdu_size)) {
+        tag_len = bacnet_tag_decode(apdu, apdu_size, &tag);
+        if (tag_len > 0) {
+            len += tag_len;
+            decode_len = bacnet_application_data_length(tag.number, 
+                tag.len_value_type);
+            len += decode_len;
+        }
+    }
+
+    return len;
 }
 
 /**
@@ -1428,6 +1455,32 @@ int bacapp_decode_known_property(
 
     return apdu_len;
 }
+
+#if defined(BACAPP_COMPLEX_TYPES)
+/**
+ * @brief Determine the BACnet Context Data number of APDU bytes consumed
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_len_max - number of bytes in the buffer
+ * @param property - context property identifier
+ * @return  number of bytes decoded, or zero if errors occur
+ * @deprecated use bacnet_enclosed_data_length() instead
+ */
+int bacapp_decode_context_data_len(
+    uint8_t *apdu, unsigned apdu_len_max, BACNET_PROPERTY_ID property)
+{
+    int apdu_len = 0, len = 0;
+    BACNET_TAG tag = { 0 };
+
+    (void)property;
+    len = bacnet_tag_decode(&apdu[0], apdu_len_max, &tag);
+    if ((len > 0) && tag.context) {
+        apdu_len = len;
+        apdu_len += tag.len_value_type;
+    }
+
+    return apdu_len;
+}
+#endif
 
 /**
  * @brief Encode the data and store it into apdu.
