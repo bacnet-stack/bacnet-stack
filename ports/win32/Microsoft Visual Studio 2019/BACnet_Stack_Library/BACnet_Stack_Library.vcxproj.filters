@@ -33,6 +33,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\awf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaction.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\bacaddr.c">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -103,13 +103,17 @@ unsigned Multistate_Value_Instance_To_Index(uint32_t object_instance)
 
 /**
  * @brief Determines the object instance-number for a given 0..N index
- * of Multistate Input objects where N is Multistate_Value_Count().
- * @param  index - 0..Multistate_Value_Count() value
- * @return  object instance-number for the given index
+ * of objects where N is the count.
+ * @param  index - 0..N value
+ * @return  object instance-number for a valid given index, or UINT32_MAX
  */
 uint32_t Multistate_Value_Index_To_Instance(unsigned index)
 {
-    return Keylist_Key(Object_List, index);
+    uint32_t instance = UINT32_MAX;
+
+    (void)Keylist_Index_Key(Object_List, index, &instance);
+
+    return instance;
 }
 
 /**

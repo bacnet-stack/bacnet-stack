@@ -165,6 +165,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/sys/mstimer.c
     # BACnet core library
     ${LIBRARY_BACNET_CORE}/abort.c
+    ${LIBRARY_BACNET_CORE}/bacaction.c
     ${LIBRARY_BACNET_CORE}/bacaddr.c
     ${LIBRARY_BACNET_CORE}/bacapp.c
     ${LIBRARY_BACNET_CORE}/bacdcode.c

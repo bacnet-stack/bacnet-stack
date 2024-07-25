@@ -160,6 +160,8 @@
     defined(BACAPP_DESTINATION) || \
     defined(BACAPP_BDT_ENTRY) || \
     defined(BACAPP_FDT_ENTRY) || \
+    defined(BACAPP_ACTION_COMMAND) || \
+    defined(BACAPP_SCALE) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
@@ -202,6 +204,8 @@
 #define BACAPP_DESTINATION
 #define BACAPP_BDT_ENTRY
 #define BACAPP_FDT_ENTRY
+#define BACAPP_ACTION_COMMAND
+#define BACAPP_SCALE
 #endif
 
 #if defined(BACAPP_DOUBLE) || \
@@ -219,7 +223,9 @@
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DESTINATION) || \
     defined(BACAPP_BDT_ENTRY) || \
-    defined(BACAPP_FDT_ENTRY)
+    defined(BACAPP_FDT_ENTRY) || \
+    defined(BACAPP_ACTION_COMMAND) || \
+    defined(BACAPP_SCALE)
 #define BACAPP_COMPLEX_TYPES
 #endif
 

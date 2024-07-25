@@ -1557,7 +1557,7 @@ typedef enum {
     BACNET_APPLICATION_TAG_RESERVE3 = 15,
     MAX_BACNET_APPLICATION_TAG = 16,
 
-    /* Extra stuff - complex tagged data - not specifically enumerated */
+    /* Complex tagged constructed data types - not specifically enumerated */
 
     /* Means : "nothing", an empty list, not even a null character */
     BACNET_APPLICATION_TAG_EMPTYLIST,
@@ -1602,7 +1602,11 @@ typedef enum {
     /* BACnetBDTEntry */
     BACNET_APPLICATION_TAG_BDT_ENTRY,
     /* BACnetFDTEntry */
-    BACNET_APPLICATION_TAG_FDT_ENTRY
+    BACNET_APPLICATION_TAG_FDT_ENTRY,
+    /* BACnetActionCommand */
+    BACNET_APPLICATION_TAG_ACTION_COMMAND,
+    /* BACnetScale */
+    BACNET_APPLICATION_TAG_SCALE
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */

@@ -49,6 +49,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/sys/days.c
 	${SRC_DIR}/bacnet/timestamp.c
 	# Dependencies of bacapp.c
+	${SRC_DIR}/bacnet/bacaction.c
 	${SRC_DIR}/bacnet/bactext.c
 	${SRC_DIR}/bacnet/indtext.c
 	${SRC_DIR}/bacnet/weeklyschedule.c

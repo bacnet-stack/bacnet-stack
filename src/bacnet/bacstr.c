@@ -6,6 +6,8 @@
  * @date 2004
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -394,6 +396,31 @@ bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
 }
 
 /**
+ * @brief Return the length of a string, within a maximum length
+ * @note The strnlen function is non-standard and not available in 
+ * all libc implementations.  This function is a workaround for that.
+ * @details The strnlen function computes the smaller of the number 
+ * of characters in the array pointed to by s, not including any 
+ * terminating null character, or the value of the maxlen argument. 
+ * The strnlen function examines no more than maxlen bytes of the 
+ * array pointed to by s.
+ * @param s - string to check
+ * @param maxlen - maximum length to check
+ * @return The strnlen function returns the number of bytes that 
+ * precede the first null character in the array pointed to by s, 
+ * if s contains a null character within the first maxlen characters; 
+ * otherwise, it returns maxlen.
+ */
+size_t characterstring_strnlen(const char *str, size_t maxlen)
+{
+    char* p = memchr(str, 0, maxlen);
+    if (p == NULL) {
+        return maxlen;
+    }
+    return (p - str);
+}
+
+/**
  * Initialize a BACnet characater string.
  * Returns false if the string exceeds capacity.
  * Initialize by using value=NULL
@@ -408,7 +435,7 @@ bool characterstring_init_ansi_safe(
     BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax)
 {
     return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
-        value ? bacnet_strnlen(value, tmax) : 0);
+        value ? characterstring_strnlen(value, tmax) : 0);
 }
 
 /**
@@ -1191,44 +1218,3 @@ bool octetstring_value_same(
     return false;
 }
 #endif
-
-/**
- * @brief Compare two strings ignoring case
- * @param s1 - first string
- * @param s2 - second string
- * @return 0 if the strings are equal, otherwise non-zero
-  */
-int bacnet_stricmp(const char *s1, const char *s2)
-{
-    unsigned char c1, c2;
-
-    do {
-        c1 = (unsigned char)*s1;
-        c2 = (unsigned char)*s2;
-        c1 = (unsigned char)tolower(c1);
-        c2 = (unsigned char)tolower(c2);
-        s1++;
-        s2++;
-    } while ((c1 == c2) && (c1 != '\0'));
-
-    return (int)c1 - c2;
-}
-
-/**
- * @brief non-standard strnlen function
- * @param s - string to check
- * @param maxlen - maximum length to check
- * @return length of string, up to maxlen
- */
-size_t bacnet_strnlen(const char *s, size_t maxlen)
-{
-	size_t len;
-
-	for (len = 0; len < maxlen; len++, s++) {
-		if (!*s) {
-			break;
-        }
-	}
-
-	return len;
-}

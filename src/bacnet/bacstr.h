@@ -8,7 +8,6 @@
  */
 #ifndef BACNET_STRING_H
 #define BACNET_STRING_H
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -95,15 +94,21 @@ extern "C" {
         uint8_t encoding,
         const char *value,
         size_t length);
-/* used for ANSI C-Strings */
+    /* used for ANSI C-Strings */
     BACNET_STACK_EXPORT
     bool characterstring_init_ansi(
         BACNET_CHARACTER_STRING * char_string,
         const char *value);
+    BACNET_STACK_EXPORT
+    size_t characterstring_strnlen(
+        const char *str, 
+        size_t maxlen);
+    BACNET_STACK_EXPORT
     bool characterstring_init_ansi_safe(
         BACNET_CHARACTER_STRING * char_string,
         const char *value,
         size_t tmax);
+    BACNET_STACK_EXPORT
     bool characterstring_copy(
         BACNET_CHARACTER_STRING * dest,
         BACNET_CHARACTER_STRING * src);
@@ -214,11 +219,6 @@ extern "C" {
     bool octetstring_value_same(
         BACNET_OCTET_STRING * octet_string1,
         BACNET_OCTET_STRING * octet_string2);
-
-    BACNET_STACK_EXPORT
-    int bacnet_stricmp(const char *s1, const char *s2);
-    BACNET_STACK_EXPORT
-    size_t bacnet_strnlen(const char *s, size_t maxlen);
 
 #ifdef __cplusplus
 }

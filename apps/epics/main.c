@@ -529,7 +529,6 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
     bool print_brace = false;
     KEY object_list_element;
-    bool isSequence = false; /* Ie, will need bracketing braces {} */
 
     if (rpm_property == NULL) {
         fprintf(stdout, "    -- Null Property data \n");
@@ -635,10 +634,6 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
 
                 if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
                     if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(value->tag ==
-                            BACNET_APPLICATION_TAG_OBJECT_ID); /* Something
-                                                                  not right
-                                                                  here */
                         break;
                     }
                     /* Store the object list so we can interrogate
@@ -665,27 +660,12 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                     }
                 } else if (rpm_property->propertyIdentifier ==
                     PROP_SUBORDINATE_LIST) {
-                    if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(value->tag ==
-                            BACNET_APPLICATION_TAG_OBJECT_ID); /* Something
-                                                                  not right
-                                                                  here */
+                    if (value->tag != 
+                        BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE) {
                         break;
                     }
-                    /* TODO: handle Sequence of { Device ObjID, Object ID }, */
-                    isSequence = true;
-                }
-
-                /* If the object is a Sequence, it needs its own bracketing
-                 * braces */
-                if (isSequence) {
-                    fprintf(stdout, "{");
                 }
                 bacapp_print_value(stdout, &object_value);
-                if (isSequence) {
-                    fprintf(stdout, "}");
-                }
-
                 if ((Walked_List_Index < Walked_List_Length) ||
                     (value->next != NULL)) {
                     /* There are more. */
@@ -1787,11 +1767,14 @@ int main(int argc, char *argv[])
                 do {
                     Object_List_Index++;
                     if (Object_List_Index < Keylist_Count(Object_List)) {
-                        nextKey = Keylist_Key(Object_List, Object_List_Index);
-                        myObject.type = KEY_DECODE_TYPE(nextKey);
-                        myObject.instance = KEY_DECODE_ID(nextKey);
-                        /* Don't re-list the Device Object among its objects */
-                        if (myObject.type == OBJECT_DEVICE) {
+                        if (Keylist_Index_Key(Object_List, Object_List_Index, &nextKey)) {
+                            myObject.type = KEY_DECODE_TYPE(nextKey);
+                            myObject.instance = KEY_DECODE_ID(nextKey);
+                            /* Don't re-list the Device Object among its objects */
+                            if (myObject.type == OBJECT_DEVICE) {
+                                continue;
+                            }
+                        } else {
                             continue;
                         }
                         /* Closing brace for the previous Object */
