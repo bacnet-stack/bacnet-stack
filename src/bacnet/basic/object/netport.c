@@ -671,28 +671,21 @@ uint8_t Network_Port_MAC_Address_Value(
         fprintf(stderr, "@@@@@@ Network_Port_MAC_Address_Value index: %d\r\n", index);
         switch (Object_List[index].Network_Type) {
             case PORT_TYPE_ETHERNET:
+                fprintf(stderr, "@@@@@ NETWORK PORT ETHERNET MAC Address\r\n");
                 mac = &Object_List[index].Network.Ethernet.MAC_Address[0];
                 mac_len =
                     sizeof(Object_List[index].Network.Ethernet.MAC_Address);
                 break;
             case PORT_TYPE_MSTP:
                 mac = &Object_List[index].Network.MSTP.MAC_Address;
+                fprintf(stderr, "@@@@@@ mac: %p\r\n", mac);
                 mac_len = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 fprintf(stderr, "@@@@@ NETWORK PORT MSTP MAC Address\r\n");
-                size_t i;
-                if (mac != NULL) {
-                    for (i = 0; i < mac_len; i++) {
-                        fprintf(stderr, "%02X", mac[i]);
-                        if (i < mac_len - 1) {
-                            fprintf(stderr, ":");
-                        }
-                    }
-                    printf("\n");
-                } else {
-                    fprintf(stderr, "MAC address pointer is NULL\n");
-                }
+
+                fprintf(stderr, "@@@@@@ &Object_List[index].Network.MSTP.MAC_Address: %p\r\n", &Object_List[index].Network.MSTP.MAC_Address);
                 break;
             case PORT_TYPE_BIP:
+                fprintf(stderr, "@@@@@@ BIP MAC Address\r\n");
                 memcpy(
                     &ip_mac[0], &Object_List[index].Network.IPv4.IP_Address, 4);
                 /* convert port from host-byte-order to network-byte-order */
@@ -702,6 +695,7 @@ uint8_t Network_Port_MAC_Address_Value(
                 mac_len = sizeof(ip_mac);
                 break;
             case PORT_TYPE_BIP6:
+                fprintf(stderr, "@@@@@@@ BIP6 MAC Address\r\n");
                 mac = &Object_List[index].Network.IPv6.MAC_Address[0];
                 mac_len = sizeof(Object_List[index].Network.IPv6.MAC_Address);
                 break;
