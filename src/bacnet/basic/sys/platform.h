@@ -10,6 +10,7 @@
 #ifndef BACNET_SYS_PLATFORM_H
 #define BACNET_SYS_PLATFORM_H
 #include <stddef.h>
+#include <string.h>
 #include <limits.h>
 #include <math.h>
 

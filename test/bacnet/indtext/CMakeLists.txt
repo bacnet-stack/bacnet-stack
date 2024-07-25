@@ -33,7 +33,6 @@ include_directories(
 add_executable(${PROJECT_NAME}
     # File(s) under test
 	${SRC_DIR}/bacnet/indtext.c
-    ${SRC_DIR}/bacnet/bacstr.c
     # Support files and stubs (pathname alphabetical)
     # Test and test library files
 	./src/main.c

@@ -8,6 +8,7 @@
 #ifndef BACNET_APP_H
 #define BACNET_APP_H
 
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -344,11 +345,15 @@ extern "C" {
         BACNET_PROPERTY_ID property);
 
     BACNET_STACK_EXPORT
+    int bacapp_snprintf(
+        char *buffer, 
+        size_t count, 
+        const char *format, ...);
+    BACNET_STACK_EXPORT
     int bacapp_snprintf_shift(
         int len, 
         char **buf, 
         size_t *buf_size);        
-
     BACNET_STACK_EXPORT
     int bacapp_snprintf_value(
         char *str,

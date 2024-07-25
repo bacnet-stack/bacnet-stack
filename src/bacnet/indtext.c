@@ -7,7 +7,7 @@
  */
 #include <stdbool.h>
 #include <string.h>
-#include "bacnet/bacstr.h"
+#include "bacnet/bacdef.h"
 #include "bacnet/indtext.h"
 
 /**
@@ -56,7 +56,7 @@ bool indtext_by_istring(
 
     if (data_list && search_name) {
         while (data_list->pString) {
-            if (bacnet_stricmp(data_list->pString, search_name) == 0) {
+            if (strcasecmp(data_list->pString, search_name) == 0) {
                 index = data_list->index;
                 found = true;
                 break;

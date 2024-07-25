@@ -1651,6 +1651,54 @@ int bacapp_data_len(
 }
 
 /**
+ * @brief Common snprintf() function to suppress CPP check false positives
+ * @param buffer - destination string
+ * @param count - length of the destination string
+ * @param format - format string
+ * @return number of characters written
+ */
+int bacapp_snprintf(char *buffer, size_t count, const char *format, ...)
+{
+    int length = 0;
+    va_list args;
+
+    va_start(args, format);
+    /* false positive cppcheck - vsnprintf allows null pointers */
+    /* cppcheck-suppress nullPointer */
+    /* cppcheck-suppress ctunullpointer */
+    length = vsnprintf(buffer, count, format, args);
+    va_end(args);
+
+    return length;
+}
+
+/**
+ * @brief Shift the buffer pointer and decrease the size after an snprintf
+ * @param len - number of bytes (excluding terminating NULL byte) from
+ * snprintf operation
+ * @param buf - pointer to the buffer pointer
+ * @param buf_size - pointer to the buffer size
+ * @return number of bytes (excluding terminating NULL byte) from snprintf
+ */
+int bacapp_snprintf_shift(int len, char **buf, size_t *buf_size)
+{
+    if (buf) {
+        if (*buf) {
+            *buf += len;
+        }
+    }
+    if (buf_size) {
+        if ((*buf_size) >= len) {
+            *buf_size -= len;
+        } else {
+            *buf_size = 0;
+        }
+    }
+
+    return len;
+}
+
+/**
  * @brief Print a value to a string for EPICS
  * @param str - destination string, or NULL for length only
  * @param str_len - length of the destination string, or 0 for length only
@@ -1665,9 +1713,9 @@ static int bacapp_snprintf_property_identifier(
 
     char_str = bactext_property_name_default(property, NULL);
     if (char_str) {
-        ret_val = bacnet_snprintf(str, str_len, "%s", char_str);
+        ret_val = bacapp_snprintf(str, str_len, "%s", char_str);
     } else {
-        ret_val = bacnet_snprintf(str, str_len, "%lu", (unsigned long)property);
+        ret_val = bacapp_snprintf(str, str_len, "%lu", (unsigned long)property);
     }
 
     return ret_val;
@@ -1681,7 +1729,7 @@ static int bacapp_snprintf_property_identifier(
  */
 static int bacapp_snprintf_null(char *str, size_t str_len)
 {
-    return bacnet_snprintf(str, str_len, "Null");
+    return bacapp_snprintf(str, str_len, "Null");
 }
 
 #if defined(BACAPP_BOOLEAN)
@@ -1695,9 +1743,9 @@ static int bacapp_snprintf_null(char *str, size_t str_len)
 static int bacapp_snprintf_boolean(char *str, size_t str_len, bool value)
 {
     if (value) {
-        return bacnet_snprintf(str, str_len, "TRUE");
+        return bacapp_snprintf(str, str_len, "TRUE");
     } else {
-        return bacnet_snprintf(str, str_len, "FALSE");
+        return bacapp_snprintf(str, str_len, "FALSE");
     }
 }
 #endif
@@ -1712,7 +1760,7 @@ static int bacapp_snprintf_boolean(char *str, size_t str_len, bool value)
 static int bacapp_snprintf_unsigned_integer(
     char *str, size_t str_len, BACNET_UNSIGNED_INTEGER value)
 {
-    return bacnet_snprintf(str, str_len, "%lu", (unsigned long)value);
+    return bacapp_snprintf(str, str_len, "%lu", (unsigned long)value);
 }
 #endif
 
@@ -1727,7 +1775,7 @@ static int bacapp_snprintf_unsigned_integer(
 static int
 bacapp_snprintf_signed_integer(char *str, size_t str_len, int32_t value)
 {
-    return bacnet_snprintf(str, str_len, "%ld", (long)value);
+    return bacapp_snprintf(str, str_len, "%ld", (long)value);
 }
 #endif
 
@@ -1741,7 +1789,7 @@ bacapp_snprintf_signed_integer(char *str, size_t str_len, int32_t value)
  */
 static int bacapp_snprintf_real(char *str, size_t str_len, float value)
 {
-    return bacnet_snprintf(str, str_len, "%f", (double)value);
+    return bacapp_snprintf(str, str_len, "%f", (double)value);
 }
 #endif
 #if defined(BACAPP_DOUBLE)
@@ -1754,7 +1802,7 @@ static int bacapp_snprintf_real(char *str, size_t str_len, float value)
  */
 static int bacapp_snprintf_double(char *str, size_t str_len, double value)
 {
-    return bacnet_snprintf(str, str_len, "%f", value);
+    return bacapp_snprintf(str, str_len, "%f", value);
 }
 #endif
 
@@ -1783,31 +1831,31 @@ static int bacapp_snprintf_enumerated(
             break;
         case PROP_OBJECT_TYPE:
             if (value <= BACNET_OBJECT_TYPE_LAST) {
-                ret_val = bacnet_snprintf(
+                ret_val = bacapp_snprintf(
                     str, str_len, "%s", bactext_object_type_name(value));
             } else if (value <= BACNET_OBJECT_TYPE_RESERVED_MAX) {
-                ret_val = bacnet_snprintf(
+                ret_val = bacapp_snprintf(
                     str, str_len, "reserved %lu", (unsigned long)value);
             } else {
-                ret_val = bacnet_snprintf(
+                ret_val = bacapp_snprintf(
                     str, str_len, "proprietary %lu", (unsigned long)value);
             }
             break;
         case PROP_EVENT_STATE:
-            ret_val = bacnet_snprintf(
+            ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_event_state_name(value));
             break;
         case PROP_UNITS:
             if (bactext_engineering_unit_name_proprietary((unsigned)value)) {
-                ret_val = bacnet_snprintf(
+                ret_val = bacapp_snprintf(
                     str, str_len, "proprietary %lu", (unsigned long)value);
             } else {
-                ret_val = bacnet_snprintf(
+                ret_val = bacapp_snprintf(
                     str, str_len, "%s", bactext_engineering_unit_name(value));
             }
             break;
         case PROP_POLARITY:
-            ret_val = bacnet_snprintf(
+            ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_binary_polarity_name(value));
             break;
         case PROP_PRESENT_VALUE:
@@ -1816,48 +1864,48 @@ static int bacapp_snprintf_enumerated(
                 case OBJECT_BINARY_INPUT:
                 case OBJECT_BINARY_OUTPUT:
                 case OBJECT_BINARY_VALUE:
-                    ret_val = bacnet_snprintf(
+                    ret_val = bacapp_snprintf(
                         str, str_len, "%s",
                         bactext_binary_present_value_name(value));
                     break;
                 case OBJECT_BINARY_LIGHTING_OUTPUT:
-                    ret_val = bacnet_snprintf(
+                    ret_val = bacapp_snprintf(
                         str, str_len, "%s",
                         bactext_binary_lighting_pv_name(value));
                     break;
                 default:
-                    ret_val = bacnet_snprintf(
+                    ret_val = bacapp_snprintf(
                         str, str_len, "%lu", (unsigned long)value);
                     break;
             }
             break;
         case PROP_RELIABILITY:
-            ret_val = bacnet_snprintf(
+            ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_reliability_name(value));
             break;
         case PROP_SYSTEM_STATUS:
-            ret_val = bacnet_snprintf(
+            ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_device_status_name(value));
             break;
         case PROP_SEGMENTATION_SUPPORTED:
-            ret_val = bacnet_snprintf(
+            ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_segmentation_name(value));
             break;
         case PROP_NODE_TYPE:
-            ret_val = bacnet_snprintf(
+            ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_node_type_name(value));
             break;
         case PROP_TRANSITION:
-            ret_val = bacnet_snprintf(
+            ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_lighting_transition(value));
             break;
         case PROP_IN_PROGRESS:
-            ret_val = bacnet_snprintf(
+            ret_val = bacapp_snprintf(
                 str, str_len, "%s", bactext_lighting_in_progress(value));
             break;
         default:
             ret_val =
-                bacnet_snprintf(str, str_len, "%lu", (unsigned long)value);
+                bacapp_snprintf(str, str_len, "%lu", (unsigned long)value);
             break;
     }
 
@@ -1888,18 +1936,18 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
 
     weekday_text = bactext_day_of_week_name(bdate->wday);
     month_text = bactext_month_name(bdate->month);
-    slen = bacnet_snprintf(str, str_len, "%s, %s", weekday_text, month_text);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "%s, %s", weekday_text, month_text);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (bdate->day == 255) {
-        slen = bacnet_snprintf(str, str_len, " (unspecified), ");
+        slen = bacapp_snprintf(str, str_len, " (unspecified), ");
     } else {
-        slen = bacnet_snprintf(str, str_len, " %u, ", (unsigned)bdate->day);
+        slen = bacapp_snprintf(str, str_len, " %u, ", (unsigned)bdate->day);
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (bdate->year == 2155) {
-        slen = bacnet_snprintf(str, str_len, "(unspecified)");
+        slen = bacapp_snprintf(str, str_len, "(unspecified)");
     } else {
-        slen = bacnet_snprintf(str, str_len, "%u", (unsigned)bdate->year);
+        slen = bacapp_snprintf(str, str_len, "%u", (unsigned)bdate->year);
     }
     ret_val += slen;
 
@@ -1925,28 +1973,28 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
     int slen = 0;
 
     if (btime->hour == 255) {
-        slen = bacnet_snprintf(str, str_len, "**:");
+        slen = bacapp_snprintf(str, str_len, "**:");
     } else {
-        slen = bacnet_snprintf(str, str_len, "%02u:", (unsigned)btime->hour);
+        slen = bacapp_snprintf(str, str_len, "%02u:", (unsigned)btime->hour);
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (btime->min == 255) {
-        slen = bacnet_snprintf(str, str_len, "**:");
+        slen = bacapp_snprintf(str, str_len, "**:");
     } else {
-        slen = bacnet_snprintf(str, str_len, "%02u:", (unsigned)btime->min);
+        slen = bacapp_snprintf(str, str_len, "%02u:", (unsigned)btime->min);
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (btime->sec == 255) {
-        slen = bacnet_snprintf(str, str_len, "**.");
+        slen = bacapp_snprintf(str, str_len, "**.");
     } else {
-        slen = bacnet_snprintf(str, str_len, "%02u.", (unsigned)btime->sec);
+        slen = bacapp_snprintf(str, str_len, "%02u.", (unsigned)btime->sec);
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (btime->hundredths == 255) {
-        slen = bacnet_snprintf(str, str_len, "**");
+        slen = bacapp_snprintf(str, str_len, "**");
     } else {
         slen =
-            bacnet_snprintf(str, str_len, "%02u", (unsigned)btime->hundredths);
+            bacapp_snprintf(str, str_len, "%02u", (unsigned)btime->hundredths);
     }
     ret_val += slen;
 
@@ -1968,20 +2016,20 @@ static int bacapp_snprintf_object_id(
     int ret_val = 0;
     int slen = 0;
 
-    slen = bacnet_snprintf(str, str_len, "(");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "(");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (object_id->type <= BACNET_OBJECT_TYPE_LAST) {
-        slen = bacnet_snprintf(
+        slen = bacapp_snprintf(
             str, str_len, "%s, ", bactext_object_type_name(object_id->type));
     } else if (object_id->type < BACNET_OBJECT_TYPE_RESERVED_MAX) {
-        slen = bacnet_snprintf(
+        slen = bacapp_snprintf(
             str, str_len, "reserved %u, ", (unsigned)object_id->type);
     } else {
-        slen = bacnet_snprintf(
+        slen = bacapp_snprintf(
             str, str_len, "proprietary %u, ", (unsigned)object_id->type);
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(
         str, str_len, "%lu)", (unsigned long)object_id->instance);
     ret_val += slen;
 
@@ -2003,15 +2051,15 @@ bacapp_snprintf_daterange(char *str, size_t str_len, BACNET_DATE_RANGE *value)
     int ret_val = 0;
     int slen = 0;
 
-    slen = bacnet_snprintf(str, str_len, "{");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf_date(str, str_len, &value->startdate);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, "..");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "..");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf_date(str, str_len, &value->enddate);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    ret_val += bacnet_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf(str, str_len, "}");
 
     return ret_val;
 }
@@ -2037,39 +2085,39 @@ bacapp_snprintf_weeknday(char *str, size_t str_len, BACNET_WEEKNDAY *value)
     int ret_val = 0;
     int slen = 0;
 
-    slen = bacnet_snprintf(str, str_len, "{");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* 1=Jan 13=odd 14=even FF=any */
     if (value->month == 255) {
-        slen = bacnet_snprintf(str, str_len, "*, ");
+        slen = bacapp_snprintf(str, str_len, "*, ");
     } else if (value->month == 13) {
-        slen = bacnet_snprintf(str, str_len, "odd, ");
+        slen = bacapp_snprintf(str, str_len, "odd, ");
     } else if (value->month == 14) {
-        slen = bacnet_snprintf(str, str_len, "even, ");
+        slen = bacapp_snprintf(str, str_len, "even, ");
     } else {
-        slen = bacnet_snprintf(str, str_len, "%u, ", (unsigned)value->month);
+        slen = bacapp_snprintf(str, str_len, "%u, ", (unsigned)value->month);
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* 1=days 1-7, 2=days 8-14, 3=days 15-21, 4=days 22-28,
        5=days 29-31, 6=last 7 days, FF=any week */
     if (value->weekofmonth == 255) {
-        slen = bacnet_snprintf(str, str_len, "*, ");
+        slen = bacapp_snprintf(str, str_len, "*, ");
     } else if (value->weekofmonth == 6) {
-        slen = bacnet_snprintf(str, str_len, "last, ");
+        slen = bacapp_snprintf(str, str_len, "last, ");
     } else {
         slen =
-            bacnet_snprintf(str, str_len, "%u, ", (unsigned)value->weekofmonth);
+            bacapp_snprintf(str, str_len, "%u, ", (unsigned)value->weekofmonth);
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* 1=Monday-7=Sunday, FF=any */
     if (value->dayofweek == 255) {
-        slen = bacnet_snprintf(str, str_len, "*");
+        slen = bacapp_snprintf(str, str_len, "*");
     } else {
-        slen = bacnet_snprintf(
+        slen = bacapp_snprintf(
             str, str_len, "%s", bactext_day_of_week_name(value->dayofweek));
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    ret_val += bacnet_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf(str, str_len, "}");
 
     return ret_val;
 }
@@ -2089,33 +2137,33 @@ static int bacapp_snprintf_device_object_property_reference(
     int slen;
     int ret_val = 0;
 
-    slen = bacnet_snprintf(str, str_len, "{");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* object-identifier       [0] BACnetObjectIdentifier */
     slen = bacapp_snprintf_object_id(str, str_len, &value->objectIdentifier);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, ",");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ",");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* property-identifier     [1] BACnetPropertyIdentifier */
     slen = bacapp_snprintf_property_identifier(
         str, str_len, value->propertyIdentifier);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, ",");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ",");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* property-array-index    [2] Unsigned OPTIONAL,*/
     if (value->arrayIndex == BACNET_ARRAY_ALL) {
-        slen = bacnet_snprintf(str, str_len, "-1");
+        slen = bacapp_snprintf(str, str_len, "-1");
     } else {
-        slen = bacnet_snprintf(
+        slen = bacapp_snprintf(
             str, str_len, "%lu", (unsigned long)value->arrayIndex);
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, ",");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ",");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* device-identifier       [3] BACnetObjectIdentifier OPTIONAL */
     slen = bacapp_snprintf_object_id(str, str_len, &value->deviceIdentifier);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    ret_val += bacnet_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf(str, str_len, "}");
 
     return ret_val;
 }
@@ -2136,18 +2184,18 @@ static int bacapp_snprintf_device_object_reference(
     int ret_val = 0;
 
     /* BACnetDeviceObjectReference */
-    slen = bacnet_snprintf(str, str_len, "{");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (value->deviceIdentifier.type == OBJECT_DEVICE) {
         slen =
             bacapp_snprintf_object_id(str, str_len, &value->deviceIdentifier);
-        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-        slen = bacnet_snprintf(str, str_len, ",");
-        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = bacapp_snprintf(str, str_len, ",");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     }
     slen = bacapp_snprintf_object_id(str, str_len, &value->objectIdentifier);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "}");
     ret_val += slen;
 
     return ret_val;
@@ -2168,28 +2216,28 @@ static int bacapp_snprintf_object_property_reference(
     int slen;
     int ret_val = 0;
 
-    slen = bacnet_snprintf(str, str_len, "{");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (value->object_identifier.type != OBJECT_NONE) {
         /* object-identifier [0] BACnetObjectIdentifier */
         slen =
             bacapp_snprintf_object_id(str, str_len, &value->object_identifier);
-        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-        slen = bacnet_snprintf(str, str_len, ",");
-        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = bacapp_snprintf(str, str_len, ",");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     }
     /* property-identifier [1] BACnetPropertyIdentifier */
     slen = bacapp_snprintf_property_identifier(
         str, str_len, value->property_identifier);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (value->property_array_index != BACNET_ARRAY_ALL) {
         /* property-array-index [2] Unsigned OPTIONAL */
-        slen = bacnet_snprintf(
+        slen = bacapp_snprintf(
             str, str_len, ", %lu", (unsigned long)value->property_array_index);
-        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    ret_val += bacnet_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf(str, str_len, "}");
 
     return ret_val;
 }
@@ -2235,50 +2283,50 @@ static int bacapp_snprintf_weeklyschedule(
     }
 
     if (inner_tag == -1) {
-        slen = bacnet_snprintf(str, str_len, "(Null; ");
+        slen = bacapp_snprintf(str, str_len, "(Null; ");
     } else if (inner_tag == -2) {
-        slen = bacnet_snprintf(str, str_len, "(MIXED_TYPES; ");
+        slen = bacapp_snprintf(str, str_len, "(MIXED_TYPES; ");
     } else {
-        slen = bacnet_snprintf(
+        slen = bacapp_snprintf(
             str, str_len, "(%s; ", bactext_application_tag_name(inner_tag));
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     for (wi = 0; wi < loopend; wi++) {
         BACNET_DAILY_SCHEDULE *ds = &ws->weeklySchedule[wi];
         if (arrayIndex == BACNET_ARRAY_ALL) {
-            slen = bacnet_snprintf(str, str_len, "%s: [", weekdaynames[wi]);
+            slen = bacapp_snprintf(str, str_len, "%s: [", weekdaynames[wi]);
         } else {
-            slen = bacnet_snprintf(
+            slen = bacapp_snprintf(
                 str, str_len, "%s: [",
                 (arrayIndex >= 1 && arrayIndex <= 7)
                     ? weekdaynames[arrayIndex - 1]
                     : "???");
         }
-        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
         for (ti = 0; ti < ds->TV_Count; ti++) {
             slen =
                 bacapp_snprintf_time(str, str_len, &ds->Time_Values[ti].Time);
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-            slen = bacnet_snprintf(str, str_len, " ");
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+            slen = bacapp_snprintf(str, str_len, " ");
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             bacnet_primitive_to_application_data_value(
                 &dummyDataValue, &ds->Time_Values[ti].Value);
             dummyPropValue.value = &dummyDataValue;
             dummyPropValue.object_property = PROP_PRESENT_VALUE;
             dummyPropValue.object_type = OBJECT_SCHEDULE;
             slen = bacapp_snprintf_value(str, str_len, &dummyPropValue);
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             if (ti < ds->TV_Count - 1) {
-                slen = bacnet_snprintf(str, str_len, ", ");
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(str, str_len, ", ");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             }
         }
         if (wi < loopend - 1) {
-            slen = bacnet_snprintf(str, str_len, "]; ");
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+            slen = bacapp_snprintf(str, str_len, "]; ");
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
         }
     }
-    slen = bacnet_snprintf(str, str_len, "])");
+    slen = bacapp_snprintf(str, str_len, "])");
     ret_val += slen;
     return ret_val;
 }
@@ -2299,12 +2347,12 @@ static int bacapp_snprintf_host_n_port(
     char *char_str;
     int ret_val = 0;
 
-    slen = bacnet_snprintf(str, str_len, "{");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     if (value->host_ip_address) {
         uint8_t *octet_str;
         octet_str = octetstring_value(&value->host.ip_address);
-        slen = bacnet_snprintf(
+        slen = bacapp_snprintf(
             str, str_len, "%u.%u.%u.%u:%u", (unsigned)octet_str[0],
             (unsigned)octet_str[1], (unsigned)octet_str[2],
             (unsigned)octet_str[3], (unsigned)value->port);
@@ -2314,22 +2362,22 @@ static int bacapp_snprintf_host_n_port(
         name = &value->host.name;
         len = characterstring_length(name);
         char_str = characterstring_value(name);
-        slen = bacnet_snprintf(str, str_len, "\"");
-        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+        slen = bacapp_snprintf(str, str_len, "\"");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
         for (i = 0; i < len; i++) {
             if (isprint(*((unsigned char *)char_str))) {
-                slen = bacnet_snprintf(str, str_len, "%c", *char_str);
+                slen = bacapp_snprintf(str, str_len, "%c", *char_str);
             } else {
-                slen = bacnet_snprintf(str, str_len, "%c", '.');
+                slen = bacapp_snprintf(str, str_len, "%c", '.');
             }
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             char_str++;
         }
-        slen = bacnet_snprintf(str, str_len, "\"");
+        slen = bacapp_snprintf(str, str_len, "\"");
         ret_val += slen;
     }
-    slen = bacnet_snprintf(str, str_len, "}");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
 }
@@ -2349,29 +2397,29 @@ static int bacapp_snprintf_calendar_entry(
     int slen;
     int ret_val = 0;
 
-    slen = bacnet_snprintf(str, str_len, "{");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     switch (value->tag) {
         case BACNET_CALENDAR_DATE:
             slen = bacapp_snprintf_date(str, str_len, &value->type.Date);
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             break;
         case BACNET_CALENDAR_DATE_RANGE:
             slen =
                 bacapp_snprintf_daterange(str, str_len, &value->type.DateRange);
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             break;
         case BACNET_CALENDAR_WEEK_N_DAY:
             slen =
                 bacapp_snprintf_weeknday(str, str_len, &value->type.WeekNDay);
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             break;
         default:
             /* do nothing */
             break;
     }
-    slen = bacnet_snprintf(str, str_len, "}");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
 }
@@ -2456,23 +2504,23 @@ static int bacapp_snprintf_daily_schedule(
     int ret_val = 0;
     uint16_t i;
 
-    slen = bacnet_snprintf(str, str_len, "{");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     for (i = 0; i < value->TV_Count; i++) {
         if (i != 0) {
-            slen = bacnet_snprintf(str, str_len, ", ");
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+            slen = bacapp_snprintf(str, str_len, ", ");
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
         }
         slen = bacapp_snprintf_time(str, str_len, &value->Time_Values[i].Time);
-        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-        slen = bacnet_snprintf(str, str_len, ",");
-        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = bacapp_snprintf(str, str_len, ",");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
         slen = bacapp_snprintf_primitive_data_value(
             str, str_len, &value->Time_Values[i].Value);
-        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     }
-    slen = bacnet_snprintf(str, str_len, "}");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
 }
@@ -2493,26 +2541,26 @@ static int bacapp_snprintf_special_event(
     int slen;
     int ret_val = 0;
 
-    slen = bacnet_snprintf(str, str_len, "{");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     switch (value->periodTag) {
         case BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY:
             slen = bacapp_snprintf_calendar_entry(
                 str, str_len, &value->period.calendarEntry);
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             break;
         case BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE:
             slen = bacapp_snprintf_object_id(
                 str, str_len, &value->period.calendarReference);
-            ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+            ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             break;
         default:
             break;
     }
     slen = bacapp_snprintf_daily_schedule(str, str_len, &value->timeValues);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, "}");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
 }
@@ -2597,58 +2645,58 @@ static int bacapp_snprintf_action_command(
     int slen;
     int ret_val = 0;
 
-    slen = bacnet_snprintf(str, str_len, "{");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* deviceIdentifier [0] BACnetObjectIdentifier OPTIONAL */
     slen = bacapp_snprintf_object_id(str, str_len, &value->Device_Id);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, ",");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ",");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* objectIdentifier [1] BACnetObjectIdentifier */
     slen = bacapp_snprintf_object_id(str, str_len, &value->Device_Id);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, ",");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ",");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* propertyIdentifier [2] BACnetPropertyIdentifier */
     slen = bacapp_snprintf_property_identifier(
         str, str_len, value->Property_Identifier);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, ",");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ",");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* propertyArrayIndex [3] Unsigned OPTIONAL */
     if (value->Property_Array_Index == BACNET_ARRAY_ALL) {
-        slen = bacnet_snprintf(str, str_len, "-1,");
+        slen = bacapp_snprintf(str, str_len, "-1,");
     } else {
-        slen = bacnet_snprintf(
+        slen = bacapp_snprintf(
             str, str_len, "%lu,", (unsigned long)value->Property_Array_Index);
     }
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* propertyValue [4] ABSTRACT-SYNTAX.&Type */
     slen = bacapp_snprintf_action_property_value(str, str_len, &value->Value);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, ",");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ",");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* priority [5] Unsigned (1..16) OPTIONAL */
-    slen = bacnet_snprintf(str, str_len, "%lu", (unsigned long)value->Priority);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, ",");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "%lu", (unsigned long)value->Priority);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ",");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* postDelay [6] Unsigned OPTIONAL */
     slen =
-        bacnet_snprintf(str, str_len, "%lu", (unsigned long)value->Post_Delay);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, ",");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+        bacapp_snprintf(str, str_len, "%lu", (unsigned long)value->Post_Delay);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ",");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* quitOnFailure [7] BOOLEAN */
     slen = bacapp_snprintf_boolean(str, str_len, value->Quit_On_Failure);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, ",");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ",");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* writeSuccessful [8] BOOLEAN */
     slen = bacapp_snprintf_boolean(str, str_len, value->Write_Successful);
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-    slen = bacnet_snprintf(str, str_len, "}");
-    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
 }
@@ -2726,8 +2774,8 @@ int bacapp_snprintf_value(
                     octet_str = octetstring_value(&value->type.Octet_String);
                     for (i = 0; i < len; i++) {
                         slen =
-                            bacnet_snprintf(str, str_len, "%02X", *octet_str);
-                        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                            bacapp_snprintf(str, str_len, "%02X", *octet_str);
+                        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                         octet_str++;
                     }
                 }
@@ -2737,8 +2785,8 @@ int bacapp_snprintf_value(
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
                 len = characterstring_length(&value->type.Character_String);
                 char_str = characterstring_value(&value->type.Character_String);
-                slen = bacnet_snprintf(str, str_len, "\"");
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(str, str_len, "\"");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 #if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
                 if (characterstring_encoding(&value->type.Character_String) ==
                     CHARACTER_UTF8) {
@@ -2757,8 +2805,8 @@ int bacapp_snprintf_value(
                             }
                         }
                         /* For portability, cast wchar_t to wint_t */
-                        slen = bacnet_snprintf(str, str_len, "%lc", (wint_t)wc);
-                        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                        slen = bacapp_snprintf(str, str_len, "%lc", (wint_t)wc);
+                        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                         if (len > wclen) {
                             len -= wclen;
                             char_str += wclen;
@@ -2772,35 +2820,35 @@ int bacapp_snprintf_value(
                     for (i = 0; i < len; i++) {
                         if (isprint(*((unsigned char *)char_str))) {
                             slen =
-                                bacnet_snprintf(str, str_len, "%c", *char_str);
+                                bacapp_snprintf(str, str_len, "%c", *char_str);
                         } else {
-                            slen = bacnet_snprintf(str, str_len, "%c", '.');
+                            slen = bacapp_snprintf(str, str_len, "%c", '.');
                         }
-                        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                         char_str++;
                     }
                 }
-                slen = bacnet_snprintf(str, str_len, "\"");
+                slen = bacapp_snprintf(str, str_len, "\"");
                 ret_val += slen;
                 break;
 #endif
 #if defined(BACAPP_BIT_STRING)
             case BACNET_APPLICATION_TAG_BIT_STRING:
                 len = bitstring_bits_used(&value->type.Bit_String);
-                slen = bacnet_snprintf(str, str_len, "{");
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(str, str_len, "{");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 for (i = 0; i < len; i++) {
                     bool bit;
                     bit = bitstring_bit(&value->type.Bit_String, (uint8_t)i);
-                    slen = bacnet_snprintf(
+                    slen = bacapp_snprintf(
                         str, str_len, "%s", bit ? "true" : "false");
-                    ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                     if (i < (len - 1)) {
-                        slen = bacnet_snprintf(str, str_len, ",");
-                        ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                        slen = bacapp_snprintf(str, str_len, ",");
+                        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                     }
                 }
-                slen = bacnet_snprintf(str, str_len, "}");
+                slen = bacapp_snprintf(str, str_len, "}");
                 ret_val += slen;
                 break;
 #endif
@@ -2838,9 +2886,9 @@ int bacapp_snprintf_value(
             case BACNET_APPLICATION_TAG_DATETIME:
                 slen = bacapp_snprintf_date(
                     str, str_len, &value->type.Date_Time.date);
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-                slen = bacnet_snprintf(str, str_len, "-");
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(str, str_len, "-");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 slen = bacapp_snprintf_time(
                     str, str_len, &value->type.Date_Time.time);
                 ret_val += slen;
@@ -2868,15 +2916,15 @@ int bacapp_snprintf_value(
 #if defined(BACAPP_COLOR_COMMAND)
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
-                slen = bacnet_snprintf(str, str_len, "(");
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-                slen = bacnet_snprintf(
+                slen = bacapp_snprintf(str, str_len, "(");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(
                     str, str_len, "%s",
                     bactext_color_operation_name(
                         value->type.Color_Command.operation));
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 /* FIXME: add the Lighting Command optional values */
-                slen = bacnet_snprintf(str, str_len, ")");
+                slen = bacapp_snprintf(str, str_len, ")");
                 ret_val += slen;
                 break;
 #endif
@@ -2933,24 +2981,24 @@ int bacapp_snprintf_value(
 #endif
 #if defined(BACAPP_BDT_ENTRY)
             case BACNET_APPLICATION_TAG_BDT_ENTRY:
-                slen = bacnet_snprintf(str, str_len, "{");
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(str, str_len, "{");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 slen = bacnet_bdt_entry_to_ascii(
                     str, str_len, &value->type.BDT_Entry);
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-                slen = bacnet_snprintf(str, str_len, "}");
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(str, str_len, "}");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 break;
 #endif
 #if defined(BACAPP_FDT_ENTRY)
             case BACNET_APPLICATION_TAG_FDT_ENTRY:
-                slen = bacnet_snprintf(str, str_len, "{");
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(str, str_len, "{");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 slen = bacnet_fdt_entry_to_ascii(
                     str, str_len, &value->type.FDT_Entry);
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
-                slen = bacnet_snprintf(str, str_len, "}");
-                ret_val += bacnet_snprintf_shift(slen, &str, &str_len);
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(str, str_len, "}");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 break;
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
@@ -2962,17 +3010,17 @@ int bacapp_snprintf_value(
 #if defined(BACAPP_SCALE)
             case BACNET_APPLICATION_TAG_SCALE:
                 if (value->type.Scale.float_scale) {
-                    ret_val = bacnet_snprintf(
+                    ret_val = bacapp_snprintf(
                         str, str_len, "%f", value->type.Scale.type.real_scale);
                 } else {
-                    ret_val = bacnet_snprintf(
+                    ret_val = bacapp_snprintf(
                         str, str_len, "%ld",
                         (long)value->type.Scale.type.integer_scale);
                 }
                 break;
 #endif
             default:
-                ret_val = bacnet_snprintf(
+                ret_val = bacapp_snprintf(
                     str, str_len, "UnknownType(tag=%d)", value->tag);
                 break;
         }
