@@ -1,40 +1,14 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
- Updated by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
-/** @file linux/rs485.c  Provides Linux-specific functions for RS-485 serial. */
+/**
+ * @file port/bsd/rs485.c
+ * @brief Provides BSD/Darwin(macOS) specific functions for RS-485 serial
+ * operation
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @author Michael O'Neill <em.pee.oh@gmail.com>
+ * @date 2007, 2011, 2024
+ *
+ * @copyright SPDX-License-Identifier: MIT
+ */
 
 /* The module handles sending data out the RS-485 port */
 /* and handles receiving data from the RS-485 port. */
@@ -47,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Linux includes */
+/* BSD includes */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/utsname.h>
@@ -76,18 +50,18 @@
 /*macOS-darwin includes*/
 #include <IOKit/serial/ioss.h>
 
-/* Posix serial programming reference-added by skarg below. Link updated by mpo 03/2024:
-https://www.msweet.org/serial/serial.html */
+/* Posix serial programming reference:
+https://www.msweet.org/serial/serial.html
+*/
 
 /* Use ionice wrapper to improve serial performance:
-  What is the source of this recommendation? -mpo 03/2024
    $ sudo ionice -c 1 -n 0 ./bin/bacserv 12345
 */
 
 /* handle returned from open() */
 static int RS485_Handle = -1;
-/* baudrate settings are defined in <asm/termbits.h>, 
-  which is included by <termios.h> 
+/* baudrate settings are defined in <asm/termbits.h>,
+  which is included by <termios.h>
   Instead of being an int enum which would be bad/brittle enough,
   they are #defines where the string label resolves to low consecutive
   ordinals depending on the platform
@@ -97,21 +71,22 @@ static int RS485_Handle = -1;
   vs. Apple/Darwin's /usr/include/sys/termios.h:
   #define B76800  76800
   #define B115200 115200
-  Anyways, a brittle, platform dependent way to have people thinking the underlying int
-  might be the actual baud rate in bps.
+  Anyways, a brittle, platform dependent way to have people thinking the
+  underlying int might be the actual baud rate in bps.
   */
 static unsigned int RS485_Baud = B115200;
 
-// On macOS/Darwin the serial ports will be named something like
-// /dev/cu.usbserial-xxxx
-static char *RS485_Port_Name= "/dev/cu.usbserial-7";
+/* On macOS/Darwin the serial ports will be named something like */
+/* /dev/cu.usbserial-xxxx */
+static char *RS485_Port_Name = "/dev/cu.usbserial-7";
 
 /* some terminal I/O have RS-485 specific functionality */
 #ifndef RS485MOD
 #define RS485MOD 0
 #endif
 /* serial I/O settings */
-// Hold the original termios attributes so they can be restored during cleanup
+/* Hold the original termios attributes so they can be restored during cleanup
+ */
 static struct termios RS485_oldtio;
 
 /* indicator of special baud rate */
@@ -123,12 +98,12 @@ static FIFO_BUFFER Rx_FIFO;
 static uint8_t Rx_Buffer[4096];
 
 /**
- openSerialPort and closeSerialPort are both taken/adapted from
- Apple's own developer examples. Specifically, SerialPortSample
- Which can be found at 
+ openSerialPort and closeSerialPort are adapted from Apple's own developer
+examples. Specifically, SerialPortSample found at:
  https://developer.apple.com/library/archive/samplecode/SerialPortSample/Introduction/Intro.html
- These in turn expect the Apple specific header IOKit/serial/ioss.h to be present
- They are well commented and  replace the meat of RS485_Initialize and RS485_Cleanup.
+ These in turn expect the Apple specific header IOKit/serial/ioss.h to be
+present They are well-commented and replace the meat of RS485_Initialize and
+RS485_Cleanup.
 **/
 
 static int openSerialPort(const char *bsdPath);
@@ -219,7 +194,7 @@ uint32_t RS485_Get_Baud_Rate(void)
             break;
         case B38400:
             if (!RS485_SpecBaud) {
-                /* Linux asks for custom divisor
+                /* Platform may ask for custom divisor
                    only when baud is set on 38400 */
                 baud = 38400;
             } else {
@@ -230,9 +205,9 @@ uint32_t RS485_Get_Baud_Rate(void)
             baud = 57600;
             break;
 #ifdef B76800
-	 	case B76800:
-	 		baud = 76800;
-	 		break;
+        case B76800:
+            baud = 76800;
+            break;
 #endif
         case B115200:
             baud = 115200;
@@ -390,12 +365,12 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
             break;
         case 76800:
 #ifdef B76800
-	 		RS485_Baud = B76800;
+            RS485_Baud = B76800;
 #else
-	 		RS485_Baud = B38400;
-     		RS485_SpecBaud = true;
+            RS485_Baud = B38400;
+            RS485_SpecBaud = true;
 #endif
-           
+
             break;
         case 115200:
             RS485_Baud = B115200;
@@ -578,8 +553,6 @@ void RS485_Cleanup(void)
     closeSerialPort(RS485_Handle);
 }
 
-/*Trying to be POSIX-ish. Adapting from 
-https://github.com/stephane/libmodbus/blob/master/src/modbus-rtu.c*/
 void RS485_Initialize(void)
 {
     RS485_Handle = openSerialPort(RS485_Port_Name);
@@ -592,22 +565,22 @@ void RS485_Print_Ports(void)
 {
     int n;
     struct dirent **namelist;
-    const char* sysdir = "/sys/class/tty/";
+    const char *sysdir = "/sys/class/tty/";
     struct stat st;
     char buffer[1024];
     char device_dir[1024];
     char *driver_name = NULL;
     int fd = 0;
     bool valid_port = false;
-	struct utsname unameData;
-	bool macOS = false;
+    struct utsname unameData;
+    bool macOS = false;
     if (uname(&unameData) < 0) {
-       perror("uname");
-       exit(EXIT_FAILURE);
+        perror("uname");
+        exit(EXIT_FAILURE);
     }
-    if(strcmp(unameData.sysname,"Darwin") == 0){
-    	macOS = true;
-    	sysdir = "/dev/";
+    if (strcmp(unameData.sysname, "Darwin") == 0) {
+        macOS = true;
+        sysdir = "/dev/";
     }
     /* Scan through /sys/class/tty -
        it contains all tty-devices in the system */
@@ -616,43 +589,12 @@ void RS485_Print_Ports(void)
         perror("RS485: scandir");
     } else {
         while (n--) {
-        if (strcmp(namelist[n]->d_name, "..") &&
-                	strcmp(namelist[n]->d_name, ".")) {
-        	if(macOS){
-                	if(strncmp(namelist[n]->d_name, "cu.",3) == 0){
-                	    printf("%s%s\n", sysdir, namelist[n]->d_name);
-                	    valid_port = true;
-                	    if (valid_port) {
-                	        /* print full absolute file path */
-                            printf("interface {value=/dev/%s}"
-                                "{display=MS/TP Capture on /dev/%s}\n",
-                                namelist[n]->d_name, namelist[n]->d_name);
-                        }
-                	}
-        	}else{
-                snprintf(device_dir, sizeof(device_dir), "%s%s/device", sysdir,
-                    namelist[n]->d_name);
-                /* Stat the devicedir and handle it if it is a symlink */
-                if (lstat(device_dir, &st) == 0 && S_ISLNK(st.st_mode)) {
-                    memset(buffer, 0, sizeof(buffer));
-                    snprintf(device_dir, sizeof(device_dir),
-                        "%s%s/device/driver", sysdir, namelist[n]->d_name);
-                    if (readlink(device_dir, buffer, sizeof(buffer)) > 0) {
-                        valid_port = false;
-                        driver_name = basename(buffer);
-                        if (strcmp(driver_name, "serial8250") == 0) {
-                            /* serial8250-devices must be probed */
-                            snprintf(device_dir, sizeof(device_dir), "/dev/%s",
-                                namelist[n]->d_name);
-                            fd = open(
-                                device_dir, O_RDWR | O_NONBLOCK | O_NOCTTY);
-                            if (fd >= 0) {
-                                //Failed
-                                close(fd);
-                            }
-                        } else {
-                            valid_port = true;
-                        }
+            if (strcmp(namelist[n]->d_name, "..") &&
+                strcmp(namelist[n]->d_name, ".")) {
+                if (macOS) {
+                    if (strncmp(namelist[n]->d_name, "cu.", 3) == 0) {
+                        printf("%s%s\n", sysdir, namelist[n]->d_name);
+                        valid_port = true;
                         if (valid_port) {
                             /* print full absolute file path */
                             printf("interface {value=/dev/%s}"
@@ -660,193 +602,233 @@ void RS485_Print_Ports(void)
                                 namelist[n]->d_name, namelist[n]->d_name);
                         }
                     }
+                } else {
+                    snprintf(device_dir, sizeof(device_dir), "%s%s/device",
+                        sysdir, namelist[n]->d_name);
+                    /* Stat the devicedir and handle it if it is a symlink */
+                    if (lstat(device_dir, &st) == 0 && S_ISLNK(st.st_mode)) {
+                        memset(buffer, 0, sizeof(buffer));
+                        snprintf(device_dir, sizeof(device_dir),
+                            "%s%s/device/driver", sysdir, namelist[n]->d_name);
+                        if (readlink(device_dir, buffer, sizeof(buffer)) > 0) {
+                            valid_port = false;
+                            driver_name = basename(buffer);
+                            if (strcmp(driver_name, "serial8250") == 0) {
+                                /* serial8250-devices must be probed */
+                                snprintf(device_dir, sizeof(device_dir),
+                                    "/dev/%s", namelist[n]->d_name);
+                                fd = open(
+                                    device_dir, O_RDWR | O_NONBLOCK | O_NOCTTY);
+                                if (fd >= 0) {
+                                    // Failed
+                                    close(fd);
+                                }
+                            } else {
+                                valid_port = true;
+                            }
+                            if (valid_port) {
+                                /* print full absolute file path */
+                                printf("interface {value=/dev/%s}"
+                                       "{display=MS/TP Capture on /dev/%s}\n",
+                                    namelist[n]->d_name, namelist[n]->d_name);
+                            }
+                        }
+                    }
                 }
+                free(namelist[n]);
             }
-            free(namelist[n]);
-        }
         }
         free(namelist);
     }
 }
 
-// Given the path to a serial device, open the device and configure it.
-// Return the file descriptor associated with the device.
-static int openSerialPort(const char* const bsdPath)
+/* Given the path to a serial device, open the device and configure it.*/
+/* Return the file descriptor associated with the device.*/
+static int openSerialPort(const char *const bsdPath)
 {
-    int				fileDescriptor = -1;
-    int				handshake;
-    struct termios	options;
-    
-    // Open the serial port read/write, with no controlling terminal, and don't wait for a connection.
-    // The O_NONBLOCK flag also causes subsequent I/O on the device to be non-blocking.
-    // See open(2) <x-man-page://2/open> for details.
-    
+    int fileDescriptor = -1;
+    int handshake;
+    struct termios options;
+
+    /* Open the serial port read/write, with no controlling terminal, and don't
+       wait for a connection. The O_NONBLOCK flag also causes subsequent I/O on
+       the device to be non-blocking. See open(2) <x-man-page://2/open> for
+       details.*/
+
     fileDescriptor = open(bsdPath, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fileDescriptor == -1) {
-        printf("Error opening serial port %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+        printf("Error opening serial port %s - %s(%d).\n", bsdPath,
+            strerror(errno), errno);
         goto error;
     }
-    
-    // Note that open() follows POSIX semantics: multiple open() calls to the same file will succeed
-    // unless the TIOCEXCL ioctl is issued. This will prevent additional opens except by root-owned
-    // processes.
-    // See tty(4) <x-man-page//4/tty> and ioctl(2) <x-man-page//2/ioctl> for details.
-    
+
+    /* Note that open() follows POSIX semantics: multiple open() calls to the
+       same file will succeed unless the TIOCEXCL ioctl is issued. This will
+       prevent additional opens except by root-owned processes. See tty(4)
+       <x-man-page//4/tty> and ioctl(2) <x-man-page//2/ioctl> for details.*/
+
     if (ioctl(fileDescriptor, TIOCEXCL) == -1) {
-        printf("Error setting TIOCEXCL on %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+        printf("Error setting TIOCEXCL on %s - %s(%d).\n", bsdPath,
+            strerror(errno), errno);
         goto error;
     }
-    
-    // Now that the device is open, clear the O_NONBLOCK flag so subsequent I/O will block.
-    // See fcntl(2) <x-man-page//2/fcntl> for details.
-    
+
+    /* Now that the device is open, clear the O_NONBLOCK flag so subsequent I/O
+     will block. See fcntl(2) <x-man-page//2/fcntl> for details.*/
+
     if (fcntl(fileDescriptor, F_SETFL, 0) == -1) {
-        printf("Error clearing O_NONBLOCK %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+        printf("Error clearing O_NONBLOCK %s - %s(%d).\n", bsdPath,
+            strerror(errno), errno);
         goto error;
     }
-    
-    // Get the current options and save them so we can restore the default settings later.
+
+    /* Get the current options and save them so we can restore the default
+     * settings later.*/
     if (tcgetattr(fileDescriptor, &RS485_oldtio) == -1) {
-        printf("Error getting tty attributes %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+        printf("Error getting tty attributes %s - %s(%d).\n", bsdPath,
+            strerror(errno), errno);
         goto error;
     }
-    
-    // The serial port attributes such as timeouts and baud rate are set by modifying the termios
-    // structure and then calling tcsetattr() to cause the changes to take effect. Note that the
-    // changes will not become effective without the tcsetattr() call.
-    // See tcsetattr(4) <x-man-page://4/tcsetattr> for details.
-    
+
+    /* The serial port attributes such as timeouts and baud rate are set by
+       modifying the termios structure and then calling tcsetattr() to cause the
+       changes to take effect. Note that the changes will not become effective
+       without the tcsetattr() call. See tcsetattr(4) <x-man-page://4/tcsetattr>
+       for details.*/
+
     options = RS485_oldtio;
-    
-    // Print the current input and output baud rates.
-    // See tcsetattr(4) <x-man-page://4/tcsetattr> for details.
-    
-    printf("Default/current input baud rate is %d\n", (int) cfgetispeed(&options));
-    printf("Default/current output baud rate is %d\n", (int) cfgetospeed(&options));
-    
-    // Set raw input (non-canonical) mode, with reads blocking until either a single character
-    // has been received or a one second timeout expires.
-    // See tcsetattr(4) <x-man-page://4/tcsetattr> and termios(4) <x-man-page://4/termios> for details.
-    
+
+    /* Print the current input and output baud rates.
+       See tcsetattr(4) <x-man-page://4/tcsetattr> for details.*/
+
+    printf(
+        "Default/current input baud rate is %d\n", (int)cfgetispeed(&options));
+    printf(
+        "Default/current output baud rate is %d\n", (int)cfgetospeed(&options));
+
+    /* Set raw input (non-canonical) mode, with reads blocking until either a
+       single character has been received or a one second timeout expires. See
+       tcsetattr(4) <x-man-page://4/tcsetattr> and termios(4)
+       <x-man-page://4/termios> for details. */
+
     cfmakeraw(&options);
     options.c_cc[VMIN] = 0;
     options.c_cc[VTIME] = 10;
-    
-    // The baud rate, word length, and handshake options can be set as follows:
-    cfsetspeed(&options, RS485_Baud);		// Set 115200 baud
-    options.c_cflag &= ~PARENB;         // No Parity
-	options.c_cflag &= ~CSTOPB;     	// 1 Stop Bit
-	options.c_cflag &= ~CSIZE;
-	options.c_cflag |= CS8;  		    // Use 8 bit words
-	// The IOSSIOSPEED ioctl can be used to set arbitrary baud rates
-	// other than those specified by POSIX. The driver for the underlying serial hardware
-	// ultimately determines which baud rates can be used. This ioctl sets both the input
-	// and output speed.
-	
-	speed_t speed = RS485_Get_Baud_Rate();//
+
+    /* The baud rate, word length, & handshake options can be set as follows: */
+    cfsetspeed(&options, RS485_Baud);
+    options.c_cflag &= ~PARENB; /* No Parity */
+    options.c_cflag &= ~CSTOPB; /* 1 Stop Bit */
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS8; /* Use 8 bit words */
+    /* The IOSSIOSPEED ioctl can be used to set arbitrary baud rates other than
+     * those specified by POSIX. The driver for the underlying serial hardware
+     * ultimately determines which baud rates can be used. This ioctl sets both
+     * the input and output speed. */
+
+    speed_t speed = RS485_Get_Baud_Rate();
     if (ioctl(fileDescriptor, IOSSIOSPEED, &speed) == -1) {
         printf("Error calling ioctl(..., IOSSIOSPEED, ...) %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+            bsdPath, strerror(errno), errno);
     }
-    
-    // Print the new input and output baud rates. Note that the IOSSIOSPEED ioctl interacts with the serial driver
-	// directly, bypassing the termios struct. This means that the following two calls will not be able to read
-	// the current baud rate if the IOSSIOSPEED ioctl was used but will instead return the speed set by the last call
-	// to cfsetspeed.
-    
-    printf("Input baud rate changed to %d\n", (int) cfgetispeed(&options));
-    printf("Output baud rate changed to %d\n", (int) cfgetospeed(&options));
-    
-    // Cause the new options to take effect immediately.
+
+    /* Print the new input and output baud rates. Note that the IOSSIOSPEED
+       ioctl interacts with the serial driver directly, bypassing the termios
+       struct. This means that the following two calls will not be able to read
+       the current baud rate if the IOSSIOSPEED ioctl was used but will instead
+       return the speed set by the last call to cfsetspeed. */
+
+    printf("Input baud rate changed to %d\n", (int)cfgetispeed(&options));
+    printf("Output baud rate changed to %d\n", (int)cfgetospeed(&options));
+
+    /* Cause the new options to take effect immediately.*/
     if (tcsetattr(fileDescriptor, TCSANOW, &options) == -1) {
-        printf("Error setting tty attributes %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+        printf("Error setting tty attributes %s - %s(%d).\n", bsdPath,
+            strerror(errno), errno);
         goto error;
     }
-    
-    // To set the modem handshake lines, use the following ioctls.
-    // See tty(4) <x-man-page//4/tty> and ioctl(2) <x-man-page//2/ioctl> for details.
-    
-    // Assert Data Terminal Ready (DTR)
+
+    /* To set the modem handshake lines, use the following ioctls.
+     See tty(4) <x-man-page//4/tty> and ioctl(2) <x-man-page//2/ioctl> for
+     details.*/
+
+    /* Assert Data Terminal Ready (DTR) */
     if (ioctl(fileDescriptor, TIOCSDTR) == -1) {
-        printf("Error asserting DTR %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+        printf("Error asserting DTR %s - %s(%d).\n", bsdPath, strerror(errno),
+            errno);
     }
-    
-    // Clear Data Terminal Ready (DTR)
+
+    /* Clear Data Terminal Ready (DTR) */
     if (ioctl(fileDescriptor, TIOCCDTR) == -1) {
-        printf("Error clearing DTR %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+        printf("Error clearing DTR %s - %s(%d).\n", bsdPath, strerror(errno),
+            errno);
     }
-    
-    // Set the modem lines depending on the bits set in handshake
+
+    /* Set the modem lines depending on the bits set in handshake */
     handshake = TIOCM_DTR | TIOCM_RTS | TIOCM_CTS | TIOCM_DSR;
     if (ioctl(fileDescriptor, TIOCMSET, &handshake) == -1) {
-        printf("Error setting handshake lines %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+        printf("Error setting handshake lines %s - %s(%d).\n", bsdPath,
+            strerror(errno), errno);
     }
-    
-    // To read the state of the modem lines, use the following ioctl.
-    // See tty(4) <x-man-page//4/tty> and ioctl(2) <x-man-page//2/ioctl> for details.
-    
-    // Store the state of the modem lines in handshake
+
+    /* To read the state of the modem lines, use the following ioctl.
+     See tty(4) <x-man-page//4/tty> and ioctl(2) <x-man-page//2/ioctl> for
+     details. */
+
+    /* Store the state of the modem lines in handshake */
     if (ioctl(fileDescriptor, TIOCMGET, &handshake) == -1) {
-        printf("Error getting handshake lines %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+        printf("Error getting handshake lines %s - %s(%d).\n", bsdPath,
+            strerror(errno), errno);
     }
-    
+
     printf("Handshake lines currently set to %d\n", handshake);
-	
-	unsigned long mics = 1UL;
-    
-	// Set the receive latency in microseconds. Serial drivers use this value to determine how often to
-	// dequeue characters received by the hardware. Most applications don't need to set this value: if an
-	// app reads lines of characters, the app can't do anything until the line termination character has been
-	// received anyway. The most common applications which are sensitive to read latency are MIDI and IrDA
-	// applications.
-	
-	if (ioctl(fileDescriptor, IOSSDATALAT, &mics) == -1) {
-		// set latency to 1 microsecond
-        printf("Error setting read latency %s - %s(%d).\n",
-               bsdPath, strerror(errno), errno);
+
+    unsigned long mics = 1UL;
+
+    /* Set the receive latency in microseconds. Serial drivers use this value to
+       determine how often to dequeue characters received by the hardware. Most
+       applications don't need to set this value: if an app reads lines of
+       characters, the app can't do anything until the line termination
+       character has been received anyway. The most common applications which
+       are sensitive to read latency are MIDI and IrDA applications. */
+
+    if (ioctl(fileDescriptor, IOSSDATALAT, &mics) == -1) {
+        /* set latency to 1 microsecond */
+        printf("Error setting read latency %s - %s(%d).\n", bsdPath,
+            strerror(errno), errno);
         goto error;
-	}
-    
-    // Success
+    }
+
+    /* Success */
     return fileDescriptor;
-    
-    // Failure path
+
+    /* Failure path */
 error:
     if (fileDescriptor != -1) {
         close(fileDescriptor);
     }
-    
+
     return -1;
 }
 
-// Given the file descriptor for a serial device, close that device.
+/* Given the file descriptor for a serial device, close that device. */
 static void closeSerialPort(int fileDescriptor)
 {
-    // Block until all written output has been sent from the device.
-    // Note that this call is simply passed on to the serial device driver.
-	// See tcsendbreak(3) <x-man-page://3/tcsendbreak> for details.
+    /* Block until all written output has been sent from the device.
+       Note that this call is simply passed on to the serial device driver. See
+       tcsendbreak(3) <x-man-page://3/tcsendbreak> for details. */
     if (tcdrain(fileDescriptor) == -1) {
-        printf("Error waiting for drain - %s(%d).\n",
-               strerror(errno), errno);
+        printf("Error waiting for drain - %s(%d).\n", strerror(errno), errno);
     }
-    
-    // Traditionally it is good practice to reset a serial port back to
-    // the state in which you found it. This is why the original termios struct
-    // was saved.
+
+    /* Traditionally it is good practice to reset a serial port back to
+       the state in which you found it. This is why the original termios struct
+       was saved. */
     if (tcsetattr(fileDescriptor, TCSANOW, &RS485_oldtio) == -1) {
-        printf("Error resetting tty attributes - %s(%d).\n",
-               strerror(errno), errno);
+        printf("Error resetting tty attributes - %s(%d).\n", strerror(errno),
+            errno);
     }
-    
+
     close(fileDescriptor);
 }
 
