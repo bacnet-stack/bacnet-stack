@@ -1,18 +1,13 @@
 /**
  * @file port/bsd/rs485.c
  * @brief Provides BSD/Darwin(macOS) specific functions for RS-485 serial
- * operation
+ * operation. Customize this file for your specific hardware
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @author Nikola Jelic <nikola.jelic@euroicc.com>
- * @author Michael O'Neill <em.pee.oh@gmail.com>
- * @date 2007, 2011, 2024
+ * @date 2007, 2011
  *
  * @copyright SPDX-License-Identifier: MIT
  */
-
-/* The module handles sending data out the RS-485 port */
-/* and handles receiving data from the RS-485 port. */
-/* Customize this file for your specific hardware */
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
