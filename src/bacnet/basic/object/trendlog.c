@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h> /* calloc */
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -664,7 +665,7 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
             len = bacnet_device_object_property_reference_decode(
-                wp_data->application_data,wp_data->application_data_len, 
+                wp_data->application_data,wp_data->application_data_len,
                 &TempSource);
             if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1473,12 +1474,12 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
         case TL_TYPE_DELTA:
             iLen += encode_context_real(
                 &apdu[iLen], pSource->ucRecType, pSource->Datum.fTime);
-            break;
+	    break;
 
         case TL_TYPE_ANY:
             /* Should never happen as we don't support this at the moment */
             break;
-        
+
         default:
             break;
     }
@@ -1494,6 +1495,109 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
     }
 
     return (iLen);
+}
+
+int rr_decode_trendlog_entries(
+    uint8_t *apdu, int apdu_len, BACNET_TRENDLOG_RECORD *rec)
+{
+    int len;
+    uint8_t tag_number = 0;
+    uint32_t len_value_type = 0;
+    while (apdu_len > 0) {
+        if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
+            (decode_is_opening_tag_number(apdu, 0))) {
+            if (!rec->next) {
+                rec->next = calloc(sizeof(BACNET_TRENDLOG_RECORD), 1);
+                rec = rec->next;
+            } else {
+                rec = rec->next;
+            }
+
+            len = bacapp_decode_context_datetime(apdu, 0, &rec->timestamp);
+            if (len <= 0) {
+                return -1;
+            }
+            apdu += len;
+            apdu_len -= len;
+        } else if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
+            decode_is_opening_tag_number(apdu, 1)) {
+            // skip the opening tag
+            apdu++;
+            apdu_len--;
+
+            // decode the next context tag which has th value type
+            len =
+                decode_tag_number_and_value(apdu, &tag_number, &len_value_type);
+            if (len <= 0) {
+                return -1;
+            }
+            switch (tag_number) {
+                case TL_TYPE_BOOL:
+                    rec->value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
+                    len = decode_context_boolean2(
+                        apdu, tag_number, &rec->value.type.Boolean);
+                    break;
+                case TL_TYPE_REAL:
+                    rec->value.tag = BACNET_APPLICATION_TAG_REAL;
+                    len = decode_context_real(
+                        apdu, tag_number, &rec->value.type.Real);
+                    break;
+                case TL_TYPE_ENUM:
+                    rec->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+                    len = decode_context_enumerated(
+                        apdu, tag_number, &rec->value.type.Enumerated);
+                    break;
+                case TL_TYPE_UNSIGN:
+                    rec->value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+                    len = decode_context_unsigned(
+                        apdu, tag_number, &rec->value.type.Unsigned_Int);
+                    break;
+                case TL_TYPE_SIGN:
+                    rec->value.tag = BACNET_APPLICATION_TAG_SIGNED_INT;
+                    len = decode_context_signed(
+                        apdu, tag_number, &rec->value.type.Signed_Int);
+                    break;
+                case TL_TYPE_BITS:
+                    rec->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+                    len = decode_context_bitstring(
+                        apdu, tag_number, &rec->value.type.Bit_String);
+                    break;
+                case TL_TYPE_NULL:
+                    rec->value.tag = BACNET_APPLICATION_TAG_NULL;
+                    break;
+                default:
+                    // skip over the value if we don't suppord decoding it
+                    len += len_value_type;
+            }
+            if (len <= 0) {
+                break;
+            }
+            apdu += len;
+            apdu_len -= len;
+
+            // skip over the closing tag [1]
+            if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
+                decode_is_closing_tag_number(apdu, 1)) {
+                apdu++;
+                apdu_len--;
+            } else {
+                return -1;
+            }
+        } else if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
+            decode_is_opening_tag_number(apdu, 2)) {
+            // context tag 2 is a status bitstring.
+            // we don't do anything with this other than decode it.
+            len = decode_context_bitstring(apdu, 2, &rec->status);
+            if (len <= 0) {
+                return -1;
+            }
+            apdu += len;
+            apdu_len -= len;
+        } else {
+            return -1;
+        }
+    }
+    return 0;
 }
 
 static int local_read_property(uint8_t *value,
