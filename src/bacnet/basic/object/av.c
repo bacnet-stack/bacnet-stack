@@ -904,18 +904,24 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
-                if (Analog_Value_Present_Value_Set(wp_data->object_instance,
-                        value.type.Real, wp_data->priority)) {
-                    status = true;
-                } else if (wp_data->priority == 6) {
-                    /* Command priority 6 is reserved for use by Minimum On/Off
-                       algorithm and may not be used for other purposes in any
-                       object. */
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                if (CurrentAV->Out_Of_Service == true) {
+                    if (Analog_Value_Present_Value_Set(wp_data->object_instance,
+                                value.type.Real, wp_data->priority)) {
+                        status = true;
+                    } else if (wp_data->priority == 6) {
+                        /* Command priority 6 is reserved for use by Minimum On/Off
+                           algorithm and may not be used for other purposes in any
+                           object. */
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    } else {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    }
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    status = false;
                 }
             } else {
                 status = false;
@@ -1368,6 +1374,332 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
 }
 
 #if defined(INTRINSIC_REPORTING)
+/**
+ * For a given object instance-number, returns the time_delay property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  time_delay property value
+ */
+uint32_t Analog_Value_Time_Delay(uint32_t object_instance)
+{
+    uint32_t time_delay = 0;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        time_delay = pObject->Time_Delay;
+    }
+
+    return time_delay;
+}
+
+/**
+ * For a given object instance-number, sets the time_delay property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param time_delay - time_delay property value
+ *
+ * @return true if the time_delay property value was set
+ */
+bool Analog_Value_Time_Delay_Set(uint32_t object_instance, uint32_t time_delay)
+{
+    bool status = false;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        pObject->Time_Delay = time_delay;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the notification_class property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  notification_class property value
+ */
+uint32_t Analog_Value_Notification_Class(uint32_t object_instance)
+{
+    uint32_t notification_class = BACNET_MAX_INSTANCE;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        notification_class = pObject->Notification_Class;
+    }
+
+    return notification_class;
+}
+
+/**
+ * For a given object instance-number, sets the notification_class property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param notification_class - notification_class property value
+ *
+ * @return true if the notification_class property value was set
+ */
+bool Analog_Value_Notification_Class_Set(uint32_t object_instance, uint32_t notification_class)
+{
+    bool status = false;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        pObject->Notification_Class = notification_class;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the high_limit property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  high_limit property value
+ */
+float Analog_Value_High_Limit(uint32_t object_instance)
+{
+    float high_limit = 0.0f;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        high_limit = pObject->High_Limit;
+    }
+
+    return high_limit;
+}
+
+/**
+ * For a given object instance-number, sets the high_limit property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param high_limit - high_limit property value
+ *
+ * @return true if the high_limit property value was set
+ */
+bool Analog_Value_High_Limit_Set(uint32_t object_instance, float high_limit)
+{
+    bool status = false;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        pObject->High_Limit = high_limit;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the low_limit property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  low_limit property value
+ */
+float Analog_Value_Low_Limit(uint32_t object_instance)
+{
+    float low_limit = 0.0f;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        low_limit = pObject->Low_Limit;
+    }
+
+    return low_limit;
+}
+
+/**
+ * For a given object instance-number, sets the low_limit property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param low_limit - low_limit property value
+ *
+ * @return true if the low_limit property value was set
+ */
+bool Analog_Value_Low_Limit_Set(uint32_t object_instance, float low_limit)
+{
+    bool status = false;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        pObject->Low_Limit = low_limit;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the deadband property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  deadband property value
+ */
+float Analog_Value_Deadband(uint32_t object_instance)
+{
+    float deadband = 0.0f;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        deadband = pObject->Deadband;
+    }
+
+    return deadband;
+}
+
+/**
+ * For a given object instance-number, sets the deadband property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param deadband - deadband property value
+ *
+ * @return true if the deadband property value was set
+ */
+bool Analog_Value_Deadband_Set(uint32_t object_instance, float deadband)
+{
+    bool status = false;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        pObject->Deadband = deadband;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the limit_enable property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  limit_enable property value
+ */
+uint32_t Analog_Value_Limit_Enable(uint32_t object_instance)
+{
+    BACNET_LIMIT_ENABLE limit_enable = 0;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        limit_enable = (BACNET_LIMIT_ENABLE) pObject->Limit_Enable;
+    }
+
+    return limit_enable;
+}
+
+/**
+ * For a given object instance-number, sets the limit_enable property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param limit_enable - limit_enable property value
+ *
+ * @return true if the limit_enable property value was set
+ */
+bool Analog_Value_Limit_Enable_Set(uint32_t object_instance, BACNET_LIMIT_ENABLE limit_enable)
+{
+    bool status = false;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        if(!(limit_enable & ~(EVENT_LOW_LIMIT_ENABLE | EVENT_HIGH_LIMIT_ENABLE))) {
+            pObject->Limit_Enable = limit_enable;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the event_enable property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event_enable property value
+ */
+uint32_t Analog_Value_Event_Enable(uint32_t object_instance)
+{
+    uint32_t event_enable = 0;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        event_enable = pObject->Event_Enable;
+    }
+
+    return event_enable;
+}
+
+/**
+ * For a given object instance-number, sets the event_enable property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param event_enable - event_enable property value
+ *
+ * @return true if the event_enable property value was set
+ */
+bool Analog_Value_Event_Enable_Set(uint32_t object_instance, uint32_t event_enable)
+{
+    bool status = false;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+      if(!(event_enable & ~(EVENT_ENABLE_TO_OFFNORMAL | EVENT_ENABLE_TO_FAULT | EVENT_ENABLE_TO_NORMAL))) {
+        pObject->Event_Enable = event_enable;
+        status = true;
+      }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the notify_type property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  notify_type property value
+ */
+BACNET_NOTIFY_TYPE Analog_Value_Notify_Type(uint32_t object_instance)
+{
+    BACNET_NOTIFY_TYPE notify_type = NOTIFY_EVENT;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+        notify_type = pObject->Notify_Type;
+    }
+
+    return notify_type;
+}
+
+/**
+ * For a given object instance-number, sets the notify_type property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param notify_type - notify_type property value
+ *
+ * @return true if the notify_type property value was set
+ */
+bool Analog_Value_Notify_Type_Set(uint32_t object_instance, BACNET_NOTIFY_TYPE notify_type)
+{
+    bool status = false;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
+
+    if (pObject) {
+      if((notify_type == NOTIFY_EVENT) || (notify_type == NOTIFY_ALARM)) {
+        pObject->Notify_Type = notify_type;
+        status = true;
+      }
+    }
+
+    return status;
+}
+
 /**
  * @brief Handles getting the Event Information for this object.
  * @param  index - index number of the object 0..count
