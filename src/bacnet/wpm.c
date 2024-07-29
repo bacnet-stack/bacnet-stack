@@ -133,10 +133,8 @@ int wpm_decode_object_property(
         /* tag 2 - Property Value */
         if ((tag_number == 2) && (decode_is_opening_tag(&apdu[len - 1]))) {
             len--;
-            imax = bacapp_data_len(&apdu[len], (unsigned)(apdu_len - len),
-                wp_data->object_property);
+            imax = bacnet_enclosed_data_length(&apdu[len], apdu_len - len);
             len++;
-
             if (imax != BACNET_STATUS_ERROR) {
                 /* copy application data, check max length */
                 if (imax > (apdu_len - len)) {

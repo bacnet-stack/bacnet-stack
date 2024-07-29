@@ -10,7 +10,13 @@
 #ifndef BACNET_SYS_PLATFORM_H
 #define BACNET_SYS_PLATFORM_H
 #include <stddef.h>
+#include <string.h>
+#include <limits.h>
 #include <math.h>
+
+#ifndef INT_MAX
+#define INT_MAX (~0U >> 1U)
+#endif
 
 #ifndef islessgreater
 #define islessgreater(x, y) ((x) < (y) || (x) > (y))
@@ -76,17 +82,6 @@ __inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
 
     return count;
 }
-#endif
-#elif defined(__ZEPHYR__)
-#include <strings.h>
-/* For some reason my Zephyr build for non-native targets does not
- *  see a definition for strnlen(), but it is visible in when
- *  compiling for native_posix. This results in the compiler
- *  emitting a warning, forcing Zephyr's sanitycheck() script to stop.
- *  Until this is chased down, the definition is being provided here.
- */
-#if !CONFIG_NATIVE_APPLICATION
-size_t strnlen(const char *, size_t);
 #endif
 #endif
 

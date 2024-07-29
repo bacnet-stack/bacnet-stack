@@ -7,32 +7,8 @@
  */
 #include <stdbool.h>
 #include <string.h>
-#include <ctype.h>
+#include "bacnet/bacdef.h"
 #include "bacnet/indtext.h"
-
-/** @file indtext.c  Maps text strings and indices of type INDTEXT_DATA */
-
-/**
- * @brief Compare two strings ignoring case
- * @param s1 - first string
- * @param s2 - second string
- * @return 0 if the strings are equal, otherwise non-zero
-  */
-static int indtext_stricmp(const char *s1, const char *s2)
-{
-    unsigned char c1, c2;
-
-    do {
-        c1 = (unsigned char)*s1;
-        c2 = (unsigned char)*s2;
-        c1 = (unsigned char)tolower(c1);
-        c2 = (unsigned char)tolower(c2);
-        s1++;
-        s2++;
-    } while ((c1 == c2) && (c1 != '\0'));
-
-    return (int)c1 - c2;
-}
 
 /**
  * @brief Search a list of strings to find a matching string
@@ -80,7 +56,7 @@ bool indtext_by_istring(
 
     if (data_list && search_name) {
         while (data_list->pString) {
-            if (indtext_stricmp(data_list->pString, search_name) == 0) {
+            if (strcasecmp(data_list->pString, search_name) == 0) {
                 index = data_list->index;
                 found = true;
                 break;

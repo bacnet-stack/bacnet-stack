@@ -29,8 +29,6 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wno-unused-variable)
     add_compile_options(-Wno-unused-function)
     add_compile_options(-Wno-unused-parameter)
-    # FIXME: zephyr ztest has a strnlen hack in platform.h which triggers this warning
-    add_compile_options(-Wno-redundant-decls)
     add_link_options(-fprofile-arcs -ftest-coverage)
 endif()
 

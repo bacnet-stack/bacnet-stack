@@ -692,7 +692,7 @@ void rpm_ack_object_property_process(
             apdu += len;
             if (bacnet_is_opening_tag_number(apdu, apdu_len, 4, &len)) {
                 application_data_len =
-                    bacapp_data_len(apdu, apdu_len, rp_data->object_property);
+                    bacnet_enclosed_data_length(apdu, apdu_len);
                 /* propertyValue */
                 apdu_len -= len;
                 apdu += len;

@@ -6,6 +6,8 @@
  * @date 2004
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -394,6 +396,31 @@ bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
 }
 
 /**
+ * @brief Return the length of a string, within a maximum length
+ * @note The strnlen function is non-standard and not available in 
+ * all libc implementations.  This function is a workaround for that.
+ * @details The strnlen function computes the smaller of the number 
+ * of characters in the array pointed to by s, not including any 
+ * terminating null character, or the value of the maxlen argument. 
+ * The strnlen function examines no more than maxlen bytes of the 
+ * array pointed to by s.
+ * @param s - string to check
+ * @param maxlen - maximum length to check
+ * @return The strnlen function returns the number of bytes that 
+ * precede the first null character in the array pointed to by s, 
+ * if s contains a null character within the first maxlen characters; 
+ * otherwise, it returns maxlen.
+ */
+size_t characterstring_strnlen(const char *str, size_t maxlen)
+{
+    char* p = memchr(str, 0, maxlen);
+    if (p == NULL) {
+        return maxlen;
+    }
+    return (p - str);
+}
+
+/**
  * Initialize a BACnet characater string.
  * Returns false if the string exceeds capacity.
  * Initialize by using value=NULL
@@ -408,7 +435,7 @@ bool characterstring_init_ansi_safe(
     BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax)
 {
     return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
-        value ? strnlen(value, tmax) : 0);
+        value ? characterstring_strnlen(value, tmax) : 0);
 }
 
 /**

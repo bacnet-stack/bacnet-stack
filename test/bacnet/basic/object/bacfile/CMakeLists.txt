@@ -37,6 +37,7 @@ add_executable(${PROJECT_NAME}
     # Support files and stubs (pathname alphabetical)
 	${SRC_DIR}/bacnet/arf.c
 	${SRC_DIR}/bacnet/awf.c
+	${SRC_DIR}/bacnet/bacaction.c
 	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c

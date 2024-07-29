@@ -15,8 +15,6 @@
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 
-/** @file npdu.c  Encode/Decode NPDUs - Network Protocol Data Units */
-
 /** Copy the npdu_data structure information from src to dest.
  * @param dest [out] The 'to' structure
  * @param src   [in] The 'from' structure

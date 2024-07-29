@@ -28,6 +28,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\authentication_factor_format.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\awf.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacaddr.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaction.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacapp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacdcode.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacdest.c" />
@@ -212,6 +213,7 @@
     <ClInclude Include="..\..\..\..\src\bacnet\authentication_factor_format.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\awf.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacaddr.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacaction.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacapp.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacdcode.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacdef.h" />

@@ -757,6 +757,137 @@ int bacnet_tag_number_and_value_decode(
 }
 
 /**
+ * @brief Determine the data length from the application tag number 
+ * @param tag_number application tag number to be evaluated.
+ * @param len_value_type  Length of the data in bytes.
+ * @return datalength for the given tag, or INT_MAX if out of range.
+ */
+int bacnet_application_data_length(
+    uint8_t tag_number, uint32_t len_value_type)
+{
+    int len = 0;
+
+    switch (tag_number) {
+        case BACNET_APPLICATION_TAG_NULL:
+            break;
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            break;
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+        case BACNET_APPLICATION_TAG_REAL:
+        case BACNET_APPLICATION_TAG_DOUBLE:
+        case BACNET_APPLICATION_TAG_OCTET_STRING:
+        case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+        case BACNET_APPLICATION_TAG_BIT_STRING:
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+        case BACNET_APPLICATION_TAG_DATE:
+        case BACNET_APPLICATION_TAG_TIME:
+        case BACNET_APPLICATION_TAG_OBJECT_ID:
+            len = INT_MAX;
+            if (len_value_type < INT_MAX) {
+                len = (int)len_value_type;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return len;
+}
+
+/**
+ * @brief Returns the length of data between an opening tag and a closing tag.
+ * @note Expects that the first octet contain the opening tag.
+ * @param apdu Pointer to the APDU buffer
+ * @param apdu_size Bytes valid in the buffer
+ * @param property ID of the property to get the length for.
+ * @return length of data between an opening tag and a closing tag 0..N, 
+ *  or BACNET_STATUS_ERROR.
+ */
+int bacnet_enclosed_data_length(
+    uint8_t *apdu, size_t apdu_size)
+{
+    int len = 0;
+    int total_len = 0;
+    int apdu_len = 0;
+    BACNET_TAG tag = { 0 };
+    uint8_t opening_tag_number = 0;
+    uint8_t opening_tag_number_counter = 0;
+    bool total_len_enable = false;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (apdu_size <= apdu_len) {
+        /* error: exceeding our buffer limit */
+        return BACNET_STATUS_ERROR;
+    }
+    if (!bacnet_is_opening_tag(apdu, apdu_size)) {
+        /* error: opening tag is missing */
+        return BACNET_STATUS_ERROR;
+    }
+    do {
+        len = bacnet_tag_decode(apdu, apdu_size - apdu_len, &tag);
+        if (len == 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        if (tag.opening) {
+            if (opening_tag_number_counter == 0) {
+                opening_tag_number = tag.number;
+                opening_tag_number_counter = 1;
+                total_len_enable = false;
+            } else if (tag.number == opening_tag_number) {
+                total_len_enable = true;
+                opening_tag_number_counter++;
+            } else {
+                total_len_enable = true;
+            }
+        } else if (tag.closing) {
+            if (tag.number == opening_tag_number) {
+                if (opening_tag_number_counter > 0) {
+                    opening_tag_number_counter--;
+                }
+            }
+            total_len_enable = true;
+        } else if (tag.context) {
+            if (tag.len_value_type > INT_MAX) {
+                /* error: length is out of range */
+                return BACNET_STATUS_ERROR;
+            }
+            len += tag.len_value_type;
+            total_len_enable = true;
+        } else {
+            if (tag.len_value_type > INT_MAX) {
+                /* error: length is out of range */
+                return BACNET_STATUS_ERROR;
+            }
+            /* application tagged data */
+            len += bacnet_application_data_length(tag.number, 
+                tag.len_value_type);
+            total_len_enable = true;
+        }
+        if (opening_tag_number_counter > 0) {
+            if (len > 0) {
+                if (total_len_enable) {
+                    total_len += len;
+                }
+            } else {
+                /* error: len is not incrementing */
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
+            if (apdu_size <= apdu_len) {
+                /* error: exceeding our buffer limit */
+                return BACNET_STATUS_ERROR;
+            }
+            apdu += len;
+        }
+    } while (opening_tag_number_counter > 0);
+
+    return total_len;
+}
+
+/**
  * @brief Returns true if the tag is context specific
  * and matches, as defined in clause 20.2.1.3.2 Constructed
  * Data.

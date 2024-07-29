@@ -208,7 +208,6 @@ int cov_notify_decode_service_request(
     BACNET_UNSIGNED_INTEGER decoded_value = 0;
     BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE;
     uint32_t decoded_instance = 0;
-    BACNET_PROPERTY_ID property_identifier = PROP_ALL;
     BACNET_PROPERTY_VALUE *value = NULL;
 
     /* subscriber-process-identifier [0] Unsigned32 */
@@ -292,8 +291,7 @@ int cov_notify_decode_service_request(
             /* this len function needs to start at the opening tag
                to match opening/closing tags like a stack.
                However, it returns the len between the tags. */
-            value_len = bacapp_data_len(&apdu[len], apdu_size - len,
-                (BACNET_PROPERTY_ID)property_identifier);
+            value_len = bacnet_enclosed_data_length(&apdu[len], apdu_size - len);
             len += value_len;
             /* add the opening tag length to the totals */
             len += tag_len;

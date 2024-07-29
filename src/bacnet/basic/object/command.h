@@ -12,6 +12,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/bacaction.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
@@ -26,29 +27,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-    typedef struct bacnet_action_list {
-        BACNET_OBJECT_ID Device_Id;     /* Optional */
-        BACNET_OBJECT_ID Object_Id;
-        BACNET_PROPERTY_ID Property_Identifier;
-        uint32_t Property_Array_Index;  /* Conditional */
-        BACNET_APPLICATION_DATA_VALUE Value;
-        uint8_t Priority;       /* Conditional */
-        uint32_t Post_Delay;    /* Optional */
-        bool Quit_On_Failure;
-        bool Write_Successful;
-        struct bacnet_action_list *next;
-    } BACNET_ACTION_LIST;
-
-    int cl_encode_apdu(
-        uint8_t * apdu,
-        BACNET_ACTION_LIST * bcl);
-
-    int cl_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_APPLICATION_TAG tag,
-        BACNET_ACTION_LIST * bcl);
 
     typedef struct command_descr {
         uint32_t Present_Value;
@@ -143,6 +121,13 @@ extern "C" {
     void Command_COV_Increment_Set(
         uint32_t instance,
         float value);
+
+    BACNET_STACK_EXPORT
+    BACNET_ACTION_LIST * Command_Action_List_Entry(
+        uint32_t instance, unsigned index);
+    BACNET_STACK_EXPORT
+    unsigned Command_Action_List_Count(
+        uint32_t instance);
 
     /* note: header of Intrinsic_Reporting function is required
        even when INTRINSIC_REPORTING is not defined */
