@@ -280,8 +280,8 @@ int main(int argc, char *argv[])
     /* decode the command line parameters */
     if (argc > 1) {
         Target_Network_Number = strtol(argv[1], NULL, 0);
-        if (Target_Network_Number > UINT16_MAX) {
-            fprintf(stderr, "DNET=%d - it must be 0 to 65535\r\n",
+        if ((uint16_t)Target_Network_Number >= UINT16_MAX) {
+            fprintf(stderr, "DNET=%d - it must be 0 to 65534\r\n",
                 Target_Network_Number);
             return 1;
         }
