@@ -34,7 +34,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* where the message gets sent */
 static BACNET_ADDRESS Target_Router_Address;
-static int32_t Target_Network_Number = 0;
+static uint32_t Target_Network_Number = 0;
 static int32_t Target_Network_Number_Status = 0;
 
 static bool Error_Detected = false;
@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
     /* decode the command line parameters */
     if (argc > 1) {
         Target_Network_Number = strtol(argv[1], NULL, 0);
-        if ((uint16_t)Target_Network_Number >= UINT16_MAX) {
+        if (Target_Network_Number >= UINT16_MAX) {
             fprintf(stderr, "DNET=%d - it must be 0 to 65534\r\n",
                 Target_Network_Number);
             return 1;
