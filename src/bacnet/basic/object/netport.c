@@ -738,9 +738,9 @@ bool Network_Port_MAC_Address(
 
     index = Network_Port_Instance_To_Index(object_instance);
 
-    if(Object_List[index].Network_Type == PORT_TYPE_MSTP) {
-        status = octetstring_init(mac_address, &Object_List[index].Network.MSTP.MAC_Address, mac_len);
-    }
+   // if(Object_List[index].Network_Type == PORT_TYPE_MSTP) {
+     //   status = octetstring_init(mac_address, &Object_List[index].Network.MSTP.MAC_Address, mac_len);
+    //}
 
     fprintf(stderr, "????? mac_len: %d\r\n", mac_len);
     return mac_len > 0;
@@ -788,7 +788,7 @@ bool Network_Port_MAC_Address_Set(
 
                 fprintf(stderr, "@@@@@@ &Object_List[index].Network.MSTP.MAC_Address: %p\r\n", &Object_List[index].Network.MSTP.MAC_Address);
                 mac_size = sizeof(Object_List[index].Network.MSTP.MAC_Address);
-                fprintf(stderr,"@@@@@ MSTP mac_size: %d\r\n", mac_size);
+
                 break;
             case PORT_TYPE_BIP:
                 fprintf(stderr, "@@@@@@ BIP MAC Address\r\n");
@@ -1046,7 +1046,7 @@ bool Network_Port_IP_Address(
                 ip_address, &Object_List[index].Network.IPv4.IP_Address[0], 4);
         }
     }
-    fprintf(stderr, "????? Network Port IP Address OCTET STRING: %p\r\n", ip_address);
+    fprintf(stderr, "????? Network Port IP Address OCTET STRING: \r\n");
     return status;
 }
 
@@ -3266,7 +3266,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
-                    fprintf(stderr, "Network_Port_Write_Property: PROP_MAX_MASTER: %d\r\n", value.type.Unsigned_Int);
                     status = Network_Port_MSTP_Max_Master_Set(
                         wp_data->object_instance, value.type.Unsigned_Int);
                     if (!status) {
@@ -3283,7 +3282,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                fprintf(stderr, "Network_Port_Write_Property: PROP_MAX_INFO_FRAMES: %d\r\n", value.type.Unsigned_Int);
                 if (value.type.Unsigned_Int <= 255) {
                     status = Network_Port_MSTP_Max_Info_Frames_Set(
                         wp_data->object_instance, value.type.Unsigned_Int);
