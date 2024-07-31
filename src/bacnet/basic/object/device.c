@@ -163,7 +163,7 @@ static object_functions_t My_Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
-        NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
+        Calendar_Create, Calendar_Delete, NULL /* Timer */ },
 #if (BACNET_PROTOCOL_REVISION >= 10)
     { OBJECT_BITSTRING_VALUE, BitString_Value_Init,
         BitString_Value_Count, BitString_Value_Index_To_Instance,
