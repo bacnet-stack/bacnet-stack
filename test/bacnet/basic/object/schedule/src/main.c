@@ -28,7 +28,7 @@ static void testSchedule(void)
     unsigned count = 0;
     uint32_t object_instance = 0;
     const int skip_fail_property_list[] = {
-        PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES, -1
+        -1
     };
 
     Schedule_Init();
