@@ -823,15 +823,11 @@ bool Network_Port_APDU_Length_Set(uint32_t object_instance, uint16_t value)
 
     index = Network_Port_Instance_To_Index(object_instance);
 
-    if(Object_List[index].Network_Type == PORT_TYPE_MSTP) {
-        fprintf(stderr, "@@@@@@ Network_Port_APDU_Length_Set: %d\r\n", value);
-    }
-
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].APDU_Length = value;
         status = true;
     }
-    fprintf(stderr, "@@@@@@ Network_Port_APDU_Length_Set: %d\r\n", value);
+
     return status;
 }
 
@@ -968,7 +964,7 @@ uint8_t Network_Port_MSTP_Max_Master(uint32_t object_instance)
             value = Object_List[index].Network.MSTP.Max_Master;
         }
     }
-    fprintf(stderr, "@@@@@@ Network_Port_MSTP_Max_Master: %d\r\n", value);
+
     return value;
 }
 
@@ -985,7 +981,7 @@ bool Network_Port_MSTP_Max_Master_Set(uint32_t object_instance, uint8_t value)
 {
     bool status = false;
     unsigned index = 0;
-    fprintf(stderr, "@@@@@@ Network_Port_MSTP_Max_Master_Set: %d\r\n", value);
+
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
@@ -2778,7 +2774,7 @@ uint8_t Network_Port_MSTP_Max_Info_Frames(uint32_t object_instance)
             value = Object_List[index].Network.MSTP.Max_Info_Frames;
         }
     }
-    fprintf(stderr, "@@@@@@ Network_Port_MSTP_Max Info Frame: %d\r\n", value);
+
     return value;
 }
 
@@ -2796,7 +2792,7 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 {
     bool status = false;
     unsigned index = 0;
-    fprintf(stderr, "@@@@@@ Network_Port_MSTP_Max Info Frame: %d\r\n", value);
+
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
