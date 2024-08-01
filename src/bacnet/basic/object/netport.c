@@ -743,7 +743,6 @@ bool Network_Port_MAC_Address(
         return status;
     }
 
-    fprintf(stderr, "????? mac_len: %d\r\n", mac_len);
     return mac_len > 0;
 }
 
@@ -766,16 +765,9 @@ bool Network_Port_MAC_Address_Set(
     uint8_t *mac_dest = NULL;
 
     size_t i;
-    fprintf(stderr, "@@@@@@ MAC Address Set\r\n ");
-    for (i = 0; i < mac_len; i++) {
-        fprintf(stderr, "%02X", mac_src[i]);
-        if (i < mac_len - 1) {
-            fprintf(stderr, ":");
-        }
-    }
-    fprintf(stderr, "\r\n");
+
     index = Network_Port_Instance_To_Index(object_instance);
-    fprintf(stderr, "@@@@@@ index: %d\r\n", index);
+
     if (index < BACNET_NETWORK_PORTS_MAX) {
         switch (Object_List[index].Network_Type) {
             case PORT_TYPE_ETHERNET:
@@ -790,7 +782,6 @@ bool Network_Port_MAC_Address_Set(
                 fprintf(stderr, "@@@@@@ Object_List[index].Network.MSTP.MAC_Address: %d\r\n", Object_List[index].Network.MSTP.MAC_Address);
                 break;
             case PORT_TYPE_BIP:
-                fprintf(stderr, "@@@@@@ BIP MAC Address\r\n");
                 /* no need to set - created from IP address and UPD Port */
                 break;
             case PORT_TYPE_BIP6:
@@ -800,12 +791,11 @@ bool Network_Port_MAC_Address_Set(
             default:
                 break;
         }
-        fprintf(stderr, "@@@@@@ mac_len: %d\r\n", mac_len);
+
         fprintf(stderr, "@@@@@ status: %d\r\n", status);
         if (mac_src && mac_dest && (mac_len == mac_size)) {
             memcpy(mac_dest, mac_src, mac_size);
             status = true;
-            fprintf(stderr, "@@@@@ status: mac_dest: %p\r\n", mac_dest);
             fprintf(stderr, "@@@@@ status: %d\r\n", status);
         }
     }
@@ -846,11 +836,16 @@ bool Network_Port_APDU_Length_Set(uint32_t object_instance, uint16_t value)
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
+
+    if(Object_List[index].Network_Type == PORT_TYPE_MSTP) {
+        fprintf(stderr, "@@@@@@ Network_Port_APDU_Length_Set: %d\r\n", value);
+    }
+
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].APDU_Length = value;
         status = true;
     }
-
+    fprintf(stderr, "@@@@@@ Network_Port_APDU_Length_Set: %d\r\n", value);
     return status;
 }
 
@@ -1044,7 +1039,7 @@ bool Network_Port_IP_Address(
                 ip_address, &Object_List[index].Network.IPv4.IP_Address[0], 4);
         }
     }
-    fprintf(stderr, "????? Network Port IP Address OCTET STRING: \r\n");
+
     return status;
 }
 
@@ -2912,7 +2907,10 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return BACNET_STATUS_ERROR;
     }
     apdu = rpdata->application_data;
+    fprintf(stderr, "apdu: %u\r\n", apdu);
     apdu_size = rpdata->application_data_len;
+    fprintf(stderr, "apdu_size: %u\r\n", apdu_size);
+
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -2972,7 +2970,10 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_MAC_ADDRESS:
             Network_Port_MAC_Address(rpdata->object_instance, &octet_string);
+            //dc something has to here
+            fprintf(stderr, "apdu[0]: %u\r\n", apdu[0]);
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
+            fprintf(stderr, "apdu_len: %u\r\n", apdu_len);
             break;
         case PROP_LINK_SPEED:
             apdu_len = encode_application_real(

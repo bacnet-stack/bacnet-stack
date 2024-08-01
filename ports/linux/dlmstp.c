@@ -668,7 +668,7 @@ void dlmstp_get_my_address(BACNET_ADDRESS *my_address)
     for (i = 0; i < MAX_MAC_LEN; i++) {
         my_address->adr[i] = 0;
     }
-    fprintf(stderr, "MS/TP: My Address: %02X\n", my_address->mac[0]);
+
     return;
 }
 
