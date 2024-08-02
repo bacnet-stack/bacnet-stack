@@ -707,11 +707,6 @@
     <Compile Include="netport.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="dlmstp.c">
-      <SubType>compile</SubType>
-      <CustomCompilationSetting Condition="'$(Configuration)' == 'Debug'">
-      </CustomCompilationSetting>
-    </Compile>
     <Compile Include="..\..\src\bacnet\basic\service\h_dcc.c">
       <SubType>compile</SubType>
       <Link>bacnet-stack\h_dcc.c</Link>
@@ -764,6 +759,10 @@
       <SubType>compile</SubType>
       <Link>bacnet-stack\h_apdu.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\bacaction.c">
+      <SubType>compile</SubType>
+      <Link>bacnet-stack\bacaddr.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\bacaddr.c">
       <SubType>compile</SubType>
       <Link>bacnet-stack\bacaddr.c</Link>
@@ -800,9 +799,25 @@
       <SubType>compile</SubType>
       <Link>bacnet-stack\bacstr.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\datalink\cobs.c">
+      <SubType>compile</SubType>
+      <Link>bacnet-stack\cobs.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\datalink\crc.c">
       <SubType>compile</SubType>
       <Link>bacnet-stack\crc.c</Link>
+    </Compile>
+    <Compile Include="..\..\src\bacnet\datalink\dlmstp.c">
+      <SubType>compile</SubType>
+      <Link>bacnet-stack\dlmstp.c</Link>
+    </Compile>
+    <Compile Include="..\..\src\bacnet\datalink\mstptext.c">
+      <SubType>compile</SubType>
+      <Link>bacnet-stack\mstptext.c</Link>
+    </Compile>
+    <Compile Include="..\..\src\bacnet\datalink\mstp.c">
+      <SubType>compile</SubType>
+      <Link>bacnet-stack\mstp.c</Link>
     </Compile>
     <Compile Include="..\..\src\bacnet\dcc.c">
       <SubType>compile</SubType>
@@ -819,6 +834,10 @@
     <Compile Include="..\..\src\bacnet\ihave.c">
       <SubType>compile</SubType>
       <Link>bacnet-stack\ihave.c</Link>
+    </Compile>
+    <Compile Include="..\..\src\bacnet\indtext.c">
+      <SubType>compile</SubType>
+      <Link>bacnet-stack\indtext.c</Link>
     </Compile>
     <Compile Include="..\..\src\bacnet\memcopy.c">
       <SubType>compile</SubType>

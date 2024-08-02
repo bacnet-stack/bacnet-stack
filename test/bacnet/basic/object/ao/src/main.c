@@ -37,11 +37,8 @@ static void testAnalogOutput(void)
     test_object_instance = Analog_Output_Index_To_Instance(0);
     zassert_equal(object_instance, test_object_instance, NULL);
     bacnet_object_properties_read_write_test(
-        OBJECT_ANALOG_OUTPUT,
-        object_instance,
-        Analog_Output_Property_Lists,
-        Analog_Output_Read_Property,
-        Analog_Output_Write_Property,
+        OBJECT_ANALOG_OUTPUT, object_instance, Analog_Output_Property_Lists,
+        Analog_Output_Read_Property, Analog_Output_Write_Property,
         skip_fail_property_list);
     status = Analog_Output_Delete(object_instance);
     zassert_true(status, NULL);
@@ -50,15 +47,12 @@ static void testAnalogOutput(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(ao_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(ao_tests,
-     ztest_unit_test(testAnalogOutput)
-     );
+    ztest_test_suite(ao_tests, ztest_unit_test(testAnalogOutput));
 
     ztest_run_test_suite(ao_tests);
 }

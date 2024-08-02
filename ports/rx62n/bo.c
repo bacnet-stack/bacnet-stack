@@ -194,11 +194,11 @@ bool Binary_Output_Out_Of_Service(uint32_t instance)
 /* note: the object name must be unique within this device */
 char *Binary_Output_Name(uint32_t object_instance)
 {
-    static char text_string[32]; /* okay for single thread */
+    static char text[32]; /* okay for single thread */
 
     if (object_instance < MAX_BINARY_OUTPUTS) {
-        sprintf(text_string, "BO-%lu", object_instance);
-        return text_string;
+        snprintf(text, sizeof(text), "BO-%lu", (unsigned long)object_instance);
+        return text;
     }
 
     return NULL;

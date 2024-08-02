@@ -30,11 +30,10 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/datalink/bip.h"
 
-
 int bip_send_pdu(
-    BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * npdu_data,
-    uint8_t * pdu,
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
     unsigned pdu_len)
 {
     return 0;

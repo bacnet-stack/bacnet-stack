@@ -1,15 +1,14 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006
- * @brief Binary Value object is an input object with a present-value that
+ * @brief API for a basic BACnet Binary Value object implementation.
+ * Binary Value objects are input objects with a present-value that
  * uses an enumerated two state active/inactive data type.
- * @section LICENSE
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_BINARY_VALUE_OBJECT_H
-#define BACNET_BINARY_VALUE_OBJECT_H
+#ifndef BACNET_BASIC_OBJECT_BINARY_VALUE_H
+#define BACNET_BASIC_OBJECT_BINARY_VALUE_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
@@ -19,6 +18,12 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
+#if (INTRINSIC_REPORTING)
+#include "bacnet/basic/object/nc.h"
+#include "bacnet/getevent.h"
+#include "bacnet/alarm_ack.h"
+#include "bacnet/get_alarm_sum.h"
+#endif
 /**
  * @brief Callback for gateway write present value request
  * @param  object_instance - object-instance number of the object
@@ -72,35 +77,12 @@ extern "C" {
         uint32_t object_instance);
 
     BACNET_STACK_EXPORT
-    char *Binary_Value_Description(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    bool Binary_Value_Description_Set(
-        uint32_t instance,
-        char *new_name);
-
-    BACNET_STACK_EXPORT
     BACNET_RELIABILITY Binary_Value_Reliability(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Binary_Value_Reliability_Set(
         uint32_t object_instance,
         BACNET_RELIABILITY value);
-
-    BACNET_STACK_EXPORT
-    char *Binary_Value_Inactive_Text(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    bool Binary_Value_Inactive_Text_Set(
-        uint32_t instance,
-        char *new_name);
-    BACNET_STACK_EXPORT
-    char *Binary_Value_Active_Text(
-        uint32_t instance);
-    BACNET_STACK_EXPORT
-    bool Binary_Value_Active_Text_Set(
-        uint32_t instance,
-        char *new_name);
 
     BACNET_STACK_EXPORT
     int Binary_Value_Read_Property(
@@ -176,6 +158,42 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Binary_Value_Cleanup(
         void);
+
+    BACNET_STACK_EXPORT
+    unsigned Binary_Value_Event_State(
+        uint32_t object_instance);
+
+#if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Event_Detection_Enable(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Event_Detection_Enable_Set(
+        uint32_t object_instance, bool value);
+
+    BACNET_STACK_EXPORT
+    int Binary_Value_Event_Information(
+        unsigned index,
+        BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
+
+    BACNET_STACK_EXPORT
+    int Binary_Value_Alarm_Ack(
+        BACNET_ALARM_ACK_DATA * alarmack_data,
+        BACNET_ERROR_CODE * error_code);
+
+    BACNET_STACK_EXPORT
+    int Binary_Value_Alarm_Summary(
+        unsigned index,
+        BACNET_GET_ALARM_SUMMARY_DATA * getalarm_data);
+
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Alarm_Value_Set(
+        uint32_t object_instance, BACNET_BINARY_PV value);
+
+    BACNET_STACK_EXPORT
+    void Binary_Value_Intrinsic_Reporting(
+        uint32_t object_instance);
+#endif
 
 #ifdef __cplusplus
 }

@@ -20,7 +20,6 @@
 #include "bacnet/datetime.h"
 #include "bacnet/bacapp.h"
 
-
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -46,30 +45,28 @@ static void test_BACnetWeeklySchedule(void)
 
     value.weeklySchedule[0].TV_Count = 2;
 
-    value.weeklySchedule[0].Time_Values[0].Time = (BACNET_TIME) {
-        .hour = 5,
-        .min = 30
-    };
-    value.weeklySchedule[0].Time_Values[0].Value = (BACNET_PRIMITIVE_DATA_VALUE) {
-        .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
-        .type.Unsigned_Int = 123,
-    };
+    value.weeklySchedule[0].Time_Values[0].Time =
+        (BACNET_TIME) { .hour = 5, .min = 30 };
+    value.weeklySchedule[0].Time_Values[0].Value =
+        (BACNET_PRIMITIVE_DATA_VALUE) {
+            .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            .type.Unsigned_Int = 123,
+        };
 
-    value.weeklySchedule[0].Time_Values[1].Time = (BACNET_TIME) {
-        .hour = 15,
-        .min = 0
-    };
-    value.weeklySchedule[0].Time_Values[1].Value = (BACNET_PRIMITIVE_DATA_VALUE) {
-        .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
-        .type.Unsigned_Int = 456,
-    };
+    value.weeklySchedule[0].Time_Values[1].Time =
+        (BACNET_TIME) { .hour = 15, .min = 0 };
+    value.weeklySchedule[0].Time_Values[1].Value =
+        (BACNET_PRIMITIVE_DATA_VALUE) {
+            .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            .type.Unsigned_Int = 456,
+        };
 
     value.weeklySchedule[6].TV_Count = 1;
-    value.weeklySchedule[6].Time_Values[0].Value = (BACNET_PRIMITIVE_DATA_VALUE) {
-        .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
-        .type.Unsigned_Int = 777,
-    };
-
+    value.weeklySchedule[6].Time_Values[0].Value =
+        (BACNET_PRIMITIVE_DATA_VALUE) {
+            .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            .type.Unsigned_Int = 777,
+        };
 
     len = bacnet_weeklyschedule_encode(apdu, &value);
     apdu_len = bacnet_weeklyschedule_decode(apdu, len, &decoded);
@@ -82,7 +79,8 @@ static void test_BACnetWeeklySchedule(void)
     zassert_false(status, NULL);
 
     len = bacnet_weeklyschedule_context_encode(apdu, tag_number, &value);
-    apdu_len = bacnet_weeklyschedule_context_decode(apdu, len, tag_number, &decoded);
+    apdu_len =
+        bacnet_weeklyschedule_context_decode(apdu, len, tag_number, &decoded);
     zassert_true(len > 0, NULL);
     zassert_true(apdu_len > 0, NULL);
     status = bacnet_weeklyschedule_same(&value, &decoded);
@@ -90,7 +88,8 @@ static void test_BACnetWeeklySchedule(void)
 
     /* negative testing - the tag differs */
     tag_number++;
-    apdu_len = bacnet_weeklyschedule_context_decode(apdu, len, tag_number, &decoded);
+    apdu_len =
+        bacnet_weeklyschedule_context_decode(apdu, len, tag_number, &decoded);
     zassert_true(apdu_len < 0, NULL);
 }
 
@@ -103,9 +102,8 @@ ZTEST_SUITE(BACnetWeeklySchedule_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(BACnetWeeklySchedule_tests,
-     ztest_unit_test(test_BACnetWeeklySchedule)
-     );
+    ztest_test_suite(
+        BACnetWeeklySchedule_tests, ztest_unit_test(test_BACnetWeeklySchedule));
 
     ztest_run_test_suite(BACnetWeeklySchedule_tests);
 }

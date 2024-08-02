@@ -1,28 +1,12 @@
-/**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
-#ifndef NPDU_H
-#define NPDU_H
+/**
+ * @file
+ * @brief API for Network Protocol Data Unit (NPDU) encode and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_NPDU_H
+#define BACNET_NPDU_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -34,7 +18,17 @@
 #define HOP_COUNT_DEFAULT 255
 #endif
 
-/* an NPDU structure keeps the parameter stack to a minimum */
+/**
+ * This structure defines the NPCI (header part) of the NPDU. 
+ * See Figures 5-2 and 7-1 of the BACnet standard for clarity
+ * 
+ * NPDU = NPCI + NSDU
+ *  "Network-layer Protocol Data Unit" =
+ *      "Network Protocol Control Information" +
+ *      "Network Service Data Unit" 
+ *          (APDU for application messages, 
+ *          "Network Message" for network layer messages)
+ */
 typedef struct bacnet_npdu_data_t {
     uint8_t protocol_version;
     /* parts of the control octet: */
@@ -45,7 +39,7 @@ typedef struct bacnet_npdu_data_t {
     BACNET_NETWORK_MESSAGE_TYPE network_message_type;   /* optional */
     uint16_t vendor_id; /* optional, if net message type is > 0x80 */
     uint8_t hop_count;
-} BACNET_NPDU_DATA;
+} BACNET_NPDU_DATA, BACNET_NPCI_DATA;
 
 struct router_port_t;
 /** The info[] string has no agreed-upon purpose, hence it is useless.

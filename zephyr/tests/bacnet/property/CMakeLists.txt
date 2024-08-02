@@ -40,7 +40,10 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/sys/days.c
     )
 
-  add_definitions(-DBACNET_PROPERTY_LISTS=1)
+  add_definitions(
+    -DBACNET_PROPERTY_LISTS=1
+    -DBACNET_PROPERTY_ARRAY_LISTS=1
+  )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
   find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})
@@ -55,4 +58,7 @@ else()
     )
 endif()
 
-add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig
+add_compile_definitions(
+  CONFIG_ZTEST_NEW_API
+  BACNET_STACK_DEPRECATED_DISABLE
+  )

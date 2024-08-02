@@ -71,8 +71,7 @@ void testBACnetObjects(Test *pTest)
     for (test_point = 0; test_point < max_test_points; test_point++) {
         device_id = test_point * (BACNET_MAX_INSTANCE / max_test_points);
         pDevice = objects_device_data(test_point);
-        testBACnetObjectsCompare(
-            pTest, pDevice, objects_device_id(test_point));
+        testBACnetObjectsCompare(pTest, pDevice, objects_device_id(test_point));
     }
     for (test_point = 0; test_point < max_test_points; test_point++) {
         status = objects_device_delete(0);
@@ -99,4 +98,3 @@ int main(void)
 
     return 0;
 }
-

@@ -123,6 +123,7 @@ BASICSRC = $(BACNET_BASIC)/service/h_dcc.c \
 CORESRC =  \
 	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/bacaction.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \

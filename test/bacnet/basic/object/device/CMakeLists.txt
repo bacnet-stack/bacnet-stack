@@ -23,6 +23,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
+	BACNET_PROPERTY_ARRAY_LISTS=1
 	)
 
 include_directories(
@@ -36,6 +37,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/object/device.c
     # Support files and stubs (pathname alphabetical)
 	${SRC_DIR}/bacnet/abort.c
+	${SRC_DIR}/bacnet/bacaction.c
 	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
@@ -53,6 +55,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/object/ao.c
 	${SRC_DIR}/bacnet/basic/object/av.c
 	${SRC_DIR}/bacnet/basic/object/bi.c
+	${SRC_DIR}/bacnet/basic/object/bitstring_value.c
 	${SRC_DIR}/bacnet/basic/object/blo.c
 	${SRC_DIR}/bacnet/basic/object/bo.c
 	${SRC_DIR}/bacnet/basic/object/bv.c
@@ -74,6 +77,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/object/osv.c
 	${SRC_DIR}/bacnet/basic/object/piv.c
 	${SRC_DIR}/bacnet/basic/object/schedule.c
+	${SRC_DIR}/bacnet/basic/object/structured_view.c
 	${SRC_DIR}/bacnet/basic/object/time_value.c
 	${SRC_DIR}/bacnet/basic/object/trendlog.c
 	${SRC_DIR}/bacnet/basic/service/h_apdu.c
@@ -96,6 +100,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/memcopy.c
 	${SRC_DIR}/bacnet/npdu.c
 	${SRC_DIR}/bacnet/proplist.c
+	${SRC_DIR}/bacnet/property.c
 	${SRC_DIR}/bacnet/reject.c
 	${SRC_DIR}/bacnet/timestamp.c
 	${SRC_DIR}/bacnet/wp.c

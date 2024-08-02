@@ -154,7 +154,7 @@ static void Parse_Arguments(int argc, char *argv[])
     }
 }
 
-static void filename_create(char *filename)
+static void filename_create(char *filename, size_t filesize)
 {
     time_t my_time;
     struct tm *today;
@@ -162,7 +162,7 @@ static void filename_create(char *filename)
     if (filename) {
         my_time = time(NULL);
         today = localtime(&my_time);
-        sprintf(filename, "mstp_%04d%02d%02d%02d%02d%02d.cap",
+        snprintf(filename, filesize, "mstp_%04d%02d%02d%02d%02d%02d.cap",
             1900 + today->tm_year, 1 + today->tm_mon, today->tm_mday,
             today->tm_hour, today->tm_min, today->tm_sec);
     }
@@ -223,7 +223,7 @@ static void write_received_packet(uint8_t *buffer, unsigned length)
 
 static void Write_Pcap(uint8_t *buffer, unsigned length)
 {
-    filename_create(&Capture_Filename[0]);
+    filename_create(&Capture_Filename[0], sizeof(Capture_Filename));
     write_global_header(&Capture_Filename[0]);
     write_received_packet(buffer, length);
     if (pFile) {
@@ -236,7 +236,7 @@ static void Process_Text_File(void)
 {
     char *argi = NULL;
 
-    filename_create(&Capture_Filename[0]);
+    filename_create(&Capture_Filename[0], sizeof(Capture_Filename));
     write_global_header(&Capture_Filename[0]);
     while (fgets(Text_Buffer, sizeof(Text_Buffer), pText_File)) {
         CRC_Buffer_Len = 0;

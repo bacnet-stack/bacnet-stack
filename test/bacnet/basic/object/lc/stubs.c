@@ -35,10 +35,10 @@ void datetime_init(void)
 }
 
 bool datetime_local(
-    BACNET_DATE * bdate,
-    BACNET_TIME * btime,
-    int16_t * utc_offset_minutes,
-    bool * dst_active)
+    BACNET_DATE *bdate,
+    BACNET_TIME *btime,
+    int16_t *utc_offset_minutes,
+    bool *dst_active)
 {
     return true;
 }

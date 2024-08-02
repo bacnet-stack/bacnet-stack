@@ -19,7 +19,8 @@
 /**
  * @brief Test
  */
-static int dcc_decode_apdu(uint8_t *apdu,
+static int dcc_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     uint16_t *timeDuration,
@@ -46,8 +47,9 @@ static int dcc_decode_apdu(uint8_t *apdu,
         return BACNET_STATUS_ERROR;
     }
     if (apdu_size > apdu_len) {
-        len = dcc_decode_service_request(&apdu[apdu_len], apdu_size - apdu_len,
-            timeDuration, enable_disable, password);
+        len = dcc_decode_service_request(
+            &apdu[apdu_len], apdu_size - apdu_len, timeDuration, enable_disable,
+            password);
         if (len > 0) {
             apdu_len += len;
         } else {
@@ -58,7 +60,8 @@ static int dcc_decode_apdu(uint8_t *apdu,
     return apdu_len;
 }
 
-static void test_DeviceCommunicationControlData(uint8_t invoke_id,
+static void test_DeviceCommunicationControlData(
+    uint8_t invoke_id,
     uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
     BACNET_CHARACTER_STRING *password)
@@ -77,17 +80,18 @@ static void test_DeviceCommunicationControlData(uint8_t invoke_id,
     zassert_equal(apdu_size, null_len, NULL);
     zassert_not_equal(apdu_size, 0, NULL);
 
-    test_len = dcc_decode_apdu(&apdu[0], apdu_size, &test_invoke_id,
-        &test_timeDuration, &test_enable_disable, &test_password);
+    test_len = dcc_decode_apdu(
+        &apdu[0], apdu_size, &test_invoke_id, &test_timeDuration,
+        &test_enable_disable, &test_password);
     zassert_not_equal(test_len, -1, NULL);
     zassert_equal(test_invoke_id, invoke_id, NULL);
     zassert_equal(test_timeDuration, timeDuration, NULL);
     zassert_equal(test_enable_disable, enable_disable, NULL);
     zassert_true(characterstring_same(&test_password, password), NULL);
-    test_len = dcc_decode_apdu(apdu, 4, &test_invoke_id,
-        &test_timeDuration, &test_enable_disable, &test_password);
-    zassert_true(test_len < 0, "apdu_size=%d test_len=%d",
-        apdu_size, test_len);
+    test_len = dcc_decode_apdu(
+        apdu, 4, &test_invoke_id, &test_timeDuration, &test_enable_disable,
+        &test_password);
+    zassert_true(test_len < 0, "apdu_size=%d test_len=%d", apdu_size, test_len);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -126,37 +130,43 @@ static void test_DeviceCommunicationControlMalformedData(void)
     uint8_t payload_1[] = { 0x19, 0x00, 0x2a, 0x00, 0x41 };
     /* payload with enable-disable, and password with wrong characterstring
      * length */
-    uint8_t payload_2[] = { 0x19, 0x00, 0x2d, 0x55, 0x00, 0x66, 0x69, 0x73,
-        0x74, 0x65, 0x72 };
+    uint8_t payload_2[] = { 0x19, 0x00, 0x2d, 0x55, 0x00, 0x66,
+                            0x69, 0x73, 0x74, 0x65, 0x72 };
     /* payload with enable-disable - wrong context tag number for password */
-    uint8_t payload_3[] = { 0x19, 0x01, 0x3d, 0x09, 0x00, 0x66, 0x69, 0x73,
-        0x74, 0x65, 0x72 };
+    uint8_t payload_3[] = { 0x19, 0x01, 0x3d, 0x09, 0x00, 0x66,
+                            0x69, 0x73, 0x74, 0x65, 0x72 };
     /* payload with duration, enable-disable, and password */
-    uint8_t payload_4[] = { 0x00, 0x05, 0xf1, 0x11, 0x0a, 0x00, 0x19, 0x00,
-        0x2d, 0x09, 0x00, 0x66, 0x69, 0x73, 0x74, 0x65, 0x72 };
+    uint8_t payload_4[] = { 0x00, 0x05, 0xf1, 0x11, 0x0a, 0x00,
+                            0x19, 0x00, 0x2d, 0x09, 0x00, 0x66,
+                            0x69, 0x73, 0x74, 0x65, 0x72 };
     /* payload submitted with bug report */
-    uint8_t payload_5[] = { 0x0d, 0xff, 0x80, 0x00, 0x03, 0x1a, 0x0a, 0x19,
-        0x00, 0x2a, 0x00, 0x41 };
+    uint8_t payload_5[] = { 0x0d, 0xff, 0x80, 0x00, 0x03, 0x1a,
+                            0x0a, 0x19, 0x00, 0x2a, 0x00, 0x41 };
     int len = 0;
     uint8_t test_invoke_id = 0;
     uint16_t test_timeDuration = 0;
     BACNET_COMMUNICATION_ENABLE_DISABLE test_enable_disable;
     BACNET_CHARACTER_STRING test_password;
 
-    len = dcc_decode_apdu(&payload_1[0], sizeof(payload_1), &test_invoke_id,
-        &test_timeDuration, &test_enable_disable, &test_password);
+    len = dcc_decode_apdu(
+        &payload_1[0], sizeof(payload_1), &test_invoke_id, &test_timeDuration,
+        &test_enable_disable, &test_password);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
-    len = dcc_decode_apdu(&payload_2[0], sizeof(payload_2), &test_invoke_id,
-        &test_timeDuration, &test_enable_disable, &test_password);
+    len = dcc_decode_apdu(
+        &payload_2[0], sizeof(payload_2), &test_invoke_id, &test_timeDuration,
+        &test_enable_disable, &test_password);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
-    len = dcc_decode_apdu(&payload_3[0], sizeof(payload_3), &test_invoke_id,
-        &test_timeDuration, &test_enable_disable, &test_password);
+    len = dcc_decode_apdu(
+        &payload_3[0], sizeof(payload_3), &test_invoke_id, &test_timeDuration,
+        &test_enable_disable, &test_password);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
-    len = dcc_decode_apdu(&payload_4[0], sizeof(payload_4), &test_invoke_id,
-        &test_timeDuration, &test_enable_disable, &test_password);
+    len = dcc_decode_apdu(
+        &payload_4[0], sizeof(payload_4), &test_invoke_id, &test_timeDuration,
+        &test_enable_disable, &test_password);
     zassert_equal(len, BACNET_STATUS_ABORT, NULL);
-    len = dcc_decode_apdu(&payload_5[0], sizeof(payload_5), &test_invoke_id,
-        &test_timeDuration, &test_enable_disable, &test_password);
+    len = dcc_decode_apdu(
+        &payload_5[0], sizeof(payload_5), &test_invoke_id, &test_timeDuration,
+        &test_enable_disable, &test_password);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
 }
 /**
@@ -168,8 +178,8 @@ ZTEST_SUITE(dcc_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(dcc_tests,
-        ztest_unit_test(test_DeviceCommunicationControl),
+    ztest_test_suite(
+        dcc_tests, ztest_unit_test(test_DeviceCommunicationControl),
         ztest_unit_test(test_DeviceCommunicationControlMalformedData));
 
     ztest_run_test_suite(dcc_tests);

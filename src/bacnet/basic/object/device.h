@@ -1,34 +1,13 @@
-/**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-
-/** @file device.h Defines functions for handling all BACnet objects belonging
- *                 to a BACnet device, as well as Device-specific properties. */
-
-#ifndef DEVICE_H
-#define DEVICE_H
-
+/**
+ * @file
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @brief API for handling all BACnet objects belonging to a BACnet device, 
+ * as well as Device-specific properties.
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_BASIC_OBJECT_DEVICE_H
+#define BACNET_BASIC_OBJECT_DEVICE_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
@@ -183,7 +162,19 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Device_Valid_Object_Instance_Number(
         uint32_t object_id);
-        
+
+    BACNET_STACK_EXPORT
+    void Device_UUID_Init(
+        void);
+    BACNET_STACK_EXPORT
+    void Device_UUID_Set(
+        uint8_t *new_uuid,
+        size_t length);
+    BACNET_STACK_EXPORT
+    void Device_UUID_Get(
+        uint8_t *uuid,
+        size_t length);
+
     BACNET_STACK_EXPORT
     unsigned Device_Object_List_Count(
         void);
@@ -194,8 +185,8 @@ extern "C" {
         uint32_t * instance);
     BACNET_STACK_EXPORT
     int Device_Object_List_Element_Encode(
-        uint32_t object_instance, 
-        BACNET_ARRAY_INDEX array_index, 
+        uint32_t object_instance,
+        BACNET_ARRAY_INDEX array_index,
         uint8_t *apdu);
 
     BACNET_STACK_EXPORT
@@ -367,10 +358,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     BACNET_ADDRESS *Get_Routed_Device_Address(
         int idx);
-
-    BACNET_STACK_EXPORT
-    void routed_get_my_address(
-        BACNET_ADDRESS * my_address);
 
     BACNET_STACK_EXPORT
     bool Routed_Device_Address_Lookup(

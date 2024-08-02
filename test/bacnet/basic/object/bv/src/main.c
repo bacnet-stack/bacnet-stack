@@ -39,11 +39,8 @@ static void testBinary_Value(void)
     test_object_instance = Binary_Value_Index_To_Instance(0);
     zassert_equal(object_instance, test_object_instance, NULL);
     bacnet_object_properties_read_write_test(
-        OBJECT_BINARY_VALUE,
-        object_instance,
-        Binary_Value_Property_Lists,
-        Binary_Value_Read_Property,
-        Binary_Value_Write_Property,
+        OBJECT_BINARY_VALUE, object_instance, Binary_Value_Property_Lists,
+        Binary_Value_Read_Property, Binary_Value_Write_Property,
         skip_fail_property_list);
     status = Binary_Value_Delete(object_instance);
     zassert_true(status, NULL);
@@ -52,15 +49,12 @@ static void testBinary_Value(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(bv_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bv_tests,
-     ztest_unit_test(testBinary_Value)
-     );
+    ztest_test_suite(bv_tests, ztest_unit_test(testBinary_Value));
 
     ztest_run_test_suite(bv_tests);
 }

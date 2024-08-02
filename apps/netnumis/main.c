@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
     }
     if (argc > 2) {
         Target_Network_Number_Status = strtol(argv[2], NULL, 0);
-        if (Target_Network_Number > UINT8_MAX) {
+        if (Target_Network_Number_Status > UINT8_MAX) {
             fprintf(stderr, "status=%d - it must be 0 to 255\r\n",
                 Target_Network_Number_Status);
             return 1;

@@ -39,14 +39,10 @@
 #include "bacnet/datetime.h"
 #include "bacnet/wp.h"
 
-/**
- * @brief Callback for timesync service
- * @param bdate [in] The date to be set
- * @param btime [in] The time to be set
- */
-typedef void (*handler_timesync_callback)(
-    BACNET_DATE * bdate,
-    BACNET_TIME * btime);
+typedef void (*handler_timesync_set_callback_t)(
+    BACNET_DATE *bdate,
+    BACNET_TIME *btime,
+    bool utc);
 
 #ifdef __cplusplus
 extern "C" {
@@ -109,7 +105,9 @@ extern "C" {
     bool handler_timesync_recipient_address_set(
         unsigned index,
         BACNET_ADDRESS * address);
-
+    BACNET_STACK_EXPORT
+    void handler_timesync_set_callback_set(
+        handler_timesync_set_callback_t cb);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

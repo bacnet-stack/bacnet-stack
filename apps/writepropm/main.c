@@ -1,28 +1,14 @@
-/*************************************************************************
- * Copyright (C) 2017 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that uses BACnet WritePropertyMultiple service 
+ * message to write object property values to another device on 
+ * the network and prints an acknowledgment or error response of
+ * this confirmed service request.  This is useful for testing
+ * the WritePropertyMultiple service.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2017
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -198,11 +184,11 @@ static void print_help(char *filename)
         "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("object-type:\n"
-        "The object type is object that you are reading. It\n"
+        "The object type is object that you are writing. It\n"
         "can be defined either as the object-type name string\n"
         "as defined in the BACnet specification, or as the\n"
         "integer value of the enumeration BACNET_OBJECT_TYPE\n"
-        "in bacenum.h. For example if you were reading Analog\n"
+        "in bacenum.h. For example if you were writing Analog\n"
         "Output 2, the object-type would be analog-output or 1.\n");
     printf("\n");
     printf("object-instance:\n"
@@ -235,6 +221,10 @@ static void print_help(char *filename)
         "use a tag of 4.\n"
         "Context tags are created using two tags in a row.  The context tag\n"
         "is preceded by a C.  Ctag tag. C2 4 creates a context 2 tagged REAL.\n");
+    printf(
+        "Complex data use the property argument and a tag number -1 to\n"
+        "lookup the appropriate internal application tag for the value.\n"
+        "The complex data value argument varies in its construction.\n");
     printf("\n");
     printf("value:\n"
         "The value is an ASCII representation of some type of data that you\n"
@@ -505,6 +495,7 @@ int main(int argc, char *argv[])
         /* at least one second has passed */
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         if (Error_Detected) {
             break;

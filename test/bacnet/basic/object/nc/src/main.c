@@ -56,16 +56,19 @@ static void test_Notification_Class(void)
         rpdata.object_property = *pRequired;
         rpdata.array_index = BACNET_ARRAY_ALL;
         len = Notification_Class_Read_Property(&rpdata);
-        zassert_not_equal(len, BACNET_STATUS_ERROR, 
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
             "property '%s': failed to ReadProperty!\n",
             bactext_property_name(rpdata.object_property));
         if (len >= 0) {
-            test_len = bacapp_decode_known_property(rpdata.application_data,
-                len, &value, rpdata.object_type, rpdata.object_property);
+            test_len = bacapp_decode_known_property(
+                rpdata.application_data, len, &value, rpdata.object_type,
+                rpdata.object_property);
             if ((rpdata.object_property != PROP_PRIORITY) &&
                 (rpdata.object_property != PROP_RECIPIENT_LIST)) {
-                zassert_equal(len, test_len, "property '%s': failed to decode!\n",
-                        bactext_property_name(rpdata.object_property));
+                zassert_equal(
+                    len, test_len, "property '%s': failed to decode!\n",
+                    bactext_property_name(rpdata.object_property));
             }
             /* check WriteProperty properties */
             wpdata.object_type = rpdata.object_type;
@@ -78,8 +81,8 @@ static void test_Notification_Class(void)
             status = Notification_Class_Write_Property(&wpdata);
             if (!status) {
                 /* verify WriteProperty property is known */
-                zassert_not_equal(wpdata.error_code,
-                    ERROR_CODE_UNKNOWN_PROPERTY,
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
                     "property '%s': WriteProperty Unknown!\n",
                     bactext_property_name(rpdata.object_property));
             }
@@ -90,13 +93,16 @@ static void test_Notification_Class(void)
         rpdata.object_property = *pOptional;
         rpdata.array_index = BACNET_ARRAY_ALL;
         len = Notification_Class_Read_Property(&rpdata);
-        zassert_not_equal(len, BACNET_STATUS_ERROR, 
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
             "property '%s': failed to ReadProperty!\n",
             bactext_property_name(rpdata.object_property));
         if (len > 0) {
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            zassert_equal(len, test_len, "property '%s': failed to decode!\n",
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
+            zassert_equal(
+                len, test_len, "property '%s': failed to decode!\n",
                 bactext_property_name(rpdata.object_property));
             /* check WriteProperty properties */
             wpdata.object_type = rpdata.object_type;
@@ -109,8 +115,8 @@ static void test_Notification_Class(void)
             status = Notification_Class_Write_Property(&wpdata);
             if (!status) {
                 /* verify WriteProperty property is known */
-                zassert_not_equal(wpdata.error_code,
-                    ERROR_CODE_UNKNOWN_PROPERTY,
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
                     "property '%s': WriteProperty Unknown!\n",
                     bactext_property_name(rpdata.object_property));
             }
@@ -130,15 +136,13 @@ static void test_Notification_Class(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(notification_class_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(notification_class_tests,
-     ztest_unit_test(test_Notification_Class)
-     );
+    ztest_test_suite(
+        notification_class_tests, ztest_unit_test(test_Notification_Class));
 
     ztest_run_test_suite(notification_class_tests);
 }

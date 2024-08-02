@@ -5,10 +5,7 @@
  * @date June 2023
  * @brief Time Value object is an object with a present-value that
  * uses an bacnet time data type.
- *
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,9 +60,10 @@ static const int Time_Value_Properties_Proprietary[] = { -1 };
 
 /* standard properties that are arrays for this object,
    but not necessary supported in this object */
-static const int BACnetARRAY_Properties[] = { PROP_EVENT_TIME_STAMPS,
-    PROP_EVENT_MESSAGE_TEXTS, PROP_EVENT_MESSAGE_TEXTS_CONFIG,
-    PROP_VALUE_SOURCE_ARRAY, PROP_COMMAND_TIME_ARRAY, PROP_TAGS, -1 };
+static const int BACnetARRAY_Properties[] = { 
+    PROP_PRIORITY_ARRAY, PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS, 
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG, PROP_VALUE_SOURCE_ARRAY, 
+    PROP_COMMAND_TIME_ARRAY, PROP_TAGS, -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -808,8 +806,7 @@ void Time_Value_Cleanup(void)
  */
 void Time_Value_Init(void)
 {
-    Object_List = Keylist_Create();
-    if (Object_List) {
-        atexit(Time_Value_Cleanup);
+    if (!Object_List) {
+        Object_List = Keylist_Create();
     }
 }

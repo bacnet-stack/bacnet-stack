@@ -77,7 +77,6 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
     uint16_t npdu_len)
 {
     uint16_t dnet = 0;
-    uint16_t len = 0;
     uint16_t j = 0;
 
     switch (npdu_data->network_message_type) {
@@ -94,7 +93,7 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
                 /*  It shall be transmitted with a local broadcast address,
                     and shall never be routed. */
                 if (npdu_len >= 2) {
-                    len += decode_unsigned16(npdu, &dnet);
+                    (void)decode_unsigned16(npdu, &dnet);
                     printf(": network number = %u\n", (unsigned)dnet);
                 } else {
                     printf(": network number = missing!\n");
@@ -104,7 +103,7 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
                     contain SNET/SADR or DNET/DADR information In the NPCI or
                     that are sent with a local unicast address. */
                 if (npdu_len >= 2) {
-                    len += decode_unsigned16(npdu, &dnet);
+                    (void)decode_unsigned16(npdu, &dnet);
                     printf(": network number = %u. SNET=%u\n", (unsigned)dnet,
                         (unsigned)src->net);
                 } else {

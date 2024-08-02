@@ -1,31 +1,12 @@
-/**************************************************************************
-*
-* Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-
-#ifndef SCHEDULE_H
-#define SCHEDULE_H
-
+/**
+ * @file
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @date 2015
+ * @brief API for a basic BACnet Schedule object implementation.
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_BASIC_OBJECT_SCHEDULE_H
+#define BACNET_BASIC_OBJECT_SCHEDULE_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
@@ -38,6 +19,7 @@
 #include "bacnet/rp.h"
 #include "bacnet/bacdevobjpropref.h"
 #include "bacnet/bactimevalue.h"
+#include "bacnet/special_event.h"
 
 #ifndef BACNET_WEEKLY_SCHEDULE_SIZE
 #define BACNET_WEEKLY_SCHEDULE_SIZE 8   /* maximum number of data points for each day */
@@ -47,6 +29,9 @@
 #define BACNET_SCHEDULE_OBJ_PROP_REF_SIZE 4     /* maximum number of obj prop references */
 #endif
 
+#ifndef BACNET_EXCEPTION_SCHEDULE_SIZE
+#define BACNET_EXCEPTION_SCHEDULE_SIZE 8 /* maximum number of special events */
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,6 +53,9 @@ extern "C" {
         BACNET_DATE End_Date;
         /* Properties concerning Present Value */
         BACNET_OBJ_DAILY_SCHEDULE Weekly_Schedule[7];
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+        BACNET_SPECIAL_EVENT Exception_Schedule[BACNET_EXCEPTION_SCHEDULE_SIZE];
+#endif
         BACNET_APPLICATION_DATA_VALUE Schedule_Default;
         /*
          * Caution: This is a converted to BACNET_PRIMITIVE_APPLICATION_DATA_VALUE.

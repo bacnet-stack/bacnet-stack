@@ -168,6 +168,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_apdu.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\arf.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\awf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaction.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacaddr.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacapp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacdevobjpropref.c" />

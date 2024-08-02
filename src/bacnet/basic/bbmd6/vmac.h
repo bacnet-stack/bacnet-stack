@@ -1,10 +1,12 @@
 /**
-* @file
-* @author Steve Karg
-* @date 2016
-*/
-#ifndef VMAC_H
-#define VMAC_H
+ * @file
+ * @brief API for Virtual MAC (VMAC) of BACnet/IPv6 neighbors
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_BASIC_BBMD6_VMAC_H
+#define BACNET_BASIC_BBMD6_VMAC_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -19,7 +21,7 @@
 * @{
 */
 struct vmac_data {
-    uint8_t mac[18];
+    uint8_t mac[VMAC_MAC_MAX];
     uint8_t mac_len;
 };
 /** @} */

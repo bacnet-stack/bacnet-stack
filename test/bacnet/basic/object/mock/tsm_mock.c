@@ -11,10 +11,10 @@
 
 bool tsm_get_transaction_pdu(
     uint8_t invokeID,
-    BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * ndpu_data,
-    uint8_t * apdu,
-    uint16_t * apdu_len)
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *ndpu_data,
+    uint8_t *apdu,
+    uint16_t *apdu_len)
 {
     (void)invokeID;
     (void)dest;

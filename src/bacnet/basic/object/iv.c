@@ -1,36 +1,11 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2014
- * @brief Integer Value objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Integer Value object is an object with a present-value that
+ * @brief The Integer Value object is an object with a present-value that
  * uses an INTEGER data type.
- *
- * @section LICENSE
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -134,11 +109,7 @@ unsigned Integer_Value_Count(void)
  */
 uint32_t Integer_Value_Index_To_Instance(unsigned index)
 {
-    uint32_t instance = 1;
-
-    instance += index;
-
-    return instance;
+    return index;
 }
 
 /**
@@ -154,11 +125,8 @@ unsigned Integer_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_INTEGER_VALUES;
 
-    if (object_instance) {
-        index = object_instance - 1;
-        if (index > MAX_INTEGER_VALUES) {
-            index = MAX_INTEGER_VALUES;
-        }
+    if (object_instance < MAX_INTEGER_VALUES) {
+        index = object_instance;
     }
 
     return index;
@@ -221,15 +189,15 @@ bool Integer_Value_Present_Value_Set(
 bool Integer_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text_string[32] = "";
+    char text[32] = "";
     unsigned int index;
     bool status = false;
 
     index = Integer_Value_Instance_To_Index(object_instance);
     if (index < MAX_INTEGER_VALUES) {
-        sprintf(
-            text_string, "INTEGER VALUE %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(text, sizeof(text), "INTEGER VALUE %lu", 
+            (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;

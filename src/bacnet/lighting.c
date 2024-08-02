@@ -3,11 +3,7 @@
  * @brief API for BACnetLightingCommand and BACnetColorCommand
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date June 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
 #include <stdbool.h>
@@ -558,7 +554,7 @@ bool lighting_command_from_ascii(
     bool status = false;
     BACNET_LIGHTING_OPERATION operation = BACNET_LIGHTS_NONE;
     unsigned a = 0;
-    float b = 0.0, c = 0.0, d = 0.0;
+    float b = 0.0, c = 0.0, d = 0.0, min = 0.0, max = 0.0;
     int count;
 
     if (!value) {
@@ -600,7 +596,7 @@ bool lighting_command_from_ascii(
                 /* (100..86400000) OPTIONAL */
                 if (isgreaterequal(c, 100.0) && islessequal(c, 86400000.0)) {
                     value->use_fade_time = true;
-                    value->fade_time = c;
+                    value->fade_time = (uint32_t)c;
                 } else {
                     value->use_fade_time = false;
                 }
@@ -608,10 +604,11 @@ bool lighting_command_from_ascii(
                 value->use_fade_time = false;
             }
             if (count >= 4) {
-                if (isgreaterequal(d, BACNET_MIN_PRIORITY) &&
-                    islessequal(d, BACNET_MAX_PRIORITY)) {
+                min = (float)BACNET_MIN_PRIORITY;
+                max = (float)BACNET_MAX_PRIORITY;
+                if (isgreaterequal(d, min) && islessequal(d, max)) {
                     value->use_priority = true;
-                    value->priority = d;
+                    value->priority = (uint8_t)d;
                 } else {
                     value->use_priority = false;
                 }
@@ -647,10 +644,11 @@ bool lighting_command_from_ascii(
                 value->use_ramp_rate = false;
             }
             if (count >= 4) {
-                if (isgreaterequal(d, BACNET_MIN_PRIORITY) &&
-                    islessequal(d, BACNET_MAX_PRIORITY)) {
+                min = (float)BACNET_MIN_PRIORITY;
+                max = (float)BACNET_MAX_PRIORITY;
+                if (isgreaterequal(d, min) && islessequal(d, max)) {
                     value->use_priority = true;
-                    value->priority = d;
+                    value->priority = (uint8_t)d;
                 } else {
                     value->use_priority = false;
                 }
@@ -678,10 +676,11 @@ bool lighting_command_from_ascii(
                 value->step_increment = false;
             }
             if (count >= 3) {
-                if (isgreaterequal(c, BACNET_MIN_PRIORITY) &&
-                    islessequal(c, BACNET_MAX_PRIORITY)) {
+                min = (float)BACNET_MIN_PRIORITY;
+                max = (float)BACNET_MAX_PRIORITY;
+                if (isgreaterequal(c, min) && islessequal(c, max)) {
                     value->use_priority = true;
-                    value->priority = c;
+                    value->priority = (uint8_t)c;
                 } else {
                     value->use_priority = false;
                 }
@@ -699,10 +698,11 @@ bool lighting_command_from_ascii(
         case BACNET_LIGHTS_STOP:
             value->operation = operation;
             if (count >= 2) {
-                if (isgreaterequal(b, BACNET_MIN_PRIORITY) &&
-                    islessequal(b, BACNET_MAX_PRIORITY)) {
+                min = (float)BACNET_MIN_PRIORITY;
+                max = (float)BACNET_MAX_PRIORITY;
+                if (isgreaterequal(b, min) && islessequal(b, max)) {
                     value->use_priority = true;
-                    value->priority = b;
+                    value->priority = (uint8_t)b;
                 } else {
                     value->use_priority = false;
                 }

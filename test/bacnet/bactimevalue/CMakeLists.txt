@@ -24,6 +24,7 @@ add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
 	BACAPP_ALL
+	BACAPP_PRINT_ENABLED
 	)
 
 include_directories(
@@ -35,6 +36,7 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
 	${SRC_DIR}/bacnet/bactimevalue.c
     # Support files and stubs (pathname alphabetical)
+	${SRC_DIR}/bacnet/bacaction.c
 	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c

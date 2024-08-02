@@ -29,7 +29,10 @@
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/kernel.h>
-#include <bacnet/basic/object/device.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/basic/object/device.h"
 
 static inline char *inet_ntoa(struct in_addr in) {
     return "(inet_ntoa() to be implemented)";

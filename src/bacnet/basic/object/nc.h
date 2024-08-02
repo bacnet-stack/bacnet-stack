@@ -1,29 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-#ifndef NC_H
-#define NC_H
+/**
+ * @file
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @date 2011 
+ * @brief API for a basic BACnet Notification Class object
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_BASIC_OBJECT_NOTIFICATION_CLASS_H
+#define BACNET_BASIC_OBJECT_NOTIFICATION_CLASS_H
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -99,6 +82,26 @@ int Notification_Class_Remove_List_Element(
 BACNET_STACK_EXPORT
 void Notification_Class_Get_Priorities(
     uint32_t Object_Instance, uint32_t *pPriorityArray);
+
+BACNET_STACK_EXPORT
+void Notification_Class_Set_Priorities(
+    uint32_t Object_Instance, uint32_t *pPriorityArray);
+
+BACNET_STACK_EXPORT
+void Notification_Class_Get_Ack_Required(
+    uint32_t Object_Instance, uint8_t *pAckRequired);
+
+BACNET_STACK_EXPORT
+void Notification_Class_Set_Ack_Required(
+    uint32_t Object_Instance, uint8_t Ack_Required);
+
+BACNET_STACK_EXPORT
+bool Notification_Class_Get_Recipient_List(
+    uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList);
+
+BACNET_STACK_EXPORT
+bool Notification_Class_Set_Recipient_List(
+    uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList);
 
 BACNET_STACK_EXPORT
 void Notification_Class_common_reporting_function(

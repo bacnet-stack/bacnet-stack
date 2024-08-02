@@ -21,7 +21,8 @@
  *  are known to fail to decode after reading
  * @return true if the property was written successfully, false if not
  */
-bool bacnet_object_property_write_test(BACNET_WRITE_PROPERTY_DATA *wpdata,
+bool bacnet_object_property_write_test(
+    BACNET_WRITE_PROPERTY_DATA *wpdata,
     write_property_function write_property,
     const int *skip_fail_property_list)
 {
@@ -34,7 +35,8 @@ bool bacnet_object_property_write_test(BACNET_WRITE_PROPERTY_DATA *wpdata,
         status = write_property(wpdata);
         if (!status) {
             /* verify WriteProperty property is known */
-            zassert_not_equal(wpdata->error_code, ERROR_CODE_UNKNOWN_PROPERTY,
+            zassert_not_equal(
+                wpdata->error_code, ERROR_CODE_UNKNOWN_PROPERTY,
                 "property '%s': WriteProperty Unknown!\n",
                 bactext_property_name(wpdata->object_property));
         }
@@ -75,7 +77,8 @@ void bacnet_object_property_write_parameter_init(
  *  are known to fail to decode after reading
  * @return length of the property value that was read
  */
-int bacnet_object_property_read_test(BACNET_READ_PROPERTY_DATA *rpdata,
+int bacnet_object_property_read_test(
+    BACNET_READ_PROPERTY_DATA *rpdata,
     read_property_function read_property,
     const int *skip_fail_property_list)
 {
@@ -99,8 +102,9 @@ int bacnet_object_property_read_test(BACNET_READ_PROPERTY_DATA *rpdata,
         apdu = rpdata->application_data;
         apdu_len = read_len;
         while (apdu_len) {
-            len = bacapp_decode_known_property(apdu, apdu_len, &value,
-                rpdata->object_type, rpdata->object_property);
+            len = bacapp_decode_known_property(
+                apdu, apdu_len, &value, rpdata->object_type,
+                rpdata->object_property);
             if (len > 0) {
                 test_len += len;
                 if ((len < apdu_len) &&
@@ -116,15 +120,16 @@ int bacnet_object_property_read_test(BACNET_READ_PROPERTY_DATA *rpdata,
                     break;
                 }
             } else {
-                printf("property '%s': failed to decode! len=%d\n",
-                    bactext_property_name(rpdata->object_property), 
-                    len);
+                printf(
+                    "property '%s': failed to decode! len=%d\n",
+                    bactext_property_name(rpdata->object_property), len);
                 break;
             }
         }
         if (read_len != test_len) {
-            printf("property '%s': failed to decode! %d!=%d\n",
-                bactext_property_name(rpdata->object_property), test_len, 
+            printf(
+                "property '%s': failed to decode! %d!=%d\n",
+                bactext_property_name(rpdata->object_property), test_len,
                 read_len);
         }
         if (property_list_member(
@@ -136,8 +141,8 @@ int bacnet_object_property_read_test(BACNET_READ_PROPERTY_DATA *rpdata,
     } else if (read_len == 0) {
         /* empty response is valid for some properties */
     } else {
-        zassert_not_equal(read_len, BACNET_STATUS_ERROR,
-            "property '%s': failed to read!\n",
+        zassert_not_equal(
+            read_len, BACNET_STATUS_ERROR, "property '%s': failed to read!\n",
             bactext_property_name(rpdata->object_property));
     }
 
@@ -155,7 +160,8 @@ int bacnet_object_property_read_test(BACNET_READ_PROPERTY_DATA *rpdata,
  * @param skip_fail_property_list The list of properties that
  *  are known to fail to decode after reading
  */
-void bacnet_object_properties_read_write_test(BACNET_OBJECT_TYPE object_type,
+void bacnet_object_properties_read_write_test(
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     rpm_property_lists_function property_list,
     read_property_function read_property,
@@ -215,6 +221,8 @@ void bacnet_object_properties_read_write_test(BACNET_OBJECT_TYPE object_type,
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     wpdata.object_property = PROP_ALL;
     wpdata.array_index = BACNET_ARRAY_ALL;
-    status = write_property(&wpdata);
-    zassert_false(status, NULL);
+    if (write_property) {
+        status = write_property(&wpdata);
+        zassert_false(status, NULL);
+    }
 }

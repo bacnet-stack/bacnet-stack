@@ -23,9 +23,8 @@
  * @param invoke_id - unique sequence number sent with the message
  * @return number of bytes decoded
  */
-static int get_alarm_summary_decode_apdu(uint8_t *apdu,
-    unsigned apdu_size,
-    uint8_t *invoke_id)
+static int get_alarm_summary_decode_apdu(
+    uint8_t *apdu, unsigned apdu_size, uint8_t *invoke_id)
 {
     int len = 0;
 
@@ -55,7 +54,8 @@ static int get_alarm_summary_decode_apdu(uint8_t *apdu,
  * @param invoke_id - unique sequence number sent with the message
  * @return number of bytes decoded
  */
-static int get_alarm_summary_ack_decode_apdu(uint8_t *apdu,
+static int get_alarm_summary_ack_decode_apdu(
+    uint8_t *apdu,
     int apdu_len,
     uint8_t *invoke_id,
     BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data)
@@ -112,8 +112,7 @@ static void testGetAlarmSummaryAck(void)
     bitstring_set_bit(
         &alarm_data.acknowledgedTransitions, TRANSITION_TO_NORMAL, false);
     /* encode the initial service */
-    len = get_alarm_summary_ack_encode_apdu_init(&apdu[0],
-        invoke_id);
+    len = get_alarm_summary_ack_encode_apdu_init(&apdu[0], invoke_id);
     zassert_not_equal(len, 0, NULL);
     zassert_not_equal(len, -1, NULL);
     apdu_len = len;
@@ -123,18 +122,18 @@ static void testGetAlarmSummaryAck(void)
     zassert_not_equal(len, 0, NULL);
     zassert_not_equal(len, -1, NULL);
     apdu_len += len;
-    len = get_alarm_summary_ack_decode_apdu(&apdu[0],
-        apdu_len, /* total length of the apdu */
+    len = get_alarm_summary_ack_decode_apdu(
+        &apdu[0], apdu_len, /* total length of the apdu */
         &test_invoke_id, &test_alarm_data);
     zassert_not_equal(len, -1, NULL);
     zassert_equal(test_invoke_id, invoke_id, NULL);
 
     zassert_equal(
-        alarm_data.objectIdentifier.type,
-            test_alarm_data.objectIdentifier.type, NULL);
+        alarm_data.objectIdentifier.type, test_alarm_data.objectIdentifier.type,
+        NULL);
     zassert_equal(
         alarm_data.objectIdentifier.instance,
-            test_alarm_data.objectIdentifier.instance, NULL);
+        test_alarm_data.objectIdentifier.instance, NULL);
 
     zassert_equal(alarm_data.alarmState, test_alarm_data.alarmState, NULL);
 }
@@ -162,7 +161,6 @@ static void testGetAlarmSummary(void)
     return;
 }
 
-
 /**
  * Main entry point for testing
  */
@@ -171,10 +169,9 @@ ZTEST_SUITE(getalarm_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(getalarm_tests,
-     ztest_unit_test(testGetAlarmSummary),
-     ztest_unit_test(testGetAlarmSummaryAck)
-     );
+    ztest_test_suite(
+        getalarm_tests, ztest_unit_test(testGetAlarmSummary),
+        ztest_unit_test(testGetAlarmSummaryAck));
 
     ztest_run_test_suite(getalarm_tests);
 }

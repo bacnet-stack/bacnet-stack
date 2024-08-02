@@ -14,16 +14,20 @@ endif()
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_definitions(-fprofile-arcs -ftest-coverage)
     add_compile_options(-g -O0 -W -fprofile-arcs -ftest-coverage)
+    # enable all relevant warnings that find bugs
     add_compile_options(-Wall -Wextra -pedantic)
-    add_compile_options(-Wfloat-equal -Wconversion -Wparentheses)
-    add_compile_options(-Wunused-value -Wreturn-type -Wswitch-default)
-    add_compile_options(-Wuninitialized -Winit-self)
+    add_compile_options(-Wfloat-equal -Wconversion)
+    add_compile_options(-Wredundant-decls -Wswitch-default)
+    # don't warn about conversion, sign, compares, long long and attributes
+    # since they are common in embedded
     add_compile_options(-Wno-sign-conversion -Wno-conversion)
-    add_compile_options(-Wno-sign-compare -Wno-long-long)
-    add_compile_options(-Wno-implicit-fallthrough -Wno-attributes)
+    add_compile_options(-Wno-sign-compare -Wno-long-long -Wno-attributes)
+    # don't warn about implicit fallthrough since it's common in network protocols
+    add_compile_options(-Wno-implicit-fallthrough)
+    # FIXME: ignore some warnings that occur in the unit tests
     add_compile_options(-Wno-missing-braces)
-    # ignore some warnings that occur during unit testing
-    add_compile_options(-Wno-unused-variable -Wno-unused-function)
+    add_compile_options(-Wno-unused-variable)
+    add_compile_options(-Wno-unused-function)
     add_compile_options(-Wno-unused-parameter)
     add_link_options(-fprofile-arcs -ftest-coverage)
 endif()
@@ -101,6 +105,7 @@ list(APPEND testdirs
 # bacnet/basic/*
 list(APPEND testdirs
   bacnet/basic/binding/address
+  bacnet/basic/bbmd
   bacnet/basic/bbmd6
   # basic/object
   bacnet/basic/object/acc
@@ -115,6 +120,7 @@ list(APPEND testdirs
   bacnet/basic/object/av
   bacnet/basic/object/bacfile
   bacnet/basic/object/bi
+  bacnet/basic/object/bitstring_value
   bacnet/basic/object/blo
   bacnet/basic/object/bo
   bacnet/basic/object/bv
@@ -140,6 +146,7 @@ list(APPEND testdirs
   bacnet/basic/object/osv
   bacnet/basic/object/piv
   bacnet/basic/object/schedule
+  bacnet/basic/object/structured_view
   bacnet/basic/object/time_value
   bacnet/basic/object/trendlog
   # basic/sys

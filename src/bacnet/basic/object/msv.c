@@ -1,12 +1,10 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2009
- * @brief Multi-State object is an input object with a present-value that
+ * @brief Multi-State object is an object with a present-value that
  * uses an integer data type with a sequence of 1 to N values.
- * @section LICENSE
- * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -105,13 +103,17 @@ unsigned Multistate_Value_Instance_To_Index(uint32_t object_instance)
 
 /**
  * @brief Determines the object instance-number for a given 0..N index
- * of Multistate Input objects where N is Multistate_Value_Count().
- * @param  index - 0..Multistate_Value_Count() value
- * @return  object instance-number for the given index
+ * of objects where N is the count.
+ * @param  index - 0..N value
+ * @return  object instance-number for a valid given index, or UINT32_MAX
  */
 uint32_t Multistate_Value_Index_To_Instance(unsigned index)
 {
-    return Keylist_Key(Object_List, index);
+    uint32_t instance = UINT32_MAX;
+
+    (void)Keylist_Index_Key(Object_List, index, &instance);
+
+    return instance;
 }
 
 /**
@@ -464,8 +466,8 @@ bool Multistate_Value_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "MULTI-STATE INPUT %u",
-                object_instance);
+            snprintf(name_text, sizeof(name_text), "MULTI-STATE INPUT %lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -939,5 +941,7 @@ void Multistate_Value_Cleanup(void)
  */
 void Multistate_Value_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

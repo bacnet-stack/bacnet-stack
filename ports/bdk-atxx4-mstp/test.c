@@ -154,7 +154,7 @@ void test_task(void)
 
     if (mstimer_expired(&Test_Timer)) {
         mstimer_reset(&Test_Timer);
-        sprintf(Send_Buffer, "BACnet: 0000000\r\n");
+        snprintf(Send_Buffer, sizeof(Send_Buffer), "BACnet: 0000000\r\n");
         MSTP_MAC_Address = input_address();
         Send_Buffer[8] = (MSTP_MAC_Address & BIT(0)) ? '1' : '0';
         Send_Buffer[9] = (MSTP_MAC_Address & BIT(1)) ? '1' : '0';
@@ -198,17 +198,17 @@ void test_task(void)
                 break;
             case 'e':
                 seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *)&id, 2);
-                sprintf(Send_Buffer, "\r\n%04X", id);
+                snprintf(Send_Buffer, sizeof(Send_Buffer), "\r\n%04X", id);
                 serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
                 break;
             case 'b':
-                sprintf(Send_Buffer, "\r\n%lubps",
+                snprintf(Send_Buffer, sizeof(Send_Buffer), "\r\n%lubps",
                     (unsigned long)rs485_baud_rate());
                 serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
                 break;
             case 'm':
-                sprintf(
-                    Send_Buffer, "\r\nMax:%u", (unsigned)dlmstp_max_master());
+                snprintf(Send_Buffer, sizeof(Send_Buffer), 
+                    "\r\nMax:%u", (unsigned)dlmstp_max_master());
                 serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
                 break;
             default:

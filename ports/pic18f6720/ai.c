@@ -66,11 +66,11 @@ uint32_t Analog_Input_Index_To_Instance(unsigned index)
 
 char *Analog_Input_Name(uint32_t object_instance)
 {
-    static char text_string[16] = ""; /* okay for single thread */
+    static char text[16] = ""; /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_INPUTS) {
-        sprintf(text_string, "AI-%lu", (unsigned long)object_instance);
-        return text_string;
+        snprintf(text, sizeof(text), "AI-%lu", (unsigned long)object_instance);
+        return text;
     }
 
     return NULL;

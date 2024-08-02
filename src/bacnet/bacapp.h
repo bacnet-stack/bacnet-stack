@@ -1,35 +1,21 @@
-/**************************************************************************
- *
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *********************************************************************/
-#ifndef BACAPP_H
-#define BACAPP_H
+/**
+ * @file
+ * @brief BACnet application data encode and decode helper functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_APP_H
+#define BACNET_APP_H
 
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/bacaction.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
@@ -41,6 +27,25 @@
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
+
+#ifndef BACAPP_PRINT_ENABLED
+#if PRINT_ENABLED
+#define BACAPP_PRINT_ENABLED
+#endif
+#endif
+
+/** BACnetScale ::= CHOICE {
+        float-scale [0] REAL,
+        integer-scale [1] INTEGER
+    }
+*/
+typedef struct BACnetScale {
+    bool float_scale;
+    union {
+        float real_scale;
+        int32_t integer_scale;
+    } type;
+} BACNET_SCALE;
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
@@ -130,6 +135,18 @@ typedef struct BACnet_Application_Data_Value {
 #if defined (BACAPP_SPECIAL_EVENT)
         BACNET_SPECIAL_EVENT Special_Event;
 #endif
+#if defined (BACAPP_BDT_ENTRY)
+        BACNET_BDT_ENTRY BDT_Entry;
+#endif
+#if defined (BACAPP_FDT_ENTRY)
+        BACNET_FDT_ENTRY FDT_Entry;
+#endif
+#if defined (BACAPP_ACTION_COMMAND)
+        BACNET_ACTION_LIST Action_Command;
+#endif
+#if defined (BACAPP_SCALE)
+        BACNET_SCALE Scale;
+#endif
     } type;
     /* simple linked list if needed */
     struct BACnet_Application_Data_Value *next;
@@ -207,6 +224,12 @@ extern "C" {
         uint8_t * apdu,
         BACNET_APPLICATION_DATA_VALUE * value);
     BACNET_STACK_EXPORT
+    int bacapp_encode_known_property(
+        uint8_t *apdu,
+        BACNET_APPLICATION_DATA_VALUE *value,
+        BACNET_OBJECT_TYPE object_type,
+        BACNET_PROPERTY_ID property);
+    BACNET_STACK_EXPORT
     int bacapp_data_decode(
         uint8_t * apdu,
         uint32_t apdu_size,
@@ -245,6 +268,7 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 
+    BACNET_STACK_DEPRECATED("Use bacapp_encode_known_property() instead")
     BACNET_STACK_EXPORT
     int bacapp_encode_context_data(
         uint8_t * apdu,
@@ -257,17 +281,25 @@ extern "C" {
         uint8_t context_tag_number,
         BACNET_APPLICATION_DATA_VALUE * value);
 
+    BACNET_STACK_DEPRECATED("Use bacapp_known_property_tag() instead")
     BACNET_STACK_EXPORT
     BACNET_APPLICATION_TAG bacapp_context_tag_type(
         BACNET_PROPERTY_ID property,
         uint8_t tag_number);
-
+    BACNET_STACK_DEPRECATED("Use bacapp_encode_known_property() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_generic_property(
         uint8_t * apdu,
         int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID prop);
+        
+    BACNET_STACK_EXPORT
+    int bacapp_decode_application_tag_value(
+        uint8_t *apdu,
+        size_t apdu_size,
+        BACNET_APPLICATION_TAG tag,
+        BACNET_APPLICATION_DATA_VALUE *value);
     BACNET_STACK_EXPORT
     int bacapp_decode_known_property(uint8_t *apdu,
         int max_apdu_len,
@@ -285,56 +317,59 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);
 
-    /* returns the length of data between an opening tag and a closing tag.
-       Expects that the first octet contain the opening tag.
-       Include a value property identifier for context specific data
-       such as the value received in a WriteProperty request */
+    BACNET_STACK_DEPRECATED("Use bacnet_enclosed_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_data_len(
         uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
+        
+    BACNET_STACK_DEPRECATED("Use bacnet_application_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_data_len(
         uint8_t * apdu,
         uint8_t tag_data_type,
         uint32_t len_value_type);
+
+    BACNET_STACK_DEPRECATED("Use bacnet_enclosed_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_application_data_len(
         uint8_t * apdu,
         unsigned max_apdu_len);
+
+    BACNET_STACK_DEPRECATED("Use bacnet_enclosed_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_context_data_len(
         uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
 
-#ifndef BACAPP_PRINT_ENABLED
-#if PRINT_ENABLED
-#define BACAPP_PRINT_ENABLED
-#endif
-#endif
+    BACNET_STACK_EXPORT
+    int bacapp_snprintf(
+        char *buffer, 
+        size_t count, 
+        const char *format, ...);
+    BACNET_STACK_EXPORT
+    int bacapp_snprintf_shift(
+        int len, 
+        char **buf, 
+        size_t *buf_size);        
     BACNET_STACK_EXPORT
     int bacapp_snprintf_value(
         char *str,
         size_t str_len,
         BACNET_OBJECT_PROPERTY_VALUE * object_value);
 
-#ifdef BACAPP_PRINT_ENABLED
     BACNET_STACK_EXPORT
     bool bacapp_parse_application_data(
         BACNET_APPLICATION_TAG tag_number,
         char *argv,
         BACNET_APPLICATION_DATA_VALUE * value);
+
     BACNET_STACK_EXPORT
     bool bacapp_print_value(
         FILE * stream,
         BACNET_OBJECT_PROPERTY_VALUE * value);
-#else
-/* Provide harmless return values */
-#define bacapp_parse_application_data(x,y,z)   false
-#define bacapp_print_value(x,y) 			   false
-#endif
 
     BACNET_STACK_EXPORT
     bool bacapp_same_value(

@@ -17,7 +17,8 @@
  * @{
  */
 
-static int bacerror_decode_apdu(uint8_t *apdu,
+static int bacerror_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_CONFIRMED_SERVICE *service,
@@ -31,8 +32,9 @@ static int bacerror_decode_apdu(uint8_t *apdu,
             return BACNET_STATUS_ERROR;
         }
         apdu_len = 1;
-        apdu_len = bacerror_decode_service_request(&apdu[apdu_len],
-            apdu_size - apdu_len, invoke_id, service, error_class, error_code);
+        apdu_len = bacerror_decode_service_request(
+            &apdu[apdu_len], apdu_size - apdu_len, invoke_id, service,
+            error_class, error_code);
     }
 
     return apdu_len;
@@ -67,8 +69,9 @@ static void testBACError(void)
     apdu_len = len;
 
     null_len = bacerror_decode_apdu(&apdu[0], apdu_len, NULL, NULL, NULL, NULL);
-    len = bacerror_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
-        &test_service, &test_error_class, &test_error_code);
+    len = bacerror_decode_apdu(
+        &apdu[0], apdu_len, &test_invoke_id, &test_service, &test_error_class,
+        &test_error_code);
     zassert_not_equal(len, BACNET_STATUS_ERROR, "len=%d", len);
     zassert_equal(len, null_len, NULL);
     zassert_equal(test_invoke_id, invoke_id, NULL);
@@ -79,22 +82,24 @@ static void testBACError(void)
     /* test too short lengths */
     while (len) {
         len--;
-        test_len =
-            bacerror_decode_apdu(&apdu[0], len, &test_invoke_id,
-                &test_service, &test_error_class, &test_error_code);
+        test_len = bacerror_decode_apdu(
+            &apdu[0], len, &test_invoke_id, &test_service, &test_error_class,
+            &test_error_code);
         zassert_equal(
             test_len, BACNET_STATUS_ERROR, "len=%d test_len=%d", len, test_len);
     }
 
     /* change type to get negative response */
     apdu[0] = PDU_TYPE_ABORT;
-    len = bacerror_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
-        &test_service, &test_error_class, &test_error_code);
+    len = bacerror_decode_apdu(
+        &apdu[0], apdu_len, &test_invoke_id, &test_service, &test_error_class,
+        &test_error_code);
     zassert_true(len <= 0, NULL);
 
     /* test NULL APDU */
-    len = bacerror_decode_apdu(NULL, apdu_len, &test_invoke_id,
-        &test_service, &test_error_class, &test_error_code);
+    len = bacerror_decode_apdu(
+        NULL, apdu_len, &test_invoke_id, &test_service, &test_error_class,
+        &test_error_code);
     zassert_true(len <= 0, NULL);
 
     /* check them all...   */
@@ -107,9 +112,9 @@ static void testBACError(void)
                     &apdu[0], invoke_id, service, error_class, error_code);
                 apdu_len = len;
                 zassert_not_equal(len, 0, NULL);
-                len = bacerror_decode_apdu(&apdu[0], apdu_len,
-                    &test_invoke_id, &test_service, &test_error_class,
-                    &test_error_code);
+                len = bacerror_decode_apdu(
+                    &apdu[0], apdu_len, &test_invoke_id, &test_service,
+                    &test_error_class, &test_error_code);
                 zassert_not_equal(len, -1, NULL);
                 zassert_equal(test_invoke_id, invoke_id, NULL);
                 zassert_equal(test_service, service, NULL);
@@ -127,8 +132,9 @@ static void testBACError(void)
         &apdu[0], invoke_id, service, error_class, error_code);
     apdu_len = len;
     zassert_not_equal(len, 0, NULL);
-    len = bacerror_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
-        &test_service, &test_error_class, &test_error_code);
+    len = bacerror_decode_apdu(
+        &apdu[0], apdu_len, &test_invoke_id, &test_service, &test_error_class,
+        &test_error_code);
     zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
     zassert_equal(test_invoke_id, invoke_id, NULL);
     zassert_equal(test_service, service, NULL);

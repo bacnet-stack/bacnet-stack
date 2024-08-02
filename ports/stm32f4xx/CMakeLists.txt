@@ -49,8 +49,12 @@ set(CMAKE_ASM_COMPILER arm-none-eabi-gcc)
 set(CMAKE_AR arm-none-eabi-ar)
 set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 set(CMAKE_OBJDUMP arm-none-eabi-objdump)
-set(SIZE arm-none-eabi-size)
+set(CMAKE_SIZE arm-none-eabi-size)
+set(CMAKE_NM arm-none-eabi-nm)
+set(CMAKE_CSTACK "${CMAKE_SOURCE_DIR}/../../tools/check-stack-usage/checkStackUsage.py")
+set(CMAKE_MEMAP "${CMAKE_SOURCE_DIR}/../../tools/memap/memap.py")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+set(EXECUTABLE ${PROJECT_NAME}.elf)
 
 project(bacnet-mstp)
 
@@ -64,6 +68,7 @@ add_compile_options(-mcpu=cortex-m4)
 add_compile_options(-mthumb -mthumb-interwork)
 add_compile_options(-ffunction-sections -fdata-sections)
 add_compile_options(-fno-common -fmessage-length=0)
+add_compile_options(-fstack-usage -fdump-rtl-dfinish)
 add_link_options(-mcpu=cortex-m4)
 add_link_options(-mthumb -mthumb-interwork)
 add_link_options(-Wl,-gc-sections,--print-memory-usage)
@@ -95,13 +100,13 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
-set(LIBRARY_BACNET_INC "../../src")
-set(LIBRARY_BACNET_CORE "../../src/bacnet")
-set(LIBRARY_BACNET_BASIC "../../src/bacnet/basic")
-set(LIBRARY_STM32_SRC "./STM32F4xx_StdPeriph_Driver/src")
-set(LIBRARY_STM32_INC "./STM32F4xx_StdPeriph_Driver/inc")
-set(LIBRARY_CMSIS_INC "./CMSIS")
-set(LIBRARY_CMSIS_GCC_INC "./CMSIS/gcc_ride7")
+set(LIBRARY_BACNET_INC "${CMAKE_SOURCE_DIR}/../../src")
+set(LIBRARY_BACNET_CORE "${CMAKE_SOURCE_DIR}/../../src/bacnet")
+set(LIBRARY_BACNET_BASIC "${CMAKE_SOURCE_DIR}/../../src/bacnet/basic")
+set(LIBRARY_STM32_SRC "${CMAKE_SOURCE_DIR}/STM32F4xx_StdPeriph_Driver/src")
+set(LIBRARY_STM32_INC "${CMAKE_SOURCE_DIR}/STM32F4xx_StdPeriph_Driver/inc")
+set(LIBRARY_CMSIS_INC "${CMAKE_SOURCE_DIR}/CMSIS")
+set(LIBRARY_CMSIS_GCC_INC "${CMAKE_SOURCE_DIR}/CMSIS/gcc_ride7")
 
 set(BACNET_PROJECT_SOURCE
     ${LIBRARY_STM32_SRC}/stm32f4xx_adc.c
@@ -146,6 +151,16 @@ set(BACNET_PROJECT_SOURCE
     ${CMAKE_SOURCE_DIR}/device.c
     ${CMAKE_SOURCE_DIR}/netport.c
 
+    ${LIBRARY_BACNET_BASIC}/object/ai.c
+    ${LIBRARY_BACNET_BASIC}/object/ao.c
+    ${LIBRARY_BACNET_BASIC}/object/av.c
+    ${LIBRARY_BACNET_BASIC}/object/bi.c
+    ${LIBRARY_BACNET_BASIC}/object/bo.c
+    ${LIBRARY_BACNET_BASIC}/object/bv.c
+    ${LIBRARY_BACNET_BASIC}/object/ms-input.c
+    ${LIBRARY_BACNET_BASIC}/object/mso.c
+    ${LIBRARY_BACNET_BASIC}/object/msv.c
+
     ${LIBRARY_BACNET_BASIC}/service/h_dcc.c
     ${LIBRARY_BACNET_BASIC}/service/h_apdu.c
     ${LIBRARY_BACNET_BASIC}/npdu/h_npdu.c
@@ -162,9 +177,11 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/sys/debug.c
     ${LIBRARY_BACNET_BASIC}/sys/ringbuf.c
     ${LIBRARY_BACNET_BASIC}/sys/fifo.c
+    ${LIBRARY_BACNET_BASIC}/sys/keylist.c
     ${LIBRARY_BACNET_BASIC}/sys/mstimer.c
 
     ${LIBRARY_BACNET_CORE}/abort.c
+    ${LIBRARY_BACNET_CORE}/bacaction.c
     ${LIBRARY_BACNET_CORE}/bacaddr.c
     ${LIBRARY_BACNET_CORE}/bacapp.c
     ${LIBRARY_BACNET_CORE}/bacdcode.c
@@ -221,14 +238,31 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
     -DMAX_APDU=480
     -DBIG_ENDIAN=0
     -DMAX_TSM_TRANSACTIONS=1
+    -DBACAPP_MINIMAL
 )
 
 # inhibit pedantic warnings
 target_compile_options(${EXECUTABLE} PRIVATE
-    -Wall
+    -Wall -Wextra -pedantic
+    -Wfloat-equal -Wconversion -Wredundant-decls 
+    -Wswitch-default
+    # don't warn about conversion, sign, compares, long long and attributes
+    # since they are common in embedded
+    -Wno-sign-conversion 
+    -Wno-conversion
+    -Wno-sign-compare 
+    -Wno-long-long
+    -Wno-attributes
+    # don't warn about implicit fallthrough since it is common in network protocols
+    -Wno-implicit-fallthrough
+    # the SDK does not meet coding guidelines
     -Wno-comment
     -Wno-missing-braces
     -Wno-unused-variable
+    # reference the linker file for CSTACK size
+    -Wstack-usage=16384
+    -Wno-unused-parameter
+    -Wno-char-subscripts
 )
 
 target_include_directories(${EXECUTABLE} PRIVATE
@@ -248,15 +282,43 @@ target_link_options(${EXECUTABLE} PRIVATE
     -Wl,--gc-sections
 )
 
+# Create hex and bin files
+add_custom_command(TARGET ${EXECUTABLE}
+    POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin
+    COMMAND ${CMAKE_OBJCOPY} -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
+    COMMAND ${CMAKE_OBJCOPY} -O ihex ${EXECUTABLE}  ${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.hex
+)
+
 # Print executable size
 add_custom_command(TARGET ${EXECUTABLE}
     POST_BUILD
-    COMMAND arm-none-eabi-size ${EXECUTABLE}
+    COMMAND ${CMAKE_SIZE} ${EXECUTABLE}
 )
 
-# Create hex file
-add_custom_command(TARGET ${EXECUTABLE}
-    POST_BUILD
-    COMMAND arm-none-eabi-objcopy -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
-    COMMAND arm-none-eabi-objcopy -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin
+# sort the RAM usage by size and place into a file
+add_custom_target(symbols
+    DEPENDS ${EXECUTABLE}
+    COMMENT "Print memory symbols by size"
+    COMMAND ${CMAKE_NM} -t d -S --size-sort ${EXECUTABLE} 1> ${PROJECT_NAME}.nm
+    COMMAND echo "RAM usage by size analysis in ${PROJECT_NAME}.nm"
+    COMMAND echo "=ADDRESS= ==RAM=== = ==VARIABLE-NAME=="
+    COMMAND tail ${PROJECT_NAME}.nm
+)
+
+# calculate the worst case CSTACK memory usage by size and place into a file
+add_custom_target(cstack 
+    DEPENDS ${EXECUTABLE}
+    COMMENT "Print CSTACK memory depth by size"
+    COMMAND ${CMAKE_CSTACK} ${EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR} 1> ${PROJECT_NAME}.su
+    COMMAND echo "C-Stack maxium depth analysis in ${PROJECT_NAME}.su"
+    COMMAND echo "==DEPTH== : == Functions called =="
+    COMMAND tail ${PROJECT_NAME}.su
+)
+
+# Print file and library sizes
+add_custom_target(memmap 
+    DEPENDS ${PROJECT_NAME}.map
+    COMMENT "Print file and library memory usage by size"
+    COMMAND ${CMAKE_MEMAP} -t GCC_ARM ${PROJECT_NAME}.map
 )

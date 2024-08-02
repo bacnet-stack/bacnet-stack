@@ -171,16 +171,16 @@ bool Binary_Output_Out_Of_Service(uint32_t object_instance)
 bool Binary_Output_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";
+    static char text[32] = "";
     bool status = false;
 
     if (object_instance == 0)
         status = characterstring_init_ansi(object_name, "Led");
     else {
         if (object_instance < MAX_BINARY_OUTPUTS) {
-            sprintf(text_string, "BINARY OUTPUT %lu",
+            snprintf(text, sizeof(text), "BINARY OUTPUT %lu",
                 (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, text_string);
+            status = characterstring_init_ansi(object_name, text);
         }
     }
     return status;

@@ -131,11 +131,11 @@ float Analog_Value_Present_Value(uint32_t object_instance)
 /* note: the object name must be unique within this device */
 char *Analog_Value_Name(uint32_t object_instance)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text[32] = ""; /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_VALUES) {
-        sprintf(text_string, "AV-%lu", object_instance);
-        return text_string;
+        snprintf(text, sizeof(text), "AV-%lu", (unsigned long)object_instance);
+        return text;
     }
 
     return NULL;

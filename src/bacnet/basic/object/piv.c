@@ -1,30 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* Positiveinteger Value Objects - customize for your use */
-
+/**
+ * @file
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @date 2015
+ * @brief API for a basic BACnet Positive Integer Value object implementation.
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -166,13 +146,13 @@ uint32_t PositiveInteger_Value_Present_Value(uint32_t object_instance)
 bool PositiveInteger_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_POSITIVEINTEGER_VALUES) {
-        sprintf(text_string, "POSITIVEINTEGER VALUE %lu",
+        snprintf(text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
             (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;

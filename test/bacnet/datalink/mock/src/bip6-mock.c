@@ -32,7 +32,8 @@ void bip6_get_my_address(BACNET_ADDRESS *my_address)
     ztest_copy_return_data(my_address, sizeof(BACNET_ADDRESS));
 }
 
-int bip6_send_pdu(BACNET_ADDRESS *dest,
+int bip6_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)

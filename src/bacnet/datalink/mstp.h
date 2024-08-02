@@ -1,29 +1,14 @@
-/**************************************************************************
- *
- * Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-#ifndef MSTP_H
-#define MSTP_H
+/**
+ * @file
+ * @brief API for the BACnet MS/TP finite state machines and their data 
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLMSTP BACnet MS/TP DataLink
+ * @ingroup DataLink
+ */
+#ifndef BACNET_MSTP_H
+#define BACNET_MSTP_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -270,6 +255,9 @@ void MSTP_Fill_BACnet_Address(BACNET_ADDRESS *src, uint8_t mstp_address);
 
 BACNET_STACK_EXPORT
 void MSTP_Zero_Config_UUID_Init(struct mstp_port_struct_t *mstp_port);
+
+BACNET_STACK_EXPORT
+unsigned MSTP_Zero_Config_Station_Increment(unsigned station);
 
 BACNET_STACK_EXPORT
 void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port);

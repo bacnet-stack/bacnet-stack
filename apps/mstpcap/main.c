@@ -60,11 +60,22 @@
 #endif
 
 /* define our Data Link Type for libPCAP */
-#define DLT_BACNET_MS_TP 165
+#define DLT_BACNET_MS_TP (165)
 /* local min/max macros */
 #ifndef max
-#define max(a, b) (((a)(b)) ? (a) : (b))
-#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a,b)             \
+({                           \
+    __typeof__ (a) _a = (a); \
+    __typeof__ (b) _b = (b); \
+    _a > _b ? _a : _b;       \
+})
+
+#define min(a,b)             \
+({                           \
+    __typeof__ (a) _a = (a); \
+    __typeof__ (b) _b = (b); \
+    _a < _b ? _a : _b;       \
+})
 #endif
 
 #define MSTP_HEADER_MAX (2 + 1 + 1 + 1 + 2 + 1)

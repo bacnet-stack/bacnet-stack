@@ -21,8 +21,7 @@
  * @brief Test
  */
 static void testTimeSyncRecipientData(
-    BACNET_RECIPIENT_LIST *recipient1,
-    BACNET_RECIPIENT_LIST *recipient2)
+    BACNET_RECIPIENT_LIST *recipient1, BACNET_RECIPIENT_LIST *recipient2)
 {
     unsigned i = 0;
 
@@ -30,34 +29,36 @@ static void testTimeSyncRecipientData(
         zassert_equal(recipient1->tag, recipient2->tag, NULL);
         if (recipient1->tag == 0) {
             zassert_equal(
-                recipient1->type.device.type, recipient2->type.device.type, NULL);
+                recipient1->type.device.type, recipient2->type.device.type,
+                NULL);
             zassert_equal(
                 recipient1->type.device.instance,
-                    recipient2->type.device.instance, NULL);
+                recipient2->type.device.instance, NULL);
         } else if (recipient1->tag == 1) {
             zassert_equal(
-                recipient1->type.address.net, recipient2->type.address.net, NULL);
+                recipient1->type.address.net, recipient2->type.address.net,
+                NULL);
             if (recipient1->type.address.net == BACNET_BROADCAST_NETWORK) {
                 zassert_equal(
                     recipient1->type.address.mac_len,
-                        recipient2->type.address.mac_len, NULL);
+                    recipient2->type.address.mac_len, NULL);
             } else if (recipient1->type.address.net) {
                 zassert_equal(
-                    recipient1->type.address.len,
-                        recipient2->type.address.len, NULL);
+                    recipient1->type.address.len, recipient2->type.address.len,
+                    NULL);
                 for (i = 0; i < recipient1->type.address.len; i++) {
                     zassert_equal(
                         recipient1->type.address.adr[i],
-                            recipient2->type.address.adr[i], NULL);
+                        recipient2->type.address.adr[i], NULL);
                 }
             } else {
                 zassert_equal(
                     recipient1->type.address.mac_len,
-                        recipient2->type.address.mac_len, NULL);
+                    recipient2->type.address.mac_len, NULL);
                 for (i = 0; i < recipient1->type.address.mac_len; i++) {
                     zassert_equal(
                         recipient1->type.address.mac[i],
-                            recipient2->type.address.mac[i], NULL);
+                        recipient2->type.address.mac[i], NULL);
                 }
             }
         } else {
@@ -122,7 +123,8 @@ static void testTimeSyncRecipient(void)
     testTimeSyncRecipientData(&recipient[0], &test_recipient[0]);
 }
 
-static int timesync_decode_apdu_service(uint8_t *apdu,
+static int timesync_decode_apdu_service(
+    uint8_t *apdu,
     BACNET_UNCONFIRMED_SERVICE service,
     unsigned apdu_len,
     BACNET_DATE *my_date,
@@ -146,23 +148,26 @@ static int timesync_decode_apdu_service(uint8_t *apdu,
     return len;
 }
 
-int timesync_utc_decode_apdu(uint8_t *apdu,
+int timesync_utc_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_len,
     BACNET_DATE *my_date,
     BACNET_TIME *my_time)
 {
-    return timesync_decode_apdu_service(apdu,
-        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, apdu_len, my_date,
+    return timesync_decode_apdu_service(
+        apdu, SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, apdu_len, my_date,
         my_time);
 }
 
-int timesync_decode_apdu(uint8_t *apdu,
+int timesync_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_len,
     BACNET_DATE *my_date,
     BACNET_TIME *my_time)
 {
-    return timesync_decode_apdu_service(apdu,
-        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, apdu_len, my_date, my_time);
+    return timesync_decode_apdu_service(
+        apdu, SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, apdu_len, my_date,
+        my_time);
 }
 
 static void testTimeSyncData(BACNET_DATE *my_date, BACNET_TIME *my_time)
@@ -215,16 +220,14 @@ static void testTimeSync(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(timesync_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(timesync_tests,
-     ztest_unit_test(testTimeSync),
-     ztest_unit_test(testTimeSyncRecipient)
-     );
+    ztest_test_suite(
+        timesync_tests, ztest_unit_test(testTimeSync),
+        ztest_unit_test(testTimeSyncRecipient));
 
     ztest_run_test_suite(timesync_tests);
 }

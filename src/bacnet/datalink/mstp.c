@@ -1,51 +1,24 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2003-2007 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
-/** @file mstp.c  BACnet Master-Slave Twisted Pair (MS/TP) functions */
-
-/* This clause describes a Master-Slave/Token-Passing (MS/TP) data link  */
-/* protocol, which provides the same services to the network layer as  */
-/* ISO 8802-2 Logical Link Control. It uses services provided by the  */
-/* EIA-485 physical layer. Relevant clauses of EIA-485 are deemed to be  */
-/* included in this standard by reference. The following hardware is assumed: */
-/* (a)  A UART (Universal Asynchronous Receiver/Transmitter) capable of */
-/*      transmitting and receiving eight data bits with one stop bit  */
-/*      and no parity. */
-/* (b)  An EIA-485 transceiver whose driver may be disabled.  */
-/* (c)  A timer with a resolution of five milliseconds or less */
-
+/**
+ * @file
+ * @brief Implementation of the finite state machines 
+ *  and BACnet Master-Slave Twisted Pair (MS/TP) functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2003
+ * @details This clause describes a Master-Slave/Token-Passing (MS/TP) 
+ *  data link protocol, which provides the same services to the network layer
+ *  as ISO 8802-2 Logical Link Control. It uses services provided by the
+ *  EIA-485 physical layer. Relevant clauses of EIA-485 are deemed to be
+ *  included in this standard by reference. The following hardware is assumed:
+ *  (a) A UART (Universal Asynchronous Receiver/Transmitter) capable of
+ *      transmitting and receiving eight data bits with one stop bit
+ *      and no parity.
+ *  (b) An EIA-485 transceiver whose driver may be disabled.
+ *  (c) A timer with a resolution of five milliseconds or less
+ * 
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @defgroup DLMSTP BACnet MS/TP DataLink Network Layer
+ * @ingroup DataLink
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -452,12 +425,19 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     } else {
                         if (mstp_port->DataLength == 0) {
                             /* NoData */
-                            printf_receive_data("%s",
-                                mstptext_frame_type(
+                            if ((mstp_port->DestinationAddress ==
+                                    mstp_port->This_Station) ||
+                                (mstp_port->DestinationAddress ==
+                                    MSTP_BROADCAST_ADDRESS) ||
+                                (mstp_port->This_Station ==
+                                    MSTP_BROADCAST_ADDRESS)) {
+                                printf_receive_data("%s",
+                                    mstptext_frame_type(
                                     (unsigned)mstp_port->FrameType));
-                            /* indicate that a frame with no data has been
-                                * received */
-                            mstp_port->ReceivedValidFrame = true;
+                                /* indicate that a frame with no data has been
+                                    * received */
+                                mstp_port->ReceivedValidFrame = true;
+                            }
                             /* wait for the start of the next frame. */
                             mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                         } else {
@@ -465,6 +445,8 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                             if ((mstp_port->DestinationAddress ==
                                     mstp_port->This_Station) ||
                                 (mstp_port->DestinationAddress ==
+                                    MSTP_BROADCAST_ADDRESS) ||
+                                (mstp_port->This_Station ==
                                     MSTP_BROADCAST_ADDRESS)) {
                                 if (mstp_port->DataLength <=
                                     mstp_port->InputBufferSize) {
@@ -641,9 +623,12 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 if (mstp_port->This_Station != 255) {
                     /* indicate that the next station is unknown */
                     mstp_port->Next_Station = mstp_port->This_Station;
+                    /* Send a Poll For Master since we just received
+                       the token */
                     mstp_port->Poll_Station = (mstp_port->Next_Station + 1) %
                         (mstp_port->Zero_Config_Max_Master + 1);
                     mstp_port->TokenCount = Npoll;
+                    mstp_port->RetryCount = 0;
                     mstp_port->EventCount = 0;
                     mstp_port->SoleMaster = true;
                     MSTP_Create_And_Send_Frame(mstp_port,
@@ -689,14 +674,12 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                         mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
                     }
                     mstp_port->ReceivedValidFrame = false;
-                } else if ((mstp_port->DestinationAddress ==
-                               mstp_port->This_Station) ||
-                    (mstp_port->DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
+                } else {
                     /* destined for me! */
                     switch (mstp_port->FrameType) {
                         case FRAME_TYPE_TOKEN:
                             /* ReceivedToken */
-                            /* tokens can't be broadcast */
+                            /* tokens cannot be broadcast */
                             if (mstp_port->DestinationAddress ==
                                 MSTP_BROADCAST_ADDRESS) {
                                 break;
@@ -1337,6 +1320,33 @@ void MSTP_Zero_Config_UUID_Init(struct mstp_port_struct_t *mstp_port)
 }
 
 /**
+ * @brief Increment the Zero Configuration Station address
+ * @param station the current station address in the range of min..max
+ * @return the next station address
+ */
+unsigned MSTP_Zero_Config_Station_Increment(unsigned station)
+{
+    unsigned next_station;
+
+    if (station < Nmin_poll_station) {
+        next_station = Nmin_poll_station;
+    } else {
+#ifdef MSTP_ZERO_CONFIG_STATION_INCREMENT_MODULO
+        /* as defined by specification language */
+        next_station = Nmin_poll_station +
+            ((station + 1) % ((Nmax_poll_station - Nmin_poll_station) + 1));
+#else
+        next_station = station + 1;
+        if (next_station > Nmax_poll_station) {
+            next_station = Nmin_poll_station;
+        }
+#endif
+    }
+
+    return next_station;
+}
+
+/**
  * @brief The ZERO_CONFIGURATION_INIT state is entered when
  *  ZeroConfigurationMode is TRUE
  * @param mstp_port the context of the MSTP port
@@ -1350,13 +1360,12 @@ static void MSTP_Zero_Config_State_Init(struct mstp_port_struct_t *mstp_port)
     }
     mstp_port->Poll_Count = 0;
     mstp_port->Zero_Config_Station = Nmin_poll_station;
-    mstp_port->Npoll_slot = 1 + (rand() % Nmax_poll_slot);
+    mstp_port->Npoll_slot = 1 + (mstp_port->UUID[0] % Nmax_poll_slot);
     /* basic silence timeout is the dropped token time plus
         one Tslot after the last master node. Add one Tslot of
         silence timeout per zero config priority slot */
     slots = 128 + mstp_port->Npoll_slot;
     mstp_port->Zero_Config_Silence = Tno_token + Tslot * slots;
-    MSTP_Zero_Config_UUID_Init(mstp_port);
     mstp_port->Zero_Config_Max_Master = 0;
     mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
 }
@@ -1383,7 +1392,7 @@ static void MSTP_Zero_Config_State_Idle(struct mstp_port_struct_t *mstp_port)
     } else if (mstp_port->Zero_Config_Silence > 0) {
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
-            /* ClaimAddress */
+            /* IdleTimeout */
             /* long silence indicates we are alone or
             with other silent devices */
             /* claim the token at the current zero-config address */
@@ -1426,23 +1435,23 @@ static void MSTP_Zero_Config_State_Lurk(struct mstp_port_struct_t *mstp_port)
         if (src == mstp_port->Zero_Config_Station) {
             /* AddressInUse */
             /* monitor PFM from the next address */
-            mstp_port->Zero_Config_Station++;
-            if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
-                /* start again from first */
-                mstp_port->Zero_Config_Station = Nmin_poll_station;
-            }
+            mstp_port->Zero_Config_Station =
+                MSTP_Zero_Config_Station_Increment(
+                    mstp_port->Zero_Config_Station);
             mstp_port->Poll_Count = 0;
         } else if ((frame == FRAME_TYPE_POLL_FOR_MASTER) &&
             (dst == mstp_port->Zero_Config_Station)) {
-            mstp_port->Poll_Count++;
-            /* calculate this node poll count priority */
+            /* calculate this node poll count priority number */
             count = Nmin_poll + mstp_port->Npoll_slot;
             if (mstp_port->Poll_Count == count) {
-                /* ClaimAddress */
+                /* PollResponse */
                 MSTP_Create_And_Send_Frame(mstp_port,
                     FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER, src,
                     mstp_port->Zero_Config_Station, NULL, 0);
                 mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_CLAIM;
+            } else {
+                /* CountFrame */
+                mstp_port->Poll_Count++;
             }
         }
     } else if (mstp_port->ReceivedInvalidFrame) {
@@ -1451,6 +1460,7 @@ static void MSTP_Zero_Config_State_Lurk(struct mstp_port_struct_t *mstp_port)
     } else if (mstp_port->Zero_Config_Silence > 0) {
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
+            /* LurkingTimeout */
             mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
         }
     }
@@ -1470,7 +1480,6 @@ static void MSTP_Zero_Config_State_Claim(struct mstp_port_struct_t *mstp_port)
     if (!mstp_port) {
         return;
     }
-    /*  */
     if (mstp_port->ReceivedValidFrame) {
         mstp_port->ReceivedValidFrame = false;
         dst = mstp_port->DestinationAddress;
@@ -1479,11 +1488,9 @@ static void MSTP_Zero_Config_State_Claim(struct mstp_port_struct_t *mstp_port)
         if (src == mstp_port->Zero_Config_Station) {
             /* ClaimAddressInUse */
             /* monitor PFM from the next address */
-            mstp_port->Zero_Config_Station++;
-            if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
-                /* start again from first */
-                mstp_port->Zero_Config_Station = Nmin_poll_station;
-            }
+            mstp_port->Zero_Config_Station =
+                MSTP_Zero_Config_Station_Increment(
+                    mstp_port->Zero_Config_Station);
             mstp_port->Poll_Count = 0;
             mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
         } else if (frame == FRAME_TYPE_TOKEN) {
@@ -1499,7 +1506,7 @@ static void MSTP_Zero_Config_State_Claim(struct mstp_port_struct_t *mstp_port)
         /* ClaimInvalidFrame */
         mstp_port->ReceivedInvalidFrame = false;
     } else if (mstp_port->Zero_Config_Silence > 0) {
-        /* ClaimLostToken */
+        /* ClaimTimeout */
         if (mstp_port->SilenceTimer((void *)mstp_port) >
             mstp_port->Zero_Config_Silence) {
             mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_IDLE;
@@ -1550,13 +1557,14 @@ static void MSTP_Zero_Config_State_Confirm(struct mstp_port_struct_t *mstp_port)
         } else if (src == mstp_port->Zero_Config_Station) {
             /* ConfirmationAddressInUse */
             /* monitor PFM from the next address */
-            mstp_port->Zero_Config_Station++;
-            if (mstp_port->Zero_Config_Station > Nmax_poll_station) {
-                /* start again from first */
-                mstp_port->Zero_Config_Station = Nmin_poll_station;
-            }
+            mstp_port->Zero_Config_Station =
+                MSTP_Zero_Config_Station_Increment(
+                    mstp_port->Zero_Config_Station);
             mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_LURK;
         }
+    } else if (mstp_port->ReceivedInvalidFrame) {
+        /* ConfirmationInvalidFrame */
+        mstp_port->ReceivedInvalidFrame = false;
     } else if (mstp_port->SilenceTimer((void *)mstp_port) >=
         mstp_port->Treply_timeout) {
         /* ConfirmationTimeout */
@@ -1625,14 +1633,19 @@ void MSTP_Init(struct mstp_port_struct_t *mstp_port)
         mstp_port->Treply_delay = DEFAULT_Treply_delay;
         mstp_port->Treply_timeout = DEFAULT_Treply_timeout;
         mstp_port->Tusage_timeout = DEFAULT_Tusage_timeout;
+        mstp_port->SlaveNodeEnabled = false;
         /* FIXME: point to functions */
         mstp_port->SilenceTimer = Timer_Silence;
         mstp_port->SilenceTimerReset = Timer_Silence_Reset;
+        /* FIXME: set these in your dlmstp if you are zero-config */
+        mstp_port->ZeroConfigEnabled = true;
+        /* use the libc srand() and rand() generated random number*/
+        MSTP_Zero_Config_UUID_Init(&MSTP_Port);
 #endif
         if ((mstp_port->Tframe_abort < 6) || (mstp_port->Tframe_abort > 100)) {
             mstp_port->Tframe_abort = DEFAULT_Tframe_abort;
         }
-        if (mstp_port->Treply_delay > 250) {
+        if ((mstp_port->Treply_delay == 0) || mstp_port->Treply_delay > 250) {
             mstp_port->Treply_delay = DEFAULT_Treply_delay;
         }
         if ((mstp_port->Treply_timeout < 20) ||

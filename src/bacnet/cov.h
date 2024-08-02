@@ -1,28 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *********************************************************************/
-#ifndef COV_H
-#define COV_H
+/**
+ * @file
+ * @brief BACnet Change-of-Value encode and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_COV_H
+#define BACNET_COV_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -145,8 +129,14 @@ int cov_subscribe_encode_apdu(uint8_t *apdu,
     BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
+void cov_property_value_list_link(
+    BACNET_PROPERTY_VALUE *value_list,
+    size_t count);
+BACNET_STACK_EXPORT
 void cov_data_value_list_link(
-    BACNET_COV_DATA *data, BACNET_PROPERTY_VALUE *value_list, size_t count);
+    BACNET_COV_DATA *data, 
+    BACNET_PROPERTY_VALUE *value_list,
+    size_t count);
 
 BACNET_STACK_EXPORT
 bool cov_value_list_encode_real(BACNET_PROPERTY_VALUE *value_list,
@@ -176,6 +166,13 @@ bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
     bool fault,
     bool overridden,
     bool out_of_service);
+    BACNET_STACK_EXPORT
+    bool cov_value_list_encode_bit_string(BACNET_PROPERTY_VALUE *value_list,
+        BACNET_BIT_STRING *value,
+        bool in_alarm,
+        bool fault,
+        bool overridden,
+        bool out_of_service);
 
 #ifdef __cplusplus
 }

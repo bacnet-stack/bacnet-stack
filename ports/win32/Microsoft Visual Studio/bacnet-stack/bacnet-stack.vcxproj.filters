@@ -78,6 +78,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\bacaddr.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaction.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\bacapp.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
@@ -384,6 +387,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\structured_view.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
@@ -623,6 +629,9 @@
     <ClInclude Include="..\..\..\..\src\bacnet\bacaddr.h">
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacaction.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\bacapp.h">
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
@@ -647,9 +656,6 @@
     <ClInclude Include="..\..\..\..\src\bacnet\bacint.h">
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\src\bacnet\bacnet_stack_exports.h">
-      <Filter>Source Files\src\bacnet</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\bacprop.h">
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
@@ -666,15 +672,6 @@
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\bactimevalue.h">
-      <Filter>Source Files\src\bacnet</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\src\bacnet\bits.h">
-      <Filter>Source Files\src\bacnet</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\src\bacnet\bytes.h">
-      <Filter>Source Files\src\bacnet</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\src\bacnet\config.h">
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\cov.h">

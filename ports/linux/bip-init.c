@@ -597,7 +597,7 @@ static char *ntoa(uint32_t addr)
 {
     static char buffer[18];
 
-    sprintf(buffer, "%d.%d.%d.%d", (addr & 0x000000FF),
+    snprintf(buffer, sizeof(buffer), "%d.%d.%d.%d", (addr & 0x000000FF),
         (addr & 0x0000FF00) >> 8, (addr & 0x00FF0000) >> 16,
         (addr & 0xFF000000) >> 24);
 
@@ -899,7 +899,7 @@ bool bip_init(char *ifname)
     int sock_fd = -1;
 
     if (ifname) {
-        strncpy(BIP_Interface_Name, ifname, sizeof(BIP_Interface_Name));
+        snprintf(BIP_Interface_Name, sizeof(BIP_Interface_Name), "%s", ifname);
         bip_set_interface(ifname);
     } else {
         bip_set_interface(ifname_default());

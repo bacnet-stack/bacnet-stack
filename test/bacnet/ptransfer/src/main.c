@@ -21,7 +21,8 @@
 /**
  * @brief Test
  */
-static int ptransfer_decode_apdu(uint8_t *apdu,
+static int ptransfer_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     BACNET_PRIVATE_TRANSFER_DATA *private_data)
@@ -49,7 +50,8 @@ static int ptransfer_decode_apdu(uint8_t *apdu,
     return len;
 }
 
-static int uptransfer_decode_apdu(uint8_t *apdu,
+static int uptransfer_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_len,
     BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
@@ -75,7 +77,8 @@ static int uptransfer_decode_apdu(uint8_t *apdu,
     return len;
 }
 
-static int ptransfer_ack_decode_apdu(uint8_t *apdu,
+static int ptransfer_ack_decode_apdu(
+    uint8_t *apdu,
     int apdu_len, /* total length of the apdu */
     uint8_t *invoke_id,
     BACNET_PRIVATE_TRANSFER_DATA *private_data)
@@ -100,7 +103,8 @@ static int ptransfer_ack_decode_apdu(uint8_t *apdu,
     return len;
 }
 
-static int ptransfer_error_decode_apdu(uint8_t *apdu,
+static int ptransfer_error_decode_apdu(
+    uint8_t *apdu,
     int apdu_len, /* total length of the apdu */
     uint8_t *invoke_id,
     BACNET_ERROR_CLASS *error_class,
@@ -120,8 +124,9 @@ static int ptransfer_error_decode_apdu(uint8_t *apdu,
         return -1;
     offset = 3;
     if (apdu_len > offset) {
-        len = ptransfer_error_decode_service_request(&apdu[offset],
-            apdu_len - offset, error_class, error_code, private_data);
+        len = ptransfer_error_decode_service_request(
+            &apdu[offset], apdu_len - offset, error_class, error_code,
+            private_data);
     }
 
     return len;
@@ -150,8 +155,9 @@ static void test_Private_Transfer_Ack(void)
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
 
-    status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
-        &private_data_chunk[0], &data_value);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_OCTET_STRING, &private_data_chunk[0],
+        &data_value);
     zassert_true(status, NULL);
     private_data_len =
         bacapp_encode_application_data(&test_value[0], &data_value);
@@ -170,9 +176,11 @@ static void test_Private_Transfer_Ack(void)
     zassert_equal(test_data.vendorID, private_data.vendorID, NULL);
     zassert_equal(test_data.serviceNumber, private_data.serviceNumber, NULL);
     zassert_equal(
-        test_data.serviceParametersLen, private_data.serviceParametersLen, NULL);
-    len = bacapp_decode_application_data(test_data.serviceParameters,
-        test_data.serviceParametersLen, &test_data_value);
+        test_data.serviceParametersLen, private_data.serviceParametersLen,
+        NULL);
+    len = bacapp_decode_application_data(
+        test_data.serviceParameters, test_data.serviceParametersLen,
+        &test_data_value);
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
 }
 
@@ -203,8 +211,9 @@ static void test_Private_Transfer_Error(void)
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
 
-    status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
-        &private_data_chunk[0], &data_value);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_OCTET_STRING, &private_data_chunk[0],
+        &data_value);
     zassert_true(status, NULL);
     private_data_len =
         bacapp_encode_application_data(&test_value[0], &data_value);
@@ -216,8 +225,9 @@ static void test_Private_Transfer_Error(void)
     zassert_not_equal(len, 0, NULL);
     zassert_not_equal(len, -1, NULL);
     apdu_len = len;
-    len = ptransfer_error_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
-        &test_error_class, &test_error_code, &test_data);
+    len = ptransfer_error_decode_apdu(
+        &apdu[0], apdu_len, &test_invoke_id, &test_error_class,
+        &test_error_code, &test_data);
     zassert_not_equal(len, -1, NULL);
     zassert_equal(test_invoke_id, invoke_id, NULL);
     zassert_equal(test_data.vendorID, private_data.vendorID, NULL);
@@ -225,9 +235,11 @@ static void test_Private_Transfer_Error(void)
     zassert_equal(test_error_class, error_class, NULL);
     zassert_equal(test_error_code, error_code, NULL);
     zassert_equal(
-        test_data.serviceParametersLen, private_data.serviceParametersLen, NULL);
-    len = bacapp_decode_application_data(test_data.serviceParameters,
-        test_data.serviceParametersLen, &test_data_value);
+        test_data.serviceParametersLen, private_data.serviceParametersLen,
+        NULL);
+    len = bacapp_decode_application_data(
+        test_data.serviceParameters, test_data.serviceParametersLen,
+        &test_data_value);
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
 }
 
@@ -254,8 +266,9 @@ static void test_Private_Transfer_Request(void)
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
 
-    status = bacapp_parse_application_data(BACNET_APPLICATION_TAG_OCTET_STRING,
-        &private_data_chunk[0], &data_value);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_OCTET_STRING, &private_data_chunk[0],
+        &data_value);
     zassert_true(status, NULL);
     private_data_len =
         bacapp_encode_application_data(&test_value[0], &data_value);
@@ -271,9 +284,11 @@ static void test_Private_Transfer_Request(void)
     zassert_equal(test_data.vendorID, private_data.vendorID, NULL);
     zassert_equal(test_data.serviceNumber, private_data.serviceNumber, NULL);
     zassert_equal(
-        test_data.serviceParametersLen, private_data.serviceParametersLen, NULL);
-    len = bacapp_decode_application_data(test_data.serviceParameters,
-        test_data.serviceParametersLen, &test_data_value);
+        test_data.serviceParametersLen, private_data.serviceParametersLen,
+        NULL);
+    len = bacapp_decode_application_data(
+        test_data.serviceParameters, test_data.serviceParametersLen,
+        &test_data_value);
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
 
     return;
@@ -300,9 +315,9 @@ static void test_Unconfirmed_Private_Transfer_Request(void)
     private_data.vendorID = BACNET_VENDOR_ID;
     private_data.serviceNumber = 1;
 
-    status =
-        bacapp_parse_application_data(BACNET_APPLICATION_TAG_CHARACTER_STRING,
-            &private_data_chunk[0], &data_value);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_CHARACTER_STRING, &private_data_chunk[0],
+        &data_value);
     zassert_true(status, NULL);
     private_data_len =
         bacapp_encode_application_data(&test_value[0], &data_value);
@@ -317,9 +332,11 @@ static void test_Unconfirmed_Private_Transfer_Request(void)
     zassert_equal(test_data.vendorID, private_data.vendorID, NULL);
     zassert_equal(test_data.serviceNumber, private_data.serviceNumber, NULL);
     zassert_equal(
-        test_data.serviceParametersLen, private_data.serviceParametersLen, NULL);
-    len = bacapp_decode_application_data(test_data.serviceParameters,
-        test_data.serviceParametersLen, &test_data_value);
+        test_data.serviceParametersLen, private_data.serviceParametersLen,
+        NULL);
+    len = bacapp_decode_application_data(
+        test_data.serviceParameters, test_data.serviceParametersLen,
+        &test_data_value);
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
 
     return;
@@ -328,18 +345,16 @@ static void test_Unconfirmed_Private_Transfer_Request(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(ptransfer_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(ptransfer_tests,
-     ztest_unit_test(test_Private_Transfer_Request),
-     ztest_unit_test(test_Private_Transfer_Ack),
-     ztest_unit_test(test_Private_Transfer_Error),
-     ztest_unit_test(test_Unconfirmed_Private_Transfer_Request)
-     );
+    ztest_test_suite(
+        ptransfer_tests, ztest_unit_test(test_Private_Transfer_Request),
+        ztest_unit_test(test_Private_Transfer_Ack),
+        ztest_unit_test(test_Private_Transfer_Error),
+        ztest_unit_test(test_Unconfirmed_Private_Transfer_Request));
 
     ztest_run_test_suite(ptransfer_tests);
 }

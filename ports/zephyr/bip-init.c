@@ -41,6 +41,9 @@
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/net/socket_select.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip.h"
@@ -170,9 +173,9 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 }
 
 /**
- * Set the BACnet/IP address
- *
- * @param addr - network IPv4 address
+ * @brief Set the BACnet/IP address 
+ * @param addr - network IPv4 address 
+ * @return true if the address was set
  */
 bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 {
@@ -186,7 +189,7 @@ bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 
 /**
  * @brief Get the BACnet/IP address
- * @param addr - network IPv4 address
+ * @param addr - network IPv4 address (in network byte order)
  * @return true if the address was retrieved
  */
 bool bip_get_addr(BACNET_IP_ADDRESS *addr)
@@ -338,7 +341,7 @@ uint16_t bip_receive(
     }
     ZSOCK_FD_ZERO(&read_fds);
     ZSOCK_FD_SET(BIP_Socket, &read_fds);
-    FD_SET(BIP_Broadcast_Socket, &read_fds);
+    ZSOCK_FD_SET(BIP_Broadcast_Socket, &read_fds);
 
     max = BIP_Socket > BIP_Broadcast_Socket ? BIP_Socket : BIP_Broadcast_Socket;
 
@@ -507,7 +510,7 @@ void bip_set_interface(char *ifname)
         bip_set_addr(&unicast);
         bip_set_broadcast_addr(&broadcast);
         LOG_INF("BACnet/IP Unicast: %u.%u.%u.%u:%d", unicast.address[0],
-            unicast.address[1], unicast.address[2], unicast.address[3], 
+            unicast.address[1], unicast.address[2], unicast.address[3],
             unicast.port);
         LOG_INF("BACnet/IP Broadcast: %u.%u.%u.%u", broadcast.address[0],
             broadcast.address[1], broadcast.address[2], broadcast.address[3]);
@@ -624,7 +627,6 @@ void bip_cleanup(void)
 {
     LOG_DBG("bip_cleanup()");
 
-    BIP_Port = 0;
     memset(&BIP_Address, 0, sizeof(BIP_Address));
     memset(&BIP_Broadcast_Addr, 0, sizeof(BIP_Broadcast_Addr));
 

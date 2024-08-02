@@ -1,14 +1,12 @@
 /**
  * @file
- * @author Steve Karg
- * @date 2011
- * @brief Lightweight base "class" for handling all BACnet objects belonging
- *  to a BACnet device, as well as Device-specific properties. 
- *  This Device instance is designed to meet minimal functionality 
- *  for simple clients
- * @copyright
- *  Copyright 2011 by Steve Karg <skarg@users.sourceforge.net>
- *  SPDX-License-Identifier: MIT
+ * @brief Lightweight base "class" for handling all
+ * BACnet objects belonging to a BACnet device, as well as
+ * Device-specific properties.  This Device instance is designed to
+ * meet minimal functionality for simple clients.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,7 +19,8 @@
 #include "bacnet/datetime.h"
 #include "bacnet/apdu.h"
 #include "bacnet/proplist.h"
-#include "bacnet/rp.h"
+#include "bacnet/rp.h" /* ReadProperty handling */
+#include "bacnet/dcc.h" /* DeviceCommunicationControl handling */
 #include "bacnet/version.h"
 /* BACnet basic library */
 #include "bacnet/basic/services.h"
@@ -52,7 +51,22 @@ static uint32_t Interval_Minutes;
 static uint32_t Interval_Offset_Minutes;
 /* Time_Synchronization_Recipients */
 #endif
-/* local forward (semi-private) and external prototypes */
+/* List_Of_Session_Keys */
+/* Max_Master - rely on MS/TP subsystem, if there is one */
+/* Max_Info_Frames - rely on MS/TP subsystem, if there is one */
+/* Device_Address_Binding - required, but relies on binding cache */
+static uint32_t Database_Revision = 0;
+/* Configuration_Files */
+/* Last_Restore_Time */
+/* Backup_Failure_Timeout */
+/* Active_COV_Subscriptions */
+/* Slave_Proxy_Enable */
+/* Manual_Slave_Address_Binding */
+/* Auto_Slave_Discovery */
+/* Slave_Address_Binding */
+/* Profile_Name */
+
+/* external prototypes */
 extern int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
 
 /* All included BACnet objects */
@@ -86,6 +100,100 @@ static object_functions_t Object_Table[] = {
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         NULL /* Create */, NULL /* Delete */, NULL /* Timer */ },
 };
+
+/** Glue function to let the Device object, when called by a handler,
+ * lookup which Object type needs to be invoked.
+ * @ingroup ObjHelpers
+ * @param Object_Type [in] The type of BACnet Object the handler wants to
+ * access.
+ * @return Pointer to the group of object helper functions that implement this
+ *         type of Object.
+ */
+static struct object_functions *Device_Objects_Find_Functions(
+    BACNET_OBJECT_TYPE Object_Type)
+{
+    struct object_functions *pObject = NULL;
+
+    pObject = &Object_Table[0];
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        /* handle each object type */
+        if (pObject->Object_Type == Object_Type) {
+            return (pObject);
+        }
+
+        pObject++;
+    }
+
+    return (NULL);
+}
+
+/** Try to find a rr_info_function helper function for the requested object
+ * type.
+ * @ingroup ObjIntf
+ *
+ * @param object_type [in] The type of BACnet Object the handler wants to
+ * access.
+ * @return Pointer to the object helper function that implements the
+ *         ReadRangeInfo function, Object_RR_Info, for this type of Object on
+ *         success, else a NULL pointer if the type of Object isn't supported
+ *         or doesn't have a ReadRangeInfo function.
+ */
+rr_info_function Device_Objects_RR_Info(BACNET_OBJECT_TYPE object_type)
+{
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    return (pObject != NULL ? pObject->Object_RR_Info : NULL);
+}
+
+/** For a given object type, returns the special property list.
+ * This function is used for ReadPropertyMultiple calls which want
+ * just Required, just Optional, or All properties.
+ * @ingroup ObjIntf
+ *
+ * @param object_type [in] The desired BACNET_OBJECT_TYPE whose properties
+ *            are to be listed.
+ * @param pPropertyList [out] Reference to the structure which will, on return,
+ *            list, separately, the Required, Optional, and Proprietary object
+ *            properties with their counts.
+ */
+void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    struct special_property_list_t *pPropertyList)
+{
+    struct object_functions *pObject = NULL;
+
+    (void)object_instance;
+    pPropertyList->Required.pList = NULL;
+    pPropertyList->Optional.pList = NULL;
+    pPropertyList->Proprietary.pList = NULL;
+
+    /* If we can find an entry for the required object type
+     * and there is an Object_List_RPM fn ptr then call it
+     * to populate the pointers to the individual list counters.
+     */
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
+        pObject->Object_RPM_List(&pPropertyList->Required.pList,
+            &pPropertyList->Optional.pList, &pPropertyList->Proprietary.pList);
+    }
+
+    /* Fetch the counts if available otherwise zero them */
+    pPropertyList->Required.count = pPropertyList->Required.pList == NULL
+        ? 0
+        : property_list_count(pPropertyList->Required.pList);
+
+    pPropertyList->Optional.count = pPropertyList->Optional.pList == NULL
+        ? 0
+        : property_list_count(pPropertyList->Optional.pList);
+
+    pPropertyList->Proprietary.count = pPropertyList->Proprietary.pList == NULL
+        ? 0
+        : property_list_count(pPropertyList->Proprietary.pList);
+
+    return;
+}
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -129,10 +237,80 @@ void Device_Property_Lists(
     return;
 }
 
-/**
- * @brief Get the number of device objects
- * @return The number of device objects
+static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
+static const char *Reinit_Password = "filister";
+
+/** Commands a Device re-initialization, to a given state.
+ * The request's password must match for the operation to succeed.
+ * This implementation provides a framework, but doesn't
+ * actually *DO* anything.
+ * @note You could use a mix of states and passwords to multiple outcomes.
+ * @note You probably want to restart *after* the simple ack has been sent
+ *       from the return handler, so just set a local flag here.
+ * @ingroup ObjIntf
+ *
+ * @param rd_data [in,out] The information from the RD request.
+ *                         On failure, the error class and code will be set.
+ * @return True if succeeds (password is correct), else False.
  */
+bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
+{
+    bool status = false;
+
+    /* Note: you could use a mix of state and password to multiple things */
+    if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
+        switch (rd_data->state) {
+            case BACNET_REINIT_COLDSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                /* note: you probably want to restart *after* the
+                   simple ack has been sent from the return handler
+                   so just set a flag from here */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            case BACNET_REINIT_WARMSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                /* note: restart *after* the simple ack has been sent */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            case BACNET_REINIT_STARTBACKUP:
+            case BACNET_REINIT_ENDBACKUP:
+            case BACNET_REINIT_STARTRESTORE:
+            case BACNET_REINIT_ENDRESTORE:
+            case BACNET_REINIT_ABORTRESTORE:
+                if (dcc_communication_disabled()) {
+                    rd_data->error_class = ERROR_CLASS_SERVICES;
+                    rd_data->error_code = ERROR_CODE_COMMUNICATION_DISABLED;
+                } else {
+                    rd_data->error_class = ERROR_CLASS_SERVICES;
+                    rd_data->error_code =
+                        ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+                }
+                break;
+            case BACNET_REINIT_ACTIVATE_CHANGES:
+                /* note: activate changes *after* the simple ack is sent */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            default:
+                rd_data->error_class = ERROR_CLASS_SERVICES;
+                rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+                break;
+        }
+    } else {
+        rd_data->error_class = ERROR_CLASS_SECURITY;
+        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
+    }
+
+    return status;
+}
+
+BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void)
+{
+    return Reinitialize_State;
+}
+
 unsigned Device_Count(void)
 {
     return 1;
@@ -230,10 +408,11 @@ bool Device_Set_Object_Name(BACNET_CHARACTER_STRING *object_name)
     return status;
 }
 
-/**
- * @brief Get the system status of the device object
- * @return The system status of the device object
- */
+bool Device_Object_Name_ANSI_Init(const char *value)
+{
+    return characterstring_init_ansi(&My_Object_Name, value);
+}
+
 BACNET_DEVICE_STATUS Device_System_Status(void)
 {
     return System_Status;

@@ -1,11 +1,9 @@
 /**
  * @file
  * @brief BACnet accumulator Objects used to represent meter registers
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2017
- * @copyright 2017 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -136,13 +134,13 @@ unsigned Accumulator_Instance_To_Index(uint32_t object_instance)
 bool Accumulator_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32]; /* okay for single thread */
+    static char text[32]; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_ACCUMULATORS) {
-        sprintf(
-            text_string, "ACCUMULATOR-%lu", (long unsigned int)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(text, sizeof(text),
+            "ACCUMULATOR-%lu", (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;

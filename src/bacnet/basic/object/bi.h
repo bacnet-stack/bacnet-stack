@@ -1,16 +1,14 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006
- * @brief Binary Input object is an input object with a present-value that
+ * @brief A basic BACnet Binary Input Object implementation.
+ * Binary Input objects are input objects with a present-value that
  * uses an enumerated two state active/inactive data type.
- * @section LICENSE
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_BINARY_INPUT_OBJECT_H
-#define BACNET_BINARY_INPUT_OBJECT_H
-
+#ifndef BACNET_BASIC_OBJECT_BINARY_INPUT_H
+#define BACNET_BASIC_OBJECT_BINARY_INPUT_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
@@ -19,6 +17,13 @@
 #include "bacnet/cov.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
+
+#if (INTRINSIC_REPORTING)
+#include "bacnet/basic/object/nc.h"
+#include "bacnet/getevent.h"
+#include "bacnet/alarm_ack.h"
+#include "bacnet/get_alarm_sum.h"
+#endif
 
 /**
  * @brief Callback for gateway write present value request
@@ -122,6 +127,10 @@ extern "C" {
         bool value);
 
     BACNET_STACK_EXPORT
+    unsigned Binary_Input_Event_State(
+        uint32_t object_instance);
+
+    BACNET_STACK_EXPORT
     bool Binary_Input_Encode_Value_List(
         uint32_t object_instance,
         BACNET_PROPERTY_VALUE * value_list);
@@ -141,7 +150,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Binary_Input_Write_Present_Value_Callback_Set(
         binary_input_write_present_value_callback cb);
-    
+
     BACNET_STACK_EXPORT
     uint32_t Binary_Input_Create(
         uint32_t object_instance);
@@ -154,6 +163,39 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Binary_Input_Init(
         void);
+
+#if defined(INTRINSIC_REPORTING) && (BINARY_INPUT_INTRINSIC_REPORTING)
+    BACNET_STACK_EXPORT
+    bool Binary_Input_Event_Detection_Enable(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Binary_Input_Event_Detection_Enable_Set(
+        uint32_t object_instance, bool value);
+
+    BACNET_STACK_EXPORT
+    int Binary_Input_Event_Information(
+        unsigned index,
+        BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
+
+    BACNET_STACK_EXPORT
+    int Binary_Input_Alarm_Ack(
+        BACNET_ALARM_ACK_DATA * alarmack_data,
+        BACNET_ERROR_CODE * error_code);
+
+    BACNET_STACK_EXPORT
+    int Binary_Input_Alarm_Summary(
+        unsigned index,
+        BACNET_GET_ALARM_SUMMARY_DATA * getalarm_data);
+
+    BACNET_STACK_EXPORT
+    bool Binary_Input_Alarm_Value_Set(
+        uint32_t object_instance, BACNET_BINARY_PV value);
+
+    BACNET_STACK_EXPORT
+    void Binary_Input_Intrinsic_Reporting(
+        uint32_t object_instance);
+#endif
+
 
 #ifdef __cplusplus
 }

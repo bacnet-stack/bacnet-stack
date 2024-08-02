@@ -1,6 +1,10 @@
+*.su
+*.nm
+*.pyc
 *.log
 *.a
 *.o
+*.obj
 *.exe
 *.bak
 *~

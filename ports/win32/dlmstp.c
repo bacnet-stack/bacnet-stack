@@ -203,7 +203,7 @@ static void dlmstp_master_fsm_task(void *pArg)
         }
         if (dwMilliseconds)
             WaitForSingleObject(Received_Frame_Flag, dwMilliseconds);
-        MSTP_Master_Node_FSM(&MSTP_Port);
+        while (MSTP_Master_Node_FSM(&MSTP_Port));
     }
 }
 

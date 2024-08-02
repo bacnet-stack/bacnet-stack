@@ -1,31 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2005,2010 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/** @file gw_device.c  Functions that extend the Device object to support
- * routing. */
-
+/**
+ * @file
+ * @brief Functions that extend the Device object to support routing.
+ * @author Tom Brennan <tbrennan3@users.sourceforge.net>
+ * @author Peter Mc Shane <petermcs@users.sourceforge.net>
+ * @author Piotr Grudzinski <bacpack@users.sourceforge.net>
+ * @date October 2010
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -62,9 +43,7 @@
 /* os specific includes */
 #include "bacnet/basic/sys/mstimer.h"
 
-/* local forward and external prototypes */
-extern int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
-extern bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
+/* forward prototypes */
 int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
 bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
@@ -361,7 +340,7 @@ bool Routed_Device_Is_Valid_Network(uint16_t dest_net, int *DNET_list)
 
 uint32_t Routed_Device_Index_To_Instance(unsigned index)
 {
-    index = index;
+    (void)index;
     return Devices[iCurrent_Device_Idx].bacObj.Object_Instance_Number;
 }
 

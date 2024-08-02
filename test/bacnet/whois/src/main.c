@@ -107,15 +107,12 @@ static void testWhoIs(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(whois_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(whois_tests,
-     ztest_unit_test(testWhoIs)
-     );
+    ztest_test_suite(whois_tests, ztest_unit_test(testWhoIs));
 
     ztest_run_test_suite(whois_tests);
 }

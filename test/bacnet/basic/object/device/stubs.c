@@ -36,22 +36,22 @@ void datetime_init(void)
 }
 
 bool datetime_local(
-    BACNET_DATE * bdate,
-    BACNET_TIME * btime,
-    int16_t * utc_offset_minutes,
-    bool * dst_active)
+    BACNET_DATE *bdate,
+    BACNET_TIME *btime,
+    int16_t *utc_offset_minutes,
+    bool *dst_active)
 {
     return true;
 }
 
-void bip_get_my_address(BACNET_ADDRESS * my_address)
+void bip_get_my_address(BACNET_ADDRESS *my_address)
 {
 }
 
 int bip_send_pdu(
-    BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * npdu_data,
-    uint8_t * pdu,
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
     unsigned pdu_len)
 {
     return 0;

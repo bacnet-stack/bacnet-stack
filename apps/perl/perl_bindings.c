@@ -66,7 +66,7 @@ static void MyAbortHandler(
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         char msg[MAX_ERROR_STRING];
-        sprintf(msg, "BACnet Abort: %s",
+        snprintf(msg, sizeof(msg), "BACnet Abort: %s",
             bactext_abort_reason_name((int)abort_reason));
         LogError(msg);
     }
@@ -78,7 +78,7 @@ static void MyRejectHandler(
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         char msg[MAX_ERROR_STRING];
-        sprintf(msg, "BACnet Reject: %s",
+        snprintf(msg, sizeof(msg), "BACnet Reject: %s",
             bactext_reject_reason_name((int)reject_reason));
         LogError(msg);
     }
@@ -92,7 +92,7 @@ static void My_Error_Handler(BACNET_ADDRESS *src,
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         char msg[MAX_ERROR_STRING];
-        sprintf(msg, "BACnet Error: %s: %s",
+        snprintf(msg, sizeof(msg), "BACnet Error: %s: %s",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         LogError(msg);
@@ -211,7 +211,7 @@ void rpm_ack_extract_data(BACNET_READ_ACCESS_DATA *rpm_data)
                 }
             } else {
                 /* AccessError */
-                sprintf(ackString, "BACnet Error: %s: %s",
+                snprintf(ackString, sizeof(ackString), "BACnet Error: %s: %s",
                     bactext_error_class_name(
                         (int)listOfProperties->error.error_class),
                     bactext_error_code_name(
@@ -251,13 +251,13 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
                 uint8_t *pFileData;
                 int i;
 
-                sprintf(msg, "EOF=%d,start=%d,", data.endOfFile,
+                snprintf(msg, sizeof(msg), "EOF=%d,start=%d,", data.endOfFile,
                     data.type.stream.fileStartPosition);
                 __LogAnswer(msg, 0);
 
                 pFileData = octetstring_value(&data.fileData);
                 for (i = 0; i < octetstring_length(&data.fileData); i++) {
-                    sprintf(msg, "%02x ", *pFileData);
+                    snprintf(msg, sizeof(msg), "%02x ", *pFileData);
                     __LogAnswer(msg, 1);
                     pFileData++;
                 }
@@ -418,29 +418,25 @@ static void Wait_For_Answer_Or_Timeout(unsigned timeout_ms, waitAction action)
 
     while (true) {
         time_t current_seconds = time(NULL);
-
         /* If error was detected then bail out */
         if (Error_Detected) {
             LogError("Some other error occurred");
             break;
         }
-
         if (elapsed_seconds > timeout_seconds) {
             LogError("APDU Timeout");
             break;
         }
-
         /* Process PDU if one comes in */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout_ms);
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
-
         /* at least one second has passed */
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
-
         if (action == waitAnswer) {
             /* Response was received. Exit. */
             if (tsm_invoke_id_free(Request_Invoke_ID)) {
@@ -459,7 +455,6 @@ static void Wait_For_Answer_Or_Timeout(unsigned timeout_ms, waitAction action)
             LogError("Invalid waitAction requested");
             break;
         }
-
         /* Keep track of time */
         elapsed_seconds += (current_seconds - last_seconds);
         last_seconds = current_seconds;
@@ -715,14 +710,14 @@ int BacnetWriteProperty(int deviceInstanceNumber,
         property_tag = strtol(tag, NULL, 0);
 
         if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-            sprintf(msg, "Error: tag=%u - it must be less than %u",
+            snprintf(msg, sizeof(msg), "Error: tag=%u - it must be less than %u",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
             LogError(msg);
             break;
         }
         if (!bacapp_parse_application_data(
                 property_tag, value, &propertyValue)) {
-            sprintf(msg, "Error: unable to parse the tag value");
+            snprintf(msg, sizeof(msg), "Error: unable to parse the tag value");
             LogError(msg);
             break;
         }
@@ -888,11 +883,11 @@ int BacnetTimeSync(int deviceInstanceNumber,
         bytes_sent = datalink_send_pdu(
             &Target_Address, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
         if (bytes_sent <= 0) {
-            char errorMsg[64];
-            sprintf(errorMsg,
+            char msg[64];
+            snprintf(msg, sizeof(msg), 
                 "Failed to Send Time-Synchronization Request (%s)!",
                 strerror(errno));
-            LogError(errorMsg);
+            LogError(msg);
             break;
         }
 

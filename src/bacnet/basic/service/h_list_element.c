@@ -3,11 +3,7 @@
  * @brief AddListElement and RemoveListElement service application handlers
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date December 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>

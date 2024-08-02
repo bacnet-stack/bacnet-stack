@@ -24,17 +24,18 @@ add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
 	BACAPP_ALL
-	)
+)
 
 include_directories(
 	${SRC_DIR}
 	${TST_DIR}/ztest/include
-	)
+)
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
 	${SRC_DIR}/bacnet/rpm.c
     # Support files and stubs (pathname alphabetical)
+	${SRC_DIR}/bacnet/bacaction.c
 	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
@@ -62,4 +63,4 @@ add_executable(${PROJECT_NAME}
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
-	)
+)

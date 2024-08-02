@@ -25,7 +25,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include <stdio.h> 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -37,12 +37,10 @@
 
 static void test_setup(void)
 {
-
 }
 
 static void test_cleanup(void)
 {
-
 }
 
 void testBACreal(Test *pTest)
@@ -95,4 +93,3 @@ int main(void)
 
     return 0;
 }
-

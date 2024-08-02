@@ -20,6 +20,161 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
+## [1.3.7] - 2024-06-26
+
+### Security
+
+* Secured ReadPropertyMultiple code, and improved unit test coverage. (#650)
+* Secured BACnetTimeValue codec, and improved unit test coverage. (#648)
+* Secured BACnetAcknowledgeAlarmInfo codec and improved unit testing code
+  coverage. (#647)
+* Secured APDU handler by avoiding read ahead. (#645)
+
+### Added
+
+* Added context to MS/TP user data to enable additional
+  user data. (#676)
+* Added activate-changes to the ReinitializeDevice options. (#674)
+* Added example basic bitstring value object. (#668)
+* Added floating point compares in cases where they don't exist in math
+  library. (#665)
+* Added memap, avstack, and checkstackusage tools to STM32F4xx and STM32F19x
+  ports example Makefile and CMake builds to calculate CSTACK depth and RAM
+  usage. Added .nm and .su to .gitignore to skip the analysis file
+  residue. (#661)
+* Added cmake to STM32F10x port example, using the common datalink
+  dlmstp.c module with MS/TP extended frames and zero-config support. (#661)
+* Added existing BBMD unit test to coverage by converting to cmake (#657)
+* Added BACAPP Kconfig options for Zephyr OS builds. (#655)
+* Added simpler API to get/set Network Port MSTP MAC address (#653)
+* Added git mail map to consolodate and decode commit names (#652)
+* Added secure BACnet primitive datatype encode functions. (#643)
+* Added function to determine if an object property is a BACnetARRAY.
+  Added property test for BACnetARRAY members. (#642)
+* Added basic structured view object and unit test. Added example structured
+  view into server example. (#641)
+* Added reliability property to basic analog-value. (#639)
+
+### Changed
+
+* Changed MS/TP master node self destination checks to be
+  located in receive FSM. Changed MSTP zero configuration: modified 
+  comments for state transition names; modified next station increment;
+  refactored the UUID rand() to not be required by common
+  zero config implementation; added more unit tests. (#676)
+* Refactored ports/xplained to use common DLMSTP module to enable extended
+  frames (#665)
+* Refactored snprintf common subsequent shift usage into a function. (#656)
+* Changed config.h to default to client-server apps (#651)
+* Cleaned up code of BACnetWeeklySchedule (#646)
+
+### Fixed
+
+* Fixed typos in ai.c and ao.c basic object examples (#673)
+* Fixed datatype conversion errors found by splint.
+  Fixed Binary input/value set. (#672)
+* Fixed wildcard check in create object for Binary Input objects. (#663)
+* Fixed memory leaks in create object initialization if repeated. (#664)(#662)
+* Fixed the Zephyr-OS BIP6 datalink module. (#659)    
+* Fixed redundant GCC compiler flags in ARM, OS, and test builds, and made them
+  more consistent across various builds. (#658)
+* Fixed redundant redeclaration of various functions detected by change
+  in compiler flags. (#658)
+* Fixed string truncation warning in bip-init detected by change
+  in compiler flags. (#658)
+* Fixed some set-but-not-used variables by creating stub functions
+  instead of using macros. (#658)
+* Fixed RPM compiler warning. (#654)
+* Fixed basic analog-value object intrinsic reporting for ack
+  notification. (#640)
+* Fixed basic analog-value object write property of present-value to
+  priority 6. (#640)
+* Fixed basic analog-value alarm-ack functionality. (#639)
+
+
+### Removed
+
+* Removed local dlmstp.c module from stm32f10x port in favor of using
+  the common src/bacnet/datalink for easier maintenance. (#661)
+* Removed creation of objects from basic device object into the server
+  example. (#641)
+
+## [1.3.6] - 2024-05-12
+
+### Security
+
+* Fixed bacapp snprintf to account for string size zero behavior of snprintf.
+* Changed all the sprintf to use snprintf instead. (#628)
+
+### Added
+
+* Added Get/Set functions in the basic notification class object to support
+  properties relative permanence requirement. (#629)
+* Added help text to explain how to decode complex data in the WriteProperty
+  example app. (#627)
+* Added host_n_port_context_decode function.
+* Added timestamp & datetime snprintf ASCII function.
+* Added required linux Ethernet library for ethernet build. (#620)
+* Added .obj to gitignore. (#620)
+* Added create-object and delete-object recipes in GCC Makefile. (#620)
+* Added datalink timer to all example OS apps. (#620)
+* Added writefile API to basic file object example. (#620)
+* Added API to device-client to make it more robust. (#620)
+* Added API in network-port object for getting the ASCII object-name. (#620)
+* Added debug print with a timestamp option. (#620)
+* Added debug print with hex dump print. (#620)
+* Added API to network port object for activate and discard. (#620)
+* Added default define for debug with timestamp. (#620)
+* Added prototype in header for disabled debug printf. (#620)
+* Added fifo peek ahead function to peek at more than one byte. (#620)
+* Added get-mac value for network port that uses buffer rather than
+  octetstring. (#620)
+* Added API for basic multistate objects number-of-states.
+* Added reliability, active-text, inactive-text to basic binary-input object.
+* Added reliability property to basic binary-value object.
+* Added API for setting multi state text with null-terminated name lists
+  in basic objects. (#614)
+* Added Create/Delete object services to Analog Input, Analog Value,
+  Binary Input, Binary Value, Multistate Input, Multistate Value basic
+  object examples, and updated their units tests. (#612)
+
+### Changed
+
+* Changed clang-format to include AlignAfterOpenBracket: AlwaysBreak and
+  BinPackArguments: true. Used make pretty-test to reformat the test/bacnet
+  .c/.h files with the updated format.
+* Changed most microcontroller ports to use BACAPP_MINIMAL to specify
+  which datatypes can be written. (#620)
+* Changed format in CMake to enable cleaner SC merge. (#620)
+* Changed the first instance of a basic integer value object from 1 to 0. (#619)
+* Changed basic time-value object present-value to be decoupled from 
+current time, and changed out-of-service property to be writable.
+
+### Fixed
+    
+* Fixed nuisance print messages in ports/linux/dlmstp by changing
+  to debug print only. (#633)
+* Fixed compile warnings in basic objects. (#630)
+* Added API for setting multi state text with null-terminated name lists
+  in basic objects. (#630)
+* Fixed example app router-ipv6 to build under ports/win32. (#630)
+* Fixed example app router-mstp to build under ports/win32 with MinGW. (#630)
+* Fixed invalid comparison in life-safety-zone basic object.
+* Fixed CMake build for BDT and FDT to only apply to BIP and BIP6
+* Fixed basic notification class object logic behind valid transitions. (#623)
+* Fixed export build that uses rpm_ack_object_property_process(). (#622)
+* Fixed zephyr bip_get_addr endian UDP port number
+* Fixed BACnet port for APPLE to use BSD in CMake. (#620)
+* Fixed zephyr OS for BACnet/IP warning. (#620)
+* Fixed zephyr OS log to not require log_strdup. (#620)
+* Fixed UDP port endian for zephyr os BACnet/IP
+* Fixed basic network port object header dependency on readrange.h file
+* Fixed basic binary object active and inactive text setting.
+* Fixed unit test checking for unknown property in basic objects.
+* Fixed example apps to enable binding to device instance 4194303. (#615)
+* Fixed compile warnings in basic objects. (#614)
+* Fixed life safety zone default object name. (#613)
+
 ## [1.3.5] - 2024-04-01
 
 ### Security
