@@ -182,9 +182,9 @@ void bacnet_object_properties_read_write_test(
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = object_type;
-    rpdata.object_instance = object_instance;
     property_list(&pRequired, &pOptional, &pProprietary);
     while ((*pRequired) != -1) {
+        rpdata.object_instance = object_instance;
         rpdata.object_property = *pRequired;
         rpdata.array_index = BACNET_ARRAY_ALL;
         len = bacnet_object_property_read_test(

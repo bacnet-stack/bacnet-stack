@@ -1673,15 +1673,9 @@ void Device_Init(object_functions_t *object_table)
     if (object_table) {
         handler_device_object_table_set(object_table);
     } else {
-        Object_Table = &My_Object_Table[0];
+        handler_device_object_table_set(&My_Object_Table[0]);
     }
-    pObject = Object_Table;
-    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-        if (pObject->Object_Init) {
-            pObject->Object_Init();
-        }
-        pObject++;
-    }
+    handler_device_object_init();
 #if (BACNET_PROTOCOL_REVISION >= 14)
     Channel_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif

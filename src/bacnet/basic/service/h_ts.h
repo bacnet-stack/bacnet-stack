@@ -48,13 +48,6 @@ typedef void (*handler_timesync_set_callback_t)(
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    void handler_timesync_callback_set(
-        handler_timesync_callback cb);
-    BACNET_STACK_EXPORT
-    void handler_timesync_utc_callback_set(
-        handler_timesync_callback cb);
-
     /* time synchronization handlers */
     BACNET_STACK_EXPORT
     void handler_timesync(
@@ -91,13 +84,6 @@ extern "C" {
     bool handler_timesync_recipient_write(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
     BACNET_STACK_EXPORT
-    uint32_t handler_timesync_interval(void);
-    BACNET_STACK_EXPORT
-    bool handler_timesync_interval_set(uint32_t minutes);
-    BACNET_STACK_EXPORT
-    uint32_t handler_timesync_interval_offset(void);
-    BACNET_STACK_EXPORT
-    bool handler_timesync_interval_offset_set(uint32_t minutes);
     bool handler_timesync_interval_align(void);
     BACNET_STACK_EXPORT
     bool handler_timesync_interval_align_set(bool flag);
