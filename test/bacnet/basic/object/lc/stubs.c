@@ -23,8 +23,6 @@
  *
  *********************************************************************/
 
-/* Binary Input Objects customize for your use */
-
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacnet/bacapp.h"

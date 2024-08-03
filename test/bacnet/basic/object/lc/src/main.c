@@ -217,162 +217,143 @@ ZTEST(lc_tests, testLoadControlStateMachine)
 static void testLoadControlStateMachine(void)
 #endif
 {
-    // TODO:    unsigned i = 0, j = 0;
+    unsigned i = 0, j = 0;
     uint8_t level = 0;
+    unsigned count = 0;
 
     Load_Control_Init();
-
-    // TODO:    /* validate the triggers for each state change */
-    // TODO:    for (j = 0; j < 20; j++) {
-    // TODO:        Load_Control_State_Machine(0);
-    // TODO:        for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
-    // TODO:            zassert_equal(Load_Control_State[i], SHED_INACTIVE,
-    // NULL);
-    // TODO:        }
-    // TODO:    }
-
+    /* validate the triggers for each state change */
+    for (j = 0; j < 20; j++) {
+        Load_Control_State_Machine(0);
+        count = Load_Control_Count();
+        for (i = 0; i < count; i++) {
+            zassert_equal(Load_Control_State(i), SHED_INACTIVE, NULL);
+        }
+    }
     /* SHED_REQUEST_PENDING */
     /* CancelShed - Start time has wildcards */
     Load_Control_WriteProperty_Enable(0, true);
-    Load_Control_WriteProperty_Shed_Duration(0, 60);
-    Load_Control_WriteProperty_Start_Time_Wildcards(0);
+    Load_Control_WriteProperty_Shed_Duration(pTest, 0, 60);
+    Load_Control_WriteProperty_Start_Time_Wildcards(pTest, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_INACTIVE);
 
     /* CancelShed - Requested_Shed_Level equal to default value */
     Load_Control_Init();
-    Load_Control_WriteProperty_Request_Shed_Level(0, 0);
-    Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 0);
-    Load_Control_WriteProperty_Shed_Duration(0, 5);
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 15, 0, 0, 0);
+    Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 0);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 0);
+    Load_Control_WriteProperty_Shed_Duration(pTest, 0, 5);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 15, 0, 0, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_INACTIVE);
 
     /* CancelShed - Non-default values, but Start time is passed */
     Load_Control_Init();
-    Load_Control_WriteProperty_Enable(0, true);
-    Load_Control_WriteProperty_Request_Shed_Level(0, 1);
-    Load_Control_WriteProperty_Shed_Duration(0, 5);
-    Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 0);
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 28, 15, 0, 0, 0);
+    Load_Control_WriteProperty_Enable(pTest, 0, true);
+    Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 1);
+    Load_Control_WriteProperty_Shed_Duration(pTest, 0, 5);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 28, 15, 0, 0, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_INACTIVE);
 
     /* ReconfigurePending - new write received while pending */
     Load_Control_Init();
-    Load_Control_WriteProperty_Enable(0, true);
-    Load_Control_WriteProperty_Request_Shed_Level(0, 1);
-    Load_Control_WriteProperty_Shed_Duration(0, 5);
-    Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 0);
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
+    Load_Control_WriteProperty_Enable(pTest, 0, true);
+    Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 1);
+    Load_Control_WriteProperty_Shed_Duration(pTest, 0, 5);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
-    Load_Control_WriteProperty_Request_Shed_Level(0, 2);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
+    Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 2);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
-    Load_Control_WriteProperty_Shed_Duration(0, 6);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
+    Load_Control_WriteProperty_Shed_Duration(pTest, 0, 6);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
-    Load_Control_WriteProperty_Duty_Window(0, 60);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
+    Load_Control_WriteProperty_Duty_Window(pTest, 0, 60);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
-    Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 1);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 1);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
 
     /* CannotMeetShed -> FinishedUnsuccessfulShed */
     Load_Control_Init();
-    Load_Control_WriteProperty_Enable(0, true);
-    Load_Control_WriteProperty_Request_Shed_Level(0, 1);
-    Load_Control_WriteProperty_Shed_Duration(0, 120);
-    Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 0);
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
+    Load_Control_WriteProperty_Enable(pTest, 0, true);
+    Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 1);
+    Load_Control_WriteProperty_Shed_Duration(pTest, 0, 120);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     /* set to lowest value so we cannot meet the shed level */
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 0, 0);
     Analog_Output_Present_Value_Set(0, 0, 16);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_NON_COMPLIANT);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_NON_COMPLIANT);
     /* FinishedUnsuccessfulShed */
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 23, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 23, 0, 0, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_INACTIVE);
 
     /* CannotMeetShed -> UnsuccessfulShedReconfigured */
     Load_Control_Init();
-    Load_Control_WriteProperty_Enable(0, true);
-    Load_Control_WriteProperty_Request_Shed_Level(0, 1);
-    Load_Control_WriteProperty_Shed_Duration(0, 120);
-    Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 15, 0, 0, 0);
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
+    Load_Control_WriteProperty_Enable(pTest, 0, true);
+    Load_Control_WriteProperty_Request_Shed_Level(pTest, 0, 1);
+    Load_Control_WriteProperty_Shed_Duration(pTest, 0, 120);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 5, 0, 0, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     /* set to lowest value so we cannot meet the shed level */
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 0, 0);
     Analog_Output_Present_Value_Set(0, 0, 16);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_NON_COMPLIANT);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_NON_COMPLIANT);
     /* FinishedUnsuccessfulShed */
-    Load_Control_WriteProperty_Start_Time(0, 2007, 2, 27, 16, 0, 0, 0);
+    Load_Control_WriteProperty_Start_Time(pTest, 0, 2007, 2, 27, 16, 0, 0, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_REQUEST_PENDING,
-    // NULL);
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 1, 0);
+    ct_test(pTest, Load_Control_State(0) == SHED_REQUEST_PENDING);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 1, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_NON_COMPLIANT, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_NON_COMPLIANT);
     /* CanNowComplyWithShed */
     Analog_Output_Present_Value_Set(0, 100, 16);
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 2, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 16, 0, 2, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_COMPLIANT, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_COMPLIANT);
     level = Analog_Output_Present_Value(0);
-    // TODO: Fails:    zassert_equal(level, 90, NULL);
+    ct_test(pTest, level == 90);
     /* FinishedSuccessfulShed */
-    // TODO:    datetime_set_values(&Current_Time, 2007, 2, 27, 23, 0, 0, 0);
+    datetime_set_values(&Current_Time, 2007, 2, 27, 23, 0, 0, 0);
     Load_Control_State_Machine(0);
-    // TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
+    ct_test(pTest, Load_Control_State(0) == SHED_INACTIVE);
     level = Analog_Output_Present_Value(0);
-    // TODO: Fails:    zassert_equal(level, 100, NULL);
-    (void)level; // TODO: remove when level will be checked
+    ct_test(pTest, level == 100);
 }
 
 #ifndef MAX_LOAD_CONTROLS
