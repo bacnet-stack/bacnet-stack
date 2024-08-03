@@ -70,7 +70,8 @@ extern "C" {
     /* functions used for unit testing */
     BACNET_STACK_EXPORT
     void Load_Control_State_Machine(
-        int object_index);
+        int object_index, 
+        BACNET_DATE_TIME *bdatetime);
     BACNET_STACK_EXPORT
     BACNET_LOAD_CONTROL_STATE Load_Control_State(
         int object_index);

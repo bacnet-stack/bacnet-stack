@@ -64,7 +64,6 @@ static BACNET_SHED_LEVEL Actual_Shed_Level[MAX_LOAD_CONTROLS];
    by the Load Control object must be compliant with the requested shed. */
 static BACNET_DATE_TIME Start_Time[MAX_LOAD_CONTROLS];
 static BACNET_DATE_TIME End_Time[MAX_LOAD_CONTROLS];
-static BACNET_DATE_TIME Current_Time;
 
 /* indicates the duration of the load shed action,
    starting at Start_Time in minutes */
@@ -151,7 +150,6 @@ void Load_Control_Init(void)
         Requested_Shed_Level[i].value.level = 0;
         datetime_wildcard_set(&Start_Time[i]);
         datetime_wildcard_set(&End_Time[i]);
-        datetime_wildcard_set(&Current_Time);
         Shed_Duration[i] = 0;
         Duty_Window[i] = 0;
         Load_Control_Enable[i] = true;
@@ -240,13 +238,6 @@ bool Load_Control_Object_Name(
     }
 
     return status;
-}
-
-static void Update_Current_Time(BACNET_DATE_TIME *bdatetime)
-{
-    if (bdatetime) {
-        datetime_local(&bdatetime->date, &bdatetime->time, NULL, NULL);
-    }
 }
 
 /* convert the shed level request into an Analog Output Present_Value */
@@ -380,7 +371,7 @@ static void Print_Load_Control_State(int object_index)
 }
 #endif
 
-void Load_Control_State_Machine(int object_index)
+void Load_Control_State_Machine(int object_index, BACNET_DATE_TIME *bdatetime)
 {
     unsigned i = 0; /* loop counter */
     int diff = 0; /* used for datetime comparison */
@@ -450,7 +441,7 @@ void Load_Control_State_Machine(int object_index)
             datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
             datetime_add_minutes(
                 &End_Time[object_index], Shed_Duration[object_index]);
-            diff = datetime_compare(&End_Time[object_index], &Current_Time);
+            diff = datetime_compare(&End_Time[object_index], bdatetime);
             if (diff < 0) {
                 /* CancelShed */
                 /* FIXME: stop shedding! i.e. relinquish */
@@ -462,7 +453,7 @@ void Load_Control_State_Machine(int object_index)
                 Load_Control_State_Active[object_index] = SHED_INACTIVE;
                 break;
             }
-            diff = datetime_compare(&Current_Time, &Start_Time[object_index]);
+            diff = datetime_compare(bdatetime, &Start_Time[object_index]);
             if (diff < 0) {
                 /* current time prior to start time */
                 /* ReconfigurePending */
@@ -500,7 +491,7 @@ void Load_Control_State_Machine(int object_index)
             datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
             datetime_add_minutes(
                 &End_Time[object_index], Shed_Duration[object_index]);
-            diff = datetime_compare(&End_Time[object_index], &Current_Time);
+            diff = datetime_compare(&End_Time[object_index], bdatetime);
             if (diff < 0) {
                 /* FinishedUnsuccessfulShed */
 #if PRINT_ENABLED_DEBUG
@@ -541,7 +532,7 @@ void Load_Control_State_Machine(int object_index)
             datetime_copy(&End_Time[object_index], &Start_Time[object_index]);
             datetime_add_minutes(
                 &End_Time[object_index], Shed_Duration[object_index]);
-            diff = datetime_compare(&End_Time[object_index], &Current_Time);
+            diff = datetime_compare(&End_Time[object_index], bdatetime);
             if (diff < 0) {
                 /* FinishedSuccessfulShed */
 #if PRINT_ENABLED_DEBUG
@@ -602,6 +593,7 @@ void Load_Control_State_Machine_Handler(void)
 {
     unsigned i = 0;
     static bool initialized = false;
+    BACNET_DATE_TIME bdatetime = { 0 };
 
     if (!initialized) {
         initialized = true;
@@ -610,9 +602,9 @@ void Load_Control_State_Machine_Handler(void)
             Load_Control_State_Previously[i] = SHED_INACTIVE;
         }
     }
-    Update_Current_Time(&Current_Time);
+    datetime_local(&bdatetime.date, &bdatetime.time, NULL, NULL);
     for (i = 0; i < MAX_LOAD_CONTROLS; i++) {
-        Load_Control_State_Machine(i);
+        Load_Control_State_Machine(i, &bdatetime);
         if (Load_Control_State_Active[i] != Load_Control_State_Previously[i]) {
 #if PRINT_ENABLED_DEBUG
             Print_Load_Control_State(i);
