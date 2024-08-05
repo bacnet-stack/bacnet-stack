@@ -64,7 +64,7 @@ add_executable(${PROJECT_NAME}
     # Test and test library files
 	./src/main.c
 	./stubs.c
-	../mock/device_mock.c
+	${TST_DIR}/bacnet/basic/object/test/device_mock.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)

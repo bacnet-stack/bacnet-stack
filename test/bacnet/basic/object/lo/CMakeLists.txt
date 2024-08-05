@@ -63,7 +63,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
 	./src/main.c
-	../mock/device_mock.c
+	${TST_DIR}/bacnet/basic/object/test/device_mock.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)

@@ -81,7 +81,6 @@ static int bacnet_scale_encode(uint8_t *apdu, BACNET_SCALE *value)
 static int
 bacnet_scale_decode(uint8_t *apdu, size_t apdu_size, BACNET_SCALE *value)
 {
-    int len = 0;
     int apdu_len = 0;
     BACNET_TAG tag = { 0 };
     int32_t signed_value = 0;
@@ -90,28 +89,25 @@ bacnet_scale_decode(uint8_t *apdu, size_t apdu_size, BACNET_SCALE *value)
     if (!apdu) {
         return BACNET_STATUS_ERROR;
     }
-    len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
-    if (len <= 0) {
+    apdu_len = bacnet_tag_decode(apdu, apdu_size, &tag);
+    if (apdu_len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     switch (tag.number) {
         case 0:
-            len = bacnet_real_context_decode(
-                &apdu[apdu_len], apdu_size - apdu_len, tag.number, &real_value);
-            if (len > 0) {
+            apdu_len = bacnet_real_context_decode(
+                apdu, apdu_size, tag.number, &real_value);
+            if (apdu_len > 0) {
                 value->float_scale = true;
                 value->type.real_scale = real_value;
-                apdu_len += len;
             }
             break;
         case 1:
-            len = bacnet_signed_context_decode(
-                &apdu[apdu_len], apdu_size - apdu_len, tag.number,
-                &signed_value);
-            if (len > 0) {
+            apdu_len = bacnet_signed_context_decode(
+                apdu, apdu_size, tag.number, &signed_value);
+            if (apdu_len > 0) {
                 value->float_scale = false;
                 value->type.integer_scale = signed_value;
-                apdu_len += len;
             }
             break;
         default:
@@ -141,6 +137,151 @@ static bool bacnet_scale_same(BACNET_SCALE *value1, BACNET_SCALE *value2)
                 if (value1->type.integer_scale != value2->type.integer_scale) {
                     status = false;
                 }
+            }
+        }
+    }
+
+    return status;
+}
+#endif
+
+#if defined(BACAPP_SHED_LEVEL)
+/**
+ * @brief Encode a BACnetScale value.
+ *
+ *  BACnetScale ::= CHOICE {
+ *      float-scale [0] REAL,
+ *      integer-scale [1] INTEGER
+ *  }
+ *
+ * @param apdu - buffer to encode to
+ * @param value - value to encode
+ * @return number of bytes encoded
+ */
+static int bacnet_shed_level_encode(uint8_t *apdu, BACNET_SHED_LEVEL *value)
+{
+    int apdu_len = 0;
+
+    if (!value) {
+        return 0;
+    }
+    switch (value->type) {
+        case BACNET_SHED_TYPE_PERCENT:
+            apdu_len = encode_context_unsigned(apdu, 0,
+                value->value.percent);
+            break;
+        case BACNET_SHED_TYPE_AMOUNT:
+            apdu_len = encode_context_real(apdu, 2,
+                value->value.amount);
+            break;
+        case BACNET_SHED_TYPE_LEVEL:
+            apdu_len = encode_context_unsigned(apdu, 1,
+                value->value.level);
+            break;
+        default:
+            break;
+    }
+
+    return apdu_len;
+}
+#endif
+
+#if defined(BACAPP_SHED_LEVEL)
+/**
+ * @brief Decode a BACnetShedLevel value.
+ *
+ *  BACnetShedLevel ::= CHOICE {
+ *      percent [0] Unsigned,
+ *      level [1] Unsigned,
+ *      amount [2] REAL
+ *  }
+ *
+ * @param apdu - buffer to decode to
+ * @param apdu_size - size of the buffer
+ * @param value - value to encode
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
+ */
+static int
+bacnet_shed_level_decode(uint8_t *apdu, size_t apdu_size, BACNET_SHED_LEVEL *value)
+{
+    int apdu_len = 0;
+    BACNET_TAG tag = { 0 };
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    float real_value = 0.0f;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len = bacnet_tag_decode(apdu, apdu_size, &tag);
+    if (apdu_len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    switch (tag.number) {
+        case 0:
+            /* percent - Unsigned */
+            apdu_len = bacnet_unsigned_context_decode(
+                apdu, apdu_size, tag.number, &unsigned_value);
+            if (apdu_len > 0) {
+                value->value.percent = unsigned_value;
+                value->type = BACNET_SHED_TYPE_PERCENT;
+            }
+            break;
+        case 1:
+            /* level - Unsigned */
+            apdu_len = bacnet_unsigned_context_decode(
+                apdu, apdu_size, tag.number, &unsigned_value);
+            if (apdu_len > 0) {
+                value->value.level = unsigned_value;
+                value->type = BACNET_SHED_TYPE_LEVEL;
+            }
+            break;
+
+        case 2:
+            apdu_len = bacnet_real_context_decode(
+                apdu, apdu_size, tag.number, &real_value);
+            if (apdu_len > 0) {
+                value->type = BACNET_SHED_TYPE_AMOUNT;
+                value->value.amount = real_value;
+            }
+            break;
+        default:
+            return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}
+#endif
+
+#if defined(BACAPP_SHED_LEVEL)
+static bool
+bacnet_shed_level_same(BACNET_SHED_LEVEL *value1, BACNET_SHED_LEVEL *value2)
+{
+    bool status = false;
+
+    if (value1 && value2) {
+        status = true;
+        if (value1->type != value2->type) {
+            status = false;
+        } else {
+            switch (value1->type) {
+                case BACNET_SHED_TYPE_PERCENT:
+                    if (value1->value.percent != value2->value.percent) {
+                        status = false;
+                    }
+                    break;
+                case BACNET_SHED_TYPE_AMOUNT:
+                    if (islessgreater(
+                            value1->value.amount, value2->value.amount)) {
+                        status = false;
+                    }
+                    break;
+                case BACNET_SHED_TYPE_LEVEL:
+                    if (value1->value.level != value2->value.level) {
+                        status = false;
+                    }
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -354,6 +495,13 @@ int bacapp_encode_application_data(
             case BACNET_APPLICATION_TAG_SCALE:
                 /* BACnetScale */
                 apdu_len = bacnet_scale_encode(apdu, &value->type.Scale);
+                break;
+#endif
+#if defined(BACAPP_SHED_LEVEL)
+            case BACNET_APPLICATION_TAG_SHED_LEVEL:
+                /* BACnetShedLevel */
+                apdu_len = bacnet_shed_level_encode(apdu, 
+                    &value->type.Shed_Level);
                 break;
 #endif
             default:
@@ -769,6 +917,7 @@ int bacapp_encode_context_data_value(
             case BACNET_APPLICATION_TAG_FDT_ENTRY:
             case BACNET_APPLICATION_TAG_ACTION_COMMAND:
             case BACNET_APPLICATION_TAG_SCALE:
+            case BACNET_APPLICATION_TAG_SHED_LEVEL:
                 /* complex data is enclosed in open/close tags */
                 len = encode_opening_tag(apdu, context_tag_number);
                 apdu_len += len;
@@ -1098,6 +1247,11 @@ int bacapp_known_property_tag(
         case PROP_SCALE:
             /* BACnetScale */
             return BACNET_APPLICATION_TAG_SCALE;
+        case PROP_ACTUAL_SHED_LEVEL:
+        case PROP_EXPECTED_SHED_LEVEL:
+        case PROP_REQUESTED_SHED_LEVEL:
+            /* BACnetShedLevel */
+            return BACNET_APPLICATION_TAG_SHED_LEVEL;
 
         case PROP_FD_BBMD_ADDRESS:
         case PROP_BACNET_IP_GLOBAL_ADDRESS:
@@ -1400,6 +1554,13 @@ int bacapp_decode_application_tag_value(
             apdu_len = bacnet_scale_decode(apdu, apdu_size, &value->type.Scale);
             break;
 #endif
+#if defined(BACAPP_SHED_LEVEL)
+        case BACNET_APPLICATION_TAG_SHED_LEVEL:
+            /* BACnetShedLevel */
+            apdu_len = bacnet_shed_level_decode(
+                apdu, apdu_size, &value->type.Shed_Level);
+            break;
+#endif
         default:
             break;
     }
@@ -1697,6 +1858,43 @@ int bacapp_snprintf_shift(int len, char **buf, size_t *buf_size)
 
     return len;
 }
+
+#if defined(BACAPP_SHED_LEVEL)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to be printed
+ * @return number of characters written to the string
+ */
+int bacapp_snprintf_shed_level(
+    char *str, size_t str_len, BACNET_SHED_LEVEL *value)
+{
+    int length = 0;
+    
+    switch (value->type) {
+        case BACNET_SHED_TYPE_PERCENT:
+            length = bacapp_snprintf(
+                str, str_len, "%u%%",(unsigned)
+                value->value.percent);
+            break;
+        case BACNET_SHED_TYPE_LEVEL:
+            length = bacapp_snprintf(
+                str, str_len, "%u",(unsigned)
+                value->value.level);
+            break;
+        case BACNET_SHED_TYPE_AMOUNT:
+            length = bacapp_snprintf(
+                str, str_len, "%f",
+                value->value.amount);
+            break;
+        default:
+            break;
+    }
+
+    return length;
+}
+#endif
 
 /**
  * @brief Print a value to a string for EPICS
@@ -3019,6 +3217,12 @@ int bacapp_snprintf_value(
                 }
                 break;
 #endif
+#if defined(BACAPP_SHED_LEVEL)
+            case BACNET_APPLICATION_TAG_SHED_LEVEL:
+                ret_val = bacapp_snprintf_shed_level(
+                    str, str_len, &value->type.Shed_Level);
+                break;
+#endif
             default:
                 ret_val = bacapp_snprintf(
                     str, str_len, "UnknownType(tag=%d)", value->tag);
@@ -3295,6 +3499,97 @@ static bool strtod_checked(const char *s, double *out)
 }
 #endif
 
+#if defined(BACAPP_SCALE)
+/**
+ * @brief Parse a string into a BACnetScale value
+ * @param value [out] The BACnetScale value
+ * @param argv [in] The string to parse
+ * @return True on success, else False
+ */
+bool bacnet_scale_from_ascii(BACNET_SCALE *value, const char *argv)
+{
+    bool status = false;
+    int count;
+    unsigned integer_scale;
+    float float_scale;
+    const char *decimal_point;
+
+    if (!status) {
+        decimal_point = strchr(argv, '.');
+        if (decimal_point) {
+            count = sscanf(argv, "%f", &float_scale);
+            if (count == 1) {
+                value->float_scale = true;
+                value->type.real_scale = float_scale;
+                status = true;
+            }
+        }
+    }    
+    if (!status) {
+        count = sscanf(argv, "%u", &integer_scale);
+        if (count == 1) {
+            value->float_scale = false;
+            value->type.integer_scale = integer_scale;
+            status = true;
+        }
+    }
+
+    return status;
+}
+#endif
+
+#if defined(BACAPP_SHED_LEVEL)
+/**
+ * @brief Parse a string into a BACnet Shed Level value
+ * @param value [out] The BACnet Shed Level value
+ * @param argv [in] The string to parse
+ * @return True on success, else False
+ */
+bool bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv)
+{
+    bool status = false;
+    int count;
+    unsigned percent, level;
+    float amount;
+    const char *percentage;
+    const char *decimal_point;
+
+    if (!status) {
+        percentage = strchr(argv, '%');
+        if (percentage) {
+            count = sscanf(argv, "%u", &percent);
+            if (count == 1) {
+                value->type = BACNET_SHED_TYPE_PERCENT;
+                value->value.percent = percent;
+                status = true;
+            }
+        }
+    }
+    if (!status) {
+        decimal_point = strchr(argv, '.');
+        if (decimal_point) {
+            count = sscanf(argv, "%f", &amount);
+            if (count == 1) {
+                value->type = BACNET_SHED_TYPE_AMOUNT;
+                value->value.amount = amount;
+                status = true;
+            }
+        }
+
+    }
+    if (!status) {
+        count = sscanf(argv, "%u", &level);
+        if (count == 1) {
+            value->type = BACNET_SHED_TYPE_LEVEL;
+            value->value.level = level;
+            status = true;
+        }
+    }
+
+    return status;
+}
+#endif
+
 /* used to load the app data struct with the proper data
    converted from a command line argument.
    "argv" is not const to allow using strtok internally. It MAY be modified. */
@@ -3528,7 +3823,14 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_SCALE)
             case BACNET_APPLICATION_TAG_SCALE:
-                /* BACnetScale - not implement */
+                status = bacnet_scale_from_ascii(
+                    &value->type.Scale, argv);
+                break;
+#endif
+#if defined(BACAPP_SHED_LEVEL)
+            case BACNET_APPLICATION_TAG_SHED_LEVEL:
+                status = bacnet_shed_level_from_ascii(
+                    &value->type.Shed_Level, argv);
                 break;
 #endif
             default:
@@ -4074,6 +4376,12 @@ bool bacapp_same_value(
             case BACNET_APPLICATION_TAG_SCALE:
                 status = bacnet_scale_same(
                     &value->type.Scale, &test_value->type.Scale);
+                break;
+#endif
+#if defined(BACAPP_SHED_LEVEL)
+            case BACNET_APPLICATION_TAG_SHED_LEVEL:
+                status = bacnet_shed_level_same(
+                    &value->type.Shed_Level, &test_value->type.Shed_Level);
                 break;
 #endif
             case BACNET_APPLICATION_TAG_EMPTYLIST:

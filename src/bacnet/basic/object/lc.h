@@ -60,6 +60,21 @@ extern "C" {
         void);
 
     BACNET_STACK_EXPORT
+    unsigned Load_Control_Priority_For_Writing(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Load_Control_Priority_For_Writing_Set(
+        uint32_t object_instance, unsigned priority);
+    BACNET_STACK_EXPORT 
+    bool Load_Control_Manipulated_Variable_Reference(
+        uint32_t object_instance,
+        BACNET_OBJECT_PROPERTY_REFERENCE * object_property_reference);
+    BACNET_STACK_EXPORT 
+    bool Load_Control_Manipulated_Variable_Reference_Set(
+        uint32_t object_instance,
+        BACNET_OBJECT_PROPERTY_REFERENCE * object_property_reference);
+
+    BACNET_STACK_EXPORT
     int Load_Control_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
 
@@ -74,6 +89,9 @@ extern "C" {
         BACNET_DATE_TIME *bdatetime);
     BACNET_STACK_EXPORT
     BACNET_LOAD_CONTROL_STATE Load_Control_State(
+        int object_index);
+    BACNET_STACK_EXPORT
+    BACNET_OBJECT_ID Load_Control_Object_ID(
         int object_index);
 
 #ifdef __cplusplus
