@@ -451,11 +451,14 @@ test:
 retest:
 	$(MAKE) -s -j -C test retest
 
-# Zephyr unit testings
+# Zephyr unit testing with twister
+# expects zephyr to be installed in ../zephyr in Workspace
+# expects ZEPHYR_BASE to be set. E.g. source ../zephyr/zephyr-env.sh
+# see https://docs.zephyrproject.org/latest/getting_started/index.html
 TWISTER_RESULTS=../twister-out.unit_testing
 .PHONY: twister
 twister:
-	../zephyr/scripts/twister -O $(TWISTER_RESULTS) -p unit_testing -T zephyr/tests
+	$(ZEPHYR_BASE)/scripts/twister -O $(TWISTER_RESULTS) -p unit_testing -T zephyr/tests
 
 .PHONY: twister-clean
 twister-clean:
