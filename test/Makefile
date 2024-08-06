@@ -7,7 +7,7 @@
 # all: demos router-ipv6 ${DEMO_LINUX}
 
 .PHONY: all
-all: test
+all: test coverage
 
 BUILD_DIR=build
 
@@ -56,12 +56,14 @@ test:
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake .. && cd ..
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest $(CTEST_OPTIONS)
-	[ -d $(BUILD_DIR) ] && $(MAKE) -C $(BUILD_DIR) lcov
 
 .PHONY: retest
 retest:
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) && cd ..
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest $(CTEST_OPTIONS)
+
+.PHONY: coverage
+coverage:
 	[ -d $(BUILD_DIR) ] && $(MAKE) -C $(BUILD_DIR) lcov
 
 .PHONY: report

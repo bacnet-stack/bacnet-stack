@@ -25,9 +25,6 @@ ZTEST(bitstring_value_object_tests, test_BitString_Value_Object)
 static void test_BitString_Value_Object(void)
 #endif
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    int test_len = 0;
     const int skip_fail_property_list[] = { -1 };
     const uint32_t instance = 123;
     uint32_t test_instance = 0;
@@ -37,9 +34,6 @@ static void test_BitString_Value_Object(void)
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_PROPERTY_VALUE value_list[2] = { 0 };
-    const int *required_property = NULL;
-    const int *optional_property = NULL;
-    const int *proprietary_property = NULL;
 
     BitString_Value_Init();
     status = BitString_Value_Create(instance);

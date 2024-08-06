@@ -1602,7 +1602,6 @@ int bvlc6_broadcast_distribution_table_entry_encode(uint8_t *apdu,
 {
     int len = 0;
     int apdu_len = 0;
-    int entry_size = 0;
     BACNET_OCTET_STRING octet_string;
 
     if (bdt_entry) {

@@ -71,7 +71,9 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
     /* BACnetActionCommand */
     BACNET_APPLICATION_TAG_ACTION_COMMAND,
     /* BACnetScale */
-    BACNET_APPLICATION_TAG_SCALE
+    BACNET_APPLICATION_TAG_SCALE,
+    /* BACnetShedLevel */
+    BACNET_APPLICATION_TAG_SHED_LEVEL
 };
 
 /**

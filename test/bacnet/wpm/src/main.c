@@ -21,6 +21,7 @@ static int wpm_decode_apdu(uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id)
 {
     int len = 0;
 
+    (void)apdu_len;
     if (!apdu) {
         return BACNET_STATUS_ERROR;
     }

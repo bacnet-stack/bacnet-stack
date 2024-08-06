@@ -56,6 +56,11 @@ static BACNET_IP6_ADDRESS Test_Sent_Message_Dest;
 uint16_t bip6_receive(
     BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu, unsigned timeout)
 {
+    (void)src;
+    (void)npdu;
+    (void)max_npdu;
+    (void)timeout;
+    
     return 0;
 }
 

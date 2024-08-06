@@ -151,9 +151,6 @@ static void test_color_rgb_ascii(void)
     uint8_t red, green, blue;
     uint8_t test_red, test_green, test_blue;
     unsigned test_index;
-    float x_coordinate;
-    float y_coordinate;
-    float brightness;
 
     for (unsigned i = 0; i < count; i++) {
         name = color_rgb_from_index(i, &red, &green, &blue);

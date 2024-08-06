@@ -1069,8 +1069,8 @@ static int decode_priority_array_value(
     BACNET_OBJECT_TYPE object_type)
 {
     int apdu_len = 0;
-    int len = 0;
 #if defined(BACAPP_COMPLEX_TYPES)
+    int len = 0;
     BACNET_APPLICATION_TAG tag = MAX_BACNET_APPLICATION_TAG;
 
     if (bacnet_is_opening_tag_number(apdu, apdu_size, 0, &len)) {

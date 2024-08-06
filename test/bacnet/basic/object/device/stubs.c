@@ -41,11 +41,17 @@ bool datetime_local(
     int16_t *utc_offset_minutes,
     bool *dst_active)
 {
+    (void)bdate;
+    (void)btime;
+    (void)utc_offset_minutes;
+    (void)dst_active;
+
     return true;
 }
 
 void bip_get_my_address(BACNET_ADDRESS *my_address)
 {
+    (void)my_address;
 }
 
 int bip_send_pdu(
@@ -54,5 +60,10 @@ int bip_send_pdu(
     uint8_t *pdu,
     unsigned pdu_len)
 {
+    (void)dest;
+    (void)npdu_data;
+    (void)pdu;
+    (void)pdu_len;
+    
     return 0;
 }

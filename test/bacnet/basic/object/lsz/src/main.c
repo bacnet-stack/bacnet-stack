@@ -27,7 +27,6 @@ ZTEST(testsLifeSafetyZone, testLifeSafetyZone)
 static void testLifeSafetyZone(void)
 #endif
 {
-    bool status = false;
     unsigned count = 0;
     uint32_t object_instance = 0, test_object_instance = 0;
     const int skip_fail_property_list[] = { -1 };
