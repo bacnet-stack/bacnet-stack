@@ -386,7 +386,8 @@ static void testLoadControlStateMachine(void)
     } else {
         zassert_true(false, NULL);
     }
-    zassert_false(islessgreater(90.0f, level), "AO Present Value = %f", level);
+    zassert_false(islessgreater(90.0f, level), "AO Present Value = %f", 
+        (double)level);
     /* FinishedSuccessfulShed */
     datetime_set_values(&bdatetime, 2007, 2, 27, 23, 0, 0, 0);
     Load_Control_State_Machine(0, &bdatetime);
@@ -399,7 +400,8 @@ static void testLoadControlStateMachine(void)
     } else {
         zassert_true(false, NULL);
     }
-    zassert_false(islessgreater(100.0f, level), "AO Present Value = %f", level);
+    zassert_false(islessgreater(100.0f, level), "AO Present Value = %f", 
+        (double)level);
 }
 
 #ifndef MAX_LOAD_CONTROLS

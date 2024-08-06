@@ -1384,7 +1384,8 @@ bool Lighting_Output_Default_Ramp_Rate_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if ((percent_per_second >= 0.1) && (percent_per_second <= 100.0)) {
+        if (isgreaterequal(percent_per_second, 0.1f) && 
+            islessequal(percent_per_second, 100.0f)) {
             pObject->Default_Ramp_Rate = percent_per_second;
             status = true;
         }
@@ -1417,7 +1418,8 @@ static bool Lighting_Output_Default_Ramp_Rate_Write(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
-        if ((percent_per_second >= 0.1) && (percent_per_second <= 100.0)) {
+        if (isgreaterequal(percent_per_second, 0.1f) && 
+            islessequal(percent_per_second, 100.0f)) {
             pObject->Default_Ramp_Rate = percent_per_second;
             status = true;
         } else {
@@ -1470,7 +1472,8 @@ bool Lighting_Output_Default_Step_Increment_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if ((step_increment >= 0.1) && (step_increment <= 100.0)) {
+        if (isgreaterequal(step_increment, 0.1f) && 
+            islessequal(step_increment, 100.0f)) {
             pObject->Default_Step_Increment = step_increment;
             status = true;
         }
@@ -1503,7 +1506,8 @@ static bool Lighting_Output_Default_Step_Increment_Write(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
-        if ((value >= 0.1) && (value <= 100.0)) {
+        if (isgreaterequal(value, 0.1f) && 
+            islessequal(value, 100.0f)) {
             pObject->Default_Step_Increment = value;
             status = true;
         } else {
@@ -2515,7 +2519,7 @@ static void Lighting_Output_Step_Off_Handler(uint32_t object_instance)
     if (isgreaterequal(target_value, step_value)) {
         target_value -= step_value;
     } else {
-        target_value = 0;
+        target_value = 0.0f;
     }
     /* clamp target within max */
     if (isgreater(target_value, max_value)) {
@@ -2523,7 +2527,7 @@ static void Lighting_Output_Step_Off_Handler(uint32_t object_instance)
     }
     /* jump target to OFF if below min */
     if (isless(target_value, min_value)) {
-        target_value = 0.0;
+        target_value = 0.0f;
     }
     pObject->Present_Value = target_value;
     pObject->Tracking_Value = target_value;
@@ -2623,9 +2627,9 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         }
         pObject->Object_Name = NULL;
         pObject->Description = NULL;
-        pObject->Present_Value = 0.0;
-        pObject->Tracking_Value = 0.0;
-        pObject->Physical_Value = 0.0;
+        pObject->Present_Value = 0.0f;
+        pObject->Tracking_Value = 0.0f;
+        pObject->Physical_Value = 0.0f;
         pObject->Lighting_Command.operation = BACNET_LIGHTS_NONE;
         pObject->Lighting_Command.use_target_level = false;
         pObject->Lighting_Command.use_ramp_rate = false;
@@ -2639,18 +2643,18 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Egress_Time = 0;
         pObject->Default_Fade_Time = 100;
         pObject->Default_Ramp_Rate = 100.0;
-        pObject->Default_Step_Increment = 1.0;
+        pObject->Default_Step_Increment = 1.0f;
         pObject->Transition = BACNET_LIGHTING_TRANSITION_FADE;
         pObject->Feedback_Value = 0.0;
         for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
-            pObject->Priority_Array[p] = 0.0;
+            pObject->Priority_Array[p] = 0.0f;
             BIT_CLEAR(pObject->Priority_Active_Bits, p);
         }
-        pObject->Relinquish_Default = 0.0;
-        pObject->Power = 0.0;
-        pObject->Instantaneous_Power = 0.0;
-        pObject->Min_Actual_Value = 0.0;
-        pObject->Max_Actual_Value = 100.0;
+        pObject->Relinquish_Default = 0.0f;
+        pObject->Power = 0.0f;
+        pObject->Instantaneous_Power = 0.0f;
+        pObject->Min_Actual_Value = 0.0f;
+        pObject->Max_Actual_Value = 100.0f;
         pObject->Lighting_Command_Default_Priority = 16;
         pObject->Color_Override = false;
         pObject->Color_Reference.type = OBJECT_COLOR;
