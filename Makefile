@@ -450,3 +450,13 @@ test:
 .PHONY: retest
 retest:
 	$(MAKE) -s -j -C test retest
+
+# Zephyr unit testings
+TWISTER_RESULTS=../twister-out.unit_testing
+.PHONY: twister
+twister:
+	../zephyr/scripts/twister -O $(TWISTER_RESULTS) -p unit_testing -T zephyr/tests
+
+.PHONY: twister-clean
+twister-clean:
+	-rm -rf $(TWISTER_RESULTS)
