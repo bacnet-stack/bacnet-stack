@@ -2904,7 +2904,9 @@ static bool Network_Port_FD_BBMD_Address_Write(
 
     return status;
 }
+#endif
 
+#if (BBMD_CLIENT_ENABLED)
 /**
  * @brief Write the FD Subscription Lifetime
  * @param object_instance [in] BACnet network port object instance number
@@ -3526,8 +3528,10 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
 #endif
+#endif
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
+#if (BBMD_CLIENT_ENABLED)
             if (write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
                 status = Network_Port_FD_Subscription_Lifetime_Write(
@@ -3537,8 +3541,11 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
-            break;
+#else
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
 #endif
+            break;
         default:
             if (Property_List_Member(
                     wp_data->object_instance, wp_data->object_property)) {

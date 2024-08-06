@@ -1176,8 +1176,6 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
-    /* build here in case of error in time half of datetime */
-    BACNET_DATE start_date;
 
     debug_printf("Load_Control_Write_Property(wp_data=%p)\n", wp_data);
     if (wp_data == NULL) {
