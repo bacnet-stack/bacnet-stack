@@ -76,10 +76,25 @@ config BACDL_BIP
 	help
 	  Enable BACnet BIP datalink
 
+config BACDL_BIP6
+	bool "BACnet BIP6"
+	help
+	  Enable BACnet BIP6
+
 config BACDL_NONE
 	bool "BACnet without datalink"
 	help
 	  Enable BACnet without datalink
+
+config BACDL_CUSTOM
+	bool "BACnet with custom datalink enabled"
+	help
+	  Enable BACnet with custom datalink enabled
+
+config BACDL_ALL
+	bool "BACnet with all datalinks enabled"
+	help
+	  Enable BACnet with all datalinks enabled
 
 config BACAPP_ALL
 	bool "BACnet data types supported for WriteProperty: all = minimal + extra"
@@ -104,7 +119,8 @@ config BACAPP_TYPES_EXTRA
 	   LIGHTING_COMMAND, XY_COLOR, COLOR_COMMAND, WEEKLY_SCHEDULE,
 	   CALENDAR_ENTRY, SPECIAL_EVENT, HOST_N_PORT,
 	   DEVICE_OBJECT_PROPERTY_REFERENCE, DEVICE_OBJECT_REFERENCE,
-	   OBJECT_PROPERTY_REFERENCE, DESTINATION
+	   OBJECT_PROPERTY_REFERENCE, DESTINATION, BDT_ENTRY, FDT_ENTRY,
+	   ACTION_COMMAND, SCALE, SHED_LEVEL
 
 config BACAPP_NULL
 	bool "BACnet data types supported for WriteProperty: NULL"
@@ -274,6 +290,24 @@ config BACAPP_FDT_ENTRY
 	help
 	   BACnet data types supported for WriteProperty: FDT_ENTRY
 
+config BACAPP_ACTION_COMMAND
+	bool "BACnet data types supported for WriteProperty: BACAPP_ACTION_COMMAND"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: BACAPP_ACTION_COMMAND
+
+config BACAPP_SCALE
+	bool "BACnet data types supported for WriteProperty: BACAPP_SCALE"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: BACAPP_SCALE
+
+config BACAPP_SHED_LEVEL
+	bool "BACnet data types supported for WriteProperty: BACAPP_SHED_LEVEL"
+	default false
+	help
+	   BACnet data types supported for WriteProperty: BACAPP_SHED_LEVEL
+
 config BACAPP_PRINT_ENABLED
 	bool "BACnet app print"
 	default false
@@ -313,11 +347,6 @@ config BACDL_BIP_ADDRESS_INDEX
 	default 0
 	help
 		Select IPv4 address
-
-config BACDL_BIP6
-	bool "BACnet BIP6"
-	help
-	  Enable BACnet BIP6
 
 config BACDL_BIP6_ADDRESS_INDEX
 	int "Unicast address index"

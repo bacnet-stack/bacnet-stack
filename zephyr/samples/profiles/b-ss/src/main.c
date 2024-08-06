@@ -5,12 +5,15 @@
  */
 
 #include <zephyr/kernel.h>
+#include <zephyr/random/random.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack core API */
 #include "bacnet/version.h"
+#include "bacnet/basic/sys/mstimer.h"
 /* BACnet Stack basic device API - see bacnet_basic/device.c for details */
 #include "bacnet/basic/object/device.h"
 /* BACnet Stack basic objects - also enable in prj.conf */
@@ -24,6 +27,11 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 
+static const uint32_t Device_Instance = 260123;
+static const uint32_t Sensor_Instance = 1;
+/* timer for Sensor Update Interval */
+static struct mstimer Sensor_Update_Timer;
+
 /**
  * @brief BACnet Project Initialization Handler
  * @param context [in] The context to pass to the callback function
@@ -35,10 +43,14 @@ static void BACnet_Smart_Sensor_Init_Handler(void *context)
     LOG_INF("BACnet Stack Initialized");
     /* initialize objects for this basic sample */
     Device_Init(NULL);
-    Device_Set_Object_Instance_Number(260123);
-    Analog_Input_Create(1);
-    Analog_Input_Name_Set(1, "Sensor");
+    Device_Set_Object_Instance_Number(Device_Instance);
+    Analog_Input_Create(Sensor_Instance);
+    Analog_Input_Name_Set(Sensor_Instance, "Sensor");
+    Analog_Input_Present_Value_Set(Sensor_Instance, 25.0f);
 	LOG_INF("BACnet Device ID: %u", Device_Object_Instance_Number());
+    /* start the seconds cyclic timer */
+    mstimer_set(&Sensor_Update_Timer, 1000);
+    srand(sys_rand32_get());
 }
 
 /**
@@ -48,7 +60,20 @@ static void BACnet_Smart_Sensor_Init_Handler(void *context)
  */
 static void BACnet_Smart_Sensor_Task_Handler(void *context)
 {
+    float temperature = 0.0f, change = 0.0f;
 
+    (void)context;
+    if (mstimer_expired(&Sensor_Update_Timer)) {
+        mstimer_reset(&Sensor_Update_Timer);
+        /* simulate a sensor reading, and update the BACnet object values */
+        if (Analog_Input_Out_Of_Service(Sensor_Instance)) {
+            return;
+        }
+        temperature = Analog_Input_Present_Value(Sensor_Instance);
+        change = -1.0f+2.0f*((float)rand())/RAND_MAX;
+        temperature += change;
+        Analog_Input_Present_Value_Set(Sensor_Instance, temperature);
+    }
 }
 
 int main(void)
