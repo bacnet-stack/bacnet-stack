@@ -1606,7 +1606,9 @@ typedef enum {
     /* BACnetActionCommand */
     BACNET_APPLICATION_TAG_ACTION_COMMAND,
     /* BACnetScale */
-    BACNET_APPLICATION_TAG_SCALE
+    BACNET_APPLICATION_TAG_SCALE,
+    /* BACnetShedLevel */
+    BACNET_APPLICATION_TAG_SHED_LEVEL
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
@@ -2252,6 +2254,12 @@ typedef enum BACnetShedState {
     BACNET_SHED_COMPLIANT = 2,
     BACNET_SHED_NON_COMPLIANT = 3
 } BACNET_SHED_STATE;
+
+typedef enum BACnetShedLevelType {
+    BACNET_SHED_TYPE_PERCENT, /* Unsigned */
+    BACNET_SHED_TYPE_LEVEL, /* Unsigned */
+    BACNET_SHED_TYPE_AMOUNT /* REAL */
+} BACNET_SHED_LEVEL_TYPE;
 
 typedef enum BACnetLightingOperation {
     BACNET_LIGHTS_NONE = 0,

@@ -133,7 +133,7 @@ list(APPEND testdirs
   bacnet/basic/object/csv
   bacnet/basic/object/device
   bacnet/basic/object/iv
-  #bacnet/basic/object/lc		#Tests skipped, redesign to use only API
+  bacnet/basic/object/lc
   bacnet/basic/object/lo
   bacnet/basic/object/lsp
   bacnet/basic/object/lsz

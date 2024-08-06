@@ -29,6 +29,7 @@ add_compile_definitions(
 include_directories(
 	${SRC_DIR}
 	${TST_DIR}/ztest/include
+	${TST_DIR}/bacnet/basic/object/test
 	)
 
 add_executable(${PROJECT_NAME}
@@ -65,9 +66,9 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
 	./src/main.c
-	../mock/apdu_mock.c
-	../mock/device_mock.c
-	../mock/tsm_mock.c
+	${TST_DIR}/bacnet/basic/object/test/apdu_mock.c
+	${TST_DIR}/bacnet/basic/object/test/device_mock.c
+	${TST_DIR}/bacnet/basic/object/test/tsm_mock.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)

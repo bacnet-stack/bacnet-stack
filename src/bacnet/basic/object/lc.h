@@ -16,6 +16,14 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
+typedef enum bacnet_load_control_state {
+    SHED_INACTIVE,
+    SHED_REQUEST_PENDING,
+    SHED_NON_COMPLIANT,
+    SHED_COMPLIANT,
+    MAX_LOAD_CONTROL_STATE
+} BACNET_LOAD_CONTROL_STATE;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -50,9 +58,21 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Load_Control_Init(
         void);
+
     BACNET_STACK_EXPORT
-    void Load_Control_State_Machine(
-        int object_index);
+    unsigned Load_Control_Priority_For_Writing(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Load_Control_Priority_For_Writing_Set(
+        uint32_t object_instance, unsigned priority);
+    BACNET_STACK_EXPORT 
+    bool Load_Control_Manipulated_Variable_Reference(
+        uint32_t object_instance,
+        BACNET_OBJECT_PROPERTY_REFERENCE * object_property_reference);
+    BACNET_STACK_EXPORT 
+    bool Load_Control_Manipulated_Variable_Reference_Set(
+        uint32_t object_instance,
+        BACNET_OBJECT_PROPERTY_REFERENCE * object_property_reference);
 
     BACNET_STACK_EXPORT
     int Load_Control_Read_Property(
@@ -61,6 +81,18 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Load_Control_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+    /* functions used for unit testing */
+    BACNET_STACK_EXPORT
+    void Load_Control_State_Machine(
+        int object_index, 
+        BACNET_DATE_TIME *bdatetime);
+    BACNET_STACK_EXPORT
+    BACNET_LOAD_CONTROL_STATE Load_Control_State(
+        int object_index);
+    BACNET_STACK_EXPORT
+    BACNET_OBJECT_ID Load_Control_Object_ID(
+        int object_index);
 
 #ifdef __cplusplus
 }

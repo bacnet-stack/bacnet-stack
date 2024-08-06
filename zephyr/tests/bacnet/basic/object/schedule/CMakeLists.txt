@@ -20,7 +20,7 @@ get_filename_component(BACNET_NAME ${BACNET_BASE} NAME)
 # Update include path for this module
 list(APPEND BACNET_INCLUDE ${BACNET_BASE}/src)
 
-set(TEST_OBJECT_SRC ${BACNET_BASE}/test/bacnet/basic/object)
+set(TEST_OBJECT_SRC ${BACNET_BASE}/test/bacnet/basic/object/test)
 list(APPEND TEST_OBJECT_INCLUDE ${TEST_OBJECT_SRC})
 
 if(BOARD STREQUAL unit_testing)
