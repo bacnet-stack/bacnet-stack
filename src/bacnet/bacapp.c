@@ -1035,9 +1035,8 @@ int bacapp_decode_generic_property(
 }
 #endif
 
-#if defined(BACAPP_COMPLEX_TYPES)
 /**
- * @brief Decode BACnetPriorityValue complex data
+ * @brief Decode BACnetPriorityValue complex data - one element only
  *
  *  BACnetPriorityValue ::= CHOICE {
  *      null NULL,
@@ -1067,36 +1066,63 @@ static int decode_priority_array_value(
     uint8_t *apdu,
     unsigned apdu_size,
     BACNET_APPLICATION_DATA_VALUE *value,
-    BACNET_OBJECT_TYPE object_type,
-    BACNET_PROPERTY_ID property)
+    BACNET_OBJECT_TYPE object_type)
 {
     int apdu_len = 0;
     int len = 0;
+#if defined(BACAPP_COMPLEX_TYPES)
+    BACNET_APPLICATION_TAG tag = MAX_BACNET_APPLICATION_TAG;
 
     if (bacnet_is_opening_tag_number(apdu, apdu_size, 0, &len)) {
-        /* Contextual Abstract-syntax & type */
+         /* constructed-value [0] ABSTRACT-SYNTAX.&Type */
         apdu_len += len;
-        len = bacapp_decode_known_property(
-            &apdu[apdu_len], apdu_size - apdu_len, value, object_type,
-            property);
-        if (len < 0) {
-            return BACNET_STATUS_ERROR;
+        /* adjust application tag for complex types */
+        if (object_type == OBJECT_COLOR) {
+            /* Properties using BACnetxyColor */
+            tag = BACNET_APPLICATION_TAG_XY_COLOR;
+        } else if (
+            (object_type == OBJECT_DATETIME_PATTERN_VALUE) ||
+            (object_type == OBJECT_DATETIME_VALUE)) {
+            /* Properties using BACnetDateTime */
+            tag = BACNET_APPLICATION_TAG_DATETIME;
         }
-        apdu_len += len;
+        if (tag != MAX_BACNET_APPLICATION_TAG) {
+            len = bacapp_decode_application_tag_value(
+                &apdu[apdu_len], apdu_size - apdu_len, tag, value);
+            if (len < 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
+        }
         if (!bacnet_is_closing_tag_number(
                 &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
             return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
-    } else {
-        apdu_len = bacapp_decode_known_property(
-            &apdu[apdu_len], apdu_size - apdu_len, value, object_type,
-            property);
+    } else if (bacnet_is_opening_tag_number(apdu, apdu_size, 1, &len)) {
+         /* datetime [1] BACnetDateTime */
+        apdu_len += len;
+        /* adjust application tag for complex types */
+        tag = BACNET_APPLICATION_TAG_DATETIME;
+        len = bacapp_decode_application_tag_value(
+            &apdu[apdu_len], apdu_size - apdu_len, tag, value);
+        if (len < 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+        if (!bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 1, &len)) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+    } else 
+#endif
+    {     
+        apdu_len = bacapp_decode_application_data(apdu, apdu_size, value);
     }
 
     return apdu_len;
 }
-#endif
 
 /**
  * @brief Determine a pseudo application tag for a known property
@@ -1601,7 +1627,7 @@ int bacapp_decode_known_property(
            tagged values, but sometimes encoded as abstract syntax or complex
            data values */
         apdu_len = decode_priority_array_value(
-            apdu, apdu_size, value, object_type, PROP_PRESENT_VALUE);
+            apdu, apdu_size, value, object_type);
     } else {
         /* Complex or primitive value?
         Lookup the complex values using their object type and property */
