@@ -1901,18 +1901,15 @@ int bacapp_snprintf_shed_level(
     switch (value->type) {
         case BACNET_SHED_TYPE_PERCENT:
             length = bacapp_snprintf(
-                str, str_len, "%u%%",(unsigned)
-                value->value.percent);
+                str, str_len, "%u%%", (unsigned)value->value.percent);
             break;
         case BACNET_SHED_TYPE_LEVEL:
             length = bacapp_snprintf(
-                str, str_len, "%u",(unsigned)
-                value->value.level);
+                str, str_len, "%u", (unsigned)value->value.level);
             break;
         case BACNET_SHED_TYPE_AMOUNT:
             length = bacapp_snprintf(
-                str, str_len, "%f",
-                value->value.amount);
+                str, str_len, "%f", (double)value->value.amount);
             break;
         default:
             break;
