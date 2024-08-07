@@ -7,7 +7,7 @@
 # all: demos router-ipv6 ${DEMO_LINUX}
 
 .PHONY: all
-all: test coverage
+all: test
 
 BUILD_DIR=build
 
