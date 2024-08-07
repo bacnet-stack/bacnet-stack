@@ -997,7 +997,7 @@ static bool Lighting_Output_Lighting_Command_Write(
                 debug_printf("LO[%u]: Lighting-Command@%u Fade-To "
                     "Target=%f Fade=%u\n",
                     object_instance, priority,
-                    value->target_level, value->fade_time);
+                    (double)value->target_level, value->fade_time);
                 Lighting_Command_Fade_To(pObject, priority,
                     value->target_level, value->fade_time);
                 status = true;
@@ -1006,7 +1006,7 @@ static bool Lighting_Output_Lighting_Command_Write(
                 debug_printf("LO[%u]: Lighting-Command@%u Ramp-To "
                     "Target=%f Ramp-Rate=%f\n",
                     object_instance, priority,
-                    value->target_level, value->ramp_rate);
+                    (double)value->target_level, (double)value->ramp_rate);
                 Lighting_Command_Ramp_To(pObject, priority,
                     value->target_level, value->ramp_rate);
                 status = true;
@@ -1018,7 +1018,7 @@ static bool Lighting_Output_Lighting_Command_Write(
                 debug_printf("LO[%u]: Lighting-Command@%u Step "
                     "Step-Increment=%f\n",
                     object_instance, priority,
-                    value->step_increment);
+                    (double)value->step_increment);
                 Lighting_Command_Step(pObject,priority,
                     value->operation,value->step_increment);
                 status = true;
@@ -2307,7 +2307,7 @@ Lighting_Output_Fade_Handler(uint32_t object_instance, uint16_t milliseconds)
             object_instance,
             bactext_lighting_operation_name(
             pObject->Lighting_Command.operation),
-            pObject->Tracking_Value);
+            (double)pObject->Tracking_Value);
     }
 }
 
@@ -2371,7 +2371,7 @@ Lighting_Output_Ramp_Handler(uint32_t object_instance, uint16_t milliseconds)
             }
         } else if (isgreater(old_value, target_value)) {
             debug_printf("LO[%u] Ramp Handler Down steps=%f tracking=%f\n",
-                object_instance, steps, old_value);
+                object_instance, (double)steps, (double)old_value);
             if (isgreater(old_value, steps)) {
                 step_value = old_value - steps;
             } else {
@@ -2383,7 +2383,7 @@ Lighting_Output_Ramp_Handler(uint32_t object_instance, uint16_t milliseconds)
             }
         } else {
             debug_printf("LO[%u] Ramp Handler at target=%f tracking=%f\n",
-                object_instance, target_value, old_value);
+                object_instance, (double)target_value, (double)old_value);
             /* stop ramping */
             pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
         }
@@ -2410,7 +2410,7 @@ Lighting_Output_Ramp_Handler(uint32_t object_instance, uint16_t milliseconds)
             object_instance,
             bactext_lighting_operation_name(
             pObject->Lighting_Command.operation),
-            pObject->Tracking_Value);
+            (double)pObject->Tracking_Value);
     }
 }
 
@@ -2458,7 +2458,7 @@ static void Lighting_Output_Step_Up_Handler(uint32_t object_instance)
                 object_instance,
                 bactext_lighting_operation_name(
                 pObject->Lighting_Command.operation),
-                pObject->Tracking_Value);
+                (double)pObject->Tracking_Value);
         }
     }
 }
@@ -2509,7 +2509,7 @@ static void Lighting_Output_Step_Down_Handler(uint32_t object_instance)
             object_instance,
             bactext_lighting_operation_name(
             pObject->Lighting_Command.operation),
-            pObject->Tracking_Value);
+            (double)pObject->Tracking_Value);
     }
 }
 
@@ -2555,7 +2555,7 @@ static void Lighting_Output_Step_On_Handler(uint32_t object_instance)
             object_instance,
             bactext_lighting_operation_name(
             pObject->Lighting_Command.operation),
-            pObject->Tracking_Value);
+            (double)pObject->Tracking_Value);
     }
 }
 
@@ -2606,7 +2606,7 @@ static void Lighting_Output_Step_Off_Handler(uint32_t object_instance)
             object_instance,
             bactext_lighting_operation_name(
             pObject->Lighting_Command.operation),
-            pObject->Tracking_Value);
+            (double)pObject->Tracking_Value);
     }
 }
 

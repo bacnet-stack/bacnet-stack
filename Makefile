@@ -458,6 +458,9 @@ retest:
 TWISTER_RESULTS=../twister-out.unit_testing
 .PHONY: twister
 twister:
+ifndef ZEPHYR_BASE
+	$(error ZEPHYR_BASE is undefined)
+endif
 	$(ZEPHYR_BASE)/scripts/twister -O $(TWISTER_RESULTS) -p unit_testing -T zephyr/tests
 
 .PHONY: twister-clean

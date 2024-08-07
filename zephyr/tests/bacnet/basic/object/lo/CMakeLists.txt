@@ -57,6 +57,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/special_event.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/basic/sys/linear.c
+    ${BACNET_SRC}/basic/sys/debug.c
     ${BACNET_SRC}/basic/sys/keylist.c
     ${BACNET_SRC}/bactimevalue.c
     )
