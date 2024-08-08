@@ -785,6 +785,7 @@ bool Network_Port_MAC_Address_Set(
             status = true;
         }
     }
+
     return status;
 }
 
@@ -822,7 +823,6 @@ bool Network_Port_APDU_Length_Set(uint32_t object_instance, uint16_t value)
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
-
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].APDU_Length = value;
         status = true;
@@ -2890,7 +2890,6 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
     apdu = rpdata->application_data;
     apdu_size = rpdata->application_data_len;
-
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
