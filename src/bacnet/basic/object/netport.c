@@ -757,7 +757,6 @@ bool Network_Port_MAC_Address_Set(
     uint8_t *mac_dest = NULL;
 
     index = Network_Port_Instance_To_Index(object_instance);
-
     if (index < BACNET_NETWORK_PORTS_MAX) {
         switch (Object_List[index].Network_Type) {
             case PORT_TYPE_ETHERNET:
@@ -779,7 +778,6 @@ bool Network_Port_MAC_Address_Set(
             default:
                 break;
         }
-
         if (mac_src && mac_dest && (mac_len == mac_size)) {
             memcpy(mac_dest, mac_src, mac_size);
             status = true;
