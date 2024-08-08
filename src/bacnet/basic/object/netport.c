@@ -719,23 +719,16 @@ uint8_t Network_Port_MAC_Address_Value(
 bool Network_Port_MAC_Address(
     uint32_t object_instance, BACNET_OCTET_STRING *mac_address)
 {
-    uint8_t mac_len = 0;
-    unsigned index = 0;
     bool status = false;
 
     if (mac_address) {
-        mac_len = Network_Port_MAC_Address_Value(object_instance,
-            mac_address->value, sizeof(mac_address->value));
+        uint8_t mac_tmp[4 + 2] = { 0 };
+        uint8_t mac_len = Network_Port_MAC_Address_Value(object_instance, mac_tmp, sizeof(mac_tmp));
+
+        status = octetstring_init(mac_address, mac_tmp, mac_len);
     }
 
-    index = Network_Port_Instance_To_Index(object_instance);
-
-    if(Object_List[index].Network_Type == PORT_TYPE_MSTP) {
-        status = octetstring_init(mac_address, &Object_List[index].Network.MSTP.MAC_Address, mac_len);
-        return status;
-    }
-
-    return mac_len > 0;
+    return status;
 }
 
 /**
