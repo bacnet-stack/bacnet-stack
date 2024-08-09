@@ -1639,7 +1639,7 @@ bool Load_Control_Shed_Level_Array(
         return false;
     }
     entry = Keylist_Data(pObject->Shed_Level_List, array_entry);
-    if (entry) {
+    if (!entry) {
         return false;
     }
     if (value) {
