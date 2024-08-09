@@ -114,7 +114,9 @@ unsigned OctetString_Value_Instance_To_Index(uint32_t object_instance)
  * @return  true if values are within range and present-value is set.
  */
 bool OctetString_Value_Present_Value_Set(
-    uint32_t object_instance, BACNET_OCTET_STRING *value, uint8_t priority)
+    uint32_t object_instance,
+    const BACNET_OCTET_STRING *value,
+    uint8_t priority)
 {
     unsigned index = 0;
     bool status = false;

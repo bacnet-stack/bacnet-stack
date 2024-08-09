@@ -29,7 +29,7 @@
  * @return length of the APDU buffer, or BACNET_STATUS_ERROR if unable to decode
  */
 int bacnet_special_event_decode(
-    uint8_t *apdu, int apdu_size, BACNET_SPECIAL_EVENT *value)
+    const uint8_t *apdu, int apdu_size, BACNET_SPECIAL_EVENT *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -97,7 +97,8 @@ int bacnet_special_event_decode(
  * @param value - BACnetSpecialEvent structure
  * @return length of the APDU buffer, or 0 if not able to encode
  */
-int bacnet_special_event_encode(uint8_t *apdu, BACNET_SPECIAL_EVENT *value)
+int bacnet_special_event_encode(
+    uint8_t *apdu, const BACNET_SPECIAL_EVENT *value)
 {
     int apdu_len = 0;
     int len;
@@ -153,7 +154,7 @@ int bacnet_special_event_encode(uint8_t *apdu, BACNET_SPECIAL_EVENT *value)
  * @return length of the APDU buffer, or 0 if not able to encode
  */
 int bacnet_special_event_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_SPECIAL_EVENT *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_SPECIAL_EVENT *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -184,7 +185,7 @@ int bacnet_special_event_context_encode(
  * @param value - BACnetSpecialEvent structure
  * @return length of the APDU buffer, or BACNET_STATUS_ERROR if unable to decode
  */
-int bacnet_special_event_context_decode(uint8_t *apdu,
+int bacnet_special_event_context_decode(const uint8_t *apdu,
     int apdu_size,
     uint8_t tag_number,
     BACNET_SPECIAL_EVENT *value)
@@ -222,10 +223,10 @@ int bacnet_special_event_context_decode(uint8_t *apdu,
  * @return true if the same
  */
 bool bacnet_special_event_same(
-    BACNET_SPECIAL_EVENT *value1, BACNET_SPECIAL_EVENT *value2)
+    const BACNET_SPECIAL_EVENT *value1, const BACNET_SPECIAL_EVENT *value2)
 {
     BACNET_APPLICATION_DATA_VALUE adv1, adv2;
-    BACNET_TIME_VALUE *tv1, *tv2;
+    const BACNET_TIME_VALUE *tv1, *tv2;
     int ti;
 
     if (value1->periodTag != value2->periodTag ||

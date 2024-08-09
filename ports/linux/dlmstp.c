@@ -398,16 +398,18 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
  * @param nbytes - number of bytes of data to send
  */
 void MSTP_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, uint8_t *buffer, uint16_t nbytes)
+    struct mstp_port_struct_t *mstp_port,
+    const uint8_t *buffer,
+    uint16_t nbytes)
 {
     RS485_Send_Frame(mstp_port, buffer, nbytes);
 }
 
 static bool dlmstp_compare_data_expecting_reply(
-    uint8_t *request_pdu,
+    const uint8_t *request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,
-    uint8_t *reply_pdu,
+    const uint8_t *reply_pdu,
     uint16_t reply_pdu_len,
     uint8_t dest_address)
 {

@@ -508,7 +508,7 @@ bool Analog_Output_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Analog_Output_Name_Set(uint32_t object_instance, char *new_name)
+bool Analog_Output_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -684,7 +684,7 @@ BACNET_RELIABILITY Analog_Output_Reliability(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return  true the status flag is in Fault
  */
-static bool Analog_Output_Object_Fault(struct object_data *pObject)
+static bool Analog_Output_Object_Fault(const struct object_data *pObject)
 {
     bool fault = false;
 
@@ -744,14 +744,14 @@ static bool Analog_Output_Fault(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
  */
-char *Analog_Output_Description(uint32_t object_instance)
+const char *Analog_Output_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = (char *)pObject->Description;
+        name = pObject->Description;
     }
 
     return name;
@@ -763,7 +763,8 @@ char *Analog_Output_Description(uint32_t object_instance)
  * @param  new_name - holds the description to be set
  * @return  true if object-name was set
  */
-bool Analog_Output_Description_Set(uint32_t object_instance, char *new_name)
+bool Analog_Output_Description_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;

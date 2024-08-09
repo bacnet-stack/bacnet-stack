@@ -26,7 +26,7 @@
  */
 int bacapp_encode_context_device_obj_property_ref(uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value)
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value)
 {
     int len;
     int apdu_len = 0;
@@ -69,7 +69,7 @@ int bacapp_encode_context_device_obj_property_ref(uint8_t *apdu,
  * @return Bytes encoded.
  */
 int bacapp_encode_device_obj_property_ref(
-    uint8_t *apdu, BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value)
+    uint8_t *apdu, const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value)
 {
     int len;
     int apdu_len = 0;
@@ -131,7 +131,7 @@ int bacapp_encode_device_obj_property_ref(
  *
  * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
  */
-int bacnet_device_object_property_reference_decode(uint8_t *apdu,
+int bacnet_device_object_property_reference_decode(const uint8_t *apdu,
     uint32_t apdu_size,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value)
 {
@@ -226,7 +226,7 @@ int bacnet_device_object_property_reference_decode(uint8_t *apdu,
  *
  * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
  */
-int bacnet_device_object_property_reference_context_decode(uint8_t *apdu,
+int bacnet_device_object_property_reference_context_decode(const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value)
@@ -267,8 +267,8 @@ int bacnet_device_object_property_reference_context_decode(uint8_t *apdu,
  * @return true if the values are the same
  */
 bool bacnet_device_object_property_reference_same(
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value1,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value2)
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value1,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value2)
 {
     bool status = false;
 
@@ -309,7 +309,7 @@ bool bacnet_device_object_property_reference_same(
  * @deprecated Use bacnet_device_object_property_reference_decode() instead
  */
 int bacapp_decode_device_obj_property_ref(
-    uint8_t *apdu, BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value)
+    const uint8_t *apdu, BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value)
 {
     return bacnet_device_object_property_reference_decode(
         apdu, MAX_APDU, value);
@@ -328,7 +328,7 @@ int bacapp_decode_device_obj_property_ref(
  * @deprecated Use bacnet_device_object_property_reference_context_decode()
  * instead
  */
-int bacapp_decode_context_device_obj_property_ref(uint8_t *apdu,
+int bacapp_decode_context_device_obj_property_ref(const uint8_t *apdu,
     uint8_t tag_number,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value)
 {
@@ -352,7 +352,7 @@ int bacapp_decode_context_device_obj_property_ref(uint8_t *apdu,
  * @return Bytes encoded or 0 on failure.
  */
 int bacapp_encode_context_device_obj_ref(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DEVICE_OBJECT_REFERENCE *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DEVICE_OBJECT_REFERENCE *value)
 {
     int len;
     int apdu_len = 0;
@@ -389,7 +389,7 @@ int bacapp_encode_context_device_obj_ref(
  * @return Bytes encoded or 0 on failure.
  */
 int bacapp_encode_device_obj_ref(
-    uint8_t *apdu, BACNET_DEVICE_OBJECT_REFERENCE *value)
+    uint8_t *apdu, const BACNET_DEVICE_OBJECT_REFERENCE *value)
 {
     int len;
     int apdu_len = 0;
@@ -431,7 +431,7 @@ int bacapp_encode_device_obj_ref(
  * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
  */
 int bacnet_device_object_reference_decode(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_DEVICE_OBJECT_REFERENCE *value)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_DEVICE_OBJECT_REFERENCE *value)
 {
     int len;
     int apdu_len = 0;
@@ -489,7 +489,7 @@ int bacnet_device_object_reference_decode(
  *
  * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
  */
-int bacnet_device_object_reference_context_decode(uint8_t *apdu,
+int bacnet_device_object_reference_context_decode(const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_DEVICE_OBJECT_REFERENCE *value)
@@ -529,8 +529,9 @@ int bacnet_device_object_reference_context_decode(uint8_t *apdu,
  * @param value2 - value 2 structure
  * @return true if the values are the same
  */
-bool bacnet_device_object_reference_same(BACNET_DEVICE_OBJECT_REFERENCE *value1,
-    BACNET_DEVICE_OBJECT_REFERENCE *value2)
+bool bacnet_device_object_reference_same(
+    const BACNET_DEVICE_OBJECT_REFERENCE *value1,
+    const BACNET_DEVICE_OBJECT_REFERENCE *value2)
 {
     bool status = false;
 
@@ -564,7 +565,7 @@ bool bacnet_device_object_reference_same(BACNET_DEVICE_OBJECT_REFERENCE *value1,
  * @deprecated Use bacnet_device_object_reference_decode() instead.
  */
 int bacapp_decode_device_obj_ref(
-    uint8_t *apdu, BACNET_DEVICE_OBJECT_REFERENCE *value)
+    const uint8_t *apdu, BACNET_DEVICE_OBJECT_REFERENCE *value)
 {
     return bacnet_device_object_reference_decode(apdu, MAX_APDU, value);
 }
@@ -582,7 +583,7 @@ int bacapp_decode_device_obj_ref(
  * @deprecated Use bacnet_device_object_reference_context_decode() instead.
  */
 int bacapp_decode_context_device_obj_ref(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DEVICE_OBJECT_REFERENCE *value)
+    const uint8_t *apdu, uint8_t tag_number, BACNET_DEVICE_OBJECT_REFERENCE *value)
 {
     return bacnet_device_object_reference_context_decode(
         apdu, MAX_APDU, tag_number, value);
@@ -604,7 +605,7 @@ int bacapp_decode_context_device_obj_ref(
  * @return length of the APDU buffer
  */
 int bacapp_encode_obj_property_ref(
-    uint8_t *apdu, BACNET_OBJECT_PROPERTY_REFERENCE *reference)
+    uint8_t *apdu, const BACNET_OBJECT_PROPERTY_REFERENCE *reference)
 {
     int len = 0;
     int apdu_len = 0;
@@ -643,7 +644,7 @@ int bacapp_encode_obj_property_ref(
  */
 int bacapp_encode_context_obj_property_ref(uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_OBJECT_PROPERTY_REFERENCE *reference)
+    const BACNET_OBJECT_PROPERTY_REFERENCE *reference)
 {
     int len = 0;
     int apdu_len = 0;
@@ -683,7 +684,7 @@ int bacapp_encode_context_obj_property_ref(uint8_t *apdu,
  * @param reference - BACnetObjectPropertyReference to decode into
  * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
  */
-int bacapp_decode_obj_property_ref(uint8_t *apdu,
+int bacapp_decode_obj_property_ref(const uint8_t *apdu,
     uint16_t apdu_size,
     BACNET_OBJECT_PROPERTY_REFERENCE *reference)
 {
@@ -755,7 +756,7 @@ int bacapp_decode_obj_property_ref(uint8_t *apdu,
  *
  * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
  */
-int bacapp_decode_context_obj_property_ref(uint8_t *apdu,
+int bacapp_decode_context_obj_property_ref(const uint8_t *apdu,
     uint16_t apdu_size,
     uint8_t tag_number,
     BACNET_OBJECT_PROPERTY_REFERENCE *value)
@@ -795,8 +796,8 @@ int bacapp_decode_context_obj_property_ref(uint8_t *apdu,
  * @return true if the values are the same
  */
 bool bacnet_object_property_reference_same(
-    BACNET_OBJECT_PROPERTY_REFERENCE *value1,
-    BACNET_OBJECT_PROPERTY_REFERENCE *value2)
+    const BACNET_OBJECT_PROPERTY_REFERENCE *value1,
+    const BACNET_OBJECT_PROPERTY_REFERENCE *value2)
 {
     bool status = false;
 

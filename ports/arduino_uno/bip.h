@@ -28,11 +28,11 @@ extern "C" {
     /* on Linux, ifname is eth0, ath0, arc0, and others.
        on Windows, ifname is the dotted ip address of the interface */
     bool bip_init(char *ifname);
-    void bip_set_interface(char *ifname);
+    void bip_set_interface(const char *ifname);
     void bip_cleanup(void);
 
     /* Convert uint8_t IPv4 to uint32 */
-    uint32_t convertBIP_Address2uint32(uint8_t * bip_address);
+    uint32_t convertBIP_Address2uint32(const uint8_t * bip_address);
     void convertUint32Address_2_uint8Address(uint32_t ip,
         uint8_t * address);
     /* common BACnet/IP functions */
@@ -68,12 +68,12 @@ extern "C" {
     uint16_t bip_get_port(void);
 
     /* use network byte order for setting */
-    void bip_set_addr(uint8_t * net_address);
+    void bip_set_addr(const uint8_t * net_address);
     /* returns network byte order */
     uint8_t *bip_get_addr(void);
 
     /* use network byte order for setting */
-    void bip_set_broadcast_addr(uint8_t * net_address);
+    void bip_set_broadcast_addr(const uint8_t * net_address);
     /* returns network byte order */
     uint8_t *bip_get_broadcast_addr(void);
 

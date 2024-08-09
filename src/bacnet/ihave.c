@@ -20,7 +20,7 @@
  *
  * @return Bytes encoded.
  */
-int ihave_encode_apdu(uint8_t *apdu, BACNET_I_HAVE_DATA *data)
+int ihave_encode_apdu(uint8_t *apdu, const BACNET_I_HAVE_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -58,7 +58,7 @@ int ihave_encode_apdu(uint8_t *apdu, BACNET_I_HAVE_DATA *data)
  * @return Bytes decoded.
  */
 int ihave_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_I_HAVE_DATA *data)
+    const uint8_t *apdu, unsigned apdu_len, BACNET_I_HAVE_DATA *data)
 {
     int len = 0;
     uint8_t tag_number = 0;
@@ -115,7 +115,7 @@ int ihave_decode_service_request(
  * @return Bytes decoded.
  */
 int ihave_decode_apdu(
-    uint8_t *apdu, unsigned apdu_len, BACNET_I_HAVE_DATA *data)
+    const uint8_t *apdu, unsigned apdu_len, BACNET_I_HAVE_DATA *data)
 {
     int len = 0;
 

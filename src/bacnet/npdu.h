@@ -71,7 +71,7 @@ extern "C" {
         uint8_t * npdu,
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src,
-        BACNET_NPDU_DATA * npdu_data);
+        const BACNET_NPDU_DATA * npdu_data);
 
     BACNET_STACK_EXPORT
     int bacnet_npdu_encode_pdu(
@@ -79,7 +79,7 @@ extern "C" {
         uint16_t pdu_size,
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src,
-        BACNET_NPDU_DATA * npdu_data);
+        const BACNET_NPDU_DATA * npdu_data);
 
     BACNET_STACK_EXPORT
     void npdu_encode_npdu_data(
@@ -97,19 +97,19 @@ extern "C" {
     BACNET_STACK_EXPORT
     void npdu_copy_data(
         BACNET_NPDU_DATA * dest,
-        BACNET_NPDU_DATA * src);
+        const BACNET_NPDU_DATA * src);
 
     BACNET_STACK_DEPRECATED("Use bacnet_npdu_decode() instead")
     BACNET_STACK_EXPORT
     int npdu_decode(
-        uint8_t * npdu,
+        const uint8_t * npdu,
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src,
         BACNET_NPDU_DATA * npdu_data);
 
     BACNET_STACK_EXPORT
     int bacnet_npdu_decode(
-        uint8_t * npdu,
+        const uint8_t * npdu,
         uint16_t pdu_len,
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src,
@@ -117,7 +117,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool npdu_confirmed_service(
-        uint8_t *pdu,
+        const uint8_t *pdu,
         uint16_t pdu_len);
 
 #ifdef __cplusplus

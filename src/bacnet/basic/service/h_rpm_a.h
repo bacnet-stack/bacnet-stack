@@ -33,7 +33,7 @@ extern "C" {
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
     BACNET_STACK_EXPORT
     int rpm_ack_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         int apdu_len,
         BACNET_READ_ACCESS_DATA * read_access_data);
     BACNET_STACK_EXPORT

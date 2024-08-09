@@ -34,7 +34,7 @@ static uint8_t BIP_Broadcast_Address[4] = { 0, 0, 0, 0 };
 /** Converter from uint8_t[4] type address to uint32_t
  *
  */
-uint32_t convertBIP_Address2uint32(uint8_t *bip_address)
+uint32_t convertBIP_Address2uint32(const suint8_t *bip_address)
 {
     return (uint32_t)((bip_address[0] * 2 ^ 24) + (bip_address[1] * 2 ^ 16) +
         (bip_address[2] * 2 ^ 8) + bip_address[3]);
@@ -74,7 +74,7 @@ bool bip_valid(void)
     return (BIP_Socket < MAX_SOCK_NUM);
 }
 
-void bip_set_addr(uint8_t *net_address)
+void bip_set_addr(const uint8_t *net_address)
 { /* in network byte order */
     for (uint8_t i = 0; i < 4; i++)
         BIP_Address[i] = net_address[i];
@@ -86,7 +86,7 @@ uint8_t *bip_get_addr(void)
     return BIP_Address;
 }
 
-void bip_set_broadcast_addr(uint8_t *net_address)
+void bip_set_broadcast_addr(const uint8_t *net_address)
 { /* in network byte order */
     for (uint8_t i = 0; i < 4; i++)
         BIP_Broadcast_Address[i] = net_address[i];
@@ -109,9 +109,8 @@ uint16_t bip_get_port(void)
     return ntohs(BIP_Port);
 }
 
-static int bip_decode_bip_address(BACNET_ADDRESS *bac_addr,
+static int bip_decode_bip_address(const BACNET_ADDRESS *bac_addr,
     uint8_t *address, /* in network format */
-
     uint16_t *port)
 { /* in network format */
     int len = 0;

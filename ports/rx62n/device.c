@@ -107,11 +107,12 @@ static struct my_object_functions *Device_Objects_Find_Functions(
 }
 
 static int Read_Property_Common(
-    struct my_object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
+    const struct my_object_functions *pObject,
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     BACNET_CHARACTER_STRING char_string;
-    char *pString = "";
+    const char *pString = "";
     uint8_t *apdu = NULL;
 #if (BACNET_PROTOCOL_REVISION >= 14)
     struct special_property_list_t property_list;

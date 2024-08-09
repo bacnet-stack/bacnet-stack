@@ -51,7 +51,7 @@ static char ipv6_addr_str[] = "";
  * @param a - IPv6 address
  * @return Pointer to global string
  */
-static char *inet6_ntoa(struct in6_addr *a)
+static char *inet6_ntoa(const struct in6_addr *a)
 {
 #if CONFIG_BACNETSTACK_LOG_LEVEL
     uint8_t x = 0;
@@ -226,7 +226,7 @@ void bip6_get_my_address(BACNET_ADDRESS *addr)
  *
  * @param addr - network IPv6 address
  */
-bool bip6_set_addr(BACNET_IP6_ADDRESS *addr)
+bool bip6_set_addr(const BACNET_IP6_ADDRESS *addr)
 {
     return bvlc6_address_copy(&BIP6_Addr, addr);
 }
@@ -246,7 +246,7 @@ bool bip6_get_addr(BACNET_IP6_ADDRESS *addr)
  *
  * @param addr - network IPv6 address
  */
-bool bip6_set_broadcast_addr(BACNET_IP6_ADDRESS *addr)
+bool bip6_set_broadcast_addr(const BACNET_IP6_ADDRESS *addr)
 {
     return bvlc6_address_copy(&BIP6_Broadcast_Addr, addr);
 }
@@ -272,7 +272,8 @@ bool bip6_get_broadcast_addr(BACNET_IP6_ADDRESS *addr)
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip6_send_mpdu(
+    const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     struct sockaddr_in6 bvlc_dest = { 0 };
     uint16_t addr16[8];
@@ -302,8 +303,8 @@ int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     LOG_DBG("BIP6: Sending MPDU to %s", ipv6_addr_str);
     /* Send the packet */
     return zsock_sendto(
-        BIP6_Socket, (char *)mtu, mtu_len, 0, (struct sockaddr *)&bvlc_dest,
-        sizeof(bvlc_dest));
+        BIP6_Socket, (const char *)mtu, mtu_len, 0,
+        (struct sockaddr *)&bvlc_dest, sizeof(bvlc_dest));
 }
 
 /**
@@ -333,7 +334,8 @@ int bip6_send_pdu(
  * @param n - size of the buffer
  * @param addr - BACnet/IPv6 address
  */
-static int bvlc6_snprintf_addr(char *s, size_t n, BACNET_IP6_ADDRESS *addr)
+static int bvlc6_snprintf_addr(
+    char *s, size_t n, const BACNET_IP6_ADDRESS *addr)
 {
     uint16_t addr16[8];
 

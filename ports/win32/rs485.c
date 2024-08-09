@@ -397,7 +397,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
 /* Transmits a Frame on the wire */
 void RS485_Send_Frame(
     struct mstp_port_struct_t *mstp_port, /* port specific data */
-    uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
+    const uint8_t *buffer,  /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 { /* number of bytes of data (up to 501) */
     DWORD dwWritten = 0;

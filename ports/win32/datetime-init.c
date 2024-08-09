@@ -101,8 +101,7 @@ int gettimeofday(struct timeval *tp, void *tzp)
  * @param utc - True for UTC sync, False for Local time
  * @return True if time is set
  */
-void datetime_timesync(
-    BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
+void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
     (void)bdate;
     (void)btime;

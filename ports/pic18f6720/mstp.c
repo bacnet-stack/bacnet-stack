@@ -118,7 +118,7 @@
             x++;                     \
     }
 
-bool MSTP_Line_Active(volatile struct mstp_port_struct_t *mstp_port)
+bool MSTP_Line_Active(const volatile struct mstp_port_struct_t *mstp_port)
 {
     return (mstp_port->EventCount > Nmin_octets);
 }
@@ -128,7 +128,7 @@ unsigned MSTP_Create_Frame(uint8_t *buffer, /* where frame is loaded */
     uint8_t frame_type, /* type of frame to send - see defines */
     uint8_t destination, /* destination address */
     uint8_t source, /* source address */
-    uint8_t *data, /* any data to be sent - may be null */
+    const uint8_t *data, /* any data to be sent - may be null */
     unsigned data_len)
 { /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF; /* used to calculate the crc value */
@@ -181,7 +181,7 @@ void MSTP_Create_And_Send_Frame(
     uint8_t frame_type, /* type of frame to send - see defines */
     uint8_t destination, /* destination address */
     uint8_t source, /* source address */
-    uint8_t *data, /* any data to be sent - may be null */
+    const uint8_t *data, /* any data to be sent - may be null */
     unsigned data_len)
 { /* number of bytes of data (up to 501) */
     uint8_t buffer[DLMSTP_MPDU_MAX] = { 0 }; /* buffer for sending */

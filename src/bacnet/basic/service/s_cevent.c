@@ -32,7 +32,7 @@
  */
 uint8_t Send_CEvent_Notify_Address(uint8_t *pdu,
     uint16_t pdu_size,
-    BACNET_EVENT_NOTIFICATION_DATA *data,
+    const BACNET_EVENT_NOTIFICATION_DATA *data,
     BACNET_ADDRESS *dest)
 {
     int len = 0;
@@ -102,7 +102,7 @@ uint8_t Send_CEvent_Notify_Address(uint8_t *pdu,
  *         or no tsm slot is available.
  */
 uint8_t Send_CEvent_Notify(
-    uint32_t device_id, BACNET_EVENT_NOTIFICATION_DATA *data)
+    uint32_t device_id, const BACNET_EVENT_NOTIFICATION_DATA *data)
 {
     BACNET_ADDRESS dest = { 0 };
     unsigned max_apdu = 0;

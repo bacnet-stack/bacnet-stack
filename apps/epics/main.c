@@ -710,7 +710,7 @@ static void BuildPropRequest(BACNET_READ_ACCESS_DATA *rpm_object)
  *         of the property list.
  */
 static uint8_t Read_Properties(
-    uint32_t device_instance, BACNET_OBJECT_ID *pMyObject)
+    uint32_t device_instance, const BACNET_OBJECT_ID *pMyObject)
 {
     uint8_t invoke_id = 0;
     struct special_property_list_t PropertyListStruct;
@@ -884,7 +884,7 @@ static EPICS_STATES ProcessRPMData(
     return nextState;
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s [-v] [-d] [-p sport] [-t target_mac [-n dnet]]"
            " device-instance\n",
@@ -892,7 +892,7 @@ static void print_usage(char *filename)
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     (void)filename;
     printf("Generates Full EPICS file, including Object and Property List\n");
@@ -921,7 +921,7 @@ static int CheckCommandLineArgs(int argc, char *argv[])
     int i;
     bool bFoundTarget = false;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {

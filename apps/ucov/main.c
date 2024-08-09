@@ -47,7 +47,7 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Sends a BACnet Unconfirmed Change-of-Value Notification\n"
         "to the network.\n");

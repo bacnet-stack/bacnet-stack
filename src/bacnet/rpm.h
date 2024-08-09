@@ -113,20 +113,20 @@ extern "C" {
 /* decode the object portion of the service request only */
     BACNET_STACK_EXPORT
     int rpm_decode_object_id(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_RPM_DATA * rpmdata);
 
 /* is this the end of this object property list? */
     BACNET_STACK_EXPORT
     int rpm_decode_object_end(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len);
 
 /* decode the object property portion of the service request only */
     BACNET_STACK_EXPORT
     int rpm_decode_object_property(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_RPM_DATA * rpmdata);
 
@@ -139,7 +139,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     int rpm_ack_encode_apdu_object_begin(
         uint8_t * apdu,
-        BACNET_RPM_DATA * rpmdata);
+        const BACNET_RPM_DATA * rpmdata);
 
     BACNET_STACK_EXPORT
     int rpm_ack_encode_apdu_object_property(
@@ -150,7 +150,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     int rpm_ack_encode_apdu_object_property_value(
         uint8_t * apdu,
-        uint8_t * application_data,
+        const uint8_t * application_data,
         unsigned application_data_len);
 
     BACNET_STACK_EXPORT
@@ -165,18 +165,18 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int rpm_ack_decode_object_id(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_OBJECT_TYPE * object_type,
         uint32_t * object_instance);
 /* is this the end of the list of this objects properties values? */
     BACNET_STACK_EXPORT
     int rpm_ack_decode_object_end(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len);
     BACNET_STACK_EXPORT
     int rpm_ack_decode_object_property(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_PROPERTY_ID * object_property,
         BACNET_ARRAY_INDEX * array_index);

@@ -123,7 +123,7 @@ static void init_service_handlers(void)
 /**
  * @brief Print the usage message
  */
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s", filename);
     printf(" <device-instance> <hex-ASCII>\n");
@@ -135,7 +135,7 @@ static void print_usage(char *filename)
 /**
  * @brief Print the help message
  */
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send an arbitrary BACnet APDU to a device.\n");
     printf("\n");
@@ -199,7 +199,7 @@ static void print_help(char *filename)
  * @param buffer_len [in] The size of the buffer.
  */
 static void Send_APDU_To_Network(
-    BACNET_ADDRESS *target_address, uint8_t *buffer, size_t buffer_len)
+    BACNET_ADDRESS *target_address, const uint8_t *buffer, size_t buffer_len)
 {
     int pdu_len = 0;
     int bytes_sent = 0;
@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
     bool found = false;
     int argi = 0;
     unsigned int target_args = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
     bool repeat_forever = false;
     long retry_count = 1;
 

@@ -66,7 +66,7 @@ int get_alarm_summary_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
  */
 int get_alarm_summary_ack_encode_apdu_data(uint8_t *apdu,
     size_t max_apdu,
-    BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data)
+    const BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -98,7 +98,7 @@ int get_alarm_summary_ack_encode_apdu_data(uint8_t *apdu,
  *
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error.
  */
-int get_alarm_summary_ack_decode_apdu_data(uint8_t *apdu,
+int get_alarm_summary_ack_decode_apdu_data(const uint8_t *apdu,
     size_t max_apdu,
     BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data)
 {

@@ -32,22 +32,22 @@ extern "C" {
     int lso_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
-        BACNET_LSO_DATA * data);
+        const BACNET_LSO_DATA * data);
 
     BACNET_STACK_EXPORT
     int life_safety_operation_encode(
         uint8_t *apdu,
-        BACNET_LSO_DATA *data);
+        const BACNET_LSO_DATA *data);
 
     BACNET_STACK_EXPORT
     size_t life_safety_operation_request_encode(
         uint8_t *apdu,
         size_t apdu_size,
-        BACNET_LSO_DATA *data);
+        const BACNET_LSO_DATA *data);
 
     BACNET_STACK_EXPORT
     int lso_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_LSO_DATA * data);
 

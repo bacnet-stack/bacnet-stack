@@ -410,7 +410,7 @@ bool Color_Temperature_Command(
  * @return  true if values are within range and value is set.
  */
 bool Color_Temperature_Command_Set(
-    uint32_t object_instance, BACNET_COLOR_COMMAND *value)
+    uint32_t object_instance, const BACNET_COLOR_COMMAND *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -945,7 +945,7 @@ bool Color_Temperature_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Color_Temperature_Name_Set(uint32_t object_instance, char *new_name)
+bool Color_Temperature_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -984,15 +984,15 @@ const char *Color_Temperature_Name_ASCII(uint32_t object_instance)
  *
  * @return description text or NULL if not found
  */
-char *Color_Temperature_Description(uint32_t object_instance)
+const char *Color_Temperature_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -1009,7 +1009,8 @@ char *Color_Temperature_Description(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Color_Temperature_Description_Set(uint32_t object_instance, char *new_name)
+bool Color_Temperature_Description_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -1406,7 +1407,7 @@ bool Color_Temperature_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     int apdu_size = 0;
-    uint8_t *apdu = NULL;
+    const uint8_t *apdu = NULL;
 
     /* decode the some of the request */
     apdu = wp_data->application_data;

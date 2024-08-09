@@ -34,13 +34,13 @@ extern "C" {
     /* decode the service request only */
     BACNET_STACK_EXPORT
     int wpm_decode_object_id(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint16_t apdu_len,
         BACNET_WRITE_PROPERTY_DATA * wpdata);
 
     BACNET_STACK_EXPORT
     int wpm_decode_object_property(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint16_t apdu_len,
         BACNET_WRITE_PROPERTY_DATA * wpdata);
 
@@ -57,7 +57,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     int wpm_encode_apdu_object_property(
         uint8_t * apdu,
-        BACNET_WRITE_PROPERTY_DATA * wpdata);
+        const BACNET_WRITE_PROPERTY_DATA * wpdata);
     BACNET_STACK_EXPORT
     int wpm_encode_apdu_object_end(
         uint8_t * apdu);
@@ -88,11 +88,11 @@ extern "C" {
     int wpm_error_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
+        const BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     BACNET_STACK_EXPORT
     int wpm_error_ack_decode_apdu(
-        uint8_t *apdu,
+        const uint8_t *apdu,
         uint16_t apdu_size,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 

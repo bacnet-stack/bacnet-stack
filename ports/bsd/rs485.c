@@ -396,7 +396,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
  *****************************************************************************/
 void RS485_Send_Frame(
     struct mstp_port_struct_t *mstp_port, /* port specific data */
-    uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
+    const uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 { /* number of bytes of data (up to 501) */
     uint32_t turnaround_time = Tturnaround * 1000;

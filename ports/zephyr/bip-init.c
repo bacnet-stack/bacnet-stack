@@ -150,7 +150,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
  * @param addr - network IPv4 address
  * @return true if the address was set
  */
-bool bip_set_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_addr(const BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&BIP_Address.s_addr, &addr->address[0], IP_ADDRESS_MAX);
@@ -180,7 +180,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  * @param addr - network IPv4 address
  * @return true if the address was set
  */
-bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&BIP_Broadcast_Addr.s_addr, &addr->address[0], IP_ADDRESS_MAX);
@@ -249,7 +249,8 @@ uint8_t bip_get_subnet_prefix(void)
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip_send_mpdu(
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     struct sockaddr_in bip_dest = { 0 };
 
@@ -267,7 +268,7 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     /* Send the packet */
     debug_print_ipv4(
         "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
-    return zsock_sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
+    return zsock_sendto(BIP_Socket, (const char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
 }
 
@@ -404,7 +405,7 @@ int bip_send_pdu(BACNET_ADDRESS *dest,
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for Linux, ifname is eth0, ath0, arc0, and others.
  */
-void bip_set_interface(char *ifname)
+void bip_set_interface(const char *ifname)
 {
     struct net_if *iface = 0;
     int index = -1;
@@ -492,7 +493,7 @@ void bip_set_interface(char *ifname)
     }
 }
 
-static int createSocket(struct sockaddr_in *sin)
+static int createSocket(const struct sockaddr_in *sin)
 {
     int sock_fd = -1;
     const int sockopt = 1;

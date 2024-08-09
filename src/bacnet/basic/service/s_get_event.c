@@ -39,7 +39,7 @@
 
 uint8_t Send_Get_Event_Information_Address(BACNET_ADDRESS *dest,
     uint16_t max_apdu,
-    BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
+    const BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
 {
     int len = 0;
     int pdu_len = 0;
@@ -92,7 +92,7 @@ uint8_t Send_Get_Event_Information_Address(BACNET_ADDRESS *dest,
 }
 
 uint8_t Send_Get_Event_Information(
-    uint32_t device_id, BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
+    uint32_t device_id, const BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
 {
     BACNET_ADDRESS dest = { 0 };
     unsigned max_apdu = 0;

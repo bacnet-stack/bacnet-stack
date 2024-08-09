@@ -124,9 +124,9 @@ uint16_t MSTP_Get_Send(
  */
 static bool MSTP_Compare_Data_Expecting_Reply(
     volatile struct mstp_port_struct_t *mstp_port,
-    uint8_t *reply_pdu,
+    const uint8_t *reply_pdu,
     uint16_t reply_pdu_len,
-    BACNET_ADDRESS *dest_address)
+    const BACNET_ADDRESS *dest_address)
 {
     uint16_t offset;
     /* One way to check the message is to compare NPDU
@@ -284,7 +284,7 @@ uint16_t MSTP_Get_Reply(
  * @param nbytes - number of bytes of data to send
  */
 void MSTP_Send_Frame(struct mstp_port_struct_t *mstp_port,
-    uint8_t *buffer,
+    const uint8_t *buffer,
     uint16_t nbytes)
 {
     struct dlmstp_user_data_t *user;

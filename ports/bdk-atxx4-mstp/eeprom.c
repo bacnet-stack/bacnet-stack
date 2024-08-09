@@ -30,7 +30,7 @@ int eeprom_bytes_read(
 }
 
 int eeprom_bytes_write(uint16_t eeaddr, /* EEPROM starting memory address */
-    uint8_t *buf, /* data to send */
+    const uint8_t *buf, /* data to send */
     int len)
 { /* number of bytes of data */
     int count = 0;

@@ -37,7 +37,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int abort_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         uint8_t * invoke_id,
         uint8_t * abort_reason);

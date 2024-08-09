@@ -11,7 +11,7 @@
 #include <bacnet/basic/object/device.h>
 
 bool Device_Valid_Object_Name(
-    BACNET_CHARACTER_STRING *object_name,
+    const BACNET_CHARACTER_STRING *object_name,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {

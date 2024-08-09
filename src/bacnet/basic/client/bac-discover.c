@@ -555,8 +555,8 @@ bool bacnet_discover_object_property_identifier(uint32_t device_id,
  * @param device_data [in] Pointer to the device data structure
  */
 static void bacnet_device_object_property_add(uint32_t device_id,
-    BACNET_READ_PROPERTY_DATA *rp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+    const BACNET_READ_PROPERTY_DATA *rp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_DEVICE_DATA *device_data)
 {
     BACNET_OBJECT_DATA *object_data;

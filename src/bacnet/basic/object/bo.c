@@ -537,7 +537,7 @@ bool Binary_Output_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Binary_Output_Name_Set(uint32_t object_instance, char *new_name)
+bool Binary_Output_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -701,7 +701,7 @@ BACNET_RELIABILITY Binary_Output_Reliability(uint32_t object_instance)
  *
  * @return  true the status flag is in Fault
  */
-static bool Binary_Output_Object_Fault(struct object_data *pObject)
+static bool Binary_Output_Object_Fault(const struct object_data *pObject)
 {
     bool fault = false;
 
@@ -767,14 +767,14 @@ static bool Binary_Output_Fault(uint32_t object_instance)
  *
  * @return description text or NULL if not found
  */
-char *Binary_Output_Description(uint32_t object_instance)
+const char *Binary_Output_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = (char *)pObject->Description;
+        name = pObject->Description;
     }
 
     return name;
@@ -788,7 +788,8 @@ char *Binary_Output_Description(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Binary_Output_Description_Set(uint32_t object_instance, char *new_name)
+bool Binary_Output_Description_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -809,14 +810,14 @@ bool Binary_Output_Description_Set(uint32_t object_instance, char *new_name)
  *
  * @return active text or NULL if not found
  */
-char *Binary_Output_Active_Text(uint32_t object_instance)
+const char *Binary_Output_Active_Text(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = (char *)pObject->Active_Text;
+        name = pObject->Active_Text;
     }
 
     return name;
@@ -830,7 +831,8 @@ char *Binary_Output_Active_Text(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Binary_Output_Active_Text_Set(uint32_t object_instance, char *new_name)
+bool Binary_Output_Active_Text_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -851,14 +853,14 @@ bool Binary_Output_Active_Text_Set(uint32_t object_instance, char *new_name)
  *
  * @return active text or NULL if not found
  */
-char *Binary_Output_Inactive_Text(uint32_t object_instance)
+const char *Binary_Output_Inactive_Text(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = (char *)pObject->Inactive_Text;
+        name = pObject->Inactive_Text;
     }
 
     return name;
@@ -872,7 +874,8 @@ char *Binary_Output_Inactive_Text(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Binary_Output_Inactive_Text_Set(uint32_t object_instance, char *new_name)
+bool Binary_Output_Inactive_Text_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;

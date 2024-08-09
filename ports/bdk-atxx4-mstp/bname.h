@@ -17,30 +17,30 @@ extern "C" {
 
     bool bacnet_name_set(
         uint16_t eeprom_offset,
-        BACNET_CHARACTER_STRING * char_string);
+        const BACNET_CHARACTER_STRING * char_string);
     void bacnet_name_init(
         uint16_t eeprom_offset,
-        char *default_string);
+        const char *default_string);
     bool bacnet_name_save(
         uint16_t offset,
         uint8_t encoding,
-        char *str,
+        const char *str,
         uint8_t length);
     void bacnet_name(
         uint16_t eeprom_offset,
         BACNET_CHARACTER_STRING * char_string,
-        char *default_string);
+        const char *default_string);
     bool bacnet_name_write_unique(
         uint16_t offset,
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING * char_string,
+        const BACNET_CHARACTER_STRING * char_string,
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
     /* no required minumum length or duplicate checking */
     bool bacnet_name_write(
         uint16_t offset,
-        BACNET_CHARACTER_STRING * char_string,
+        const BACNET_CHARACTER_STRING * char_string,
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 

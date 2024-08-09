@@ -121,7 +121,7 @@ static void cov_address_remove_unused(void)
  *
  * @return index number 0..N, or -1 if unable to add
  */
-static int cov_address_add(BACNET_ADDRESS *dest)
+static int cov_address_add(const BACNET_ADDRESS *dest)
 {
     int index = -1;
     unsigned i = 0;
@@ -187,7 +187,9 @@ COVIncrement [4] REAL OPTIONAL
 */
 
 static int cov_encode_subscription(
-    uint8_t *apdu, int max_apdu, BACNET_COV_SUBSCRIPTION *cov_subscription)
+    uint8_t *apdu,
+    int max_apdu,
+    const BACNET_COV_SUBSCRIPTION *cov_subscription)
 {
     int len = 0;
     int apdu_len = 0;
@@ -323,8 +325,8 @@ void handler_cov_init(void)
     }
 }
 
-static bool cov_list_subscribe(BACNET_ADDRESS *src,
-    BACNET_SUBSCRIBE_COV_DATA *cov_data,
+static bool cov_list_subscribe(const BACNET_ADDRESS *src,
+    const BACNET_SUBSCRIBE_COV_DATA *cov_data,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
@@ -333,7 +335,7 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
     int first_invalid_index = -1;
     bool found = true;
     bool address_match = false;
-    BACNET_ADDRESS *dest = NULL;
+    const BACNET_ADDRESS *dest = NULL;
 
     /* unable to subscribe - resources? */
     /* unable to cancel subscription - other? */
@@ -717,8 +719,8 @@ void handler_cov_task(void)
     handler_cov_fsm();
 }
 
-static bool cov_subscribe(BACNET_ADDRESS *src,
-    BACNET_SUBSCRIBE_COV_DATA *cov_data,
+static bool cov_subscribe(const BACNET_ADDRESS *src,
+    const BACNET_SUBSCRIBE_COV_DATA *cov_data,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {

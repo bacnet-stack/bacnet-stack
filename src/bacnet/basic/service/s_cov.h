@@ -32,18 +32,18 @@ extern "C" {
     int Send_UCOV_Notify(
         uint8_t * buffer,
         unsigned buffer_len,
-        BACNET_COV_DATA * cov_data);
+        const BACNET_COV_DATA * cov_data);
     BACNET_STACK_EXPORT
     int ucov_notify_encode_pdu(
         uint8_t * buffer,
         unsigned buffer_len,
         BACNET_ADDRESS * dest,
         BACNET_NPDU_DATA * npdu_data,
-        BACNET_COV_DATA * cov_data);
+        const BACNET_COV_DATA * cov_data);
     BACNET_STACK_EXPORT
     uint8_t Send_COV_Subscribe(
         uint32_t device_id,
-        BACNET_SUBSCRIBE_COV_DATA * cov_data);
+        const BACNET_SUBSCRIBE_COV_DATA * cov_data);
 
 #ifdef __cplusplus
 }

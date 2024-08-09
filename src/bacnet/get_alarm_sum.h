@@ -54,11 +54,11 @@ extern "C" {
     int get_alarm_summary_ack_encode_apdu_data(
         uint8_t * apdu,
         size_t max_apdu,
-        BACNET_GET_ALARM_SUMMARY_DATA * get_alarm_data);
+        const BACNET_GET_ALARM_SUMMARY_DATA * get_alarm_data);
 
     BACNET_STACK_EXPORT
     int get_alarm_summary_ack_decode_apdu_data(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         size_t max_apdu,
         BACNET_GET_ALARM_SUMMARY_DATA * get_alarm_data);
 

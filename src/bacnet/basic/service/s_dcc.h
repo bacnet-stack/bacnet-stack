@@ -28,7 +28,8 @@ extern "C" {
 BACNET_STACK_EXPORT
 uint8_t Send_Device_Communication_Control_Request(
     uint32_t device_id, uint16_t timeDuration,
-    BACNET_COMMUNICATION_ENABLE_DISABLE state, char *password);
+    BACNET_COMMUNICATION_ENABLE_DISABLE state,
+    const char *password);
 
 #ifdef __cplusplus
 }

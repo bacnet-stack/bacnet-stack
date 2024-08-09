@@ -28,7 +28,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     int Send_UEvent_Notify(
         uint8_t * buffer,
-        BACNET_EVENT_NOTIFICATION_DATA * data,
+        const BACNET_EVENT_NOTIFICATION_DATA * data,
         BACNET_ADDRESS * dest);
 
 #ifdef __cplusplus

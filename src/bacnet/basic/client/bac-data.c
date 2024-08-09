@@ -109,8 +109,8 @@ static void bacnet_data_object_init(void)
 }
 
 static void bacnet_data_object_store(int index,
-    BACNET_READ_PROPERTY_DATA *rp_data,
-    BACNET_APPLICATION_DATA_VALUE *value)
+    const BACNET_READ_PROPERTY_DATA *rp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value)
 {
     BACNET_DATA_OBJECT *object = NULL;
 
@@ -189,7 +189,7 @@ void bacnet_data_value_save(uint32_t device_instance,
  * @brief Handles the BACnet Data Analog Value processing
  * @param object - BACnet object structure data pointer
  */
-static void bacnet_data_object_process(BACNET_DATA_OBJECT *object)
+static void bacnet_data_object_process(const BACNET_DATA_OBJECT *object)
 {
     if (object && (object->Device_ID < BACNET_MAX_INSTANCE) &&
         (object->Object_ID < BACNET_MAX_INSTANCE)) {

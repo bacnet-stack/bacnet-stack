@@ -459,7 +459,8 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * @param date - date to check
  * @return true if the calendar entry is within the effective period
  */
-bool Schedule_In_Effective_Period(SCHEDULE_DESCR *desc, BACNET_DATE *date)
+bool Schedule_In_Effective_Period(
+    const SCHEDULE_DESCR *desc, const BACNET_DATE *date)
 {
     bool res = false;
 
@@ -480,7 +481,7 @@ bool Schedule_In_Effective_Period(SCHEDULE_DESCR *desc, BACNET_DATE *date)
  * @param time - time of the day
  */
 void Schedule_Recalculate_PV(
-    SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday, BACNET_TIME *time)
+    SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday, const BACNET_TIME *time)
 {
     int i;
     desc->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;

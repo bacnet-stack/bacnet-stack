@@ -34,7 +34,7 @@ typedef struct analog_value_descr {
     float COV_Increment;
     bool Changed;
     const char* Object_Name;
-    char* Description;
+    const char* Description;
     BACNET_RELIABILITY Reliability;
 #if defined(INTRINSIC_REPORTING)
     uint32_t Time_Delay;
@@ -82,7 +82,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Analog_Value_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
     BACNET_STACK_EXPORT
     const char *Analog_Value_Name_ASCII(
         uint32_t object_instance);
@@ -131,12 +131,12 @@ extern "C" {
         float value);
 
     BACNET_STACK_EXPORT
-    char *Analog_Value_Description(
+    const char *Analog_Value_Description(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool Analog_Value_Description_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     BACNET_RELIABILITY Analog_Value_Reliability(

@@ -77,7 +77,7 @@ size_t memcopy(void *dest, void *src, size_t offset, size_t len, size_t max)
  * the number of bytes copied.
  */
 size_t memcopy(void *dest,
-    void *src,
+    const void *src,
     size_t offset, /* where in dest to put the data */
     size_t len, /* amount of data to copy */
     size_t max)

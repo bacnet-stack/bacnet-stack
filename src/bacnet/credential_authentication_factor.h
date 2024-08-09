@@ -30,19 +30,19 @@ extern "C" {
     BACNET_STACK_EXPORT
     int bacapp_encode_credential_authentication_factor(
         uint8_t * apdu,
-        BACNET_CREDENTIAL_AUTHENTICATION_FACTOR * caf);
+        const BACNET_CREDENTIAL_AUTHENTICATION_FACTOR * caf);
     BACNET_STACK_EXPORT
     int bacapp_encode_context_credential_authentication_factor(
         uint8_t * apdu,
         uint8_t tag,
-        BACNET_CREDENTIAL_AUTHENTICATION_FACTOR * caf);
+        const BACNET_CREDENTIAL_AUTHENTICATION_FACTOR * caf);
     BACNET_STACK_EXPORT
     int bacapp_decode_credential_authentication_factor(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         BACNET_CREDENTIAL_AUTHENTICATION_FACTOR * caf);
     BACNET_STACK_EXPORT
     int bacapp_decode_context_credential_authentication_factor(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint8_t tag,
         BACNET_CREDENTIAL_AUTHENTICATION_FACTOR * caf);
 

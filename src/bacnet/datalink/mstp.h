@@ -230,7 +230,7 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port);
 
 /* returns true if line is active */
 BACNET_STACK_EXPORT
-bool MSTP_Line_Active(struct mstp_port_struct_t *mstp_port);
+bool MSTP_Line_Active(const struct mstp_port_struct_t *mstp_port);
 
 BACNET_STACK_EXPORT
 uint16_t MSTP_Create_Frame(uint8_t *buffer,
@@ -238,7 +238,7 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
     uint8_t frame_type,
     uint8_t destination,
     uint8_t source,
-    uint8_t *data,
+    const uint8_t *data,
     uint16_t data_len);
 
 BACNET_STACK_EXPORT
@@ -247,7 +247,7 @@ void MSTP_Create_And_Send_Frame(
     uint8_t frame_type,
     uint8_t destination,
     uint8_t source,
-    uint8_t *data,
+    const uint8_t *data,
     uint16_t data_len);
 
 BACNET_STACK_EXPORT
@@ -284,7 +284,7 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port,
 BACNET_STACK_EXPORT
 void MSTP_Send_Frame(
    struct mstp_port_struct_t *mstp_port,
-   uint8_t * buffer,
+   const uint8_t * buffer,
    uint16_t nbytes);
 
 #ifdef __cplusplus

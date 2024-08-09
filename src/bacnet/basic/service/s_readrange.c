@@ -29,7 +29,7 @@
 
 /* returns invoke id of 0 if device is not bound or no tsm available */
 uint8_t Send_ReadRange_Request(uint32_t device_id, /* destination device */
-    BACNET_READ_RANGE_DATA *read_access_data)
+    const BACNET_READ_RANGE_DATA *read_access_data)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;

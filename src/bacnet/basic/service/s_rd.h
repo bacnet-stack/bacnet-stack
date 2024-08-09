@@ -28,7 +28,7 @@ extern "C" {
 BACNET_STACK_EXPORT
 uint8_t Send_Reinitialize_Device_Request(uint32_t device_id,
                                          BACNET_REINITIALIZED_STATE state,
-                                         char *password);
+                                         const char *password);
 
 #ifdef __cplusplus
 }

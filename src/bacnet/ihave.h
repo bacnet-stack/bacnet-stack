@@ -28,17 +28,17 @@ extern "C" {
     BACNET_STACK_EXPORT
     int ihave_encode_apdu(
         uint8_t * apdu,
-        BACNET_I_HAVE_DATA * data);
+        const BACNET_I_HAVE_DATA * data);
 
     BACNET_STACK_EXPORT
     int ihave_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_I_HAVE_DATA * data);
 
     BACNET_STACK_EXPORT
     int ihave_decode_apdu(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_I_HAVE_DATA * data);
 

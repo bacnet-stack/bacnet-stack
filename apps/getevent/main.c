@@ -160,7 +160,7 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static int print_help(char *exe_name)
+static int print_help(const char *exe_name)
 {
     printf("Usage:\n"
            "\n"

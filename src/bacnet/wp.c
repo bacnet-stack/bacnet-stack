@@ -37,7 +37,7 @@
  * @return number of bytes encoded, or zero if unable to encode
  */
 size_t writeproperty_apdu_encode(
-    uint8_t *apdu, BACNET_WRITE_PROPERTY_DATA *data)
+    uint8_t *apdu, const BACNET_WRITE_PROPERTY_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
     size_t len = 0; /* total length of the apdu, return value */
@@ -100,7 +100,7 @@ size_t writeproperty_apdu_encode(
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t writeproperty_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_WRITE_PROPERTY_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_WRITE_PROPERTY_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -136,7 +136,7 @@ size_t writeproperty_service_request_encode(
  * @return Bytes encoded
  */
 int wp_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA *wpdata)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0; /* total length of the apdu, return value */
@@ -184,7 +184,9 @@ int wp_encode_apdu(
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR
  */
 int wp_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_WRITE_PROPERTY_DATA *wpdata)
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int len = 0;
     int apdu_len = 0;
@@ -304,7 +306,7 @@ int wp_decode_service_request(
  * @return true if the expected tag matches the value tag
  */
 bool write_property_type_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     uint8_t expected_tag)
 {
     /* assume success */
@@ -330,7 +332,7 @@ bool write_property_type_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
  * @return true if the character string value is valid
  */
 bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     size_t len_max)
 {
     bool valid = false;
@@ -387,7 +389,7 @@ bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
  * @return true if the character string value is valid
  */
 bool write_property_empty_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     size_t len_max)
 {
     bool valid = false;

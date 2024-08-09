@@ -352,7 +352,7 @@ uint16_t ethernet_receive(
     return pdu_len;
 }
 
-void ethernet_set_my_address(BACNET_ADDRESS *my_address)
+void ethernet_set_my_address(const BACNET_ADDRESS *my_address)
 {
     int i = 0;
 
@@ -400,7 +400,7 @@ void ethernet_get_broadcast_address(BACNET_ADDRESS *dest)
     return;
 }
 
-void ethernet_debug_address(const char *info, BACNET_ADDRESS *dest)
+void ethernet_debug_address(const char *info, const BACNET_ADDRESS *dest)
 {
     int i = 0; /* counter */
     char msg[200];

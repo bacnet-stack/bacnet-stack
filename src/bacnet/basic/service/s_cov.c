@@ -41,7 +41,7 @@ int ucov_notify_encode_pdu(uint8_t *buffer,
     unsigned buffer_len,
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
-    BACNET_COV_DATA *cov_data)
+    const BACNET_COV_DATA *cov_data)
 {
     int len = 0;
     int pdu_len = 0;
@@ -75,7 +75,7 @@ int ucov_notify_encode_pdu(uint8_t *buffer,
  * @return Size of the message sent (bytes), or a negative value on error.
  */
 int Send_UCOV_Notify(
-    uint8_t *buffer, unsigned buffer_len, BACNET_COV_DATA *cov_data)
+    uint8_t *buffer, unsigned buffer_len, const BACNET_COV_DATA *cov_data)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
@@ -98,7 +98,7 @@ int Send_UCOV_Notify(
  *         no slot is available from the tsm for sending.
  */
 uint8_t Send_COV_Subscribe(
-    uint32_t device_id, BACNET_SUBSCRIBE_COV_DATA *cov_data)
+    uint32_t device_id, const BACNET_SUBSCRIBE_COV_DATA *cov_data)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;

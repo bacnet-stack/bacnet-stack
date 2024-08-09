@@ -79,38 +79,40 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int bacnet_time_value_encode(uint8_t * apdu,
-        BACNET_TIME_VALUE * value);
+        const BACNET_TIME_VALUE * value);
 
     BACNET_STACK_DEPRECATED("Use bacnet_time_value_encode() instead")
     BACNET_STACK_EXPORT
-    int bacapp_encode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value);
+    int bacapp_encode_time_value(uint8_t *apdu,
+        const BACNET_TIME_VALUE *value);
 
     BACNET_STACK_EXPORT
     int bacnet_time_value_context_encode(uint8_t * apdu,
         uint8_t tag_number,
-        BACNET_TIME_VALUE * value);
+        const BACNET_TIME_VALUE * value);
 
     BACNET_STACK_DEPRECATED("Use bacnet_time_value_context_encode() instead")
     BACNET_STACK_EXPORT
-    int bacapp_encode_context_time_value(uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value);
+    int bacapp_encode_context_time_value(
+        uint8_t *apdu, uint8_t tag_number, const BACNET_TIME_VALUE *value);
 
     BACNET_STACK_DEPRECATED("Use bacnet_time_value_decode() instead")
     BACNET_STACK_EXPORT
-    int bacapp_decode_time_value(uint8_t * apdu,
+    int bacapp_decode_time_value(const uint8_t * apdu,
         BACNET_TIME_VALUE * value);
 
     BACNET_STACK_EXPORT
-    int bacnet_time_value_decode(uint8_t *apdu, int max_apdu_len,
+    int bacnet_time_value_decode(const uint8_t *apdu, int max_apdu_len,
         BACNET_TIME_VALUE *value);
 
     BACNET_STACK_DEPRECATED("Use bacnet_time_value_context_decode() instead")
     BACNET_STACK_EXPORT
-    int bacapp_decode_context_time_value(uint8_t * apdu,
+    int bacapp_decode_context_time_value(const uint8_t * apdu,
         uint8_t tag_number,
         BACNET_TIME_VALUE * value);
 
     BACNET_STACK_EXPORT
-    int bacnet_time_value_context_decode(uint8_t *apdu, int max_apdu_len,
+    int bacnet_time_value_context_decode(const uint8_t *apdu, int max_apdu_len,
         uint8_t tag_number, BACNET_TIME_VALUE *value);
 
     /**
@@ -125,7 +127,7 @@ extern "C" {
      */
     BACNET_STACK_EXPORT
     int bacnet_time_values_context_decode(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         int max_apdu_len,
         uint8_t tag_number,
         BACNET_TIME_VALUE *time_values,
@@ -145,7 +147,7 @@ extern "C" {
     int bacnet_time_values_context_encode(
         uint8_t * apdu,
         uint8_t tag_number,
-        BACNET_TIME_VALUE * time_values,
+        const BACNET_TIME_VALUE * time_values,
         unsigned int max_time_values);
 
 #ifdef __cplusplus

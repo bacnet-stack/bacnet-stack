@@ -93,7 +93,7 @@ struct decode_tag_number_and_value_custom_fake_context {
 };
 
 static int decode_tag_number_and_value_custom_fake(
-    uint8_t *apdu, uint8_t *tag_number, uint32_t *value)
+    const uint8_t *apdu, uint8_t *tag_number, uint32_t *value)
 {
     RETURN_HANDLED_CONTEXT(decode_tag_number_and_value,
         struct decode_tag_number_and_value_custom_fake_context,
@@ -125,7 +125,7 @@ struct decode_enumerated_custom_fake_context {
 };
 
 static int decode_enumerated_custom_fake(
-    uint8_t *apdu, uint32_t len_value, uint32_t *value)
+    const uint8_t *apdu, uint32_t len_value, uint32_t *value)
 {
     RETURN_HANDLED_CONTEXT(decode_enumerated,
         struct decode_enumerated_custom_fake_context,

@@ -68,7 +68,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Binary_Input_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
     BACNET_STACK_EXPORT
     const char *Binary_Input_Name_ASCII(
         uint32_t object_instance);
@@ -82,12 +82,12 @@ extern "C" {
         BACNET_BINARY_PV value);
 
     BACNET_STACK_EXPORT
-    char *Binary_Input_Description(
+    const char *Binary_Input_Description(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool Binary_Input_Description_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     BACNET_RELIABILITY Binary_Input_Reliability(
@@ -98,20 +98,20 @@ extern "C" {
         BACNET_RELIABILITY value);
 
     BACNET_STACK_EXPORT
-    char *Binary_Input_Inactive_Text(
+    const char *Binary_Input_Inactive_Text(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool Binary_Input_Inactive_Text_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
-    char *Binary_Input_Active_Text(
+    const char *Binary_Input_Active_Text(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool Binary_Input_Active_Text_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     BACNET_POLARITY Binary_Input_Polarity(

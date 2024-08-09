@@ -37,7 +37,7 @@
  */
 int reinitialize_device_encode(uint8_t *apdu,
     BACNET_REINITIALIZED_STATE state,
-    BACNET_CHARACTER_STRING *password)
+    const BACNET_CHARACTER_STRING *password)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -70,7 +70,7 @@ int reinitialize_device_encode(uint8_t *apdu,
 size_t reinitialize_device_request_encode(uint8_t *apdu,
     size_t apdu_size,
     BACNET_REINITIALIZED_STATE state,
-    BACNET_CHARACTER_STRING *password)
+    const BACNET_CHARACTER_STRING *password)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -96,7 +96,7 @@ size_t reinitialize_device_request_encode(uint8_t *apdu,
 int rd_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
     BACNET_REINITIALIZED_STATE state,
-    BACNET_CHARACTER_STRING *password)
+    const BACNET_CHARACTER_STRING *password)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -143,7 +143,7 @@ int rd_encode_apdu(uint8_t *apdu,
  *
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR if malformed
  */
-int rd_decode_service_request(uint8_t *apdu,
+int rd_decode_service_request(const uint8_t *apdu,
     unsigned apdu_size,
     BACNET_REINITIALIZED_STATE *state,
     BACNET_CHARACTER_STRING *password)

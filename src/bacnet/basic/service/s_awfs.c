@@ -29,7 +29,7 @@
 uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
     uint32_t file_instance,
     int fileStartPosition,
-    BACNET_OCTET_STRING *fileData)
+    const BACNET_OCTET_STRING *fileData)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;

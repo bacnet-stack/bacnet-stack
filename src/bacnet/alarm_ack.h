@@ -42,22 +42,22 @@ extern "C" {
     int alarm_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
-        BACNET_ALARM_ACK_DATA * data);
+        const BACNET_ALARM_ACK_DATA * data);
 
     BACNET_STACK_EXPORT
     int alarm_ack_encode_service_request(
         uint8_t * apdu,
-        BACNET_ALARM_ACK_DATA * data);
+        const BACNET_ALARM_ACK_DATA * data);
 
     BACNET_STACK_EXPORT
     size_t bacnet_acknowledge_alarm_info_request_encode(
         uint8_t *apdu,
         size_t apdu_size,
-        BACNET_ALARM_ACK_DATA *data);
+        const BACNET_ALARM_ACK_DATA *data);
 
     BACNET_STACK_EXPORT
     int alarm_ack_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_ALARM_ACK_DATA * data);
 

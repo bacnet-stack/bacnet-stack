@@ -23,8 +23,8 @@ int indtext_stricmp(const char *a, const char *b)
     int twin_a, twin_b;
 
     do {
-        twin_a = *(unsigned char *)a;
-        twin_b = *(unsigned char *)b;
+        twin_a = *(const unsigned char *)a;
+        twin_b = *(const unsigned char *)b;
         twin_a = tolower(toupper(twin_a));
         twin_b = tolower(toupper(twin_b));
         a++;

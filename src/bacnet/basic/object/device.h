@@ -312,7 +312,7 @@ extern "C" {
         void);
     BACNET_STACK_EXPORT
     void Device_UUID_Set(
-        uint8_t *new_uuid,
+        const uint8_t *new_uuid,
         size_t length);
     BACNET_STACK_EXPORT
     void Device_UUID_Get(
@@ -353,7 +353,7 @@ extern "C" {
         BACNET_CHARACTER_STRING * object_name);
     BACNET_STACK_EXPORT
     bool Device_Set_Object_Name(
-        BACNET_CHARACTER_STRING * object_name);
+        const BACNET_CHARACTER_STRING * object_name);
     /* Copy a child object name, given its ID. */
     BACNET_STACK_EXPORT
     bool Device_Object_Name_Copy(
@@ -443,7 +443,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool Device_Valid_Object_Name(
-        BACNET_CHARACTER_STRING * object_name,
+        const BACNET_CHARACTER_STRING * object_name,
         BACNET_OBJECT_TYPE *object_type,
         uint32_t * object_instance);
     BACNET_STACK_EXPORT
@@ -498,7 +498,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     uint16_t Add_Routed_Device(
         uint32_t Object_Instance,
-        BACNET_CHARACTER_STRING * Object_Name,
+        const BACNET_CHARACTER_STRING * Object_Name,
         const char *Description);
     BACNET_STACK_EXPORT
     DEVICE_OBJECT_DATA *Get_Routed_Device_Object(
@@ -511,16 +511,16 @@ extern "C" {
     bool Routed_Device_Address_Lookup(
         int idx,
         uint8_t address_len,
-        uint8_t * mac_adress);
+        const uint8_t * mac_adress);
     BACNET_STACK_EXPORT
     bool Routed_Device_GetNext(
-        BACNET_ADDRESS * dest,
-        int *DNET_list,
+        const BACNET_ADDRESS * dest,
+        const int *DNET_list,
         int *cursor);
     BACNET_STACK_EXPORT
     bool Routed_Device_Is_Valid_Network(
         uint16_t dest_net,
-        int *DNET_list);
+        const int *DNET_list);
 
     BACNET_STACK_EXPORT
     uint32_t Routed_Device_Index_To_Instance(

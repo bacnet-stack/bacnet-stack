@@ -70,7 +70,7 @@ extern "C" {
     char *PositiveInteger_Value_Description(uint32_t instance);
     BACNET_STACK_EXPORT
     bool PositiveInteger_Value_Description_Set(uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     bool PositiveInteger_Value_Out_Of_Service(uint32_t instance);

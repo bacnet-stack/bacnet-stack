@@ -27,7 +27,7 @@
 /** @file s_upt.c  Send an Unconfirmed Private Transfer request. */
 
 int Send_UnconfirmedPrivateTransfer(
-    BACNET_ADDRESS *dest, BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    BACNET_ADDRESS *dest, const BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
     int len = 0;
     int pdu_len = 0;

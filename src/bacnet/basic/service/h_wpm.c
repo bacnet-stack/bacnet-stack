@@ -41,7 +41,7 @@
  * @return number of bytes decoded, or BACNET_STATUS_REJECT,
  *  or BACNET_STATUS_ERROR
  */
-static int write_property_multiple_decode(uint8_t *apdu,
+static int write_property_multiple_decode(const uint8_t *apdu,
     uint16_t apdu_len,
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     write_property_function device_write_property)

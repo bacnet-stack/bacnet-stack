@@ -288,7 +288,7 @@ bool Network_Port_MAC_Address(
  * @return  true if object-name was set
  */
 bool Network_Port_MAC_Address_Set(
-    uint32_t object_instance, uint8_t *mac_src, uint8_t mac_len)
+    uint32_t object_instance, const uint8_t *mac_src, uint8_t mac_len)
 {
     if (mac_len == 1) {
         Object_List[0].MAC_Address[0] = mac_src[0];

@@ -18,7 +18,7 @@
 #include "bacnet/basic/object/device.h"
 #include "bname.h"
 
-static bool bacnet_name_isvalid(uint8_t encoding, uint8_t length, char *str)
+static bool bacnet_name_isvalid(uint8_t encoding, uint8_t length, const char *str)
 {
     bool valid = false;
 
@@ -35,7 +35,7 @@ static bool bacnet_name_isvalid(uint8_t encoding, uint8_t length, char *str)
 }
 
 bool bacnet_name_save(
-    uint16_t offset, uint8_t encoding, char *str, uint8_t length)
+    uint16_t offset, uint8_t encoding, const char *str, uint8_t length)
 {
     uint8_t buffer[NV_EEPROM_NAME_SIZE] = { 0 };
     uint8_t i = 0;
@@ -55,11 +55,11 @@ bool bacnet_name_save(
     return false;
 }
 
-bool bacnet_name_set(uint16_t offset, BACNET_CHARACTER_STRING *char_string)
+bool bacnet_name_set(uint16_t offset, const BACNET_CHARACTER_STRING *char_string)
 {
     uint8_t encoding = 0;
     uint8_t length = 0;
-    char *str = NULL;
+    const char *str = NULL;
 
     length = characterstring_length(char_string);
     encoding = characterstring_encoding(char_string);
@@ -70,7 +70,7 @@ bool bacnet_name_set(uint16_t offset, BACNET_CHARACTER_STRING *char_string)
 bool bacnet_name_write_unique(uint16_t offset,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
-    BACNET_CHARACTER_STRING *char_string,
+    const BACNET_CHARACTER_STRING *char_string,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
@@ -120,7 +120,7 @@ bool bacnet_name_write_unique(uint16_t offset,
 
 /* no required minumum length or duplicate checking */
 bool bacnet_name_write(uint16_t offset,
-    BACNET_CHARACTER_STRING *char_string,
+    const BACNET_CHARACTER_STRING *char_string,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
@@ -149,14 +149,16 @@ bool bacnet_name_write(uint16_t offset,
     return status;
 }
 
-void bacnet_name_init(uint16_t offset, char *default_string)
+void bacnet_name_init(uint16_t offset, const char *default_string)
 {
     (void)bacnet_name_save(
         offset, CHARACTER_UTF8, default_string, strlen(default_string));
 }
 
 void bacnet_name(
-    uint16_t offset, BACNET_CHARACTER_STRING *char_string, char *default_string)
+    uint16_t offset,
+    BACNET_CHARACTER_STRING *char_string,
+    const char *default_string)
 {
     uint8_t encoding = 0;
     uint8_t length = 0;

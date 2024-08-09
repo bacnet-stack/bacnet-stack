@@ -21,7 +21,7 @@
  */
 /* decode the whole APDU - mainly used for unit testing */
 static int reject_decode_apdu(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t *reject_reason)

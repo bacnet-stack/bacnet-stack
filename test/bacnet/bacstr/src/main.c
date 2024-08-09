@@ -95,7 +95,7 @@ static void testCharacterString(void)
 #endif
 {
     BACNET_CHARACTER_STRING bacnet_string;
-    char *value = "Joshua,Mary,Anna,Christopher";
+    const char *value = "Joshua,Mary,Anna,Christopher";
     char test_value[MAX_APDU] = "Patricia";
     char test_append_value[MAX_APDU] = " and the Kids";
     char test_append_string[MAX_APDU] = "";

@@ -84,7 +84,7 @@ int bacerror_encode_apdu(uint8_t *apdu,
  *
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
  */
-int bacerror_decode_error_class_and_code(uint8_t *apdu,
+int bacerror_decode_error_class_and_code(const uint8_t *apdu,
     unsigned apdu_size,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -130,7 +130,7 @@ int bacerror_decode_error_class_and_code(uint8_t *apdu,
  *
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
  */
-int bacerror_decode_service_request(uint8_t *apdu,
+int bacerror_decode_service_request(const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_CONFIRMED_SERVICE *service,

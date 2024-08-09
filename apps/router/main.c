@@ -43,7 +43,7 @@ int port_count;
 
 void print_help(void);
 
-bool read_config(char *filepath);
+bool read_config(const char *filepath);
 
 bool parse_cmd(int argc, char *argv[]);
 
@@ -53,7 +53,7 @@ bool init_router(void);
 
 void cleanup(void);
 
-void print_msg(BACMSG *msg);
+void print_msg(const BACMSG *msg);
 
 uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff);
 
@@ -61,7 +61,7 @@ uint16_t get_next_free_dnet(void);
 
 int kbhit(void);
 
-inline bool is_network_msg(BACMSG *msg);
+inline bool is_network_msg(const BACMSG *msg);
 
 int main(int argc, char *argv[])
 {
@@ -201,7 +201,7 @@ void print_help(void)
         "-s, --stopbits <1|2>\n\tspecify MSTP port stopbits\n");
 }
 
-bool read_config(char *filepath)
+bool read_config(const char *filepath)
 {
     config_t cfg;
     config_setting_t *setting;
@@ -725,11 +725,11 @@ void cleanup(void)
     pthread_mutex_destroy(&msg_lock);
 }
 
-void print_msg(BACMSG *msg)
+void print_msg(const BACMSG *msg)
 {
     if (msg->type == DATA) {
         int i;
-        MSG_DATA *data = (MSG_DATA *)msg->data;
+        const MSG_DATA *data = (const MSG_DATA *)msg->data;
 
         if (data->pdu_len) {
             PRINT(DEBUG, "Message PDU: ");
@@ -821,10 +821,10 @@ int kbhit(void)
     return bytesWaiting;
 }
 
-bool is_network_msg(BACMSG *msg)
+bool is_network_msg(const BACMSG *msg)
 {
     uint8_t control_byte; /* NPDU control byte */
-    MSG_DATA *data = (MSG_DATA *)msg->data;
+    const MSG_DATA *data = (const MSG_DATA *)msg->data;
 
     control_byte = data->pdu[1];
 

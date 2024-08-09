@@ -272,7 +272,7 @@ bool FIFO_Put(FIFO_BUFFER *b, uint8_t data_byte)
  *
  * @return true if space available and added, false if not added
  */
-bool FIFO_Add(FIFO_BUFFER *b, uint8_t *buffer, unsigned count)
+bool FIFO_Add(FIFO_BUFFER *b, const uint8_t *buffer, unsigned count)
 {
     bool status = false; /* return value */
     unsigned index;

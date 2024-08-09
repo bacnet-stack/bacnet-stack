@@ -214,7 +214,7 @@ int abort_encode_apdu(
  * @return Total length of the apdu, typically 2 on success, zero otherwise.
  */
 int abort_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id, uint8_t *abort_reason)
+    const uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id, uint8_t *abort_reason)
 {
     int len = 0;
 

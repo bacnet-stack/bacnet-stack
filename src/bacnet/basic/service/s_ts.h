@@ -27,22 +27,22 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     void Send_TimeSync(
-        BACNET_DATE * bdate,
-        BACNET_TIME * btime);
+        const BACNET_DATE * bdate,
+        const BACNET_TIME * btime);
     BACNET_STACK_EXPORT
     void Send_TimeSync_Remote(
         BACNET_ADDRESS * dest,
-        BACNET_DATE * bdate,
-        BACNET_TIME * btime);
+        const BACNET_DATE * bdate,
+        const BACNET_TIME * btime);
     BACNET_STACK_EXPORT
     void Send_TimeSyncUTC(
-        BACNET_DATE * bdate,
-        BACNET_TIME * btime);
+        const BACNET_DATE * bdate,
+        const BACNET_TIME * btime);
     BACNET_STACK_EXPORT
     void Send_TimeSyncUTC_Remote(
         BACNET_ADDRESS * dest,
-        BACNET_DATE * bdate,
-        BACNET_TIME * btime);
+        const BACNET_DATE * bdate,
+        const BACNET_TIME * btime);
     BACNET_STACK_EXPORT
     void Send_TimeSyncUTC_Device(void);
     BACNET_STACK_EXPORT

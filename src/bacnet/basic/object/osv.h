@@ -53,7 +53,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool OctetString_Value_Present_Value_Set(uint32_t object_instance,
-        BACNET_OCTET_STRING * value,
+        const BACNET_OCTET_STRING * value,
         uint8_t priority);
     BACNET_STACK_EXPORT
     BACNET_OCTET_STRING *OctetString_Value_Present_Value(uint32_t
@@ -71,7 +71,7 @@ extern "C" {
     char *OctetString_Value_Description(uint32_t instance);
     BACNET_STACK_EXPORT
     bool OctetString_Value_Description_Set(uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     bool OctetString_Value_Out_Of_Service(uint32_t instance);

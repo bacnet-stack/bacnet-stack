@@ -54,18 +54,18 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 size_t cov_notify_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_COV_DATA *data);
+    uint8_t *apdu, size_t apdu_size, const BACNET_COV_DATA *data);
 
 BACNET_STACK_EXPORT
-int cov_notify_encode_apdu(uint8_t *apdu, BACNET_COV_DATA *data);
+int cov_notify_encode_apdu(uint8_t *apdu, const BACNET_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 int ucov_notify_encode_apdu(
-    uint8_t *apdu, unsigned max_apdu_len, BACNET_COV_DATA *data);
+    uint8_t *apdu, unsigned max_apdu_len, const BACNET_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 int ucov_notify_decode_apdu(
-    uint8_t *apdu, unsigned apdu_len, BACNET_COV_DATA *data);
+    const uint8_t *apdu, unsigned apdu_len, BACNET_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 int ucov_notify_send(
@@ -75,10 +75,10 @@ BACNET_STACK_EXPORT
 int ccov_notify_encode_apdu(uint8_t *apdu,
     unsigned max_apdu_len,
     uint8_t invoke_id,
-    BACNET_COV_DATA *data);
+    const BACNET_COV_DATA *data);
 
 BACNET_STACK_EXPORT
-int ccov_notify_decode_apdu(uint8_t *apdu,
+int ccov_notify_decode_apdu(const uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     BACNET_COV_DATA *data);
@@ -86,47 +86,47 @@ int ccov_notify_decode_apdu(uint8_t *apdu,
 /* common for both confirmed and unconfirmed */
 BACNET_STACK_EXPORT
 int cov_notify_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_COV_DATA *data);
+    const uint8_t *apdu, unsigned apdu_len, BACNET_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 int cov_subscribe_property_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA *data);
+    const uint8_t *apdu, unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 int cov_subscribe_property_apdu_encode(
-    uint8_t *apdu, BACNET_SUBSCRIBE_COV_DATA *data);
+    uint8_t *apdu, const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 size_t cov_subscribe_property_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_SUBSCRIBE_COV_DATA *data);
+    uint8_t *apdu, size_t apdu_size, const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 int cov_subscribe_property_encode_apdu(uint8_t *apdu,
     unsigned max_apdu_len,
     uint8_t invoke_id,
-    BACNET_SUBSCRIBE_COV_DATA *data);
+    const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 int cov_subscribe_decode_service_request(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_len,
     BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 int cov_subscribe_apdu_encode(uint8_t *apdu,
-    BACNET_SUBSCRIBE_COV_DATA *data);
+    const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 size_t cov_subscribe_service_request_encode(
     uint8_t *apdu,
     size_t apdu_size,
-    BACNET_SUBSCRIBE_COV_DATA *data);
+    const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 int cov_subscribe_encode_apdu(uint8_t *apdu,
     unsigned max_apdu_len,
     uint8_t invoke_id,
-    BACNET_SUBSCRIBE_COV_DATA *data);
+    const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 void cov_property_value_list_link(
@@ -168,14 +168,14 @@ bool cov_value_list_encode_signed_int(BACNET_PROPERTY_VALUE *value_list,
     bool out_of_service);
 BACNET_STACK_EXPORT
 bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
-    BACNET_CHARACTER_STRING *value,
+    const BACNET_CHARACTER_STRING *value,
     bool in_alarm,
     bool fault,
     bool overridden,
     bool out_of_service);
     BACNET_STACK_EXPORT
     bool cov_value_list_encode_bit_string(BACNET_PROPERTY_VALUE *value_list,
-        BACNET_BIT_STRING *value,
+        const BACNET_BIT_STRING *value,
         bool in_alarm,
         bool fault,
         bool overridden,

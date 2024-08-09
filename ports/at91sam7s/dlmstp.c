@@ -195,10 +195,10 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
     }
 }
 
-static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
+static bool dlmstp_compare_data_expecting_reply(const uint8_t *request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,
-    uint8_t *reply_pdu,
+    const uint8_t *reply_pdu,
     uint16_t reply_pdu_len,
     uint8_t dest_address)
 {
@@ -314,7 +314,7 @@ static void MSTP_Send_Frame(
     uint8_t frame_type, /* type of frame to send - see defines */
     uint8_t destination, /* destination address */
     uint8_t source, /* source address */
-    uint8_t *data, /* any data to be sent - may be null */
+    const uint8_t *data, /* any data to be sent - may be null */
     uint16_t data_len)
 { /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF; /* used to calculate the crc value */
@@ -735,7 +735,7 @@ static bool MSTP_Master_Node_FSM(void)
                     frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
                 }
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
-                    (uint8_t *)&pkt->buffer[0], pkt->length);
+                    &pkt->buffer[0], pkt->length);
                 FrameCount++;
                 switch (frame_type) {
                     case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
@@ -1081,7 +1081,7 @@ static bool MSTP_Master_Node_FSM(void)
                     frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
                 }
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
-                    (uint8_t *)&pkt->buffer[0], pkt->length);
+                    &pkt->buffer[0], pkt->length);
                 Master_State = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
                 MSTP_Flag.ReceivedValidFrame = false;
@@ -1165,7 +1165,7 @@ static void MSTP_Slave_Node_FSM(void)
                     frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
                 }
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
-                    (uint8_t *)&pkt->buffer[0], pkt->length);
+                    &pkt->buffer[0], pkt->length);
                 (void)Ringbuf_Pop(&PDU_Queue, NULL);
             }
             /* clear our flag we were holding for comparison */

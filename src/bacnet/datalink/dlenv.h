@@ -46,7 +46,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     void dlenv_bbmd_address_set(
-        BACNET_IP_ADDRESS *address);
+        const BACNET_IP_ADDRESS *address);
 
     BACNET_STACK_EXPORT
     void dlenv_bbmd_ttl_set(

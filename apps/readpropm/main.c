@@ -199,7 +199,7 @@ static void cleanup(void)
 }
 
 static void target_address_add(
-    long dnet, BACNET_MAC_ADDRESS *mac, BACNET_MAC_ADDRESS *adr)
+    long dnet, const BACNET_MAC_ADDRESS *mac, const BACNET_MAC_ADDRESS *adr)
 {
     BACNET_ADDRESS dest = { 0 };
 
@@ -234,7 +234,7 @@ static void target_address_add(
     address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s device-instance object-type object-instance "
            "property[index][,property[index]] [object-type ...]\n",
@@ -243,7 +243,7 @@ static void print_usage(char *filename)
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Read one or more properties from one or more objects\n"
            "in a BACnet device and print the value(s).\n");
@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
     bool specific_address = false;
     unsigned int target_args = 0;
     bool status = false;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {

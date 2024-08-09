@@ -84,7 +84,7 @@ uint16_t MSTP_Get_Send(
  */
 void MSTP_Send_Frame(
     struct mstp_port_struct_t *mstp_port,
-    uint8_t * buffer,
+    const uint8_t * buffer,
     uint16_t nbytes)
 {
     (void)mstp_port;
@@ -141,7 +141,7 @@ static int network_init(const char *name, int protocol)
 }
 
 static void snap_received_packet(
-    struct mstp_port_struct_t *mstp_port, int sockfd)
+    const struct mstp_port_struct_t *mstp_port, int sockfd)
 {
     uint16_t mtu_len = 0; /* number of octets of packet saved in file */
     unsigned i = 0; /* counter */

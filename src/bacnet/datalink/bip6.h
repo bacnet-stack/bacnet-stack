@@ -66,11 +66,11 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool bip6_address_match_self(
-        BACNET_IP6_ADDRESS *addr);
+        const BACNET_IP6_ADDRESS *addr);
 
     BACNET_STACK_EXPORT
     bool bip6_set_addr(
-        BACNET_IP6_ADDRESS *addr);
+        const BACNET_IP6_ADDRESS *addr);
     BACNET_STACK_EXPORT
     bool bip6_get_addr(
         BACNET_IP6_ADDRESS *addr);
@@ -84,7 +84,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool bip6_set_broadcast_addr(
-        BACNET_IP6_ADDRESS *addr);
+        const BACNET_IP6_ADDRESS *addr);
     /* returns network byte order */
     BACNET_STACK_EXPORT
     bool bip6_get_broadcast_addr(
@@ -92,8 +92,8 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int bip6_send_mpdu(
-        BACNET_IP6_ADDRESS *addr,
-        uint8_t * mtu,
+        const BACNET_IP6_ADDRESS *addr,
+        const uint8_t * mtu,
         uint16_t mtu_len);
     BACNET_STACK_EXPORT
     bool bip6_send_pdu_queue_empty(

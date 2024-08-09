@@ -34,7 +34,7 @@
  * @param btime - #BACNET_TIME
  */
 void Send_TimeSync_Remote(
-    BACNET_ADDRESS *dest, BACNET_DATE *bdate, BACNET_TIME *btime)
+    BACNET_ADDRESS *dest, const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     int len = 0;
     int pdu_len = 0;
@@ -75,7 +75,7 @@ void Send_TimeSync_Remote(
  * @param bdate - #BACNET_DATE
  * @param btime - #BACNET_TIME
  */
-void Send_TimeSync(BACNET_DATE *bdate, BACNET_TIME *btime)
+void Send_TimeSync(const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     BACNET_ADDRESS dest;
 
@@ -91,7 +91,7 @@ void Send_TimeSync(BACNET_DATE *bdate, BACNET_TIME *btime)
  * @param btime - #BACNET_TIME
  */
 void Send_TimeSyncUTC_Remote(
-    BACNET_ADDRESS *dest, BACNET_DATE *bdate, BACNET_TIME *btime)
+    BACNET_ADDRESS *dest, const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     int len = 0;
     int pdu_len = 0;
@@ -133,7 +133,7 @@ void Send_TimeSyncUTC_Remote(
  * @param bdate - #BACNET_DATE
  * @param btime - #BACNET_TIME
  */
-void Send_TimeSyncUTC(BACNET_DATE *bdate, BACNET_TIME *btime)
+void Send_TimeSyncUTC(const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     BACNET_ADDRESS dest;
 

@@ -23,7 +23,7 @@ int encode_unsigned16(uint8_t *apdu, uint16_t value)
     return 2;
 }
 
-int decode_unsigned16(uint8_t *apdu, uint16_t *value)
+int decode_unsigned16(const uint8_t *apdu, uint16_t *value)
 {
     if (apdu && value) {
         *value  = (uint16_t)apdu[0] << 8;
@@ -44,7 +44,7 @@ int encode_unsigned24(uint8_t *apdu, uint32_t value)
     return 3;
 }
 
-int decode_unsigned24(uint8_t *apdu, uint32_t *value)
+int decode_unsigned24(const uint8_t *apdu, uint32_t *value)
 {
     if (apdu && value) {
         *value  = (uint32_t)apdu[0] << 16;
@@ -67,7 +67,7 @@ int encode_unsigned32(uint8_t *apdu, uint32_t value)
     return 4;
 }
 
-int decode_unsigned32(uint8_t *apdu, uint32_t *value)
+int decode_unsigned32(const uint8_t *apdu, uint32_t *value)
 {
     if (apdu && value) {
         *value  = (uint32_t)apdu[0] << 24;
@@ -105,7 +105,7 @@ int encode_unsigned40(uint8_t *buffer, uint64_t value)
  * @param       value - pointer to 64-bit value to store the decoded value
  * @return      Returns the number of bytes decoded
  */
-int decode_unsigned40(uint8_t *buffer, uint64_t *value)
+int decode_unsigned40(const uint8_t *buffer, uint64_t *value)
 {
     if (buffer && value) {
         *value  = (uint64_t)buffer[0] << 32;
@@ -144,7 +144,7 @@ int encode_unsigned48(uint8_t *buffer, uint64_t value)
  * @param       value - pointer to 64-bit value to store the decoded value
  * @return      Returns the number of bytes decoded
  */
-int decode_unsigned48(uint8_t *buffer, uint64_t *value)
+int decode_unsigned48(const uint8_t *buffer, uint64_t *value)
 {
     if (buffer && value) {
         *value  = (uint64_t)buffer[0] << 40;
@@ -185,7 +185,7 @@ int encode_unsigned56(uint8_t *buffer, uint64_t value)
  * @param       value - pointer to 64-bit value to store the decoded value
  * @return      Returns the number of bytes decoded
  */
-int decode_unsigned56(uint8_t *buffer, uint64_t *value)
+int decode_unsigned56(const uint8_t *buffer, uint64_t *value)
 {
     if (buffer && value) {
         *value  = (uint64_t)buffer[0] << 48;
@@ -228,7 +228,7 @@ int encode_unsigned64(uint8_t *buffer, uint64_t value)
  * @param       value - pointer to 64-bit value to store the decoded value
  * @return      Returns the number of bytes decoded
  */
-int decode_unsigned64(uint8_t *buffer, uint64_t *value)
+int decode_unsigned64(const uint8_t *buffer, uint64_t *value)
 {
     if (buffer && value) {
         *value  = (uint64_t)buffer[0] << 56;
@@ -294,7 +294,7 @@ int encode_signed8(uint8_t *apdu, int8_t value)
     return 1;
 }
 
-int decode_signed8(uint8_t *apdu, int32_t *value)
+int decode_signed8(const uint8_t *apdu, int32_t *value)
 {
     if (apdu && value) {
         /* negative - bit 7 is set */
@@ -319,7 +319,7 @@ int encode_signed16(uint8_t *apdu, int16_t value)
     return 2;
 }
 
-int decode_signed16(uint8_t *apdu, int32_t *value)
+int decode_signed16(const uint8_t *apdu, int32_t *value)
 {
     if (apdu && value) {
         /* negative - bit 7 is set */
@@ -346,7 +346,7 @@ int encode_signed24(uint8_t *apdu, int32_t value)
     return 3;
 }
 
-int decode_signed24(uint8_t *apdu, int32_t *value)
+int decode_signed24(const uint8_t *apdu, int32_t *value)
 {
     if (apdu && value) {
         /* negative - bit 7 is set */
@@ -375,7 +375,7 @@ int encode_signed32(uint8_t *apdu, int32_t value)
     return 4;
 }
 
-int decode_signed32(uint8_t *apdu, int32_t *value)
+int decode_signed32(const uint8_t *apdu, int32_t *value)
 {
     if (apdu && value) {
         *value  = (int32_t)apdu[0] << 24;

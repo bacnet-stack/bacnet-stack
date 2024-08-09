@@ -32,8 +32,8 @@ typedef struct analog_input_descr {
     float Prior_Value;
     float COV_Increment;
     bool Changed;
-    char* Object_Name;
-    char* Description;
+    const char* Object_Name;
+    const char* Description;
 #if defined(INTRINSIC_REPORTING)
     uint32_t Time_Delay;
     uint32_t Notification_Class;
@@ -85,18 +85,18 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Analog_Input_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
     BACNET_STACK_EXPORT
     const char * Analog_Input_Name_ASCII(
         uint32_t object_instance);
 
     BACNET_STACK_EXPORT
-    char *Analog_Input_Description(
+    const char *Analog_Input_Description(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool Analog_Input_Description_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     BACNET_RELIABILITY Analog_Input_Reliability(

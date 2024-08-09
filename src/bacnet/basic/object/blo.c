@@ -171,7 +171,7 @@ unsigned Binary_Lighting_Output_Instance_To_Index(uint32_t object_instance)
  * @return the priority-array active status for the specific priority
  */
 static bool Priority_Array_Active(
-    struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+    const struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     bool active = false;
 
@@ -193,7 +193,7 @@ static bool Priority_Array_Active(
  * @return The priority-array value for the specific priority
  */
 static BACNET_BINARY_LIGHTING_PV Priority_Array_Next_Value(
-    struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+    const struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     unsigned p = 0;
@@ -238,7 +238,7 @@ BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Present_Value(
  * @return The priority-array value for the specific priority
  */
 static BACNET_BINARY_LIGHTING_PV Priority_Array_Value(
-    struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+    const struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
 
@@ -290,7 +290,7 @@ static int Binary_Lighting_Output_Priority_Array_Encode(
  *
  * @return  active priority 1..16, or 0 if no priority is active
  */
-static unsigned Present_Value_Priority(struct object_data *pObject)
+static unsigned Present_Value_Priority(const struct object_data *pObject)
 {
     unsigned p = 0; /* loop counter */
     unsigned priority = 0; /* return value */
@@ -787,7 +787,8 @@ bool Binary_Lighting_Output_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Binary_Lighting_Output_Name_Set(uint32_t object_instance, char *new_name)
+bool Binary_Lighting_Output_Name_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -826,15 +827,15 @@ const char *Binary_Lighting_Output_Name_ASCII(uint32_t object_instance)
  *
  * @return description text or NULL if not found
  */
-char *Binary_Lighting_Output_Description(uint32_t object_instance)
+const char *Binary_Lighting_Output_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -852,7 +853,7 @@ char *Binary_Lighting_Output_Description(uint32_t object_instance)
  * @return  true if object-name was set
  */
 bool Binary_Lighting_Output_Description_Set(
-    uint32_t object_instance, char *new_name)
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;

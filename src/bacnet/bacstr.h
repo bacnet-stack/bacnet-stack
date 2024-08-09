@@ -46,22 +46,22 @@ extern "C" {
         bool value);
     BACNET_STACK_EXPORT
     bool bitstring_bit(
-        BACNET_BIT_STRING * bit_string,
+        const BACNET_BIT_STRING * bit_string,
         uint8_t bit_number);
     BACNET_STACK_EXPORT
     uint8_t bitstring_bits_used(
-        BACNET_BIT_STRING * bit_string);
+        const BACNET_BIT_STRING * bit_string);
 /* returns the number of bytes that a bit string is using */
     BACNET_STACK_EXPORT
     uint8_t bitstring_bytes_used(
-        BACNET_BIT_STRING * bit_string);
+        const BACNET_BIT_STRING * bit_string);
     BACNET_STACK_EXPORT
     unsigned bitstring_bits_capacity(
-        BACNET_BIT_STRING * bit_string);
+        const BACNET_BIT_STRING * bit_string);
 /* used for encoding and decoding from the APDU */
     BACNET_STACK_EXPORT
     uint8_t bitstring_octet(
-        BACNET_BIT_STRING * bit_string,
+        const BACNET_BIT_STRING * bit_string,
         uint8_t octet_index);
     BACNET_STACK_EXPORT
     bool bitstring_set_octet(
@@ -76,11 +76,11 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool bitstring_copy(
         BACNET_BIT_STRING * dest,
-        BACNET_BIT_STRING * src);
+        const BACNET_BIT_STRING * src);
     BACNET_STACK_EXPORT
     bool bitstring_same(
-        BACNET_BIT_STRING * bitstring1,
-        BACNET_BIT_STRING * bitstring2);
+        const BACNET_BIT_STRING * bitstring1,
+        const BACNET_BIT_STRING * bitstring2);
     BACNET_STACK_EXPORT
     bool bitstring_init_ascii(
         BACNET_BIT_STRING * bit_string,
@@ -111,20 +111,20 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool characterstring_copy(
         BACNET_CHARACTER_STRING * dest,
-        BACNET_CHARACTER_STRING * src);
+        const BACNET_CHARACTER_STRING * src);
     BACNET_STACK_EXPORT
     bool characterstring_ansi_copy(
         char *dest,
         size_t dest_max_len,
-        BACNET_CHARACTER_STRING * src);
+        const BACNET_CHARACTER_STRING * src);
 /* returns true if the strings are the same length, encoding, value */
     BACNET_STACK_EXPORT
     bool characterstring_same(
-        BACNET_CHARACTER_STRING * dest,
-        BACNET_CHARACTER_STRING * src);
+        const BACNET_CHARACTER_STRING * dest,
+        const BACNET_CHARACTER_STRING * src);
     BACNET_STACK_EXPORT
     bool characterstring_ansi_same(
-        BACNET_CHARACTER_STRING * dest,
+        const BACNET_CHARACTER_STRING * dest,
         const char *src);
 /* returns false if the string exceeds capacity */
     BACNET_STACK_EXPORT
@@ -145,24 +145,24 @@ extern "C" {
         uint8_t encoding);
 /* Returns the value */
     BACNET_STACK_EXPORT
-    char *characterstring_value(
-        BACNET_CHARACTER_STRING * char_string);
+    const char *characterstring_value(
+        const BACNET_CHARACTER_STRING * char_string);
 /* returns the length */
     BACNET_STACK_EXPORT
     size_t characterstring_length(
-        BACNET_CHARACTER_STRING * char_string);
+        const BACNET_CHARACTER_STRING * char_string);
     BACNET_STACK_EXPORT
     uint8_t characterstring_encoding(
-        BACNET_CHARACTER_STRING * char_string);
+        const BACNET_CHARACTER_STRING * char_string);
     BACNET_STACK_EXPORT
     size_t characterstring_capacity(
-        BACNET_CHARACTER_STRING * char_string);
+        const BACNET_CHARACTER_STRING * char_string);
     BACNET_STACK_EXPORT
     bool characterstring_printable(
-        BACNET_CHARACTER_STRING * char_string);
+        const BACNET_CHARACTER_STRING * char_string);
     BACNET_STACK_EXPORT
     bool characterstring_valid(
-        BACNET_CHARACTER_STRING * char_string);
+        const BACNET_CHARACTER_STRING * char_string);
     BACNET_STACK_EXPORT
     bool utf8_isvalid(
         const char *str,
@@ -173,7 +173,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool octetstring_init(
         BACNET_OCTET_STRING * octet_string,
-        uint8_t * value,
+        const uint8_t * value,
         size_t length);
     /* converts an null terminated ASCII Hex string to an octet string.
        returns true if successfully converted and fits; false if too long */
@@ -184,17 +184,17 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool octetstring_copy(
         BACNET_OCTET_STRING * dest,
-        BACNET_OCTET_STRING * src);
+        const BACNET_OCTET_STRING * src);
     BACNET_STACK_EXPORT
     size_t octetstring_copy_value(
         uint8_t * dest,
         size_t length,
-        BACNET_OCTET_STRING * src);
+        const BACNET_OCTET_STRING * src);
 /* returns false if the string exceeds capacity */
     BACNET_STACK_EXPORT
     bool octetstring_append(
         BACNET_OCTET_STRING * octet_string,
-        uint8_t * value,
+        const uint8_t * value,
         size_t length);
 /* This function sets a new length without changing the value.
    If length exceeds capacity, no modification happens and
@@ -210,15 +210,15 @@ extern "C" {
 /* Returns the length.*/
     BACNET_STACK_EXPORT
     size_t octetstring_length(
-        BACNET_OCTET_STRING * octet_string);
+        const BACNET_OCTET_STRING * octet_string);
     BACNET_STACK_EXPORT
     size_t octetstring_capacity(
-        BACNET_OCTET_STRING * octet_string);
+        const BACNET_OCTET_STRING * octet_string);
     /* returns true if the same length and contents */
     BACNET_STACK_EXPORT
     bool octetstring_value_same(
-        BACNET_OCTET_STRING * octet_string1,
-        BACNET_OCTET_STRING * octet_string2);
+        const BACNET_OCTET_STRING * octet_string1,
+        const BACNET_OCTET_STRING * octet_string2);
 
 #ifdef __cplusplus
 }

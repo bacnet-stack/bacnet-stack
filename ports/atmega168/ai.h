@@ -37,13 +37,13 @@ extern "C" {
         uint32_t object_instance);
     bool Analog_Input_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
 
-    char *Analog_Input_Description(
+    const char *Analog_Input_Description(
         uint32_t instance);
     bool Analog_Input_Description_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     bool Analog_Input_Units_Set(
         uint32_t instance,

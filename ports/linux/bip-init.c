@@ -178,7 +178,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
  *
  * @param addr - network IPv4 address
  */
-bool bip_set_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_addr(const BACNET_IP_ADDRESS *addr)
 {
     /* not something we do within this driver */
     (void)addr;
@@ -205,7 +205,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  * @param addr - network IPv4 address
  * @return true if the address was set
  */
-bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
 {
     /* not something we do within this driver */
     (void)addr;
@@ -273,7 +273,8 @@ uint8_t bip_get_subnet_prefix(void)
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip_send_mpdu(
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     struct sockaddr_in bip_dest = { 0 };
 
@@ -292,7 +293,7 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     /* Send the packet */
     debug_print_ipv4(
         "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
-    return sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
+    return sendto(BIP_Socket, (const char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
 }
 
@@ -465,7 +466,8 @@ bool bip_get_addr_by_name(const char *host_name, BACNET_IP_ADDRESS *addr)
  * @param request - the ioctl() request
  * @return 0 on success, else the error from the ioctl() call.
  */
-static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
+static int get_local_ifr_ioctl(
+    const char *ifname, struct ifreq *ifr, int request)
 {
     int fd;
     int rv; /* return value */
@@ -491,7 +493,8 @@ static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
  * @param request - the ioctl() request
  * @return 0 on success, else the error from the ioctl() call.
  */
-int bip_get_local_address_ioctl(char *ifname, struct in_addr *addr, int request)
+int bip_get_local_address_ioctl(
+    const char *ifname, struct in_addr *addr, int request)
 {
     struct ifreq ifr = { 0 };
     struct sockaddr_in *tcpip_address;
@@ -746,7 +749,7 @@ int bip_set_broadcast_binding(
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for Linux, ifname is eth0, ath0, arc0, and others.
  */
-void bip_set_interface(char *ifname)
+void bip_set_interface(const char *ifname)
 {
     struct in_addr local_address;
     struct in_addr netmask;
@@ -804,7 +807,7 @@ void bip_set_interface(char *ifname)
     }
 }
 
-static int createSocket(struct sockaddr_in *sin)
+static int createSocket(const struct sockaddr_in *sin)
 {
     int status = 0; /* return from socket lib calls */
     int sockopt = 0;

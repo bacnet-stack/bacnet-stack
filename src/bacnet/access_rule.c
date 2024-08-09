@@ -10,7 +10,7 @@
 #include "bacnet/access_rule.h"
 #include "bacnet/bacdcode.h"
 
-int bacapp_encode_access_rule(uint8_t *apdu, BACNET_ACCESS_RULE *rule)
+int bacapp_encode_access_rule(uint8_t *apdu, const BACNET_ACCESS_RULE *rule)
 {
     int len;
     int apdu_len = 0;
@@ -49,7 +49,7 @@ int bacapp_encode_access_rule(uint8_t *apdu, BACNET_ACCESS_RULE *rule)
 }
 
 int bacapp_encode_context_access_rule(
-    uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *rule)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_ACCESS_RULE *rule)
 {
     int len;
     int apdu_len = 0;
@@ -66,7 +66,7 @@ int bacapp_encode_context_access_rule(
     return apdu_len;
 }
 
-int bacapp_decode_access_rule(uint8_t *apdu, BACNET_ACCESS_RULE *rule)
+int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *rule)
 {
     int len;
     int apdu_len = 0;
@@ -148,7 +148,7 @@ int bacapp_decode_access_rule(uint8_t *apdu, BACNET_ACCESS_RULE *rule)
 }
 
 int bacapp_decode_context_access_rule(
-    uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *rule)
+    const uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *rule)
 {
     int len = 0;
     int section_length;

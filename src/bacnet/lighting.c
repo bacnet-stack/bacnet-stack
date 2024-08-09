@@ -38,7 +38,7 @@
  *
  * @return  number of bytes encoded
  */
-int lighting_command_encode(uint8_t *apdu, BACNET_LIGHTING_COMMAND *data)
+int lighting_command_encode(uint8_t *apdu, const BACNET_LIGHTING_COMMAND *data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0; /* total length of the apdu, return value */
@@ -113,7 +113,7 @@ int lighting_command_encode(uint8_t *apdu, BACNET_LIGHTING_COMMAND *data)
  * @return  number of bytes encoded, or 0 if unable to encode.
  */
 int lighting_command_encode_context(
-    uint8_t *apdu, uint8_t tag_number, BACNET_LIGHTING_COMMAND *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_LIGHTING_COMMAND *value)
 {
     int apdu_len = 0;
     uint8_t *apdu_offset = NULL;
@@ -153,7 +153,7 @@ int lighting_command_encode_context(
  * @return  number of bytes decoded, or BACNET_STATUS_ERROR
  */
 int lighting_command_decode(
-    uint8_t *apdu, unsigned apdu_size, BACNET_LIGHTING_COMMAND *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_LIGHTING_COMMAND *data)
 {
     int len = 0;
     int apdu_len = 0;
@@ -387,7 +387,7 @@ int lighting_command_decode(
  * @return  true if copy succeeded
  */
 bool lighting_command_copy(
-    BACNET_LIGHTING_COMMAND *dst, BACNET_LIGHTING_COMMAND *src)
+    BACNET_LIGHTING_COMMAND *dst, const BACNET_LIGHTING_COMMAND *src)
 {
     bool status = false;
 
@@ -418,7 +418,7 @@ bool lighting_command_copy(
  * @return  true if lighting-commands are the same for values in-use
  */
 bool lighting_command_same(
-    BACNET_LIGHTING_COMMAND *dst, BACNET_LIGHTING_COMMAND *src)
+    const BACNET_LIGHTING_COMMAND *dst, const BACNET_LIGHTING_COMMAND *src)
 {
     bool status = false;
 
@@ -741,7 +741,7 @@ bool lighting_command_from_ascii(
  * @param value - BACnetxyColor structure
  * @return length of the encoded APDU buffer
  */
-int xy_color_encode(uint8_t *apdu, BACNET_XY_COLOR *value)
+int xy_color_encode(uint8_t *apdu, const BACNET_XY_COLOR *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -769,7 +769,7 @@ int xy_color_encode(uint8_t *apdu, BACNET_XY_COLOR *value)
  * @return length of the APDU buffer, or 0 if not able to encode
  */
 int xy_color_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_XY_COLOR *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_XY_COLOR *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -803,7 +803,7 @@ int xy_color_context_encode(
  *
  * @return the number of apdu bytes consumed, or BACNET_STATUS_ERROR
  */
-int xy_color_decode(uint8_t *apdu, uint32_t apdu_size, BACNET_XY_COLOR *value)
+int xy_color_decode(const uint8_t *apdu, uint32_t apdu_size, BACNET_XY_COLOR *value)
 {
     float real_value;
     int len = 0;
@@ -844,7 +844,7 @@ int xy_color_decode(uint8_t *apdu, uint32_t apdu_size, BACNET_XY_COLOR *value)
  *
  * @return the number of apdu bytes consumed, or BACNET_STATUS_ERROR
  */
-int xy_color_context_decode(uint8_t *apdu,
+int xy_color_context_decode(const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_XY_COLOR *value)
@@ -897,7 +897,7 @@ void xy_color_set(BACNET_XY_COLOR *dst, float x, float y)
  * @param src - source BACNET_XY_COLOR structure
  * @return true if successfully copied
  */
-int xy_color_copy(BACNET_XY_COLOR *dst, BACNET_XY_COLOR *src)
+int xy_color_copy(BACNET_XY_COLOR *dst, const BACNET_XY_COLOR *src)
 {
     bool status = false;
 
@@ -916,7 +916,8 @@ int xy_color_copy(BACNET_XY_COLOR *dst, BACNET_XY_COLOR *src)
  * @param value2 - BACNET_XY_COLOR structure
  * @return true if the same
  */
-bool xy_color_same(BACNET_XY_COLOR *value1, BACNET_XY_COLOR *value2)
+bool xy_color_same(
+    const BACNET_XY_COLOR *value1, const BACNET_XY_COLOR *value2)
 {
     bool status = false;
 
@@ -1002,7 +1003,7 @@ bool xy_color_from_ascii(BACNET_XY_COLOR *value, const char *argv)
  * @param value - BACnetColorCommand structure
  * @return length of the encoded APDU buffer
  */
-int color_command_encode(uint8_t *apdu, BACNET_COLOR_COMMAND *value)
+int color_command_encode(uint8_t *apdu, const BACNET_COLOR_COMMAND *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -1095,7 +1096,7 @@ int color_command_encode(uint8_t *apdu, BACNET_COLOR_COMMAND *value)
  * @return length of the APDU buffer, or 0 if not able to encode
  */
 int color_command_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_COLOR_COMMAND *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_COLOR_COMMAND *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -1135,7 +1136,7 @@ int color_command_context_encode(
  * @param value - BACnetColorCommand structure values
  * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
  */
-int color_command_decode(uint8_t *apdu,
+int color_command_decode(const uint8_t *apdu,
     uint16_t apdu_size,
     BACNET_ERROR_CODE *error_code,
     BACNET_COLOR_COMMAND *value)
@@ -1405,7 +1406,7 @@ int color_command_decode(uint8_t *apdu,
  * @param src - source structure
  * @return true if successfully copied
  */
-bool color_command_copy(BACNET_COLOR_COMMAND *dst, BACNET_COLOR_COMMAND *src)
+bool color_command_copy(BACNET_COLOR_COMMAND *dst, const BACNET_COLOR_COMMAND *src)
 {
     bool status = false;
 
@@ -1424,7 +1425,7 @@ bool color_command_copy(BACNET_COLOR_COMMAND *dst, BACNET_COLOR_COMMAND *src)
  * @return true if the same
  */
 bool color_command_same(
-    BACNET_COLOR_COMMAND *value1, BACNET_COLOR_COMMAND *value2)
+    const BACNET_COLOR_COMMAND *value1, const BACNET_COLOR_COMMAND *value2)
 {
     bool status = false;
 

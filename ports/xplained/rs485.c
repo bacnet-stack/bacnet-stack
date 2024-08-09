@@ -147,7 +147,7 @@ bool rs485_receive_error(void)
  * @param buffer - array of one or more bytes to transmit
  * @param nbytes - number of bytes to transmit
  */
-void rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
+void rs485_bytes_send(const uint8_t *buffer, uint16_t nbytes)
 {
     bool status = false;
     bool start_required = false;

@@ -199,7 +199,10 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
 }
 
 int dl_ip_send(
-    IP_DATA *data, BACNET_ADDRESS *dest, uint8_t *pdu, unsigned pdu_len)
+    IP_DATA *data,
+    const BACNET_ADDRESS *dest,
+    const uint8_t *pdu,
+    unsigned pdu_len)
 {
     struct sockaddr_in bip_dest = { 0 };
     int buff_len = 0;

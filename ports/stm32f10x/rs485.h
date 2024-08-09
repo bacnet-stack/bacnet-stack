@@ -30,7 +30,7 @@ extern "C" {
     bool rs485_receive_error(
         void);
     void rs485_bytes_send(
-        uint8_t * buffer,
+        const uint8_t * buffer,
         uint16_t nbytes);
 
     uint32_t rs485_baud_rate(

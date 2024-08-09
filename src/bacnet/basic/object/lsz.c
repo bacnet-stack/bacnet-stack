@@ -507,7 +507,7 @@ static int Life_Safety_Zone_Members_Encode(
  */
 bool Life_Safety_Zone_Members_Add(
     uint32_t object_instance,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *data)
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *data)
 {
     bool status = false;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *entry;
@@ -553,7 +553,7 @@ void Life_Safety_Zone_Members_Clear(
 static bool Life_Safety_Zone_Members_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     int len = 0, apdu_len = 0, apdu_size = 0;
-    uint8_t *apdu = NULL;
+    const uint8_t *apdu = NULL;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE data = { 0 };
 
     if (wp_data == NULL) {

@@ -141,7 +141,8 @@ int encode_security_wrapper(
 }
 #endif
 
-int encode_challenge_request(uint8_t *apdu, BACNET_CHALLENGE_REQUEST *bc_req)
+int encode_challenge_request(
+    uint8_t *apdu, const BACNET_CHALLENGE_REQUEST *bc_req)
 {
     int curr = 0;
 
@@ -152,7 +153,8 @@ int encode_challenge_request(uint8_t *apdu, BACNET_CHALLENGE_REQUEST *bc_req)
     return curr;
 }
 
-int encode_security_payload(uint8_t *apdu, BACNET_SECURITY_PAYLOAD *payload)
+int encode_security_payload(
+    uint8_t *apdu, const BACNET_SECURITY_PAYLOAD *payload)
 {
     encode_unsigned16(&apdu[0], payload->payload_length);
     memcpy(&apdu[2], payload->payload, payload->payload_length);
@@ -160,7 +162,7 @@ int encode_security_payload(uint8_t *apdu, BACNET_SECURITY_PAYLOAD *payload)
     return (int)(2 + payload->payload_length);
 }
 
-int encode_security_response(uint8_t *apdu, BACNET_SECURITY_RESPONSE *resp)
+int encode_security_response(uint8_t *apdu, const BACNET_SECURITY_RESPONSE *resp)
 {
     int curr = 0;
     int i;
@@ -232,7 +234,7 @@ int encode_security_response(uint8_t *apdu, BACNET_SECURITY_RESPONSE *resp)
     return curr;
 }
 
-int encode_request_key_update(uint8_t *apdu, BACNET_REQUEST_KEY_UPDATE *req)
+int encode_request_key_update(uint8_t *apdu, const BACNET_REQUEST_KEY_UPDATE *req)
 {
     int curr = 0;
 
@@ -247,7 +249,7 @@ int encode_request_key_update(uint8_t *apdu, BACNET_REQUEST_KEY_UPDATE *req)
     return curr;
 }
 
-int encode_key_entry(uint8_t *apdu, BACNET_KEY_ENTRY *entry)
+int encode_key_entry(uint8_t *apdu, const BACNET_KEY_ENTRY *entry)
 {
     int curr = 0;
 
@@ -259,7 +261,7 @@ int encode_key_entry(uint8_t *apdu, BACNET_KEY_ENTRY *entry)
     return curr;
 }
 
-int encode_update_key_set(uint8_t *apdu, BACNET_UPDATE_KEY_SET *key_set)
+int encode_update_key_set(uint8_t *apdu, const BACNET_UPDATE_KEY_SET *key_set)
 {
     int curr = 0;
     int i, res;
@@ -330,7 +332,7 @@ int encode_update_key_set(uint8_t *apdu, BACNET_UPDATE_KEY_SET *key_set)
 }
 
 int encode_update_distribution_key(
-    uint8_t *apdu, BACNET_UPDATE_DISTRIBUTION_KEY *dist_key)
+    uint8_t *apdu, const BACNET_UPDATE_DISTRIBUTION_KEY *dist_key)
 {
     int curr = 0;
     int res;
@@ -345,7 +347,7 @@ int encode_update_distribution_key(
 }
 
 int encode_request_master_key(
-    uint8_t *apdu, BACNET_REQUEST_MASTER_KEY *req_master_key)
+    uint8_t *apdu, const BACNET_REQUEST_MASTER_KEY *req_master_key)
 {
     int curr = 0;
 
@@ -356,7 +358,7 @@ int encode_request_master_key(
     return (int)(curr + req_master_key->no_supported_algorithms);
 }
 
-int encode_set_master_key(uint8_t *apdu, BACNET_SET_MASTER_KEY *set_master_key)
+int encode_set_master_key(uint8_t *apdu, const BACNET_SET_MASTER_KEY *set_master_key)
 {
     return encode_key_entry(apdu, &set_master_key->key);
 }
@@ -473,7 +475,7 @@ int decode_security_wrapper_safe(int bytes_before,
 }
 #endif
 
-int decode_challenge_request_safe(uint8_t *apdu,
+int decode_challenge_request_safe(const uint8_t *apdu,
     uint32_t apdu_len_remaining,
     BACNET_CHALLENGE_REQUEST *bc_req)
 {
@@ -489,7 +491,7 @@ int decode_challenge_request_safe(uint8_t *apdu,
     return curr; /* always 9! */
 }
 
-int decode_security_payload_safe(uint8_t *apdu,
+int decode_security_payload_safe(const uint8_t *apdu,
     uint32_t apdu_len_remaining,
     BACNET_SECURITY_PAYLOAD *payload)
 {
@@ -505,7 +507,9 @@ int decode_security_payload_safe(uint8_t *apdu,
 }
 
 int decode_security_response_safe(
-    uint8_t *apdu, uint32_t apdu_len_remaining, BACNET_SECURITY_RESPONSE *resp)
+    const uint8_t *apdu,
+    uint32_t apdu_len_remaining,
+    BACNET_SECURITY_RESPONSE *resp)
 {
     int curr = 0;
     int i;
@@ -613,7 +617,9 @@ int decode_security_response_safe(
 }
 
 int decode_request_key_update_safe(
-    uint8_t *apdu, uint32_t apdu_len_remaining, BACNET_REQUEST_KEY_UPDATE *req)
+    const uint8_t *apdu,
+    uint32_t apdu_len_remaining,
+    BACNET_REQUEST_KEY_UPDATE *req)
 {
     int curr = 0;
 
@@ -632,7 +638,7 @@ int decode_request_key_update_safe(
 }
 
 int decode_key_entry_safe(
-    uint8_t *apdu, uint32_t apdu_len_remaining, BACNET_KEY_ENTRY *entry)
+    const uint8_t *apdu, uint32_t apdu_len_remaining, BACNET_KEY_ENTRY *entry)
 {
     int curr = 0;
 
@@ -652,7 +658,9 @@ int decode_key_entry_safe(
 }
 
 int decode_update_key_set_safe(
-    uint8_t *apdu, uint32_t apdu_len_remaining, BACNET_UPDATE_KEY_SET *key_set)
+    const uint8_t *apdu,
+    uint32_t apdu_len_remaining,
+    BACNET_UPDATE_KEY_SET *key_set)
 {
     int curr = 0;
     int i, res;
@@ -743,7 +751,7 @@ int decode_update_key_set_safe(
     return curr;
 }
 
-int decode_update_distribution_key_safe(uint8_t *apdu,
+int decode_update_distribution_key_safe(const uint8_t *apdu,
     uint32_t apdu_len_remaining,
     BACNET_UPDATE_DISTRIBUTION_KEY *dist_key)
 {
@@ -762,7 +770,7 @@ int decode_update_distribution_key_safe(uint8_t *apdu,
     return curr + res;
 }
 
-int decode_request_master_key_safe(uint8_t *apdu,
+int decode_request_master_key_safe(const uint8_t *apdu,
     uint32_t apdu_len_remaining,
     BACNET_REQUEST_MASTER_KEY *req_master_key)
 {
@@ -781,7 +789,7 @@ int decode_request_master_key_safe(uint8_t *apdu,
     return (int)(curr + req_master_key->no_supported_algorithms);
 }
 
-int decode_set_master_key_safe(uint8_t *apdu,
+int decode_set_master_key_safe(const uint8_t *apdu,
     uint32_t apdu_len_remaining,
     BACNET_SET_MASTER_KEY *set_master_key)
 {

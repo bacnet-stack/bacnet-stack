@@ -361,7 +361,7 @@ BACNET_RELIABILITY Binary_Input_Reliability(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return  true the status flag is in Fault
  */
-static bool Binary_Input_Object_Fault(struct object_data *pObject)
+static bool Binary_Input_Object_Fault(const struct object_data *pObject)
 {
     bool fault = false;
 
@@ -607,7 +607,7 @@ bool Binary_Input_Object_Name(
  * @param  new_name - holds the object-name to be set
  * @return  true if object-name was set
  */
-bool Binary_Input_Name_Set(uint32_t object_instance, char *new_name)
+bool Binary_Input_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false;
     struct object_data *pObject;
@@ -682,17 +682,17 @@ bool Binary_Input_Polarity_Set(
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
  */
-char *Binary_Input_Description(uint32_t object_instance)
+const char *Binary_Input_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
         if (pObject->Description == NULL) {
             name = "";
         } else {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         }
     }
 
@@ -705,7 +705,8 @@ char *Binary_Input_Description(uint32_t object_instance)
  * @param  new_name - holds the description to be set
  * @return  true if object-name was set
  */
-bool Binary_Input_Description_Set(uint32_t object_instance, char *new_name)
+bool Binary_Input_Description_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -725,14 +726,14 @@ bool Binary_Input_Description_Set(uint32_t object_instance, char *new_name)
  * @param object_instance - object-instance number of the object
  * @return inactive-text property value
  */
-char *Binary_Input_Inactive_Text(uint32_t object_instance)
+const char *Binary_Input_Inactive_Text(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        name = (char *)pObject->Inactive_Text;
+        name = pObject->Inactive_Text;
     }
 
     return name;
@@ -745,7 +746,8 @@ char *Binary_Input_Inactive_Text(uint32_t object_instance)
  * @param new_name - holds the inactive-text to be set
  * @return true if the inactive-text property value was set
  */
-bool Binary_Input_Inactive_Text_Set(uint32_t object_instance, char *new_name)
+bool Binary_Input_Inactive_Text_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false;
     struct object_data *pObject;
@@ -765,14 +767,14 @@ bool Binary_Input_Inactive_Text_Set(uint32_t object_instance, char *new_name)
  * @param object_instance - object-instance number of the object
  * @return active-text property value
  */
-char *Binary_Input_Active_Text(uint32_t object_instance)
+const char *Binary_Input_Active_Text(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        name = (char *)pObject->Active_Text;
+        name = pObject->Active_Text;
     }
 
     return name;
@@ -785,7 +787,8 @@ char *Binary_Input_Active_Text(uint32_t object_instance)
  * @param new_name - holds the active-text to be set
  * @return true if the active-text property value was set
  */
-bool Binary_Input_Active_Text_Set(uint32_t object_instance, char *new_name)
+bool Binary_Input_Active_Text_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false;
     struct object_data *pObject;

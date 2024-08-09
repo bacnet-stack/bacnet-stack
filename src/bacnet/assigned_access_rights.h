@@ -28,19 +28,19 @@ extern "C" {
     BACNET_STACK_EXPORT
     int bacapp_encode_assigned_access_rights(
         uint8_t * apdu,
-        BACNET_ASSIGNED_ACCESS_RIGHTS * aar);
+        const BACNET_ASSIGNED_ACCESS_RIGHTS * aar);
     BACNET_STACK_EXPORT
     int bacapp_encode_context_assigned_access_rights(
         uint8_t * apdu,
         uint8_t tag,
-        BACNET_ASSIGNED_ACCESS_RIGHTS * aar);
+        const BACNET_ASSIGNED_ACCESS_RIGHTS * aar);
     BACNET_STACK_EXPORT
     int bacapp_decode_assigned_access_rights(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         BACNET_ASSIGNED_ACCESS_RIGHTS * aar);
     BACNET_STACK_EXPORT
     int bacapp_decode_context_assigned_access_rights(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint8_t tag,
         BACNET_ASSIGNED_ACCESS_RIGHTS * aar);
 

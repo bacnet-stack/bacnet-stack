@@ -138,7 +138,7 @@ void Send_I_Am(uint8_t *buffer)
  * @return The length of the message in buffer[].
  */
 int iam_unicast_encode_pdu(uint8_t *buffer,
-    BACNET_ADDRESS *src,
+    const BACNET_ADDRESS *src,
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data)
 {
@@ -174,7 +174,7 @@ int iam_unicast_encode_pdu(uint8_t *buffer,
  * @param buffer [in] The buffer to use for building and sending the message.
  * @param src [in] The source address information from service handler.
  */
-void Send_I_Am_Unicast(uint8_t *buffer, BACNET_ADDRESS *src)
+void Send_I_Am_Unicast(uint8_t *buffer, const BACNET_ADDRESS *src)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;

@@ -179,7 +179,7 @@ bool Time_Value_Present_Value(uint32_t object_instance, BACNET_TIME *value)
  * @param  value - floating point analog value
  */
 static void Time_Value_Present_Value_COV_Detect(
-    struct object_data *pObject, BACNET_TIME *value)
+    struct object_data *pObject, const BACNET_TIME *value)
 {
     if (pObject && value) {
         if (datetime_compare_time(&pObject->Present_Value, value) != 0) {
@@ -196,7 +196,8 @@ static void Time_Value_Present_Value_COV_Detect(
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Time_Value_Present_Value_Set(uint32_t object_instance, BACNET_TIME *value)
+bool Time_Value_Present_Value_Set(
+    uint32_t object_instance, const BACNET_TIME *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -342,7 +343,7 @@ bool Time_Value_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Time_Value_Name_Set(uint32_t object_instance, char *new_name)
+bool Time_Value_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -382,15 +383,15 @@ const char *Time_Value_Name_ASCII(uint32_t object_instance)
  *
  * @return description text or NULL if not found
  */
-char *Time_Value_Description(uint32_t object_instance)
+const char *Time_Value_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -407,7 +408,7 @@ char *Time_Value_Description(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Time_Value_Description_Set(uint32_t object_instance, char *new_name)
+bool Time_Value_Description_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;

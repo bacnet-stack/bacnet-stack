@@ -177,7 +177,7 @@ static bool port_find(uint16_t snet, BACNET_ADDRESS *addr)
  * @param snet - router port SNET
  * @param addr - address of port at the net to be added
  */
-static void port_add(uint16_t snet, BACNET_ADDRESS *addr)
+static void port_add(uint16_t snet, const BACNET_ADDRESS *addr)
 {
     DNET *port = NULL;
     DNET *dnet = NULL;
@@ -225,7 +225,7 @@ static void port_add(uint16_t snet, BACNET_ADDRESS *addr)
  * @param net - net to be added
  * @param addr - address of router at the net to be added
  */
-static void dnet_add(uint16_t snet, uint16_t net, BACNET_ADDRESS *addr)
+static void dnet_add(uint16_t snet, uint16_t net, const BACNET_ADDRESS *addr)
 {
     DNET *dnet = NULL;
     DNET *port = NULL;
@@ -419,7 +419,8 @@ static void send_i_am_router_to_network(uint16_t snet, uint16_t net)
  *  Optionally may designate a particular router destination,
  *  especially when ACKing receipt of this message type.
  */
-static void send_initialize_routing_table_ack(uint8_t snet, BACNET_ADDRESS *dst)
+static void send_initialize_routing_table_ack(
+    uint8_t snet, const BACNET_ADDRESS *dst)
 {
     BACNET_ADDRESS dest;
     bool data_expecting_reply = false;
@@ -479,7 +480,10 @@ static void send_initialize_routing_table_ack(uint8_t snet, BACNET_ADDRESS *dst)
  * @param reject_reason [in] One of the BACNET_NETWORK_REJECT_REASONS codes.
  */
 static void send_reject_message_to_network(
-    uint16_t snet, BACNET_ADDRESS *dst, uint8_t reject_reason, uint16_t dnet)
+    uint16_t snet,
+    const BACNET_ADDRESS *dst,
+    uint8_t reject_reason,
+    uint16_t dnet)
 {
     BACNET_ADDRESS dest;
     bool data_expecting_reply = false;
@@ -592,9 +596,9 @@ static void send_who_is_router_to_network(uint16_t snet, uint16_t dnet)
  * @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
 static void who_is_router_to_network_handler(uint16_t snet,
-    BACNET_ADDRESS *src,
-    BACNET_NPDU_DATA *npdu_data,
-    uint8_t *npdu,
+    const BACNET_ADDRESS *src,
+    const BACNET_NPDU_DATA *npdu_data,
+    const uint8_t *npdu,
     uint16_t npdu_len)
 {
     DNET *port = NULL;
@@ -775,7 +779,7 @@ static void network_control_handler(uint16_t snet,
  * @param src [in] The BACNET_ADDRESS of the message's original src.
  */
 static void routed_src_address(
-    BACNET_ADDRESS *router_src, uint16_t snet, BACNET_ADDRESS *src)
+    BACNET_ADDRESS *router_src, uint16_t snet, const BACNET_ADDRESS *src)
 {
     unsigned int i = 0;
 

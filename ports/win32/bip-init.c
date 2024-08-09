@@ -317,7 +317,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
  *
  * @param addr - network IPv4 address
  */
-bool bip_set_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_addr(const BACNET_IP_ADDRESS *addr)
 {
     (void)addr;
     /* not something we do here within this application */
@@ -344,7 +344,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  * @param addr - network IPv4 address
  * @return true if the address was set
  */
-bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
 {
     (void)addr;
     /* not something we do within this application */
@@ -412,7 +412,8 @@ uint8_t bip_get_subnet_prefix(void)
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip_send_mpdu(
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     struct sockaddr_in bip_dest = { 0 };
     int rv = 0;
@@ -432,7 +433,7 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     /* Send the packet */
     debug_print_ipv4(
         "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
-    rv = sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
+    rv = sendto(BIP_Socket, (const char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
     if (rv == SOCKET_ERROR) {
         print_last_error("sendto");
@@ -737,7 +738,7 @@ static void set_broadcast_address(uint32_t net_address)
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for Windows, ifname is the dotted ip address of the interface
  */
-void bip_set_interface(char *ifname)
+void bip_set_interface(const char *ifname)
 {
     /* setup local address */
     if (BIP_Address.s_addr == 0) {
@@ -754,7 +755,7 @@ void bip_set_interface(char *ifname)
     }
 }
 
-static SOCKET createSocket(struct sockaddr_in *sin)
+static SOCKET createSocket(const struct sockaddr_in *sin)
 {
     int rv = 0; /* return from socket lib calls */
     int value = 1;

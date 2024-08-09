@@ -382,7 +382,7 @@ bool address_get_by_device(
  *
  * @return true/false
  */
-bool address_get_device_id(BACNET_ADDRESS *src, uint32_t *device_id)
+bool address_get_device_id(const BACNET_ADDRESS *src, uint32_t *device_id)
 {
     struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
@@ -413,7 +413,8 @@ bool address_get_device_id(BACNET_ADDRESS *src, uint32_t *device_id)
  * @param max_apdu  Maximum APDU size.
  * @param src  Pointer to address structure to add.
  */
-void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
+void address_add(
+    uint32_t device_id, unsigned max_apdu, const BACNET_ADDRESS *src)
 {
     bool found = false; /* return value */
     struct Address_Cache_Entry *pMatch;
@@ -594,7 +595,7 @@ bool address_bind_request(
  * @param src  Pointer to the BACnet address.
  */
 void address_add_binding(
-    uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
+    uint32_t device_id, unsigned max_apdu, const BACNET_ADDRESS *src)
 {
     struct Address_Cache_Entry *pMatch;
     unsigned index;

@@ -15,7 +15,7 @@ long bip_get_addr_by_name(const char *host_name)
     return 0;
 }
 
-void bip_set_interface(char *ifname)
+void bip_set_interface(const char *ifname)
 {
 }
 

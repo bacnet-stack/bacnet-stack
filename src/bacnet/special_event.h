@@ -42,7 +42,7 @@ extern "C" {
     /** Decode Special Event */
     BACNET_STACK_EXPORT
     int bacnet_special_event_decode(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         int max_apdu_len,
         BACNET_SPECIAL_EVENT * value);
 
@@ -50,20 +50,21 @@ extern "C" {
     BACNET_STACK_EXPORT
     int bacnet_special_event_encode(
         uint8_t * apdu,
-        BACNET_SPECIAL_EVENT * value);
+        const BACNET_SPECIAL_EVENT * value);
 
     BACNET_STACK_EXPORT
     int bacnet_special_event_context_encode(
-        uint8_t *apdu, uint8_t tag_number, BACNET_SPECIAL_EVENT *value);
+        uint8_t *apdu, uint8_t tag_number, const BACNET_SPECIAL_EVENT *value);
 
     BACNET_STACK_EXPORT
     int bacnet_special_event_context_decode(
-        uint8_t *apdu, int max_apdu_len, uint8_t tag_number,
+        const uint8_t *apdu, int max_apdu_len, uint8_t tag_number,
         BACNET_SPECIAL_EVENT *value);
 
     BACNET_STACK_EXPORT
     bool bacnet_special_event_same(
-        BACNET_SPECIAL_EVENT *value1, BACNET_SPECIAL_EVENT *value2);
+        const BACNET_SPECIAL_EVENT *value1,
+        const BACNET_SPECIAL_EVENT *value2);
 
 #ifdef __cplusplus
 }

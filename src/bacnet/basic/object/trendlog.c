@@ -910,7 +910,7 @@ bool TL_Is_Enabled(int iLog)
  * Convert a BACnet time into a local time in seconds since the local epoch  *
  *****************************************************************************/
 
-bacnet_time_t TL_BAC_Time_To_Local(BACNET_DATE_TIME *bdatetime)
+bacnet_time_t TL_BAC_Time_To_Local(const BACNET_DATE_TIME *bdatetime)
 {
     return datetime_seconds_since_epoch(bdatetime);
 }
@@ -1498,7 +1498,7 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
 
 static int local_read_property(uint8_t *value,
     uint8_t *status,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Source,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Source,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {

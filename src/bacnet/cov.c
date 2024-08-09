@@ -27,11 +27,11 @@ Unconfirmed COV Notification
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int cov_notify_encode_apdu(uint8_t *apdu, BACNET_COV_DATA *data)
+int cov_notify_encode_apdu(uint8_t *apdu, const BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
-    BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
+    const BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
 
     if (!data) {
         return 0;
@@ -95,7 +95,7 @@ int cov_notify_encode_apdu(uint8_t *apdu, BACNET_COV_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t cov_notify_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_COV_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_COV_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -122,7 +122,7 @@ size_t cov_notify_service_request_encode(
 int ccov_notify_encode_apdu(uint8_t *apdu,
     unsigned apdu_size,
     uint8_t invoke_id,
-    BACNET_COV_DATA *data)
+    const BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* return value */
@@ -157,7 +157,7 @@ int ccov_notify_encode_apdu(uint8_t *apdu,
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 int ucov_notify_encode_apdu(
-    uint8_t *apdu, unsigned apdu_size, BACNET_COV_DATA *data)
+    uint8_t *apdu, unsigned apdu_size, const BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* return value */
@@ -201,7 +201,7 @@ int ucov_notify_encode_apdu(
  * @return Bytes decoded or BACNET_STATUS_ERROR on error.
  */
 int cov_notify_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_COV_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_COV_DATA *data)
 {
     int len = 0; /* return value */
     int value_len = 0, tag_len = 0;
@@ -330,7 +330,8 @@ SubscribeCOV-Request ::= SEQUENCE {
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int cov_subscribe_apdu_encode(uint8_t *apdu, BACNET_SUBSCRIBE_COV_DATA *data)
+int cov_subscribe_apdu_encode(
+    uint8_t *apdu, const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -380,7 +381,7 @@ int cov_subscribe_apdu_encode(uint8_t *apdu, BACNET_SUBSCRIBE_COV_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t cov_subscribe_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -406,7 +407,7 @@ size_t cov_subscribe_service_request_encode(
 int cov_subscribe_encode_apdu(uint8_t *apdu,
     unsigned apdu_size,
     uint8_t invoke_id,
-    BACNET_SUBSCRIBE_COV_DATA *data)
+    const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -450,7 +451,7 @@ int cov_subscribe_encode_apdu(uint8_t *apdu,
  * @return Bytes decoded or Zero/BACNET_STATUS_ERROR on error.
  */
 int cov_subscribe_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* return value */
     int value_len = 0;
@@ -570,7 +571,7 @@ BACnetPropertyReference ::= SEQUENCE {
  * @return bytes encoded or zero on error.
  */
 int cov_subscribe_property_apdu_encode(
-    uint8_t *apdu, BACNET_SUBSCRIBE_COV_DATA *data)
+    uint8_t *apdu, const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -649,7 +650,7 @@ int cov_subscribe_property_apdu_encode(
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t cov_subscribe_property_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -674,7 +675,7 @@ size_t cov_subscribe_property_service_request_encode(
 int cov_subscribe_property_encode_apdu(uint8_t *apdu,
     unsigned apdu_size,
     uint8_t invoke_id,
-    BACNET_SUBSCRIBE_COV_DATA *data)
+    const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -714,7 +715,7 @@ int cov_subscribe_property_encode_apdu(uint8_t *apdu,
  * @return Bytes decoded or Zero/BACNET_STATUS_ERROR on error.
  */
 int cov_subscribe_property_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA *data)
+    const uint8_t *apdu, unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* return value */
     uint8_t tag_number = 0;
@@ -1105,7 +1106,7 @@ bool cov_value_list_encode_signed_int(BACNET_PROPERTY_VALUE *value_list,
  * @return true if values were encoded
  */
 bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
-    BACNET_CHARACTER_STRING *value,
+    const BACNET_CHARACTER_STRING *value,
     bool in_alarm,
     bool fault,
     bool overridden,
@@ -1161,7 +1162,7 @@ bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
  * @return true if values were encoded
  */
 bool cov_value_list_encode_bit_string(BACNET_PROPERTY_VALUE *value_list,
-    BACNET_BIT_STRING *value,
+    const BACNET_BIT_STRING *value,
     bool in_alarm,
     bool fault,
     bool overridden,

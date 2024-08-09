@@ -205,13 +205,13 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s device-instance file-instance local-name\n", filename);
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf(
         "Read a file from a BACnet device and save it locally.\n");
@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
     bool found = false;
     uint16_t my_max_apdu = 0;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     /* print help if requested */
     filename = filename_remove_path(argv[0]);

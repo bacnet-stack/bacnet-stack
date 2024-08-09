@@ -15,7 +15,7 @@
 
 /* function API pattern for testing ASCII name get/set */
 typedef bool (*object_name_ascii_set_function) (uint32_t object_instance,
-    char *new_name);
+    const char *new_name);
 typedef const char * (*object_name_ascii_function) (
     uint32_t object_instance);
 

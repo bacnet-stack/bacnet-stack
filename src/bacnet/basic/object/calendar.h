@@ -47,7 +47,7 @@ BACNET_STACK_EXPORT
 bool Calendar_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
-bool Calendar_Name_Set(uint32_t object_instance, char *new_name);
+bool Calendar_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
 const char *Calendar_Name_ASCII(uint32_t object_instance);
 
@@ -68,7 +68,7 @@ BACNET_CALENDAR_ENTRY *Calendar_Date_List_Get(
     uint32_t object_instance, uint8_t index);
 BACNET_STACK_EXPORT
 bool Calendar_Date_List_Add(
-    uint32_t object_instance, BACNET_CALENDAR_ENTRY *value);
+    uint32_t object_instance, const BACNET_CALENDAR_ENTRY *value);
 BACNET_STACK_EXPORT
 bool Calendar_Date_List_Delete_All(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -78,9 +78,9 @@ int Calendar_Date_List_Encode(
     uint32_t object_instance, uint8_t *apdu, int max_apdu);
 
 BACNET_STACK_EXPORT
-char *Calendar_Description(uint32_t object_instance);
+const char *Calendar_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Calendar_Description_Set(uint32_t object_instance, char *new_name);
+bool Calendar_Description_Set(uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 bool Calendar_Write_Enabled(uint32_t instance);

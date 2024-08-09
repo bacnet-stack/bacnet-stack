@@ -19,7 +19,7 @@
  * @param dest [out] The 'to' structure
  * @param src   [in] The 'from' structure
  */
-void npdu_copy_data(BACNET_NPDU_DATA *dest, BACNET_NPDU_DATA *src)
+void npdu_copy_data(BACNET_NPDU_DATA *dest, const BACNET_NPDU_DATA *src)
 {
     if (dest && src) {
         dest->protocol_version = src->protocol_version;
@@ -98,7 +98,7 @@ ABORT.indication               Yes         Yes         Yes        No
 int npdu_encode_pdu(uint8_t *npdu,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
-    BACNET_NPDU_DATA *npdu_data)
+    const BACNET_NPDU_DATA *npdu_data)
 {
     int len = 0; /* return value - number of octets loaded in this function */
     uint8_t i = 0; /* counter  */
@@ -263,7 +263,7 @@ int bacnet_npdu_encode_pdu(uint8_t *pdu,
     uint16_t pdu_size,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
-    BACNET_NPDU_DATA *npdu_data)
+    const BACNET_NPDU_DATA *npdu_data)
 {
     int pdu_len = 0;
 
@@ -389,7 +389,7 @@ void npdu_encode_npdu_network(BACNET_NPDU_DATA *npdu_data,
  * be more bytes left in the NPDU; if not a network msg, the APDU follows. If 0
  * or negative, there were problems with the data or arguments.
  */
-int npdu_decode(uint8_t *npdu,
+int npdu_decode(const uint8_t *npdu,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data)
@@ -421,7 +421,7 @@ int npdu_decode(uint8_t *npdu,
  * be more bytes left in the NPDU; if not a network msg, the APDU follows. If 0
  * or negative, there were problems with the data or arguments.
  */
-int bacnet_npdu_decode(uint8_t *npdu,
+int bacnet_npdu_decode(const uint8_t *npdu,
     uint16_t pdu_len,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
@@ -587,7 +587,7 @@ int bacnet_npdu_decode(uint8_t *npdu,
  * @param pdu_len [in] The size of the received message in the pdu[] buffer.
  * @return true if the PDU is a confirmed APDU
  */
-bool npdu_confirmed_service(uint8_t *pdu, uint16_t pdu_len)
+bool npdu_confirmed_service(const uint8_t *pdu, uint16_t pdu_len)
 {
     bool status = false;
     int apdu_offset = 0;

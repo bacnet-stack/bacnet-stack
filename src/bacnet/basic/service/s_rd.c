@@ -36,7 +36,9 @@
  * @return The invokeID of the transmitted message, or 0 on failure.
  */
 uint8_t Send_Reinitialize_Device_Request(
-    uint32_t device_id, BACNET_REINITIALIZED_STATE state, char *password)
+    uint32_t device_id,
+    BACNET_REINITIALIZED_STATE state,
+    const char *password)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;

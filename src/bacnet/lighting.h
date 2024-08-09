@@ -91,25 +91,25 @@ extern "C" {
     BACNET_STACK_EXPORT
     int lighting_command_encode(
         uint8_t * apdu,
-        BACNET_LIGHTING_COMMAND * data);
+        const BACNET_LIGHTING_COMMAND * data);
     BACNET_STACK_EXPORT
     int lighting_command_encode_context(
         uint8_t * apdu,
         uint8_t tag_number,
-        BACNET_LIGHTING_COMMAND * value);
+        const BACNET_LIGHTING_COMMAND * value);
     BACNET_STACK_EXPORT
     int lighting_command_decode(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_max_len,
         BACNET_LIGHTING_COMMAND * data);
     BACNET_STACK_EXPORT
     bool lighting_command_copy(
         BACNET_LIGHTING_COMMAND * dst,
-        BACNET_LIGHTING_COMMAND * src);
+        const BACNET_LIGHTING_COMMAND * src);
     BACNET_STACK_EXPORT
     bool lighting_command_same(
-        BACNET_LIGHTING_COMMAND * dst,
-        BACNET_LIGHTING_COMMAND * src);
+        const BACNET_LIGHTING_COMMAND * dst,
+        const BACNET_LIGHTING_COMMAND * src);
 
     BACNET_STACK_EXPORT
     bool lighting_command_from_ascii(
@@ -123,31 +123,31 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int xy_color_encode(uint8_t *apdu,
-        BACNET_XY_COLOR *value);
+        const BACNET_XY_COLOR *value);
     BACNET_STACK_EXPORT
     int xy_color_context_encode(
         uint8_t * apdu,
         uint8_t tag_number,
-        BACNET_XY_COLOR *value);
+        const BACNET_XY_COLOR *value);
     BACNET_STACK_EXPORT
     int xy_color_decode(
-        uint8_t *apdu,
+        const uint8_t *apdu,
         uint32_t apdu_size,
         BACNET_XY_COLOR *value);
     BACNET_STACK_EXPORT
     int xy_color_context_decode(
-        uint8_t *apdu,
+        const uint8_t *apdu,
         uint32_t apdu_size,
         uint8_t tag_number,
         BACNET_XY_COLOR *value);
     BACNET_STACK_EXPORT
     int xy_color_copy(
         BACNET_XY_COLOR *dst,
-        BACNET_XY_COLOR *src);
+        const BACNET_XY_COLOR *src);
     BACNET_STACK_EXPORT
     bool xy_color_same(
-        BACNET_XY_COLOR *value1,
-        BACNET_XY_COLOR *value2);
+        const BACNET_XY_COLOR *value1,
+        const BACNET_XY_COLOR *value2);
     BACNET_STACK_EXPORT
     void xy_color_set(
         BACNET_XY_COLOR *dst,
@@ -166,25 +166,25 @@ extern "C" {
     BACNET_STACK_EXPORT
     int color_command_encode(
         uint8_t * apdu,
-        BACNET_COLOR_COMMAND *address);
+        const BACNET_COLOR_COMMAND *address);
     BACNET_STACK_EXPORT
     int color_command_context_encode(
         uint8_t * apdu,
         uint8_t tag_number,
-        BACNET_COLOR_COMMAND *address);
+        const BACNET_COLOR_COMMAND *address);
     BACNET_STACK_EXPORT
-    int color_command_decode(uint8_t *apdu,
+    int color_command_decode(const uint8_t *apdu,
         uint16_t apdu_len,
         BACNET_ERROR_CODE *error_code,
         BACNET_COLOR_COMMAND *address);
     BACNET_STACK_EXPORT
     bool color_command_copy(
         BACNET_COLOR_COMMAND * dst,
-        BACNET_COLOR_COMMAND * src);
+        const BACNET_COLOR_COMMAND * src);
     BACNET_STACK_EXPORT
     bool color_command_same(
-        BACNET_COLOR_COMMAND * dst,
-        BACNET_COLOR_COMMAND * src);
+        const BACNET_COLOR_COMMAND * dst,
+        const BACNET_COLOR_COMMAND * src);
 
 #ifdef __cplusplus
 }

@@ -40,23 +40,23 @@ extern "C" {
     /* returns the max size of the data block */
     BACNET_STACK_EXPORT
     unsigned sbuf_size(
-        STATIC_BUFFER * b);
+        STATIC_BUFFER const *b);
     /* returns the number of bytes used in the data block */
     BACNET_STACK_EXPORT
     unsigned sbuf_count(
-        STATIC_BUFFER * b);
+        STATIC_BUFFER const *b);
     /* returns true if successful, false if not enough room to append data */
     BACNET_STACK_EXPORT
     bool sbuf_put(
         STATIC_BUFFER * b,      /* static buffer structure */
         unsigned offset,        /* where to start */
-        char *data,     /* data to add */
+        const char *data,       /* data to add */
         unsigned data_size);    /* how many to add */
     /* returns true if successful, false if not enough room to append data */
     BACNET_STACK_EXPORT
     bool sbuf_append(
         STATIC_BUFFER * b,      /* static buffer structure */
-        char *data,     /* data to append */
+        const char *data,       /* data to append */
         unsigned data_size);    /* how many to append */
     /* returns true if successful, false if count is bigger than size */
     BACNET_STACK_EXPORT

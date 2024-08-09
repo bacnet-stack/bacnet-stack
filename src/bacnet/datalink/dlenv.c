@@ -77,7 +77,7 @@ void bip_dl_debug_disable(void)
  * @param address - IPv4 address (uint32_t) of BBMD to register with,
  *  in network byte order.
  */
-void dlenv_bbmd_address_set(BACNET_IP_ADDRESS *address)
+void dlenv_bbmd_address_set(const BACNET_IP_ADDRESS *address)
 {
     bvlc_address_copy(&BBMD_Address, address);
     BBMD_Address_Valid = true;

@@ -69,7 +69,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Multistate_Value_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
     BACNET_STACK_EXPORT
     const char *Multistate_Value_Name_ASCII(
         uint32_t object_instance);
@@ -105,12 +105,12 @@ extern "C" {
         bool value);
 
     BACNET_STACK_EXPORT
-    char *Multistate_Value_Description(
+    const char *Multistate_Value_Description(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool Multistate_Value_Description_Set(
         uint32_t object_instance,
-        char *text_string);
+        const char *text_string);
 
     BACNET_STACK_EXPORT
     bool Multistate_Value_State_Text_List_Set(
@@ -129,7 +129,7 @@ extern "C" {
     uint32_t Multistate_Value_Max_States(
         uint32_t instance);
     BACNET_STACK_EXPORT
-    char *Multistate_Value_State_Text(
+    const char *Multistate_Value_State_Text(
         uint32_t object_instance,
         uint32_t state_index);
 

@@ -92,7 +92,7 @@ struct mstp_port {
 
 struct object_data {
     uint32_t Instance_Number;
-    char *Object_Name;
+    const char *Object_Name;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service : 1;
     bool Changes_Pending : 1;
@@ -314,7 +314,7 @@ bool Network_Port_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Network_Port_Name_Set(uint32_t object_instance, char *new_name)
+bool Network_Port_Name_Set(uint32_t object_instance, const char *new_name)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -746,7 +746,7 @@ bool Network_Port_MAC_Address(
  * @return  true if object-name was set
  */
 bool Network_Port_MAC_Address_Set(
-    uint32_t object_instance, uint8_t *mac_src, uint8_t mac_len)
+    uint32_t object_instance, const uint8_t *mac_src, uint8_t mac_len)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -2109,7 +2109,7 @@ bool Network_Port_Remote_BBMD_IP6_Address(
  * @return  true if ip-address was set
  */
 bool Network_Port_Remote_BBMD_IP6_Address_Set(
-    uint32_t object_instance, uint8_t *addr)
+    uint32_t object_instance, const uint8_t *addr)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -2326,7 +2326,7 @@ bool Network_Port_IPv6_Address(
  * @return  true if ip-address was set
  */
 bool Network_Port_IPv6_Address_Set(
-    uint32_t object_instance, uint8_t *ip_address)
+    uint32_t object_instance, const uint8_t *ip_address)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -2437,7 +2437,7 @@ bool Network_Port_IPv6_Gateway(
  * @return  true if ip-address was set
  */
 bool Network_Port_IPv6_Gateway_Set(
-    uint32_t object_instance, uint8_t *ip_address)
+    uint32_t object_instance, const uint8_t *ip_address)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -2529,7 +2529,7 @@ static int Network_Port_IPv6_DNS_Server_Encode(
  * @return  true if ip-address was set
  */
 bool Network_Port_IPv6_DNS_Server_Set(
-    uint32_t object_instance, unsigned dns_index, uint8_t *ip_address)
+    uint32_t object_instance, unsigned dns_index, const uint8_t *ip_address)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -2588,7 +2588,7 @@ bool Network_Port_IPv6_Multicast_Address(
  * @return  true if ip-address was set
  */
 bool Network_Port_IPv6_Multicast_Address_Set(
-    uint32_t object_instance, uint8_t *ip_address)
+    uint32_t object_instance, const uint8_t *ip_address)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -2646,7 +2646,7 @@ bool Network_Port_IPv6_DHCP_Server(
  * @return  true if ip-address was set
  */
 bool Network_Port_IPv6_DHCP_Server_Set(
-    uint32_t object_instance, uint8_t *ip_address)
+    uint32_t object_instance, const uint8_t *ip_address)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -2837,7 +2837,7 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
  */
 static bool Network_Port_FD_BBMD_Address_Write(
     uint32_t object_instance,
-    BACNET_HOST_N_PORT *value,
+    const BACNET_HOST_N_PORT *value,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {

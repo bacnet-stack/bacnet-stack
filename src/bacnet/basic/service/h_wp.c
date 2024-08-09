@@ -146,7 +146,7 @@ void handler_write_property(uint8_t *service_request,
  *
  * @return True on success, false otherwise.
  */
-bool WPValidateString(BACNET_APPLICATION_DATA_VALUE *pValue,
+bool WPValidateString(const BACNET_APPLICATION_DATA_VALUE *pValue,
     int iMaxLen,
     bool bEmptyAllowed,
     BACNET_ERROR_CLASS *pErrorClass,
@@ -193,7 +193,7 @@ bool WPValidateString(BACNET_APPLICATION_DATA_VALUE *pValue,
  * validation fails. Cuts out reams of repeated code in the object code.
  */
 
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+bool WPValidateArgType(const BACNET_APPLICATION_DATA_VALUE *pValue,
     uint8_t ucExpectedTag,
     BACNET_ERROR_CLASS *pErrorClass,
     BACNET_ERROR_CODE *pErrorCode)

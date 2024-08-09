@@ -25,7 +25,7 @@
  *  or object ID, if the Device has a match.
  *  @param data [in] The decoded who-has payload from the request.
  */
-static void match_name_or_object(BACNET_WHO_HAS_DATA *data)
+static void match_name_or_object(const BACNET_WHO_HAS_DATA *data)
 {
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;

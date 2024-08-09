@@ -19,7 +19,9 @@ uint32_t Device_Object_Instance_Number(void)
 }
 
 int Send_UEvent_Notify(
-    uint8_t *buffer, BACNET_EVENT_NOTIFICATION_DATA *data, BACNET_ADDRESS *dest)
+    uint8_t *buffer,
+    const BACNET_EVENT_NOTIFICATION_DATA *data,
+    BACNET_ADDRESS *dest)
 {
     (void)buffer;
     (void)data;
