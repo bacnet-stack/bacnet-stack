@@ -88,7 +88,7 @@ extern "C" {
         OS_Keylist list,
         KEY key);
 
-/* returns the data specified by key */
+/* returns the data specified by index */
     BACNET_STACK_EXPORT
     void *Keylist_Data_Index(
         OS_Keylist list,
