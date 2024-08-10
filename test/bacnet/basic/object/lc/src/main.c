@@ -179,8 +179,96 @@ static void Load_Control_WriteProperty_Start_Time(
     zassert_true(status, NULL);
 }
 
-static uint8_t test_load_control_manipulated_object_priority = 16;
-static float test_load_control_manipulated_object_present_value = 0.0f;
+/**
+ * Test object for the Load Control object manipulation
+ */
+struct object_data {
+    bool Relinquished[BACNET_MAX_PRIORITY];
+    float Priority_Array[BACNET_MAX_PRIORITY];
+    float Relinquish_Default;
+} Test_Object_Data;
+
+/**
+ * @brief For a given object instance-number, determines the present-value
+ * @param  object_instance - object-instance number of the object
+ * @return  present-value of the object
+ */
+static float Test_Present_Value(void)
+{
+    float value;
+    uint8_t priority;
+
+    value = Test_Object_Data.Relinquish_Default;
+    for (priority = 0; priority < BACNET_MAX_PRIORITY; priority++) {
+        if (!Test_Object_Data.Relinquished[priority]) {
+            value = Test_Object_Data.Priority_Array[priority];
+            break;
+        }
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, determines the priority
+ * @param  object_instance - object-instance number of the object
+ * @return  active priority 1..16, or 0 if no priority is active
+ */
+static unsigned Test_Present_Value_Priority(void)
+{
+    unsigned p = 0; /* loop counter */
+    unsigned priority = 0; /* return value */
+
+    for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
+        if (!Test_Object_Data.Relinquished[p]) {
+            priority = p + 1;
+            break;
+        }
+    }
+
+    return priority;
+}
+
+/**
+ * @brief For a given object instance-number, sets the present-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point analog value
+ * @param  priority - priority-array index value 1..16
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Test_Present_Value_Priority_Set(float value, unsigned priority)
+{
+    bool status = false;
+
+    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        Test_Object_Data.Relinquished[priority - 1] = false;
+        Test_Object_Data.Priority_Array[priority - 1] = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, relinquishes the present-value
+ * @param  object_instance - object-instance number of the object
+ * @param  priority - priority-array index value 1..16
+ * @return  true if values are within range and present-value is relinquished.
+ */
+static bool Test_Present_Value_Priority_Relinquish(
+    unsigned priority)
+{
+    bool status = false;
+
+    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        Test_Object_Data.Relinquished[priority - 1] = true;
+        Test_Object_Data.Priority_Array[priority - 1] = 0.0;
+        status = true;
+    }
+
+    return status;
+}
+
 static BACNET_OBJECT_PROPERTY_REFERENCE test_object_property_reference;
 
 static void test_load_control_manipulated_object_read(
@@ -199,10 +287,10 @@ static void test_load_control_manipulated_object_read(
     zassert_equal(
         test_object_property_reference.property_identifier, property_id, NULL);
     if (priority) {
-        *priority = test_load_control_manipulated_object_priority;
+        *priority = Test_Present_Value_Priority();
     }
     if (value) {
-        *value = test_load_control_manipulated_object_present_value;
+        *value = Test_Present_Value();
     }
 }
 
@@ -229,8 +317,7 @@ static void test_load_control_manipulated_object_write(
         object_instance, NULL);
     zassert_equal(
         test_object_property_reference.property_identifier, property_id, NULL);
-    test_load_control_manipulated_object_priority = priority;
-    test_load_control_manipulated_object_present_value = value;
+    Test_Present_Value_Priority_Set(value, priority);    
 }
 
 /**
@@ -254,14 +341,13 @@ static void test_load_control_manipulated_object_relinquish(
         object_instance, NULL);
     zassert_equal(
         test_object_property_reference.property_identifier, property_id, NULL);
-    (void)priority;
-    test_load_control_manipulated_object_priority = 16;
-    test_load_control_manipulated_object_present_value = 100.0f;
+    Test_Present_Value_Priority_Relinquish(priority);
 }
 
 static void test_setup(uint32_t object_instance)
 {
     uint32_t test_object_instance = 0;
+    unsigned priority = 0;
 
     Load_Control_Init();
     test_object_instance = Load_Control_Create(object_instance);
@@ -281,6 +367,12 @@ static void test_setup(uint32_t object_instance)
         object_instance, test_load_control_manipulated_object_relinquish);
     Load_Control_Manipulated_Object_Read_Callback_Set(
         object_instance, test_load_control_manipulated_object_read);
+    /* target object */
+    for (priority = 1; priority <= BACNET_MAX_PRIORITY; priority++) {
+        Test_Present_Value_Priority_Relinquish(priority);
+    }
+    Test_Present_Value_Priority_Set(0.0f, 16);
+    Load_Control_Priority_For_Writing_Set(object_instance, 4);
 }
 
 static void test_teardown(uint32_t object_instance)
@@ -453,8 +545,7 @@ static void testLoadControlStateMachine(void)
         BACNET_SHED_REQUEST_PENDING, NULL);
     /* set to lowest value so we cannot meet the shed level */
     datetime_set_values(&bdatetime, 2007, 2, 27, 16, 0, 0, 0);
-    test_load_control_manipulated_object_priority = 16;
-    test_load_control_manipulated_object_present_value = 0.0f;
+    Test_Present_Value_Priority_Set(0.0f, 16);
     Load_Control_State_Machine(object_index, &bdatetime);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_NON_COMPLIANT,
@@ -491,8 +582,7 @@ static void testLoadControlStateMachine(void)
         BACNET_SHED_REQUEST_PENDING, NULL);
     /* set to lowest value so we cannot meet the shed level */
     datetime_set_values(&bdatetime, 2007, 2, 27, 16, 0, 0, 0);
-    test_load_control_manipulated_object_priority = 16;
-    test_load_control_manipulated_object_present_value = 0.0f;
+    Test_Present_Value_Priority_Set(0.0f, 16);
     Load_Control_State_Machine(object_index, &bdatetime);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_NON_COMPLIANT,
@@ -518,17 +608,16 @@ static void testLoadControlStateMachine(void)
         Load_Control_Present_Value(object_instance), BACNET_SHED_NON_COMPLIANT,
         NULL);
     /* CanNowComplyWithShed */
-    test_load_control_manipulated_object_priority = 16;
-    test_load_control_manipulated_object_present_value = 100.0f;
+    Test_Present_Value_Priority_Set(100.0f, 16);
     datetime_set_values(&bdatetime, 2007, 2, 27, 16, 0, 2, 0);
     Load_Control_State_Machine(object_index, &bdatetime);
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_COMPLIANT,
         NULL);
-    level = test_load_control_manipulated_object_present_value;
-    zassert_false(
-        islessgreater(90.0f, level), "Present Value = %f", (double)level);
-    priority = test_load_control_manipulated_object_priority;
+    level = Test_Present_Value();
+    zassert_true(islessgreater(100.0f, level), 
+        "Present Value = %f", (double)level);
+    priority = Test_Present_Value_Priority();
     zassert_equal(
         Load_Control_Priority_For_Writing(object_instance), priority, NULL);
     /* FinishedSuccessfulShed */
@@ -537,10 +626,10 @@ static void testLoadControlStateMachine(void)
     zassert_equal(
         Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
         NULL);
-    level = test_load_control_manipulated_object_present_value;
+    level = Test_Present_Value();
     zassert_false(
         islessgreater(100.0f, level), "Present Value = %f", (double)level);
-    priority = test_load_control_manipulated_object_priority;
+    priority = Test_Present_Value_Priority();
     zassert_equal(16, priority, NULL);
     test_teardown(object_instance);
 }
