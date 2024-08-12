@@ -51,12 +51,8 @@ skeleton or example or template files, and are not copyrighted as GPL.
 
 The text of the GPL exception included in each source file is as follows: 
 
-"As a special exception, if other files instantiate templates or use macros or
-inline functions from this file, or you compile this file and link it with
-other works to produce a work based on this file, this file does not by itself
-cause the resulting work to be covered by the GNU General Public License.
-However the source code for this file must still be made available in
-accordance with section (3) of the GNU General Public License."
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+                                             ^^^^^^^^^^^^^^^^^^^^^^
 
 The code is written in C for portability, and includes unit tests (PC based
 unit tests). Since the code is designed to be portable, it compiles with GCC as
