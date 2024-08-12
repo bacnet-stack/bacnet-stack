@@ -1,13 +1,10 @@
 /**
  * @file
- * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2022
  * @brief computes sRGB to and from from CIE xy and brightness
- *
- * @section LICENSE
- *
- * Public domain algorithms from Philips and W3C
- *
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @note Public domain algorithms from Philips and W3C
+ * @date 2022
+ * @copyright SPDX-License-Identifier: CC-PDDC
  */
 #include <stddef.h>
 #include <stdint.h>
@@ -72,12 +69,15 @@ static void color_rgb_to_xy_gamma_correction(uint8_t r,
            This gamma correction is also applied to the screen
            of your computer or phone, thus we need this to create
            the same color on the light as on screen. */
-        red = (red > 0.04045f) ? pow((red + 0.055f) / (1.0f + 0.055f), 2.4f)
-                               : (red / 12.92f);
-        green = (green > 0.04045f) ? pow((green + 0.055f) / (1.0f + 0.055f), 2.4f)
-                                   : (green / 12.92f);
-        blue = (blue > 0.04045f) ? pow((blue + 0.055f) / (1.0f + 0.055f), 2.4f)
-                                 : (blue / 12.92f);
+        red = (red > 0.04045f)
+            ? (float)pow(((double)red + 0.055) / (1.0 + 0.055), 2.4)
+            : (red / 12.92f);
+        green = (green > 0.04045f)
+            ? (float)pow(((double)green + 0.055) / (1.0 + 0.055), 2.4)
+            : (green / 12.92f);
+        blue = (blue > 0.04045f)
+            ? (float)pow(((double)blue + 0.055) / (1.0 + 0.055), 2.4)
+            : (blue / 12.92f);
     }
 
     /*  Convert the RGB values to XYZ using the
@@ -192,12 +192,15 @@ static void color_rgb_from_xy_gamma_correction(uint8_t *red,
 
     if (gamma_correction) {
         /*  Apply reverse gamma correction */
-        r = r <= 0.0031308f ? 12.92f * r
-                            : (1.0f + 0.055f) * pow(r, (1.0f / 2.4f)) - 0.055f;
-        g = g <= 0.0031308f ? 12.92f * g
-                            : (1.0f + 0.055f) * pow(g, (1.0f / 2.4f)) - 0.055f;
-        b = b <= 0.0031308f ? 12.92f * b
-                            : (1.0f + 0.055f) * pow(b, (1.0f / 2.4f)) - 0.055f;
+        r = r <= 0.0031308f
+            ? 12.92f * r
+            : (1.0f + 0.055f) * (float)pow((double)r, (1.0 / 2.4)) - 0.055f;
+        g = g <= 0.0031308f
+            ? 12.92f * g
+            : (1.0f + 0.055f) * (float)pow((double)g, (1.0 / 2.4)) - 0.055f;
+        b = b <= 0.0031308f
+            ? 12.92f * b
+            : (1.0f + 0.055f) * (float)pow((double)b, (1.0 / 2.4)) - 0.055f;
     }
 
     /*  Convert the RGB values to your color object

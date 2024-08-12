@@ -3,15 +3,14 @@
  * @brief Core BACnet defines and enumerations and structures
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
- * @copyright 2004 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACDEF_H
-#define BACDEF_H
+#ifndef BACNET_DEFINES_H
+#define BACNET_DEFINES_H
 
 #include <stddef.h>
 #include <stdint.h>
+#include <limits.h>
 /* config is always first to allow developers to override */
 #include "bacnet/config.h"
 /* BACnet Stack core enumerations */

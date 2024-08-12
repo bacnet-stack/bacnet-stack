@@ -1053,6 +1053,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\abort.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\bacaction.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\bacaddr.c</name>
         </file>
         <file>

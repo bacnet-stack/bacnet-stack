@@ -19,6 +19,7 @@ get_filename_component(BACNET_NAME ${BACNET_BASE} NAME)
 
 # Update include path for this module
 list(APPEND BACNET_INCLUDE ${BACNET_BASE}/src)
+set(TEST_OBJECT_SRC ${BACNET_BASE}/test/bacnet/basic/object/test)
 
 if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
@@ -27,13 +28,14 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
     ${BACNET_TEST_PATH}/stubs.c
-    ${BACNET_TEST_PATH}/../mock/device_mock.c
+    ${TEST_OBJECT_SRC}/device_mock.c
     )
 
   get_filename_component(BACNET_OBJECT_SRC ${BACNET_SRC_PATH} PATH)
   get_filename_component(BACNET_BASIC_SRC ${BACNET_OBJECT_SRC} PATH)
   get_filename_component(BACNET_SRC ${BACNET_BASIC_SRC} PATH)
   list(APPEND SOURCES
+    ${BACNET_SRC}/bacaction.c
     ${BACNET_SRC}/bacaddr.c
     ${BACNET_SRC}/bacapp.c
     ${BACNET_SRC}/bacdcode.c
@@ -73,4 +75,7 @@ else()
     )
 endif()
 
-add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig
+add_compile_definitions(
+  CONFIG_ZTEST_NEW_API
+  BACNET_STACK_DEPRECATED_DISABLE
+  )

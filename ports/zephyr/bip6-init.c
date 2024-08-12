@@ -355,6 +355,25 @@ int bip6_send_pdu(
 }
 
 /**
+ * @brief Generate ASCII address string from BACnet/IPv6 address
+ * @param s - buffer to store the string
+ * @param n - size of the buffer
+ * @param addr - BACnet/IPv6 address
+ */
+static int bvlc6_snprintf_addr(char *s, size_t n, BACNET_IP6_ADDRESS *addr)
+{
+    uint16_t addr16[8];
+
+    bvlc6_address_get(
+        addr, &addr16[0], &addr16[1], &addr16[2], &addr16[3], &addr16[4],
+        &addr16[5], &addr16[6], &addr16[7]);
+    
+    return snprintf(s, n, "%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X",
+        addr16[0], addr16[1], addr16[2], addr16[3], addr16[4], addr16[5],
+        addr16[6], addr16[7]);
+}
+
+/**
  * BACnet/IP Datalink Receive handler.
  *
  * @param src - returns the source address
@@ -477,29 +496,33 @@ void bip6_cleanup(void)
  */
 bool bip6_init(char *ifname)
 {
-    int sock_fd = -1;
     int status = -1;
     struct sockaddr_in6 server = { 0 };
     struct in6_addr broadcast_address;
     struct ipv6_mreq join_request;
     const int sockopt = 1;
+    char addr6_str[40] = "";
 
     LOG_DBG("bip6_init()");
-    bip6_set_interface(ifname);
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0U);
     }
+    bip6_set_interface(ifname);
     LOG_INF("BIP6: IPv6 UDP port: 0x%04X", (unsigned)BIP6_Addr.port);
+    bvlc6_snprintf_addr(addr6_str, sizeof(addr6_str), &BIP6_Addr);
+    LOG_INF("BIP6: IPv6 unicast addr: %s", addr6_str);
     if (BIP6_Broadcast_Addr.address[0] == 0) {
         bvlc6_address_set(
             &BIP6_Broadcast_Addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0, 0, 0, 0, 0,
             BIP6_MULTICAST_GROUP_ID);
         LOG_INF("BIP6: IPv6 MULTICAST_SITE_LOCAL");
     }
+    bvlc6_snprintf_addr(addr6_str, sizeof(addr6_str), &BIP6_Broadcast_Addr);
+    LOG_INF("BIP6: IPv6 multicast addr: %s", addr6_str);
+
     /* assumes that the driver has already been initialized */
-    sock_fd = zsock_socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-    BIP6_Socket = sock_fd;
-    if (sock_fd < 0) {
+    BIP6_Socket = zsock_socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+    if (BIP6_Socket < 0) {
         LOG_ERR("%s:%d - Failed to create socket", THIS_FILE, __LINE__);
         return false;
     } else {
@@ -509,11 +532,16 @@ bool bip6_init(char *ifname)
     /* Allow us to use the same socket for sending and receiving */
     /* This makes sure that the src port is correct when sending */
     status = zsock_setsockopt(
-        sock_fd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof(sockopt));
+        BIP6_Socket, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof(sockopt));
     if (status < 0) {
-        zsock_close(sock_fd);
-        BIP6_Socket = -1;
-        return false;
+        LOG_ERR("BIP6: setsockopt(SO_REUSEADDR)");
+    }
+    /* allow us to send a broadcast */
+    status = zsock_setsockopt(
+        BIP6_Socket, SOL_SOCKET, SO_BROADCAST, &sockopt, sizeof(sockopt));
+    if (status < 0) {
+        /* ignored? For compatibility? Really? */
+        LOG_ERR("BIP6: setsockopt(SO_BROADCAST)");
     }
     /* subscribe to a multicast address */
     memcpy(
@@ -528,31 +556,40 @@ bool bip6_init(char *ifname)
         BIP6_Socket, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &join_request,
         sizeof(join_request));
     if (status < 0) {
-        perror("BIP6: setsockopt(IPV6_ADD_MEMBERSHIP)");
+        LOG_ERR("BIP6: setsockopt(IPV6_ADD_MEMBERSHIP)");
+        return false;
     }
-
     /* bind the socket to the local port number and IP address */
     server.sin6_family = AF_INET6;
-
+#if 0
+    uint16_t addr16[8];
+    bvlc6_address_get(&BIP6_Addr, &addr16[0], &addr16[1], &addr16[2],
+        &addr16[3], &addr16[4], &addr16[5], &addr16[6], &addr16[7]);
+    server.sin6_addr.s6_addr16[0] = htons(addr16[0]);
+    server.sin6_addr.s6_addr16[1] = htons(addr16[1]);
+    server.sin6_addr.s6_addr16[2] = htons(addr16[2]);
+    server.sin6_addr.s6_addr16[3] = htons(addr16[3]);
+    server.sin6_addr.s6_addr16[4] = htons(addr16[4]);
+    server.sin6_addr.s6_addr16[5] = htons(addr16[5]);
+    server.sin6_addr.s6_addr16[6] = htons(addr16[6]);
+    server.sin6_addr.s6_addr16[7] = htons(addr16[7]);
+#else
     server.sin6_addr = in6addr_any;
+#endif
     server.sin6_port = htons(BIP6_Addr.port);
-
     LOG_INF("BIP6: Binding to port %d", BIP6_Addr.port);
-
     status =
-        zsock_bind(sock_fd, (const struct sockaddr *)&server, sizeof(server));
+        zsock_bind(BIP6_Socket, (const struct sockaddr *)&server, sizeof(server));
     if (status < 0) {
-        zsock_close(sock_fd);
+        zsock_close(BIP6_Socket);
         BIP6_Socket = -1;
         LOG_ERR("%s:%d - zsock_bind() failure", THIS_FILE, __LINE__);
         return false;
     } else {
-        LOG_INF("BIP6: Socket bound");
+        LOG_INF("BIP6: Socket bound. Success!");
     }
-
     bvlc6_init();
 
-    LOG_DBG("bip6_init() success");
     return true;
 }
 

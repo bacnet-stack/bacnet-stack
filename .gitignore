@@ -71,6 +71,7 @@ CMakeLists.txt.user
 Obj/
 Release/
 
+/twister-out/*
 /test/build/
 /cmake-build-*
 /.idea

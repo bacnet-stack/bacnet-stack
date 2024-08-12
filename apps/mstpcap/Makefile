@@ -31,33 +31,36 @@ SRCS = main.c \
 # This demo seems to be a little unique
 DEFINES = $(BACNET_DEFINES) -DBACDL_MSTP
 
-# BACNET_PORT, BACNET_PORT_DIR, BACNET_PORT_SRC are defined in common Makefile
-# BACNET_SRC_DIR is defined in common apps Makefile
 # WARNINGS, DEBUGGING, OPTIMIZATION are defined in common apps Makefile
 # BACNET_DEFINES is defined in common apps Makefile
 # put all the flags together
 INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
 CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
-LFLAGS += -Wl,$(SYSTEM_LIB)
-ifneq (${BACNET_LIB},)
-LFLAGS += -Wl,$(BACNET_LIB)
-endif
+# Linker Flags - we don't use any from originating caller
+LFLAGS := -Wl,$(SYSTEM_LIB)
+
 # GCC dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
+ifeq ($(shell uname -s),Darwin)
+LFLAGS += -Wl,-dead_strip
+else
 LFLAGS += -Wl,--gc-sections
+endif
+# GCC dead code removal
+
+# TARGET_EXT defined in common apps Makefile
+TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
 OBJS += ${SRCS:.c=.o}
-
-TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
 .PHONY: all
 all: Makefile ${TARGET_BIN}
 
-${TARGET_BIN}: ${OBJS}
+${TARGET_BIN}: ${OBJS} Makefile
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 	size $@
 	cp $@ ../../bin
-
+	
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
 

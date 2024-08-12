@@ -4,9 +4,7 @@
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date May 2022
- * @section LICENSE
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
 #include "bacnet/calendar_entry.h"
@@ -15,8 +13,6 @@
 #include "bacnet/bactimevalue.h"
 #include "bacnet/datetime.h"
 #include "bacnet/basic/sys/days.h"
-
-/** @file calendar_entry.c  Manipulate BACnet calendar entry values */
 
 /*
  * @brief Encode the BACnetCalendarEntry complex data

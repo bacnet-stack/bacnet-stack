@@ -1,35 +1,11 @@
 /**
  * @file
- * @author Steve Karg
+ * @brief A basic BACnet Analog Output Object implementation.
+ * An Analog Output object is an object with a present-value that
+ * uses an single precision floating point data type.
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2005
- * @brief Analog Output objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Analog Output object is an object with a present-value that
- * uses a single precision floating point data type, and includes
- * a present-value derived from the priority array.
- *
- * @section LICENSE
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -341,7 +317,8 @@ bool Analog_Output_Present_Value_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
-                value >= pObject->Min_Pres_Value && value <= pObject->Max_Pres_Value) {
+            (value >= pObject->Min_Pres_Value) && 
+            (value <= pObject->Max_Pres_Value)) {
             pObject->Relinquished[priority - 1] = false;
             pObject->Priority_Array[priority - 1] = value;
             Analog_Output_Present_Value_COV_Detect(

@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2004 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**
+ * @file
+ * @brief BACnet primitive data encode and decode helper functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -40,8 +13,6 @@
 #include "bacnet/bacstr.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
-
-/** @file bacdcode.c  Functions to encode/decode BACnet data types */
 
 /* max-segments-accepted
    B'000'      Unspecified number of segments accepted.
@@ -783,6 +754,137 @@ int bacnet_tag_number_and_value_decode(
     }
 
     return len;
+}
+
+/**
+ * @brief Determine the data length from the application tag number 
+ * @param tag_number application tag number to be evaluated.
+ * @param len_value_type  Length of the data in bytes.
+ * @return datalength for the given tag, or INT_MAX if out of range.
+ */
+int bacnet_application_data_length(
+    uint8_t tag_number, uint32_t len_value_type)
+{
+    int len = 0;
+
+    switch (tag_number) {
+        case BACNET_APPLICATION_TAG_NULL:
+            break;
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            break;
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+        case BACNET_APPLICATION_TAG_REAL:
+        case BACNET_APPLICATION_TAG_DOUBLE:
+        case BACNET_APPLICATION_TAG_OCTET_STRING:
+        case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+        case BACNET_APPLICATION_TAG_BIT_STRING:
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+        case BACNET_APPLICATION_TAG_DATE:
+        case BACNET_APPLICATION_TAG_TIME:
+        case BACNET_APPLICATION_TAG_OBJECT_ID:
+            len = INT_MAX;
+            if (len_value_type < INT_MAX) {
+                len = (int)len_value_type;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return len;
+}
+
+/**
+ * @brief Returns the length of data between an opening tag and a closing tag.
+ * @note Expects that the first octet contain the opening tag.
+ * @param apdu Pointer to the APDU buffer
+ * @param apdu_size Bytes valid in the buffer
+ * @param property ID of the property to get the length for.
+ * @return length of data between an opening tag and a closing tag 0..N, 
+ *  or BACNET_STATUS_ERROR.
+ */
+int bacnet_enclosed_data_length(
+    uint8_t *apdu, size_t apdu_size)
+{
+    int len = 0;
+    int total_len = 0;
+    int apdu_len = 0;
+    BACNET_TAG tag = { 0 };
+    uint8_t opening_tag_number = 0;
+    uint8_t opening_tag_number_counter = 0;
+    bool total_len_enable = false;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (apdu_size <= apdu_len) {
+        /* error: exceeding our buffer limit */
+        return BACNET_STATUS_ERROR;
+    }
+    if (!bacnet_is_opening_tag(apdu, apdu_size)) {
+        /* error: opening tag is missing */
+        return BACNET_STATUS_ERROR;
+    }
+    do {
+        len = bacnet_tag_decode(apdu, apdu_size - apdu_len, &tag);
+        if (len == 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        if (tag.opening) {
+            if (opening_tag_number_counter == 0) {
+                opening_tag_number = tag.number;
+                opening_tag_number_counter = 1;
+                total_len_enable = false;
+            } else if (tag.number == opening_tag_number) {
+                total_len_enable = true;
+                opening_tag_number_counter++;
+            } else {
+                total_len_enable = true;
+            }
+        } else if (tag.closing) {
+            if (tag.number == opening_tag_number) {
+                if (opening_tag_number_counter > 0) {
+                    opening_tag_number_counter--;
+                }
+            }
+            total_len_enable = true;
+        } else if (tag.context) {
+            if (tag.len_value_type > INT_MAX) {
+                /* error: length is out of range */
+                return BACNET_STATUS_ERROR;
+            }
+            len += tag.len_value_type;
+            total_len_enable = true;
+        } else {
+            if (tag.len_value_type > INT_MAX) {
+                /* error: length is out of range */
+                return BACNET_STATUS_ERROR;
+            }
+            /* application tagged data */
+            len += bacnet_application_data_length(tag.number, 
+                tag.len_value_type);
+            total_len_enable = true;
+        }
+        if (opening_tag_number_counter > 0) {
+            if (len > 0) {
+                if (total_len_enable) {
+                    total_len += len;
+                }
+            } else {
+                /* error: len is not incrementing */
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
+            if (apdu_size <= apdu_len) {
+                /* error: exceeding our buffer limit */
+                return BACNET_STATUS_ERROR;
+            }
+            apdu += len;
+        }
+    } while (opening_tag_number_counter > 0);
+
+    return total_len;
 }
 
 /**

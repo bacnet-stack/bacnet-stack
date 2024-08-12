@@ -27,7 +27,7 @@ add_compile_definitions(
 
 include_directories(
 	${SRC_DIR}
-	${TST_DIR}/bacnet/basic/object
+	${TST_DIR}/bacnet/basic/object/test
 	${TST_DIR}/ztest/include
 	)
 
@@ -37,6 +37,7 @@ add_executable(${PROJECT_NAME}
     # Support files and stubs (pathname alphabetical)
 	${SRC_DIR}/bacnet/authentication_factor.c
 	${SRC_DIR}/bacnet/authentication_factor_format.c
+	${SRC_DIR}/bacnet/bacaction.c
 	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
@@ -63,7 +64,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
 	./src/main.c
-	${TST_DIR}/bacnet/basic/object/property_test.c
+	${TST_DIR}/bacnet/basic/object/test/property_test.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)

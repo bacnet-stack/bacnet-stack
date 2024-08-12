@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
 	${SRC_DIR}/bacnet/basic/object/channel.c
     # Support files and stubs (pathname alphabetical)
+	${SRC_DIR}/bacnet/bacaction.c
 	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
@@ -59,7 +60,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
 	./src/main.c
-	../mock/device_mock.c
+	${TST_DIR}/bacnet/basic/object/test/device_mock.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)

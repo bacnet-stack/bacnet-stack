@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
@@ -105,6 +105,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   add_compile_options(-Wall -Wextra -pedantic)
   add_compile_options(-Wfloat-equal -Wconversion)
   add_compile_options(-Wredundant-decls -Wswitch-default)
+  add_compile_options(-Wunused-variable)
   # don't warn about conversion, sign, compares, long long and attributes
   # since they are common in embedded
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
@@ -144,6 +145,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/awf.h
   src/bacnet/bacaddr.c
   src/bacnet/bacaddr.h
+  src/bacnet/bacaction.c
+  src/bacnet/bacaction.h
   src/bacnet/bacapp.c
   src/bacnet/bacapp.h
   src/bacnet/bacdcode.c

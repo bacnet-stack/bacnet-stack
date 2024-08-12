@@ -1,28 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
+/**
+ * @file
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @date 2015
+ * @brief A basic BACnet Schedule object implementation.
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
@@ -48,7 +30,11 @@ static const int Schedule_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES, PROP_PRIORITY_FOR_WRITING,
     PROP_STATUS_FLAGS, PROP_RELIABILITY, PROP_OUT_OF_SERVICE, -1 };
 
-static const int Schedule_Properties_Optional[] = { PROP_WEEKLY_SCHEDULE, -1 };
+static const int Schedule_Properties_Optional[] = { PROP_WEEKLY_SCHEDULE,
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    PROP_EXCEPTION_SCHEDULE,
+#endif
+    -1 };
 
 static const int Schedule_Properties_Proprietary[] = { -1 };
 
@@ -66,22 +52,45 @@ void Schedule_Property_Lists(
     }
 }
 
+/**
+ * @brief Gets an object from the list using an instance number
+ * @param  object_instance - object-instance number of the object
+ * @return object found in the list, or NULL if not found
+ */
+static SCHEDULE_DESCR *Schedule_Object(uint32_t object_instance)
+{
+    unsigned int object_index;
+    SCHEDULE_DESCR *pObject = NULL;
+
+    object_index = Schedule_Instance_To_Index(object_instance);
+    if (object_index < MAX_SCHEDULES) {
+        pObject = &Schedule_Descr[object_index];
+    }
+
+    return pObject;
+}
+
+/**
+ * @brief Initialize the Schedule object data
+ */
 void Schedule_Init(void)
 {
-    unsigned i, j;
+    unsigned i, j, e;
+    BACNET_DATE start_date = { 0 }, end_date = { 0 };
+    BACNET_SPECIAL_EVENT *event;
+    SCHEDULE_DESCR *psched;
 
-    SCHEDULE_DESCR *psched = &Schedule_Descr[0];
-
+    /* whole year, change as necessary */
+    datetime_set_date(&start_date, 0, 1, 1);
+    datetime_wildcard_year_set(&start_date);
+    datetime_wildcard_weekday_set(&start_date);
+    datetime_set_date(&end_date, 0, 12, 31);
+    datetime_wildcard_year_set(&end_date);
+    datetime_wildcard_weekday_set(&end_date);
     for (i = 0; i < MAX_SCHEDULES; i++, psched++) {
-        /* whole year, change as necessary */
-        psched->Start_Date.year = 0xFF;
-        psched->Start_Date.month = 1;
-        psched->Start_Date.day = 1;
-        psched->Start_Date.wday = 0xFF;
-        psched->End_Date.year = 0xFF;
-        psched->End_Date.month = 12;
-        psched->End_Date.day = 31;
-        psched->End_Date.wday = 0xFF;
+        psched = &Schedule_Descr[i];
+        datetime_copy_date(&psched->Start_Date, &start_date);
+        datetime_copy_date(&psched->End_Date, &end_date);
         for (j = 0; j < 7; j++) {
             psched->Weekly_Schedule[j].TV_Count = 0;
         }
@@ -93,9 +102,30 @@ void Schedule_Init(void)
         psched->obj_prop_ref_cnt = 0; /* no references, add as needed */
         psched->Priority_For_Writing = 16; /* lowest priority */
         psched->Out_Of_Service = false;
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+        for (e = 0; e < BACNET_EXCEPTION_SCHEDULE_SIZE; e++) {
+            event = &psched->Exception_Schedule[e];
+            event->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+            event->period.calendarEntry.tag = BACNET_CALENDAR_DATE_RANGE;
+            datetime_copy_date(
+                &event->period.calendarEntry.type.DateRange.startdate,
+                &start_date);
+            datetime_copy_date(
+                &event->period.calendarEntry.type.DateRange.enddate,
+                &end_date);
+            event->period.calendarEntry.next = NULL;
+            event->timeValues.TV_Count = 0;
+            event->priority = 16;
+        }
+#endif
     }
 }
 
+/**
+ * @brief Determines if a given instance is valid
+ * @param  object_instance - object-instance number of the object
+ * @return true if the instance is valid, and false if not
+ */
 bool Schedule_Valid_Instance(uint32_t object_instance)
 {
     unsigned int index = Schedule_Instance_To_Index(object_instance);
@@ -106,16 +136,32 @@ bool Schedule_Valid_Instance(uint32_t object_instance)
     }
 }
 
+/**
+ * @brief Determines the number of Schedule objects
+ * @return Number of Schedule objects
+ */
 unsigned Schedule_Count(void)
 {
     return MAX_SCHEDULES;
 }
 
+/**
+ * @brief Determines the object instance number for a given index
+ * @param  index - index number of the object
+ * @return object instance number for the given index, or MAX_SCHEDULES if the
+ * index is not valid
+ */
 uint32_t Schedule_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
+/**
+ * @brief Determines the index for a given object instance number
+ * @param  instance - object-instance number of the object
+ * @return index number for the given object instance number, or MAX_SCHEDULES
+ * if the instance is not valid
+ */
 unsigned Schedule_Instance_To_Index(uint32_t instance)
 {
     unsigned index = MAX_SCHEDULES;
@@ -127,6 +173,12 @@ unsigned Schedule_Instance_To_Index(uint32_t instance)
     return index;
 }
 
+/**
+ * @brief Determines the object name for a given object instance number
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - object name of the object
+ * @return true if the object name is valid, and false if not
+ */
 bool Schedule_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
@@ -143,13 +195,11 @@ bool Schedule_Object_Name(
     return status;
 }
 
-/* 	BACnet Testing Observed Incident oi00106
-        Out of service was not supported by Schedule object
-        Revealed by BACnet Test Client v1.8.16 (
-   www.bac-test.com/bacnet-test-client-download ) BITS: BIT00032 Any discussions
-   can be directed to edward@bac-test.com Please feel free to remove this
-   comment when my changes accepted after suitable time for review by all
-   interested parties. Say 6 months -> September 2016 */
+/**
+ * @brief Sets a specificSchedule object out of service
+ * @param object_instance - object-instance number of the object
+ * @param value - true if out of service, and false if not
+ */
 void Schedule_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     unsigned index = 0;
@@ -160,12 +210,88 @@ void Schedule_Out_Of_Service_Set(uint32_t object_instance, bool value)
     }
 }
 
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int Schedule_Weekly_Schedule_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = 0, len = 0;
+    SCHEDULE_DESCR *pObject;
+    int day, i;
+
+    if (array_index >= 7) {
+        return BACNET_STATUS_ERROR;
+    }
+    pObject = Schedule_Object(object_instance);
+    if (!pObject) {      
+        return BACNET_STATUS_ERROR;
+    }
+    day = array_index;
+    len = encode_opening_tag(apdu, 0);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    for (i = 0; i < pObject->Weekly_Schedule[day].TV_Count; i++) {
+        len = bacnet_time_value_encode(apdu,
+            &pObject->Weekly_Schedule[day].Time_Values[i]);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    len = encode_closing_tag(apdu, 0);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int Schedule_Exception_Schedule_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len;
+    SCHEDULE_DESCR *pObject;
+
+    if (array_index >= BACNET_EXCEPTION_SCHEDULE_SIZE) {
+        return BACNET_STATUS_ERROR;
+    }
+    pObject = Schedule_Object(object_instance);
+    if (!pObject) {      
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len = bacnet_special_event_encode(apdu, 
+        &pObject->Exception_Schedule[array_index]);
+
+    return apdu_len;
+}
+#endif
+
 int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;
     unsigned object_index = 0;
     SCHEDULE_DESCR *CurrentSC;
     uint8_t *apdu = NULL;
+    uint16_t apdu_max = 0;
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     int i;
@@ -174,15 +300,14 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         (rpdata->application_data_len == 0)) {
         return 0;
     }
-
     object_index = Schedule_Instance_To_Index(rpdata->object_instance);
     if (object_index < MAX_SCHEDULES) {
         CurrentSC = &Schedule_Descr[object_index];
     } else {
         return BACNET_STATUS_ERROR;
     }
-
     apdu = rpdata->application_data;
+    apdu_max = rpdata->application_data_len;
     switch ((int)rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -200,49 +325,38 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = bacapp_encode_data(&apdu[0], &CurrentSC->Present_Value);
             break;
         case PROP_EFFECTIVE_PERIOD:
-            /* 	BACnet Testing Observed Incident oi00110
-                    Effective Period of Schedule object not correctly formatted
-                    Revealed by BACnet Test Client v1.8.16 (
-               www.bac-test.com/bacnet-test-client-download ) BITS: BIT00031 Any
-               discussions can be directed to edward@bac-test.com Please feel
-               free to remove this comment when my changes accepted after
-               suitable time for
-                    review by all interested parties. Say 6 months -> September
-               2016 */
             apdu_len =
                 encode_application_date(&apdu[0], &CurrentSC->Start_Date);
             apdu_len +=
                 encode_application_date(&apdu[apdu_len], &CurrentSC->End_Date);
             break;
         case PROP_WEEKLY_SCHEDULE:
-            if (rpdata->array_index == 0) { /* count, always 7 */
-                apdu_len = encode_application_unsigned(&apdu[0], 7);
-            } else if (rpdata->array_index ==
-                BACNET_ARRAY_ALL) { /* full array */
-                int day;
-                for (day = 0; day < 7; day++) {
-                    apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
-                    for (i = 0; i < CurrentSC->Weekly_Schedule[day].TV_Count;
-                         i++) {
-                        apdu_len += bacnet_time_value_encode(&apdu[apdu_len],
-                            &CurrentSC->Weekly_Schedule[day].Time_Values[i]);
-                    }
-                    apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
-                }
-            } else if (rpdata->array_index <= 7) { /* some array element */
-                int day = rpdata->array_index - 1;
-                apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
-                for (i = 0; i < CurrentSC->Weekly_Schedule[day].TV_Count; i++) {
-                    apdu_len += bacnet_time_value_encode(&apdu[apdu_len],
-                        &CurrentSC->Weekly_Schedule[day].Time_Values[i]);
-                }
-                apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
-            } else { /* out of bounds */
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Schedule_Weekly_Schedule_Encode, 7, apdu, apdu_max);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
                 rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                apdu_len = BACNET_STATUS_ERROR;
             }
             break;
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+        case PROP_EXCEPTION_SCHEDULE:
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Schedule_Exception_Schedule_Encode, 
+                BACNET_EXCEPTION_SCHEDULE_SIZE, apdu, apdu_max);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+            break;
+#endif
         case PROP_SCHEDULE_DEFAULT:
             apdu_len =
                 bacapp_encode_data(&apdu[0], &CurrentSC->Schedule_Default);
@@ -271,15 +385,6 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OUT_OF_SERVICE:
-            /* 	BACnet Testing Observed Incident oi00106
-                    Out of service was not supported by Schedule object
-                    Revealed by BACnet Test Client v1.8.16 (
-               www.bac-test.com/bacnet-test-client-download ) BITS: BIT00032 Any
-               discussions can be directed to edward@bac-test.com Please feel
-               free to remove this comment when my changes accepted after
-               suitable time for
-                    review by all interested parties. Say 6 months -> September
-               2016 */
             apdu_len =
                 encode_application_boolean(&apdu[0], CurrentSC->Out_Of_Service);
             break;
@@ -302,24 +407,11 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
 bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    /* Ed->Steve, I know that initializing stack values used to be 'safer', but
-       warnings in latest compilers indicate when uninitialized values are being
-       used, and I think that the warnings are more useful to reveal bad code
-       flow than the "safety: of pre-intializing variables. Please give this
-       some thought let me know if you agree we should start to remove
-       initializations */
     unsigned object_index;
     bool status = false; /* return value */
     int len;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    /* 	BACnet Testing Observed Incident oi00106
-            Out of service was not supported by Schedule object
-            Revealed by BACnet Test Client v1.8.16 (
-       www.bac-test.com/bacnet-test-client-download ) BITS: BIT00032 Any
-       discussions can be directed to edward@bac-test.com Please feel free to
-       remove this comment when my changes accepted after suitable time for
-            review by all interested parties. Say 6 months -> September 2016 */
     /* decode the some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
@@ -338,15 +430,6 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch ((int)wp_data->object_property) {
         case PROP_OUT_OF_SERVICE:
-            /* 	BACnet Testing Observed Incident oi00106
-                    Out of service was not supported by Schedule object
-                    Revealed by BACnet Test Client v1.8.16 (
-               www.bac-test.com/bacnet-test-client-download ) BITS: BIT00032 Any
-               discussions can be directed to edward@bac-test.com Please feel
-               free to remove this comment when my changes accepted after
-               suitable time for
-                    review by all interested parties. Say 6 months -> September
-               2016 */
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
@@ -370,6 +453,12 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return status;
 }
 
+/**
+ * @brief Determine if the given calendar entry is within the effective period
+ * @param desc - schedule descriptor
+ * @param date - date to check
+ * @return true if the calendar entry is within the effective period
+ */
 bool Schedule_In_Effective_Period(SCHEDULE_DESCR *desc, BACNET_DATE *date)
 {
     bool res = false;
@@ -384,6 +473,12 @@ bool Schedule_In_Effective_Period(SCHEDULE_DESCR *desc, BACNET_DATE *date)
     return res;
 }
 
+/**
+ * @brief Recalculate the Present Value of the Schedule object
+ * @param desc - schedule descriptor
+ * @param wday - day of the week
+ * @param time - time of the day
+ */
 void Schedule_Recalculate_PV(
     SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday, BACNET_TIME *time)
 {
@@ -392,13 +487,8 @@ void Schedule_Recalculate_PV(
 
     /* for future development, here should be the loop for Exception Schedule */
 
-    /* Just a note to developers: We have a paying customer who has asked us to
-       fully implement the Schedule Object. In good spirit, they have agreed to
-       allow us to release the code we develop back to the Open Source community
-       after a 6-12 month waiting period. However, if you are about to work on
-       this yourself, please ping us at info@connect-ex.com, we may be able to
-       broker an early release on a case-by-case basis. */
-
+    /*  Note to developers: please ping Edward at info@connect-ex.com
+        for a more complete schedule object implementation. */
     for (i = 0; i < desc->Weekly_Schedule[wday - 1].TV_Count &&
          desc->Present_Value.tag == BACNET_APPLICATION_TAG_NULL;
          i++) {

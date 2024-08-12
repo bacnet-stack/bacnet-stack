@@ -26,7 +26,7 @@ add_compile_definitions(
 
 include_directories(
 	${SRC_DIR}
-	${TST_DIR}/bacnet/basic/object
+	${TST_DIR}/bacnet/basic/object/test
 	${TST_DIR}/ztest/include
 	)
 
@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
 	${SRC_DIR}/bacnet/basic/object/ao.c
     # Support files and stubs (pathname alphabetical)
+	${SRC_DIR}/bacnet/bacaction.c
 	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
@@ -62,7 +63,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/sys/keylist.c
     # Test and test library files
 	./src/main.c
-	${TST_DIR}/bacnet/basic/object/property_test.c
+	${TST_DIR}/bacnet/basic/object/test/property_test.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)

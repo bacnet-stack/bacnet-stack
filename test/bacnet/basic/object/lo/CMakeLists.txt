@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
 	${SRC_DIR}/bacnet/basic/object/lo.c
     # Support files and stubs (pathname alphabetical)
+	${SRC_DIR}/bacnet/bacaction.c
 	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
@@ -47,6 +48,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
 	${SRC_DIR}/bacnet/basic/sys/days.c
 	${SRC_DIR}/bacnet/basic/sys/color_rgb.c
+	${SRC_DIR}/bacnet/basic/sys/debug.c
 	${SRC_DIR}/bacnet/basic/sys/keylist.c
 	${SRC_DIR}/bacnet/basic/sys/linear.c
 	${SRC_DIR}/bacnet/datetime.c
@@ -62,7 +64,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
 	./src/main.c
-	../mock/device_mock.c
+	${TST_DIR}/bacnet/basic/object/test/device_mock.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)

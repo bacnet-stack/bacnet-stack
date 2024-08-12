@@ -1,14 +1,14 @@
 /**
-* @file
-* @author Steve Karg
-* @date 2015
-*
-* Implementation of the BACnet Virtual Link Layer using IPv6,
-* as described in Annex J.
-*/
-#ifndef BVLC6_H
-#define BVLC6_H
-
+ * @file
+ * @brief Implementation of the BACnet Virtual Link Layer using IPv6
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @defgroup DLBIP BACnet/IP DataLink Network Layer
+ * @ingroup DataLink
+ */
+#ifndef BACNET_BVLC6_H
+#define BACNET_BVLC6_H
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -425,10 +425,24 @@ extern "C" {
     int bvlc6_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
         uint16_t apdu_size,
         BACNET_IP6_ADDRESS *ip6_address);
+
+    BACNET_STACK_EXPORT
+    int bvlc6_broadcast_distribution_table_entry_encode(uint8_t *apdu,
+        BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
+    BACNET_STACK_EXPORT
+    int bvlc6_broadcast_distribution_table_list_encode(uint8_t *apdu,
+        BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
     BACNET_STACK_EXPORT
     int bvlc6_broadcast_distribution_table_encode(uint8_t *apdu,
         uint16_t apdu_size,
         BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+
+    BACNET_STACK_EXPORT
+    int bvlc6_foreign_device_table_entry_encode(uint8_t *apdu,
+        BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
+    BACNET_STACK_EXPORT
+    int bvlc6_foreign_device_table_list_encode(uint8_t *apdu,
+        BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
     BACNET_STACK_EXPORT
     int bvlc6_foreign_device_table_encode(uint8_t *apdu,
         uint16_t apdu_size,

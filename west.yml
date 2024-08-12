@@ -45,3 +45,7 @@ manifest:
         name-allowlist:
         - cmsis
         - picolibc
+        - hal_stm32
+        - hal_microchip
+        - segger
+        - mcuboot

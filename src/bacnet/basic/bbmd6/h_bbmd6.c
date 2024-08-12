@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2016 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**
+ * @file
+ * @brief BBMD (BACnet Broadcast Management Device) for BACnet/IPv6
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdio.h> /* for standard i/o, like printing */
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
@@ -128,7 +101,7 @@ void bvlc6_maintenance_timer(uint16_t seconds)
         }
     }
 #else
-    (void)seconds;    
+    (void)seconds;
 #endif
 }
 
@@ -205,13 +178,13 @@ static void bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
             } else {
                 /* VMAC exists, but device ID changed */
                 VMAC_Delete(list_device_id);
-                PRINTF("BVLC6: VMAC existed for %u [", 
+                PRINTF("BVLC6: VMAC existed for %u [",
                     (unsigned int)list_device_id);
                 for (i = 0; i < new_vmac.mac_len; i++) {
                     PRINTF("%02X", new_vmac.mac[i]);
                 }
                 PRINTF("]\n");
-                PRINTF("BVLC6: Removed VMAC for %lu.\n", 
+                PRINTF("BVLC6: Removed VMAC for %lu.\n",
                     (unsigned long)list_device_id);
             }
         }
@@ -220,24 +193,24 @@ static void bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
             if (vmac) {
                 /* device ID already exists. Update MAC. */
                 memmove(vmac, &new_vmac, sizeof(struct vmac_data));
-                PRINTF("BVLC6: VMAC for %u [", 
+                PRINTF("BVLC6: VMAC for %u [",
                     (unsigned int)device_id);
                 for (i = 0; i < new_vmac.mac_len; i++) {
                     PRINTF("%02X", new_vmac.mac[i]);
                 }
                 PRINTF("]\n");
-                PRINTF("BVLC6: Updated VMAC for %lu.\n", 
+                PRINTF("BVLC6: Updated VMAC for %lu.\n",
                     (unsigned long)device_id);
             } else {
                 /* new entry - add it! */
                 VMAC_Add(device_id, &new_vmac);
-                PRINTF("BVLC6: VMAC for %u [", 
+                PRINTF("BVLC6: VMAC for %u [",
                     (unsigned int)device_id);
                 for (i = 0; i < new_vmac.mac_len; i++) {
                     PRINTF("%02X", new_vmac.mac[i]);
                 }
                 PRINTF("]\n");
-                PRINTF("BVLC6: Added VMAC for %lu.\n", 
+                PRINTF("BVLC6: Added VMAC for %lu.\n",
                     (unsigned long)device_id);
             }
         }

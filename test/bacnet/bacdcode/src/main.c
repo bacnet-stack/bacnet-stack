@@ -578,7 +578,6 @@ static void testBACnetDateRangeDecodes(void)
     int len;
     int null_len;
     int test_len;
-    int outLen2;
 
     BACNET_DATE_RANGE data;
     BACNET_DATE_RANGE test_data;
@@ -1212,8 +1211,6 @@ static void testBACDCodeBitString(void)
     BACNET_BIT_STRING value;
     BACNET_BIT_STRING test_value;
     uint8_t apdu[MAX_APDU] = { 0 };
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
     int len, null_len, apdu_len, test_len;
     BACNET_TAG tag = { 0 };
 
@@ -1386,12 +1383,12 @@ static void testSignedContextDecodes(void)
         value = BIT(i);
         for (j = 0; j < 8; j++) {
             context_tag = BIT(j);
-            test_unsigned_context_codec(value, context_tag);
+            test_signed_context_codec(value, context_tag);
         }
         value = BIT(i) | BIT(31);
         for (j = 0; j < 8; j++) {
             context_tag = BIT(j);
-            test_unsigned_context_codec(value, context_tag);
+            test_signed_context_codec(value, context_tag);
         }
     }
 }
@@ -1438,7 +1435,6 @@ ZTEST(bacdcode_tests, testEnumeratedContextDecodes)
 static void testEnumeratedContextDecodes(void)
 #endif
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t context_tag = 10;
 
     /* 32-bit value */

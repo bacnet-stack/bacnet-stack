@@ -1,21 +1,11 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date July 2022
- * @brief Color Temperature object, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Color Temperature object is an object with a present-value that
+ * @brief The Color Temperature object is an object with a present-value that
  * uses an Color Temperature INTEGER type
- *
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

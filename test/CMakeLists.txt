@@ -15,22 +15,17 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_definitions(-fprofile-arcs -ftest-coverage)
     add_compile_options(-g -O0 -W -fprofile-arcs -ftest-coverage)
     # enable all relevant warnings that find bugs
+    add_compile_options(-Werror)
     add_compile_options(-Wall -Wextra -pedantic)
     add_compile_options(-Wfloat-equal -Wconversion)
     add_compile_options(-Wredundant-decls -Wswitch-default)
+    add_compile_options(-Wunused-variable -Wdouble-promotion)
     # don't warn about conversion, sign, compares, long long and attributes
     # since they are common in embedded
     add_compile_options(-Wno-sign-conversion -Wno-conversion)
     add_compile_options(-Wno-sign-compare -Wno-long-long -Wno-attributes)
     # don't warn about implicit fallthrough since it's common in network protocols
     add_compile_options(-Wno-implicit-fallthrough)
-    # FIXME: ignore some warnings that occur in the unit tests
-    add_compile_options(-Wno-missing-braces)
-    add_compile_options(-Wno-unused-variable)
-    add_compile_options(-Wno-unused-function)
-    add_compile_options(-Wno-unused-parameter)
-    # FIXME: zephyr ztest has a strnlen hack in platform.h which triggers this warning
-    add_compile_options(-Wno-redundant-decls)
     add_link_options(-fprofile-arcs -ftest-coverage)
 endif()
 
@@ -135,7 +130,7 @@ list(APPEND testdirs
   bacnet/basic/object/csv
   bacnet/basic/object/device
   bacnet/basic/object/iv
-  #bacnet/basic/object/lc		#Tests skipped, redesign to use only API
+  bacnet/basic/object/lc
   bacnet/basic/object/lo
   bacnet/basic/object/lsp
   bacnet/basic/object/lsz

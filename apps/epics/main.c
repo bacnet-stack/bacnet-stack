@@ -1,31 +1,11 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/** @file epics/main.c  Command line tool to build a full VTS3 EPICS file,
- *                          including the heading information. */
-
+/**
+ * @file
+ * @brief command line tool to generate EPICS-usable output acquired from
+ * a BACnet device on the network.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -549,7 +529,6 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
     bool print_brace = false;
     KEY object_list_element;
-    bool isSequence = false; /* Ie, will need bracketing braces {} */
 
     if (rpm_property == NULL) {
         fprintf(stdout, "    -- Null Property data \n");
@@ -655,10 +634,6 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
 
                 if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
                     if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(value->tag ==
-                            BACNET_APPLICATION_TAG_OBJECT_ID); /* Something
-                                                                  not right
-                                                                  here */
                         break;
                     }
                     /* Store the object list so we can interrogate
@@ -685,27 +660,12 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                     }
                 } else if (rpm_property->propertyIdentifier ==
                     PROP_SUBORDINATE_LIST) {
-                    if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(value->tag ==
-                            BACNET_APPLICATION_TAG_OBJECT_ID); /* Something
-                                                                  not right
-                                                                  here */
+                    if (value->tag != 
+                        BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE) {
                         break;
                     }
-                    /* TODO: handle Sequence of { Device ObjID, Object ID }, */
-                    isSequence = true;
-                }
-
-                /* If the object is a Sequence, it needs its own bracketing
-                 * braces */
-                if (isSequence) {
-                    fprintf(stdout, "{");
                 }
                 bacapp_print_value(stdout, &object_value);
-                if (isSequence) {
-                    fprintf(stdout, "}");
-                }
-
                 if ((Walked_List_Index < Walked_List_Length) ||
                     (value->next != NULL)) {
                     /* There are more. */
@@ -1807,11 +1767,14 @@ int main(int argc, char *argv[])
                 do {
                     Object_List_Index++;
                     if (Object_List_Index < Keylist_Count(Object_List)) {
-                        nextKey = Keylist_Key(Object_List, Object_List_Index);
-                        myObject.type = KEY_DECODE_TYPE(nextKey);
-                        myObject.instance = KEY_DECODE_ID(nextKey);
-                        /* Don't re-list the Device Object among its objects */
-                        if (myObject.type == OBJECT_DEVICE) {
+                        if (Keylist_Index_Key(Object_List, Object_List_Index, &nextKey)) {
+                            myObject.type = KEY_DECODE_TYPE(nextKey);
+                            myObject.instance = KEY_DECODE_ID(nextKey);
+                            /* Don't re-list the Device Object among its objects */
+                            if (myObject.type == OBJECT_DEVICE) {
+                                continue;
+                            }
+                        } else {
                             continue;
                         }
                         /* Closing brace for the previous Object */

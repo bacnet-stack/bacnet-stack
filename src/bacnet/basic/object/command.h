@@ -1,52 +1,18 @@
 /**
  * @file
- * @author Nikola Jelic
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
  * @date 2014
- * @brief Command objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Command object type defines a standardized object whose
- * properties represent the externally visible characteristics of a
- * multi-action command procedure. A Command object is used to
- * write a set of values to a group of object properties, based on
- * the "action code" that is written to the Present_Value of the
- * Command object. Whenever the Present_Value property of the
- * Command object is written to, it triggers the Command object
- * to take a set of actions that change the values of a set of other
- * objects' properties.
- *
- * @section LICENSE
- *
- * Copyright (C) 2014 Nikola Jelic <nikola.jelic@euroicc.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @brief API for basic  Command objects, customize for your use
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef COMMAND_H
-#define COMMAND_H
-
+#ifndef BACNET_BASIC_OBJECT_COMMAND_H
+#define BACNET_BASIC_OBJECT_COMMAND_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/bacaction.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
@@ -61,29 +27,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-    typedef struct bacnet_action_list {
-        BACNET_OBJECT_ID Device_Id;     /* Optional */
-        BACNET_OBJECT_ID Object_Id;
-        BACNET_PROPERTY_ID Property_Identifier;
-        uint32_t Property_Array_Index;  /* Conditional */
-        BACNET_APPLICATION_DATA_VALUE Value;
-        uint8_t Priority;       /* Conditional */
-        uint32_t Post_Delay;    /* Optional */
-        bool Quit_On_Failure;
-        bool Write_Successful;
-        struct bacnet_action_list *next;
-    } BACNET_ACTION_LIST;
-
-    int cl_encode_apdu(
-        uint8_t * apdu,
-        BACNET_ACTION_LIST * bcl);
-
-    int cl_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_APPLICATION_TAG tag,
-        BACNET_ACTION_LIST * bcl);
 
     typedef struct command_descr {
         uint32_t Present_Value;
@@ -178,6 +121,13 @@ extern "C" {
     void Command_COV_Increment_Set(
         uint32_t instance,
         float value);
+
+    BACNET_STACK_EXPORT
+    BACNET_ACTION_LIST * Command_Action_List_Entry(
+        uint32_t instance, unsigned index);
+    BACNET_STACK_EXPORT
+    unsigned Command_Action_List_Count(
+        uint32_t instance);
 
     /* note: header of Intrinsic_Reporting function is required
        even when INTRINSIC_REPORTING is not defined */

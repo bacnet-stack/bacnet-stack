@@ -1,28 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *********************************************************************/
-#ifndef BACDCODE_H
-#define BACDCODE_H
+/**
+ * @file
+ * @brief BACnet primitive data encode and decode helper functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_CODEC_H
+#define BACNET_CODEC_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -99,6 +83,13 @@ bool bacnet_is_opening_tag_number(
 BACNET_STACK_EXPORT
 bool bacnet_is_closing_tag_number(
     uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length);
+
+BACNET_STACK_EXPORT
+int bacnet_application_data_length(
+    uint8_t tag_number, uint32_t len_value_type);
+BACNET_STACK_EXPORT
+int bacnet_enclosed_data_length(
+    uint8_t *apdu, size_t apdu_size);
 
 BACNET_STACK_DEPRECATED("Use bacnet_tag_decode() instead")
 BACNET_STACK_EXPORT

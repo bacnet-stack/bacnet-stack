@@ -78,6 +78,7 @@ BASICSRC = $(BACNET_BASIC)/tsm/tsm.c \
 # core BACnet stack files
 CORESRC =  \
 	$(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/bacaction.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \

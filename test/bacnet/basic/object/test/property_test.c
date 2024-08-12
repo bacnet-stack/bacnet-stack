@@ -27,8 +27,6 @@ bool bacnet_object_property_write_test(
     const int *skip_fail_property_list)
 {
     bool status = false;
-    int len = 0;
-    int test_len = 0;
 
     (void)skip_fail_property_list;
     if (wpdata && write_property) {
@@ -82,14 +80,12 @@ int bacnet_object_property_read_test(
     read_property_function read_property,
     const int *skip_fail_property_list)
 {
-    bool status = false;
     int len = 0;
     int test_len = 0;
     int apdu_len = 0;
     int read_len = 0;
     uint8_t *apdu;
     BACNET_ARRAY_INDEX array_index = 0;
-    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     read_len = read_property(rpdata);
@@ -174,7 +170,6 @@ void bacnet_object_properties_read_write_test(
     const int *pRequired = NULL;
     const int *pOptional = NULL;
     const int *pProprietary = NULL;
-    unsigned count = 0;
     int len = 0;
     bool status = false;
 

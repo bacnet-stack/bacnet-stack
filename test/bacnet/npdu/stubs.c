@@ -36,5 +36,10 @@ int bip_send_pdu(
     uint8_t *pdu,
     unsigned pdu_len)
 {
+    (void)dest;
+    (void)npdu_data;
+    (void)pdu;
+    (void)pdu_len;
+    
     return 0;
 }

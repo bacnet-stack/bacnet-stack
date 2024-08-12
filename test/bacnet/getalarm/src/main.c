@@ -26,8 +26,6 @@
 static int get_alarm_summary_decode_apdu(
     uint8_t *apdu, unsigned apdu_size, uint8_t *invoke_id)
 {
-    int len = 0;
-
     if (!apdu) {
         return BACNET_STATUS_ERROR;
     }
@@ -99,7 +97,6 @@ static void testGetAlarmSummaryAck(void)
     uint8_t test_invoke_id = 0;
     BACNET_GET_ALARM_SUMMARY_DATA alarm_data;
     BACNET_GET_ALARM_SUMMARY_DATA test_alarm_data;
-    unsigned i = 0;
 
     alarm_data.objectIdentifier.type = OBJECT_BINARY_INPUT;
     alarm_data.objectIdentifier.instance = 1;

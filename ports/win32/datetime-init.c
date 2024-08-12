@@ -95,6 +95,22 @@ int gettimeofday(struct timeval *tp, void *tzp)
 #endif
 
 /**
+ * @brief Set offset from the system clock.
+ * @param bdate BACnet Date structure to hold local time
+ * @param btime BACnet Time structure to hold local time
+ * @param utc - True for UTC sync, False for Local time
+ * @return True if time is set
+ */
+void datetime_timesync(
+    BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
+{
+    (void)bdate;
+    (void)btime;
+    (void)utc;
+    return;
+}
+
+/**
  * @brief Get the date, time, timezone, and UTC offset from system
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
  * @param local_time - the BACnet Date and Time structure to hold local time

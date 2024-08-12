@@ -6,9 +6,7 @@
  * @author Greg Shue <greg.shue@outlook.com>
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @date 2012
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_DATE_TIME_H
 #define BACNET_DATE_TIME_H
@@ -284,6 +282,9 @@ int bacapp_decode_context_datetime(uint8_t *apdu,
     BACNET_DATE_TIME *value);
 
 BACNET_STACK_EXPORT
+bool bacnet_daterange_same(BACNET_DATE_RANGE *value1, 
+    BACNET_DATE_RANGE *value2);
+BACNET_STACK_EXPORT
 int bacnet_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
 int bacnet_daterange_decode(uint8_t *apdu, 
@@ -304,6 +305,11 @@ bool datetime_local(BACNET_DATE *bdate,
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active);
+
+BACNET_STACK_EXPORT
+void datetime_timesync(
+    BACNET_DATE *bdate, BACNET_TIME *btime, bool utc);
+
 BACNET_STACK_EXPORT
 void datetime_init(void);
 

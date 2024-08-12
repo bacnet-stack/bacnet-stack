@@ -3,11 +3,7 @@
  * @brief Default configuration for BACnet Stack library
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
- * @section LICENSE
- *
- * Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_CONFIG_H_
 #define BACNET_CONFIG_H_
@@ -162,6 +158,11 @@
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_BDT_ENTRY) || \
+    defined(BACAPP_FDT_ENTRY) || \
+    defined(BACAPP_ACTION_COMMAND) || \
+    defined(BACAPP_SCALE) || \
+    defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
@@ -202,6 +203,11 @@
 #define BACAPP_DEVICE_OBJECT_REFERENCE
 #define BACAPP_OBJECT_PROPERTY_REFERENCE
 #define BACAPP_DESTINATION
+#define BACAPP_BDT_ENTRY
+#define BACAPP_FDT_ENTRY
+#define BACAPP_ACTION_COMMAND
+#define BACAPP_SCALE
+#define BACAPP_SHED_LEVEL
 #endif
 
 #if defined(BACAPP_DOUBLE) || \
@@ -217,7 +223,12 @@
     defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
-    defined(BACAPP_DESTINATION)
+    defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_BDT_ENTRY) || \
+    defined(BACAPP_FDT_ENTRY) || \
+    defined(BACAPP_ACTION_COMMAND) || \
+    defined(BACAPP_SCALE) || \
+    defined(BACAPP_SHED_LEVEL)
 #define BACAPP_COMPLEX_TYPES
 #endif
 

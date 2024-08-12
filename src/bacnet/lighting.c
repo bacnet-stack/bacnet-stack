@@ -3,11 +3,7 @@
  * @brief API for BACnetLightingCommand and BACnetColorCommand
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date June 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
 #include <stdbool.h>
@@ -176,8 +172,9 @@ int lighting_command_decode(
     if (len > 0) {
         apdu_len += len;
         if (unsigned_value <= BACNET_LIGHTS_PROPRIETARY_LAST) {
+            operation = (BACNET_LIGHTING_OPERATION)enum_value;
             if (data) {
-                data->operation = (BACNET_LIGHTING_OPERATION)enum_value;
+                data->operation = operation;
             }
         } else {
             return BACNET_STATUS_ERROR;
@@ -497,7 +494,7 @@ int lighting_command_to_ascii(
                 priority = value->priority;
             }
             len = snprintf(buf, buf_size, "%u,%f,%lu,%u", value->operation,
-                (double)target_level, (unsigned long)fade_time, 
+                (double)target_level, (unsigned long)fade_time,
                 (unsigned)priority);
             break;
         case BACNET_LIGHTS_RAMP_TO:
@@ -511,7 +508,7 @@ int lighting_command_to_ascii(
                 priority = value->priority;
             }
             len = snprintf(buf, buf_size, "%u,%f,%f,%u",
-                (unsigned)value->operation, (double)target_level, 
+                (unsigned)value->operation, (double)target_level,
                 (double)ramp_rate, (unsigned)priority);
             break;
         case BACNET_LIGHTS_STEP_UP:
@@ -525,7 +522,7 @@ int lighting_command_to_ascii(
                 priority = value->priority;
             }
             len = snprintf(buf, buf_size, "%u,%f,%u",
-                (unsigned)value->operation, (double)step_increment, 
+                (unsigned)value->operation, (double)step_increment,
                 (unsigned)priority);
             break;
         case BACNET_LIGHTS_WARN:
@@ -949,7 +946,7 @@ bool xy_color_same(BACNET_XY_COLOR *value1, BACNET_XY_COLOR *value2)
 int xy_color_to_ascii(const BACNET_XY_COLOR *value, char *buf, size_t buf_size)
 {
     return snprintf(
-        buf, buf_size, "(%f,%f)", (double)value->x_coordinate, 
+        buf, buf_size, "(%f,%f)", (double)value->x_coordinate,
         (double)value->x_coordinate);
 }
 

@@ -1,37 +1,13 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2004 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**
+ * @file
+ * @brief BACnet bitstring, octectstring, and characterstring encode 
+ *  and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -43,7 +19,6 @@
 /* BACnet Stack API */
 #include "bacnet/bacstr.h"
 
-/** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
 #ifndef BACNET_STRING_UTF8_VALIDATION
 #define BACNET_STRING_UTF8_VALIDATION 1
 #endif
@@ -421,6 +396,31 @@ bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
 }
 
 /**
+ * @brief Return the length of a string, within a maximum length
+ * @note The strnlen function is non-standard and not available in 
+ * all libc implementations.  This function is a workaround for that.
+ * @details The strnlen function computes the smaller of the number 
+ * of characters in the array pointed to by s, not including any 
+ * terminating null character, or the value of the maxlen argument. 
+ * The strnlen function examines no more than maxlen bytes of the 
+ * array pointed to by s.
+ * @param s - string to check
+ * @param maxlen - maximum length to check
+ * @return The strnlen function returns the number of bytes that 
+ * precede the first null character in the array pointed to by s, 
+ * if s contains a null character within the first maxlen characters; 
+ * otherwise, it returns maxlen.
+ */
+size_t characterstring_strnlen(const char *str, size_t maxlen)
+{
+    char* p = memchr(str, 0, maxlen);
+    if (p == NULL) {
+        return maxlen;
+    }
+    return (p - str);
+}
+
+/**
  * Initialize a BACnet characater string.
  * Returns false if the string exceeds capacity.
  * Initialize by using value=NULL
@@ -435,7 +435,7 @@ bool characterstring_init_ansi_safe(
     BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax)
 {
     return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
-        value ? strnlen(value, tmax) : 0);
+        value ? characterstring_strnlen(value, tmax) : 0);
 }
 
 /**

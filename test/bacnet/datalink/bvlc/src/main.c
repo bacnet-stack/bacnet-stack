@@ -538,8 +538,6 @@ static void test_BVLC_Broadcast_Distribution_Table_Encode(void)
 }
 
 static void test_BVLC_Write_Broadcast_Distribution_Table_Message(
-    uint8_t *npdu,
-    uint16_t npdu_len,
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list)
 {
     uint8_t pdu[480] = { 0 };
@@ -578,8 +576,6 @@ ZTEST(bvlc_tests, test_BVLC_Write_Broadcast_Distribution_Table)
 static void test_BVLC_Write_Broadcast_Distribution_Table(void)
 #endif
 {
-    uint8_t npdu[480] = { 0 };
-    uint16_t npdu_len = 0;
     uint16_t i = 0;
     uint16_t count = 0;
     uint16_t test_count = 0;
@@ -620,20 +616,10 @@ static void test_BVLC_Write_Broadcast_Distribution_Table(void)
             &bdt_list[0], &bdt_list[i]);
         zassert_true(status, NULL);
     }
-    test_BVLC_Write_Broadcast_Distribution_Table_Message(
-        npdu, npdu_len, &bdt_list[0]);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    test_BVLC_Write_Broadcast_Distribution_Table_Message(
-        npdu, npdu_len, &bdt_list[0]);
+    test_BVLC_Write_Broadcast_Distribution_Table_Message(&bdt_list[0]);
 }
 
 static void test_BVLC_Read_Foreign_Device_Table_Ack_Message(
-    uint8_t *npdu,
-    uint16_t npdu_len,
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list)
 {
     uint8_t pdu[480] = { 0 };
@@ -669,8 +655,6 @@ ZTEST(bvlc_tests, test_BVLC_Read_Foreign_Device_Table_Ack)
 static void test_BVLC_Read_Foreign_Device_Table_Ack(void)
 #endif
 {
-    uint8_t npdu[480] = { 0 };
-    uint16_t npdu_len = 0;
     uint16_t i = 0;
     uint16_t count = 0;
     uint16_t test_count = 0;
@@ -701,13 +685,7 @@ static void test_BVLC_Read_Foreign_Device_Table_Ack(void)
     }
     test_count = bvlc_foreign_device_table_valid_count(fdt_list);
     zassert_equal(test_count, count, NULL);
-    test_BVLC_Read_Foreign_Device_Table_Ack_Message(npdu, npdu_len, fdt_list);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    test_BVLC_Read_Foreign_Device_Table_Ack_Message(npdu, npdu_len, fdt_list);
+    test_BVLC_Read_Foreign_Device_Table_Ack_Message(fdt_list);
     /* cleanup */
     for (i = 0; i < count; i++) {
         dest_address.port = test_port_start + i;

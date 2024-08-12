@@ -175,7 +175,6 @@ static void testBinaryLightingOutputBlink(void)
     BACNET_BINARY_LIGHTING_PV pv, test_pv, expect_pv;
     unsigned test_priority;
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     Binary_Lighting_Output_Init();
     Binary_Lighting_Output_Create(object_instance);
