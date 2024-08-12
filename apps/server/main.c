@@ -282,8 +282,7 @@ static void print_help(const char *filename)
  * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
  *      datalink_receive, npdu_handler,
  *      dcc_timer_seconds, datalink_maintenance_timer,
- *      Load_Control_State_Machine_Handler, handler_cov_task,
- *      tsm_timer_milliseconds
+ *      handler_cov_task, tsm_timer_milliseconds
  *
  * @param argc [in] Arg count.
  * @param argv [in] Takes one argument: the Device Instance #.
@@ -397,7 +396,6 @@ int main(int argc, char *argv[])
             datalink_maintenance_timer(elapsed_seconds);
             dlenv_maintenance_timer(elapsed_seconds);
             handler_cov_timer_seconds(elapsed_seconds);
-            Load_Control_State_Machine_Handler();
             trend_log_timer(elapsed_seconds);
 #if defined(INTRINSIC_REPORTING)
             Device_local_reporting();

@@ -2385,20 +2385,20 @@ Lighting_Output_Ramp_Handler(uint32_t object_instance, uint16_t milliseconds)
             debug_printf("LO[%u] Ramp Handler at target=%f tracking=%f\n",
                 object_instance, (double)target_value, (double)old_value);
             /* stop ramping */
+            step_value = target_value;
             pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
         }
+        /* clamp target within min/max, if needed */
+        if (isgreater(step_value, max_value)) {
+            step_value = max_value;
+        }
+        if (isless(step_value, min_value)) {
+            step_value = min_value;
+        }
+        pObject->Tracking_Value = step_value;
         if (pObject->Lighting_Command.operation == BACNET_LIGHTS_STOP) {
-            pObject->Tracking_Value = target_value;
             pObject->In_Progress = BACNET_LIGHTING_IDLE;
         } else {
-            /* clamp target within min/max, if needed */
-            if (isgreater(step_value, max_value)) {
-                step_value = max_value;
-            }
-            if (isless(step_value, min_value)) {
-                step_value = min_value;
-            }
-            pObject->Tracking_Value = step_value;
             pObject->In_Progress = BACNET_LIGHTING_RAMP_ACTIVE;
         }
     }

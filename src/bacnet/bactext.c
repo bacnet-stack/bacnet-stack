@@ -1942,3 +1942,30 @@ const char *bactext_device_communications_name(unsigned index)
     return indtext_by_index_default(
         bacnet_device_communications_names, index, ASHRAE_Reserved_String);
 }
+
+INDTEXT_DATA bacnet_shed_state_names[] = {
+    { BACNET_SHED_INACTIVE, "shed-inactive" },
+    { BACNET_SHED_REQUEST_PENDING, "shed-request-pending" },
+    { BACNET_SHED_COMPLIANT, "shed-compliant" }, 
+    { BACNET_SHED_NON_COMPLIANT, "shed-non-compliant" }, 
+    { 0, NULL }
+};
+
+const char *bactext_shed_state_name(unsigned index)
+{
+    return indtext_by_index_default(
+        bacnet_shed_state_names, index, ASHRAE_Reserved_String);
+}
+
+INDTEXT_DATA bacnet_shed_level_type_names[] = {
+    { BACNET_SHED_TYPE_PERCENT, "percent" },
+    { BACNET_SHED_TYPE_LEVEL, "level" },
+    { BACNET_SHED_TYPE_AMOUNT, "amount" }, 
+    { 0, NULL }
+};
+
+const char *bactext_shed_level_type_name(unsigned index)
+{
+    return indtext_by_index_default(
+        bacnet_shed_level_type_names, index, ASHRAE_Reserved_String);
+}

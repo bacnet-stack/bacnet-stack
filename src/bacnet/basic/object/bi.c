@@ -770,7 +770,7 @@ bool Binary_Input_Active_Text_Set(uint32_t object_instance, char *new_name)
 #if defined(INTRINSIC_REPORTING) && (BINARY_INPUT_INTRINSIC_REPORTING)
 /**
  * @brief Encode a EventTimeStamps property element
- * @param object_instance [in] BACnet network port object instance number
+ * @param object_instance [in] BACnet object instance number
  * @param index [in] array index requested:
  *    0 to N for individual array members
  * @param apdu [out] Buffer in which the APDU contents are built, or NULL to

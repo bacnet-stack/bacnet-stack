@@ -19,7 +19,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wall -Wextra -pedantic)
     add_compile_options(-Wfloat-equal -Wconversion)
     add_compile_options(-Wredundant-decls -Wswitch-default)
-    add_compile_options(-Wunused-variable)
+    add_compile_options(-Wunused-variable -Wdouble-promotion)
     # don't warn about conversion, sign, compares, long long and attributes
     # since they are common in embedded
     add_compile_options(-Wno-sign-conversion -Wno-conversion)

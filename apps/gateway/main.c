@@ -197,8 +197,7 @@ static void Init_Service_Handlers(uint32_t first_object_instance)
  * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
  *      datalink_receive, npdu_handler,
  *      dcc_timer_seconds, datalink_maintenance_timer,
- *      Load_Control_State_Machine_Handler, handler_cov_task,
- *      tsm_timer_milliseconds
+ *      handler_cov_task, tsm_timer_milliseconds
  *
  * @param argc [in] Arg count.
  * @param argv [in] Takes one argument: the Device Instance #.
@@ -274,12 +273,11 @@ int main(int argc, char *argv[])
             dcc_timer_seconds(elapsed_seconds);
             datalink_maintenance_timer(elapsed_seconds);
             dlenv_maintenance_timer(elapsed_seconds);
-            Load_Control_State_Machine_Handler();
             elapsed_milliseconds = elapsed_seconds * 1000;
             tsm_timer_milliseconds(elapsed_milliseconds);
+            Device_Timer(elapsed_milliseconds);
         }
         handler_cov_task();
-        /* output */
         if (Routed_Device_Index < MAX_NUM_DEVICES) {
             Routed_Device_Index++;
             Get_Routed_Device_Object(Routed_Device_Index);
