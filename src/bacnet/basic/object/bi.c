@@ -1369,7 +1369,8 @@ uint32_t Binary_Input_Event_Enable(uint32_t object_instance)
  * For a given object instance-number, sets the event_enable property value
  *
  * @param object_instance - object-instance number of the object
- * @param event_enable - event_enable property value
+ * @param event_enable - event_enable property value - the combination of bits:
+ *                       EVENT_ENABLE_TO_OFFNORMAL, EVENT_ENABLE_TO_FAULT, EVENT_ENABLE_TO_NORMAL
  *
  * @return true if the event_enable property value was set
  */
@@ -1411,7 +1412,7 @@ BACNET_NOTIFY_TYPE Binary_Input_Notify_Type(uint32_t object_instance)
  * For a given object instance-number, sets the notify_type property value
  *
  * @param object_instance - object-instance number of the object
- * @param notify_type - notify_type property value
+ * @param notify_type - notify_type property value from the set <NOTIFY_EVENT, NOTIFY_ALARM>
  *
  * @return true if the notify_type property value was set
  */
