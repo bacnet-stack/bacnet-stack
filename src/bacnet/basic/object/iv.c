@@ -137,60 +137,6 @@ uint32_t Integer_Value_Index_To_Instance(unsigned index)
 }
 
 /**
- * Initialize the Inetger Value Inputs. Returns false if there are errors.
- *
- * @param pInit_data pointer to initialisation values
- *
- * @return true/false
- */
-bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
-{
-  unsigned i;
-
-  if (!pInit_data) {
-    return false;
-  }
-
-  for (i = 0; i < pInit_data->length; i++) {
-      if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-          if(Integer_Value_Create(pInit_data->Object_Init_Values[i].Object_Instance) < BACNET_MAX_INSTANCE) {
-              struct integer_object *pObject = Integer_Value_Object(pInit_data->Object_Init_Values[i].Object_Instance);
-
-              if(pObject == NULL) {
-                  PRINT("Object instance %u not found right after its creation", pInit_data->Object_Init_Values[i].Object_Instance);
-                  return false;
-              }
-
-              if (!characterstring_init_ansi(&pObject->Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-                  PRINT("Fail to set Object name to \"%.128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-                  return false;
-              }
-
-              if (!characterstring_init_ansi(&pObject->Description, pInit_data->Object_Init_Values[i].Description)) {
-                  PRINT("Fail to set Object description to \"%.128s\"", pInit_data->Object_Init_Values[i].Description);
-                  return false;
-              }
-
-              if (pInit_data->Object_Init_Values[i].Units < UNITS_PROPRIETARY_RANGE_MAX2) {
-                  pObject->Units = pInit_data->Object_Init_Values[i].Units;
-              } else {
-                  PRINT("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
-                  return false;
-              }
-          } else {
-              PRINT("Unable to create object of instance %u", pInit_data->Object_Init_Values[i].Object_Instance);
-              return false;
-          }
-      } else {
-          PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
-          return false;
-      }
-  }
-
-   return true;
-}
-
-/**
  * For a given object instance-number, determines a 0..N index
  * of Integer Value objects where N is Integer_Value_Count().
  *
