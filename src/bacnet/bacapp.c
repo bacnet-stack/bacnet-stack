@@ -2567,6 +2567,7 @@ static int bacapp_snprintf_weeklyschedule(
             dummyPropValue.value = &dummyDataValue;
             dummyPropValue.object_property = PROP_PRESENT_VALUE;
             dummyPropValue.object_type = OBJECT_SCHEDULE;
+            dummyPropValue.array_index = 0;
             slen = bacapp_snprintf_value(str, str_len, &dummyPropValue);
             ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             if (ti < ds->TV_Count - 1) {
