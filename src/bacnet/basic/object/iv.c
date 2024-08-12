@@ -232,8 +232,6 @@ bool Integer_Value_Present_Value_Set(
 bool Integer_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[32] = "";
-    unsigned int index;
     bool status = false;
 
     struct integer_object *pObject = Integer_Value_Object(object_instance);
