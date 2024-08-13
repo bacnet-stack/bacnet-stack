@@ -19,7 +19,12 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macOS-latest]
-
+        project: [root, test]
+        exclude:
+          # Currently does not build. Need to be fixed at some point.
+          - os: windows-latest
+            project: test
+  
     steps:
     - uses: actions/checkout@v4
 
@@ -37,10 +42,16 @@ jobs:
       # and build directories, but this is only available with CMake 3.13 and higher.
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
       run: |
-        if [[ "$RUNNER_OS" == "Windows" ]]; then
-          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        if [ "${{ matrix.project }}" == "test" ]; then
+          source_dir=$GITHUB_WORKSPACE/test
         else
-          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_FLAGS="-Werror"
+          source_dir=$GITHUB_WORKSPACE
+        fi
+
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          cmake $source_dir -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        else
+          cmake $source_dir -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_FLAGS="-Werror"
         fi
 
     - name: Build

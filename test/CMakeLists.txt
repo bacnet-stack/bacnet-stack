@@ -14,7 +14,6 @@ endif()
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-g -O0 -fprofile-arcs -ftest-coverage)
     # enable all relevant warnings that find bugs
-    add_compile_options(-Werror)
     add_compile_options(-Wall -Wextra -pedantic)
     add_compile_options(-Wfloat-equal -Wconversion)
     add_compile_options(-Wfloat-conversion -Wdouble-promotion)
