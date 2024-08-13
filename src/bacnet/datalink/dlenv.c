@@ -553,7 +553,7 @@ void dlenv_init(void)
 {
     char *pEnv = NULL;
 
-#if defined(BACDL_ALL)
+#if defined(BACDL_MULTIPLE)
     pEnv = getenv("BACNET_DATALINK");
     if (pEnv) {
         datalink_set(pEnv);
