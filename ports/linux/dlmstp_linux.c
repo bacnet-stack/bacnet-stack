@@ -40,7 +40,7 @@
         if (x < 0xFFFF)               \
             x++;                      \
     }
-uint32_t Timer_Silence(void *poPort)
+static uint32_t Timer_Silence(void *poPort)
 {
     struct timeval now, tmp_diff;
     SHARED_MSTP_DATA *poSharedData;
@@ -62,7 +62,7 @@ uint32_t Timer_Silence(void *poPort)
     return (res >= 0 ? res : -res);
 }
 
-void Timer_Silence_Reset(void *poPort)
+static void Timer_Silence_Reset(void *poPort)
 {
     SHARED_MSTP_DATA *poSharedData;
     struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *)poPort;
@@ -77,7 +77,7 @@ void Timer_Silence_Reset(void *poPort)
     gettimeofday(&poSharedData->start, NULL);
 }
 
-void get_abstime(struct timespec *abstime, unsigned long milliseconds)
+static void get_abstime(struct timespec *abstime, unsigned long milliseconds)
 {
     struct timeval now, offset, result;
 
@@ -196,7 +196,7 @@ uint16_t dlmstp_receive(
     return pdu_len;
 }
 
-void *dlmstp_receive_fsm_task(void *pArg)
+static void *dlmstp_receive_fsm_task(void *pArg)
 {
     bool received_frame;
     SHARED_MSTP_DATA *poSharedData;
@@ -231,7 +231,7 @@ void *dlmstp_receive_fsm_task(void *pArg)
     return NULL;
 }
 
-void *dlmstp_master_fsm_task(void *pArg)
+static void *dlmstp_master_fsm_task(void *pArg)
 {
     uint32_t silence = 0;
     bool run_master = false;
@@ -385,7 +385,7 @@ void MSTP_Send_Frame(
     RS485_Send_Frame(mstp_port, buffer, nbytes);
 }
 
-bool dlmstp_compare_data_expecting_reply(
+static bool dlmstp_compare_data_expecting_reply(
     uint8_t *request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,

@@ -58,7 +58,7 @@ static bool Print_Summary = false;
 /**
  * @brief Print the list of discovered devices and their objects
  */
-void print_discovered_devices(void)
+static void print_discovered_devices(void)
 {
     unsigned int device_index = 0;
     unsigned int device_count = 0;

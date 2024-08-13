@@ -109,31 +109,31 @@ static void test_color_rgb_xy(void)
 
     /* functions without gamma correction */
     color_rgb_from_ascii(&red, &green, &blue, "black");
-    test_color_rgb_xy_unit(red, green, blue, 0.0, 0.0, 0);
+    test_color_rgb_xy_unit(red, green, blue, 0.0f, 0.0f, 0);
     color_rgb_from_ascii(&red, &green, &blue, "white");
-    test_color_rgb_xy_unit(red, green, blue, 0.313, 0.329, 255);
+    test_color_rgb_xy_unit(red, green, blue, 0.313f, 0.329f, 255);
     color_rgb_from_ascii(&red, &green, &blue, "blue");
-    test_color_rgb_xy_unit(red, green, blue, 0.157, 0.017, 5);
+    test_color_rgb_xy_unit(red, green, blue, 0.157f, 0.017f, 5);
     color_rgb_from_ascii(&red, &green, &blue, "green");
-    test_color_rgb_xy_unit(red, green, blue, 0.115, 0.826, 95);
+    test_color_rgb_xy_unit(red, green, blue, 0.115f, 0.826f, 95);
     color_rgb_from_ascii(&red, &green, &blue, "red");
-    test_color_rgb_xy_unit(red, green, blue, 0.735, 0.265, 59);
+    test_color_rgb_xy_unit(red, green, blue, 0.735f, 0.265f, 59);
     color_rgb_from_ascii(&red, &green, &blue, "maroon");
-    test_color_rgb_xy_unit(red, green, blue, 0.735, 0.265, 29);
+    test_color_rgb_xy_unit(red, green, blue, 0.735f, 0.265f, 29);
 
     /* functions with gamma correction */
     color_rgb_from_ascii(&red, &green, &blue, "black");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.0, 0.0, 0);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.0f, 0.0f, 0);
     color_rgb_from_ascii(&red, &green, &blue, "white");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.313, 0.329, 255);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.313f, 0.329f, 255);
     color_rgb_from_ascii(&red, &green, &blue, "blue");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.157, 0.017, 5);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.157f, 0.017f, 5);
     color_rgb_from_ascii(&red, &green, &blue, "green");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.115, 0.826, 40);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.115f, 0.826f, 40);
     color_rgb_from_ascii(&red, &green, &blue, "red");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.735, 0.265, 59);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.735f, 0.265f, 59);
     color_rgb_from_ascii(&red, &green, &blue, "maroon");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.735, 0.265, 12);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.735f, 0.265f, 12);
 }
 
 /**

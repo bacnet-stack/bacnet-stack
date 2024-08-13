@@ -76,6 +76,12 @@ Structured_View_Subordinate_List(uint32_t object_instance);
 BACNET_STACK_EXPORT
 void Structured_View_Subordinate_List_Set(
     uint32_t object_instance, BACNET_SUBORDINATE_DATA *subordinate_list);
+BACNET_STACK_EXPORT
+BACNET_SUBORDINATE_DATA *
+Structured_View_Subordinate_List_Member(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index);
+BACNET_STACK_EXPORT
+unsigned int Structured_View_Subordinate_List_Count(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 BACNET_RELATIONSHIP
@@ -83,6 +89,19 @@ Structured_View_Default_Subordinate_Relationship(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Structured_View_Default_Subordinate_Relationship_Set(
     uint32_t object_instance, BACNET_RELATIONSHIP relationship);
+
+BACNET_STACK_EXPORT
+int Structured_View_Subordinate_List_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
+BACNET_STACK_EXPORT
+int Structured_View_Subordinate_Annotations_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
+BACNET_STACK_EXPORT
+int Structured_View_Subordinate_Node_Types_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
+BACNET_STACK_EXPORT
+int Structured_View_Subordinate_Relationships_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
 
 BACNET_STACK_EXPORT
 BACNET_DEVICE_OBJECT_REFERENCE *

@@ -524,11 +524,11 @@ bool bacfile_read_only_set(
 }
 
 /**
- * @brief For a given object instance-number, return the flag
+ * @brief
  * @param  object_instance - object-instance number of the object
- * @return  true if the property is true
+ * @param  bdatetime
  */
-void bacfile_modification_date(
+static void bacfile_modification_date(
     uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
 {
     struct object_data *pObject;

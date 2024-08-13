@@ -96,6 +96,14 @@ extern "C" {
         char *new_name);
 
     BACNET_STACK_EXPORT
+    BACNET_RELIABILITY Analog_Input_Reliability(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Analog_Input_Reliability_Set(
+        uint32_t object_instance,
+        BACNET_RELIABILITY value);
+
+    BACNET_STACK_EXPORT
     bool Analog_Input_Units_Set(
         uint32_t instance,
         uint16_t units);

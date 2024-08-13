@@ -152,6 +152,13 @@ extern "C" {
         binary_input_write_present_value_callback cb);
 
     BACNET_STACK_EXPORT
+    bool Binary_Input_Write_Enabled(uint32_t instance);
+    BACNET_STACK_EXPORT
+    void Binary_Input_Write_Enable(uint32_t instance);
+    BACNET_STACK_EXPORT
+    void Binary_Input_Write_Disable(uint32_t instance);
+
+    BACNET_STACK_EXPORT
     uint32_t Binary_Input_Create(
         uint32_t object_instance);
     BACNET_STACK_EXPORT

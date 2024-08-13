@@ -103,16 +103,30 @@ endif()
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic)
+  # Add more warnings
   add_compile_options(-Wfloat-equal -Wconversion)
-  add_compile_options(-Wredundant-decls -Wswitch-default)
+  add_compile_options(-Wfloat-conversion -Wdouble-promotion)
+  add_compile_options(-Wredundant-decls -Wmissing-declarations)
+  add_compile_options(-Wswitch-default)
   add_compile_options(-Wunused-variable)
-  # don't warn about conversion, sign, compares, long long and attributes
-  # since they are common in embedded
+  add_compile_options(-Wcast-qual)
+
+  # Don't warn about conversion, sign, compares since they are common in
+  # embedded
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
-  add_compile_options(-Wno-sign-compare -Wno-long-long)
-  add_compile_options(-Wno-attributes)
-  # don't warn about implicit fallthrough since it's common in network protocols
-  add_compile_options(-Wno-implicit-fallthrough)
+  add_compile_options(-Wno-sign-compare)
+
+  # Just noise from clang
+  if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+    add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+  endif()
+
+  # Should be fixed in a future.
+  add_compile_options(-Wno-cast-qual)
+  add_compile_options(-Wno-double-promotion)
+  add_compile_options(-Wno-float-conversion)
+  add_compile_options(-Wno-missing-declarations)
+  add_compile_options(-Wno-unused-but-set-variable)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")

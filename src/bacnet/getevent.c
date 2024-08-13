@@ -65,6 +65,7 @@ size_t getevent_service_request_encode(
  * @param lastReceivedObjectIdentifier  Object identifier
  *
  * @return Bytes encoded.
+ * @deprecated Use getevent_apdu_encode() instead
  */
 int getevent_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
