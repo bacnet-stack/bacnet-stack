@@ -19,6 +19,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
+#include "bacnet/proplist.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 /* me! */
@@ -503,18 +504,20 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_UNITS:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Integer_Value_Properties_Required, 
+                    Integer_Value_Properties_Optional,
+                    Integer_Value_Properties_Proprietary, 
+                    wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
+
     }
 
     return status;
