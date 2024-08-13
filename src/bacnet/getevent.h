@@ -45,6 +45,7 @@ extern "C" {
         uint8_t *apdu,
         BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
 
+    BACNET_STACK_DEPRECATED("Use getevent_apdu_encode() instead")
     BACNET_STACK_EXPORT
     int getevent_encode_apdu(
         uint8_t * apdu,
