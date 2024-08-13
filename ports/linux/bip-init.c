@@ -493,7 +493,7 @@ static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
  */
 int bip_get_local_address_ioctl(char *ifname, struct in_addr *addr, int request)
 {
-    struct ifreq ifr = { { { 0 } }, { { 0 } } };
+    struct ifreq ifr = { 0 };
     struct sockaddr_in *tcpip_address;
     int rv; /* return value */
 

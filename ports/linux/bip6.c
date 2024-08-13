@@ -284,7 +284,7 @@ uint16_t bip6_receive(
     int max = 0;
     struct timeval select_timeout;
     struct sockaddr_in6 sin = { 0 };
-    BACNET_IP6_ADDRESS addr = { { 0 } };
+    BACNET_IP6_ADDRESS addr = { 0 };
     socklen_t sin_len = sizeof(sin);
     int received_bytes = 0;
     int offset = 0;
