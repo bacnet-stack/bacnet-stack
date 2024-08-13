@@ -74,35 +74,24 @@
 /* #define MAX_APDU 1476 */
 #if defined(BACDL_BIP)
 #define MAX_APDU 1476
-/* #define MAX_APDU 128 enable this IP for testing
-   readrange so you get the More Follows flag set */
+/* Enable this IP for testing readrange so you get the More Follows flag set */
+/* #define MAX_APDU 128 */
 #elif defined(BACDL_BIP6)
 #define MAX_APDU 1476
-#elif defined(BACDL_ETHERNET)
-#if defined(BACNET_SECURITY)
-#define MAX_APDU 1420
-#else
-#define MAX_APDU 1476
-#endif
-#elif defined(BACDL_ARCNET)
-#if defined(BACNET_SECURITY)
-#define MAX_APDU 412
-#else
-#define MAX_APDU 480
-#endif
-#elif defined(BACDL_MSTP)
-#if defined(BACNET_SECURITY)
-#define MAX_APDU 412
-#else
+#elif defined(BACDL_MSTP) && !defined(BACNET_SECURITY)
 /* note: MS/TP extended frames can be up to 1476 bytes */
 #define MAX_APDU 1476
-#endif
-#else
-#if defined(BACNET_SECURITY)
+#elif defined(BACDL_ETHERNET) && !defined(BACNET_SECURITY)
+#define MAX_APDU 1476
+#elif defined(BACDL_ETHERNET) && defined(BACNET_SECURITY)
+#define MAX_APDU 1420
+#elif !defined(BACNET_SECURITY)
+#define MAX_APDU 480
+#elif defined(BACDL_MSTP) && defined(BACNET_SECURITY)
+/* TODO: Is this really 412 or should it be 480? */
 #define MAX_APDU 412
 #else
-#define MAX_APDU 480
-#endif
+#define MAX_APDU 412
 #endif
 #endif
 
