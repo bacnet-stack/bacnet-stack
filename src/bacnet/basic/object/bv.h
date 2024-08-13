@@ -110,6 +110,16 @@ extern "C" {
     bool Binary_Value_Present_Value_Set(
         uint32_t instance,
         BACNET_BINARY_PV value);
+    BACNET_STACK_EXPORT
+    void Binary_Value_Write_Present_Value_Callback_Set(
+        binary_value_write_present_value_callback cb);
+
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Write_Enabled(uint32_t instance);
+    BACNET_STACK_EXPORT
+    void Binary_Value_Write_Enable(uint32_t instance);
+    BACNET_STACK_EXPORT
+    void Binary_Value_Write_Disable(uint32_t instance);
 
     BACNET_STACK_EXPORT
     bool Binary_Value_Out_Of_Service(

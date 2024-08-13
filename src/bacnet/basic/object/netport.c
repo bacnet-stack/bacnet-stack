@@ -3033,7 +3033,7 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
  * @param  object_property [in] BACnet object property
  * @return true if the object property is a BACnetARRAY datatype
  */
-bool Network_Port_BACnetArray_Property(BACNET_PROPERTY_ID object_property)
+static bool Network_Port_BACnetArray_Property(BACNET_PROPERTY_ID object_property)
 {
     bool status = false;
 

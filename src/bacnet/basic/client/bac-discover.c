@@ -728,7 +728,7 @@ static void bacnet_read_property_reply(uint32_t device_id,
  * @param device_id - Device ID from discovered device
  * @param device_data - Pointer to the device data structure
  */
-void bacnet_discover_device_fsm(
+static void bacnet_discover_device_fsm(
     uint32_t device_id, BACNET_DEVICE_DATA *device_data)
 {
     KEY key = 0;

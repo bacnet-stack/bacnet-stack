@@ -20,7 +20,7 @@
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(property_tests, testPropList)
 #else
-void testPropList(void)
+static void testPropList(void)
 #endif
 {
     unsigned i = 0, j = 0;

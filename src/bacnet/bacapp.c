@@ -1893,7 +1893,7 @@ int bacapp_snprintf_shift(int len, char **buf, size_t *buf_size)
  * @param value - value to be printed
  * @return number of characters written to the string
  */
-int bacapp_snprintf_shed_level(
+static int bacapp_snprintf_shed_level(
     char *str, size_t str_len, BACNET_SHED_LEVEL *value)
 {
     int length = 0;
@@ -3552,7 +3552,7 @@ static bool strtod_checked(const char *s, double *out)
  * @param argv [in] The string to parse
  * @return True on success, else False
  */
-bool bacnet_scale_from_ascii(BACNET_SCALE *value, const char *argv)
+static bool bacnet_scale_from_ascii(BACNET_SCALE *value, const char *argv)
 {
     bool status = false;
     int count;
@@ -3591,7 +3591,8 @@ bool bacnet_scale_from_ascii(BACNET_SCALE *value, const char *argv)
  * @param argv [in] The string to parse
  * @return True on success, else False
  */
-bool bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv)
+static bool bacnet_shed_level_from_ascii(
+    BACNET_SHED_LEVEL *value, const char *argv)
 {
     bool status = false;
     int count;

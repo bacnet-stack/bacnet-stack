@@ -41,6 +41,11 @@ extern "C" {
 #endif /* __cplusplus */
 
     BACNET_STACK_EXPORT
+    int getevent_apdu_encode(
+        uint8_t *apdu,
+        BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
+
+    BACNET_STACK_EXPORT
     int getevent_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
