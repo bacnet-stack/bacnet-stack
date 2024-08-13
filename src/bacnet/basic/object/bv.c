@@ -1367,6 +1367,90 @@ static struct object_data *Binary_Value_Object_Index(int index)
 {
     return Keylist_Data_Index(Object_List, index);
 }
+
+/**
+ * For a given object instance-number, returns the event_enable property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event_enable property value
+ */
+uint32_t Binary_Value_Event_Enable(uint32_t object_instance)
+{
+    uint32_t event_enable = 0;
+    struct object_data *pObject = Binary_Value_Object(object_instance);
+
+    if (pObject) {
+        event_enable = pObject->Event_Enable;
+    }
+
+    return event_enable;
+}
+
+/**
+ * For a given object instance-number, sets the event_enable property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param event_enable - event_enable property value - the combination of bits:
+ *                       EVENT_ENABLE_TO_OFFNORMAL, EVENT_ENABLE_TO_FAULT, EVENT_ENABLE_TO_NORMAL
+ * @return true if the event_enable property value was set
+ */
+bool Binary_Value_Event_Enable_Set(uint32_t object_instance, uint32_t event_enable)
+{
+    bool status = false;
+    struct object_data *pObject = Binary_Value_Object(object_instance);
+
+    if (pObject) {
+      if(!(event_enable & ~(EVENT_ENABLE_TO_OFFNORMAL | EVENT_ENABLE_TO_FAULT | EVENT_ENABLE_TO_NORMAL))) {
+        pObject->Event_Enable = event_enable;
+        status = true;
+      }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the notify_type property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  notify_type property value
+ */
+BACNET_NOTIFY_TYPE Binary_Value_Notify_Type(uint32_t object_instance)
+{
+    BACNET_NOTIFY_TYPE notify_type = NOTIFY_EVENT;
+    struct object_data *pObject = Binary_Value_Object(object_instance);
+
+    if (pObject) {
+        notify_type = pObject->Notify_Type;
+    }
+
+    return notify_type;
+}
+
+/**
+ * For a given object instance-number, sets the notify_type property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param notify_type - notify_type property value from the set <NOTIFY_EVENT, NOTIFY_ALARM>
+ *
+ * @return true if the notify_type property value was set
+ */
+bool Binary_Value_Notify_Type_Set(uint32_t object_instance, BACNET_NOTIFY_TYPE notify_type)
+{
+    bool status = false;
+    struct object_data *pObject = Binary_Value_Object(object_instance);
+
+    if (pObject) {
+      if((notify_type == NOTIFY_EVENT) || (notify_type == NOTIFY_ALARM)) {
+        pObject->Notify_Type = notify_type;
+        status = true;
+      }
+    }
+
+    return status;
+}
 #endif
 
 int Binary_Value_Event_Information(
@@ -1582,6 +1666,113 @@ int Binary_Value_Alarm_Summary(
         return -1; /* end of list  */
 }
 
+/**
+ * For a given object instance-number, returns the time_delay property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  time_delay property value
+ */
+uint32_t Binary_Value_Time_Delay(uint32_t object_instance)
+{
+    uint32_t time_delay = 0;
+    struct object_data *pObject = Binary_Value_Object(object_instance);
+
+    if (pObject) {
+        time_delay = pObject->Time_Delay;
+    }
+
+    return time_delay;
+}
+
+/**
+ * For a given object instance-number, sets the time_delay property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param time_delay - time_delay property value
+ *
+ * @return true if the time_delay property value was set
+ */
+bool Binary_Value_Time_Delay_Set(uint32_t object_instance, uint32_t time_delay)
+{
+    bool status = false;
+    struct object_data *pObject = Binary_Value_Object(object_instance);
+
+    if (pObject) {
+        pObject->Time_Delay = time_delay;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the notification_class property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  notification_class property value
+ */
+uint32_t Binary_Value_Notification_Class(uint32_t object_instance)
+{
+    uint32_t notification_class = BACNET_MAX_INSTANCE;
+    struct object_data *pObject = Binary_Value_Object(object_instance);
+
+    if (pObject) {
+        notification_class = pObject->Notification_Class;
+    }
+
+    return notification_class;
+}
+
+/**
+ * For a given object instance-number, sets the notification_class property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param notification_class - notification_class property value
+ *
+ * @return true if the notification_class property value was set
+ */
+bool Binary_Value_Notification_Class_Set(uint32_t object_instance, uint32_t notification_class)
+{
+    bool status = false;
+    struct object_data *pObject = Binary_Value_Object(object_instance);
+
+    if (pObject) {
+        pObject->Notification_Class = notification_class;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the alarm_value property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  alarm_value property value
+ */
+BACNET_BINARY_PV Binary_Value_Alarm_Value(uint32_t object_instance)
+{
+    BACNET_BINARY_PV alarm_value = BINARY_NULL;
+    struct object_data *pObject = Binary_Value_Object(object_instance);
+
+    if (pObject) {
+        alarm_value = pObject->Alarm_Value;
+    }
+
+    return alarm_value;
+}
+
+/**
+ * For a given object instance-number, sets the alarm_value property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param Alarm_Value - alarm_value property value
+ *
+ * @return true if the alarm_value property value was set
+ */
 bool Binary_Value_Alarm_Value_Set(
     uint32_t object_instance, BACNET_BINARY_PV value)
 {
