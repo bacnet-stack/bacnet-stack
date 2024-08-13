@@ -49,7 +49,7 @@ static void test_object_command(void)
     pAction->Property_Array_Index = BACNET_ARRAY_ALL;
     pAction->Priority = 16;
     pAction->Value.tag = BACNET_APPLICATION_TAG_REAL;
-    pAction->Value.type.Real = 3.14159;
+    pAction->Value.type.Real = 3.14159f;
     pAction->Post_Delay = 0;
     pAction->Quit_On_Failure = false;
     pAction->Write_Successful = false;

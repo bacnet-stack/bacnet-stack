@@ -69,7 +69,7 @@ static void testWritePropertyMultiple(void)
     property_value[0].propertyIdentifier = PROP_PRESENT_VALUE;
     property_value[0].propertyArrayIndex = 0;
     property_value[0].value.tag = BACNET_APPLICATION_TAG_REAL;
-    property_value[0].value.type.Real = 3.14159;
+    property_value[0].value.type.Real = 3.14159f;
     property_value[0].value.next = NULL;
     property_value[0].priority = 0;
 
@@ -80,7 +80,7 @@ static void testWritePropertyMultiple(void)
     property_value[1].propertyIdentifier = PROP_PRESENT_VALUE;
     property_value[1].propertyArrayIndex = 0;
     property_value[1].value.tag = BACNET_APPLICATION_TAG_REAL;
-    property_value[1].value.type.Real = 1.41421;
+    property_value[1].value.type.Real = 1.41421f;
     property_value[1].value.next = NULL;
     property_value[1].priority = 0;
 

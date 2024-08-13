@@ -217,9 +217,9 @@ static void testWriteProperty(void)
     testWritePropertyTag(&value);
     value.type.Real = 1.0;
     testWritePropertyTag(&value);
-    value.type.Real = 3.14159;
+    value.type.Real = 3.14159f;
     testWritePropertyTag(&value);
-    value.type.Real = -3.14159;
+    value.type.Real = -3.14159f;
     testWritePropertyTag(&value);
 
     value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
