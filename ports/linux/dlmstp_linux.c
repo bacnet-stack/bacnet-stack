@@ -858,5 +858,10 @@ bool dlmstp_init(void *poPort, char *ifname)
         fprintf(stderr, "Failed to start Master Node FSM task\n");
     }
 
+    /* You can try also this for thread. This here so we ignore
+     * -Wunused-function compiler warning
+     */
+    dlmstp_receive_fsm_task(NULL);
+
     return true;
 }
