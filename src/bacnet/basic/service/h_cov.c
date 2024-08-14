@@ -357,7 +357,6 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
     /* unable to subscribe - resources? */
     /* unable to cancel subscription - other? */
 
-    fprintf(stderr, "[%s %d %s]\r\n", __FILE__, __LINE__, __func__);
     /* existing? - match Object ID and Process ID and address */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         if (COV_Subscriptions[index].flag.valid) {
