@@ -20,9 +20,11 @@
 #include "bacnet/rp.h" /* ReadProperty handling */
 #include "bacnet/dcc.h" /* DeviceCommunicationControl handling */
 #include "bacnet/version.h"
+#if defined(BACDL_MSTP)
+#include "bacnet/datalink/dlmstp.h"
+#endif
 #include "bacnet/basic/object/device.h" /* me */
 #include "bacnet/basic/services.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h"

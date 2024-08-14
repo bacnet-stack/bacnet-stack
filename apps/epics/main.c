@@ -38,6 +38,8 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/bip.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacepics.h"
 
