@@ -27,7 +27,7 @@
 void *dl_mstp_thread(void *pArgs)
 {
     ROUTER_PORT *port = (ROUTER_PORT *)pArgs;
-    struct mstp_port_struct_t mstp_port = { (MSTP_RECEIVE_STATE)0 };
+    struct mstp_port_struct_t mstp_port = { 0 };
     volatile SHARED_MSTP_DATA shared_port_data = { 0 };
     uint16_t pdu_len;
     uint8_t shutdown = 0;
