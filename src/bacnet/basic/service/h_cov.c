@@ -409,9 +409,7 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
             *error_class = ERROR_CLASS_RESOURCES;
             *error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
             found = false;
-            fprintf(stderr, "[%s %d %s] dest_index = %d\r\n", __FILE__, __LINE__, __func__, COV_Subscriptions[index].dest_index);
         } else {
-            fprintf(stderr, "[%s %d %s] dest_index = %d\r\n", __FILE__, __LINE__, __func__, COV_Subscriptions[index].dest_index);
             COV_Subscriptions[index].dest_index = addr_add_ret;
             index = first_invalid_index;
             found = true;
