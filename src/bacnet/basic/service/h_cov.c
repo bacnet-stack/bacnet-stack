@@ -357,6 +357,7 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
     /* unable to subscribe - resources? */
     /* unable to cancel subscription - other? */
 
+    fprintf(stderr, "[%s %d %s]\r\n", __FILE__, __LINE__, __func__);
     /* existing? - match Object ID and Process ID and address */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         if (COV_Subscriptions[index].flag.valid) {
@@ -382,6 +383,7 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
                     cov_address_remove_unused();
                 } else {
                     COV_Subscriptions[index].dest_index = cov_address_add(src);
+    fprintf(stderr, "[%s %d %s] dest_index = %d\r\n", __FILE__, __LINE__, __func__, COV_Subscriptions[index].dest_index);
                     COV_Subscriptions[index].flag.issueConfirmedNotifications =
                         cov_data->issueConfirmedNotifications;
                     COV_Subscriptions[index].lifetime = cov_data->lifetime;
@@ -400,25 +402,36 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
         }
     }
     if (!existing_entry && (first_invalid_index >= 0) &&
-        (!cov_data->cancellationRequest)) {
-        index = first_invalid_index;
-        found = true;
-        COV_Subscriptions[index].flag.valid = true;
-        COV_Subscriptions[index].dest_index = cov_address_add(src);
-        COV_Subscriptions[index].monitoredObjectIdentifier.type =
-            cov_data->monitoredObjectIdentifier.type;
-        COV_Subscriptions[index].monitoredObjectIdentifier.instance =
-            cov_data->monitoredObjectIdentifier.instance;
-        COV_Subscriptions[index].subscriberProcessIdentifier =
-            cov_data->subscriberProcessIdentifier;
-        COV_Subscriptions[index].flag.issueConfirmedNotifications =
-            cov_data->issueConfirmedNotifications;
-        COV_Subscriptions[index].invokeID = 0;
-        COV_Subscriptions[index].lifetime = cov_data->lifetime;
-        COV_Subscriptions[index].flag.send_requested = true;
+            (!cov_data->cancellationRequest)) {
+        const int addr_add_ret = cov_address_add(src);
+
+        if(addr_add_ret < 0) {
+            *error_class = ERROR_CLASS_RESOURCES;
+            *error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
+            found = false;
+            fprintf(stderr, "[%s %d %s] dest_index = %d\r\n", __FILE__, __LINE__, __func__, COV_Subscriptions[index].dest_index);
+        } else {
+            fprintf(stderr, "[%s %d %s] dest_index = %d\r\n", __FILE__, __LINE__, __func__, COV_Subscriptions[index].dest_index);
+            COV_Subscriptions[index].dest_index = addr_add_ret;
+            index = first_invalid_index;
+            found = true;
+            COV_Subscriptions[index].flag.valid = true;
+            COV_Subscriptions[index].monitoredObjectIdentifier.type =
+                cov_data->monitoredObjectIdentifier.type;
+            COV_Subscriptions[index].monitoredObjectIdentifier.instance =
+                cov_data->monitoredObjectIdentifier.instance;
+            COV_Subscriptions[index].subscriberProcessIdentifier =
+                cov_data->subscriberProcessIdentifier;
+            COV_Subscriptions[index].flag.issueConfirmedNotifications =
+                cov_data->issueConfirmedNotifications;
+            COV_Subscriptions[index].invokeID = 0;
+            COV_Subscriptions[index].lifetime = cov_data->lifetime;
+            COV_Subscriptions[index].flag.send_requested = true;
+        }
     } else if (!existing_entry) {
         if (first_invalid_index < 0) {
             /* Out of resources */
+    fprintf(stderr, "[%s %d %s] oor\r\n", __FILE__, __LINE__, __func__);
             *error_class = ERROR_CLASS_RESOURCES;
             *error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
             found = false;
