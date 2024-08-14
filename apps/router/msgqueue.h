@@ -55,8 +55,7 @@ typedef struct _msg_data {
     uint8_t ref_count;
 } MSG_DATA;
 
-MSGBOX_ID create_msgbox(
-    );
+MSGBOX_ID create_msgbox(void);
 
 /* returns sent byte count */
 bool send_to_msgbox(
