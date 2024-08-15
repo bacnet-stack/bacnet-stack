@@ -765,7 +765,7 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(reinit apps/reinit/main.c)
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
 
-  if(BACDL_MSTP)
+  if(BACDL_MSTP AND NOT WIN32)
     add_executable(
       router
       apps/router/ipmodule.c

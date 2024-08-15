@@ -17,7 +17,7 @@
 
 pthread_mutex_t msg_lock = PTHREAD_MUTEX_INITIALIZER;
 
-MSGBOX_ID create_msgbox()
+MSGBOX_ID create_msgbox(void)
 {
     MSGBOX_ID msgboxid;
 

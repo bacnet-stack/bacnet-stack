@@ -18,6 +18,11 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/tsm/tsm.h"
+#if defined(BACDL_BIP)
+#include "bacnet/datalink/bip.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
+#endif
+
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif

@@ -408,8 +408,9 @@ static bool dlmstp_compare_data_expecting_reply(
     struct DER_compare_t reply;
 
     /* unused parameters */
-    request_pdu_len = request_pdu_len;
-    reply_pdu_len = reply_pdu_len;
+    (void)request_pdu_len;
+    (void)reply_pdu_len;
+
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
@@ -856,6 +857,11 @@ bool dlmstp_init(void *poPort, char *ifname)
     if (rv != 0) {
         fprintf(stderr, "Failed to start Master Node FSM task\n");
     }
+
+    /* You can try also this for thread. This here so we ignore
+     * -Wunused-function compiler warning
+     */
+    dlmstp_receive_fsm_task(NULL);
 
     return true;
 }
