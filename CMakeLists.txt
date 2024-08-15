@@ -127,6 +127,11 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
     add_compile_options(-Wno-c99-extensions)
   endif()
 
+  if (APPLE)
+    # Apple defines UINT64_MAX with ULL suffix. This is not C90 compliant.
+    add_compile_options(-Wno-long-long)
+  endif()
+
   # Should be fixed in a future.
   add_compile_options(-Wno-cast-qual)
   add_compile_options(-Wno-double-promotion)
