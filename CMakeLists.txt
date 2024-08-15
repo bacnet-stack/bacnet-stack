@@ -118,9 +118,13 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
   add_compile_options(-Wno-sign-compare)
 
-  # Just noise from clang
   if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+    # Just noise from clang
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+
+    # Clang does not like _Bool which is not C90. We could fix this at some
+    # point.
+    add_compile_options(-Wno-c99-extensions)
   endif()
 
   # Should be fixed in a future.
