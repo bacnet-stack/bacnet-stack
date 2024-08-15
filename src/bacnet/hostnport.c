@@ -1055,8 +1055,8 @@ bool bacnet_fdt_entry_from_ascii(BACNET_FDT_ENTRY *value, const char *argv)
             value->time_to_live = (uint16_t)ttl;
             value->remaining_time_to_live = (uint16_t)rttl;
         }
-        address[4] = (uint8_t)p >> 8;
-        address[5] = (uint8_t)p & 0xFF;
+        address[4] = (uint8_t)((p >> 8) & 0xFF);
+        address[5] = (uint8_t)((p >> 0) & 0xFF);
         octetstring_init(&value->bacnetip_address, address, 6);
         status = true;
     } else {
@@ -1099,8 +1099,8 @@ bool bacnet_fdt_entry_from_ascii(BACNET_FDT_ENTRY *value, const char *argv)
                 value->time_to_live = (uint16_t)ttl;
                 value->remaining_time_to_live = (uint16_t)rttl;
             }
-            address[16] = (uint8_t)p >> 8;
-            address[17] = (uint8_t)p & 0xFF;
+            address[16] = (uint8_t)((p >> 8) & 0xFF);
+            address[17] = (uint8_t)((p >> 0) & 0xFF);
             octetstring_init(&value->bacnetip_address, address, 18);
             status = true;
         } else {
