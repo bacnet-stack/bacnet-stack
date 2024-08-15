@@ -21,8 +21,6 @@
 #     <workspace>
 
 manifest:
-  version: 0.13
-
   remotes:
     - name: bacnet-stack
       url-base: https://github.com/bacnet-stack
@@ -38,7 +36,7 @@ manifest:
   projects:
     - name: zephyr
       path: zephyr
-      revision: v3.6.0
+      revision: v3.7.0
       remote: zephyrproject-rtos
       west-commands: scripts/west-commands.yml
       import:

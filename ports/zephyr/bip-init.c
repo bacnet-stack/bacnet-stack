@@ -11,6 +11,7 @@
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
+#include <zephyr/net/net_if.h>
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/net/socket_select.h>
@@ -321,7 +322,7 @@ uint16_t bip_receive(
     /* see if there is a packet for us */
     if (zsock_select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
         socket =
-            FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket : BIP_Broadcast_Socket;
+            ZSOCK_FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket : BIP_Broadcast_Socket;
         received_bytes = zsock_recvfrom(socket, (char *)&npdu[0], max_npdu, 0,
             (struct sockaddr *)&sin, &sin_len);
     } else {
@@ -406,6 +407,7 @@ int bip_send_pdu(BACNET_ADDRESS *dest,
  */
 void bip_set_interface(char *ifname)
 {
+#if 0 //{TODO: Fix build errors for native_posix
     struct net_if *iface = 0;
     int index = -1;
     uint8_t x = 0;
@@ -490,6 +492,7 @@ void bip_set_interface(char *ifname)
     } else {
         LOG_ERR("%s:%d - Failed to set iface", THIS_FILE, __LINE__);
     }
+#endif //}TODO:
 }
 
 static int createSocket(struct sockaddr_in *sin)
