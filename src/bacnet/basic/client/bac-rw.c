@@ -465,7 +465,9 @@ static bool bacnet_read_write_process(TARGET_DATA *target)
             }
             break;
         case BACNET_CLIENT_WAITING:
-            if (tsm_invoke_id_free(Request_Invoke_ID)) {
+            if (Error_Detected) {
+                RW_State = BACNET_CLIENT_FINISHED;
+            } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 Error_Detected = false;
                 RW_State = BACNET_CLIENT_FINISHED;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
@@ -474,8 +476,6 @@ static bool bacnet_read_write_process(TARGET_DATA *target)
                 Error_Code = ERROR_CODE_ABORT_TSM_TIMEOUT;
                 RW_State = BACNET_CLIENT_FINISHED;
                 tsm_free_invoke_id(Request_Invoke_ID);
-            } else if (Error_Detected) {
-                RW_State = BACNET_CLIENT_FINISHED;
             }
             break;
         case BACNET_CLIENT_FINISHED:
