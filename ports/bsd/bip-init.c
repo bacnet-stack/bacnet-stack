@@ -518,8 +518,7 @@ int bip_get_local_netmask(struct in_addr *netmask)
     if (ifname == NULL)
         ifname = "en0";
     printf("ifname %s", ifname);
-    char *request = "netmask";
-    rv = get_local_address(ifname, netmask, request);
+    rv = get_local_address(ifname, netmask, "netmask");
 
     return rv;
 }

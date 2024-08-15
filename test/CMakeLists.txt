@@ -10,6 +10,9 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
+# In tests allow newer C standard than in the library.
+set(CMAKE_C_STANDARD 99)
+
 # Set the compiler options
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-g -O0 -fprofile-arcs -ftest-coverage)

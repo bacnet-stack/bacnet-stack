@@ -101,6 +101,8 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
+set(CMAKE_C_STANDARD 90)
+
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic)
   # Add more warnings
@@ -116,9 +118,18 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
   add_compile_options(-Wno-sign-compare)
 
-  # Just noise from clang
   if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+    # Just noise from clang
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+
+    # Clang does not like _Bool which is not C90. We could fix this at some
+    # point.
+    add_compile_options(-Wno-c99-extensions)
+  endif()
+
+  if (APPLE)
+    # Apple defines UINT64_MAX with ULL suffix. This is not C90 compliant.
+    add_compile_options(-Wno-long-long)
   endif()
 
   # Should be fixed in a future.
