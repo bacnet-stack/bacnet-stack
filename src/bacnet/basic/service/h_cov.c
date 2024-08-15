@@ -382,7 +382,6 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
                     cov_address_remove_unused();
                 } else {
                     COV_Subscriptions[index].dest_index = cov_address_add(src);
-    fprintf(stderr, "[%s %d %s] dest_index = %d\r\n", __FILE__, __LINE__, __func__, COV_Subscriptions[index].dest_index);
                     COV_Subscriptions[index].flag.issueConfirmedNotifications =
                         cov_data->issueConfirmedNotifications;
                     COV_Subscriptions[index].lifetime = cov_data->lifetime;
@@ -428,7 +427,6 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
     } else if (!existing_entry) {
         if (first_invalid_index < 0) {
             /* Out of resources */
-    fprintf(stderr, "[%s %d %s] oor\r\n", __FILE__, __LINE__, __func__);
             *error_class = ERROR_CLASS_RESOURCES;
             *error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
             found = false;
