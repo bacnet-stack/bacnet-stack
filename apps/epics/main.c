@@ -876,13 +876,13 @@ static uint8_t Read_Properties(
  *  If the present state is GET_HEADING_RESPONSE, store the results
  *  in globals for later use.
  * @param rpm_data [in] The list of RPM data received.
- * @param myState [in] The current state.
+ * @param state [in] The current state.
  * @return The next state of the EPICS state machine, normally NEXT_OBJECT
  *         if the RPM got good data, or GET_PROPERTY_REQUEST if we have to
  *         singly process the list of Properties.
  */
 static EPICS_STATES ProcessRPMData(
-    BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES myState)
+    BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES state)
 {
     BACNET_READ_ACCESS_DATA *old_rpm_data;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -890,7 +890,7 @@ static EPICS_STATES ProcessRPMData(
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
     bool bSuccess = true;
-    EPICS_STATES nextState = myState; /* assume no change */
+    EPICS_STATES nextState = state; /* assume no change */
     /* Some flags to keep the output "pretty" -
      * wait and put these object lists at the end */
     bool bHasObjectList = false;
@@ -902,7 +902,7 @@ static EPICS_STATES ProcessRPMData(
         while (rpm_property) {
             /* For the GET_LIST_OF_ALL_RESPONSE case,
              * just keep what property this was */
-            if (myState == GET_LIST_OF_ALL_RESPONSE) {
+            if (state == GET_LIST_OF_ALL_RESPONSE) {
                 switch (rpm_property->propertyIdentifier) {
                     case PROP_OBJECT_LIST:
                         bHasObjectList = true; /* Will append below */
@@ -924,7 +924,7 @@ static EPICS_STATES ProcessRPMData(
                     value = value->next;
                     free(old_value);
                 }
-            } else if (myState == GET_HEADING_RESPONSE) {
+            } else if (state == GET_HEADING_RESPONSE) {
                 Property_Value_List[i++].value = rpm_property->value;
                 /* copy this pointer.
                  * On error, the pointer will be null
@@ -946,10 +946,10 @@ static EPICS_STATES ProcessRPMData(
     }
 
     /* Now determine the next state */
-    if (myState == GET_HEADING_RESPONSE) {
+    if (state == GET_HEADING_RESPONSE) {
         nextState = PRINT_HEADING;
         /* press ahead with or without the data */
-    } else if (bSuccess && (myState == GET_ALL_RESPONSE)) {
+    } else if (bSuccess && (state == GET_ALL_RESPONSE)) {
         nextState = NEXT_OBJECT;
     } else if (bSuccess) { /* and GET_LIST_OF_ALL_RESPONSE */
         /* Now append the properties we waited on. */
