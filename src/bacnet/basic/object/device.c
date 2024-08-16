@@ -591,6 +591,7 @@ static uint32_t Database_Revision = 0;
 /* Profile_Name */
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static const char *Reinit_Password = "filister";
+static write_property_function Device_Write_Property_Store_Callback;
 
 /**
  * @brief Sets the ReinitializeDevice password
@@ -1901,6 +1902,26 @@ static bool Device_Write_Property_Object_Name(
     return status;
 }
 
+/**
+ * @brief Set the callback for a WriteProperty successful operation
+ * @param cb [in] The function to be called, or NULL to disable
+ */
+void Device_Write_Property_Store_Callback_Set(
+        write_property_function cb)
+{
+    Device_Write_Property_Store_Callback = cb;
+}
+
+/**
+ * @brief Store the value of a property when WriteProperty is successful
+ */
+static void Device_Write_Property_Store(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    if (Device_Write_Property_Store_Callback) {
+        (void)Device_Write_Property_Store_Callback(wp_data);
+    }
+}
+
 /** Looks up the requested Object and Property, and set the new Value in it,
  *  if allowed.
  * If the Object or Property can't be found, sets the error class and code.
@@ -1935,6 +1956,9 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         wp_data, pObject->Object_Write_Property);
                 } else {
                     status = pObject->Object_Write_Property(wp_data);
+                }
+                if (status) {
+                    Device_Write_Property_Store(wp_data);
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;

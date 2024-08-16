@@ -350,6 +350,7 @@ static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static BACNET_CHARACTER_STRING Reinit_Password;
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
+static write_property_function Device_Write_Property_Store_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -1386,33 +1387,24 @@ static bool Device_Write_Property_Object_Name(
     return status;
 }
 
-void Device_Write_Property_Store(BACNET_WRITE_PROPERTY_DATA *wp_data)
+/**
+ * @brief Set the callback for a WriteProperty successful operation
+ * @param cb [in] The function to be called, or NULL to disable
+ */
+void Device_Write_Property_Store_Callback_Set(
+        write_property_function cb)
 {
-    BACNET_ARRAY_INDEX array_index;
-    BACNET_PROPERTY_ID object_property;
+    Device_Write_Property_Store_Callback = cb;
+}
 
-    if (property_list_bacnet_array_member(wp_data->object_type,
-                                          wp_data->object_property)) {
-        array_index = wp_data->array_index;
-        object_property = wp_data->object_property;
-    } else if (wp_data->object_property == PROP_PRESENT_VALUE) {
-        /* indirect Priority_Array write */
-        if (Device_Objects_Property_List_Member(wp_data->object_type,
-                                                wp_data->object_instance,
-                                                PROP_PRIORITY_ARRAY)) {
-            array_index = wp_data->priority;
-            object_property = PROP_PRIORITY_ARRAY;
-        } else {
-            object_property = wp_data->object_property;
-            array_index = BACNET_ARRAY_ALL;
-        }
-    } else {
-        object_property = wp_data->object_property;
-        array_index = wp_data->array_index;
+/**
+ * @brief Store the value of a property when WriteProperty is successful
+ */
+static void Device_Write_Property_Store(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    if (Device_Write_Property_Store_Callback) {
+        (void)Device_Write_Property_Store_Callback(wp_data);
     }
-    //bacnet_data_store(wp_data->object_type, wp_data->object_instance,
-    //                  object_property, array_index, wp_data->application_data,
-    //                  wp_data->application_data_len);
 }
 
 /** Looks up the requested Object and Property, and set the new Value in it,
