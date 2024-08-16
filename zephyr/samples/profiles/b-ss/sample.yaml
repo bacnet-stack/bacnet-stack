@@ -4,6 +4,4 @@ sample:
 tests:
   bacnet-stack.sample.profile.b-ss:
     tags: bacnet
-    build_only: true  # TODO: Remove when sample runs correctly on Zephyr v3.7.0
-    integration_platforms:
-      - native_posix
+    platform_allow: qemu_x86 native_posix native_posix_64 native_sim

@@ -11,7 +11,6 @@
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
-#include <zephyr/net/net_if.h>
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/net/socket_select.h>

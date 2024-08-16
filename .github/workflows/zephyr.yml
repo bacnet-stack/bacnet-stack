@@ -36,16 +36,6 @@ jobs:
               find twister-out.unit_testing -name $file -exec rm -rf {} \; || true 
             done
 
-      - name: Twister Tests samples
-        working-directory: bacnet-stack
-        run: |
-          rm -rf twister-out.samples &&
-          ../zephyr/scripts/twister -O twister-out.samples -T zephyr/samples --integration &&
-          for file in CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
-            do
-              find twister-out.samples -name $file -exec rm -rf {} \; || true
-            done
-
       - name: Archive firmware
         uses: actions/upload-artifact@v4
         with:

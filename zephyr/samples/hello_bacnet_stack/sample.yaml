@@ -5,12 +5,11 @@ sample:
 common:
     tags: introduction
     harness: console
-    integration_platforms:
-      - native_posix
     harness_config:
       type: one_line
       regex:
         - "Hello BACnet-Stack! (.*)"
 tests:
   bacnet-stack.sample.basic.hello_bacnet_stack:
+    platform_allow: native_posix
     tags: introduction
