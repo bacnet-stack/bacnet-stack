@@ -56,18 +56,14 @@ jobs:
           source_dir=$GITHUB_WORKSPACE
         fi
 
-        c_flags=""
-        if [[ "$RUNNER_OS" != "Windows" ]]; then
-          # Warnings as errors.
-          c_flags="$c_flags -Werror"
-        fi
+        cmake_options="-DCMAKE_COMPILE_WARNING_AS_ERROR=ON"
   
         # Compile as much as possible to at least compile test code.
         c_flags="$c_flags -DBACFILE=ON"
         c_flags="$c_flags -DPRINT_ENABLED=1"
         c_flags="$c_flags -DBACNET_TIME_MASTER=ON"
         c_flags="$c_flags -DBACAPP_COLOR_RGB_CONVERSION_ENABLED=ON"
-        cmake_options="-DCMAKE_C_FLAGS=$c_flags"
+        cmake_options="$cmake_options -DCMAKE_C_FLAGS=$c_flags"
 
         # TODO: Add BACDL_BIP6=ON when it builds withous errors.
         cmake_options="$cmake_options -DBACDL_BIP=ON"
