@@ -103,10 +103,4 @@ __inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
 #define BACNET_STACK_FALLTHROUGH() /* fall through */
 #endif
 
-#if defined(_MSC_VER)
-/* Silence the warnings about unsafe versions of library functions */
-/* as we need to keep the code portable */
-#pragma warning(disable : 4996)
-#endif
-
 #endif

@@ -10,6 +10,11 @@ add_executable(${PROJECT_NAME}
   ../../src/bacnet/basic/client/bac-task.c
 )
 
+target_compile_options(${PROJECT_NAME} PRIVATE
+  # Unreachable code because we have endless loop.
+  $<$<C_COMPILER_ID:MSVC>:/wd4702>
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
   bacnet-stack
 )

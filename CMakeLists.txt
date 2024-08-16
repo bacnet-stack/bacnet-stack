@@ -138,6 +138,36 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   add_compile_options(-Wno-float-conversion)
   add_compile_options(-Wno-missing-declarations)
   add_compile_options(-Wno-unused-but-set-variable)
+elseif(MSVC)
+  add_compile_options(/Wall)
+
+  # Potentially uninitialized local variable. Definetly fix these. There might
+  # be false positives but it is better to fix them also.
+  add_compile_options(/wd4701)
+
+  # Function is unsafe (strtok, sscanf, fopen, strerror).
+  add_compile_options(/wd4996)
+
+  # Handle all enums values in switch.
+  add_compile_options(/wd4061)
+
+  # Possible loss of data.
+  add_compile_options(/wd4242 /wd4244 /wd4267)
+
+  # Signed/unsigned mismatch.
+  add_compile_options(/wd4018 /wd4388 /wd4389)
+
+  # Not defined as a preprocessor macro.
+  add_compile_options(/wd4668)
+
+  # Function not inlined.
+  add_compile_options(/wd4710)
+
+  # Compiler adds padding to structures.
+  add_compile_options(/wd4820)
+
+  # Might be slower if builded with /Qspectre
+  add_compile_options(/wd5045)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -617,10 +647,6 @@ elseif(WIN32)
     winmm
     $<$<BOOL:${BACDL_BIP}>:ws2_32>
     $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
-
-  if(MSVC)
-    add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
-  endif()
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
