@@ -471,6 +471,9 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Device_Write_Property_Local(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
+    BACNET_STACK_EXPORT
+    void Device_Write_Property_Store_Callback_Set(
+        write_property_function cb);
 
 #if defined(INTRINSIC_REPORTING)
     BACNET_STACK_EXPORT
