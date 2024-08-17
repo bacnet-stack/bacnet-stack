@@ -130,7 +130,9 @@
 
 /* BACAPP decodes WriteProperty service requests
    Choose the datatypes that your application supports */
-#if !(defined(BACAPP_ALL) || \
+/* clang-format off */
+#if !( \
+    defined(BACAPP_ALL) || \
     defined(BACAPP_MINIMAL) || \
     defined(BACAPP_NULL) || \
     defined(BACAPP_BOOLEAN) || \
@@ -166,6 +168,7 @@
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
+/* clang-format on */
 
 #if defined (BACAPP_ALL)
 #define BACAPP_MINIMAL
@@ -210,6 +213,7 @@
 #define BACAPP_SHED_LEVEL
 #endif
 
+/* clang-format off */
 #if defined(BACAPP_DOUBLE) || \
     defined(BACAPP_DATETIME) || \
     defined(BACAPP_DATERANGE) || \
@@ -231,6 +235,7 @@
     defined(BACAPP_SHED_LEVEL)
 #define BACAPP_COMPLEX_TYPES
 #endif
+/* clang-format on */
 
 /*
 ** Set the maximum vector type sizes
