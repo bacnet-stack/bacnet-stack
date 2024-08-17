@@ -226,6 +226,10 @@ ifeq (${BACNET_PORT},win32)
 	SUBDIRS += mstpcap mstpcrc
 endif
 
+ifeq (${BACNET_PORT},bsd)
+	SUBDIRS += mstpcap mstpcrc
+endif
+
 #####
 # Define target-specific fuzzing flags
 #####
