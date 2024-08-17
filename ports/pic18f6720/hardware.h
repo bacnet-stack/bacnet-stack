@@ -22,9 +22,9 @@ enum INT_STATE { INT_DISABLED, INT_ENABLED, INT_RESTORE };
 #define RESTART_WDT()       { _asm CLRWDT _endasm }
 
 /* *************************************************************************
-  define ENABLE_GLOBAL_INT() INTCONbits.GIE = 1 �
-  #define DISABLE_GLOBAL_INT() INTCONbits.GIE = 0 �
-  #define ENABLE_PERIPHERAL_INT() INTCONbits.PEIE = 1 �
+  define ENABLE_GLOBAL_INT() INTCONbits.GIE = 1
+  #define DISABLE_GLOBAL_INT() INTCONbits.GIE = 0
+  #define ENABLE_PERIPHERAL_INT() INTCONbits.PEIE = 1
   #define DISABLE_PERIPHERAL_INT() INTCONbits.PEIE = 0
  *************************************************************************** */
 #define ENABLE_HIGH_INT()     INTCONbits.GIE = 1
