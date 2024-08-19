@@ -537,6 +537,35 @@ void Device_Property_Lists(
     return;
 }
 
+/**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_type - object type of the object
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+bool Device_Objects_Property_List_Member(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property)
+{
+    bool found = false;
+    struct special_property_list_t property_list = { 0 };
+
+    Device_Objects_Property_List(object_type, object_instance, &property_list);
+    found = property_list_member(property_list.Required.pList, object_property);
+    if (!found) {
+        found =
+            property_list_member(property_list.Optional.pList, object_property);
+    }
+    if (!found) {
+        found = property_list_member(property_list.Proprietary.pList,
+                                     object_property);
+    }
+
+    return found;
+}
+
 /* note: you really only need to define variables for
    properties that are writable or that may change.
    The properties that are constant can be hard coded
@@ -1745,13 +1774,6 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-#else
-        case PROP_TIME_SYNCHRONIZATION_INTERVAL:
-        case PROP_ALIGN_INTERVALS:
-        case PROP_INTERVAL_OFFSET:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            break;
 #endif
         case PROP_UTC_OFFSET:
             status = write_property_type_valid(
@@ -1796,40 +1818,19 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-#else
-        case PROP_MAX_INFO_FRAMES:
-        case PROP_MAX_MASTER:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            break;
 #endif
-        case PROP_OBJECT_TYPE:
-        case PROP_VENDOR_NAME:
-        case PROP_FIRMWARE_REVISION:
-        case PROP_APPLICATION_SOFTWARE_VERSION:
-        case PROP_LOCAL_TIME:
-        case PROP_LOCAL_DATE:
-        case PROP_DAYLIGHT_SAVINGS_STATUS:
-        case PROP_PROTOCOL_VERSION:
-        case PROP_PROTOCOL_REVISION:
-        case PROP_PROTOCOL_SERVICES_SUPPORTED:
-        case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
-        case PROP_OBJECT_LIST:
-        case PROP_MAX_APDU_LENGTH_ACCEPTED:
-        case PROP_SEGMENTATION_SUPPORTED:
-        case PROP_DEVICE_ADDRESS_BINDING:
-        case PROP_DATABASE_REVISION:
-        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
-#if defined(BACNET_TIME_MASTER)
-        case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
-#endif
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            break;
+            if (property_lists_member(
+                    Device_Properties_Required,
+                    Device_Properties_Optional,
+                    Device_Properties_Proprietary,
+                    wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
     }
 
     return status;
