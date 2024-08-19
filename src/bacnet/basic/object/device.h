@@ -274,6 +274,12 @@ extern "C" {
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         struct special_property_list_t *pPropertyList);
+    BACNET_STACK_EXPORT
+    bool Device_Objects_Property_List_Member(
+        BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance,
+        BACNET_PROPERTY_ID object_property);
+
     /* functions to support COV */
     BACNET_STACK_EXPORT
     bool Device_Encode_Value_List(
