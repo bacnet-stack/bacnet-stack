@@ -11,6 +11,12 @@ menuconfig BACNETSTACK
 
 if BACNETSTACK
 
+config BACNETSTACK_LOG_LEVEL
+	int "Log level for BACnet Stack"
+	default 1
+	help
+		BACnet Stack log level where 0=none, 1=error, 2=warning, 3=info, 4=debug
+
 module = BACNETSTACK
 module-str = Log level for BACnet
 module-help = Enable BACnet library to output debug messages
@@ -71,8 +77,6 @@ config BACDL_BIP
 	select NET_SOCKETS
 	select NET_UDP
 	select NET_IPV4
-	select NET_DHCPV4
-	select NET_IPV4_AUTO
 	help
 	  Enable BACnet BIP datalink
 
