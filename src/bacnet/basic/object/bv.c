@@ -36,6 +36,7 @@ struct object_data {
     bool Out_Of_Service : 1;
     bool Change_Of_Value : 1;
     bool Present_Value : 1;
+    bool Present_Value_Backup : 1;
     bool Write_Enabled : 1;
     bool Polarity : 1;
     unsigned Event_State:3;
@@ -242,7 +243,13 @@ void Binary_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
-            pObject->Out_Of_Service = value;
+            if((pObject->Out_Of_Service = value)) {
+                pObject->Present_Value_Backup = pObject->Present_Value;
+                Binary_Value_Write_Enable(object_instance);
+            } else {
+                pObject->Present_Value = pObject->Present_Value_Backup;
+                Binary_Value_Write_Disable(object_instance);
+            }
             pObject->Change_Of_Value = true;
         }
     }

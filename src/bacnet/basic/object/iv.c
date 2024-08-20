@@ -64,6 +64,7 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_INTEGER_VALUE;
 struct integer_object {
     bool Out_Of_Service : 1;
     bool Changed : 1;
+    int32_t Present_Value_Backup;
     int32_t Present_Value;
     int32_t Prior_Value;
     uint32_t COV_Increment;
@@ -429,7 +430,11 @@ void Integer_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     struct integer_object *pObject = Integer_Value_Object(object_instance);
 
     if (pObject) {
-        pObject->Out_Of_Service = value;
+        if((pObject->Out_Of_Service = value)) {
+            pObject->Present_Value_Backup = pObject->Present_Value;
+        } else {
+            pObject->Present_Value = pObject->Present_Value_Backup;
+        }
     }
 }
 
@@ -564,9 +569,15 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
-            if (status) {
-                Integer_Value_Present_Value_Set(wp_data->object_instance,
-                    value.type.Signed_Int, wp_data->priority);
+            if (Integer_Value_Out_Of_Service(wp_data->object_instance) == true) {
+                if (status) {
+                    Integer_Value_Present_Value_Set(wp_data->object_instance,
+                            value.type.Signed_Int, wp_data->priority);
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                status = false;
             }
             break;
         case PROP_COV_INCREMENT:

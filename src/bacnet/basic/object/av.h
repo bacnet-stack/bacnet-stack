@@ -32,6 +32,7 @@ typedef struct analog_value_descr {
     bool Out_Of_Service;
     uint16_t Units;
     float Present_Value;
+    float Present_Value_Backup;
     float Prior_Value;
     float COV_Increment;
     bool Changed;
