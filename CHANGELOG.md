@@ -20,7 +20,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.3.8] - 2024-08-17
+## [1.3.8] - 2024-08-20
 
 ### Security
 
@@ -32,6 +32,8 @@ The git repositories are hosted at the following sites:
 ### Added
 
 * Added mstpcap to apps/Makefile BSD build (#730)
+* Added prototype for device object property list member to use for
+  storing device data storing. (#735)
 * Added device WriteProperty callback for non-volatile storing in basic
   device examples. (#728)
 * Added CreateObject, DeleteObject, and COV to Integer Value object (#719)
@@ -85,6 +87,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed zephyr BACnet/IP for use in native_posix. Fixed zephyr logging
+  level for BACnet. (#738)
 * Fixed endless query in bac-rw module when error is returned. (#727)
 * Fixed Lighting Output object lighting command decoding and ramp operations
 * Fixed network port warning for unused static function. (#712)
