@@ -126,7 +126,7 @@ GET_ALARM_SUMMARY_ABORT:
         /*fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno)); */
     }
 #else
-    bytes_sent = bytes_sent;
+    (void)bytes_sent;
 #endif
 
     return;

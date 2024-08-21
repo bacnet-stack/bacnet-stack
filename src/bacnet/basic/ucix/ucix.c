@@ -15,7 +15,7 @@
 
 static struct uci_ptr ptr;
 
-static inline int ucix_get_ptr(struct uci_context *ctx,
+static __inline__ int ucix_get_ptr(struct uci_context *ctx,
     const char *p,
     const char *s,
     const char *o,
