@@ -44,7 +44,7 @@
 #if defined(PRINT_ENABLED_RECEIVE)
 #define printf_receive debug_printf
 #else
-static inline void printf_receive(const char *format, ...)
+static __inline__ void printf_receive(const char *format, ...)
 {
     (void)format;
 }
@@ -53,7 +53,7 @@ static inline void printf_receive(const char *format, ...)
 #if defined(PRINT_ENABLED_RECEIVE_DATA)
 #define printf_receive_data debug_printf
 #else
-static inline void printf_receive_data(const char *format, ...)
+static __inline__ void printf_receive_data(const char *format, ...)
 {
     (void)format;
 }
@@ -62,7 +62,7 @@ static inline void printf_receive_data(const char *format, ...)
 #if defined(PRINT_ENABLED_RECEIVE_ERRORS)
 #define printf_receive_error debug_printf
 #else
-static inline void printf_receive_error(const char *format, ...)
+static __inline__ void printf_receive_error(const char *format, ...)
 {
     (void)format;
 }
@@ -71,7 +71,7 @@ static inline void printf_receive_error(const char *format, ...)
 #if defined(PRINT_ENABLED_MASTER)
 #define printf_master debug_printf
 #else
-static inline void printf_master(const char *format, ...)
+static __inline__ void printf_master(const char *format, ...)
 {
     (void)format;
 }

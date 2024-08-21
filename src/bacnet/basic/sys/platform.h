@@ -52,6 +52,9 @@
 #ifndef strncasecmp
 #define strncasecmp _strnicmp
 #endif
+#ifndef __inline__
+#define __inline__ __inline
+#endif
 #if (_MSC_VER < 1900)
 #include <stdio.h>
 #include <stdarg.h>
