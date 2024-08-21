@@ -243,10 +243,10 @@ void Binary_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
             /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
             if((pObject->Out_Of_Service = value)) {
                 pObject->Present_Value_Backup = pObject->Present_Value;
-                Binary_Input_Write_Enable(object_instance);
+                pObject->Write_Enabled = true;
             } else {
                 pObject->Present_Value = pObject->Present_Value_Backup;
-                Binary_Input_Write_Disable(object_instance);
+                pObject->Write_Enabled = false;
             }
             pObject->Change_Of_Value = true;
         }
