@@ -1101,18 +1101,18 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                    the HighLimitEnable flag must be set in the Limit_Enable
                    property, and (c) the TO-NORMAL flag must be set in the
                    Event_Enable property. */
-                if (
-                     ((PresentVal <
-                         CurrentAV->High_Limit - CurrentAV->Deadband) &&
-                      ((CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) ==
-                          EVENT_HIGH_LIMIT_ENABLE) &&
-                      ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
-                          EVENT_ENABLE_TO_NORMAL)) ||
-                      /* 13.3.6 (c) If pCurrentState is HIGH_LIMIT, and the HighLimitEnable flag of pLimitEnable is FALSE,
-                       * then indicate a transition to the NORMAL event state. */
-                      (!(CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE))
-                   ) {
-                    if ((!CurrentAV->Remaining_Time_Delay) || (!(CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE)))
+                if (((PresentVal <
+                      CurrentAV->High_Limit - CurrentAV->Deadband) &&
+                     ((CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) ==
+                      EVENT_HIGH_LIMIT_ENABLE) &&
+                     ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
+                      EVENT_ENABLE_TO_NORMAL)) ||
+                    /* 13.3.6 (c) If pCurrentState is HIGH_LIMIT, and the
+                     * HighLimitEnable flag of pLimitEnable is FALSE, then
+                     * indicate a transition to the NORMAL event state. */
+                    (!(CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE))) {
+                    if ((!CurrentAV->Remaining_Time_Delay) ||
+                        (!(CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE)))
                         CurrentAV->Event_State = EVENT_STATE_NORMAL;
                     else
                         CurrentAV->Remaining_Time_Delay--;
@@ -1132,17 +1132,18 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                    set in the Limit_Enable property, and
                    (c) the TO-NORMAL flag must be set in the Event_Enable
                    property. */
-                if (
-                    ((PresentVal > CurrentAV->Low_Limit + CurrentAV->Deadband) &&
-                    ((CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) ==
-                     EVENT_LOW_LIMIT_ENABLE) &&
-                    ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
-                     EVENT_ENABLE_TO_NORMAL)) ||
-                    /* 13.3.6 (f) If pCurrentState is LOW_LIMIT, and the LowLimitEnable flag of pLimitEnable is FALSE,
-                     * then indicate a transition to the NORMAL event state. */
-                    (!(CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE))
-                   ) {
-                    if ( (!CurrentAV->Remaining_Time_Delay) || (!(CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE)) )
+                if (((PresentVal >
+                      CurrentAV->Low_Limit + CurrentAV->Deadband) &&
+                     ((CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) ==
+                      EVENT_LOW_LIMIT_ENABLE) &&
+                     ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
+                      EVENT_ENABLE_TO_NORMAL)) ||
+                    /* 13.3.6 (f) If pCurrentState is LOW_LIMIT, and the
+                     * LowLimitEnable flag of pLimitEnable is FALSE, then
+                     * indicate a transition to the NORMAL event state. */
+                    (!(CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE))) {
+                    if ((!CurrentAV->Remaining_Time_Delay) ||
+                        (!(CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE)))
                         CurrentAV->Event_State = EVENT_STATE_NORMAL;
                     else
                         CurrentAV->Remaining_Time_Delay--;
@@ -1190,7 +1191,8 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                     ExceededLimit = 0;
                     break;
             } /* switch (ToState) */
-            debug_printf("Event_State for (%s,%u) goes from %s to %s.\n",
+            debug_printf(
+                "Event_State for (%s,%u) goes from %s to %s.\n",
                 bactext_object_type_name(Object_Type),
                 (unsigned)object_instance, bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
