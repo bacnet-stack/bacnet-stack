@@ -87,6 +87,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed SubscribeCOV to report an error: resources, no-space-to-add-list-element
+  on reaching MAX_COV_ADDRESSES limit with COV subsriptions. (#734)    
+* Fixed compiler warnings from variadic macros in C89/C90 builds, and
+  changed self-assigns to void casts. (#737)
 * Fixed zephyr BACnet/IP for use in native_posix. Fixed zephyr logging
   level for BACnet. (#738)
 * Fixed endless query in bac-rw module when error is returned. (#727)
