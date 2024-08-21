@@ -436,13 +436,16 @@ void Multistate_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
-        pObject->Change_Of_Value = true;
-        if((pObject->Out_Of_Service = value)) {
-            pObject->Present_Value_Backup = pObject->Present_Value;
-            pObject->Write_Enabled = true;
-        } else {
-            pObject->Present_Value = pObject->Present_Value_Backup;
-            pObject->Write_Enabled = false;
+        if (pObject->Out_Of_Service != value) {
+            pObject->Change_Of_Value = true;
+            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
+            if((pObject->Out_Of_Service = value)) {
+                pObject->Present_Value_Backup = pObject->Present_Value;
+                pObject->Write_Enabled = true;
+            } else {
+                pObject->Present_Value = pObject->Present_Value_Backup;
+                pObject->Write_Enabled = false;
+            }
         }
     }
 

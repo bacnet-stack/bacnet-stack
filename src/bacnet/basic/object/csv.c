@@ -322,11 +322,12 @@ static void CharacterString_Value_Out_Of_Service_Set(
     if (index < MAX_CHARACTERSTRING_VALUES) {
         if (Out_Of_Service[index] != value) {
             Changed[index] = true;
-        }
-        if((Out_Of_Service[index] = value)) {
-            Present_Value_Backup[index] = Present_Value[index];
-        } else {
-            Present_Value[index] = Present_Value_Backup[index];
+            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
+            if((Out_Of_Service[index] = value)) {
+                Present_Value_Backup[index] = Present_Value[index];
+            } else {
+                Present_Value[index] = Present_Value_Backup[index];
+            }
         }
     }
 
