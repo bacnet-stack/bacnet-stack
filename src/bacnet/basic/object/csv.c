@@ -46,6 +46,7 @@
 
 
 /* Here is our Present Value */
+static BACNET_CHARACTER_STRING Present_Value_Backup[MAX_CHARACTERSTRING_VALUES];
 static BACNET_CHARACTER_STRING Present_Value[MAX_CHARACTERSTRING_VALUES];
 /* Writable out-of-service allows others to manipulate our Present Value */
 static bool Out_Of_Service[MAX_CHARACTERSTRING_VALUES];
@@ -321,8 +322,13 @@ static void CharacterString_Value_Out_Of_Service_Set(
     if (index < MAX_CHARACTERSTRING_VALUES) {
         if (Out_Of_Service[index] != value) {
             Changed[index] = true;
+            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
+            if((Out_Of_Service[index] = value)) {
+                Present_Value_Backup[index] = Present_Value[index];
+            } else {
+                Present_Value[index] = Present_Value_Backup[index];
+            }
         }
-        Out_Of_Service[index] = value;
     }
 
     return;
@@ -648,13 +654,19 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = CharacterString_Value_Present_Value_Set(
-                    wp_data->object_instance, &value.type.Character_String);
-                if (!status) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            if (CharacterString_Value_Out_Of_Service(wp_data->object_instance) == true) {
+                if (status) {
+                    status = CharacterString_Value_Present_Value_Set(
+                            wp_data->object_instance, &value.type.Character_String);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    }
                 }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                status = false;
             }
             break;
         case PROP_OUT_OF_SERVICE:

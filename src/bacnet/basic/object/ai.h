@@ -43,6 +43,7 @@
 typedef struct analog_input_descr {
     unsigned Event_State:3;
     float Present_Value;
+    float Present_Value_Backup;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service;
     uint8_t Units;

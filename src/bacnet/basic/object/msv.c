@@ -30,6 +30,7 @@ struct object_data {
     bool Change_Of_Value : 1;
     bool Write_Enabled : 1;
     uint8_t Present_Value;
+    uint8_t Present_Value_Backup;
     uint8_t Reliability;
     BACNET_CHARACTER_STRING Object_Name;
     /* The state text functions expect a list of C strings separated by '\0' */
@@ -435,8 +436,17 @@ void Multistate_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
-        pObject->Out_Of_Service = value;
-        pObject->Change_Of_Value = true;
+        if (pObject->Out_Of_Service != value) {
+            pObject->Change_Of_Value = true;
+            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
+            if((pObject->Out_Of_Service = value)) {
+                pObject->Present_Value_Backup = pObject->Present_Value;
+                pObject->Write_Enabled = true;
+            } else {
+                pObject->Present_Value = pObject->Present_Value_Backup;
+                pObject->Write_Enabled = false;
+            }
+        }
     }
 
     return;
@@ -810,10 +820,16 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (status) {
-                status = Multistate_Value_Present_Value_Write(
-                    wp_data->object_instance, value.type.Enumerated,
-                    &wp_data->error_class, &wp_data->error_code);
+            if (Multistate_Value_Out_Of_Service(wp_data->object_instance) == true) {
+                if (status) {
+                    status = Multistate_Value_Present_Value_Write(
+                            wp_data->object_instance, value.type.Enumerated,
+                            &wp_data->error_class, &wp_data->error_code);
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                status = false;
             }
             break;
         case PROP_OUT_OF_SERVICE:

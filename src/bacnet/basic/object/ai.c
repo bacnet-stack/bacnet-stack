@@ -536,8 +536,13 @@ void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Changed = true;
+            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
+            if((pObject->Out_Of_Service = value)) {
+                pObject->Present_Value_Backup = pObject->Present_Value;
+            } else {
+                pObject->Present_Value = pObject->Present_Value_Backup;
+            }
         }
-        pObject->Out_Of_Service = value;
     }
 }
 
@@ -1851,6 +1856,7 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->COV_Increment = 1.0;
             pObject->Present_Value = 0.0f;
+            pObject->Present_Value_Backup = 0.0f;
             pObject->Prior_Value = 0.0;
             pObject->Units = UNITS_PERCENT;
             pObject->Out_Of_Service = false;

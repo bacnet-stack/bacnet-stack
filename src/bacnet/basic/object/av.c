@@ -610,8 +610,13 @@ void Analog_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Changed = true;
+            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
+            if((pObject->Out_Of_Service = value)) {
+                pObject->Present_Value_Backup = pObject->Present_Value;
+            } else {
+                pObject->Present_Value = pObject->Present_Value_Backup;
+            }
         }
-        pObject->Out_Of_Service = value;
     }
 }
 
@@ -933,7 +938,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                CurrentAV->Out_Of_Service = value.type.Boolean;
+                Analog_Value_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_UNITS:
