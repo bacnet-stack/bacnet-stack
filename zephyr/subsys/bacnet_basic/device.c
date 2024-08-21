@@ -250,6 +250,16 @@ static object_functions_t Object_Table[] = {
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         Life_Safety_Zone_Create, Life_Safety_Zone_Delete, NULL /* Timer */ },
 #endif
+#if defined (CONFIG_BACNET_BASIC_OBJECT_LOAD_CONTROL)
+    { OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
+        Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
+        Load_Control_Object_Name, Load_Control_Read_Property,
+        Load_Control_Write_Property, Load_Control_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
+        Load_Control_Create, Load_Control_Delete, Load_Control_Timer},
+#endif
 #if (BACNET_PROTOCOL_REVISION >= 14)
 #if defined (CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT)
     { OBJECT_LIGHTING_OUTPUT, Lighting_Output_Init, Lighting_Output_Count,
