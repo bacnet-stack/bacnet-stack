@@ -1078,10 +1078,6 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
     if (!CurrentAV) {
         return;
     }
-    /* check limits */
-    if (!CurrentAV->Limit_Enable) {
-        return; /* limits are not configured */
-    }
     if (CurrentAV->Ack_notify_data.bSendAckNotify) {
         /* clean bSendAckNotify flag */
         CurrentAV->Ack_notify_data.bSendAckNotify = false;
