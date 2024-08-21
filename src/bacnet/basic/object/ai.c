@@ -995,10 +995,6 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     if (!CurrentAI) {
         return;
     }
-    /* check limits */
-    if (!CurrentAI->Limit_Enable) {
-        return; /* limits are not configured */
-    }
     if (CurrentAI->Ack_notify_data.bSendAckNotify) {
         /* clean bSendAckNotify flag */
         CurrentAI->Ack_notify_data.bSendAckNotify = false;
