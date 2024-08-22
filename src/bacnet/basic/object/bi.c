@@ -69,30 +69,40 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_BINARY_INPUT;
 static binary_input_write_present_value_callback
     Binary_Input_Write_Present_Value_Callback;
 
+/* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,    PROP_POLARITY,     -1
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_POLARITY,
+    -1
 };
 
-static const int Properties_Optional[] = { PROP_RELIABILITY,
-                                           PROP_DESCRIPTION,
-                                           PROP_ACTIVE_TEXT,
-                                           PROP_INACTIVE_TEXT,
+static const int Properties_Optional[] = { 
+    PROP_RELIABILITY,
+    PROP_DESCRIPTION,
+    PROP_ACTIVE_TEXT,
+    PROP_INACTIVE_TEXT,
 #if defined(INTRINSIC_REPORTING) && (BINARY_INPUT_INTRINSIC_REPORTING)
-                                           PROP_TIME_DELAY,
-                                           PROP_NOTIFICATION_CLASS,
-                                           PROP_ALARM_VALUE,
-                                           PROP_EVENT_ENABLE,
-                                           PROP_ACKED_TRANSITIONS,
-                                           PROP_NOTIFY_TYPE,
-                                           PROP_EVENT_TIME_STAMPS,
-                                           PROP_EVENT_DETECTION_ENABLE,
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_ALARM_VALUE,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_DETECTION_ENABLE,
 #endif
-                                           -1 };
+    -1 
+};
 
 static const int Properties_Proprietary[] = { -1 };
+/* clang-format on */
 
 /**
  * Initialize the pointers for the required, the optional and the properitary
