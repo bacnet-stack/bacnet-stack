@@ -197,13 +197,53 @@ extern "C" {
         BACNET_GET_ALARM_SUMMARY_DATA * getalarm_data);
 
     BACNET_STACK_EXPORT
+    uint32_t Binary_Value_Time_Delay(
+            uint32_t object_instance);
+
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Time_Delay_Set(
+            uint32_t object_instance,
+            uint32_t time_delay);
+
+    BACNET_STACK_EXPORT
+    uint32_t Binary_Value_Notification_Class(
+            uint32_t object_instance);
+
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Notification_Class_Set(
+            uint32_t object_instance,
+            uint32_t notification_class);
+
+    BACNET_STACK_EXPORT
+    BACNET_BINARY_PV Binary_Value_Alarm_Value(
+            uint32_t object_instance);
+
+    BACNET_STACK_EXPORT
     bool Binary_Value_Alarm_Value_Set(
         uint32_t object_instance, BACNET_BINARY_PV value);
 
     BACNET_STACK_EXPORT
+    uint32_t Binary_Value_Event_Enable(
+            uint32_t object_instance);
+
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Event_Enable_Set(
+            uint32_t object_instance,
+            uint32_t event_enable);
+
+    BACNET_STACK_EXPORT
+    BACNET_NOTIFY_TYPE Binary_Value_Notify_Type(
+            uint32_t object_instance);
+
+    BACNET_STACK_EXPORT
+    bool Binary_Value_Notify_Type_Set(
+            uint32_t object_instance,
+            BACNET_NOTIFY_TYPE notify_type);
+#endif
+
+    BACNET_STACK_EXPORT
     void Binary_Value_Intrinsic_Reporting(
         uint32_t object_instance);
-#endif
 
 #ifdef __cplusplus
 }
