@@ -1661,3 +1661,132 @@ bool property_list_bacnet_array_member(
     return property_list_member(Properties_BACnetARRAY, object_property);
 }
 #endif
+
+/**
+ * @brief Determine if this property is required to be writable
+ * @note Property Conformance Code of W means writable
+ * @param object_type - object-type to be checked
+ * @param object_property - object-property to be checked
+ * @return true if the property is a required writable property
+ */
+bool property_list_writable_member(
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID object_property)
+{
+    bool writable = false;
+
+    switch (object_type) {
+        case OBJECT_ANALOG_OUTPUT:
+        case OBJECT_BINARY_OUTPUT:
+        case OBJECT_MULTI_STATE_OUTPUT:
+        case OBJECT_BINARY_LIGHTING_OUTPUT:
+        case OBJECT_ACCESS_DOOR:
+        case OBJECT_COMMAND:
+        case OBJECT_STAGING:
+            if (object_property == PROP_PRESENT_VALUE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_AVERAGING:
+            if ((object_property == PROP_ATTEMPTED_SAMPLES) ||
+                (object_property == PROP_WINDOW_INTERVAL) ||
+                (object_property == PROP_WINDOW_SAMPLES)) {
+                writable = true;
+            }
+            break;
+        case OBJECT_FILE:
+            if (object_property == PROP_ARCHIVE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_LIFE_SAFETY_POINT:
+        case OBJECT_LIFE_SAFETY_ZONE:
+            if (object_property == PROP_MODE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_PROGRAM:
+            if (object_property == PROP_PROGRAM_CHANGE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_PULSE_CONVERTER:
+            if (object_property == PROP_ADJUST_VALUE) {
+                writable = true;
+            }            
+            break;
+        case OBJECT_EVENT_LOG:
+        case OBJECT_TRENDLOG:
+        case OBJECT_TREND_LOG_MULTIPLE:
+            if ((object_property == PROP_ENABLE) ||
+                (object_property == PROP_RECORD_COUNT)) {
+                writable = true;
+            }
+            break;
+        case OBJECT_LOAD_CONTROL:
+            if ((object_property == PROP_REQUESTED_SHED_LEVEL) ||
+                (object_property == PROP_START_TIME) ||
+                (object_property == PROP_SHED_DURATION) ||
+                (object_property == PROP_DUTY_WINDOW) ||
+                (object_property == PROP_SHED_LEVELS)) {
+                writable = true;
+            }
+            break;
+        case OBJECT_ACCESS_CREDENTIAL:
+        case OBJECT_ACCESS_RIGHTS:
+        case OBJECT_ACCESS_USER:
+        case OBJECT_ACCESS_ZONE:
+            if (object_property == PROP_GLOBAL_IDENTIFIER) {
+                writable = true;
+            }
+            break;
+        case OBJECT_NETWORK_SECURITY:
+            if ((object_property == PROP_BASE_DEVICE_SECURITY_POLICY) ||
+                (object_property == PROP_NETWORK_ACCESS_SECURITY_POLICIES) ||
+                (object_property == PROP_SECURITY_TIME_WINDOW) ||
+                (object_property == PROP_PACKET_REORDER_TIME) ||
+                (object_property == PROP_LAST_KEY_SERVER) ||
+                (object_property == PROP_SECURITY_PDU_TIMEOUT) ||
+                (object_property == PROP_LAST_KEY_SERVER) ||
+                (object_property == PROP_SECURITY_PDU_TIMEOUT) ||
+                (object_property == PROP_DO_NOT_HIDE)) {
+                writable = true;
+            }
+            break;
+        case OBJECT_NOTIFICATION_FORWARDER:
+            if (object_property == PROP_SUBSCRIBED_RECIPIENTS) {
+                writable = true;
+            }
+            break;
+        case OBJECT_CHANNEL:
+            if ((object_property == PROP_PRESENT_VALUE) ||
+                (object_property == PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES) ||
+                (object_property == PROP_CHANNEL_NUMBER) ||
+                (object_property == PROP_CONTROL_GROUPS)) {
+                writable = true;
+            }            
+            break;
+        case OBJECT_LIGHTING_OUTPUT:
+            if ((object_property == PROP_PRESENT_VALUE) ||
+                (object_property == PROP_LIGHTING_COMMAND)) {
+                writable = true;
+            }            
+            break;
+        case OBJECT_AUDIT_LOG:
+            if (object_property == PROP_ENABLE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_COLOR:
+        case OBJECT_COLOR_TEMPERATURE:
+            if ((object_property == PROP_PRESENT_VALUE) ||
+                (object_property == PROP_COLOR_COMMAND)) {
+                writable = true;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return writable;
+}
