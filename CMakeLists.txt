@@ -815,25 +815,39 @@ if(BACNET_STACK_BUILD_APPS)
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
 
   if(BACDL_MSTP AND NOT WIN32)
-    add_executable(
-      router
-      apps/router/ipmodule.c
-      apps/router/ipmodule.h
-      apps/router/main.c
-      apps/router/msgqueue.c
-      apps/router/msgqueue.h
-      apps/router/mstpmodule.c
-      apps/router/mstpmodule.h
-      apps/router/network_layer.c
-      apps/router/network_layer.h
-      apps/router/portthread.c
-      apps/router/portthread.h)
+    find_library(LIBCONFIG_LIBRARIES NAMES config)
+    if(NOT LIBCONFIG_LIBRARIES)
+      message(WARNING "BACNET: Will not build apps/router as libconfig not found")
+      return()
+    else()
+      add_executable(
+        router
+        apps/router/ipmodule.c
+        apps/router/ipmodule.h
+        apps/router/main.c
+        apps/router/msgqueue.c
+        apps/router/msgqueue.h
+        apps/router/mstpmodule.c
+        apps/router/mstpmodule.h
+        apps/router/network_layer.c
+        apps/router/network_layer.h
+        apps/router/portthread.c
+        apps/router/portthread.h)
 
-    target_link_libraries(
-      router
-      PRIVATE ${PROJECT_NAME}
-              # needs libconfig
-              -lconfig)
+      target_link_libraries(
+        router
+        PRIVATE ${PROJECT_NAME}
+                # needs libconfig
+                -lconfig)
+
+      target_compile_options(router PRIVATE
+        # These make this example not totally C90 compatible but it is ok.
+      
+        -Wno-declaration-after-statement
+        -Wno-overlength-strings
+        -Wno-variadic-macros
+      )
+    endif()
   endif()
 
   if(BACDL_BIP6)
