@@ -138,6 +138,36 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   add_compile_options(-Wno-float-conversion)
   add_compile_options(-Wno-missing-declarations)
   add_compile_options(-Wno-unused-but-set-variable)
+elseif(MSVC)
+  add_compile_options(/Wall)
+
+  # Potentially uninitialized local variable. Definetly fix these. There might
+  # be false positives but it is better to fix them also.
+  add_compile_options(/wd4701)
+
+  # Function is unsafe (strtok, sscanf, fopen, strerror).
+  add_compile_options(/wd4996)
+
+  # Handle all enums values in switch.
+  add_compile_options(/wd4061)
+
+  # Possible loss of data.
+  add_compile_options(/wd4242 /wd4244 /wd4267)
+
+  # Signed/unsigned mismatch.
+  add_compile_options(/wd4018 /wd4388 /wd4389)
+
+  # Not defined as a preprocessor macro.
+  add_compile_options(/wd4668)
+
+  # Function not inlined.
+  add_compile_options(/wd4710)
+
+  # Compiler adds padding to structures.
+  add_compile_options(/wd4820)
+
+  # Might be slower if builded with /Qspectre
+  add_compile_options(/wd5045)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -618,10 +648,6 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_BIP}>:ws2_32>
     $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
 
-  if(MSVC)
-    add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
-  endif()
-
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
@@ -712,9 +738,24 @@ if(BACNET_STACK_BUILD_APPS)
   if(BACDL_MSTP)
     add_executable(mstpcap apps/mstpcap/main.c)
     target_link_libraries(mstpcap PRIVATE ${PROJECT_NAME})
-
+    target_compile_options(mstpcap PRIVATE
+      # NOTE: Might be that this example currently doesn't work on Windows because
+      # of the following warning:
+    
+      # 'strncasecmp': macro redefinition
+      $<$<C_COMPILER_ID:MSVC>:/wd4005>
+      # 'gettimeofday' undefined; assuming extern returning int
+      $<$<C_COMPILER_ID:MSVC>:/wd4013>
+    )
+  
     add_executable(mstpcrc apps/mstpcrc/main.c)
     target_link_libraries(mstpcrc PRIVATE ${PROJECT_NAME})
+    target_compile_options(mstpcrc PRIVATE
+      # NOTE: Might be that this example currently doesn't work on Windows because
+      # of the following warning:
+      # 'gettimeofday' undefined; assuming extern returning int
+      $<$<C_COMPILER_ID:MSVC>:/wd4013>
+    )
   endif()
 
   if(BACNET_BUILD_PIFACE_APP)
@@ -729,6 +770,10 @@ if(BACNET_STACK_BUILD_APPS)
       src/bacnet/basic/client/bac-data.c
       src/bacnet/basic/client/bac-rw.c)
     target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacpoll PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
   endif(BACNET_BUILD_BACPOLL_APP)
 
   if(BACNET_BUILD_BACDISCOVER_APP)
@@ -736,7 +781,11 @@ if(BACNET_STACK_BUILD_APPS)
       apps/server-discover/main.c
       src/bacnet/basic/client/bac-discover.c
       src/bacnet/basic/client/bac-rw.c)
-  target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+    target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacdiscover PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
   endif(BACNET_BUILD_BACDISCOVER_APP)
 
   if(BACDL_BIP OR BACDL_BIP6)
@@ -766,25 +815,39 @@ if(BACNET_STACK_BUILD_APPS)
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
 
   if(BACDL_MSTP AND NOT WIN32)
-    add_executable(
-      router
-      apps/router/ipmodule.c
-      apps/router/ipmodule.h
-      apps/router/main.c
-      apps/router/msgqueue.c
-      apps/router/msgqueue.h
-      apps/router/mstpmodule.c
-      apps/router/mstpmodule.h
-      apps/router/network_layer.c
-      apps/router/network_layer.h
-      apps/router/portthread.c
-      apps/router/portthread.h)
+    find_library(LIBCONFIG_LIBRARIES NAMES config)
+    if(NOT LIBCONFIG_LIBRARIES)
+      message(WARNING "BACNET: Will not build apps/router as libconfig not found")
+      return()
+    else()
+      add_executable(
+        router
+        apps/router/ipmodule.c
+        apps/router/ipmodule.h
+        apps/router/main.c
+        apps/router/msgqueue.c
+        apps/router/msgqueue.h
+        apps/router/mstpmodule.c
+        apps/router/mstpmodule.h
+        apps/router/network_layer.c
+        apps/router/network_layer.h
+        apps/router/portthread.c
+        apps/router/portthread.h)
 
-    target_link_libraries(
-      router
-      PRIVATE ${PROJECT_NAME}
-              # needs libconfig
-              -lconfig)
+      target_link_libraries(
+        router
+        PRIVATE ${PROJECT_NAME}
+                # needs libconfig
+                -lconfig)
+
+      target_compile_options(router PRIVATE
+        # These make this example not totally C90 compatible but it is ok.
+      
+        -Wno-declaration-after-statement
+        -Wno-overlength-strings
+        -Wno-variadic-macros
+      )
+    endif()
   endif()
 
   if(BACDL_BIP6)
@@ -797,6 +860,10 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(server apps/server/main.c)
   target_link_libraries(server PRIVATE ${PROJECT_NAME})
+  target_compile_options(server PRIVATE
+    # Unreachable code because we have endless loop.
+    $<$<C_COMPILER_ID:MSVC>:/wd4702>
+  )
 
   add_executable(timesync apps/timesync/main.c)
   target_link_libraries(timesync PRIVATE ${PROJECT_NAME})

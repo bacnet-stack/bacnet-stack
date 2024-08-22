@@ -220,11 +220,7 @@ bool bitstring_set_bits_used(
 unsigned bitstring_bits_capacity(BACNET_BIT_STRING *bit_string)
 {
     if (bit_string) {
-        if ((MAX_BITSTRING_BYTES * 8) <= (UINT8_MAX + 1)) {
-            return (MAX_BITSTRING_BYTES * 8);
-        } else {
-            return (UINT8_MAX + 1);
-        }
+        return min((MAX_BITSTRING_BYTES * 8), (UINT8_MAX + 1));
     } else {
         return 0;
     }

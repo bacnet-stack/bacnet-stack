@@ -895,8 +895,6 @@ static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
         Sleep(100);
     }
     exit(0);
-
-    return TRUE;
 }
 #else
 static void sig_int(int signo)

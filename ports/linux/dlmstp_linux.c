@@ -42,6 +42,7 @@
     }
 static uint32_t Timer_Silence(void *poPort)
 {
+    int32_t res;
     struct timeval now, tmp_diff;
     SHARED_MSTP_DATA *poSharedData;
     struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *)poPort;
@@ -52,8 +53,6 @@ static uint32_t Timer_Silence(void *poPort)
     if (!poSharedData) {
         return -1;
     }
-
-    int32_t res;
 
     gettimeofday(&now, NULL);
     timersub(&poSharedData->start, &now, &tmp_diff);
@@ -764,6 +763,7 @@ bool dlmstp_init(void *poPort, char *ifname)
     unsigned long hThread = 0;
     int rv = 0;
     SHARED_MSTP_DATA *poSharedData;
+    struct termios newtio;
     struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *)poPort;
     if (!mstp_port) {
         return false;
@@ -792,7 +792,6 @@ bool dlmstp_init(void *poPort, char *ifname)
         exit(1);
     }
 
-    struct termios newtio;
     printf("RS485: Initializing %s", poSharedData->RS485_Port_Name);
     /*
        Open device for reading and writing.
