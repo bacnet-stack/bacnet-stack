@@ -728,6 +728,7 @@ bool Network_Port_MAC_Address(
     if (mac_address) {
         mac_len = Network_Port_MAC_Address_Value(
             object_instance, mac_address->value, sizeof(mac_address->value));
+            mac_address->length = mac_len;
     }
 
     return mac_len > 0;
