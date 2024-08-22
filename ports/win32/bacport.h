@@ -38,10 +38,10 @@
 #ifdef __MINGW32__
 #include <ws2spi.h>
 #else
+#pragma warning( push )
+#pragma warning(disable: 4101 4191)
 #include <wspiapi.h>
-/* Microsoft has deprecated some CRT and C++ Standard Library functions
-and globals in favor of more secure versions.  */
-#pragma warning(disable : 4996)
+#pragma warning( pop )
 /* add winmm.lib to our build */
 #pragma comment(lib, "winmm.lib")
 #endif
