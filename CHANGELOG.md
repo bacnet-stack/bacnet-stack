@@ -71,6 +71,7 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Refactored required writable property function from epics app (#743)
 * Include more more code in pipeline for clean code builds. (#725)
 * Changed CMake in pipeline to force C89/C90 compatible and for test C99 (#722)
 * Added some new compiler warnings to help with clean code, and removed
