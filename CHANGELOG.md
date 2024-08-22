@@ -20,7 +20,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.3.8] - 2024-08-20
+## [1.3.8] - 2024-08-22
 
 ### Security
 
@@ -31,6 +31,10 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added load control object into zephyr basic device example (#739)
+* Added clauses c) and f) of 13.3.6 (out_of_range) algorithm and enabling
+  transitions from high/low limit states to normal when Event_Enable = 0 for
+  the basic Analog Value and Analog Input objects (#733)
 * Added mstpcap to apps/Makefile BSD build (#730)
 * Added prototype for device object property list member to use for
   storing device data storing. (#735)
@@ -87,10 +91,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
-* Fixed SubscribeCOV to report an error: resources, no-space-to-add-list-element
-  on reaching MAX_COV_ADDRESSES limit with COV subsriptions. (#734)    
+* Fixed compiler warnings with MSVC /Wall in C89/C90 builds (#740)
 * Fixed compiler warnings from variadic macros in C89/C90 builds, and
   changed self-assigns to void casts. (#737)
+* Fixed the length of the basic Network Port object MAC address property. (#741)
+* Fixed SubscribeCOV to report an error: resources, no-space-to-add-list-element
+  on reaching MAX_COV_ADDRESSES limit with COV subsriptions. (#734)
 * Fixed zephyr BACnet/IP for use in native_posix. Fixed zephyr logging
   level for BACnet. (#738)
 * Fixed endless query in bac-rw module when error is returned. (#727)
