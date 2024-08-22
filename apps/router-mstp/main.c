@@ -1119,8 +1119,6 @@ static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
         Sleep(100);
     }
     exit(0);
-
-    return TRUE;
 }
 
 static void control_c_hooks(void)
