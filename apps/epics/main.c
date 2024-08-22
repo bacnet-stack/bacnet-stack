@@ -325,96 +325,6 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-/** Determine if this is a writable property, and, if so,
- * note that in the EPICS output.
- * This function may need a lot of customization for different implementations.
- *
- * @param object_type [in] The BACnet Object type of this object.
- * @note  object_instance [in] The ID number for this object.
- * @param rpm_property [in] Points to structure holding the Property,
- *                          Value, and Error information.
- */
-static void CheckIsWritableProperty(BACNET_OBJECT_TYPE object_type,
-    /* uint32_t object_instance, */
-    BACNET_PROPERTY_REFERENCE *rpm_property)
-{
-    bool bIsWritable = false;
-    if ((object_type == OBJECT_ANALOG_OUTPUT) ||
-        (object_type == OBJECT_BINARY_OUTPUT) ||
-        (object_type == OBJECT_COMMAND) ||
-        (object_type == OBJECT_MULTI_STATE_OUTPUT) ||
-        (object_type == OBJECT_ACCESS_DOOR)) {
-        if (rpm_property->propertyIdentifier == PROP_PRESENT_VALUE) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_AVERAGING) {
-        if ((rpm_property->propertyIdentifier == PROP_ATTEMPTED_SAMPLES) ||
-            (rpm_property->propertyIdentifier == PROP_WINDOW_INTERVAL) ||
-            (rpm_property->propertyIdentifier == PROP_WINDOW_SAMPLES)) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_FILE) {
-        if (rpm_property->propertyIdentifier == PROP_ARCHIVE) {
-            bIsWritable = true;
-        }
-    } else if ((object_type == OBJECT_LIFE_SAFETY_POINT) ||
-        (object_type == OBJECT_LIFE_SAFETY_ZONE)) {
-        if (rpm_property->propertyIdentifier == PROP_MODE) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_PROGRAM) {
-        if (rpm_property->propertyIdentifier == PROP_PROGRAM_CHANGE) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_PULSE_CONVERTER) {
-        if (rpm_property->propertyIdentifier == PROP_ADJUST_VALUE) {
-            bIsWritable = true;
-        }
-    } else if ((object_type == OBJECT_TRENDLOG) ||
-        (object_type == OBJECT_EVENT_LOG) ||
-        (object_type == OBJECT_TREND_LOG_MULTIPLE)) {
-        if ((rpm_property->propertyIdentifier == PROP_ENABLE) ||
-            (rpm_property->propertyIdentifier == PROP_RECORD_COUNT)) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_LOAD_CONTROL) {
-        if ((rpm_property->propertyIdentifier == PROP_REQUESTED_SHED_LEVEL) ||
-            (rpm_property->propertyIdentifier == PROP_START_TIME) ||
-            (rpm_property->propertyIdentifier == PROP_SHED_DURATION) ||
-            (rpm_property->propertyIdentifier == PROP_DUTY_WINDOW) ||
-            (rpm_property->propertyIdentifier == PROP_SHED_LEVELS)) {
-            bIsWritable = true;
-        }
-    } else if ((object_type == OBJECT_ACCESS_ZONE) ||
-        (object_type == OBJECT_ACCESS_USER) ||
-        (object_type == OBJECT_ACCESS_RIGHTS) ||
-        (object_type == OBJECT_ACCESS_CREDENTIAL)) {
-        if (rpm_property->propertyIdentifier == PROP_GLOBAL_IDENTIFIER) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_NETWORK_SECURITY) {
-        if ((rpm_property->propertyIdentifier ==
-                PROP_BASE_DEVICE_SECURITY_POLICY) ||
-            (rpm_property->propertyIdentifier ==
-                PROP_NETWORK_ACCESS_SECURITY_POLICIES) ||
-            (rpm_property->propertyIdentifier == PROP_SECURITY_TIME_WINDOW) ||
-            (rpm_property->propertyIdentifier == PROP_PACKET_REORDER_TIME) ||
-            (rpm_property->propertyIdentifier == PROP_LAST_KEY_SERVER) ||
-            (rpm_property->propertyIdentifier == PROP_SECURITY_PDU_TIMEOUT) ||
-            (rpm_property->propertyIdentifier == PROP_DO_NOT_HIDE)) {
-            bIsWritable = true;
-        }
-    }
-    /* Add more checking here, eg for Time_Synchronization_Recipients,
-     * Manual_Slave_Address_Binding, Object_Property_Reference,
-     * Life Safety Tracking_Value, Reliability, Mode,
-     * or Present_Value when Out_Of_Service is TRUE.
-     */
-    if (bIsWritable) {
-        fprintf(stdout, " Writable");
-    }
-}
-
 static const char *protocol_services_supported_text(size_t bit_index)
 {
     bool is_confirmed = false;
@@ -738,8 +648,10 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                         /* Closing brace for this multi-valued array */
                         fprintf(stdout, " }");
                     }
-                    CheckIsWritableProperty(object_type, /* object_instance, */
-                        rpm_property);
+                    if (property_list_writable_member(object_type, 
+                        rpm_property->propertyIdentifier)) {
+                        fprintf(stdout, " Writable");
+                    }
                     fprintf(stdout, "\n");
                 }
                 break;
