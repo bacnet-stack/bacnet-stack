@@ -20,7 +20,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.3.8] - 2024-08-22
+## [1.3.8] - 2024-08-23
 
 ### Security
 
@@ -31,8 +31,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
-*  Added API for intrinsic reporting properties in Binary Value and Binary
-   Input objects (#742)
+* Added API for intrinsic reporting properties in Binary Value and Binary
+  Input objects (#742)
 * Added load control object into zephyr basic device example (#739)
 * Added clauses c) and f) of 13.3.6 (out_of_range) algorithm and enabling
   transitions from high/low limit states to normal when Event_Enable = 0 for
@@ -94,6 +94,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed MacOS specific usage during FreeBSD 11.4 build. (#745)
 * Fixed compiler warnings with MSVC /Wall in C89/C90 builds (#740)
 * Fixed compiler warnings from variadic macros in C89/C90 builds, and
   changed self-assigns to void casts. (#737)
