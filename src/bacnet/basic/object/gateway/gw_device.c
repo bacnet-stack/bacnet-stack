@@ -165,7 +165,7 @@ BACNET_ADDRESS *Get_Routed_Device_Address(int idx)
  * devices with routing.
  *
  * @param my_address [out] Points to the currently active Device Object's
- * 							BACnet address.
+ *                         BACnet address.
  */
 void routed_get_my_address(BACNET_ADDRESS *my_address)
 {

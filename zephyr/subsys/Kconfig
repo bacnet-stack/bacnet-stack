@@ -11,16 +11,14 @@ rsource "object/Kconfig"
 rsource "server/Kconfig"
 
 config BACNET_SHELL
-	bool "BACnet Shell"
-	default n
-    select SHELL
-    select CONSOLE
-    select KERNEL_SHELL
-    select THREAD_MONITOR
-    select THREAD_NAME
-    select DEVICE_SHELL
-    select LOG
-	help
-	  Enable BACnet Shell support
-
-
+    bool "BACnet Shell"
+    default n
+        select SHELL
+        select CONSOLE
+        select KERNEL_SHELL
+        select THREAD_MONITOR
+        select THREAD_NAME
+        select DEVICE_SHELL
+        select LOG
+    help
+        Enable BACnet Shell support

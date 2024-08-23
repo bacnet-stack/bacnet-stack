@@ -393,7 +393,7 @@ int rr_decode_service_request(
  * ReadRange-ACK ::= SEQUENCE {
  *     objectIdentifier    [0] BACnetObjectIdentifier,
  *     propertyIdentifier  [1] BACnetPropertyIdentifier,
- *     propertyArrayIndex  [2] Unsigned OPTIONAL	,  -- used only with
+ *     propertyArrayIndex  [2] Unsigned OPTIONAL,  -- used only with
  * array datatype resultFlags         [3] BACnetResultFlags, itemCount [4]
  * Unsigned, itemData            [5] SEQUENCE OF ABSTRACT-SYNTAX.&TYPE,
  *     firstSequenceNumber [6] Unsigned32 OPTIONAL -- used only if 'Item
