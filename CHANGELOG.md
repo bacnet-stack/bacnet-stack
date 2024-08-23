@@ -71,6 +71,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed clang-format to ignore javascript files and ignore some tables
+  in C/H source files. Replaced unicode characters found in the source code.
+  Changed permissions of shell scripts - with shebang - to be executable. (#747)
 * Refactored required writable property function from epics app (#743)
 * Include more more code in pipeline for clean code builds. (#725)
 * Changed CMake in pipeline to force C89/C90 compatible and for test C99 (#722)
