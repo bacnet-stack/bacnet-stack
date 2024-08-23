@@ -152,8 +152,8 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
     offset = bacnet_npdu_decode(
-        &request_pdu[0], request_pdu_len, NULL, &request.address, 
-	&request.npdu_data);
+        &request_pdu[0], request_pdu_len, NULL, &request.address,
+        &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -170,8 +170,8 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     /* decode the reply data */
     bacnet_address_copy(&reply.address, dest_address);
     offset = bacnet_npdu_decode(
-        &reply_pdu[0], reply_pdu_len, &reply.address, NULL, 
-	&reply.npdu_data);
+        &reply_pdu[0], reply_pdu_len, &reply.address, NULL,
+        &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }

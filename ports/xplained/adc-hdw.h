@@ -13,7 +13,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif				/* __cplusplus */
+#endif /* __cplusplus */
 
   void adc_init (void);
   uint16_t adc_result_12bit(uint8_t channel);
@@ -22,5 +22,5 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif				/* __cplusplus */
+#endif /* __cplusplus */
 #endif

@@ -39,10 +39,10 @@ option(
   "compile the bacpoll app"
   ON)
 
-  option(
-    BACNET_BUILD_BACDISCOVER_APP
-    "compile the bacdiscover app"
-    ON)
+option(
+  BACNET_BUILD_BACDISCOVER_APP
+  "compile the bacdiscover app"
+  ON)
 
 option(
   BACDL_ETHERNET

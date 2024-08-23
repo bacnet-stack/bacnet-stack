@@ -837,7 +837,7 @@ static int createSocket(struct sockaddr_in *sin)
     if (status < 0) {
         if (BIP_Debug) {
             perror("SO_BINDTODEVICE: ");
-	}
+        }
     }
     /* bind the socket to the local port number and IP address */
     status =

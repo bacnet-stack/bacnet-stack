@@ -198,10 +198,10 @@ extern "C" {
     
     BACNET_STACK_EXPORT
     bool Network_Port_IP_DHCP_Enable(
-   	uint32_t object_instance);
+        uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Network_Port_IP_DHCP_Enable_Set(
-	uint32_t object_instance, bool value);
+        uint32_t object_instance, bool value);
 
     BACNET_STACK_EXPORT
     bool Network_Port_IP_DNS_Server(

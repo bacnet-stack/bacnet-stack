@@ -222,7 +222,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_enumerated(&apdu[0], CurrentAV->Units);
             break;
-            /* 	BACnet Testing Observed Incident oi00109
+            /* BACnet Testing Observed Incident oi00109
                     Positive Integer Value / Units returned wrong datatype -
                missing break. Revealed by BACnet Test Client v1.8.16 (
                www.bac-test.com/bacnet-test-client-download ) BITS: BIT00031 BC
