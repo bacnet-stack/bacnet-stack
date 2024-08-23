@@ -42,8 +42,11 @@
 
 #include "dlmstp_bsd.h"
 
-/*macOS-darwin includes*/
+#if defined(__APPLE__) || defined(__darwin__)
 #include <IOKit/serial/ioss.h>
+#else
+#include <sys/serial.h>
+#endif
 
 /* Posix serial programming reference:
 https://www.msweet.org/serial/serial.html
