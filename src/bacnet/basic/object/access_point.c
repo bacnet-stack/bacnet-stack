@@ -126,7 +126,7 @@ bool Access_Point_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_ACCESS_POINTS) {
-        snprintf(text, sizeof(text), "ACCESS POINT %lu", 
+        snprintf(text, sizeof(text), "ACCESS POINT %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }

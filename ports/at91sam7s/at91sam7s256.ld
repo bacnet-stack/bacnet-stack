@@ -110,9 +110,9 @@
 ENTRY(_vec_reset)
 
 /* specify the AT91SAM7S64 memory areas  */
-MEMORY 
+MEMORY
 {
-	flash	: ORIGIN = 0,          LENGTH = 64K	/* FLASH EPROM		*/	
+	flash	: ORIGIN = 0,          LENGTH = 64K	/* FLASH EPROM		*/
 	ram		: ORIGIN = 0x00200000, LENGTH = 16K  	/* static RAM area	*/
 }
 
@@ -122,11 +122,11 @@ MEMORY
 _stack_end = 0x203FFC;
 
 /* now define the output sections  */
-SECTIONS 
+SECTIONS
 {
 	. = 0;								/* set location counter to address zero  */
-	
-	.text :								/* collect all sections that should go into FLASH after startup  */ 
+
+	.text :								/* collect all sections that should go into FLASH after startup  */
 	{
 		*(.text*)						/* all .text sections (code)  */
 		*(.rodata)						/* all .rodata sections (constants, strings, etc.)  */
@@ -136,7 +136,7 @@ SECTIONS
 		_etext = .;						/* define a global symbol _etext just after the last code byte */
 	} >flash							/* put all the above into FLASH */
 
-	.data :								/* collect all initialized .data sections that go into RAM  */ 
+	.data :								/* collect all initialized .data sections that go into RAM  */
 	{
 		_data = .;						/* create a global symbol marking the start of the .data section  */
 		*(.data*)						/* all .data sections  */
@@ -153,4 +153,4 @@ SECTIONS
 	_bss_end = . ;						/* define a global symbol marking the end of the .bss section */
 }
 	_end = .;							/* define a global symbol marking the end of application RAM */
-	
+

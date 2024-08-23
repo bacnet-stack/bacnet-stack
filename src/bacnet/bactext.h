@@ -182,7 +182,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool bactext_lighting_operation_strtol(
-        const char *search_name, 
+        const char *search_name,
         unsigned *found_index);
 
     BACNET_STACK_EXPORT
@@ -191,7 +191,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool bactext_binary_lighting_pv_names_strtol(
-        const char *search_name, 
+        const char *search_name,
         unsigned *found_index);
 
     BACNET_STACK_EXPORT

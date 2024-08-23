@@ -1,5 +1,5 @@
-/** 
- * @file 
+/**
+ * @file
  * @brief Base "class" for handling all BACnet objects belonging
  * to a BACnet device, as well as Device-specific properties.
  * @author Steve Karg <skarg@users.sourceforge.net>

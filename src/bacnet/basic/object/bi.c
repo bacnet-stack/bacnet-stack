@@ -83,7 +83,7 @@ static const int Properties_Required[] = {
     -1
 };
 
-static const int Properties_Optional[] = { 
+static const int Properties_Optional[] = {
     PROP_RELIABILITY,
     PROP_DESCRIPTION,
     PROP_ACTIVE_TEXT,
@@ -98,7 +98,7 @@ static const int Properties_Optional[] = {
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_DETECTION_ENABLE,
 #endif
-    -1 
+    -1
 };
 
 static const int Properties_Proprietary[] = { -1 };

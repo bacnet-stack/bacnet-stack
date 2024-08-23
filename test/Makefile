@@ -29,7 +29,7 @@ UNAME_S := $(shell uname -s)
 UNAME_S := $(patsubst BSD%,BSD,$(UNAME_S))
 endif
 
-# unlimited parallel makefile jobs can 
+# unlimited parallel makefile jobs can
 # overwhelm builders with limited resources
 # set job limits based on number of core processors
 ifeq (${JOBS},)

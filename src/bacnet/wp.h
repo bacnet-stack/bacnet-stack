@@ -55,12 +55,12 @@ extern "C" {
     /* encode service */
     BACNET_STACK_EXPORT
     size_t writeproperty_apdu_encode(
-        uint8_t *apdu, 
+        uint8_t *apdu,
         BACNET_WRITE_PROPERTY_DATA *data);
     BACNET_STACK_EXPORT
     size_t writeproperty_service_request_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
+        uint8_t *apdu,
+        size_t apdu_size,
         BACNET_WRITE_PROPERTY_DATA *data);
     BACNET_STACK_EXPORT
     int wp_encode_apdu(

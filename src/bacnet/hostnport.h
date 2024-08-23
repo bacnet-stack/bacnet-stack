@@ -41,7 +41,7 @@ typedef struct BACnetHostNPort {
 /**
  *  BACnetBDTEntry ::= SEQUENCE {
  *      bbmd-address [0] BACnetHostNPort,
- *      broadcast-mask [1] OCTET STRING OPTIONAL 
+ *      broadcast-mask [1] OCTET STRING OPTIONAL
  *      -- shall be present if BACnet/IP, and absent for BACnet/IPv6
  *  }
  */
@@ -52,11 +52,11 @@ typedef struct BACnetBDTEntry {
 
 /**
  *  BACnetFDTEntry ::= SEQUENCE {
- *      bacnetip-address [0] OCTET STRING, 
+ *      bacnetip-address [0] OCTET STRING,
  *      -- the 6-octet B/IP or 18-octet B/IPv6 address of the registrant
- *      time-to-live [1] Unsigned16, 
+ *      time-to-live [1] Unsigned16,
  *      -- time to live in seconds at the time of registration
- *      remaining-time-to-live [2] Unsigned16 
+ *      remaining-time-to-live [2] Unsigned16
  *      -- remaining time to live in seconds, incl. grace period
  * }
  */
@@ -72,7 +72,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int host_n_port_address_encode(
-        uint8_t *apdu, 
+        uint8_t *apdu,
         BACNET_HOST_N_PORT *address);
     BACNET_STACK_EXPORT
     int host_n_port_encode(
@@ -109,7 +109,7 @@ extern "C" {
         BACNET_HOST_N_PORT * src);
     BACNET_STACK_EXPORT
     bool host_n_port_from_ascii(
-        BACNET_HOST_N_PORT *value, 
+        BACNET_HOST_N_PORT *value,
         const char *argv);
 
     BACNET_STACK_EXPORT
@@ -142,11 +142,11 @@ extern "C" {
         BACNET_BDT_ENTRY * src);
     BACNET_STACK_EXPORT
     bool bacnet_bdt_entry_from_ascii(
-        BACNET_BDT_ENTRY *value, 
+        BACNET_BDT_ENTRY *value,
         const char *argv);
     BACNET_STACK_EXPORT
     int bacnet_bdt_entry_to_ascii(
-        char *str, size_t str_size, 
+        char *str, size_t str_size,
         BACNET_BDT_ENTRY *value);
 
     BACNET_STACK_EXPORT
@@ -179,11 +179,11 @@ extern "C" {
         BACNET_FDT_ENTRY * src);
     BACNET_STACK_EXPORT
     bool bacnet_fdt_entry_from_ascii(
-        BACNET_FDT_ENTRY *value, 
+        BACNET_FDT_ENTRY *value,
         const char *argv);
     BACNET_STACK_EXPORT
     int bacnet_fdt_entry_to_ascii(
-        char *str, size_t str_size, 
+        char *str, size_t str_size,
         BACNET_FDT_ENTRY *value);
 
 #ifdef __cplusplus

@@ -115,7 +115,7 @@ bool Access_User_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_ACCESS_USERS) {
-        snprintf(text, sizeof(text), "ACCESS USER %lu", 
+        snprintf(text, sizeof(text), "ACCESS USER %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }

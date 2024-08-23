@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnet ReadProperty-Request and ReadProperty-ACK encode and decode 
+ * @brief BACnet ReadProperty-Request and ReadProperty-ACK encode and decode
  *  helper functions
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2005
@@ -470,7 +470,7 @@ int rp_ack_decode_service_request(uint8_t *apdu,
         return BACNET_STATUS_ERROR;
     }
     /* determine the length of the data blob */
-    data_len = bacnet_enclosed_data_length(&apdu[apdu_len], 
+    data_len = bacnet_enclosed_data_length(&apdu[apdu_len],
         apdu_size - apdu_len);
     if (data_len == BACNET_STATUS_ERROR) {
         return BACNET_STATUS_ERROR;

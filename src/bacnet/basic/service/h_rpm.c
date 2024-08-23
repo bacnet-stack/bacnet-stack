@@ -39,7 +39,7 @@ static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 /**
  * @brief Fetches the lists of properties (array of BACNET_PROPERTY_ID's) for
  * this object type and the special properties ALL or REQUIRED or OPTIONAL.
- * @param pPropertyList reference for the list of ALL, REQUIRED, and OPTIONAL 
+ * @param pPropertyList reference for the list of ALL, REQUIRED, and OPTIONAL
  * properties.
  * @param special_property The special property ALL, REQUIRED, or OPTIONAL
  * to fetch.
@@ -82,7 +82,7 @@ static BACNET_PROPERTY_ID RPM_Object_Property(
 
 /**
  * @brief Fetches the number of properties (array of BACNET_PROPERTY_ID's) for
- * this object type belonging to the special properties ALL or REQUIRED or 
+ * this object type belonging to the special properties ALL or REQUIRED or
  * OPTIONAL.
  * @param pPropertyList reference for the list of ALL, REQUIRED, and OPTIONAL
  * properties.
@@ -108,7 +108,7 @@ static unsigned RPM_Object_Property_Count(
     return count;
 }
 
-/** 
+/**
  * @brief Encode the RPM property returning the length of the encoding,
  * or 0 if there is no room to fit the encoding.
  * @param apdu [out] The buffer to encode the property into.
@@ -516,7 +516,7 @@ void handler_read_property_multiple(uint8_t *service_request,
         bytes_sent = datalink_send_pdu(
             src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
         if (bytes_sent <= 0) {
-            debug_fprintf(stderr, "RPM: Failed to send PDU (errno=%d)!\n", 
+            debug_fprintf(stderr, "RPM: Failed to send PDU (errno=%d)!\n",
             errno);
         }
     }

@@ -45,7 +45,7 @@ READ of size 1 at 0x60200003b656 thread T0
 ...
 ```
 
-Caveat: 
+Caveat:
 
 * Libfuzzer does not reinitialize the target on each testcase. This means that it will be much quicker than ../fuzz-afl/, BUT it will also be a little less stable. It also will not continue to fuzz after a crash is found (since the libfuzzer runtime shares a process with the target that just crashed). There may be some command line options to adopt a fork model.
 

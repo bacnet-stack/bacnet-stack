@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief command line tool that sends a BACnet service to the network:
- * BACnet Error message 
+ * BACnet Error message
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2016
  * @copyright SPDX-License-Identifier: MIT

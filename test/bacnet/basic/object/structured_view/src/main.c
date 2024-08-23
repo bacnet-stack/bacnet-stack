@@ -51,7 +51,7 @@ ZTEST_SUITE(tests_object_structured_view, NULL, NULL, NULL, NULL, NULL);
 void test_main(void)
 {
     ztest_test_suite(
-        tests_object_structured_view, 
+        tests_object_structured_view,
         ztest_unit_test(test_object_structured_view));
 
     ztest_run_test_suite(tests_object_structured_view);

@@ -2,7 +2,7 @@
  * @file
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2013
- * @brief The Channel object is a command object without a priority array, 
+ * @brief The Channel object is a command object without a priority array,
  * and the present-value property proxies an ANY data type (sort of)
  * @copyright SPDX-License-Identifier: MIT
  */

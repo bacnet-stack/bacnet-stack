@@ -43,7 +43,7 @@ int getevent_apdu_encode(uint8_t *apdu,
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t getevent_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, 
+    uint8_t *apdu, size_t apdu_size,
     BACNET_OBJECT_ID *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */

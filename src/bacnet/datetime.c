@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnetDate, BACnetTime, BACnetDateTime, BACnetDateRange complex data 
+ * @brief BACnetDate, BACnetTime, BACnetDateTime, BACnetDateRange complex data
  *  type encode and decode functions
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @author Greg Shue <greg.shue@outlook.com>
@@ -1179,7 +1179,7 @@ int bacapp_decode_context_datetime(
  * @param value2 - complex data value 2 structure
  * @return true if the two complex data values are the same
  */
-bool bacnet_daterange_same(BACNET_DATE_RANGE *value1, 
+bool bacnet_daterange_same(BACNET_DATE_RANGE *value1,
     BACNET_DATE_RANGE *value2)
 {
     bool status = false;

@@ -27,7 +27,7 @@
  *        Allows you to communicate with a localhost target.
  *    -t: declare target's MAC instead of using Who-Is to bind to
  *        device-instance. Format is "C0:A8:00:18:BA:C0" (as usual)
- * 
+ *
  * Examples:
  * 	./bacepics -v 1234
  *    where the device instance to be addressed is 1234
@@ -48,9 +48,9 @@
  *     ALL again with array index of 0, which should result mostly in errors
  *     but will provide the list of supported properties.
  *     - If that succeeds, build the list of properties to be accessed. <br>
- *   - If no RPM or failed to get ALL properties from the target device, then 
- *     fetch the coded Required and Optional properties from the demo/object 
- *     folder for this object type, and use this to build the list of 
+ *   - If no RPM or failed to get ALL properties from the target device, then
+ *     fetch the coded Required and Optional properties from the demo/object
+ *     folder for this object type, and use this to build the list of
  *     properties to be accessed.
  * - If the Fetch All succeeded, print the values for each property
  * - Otherwise, for each property in the list for this object,

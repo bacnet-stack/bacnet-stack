@@ -5,7 +5,7 @@ for the eight RGB (red-green-blue) LEDs attached to the Blinkt! card.
 
 ## Installation
 
-The demo uses pigpiod (Pi GPIO Daemon) and developer library. To install 
+The demo uses pigpiod (Pi GPIO Daemon) and developer library. To install
 and run the daemon at powerup (and immediately):
 
     $ sudo apt install libpigpio-dev libpigpiod-if-dev pigpiod
@@ -14,12 +14,12 @@ and run the daemon at powerup (and immediately):
 
 ## WiFi Power
 
-If you are using a Raspberry Pi with WiFi, you will likely want 
+If you are using a Raspberry Pi with WiFi, you will likely want
 to disable WiFi Power saving.  Under Raspberry Pi OS, so the following.
 
 ### Startup service in systemd
 
-To manage to start programs you should use systemd Unit files. 
+To manage to start programs you should use systemd Unit files.
 
 File name: /etc/systemd/system/wlan0pwr.service
 
@@ -44,9 +44,9 @@ In the empty editor insert these statements, save them and quit the editor:
 Enable the new service with:
 
     rpi ~$ sudo systemctl enable wlan0pwr.service
-    
+
 ## Building the Blinkt! BACnet Application
-    
+
 Build from the root folder:
 
     $ make blinkt
@@ -59,8 +59,8 @@ Run from the bin/ folder:
 
 ## Blinkt! as a Startup service with systemd
 
-To manage to start programs you should use systemd Unit files. 
-Here is a very simple template you can use to start to solve your problem. 
+To manage to start programs you should use systemd Unit files.
+Here is a very simple template you can use to start to solve your problem.
 Create a new service with:
 
     rpi ~$ sudo systemctl --full --force edit bacnet.service
@@ -81,9 +81,9 @@ Enable the new service after the next reboot with:
 
     rpi ~$ sudo systemctl enable bacnet.service
 
-Create your bacnet.sh shell script in your home folder (change from pi if 
+Create your bacnet.sh shell script in your home folder (change from pi if
 that is not your home folder).  Use the shell script to set any environment
-variables that you want, or configuration settings for the bin/bacblinkt 
+variables that you want, or configuration settings for the bin/bacblinkt
 application such as a specific device ID.
 
 A simplistic bacnet.sh script will look like this (with stdout/stderr to /dev/null):

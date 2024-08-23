@@ -1,8 +1,8 @@
 /**
  * @file
- * @brief command line tool that uses BACnet SubscribeCOV service 
+ * @brief command line tool that uses BACnet SubscribeCOV service
  * message to subscribe to a BACnet object for Change-of-Value notifications
- * in a BACnet device and print the Change-of-Value notifications values 
+ * in a BACnet device and print the Change-of-Value notifications values
  * to the console.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006

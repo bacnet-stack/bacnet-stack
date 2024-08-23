@@ -6,7 +6,7 @@ OPTIONAL=0
 usage()
 {
  echo "usage: $PROG [OPTIONS] <<BACnetID>> [ <<BACnetID>> ... ]
-    
+
     Will return Required and Optional property values
     from the requested device.
 
@@ -68,7 +68,7 @@ run_test()
 	echo -n "OBJECT LIST LENGTH:"
 	./bacrp $1 8 $1 76 0
 	echo -n "OBJECT LIST:"
-	./bacrp $1 8 $1 76 
+	./bacrp $1 8 $1 76
 	echo -n "MAX APDU LENGTH ACCEPTED:"
 	./bacrp $1 8 $1 62
 	echo -n "SEGMENTATION SUPPORTED:"

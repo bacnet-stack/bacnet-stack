@@ -6,7 +6,7 @@
 menuconfig BACNETSTACK_BACNET_BASIC
     bool "BACNETSTACK_BACNET_BASIC"
 	default n
-    help 
+    help
       This option enables a basic BACnet Device object and tasking
 
 if BACNETSTACK_BACNET_BASIC

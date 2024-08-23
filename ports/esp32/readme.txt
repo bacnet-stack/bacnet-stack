@@ -54,13 +54,13 @@ Goto lib/stack and copy the requested files from Steve code :
 
 Modify
 	in config.h
-		MAX_TSM_TRANSACTIONS 255, set the value to 10 for instances 
+		MAX_TSM_TRANSACTIONS 255, set the value to 10 for instances
 	in main.c
 		wifi_config to fit your wifi network
 		BACNET_LED 5, set another IO number depending of your board
 
 A lot of Warning will be issued at compile time due to the redefinition of BIT macros.
-Could be removes by placing a #ifndef #BIT0 .. #endif arround the BIT macro in bits.h, 
+Could be removes by placing a #ifndef #BIT0 .. #endif arround the BIT macro in bits.h,
 and moving to the top of include list
 	#include "bacnet/datalink/datalink.h" in tsm.c, s_iam and in device.c
 	#include "bacport.h" in bip.c and in bip.h (redondant include in bip.c)

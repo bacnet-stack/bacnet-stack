@@ -562,7 +562,7 @@ int rpm_ack_decode_object_end(uint8_t *apdu, unsigned apdu_size)
     if (bacnet_is_closing_tag_number(apdu, apdu_size, 1, &len)) {
         apdu_len += len;
     } else {
-        return BACNET_STATUS_ERROR; 
+        return BACNET_STATUS_ERROR;
     }
 
     return apdu_len;

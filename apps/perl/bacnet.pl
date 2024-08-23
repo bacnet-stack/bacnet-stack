@@ -12,7 +12,7 @@ use Carp;
 
 =head1 NAME
 
-bacnet.pl - Scriptable BACnet communications 
+bacnet.pl - Scriptable BACnet communications
 
 =head1 DESCRIPTION
 
@@ -33,7 +33,7 @@ Perl documentation, see http://perldoc.perl.org
 Usage: bacnet.pl [program_options] [-- script_args]
 
 This program executes a script in perl syntax to perform BACnet/IP operations.
- 
+
  Possible program options:
    --script=s    The script to execute.
    --log=s       The file to log all output.
@@ -116,7 +116,7 @@ BEGIN {
 }
 
 use Inline (
-    C => Config => 
+    C => Config =>
         LIBS      => "-L$libDir -lbacnet -liphlpapi",
         INC       => ["-I$incDir1", "-I$incDir2", "-I$incDir3"],
         DIRECTORY => $inlineBuildDir,
@@ -141,7 +141,7 @@ my $answer = '';
     'help|?'   => \$ask_help,
     'script=s' => \$script,
     'log=s'    => \$log,
-); 
+);
 
 if (!defined($script) || !(-f $script))
 {
@@ -150,7 +150,7 @@ if (!defined($script) || !(-f $script))
 }
 else
 {
-    # Add the script's location to @INC so that they can include other scripts 
+    # Add the script's location to @INC so that they can include other scripts
     # using relative paths
     my $scriptdir = File::Spec->rel2abs(dirname($script));
     push @INC,$scriptdir;
@@ -308,7 +308,7 @@ sub ReadProperty {
 =head2 ReadPropertyMultiple
 
 This function implements the ReadPropertyMultiple service. There are no built in retry
-mechanisms. NOTE: all enumerations are defined in F<bacenum.h> 
+mechanisms. NOTE: all enumerations are defined in F<bacenum.h>
 
 =head3 Inputs to ReadPropertyMultiple
 
@@ -414,7 +414,7 @@ sub ReadPropertyMultiple
 =head2 WriteProperty
 
 This function implements the WriteProperty service. There are no built in retry
-mechanisms. NOTE: all enumerations are defined in F<bacenum.h> 
+mechanisms. NOTE: all enumerations are defined in F<bacenum.h>
 
 =head3 Inputs to WriteProperty
 
@@ -494,7 +494,7 @@ sub WriteProperty {
         }
         else
         {
-           # a priority of 0 means we are not writing to a priority array 
+           # a priority of 0 means we are not writing to a priority array
            $priority = 0;
         }
         $msg .= " in Device" . '[' . $deviceInstance . "] ==> ";
@@ -553,7 +553,7 @@ This function implements the TimeSync and UTCTimeSync services
 
 =cut
 
-sub TimeSync 
+sub TimeSync
 {
     my $deviceInstanceNumber = shift;
     my $year = shift;
@@ -574,7 +574,7 @@ sub TimeSync
 
         # be a pessimist. Assume things will fail
         $isFailure = 1;
-        
+
         if (defined($utcOffset))
         {
             $isUTC = 1;
@@ -586,7 +586,7 @@ sub TimeSync
             $utcOffset = 0;
             $isUTC = 0;
         }
-   
+
         if ($year < 1900 || $year > 2099)
         {
             Log("Year '$year' is invalid.");
@@ -610,7 +610,7 @@ sub TimeSync
             Log("Hour '$hour' is invalid.");
             last;
         }
-        
+
         if ($minute < 0 || $minute > 59)
         {
             Log("Minute '$minute' is invalid.");
@@ -629,7 +629,7 @@ sub TimeSync
         last;
     }
 
-    return $isFailure; 
+    return $isFailure;
 }
 
 =head2 Log
@@ -637,7 +637,7 @@ sub TimeSync
 This function prints out to the desired method of logging (STDOUT or file).
 NewLine characters are not required when making calls to this function. If any
 NewLine characters are specified, they will be stripped out. To print an empty
-line, pass in a space as the message. NOTE: This function will honor previous 
+line, pass in a space as the message. NOTE: This function will honor previous
 requests to silence the log (see SilcenseLog for details)
 
 =head3 Inputs to Log
@@ -671,7 +671,7 @@ sub Log {
 
         # if there is nothing to print, then don't do it
         return if (scalar(@last) == 0);
-        
+
         # if there are newline-like characters, get rid of them.
         while ($msg =~/^(.*)[\r\n]+(.*)$/)
         {

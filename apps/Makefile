@@ -148,7 +148,7 @@ DEBUGGING ?=
 # enable all relevant warnings that find bugs
 WARNING_ALL := -Wall -Wextra -pedantic
 WARNING_ALL += -Wfloat-equal -Wconversion
-WARNING_ALL += -Wredundant-decls -Wswitch-default 
+WARNING_ALL += -Wredundant-decls -Wswitch-default
 WARNING_ALL += -Wunused-variable
 # don't warn about conversion, sign, compares, long long and attributes
 # since they are common in embedded

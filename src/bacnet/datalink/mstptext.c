@@ -2,7 +2,7 @@
  * @file
  * @brief Enumerations to text for BACnet Master-Slave Twisted Pair (MS/TP)
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2007 
+ * @date 2007
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  * @defgroup DLMSTP BACnet MS/TP DataLink Network Layer
  * @ingroup DataLink
@@ -64,14 +64,14 @@ const char *mstptext_frame_type(unsigned index)
         FRAME_TYPE_PROPRIETARY_MIN, "UNKNOWN", "PROPRIETARY");
 }
 
-static INDTEXT_DATA mstp_zero_config_state_text[] = { 
+static INDTEXT_DATA mstp_zero_config_state_text[] = {
     { MSTP_ZERO_CONFIG_STATE_INIT, "INIT" },
     { MSTP_ZERO_CONFIG_STATE_IDLE, "IDLE" },
     { MSTP_ZERO_CONFIG_STATE_LURK, "LURK" },
     { MSTP_ZERO_CONFIG_STATE_CLAIM, "CLAIM" },
     { MSTP_ZERO_CONFIG_STATE_CONFIRM, "CONFIRM" },
     { MSTP_ZERO_CONFIG_STATE_USE, "USE" },
-    { 0, NULL } 
+    { 0, NULL }
  };
 
 const char *mstptext_zero_config_state(unsigned index)

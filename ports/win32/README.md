@@ -6,8 +6,8 @@ and the (free) Microsoft Visual Studio Community Edition
 
 ## Building with Makefile under MinGW32
 
-Note: Building for 64-bit with MinGW64 requires extra runtimes, 
-whereas building for 32-bit as Win32 doesn't require any other 
+Note: Building for 64-bit with MinGW64 requires extra runtimes,
+whereas building for 32-bit as Win32 doesn't require any other
 files for the EXE to work in any version of Windows.
 
 * MSYS2 installation is (from powershell):
@@ -41,7 +41,7 @@ files for the EXE to work in any version of Windows.
 * Verify make is built for Windows32:
 
      make --version
-     
+
      Built for Windows32
 
 ## Building and running with Microsoft Visual Studio

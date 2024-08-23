@@ -106,7 +106,7 @@ static void test_BIT_FLIP(void)
         zassert_true(a == (1U << bitpos), NULL);
 	BIT_FLIP(a, bitpos);
         zassert_true(a == 0U, NULL);
-	
+
     } while (bitpos > 0);
 }
 
@@ -125,7 +125,7 @@ static void test_BIT_CHECK(void)
 
 	a = 0U;
 	zassert_false(BIT_CHECK(a, bitpos), NULL);
-	
+
     } while (bitpos > 0);
 }
 
@@ -182,7 +182,7 @@ static void test_BITMASK_FLIP(void)
         zassert_true(a == (1U << bitpos), NULL);
 	BITMASK_FLIP(a, (1U << bitpos));
         zassert_true(a == 0U, NULL);
-	
+
     } while (bitpos > 0);
 }
 
@@ -201,7 +201,7 @@ static void test_BITMASK_CHECK(void)
 
 	a = 0U;
 	zassert_false(BITMASK_CHECK(a, (1U << bitpos)), NULL);
-	
+
     } while (bitpos > 0);
 }
 

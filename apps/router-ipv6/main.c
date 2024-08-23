@@ -979,7 +979,7 @@ static void my_routing_npdu_handler(
         }
     } else {
         fprintf(
-            stderr, "NPDU: unsupported protocol version %u.  Discarded!\n", 
+            stderr, "NPDU: unsupported protocol version %u.  Discarded!\n",
                 protocol_version);
     }
 
@@ -1118,7 +1118,7 @@ static void control_c_hooks(void)
  * @note This is a proxy function to satisfy the BACnet Stack IPv6 port layer
  * requirements since this application omits a Device object.
  */
-uint32_t Device_Object_Instance_Number(void) 
+uint32_t Device_Object_Instance_Number(void)
 {
     return Device_Instance_Number;
 }

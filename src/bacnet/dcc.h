@@ -62,9 +62,9 @@ extern "C" {
     int dcc_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
-        uint16_t timeDuration, 
+        uint16_t timeDuration,
         BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-        BACNET_CHARACTER_STRING * password); 
+        BACNET_CHARACTER_STRING * password);
 
     BACNET_STACK_EXPORT
     int dcc_decode_service_request(

@@ -51,7 +51,7 @@ struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 #define BACNET_NETWORK_PORT_INSTANCE 1
 #endif
 
-/* BACnetARRAY of REAL, is an array of the link speeds 
+/* BACnetARRAY of REAL, is an array of the link speeds
    supported by this network port */
 static uint32_t Link_Speeds[] = {9600, 19200, 38400, 57600, 76800, 115200 };
 

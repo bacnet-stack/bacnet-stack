@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet I-Am-Router-To-Network message 
+ * @brief command line tool that sends a BACnet I-Am-Router-To-Network message
  * for one or more networks.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2008

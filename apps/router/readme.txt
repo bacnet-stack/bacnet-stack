@@ -17,7 +17,7 @@ SPDX-License-Identifier: MIT
 3. Build
 -----------------------
 
-1. Download, build and install libconfig C/C++ Configuration File Library 
+1. Download, build and install libconfig C/C++ Configuration File Library
    from http://www.hyperrealm.com/libconfig or use APT to install
    sudo apt-get install libconfig-dev
 2. Run "make clean all" from library root directory
@@ -121,7 +121,7 @@ mstp arguments:
 5. Start
 -----------------------
 
-5.1. With configuration file 
+5.1. With configuration file
 1. Copy configuration file in the router executable directory
 2. Start the router with "sudo ./router -c init.cfg" command in terminal
 

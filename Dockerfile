@@ -19,7 +19,7 @@ FROM ubuntu:focal as builder
 # /opt/bacnet/bin/bacrp 1234 device 1234 object-name
 ## etc.
 
-## Check bacnet-stack/bin/readme.txt for more docs related to the 
+## Check bacnet-stack/bin/readme.txt for more docs related to the
 ## example utilities and environment variables. Note that this docker
 ## image does not add the shell scripts in that folder as many of them
 ## are broken. Even so, reading them may be instructive.

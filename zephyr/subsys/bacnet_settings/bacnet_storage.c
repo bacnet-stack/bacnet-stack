@@ -159,7 +159,7 @@ int bacnet_storage_set(BACNET_STORAGE_KEY *key, const void *data,
 	return rc;
 }
 
-/** 
+/**
  * @brief Structure to hold immediate values
  */
 struct direct_immediate_value {

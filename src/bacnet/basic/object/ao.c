@@ -317,7 +317,7 @@ bool Analog_Output_Present_Value_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
-            (value >= pObject->Min_Pres_Value) && 
+            (value >= pObject->Min_Pres_Value) &&
             (value <= pObject->Max_Pres_Value)) {
             pObject->Relinquished[priority - 1] = false;
             pObject->Priority_Array[priority - 1] = value;
@@ -891,7 +891,7 @@ bool Analog_Output_Encode_Value_List(
         status = cov_value_list_encode_real(value_list, pObject->Prior_Value,
             in_alarm, fault, overridden, pObject->Out_Of_Service);
     }
-    
+
     return status;
 }
 

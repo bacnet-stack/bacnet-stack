@@ -108,18 +108,18 @@ int cov_subscribe_property_encode_apdu(uint8_t *apdu,
 
 BACNET_STACK_EXPORT
 int cov_subscribe_decode_service_request(
-    uint8_t *apdu, 
-    unsigned apdu_len, 
+    uint8_t *apdu,
+    unsigned apdu_len,
     BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
-int cov_subscribe_apdu_encode(uint8_t *apdu, 
+int cov_subscribe_apdu_encode(uint8_t *apdu,
     BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 size_t cov_subscribe_service_request_encode(
-    uint8_t *apdu, 
-    size_t apdu_size, 
+    uint8_t *apdu,
+    size_t apdu_size,
     BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
@@ -134,7 +134,7 @@ void cov_property_value_list_link(
     size_t count);
 BACNET_STACK_EXPORT
 void cov_data_value_list_link(
-    BACNET_COV_DATA *data, 
+    BACNET_COV_DATA *data,
     BACNET_PROPERTY_VALUE *value_list,
     size_t count);
 

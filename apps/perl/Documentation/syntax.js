@@ -6,7 +6,7 @@ function emulateHTMLModel()
 
 // This function is used to generate a html string for the text properties/methods
 // It replaces '\n' with "<BR"> as well as fixes consecutive white spaces
-// It also repalaces some special characters	
+// It also repalaces some special characters
 function convertTextToHTML(s) {
     s = s.replace(/\&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<BR>").replace(/\t/g, "    "); //tachyon
     while (/\s\s/.test(s))
@@ -17,7 +17,7 @@ function convertTextToHTML(s) {
 
 HTMLElement.prototype.__defineSetter__("innerText", function (sText) {
     this.innerHTML = convertTextToHTML(sText);
-    return sText;		
+    return sText;
 });
 
 var tmpGet;
@@ -29,7 +29,7 @@ HTMLElement.prototype.__defineGetter__("innerText", tmpGet = function () {
 
 }
 
-if (moz) 
+if (moz)
 emulateHTMLModel();
 
 
@@ -45,7 +45,7 @@ RE[0]  = new RegExp(re);
 // comment
 re  = /\#.*?([\r\n]+|$)/; //tachyon
 RE[1]  = new RegExp(re);
- 
+
 // operator
 re = /xor|\.\.\.|and|not|\|\|\=|cmp|\>\>\=|\<\<\=|\<\=\>|\&\&\=|or|\=\>|\!\~|\^\=|\&\=|\|\=|\.\=|x\=|\%\=|\/\=|\*\=|\-\=|\+\=|\=\~|\*\*|\-\-|\.\.|\|\||\&\&|\+\+|\-\>|ne|eq|\!\=|\=\=|ge|le|gt|lt|\>\=|\<\=|\>\>|\<\<|\,|\=|\:|\?|\^|\||x|\%|\/|\*|\<|\&|\\|\~|\!|\>|\.|\-|\+ /;
 RE[2]  = new RegExp(re);
@@ -121,7 +121,7 @@ function HighlightCode(object)
 			span.setAttribute("className", classes[mode]); // ie
 			span.setAttribute("class", classes[mode]); //mozilla
 			span.appendChild(document.createTextNode(match));
-			object.appendChild(span);	
+			object.appendChild(span);
 
 			codeText  = right;
 		}

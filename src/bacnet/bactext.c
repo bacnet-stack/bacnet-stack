@@ -140,11 +140,11 @@ INDTEXT_DATA bacnet_application_tag_names[] = { { BACNET_APPLICATION_TAG_NULL,
     { BACNET_APPLICATION_TAG_HOST_N_PORT, "BACnetHostNPort" },
     { BACNET_APPLICATION_TAG_XY_COLOR, "BACnetxyColor" },
     { BACNET_APPLICATION_TAG_COLOR_COMMAND, "BACnetColorCommand" },
-    { BACNET_APPLICATION_TAG_BDT_ENTRY, "BACnetBDTEntry" }, 
-    { BACNET_APPLICATION_TAG_FDT_ENTRY, "BACnetFDTEntry" }, 
+    { BACNET_APPLICATION_TAG_BDT_ENTRY, "BACnetBDTEntry" },
+    { BACNET_APPLICATION_TAG_FDT_ENTRY, "BACnetFDTEntry" },
     { BACNET_APPLICATION_TAG_ACTION_COMMAND, "BACnetActionCommand" },
-    { BACNET_APPLICATION_TAG_SCALE, "BACnetScale" },  
-    { BACNET_APPLICATION_TAG_SHED_LEVEL, "BACnetShedLevel" },  
+    { BACNET_APPLICATION_TAG_SCALE, "BACnetScale" },
+    { BACNET_APPLICATION_TAG_SHED_LEVEL, "BACnetShedLevel" },
     { 0, NULL } };
 
 const char *bactext_application_tag_name(unsigned index)
@@ -1889,9 +1889,9 @@ bool bactext_lighting_operation_strtol(const char *search_name, unsigned *found_
 }
 
 INDTEXT_DATA bacnet_binary_lighting_pv_names[] = {
-    { BINARY_LIGHTING_PV_OFF, "off" }, 
+    { BINARY_LIGHTING_PV_OFF, "off" },
     { BINARY_LIGHTING_PV_ON, "on" },
-    { BINARY_LIGHTING_PV_WARN, "warn" }, 
+    { BINARY_LIGHTING_PV_WARN, "warn" },
     { BINARY_LIGHTING_PV_WARN_OFF, "warn-off" },
     { BINARY_LIGHTING_PV_WARN_RELINQUISH, "warn-relinquish" },
     { BINARY_LIGHTING_PV_STOP, "stop" },
@@ -1910,7 +1910,7 @@ const char *bactext_binary_lighting_pv_name(unsigned index)
     }
 }
 
-bool bactext_binary_lighting_pv_names_strtol(const char *search_name, 
+bool bactext_binary_lighting_pv_names_strtol(const char *search_name,
     unsigned *found_index)
 {
     return bactext_strtol_index(
@@ -1946,8 +1946,8 @@ const char *bactext_device_communications_name(unsigned index)
 INDTEXT_DATA bacnet_shed_state_names[] = {
     { BACNET_SHED_INACTIVE, "shed-inactive" },
     { BACNET_SHED_REQUEST_PENDING, "shed-request-pending" },
-    { BACNET_SHED_COMPLIANT, "shed-compliant" }, 
-    { BACNET_SHED_NON_COMPLIANT, "shed-non-compliant" }, 
+    { BACNET_SHED_COMPLIANT, "shed-compliant" },
+    { BACNET_SHED_NON_COMPLIANT, "shed-non-compliant" },
     { 0, NULL }
 };
 
@@ -1960,7 +1960,7 @@ const char *bactext_shed_state_name(unsigned index)
 INDTEXT_DATA bacnet_shed_level_type_names[] = {
     { BACNET_SHED_TYPE_PERCENT, "percent" },
     { BACNET_SHED_TYPE_LEVEL, "level" },
-    { BACNET_SHED_TYPE_AMOUNT, "amount" }, 
+    { BACNET_SHED_TYPE_AMOUNT, "amount" },
     { 0, NULL }
 };
 

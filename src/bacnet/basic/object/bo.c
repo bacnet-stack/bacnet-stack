@@ -3,8 +3,8 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2005
  * @brief A basic BACnet Binary Output object implementation.
- * The Binary Lighting Output object is a commandable object, and the 
- * present-value property uses a priority array and an enumerated 2-state 
+ * The Binary Lighting Output object is a commandable object, and the
+ * present-value property uses a priority array and an enumerated 2-state
  * data type.
  * @copyright SPDX-License-Identifier: MIT
  */

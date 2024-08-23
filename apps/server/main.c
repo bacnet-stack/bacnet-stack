@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that simulates a BACnet server device on the 
+ * @brief command line tool that simulates a BACnet server device on the
  * network using the BACnet Stack and all the example object types.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006

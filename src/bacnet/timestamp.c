@@ -441,7 +441,7 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
  * @param ts - pointer to the timestamp
  * @return number of characters printed
 */
-int bacapp_timestamp_to_ascii(char *str, size_t str_size, 
+int bacapp_timestamp_to_ascii(char *str, size_t str_size,
     BACNET_TIMESTAMP *timestamp)
 {
     int str_len = 0;
@@ -461,7 +461,7 @@ int bacapp_timestamp_to_ascii(char *str, size_t str_size,
             break;
         case TIME_STAMP_SEQUENCE:
             /* 65535 */
-            str_len = snprintf(str, str_size, "%u", 
+            str_len = snprintf(str, str_size, "%u",
                 (unsigned)timestamp->value.sequenceNum);
             break;
         case TIME_STAMP_DATETIME:

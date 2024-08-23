@@ -49,7 +49,7 @@ int alarm_ack_encode_apdu(
  *      event-state-acknowledged [0] BACnetEventState,
  *      timestamp [1] BACnetTimeStamp
  *  }
- * 
+ *
  * @param apdu  application data buffer, or NULL for length
  * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded
@@ -102,7 +102,7 @@ int alarm_ack_encode_service_request(uint8_t *apdu, BACNET_ALARM_ACK_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t bacnet_acknowledge_alarm_info_request_encode(
-    uint8_t *apdu, 
+    uint8_t *apdu,
     size_t apdu_size,
     BACNET_ALARM_ACK_DATA *data)
 {

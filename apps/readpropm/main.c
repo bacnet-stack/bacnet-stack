@@ -1,7 +1,7 @@
 /**
  * @file
- * @brief command line tool that uses BACnet ReadPropertyMultiple service 
- * message to read object property values from another device on 
+ * @brief command line tool that uses BACnet ReadPropertyMultiple service
+ * message to read object property values from another device on
  * the network and prints the values to the console.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2008

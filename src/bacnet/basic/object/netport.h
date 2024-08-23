@@ -123,7 +123,7 @@ extern "C" {
     bool Network_Port_MSTP_MAC_Address_Set(
         uint32_t object_instance,
         uint8_t value);
-    
+
     BACNET_STACK_EXPORT
     uint8_t Network_Port_MSTP_Max_Master(
         uint32_t object_instance);
@@ -195,7 +195,7 @@ extern "C" {
         uint32_t object_instance,
         uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 
-    
+
     BACNET_STACK_EXPORT
     bool Network_Port_IP_DHCP_Enable(
         uint32_t object_instance);

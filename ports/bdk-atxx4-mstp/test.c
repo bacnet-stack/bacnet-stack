@@ -190,7 +190,7 @@ void test_task(void)
                 serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
                 break;
             case 'm':
-                snprintf(Send_Buffer, sizeof(Send_Buffer), 
+                snprintf(Send_Buffer, sizeof(Send_Buffer),
                     "\r\nMax:%u", (unsigned)dlmstp_max_master());
                 serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
                 break;

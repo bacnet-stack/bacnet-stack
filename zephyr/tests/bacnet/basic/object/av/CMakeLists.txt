@@ -74,7 +74,7 @@ else()
   find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 
-  target_include_directories(app PRIVATE 
+  target_include_directories(app PRIVATE
     ${BACNET_INCLUDE}
     ${TEST_OBJECT_INCLUDE})
   target_sources(app PRIVATE

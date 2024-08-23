@@ -668,7 +668,7 @@ bool BitString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         default:
             if (property_lists_member(
-                Properties_Required, Properties_Optional, 
+                Properties_Required, Properties_Optional,
                 Properties_Proprietary, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

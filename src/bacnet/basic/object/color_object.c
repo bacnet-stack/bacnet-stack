@@ -702,7 +702,7 @@ bool Color_Object_Name(
 
 /**
  * For a given object instance-number, sets the object-name
- * 
+ *
  * @param  object_instance - object-instance number of the object
  * @param  new_name - holds the object-name to be set
  *
@@ -815,11 +815,11 @@ static void Color_Fade_To_Color_Handler(
             x3 = (float)pObject->Color_Command.transit.fade_time;
             y1 = old_value.x_coordinate;
             y3 = pObject->Color_Command.target.color.x_coordinate;
-            pObject->Tracking_Value.x_coordinate = linear_interpolate(x1, x2, 
+            pObject->Tracking_Value.x_coordinate = linear_interpolate(x1, x2,
                 x3, y1, y3);
             y1 = old_value.y_coordinate;
             y3 = pObject->Color_Command.target.color.y_coordinate;
-            pObject->Tracking_Value.y_coordinate = linear_interpolate(x1, x2, 
+            pObject->Tracking_Value.y_coordinate = linear_interpolate(x1, x2,
                 x3, y1, y3);
             pObject->Color_Command.transit.fade_time -= milliseconds;
             pObject->In_Progress =

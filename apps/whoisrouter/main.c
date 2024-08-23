@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet Who-Is-Router-To-Network 
+ * @brief command line tool that sends a BACnet Who-Is-Router-To-Network
  * message for one or more networks, and prints any I-Am-Router-To-Network
  * responses received.  This is useful for finding routers on the network.
  * @author Steve Karg <skarg@users.sourceforge.net>

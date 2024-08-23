@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Header for example gateway (ie, BACnet Router and Devices) 
+ * @brief Header for example gateway (ie, BACnet Router and Devices)
  * using the BACnet Stack.
  * @author Tom Brennan <tbrennan3@users.sourceforge.net>
  * @date 2010
@@ -11,7 +11,7 @@
 
 /** @defgroup GatewayDemo Demo of a BACnet virtual gateway (multiple Device).
  * @ingroup Demos
- * This is a basic demonstration of a BACnet Router with child devices (ie, 
+ * This is a basic demonstration of a BACnet Router with child devices (ie,
  * gateway) appearing on a virtual BACnet network behind the Router.
  * This is an extension of the ServerDemo project.
  */

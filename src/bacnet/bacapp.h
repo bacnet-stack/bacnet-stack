@@ -306,7 +306,7 @@ extern "C" {
         int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID prop);
-        
+
     BACNET_STACK_EXPORT
     int bacapp_decode_application_tag_value(
         uint8_t *apdu,
@@ -336,7 +336,7 @@ extern "C" {
         uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
-        
+
     BACNET_STACK_DEPRECATED("Use bacnet_application_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_data_len(
@@ -359,14 +359,14 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int bacapp_snprintf(
-        char *buffer, 
-        size_t count, 
+        char *buffer,
+        size_t count,
         const char *format, ...);
     BACNET_STACK_EXPORT
     int bacapp_snprintf_shift(
-        int len, 
-        char **buf, 
-        size_t *buf_size);        
+        int len,
+        char **buf,
+        size_t *buf_size);
     BACNET_STACK_EXPORT
     int bacapp_snprintf_value(
         char *str,

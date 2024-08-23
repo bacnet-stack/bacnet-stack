@@ -6,7 +6,7 @@
 menuconfig BACNETSTACK_BACNET_SETTINGS
     bool "BACNETSTACK_BACNET_SETTINGS"
 	default y if BACNETSTACK && SETTINGS
-    help 
+    help
       This option enables BACnet Settings services
 
 if BACNETSTACK_BACNET_SETTINGS

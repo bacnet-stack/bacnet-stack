@@ -126,12 +126,12 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int read_range_encode(
-        uint8_t *apdu, 
+        uint8_t *apdu,
         BACNET_READ_RANGE_DATA *data);
     BACNET_STACK_EXPORT
     size_t read_range_request_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
+        uint8_t *apdu,
+        size_t apdu_size,
         BACNET_READ_RANGE_DATA *data);
 
     BACNET_STACK_EXPORT

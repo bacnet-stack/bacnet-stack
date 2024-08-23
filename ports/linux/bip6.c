@@ -25,7 +25,7 @@ static bool BIP6_Debug = false;
 
 /**
  * @brief Conditionally use the debug_printf function
- * 
+ *
  * @param stream - file stream to print to
  * @param format - printf format string
  * @param ... - variable arguments

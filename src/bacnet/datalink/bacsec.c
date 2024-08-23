@@ -2,7 +2,7 @@
  * @file
  * @brief BACnet Security Wrapper module from Clause 24 of the BACnet Standard.
  * @author Nikola Jelic <nikola.jelic@euroicc.com>
- * @date 2015 
+ * @date 2015
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>

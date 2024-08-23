@@ -15,7 +15,7 @@ bacrp.exe %1 8 %1 139
 bacrp.exe %1 8 %1 97
 bacrp.exe %1 8 %1 96
 bacrp.exe %1 8 %1 76 0
-bacrp.exe %1 8 %1 76 
+bacrp.exe %1 8 %1 76
 bacrp.exe %1 8 %1 62
 bacrp.exe %1 8 %1 107
 bacrp.exe %1 8 %1 11
