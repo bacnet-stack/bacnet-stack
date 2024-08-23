@@ -459,4 +459,3 @@ fuzz-afl: $(BACNET_LIB_TARGET)
 .PHONY: writepropm
 writepropm: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
-

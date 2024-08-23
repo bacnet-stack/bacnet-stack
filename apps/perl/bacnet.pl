@@ -866,4 +866,3 @@ sub LogAnswer {
     $answer = '' unless $append;
     $answer .= $newAnswer;
 }
-

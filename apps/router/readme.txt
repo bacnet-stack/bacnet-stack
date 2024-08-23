@@ -127,6 +127,3 @@ mstp arguments:
 
 5.2. Passing params in command line
 1. sudo ./router -D "mstp" "/dev/ttyS0" --mac 1 127 1 --baud 38400 --network 4 -D "bip" "eth0" --network 1
-
-
-

@@ -42,4 +42,3 @@ for pid in ${pids[*]}; do
 done
 
 killall bacserv
-

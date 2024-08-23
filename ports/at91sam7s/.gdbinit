@@ -13,4 +13,3 @@ monitor long 0xfffffc30 0x7
 monitor sleep 100
 monitor long 0xfffffd08 0xa5000401
 monitor sleep 100
-

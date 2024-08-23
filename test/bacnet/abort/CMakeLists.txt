@@ -38,4 +38,3 @@ add_executable(${PROJECT_NAME}
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)
-

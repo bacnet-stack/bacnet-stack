@@ -143,5 +143,3 @@ while [ $# -gt 0 ] ; do
 	fi
 	run_test $ID
 done
-
-

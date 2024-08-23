@@ -50,4 +50,3 @@ COPY --from=builder /build/bin/* /opt/bacnet/bin/
 EXPOSE 47808/udp
 ENTRYPOINT ["/opt/bacnet/bin/bacserv"]
 CMD ["1234", "test_server"]
-

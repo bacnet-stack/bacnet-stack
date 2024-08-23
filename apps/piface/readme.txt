@@ -6,5 +6,3 @@ To build, start with the configure script:
 
 $ ./configure.sh
 $ make clean all
-
-

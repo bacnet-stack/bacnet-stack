@@ -112,6 +112,3 @@ extern "C" {
     Accumulator_Name, Accumulator_Read_Property, Accumulator_Write_Property, \
     Accumulator_Property_Lists, NULL, NULL
 #endif
-
-
-

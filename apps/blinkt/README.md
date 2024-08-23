@@ -90,4 +90,3 @@ A simplistic bacnet.sh script will look like this (with stdout/stderr to /dev/nu
 
     #!/bin/bash
     /home/pi/bacnet-stack/bin/bacblinkt 9009 > /dev/null 2>&1
-

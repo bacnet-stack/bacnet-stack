@@ -16,5 +16,3 @@ The BACnet Scriptable (using Perl) Tool.
   Value) for Device at instance 1234 run the following command
 
   perl bacnet.pl --script example_readprop.pl -- 1234
-
-

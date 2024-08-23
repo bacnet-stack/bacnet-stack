@@ -153,4 +153,3 @@ SECTIONS
 	_bss_end = . ;						/* define a global symbol marking the end of the .bss section */
 }
 	_end = .;							/* define a global symbol marking the end of application RAM */
-
