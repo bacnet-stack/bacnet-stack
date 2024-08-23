@@ -18,4 +18,7 @@ IndentWidth: 4
 UseTab: Never
 SortIncludes: false
 ColumnLimit: 80
+---
+Language: JavaScript
+DisableFormat: true
 ...
