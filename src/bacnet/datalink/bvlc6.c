@@ -1465,9 +1465,9 @@ int bvlc6_decode_secure_bvll(uint8_t *pdu,
  *
  * This message provides a mechanism whereby a foreign device
  * shall cause a BBMD to distribute a Forwarded-NPDU
- * BVLC to the local multicast domain, to all BBMD�s configured
- * in the BBMD�s BDT, and to all foreign devices in the
- * BBMD�s FDT.
+ * BVLC to the local multicast domain, to all BBMD's configured
+ * in the BBMD's BDT, and to all foreign devices in the
+ * BBMD's FDT.
  *
  * @param pdu - buffer to store the encoding
  * @param pdu_size - size of the buffer to store encoding
@@ -1696,10 +1696,10 @@ int bvlc6_broadcast_distribution_table_encode(uint8_t *apdu,
 {
     int len = 0;
 
-    len = bvlc6_broadcast_distribution_table_list_encode(NULL, 
+    len = bvlc6_broadcast_distribution_table_list_encode(NULL,
         bdt_head);
     if (len <= apdu_size) {
-        len = bvlc6_broadcast_distribution_table_list_encode(apdu, 
+        len = bvlc6_broadcast_distribution_table_list_encode(apdu,
             bdt_head);
     } else {
         len = BACNET_STATUS_ERROR;
@@ -1800,10 +1800,10 @@ int bvlc6_foreign_device_table_encode(uint8_t *apdu,
 {
     int len = 0;
 
-    len = bvlc6_foreign_device_table_list_encode(NULL, 
+    len = bvlc6_foreign_device_table_list_encode(NULL,
         fdt_head);
     if (len <= apdu_size) {
-        len = bvlc6_foreign_device_table_list_encode(apdu, 
+        len = bvlc6_foreign_device_table_list_encode(apdu,
             fdt_head);
     } else {
         len = BACNET_STATUS_ERROR;
