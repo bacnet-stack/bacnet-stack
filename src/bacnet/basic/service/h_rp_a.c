@@ -139,9 +139,9 @@ void handler_read_property_ack(uint8_t *service_request,
  * @param apdu [in] The received apdu data.
  * @param apdu_len [in] Total length of the apdu.
  * @param read_access_data [out] Pointer to the head of the linked list
- * 			where the RP data is to be stored.
+ *          where the RP data is to be stored.
  * @return Number of decoded bytes (could be less than apdu_len),
- * 			or -1 on decoding error.
+ *          or -1 on decoding error.
  */
 int rp_ack_fully_decode_service_request(
     uint8_t *apdu, int apdu_len, BACNET_READ_ACCESS_DATA *read_access_data)

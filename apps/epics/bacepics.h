@@ -29,11 +29,11 @@
  *        device-instance. Format is "C0:A8:00:18:BA:C0" (as usual)
  *
  * Examples:
- * 	./bacepics -v 1234
+ *  ./bacepics -v 1234
  *    where the device instance to be addressed is 1234
  *    and the optional -v prints values out rather than the '?' that
  *    the EPICS format for VTS3 wants.
- * 	./bacepics -p 0xBAC1 -t "7F:0:0:1:BA:C0" 4194303
+ *  ./bacepics -p 0xBAC1 -t "7F:0:0:1:BA:C0" 4194303
  *    communicates with the BACnet device on localhost (127.0.0.1), using
  *    port 47809 as "my" source port so it doesn't conflict with
  *    the device's port 47808.
@@ -54,7 +54,7 @@
  *     properties to be accessed.
  * - If the Fetch All succeeded, print the values for each property
  * - Otherwise, for each property in the list for this object,
- * 	 - Request the single property value with ReadProperty (RP)
+ *   - Request the single property value with ReadProperty (RP)
  *   - From the response, print the property's value
  * The Device Object will have fetched the Object List property and built a list
  * of objects from that; use it now to cycle through each other Object and

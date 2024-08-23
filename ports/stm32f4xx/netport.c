@@ -377,8 +377,8 @@ static int Network_Port_Link_Speeds_Encode(
 
 /**
  * @brief Set the device link speed (baud rate)
- * @param object_instance	The object instance number of the object
- * @param value				The new link speed value
+ * @param object_instance   The object instance number of the object
+ * @param value             The new link speed value
  * @return  true if value was set
  */
 bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)

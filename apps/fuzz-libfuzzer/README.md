@@ -17,12 +17,12 @@ INFO: seed corpus: files: 5790 min: 1b max: 483b total: 305068b rss: 40Mb
 NPDU: Decoding failed; Discarded!
 ...
 NPDU: DNET=65280.  Discarded!
-#5867	REDUCE cov: 208 ft: 249 corp: 66/1273b lim: 115 exec/s: 2933 rss: 106Mb L: 12/109 MS: 1 EraseBytes-
+#5867   REDUCE cov: 208 ft: 249 corp: 66/1273b lim: 115 exec/s: 2933 rss: 106Mb L: 12/109 MS: 1 EraseBytes-
 Received Reserved for Use by ASHRAE
 WP: Failed to send PDU (Success)!
-	NEW_FUNC[1/3]: 0x55a0d533f98a in abort_encode_apdu /mnt/net/lab_share/Bacnet/bacnet-stack-fixes/src/bacnet/abort.c:149
-	NEW_FUNC[2/3]: 0x55a0d538f29a in wp_decode_service_request /mnt/net/lab_share/Bacnet/bacnet-stack-fixes/src/bacnet/wp.c:113
-#5940	NEW    cov: 216 ft: 257 corp: 68/1282b lim: 115 exec/s: 2970 rss: 106Mb L: 6/109 MS: 2 EraseBytes-ChangeBit-
+    NEW_FUNC[1/3]: 0x55a0d533f98a in abort_encode_apdu /mnt/net/lab_share/Bacnet/bacnet-stack-fixes/src/bacnet/abort.c:149
+    NEW_FUNC[2/3]: 0x55a0d538f29a in wp_decode_service_request /mnt/net/lab_share/Bacnet/bacnet-stack-fixes/src/bacnet/wp.c:113
+#5940   NEW    cov: 216 ft: 257 corp: 68/1282b lim: 115 exec/s: 2970 rss: 106Mb L: 6/109 MS: 2 EraseBytes-ChangeBit-
 Received Reserved for Use by ASHRAE
 ...
 =================================================================

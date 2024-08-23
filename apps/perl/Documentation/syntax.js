@@ -86,46 +86,46 @@ var classes  = new Array("quotedString", "comment", "operator", "builtinVariable
  */
 function HighlightCode(object)
 {
-	codeText = object.innerText; //HTML.replace(/<.*?>/g, "");
-	object.innerHTML = '';
-	var left;
-	var match;
- 	var right;
-	while (codeText.length > 0)
-	{
-		var mode = -1 ;
-		var index = 999999999;
-		for (var i = 0; i < RE.length; i++)
-		{
-			if ((codeText.match(RE[i])) && (RegExp.leftContext.length < index))
-			{
-				left  = RegExp.leftContext;
-				match = RegExp.lastMatch;
-				right = RegExp.rightContext;
-				index = RegExp.leftContext.length;
- 				mode  = i;
-			}
-		}
-		if (mode == -1)
-		{
-			object.appendChild(document.createTextNode(codeText)); //.replace(/\r\n/g, "\r")));
-			codeText = '';
-		}
-		else
-		{
-			// append the plain text to the <code> block
-			object.appendChild(document.createTextNode(left)); //.replace(/\r\n/g, "\r")));
+    codeText = object.innerText; //HTML.replace(/<.*?>/g, "");
+    object.innerHTML = '';
+    var left;
+    var match;
+    var right;
+    while (codeText.length > 0)
+    {
+        var mode = -1 ;
+        var index = 999999999;
+        for (var i = 0; i < RE.length; i++)
+        {
+            if ((codeText.match(RE[i])) && (RegExp.leftContext.length < index))
+            {
+                left  = RegExp.leftContext;
+                match = RegExp.lastMatch;
+                right = RegExp.rightContext;
+                index = RegExp.leftContext.length;
+                mode  = i;
+            }
+        }
+        if (mode == -1)
+        {
+            object.appendChild(document.createTextNode(codeText)); //.replace(/\r\n/g, "\r")));
+            codeText = '';
+        }
+        else
+        {
+            // append the plain text to the <code> block
+            object.appendChild(document.createTextNode(left)); //.replace(/\r\n/g, "\r")));
 
-			// create a new <span> with the current code
-			var span = document.createElement("span");
-			span.setAttribute("className", classes[mode]); // ie
-			span.setAttribute("class", classes[mode]); //mozilla
-			span.appendChild(document.createTextNode(match));
-			object.appendChild(span);
+            // create a new <span> with the current code
+            var span = document.createElement("span");
+            span.setAttribute("className", classes[mode]); // ie
+            span.setAttribute("class", classes[mode]); //mozilla
+            span.appendChild(document.createTextNode(match));
+            object.appendChild(span);
 
-			codeText  = right;
-		}
-	}
+            codeText  = right;
+        }
+    }
 }
 
 // little bit of JQuery to highlight code in all pre elements

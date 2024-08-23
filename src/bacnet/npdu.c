@@ -79,7 +79,7 @@ ABORT.indication               Yes         Yes         Yes        No
  *  The Network Layer Protocol Control Information byte is described
  *  in section 6.2.2 of the BACnet standard.
  * @param npdu [out] Buffer which will hold the encoded NPDU header bytes.
- * 	The size isn't given, but it must be at least 2 bytes for the simplest
+ *  The size isn't given, but it must be at least 2 bytes for the simplest
  *  case, and should always be at least 24 bytes to accommodate the maximal
  *  case (all fields loaded). If the buffer is NULL, the number of bytes
  *  the buffer would have held is returned.
@@ -244,7 +244,7 @@ int npdu_encode_pdu(uint8_t *npdu,
  * @param pdu_size Number of bytes in the buffer to hold the encoded data.
  *  If the size is zero, the number of bytes the buffer would have held
  *  is returned.
- * 	The size isn't given, but it must be at least 2 bytes for the simplest
+ *  The size isn't given, but it must be at least 2 bytes for the simplest
  *  case, and should always be at least 24 bytes to accommodate the maximal
  *  case (all fields loaded). Can be NULL to determine length of buffer.
  * @param dest [in] The routing destination information if the message must
@@ -314,7 +314,7 @@ is expected for the service being issued.
  * @see npdu_encode_npdu_network if you need to set a network layer msg.
  *
  * @param npdu_data [out] Returns a filled-out structure with information
- * 					 provided by the other arguments and
+ *                   provided by the other arguments and
  * good defaults.
  * @param data_expecting_reply [in] True if message should have a reply.
  * @param priority [in] One of the 4 priorities defined in section 6.2.2,
@@ -343,7 +343,7 @@ void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
  *           APDU instead of a Network Layer Message.
  *
  * @param npdu_data [out] Returns a filled-out structure with information
- * 					 provided by the other arguments and
+ *                   provided by the other arguments and
  * good defaults.
  * @param network_message_type [in] The type of Network Layer Message.
  * @param data_expecting_reply [in] True if message should have a reply.
@@ -414,10 +414,10 @@ int npdu_decode(uint8_t *npdu,
  *                   This src describes the original source of the message when
  *                   it had to be routed to reach this BACnet Device.
  * @param npdu_data [out] Returns a filled-out structure with information
- * 					 decoded from the NCPI and other NPDU
+ *                   decoded from the NCPI and other NPDU
  * bytes.
  * @return On success, returns the number of bytes which were decoded from the
- * 		   NPDU section; if this is a  network layer message, there may
+ *         NPDU section; if this is a  network layer message, there may
  * be more bytes left in the NPDU; if not a network msg, the APDU follows. If 0
  * or negative, there were problems with the data or arguments.
  */

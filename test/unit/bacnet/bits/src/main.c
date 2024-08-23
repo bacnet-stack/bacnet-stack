@@ -34,7 +34,7 @@ static void test_BIT(void)
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
     do {
-	bitpos -= 1;
+    bitpos -= 1;
         zassert_true(BIT(bitpos) == (1U << bitpos), NULL);
     } while (bitpos > 0);
 }
@@ -48,7 +48,7 @@ static void test__BV(void)
     unsigned int bitpos = sizeof(unsigned int) * 8;
 
     do {
-	bitpos -= 1;
+    bitpos -= 1;
         zassert_true(BIT(bitpos) == (1U << bitpos), NULL);
     } while (bitpos > 0);
 }
@@ -63,8 +63,8 @@ static void test_BIT_SET(void)
 
     do {
         unsigned int a = 0U;
-	bitpos -= 1;
-	BIT_SET(a, bitpos);
+    bitpos -= 1;
+    BIT_SET(a, bitpos);
         zassert_true(a == (1U << bitpos), NULL);
     } while (bitpos > 0);
 }
@@ -79,8 +79,8 @@ static void test_BIT_CLEAR(void)
 
     do {
         unsigned int a = ~0U;
-	bitpos -= 1;
-	BIT_CLEAR(a, bitpos);
+    bitpos -= 1;
+    BIT_CLEAR(a, bitpos);
         zassert_true(~(a) == (1U << bitpos), NULL);
     } while (bitpos > 0);
 }
@@ -95,16 +95,16 @@ static void test_BIT_FLIP(void)
 
     do {
         unsigned int a = ~0U;
-	bitpos -= 1;
-	BIT_FLIP(a, bitpos);
+    bitpos -= 1;
+    BIT_FLIP(a, bitpos);
         zassert_true(a == ~(1U << bitpos), NULL);
-	BIT_FLIP(a, bitpos);
+    BIT_FLIP(a, bitpos);
         zassert_true(a == ~0U, NULL);
 
-	a = 0U;
-	BIT_FLIP(a, bitpos);
+    a = 0U;
+    BIT_FLIP(a, bitpos);
         zassert_true(a == (1U << bitpos), NULL);
-	BIT_FLIP(a, bitpos);
+    BIT_FLIP(a, bitpos);
         zassert_true(a == 0U, NULL);
 
     } while (bitpos > 0);
@@ -120,11 +120,11 @@ static void test_BIT_CHECK(void)
 
     do {
         unsigned int a = ~0U;
-	bitpos -= 1;
-	zassert_true(BIT_CHECK(a, bitpos), NULL);
+    bitpos -= 1;
+    zassert_true(BIT_CHECK(a, bitpos), NULL);
 
-	a = 0U;
-	zassert_false(BIT_CHECK(a, bitpos), NULL);
+    a = 0U;
+    zassert_false(BIT_CHECK(a, bitpos), NULL);
 
     } while (bitpos > 0);
 }
@@ -139,8 +139,8 @@ static void test_BITMASK_SET(void)
 
     do {
         unsigned int a = 0U;
-	bitpos -= 1;
-	BITMASK_SET(a, (1U << bitpos));
+    bitpos -= 1;
+    BITMASK_SET(a, (1U << bitpos));
         zassert_true(a == (1U << bitpos), NULL);
     } while (bitpos > 0);
 }
@@ -155,8 +155,8 @@ static void test_BITMASK_CLEAR(void)
 
     do {
         unsigned int a = ~0U;
-	bitpos -= 1;
-	BITMASK_CLEAR(a, (1U << bitpos));
+    bitpos -= 1;
+    BITMASK_CLEAR(a, (1U << bitpos));
         zassert_true(~(a) == (1U << bitpos), NULL);
     } while (bitpos > 0);
 }
@@ -171,16 +171,16 @@ static void test_BITMASK_FLIP(void)
 
     do {
         unsigned int a = ~0U;
-	bitpos -= 1;
-	BITMASK_FLIP(a, (1U << bitpos));
+    bitpos -= 1;
+    BITMASK_FLIP(a, (1U << bitpos));
         zassert_true(a == ~(1U << bitpos), NULL);
-	BITMASK_FLIP(a, (1U << bitpos));
+    BITMASK_FLIP(a, (1U << bitpos));
         zassert_true(a == ~0U, NULL);
 
-	a = 0U;
-	BITMASK_FLIP(a, (1U << bitpos));
+    a = 0U;
+    BITMASK_FLIP(a, (1U << bitpos));
         zassert_true(a == (1U << bitpos), NULL);
-	BITMASK_FLIP(a, (1U << bitpos));
+    BITMASK_FLIP(a, (1U << bitpos));
         zassert_true(a == 0U, NULL);
 
     } while (bitpos > 0);
@@ -196,11 +196,11 @@ static void test_BITMASK_CHECK(void)
 
     do {
         unsigned int a = ~0U;
-	bitpos -= 1;
-	zassert_true(BITMASK_CHECK(a, (1U << bitpos)), NULL);
+    bitpos -= 1;
+    zassert_true(BITMASK_CHECK(a, (1U << bitpos)), NULL);
 
-	a = 0U;
-	zassert_false(BITMASK_CHECK(a, (1U << bitpos)), NULL);
+    a = 0U;
+    zassert_false(BITMASK_CHECK(a, (1U << bitpos)), NULL);
 
     } while (bitpos > 0);
 }

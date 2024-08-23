@@ -18,8 +18,8 @@ declare -A device
 # capture the devices from the command line
 for d in "$@"
 do
-	device[${port_key}]=${d}
-	epics_port_max=$((port_key++))
+    device[${port_key}]=${d}
+    epics_port_max=$((port_key++))
 done
 
 # spawn the epics clients

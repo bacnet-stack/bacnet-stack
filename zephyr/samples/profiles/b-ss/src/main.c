@@ -47,7 +47,7 @@ static void BACnet_Smart_Sensor_Init_Handler(void *context)
     Analog_Input_Create(Sensor_Instance);
     Analog_Input_Name_Set(Sensor_Instance, "Sensor");
     Analog_Input_Present_Value_Set(Sensor_Instance, 25.0f);
-	LOG_INF("BACnet Device ID: %u", Device_Object_Instance_Number());
+    LOG_INF("BACnet Device ID: %u", Device_Object_Instance_Number());
     /* start the seconds cyclic timer */
     mstimer_set(&Sensor_Update_Timer, 1000);
     srand(sys_rand32_get());
@@ -78,9 +78,9 @@ static void BACnet_Smart_Sensor_Task_Handler(void *context)
 
 int main(void)
 {
-	LOG_INF("\n*** BACnet Profile B-SS Sample ***\n");
-	LOG_INF("BACnet Stack Version " BACNET_VERSION_TEXT);
-	LOG_INF("BACnet Stack Max APDU: %d", MAX_APDU);
+    LOG_INF("\n*** BACnet Profile B-SS Sample ***\n");
+    LOG_INF("BACnet Stack Version " BACNET_VERSION_TEXT);
+    LOG_INF("BACnet Stack Max APDU: %d", MAX_APDU);
     bacnet_basic_init_callback_set(BACnet_Smart_Sensor_Init_Handler, NULL);
     bacnet_basic_task_callback_set(BACnet_Smart_Sensor_Task_Handler, NULL);
     /* work happens in server module */

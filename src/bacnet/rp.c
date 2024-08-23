@@ -407,7 +407,7 @@ int rp_ack_encode_apdu(
  * @param apdu_size [in] The total length of the apdu.
  * @param rpdata [out] The structure holding the partially decoded result.
  * @return Number of decoded bytes (could be less than apdu_len),
- * 			or -1 on decoding error.
+ *          or -1 on decoding error.
  */
 int rp_ack_decode_service_request(uint8_t *apdu,
     int apdu_size,

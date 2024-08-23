@@ -42,10 +42,10 @@
  * @param DNET_list [in] List of our reachable downstream BACnet Network
  * numbers. Normally just one valid entry; terminated with a -1 value.
  * @param npdu_data [in] Contains a filled-out structure with information
- * 					 decoded from the NCPI and other NPDU
+ *                   decoded from the NCPI and other NPDU
  * bytes.
  *  @param npdu [in]  Buffer containing the rest of the NPDU, following the
- *  				 bytes that have already been decoded.
+ *                   bytes that have already been decoded.
  *  @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
 static void network_control_handler(BACNET_ADDRESS *src,
