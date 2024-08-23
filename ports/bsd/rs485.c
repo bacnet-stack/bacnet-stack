@@ -42,6 +42,9 @@
 
 #include "dlmstp_bsd.h"
 
+#ifdef __APPLE__
+#include <IOKit/serial/ioss.h>
+#endif
 #if defined(__APPLE__) || defined(__darwin__)
 #include <IOKit/serial/ioss.h>
 #else
@@ -719,6 +722,8 @@ static int openSerialPort(const char *const bsdPath)
     options.c_cflag &= ~CSTOPB; /* 1 Stop Bit */
     options.c_cflag &= ~CSIZE;
     options.c_cflag |= CS8; /* Use 8 bit words */
+
+#if defined(__APPLE__) || defined(__darwin__)
     /* The IOSSIOSPEED ioctl can be used to set arbitrary baud rates other than
      * those specified by POSIX. The driver for the underlying serial hardware
      * ultimately determines which baud rates can be used. This ioctl sets both
@@ -729,6 +734,7 @@ static int openSerialPort(const char *const bsdPath)
         printf("Error calling ioctl(..., IOSSIOSPEED, ...) %s - %s(%d).\n",
             bsdPath, strerror(errno), errno);
     }
+#endif
 
     /* Print the new input and output baud rates. Note that the IOSSIOSPEED
        ioctl interacts with the serial driver directly, bypassing the termios
@@ -781,6 +787,7 @@ static int openSerialPort(const char *const bsdPath)
 
     printf("Handshake lines currently set to %d\n", handshake);
 
+#if defined(__APPLE__) || defined(__darwin__)
     unsigned long mics = 1UL;
 
     /* Set the receive latency in microseconds. Serial drivers use this value to
@@ -796,6 +803,7 @@ static int openSerialPort(const char *const bsdPath)
             strerror(errno), errno);
         goto error;
     }
+#endif
 
     /* Success */
     return fileDescriptor;
