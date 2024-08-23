@@ -99,10 +99,10 @@ endif()
 set(LIBRARY_BACNET_INC "${CMAKE_SOURCE_DIR}/../../src")
 set(LIBRARY_BACNET_CORE "${CMAKE_SOURCE_DIR}/../../src/bacnet")
 set(LIBRARY_BACNET_BASIC "${CMAKE_SOURCE_DIR}/../../src/bacnet/basic")
-set(LIBRARY_STM32_SRC "${CMAKE_SOURCE_DIR}/drivers/src")
-set(LIBRARY_STM32_INC "${CMAKE_SOURCE_DIR}/drivers/inc")
-set(LIBRARY_CMSIS_INC "${CMAKE_SOURCE_DIR}/CMSIS")
-set(LIBRARY_CMSIS_GCC_INC "${CMAKE_SOURCE_DIR}/CMSIS/gcc_ride7")
+set(LIBRARY_STM32_SRC "${CMAKE_SOURCE_DIR}/external/drivers/src")
+set(LIBRARY_STM32_INC "${CMAKE_SOURCE_DIR}/external/drivers/inc")
+set(LIBRARY_CMSIS_INC "${CMAKE_SOURCE_DIR}/external/CMSIS")
+set(LIBRARY_CMSIS_GCC_INC "${CMAKE_SOURCE_DIR}/external/CMSIS/gcc_ride7")
 
 set(BACNET_PROJECT_SOURCE
     ${LIBRARY_STM32_SRC}/stm32f10x_adc.c
@@ -205,7 +205,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/wp.c
 
     ${LIBRARY_CMSIS_GCC_INC}/startup_stm32f10x_xl.s
-    CMSIS/stm32f10x.h
+    ${LIBRARY_CMSIS_INC}/stm32f10x.h
 )
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/stm32f10x.ld)
