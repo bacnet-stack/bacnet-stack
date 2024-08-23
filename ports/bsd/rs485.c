@@ -42,9 +42,6 @@
 
 #include "dlmstp_bsd.h"
 
-#ifdef __APPLE__
-#include <IOKit/serial/ioss.h>
-#endif
 #if defined(__APPLE__) || defined(__darwin__)
 #include <IOKit/serial/ioss.h>
 #else
