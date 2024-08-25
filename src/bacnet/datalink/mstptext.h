@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief API for the BACnet MS/TP defines to text functions 
+ * @brief API for the BACnet MS/TP defines to text functions
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2007
  * @copyright SPDX-License-Identifier: MIT

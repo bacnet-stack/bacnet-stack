@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief API for the BACnet MS/TP finite state machines and their data 
+ * @brief API for the BACnet MS/TP finite state machines and their data
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
  * @copyright SPDX-License-Identifier: MIT
@@ -76,7 +76,7 @@ struct mstp_port_struct_t {
     uint8_t HeaderCRC;
     /* Used to store the actual CRC from the header. */
     uint8_t HeaderCRCActual;
-    /* Used as an index by the Receive State Machine, 
+    /* Used as an index by the Receive State Machine,
        up to a maximum value of InputBufferSize. */
     uint32_t Index;
     /* An array of octets, used to store octets as they are received.
@@ -87,9 +87,9 @@ struct mstp_port_struct_t {
        hold contiguous memory. */
     uint8_t *InputBuffer;
     uint16_t InputBufferSize;
-    /* "Next Station," the MAC address of the node to which 
+    /* "Next Station," the MAC address of the node to which
        This Station passes */
-    /* the token. If the Next_Station is unknown, Next_Station 
+    /* the token. If the Next_Station is unknown, Next_Station
        shall be equal to */
     /* This_Station. */
     uint8_t Next_Station;
@@ -99,10 +99,10 @@ struct mstp_port_struct_t {
     /* A counter of transmission retries used for Token and Poll For Master
        transmission. */
     unsigned RetryCount;
-    /* A timer with nominal 5 millisecond resolution used to measure 
-       and generate silence on the medium between octets. It is 
-       incremented by a timer process and is cleared by the Receive 
-       State Machine when activity is detected and by the SendFrame 
+    /* A timer with nominal 5 millisecond resolution used to measure
+       and generate silence on the medium between octets. It is
+       incremented by a timer process and is cleared by the Receive
+       State Machine when activity is detected and by the SendFrame
        procedure as each octet is transmitted. */
     /* Since the timer resolution is limited and the timer is not necessarily
        synchronized to other machine events, a timer value of N will actually
@@ -122,9 +122,9 @@ struct mstp_port_struct_t {
     /* Used to store the Source Address of a received frame. */
     uint8_t SourceAddress;
 
-    /* The number of tokens received by this node. When this counter 
+    /* The number of tokens received by this node. When this counter
        reaches the value Npoll, the node polls the address range between
-       TS and NS for additional master nodes. TokenCount is set to zero 
+       TS and NS for additional master nodes. TokenCount is set to zero
        at the end of the polling process. */
     unsigned TokenCount;
 
@@ -186,8 +186,8 @@ struct mstp_port_struct_t {
        Tframe_abort = 1 + ((60*1000UL)/RS485_Baud); */
     uint8_t Tframe_abort;
 
-    /* The maximum time a node may wait after reception of a frame that 
-       expects a reply before sending the first octet of a reply or 
+    /* The maximum time a node may wait after reception of a frame that
+       expects a reply before sending the first octet of a reply or
        Reply Postponed frame: 250 milliseconds. */
     uint8_t Treply_delay;
 
@@ -197,15 +197,15 @@ struct mstp_port_struct_t {
        larger values for this timeout, not to exceed 300 milliseconds.) */
     uint16_t Treply_timeout;
 
-    /* The minimum time without a DataAvailable or ReceiveError event 
-       that a node must wait for a remote node to begin using a token 
-       or replying to a Poll For Master frame: 20 milliseconds. 
-       (Implementations may use larger values for this timeout, 
+    /* The minimum time without a DataAvailable or ReceiveError event
+       that a node must wait for a remote node to begin using a token
+       or replying to a Poll For Master frame: 20 milliseconds.
+       (Implementations may use larger values for this timeout,
        not to exceed 35 milliseconds.) */
     uint8_t Tusage_timeout;
 
-   /* The minimum time after the end of the stop bit of the final 
-      octet of a received frame before a node may enable its 
+   /* The minimum time after the end of the stop bit of the final
+      octet of a received frame before a node may enable its
       EIA-485 driver: 40 bit times.
       40 bits is 4 octets including a start and stop bit with each octet.
       turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
@@ -233,7 +233,7 @@ BACNET_STACK_EXPORT
 bool MSTP_Line_Active(struct mstp_port_struct_t *mstp_port);
 
 BACNET_STACK_EXPORT
-uint16_t MSTP_Create_Frame(uint8_t *buffer, 
+uint16_t MSTP_Create_Frame(uint8_t *buffer,
     uint16_t buffer_len,
     uint8_t frame_type,
     uint8_t destination,
@@ -243,7 +243,7 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
 
 BACNET_STACK_EXPORT
 void MSTP_Create_And_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, 
+    struct mstp_port_struct_t *mstp_port,
     uint8_t frame_type,
     uint8_t destination,
     uint8_t source,

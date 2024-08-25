@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief API for the Network Layer using BACnet MS/TP as the transport 
+ * @brief API for the Network Layer using BACnet MS/TP as the transport
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
  * @copyright SPDX-License-Identifier: MIT

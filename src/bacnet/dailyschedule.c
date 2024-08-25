@@ -3,7 +3,7 @@
  * @brief BACnetDailySchedule complex data type encode and decode
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date February 2024 
+ * @date February 2024
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
@@ -33,7 +33,7 @@ int bacnet_dailyschedule_context_decode(uint8_t *apdu,
         return BACNET_STATUS_ERROR;
     }
     len = bacnet_time_values_context_decode(apdu, apdu_size,
-        tag_number, &day->Time_Values[0], ARRAY_SIZE(day->Time_Values), 
+        tag_number, &day->Time_Values[0], ARRAY_SIZE(day->Time_Values),
         &tv_count);
     if (len < 0) {
         return BACNET_STATUS_ERROR;

@@ -97,7 +97,7 @@ bool indtext_by_istring(
 }
 
 /**
- * @brief Search a list of strings to find a matching string, 
+ * @brief Search a list of strings to find a matching string,
  * or return a default index
  * @param data_list - list of strings and indices
  * @param search_name - string to search for

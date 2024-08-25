@@ -1,10 +1,10 @@
 /**
  * @file
- * @brief Implementation of the finite state machines 
+ * @brief Implementation of the finite state machines
  *  and BACnet Master-Slave Twisted Pair (MS/TP) functions
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2003
- * @details This clause describes a Master-Slave/Token-Passing (MS/TP) 
+ * @details This clause describes a Master-Slave/Token-Passing (MS/TP)
  *  data link protocol, which provides the same services to the network layer
  *  as ISO 8802-2 Logical Link Control. It uses services provided by the
  *  EIA-485 physical layer. Relevant clauses of EIA-485 are deemed to be
@@ -14,7 +14,7 @@
  *      and no parity.
  *  (b) An EIA-485 transceiver whose driver may be disabled.
  *  (c) A timer with a resolution of five milliseconds or less
- * 
+ *
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  * @defgroup DLMSTP BACnet MS/TP DataLink Network Layer
  * @ingroup DataLink

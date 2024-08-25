@@ -66,11 +66,11 @@ static uint32_t Device_ID = 0xFFFFFFFF;
 #define BACNET_MULTISTATE_VALUES_MAX 12
 #endif
 
-/** 
+/**
  * @brief Initialize the BACnet device object, the service handlers, and timers
  */
 void bacnet_init(void)
-{ 
+{
     uint32_t instance;
     /* initialize objects */
     Device_Init(NULL);

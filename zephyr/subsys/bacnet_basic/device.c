@@ -93,12 +93,12 @@
 #define BACNET_DEVICE_MODEL_NAME "GNU Basic Server Model 42"
 #endif
 
-static object_functions_t Object_Table[] = { 
+static object_functions_t Object_Table[] = {
     { OBJECT_DEVICE, NULL, /* don't init - recursive! */
         Device_Count, Device_Index_To_Instance,
         Device_Valid_Object_Instance_Number,
         Device_Object_Name, Device_Read_Property_Local,
-        Device_Write_Property_Local, Device_Property_Lists, 
+        Device_Write_Property_Local, Device_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */,
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */, NULL /* Add_List_Element */,
@@ -120,7 +120,7 @@ static object_functions_t Object_Table[] = {
         Analog_Output_Index_To_Instance, Analog_Output_Valid_Instance,
         Analog_Output_Object_Name, Analog_Output_Read_Property,
         Analog_Output_Write_Property, Analog_Output_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, 
+        NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Analog_Output_Encode_Value_List, Analog_Output_Change_Of_Value,
         Analog_Output_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
@@ -153,7 +153,7 @@ static object_functions_t Object_Table[] = {
         Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
         Binary_Output_Object_Name, Binary_Output_Read_Property,
         Binary_Output_Write_Property, Binary_Output_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, 
+        NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Binary_Output_Encode_Value_List, Binary_Output_Change_Of_Value,
         Binary_Output_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
@@ -164,9 +164,9 @@ static object_functions_t Object_Table[] = {
         Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance,
         Binary_Value_Object_Name, Binary_Value_Read_Property,
         Binary_Value_Write_Property, Binary_Value_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, 
+        NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Binary_Value_Encode_Value_List, Binary_Value_Change_Of_Value,
-        Binary_Value_Change_Of_Value_Clear, 
+        Binary_Value_Change_Of_Value_Clear,
         NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
         Binary_Value_Create, Binary_Value_Delete, NULL /* Timer */ },
@@ -176,7 +176,7 @@ static object_functions_t Object_Table[] = {
         Multistate_Input_Index_To_Instance, Multistate_Input_Valid_Instance,
         Multistate_Input_Object_Name, Multistate_Input_Read_Property,
         Multistate_Input_Write_Property, Multistate_Input_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, 
+        NULL /* ReadRangeInfo */, NULL /* Iterator */,
         Multistate_Input_Encode_Value_List, Multistate_Input_Change_Of_Value,
         Multistate_Input_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
@@ -188,7 +188,7 @@ static object_functions_t Object_Table[] = {
         Multistate_Output_Valid_Instance, Multistate_Output_Object_Name,
         Multistate_Output_Read_Property, Multistate_Output_Write_Property,
         Multistate_Output_Property_Lists, NULL /* ReadRangeInfo */,
-        NULL /* Iterator */, 
+        NULL /* Iterator */,
         Multistate_Output_Encode_Value_List, Multistate_Output_Change_Of_Value,
         Multistate_Output_Change_Of_Value_Clear, NULL /* Intrinsic Reporting */,
         NULL /* Add_List_Element */, NULL /* Remove_List_Element */,
@@ -374,9 +374,9 @@ static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_DATABASE_REVISION, -1 };
 
 static const int Device_Properties_Optional[] = { PROP_DESCRIPTION,
-    PROP_LOCATION, 
+    PROP_LOCATION,
 #if defined(BACDL_MSTP)
-    PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, 
+    PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
 #endif
     -1 };
 
@@ -958,7 +958,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_APPLICATION_SOFTWARE_VERSION:
-            characterstring_init_ansi(&char_string, 
+            characterstring_init_ansi(&char_string,
                 Application_Software_Version);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);

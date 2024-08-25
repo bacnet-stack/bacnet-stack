@@ -884,7 +884,7 @@ int BacnetTimeSync(int deviceInstanceNumber,
             &Target_Address, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
         if (bytes_sent <= 0) {
             char msg[64];
-            snprintf(msg, sizeof(msg), 
+            snprintf(msg, sizeof(msg),
                 "Failed to Send Time-Synchronization Request (%s)!",
                 strerror(errno));
             LogError(msg);

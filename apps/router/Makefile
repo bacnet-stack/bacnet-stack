@@ -48,7 +48,7 @@ SRCS = main.c \
 	msgqueue.c \
 	network_layer.c
 
-# note: router does not use common libbacnet.a library, 
+# note: router does not use common libbacnet.a library,
 # so use CFLAGS without common app defines or includes
 CFLAGS = -I${SOURCE_DIR} -I${BACNET_PORT_DIR}
 CFLAGS += -DBACNET_STACK_DEPRECATED_DISABLE

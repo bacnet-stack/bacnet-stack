@@ -506,9 +506,9 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         default:
             if (property_lists_member(
-                    Integer_Value_Properties_Required, 
+                    Integer_Value_Properties_Required,
                     Integer_Value_Properties_Optional,
-                    Integer_Value_Properties_Proprietary, 
+                    Integer_Value_Properties_Proprietary,
                     wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -708,4 +708,3 @@ void Integer_Value_Init(void)
         Object_List = Keylist_Create();
     }
 }
-

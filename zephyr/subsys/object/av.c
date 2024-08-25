@@ -15,7 +15,7 @@ void Analog_Value_Init(void)
 {
     if (!Object_List) {
         Object_List = Keylist_Create();
- 
+
 #if defined(INTRINSIC_REPORTING)
         /* Set handler for GetEventInformation function */
         handler_get_event_information_set(

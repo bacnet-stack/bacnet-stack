@@ -35,7 +35,7 @@
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 
-// Pull in all of this... 
+// Pull in all of this...
 #include "../router-mstp/main.c"
 
 static void Init_Service_Handlers()
@@ -86,7 +86,7 @@ extern int Device_Reinitialize(void) {
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = { 0 }; 
+    BACNET_ADDRESS src = { 0 };
     uint16_t pdu_len = 0;
 
     Init_Service_Handlers();

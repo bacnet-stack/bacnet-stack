@@ -52,7 +52,7 @@ static uint16_t Timer_Silence(void *arg)
     uint32_t now = timeGetTime();
     uint32_t delta_time = 0;
 
-    (void)arg;  
+    (void)arg;
     if (SilenceStartTime < now) {
         delta_time = now - SilenceStartTime;
     } else {

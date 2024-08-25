@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that simulates a BACnet server device on the 
+ * @brief command line tool that simulates a BACnet server device on the
  * network using the BACnet Stack and all the example object types.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006
@@ -179,15 +179,15 @@ static void Init_Service_Handlers(void)
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
 
 #if 0
-	/* 	BACnet Testing Observed Incident oi00107
-		Server only devices should not indicate that they EXECUTE I-Am
-		Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
-			BITS: BIT00040
-		Any discussions can be directed to edward@bac-test.com
-		Please feel free to remove this comment when my changes accepted after suitable time for
-		review by all interested parties. Say 6 months -> September 2016 */
-	/* In this demo, we are the server only ( BACnet "B" device ) so we do not indicate
-	   that we can execute the I-Am message */
+    /*  BACnet Testing Observed Incident oi00107
+        Server only devices should not indicate that they EXECUTE I-Am
+        Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
+            BITS: BIT00040
+        Any discussions can be directed to edward@bac-test.com
+        Please feel free to remove this comment when my changes accepted after suitable time for
+        review by all interested parties. Say 6 months -> September 2016 */
+    /* In this demo, we are the server only ( BACnet "B" device ) so we do not indicate
+       that we can execute the I-Am message */
     /* handle i-am to support binding to other devices */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
 #endif

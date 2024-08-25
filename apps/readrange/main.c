@@ -1,7 +1,7 @@
 /**
  * @file
- * @brief command line tool that uses BACnet ReadRange service 
- * message to read device object BACnetList or BACnetARRAY property values 
+ * @brief command line tool that uses BACnet ReadRange service
+ * message to read device object BACnetList or BACnetARRAY property values
  * from another device on the network and prints the values to the console.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006

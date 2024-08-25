@@ -87,4 +87,3 @@ int create_object_error_ack_encode(
 #endif /* __cplusplus */
 
 #endif
-

@@ -2017,12 +2017,12 @@ void test_main(void)
 {
     ztest_test_suite(
         bacdcode_tests, ztest_unit_test(testBACnetTagEncoder),
-        ztest_unit_test(testBACnetTagCodec), 
+        ztest_unit_test(testBACnetTagCodec),
         ztest_unit_test(testBACDCodeTags),
         ztest_unit_test(testBACDCodeReal),
         ztest_unit_test(testBACDCodeUnsigned),
         ztest_unit_test(testBACnetUnsigned),
-        ztest_unit_test(testBACDCodeSigned), 
+        ztest_unit_test(testBACDCodeSigned),
         ztest_unit_test(testBACnetSigned),
         ztest_unit_test(testBACnetDateDecodes),
         ztest_unit_test(testBACnetDateRangeDecodes),

@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnet bitstring, octectstring, and characterstring encode 
+ * @brief BACnet bitstring, octectstring, and characterstring encode
  *  and decode functions
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2012
@@ -101,7 +101,7 @@ extern "C" {
         const char *value);
     BACNET_STACK_EXPORT
     size_t characterstring_strnlen(
-        const char *str, 
+        const char *str,
         size_t maxlen);
     BACNET_STACK_EXPORT
     bool characterstring_init_ansi_safe(

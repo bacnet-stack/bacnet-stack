@@ -83,7 +83,7 @@ static void testBACnetDestination(void)
     zassert_equal(apdu_len, null_len, NULL);
     test_len = bacnet_destination_decode(apdu, apdu_len, &test_destination);
     zassert_equal(apdu_len, test_len, NULL);
-    testBACnetRecipientData(&destination.Recipient, 
+    testBACnetRecipientData(&destination.Recipient,
         &test_destination.Recipient);
 
     destination.Recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
@@ -157,7 +157,7 @@ static void test_BACnetDestination_ASCII(void)
             while (--test_len) {
                 len = bacnet_destination_to_ascii(&test_destination, test_ascii, test_len);
                 zassert_equal(len, null_len, NULL);
-            }            
+            }
             free(test_ascii);
         }
     }

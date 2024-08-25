@@ -36,7 +36,7 @@ static object_functions Routing_object = {
 };
 static bool routing_Device = false;
 
-/* In Zephyr port the object_functions table is saved in ROM and 
+/* In Zephyr port the object_functions table is saved in ROM and
    can't change fields value.
    Instead this Device_Objects_Get_First(Next)_Object() returns the "Routing"
    object when asked "Device" object, see static filter functions. */
@@ -86,7 +86,7 @@ struct object_functions *Device_Objects_Get_Next_Object(
 {
     if (object == NULL)
         return NULL;
-    
+
     object = Device_Object_Filter_In(object);
     ++object;
 

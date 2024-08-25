@@ -38,18 +38,18 @@ static const int Properties_Required[] = {
     PROP_OUT_OF_SERVICE, PROP_UNITS, -1
 };
 
-static const int Properties_Optional[] = { 
+static const int Properties_Optional[] = {
     PROP_DESCRIPTION, PROP_RELIABILITY,  PROP_COV_INCREMENT,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT,
     PROP_LOW_LIMIT, PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE,
     PROP_ACKED_TRANSITIONS, PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS,
 #endif
-    -1 
+    -1
 };
 
-static const int Properties_Proprietary[] = { 
-    -1 
+static const int Properties_Proprietary[] = {
+    -1
 };
 /* clang-format on */
 

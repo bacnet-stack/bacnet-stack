@@ -4,9 +4,9 @@
  * @author Steve Karg
  * @date 2024
  * @section LICENSE
- * 
+ *
  * Copyright (C) 2024 Steve Karg <skarg@users.sourceforge.net>
- * 
+ *
  * SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_PORTS_ZEPHYR_BACNET_CONFIG_H

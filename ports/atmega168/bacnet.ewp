@@ -216,7 +216,7 @@
                 </option>
                 <option>
                     <name>GenDeviceSelectMenu</name>
-                    <state>m328	ATmega328</state>
+                    <state>m328 ATmega328</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -1279,7 +1279,7 @@
                 </option>
                 <option>
                     <name>GenDeviceSelectMenu</name>
-                    <state>m168	ATmega168</state>
+                    <state>m168 ATmega168</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -2341,7 +2341,7 @@
                 </option>
                 <option>
                     <name>GenDeviceSelectMenu</name>
-                    <state>m328	ATmega328</state>
+                    <state>m328 ATmega328</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>

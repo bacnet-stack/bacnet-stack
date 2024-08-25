@@ -2,7 +2,7 @@
  * @file
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2005
- * @brief API for handling all BACnet objects belonging to a BACnet device, 
+ * @brief API for handling all BACnet objects belonging to a BACnet device,
  * as well as Device-specific properties.
  * @copyright SPDX-License-Identifier: MIT
  */

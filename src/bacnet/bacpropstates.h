@@ -89,8 +89,8 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int bacapp_property_state_decode(
-        uint8_t *apdu, 
-        uint32_t apdu_size, 
+        uint8_t *apdu,
+        uint32_t apdu_size,
         BACNET_PROPERTY_STATE *value);
 
     BACNET_STACK_EXPORT

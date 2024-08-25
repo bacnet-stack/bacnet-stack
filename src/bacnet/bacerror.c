@@ -17,14 +17,14 @@
 /**
  * @brief Encodes BACnet Error class and code values into a PDU
  *  From clause 21. FORMAL DESCRIPTION OF APPLICATION PROTOCOL DATA UNITS
- * 
+ *
  *      Error ::= SEQUENCE {
- *          -- NOTE: The valid combinations of error-class and error-code 
+ *          -- NOTE: The valid combinations of error-class and error-code
  *          -- are defined in Clause 18.
  *          error-class ENUMERATED,
  *          error-code ENUMERATED
  *      }
- * 
+ *
  * @param apdu - buffer for the data to be encoded, or NULL for length
  * @param invoke_id - invokeID to be encoded
  * @param service - BACnet service to be encoded
@@ -41,7 +41,7 @@ int bacerror_encode_apdu(uint8_t *apdu,
     /* length of the specific element of the PDU */
     int len = 0;
     /* total length of the apdu, return value */
-    int apdu_len = 0; 
+    int apdu_len = 0;
 
     if (apdu) {
         apdu[0] = PDU_TYPE_ERROR;
@@ -69,9 +69,9 @@ int bacerror_encode_apdu(uint8_t *apdu,
 /**
  * @brief Decodes from bytes a BACnet Error service APDU
  *  From clause 21. FORMAL DESCRIPTION OF APPLICATION PROTOCOL DATA UNITS
- * 
+ *
  *  Error ::= SEQUENCE {
- *      -- NOTE: The valid combinations of error-class and error-code 
+ *      -- NOTE: The valid combinations of error-class and error-code
  *      -- are defined in Clause 18.
  *      error-class ENUMERATED,
  *      error-code ENUMERATED

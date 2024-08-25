@@ -41,7 +41,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wno-float-conversion)
     add_compile_options(-Wno-missing-declarations)
     add_compile_options(-Wno-unused-but-set-variable)
-    
+
     add_link_options(-fprofile-arcs -ftest-coverage)
 endif()
 

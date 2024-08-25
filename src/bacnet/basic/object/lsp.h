@@ -53,7 +53,7 @@ extern "C" {
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Life_Safety_Point_Present_Value_Set(
-        uint32_t object_instance, 
+        uint32_t object_instance,
         BACNET_LIFE_SAFETY_STATE present_value);
 
     BACNET_STACK_EXPORT
@@ -61,21 +61,21 @@ extern "C" {
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Life_Safety_Point_Silenced_Set(
-        uint32_t object_instance, 
+        uint32_t object_instance,
         BACNET_SILENCED_STATE value);
     BACNET_STACK_EXPORT
     BACNET_LIFE_SAFETY_MODE Life_Safety_Point_Mode(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Life_Safety_Point_Mode_Set(
-        uint32_t object_instance, 
+        uint32_t object_instance,
         BACNET_LIFE_SAFETY_MODE value);
     BACNET_STACK_EXPORT
     BACNET_LIFE_SAFETY_OPERATION Life_Safety_Point_Operation_Expected(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Life_Safety_Point_Operation_Expected_Set(
-        uint32_t object_instance, 
+        uint32_t object_instance,
         BACNET_LIFE_SAFETY_OPERATION value);
 
     BACNET_STACK_EXPORT

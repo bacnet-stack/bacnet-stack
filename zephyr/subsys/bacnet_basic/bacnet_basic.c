@@ -49,7 +49,7 @@ static void *BACnet_Task_Context;
  * @param callback [in] The callback function called after initialization
  * @param context [in] The context to pass to the callback function
  */
-void bacnet_basic_init_callback_set(bacnet_basic_callback callback, 
+void bacnet_basic_init_callback_set(bacnet_basic_callback callback,
     void *context)
 {
     BACnet_Init_Callback = callback;
@@ -71,7 +71,7 @@ static void bacnet_init_callback_handler(void)
  * @param callback [in] The callback function to call during the task
  * @param context [in] The context to pass to the callback function
  */
-void bacnet_basic_task_callback_set(bacnet_basic_callback callback, 
+void bacnet_basic_task_callback_set(bacnet_basic_callback callback,
     void *context)
 {
     BACnet_Task_Callback = callback;
@@ -106,7 +106,7 @@ unsigned long bacnet_basic_packet_count(void)
     return BACnet_Packet_Count;
 }
 
-/** 
+/**
  * @brief Initialize the BACnet device object, the service handlers, and timers
  */
 void bacnet_basic_init(void)

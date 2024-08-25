@@ -109,7 +109,7 @@ extern "C" {
 /** Function template for ReadRange information retrieval function.
  * A function template; @see device.c for assignment to object types.
  * @ingroup ObjHelpers
- * @param pRequest [in]	Info on the request.
+ * @param pRequest [in] Info on the request.
  * @param pInfo [out]   Where to write the response to.
  * @return True on success, False on error or failure.
  */
@@ -126,12 +126,12 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int read_range_encode(
-        uint8_t *apdu, 
+        uint8_t *apdu,
         BACNET_READ_RANGE_DATA *data);
     BACNET_STACK_EXPORT
     size_t read_range_request_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
+        uint8_t *apdu,
+        size_t apdu_size,
         BACNET_READ_RANGE_DATA *data);
 
     BACNET_STACK_EXPORT

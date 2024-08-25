@@ -60,7 +60,7 @@ ${TARGET_BIN}: ${OBJS} Makefile
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 	size $@
 	cp $@ ../../bin
-	
+
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
 

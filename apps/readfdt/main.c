@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet BVLC message, and displays 
+ * @brief command line tool that sends a BACnet BVLC message, and displays
  * the reply, for a Read-Foreign-Device-Table message to a peer BBMD.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2012

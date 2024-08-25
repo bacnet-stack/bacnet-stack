@@ -269,7 +269,7 @@ static char *Device_Name_Default(void)
 {
     static char text[32]; /* okay for single thread */
 
-    snprintf(text, sizeof(text), "DEVICE-%lu", 
+    snprintf(text, sizeof(text), "DEVICE-%lu",
         (unsigned long)Object_Instance_Number);
 
     return text;

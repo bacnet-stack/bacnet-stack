@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief API for BACnetDate, BACnetTime, BACnetDateTime, BACnetDateRange 
+ * @brief API for BACnetDate, BACnetTime, BACnetDateTime, BACnetDateRange
  * complex data type encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @author Greg Shue <greg.shue@outlook.com>
@@ -282,13 +282,13 @@ int bacapp_decode_context_datetime(uint8_t *apdu,
     BACNET_DATE_TIME *value);
 
 BACNET_STACK_EXPORT
-bool bacnet_daterange_same(BACNET_DATE_RANGE *value1, 
+bool bacnet_daterange_same(BACNET_DATE_RANGE *value1,
     BACNET_DATE_RANGE *value2);
 BACNET_STACK_EXPORT
 int bacnet_daterange_encode(uint8_t *apdu, BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
-int bacnet_daterange_decode(uint8_t *apdu, 
-    uint32_t apdu_size, 
+int bacnet_daterange_decode(uint8_t *apdu,
+    uint32_t apdu_size,
     BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
 int bacnet_daterange_context_encode(

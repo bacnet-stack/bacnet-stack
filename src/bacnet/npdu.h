@@ -19,14 +19,14 @@
 #endif
 
 /**
- * This structure defines the NPCI (header part) of the NPDU. 
+ * This structure defines the NPCI (header part) of the NPDU.
  * See Figures 5-2 and 7-1 of the BACnet standard for clarity
- * 
+ *
  * NPDU = NPCI + NSDU
  *  "Network-layer Protocol Data Unit" =
  *      "Network Protocol Control Information" +
- *      "Network Service Data Unit" 
- *          (APDU for application messages, 
+ *      "Network Service Data Unit"
+ *          (APDU for application messages,
  *          "Network Message" for network layer messages)
  */
 typedef struct bacnet_npdu_data_t {

@@ -72,13 +72,13 @@ static binary_value_write_present_value_callback
 /* clang-format off */
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, 
+    PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,       
+    PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,      
+    PROP_STATUS_FLAGS,
     PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,    
+    PROP_OUT_OF_SERVICE,
     -1
 };
 
@@ -101,7 +101,7 @@ static const int Binary_Value_Properties_Optional[] = {
 };
 
 static const int Binary_Value_Properties_Proprietary[] = {
-    -1 
+    -1
 };
 /* clang-format on */
 

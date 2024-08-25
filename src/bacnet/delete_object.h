@@ -57,4 +57,3 @@ int delete_object_decode_service_request(
 #endif /* __cplusplus */
 
 #endif
-

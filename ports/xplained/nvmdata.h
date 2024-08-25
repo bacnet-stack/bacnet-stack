@@ -15,7 +15,7 @@
     eeprom_write_block((uint8_t *)(src),(uint8_t *)(dst), (size_t)(len))
 
 #define nvm_read(src, dst, len) \
-	eeprom_read_block((uint8_t *)dst, (const uint8_t *)(src),(size_t)(len))
+    eeprom_read_block((uint8_t *)dst, (const uint8_t *)(src),(size_t)(len))
 
 /*=============== EEPROM ================*/
 /* define EEPROM signature version */

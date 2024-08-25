@@ -80,4 +80,3 @@ int list_element_error_ack_decode(
 #endif /* __cplusplus */
 
 #endif
-
