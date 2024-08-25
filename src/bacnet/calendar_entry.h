@@ -75,4 +75,3 @@ bool bacnet_calendar_entry_same(
 }
 #endif /* __cplusplus */
 #endif
-

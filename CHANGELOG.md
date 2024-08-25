@@ -58,7 +58,7 @@ The git repositories are hosted at the following sites:
 ### Changed
 
 * Changed MS/TP master node self destination checks to be
-  located in receive FSM. Changed MSTP zero configuration: modified 
+  located in receive FSM. Changed MSTP zero configuration: modified
   comments for state transition names; modified next station increment;
   refactored the UUID rand() to not be required by common
   zero config implementation; added more unit tests. (#676)
@@ -75,7 +75,7 @@ The git repositories are hosted at the following sites:
   Fixed Binary input/value set. (#672)
 * Fixed wildcard check in create object for Binary Input objects. (#663)
 * Fixed memory leaks in create object initialization if repeated. (#664)(#662)
-* Fixed the Zephyr-OS BIP6 datalink module. (#659)    
+* Fixed the Zephyr-OS BIP6 datalink module. (#659)
 * Fixed redundant GCC compiler flags in ARM, OS, and test builds, and made them
   more consistent across various builds. (#658)
 * Fixed redundant redeclaration of various functions detected by change
@@ -147,11 +147,11 @@ The git repositories are hosted at the following sites:
   which datatypes can be written. (#620)
 * Changed format in CMake to enable cleaner SC merge. (#620)
 * Changed the first instance of a basic integer value object from 1 to 0. (#619)
-* Changed basic time-value object present-value to be decoupled from 
+* Changed basic time-value object present-value to be decoupled from
 current time, and changed out-of-service property to be writable.
 
 ### Fixed
-    
+
 * Fixed nuisance print messages in ports/linux/dlmstp by changing
   to debug print only. (#633)
 * Fixed compile warnings in basic objects. (#630)
@@ -196,7 +196,7 @@ current time, and changed out-of-service property to be writable.
 
 * Changed property lists member function for WriteProperty default case
   by refactoring.(#609)
-* Changed time-value object unit testing by refactoring.(#609)  
+* Changed time-value object unit testing by refactoring.(#609)
 * Changed ports/zephry for BACnet/IP and date-time with latest
   Zephyr OS.(#606)
 * Changed Zephyr OS west manifest to target zephyr v3.6.0.(#601)
@@ -204,7 +204,7 @@ current time, and changed out-of-service property to be writable.
 * Changed position of bacnet/bacdef.h to be the first bacnet header
   to include. BACnet headers need to pull in optional configuration and
   optional ecosystem overrides to allow integrators to control
-  builds.  This change places bacnet/bacdef.h to the top of the BACnet 
+  builds.  This change places bacnet/bacdef.h to the top of the BACnet
   Stack header files to consistently introduce integrator and ports
   header files.(#598)(#600)
 * Added dependent BACnet stack headers into bacdef.h file.(#602)
@@ -267,7 +267,7 @@ current time, and changed out-of-service property to be writable.
 
 * Changed BACnet R/W FSM module to remove dependency on
   rpm_ack_decode_service_request() which uses large calloc/free
-  value lists. Created an alternate RPM-ACK to RP-ACK processing 
+  value lists. Created an alternate RPM-ACK to RP-ACK processing
   function. (#583)
 * Changed basic RPM handler to skip over unknown property values. (#583)
 * Changed the release script to use tag option and remove tag reminder.

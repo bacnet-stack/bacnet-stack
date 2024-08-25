@@ -10,4 +10,3 @@
 #include "bacnet/basic/object/mso.h"
 
 OBJECT_FUNCTIONS(Multistate_Output, MULTISTATE_OUTPUT_DESCR);
-

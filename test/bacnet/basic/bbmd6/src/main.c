@@ -60,7 +60,7 @@ uint16_t bip6_receive(
     (void)npdu;
     (void)max_npdu;
     (void)timeout;
-    
+
     return 0;
 }
 

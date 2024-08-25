@@ -51,7 +51,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     size_t bacnet_acknowledge_alarm_info_request_encode(
-        uint8_t *apdu, 
+        uint8_t *apdu,
         size_t apdu_size,
         BACNET_ALARM_ACK_DATA *data);
 

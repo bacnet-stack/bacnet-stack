@@ -36,7 +36,7 @@
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 
-// Pull in all of this... 
+// Pull in all of this...
 #include "../router-mstp/main.c"
 
 static void Init_Service_Handlers(void) {
@@ -83,7 +83,7 @@ extern int Device_Reinitialize(void) {
     return 0;
 }
 
-extern bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance) { 
+extern bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance) {
     return false;
 }
 extern void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance) {
@@ -98,11 +98,11 @@ extern bool Device_Encode_Value_List(BACNET_OBJECT_TYPE object_type,
 
 }
 
-extern int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA * list_element) { 
+extern int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA * list_element) {
     return BACNET_STATUS_ERROR;
 }
 
-extern int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA * list_element) { 
+extern int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA * list_element) {
     return BACNET_STATUS_ERROR;
 }
 
@@ -111,7 +111,7 @@ extern bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data) {
 }
 
 int LLVMFuzzerTestOneInput(uint8_t *data, size_t size) {
-    BACNET_ADDRESS src = { 0 }; 
+    BACNET_ADDRESS src = { 0 };
 
     Init_Service_Handlers();
 

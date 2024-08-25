@@ -146,8 +146,8 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 }
 
 /**
- * @brief Set the BACnet/IP address 
- * @param addr - network IPv4 address 
+ * @brief Set the BACnet/IP address
+ * @param addr - network IPv4 address
  * @return true if the address was set
  */
 bool bip_set_addr(BACNET_IP_ADDRESS *addr)

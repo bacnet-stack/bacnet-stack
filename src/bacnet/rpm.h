@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnet ReadPropertyMultiple -Request and -Ack encode and decode 
+ * @brief BACnet ReadPropertyMultiple -Request and -Ack encode and decode
  * API header file
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2005
@@ -96,11 +96,11 @@ extern "C" {
     BACNET_STACK_EXPORT
     int read_property_multiple_request_encode(
         uint8_t *apdu,
-        BACNET_READ_ACCESS_DATA *data); 
+        BACNET_READ_ACCESS_DATA *data);
     BACNET_STACK_EXPORT
     size_t read_property_multiple_request_service_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
+        uint8_t *apdu,
+        size_t apdu_size,
         BACNET_READ_ACCESS_DATA *data);
 
     BACNET_STACK_EXPORT

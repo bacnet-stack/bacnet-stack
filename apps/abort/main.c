@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet service Abort message 
+ * @brief command line tool that sends a BACnet service Abort message
  * to the network
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2016

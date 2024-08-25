@@ -1,6 +1,6 @@
-/** 
- * @file 
- * @brief Example application using the BACnet Stack on a Raspberry Pi 
+/**
+ * @file
+ * @brief Example application using the BACnet Stack on a Raspberry Pi
  * with Blinkt! LEDs.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2023

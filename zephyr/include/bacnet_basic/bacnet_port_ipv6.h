@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief The BACnet/IPv6 datalink tasks for handling the device specific 
+ * @brief The BACnet/IPv6 datalink tasks for handling the device specific
  *  data link network port layer
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date April 2024

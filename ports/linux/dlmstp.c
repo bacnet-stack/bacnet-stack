@@ -118,7 +118,7 @@ static int timespec_subtract(
  *
  * @param ts - The time to which to add to.
  * @param ns - The number of nanoseconds to add.  Allowed range
- *		is -NS_PER_S..NS_PER_S (i.e., plus minus one second).
+ *      is -NS_PER_S..NS_PER_S (i.e., plus minus one second).
  */
 static void timespec_add_ns(struct timespec *ts, long ns)
 {

@@ -781,7 +781,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
  * If the Object or Property can't be found, sets the error class and code.
  *
  * @param rpdata [in,out] Structure with the desired Object and Property info
- * 				on entry, and APDU message on return.
+ *              on entry, and APDU message on return.
  * @return The length of the APDU on success, else BACNET_STATUS_ERROR
  */
 int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)

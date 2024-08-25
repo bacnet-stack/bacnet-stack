@@ -164,8 +164,8 @@ int ucov_notify_encode_apdu(
 
     if (apdu && (apdu_size > 2)) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-        apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; 
-    } 
+        apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION;
+    }
     len = 2;
     apdu_len += len;
     if (apdu) {

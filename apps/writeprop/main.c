@@ -1,7 +1,7 @@
 /**
  * @file
- * @brief command line tool that uses BACnet WriteProperty service 
- * message to write object property values to another device on 
+ * @brief command line tool that uses BACnet WriteProperty service
+ * message to write object property values to another device on
  * the network and prints an acknowledgment or error response of
  * this confirmed service request.  This is useful for testing
  * the WriteProperty service.

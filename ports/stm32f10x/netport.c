@@ -50,7 +50,7 @@ struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 #define BACNET_NETWORK_PORT_INSTANCE 1
 #endif
 
-/* BACnetARRAY of REAL, is an array of the link speeds 
+/* BACnetARRAY of REAL, is an array of the link speeds
    supported by this network port */
 static uint32_t Link_Speeds[] = {9600, 19200, 38400, 57600, 76800, 115200 };
 
@@ -372,8 +372,8 @@ static int Network_Port_Link_Speeds_Encode(
 
 /**
  * @brief Set the device link speed (baud rate)
- * @param object_instance	The object instance number of the object
- * @param value				The new link speed value
+ * @param object_instance   The object instance number of the object
+ * @param value             The new link speed value
  * @return  true if value was set
  */
 bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)

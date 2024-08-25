@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief command line tool that sends a BACnet TimeSynchronization service
- *  message with the local or arbitrary time and date to sync another device 
+ *  message with the local or arbitrary time and date to sync another device
  *  on the network.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006

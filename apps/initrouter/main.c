@@ -1,7 +1,7 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet Initialize-Routing-Table 
- * message to a network and waits for responses.  Displays their network 
+ * @brief command line tool that sends a BACnet Initialize-Routing-Table
+ * message to a network and waits for responses.  Displays their network
  * information from the response.  This is a router-to-router message.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2008

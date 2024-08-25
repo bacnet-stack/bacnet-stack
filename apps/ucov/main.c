@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet Unconfirmed Change-of-Value 
+ * @brief command line tool that sends a BACnet Unconfirmed Change-of-Value
  * Notification to the network
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006

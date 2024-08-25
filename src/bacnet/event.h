@@ -215,8 +215,8 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     size_t event_notification_service_request_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
+        uint8_t *apdu,
+        size_t apdu_size,
         BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************

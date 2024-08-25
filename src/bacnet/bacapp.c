@@ -3254,7 +3254,7 @@ int bacapp_snprintf_value(
             case BACNET_APPLICATION_TAG_SCALE:
                 if (value->type.Scale.float_scale) {
                     ret_val = bacapp_snprintf(
-                        str, str_len, "%f", 
+                        str, str_len, "%f",
                         (double)value->type.Scale.type.real_scale);
                 } else {
                     ret_val = bacapp_snprintf(

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2008 John Crispin <blogic@openwrt.org> 
+ *   Copyright (C) 2008 John Crispin <blogic@openwrt.org>
  *
  *   SPDX-License-Identifier: GPL-2.0-or-later
  */

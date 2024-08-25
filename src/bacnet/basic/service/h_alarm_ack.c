@@ -111,7 +111,7 @@ void handler_alarm_ack(uint8_t *service_request,
         data.ackSource.value, (unsigned long)data.ackProcessIdentifier);
 #endif
 
-    /* 	BACnet Testing Observed Incident oi00105
+    /*  BACnet Testing Observed Incident oi00105
             ACK of a non-existent object returned the incorrect error code
             Revealed by BACnet Test Client v1.8.16 (
        www.bac-test.com/bacnet-test-client-download ) BC 135.1: 9.1.3.3-A Any

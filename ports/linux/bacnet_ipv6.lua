@@ -56,7 +56,7 @@ do
     [0x82]="B/IPv6 (Annex X)"
     }
   local t_BACnetBIPV6_Functions = {
-	-- Annex X, PPR3 Draft 22
+    -- Annex X, PPR3 Draft 22
     [0x00]="BVLC-Result",
     [0x01]="Original-Unicast-NPDU",
     [0x02]="Original-Broadcast-NPDU",
@@ -69,7 +69,7 @@ do
     [0x09]="Register-Foreign-Device",
     [0x0A]="Delete-Foreign-Device",
     [0x0B]="Secure-BVLL",
-	[0x0C]="Distribute-Broadcast-To-Network"
+    [0x0C]="Distribute-Broadcast-To-Network"
     }
 
   local pf_BIPV6Data     = ProtoField.bytes ("BIPV6.data",                                                    "B/IPV6 Data")
@@ -121,14 +121,14 @@ do
     local ti_BIPV6 = {}
     ti_BIPV6.ti = tree:add(p_BACnetBIPV6,buffer(0))
     offset, v_BIPV6.Type, ti_BIPV6.Type = uint_dissector(ti_BIPV6.ti, pf_BIPV6.Type, buffer, offset, 1)
-	--if v_BIPV6.Type == 0x81 then
-	--	p_dissector_bipv4:call(buffer, pkt, tree)
-	-- elseif v_BIPV6 ~= 0x82 then
-	--    ti_BIPV6.Type:add_expert_info(PI_MALFORMED, PI_WARN, "Unknown BVLC Type")
+    --if v_BIPV6.Type == 0x81 then
+    --  p_dissector_bipv4:call(buffer, pkt, tree)
+    -- elseif v_BIPV6 ~= 0x82 then
+    --    ti_BIPV6.Type:add_expert_info(PI_MALFORMED, PI_WARN, "Unknown BVLC Type")
      --   return
-	--end
+    --end
      if v_BIPV6.Type ~= 0x82 then
-	    ti_BIPV6.Type:add_expert_info(PI_MALFORMED, PI_WARN, "Unknown BVLC Type")
+        ti_BIPV6.Type:add_expert_info(PI_MALFORMED, PI_WARN, "Unknown BVLC Type")
         return
     end
     offset, v_BIPV6.Function, ti_BIPV6.Function = uint_dissector(ti_BIPV6.ti, pf_BIPV6.Function, buffer, offset, 1)
@@ -148,7 +148,7 @@ do
         p_dissector_bacnet:call(npduData:tvb(), pkt, tree)
       end
     end
-	-- CLB don't show the raw data
+    -- CLB don't show the raw data
     -- if offset ~= buffer:len() then
     --   ti_BIPV6.ti:add(pf_BIPV6Data,buffer(offset))
     -- end
@@ -187,7 +187,7 @@ do
   t_BACnetBIPV6_dissectors[0x04] = function(buffer,pkt,tree,offset,npdu)
     offset = bytes_dissector(tree,pf_BIPV6.OriginalSourceVirtualAddress,buffer,offset,3)
     offset = bytes_dissector(tree,pf_BIPV6.DestinationVirtualAddress,buffer,offset,3)
-	local subtree = tree:add(pf_BIPV6.OriginalSourceEffectiveAddress,buffer(offset,18))
+    local subtree = tree:add(pf_BIPV6.OriginalSourceEffectiveAddress,buffer(offset,18))
     offset = bytes_dissector(subtree,pf_BIPV6.OriginalSourceEffectiveAddress_ip,buffer,offset,16)
     offset = uint_dissector(subtree,pf_BIPV6.OriginalSourceEffectiveAddress_port,buffer,offset,2)
     return offset
@@ -215,7 +215,7 @@ do
   -- [0x08] Forwarded-NPDU
   t_BACnetBIPV6_dissectors[0x08] = function(buffer,pkt,tree,offset,npdu)
     offset = bytes_dissector(tree,pf_BIPV6.OriginalSourceVirtualAddress,buffer,offset,3)
-	local subtree = tree:add(pf_BIPV6.OriginalSourceEffectiveAddress,buffer(offset,18))
+    local subtree = tree:add(pf_BIPV6.OriginalSourceEffectiveAddress,buffer(offset,18))
     offset = bytes_dissector(subtree,pf_BIPV6.OriginalSourceEffectiveAddress_ip,buffer,offset,16)
     offset = uint_dissector(subtree,pf_BIPV6.OriginalSourceEffectiveAddress_port,buffer,offset,2)
     return offset, buffer(offset)
@@ -243,7 +243,7 @@ do
   -- [0x0C] Distribute-Broadcast-To-Network
   t_BACnetBIPV6_dissectors[0x0C] = function(buffer,pkt,tree,offset,npdu)
     offset = bytes_dissector(tree,pf_BIPV6.OriginalSourceVirtualAddress,buffer,offset,3)
-	local subtree = tree:add(pf_BIPV6.OriginalSourceEffectiveAddress,buffer(offset,18))
+    local subtree = tree:add(pf_BIPV6.OriginalSourceEffectiveAddress,buffer(offset,18))
     offset = bytes_dissector(subtree,pf_BIPV6.OriginalSourceEffectiveAddress_ip,buffer,offset,16)
     offset = uint_dissector(subtree,pf_BIPV6.OriginalSourceEffectiveAddress_port,buffer,offset,2)
     return offset, buffer(offset)

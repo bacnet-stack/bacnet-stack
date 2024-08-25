@@ -323,7 +323,7 @@ void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     index = Analog_Input_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_INPUTS) {
-        /* 	BACnet Testing Observed Incident oi00104
+        /*  BACnet Testing Observed Incident oi00104
                 The Changed flag was not being set when a client wrote to the
         Out-of-Service bit. Revealed by BACnet Test Client v1.8.16 (
         www.bac-test.com/bacnet-test-client-download ) BC 135.1: 8.2.1-A BC

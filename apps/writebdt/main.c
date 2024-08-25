@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet BVLC message 
+ * @brief command line tool that sends a BACnet BVLC message
  * Write-Broadcast-Distribution-Table to a BBMD on the network,
  * and prints the result code received.  This is useful for
  * configuring the BBMD on the network.

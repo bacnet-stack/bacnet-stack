@@ -202,7 +202,7 @@ int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
  *
  * @param src [out] Source of the packet - who should receive any response.
  * @param pdu [out] A buffer to hold the PDU portion of the received packet,
- * 					after the BVLC portion has been stripped
+ *                  after the BVLC portion has been stripped
  * off.
  * @param max_pdu [in] Size of the pdu[] buffer.
  * @param timeout [in] The number of milliseconds to wait for a packet.

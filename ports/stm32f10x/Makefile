@@ -231,7 +231,7 @@ ram-usage:
 	@$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
 	@echo "=ADDRESS= ==SIZE== = ==VARIABLE NAME=="
 	@tail $(TARGET).nm
-	
+
 .PHONY: cstack
 cstack:
 	@$(CSTACK_TOOL) $(COBJ) 2> /dev/null 1> $(TARGET).su

@@ -575,7 +575,7 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                     }
                 } else if (rpm_property->propertyIdentifier ==
                     PROP_SUBORDINATE_LIST) {
-                    if (value->tag != 
+                    if (value->tag !=
                         BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE) {
                         break;
                     }
@@ -648,7 +648,7 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                         /* Closing brace for this multi-valued array */
                         fprintf(stdout, " }");
                     }
-                    if (property_list_writable_member(object_type, 
+                    if (property_list_writable_member(object_type,
                         rpm_property->propertyIdentifier)) {
                         fprintf(stdout, " Writable");
                     }

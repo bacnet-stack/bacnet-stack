@@ -35,4 +35,4 @@ static int cmd_uptime(const struct shell *sh, size_t argc, char **argv)
 }
 
 SHELL_SUBCMD_ADD((bacnet), uptime, NULL,  "BACnet task uptime", cmd_uptime,
-		 1, 0);
+         1, 0);

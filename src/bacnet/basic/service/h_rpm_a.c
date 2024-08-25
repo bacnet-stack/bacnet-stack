@@ -35,7 +35,7 @@
  * @param apdu [in] The received apdu data.
  * @param apdu_len [in] Total length of the apdu.
  * @param read_access_data [out] Pointer to the head of the linked list
- * 			where the RPM data is to be stored.
+ *          where the RPM data is to be stored.
  * @return The number of bytes decoded, or -1 on error
  */
 int rpm_ack_decode_service_request(

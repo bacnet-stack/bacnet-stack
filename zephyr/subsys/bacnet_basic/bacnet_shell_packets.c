@@ -35,4 +35,4 @@ static int cmd_packets(const struct shell *sh, size_t argc, char **argv)
 }
 
 SHELL_SUBCMD_ADD((bacnet), packets, NULL,  "BACnet task packet stats", cmd_packets,
-		 1, 0);
+         1, 0);

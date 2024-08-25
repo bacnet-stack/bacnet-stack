@@ -60,9 +60,9 @@ static const int Time_Value_Properties_Proprietary[] = { -1 };
 
 /* standard properties that are arrays for this object,
    but not necessary supported in this object */
-static const int BACnetARRAY_Properties[] = { 
-    PROP_PRIORITY_ARRAY, PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS, 
-    PROP_EVENT_MESSAGE_TEXTS_CONFIG, PROP_VALUE_SOURCE_ARRAY, 
+static const int BACnetARRAY_Properties[] = {
+    PROP_PRIORITY_ARRAY, PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG, PROP_VALUE_SOURCE_ARRAY,
     PROP_COMMAND_TIME_ARRAY, PROP_TAGS, -1 };
 
 /**

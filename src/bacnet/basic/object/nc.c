@@ -2,7 +2,7 @@
  * @file
  * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
  * @author Ed Hague <edward@bac-test.com>
- * @date 2011, 2018 
+ * @date 2011, 2018
  * @brief A basic BACnet Notification Class object
  * @copyright SPDX-License-Identifier: MIT
  */
@@ -135,7 +135,7 @@ bool Notification_Class_Object_Name(
 
     index = Notification_Class_Instance_To_Index(object_instance);
     if (index < MAX_NOTIFICATION_CLASSES) {
-        snprintf(text, sizeof(text), "NOTIFICATION CLASS %lu", 
+        snprintf(text, sizeof(text), "NOTIFICATION CLASS %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }

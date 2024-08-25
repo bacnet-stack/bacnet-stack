@@ -401,9 +401,9 @@ static const int Color_Temperature_Properties_Required[] = {
     PROP_DEFAULT_RAMP_RATE, PROP_DEFAULT_STEP_INCREMENT, -1
 };
 
-static const int Color_Temperature_Properties_Optional[] = { 
-    PROP_DESCRIPTION, PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE, 
-    PROP_TRANSITION, PROP_VALUE_SOURCE, PROP_AUDIT_LEVEL, 
+static const int Color_Temperature_Properties_Optional[] = {
+    PROP_DESCRIPTION, PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE,
+    PROP_TRANSITION, PROP_VALUE_SOURCE, PROP_AUDIT_LEVEL,
     PROP_AUDITABLE_OPERATIONS, PROP_TAGS, PROP_PROFILE_LOCATION,
     PROP_PROFILE_NAME, -1 };
 
@@ -1594,16 +1594,16 @@ unsigned property_list_special_count(
 #endif
 
 #if BACNET_PROPERTY_ARRAY_LISTS
-/* standard properties that are arrays 
+/* standard properties that are arrays
    but not necessary supported in every object */
 
 /* clang-format off */
-static const int Properties_BACnetARRAY[] = { 
-    PROP_AUTHENTICATION_FACTORS, PROP_ASSIGNED_ACCESS_RIGHTS, 
-    PROP_PRIORITY_ARRAY, PROP_VALUE_SOURCE_ARRAY, PROP_COMMAND_TIME_ARRAY, 
-    PROP_ALARM_VALUES, PROP_FAULT_VALUES, 
-    PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS, 
-    PROP_EVENT_MESSAGE_TEXTS_CONFIG, 
+static const int Properties_BACnetARRAY[] = {
+    PROP_AUTHENTICATION_FACTORS, PROP_ASSIGNED_ACCESS_RIGHTS,
+    PROP_PRIORITY_ARRAY, PROP_VALUE_SOURCE_ARRAY, PROP_COMMAND_TIME_ARRAY,
+    PROP_ALARM_VALUES, PROP_FAULT_VALUES,
+    PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
     PROP_SUPPORTED_FORMATS, PROP_SUPPORTED_FORMAT_CLASSES,
     PROP_SUBORDINATE_LIST, PROP_SUBORDINATE_ANNOTATIONS, PROP_SUBORDINATE_TAGS,
     PROP_SUBORDINATE_NODE_TYPES, PROP_SUBORDINATE_RELATIONSHIPS,
@@ -1614,7 +1614,7 @@ static const int Properties_BACnetARRAY[] = {
     PROP_LINK_SPEEDS, PROP_IP_DNS_SERVER, PROP_IPV6_DNS_SERVER,
     PROP_FLOOR_TEXT, PROP_CAR_DOOR_TEXT, PROP_ASSIGNED_LANDING_CALLS,
     PROP_MAKING_CAR_CALL, PROP_REGISTERED_CAR_CALL, PROP_CAR_DOOR_STATUS,
-    PROP_CAR_DOOR_COMMAND, PROP_LANDING_DOOR_STATUS, 
+    PROP_CAR_DOOR_COMMAND, PROP_LANDING_DOOR_STATUS,
     PROP_STAGES, PROP_STAGE_NAMES, PROP_TARGET_REFERENCES,
     PROP_MONITORED_OBJECTS, PROP_TAGS, -1
 };
@@ -1713,7 +1713,7 @@ bool property_list_writable_member(
         case OBJECT_PULSE_CONVERTER:
             if (object_property == PROP_ADJUST_VALUE) {
                 writable = true;
-            }            
+            }
             break;
         case OBJECT_EVENT_LOG:
         case OBJECT_TRENDLOG:
@@ -1764,13 +1764,13 @@ bool property_list_writable_member(
                 (object_property == PROP_CHANNEL_NUMBER) ||
                 (object_property == PROP_CONTROL_GROUPS)) {
                 writable = true;
-            }            
+            }
             break;
         case OBJECT_LIGHTING_OUTPUT:
             if ((object_property == PROP_PRESENT_VALUE) ||
                 (object_property == PROP_LIGHTING_COMMAND)) {
                 writable = true;
-            }            
+            }
             break;
         case OBJECT_AUDIT_LOG:
             if (object_property == PROP_ENABLE) {

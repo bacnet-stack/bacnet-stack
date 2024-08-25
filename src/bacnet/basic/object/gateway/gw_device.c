@@ -227,13 +227,13 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
  * functions.
  *
  * @param dest [in] The BACNET_ADDRESS of the message's destination.
- * 		   If the Length of the mac_adress[] field is 0, then this is a
+ *         If the Length of the mac_adress[] field is 0, then this is a
  * MAC broadcast.  Otherwise, size is determined by the DLL type (eg, 6 for BIP
  * and 2 for MSTP).
  * @param DNET_list [in] List of our reachable downstream BACnet Network
  * numbers. Normally just one valid entry; terminated with a -1 value.
  * @param cursor [in,out] The concept of the cursor is that it is a starting
- * 		   "hint" for the search; on return, it is updated to provide
+ *         "hint" for the search; on return, it is updated to provide
  * the cursor value to use with a subsequent GetNext call, or it equals -1 if
  * there are no further matches. Set it to 0 on entry to access the main,
  * gateway Device entry, or to start looping through the routed devices.
@@ -241,7 +241,7 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
  *         calling function should not alter or interpret it.
  *
  * @return True if the MAC addresses match (or if BACNET_BROADCAST_NETWORK and
- * 		   the dest->len is 0, meaning MAC bcast, so it's an automatic
+ *         the dest->len is 0, meaning MAC bcast, so it's an automatic
  * match). Else False if no match or invalid idx is given; the cursor will be
  * returned as -1 in these cases.
  */
@@ -307,12 +307,12 @@ bool Routed_Device_GetNext(BACNET_ADDRESS *dest, int *DNET_list, int *cursor)
  *  or local or else broadcast.
  *
  * @param dest_net [in] The BACnet network number of a message's destination.
- * 		   Success if it is our virtual network number, or 0 (local for
+ *         Success if it is our virtual network number, or 0 (local for
  * the gateway, or 0xFFFF for a broadcast network number.
  * @param DNET_list [in] List of our reachable downstream BACnet Network
  * numbers. Normally just one valid entry; terminated with a -1 value.
  * @return True if matches our virtual network, or is for the local network
- * 			Device (the gateway), or is BACNET_BROADCAST_NETWORK,
+ *          Device (the gateway), or is BACNET_BROADCAST_NETWORK,
  * which is an automatic match. Else False if not a reachable network.
  */
 bool Routed_Device_Is_Valid_Network(uint16_t dest_net, int *DNET_list)

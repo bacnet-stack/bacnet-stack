@@ -92,8 +92,8 @@ clean :
 # Compiler configuration file
 $(BCC_CFG) :
    Copy &&|
-$(CFLAGS) 
--c 
+$(CFLAGS)
+-c
 -y     #include line numbers in OBJ's
 -v     #include debug info
 -w+    #turn on all warnings

@@ -532,4 +532,3 @@ zephyr_compile_definitions(
   $<$<BOOL:${CONFIG_BACAPP_SCALE}>:BACAPP_SCALE>
   $<$<BOOL:${CONFIG_BACAPP_SHED_LEVEL}>:BACAPP_SHED_LEVEL>
   )
-  

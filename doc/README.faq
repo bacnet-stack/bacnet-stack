@@ -158,4 +158,3 @@ Q-18: I have downloaded the BACnet stack but can't get Who-Is or EPICS applicati
 A-18: Firewalls on modern OS block incoming and outgoing network traffic and require you to 'allow' the port that BACnet/IP uses.  To allow the default BACnet/IP UDP port 47808 Linux with UFW:
 
 $ sudo ufw allow 47808/udp
-

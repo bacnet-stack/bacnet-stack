@@ -741,13 +741,13 @@ if(BACNET_STACK_BUILD_APPS)
     target_compile_options(mstpcap PRIVATE
       # NOTE: Might be that this example currently doesn't work on Windows because
       # of the following warning:
-    
+
       # 'strncasecmp': macro redefinition
       $<$<C_COMPILER_ID:MSVC>:/wd4005>
       # 'gettimeofday' undefined; assuming extern returning int
       $<$<C_COMPILER_ID:MSVC>:/wd4013>
     )
-  
+
     add_executable(mstpcrc apps/mstpcrc/main.c)
     target_link_libraries(mstpcrc PRIVATE ${PROJECT_NAME})
     target_compile_options(mstpcrc PRIVATE
@@ -842,7 +842,7 @@ if(BACNET_STACK_BUILD_APPS)
 
       target_compile_options(router PRIVATE
         # These make this example not totally C90 compatible but it is ok.
-      
+
         -Wno-declaration-after-statement
         -Wno-overlength-strings
         -Wno-variadic-macros

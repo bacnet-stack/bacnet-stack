@@ -216,7 +216,7 @@
                 </option>
                 <option>
                     <name>GenDeviceSelectMenu</name>
-                    <state>m644p	ATmega644P</state>
+                    <state>m644p    ATmega644P</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -1282,7 +1282,7 @@
                 </option>
                 <option>
                     <name>GenDeviceSelectMenu</name>
-                    <state>m1284p	ATmega1284P</state>
+                    <state>m1284p   ATmega1284P</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -2348,7 +2348,7 @@
                 </option>
                 <option>
                     <name>GenDeviceSelectMenu</name>
-                    <state>m644p	ATmega644P</state>
+                    <state>m644p    ATmega644P</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -3414,7 +3414,7 @@
                 </option>
                 <option>
                     <name>GenDeviceSelectMenu</name>
-                    <state>m1284p	ATmega1284P</state>
+                    <state>m1284p   ATmega1284P</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>

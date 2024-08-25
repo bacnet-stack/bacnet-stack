@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief The BACnet datalink tasks for handling the device specific 
+ * @brief The BACnet datalink tasks for handling the device specific
  *  data link layer
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date April 2024
@@ -76,7 +76,7 @@ bool bacnet_port_ipv6_init(void)
 
     if (!bip6_init(NULL)) {
         return false;
-    }    
+    }
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IPv6 Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BIP6);

@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnet bitstring, octectstring, and characterstring encode 
+ * @brief BACnet bitstring, octectstring, and characterstring encode
  *  and decode functions
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
@@ -393,18 +393,18 @@ bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
 
 /**
  * @brief Return the length of a string, within a maximum length
- * @note The strnlen function is non-standard and not available in 
+ * @note The strnlen function is non-standard and not available in
  * all libc implementations.  This function is a workaround for that.
- * @details The strnlen function computes the smaller of the number 
- * of characters in the array pointed to by s, not including any 
- * terminating null character, or the value of the maxlen argument. 
- * The strnlen function examines no more than maxlen bytes of the 
+ * @details The strnlen function computes the smaller of the number
+ * of characters in the array pointed to by s, not including any
+ * terminating null character, or the value of the maxlen argument.
+ * The strnlen function examines no more than maxlen bytes of the
  * array pointed to by s.
  * @param s - string to check
  * @param maxlen - maximum length to check
- * @return The strnlen function returns the number of bytes that 
- * precede the first null character in the array pointed to by s, 
- * if s contains a null character within the first maxlen characters; 
+ * @return The strnlen function returns the number of bytes that
+ * precede the first null character in the array pointed to by s,
+ * if s contains a null character within the first maxlen characters;
  * otherwise, it returns maxlen.
  */
 size_t characterstring_strnlen(const char *str, size_t maxlen)

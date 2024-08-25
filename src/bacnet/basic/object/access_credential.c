@@ -251,7 +251,7 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_AUTHENTICATION_FACTORS:
             apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index, 
+                rpdata->array_index,
                 Access_Credential_Authentication_Factor_Array_Encode,
                 ac_descr[object_index].auth_factors_count, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
@@ -276,7 +276,7 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_ASSIGNED_ACCESS_RIGHTS:
             apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index, 
+                rpdata->array_index,
                 Access_Credential_Assigned_Access_Rights_Array_Encode,
                 ac_descr[object_index].assigned_access_rights_count, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {

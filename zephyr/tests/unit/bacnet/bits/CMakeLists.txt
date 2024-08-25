@@ -29,4 +29,3 @@ target_include_directories(testbinary PRIVATE
     CONFIG_ZTEST_NEW_API
     BACNET_STACK_DEPRECATED_DISABLE
     )
-  

@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief API for the BACnet datalink tasks for handling the device specific 
+ * @brief API for the BACnet datalink tasks for handling the device specific
  *  data link network port layer
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date April 2024

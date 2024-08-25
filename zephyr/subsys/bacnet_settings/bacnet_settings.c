@@ -27,26 +27,26 @@
  * @return stored data length on success 0..N, negative on failure.
  */
 int bacnet_settings_value_get(uint16_t object_type, uint32_t object_instance,
-			      uint32_t property_id, uint32_t array_index,
-			      BACNET_APPLICATION_DATA_VALUE *value)
+                  uint32_t property_id, uint32_t array_index,
+                  BACNET_APPLICATION_DATA_VALUE *value)
 {
-	uint8_t name[BACNET_STORAGE_VALUE_SIZE_MAX + 1] = { 0 };
-	BACNET_STORAGE_KEY key = { 0 };
-	int stored_len, len;
+    uint8_t name[BACNET_STORAGE_VALUE_SIZE_MAX + 1] = { 0 };
+    BACNET_STORAGE_KEY key = { 0 };
+    int stored_len, len;
 
-	bacnet_storage_key_init(&key, object_type, object_instance, property_id,
-				array_index);
-	stored_len = bacnet_storage_get(&key, name, sizeof(name));
-	if (stored_len > 0) {
-		len = bacapp_decode_application_data(name, stored_len, value);
-		if (len <= 0) {
-			if (value) {
-				value->tag = MAX_BACNET_APPLICATION_TAG;
-			}
-		}
-	}
+    bacnet_storage_key_init(&key, object_type, object_instance, property_id,
+                array_index);
+    stored_len = bacnet_storage_get(&key, name, sizeof(name));
+    if (stored_len > 0) {
+        len = bacapp_decode_application_data(name, stored_len, value);
+        if (len <= 0) {
+            if (value) {
+                value->tag = MAX_BACNET_APPLICATION_TAG;
+            }
+        }
+    }
 
-	return stored_len;
+    return stored_len;
 }
 
 /**
@@ -59,25 +59,25 @@ int bacnet_settings_value_get(uint16_t object_type, uint32_t object_instance,
  * @return true on success, false on failure.
  */
 bool bacnet_settings_value_set(uint16_t object_type, uint32_t object_instance,
-			       uint32_t property_id, uint32_t array_index,
-			       BACNET_APPLICATION_DATA_VALUE *value)
+                   uint32_t property_id, uint32_t array_index,
+                   BACNET_APPLICATION_DATA_VALUE *value)
 {
-	uint8_t name[BACNET_STORAGE_VALUE_SIZE_MAX] = { 0 };
-	BACNET_STORAGE_KEY key = { 0 };
-	int rc, len;
+    uint8_t name[BACNET_STORAGE_VALUE_SIZE_MAX] = { 0 };
+    BACNET_STORAGE_KEY key = { 0 };
+    int rc, len;
 
-	bacnet_storage_key_init(&key, object_type, object_instance, property_id,
-				array_index);
-	len = bacapp_encode_application_data(NULL, value);
-	if (len <= 0) {
-		return false;
-	} else if (len > sizeof(name)) {
-		return false;
-	}
-	len = bacapp_encode_application_data(name, value);
-	rc = bacnet_storage_set(&key, name, len);
+    bacnet_storage_key_init(&key, object_type, object_instance, property_id,
+                array_index);
+    len = bacapp_encode_application_data(NULL, value);
+    if (len <= 0) {
+        return false;
+    } else if (len > sizeof(name)) {
+        return false;
+    }
+    len = bacapp_encode_application_data(name, value);
+    rc = bacnet_storage_set(&key, name, len);
 
-	return rc == 0;
+    return rc == 0;
 }
 
 /**
@@ -90,26 +90,26 @@ bool bacnet_settings_value_set(uint16_t object_type, uint32_t object_instance,
  * @return stored data length on success 0..N, negative on failure.
  */
 int bacnet_settings_real_get(uint16_t object_type, uint32_t object_instance,
-			     uint32_t property_id, uint32_t array_index,
-			     float default_value, float *value)
+                 uint32_t property_id, uint32_t array_index,
+                 float default_value, float *value)
 {
-	int stored_len;
-	BACNET_APPLICATION_DATA_VALUE bvalue = { 0 };
+    int stored_len;
+    BACNET_APPLICATION_DATA_VALUE bvalue = { 0 };
 
-	stored_len =
-		bacnet_settings_value_get(object_type, object_instance,
-					  property_id, array_index, &bvalue);
-	if ((stored_len >= 0) && (bvalue.tag == BACNET_APPLICATION_TAG_REAL)) {
-		if (value) {
-			*value = bvalue.type.Real;
-		}
-	} else {
-		if (value) {
-			*value = default_value;
-		}
-	}
+    stored_len =
+        bacnet_settings_value_get(object_type, object_instance,
+                      property_id, array_index, &bvalue);
+    if ((stored_len >= 0) && (bvalue.tag == BACNET_APPLICATION_TAG_REAL)) {
+        if (value) {
+            *value = bvalue.type.Real;
+        }
+    } else {
+        if (value) {
+            *value = default_value;
+        }
+    }
 
-	return stored_len;
+    return stored_len;
 }
 
 /**
@@ -122,17 +122,17 @@ int bacnet_settings_real_get(uint16_t object_type, uint32_t object_instance,
  * @return true on success, false on failure.
  */
 bool bacnet_settings_real_set(uint16_t object_type, uint32_t object_instance,
-			      uint32_t property_id, uint32_t array_index,
-			      float value)
+                  uint32_t property_id, uint32_t array_index,
+                  float value)
 {
-	BACNET_APPLICATION_DATA_VALUE bvalue = { 0 };
+    BACNET_APPLICATION_DATA_VALUE bvalue = { 0 };
 
-	bvalue.context_specific = false;
-	bvalue.tag = BACNET_APPLICATION_TAG_REAL;
-	bvalue.type.Real = value;
+    bvalue.context_specific = false;
+    bvalue.tag = BACNET_APPLICATION_TAG_REAL;
+    bvalue.type.Real = value;
 
-	return bacnet_settings_value_set(object_type, object_instance,
-					 property_id, array_index, &bvalue);
+    return bacnet_settings_value_set(object_type, object_instance,
+                     property_id, array_index, &bvalue);
 }
 
 /**
@@ -144,32 +144,32 @@ bool bacnet_settings_real_set(uint16_t object_type, uint32_t object_instance,
  * @return stored data length on success 0..N, negative on failure.
  */
 int bacnet_settings_unsigned_get(uint16_t object_type, uint32_t object_instance,
-				 uint32_t property_id, uint32_t array_index,
-				 BACNET_UNSIGNED_INTEGER default_value,
-				 BACNET_UNSIGNED_INTEGER *value)
+                 uint32_t property_id, uint32_t array_index,
+                 BACNET_UNSIGNED_INTEGER default_value,
+                 BACNET_UNSIGNED_INTEGER *value)
 {
-	uint8_t name[BACNET_STORAGE_VALUE_SIZE_MAX + 1] = { 0 };
-	BACNET_STORAGE_KEY key = { 0 };
-	int stored_len, len;
+    uint8_t name[BACNET_STORAGE_VALUE_SIZE_MAX + 1] = { 0 };
+    BACNET_STORAGE_KEY key = { 0 };
+    int stored_len, len;
 
-	bacnet_storage_key_init(&key, object_type, object_instance, property_id,
-				array_index);
-	stored_len = bacnet_storage_get(&key, name, sizeof(name));
-	if (stored_len > 0) {
-		len = bacnet_unsigned_application_decode(name, stored_len,
-							 value);
-		if (len <= 0) {
-			if (value) {
-				*value = default_value;
-			}
-		}
-	} else {
-		if (value) {
-			*value = default_value;
-		}
-	}
+    bacnet_storage_key_init(&key, object_type, object_instance, property_id,
+                array_index);
+    stored_len = bacnet_storage_get(&key, name, sizeof(name));
+    if (stored_len > 0) {
+        len = bacnet_unsigned_application_decode(name, stored_len,
+                             value);
+        if (len <= 0) {
+            if (value) {
+                *value = default_value;
+            }
+        }
+    } else {
+        if (value) {
+            *value = default_value;
+        }
+    }
 
-	return stored_len;
+    return stored_len;
 }
 
 /**
@@ -181,18 +181,18 @@ int bacnet_settings_unsigned_get(uint16_t object_type, uint32_t object_instance,
  * @return true on success, false on failure.
  */
 bool bacnet_settings_unsigned_set(uint16_t object_type,
-				  uint32_t object_instance,
-				  uint32_t property_id, uint32_t array_index,
-				  BACNET_UNSIGNED_INTEGER value)
+                  uint32_t object_instance,
+                  uint32_t property_id, uint32_t array_index,
+                  BACNET_UNSIGNED_INTEGER value)
 {
-	BACNET_APPLICATION_DATA_VALUE bvalue = { 0 };
+    BACNET_APPLICATION_DATA_VALUE bvalue = { 0 };
 
-	bvalue.context_specific = false;
-	bvalue.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
-	bvalue.type.Unsigned_Int = value;
+    bvalue.context_specific = false;
+    bvalue.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    bvalue.type.Unsigned_Int = value;
 
-	return bacnet_settings_value_set(object_type, object_instance,
-					 property_id, array_index, &bvalue);
+    return bacnet_settings_value_set(object_type, object_instance,
+                     property_id, array_index, &bvalue);
 }
 
 /**
@@ -205,30 +205,30 @@ bool bacnet_settings_unsigned_set(uint16_t object_type,
  * @return stored data length on success 0..N, negative on failure.
  */
 int bacnet_settings_signed_get(uint16_t object_type, uint32_t object_instance,
-			       uint32_t property_id, uint32_t array_index,
-			       int32_t default_value, int32_t *value)
+                   uint32_t property_id, uint32_t array_index,
+                   int32_t default_value, int32_t *value)
 {
-	uint8_t name[BACNET_STORAGE_VALUE_SIZE_MAX + 1] = { 0 };
-	BACNET_STORAGE_KEY key = { 0 };
-	int stored_len, len;
+    uint8_t name[BACNET_STORAGE_VALUE_SIZE_MAX + 1] = { 0 };
+    BACNET_STORAGE_KEY key = { 0 };
+    int stored_len, len;
 
-	bacnet_storage_key_init(&key, object_type, object_instance, property_id,
-				array_index);
-	stored_len = bacnet_storage_get(&key, name, sizeof(name));
-	if (stored_len > 0) {
-		len = bacnet_signed_application_decode(name, stored_len, value);
-		if (len <= 0) {
-			if (value) {
-				*value = default_value;
-			}
-		}
-	} else {
-		if (value) {
-			*value = default_value;
-		}
-	}
+    bacnet_storage_key_init(&key, object_type, object_instance, property_id,
+                array_index);
+    stored_len = bacnet_storage_get(&key, name, sizeof(name));
+    if (stored_len > 0) {
+        len = bacnet_signed_application_decode(name, stored_len, value);
+        if (len <= 0) {
+            if (value) {
+                *value = default_value;
+            }
+        }
+    } else {
+        if (value) {
+            *value = default_value;
+        }
+    }
 
-	return stored_len;
+    return stored_len;
 }
 
 /**
@@ -241,17 +241,17 @@ int bacnet_settings_signed_get(uint16_t object_type, uint32_t object_instance,
  * @return true on success, false on failure.
  */
 bool bacnet_settings_signed_set(uint16_t object_type, uint32_t object_instance,
-				uint32_t property_id, uint32_t array_index,
-				int32_t value)
+                uint32_t property_id, uint32_t array_index,
+                int32_t value)
 {
-	BACNET_APPLICATION_DATA_VALUE bvalue = { 0 };
+    BACNET_APPLICATION_DATA_VALUE bvalue = { 0 };
 
-	bvalue.context_specific = false;
-	bvalue.tag = BACNET_APPLICATION_TAG_SIGNED_INT;
-	bvalue.type.Signed_Int = value;
+    bvalue.context_specific = false;
+    bvalue.tag = BACNET_APPLICATION_TAG_SIGNED_INT;
+    bvalue.type.Signed_Int = value;
 
-	return bacnet_settings_value_set(object_type, object_instance,
-					 property_id, array_index, &bvalue);
+    return bacnet_settings_value_set(object_type, object_instance,
+                     property_id, array_index, &bvalue);
 }
 
 /**
@@ -264,30 +264,30 @@ bool bacnet_settings_signed_set(uint16_t object_type, uint32_t object_instance,
  * @return stored data length on success 0..N, negative on failure.
  */
 int bacnet_settings_characterstring_get(uint16_t object_type,
-					uint32_t object_instance,
-					uint32_t property_id,
-					uint32_t array_index,
-					const char *default_value,
-					BACNET_CHARACTER_STRING *value)
+                    uint32_t object_instance,
+                    uint32_t property_id,
+                    uint32_t array_index,
+                    const char *default_value,
+                    BACNET_CHARACTER_STRING *value)
 {
-	uint8_t name[BACNET_STORAGE_VALUE_SIZE_MAX + 1] = { 0 };
-	BACNET_STORAGE_KEY key = { 0 };
-	int stored_len, len;
+    uint8_t name[BACNET_STORAGE_VALUE_SIZE_MAX + 1] = { 0 };
+    BACNET_STORAGE_KEY key = { 0 };
+    int stored_len, len;
 
-	bacnet_storage_key_init(&key, object_type, object_instance, property_id,
-				array_index);
-	stored_len = bacnet_storage_get(&key, name, sizeof(name));
-	if (stored_len > 0) {
-		len = bacnet_character_string_application_decode(
-			name, stored_len, value);
-		if (len <= 0) {
-			characterstring_init_ansi(value, default_value);
-		}
-	} else {
-		characterstring_init_ansi(value, default_value);
-	}
+    bacnet_storage_key_init(&key, object_type, object_instance, property_id,
+                array_index);
+    stored_len = bacnet_storage_get(&key, name, sizeof(name));
+    if (stored_len > 0) {
+        len = bacnet_character_string_application_decode(
+            name, stored_len, value);
+        if (len <= 0) {
+            characterstring_init_ansi(value, default_value);
+        }
+    } else {
+        characterstring_init_ansi(value, default_value);
+    }
 
-	return stored_len;
+    return stored_len;
 }
 
 /**
@@ -300,25 +300,25 @@ int bacnet_settings_characterstring_get(uint16_t object_type,
  * @return true on success, false on failure.
  */
 bool bacnet_settings_characterstring_ansi_set(uint16_t object_type,
-					      uint32_t object_instance,
-					      uint32_t property_id,
-					      uint32_t array_index,
-					      const char *cstring)
+                          uint32_t object_instance,
+                          uint32_t property_id,
+                          uint32_t array_index,
+                          const char *cstring)
 {
-	BACNET_APPLICATION_DATA_VALUE bvalue = { 0 };
-	bool status;
+    BACNET_APPLICATION_DATA_VALUE bvalue = { 0 };
+    bool status;
 
-	bvalue.context_specific = false;
-	bvalue.tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
-	status = characterstring_init_ansi(&bvalue.type.Character_String,
-					   cstring);
-	if (!status) {
-		status = bacnet_settings_value_set(object_type, object_instance,
-						   property_id, array_index,
-						   &bvalue);
-	}
+    bvalue.context_specific = false;
+    bvalue.tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
+    status = characterstring_init_ansi(&bvalue.type.Character_String,
+                       cstring);
+    if (!status) {
+        status = bacnet_settings_value_set(object_type, object_instance,
+                           property_id, array_index,
+                           &bvalue);
+    }
 
-	return status;
+    return status;
 }
 
 /**
@@ -332,24 +332,24 @@ bool bacnet_settings_characterstring_ansi_set(uint16_t object_type,
  * @return stored data length on success 0..N, negative on failure.
  */
 int bacnet_settings_string_get(uint16_t object_type, uint32_t object_instance,
-			       uint32_t property_id, uint32_t array_index,
-			       const char *default_value, char *value,
-			       size_t value_size)
+                   uint32_t property_id, uint32_t array_index,
+                   const char *default_value, char *value,
+                   size_t value_size)
 {
-	BACNET_STORAGE_KEY key = { 0 };
-	int rc;
+    BACNET_STORAGE_KEY key = { 0 };
+    int rc;
 
-	bacnet_storage_key_init(&key, object_type, object_instance, property_id,
-				array_index);
-	rc = bacnet_storage_get(&key, value, value_size);
-	if (rc <= 0) {
-		if (default_value) {
-			strncpy(value, default_value, value_size);
-			rc = strlen(default_value);
-		}
-	}
+    bacnet_storage_key_init(&key, object_type, object_instance, property_id,
+                array_index);
+    rc = bacnet_storage_get(&key, value, value_size);
+    if (rc <= 0) {
+        if (default_value) {
+            strncpy(value, default_value, value_size);
+            rc = strlen(default_value);
+        }
+    }
 
-	return rc;
+    return rc;
 }
 
 /**
@@ -362,18 +362,18 @@ int bacnet_settings_string_get(uint16_t object_type, uint32_t object_instance,
  * @return true on success, false on failure.
  */
 bool bacnet_settings_string_set(uint16_t object_type, uint32_t object_instance,
-				uint32_t property_id, uint32_t array_index,
-				const char *value)
+                uint32_t property_id, uint32_t array_index,
+                const char *value)
 {
-	BACNET_STORAGE_KEY key = { 0 };
-	int rc;
+    BACNET_STORAGE_KEY key = { 0 };
+    int rc;
 
-	if (!value) {
-		return false;
-	}
-	bacnet_storage_key_init(&key, object_type, object_instance, property_id,
-				array_index);
-	rc = bacnet_storage_set(&key, (const char *)value, strlen(value) + 1);
+    if (!value) {
+        return false;
+    }
+    bacnet_storage_key_init(&key, object_type, object_instance, property_id,
+                array_index);
+    rc = bacnet_storage_set(&key, (const char *)value, strlen(value) + 1);
 
-	return rc == 0;
+    return rc == 0;
 }

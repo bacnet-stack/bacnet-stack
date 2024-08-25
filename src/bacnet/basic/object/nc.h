@@ -1,7 +1,7 @@
 /**
  * @file
  * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
- * @date 2011 
+ * @date 2011
  * @brief API for a basic BACnet Notification Class object
  * @copyright SPDX-License-Identifier: MIT
  */

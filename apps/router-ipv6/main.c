@@ -565,7 +565,7 @@ static void send_who_is_router_to_network(uint16_t snet, uint16_t dnet)
  * @param src  [in] The routing source information, if any.
  *  If src->net and src->len are 0, there is no routing source information.
  * @param npdu_data [in] Contains a filled-out structure with information
- * 	decoded from the NCPI and other NPDU bytes.
+ *  decoded from the NCPI and other NPDU bytes.
  * @param npdu [in]  Buffer containing the rest of the NPDU, following the
  *  bytes that have already been decoded.
  * @param npdu_len [in] The length of the remaining NPDU message in npdu[].
@@ -618,7 +618,7 @@ static void who_is_router_to_network_handler(uint16_t snet,
  * @param src  [in] The routing source information, if any.
  *  If src->net and src->len are 0, there is no routing source information.
  * @param npdu_data [in] Contains a filled-out structure with information
- * 	decoded from the NCPI and other NPDU bytes.
+ *  decoded from the NCPI and other NPDU bytes.
  * @param npdu [in]  Buffer containing the rest of the NPDU, following the
  *  bytes that have already been decoded.
  * @param npdu_len [in] The length of the remaining NPDU message in npdu[].
@@ -899,7 +899,7 @@ static void routed_apdu_handler(uint16_t snet,
         while (port != NULL) {
             if (port->net != snet) {
                 datalink_send_pdu(port->net, dest, npdu, &Tx_Buffer[0],
-                	npdu_len + apdu_len);
+                    npdu_len + apdu_len);
             }
             port = port->next;
         }
@@ -979,7 +979,7 @@ static void my_routing_npdu_handler(
         }
     } else {
         fprintf(
-            stderr, "NPDU: unsupported protocol version %u.  Discarded!\n", 
+            stderr, "NPDU: unsupported protocol version %u.  Discarded!\n",
                 protocol_version);
     }
 
@@ -1118,7 +1118,7 @@ static void control_c_hooks(void)
  * @note This is a proxy function to satisfy the BACnet Stack IPv6 port layer
  * requirements since this application omits a Device object.
  */
-uint32_t Device_Object_Instance_Number(void) 
+uint32_t Device_Object_Instance_Number(void)
 {
     return Device_Instance_Number;
 }

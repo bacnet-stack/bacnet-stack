@@ -141,7 +141,7 @@ void bip6_set_interface(char *ifname)
                 NET_IF_MAX_IPV6_ADDR - 1);
             return;
         }
-        LOG_INF("BIP6: Using configured index %d", 
+        LOG_INF("BIP6: Using configured index %d",
             CONFIG_BACDL_BIP6_ADDRESS_INDEX);
         memcpy(
             &unicast.address,
@@ -340,7 +340,7 @@ static int bvlc6_snprintf_addr(char *s, size_t n, BACNET_IP6_ADDRESS *addr)
     bvlc6_address_get(
         addr, &addr16[0], &addr16[1], &addr16[2], &addr16[3], &addr16[4],
         &addr16[5], &addr16[6], &addr16[7]);
-    
+
     return snprintf(s, n, "%04X:%04X:%04X:%04X:%04X:%04X:%04X:%04X",
         addr16[0], addr16[1], addr16[2], addr16[3], addr16[4], addr16[5],
         addr16[6], addr16[7]);

@@ -115,14 +115,14 @@ static const int Load_Control_Properties_Required[] = {
     -1
 };
 
-static const int Load_Control_Properties_Optional[] = { 
+static const int Load_Control_Properties_Optional[] = {
     PROP_DESCRIPTION,
     PROP_FULL_DUTY_BASELINE,
-    -1 
+    -1
 };
 
-static const int Load_Control_Properties_Proprietary[] = { 
-    -1 
+static const int Load_Control_Properties_Proprietary[] = {
+    -1
 };
 /* clang-format on */
 

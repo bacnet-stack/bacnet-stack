@@ -57,7 +57,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool bacapp_timestamp_same(
-        BACNET_TIMESTAMP *value1, 
+        BACNET_TIMESTAMP *value1,
         BACNET_TIMESTAMP *value2);
 
     BACNET_STACK_EXPORT
@@ -100,8 +100,8 @@ extern "C" {
         const char *ascii);
     BACNET_STACK_EXPORT
     int bacapp_timestamp_to_ascii(
-        char *str, 
-        size_t str_size, 
+        char *str,
+        size_t str_size,
         BACNET_TIMESTAMP *timestamp);
 
 #ifdef __cplusplus

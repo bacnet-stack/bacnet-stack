@@ -44,7 +44,7 @@ extern "C" {
         void);
 #else
     /* dummy stubs */
-	#define led_on(x)
+    #define led_on(x)
     #define led_on_interval(x, ms)
     #define led_off(x)
     #define led_off_delay(x, ms)

@@ -8,4 +8,3 @@
 #include "bacnet/basic/object/bacfile.h"
 
 OBJECT_FUNCTIONS(Bacfile, BACNET_FILE_LISTING);
-

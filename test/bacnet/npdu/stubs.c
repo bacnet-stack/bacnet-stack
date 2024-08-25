@@ -23,6 +23,6 @@ int bip_send_pdu(
     (void)npdu_data;
     (void)pdu;
     (void)pdu_len;
-    
+
     return 0;
 }

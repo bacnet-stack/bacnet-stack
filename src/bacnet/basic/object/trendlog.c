@@ -234,7 +234,7 @@ bool Trend_Log_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_TREND_LOGS) {
-        snprintf(text, sizeof(text), "Trend Log %lu", 
+        snprintf(text, sizeof(text), "Trend Log %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
@@ -664,7 +664,7 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
             len = bacnet_device_object_property_reference_decode(
-                wp_data->application_data,wp_data->application_data_len, 
+                wp_data->application_data,wp_data->application_data_len,
                 &TempSource);
             if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1478,7 +1478,7 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
         case TL_TYPE_ANY:
             /* Should never happen as we don't support this at the moment */
             break;
-        
+
         default:
             break;
     }

@@ -707,7 +707,7 @@ bool bacnet_bdt_entry_from_ascii(BACNET_BDT_ENTRY *value, const char *argv)
         if (name && isalnum(name[0])) {
             value->bbmd_address.host_ip_address = false;
             value->bbmd_address.host_name = true;
-            characterstring_init(&value->bbmd_address.host.name, 
+            characterstring_init(&value->bbmd_address.host.name,
                 CHARACTER_ANSI_X34,
                 name, name_len);
         } else {
@@ -775,7 +775,7 @@ int bacnet_bdt_entry_to_ascii(
             (int)characterstring_length(&value->bbmd_address.host.name),
             characterstring_value(&value->bbmd_address.host.name),
             value->bbmd_address.port);
-    }   
+    }
 
     return len;
 }
@@ -1065,7 +1065,7 @@ bool bacnet_fdt_entry_from_ascii(BACNET_FDT_ENTRY *value, const char *argv)
             "%02x%02x:%02x%02x:%02x%02x:%02x%02x:"
             "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%5u,%5u,%5u",
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8],
-            &a[9], &a[10], &a[11], &a[12], &a[13], &a[14], &a[15], &p, &ttl, 
+            &a[9], &a[10], &a[11], &a[12], &a[13], &a[14], &a[15], &p, &ttl,
             &rttl);
         if ((count == 16) || (count == 17) || (count == 18) || (count == 19)) {
             uint8_t address[18];

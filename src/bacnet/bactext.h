@@ -34,9 +34,9 @@ extern "C" {
     const char *bactext_application_tag_name(
         unsigned index);
     BACNET_STACK_EXPORT
-	bool bactext_application_tag_index(
-		const char *search_name,
-		unsigned *found_index);
+    bool bactext_application_tag_index(
+        const char *search_name,
+        unsigned *found_index);
     BACNET_STACK_EXPORT
     const char *bactext_object_type_name(
         unsigned index);
@@ -139,9 +139,9 @@ extern "C" {
     const char *bactext_segmentation_name(
         unsigned index);
     BACNET_STACK_EXPORT
-	bool bactext_segmentation_index(
-		const char *search_name,
-		unsigned *found_index);
+    bool bactext_segmentation_index(
+        const char *search_name,
+        unsigned *found_index);
     BACNET_STACK_EXPORT
     const char *bactext_node_type_name(
         unsigned index);
@@ -169,7 +169,7 @@ extern "C" {
         unsigned index);
 
     BACNET_STACK_EXPORT
-	const char *bactext_life_safety_state_name(
+    const char *bactext_life_safety_state_name(
         unsigned index);
 
     BACNET_STACK_EXPORT
@@ -182,7 +182,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool bactext_lighting_operation_strtol(
-        const char *search_name, 
+        const char *search_name,
         unsigned *found_index);
 
     BACNET_STACK_EXPORT
@@ -191,16 +191,16 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool bactext_binary_lighting_pv_names_strtol(
-        const char *search_name, 
+        const char *search_name,
         unsigned *found_index);
 
     BACNET_STACK_EXPORT
-	const char *bactext_lighting_in_progress(
-		unsigned index);
+    const char *bactext_lighting_in_progress(
+        unsigned index);
 
     BACNET_STACK_EXPORT
-	const char *bactext_lighting_transition(
-		unsigned index);
+    const char *bactext_lighting_transition(
+        unsigned index);
 
     BACNET_STACK_EXPORT
     const char *bactext_color_operation_name(

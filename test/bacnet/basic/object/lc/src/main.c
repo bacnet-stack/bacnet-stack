@@ -317,7 +317,7 @@ static void test_load_control_manipulated_object_write(
         object_instance, NULL);
     zassert_equal(
         test_object_property_reference.property_identifier, property_id, NULL);
-    Test_Present_Value_Priority_Set(value, priority);    
+    Test_Present_Value_Priority_Set(value, priority);
 }
 
 /**
@@ -615,7 +615,7 @@ static void testLoadControlStateMachine(void)
         Load_Control_Present_Value(object_instance), BACNET_SHED_COMPLIANT,
         NULL);
     level = Test_Present_Value();
-    zassert_true(islessgreater(100.0f, level), 
+    zassert_true(islessgreater(100.0f, level),
         "Present Value = %f", (double)level);
     priority = Test_Present_Value_Priority();
     zassert_equal(

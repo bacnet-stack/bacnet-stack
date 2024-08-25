@@ -757,7 +757,7 @@ int bacnet_tag_number_and_value_decode(
 }
 
 /**
- * @brief Determine the data length from the application tag number 
+ * @brief Determine the data length from the application tag number
  * @param tag_number application tag number to be evaluated.
  * @param len_value_type  Length of the data in bytes.
  * @return datalength for the given tag, or INT_MAX if out of range.
@@ -801,7 +801,7 @@ int bacnet_application_data_length(
  * @param apdu Pointer to the APDU buffer
  * @param apdu_size Bytes valid in the buffer
  * @param property ID of the property to get the length for.
- * @return length of data between an opening tag and a closing tag 0..N, 
+ * @return length of data between an opening tag and a closing tag 0..N,
  *  or BACNET_STATUS_ERROR.
  */
 int bacnet_enclosed_data_length(
@@ -862,7 +862,7 @@ int bacnet_enclosed_data_length(
                 return BACNET_STATUS_ERROR;
             }
             /* application tagged data */
-            len += bacnet_application_data_length(tag.number, 
+            len += bacnet_application_data_length(tag.number,
                 tag.len_value_type);
             total_len_enable = true;
         }
@@ -946,7 +946,7 @@ bool decode_is_context_tag_with_length(
  * @return true on a match, false otherwise.
  */
 bool bacnet_is_context_tag_number(
-    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length, 
+    uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number, int *tag_length,
     uint32_t *len_value_type)
 {
     bool match = false;
@@ -2751,7 +2751,7 @@ int bacnet_unsigned_context_decode(uint8_t *apdu,
 
 /**
  * @brief Encode an application tagged BACnet Unsigned value
- * From clause 20.2.4 Encoding of an Unsigned Integer Value 
+ * From clause 20.2.4 Encoding of an Unsigned Integer Value
  * and 20.2.1 General Rules for Encoding BACnet Tags
  *
  * @param apdu - buffer to hold the data to be encoded, or NULL for length

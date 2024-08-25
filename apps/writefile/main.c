@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that uses BACnet AtomicWriteFile service 
+ * @brief command line tool that uses BACnet AtomicWriteFile service
  * to send a local file to a another device on the network.
  * This tool sends the file in chunks to the target device.
  * @author Steve Karg <skarg@users.sourceforge.net>

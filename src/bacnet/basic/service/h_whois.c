@@ -97,7 +97,7 @@ void handler_who_is_unicast(
  * @param service_len [in] Length of the service_request message.
  * @param src [in] The BACNET_ADDRESS of the message's source.
  * @param is_unicast [in] True if should send unicast response(s)
- * 			back to the src, else False if should broadcast
+ *          back to the src, else False if should broadcast
  * response(s).
  */
 static void check_who_is_for_routing(uint8_t *service_request,

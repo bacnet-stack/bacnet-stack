@@ -2,7 +2,7 @@
  * @file
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
- * @brief Implementation of the Network Layer using BACnet Ethernet transport 
+ * @brief Implementation of the Network Layer using BACnet Ethernet transport
  * @copyright SPDX-License-Identifier: MIT
  * @defgroup DL_ETHERNET BACnet Ethernet DataLink Network Layer
  * @ingroup DataLink

@@ -118,7 +118,7 @@ bool Access_Rights_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_ACCESS_RIGHTSS) {
-        snprintf(text, sizeof(text), "ACCESS RIGHTS %lu", 
+        snprintf(text, sizeof(text), "ACCESS RIGHTS %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }

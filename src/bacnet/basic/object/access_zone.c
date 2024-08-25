@@ -120,7 +120,7 @@ bool Access_Zone_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_ACCESS_ZONES) {
-        snprintf(text, sizeof(text), "ACCESS ZONE %lu", 
+        snprintf(text, sizeof(text), "ACCESS ZONE %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }

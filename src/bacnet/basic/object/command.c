@@ -35,14 +35,14 @@ static COMMAND_DESCR Command_Descr[MAX_COMMANDS];
 
 /* clang-format off */
 /* These arrays are used by the ReadPropertyMultiple handler */
-static const int Command_Properties_Required[] = { 
+static const int Command_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, 
-    PROP_OBJECT_TYPE, 
-    PROP_PRESENT_VALUE, 
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
     PROP_IN_PROCESS,
-    PROP_ALL_WRITES_SUCCESSFUL, 
-    PROP_ACTION, 
+    PROP_ALL_WRITES_SUCCESSFUL,
+    PROP_ACTION,
     -1 };
 
 static const int Command_Properties_Optional[] = { -1 };

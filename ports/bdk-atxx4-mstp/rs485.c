@@ -3,7 +3,7 @@
  * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
  *
  * SPDX-License-Identifier: MIT
- * 
+ *
  *********************************************************************/
 #include <stdbool.h>
 #include <stdint.h>

@@ -23,4 +23,3 @@ do
   ${CONVERTER} ${filename} > ${TEMPFILE}
   mv ${TEMPFILE} ${filename}
 done
-

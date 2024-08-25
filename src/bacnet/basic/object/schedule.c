@@ -231,7 +231,7 @@ static int Schedule_Weekly_Schedule_Encode(
         return BACNET_STATUS_ERROR;
     }
     pObject = Schedule_Object(object_instance);
-    if (!pObject) {      
+    if (!pObject) {
         return BACNET_STATUS_ERROR;
     }
     day = array_index;
@@ -275,10 +275,10 @@ static int Schedule_Exception_Schedule_Encode(
         return BACNET_STATUS_ERROR;
     }
     pObject = Schedule_Object(object_instance);
-    if (!pObject) {      
+    if (!pObject) {
         return BACNET_STATUS_ERROR;
     }
-    apdu_len = bacnet_special_event_encode(apdu, 
+    apdu_len = bacnet_special_event_encode(apdu,
         &pObject->Exception_Schedule[array_index]);
 
     return apdu_len;
@@ -346,7 +346,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_EXCEPTION_SCHEDULE:
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
-                Schedule_Exception_Schedule_Encode, 
+                Schedule_Exception_Schedule_Encode,
                 BACNET_EXCEPTION_SCHEDULE_SIZE, apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
@@ -439,7 +439,7 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         default:
             if (property_lists_member(
-                Schedule_Properties_Required, Schedule_Properties_Optional, 
+                Schedule_Properties_Required, Schedule_Properties_Optional,
                 Schedule_Properties_Proprietary, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

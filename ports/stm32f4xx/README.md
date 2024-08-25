@@ -85,12 +85,12 @@ For debugging, install these tools:
 #### CMake & Visual Studio Code
 
 There is a CMakeLists.txt file that enables building the project with the
-tools that CMake can find.  It is useful under Visual Studio Code editor 
-with the CMake Tools extension for quickly configuring the build environment, 
+tools that CMake can find.  It is useful under Visual Studio Code editor
+with the CMake Tools extension for quickly configuring the build environment,
 choosing a cross-compiler, and building.
 
 For Visual Studio Code debugging, add the Cortex-Debug extension, and configure
-its settings for the specific OS and path of the tools.  For Windows using 
+its settings for the specific OS and path of the tools.  For Windows using
 MinGW64:
 
     "cortex-debug.armToolchainPath.windows": "C:/msys64/mingw64/bin",

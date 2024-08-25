@@ -17,11 +17,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 void bacnet_basic_init(void);
-void bacnet_basic_init_callback_set(bacnet_basic_callback callback, 
+void bacnet_basic_init_callback_set(bacnet_basic_callback callback,
     void *context);
 
 void bacnet_basic_task(void);
-void bacnet_basic_task_callback_set(bacnet_basic_callback callback, 
+void bacnet_basic_task_callback_set(bacnet_basic_callback callback,
     void *context);
 
 unsigned long bacnet_basic_uptime_seconds(void);

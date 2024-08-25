@@ -260,7 +260,7 @@ bool Access_Door_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_ACCESS_DOORS) {
-        snprintf(text, sizeof(text), "ACCESS DOOR %lu", 
+        snprintf(text, sizeof(text), "ACCESS DOOR %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
