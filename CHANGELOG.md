@@ -71,6 +71,7 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Stripped tabs and trailing white spaces, and fixed end of files (#748)
 * Changed clang-format to ignore javascript files and ignore some tables
   in C/H source files. Replaced unicode characters found in the source code.
   Changed permissions of shell scripts - with shebang - to be executable. (#747)
