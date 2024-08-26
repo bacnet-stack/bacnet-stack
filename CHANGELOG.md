@@ -31,6 +31,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added shield option explanation to ports/stm32f4xx/README.md (#749)
 * Added API for intrinsic reporting properties in Binary Value and Binary
   Input objects (#742)
 * Added load control object into zephyr basic device example (#739)
