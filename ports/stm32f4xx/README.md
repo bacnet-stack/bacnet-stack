@@ -82,6 +82,11 @@ For debugging, install these tools:
     sudo apt-get update -qq
     sudo apt-get install -qq openocd gdb-multiarch
 
+##### Shield option
+
+If, instead of the DFR0259 shield for RS485, the build is intended for the
+linksprite shield, `make SHIELD=linksprite` can be used.
+
 #### CMake & Visual Studio Code
 
 There is a CMakeLists.txt file that enables building the project with the
