@@ -1,36 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+ *
+ * Copyright (C) 2005 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 /* linux Ethernet/IP specific */
 #include <asm/types.h>
 #include <netinet/ether.h>
@@ -519,7 +493,7 @@ static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
  */
 int bip_get_local_address_ioctl(char *ifname, struct in_addr *addr, int request)
 {
-    struct ifreq ifr = { { { 0 } }, { { 0 } } };
+    struct ifreq ifr = { 0 };
     struct sockaddr_in *tcpip_address;
     int rv; /* return value */
 
@@ -597,7 +571,7 @@ static char *ntoa(uint32_t addr)
 {
     static char buffer[18];
 
-    sprintf(buffer, "%d.%d.%d.%d", (addr & 0x000000FF),
+    snprintf(buffer, sizeof(buffer), "%d.%d.%d.%d", (addr & 0x000000FF),
         (addr & 0x0000FF00) >> 8, (addr & 0x00FF0000) >> 16,
         (addr & 0xFF000000) >> 24);
 
@@ -863,7 +837,7 @@ static int createSocket(struct sockaddr_in *sin)
     if (status < 0) {
         if (BIP_Debug) {
             perror("SO_BINDTODEVICE: ");
-	}
+        }
     }
     /* bind the socket to the local port number and IP address */
     status =
@@ -899,7 +873,7 @@ bool bip_init(char *ifname)
     int sock_fd = -1;
 
     if (ifname) {
-        strncpy(BIP_Interface_Name, ifname, sizeof(BIP_Interface_Name));
+        snprintf(BIP_Interface_Name, sizeof(BIP_Interface_Name), "%s", ifname);
         bip_set_interface(ifname);
     } else {
         bip_set_interface(ifname_default());

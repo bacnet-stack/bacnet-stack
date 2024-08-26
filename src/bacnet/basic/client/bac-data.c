@@ -3,8 +3,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2013
  * @brief Store properties from other BACnet devices
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
 #include <stdbool.h>

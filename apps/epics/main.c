@@ -1,31 +1,11 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/** @file epics/main.c  Command line tool to build a full VTS3 EPICS file,
- *                          including the heading information. */
-
+/**
+ * @file
+ * @brief command line tool to generate EPICS-usable output acquired from
+ * a BACnet device on the network.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -58,6 +38,8 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/bip.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacepics.h"
 
@@ -307,11 +289,14 @@ static void MyReadPropertyMultipleAckHandler(uint8_t *service_request,
 
 static void Init_Service_Handlers(void)
 {
-    Device_Init(NULL);
-
 #if BAC_ROUTING
     uint32_t Object_Instance;
     BACNET_CHARACTER_STRING name_string;
+#endif
+
+    Device_Init(NULL);
+
+#if BAC_ROUTING
     /* Put this client Device into the Routing table (first entry) */
     Object_Instance = Device_Object_Instance_Number();
     Device_Object_Name(Object_Instance, &name_string);
@@ -338,96 +323,6 @@ static void Init_Service_Handlers(void)
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
-}
-
-/** Determine if this is a writable property, and, if so,
- * note that in the EPICS output.
- * This function may need a lot of customization for different implementations.
- *
- * @param object_type [in] The BACnet Object type of this object.
- * @note  object_instance [in] The ID number for this object.
- * @param rpm_property [in] Points to structure holding the Property,
- *                          Value, and Error information.
- */
-static void CheckIsWritableProperty(BACNET_OBJECT_TYPE object_type,
-    /* uint32_t object_instance, */
-    BACNET_PROPERTY_REFERENCE *rpm_property)
-{
-    bool bIsWritable = false;
-    if ((object_type == OBJECT_ANALOG_OUTPUT) ||
-        (object_type == OBJECT_BINARY_OUTPUT) ||
-        (object_type == OBJECT_COMMAND) ||
-        (object_type == OBJECT_MULTI_STATE_OUTPUT) ||
-        (object_type == OBJECT_ACCESS_DOOR)) {
-        if (rpm_property->propertyIdentifier == PROP_PRESENT_VALUE) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_AVERAGING) {
-        if ((rpm_property->propertyIdentifier == PROP_ATTEMPTED_SAMPLES) ||
-            (rpm_property->propertyIdentifier == PROP_WINDOW_INTERVAL) ||
-            (rpm_property->propertyIdentifier == PROP_WINDOW_SAMPLES)) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_FILE) {
-        if (rpm_property->propertyIdentifier == PROP_ARCHIVE) {
-            bIsWritable = true;
-        }
-    } else if ((object_type == OBJECT_LIFE_SAFETY_POINT) ||
-        (object_type == OBJECT_LIFE_SAFETY_ZONE)) {
-        if (rpm_property->propertyIdentifier == PROP_MODE) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_PROGRAM) {
-        if (rpm_property->propertyIdentifier == PROP_PROGRAM_CHANGE) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_PULSE_CONVERTER) {
-        if (rpm_property->propertyIdentifier == PROP_ADJUST_VALUE) {
-            bIsWritable = true;
-        }
-    } else if ((object_type == OBJECT_TRENDLOG) ||
-        (object_type == OBJECT_EVENT_LOG) ||
-        (object_type == OBJECT_TREND_LOG_MULTIPLE)) {
-        if ((rpm_property->propertyIdentifier == PROP_ENABLE) ||
-            (rpm_property->propertyIdentifier == PROP_RECORD_COUNT)) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_LOAD_CONTROL) {
-        if ((rpm_property->propertyIdentifier == PROP_REQUESTED_SHED_LEVEL) ||
-            (rpm_property->propertyIdentifier == PROP_START_TIME) ||
-            (rpm_property->propertyIdentifier == PROP_SHED_DURATION) ||
-            (rpm_property->propertyIdentifier == PROP_DUTY_WINDOW) ||
-            (rpm_property->propertyIdentifier == PROP_SHED_LEVELS)) {
-            bIsWritable = true;
-        }
-    } else if ((object_type == OBJECT_ACCESS_ZONE) ||
-        (object_type == OBJECT_ACCESS_USER) ||
-        (object_type == OBJECT_ACCESS_RIGHTS) ||
-        (object_type == OBJECT_ACCESS_CREDENTIAL)) {
-        if (rpm_property->propertyIdentifier == PROP_GLOBAL_IDENTIFIER) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_NETWORK_SECURITY) {
-        if ((rpm_property->propertyIdentifier ==
-                PROP_BASE_DEVICE_SECURITY_POLICY) ||
-            (rpm_property->propertyIdentifier ==
-                PROP_NETWORK_ACCESS_SECURITY_POLICIES) ||
-            (rpm_property->propertyIdentifier == PROP_SECURITY_TIME_WINDOW) ||
-            (rpm_property->propertyIdentifier == PROP_PACKET_REORDER_TIME) ||
-            (rpm_property->propertyIdentifier == PROP_LAST_KEY_SERVER) ||
-            (rpm_property->propertyIdentifier == PROP_SECURITY_PDU_TIMEOUT) ||
-            (rpm_property->propertyIdentifier == PROP_DO_NOT_HIDE)) {
-            bIsWritable = true;
-        }
-    }
-    /* Add more checking here, eg for Time_Synchronization_Recipients,
-     * Manual_Slave_Address_Binding, Object_Property_Reference,
-     * Life Safety Tracking_Value, Reliability, Mode,
-     * or Present_Value when Out_Of_Service is TRUE.
-     */
-    if (bIsWritable) {
-        fprintf(stdout, " Writable");
-    }
 }
 
 static const char *protocol_services_supported_text(size_t bit_index)
@@ -549,7 +444,6 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
     bool print_brace = false;
     KEY object_list_element;
-    bool isSequence = false; /* Ie, will need bracketing braces {} */
 
     if (rpm_property == NULL) {
         fprintf(stdout, "    -- Null Property data \n");
@@ -655,10 +549,6 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
 
                 if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
                     if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(value->tag ==
-                            BACNET_APPLICATION_TAG_OBJECT_ID); /* Something
-                                                                  not right
-                                                                  here */
                         break;
                     }
                     /* Store the object list so we can interrogate
@@ -685,27 +575,12 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                     }
                 } else if (rpm_property->propertyIdentifier ==
                     PROP_SUBORDINATE_LIST) {
-                    if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(value->tag ==
-                            BACNET_APPLICATION_TAG_OBJECT_ID); /* Something
-                                                                  not right
-                                                                  here */
+                    if (value->tag !=
+                        BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE) {
                         break;
                     }
-                    /* TODO: handle Sequence of { Device ObjID, Object ID }, */
-                    isSequence = true;
-                }
-
-                /* If the object is a Sequence, it needs its own bracketing
-                 * braces */
-                if (isSequence) {
-                    fprintf(stdout, "{");
                 }
                 bacapp_print_value(stdout, &object_value);
-                if (isSequence) {
-                    fprintf(stdout, "}");
-                }
-
                 if ((Walked_List_Index < Walked_List_Length) ||
                     (value->next != NULL)) {
                     /* There are more. */
@@ -773,8 +648,10 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                         /* Closing brace for this multi-valued array */
                         fprintf(stdout, " }");
                     }
-                    CheckIsWritableProperty(object_type, /* object_instance, */
-                        rpm_property);
+                    if (property_list_writable_member(object_type,
+                        rpm_property->propertyIdentifier)) {
+                        fprintf(stdout, " Writable");
+                    }
                     fprintf(stdout, "\n");
                 }
                 break;
@@ -911,13 +788,13 @@ static uint8_t Read_Properties(
  *  If the present state is GET_HEADING_RESPONSE, store the results
  *  in globals for later use.
  * @param rpm_data [in] The list of RPM data received.
- * @param myState [in] The current state.
+ * @param state [in] The current state.
  * @return The next state of the EPICS state machine, normally NEXT_OBJECT
  *         if the RPM got good data, or GET_PROPERTY_REQUEST if we have to
  *         singly process the list of Properties.
  */
 static EPICS_STATES ProcessRPMData(
-    BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES myState)
+    BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES state)
 {
     BACNET_READ_ACCESS_DATA *old_rpm_data;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -925,7 +802,7 @@ static EPICS_STATES ProcessRPMData(
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
     bool bSuccess = true;
-    EPICS_STATES nextState = myState; /* assume no change */
+    EPICS_STATES nextState = state; /* assume no change */
     /* Some flags to keep the output "pretty" -
      * wait and put these object lists at the end */
     bool bHasObjectList = false;
@@ -937,7 +814,7 @@ static EPICS_STATES ProcessRPMData(
         while (rpm_property) {
             /* For the GET_LIST_OF_ALL_RESPONSE case,
              * just keep what property this was */
-            if (myState == GET_LIST_OF_ALL_RESPONSE) {
+            if (state == GET_LIST_OF_ALL_RESPONSE) {
                 switch (rpm_property->propertyIdentifier) {
                     case PROP_OBJECT_LIST:
                         bHasObjectList = true; /* Will append below */
@@ -959,7 +836,7 @@ static EPICS_STATES ProcessRPMData(
                     value = value->next;
                     free(old_value);
                 }
-            } else if (myState == GET_HEADING_RESPONSE) {
+            } else if (state == GET_HEADING_RESPONSE) {
                 Property_Value_List[i++].value = rpm_property->value;
                 /* copy this pointer.
                  * On error, the pointer will be null
@@ -981,10 +858,10 @@ static EPICS_STATES ProcessRPMData(
     }
 
     /* Now determine the next state */
-    if (myState == GET_HEADING_RESPONSE) {
+    if (state == GET_HEADING_RESPONSE) {
         nextState = PRINT_HEADING;
         /* press ahead with or without the data */
-    } else if (bSuccess && (myState == GET_ALL_RESPONSE)) {
+    } else if (bSuccess && (state == GET_ALL_RESPONSE)) {
         nextState = NEXT_OBJECT;
     } else if (bSuccess) { /* and GET_LIST_OF_ALL_RESPONSE */
         /* Now append the properties we waited on. */
@@ -1135,8 +1012,8 @@ static int CheckCommandLineArgs(int argc, char *argv[])
             Target_Device_Object_Instance = strtol(anArg, NULL, 0);
             if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
                 fprintf(stdout,
-                    "Error: device-instance=%u - it must be less than %u\n",
-                    Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
+                    "Error: device-instance=%u - not greater than %u\n",
+                    Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                 print_usage(filename);
                 exit(0);
             }
@@ -1522,8 +1399,8 @@ int main(int argc, char *argv[])
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
-
         /* OK to proceed; see what we are up to now */
         switch (myState) {
             case INITIAL_BINDING:
@@ -1807,11 +1684,14 @@ int main(int argc, char *argv[])
                 do {
                     Object_List_Index++;
                     if (Object_List_Index < Keylist_Count(Object_List)) {
-                        nextKey = Keylist_Key(Object_List, Object_List_Index);
-                        myObject.type = KEY_DECODE_TYPE(nextKey);
-                        myObject.instance = KEY_DECODE_ID(nextKey);
-                        /* Don't re-list the Device Object among its objects */
-                        if (myObject.type == OBJECT_DEVICE) {
+                        if (Keylist_Index_Key(Object_List, Object_List_Index, &nextKey)) {
+                            myObject.type = KEY_DECODE_TYPE(nextKey);
+                            myObject.instance = KEY_DECODE_ID(nextKey);
+                            /* Don't re-list the Device Object among its objects */
+                            if (myObject.type == OBJECT_DEVICE) {
+                                continue;
+                            }
+                        } else {
                             continue;
                         }
                         /* Closing brace for the previous Object */

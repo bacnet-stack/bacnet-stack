@@ -29,7 +29,7 @@ static void testCalendar(void)
     int len = 0, test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = {0};
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int *pRequired = NULL;
     const int *pOptional = NULL;
     const int *pProprietary = NULL;
@@ -57,14 +57,16 @@ static void testCalendar(void)
         rpdata.object_property = *pRequired;
         rpdata.array_index = BACNET_ARRAY_ALL;
         len = Calendar_Read_Property(&rpdata);
-        zassert_not_equal(len, BACNET_STATUS_ERROR,
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
             "property '%s': failed to ReadProperty!\n",
             bactext_property_name(rpdata.object_property));
         if (len >= 0) {
-            test_len = bacapp_decode_known_property(rpdata.application_data,
-                len, &value, rpdata.object_type, rpdata.object_property);
-            zassert_equal(len, test_len,
-                "property '%s': failed to decode!\n",
+            test_len = bacapp_decode_known_property(
+                rpdata.application_data, len, &value, rpdata.object_type,
+                rpdata.object_property);
+            zassert_equal(
+                len, test_len, "property '%s': failed to decode!\n",
                 bactext_property_name(rpdata.object_property));
             /* check WriteProperty properties */
             wpdata.object_type = rpdata.object_type;
@@ -77,8 +79,8 @@ static void testCalendar(void)
             status = Calendar_Write_Property(&wpdata);
             if (!status) {
                 /* verify WriteProperty property is known */
-                zassert_not_equal(wpdata.error_code,
-                    ERROR_CODE_UNKNOWN_PROPERTY,
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
                     "property '%s': WriteProperty Unknown!\n",
                     bactext_property_name(rpdata.object_property));
             }
@@ -89,13 +91,16 @@ static void testCalendar(void)
         rpdata.object_property = *pOptional;
         rpdata.array_index = BACNET_ARRAY_ALL;
         len = Calendar_Read_Property(&rpdata);
-        zassert_not_equal(len, BACNET_STATUS_ERROR,
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
             "property '%s': failed to ReadProperty!\n",
             bactext_property_name(rpdata.object_property));
         if (len > 0) {
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            zassert_equal(len, test_len, "property '%s': failed to decode!\n",
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
+            zassert_equal(
+                len, test_len, "property '%s': failed to decode!\n",
                 bactext_property_name(rpdata.object_property));
             /* check WriteProperty properties */
             wpdata.object_type = rpdata.object_type;
@@ -108,8 +113,8 @@ static void testCalendar(void)
             status = Calendar_Write_Property(&wpdata);
             if (!status) {
                 /* verify WriteProperty property is known */
-                zassert_not_equal(wpdata.error_code,
-                    ERROR_CODE_UNKNOWN_PROPERTY,
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
                     "property '%s': WriteProperty Unknown!\n",
                     bactext_property_name(rpdata.object_property));
             }
@@ -182,7 +187,7 @@ static void testPresentValue(void)
     zassert_true(Calendar_Present_Value(instance), NULL);
 
     if (date.day > 1) {
-        value->type.DateRange.startdate.day --;
+        value->type.DateRange.startdate.day--;
         value->type.DateRange.enddate.day = date.day;
         zassert_true(Calendar_Present_Value(instance), NULL);
     }
@@ -214,7 +219,7 @@ static void testPresentValue(void)
     value->type.WeekNDay.weekofmonth = (date.day - 1) % 7 + 1;
     zassert_true(Calendar_Present_Value(instance), NULL);
     value->type.WeekNDay.weekofmonth++;
-    if (value->type.WeekNDay.weekofmonth >5)
+    if (value->type.WeekNDay.weekofmonth > 5)
         value->type.WeekNDay.weekofmonth = 1;
     zassert_false(Calendar_Present_Value(instance), NULL);
     value->type.WeekNDay.weekofmonth = 0xff;
@@ -241,10 +246,9 @@ ZTEST_SUITE(bacnet_calendar, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(calendar_tests,
-     ztest_unit_test(testCalendar),
-     ztest_unit_test(testPresentValue)
-     );
+    ztest_test_suite(
+        calendar_tests, ztest_unit_test(testCalendar),
+        ztest_unit_test(testPresentValue));
 
     ztest_run_test_suite(calendar_tests);
 }

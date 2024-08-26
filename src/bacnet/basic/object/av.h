@@ -1,30 +1,14 @@
-/**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-* Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-#ifndef AV_H
-#define AV_H
+/**
+ * @file
+ * @author Steve Karg
+ * @date 2006
+ * @brief API for a basic BACnet Analog Input Object implementation.
+ * An analog value object is an I/O object with a present-value that
+ * uses a single precision floating point data type.
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_BASIC_OBJECT_ANALOG_VALUE_H
+#define BACNET_BASIC_OBJECT_ANALOG_VALUE_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -41,39 +25,38 @@
 #include "bacnet/get_alarm_sum.h"
 #endif
 
+typedef struct analog_value_descr {
+    unsigned Event_State:3;
+    bool Out_Of_Service;
+    uint16_t Units;
+    float Present_Value;
+    float Prior_Value;
+    float COV_Increment;
+    bool Changed;
+    char* Object_Name;
+    char* Description;
+    BACNET_RELIABILITY Reliability;
+#if defined(INTRINSIC_REPORTING)
+    uint32_t Time_Delay;
+    uint32_t Notification_Class;
+    float High_Limit;
+    float Low_Limit;
+    float Deadband;
+    unsigned Limit_Enable:2;
+    unsigned Event_Enable:3;
+    unsigned Notify_Type:1;
+    ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
+    BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
+    /* time to generate event notification */
+    uint32_t Remaining_Time_Delay;
+    /* AckNotification information */
+    ACK_NOTIFICATION Ack_notify_data;
+#endif
+} ANALOG_VALUE_DESCR;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-    typedef struct analog_value_descr {
-        unsigned Event_State:3;
-        bool Out_Of_Service;
-        uint16_t Units;
-        float Present_Value;
-        float Prior_Value;
-        float COV_Increment;
-        bool Changed;
-        char* Object_Name;
-        char* Description;
-#if defined(INTRINSIC_REPORTING)
-        uint32_t Time_Delay;
-        uint32_t Notification_Class;
-        float High_Limit;
-        float Low_Limit;
-        float Deadband;
-        unsigned Limit_Enable:2;
-        unsigned Event_Enable:3;
-        unsigned Notify_Type:1;
-        ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
-        BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
-        /* time to generate event notification */
-        uint32_t Remaining_Time_Delay;
-        /* AckNotification information */
-        ACK_NOTIFICATION Ack_notify_data;
-#endif
-    } ANALOG_VALUE_DESCR;
-
-
     BACNET_STACK_EXPORT
     void Analog_Value_Property_Lists(
         const int **pRequired,

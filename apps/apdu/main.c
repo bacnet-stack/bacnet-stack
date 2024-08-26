@@ -198,7 +198,7 @@ static void print_help(char *filename)
  * @param buffer [in] The buffer to store the binary data.
  * @param buffer_len [in] The size of the buffer.
  */
-void Send_APDU_To_Network(
+static void Send_APDU_To_Network(
     BACNET_ADDRESS *target_address, uint8_t *buffer, size_t buffer_len)
 {
     int pdu_len = 0;

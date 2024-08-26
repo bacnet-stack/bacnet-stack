@@ -1,29 +1,11 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet Unconfirmed Change-of-Value
+ * Notification to the network
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -67,6 +49,9 @@ static void Init_Service_Handlers(void)
 
 static void print_usage(char *filename)
 {
+    printf("Sends a BACnet Unconfirmed Change-of-Value Notification\n"
+        "to the network.\n");
+    printf("\n");
     printf("Usage: %s pid device-id object-type object-instance "
         "time property tag value [priority] [index]\n", filename);
     printf("\n");
@@ -132,7 +117,7 @@ static void print_usage(char *filename)
 
 int main(int argc, char *argv[])
 {
-    char *value_string = NULL;
+    char *value_string;
     bool status = false;
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list;
@@ -176,8 +161,8 @@ int main(int argc, char *argv[])
         value_list.propertyArrayIndex = BACNET_ARRAY_ALL;
     }
 
-    if (cov_data.initiatingDeviceIdentifier >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (cov_data.initiatingDeviceIdentifier > BACNET_MAX_INSTANCE) {
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             cov_data.initiatingDeviceIdentifier, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -187,15 +172,15 @@ int main(int argc, char *argv[])
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\n",
+        fprintf(stderr, "object-instance=%u - not greater than %u\n",
             cov_data.monitoredObjectIdentifier.instance,
-            BACNET_MAX_INSTANCE + 1);
+            BACNET_MAX_INSTANCE);
         return 1;
     }
     if (cov_data.listOfValues->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "property-identifier=%u - it must be less than %u\n",
+        fprintf(stderr, "property-identifier=%u - not greater than %u\n",
             cov_data.listOfValues->propertyIdentifier,
-            MAX_BACNET_PROPERTY_ID + 1);
+            MAX_BACNET_PROPERTY_ID);
         return 1;
     }
     if (tag >= MAX_BACNET_APPLICATION_TAG) {

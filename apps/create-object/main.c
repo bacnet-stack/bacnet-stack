@@ -274,9 +274,9 @@ int main(int argc, char *argv[])
         } else {
             if (target_args == 0) {
                 object_instance = strtoul(argv[argi], NULL, 0);
-                if (object_instance >= BACNET_MAX_INSTANCE) {
+                if (object_instance > BACNET_MAX_INSTANCE) {
                     fprintf(stderr,
-                        "device-instance=%u - it must be less than %u\n",
+                        "device-instance=%u - not greater than %u\n",
                         object_instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -292,9 +292,9 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 2) {
                 object_instance = strtoul(argv[argi], NULL, 0);
-                if (object_instance >= BACNET_MAX_INSTANCE) {
+                if (object_instance > BACNET_MAX_INSTANCE) {
                     fprintf(stderr,
-                        "object-instance=%u - it must be less than %u\n",
+                        "object-instance=%u - not greater than %u\n",
                         Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -370,6 +370,8 @@ int main(int argc, char *argv[])
         if (mstimer_expired(&maintenance_timer)) {
             mstimer_reset(&maintenance_timer);
             tsm_timer_milliseconds(mstimer_interval(&maintenance_timer));
+            datalink_maintenance_timer(
+                mstimer_interval(&maintenance_timer)/1000L);
         }
         if (mstimer_expired(&apdu_timer)) {
             MyPrintHandler(Target_Object_Type, Target_Object_Instance,

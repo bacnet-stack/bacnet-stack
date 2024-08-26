@@ -1,28 +1,12 @@
-/**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
-#ifndef INDTEXT_H
-#define INDTEXT_H
+/**
+ * @file
+ * @brief API for index and text pairs lookup functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_INDEX_TEXT_H
+#define BACNET_INDEX_TEXT_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -39,6 +23,9 @@ typedef const struct {
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    BACNET_STACK_EXPORT
+    int indtext_stricmp(const char *a, const char *b);
 
 /*  Searches for a matching string and returns the index to the string
     in the parameter found_index.
@@ -98,13 +85,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     unsigned indtext_count(
         INDTEXT_DATA * data_list);
-
-
-#if !defined(__BORLANDC__) && !defined(_MSC_VER)
-    int stricmp(
-        const char *s1,
-        const char *s2);
-#endif
 
 #ifdef __cplusplus
 }

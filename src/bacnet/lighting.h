@@ -3,15 +3,10 @@
  * @brief API for BACnetLightingCommand and BACnetColorCommand
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date June 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef LIGHTING_H
-#define LIGHTING_H
+#ifndef BACNET_LIGHTING_H
+#define BACNET_LIGHTING_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -115,15 +110,15 @@ extern "C" {
     bool lighting_command_same(
         BACNET_LIGHTING_COMMAND * dst,
         BACNET_LIGHTING_COMMAND * src);
-        
+
     BACNET_STACK_EXPORT
     bool lighting_command_from_ascii(
-        BACNET_LIGHTING_COMMAND *value, 
+        BACNET_LIGHTING_COMMAND *value,
         const char *argv);
     BACNET_STACK_EXPORT
     int lighting_command_to_ascii(
-        const BACNET_LIGHTING_COMMAND *value, 
-        char *buf, 
+        const BACNET_LIGHTING_COMMAND *value,
+        char *buf,
         size_t buf_size);
 
     BACNET_STACK_EXPORT

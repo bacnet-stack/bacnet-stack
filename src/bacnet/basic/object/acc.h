@@ -1,11 +1,9 @@
 /**
  * @file
  * @brief Accumulator object header file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2017
- * @copyright 2017 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_BASIC_OBJECT_ACCUMULATOR_H
 #define BACNET_BASIC_OBJECT_ACCUMULATOR_H
@@ -82,7 +80,7 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     BACNET_STACK_EXPORT
-	BACNET_UNSIGNED_INTEGER Accumulator_Present_Value(uint32_t object_instance);
+    BACNET_UNSIGNED_INTEGER Accumulator_Present_Value(uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Accumulator_Present_Value_Set(
         uint32_t object_instance,
@@ -114,6 +112,3 @@ extern "C" {
     Accumulator_Name, Accumulator_Read_Property, Accumulator_Write_Property, \
     Accumulator_Property_Lists, NULL, NULL
 #endif
-
-
-

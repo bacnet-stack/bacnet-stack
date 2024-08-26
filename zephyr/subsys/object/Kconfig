@@ -6,9 +6,9 @@
 if BACNETSTACK
 
 config BACNET_USE_DYNAMIC_DESCRIPTION
-	bool "Use dynalic allocate for objects descriptions"
-	default false
-	help
-		Use dynalic allocate for objects descriptions
+    bool "Use dynalic allocate for objects descriptions"
+    default false
+    help
+        Use dynalic allocate for objects descriptions
 
 endif # BACNETSTACK

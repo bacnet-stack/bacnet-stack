@@ -45,22 +45,24 @@ static void testAtomicWriteFileAccess(BACNET_ATOMIC_WRITE_FILE_DATA *data)
     if (test_data.access == FILE_STREAM_ACCESS) {
         zassert_equal(
             test_data.type.stream.fileStartPosition,
-                data->type.stream.fileStartPosition, NULL);
+            data->type.stream.fileStartPosition, NULL);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
         zassert_equal(
             test_data.type.record.fileStartRecord,
-                data->type.record.fileStartRecord, NULL);
+            data->type.record.fileStartRecord, NULL);
         zassert_equal(
             test_data.type.record.returnedRecordCount,
-                data->type.record.returnedRecordCount, NULL);
+            data->type.record.returnedRecordCount, NULL);
     }
     zassert_equal(
         octetstring_length(&test_data.fileData[0]),
-            octetstring_length(&data->fileData[0]), NULL);
+        octetstring_length(&data->fileData[0]), NULL);
     zassert_equal(
-        memcmp(octetstring_value(&test_data.fileData[0]),
+        memcmp(
+            octetstring_value(&test_data.fileData[0]),
             octetstring_value(&data->fileData[0]),
-            octetstring_length(&test_data.fileData[0])), 0, NULL);
+            octetstring_length(&test_data.fileData[0])),
+        0, NULL);
     /* test APDU too short */
     while (apdu_len) {
         apdu_len--;
@@ -98,8 +100,7 @@ static void testAtomicWriteFile(void)
     return;
 }
 
-static void testAtomicWriteFileAckAccess(
-    BACNET_ATOMIC_WRITE_FILE_DATA *data)
+static void testAtomicWriteFileAckAccess(BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     BACNET_ATOMIC_WRITE_FILE_DATA test_data = { 0 };
     uint8_t apdu[480] = { 0 };
@@ -130,11 +131,11 @@ static void testAtomicWriteFileAckAccess(
     if (test_data.access == FILE_STREAM_ACCESS) {
         zassert_equal(
             test_data.type.stream.fileStartPosition,
-                data->type.stream.fileStartPosition, NULL);
+            data->type.stream.fileStartPosition, NULL);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
         zassert_equal(
             test_data.type.record.fileStartRecord,
-                data->type.record.fileStartRecord, NULL);
+            data->type.record.fileStartRecord, NULL);
     }
     /* test APDU too short */
     while (apdu_len) {
@@ -171,12 +172,14 @@ static void testAtomicWriteFileMalformed(void)
 {
     uint8_t apdu[480] = { 0 };
     /* payloads with malformation */
-    uint8_t payload_1[] = { 0xc4, 0x02, 0x80, 0x00, 0x00, 0x0e, 0x35, 0xff,
-        0x5e, 0xd5, 0xc0, 0x85, 0x0a, 0x62, 0x64, 0x0a, 0x0f };
-    uint8_t payload_2[] = { 0xc4, 0x02, 0x80, 0x00, 0x00, 0x0e, 0x35, 0xff,
-        0xc4, 0x4d, 0x92, 0xd9, 0x0a, 0x62, 0x64, 0x0a, 0x0f, 0x0f, 0x0f, 0x0f,
-        0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
-        0x0f };
+    uint8_t payload_1[] = { 0xc4, 0x02, 0x80, 0x00, 0x00, 0x0e,
+                            0x35, 0xff, 0x5e, 0xd5, 0xc0, 0x85,
+                            0x0a, 0x62, 0x64, 0x0a, 0x0f };
+    uint8_t payload_2[] = { 0xc4, 0x02, 0x80, 0x00, 0x00, 0x0e, 0x35,
+                            0xff, 0xc4, 0x4d, 0x92, 0xd9, 0x0a, 0x62,
+                            0x64, 0x0a, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
+                            0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
+                            0x0f, 0x0f, 0x0f, 0x0f, 0x0f };
     BACNET_ATOMIC_WRITE_FILE_DATA data = { 0 };
     int len = 0;
     uint8_t test_invoke_id = 0;
@@ -203,17 +206,15 @@ static void testAtomicWriteFileMalformed(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(awf_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(awf_tests,
-     ztest_unit_test(testAtomicWriteFile),
-     ztest_unit_test(testAtomicWriteFileAck),
-     ztest_unit_test(testAtomicWriteFileMalformed)
-     );
+    ztest_test_suite(
+        awf_tests, ztest_unit_test(testAtomicWriteFile),
+        ztest_unit_test(testAtomicWriteFileAck),
+        ztest_unit_test(testAtomicWriteFileMalformed));
 
     ztest_run_test_suite(awf_tests);
 }

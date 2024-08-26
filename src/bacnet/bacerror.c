@@ -1,36 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet error encode and decode helper functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -43,14 +17,14 @@
 /**
  * @brief Encodes BACnet Error class and code values into a PDU
  *  From clause 21. FORMAL DESCRIPTION OF APPLICATION PROTOCOL DATA UNITS
- * 
+ *
  *      Error ::= SEQUENCE {
- *          -- NOTE: The valid combinations of error-class and error-code 
+ *          -- NOTE: The valid combinations of error-class and error-code
  *          -- are defined in Clause 18.
  *          error-class ENUMERATED,
  *          error-code ENUMERATED
  *      }
- * 
+ *
  * @param apdu - buffer for the data to be encoded, or NULL for length
  * @param invoke_id - invokeID to be encoded
  * @param service - BACnet service to be encoded
@@ -67,7 +41,7 @@ int bacerror_encode_apdu(uint8_t *apdu,
     /* length of the specific element of the PDU */
     int len = 0;
     /* total length of the apdu, return value */
-    int apdu_len = 0; 
+    int apdu_len = 0;
 
     if (apdu) {
         apdu[0] = PDU_TYPE_ERROR;
@@ -95,9 +69,9 @@ int bacerror_encode_apdu(uint8_t *apdu,
 /**
  * @brief Decodes from bytes a BACnet Error service APDU
  *  From clause 21. FORMAL DESCRIPTION OF APPLICATION PROTOCOL DATA UNITS
- * 
+ *
  *  Error ::= SEQUENCE {
- *      -- NOTE: The valid combinations of error-class and error-code 
+ *      -- NOTE: The valid combinations of error-class and error-code
  *      -- are defined in Clause 18.
  *      error-class ENUMERATED,
  *      error-code ENUMERATED

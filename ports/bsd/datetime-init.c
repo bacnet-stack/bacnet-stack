@@ -15,8 +15,26 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include "bacnet/basic/service/h_ts.h"
 #include "bacport.h"
 #include "bacnet/datetime.h"
+
+
+/**
+ * @brief Set offset from the system clock.
+ * @param bdate BACnet Date structure to hold local time
+ * @param btime BACnet Time structure to hold local time
+ * @param utc - True for UTC sync, False for Local time
+ * @return True if time is set
+ */
+void datetime_timesync(
+    BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
+{
+    (void)bdate;
+    (void)btime;
+    (void)utc;
+    return;
+}
 
 /**
  * @brief Get the date, time, timezone, and UTC offset from system
@@ -51,7 +69,7 @@ bool datetime_local(BACNET_DATE *bdate,
          *   int    tm_wday  Day of week [0,6] (Sunday =0).
          *   int    tm_yday  Day of year [0,365].
          *   int    tm_isdst Daylight Savings flag.
-	 *   long   tm_gmtoff offset from UTC in seconds
+         *   long   tm_gmtoff offset from UTC in seconds
          */
         datetime_set_date(bdate, (uint16_t)tblock->tm_year + 1900,
             (uint8_t)tblock->tm_mon + 1, (uint8_t)tblock->tm_mday);

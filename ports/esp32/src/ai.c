@@ -3,24 +3,7 @@
  * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
  * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 
@@ -204,7 +187,7 @@ void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
 bool Analog_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";
+    static char text[32] = "";
     unsigned int index;
     bool status = false;
 
@@ -215,8 +198,8 @@ bool Analog_Input_Object_Name(
     else {
         index = Analog_Input_Instance_To_Index(object_instance);
         if (index < MAX_ANALOG_INPUTS) {
-            sprintf(text_string, "ANALOG INPUT %lu", (unsigned long)index);
-            status = characterstring_init_ansi(object_name, text_string);
+            snprintf(text, sizeof(text), "ANALOG INPUT %lu", (unsigned long)index);
+            status = characterstring_init_ansi(object_name, text);
         }
     }
     return status;
@@ -340,7 +323,7 @@ void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     index = Analog_Input_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_INPUTS) {
-        /* 	BACnet Testing Observed Incident oi00104
+        /*  BACnet Testing Observed Incident oi00104
                 The Changed flag was not being set when a client wrote to the
         Out-of-Service bit. Revealed by BACnet Test Client v1.8.16 (
         www.bac-test.com/bacnet-test-client-download ) BC 135.1: 8.2.1-A BC

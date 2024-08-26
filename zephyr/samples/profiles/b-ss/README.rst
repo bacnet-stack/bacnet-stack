@@ -7,7 +7,7 @@ Overview
 ********
 
 This is a simple application demonstrating configuration of a
-BACnet B-SS device profile.
+BACnet B-SS (simple sensor) device profile.
 
 Requirements
 ************
@@ -26,7 +26,7 @@ The sample can be built for several platforms.
 QEMU testing
 ************
 
-The main logic of work can be found at the link 
+The main logic of work can be found at the link
 https://docs.zephyrproject.org/3.0.0/guides/networking/qemu_setup.html
 
 Steps to testing
@@ -38,7 +38,7 @@ Steps to testing
     first: cd ~/net-tools && ./loop-socat.sh
     second: cd ~/net-tools && sudo ./loop-slip-tap.sh
 3 Configure prj.conf
-    The net-tools creates and uses network 192.0.2.0/24 as `tap0` interface. 
+    The net-tools creates and uses network 192.0.2.0/24 as `tap0` interface.
     Need change prj.conf:
     CONFIG_NET_CONFIG_MY_IPV4_ADDR="192.0.2.1"
     CONFIG_NET_CONFIG_PEER_IPV4_ADDR="192.0.2.2"

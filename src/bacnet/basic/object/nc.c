@@ -1,33 +1,11 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *   Additional changes, Copyright (c) 2018 Ed Hague <edward@bac-test.com>
- *
- *   2018.06.17 -    Attempting to write to Object_Name returned
- *UNKNOWN_PROPERTY. Now returns WRITE_ACCESS_DENIED
- *
- *********************************************************************/
-
+/**
+ * @file
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @author Ed Hague <edward@bac-test.com>
+ * @date 2011, 2018
+ * @brief A basic BACnet Notification Class object
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -151,14 +129,15 @@ unsigned Notification_Class_Instance_To_Index(uint32_t object_instance)
 bool Notification_Class_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    static char text[32] = ""; /* okay for single thread */
     unsigned int index;
     bool status = false;
 
     index = Notification_Class_Instance_To_Index(object_instance);
     if (index < MAX_NOTIFICATION_CLASSES) {
-        sprintf(text_string, "NOTIFICATION CLASS %lu", (unsigned long)index);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(text, sizeof(text), "NOTIFICATION CLASS %lu",
+            (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;
@@ -485,6 +464,83 @@ void Notification_Class_Get_Priorities(
         pPriorityArray[i] = CurrentNotify->Priority[i];
 }
 
+bool Notification_Class_Get_Recipient_List(
+    uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList)
+{
+  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+  if (object_index < MAX_NOTIFICATION_CLASSES) {
+    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    int i;
+
+    for (i = 0; i < NC_MAX_RECIPIENTS; i++)
+      pRecipientList[i] = CurrentNotify->Recipient_List[i];
+  } else {
+    return false; /* unknown object */
+  }
+
+  return true;
+}
+
+bool Notification_Class_Set_Recipient_List(
+    uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList)
+{
+  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+  if (object_index < MAX_NOTIFICATION_CLASSES) {
+    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    int i;
+
+    for (i = 0; i < NC_MAX_RECIPIENTS; i++)
+      CurrentNotify->Recipient_List[i] = pRecipientList[i];
+  } else {
+    return false; /* unknown object */
+  }
+
+  return true;
+}
+
+void Notification_Class_Set_Priorities(
+    uint32_t Object_Instance, uint32_t *pPriorityArray)
+{
+  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+  if (object_index < MAX_NOTIFICATION_CLASSES) {
+    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    int i;
+
+    for (i = 0; i < 3; i++)
+      if (pPriorityArray[i] <= 255)
+        CurrentNotify->Priority[i] = pPriorityArray[i];
+  }
+}
+
+void Notification_Class_Get_Ack_Required(
+    uint32_t Object_Instance, uint8_t *pAckRequired)
+{
+    uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+    if (object_index < MAX_NOTIFICATION_CLASSES) {
+      NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+      *pAckRequired = CurrentNotify->Ack_Required;
+    } else {
+        *pAckRequired = 0;
+        return; /* unknown object */
+    }
+}
+
+void Notification_Class_Set_Ack_Required(
+    uint32_t Object_Instance, uint8_t Ack_Required)
+{
+    uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+
+    if (object_index < MAX_NOTIFICATION_CLASSES) {
+        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+        CurrentNotify->Ack_Required = Ack_Required;
+    }
+}
+
+
 static bool IsRecipientActive(
     BACNET_DESTINATION *pBacDest, uint8_t EventToState)
 {
@@ -495,20 +551,20 @@ static bool IsRecipientActive(
         case EVENT_STATE_OFFNORMAL:
         case EVENT_STATE_HIGH_LIMIT:
         case EVENT_STATE_LOW_LIMIT:
-            if (bitstring_bit(
+            if (!bitstring_bit(
                     &pBacDest->Transitions, TRANSITION_TO_OFFNORMAL)) {
                 return false;
             }
             break;
 
         case EVENT_STATE_FAULT:
-            if (bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_FAULT)) {
+            if (!bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_FAULT)) {
                 return false;
             }
             break;
 
         case EVENT_STATE_NORMAL:
-            if (bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_NORMAL)) {
+            if (!bitstring_bit(&pBacDest->Transitions, TRANSITION_TO_NORMAL)) {
                 return false;
             }
             break;
@@ -525,12 +581,14 @@ static bool IsRecipientActive(
         return false;
     }
     /* valid FromTime */
-    if (datetime_compare_time(&DateTime.time, &pBacDest->FromTime) < 0)
+    if (datetime_compare_time(&DateTime.time, &pBacDest->FromTime) < 0) {
         return false;
+    }
 
     /* valid ToTime */
-    if (datetime_compare_time(&pBacDest->ToTime, &DateTime.time) < 0)
+    if (datetime_compare_time(&pBacDest->ToTime, &DateTime.time) < 0) {
         return false;
+    }
 
     return true;
 }

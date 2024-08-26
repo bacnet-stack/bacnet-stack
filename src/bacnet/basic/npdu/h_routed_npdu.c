@@ -1,30 +1,13 @@
-/**************************************************************************
- *
- * Copyright (C) 2010 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-/* Acknowledging the contribution of code and ideas used here that
- * came from Paul Chapman's vmac demo project. */
-
+/**
+ * @file
+ * @brief Handles messages at the NPDU level of the BACnet
+ * stack, including routing and network control messages.
+ * @author Tom Brennan <tbrennan3@users.sourceforge.net>
+ * @note Acknowledging the contribution of code and ideas used here that
+ * came from Paul Chapman's vmac demo project.
+ * @date 2010
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
@@ -39,13 +22,13 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
+#if defined(BACDL_BIP)
+#include "bacnet/basic/bbmd/h_bbmd.h"
+#endif
 
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
-
-/** @file h_routed_npdu.c  Handles messages at the NPDU level of the BACnet
- * stack, including routing and network control messages. */
 
 /** Handler to manage the Network Layer Control Messages received in a packet.
  *  This handler is called if the NCPI bit 7 indicates that this packet is a
@@ -59,10 +42,10 @@
  * @param DNET_list [in] List of our reachable downstream BACnet Network
  * numbers. Normally just one valid entry; terminated with a -1 value.
  * @param npdu_data [in] Contains a filled-out structure with information
- * 					 decoded from the NCPI and other NPDU
+ *                   decoded from the NCPI and other NPDU
  * bytes.
  *  @param npdu [in]  Buffer containing the rest of the NPDU, following the
- *  				 bytes that have already been decoded.
+ *                   bytes that have already been decoded.
  *  @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
 static void network_control_handler(BACNET_ADDRESS *src,

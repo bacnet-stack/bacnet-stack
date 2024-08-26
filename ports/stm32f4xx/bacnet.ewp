@@ -78,7 +78,7 @@
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
-                    <state>STM32F429ZI	ST STM32F429ZI</state>
+                    <state>STM32F429ZI  ST STM32F429ZI</state>
                 </option>
                 <option>
                     <name>GenLowLevelInterface</name>
@@ -138,7 +138,7 @@
                 </option>
                 <option>
                     <name>GFPUDeviceSlave</name>
-                    <state>STM32F429ZI	ST STM32F429ZI</state>
+                    <state>STM32F429ZI  ST STM32F429ZI</state>
                 </option>
                 <option>
                     <name>FPU2</name>
@@ -224,9 +224,10 @@
                     <state>USE_STDPERIPH_DRIVER</state>
                     <state>STM32F4XX</state>
                     <state>BACDL_MSTP</state>
-                    <state>MAX_APDU=1476</state>
+                    <state>MAX_APDU=480</state>
                     <state>BIG_ENDIAN=0</state>
                     <state>MAX_TSM_TRANSACTIONS=1</state>
+                    <state>BACAPP_MINIMAL</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -1052,6 +1053,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\abort.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\bacaction.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\bacaddr.c</name>
         </file>
         <file>
@@ -1164,6 +1168,36 @@
         </file>
     </group>
     <group>
+        <name>BACnet Basic Objects</name>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\ai.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\ao.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\av.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\bi.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\bo.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\bv.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\ms-input.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\mso.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\object\msv.c</name>
+        </file>
+    </group>
+    <group>
         <name>BACnet Basic Services</name>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_apdu.c</name>
@@ -1209,6 +1243,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\fifo.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\keylist.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\mstimer.c</name>

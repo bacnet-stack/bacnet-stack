@@ -1,11 +1,12 @@
 /**
-* @file
-* @author Steve Karg
-* @date 2004
+ * @file
+ * @brief Generic interrupt safe FIFO library for deeply embedded system.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
 */
-#ifndef FIFO_H
-#define FIFO_H
-
+#ifndef BACNET_SYS_FIFO_H
+#define BACNET_SYS_FIFO_H
 #include <stdint.h>
 #include <stdbool.h>
 /* BACnet Stack defines - first */
@@ -76,6 +77,12 @@ extern "C" {
     BACNET_STACK_EXPORT
     uint8_t FIFO_Peek(
         FIFO_BUFFER const *b);
+
+    BACNET_STACK_EXPORT
+    unsigned FIFO_Peek_Ahead(
+        FIFO_BUFFER const *b,
+        uint8_t* data_bytes,
+        unsigned length);
 
     BACNET_STACK_EXPORT
     uint8_t FIFO_Get(

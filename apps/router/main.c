@@ -9,25 +9,7 @@
  *
  * @section LICENSE
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
@@ -59,7 +41,7 @@ ROUTER_PORT *head = NULL; /* pointer to list of router ports */
 
 int port_count;
 
-void print_help();
+void print_help(void);
 
 bool read_config(char *filepath);
 
@@ -67,17 +49,17 @@ bool parse_cmd(int argc, char *argv[]);
 
 void init_port_threads(ROUTER_PORT *port_list);
 
-bool init_router();
+bool init_router(void);
 
-void cleanup();
+void cleanup(void);
 
 void print_msg(BACMSG *msg);
 
 uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff);
 
-uint16_t get_next_free_dnet();
+uint16_t get_next_free_dnet(void);
 
-int kbhit();
+int kbhit(void);
 
 inline bool is_network_msg(BACMSG *msg);
 
@@ -199,7 +181,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void print_help()
+void print_help(void)
 {
     printf(
         "Usage: router <init_method> [init_parameters]\n"
@@ -667,7 +649,7 @@ void init_port_threads(ROUTER_PORT *port_list)
     }
 }
 
-bool init_router()
+bool init_router(void)
 {
     MSGBOX_ID msgboxid;
     ROUTER_PORT *port;
@@ -705,7 +687,7 @@ bool init_router()
     return true;
 }
 
-void cleanup()
+void cleanup(void)
 {
     ROUTER_PORT *port;
     BACMSG msg;
@@ -819,7 +801,7 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     return buff_len;
 }
 
-int kbhit()
+int kbhit(void)
 {
     static const int STDIN = 0;
     static bool initialized = false;
@@ -849,7 +831,7 @@ bool is_network_msg(BACMSG *msg)
     return control_byte & 0x80; /* check 7th bit */
 }
 
-uint16_t get_next_free_dnet()
+uint16_t get_next_free_dnet(void)
 {
     ROUTER_PORT *port = head;
     uint16_t i = 1;

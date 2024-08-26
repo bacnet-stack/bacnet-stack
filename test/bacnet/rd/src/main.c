@@ -20,7 +20,8 @@
 /**
  * @brief Test
  */
-static int rd_decode_apdu(uint8_t *apdu,
+static int rd_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_REINITIALIZED_STATE *state,
@@ -96,7 +97,8 @@ static void Test_ReinitializeDevice_Service(
             continue;
         }
         len = rd_decode_apdu(apdu, apdu_len, NULL, NULL, NULL);
-        zassert_true(len < 0, "len=%d apdu_len=%d password='%s'", len, apdu_len,
+        zassert_true(
+            len < 0, "len=%d apdu_len=%d password='%s'", len, apdu_len,
             password_string);
     }
 }

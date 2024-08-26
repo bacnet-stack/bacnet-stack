@@ -1,29 +1,11 @@
-/**************************************************************************
- *
- * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* environment variables used for the command line tools */
+/**
+ * @file
+ * @brief Environment variables used for the BACnet command line tools
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ * @ingroup DataLink
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -36,6 +18,11 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/tsm/tsm.h"
+#if defined(BACDL_BIP)
+#include "bacnet/datalink/bip.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
+#endif
+
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
@@ -195,7 +182,8 @@ static int bbmd_register_as_foreign_device(void)
     } else {
         for (entry_number = 1; entry_number <= 128; entry_number++) {
             bdt_entry_valid = false;
-            sprintf(bbmd_env, "BACNET_BDT_ADDR_%u", entry_number);
+            snprintf(
+                bbmd_env, sizeof(bbmd_env), "BACNET_BDT_ADDR_%u", entry_number);
             pEnv = getenv(bbmd_env);
             if (pEnv) {
                 bdt_entry_valid =
@@ -212,7 +200,9 @@ static int bbmd_register_as_foreign_device(void)
             }
             if (bdt_entry_valid) {
                 bdt_entry_port = 0xBAC0;
-                sprintf(bbmd_env, "BACNET_BDT_PORT_%u", entry_number);
+                snprintf(
+                    bbmd_env, sizeof(bbmd_env), "BACNET_BDT_PORT_%u",
+                    entry_number);
                 pEnv = getenv(bbmd_env);
                 if (pEnv) {
                     bdt_entry_port = strtol(pEnv, NULL, 0);
@@ -230,7 +220,9 @@ static int bbmd_register_as_foreign_device(void)
                 /* broadcast mask */
                 bvlc_broadcast_distribution_mask_from_host(
                     &BBMD_Table_Entry.broadcast_mask, 0xFFFFFFFF);
-                sprintf(bbmd_env, "BACNET_BDT_MASK_%u", entry_number);
+                snprintf(
+                    bbmd_env, sizeof(bbmd_env), "BACNET_BDT_MASK_%u",
+                    entry_number);
                 pEnv = getenv(bbmd_env);
                 if (pEnv) {
                     c = sscanf(

@@ -1,31 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2005,2010 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/** @file gw_device.c  Functions that extend the Device object to support
- * routing. */
-
+/**
+ * @file
+ * @brief Functions that extend the Device object to support routing.
+ * @author Tom Brennan <tbrennan3@users.sourceforge.net>
+ * @author Peter Mc Shane <petermcs@users.sourceforge.net>
+ * @author Piotr Grudzinski <bacpack@users.sourceforge.net>
+ * @date October 2010
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -62,9 +43,7 @@
 /* os specific includes */
 #include "bacnet/basic/sys/mstimer.h"
 
-/* local forward and external prototypes */
-extern int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
-extern bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
+/* forward prototypes */
 int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
 bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
@@ -186,7 +165,7 @@ BACNET_ADDRESS *Get_Routed_Device_Address(int idx)
  * devices with routing.
  *
  * @param my_address [out] Points to the currently active Device Object's
- * 							BACnet address.
+ *                         BACnet address.
  */
 void routed_get_my_address(BACNET_ADDRESS *my_address)
 {
@@ -248,13 +227,13 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
  * functions.
  *
  * @param dest [in] The BACNET_ADDRESS of the message's destination.
- * 		   If the Length of the mac_adress[] field is 0, then this is a
+ *         If the Length of the mac_adress[] field is 0, then this is a
  * MAC broadcast.  Otherwise, size is determined by the DLL type (eg, 6 for BIP
  * and 2 for MSTP).
  * @param DNET_list [in] List of our reachable downstream BACnet Network
  * numbers. Normally just one valid entry; terminated with a -1 value.
  * @param cursor [in,out] The concept of the cursor is that it is a starting
- * 		   "hint" for the search; on return, it is updated to provide
+ *         "hint" for the search; on return, it is updated to provide
  * the cursor value to use with a subsequent GetNext call, or it equals -1 if
  * there are no further matches. Set it to 0 on entry to access the main,
  * gateway Device entry, or to start looping through the routed devices.
@@ -262,7 +241,7 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
  *         calling function should not alter or interpret it.
  *
  * @return True if the MAC addresses match (or if BACNET_BROADCAST_NETWORK and
- * 		   the dest->len is 0, meaning MAC bcast, so it's an automatic
+ *         the dest->len is 0, meaning MAC bcast, so it's an automatic
  * match). Else False if no match or invalid idx is given; the cursor will be
  * returned as -1 in these cases.
  */
@@ -328,12 +307,12 @@ bool Routed_Device_GetNext(BACNET_ADDRESS *dest, int *DNET_list, int *cursor)
  *  or local or else broadcast.
  *
  * @param dest_net [in] The BACnet network number of a message's destination.
- * 		   Success if it is our virtual network number, or 0 (local for
+ *         Success if it is our virtual network number, or 0 (local for
  * the gateway, or 0xFFFF for a broadcast network number.
  * @param DNET_list [in] List of our reachable downstream BACnet Network
  * numbers. Normally just one valid entry; terminated with a -1 value.
  * @return True if matches our virtual network, or is for the local network
- * 			Device (the gateway), or is BACNET_BROADCAST_NETWORK,
+ *          Device (the gateway), or is BACNET_BROADCAST_NETWORK,
  * which is an automatic match. Else False if not a reachable network.
  */
 bool Routed_Device_Is_Valid_Network(uint16_t dest_net, int *DNET_list)
@@ -361,7 +340,7 @@ bool Routed_Device_Is_Valid_Network(uint16_t dest_net, int *DNET_list)
 
 uint32_t Routed_Device_Index_To_Instance(unsigned index)
 {
-    index = index;
+    (void)index;
     return Devices[iCurrent_Device_Idx].bacObj.Object_Instance_Number;
 }
 

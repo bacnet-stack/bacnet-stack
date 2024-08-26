@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 
@@ -44,10 +27,6 @@
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
-
-/* forward prototype */
-int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
-bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 static struct my_object_functions {
     BACNET_OBJECT_TYPE Object_Type;
@@ -81,7 +60,7 @@ static struct my_object_functions {
    properties that are writable or that may change.
    The properties that are constant can be hard coded
    into the read-property encoding. */
-static uint32_t Object_Instance_Number = 103;
+static uint32_t Object_Instance_Number = BACNET_MAX_INSTANCE;
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static BACNET_CHARACTER_STRING My_Object_Name;
 static uint32_t Database_Revision;
@@ -457,9 +436,8 @@ void Device_Init(object_functions_t *object_table)
         pObject++;
     }
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-    if (Object_Instance_Number >= BACNET_MAX_INSTANCE) {
-        Object_Instance_Number = 103;
-        srand(Object_Instance_Number);
+    if (Object_Instance_Number > BACNET_MAX_INSTANCE) {
+        Object_Instance_Number = BACNET_MAX_INSTANCE;
     }
     characterstring_init_ansi(&My_Object_Name, "stm32-design-challenge-103");
 }

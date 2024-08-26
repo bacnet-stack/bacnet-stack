@@ -2,10 +2,10 @@
  * @file
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date February 2023
- * @brief Datalink MS/TP Interface
- *
- * SPDX-License-Identifier: MIT
- *
+ * @brief Implementation of the Network Layer using BACnet MS/TP transport
+ * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLMSTP BACnet MS/TP DataLink Network Layer
+ * @ingroup DataLink
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -152,8 +152,8 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
     offset = bacnet_npdu_decode(
-        &request_pdu[0], request_pdu_len, NULL, &request.address, 
-	&request.npdu_data);
+        &request_pdu[0], request_pdu_len, NULL, &request.address,
+        &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -170,8 +170,8 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     /* decode the reply data */
     bacnet_address_copy(&reply.address, dest_address);
     offset = bacnet_npdu_decode(
-        &reply_pdu[0], reply_pdu_len, &reply.address, NULL, 
-	&reply.npdu_data);
+        &reply_pdu[0], reply_pdu_len, &reply.address, NULL,
+        &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
@@ -246,7 +246,6 @@ uint16_t MSTP_Get_Reply(
 {
     uint16_t pdu_len = 0;
     bool matched = false;
-    struct dlmstp_packet packet = { 0 };
     struct dlmstp_user_data_t *user = NULL;
     struct dlmstp_packet *pkt;
 
@@ -270,7 +269,7 @@ uint16_t MSTP_Get_Reply(
     }
     /* convert the PDU into the MSTP Frame */
     pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
-        mstp_port->OutputBufferSize, pkt->frame_type, packet.address.mac[0],
+        mstp_port->OutputBufferSize, pkt->frame_type, pkt->address.mac[0],
         mstp_port->This_Station, &pkt->pdu[0], pkt->pdu_len);
     user->Statistics.transmit_pdu_counter++;
     (void)Ringbuf_Pop(&user->PDU_Queue, NULL);
@@ -671,7 +670,7 @@ void dlmstp_set_baud_rate(uint32_t baud)
         /* Tframe_abort=60 bit times, not to exceed 100 milliseconds.*/
         if (MSTP_Port->Tframe_abort <= 7) {
             /* within baud range, so auto-calculate range based on baud */
-            MSTP_Port->Tframe_abort = 1+((60*1000UL)/baud); 
+            MSTP_Port->Tframe_abort = 1+((60*1000UL)/baud);
         }
         /* Tturnaround=40 bit times */
         MSTP_Port->Tturnaround_timeout = 1 + ((Tturnaround * 1000) / baud);

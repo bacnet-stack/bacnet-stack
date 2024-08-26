@@ -1,28 +1,12 @@
-/**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
-#ifndef BACTEXT_H
-#define BACTEXT_H
+/**
+ * @file
+ * @brief BACnet text enumerations lookup functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_TEXT_H
+#define BACNET_TEXT_H
 
 /* tiny implementations have no need to print */
 #if PRINT_ENABLED
@@ -50,9 +34,9 @@ extern "C" {
     const char *bactext_application_tag_name(
         unsigned index);
     BACNET_STACK_EXPORT
-	bool bactext_application_tag_index(
-		const char *search_name,
-		unsigned *found_index);
+    bool bactext_application_tag_index(
+        const char *search_name,
+        unsigned *found_index);
     BACNET_STACK_EXPORT
     const char *bactext_object_type_name(
         unsigned index);
@@ -64,12 +48,6 @@ extern "C" {
     bool bactext_object_type_strtol(
         const char *search_name,
         unsigned *found_index);
-    BACNET_STACK_EXPORT
-    const char *bactext_notify_type_name(
-        unsigned index);
-    BACNET_STACK_EXPORT
-    const char *bactext_event_type_name(
-        unsigned index);
     BACNET_STACK_EXPORT
     bool bactext_property_name_proprietary(
         unsigned index);
@@ -161,9 +139,9 @@ extern "C" {
     const char *bactext_segmentation_name(
         unsigned index);
     BACNET_STACK_EXPORT
-	bool bactext_segmentation_index(
-		const char *search_name,
-		unsigned *found_index);
+    bool bactext_segmentation_index(
+        const char *search_name,
+        unsigned *found_index);
     BACNET_STACK_EXPORT
     const char *bactext_node_type_name(
         unsigned index);
@@ -191,7 +169,7 @@ extern "C" {
         unsigned index);
 
     BACNET_STACK_EXPORT
-	const char *bactext_life_safety_state_name(
+    const char *bactext_life_safety_state_name(
         unsigned index);
 
     BACNET_STACK_EXPORT
@@ -204,7 +182,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool bactext_lighting_operation_strtol(
-        const char *search_name, 
+        const char *search_name,
         unsigned *found_index);
 
     BACNET_STACK_EXPORT
@@ -213,20 +191,26 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool bactext_binary_lighting_pv_names_strtol(
-        const char *search_name, 
+        const char *search_name,
         unsigned *found_index);
 
     BACNET_STACK_EXPORT
-	const char *bactext_lighting_in_progress(
-		unsigned index);
+    const char *bactext_lighting_in_progress(
+        unsigned index);
 
     BACNET_STACK_EXPORT
-	const char *bactext_lighting_transition(
-		unsigned index);
+    const char *bactext_lighting_transition(
+        unsigned index);
 
     BACNET_STACK_EXPORT
     const char *bactext_color_operation_name(
         unsigned index);
+
+    BACNET_STACK_EXPORT
+    const char *bactext_shed_state_name(unsigned index);
+
+    BACNET_STACK_EXPORT
+    const char *bactext_shed_level_type_name(unsigned index);
 
 #ifdef __cplusplus
 }

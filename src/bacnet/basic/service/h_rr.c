@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
@@ -81,6 +64,7 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             (pRequest->array_index != 0) &&
             (pRequest->array_index != BACNET_ARRAY_ALL)) {
             /* Array access attempted on a non array property */
+            pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         } else if ((pRequest->RequestType != RR_READ_ALL) &&
             ((PropInfo.RequestTypes & pRequest->RequestType) == 0)) {
@@ -101,6 +85,10 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         /* Either we don't support RR for this property yet or it is not a list
          * or array of lists */
         pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
+        if (pRequest->array_index != BACNET_ARRAY_ALL) {
+            pRequest->error_class = ERROR_CLASS_PROPERTY;
+            pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        }
     }
 
     return apdu_len;

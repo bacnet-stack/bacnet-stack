@@ -1,28 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- * Contributions by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief API for BACnet WritePropertyMultiple service encoder and decoder
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @author Nikola Jelic 2011 <nikola.jelic@euroicc.com>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdint.h>
 #include <string.h>
 /* BACnet Stack defines - first */
@@ -149,10 +133,8 @@ int wpm_decode_object_property(
         /* tag 2 - Property Value */
         if ((tag_number == 2) && (decode_is_opening_tag(&apdu[len - 1]))) {
             len--;
-            imax = bacapp_data_len(&apdu[len], (unsigned)(apdu_len - len),
-                wp_data->object_property);
+            imax = bacnet_enclosed_data_length(&apdu[len], apdu_len - len);
             len++;
-
             if (imax != BACNET_STATUS_ERROR) {
                 /* copy application data, check max length */
                 if (imax > (apdu_len - len)) {
@@ -206,7 +188,7 @@ int wpm_decode_object_property(
     return len;
 }
 
-/** 
+/**
  * @brief Init the APDU for encoding.
  * @param apdu [in] The APDU buffer, or NULL for length
  * @param invoke_id [in] The ID of the saervice invoked.
@@ -224,7 +206,7 @@ int wpm_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
     return 4;
 }
 
-/** 
+/**
  * @brief Decode the very begin of an object in the APDU.
  * @param apdu [in] The APDU buffer, or NULL for length
  * @param object_type [in] The object type to decode.
@@ -249,7 +231,7 @@ int wpm_encode_apdu_object_begin(
     return apdu_len;
 }
 
-/** 
+/**
  * @brief Encode the very end of an object in the APDU.
  * @param apdu [in] The APDU buffer, or NULL for length
  * @return number of bytes encoded
@@ -259,7 +241,7 @@ int wpm_encode_apdu_object_end(uint8_t *apdu)
     return encode_closing_tag(apdu, 1);
 }
 
-/** 
+/**
  * @brief Encode the object property into the APDU.
  * @param apdu [in] The APDU buffer, or NULL for length
  * @param wpdata [in] Pointer to the property data.
@@ -318,14 +300,14 @@ int wpm_encode_apdu_object_property(
  * @brief Encode APDU for WritePropertyMultiple-Request
  *
  *  WritePropertyMultiple-Request ::= SEQUENCE {
- * 
+ *
  *  }
  *
  * @param apdu  Pointer to the buffer, or NULL for length
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int write_property_multiple_request_encode(uint8_t *apdu, 
+int write_property_multiple_request_encode(uint8_t *apdu,
     BACNET_WRITE_ACCESS_DATA *data)
 {
     int len = 0; /* length of each encoding */
@@ -350,7 +332,7 @@ int write_property_multiple_request_encode(uint8_t *apdu,
             /* check length for fitting */
             wpdata.application_data_len = bacapp_encode_data(
                 NULL, &wpm_property->value);
-            if (wpdata.application_data_len > 
+            if (wpdata.application_data_len >
                 sizeof(wpdata.application_data)) {
                 /* too big for buffer */
                 return 0;
@@ -380,7 +362,7 @@ int write_property_multiple_request_encode(uint8_t *apdu,
  * @param apdu  Pointer to the buffer for encoding into
  * @param apdu_size number of bytes available in the buffer
  * @param data  Pointer to the service data used for encoding values
- * @return number of bytes encoded, or zero if unable to encode or 
+ * @return number of bytes encoded, or zero if unable to encode or
  *  too big for buffer
  */
 size_t write_property_multiple_request_service_encode(
@@ -399,13 +381,13 @@ size_t write_property_multiple_request_service_encode(
     return apdu_len;
 }
 
-/** 
+/**
  * @brief Encode the WritePropertyMultiple-Request into the APDU.
  * @param apdu [in] The APDU buffer
  * @param apdu_size [in] Maximum space in the buffer.
  * @param invoke_id [in] Invoked service ID.
  * @param data [in] BACnetWriteAccessData
- * @return number of bytes encoded, or zero if unable to encode or 
+ * @return number of bytes encoded, or zero if unable to encode or
  *  too big for buffer
  */
 int wpm_encode_apdu(uint8_t *apdu,

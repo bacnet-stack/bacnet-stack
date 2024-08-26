@@ -64,7 +64,7 @@ void SerialPort::openChannel()
 		/* For COM ports greater than 9 you have to use a special syntax
 		for CreateFile. The syntax also works for COM ports 1-9. */
 		/* http://support.microsoft.com/kb/115831 */
-		sprintf(comName, "\\\\.\\COM%ld", portNumber);
+		snprintf(comName, sizeof(comName), "\\\\.\\COM%ld", portNumber);
 	}
 	serialHandle = CreateFile( comName, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );

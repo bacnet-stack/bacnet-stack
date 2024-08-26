@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
             if (++argi < argc) {
                 device_id = strtol(argv[argi], NULL, 0);
                 if (device_id > BACNET_MAX_INSTANCE) {
-                    fprintf(stderr, "device=%u - it must be less than %u\n",
+                    fprintf(stderr, "device=%u - not greater than %u\n",
                         device_id, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
     }
     Device_Set_Object_Instance_Number(device_id);
     if (target_device_object_instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+        fprintf(stderr, "device-instance=%u - not greater than %u\n",
             target_device_object_instance, BACNET_MAX_INSTANCE);
         return 1;
     }

@@ -32,6 +32,7 @@ if(BOARD STREQUAL unit_testing)
   get_filename_component(BACNET_BASIC_SRC ${BACNET_BINDING_SRC} PATH)
   get_filename_component(BACNET_SRC ${BACNET_BASIC_SRC} PATH)
   list(APPEND SOURCES
+    ${BACNET_SRC}/bacaction.c
     ${BACNET_SRC}/bacaddr.c
     ${BACNET_SRC}/bacdcode.c
     ${BACNET_SRC}/bacint.c
@@ -54,4 +55,7 @@ else()
     )
 endif()
 
-add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig
+add_compile_definitions(
+  CONFIG_ZTEST_NEW_API
+  BACNET_STACK_DEPRECATED_DISABLE
+  )

@@ -3,30 +3,7 @@
  * @author Steve Karg
  * @date 2020
  * @brief Simple BACnet/IP to MS/TP router
- *
- * @section LICENSE
- *
- * Copyright (C) 2020 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
@@ -609,7 +586,7 @@ static void send_who_is_router_to_network(uint16_t snet, uint16_t dnet)
  * @param src  [in] The routing source information, if any.
  *  If src->net and src->len are 0, there is no routing source information.
  * @param npdu_data [in] Contains a filled-out structure with information
- * 	decoded from the NCPI and other NPDU bytes.
+ *  decoded from the NCPI and other NPDU bytes.
  * @param npdu [in]  Buffer containing the rest of the NPDU, following the
  *  bytes that have already been decoded.
  * @param npdu_len [in] The length of the remaining NPDU message in npdu[].
@@ -662,7 +639,7 @@ static void who_is_router_to_network_handler(uint16_t snet,
  * @param src  [in] The routing source information, if any.
  *  If src->net and src->len are 0, there is no routing source information.
  * @param npdu_data [in] Contains a filled-out structure with information
- * 	decoded from the NCPI and other NPDU bytes.
+ *  decoded from the NCPI and other NPDU bytes.
  * @param npdu [in]  Buffer containing the rest of the NPDU, following the
  *  bytes that have already been decoded.
  * @param npdu_len [in] The length of the remaining NPDU message in npdu[].
@@ -945,7 +922,7 @@ static void routed_apdu_handler(uint16_t snet,
         while (port != NULL) {
             if (port->net != snet) {
                 datalink_send_pdu(port->net, dest, npdu, &Tx_Buffer[0],
-                	npdu_len + apdu_len);
+                    npdu_len + apdu_len);
             }
             port = port->next;
         }
@@ -1142,8 +1119,6 @@ static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
         Sleep(100);
     }
     exit(0);
-
-    return TRUE;
 }
 
 static void control_c_hooks(void)

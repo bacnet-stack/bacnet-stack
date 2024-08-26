@@ -27,7 +27,6 @@ ZTEST(testsLifeSafetyZone, testLifeSafetyZone)
 static void testLifeSafetyZone(void)
 #endif
 {
-    bool status = false;
     unsigned count = 0;
     uint32_t object_instance = 0, test_object_instance = 0;
     const int skip_fail_property_list[] = { -1 };
@@ -39,12 +38,9 @@ static void testLifeSafetyZone(void)
     test_object_instance = Life_Safety_Zone_Index_To_Instance(0);
     zassert_equal(test_object_instance, object_instance, NULL);
     bacnet_object_properties_read_write_test(
-        OBJECT_LIFE_SAFETY_ZONE,
-        object_instance,
-        Life_Safety_Zone_Property_Lists,
-        Life_Safety_Zone_Read_Property,
-        Life_Safety_Zone_Write_Property,
-        skip_fail_property_list);
+        OBJECT_LIFE_SAFETY_ZONE, object_instance,
+        Life_Safety_Zone_Property_Lists, Life_Safety_Zone_Read_Property,
+        Life_Safety_Zone_Write_Property, skip_fail_property_list);
 }
 /**
  * @}
@@ -55,9 +51,7 @@ ZTEST_SUITE(testsLifeSafetyZone, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(testsLifeSafetyZone,
-     ztest_unit_test(testLifeSafetyZone)
-     );
+    ztest_test_suite(testsLifeSafetyZone, ztest_unit_test(testLifeSafetyZone));
 
     ztest_run_test_suite(testsLifeSafetyZone);
 }

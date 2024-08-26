@@ -1,28 +1,13 @@
-/**************************************************************************
-*
-* Copyright (C) 2009 Peter Mc Shane
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
-#ifndef READRANGE_H
-#define READRANGE_H
+/**
+ * @file
+ * @brief BACnet ReadRange encode and decode helper functions
+ * @author Peter Mc Shane <petermcs@users.sourceforge.net>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_READ_RANGE_H
+#define BACNET_READ_RANGE_H
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -80,9 +65,9 @@ extern "C" {
  * - 1. PDU Type + invoke ID + service type = 3 bytes
  * - 2. Object ID = 5 bytes
  * - 3. Object Property = 2 bytes if property is 0-255, 3 if property is
- *    256-65535 � theoretical max of 5 bytes but how likely is that?
+ *    256-65535 theoretical max of 5 bytes but how likely is that?
  * - 4. Optional array index = 2 bytes if index is 0-255, 3 if index is
- *    256-65535 � theoretical max of 5 bytes but how likely is that?
+ *    256-65535 theoretical max of 5 bytes but how likely is that?
  * - 5. Flags = 3 bytes
  * - 6. Opening and closing tag for data = 2 bytes
  * - 7. firstSequenceNumber [6] Unsigned32 OPTIONAL -- used only if 'Item Count' > 0
@@ -124,7 +109,7 @@ extern "C" {
 /** Function template for ReadRange information retrieval function.
  * A function template; @see device.c for assignment to object types.
  * @ingroup ObjHelpers
- * @param pRequest [in]	Info on the request.
+ * @param pRequest [in] Info on the request.
  * @param pInfo [out]   Where to write the response to.
  * @return True on success, False on error or failure.
  */
@@ -141,12 +126,12 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int read_range_encode(
-        uint8_t *apdu, 
+        uint8_t *apdu,
         BACNET_READ_RANGE_DATA *data);
     BACNET_STACK_EXPORT
     size_t read_range_request_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
+        uint8_t *apdu,
+        size_t apdu_size,
         BACNET_READ_RANGE_DATA *data);
 
     BACNET_STACK_EXPORT

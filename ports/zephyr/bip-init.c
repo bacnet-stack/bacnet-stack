@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2005 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdint.h>
 #include <stdbool.h>
 #include <zephyr/device.h>
@@ -41,6 +14,9 @@
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/net/socket_select.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip.h"
@@ -170,15 +146,15 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
 }
 
 /**
- * Set the BACnet/IP address
- *
+ * @brief Set the BACnet/IP address
  * @param addr - network IPv4 address
+ * @return true if the address was set
  */
 bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&BIP_Address.s_addr, &addr->address[0], IP_ADDRESS_MAX);
-        memcpy(&BIP_Port, &addr->port, sizeof(addr->port));
+        BIP_Port = htons(addr->port);
         return true;
     }
     return false;
@@ -186,14 +162,14 @@ bool bip_set_addr(BACNET_IP_ADDRESS *addr)
 
 /**
  * @brief Get the BACnet/IP address
- * @param addr - network IPv4 address
+ * @param addr - network IPv4 address (in network byte order)
  * @return true if the address was retrieved
  */
 bool bip_get_addr(BACNET_IP_ADDRESS *addr)
 {
     if (addr) {
         memcpy(&addr->address[0], &BIP_Address.s_addr, IP_ADDRESS_MAX);
-        memcpy(&addr->port, &BIP_Port, sizeof(addr->port));
+        addr->port = ntohs(BIP_Port);
         return true;
     }
     return false;
@@ -313,7 +289,7 @@ uint16_t bip_receive(
     int max = 0;
     struct zsock_timeval select_timeout;
     struct sockaddr_in sin = { 0 };
-    BACNET_IP_ADDRESS addr = { { 0 } };
+    BACNET_IP_ADDRESS addr = { 0 };
     socklen_t sin_len = sizeof(sin);
     int received_bytes = 0;
     int offset = 0;
@@ -338,7 +314,7 @@ uint16_t bip_receive(
     }
     ZSOCK_FD_ZERO(&read_fds);
     ZSOCK_FD_SET(BIP_Socket, &read_fds);
-    FD_SET(BIP_Broadcast_Socket, &read_fds);
+    ZSOCK_FD_SET(BIP_Broadcast_Socket, &read_fds);
 
     max = BIP_Socket > BIP_Broadcast_Socket ? BIP_Socket : BIP_Broadcast_Socket;
 
@@ -437,11 +413,10 @@ void bip_set_interface(char *ifname)
     BACNET_IP_ADDRESS broadcast = { 0 };
 
     /* Network byte order */
-    unicast.port = BIP_Port;
-    broadcast.port = BIP_Port;
+    unicast.port = ntohs(BIP_Port);
+    broadcast.port = ntohs(BIP_Port);
     LOG_INF("bip_set_interface()");
-    LOG_INF("UDP port: %d", ntohs(BIP_Port));
-
+    LOG_INF("UDP port: %d", unicast.port);
     if (ifname) {
         index = atoi(ifname);
         /* if index is zero, discern between "0" and a parse error */
@@ -507,8 +482,9 @@ void bip_set_interface(char *ifname)
         }
         bip_set_addr(&unicast);
         bip_set_broadcast_addr(&broadcast);
-        LOG_INF("BACnet/IP Unicast: %u.%u.%u.%u", unicast.address[0],
-            unicast.address[1], unicast.address[2], unicast.address[3]);
+        LOG_INF("BACnet/IP Unicast: %u.%u.%u.%u:%d", unicast.address[0],
+            unicast.address[1], unicast.address[2], unicast.address[3],
+            unicast.port);
         LOG_INF("BACnet/IP Broadcast: %u.%u.%u.%u", broadcast.address[0],
             broadcast.address[1], broadcast.address[2], broadcast.address[3]);
     } else {
@@ -624,7 +600,6 @@ void bip_cleanup(void)
 {
     LOG_DBG("bip_cleanup()");
 
-    BIP_Port = 0;
     memset(&BIP_Address, 0, sizeof(BIP_Address));
     memset(&BIP_Broadcast_Addr, 0, sizeof(BIP_Broadcast_Addr));
 

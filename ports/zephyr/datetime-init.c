@@ -14,6 +14,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datetime.h"
 
 

@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
@@ -66,6 +49,9 @@ static void show_bacnet_date_time(BACNET_DATE *bdate, BACNET_TIME *btime)
 }
 #endif
 
+/* Callback for timesync set */
+static handler_timesync_set_callback_t handler_timesync_set_callback;
+
 void handler_timesync(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
@@ -80,12 +66,12 @@ void handler_timesync(
     if (len > 0) {
         if (datetime_is_valid(&bdate, &btime)) {
             /* fixme: only set the time if off by some amount */
+            if (handler_timesync_set_callback) {
+                handler_timesync_set_callback(&bdate, &btime, false);
+            }
 #if PRINT_ENABLED
-            fprintf(stderr, "Received TimeSyncronization Request\r\n");
+            fprintf(stderr, "Received Local TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
-#else
-            /* FIXME: set the time?
-               Maybe only set the time if off by some amount */
 #endif
         }
     }
@@ -106,12 +92,13 @@ void handler_timesync_utc(
         service_request, service_len, &bdate, &btime);
     if (len > 0) {
         if (datetime_is_valid(&bdate, &btime)) {
+            if (handler_timesync_set_callback) {
+                handler_timesync_set_callback(&bdate, &btime, true);
+            }
 #if PRINT_ENABLED
-            fprintf(stderr, "Received TimeSyncronization Request\r\n");
+            fprintf(stderr, "Received UTC TimeSyncronization Request\r\n");
             show_bacnet_date_time(&bdate, &btime);
 #endif
-            /* FIXME: set the time?
-               only set the time if off by some amount */
         }
     }
 
@@ -276,3 +263,14 @@ void handler_timesync_init(void)
     }
 }
 #endif
+
+/**
+ * Configures and enables a timesync callback function
+ *
+ * @param cb - pointer to #handler_timesync_set_callback_t
+ */
+void handler_timesync_set_callback_set(
+    handler_timesync_set_callback_t cb)
+{
+    handler_timesync_set_callback = cb;
+}

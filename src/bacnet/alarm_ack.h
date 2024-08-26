@@ -1,28 +1,13 @@
-/**************************************************************************
-*
-* Copyright (C) 2009 John Minack
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
-#ifndef ALARM_ACK_H_
-#define ALARM_ACK_H_
+/**
+ * @file
+ * @brief BACnetAcknowledgeAlarmInfo service encode and decode
+ * @author John Minack <minack@users.sourceforge.net>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_ALARM_ACK_H
+#define BACNET_ALARM_ACK_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -32,7 +17,7 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/timestamp.h"
 
-typedef struct {
+typedef struct BACnetAcknowledgeAlarmInfo {
     uint32_t ackProcessIdentifier;
     BACNET_OBJECT_ID eventObjectIdentifier;
     BACNET_EVENT_STATE eventStateAcked;
@@ -53,32 +38,23 @@ typedef int (
 extern "C" {
 #endif /* __cplusplus */
 
-/***************************************************
-**
-** Creates a Alarm Acknowledge APDU
-**
-****************************************************/
     BACNET_STACK_EXPORT
     int alarm_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_ALARM_ACK_DATA * data);
 
-/***************************************************
-**
-** Encodes the service data part of Alarm Acknowledge
-**
-****************************************************/
     BACNET_STACK_EXPORT
     int alarm_ack_encode_service_request(
         uint8_t * apdu,
         BACNET_ALARM_ACK_DATA * data);
 
-/***************************************************
-**
-** Decodes the service data part of Alarm Acknowledge
-**
-****************************************************/
+    BACNET_STACK_EXPORT
+    size_t bacnet_acknowledge_alarm_info_request_encode(
+        uint8_t *apdu,
+        size_t apdu_size,
+        BACNET_ALARM_ACK_DATA *data);
+
     BACNET_STACK_EXPORT
     int alarm_ack_decode_service_request(
         uint8_t * apdu,
@@ -88,4 +64,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /* ALARM_ACK_H_ */
+#endif

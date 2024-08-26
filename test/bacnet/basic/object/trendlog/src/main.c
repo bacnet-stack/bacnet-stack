@@ -33,11 +33,8 @@ static void test_Trend_Log_ReadProperty(void)
     status = Trend_Log_Valid_Instance(object_instance);
     zassert_true(status, NULL);
     bacnet_object_properties_read_write_test(
-        OBJECT_TRENDLOG,
-        object_instance,
-        Trend_Log_Property_Lists,
-        Trend_Log_Read_Property,
-        Trend_Log_Write_Property,
+        OBJECT_TRENDLOG, object_instance, Trend_Log_Property_Lists,
+        Trend_Log_Read_Property, Trend_Log_Write_Property,
         known_fail_property_list);
 }
 /**
@@ -46,8 +43,8 @@ static void test_Trend_Log_ReadProperty(void)
 
 void test_main(void)
 {
-    ztest_test_suite(trendlog_tests, 
-        ztest_unit_test(test_Trend_Log_ReadProperty));
+    ztest_test_suite(
+        trendlog_tests, ztest_unit_test(test_Trend_Log_ReadProperty));
 
     ztest_run_test_suite(trendlog_tests);
 }

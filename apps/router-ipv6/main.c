@@ -1,32 +1,9 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2016
  * @brief Simple BACnet/IP to BACnet/IPv6 router
- *
- * @section LICENSE
- *
- * Copyright (C) 2016 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
@@ -62,6 +39,7 @@
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
+static uint32_t Device_Instance_Number = BACNET_MAX_INSTANCE;
 
 /**
  * 6.6.1 Routing Tables
@@ -587,7 +565,7 @@ static void send_who_is_router_to_network(uint16_t snet, uint16_t dnet)
  * @param src  [in] The routing source information, if any.
  *  If src->net and src->len are 0, there is no routing source information.
  * @param npdu_data [in] Contains a filled-out structure with information
- * 	decoded from the NCPI and other NPDU bytes.
+ *  decoded from the NCPI and other NPDU bytes.
  * @param npdu [in]  Buffer containing the rest of the NPDU, following the
  *  bytes that have already been decoded.
  * @param npdu_len [in] The length of the remaining NPDU message in npdu[].
@@ -602,6 +580,8 @@ static void who_is_router_to_network_handler(uint16_t snet,
     uint16_t network = 0;
     uint16_t len = 0;
 
+    (void)src;
+    (void)npdu_data;
     if (npdu) {
         if (npdu_len >= 2) {
             len += decode_unsigned16(&npdu[len], &network);
@@ -638,7 +618,7 @@ static void who_is_router_to_network_handler(uint16_t snet,
  * @param src  [in] The routing source information, if any.
  *  If src->net and src->len are 0, there is no routing source information.
  * @param npdu_data [in] Contains a filled-out structure with information
- * 	decoded from the NCPI and other NPDU bytes.
+ *  decoded from the NCPI and other NPDU bytes.
  * @param npdu [in]  Buffer containing the rest of the NPDU, following the
  *  bytes that have already been decoded.
  * @param npdu_len [in] The length of the remaining NPDU message in npdu[].
@@ -919,7 +899,7 @@ static void routed_apdu_handler(uint16_t snet,
         while (port != NULL) {
             if (port->net != snet) {
                 datalink_send_pdu(port->net, dest, npdu, &Tx_Buffer[0],
-                	npdu_len + apdu_len);
+                    npdu_len + apdu_len);
             }
             port = port->next;
         }
@@ -948,12 +928,16 @@ static void my_routing_npdu_handler(
     uint16_t snet, BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
 {
     int apdu_offset = 0;
+    unsigned protocol_version = 0;
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
 
     if (!pdu) {
         /* no packet */
-    } else if (pdu[0] == BACNET_PROTOCOL_VERSION) {
+    } else {
+        protocol_version = pdu[0];
+    }
+    if (protocol_version == BACNET_PROTOCOL_VERSION) {
         apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
         if (apdu_offset <= 0) {
             fprintf(stderr, "NPDU: Decoding failed; Discarded!\n");
@@ -994,7 +978,9 @@ static void my_routing_npdu_handler(
             }
         }
     } else {
-        /* unsupported protocol version */
+        fprintf(
+            stderr, "NPDU: unsupported protocol version %u.  Discarded!\n",
+                protocol_version);
     }
 
     return;
@@ -1127,6 +1113,17 @@ static void control_c_hooks(void)
 #endif
 
 /**
+ * @brief Get the Device object instance number
+ * @return The Device object instance number
+ * @note This is a proxy function to satisfy the BACnet Stack IPv6 port layer
+ * requirements since this application omits a Device object.
+ */
+uint32_t Device_Object_Instance_Number(void)
+{
+    return Device_Instance_Number;
+}
+
+/**
  * Main function of simple router demo.
  *
  * @param argc [in] Arg count.
@@ -1141,8 +1138,11 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
 
-    printf("BACnet Simple IP Router Demo\n");
+    printf("BACnet Simple IP to IPv6 Router Demo\n");
     printf("BACnet Stack Version %s\n", BACnet_Version);
+    if (argc > 1) {
+        Device_Instance_Number = strtol(argv[1], NULL, 0);
+    }
     datalink_init();
     atexit(cleanup);
     control_c_hooks();

@@ -1,39 +1,16 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2008 John Minack
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnetTimeStamp service encode and decode
+ * @author John Minack <minack@users.sourceforge.net>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
+#include <stdbool.h>
 #include <stdint.h>
-#include <assert.h>
+#include <stdio.h>
 #include "bacnet/bacapp.h"
+#include "bacnet/datetime.h"
 #include "bacnet/timestamp.h"
 
 /** @file timestamp.c  Encode/Decode BACnet Timestamps  */
@@ -182,7 +159,6 @@ int bacapp_encode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
 
             default:
                 len = 0;
-                assert(len);
                 break;
         }
     }
@@ -456,4 +432,53 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
     }
 
     return status;
+}
+
+/**
+ * @brief Print the timestamp to a string
+ * @param str - pointer to the string, or NULL for length only
+ * @param str_size - size of the string, or 0 for length only
+ * @param ts - pointer to the timestamp
+ * @return number of characters printed
+*/
+int bacapp_timestamp_to_ascii(char *str, size_t str_size,
+    BACNET_TIMESTAMP *timestamp)
+{
+    int str_len = 0;
+
+    if (!timestamp) {
+        return 0;
+    }
+    switch (timestamp->tag) {
+        case TIME_STAMP_TIME:
+            /* 23:59:59.99 */
+            str_len = snprintf(str, str_size,
+                "%02u:%02u:%02u.%02u",
+                (unsigned)timestamp->value.time.hour,
+                (unsigned)timestamp->value.time.min,
+                (unsigned)timestamp->value.time.sec,
+                (unsigned)timestamp->value.time.hundredths);
+            break;
+        case TIME_STAMP_SEQUENCE:
+            /* 65535 */
+            str_len = snprintf(str, str_size, "%u",
+                (unsigned)timestamp->value.sequenceNum);
+            break;
+        case TIME_STAMP_DATETIME:
+            /* 2021/12/31-23:59:59.99 */
+            str_len = snprintf(str, str_size,
+                "%04u/%02u/%02u-%02u:%02u:%02u.%02u",
+                (unsigned)timestamp->value.dateTime.date.year,
+                (unsigned)timestamp->value.dateTime.date.month,
+                (unsigned)timestamp->value.dateTime.date.day,
+                (unsigned)timestamp->value.dateTime.time.hour,
+                (unsigned)timestamp->value.dateTime.time.min,
+                (unsigned)timestamp->value.dateTime.time.sec,
+                (unsigned)timestamp->value.dateTime.time.hundredths);
+            break;
+        default:
+            break;
+    }
+
+    return str_len;
 }

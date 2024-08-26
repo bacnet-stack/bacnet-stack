@@ -49,8 +49,9 @@ static void testAccessCredential(void)
         zassert_true(len >= 0, NULL);
         if (len >= 0) {
             if (IS_CONTEXT_SPECIFIC(rpdata.application_data[0])) {
-                test_len = bacapp_decode_context_data(rpdata.application_data,
-                    len, &value, rpdata.object_property);
+                test_len = bacapp_decode_context_data(
+                    rpdata.application_data, len, &value,
+                    rpdata.object_property);
             } else {
                 test_len = bacapp_decode_application_data(
                     rpdata.application_data, len, &value);
@@ -61,7 +62,8 @@ static void testAccessCredential(void)
                 }
             }
             if (len != test_len) {
-                fprintf(stderr, "property '%d': failed to decode!\n",
+                fprintf(
+                    stderr, "property '%d': failed to decode!\n",
                     rpdata.object_property);
             }
             zassert_true(len == test_len, NULL);
@@ -74,7 +76,6 @@ static void testAccessCredential(void)
 /**
  * @}
  */
-
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(access_credential_tests, NULL, NULL, NULL, NULL, NULL);

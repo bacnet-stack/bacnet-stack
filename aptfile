@@ -36,7 +36,7 @@ package "gdb-multiarch"
 # install AVR compiler and debugging tools
 package "gcc-avr"
 package "avarice"
-package "avr-libc" 
+package "avr-libc"
 package "avrdude"
 package "gdb-avr"
 package "avrdude-doc"
@@ -51,4 +51,3 @@ package "codespell"
 
 # you can also execute arbitrary bash
 echo "🚀  ALL GOOD TO GO"
-

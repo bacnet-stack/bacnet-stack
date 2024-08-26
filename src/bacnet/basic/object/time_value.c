@@ -3,16 +3,9 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date June 2023
- * @brief Time Value objects used by a BACnet device object
- *
- * @section DESCRIPTION
- *
-  * The Time Value object is an object with a present-value that
+ * @brief Time Value object is an object with a present-value that
  * uses an bacnet time data type.
-*
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,7 +45,8 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 /* callback for present value writes */
-static time_value_write_present_value_callback Time_Value_Write_Present_Value_Callback;
+static time_value_write_present_value_callback
+    Time_Value_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Time_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -66,10 +60,10 @@ static const int Time_Value_Properties_Proprietary[] = { -1 };
 
 /* standard properties that are arrays for this object,
    but not necessary supported in this object */
-static const int BACnetARRAY_Properties[] = { 
-    PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS, 
-    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
-    PROP_VALUE_SOURCE_ARRAY, PROP_COMMAND_TIME_ARRAY, PROP_TAGS, -1 };
+static const int BACnetARRAY_Properties[] = {
+    PROP_PRIORITY_ARRAY, PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG, PROP_VALUE_SOURCE_ARRAY,
+    PROP_COMMAND_TIME_ARRAY, PROP_TAGS, -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -169,19 +163,29 @@ bool Time_Value_Present_Value(uint32_t object_instance, BACNET_TIME *value)
 {
     bool status = false;
     struct object_data *pObject;
-    BACNET_DATE date;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Out_Of_Service) {
-            datetime_copy_time(value, &pObject->Present_Value);
-            status = true;
-        } else {
-            status = datetime_local(&date, value, NULL, NULL);
-        }
+        datetime_copy_time(value, &pObject->Present_Value);
+        status = true;
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, checks the present-value for COV
+ * @param  pObject - specific object with valid data
+ * @param  value - floating point analog value
+ */
+static void Time_Value_Present_Value_COV_Detect(
+    struct object_data *pObject, BACNET_TIME *value)
+{
+    if (pObject && value) {
+        if (datetime_compare_time(&pObject->Present_Value, value) != 0) {
+            pObject->Change_Of_Value = true;
+        }
+    }
 }
 
 /**
@@ -199,11 +203,13 @@ bool Time_Value_Present_Value_Set(uint32_t object_instance, BACNET_TIME *value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (datetime_compare_time(&pObject->Present_Value, value) != 0) {
-            pObject->Change_Of_Value = true;
-            datetime_copy_time(&pObject->Present_Value, value);
+        if (!pObject->Out_Of_Service) {
+            if (value) {
+                Time_Value_Present_Value_COV_Detect(pObject, value);
+                datetime_copy_time(&pObject->Present_Value, value);
+                status = true;
+            }
         }
-        status = true;
     }
 
     return status;
@@ -228,17 +234,15 @@ static bool Time_Value_Present_Value_Write(uint32_t object_instance,
 {
     bool status = false;
     struct object_data *pObject;
-    BACNET_TIME old_value = {0};
+    BACNET_TIME old_value = { 0 };
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
         if (pObject->Write_Enabled) {
             datetime_copy_time(&old_value, &pObject->Present_Value);
-            if (datetime_compare_time(&pObject->Present_Value, value) != 0) {
-                pObject->Change_Of_Value = true;
-                datetime_copy_time(&pObject->Present_Value, value);
-            }
+            Time_Value_Present_Value_COV_Detect(pObject, value);
+            datetime_copy_time(&pObject->Present_Value, value);
             if (Time_Value_Write_Present_Value_Callback) {
                 Time_Value_Write_Present_Value_Callback(
                     object_instance, &old_value, value);
@@ -403,13 +407,10 @@ bool Time_Value_Description_Set(uint32_t object_instance, char *new_name)
  * @param object_property - object-property to be checked
  * @return true if the property is a BACnetARRAY property
  */
-static bool BACnetARRAY_Property(
-    int object_property)
+static bool BACnetARRAY_Property(int object_property)
 {
-    return property_list_member(
-            BACnetARRAY_Properties, object_property);
+    return property_list_member(BACnetARRAY_Properties, object_property);
 }
-
 
 bool Time_Value_Change_Of_Value(uint32_t object_instance)
 {
@@ -543,8 +544,8 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_OUT_OF_SERVICE:
-            apdu_len = encode_application_boolean(&apdu[0],
-                Time_Value_Out_Of_Service(rpdata->object_instance));
+            apdu_len = encode_application_boolean(
+                &apdu[0], Time_Value_Out_Of_Service(rpdata->object_instance));
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
@@ -562,8 +563,7 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (!BACnetARRAY_Property(rpdata->object_property)) &&
+    if ((apdu_len >= 0) && (!BACnetARRAY_Property(rpdata->object_property)) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -608,23 +608,32 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             if (Time_Value_Out_Of_Service(wp_data->object_instance)) {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_TIME);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_TIME);
                 if (status) {
-                    status = Time_Value_Present_Value_Write(
-                        wp_data->object_instance,
-                        &value.type.Time, wp_data->priority,
-                        &wp_data->error_class, &wp_data->error_code);
+                    status =
+                        Time_Value_Present_Value_Write(wp_data->object_instance,
+                            &value.type.Time, wp_data->priority,
+                            &wp_data->error_class, &wp_data->error_code);
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
             break;
+        case PROP_OUT_OF_SERVICE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
+            if (status) {
+                Time_Value_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
+            }
+            break;
         default:
-            if (property_lists_member(
-                Time_Value_Properties_Required, Time_Value_Properties_Optional, 
-                Time_Value_Properties_Proprietary, wp_data->object_property)) {
+            if (property_lists_member(Time_Value_Properties_Required,
+                    Time_Value_Properties_Optional,
+                    Time_Value_Properties_Proprietary,
+                    wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
@@ -655,7 +664,7 @@ void Time_Value_Write_Present_Value_Callback_Set(
 uint8_t Time_Value_Status_Flags(uint32_t object_instance)
 {
     BACNET_BIT_STRING bit_string;
- 
+
     bitstring_init(&bit_string);
     bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
     bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
@@ -797,8 +806,7 @@ void Time_Value_Cleanup(void)
  */
 void Time_Value_Init(void)
 {
-    Object_List = Keylist_Create();
-    if (Object_List) {
-        atexit(Time_Value_Cleanup);
+    if (!Object_List) {
+        Object_List = Keylist_Create();
     }
 }

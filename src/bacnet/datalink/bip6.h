@@ -1,17 +1,18 @@
 /**
 * @file
+* @brief BACnet/IPv6 datalink API and defines
 * @author Steve Karg
 * @date 2015
+* @copyright SPDX-License-Identifier: MIT
+* @details Implementation of the Network Layer using BACnet/IPv6 as the transport,
+*  as described in ASHRAE 135 Annex J.
+*  The functions described here fulfill the roles defined generically at the
+*  DataLink level by serving as the implementation of the function templates.
 * @defgroup DLBIP6 BACnet/IPv6 DataLink Network Layer
 * @ingroup DataLink
-*
-* Implementation of the Network Layer using BACnet/IPv6 as the transport, as
-* described in Annex J.
-* The functions described here fulfill the roles defined generically at the
-* DataLink level by serving as the implementation of the function templates.
 */
-#ifndef BIP6_H
-#define BIP6_H
+#ifndef BACNET_BIP6_H
+#define BACNET_BIP6_H
 
 #include <stdbool.h>
 #include <stdint.h>

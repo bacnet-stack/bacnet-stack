@@ -1,35 +1,11 @@
 /**
  * @file
- * @author Steve Karg
+ * @brief A basic BACnet Analog Output Object implementation.
+ * An Analog Output object is an object with a present-value that
+ * uses an single precision floating point data type.
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2005
- * @brief Analog Output objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Analog Output object is an object with a present-value that
- * uses a single precision floating point data type, and includes
- * a present-value derived from the priority array.
- *
- * @section LICENSE
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -123,7 +99,7 @@ void Analog_Output_Property_Lists(
 }
 
 /**
- * @brief Determines if a given Analog Value instance is valid
+ * @brief Determines if a given Analog Output instance is valid
  * @param  object_instance - object-instance number of the object
  * @return  true if the instance is valid, and false if not
  */
@@ -140,8 +116,8 @@ bool Analog_Output_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * @brief Determines the number of Analog Value objects
- * @return  Number of Analog Value objects
+ * @brief Determines the number of Analog Output objects
+ * @return  Number of Analog Output objects
  */
 unsigned Analog_Output_Count(void)
 {
@@ -150,7 +126,7 @@ unsigned Analog_Output_Count(void)
 
 /**
  * @brief Determines the object instance-number for a given 0..N index
- * of Analog Value objects where N is Analog_Output_Count().
+ * of Analog Output objects where N is Analog_Output_Count().
  * @param  index - 0..MAX_ANALOG_OUTPUTS value
  * @return  object instance-number for the given index
  */
@@ -165,7 +141,7 @@ uint32_t Analog_Output_Index_To_Instance(unsigned index)
 
 /**
  * @brief For a given object instance-number, determines a 0..N index
- * of Analog Value objects where N is Analog_Output_Count().
+ * of Analog Output objects where N is Analog_Output_Count().
  * @param  object_instance - object-instance number of the object
  * @return  index for the given instance-number, or MAX_ANALOG_OUTPUTS
  * if not valid.
@@ -341,7 +317,8 @@ bool Analog_Output_Present_Value_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
-                value >= pObject->Min_Pres_Value && value <= pObject->Max_Pres_Value) {
+            (value >= pObject->Min_Pres_Value) &&
+            (value <= pObject->Max_Pres_Value)) {
             pObject->Relinquished[priority - 1] = false;
             pObject->Priority_Array[priority - 1] = value;
             Analog_Output_Present_Value_COV_Detect(
@@ -514,8 +491,8 @@ bool Analog_Output_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "ANALOG OUTPUT %u",
-                object_instance);
+            snprintf(name_text, sizeof(name_text), "ANALOG OUTPUT %lu",
+                (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -903,14 +880,18 @@ bool Analog_Output_Encode_Value_List(
     bool status = false;
     struct object_data *pObject;
     const bool in_alarm = false;
-    const bool fault = false;
+    bool fault = false;
     const bool overridden = false;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
+            fault = true;
+        }
         status = cov_value_list_encode_real(value_list, pObject->Prior_Value,
             in_alarm, fault, overridden, pObject->Out_Of_Service);
     }
+
     return status;
 }
 
@@ -1179,7 +1160,7 @@ void Analog_Output_Write_Present_Value_Callback_Set(
 }
 
 /**
- * @brief Creates a Analog Value object
+ * @brief Creates a Analog Output object
  * @param object_instance - object-instance number of the object
  * @return the object-instance that was created, or BACNET_MAX_INSTANCE
  */
@@ -1233,7 +1214,7 @@ uint32_t Analog_Output_Create(uint32_t object_instance)
 }
 
 /**
- * @brief Deletes an Analog Value object
+ * @brief Deletes an Analog Output object
  * @param object_instance - object-instance number of the object
  * @return true if the object-instance was deleted
  */
@@ -1252,7 +1233,7 @@ bool Analog_Output_Delete(uint32_t object_instance)
 }
 
 /**
- * @brief Deletes all the Analog Values and their data
+ * @brief Deletes all the Analog Outputs and their data
  */
 void Analog_Output_Cleanup(void)
 {
@@ -1271,9 +1252,11 @@ void Analog_Output_Cleanup(void)
 }
 
 /**
- * @brief Initializes the Analog Value object data
+ * @brief Initializes the Analog Output object data
  */
 void Analog_Output_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

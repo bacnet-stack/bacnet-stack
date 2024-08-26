@@ -43,8 +43,9 @@ static void testDevObjPropRef(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *data)
         bacnet_device_object_property_reference_decode(apdu, len, &test_data);
     zassert_equal(null_len, len, "null_len=%d len=%d", null_len, len);
     zassert_equal(test_len, len, "test_len=%d len=%d", test_len, len);
-    zassert_equal(data->objectIdentifier.instance,
-        test_data.objectIdentifier.instance, NULL);
+    zassert_equal(
+        data->objectIdentifier.instance, test_data.objectIdentifier.instance,
+        NULL);
     zassert_equal(
         data->objectIdentifier.type, test_data.objectIdentifier.type, NULL);
     zassert_equal(data->propertyIdentifier, test_data.propertyIdentifier, NULL);
@@ -54,7 +55,8 @@ static void testDevObjPropRef(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *data)
         zassert_equal(test_data.arrayIndex, BACNET_ARRAY_ALL, NULL);
     }
     if (data->deviceIdentifier.type == OBJECT_DEVICE) {
-        zassert_equal(data->deviceIdentifier.instance,
+        zassert_equal(
+            data->deviceIdentifier.instance,
             test_data.deviceIdentifier.instance, NULL);
         zassert_equal(
             data->deviceIdentifier.type, test_data.deviceIdentifier.type, NULL);
@@ -69,7 +71,8 @@ static void testDevObjPropRef(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *data)
             apdu, len, &test_data);
         if ((len > 0) && (test_data.arrayIndex == BACNET_ARRAY_ALL)) {
             /* special case when optional portion is exactly missing */
-        } else if ((len > 0) &&
+        } else if (
+            (len > 0) &&
             (test_data.deviceIdentifier.type == BACNET_NO_DEV_TYPE)) {
             /* special case when optional portion is exactly missing */
         } else {
@@ -145,8 +148,9 @@ static void testDevIdRef(void)
     zassert_equal(test_len, len, NULL);
     null_len = bacnet_device_object_reference_decode(apdu, len, NULL);
     zassert_equal(test_len, null_len, NULL);
-    zassert_equal(data.deviceIdentifier.instance,
-        test_data.deviceIdentifier.instance, NULL);
+    zassert_equal(
+        data.deviceIdentifier.instance, test_data.deviceIdentifier.instance,
+        NULL);
     zassert_equal(
         data.deviceIdentifier.type, test_data.deviceIdentifier.type, NULL);
     while (--len) {
@@ -183,8 +187,9 @@ static void testObjPropRef(void)
     zassert_equal(test_len, len, NULL);
     zassert_equal(
         data.object_identifier.type, test_data.object_identifier.type, NULL);
-    zassert_equal(data.object_identifier.instance,
-        test_data.object_identifier.instance, NULL);
+    zassert_equal(
+        data.object_identifier.instance, test_data.object_identifier.instance,
+        NULL);
     zassert_equal(
         data.property_identifier, test_data.property_identifier, NULL);
     zassert_equal(
@@ -202,8 +207,9 @@ static void testObjPropRef(void)
     zassert_equal(test_len, len, "len=%d test_len=%d", len, test_len);
     zassert_equal(
         data.object_identifier.type, test_data.object_identifier.type, NULL);
-    zassert_equal(data.object_identifier.instance,
-        test_data.object_identifier.instance, NULL);
+    zassert_equal(
+        data.object_identifier.instance, test_data.object_identifier.instance,
+        NULL);
     zassert_equal(
         data.property_identifier, test_data.property_identifier, NULL);
     zassert_equal(
@@ -227,7 +233,8 @@ ZTEST_SUITE(bacdevobjpropref_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacdevobjpropref_tests, ztest_unit_test(testDevIdPropRef),
+    ztest_test_suite(
+        bacdevobjpropref_tests, ztest_unit_test(testDevIdPropRef),
         ztest_unit_test(testDevIdRef), ztest_unit_test(testObjPropRef));
 
     ztest_run_test_suite(bacdevobjpropref_tests);

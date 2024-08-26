@@ -1,35 +1,10 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2013
- * @brief Channel objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Channel object is a command object without a priority array, and the
- * present-value property uses a priority array and a single precision floating
- * point data type.
- *
- * @section LICENSE
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @brief The Channel object is a command object without a priority array,
+ * and the present-value property proxies an ANY data type (sort of)
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -1528,7 +1503,6 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
     int element_len = 0;
     uint32_t count = 0;
-    uint32_t array_index = 0;
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -1589,7 +1563,6 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
                     count = CONTROL_GROUPS_MAX;
-                    array_index = 1;
                     /* extra elements still encoded in application data */
                     element_len = len;
                     do {
@@ -1611,7 +1584,6 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                             }
                         }
                         count--;
-                        array_index++;
                         if (count) {
                             element_len = bacapp_decode_application_data(
                                 &wp_data->application_data[len],
@@ -1769,5 +1741,7 @@ void Channel_Cleanup(void)
  */
 void Channel_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

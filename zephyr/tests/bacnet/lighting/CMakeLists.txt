@@ -34,8 +34,8 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/bacstr.c
     ${BACNET_SRC}/bacint.c
     ${BACNET_SRC}/bacreal.c
-	${BACNET_SRC}/bactext.c
-	${BACNET_SRC}/indtext.c
+    ${BACNET_SRC}/bactext.c
+    ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/datetime.c
     ${BACNET_SRC}/timestamp.c
     ${BACNET_SRC}/basic/sys/days.c
@@ -54,4 +54,7 @@ else()
     )
 endif()
 
-add_compile_definitions(CONFIG_ZTEST_NEW_API)  # For exposing deprecated Kconfig
+add_compile_definitions(
+  CONFIG_ZTEST_NEW_API
+  BACNET_STACK_DEPRECATED_DISABLE
+  )

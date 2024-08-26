@@ -58,7 +58,7 @@ static bool Print_Summary = false;
 /**
  * @brief Print the list of discovered devices and their objects
  */
-void print_discovered_devices(void)
+static void print_discovered_devices(void)
 {
     unsigned int device_index = 0;
     unsigned int device_count = 0;
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
         }
     }
     if (device_id > BACNET_MAX_INSTANCE) {
-        debug_perror("device-instance=%u - it must be less than %u\n",
+        debug_perror("device-instance=%u - not greater than %u\n",
             device_id, BACNET_MAX_INSTANCE);
         return 1;
     }

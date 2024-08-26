@@ -19,7 +19,8 @@
 /**
  * @brief Test
  */
-static int getevent_decode_apdu(uint8_t *apdu,
+static int getevent_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
@@ -44,7 +45,8 @@ static int getevent_decode_apdu(uint8_t *apdu,
 
     if (apdu_size > apdu_len) {
         len = getevent_decode_service_request(
-            &apdu[apdu_len], apdu_size - apdu_len, lastReceivedObjectIdentifier);
+            &apdu[apdu_len], apdu_size - apdu_len,
+            lastReceivedObjectIdentifier);
         if (len > 0) {
             apdu_len += len;
         } else {
@@ -55,7 +57,8 @@ static int getevent_decode_apdu(uint8_t *apdu,
     return apdu_len;
 }
 
-static int getevent_ack_decode_apdu(uint8_t *apdu,
+static int getevent_ack_decode_apdu(
+    uint8_t *apdu,
     int apdu_len, /* total length of the apdu */
     uint8_t *invoke_id,
     BACNET_GET_EVENT_INFORMATION_DATA *get_event_data,
@@ -136,18 +139,18 @@ static void testGetEventInformationAck(void)
     zassert_not_equal(len, 0, NULL);
     zassert_not_equal(len, -1, NULL);
     apdu_len += len;
-    len = getevent_ack_decode_apdu(&apdu[0],
-        apdu_len, /* total length of the apdu */
+    len = getevent_ack_decode_apdu(
+        &apdu[0], apdu_len, /* total length of the apdu */
         &test_invoke_id, &test_event_data, &test_moreEvents);
     zassert_not_equal(len, -1, NULL);
     zassert_equal(test_invoke_id, invoke_id, NULL);
 
     zassert_equal(
-        event_data.objectIdentifier.type,
-            test_event_data.objectIdentifier.type, NULL);
+        event_data.objectIdentifier.type, test_event_data.objectIdentifier.type,
+        NULL);
     zassert_equal(
         event_data.objectIdentifier.instance,
-            test_event_data.objectIdentifier.instance, NULL);
+        test_event_data.objectIdentifier.instance, NULL);
 
     zassert_equal(event_data.eventState, test_event_data.eventState, NULL);
 }
@@ -167,14 +170,15 @@ static void testGetEventInformation(void)
 
     lastReceivedObjectIdentifier.type = OBJECT_BINARY_INPUT;
     lastReceivedObjectIdentifier.instance = 12345;
-    null_len = getevent_encode_apdu(
-        NULL, invoke_id, &lastReceivedObjectIdentifier);
+    null_len =
+        getevent_encode_apdu(NULL, invoke_id, &lastReceivedObjectIdentifier);
     apdu_len = getevent_encode_apdu(
         &apdu[0], invoke_id, &lastReceivedObjectIdentifier);
     zassert_equal(apdu_len, null_len, NULL);
     zassert_not_equal(apdu_len, 0, NULL);
 
-    test_len = getevent_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+    test_len = getevent_decode_apdu(
+        &apdu[0], apdu_len, &test_invoke_id,
         &test_lastReceivedObjectIdentifier);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
@@ -182,10 +186,10 @@ static void testGetEventInformation(void)
     zassert_equal(test_invoke_id, invoke_id, NULL);
     zassert_equal(
         test_lastReceivedObjectIdentifier.type,
-            lastReceivedObjectIdentifier.type, NULL);
+        lastReceivedObjectIdentifier.type, NULL);
     zassert_equal(
         test_lastReceivedObjectIdentifier.instance,
-            lastReceivedObjectIdentifier.instance, NULL);
+        lastReceivedObjectIdentifier.instance, NULL);
 
     return;
 }
@@ -193,16 +197,14 @@ static void testGetEventInformation(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(getevent_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(getevent_tests,
-     ztest_unit_test(testGetEventInformation),
-     ztest_unit_test(testGetEventInformationAck)
-     );
+    ztest_test_suite(
+        getevent_tests, ztest_unit_test(testGetEventInformation),
+        ztest_unit_test(testGetEventInformationAck));
 
     ztest_run_test_suite(getevent_tests);
 }

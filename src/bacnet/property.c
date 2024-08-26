@@ -1,36 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2012 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief Static sets of BACnet Property members for each object type
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -43,6 +17,10 @@
 
 #ifndef BACNET_PROPERTY_LISTS
 #define BACNET_PROPERTY_LISTS 0
+#endif
+
+#ifndef BACNET_PROPERTY_ARRAY_LISTS
+#define BACNET_PROPERTY_ARRAY_LISTS 0
 #endif
 
 #if BACNET_PROPERTY_LISTS
@@ -413,6 +391,19 @@ static const int Color_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
 
 static const int Color_Properties_Optional[] = { PROP_RELIABILITY,
     PROP_DESCRIPTION, PROP_TRANSITION, PROP_VALUE_SOURCE, PROP_AUDIT_LEVEL,
+    PROP_AUDITABLE_OPERATIONS, PROP_TAGS, PROP_PROFILE_LOCATION,
+    PROP_PROFILE_NAME, -1 };
+
+static const int Color_Temperature_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE, PROP_TRACKING_VALUE, PROP_COLOR_COMMAND,
+    PROP_IN_PROGRESS, PROP_DEFAULT_COLOR_TEMPERATURE, PROP_DEFAULT_FADE_TIME,
+    PROP_DEFAULT_RAMP_RATE, PROP_DEFAULT_STEP_INCREMENT, -1
+};
+
+static const int Color_Temperature_Properties_Optional[] = {
+    PROP_DESCRIPTION, PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE,
+    PROP_TRANSITION, PROP_VALUE_SOURCE, PROP_AUDIT_LEVEL,
     PROP_AUDITABLE_OPERATIONS, PROP_TAGS, PROP_PROFILE_LOCATION,
     PROP_PROFILE_NAME, -1 };
 
@@ -1166,6 +1157,9 @@ const int *property_list_optional(BACNET_OBJECT_TYPE object_type)
         case OBJECT_COLOR:
             pList = Color_Properties_Optional;
             break;
+        case OBJECT_COLOR_TEMPERATURE:
+            pList = Color_Temperature_Properties_Optional;
+            break;
         case OBJECT_CREDENTIAL_DATA_INPUT:
             pList = Credential_Data_Input_Properties_Optional;
             break;
@@ -1373,6 +1367,9 @@ const int *property_list_required(BACNET_OBJECT_TYPE object_type)
             break;
         case OBJECT_COLOR:
             pList = Color_Properties_Required;
+            break;
+        case OBJECT_COLOR_TEMPERATURE:
+            pList = Color_Temperature_Properties_Required;
             break;
         case OBJECT_CREDENTIAL_DATA_INPUT:
             pList = Credential_Data_Input_Properties_Required;
@@ -1595,3 +1592,201 @@ unsigned property_list_special_count(
     return count;
 }
 #endif
+
+#if BACNET_PROPERTY_ARRAY_LISTS
+/* standard properties that are arrays
+   but not necessary supported in every object */
+
+/* clang-format off */
+static const int Properties_BACnetARRAY[] = {
+    PROP_AUTHENTICATION_FACTORS, PROP_ASSIGNED_ACCESS_RIGHTS,
+    PROP_PRIORITY_ARRAY, PROP_VALUE_SOURCE_ARRAY, PROP_COMMAND_TIME_ARRAY,
+    PROP_ALARM_VALUES, PROP_FAULT_VALUES,
+    PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+    PROP_SUPPORTED_FORMATS, PROP_SUPPORTED_FORMAT_CLASSES,
+    PROP_SUBORDINATE_LIST, PROP_SUBORDINATE_ANNOTATIONS, PROP_SUBORDINATE_TAGS,
+    PROP_SUBORDINATE_NODE_TYPES, PROP_SUBORDINATE_RELATIONSHIPS,
+    PROP_GROUP_MEMBERS, PROP_GROUP_MEMBER_NAMES,
+    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES, PROP_EXECUTION_DELAY,
+    PROP_CONTROL_GROUPS, PROP_BIT_TEXT, PROP_PORT_FILTER,
+    PROP_NOTIFICATION_CLASS, PROP_STATE_CHANGE_VALUES,
+    PROP_LINK_SPEEDS, PROP_IP_DNS_SERVER, PROP_IPV6_DNS_SERVER,
+    PROP_FLOOR_TEXT, PROP_CAR_DOOR_TEXT, PROP_ASSIGNED_LANDING_CALLS,
+    PROP_MAKING_CAR_CALL, PROP_REGISTERED_CAR_CALL, PROP_CAR_DOOR_STATUS,
+    PROP_CAR_DOOR_COMMAND, PROP_LANDING_DOOR_STATUS,
+    PROP_STAGES, PROP_STAGE_NAMES, PROP_TARGET_REFERENCES,
+    PROP_MONITORED_OBJECTS, PROP_TAGS, -1
+};
+/* clang-format on */
+
+/**
+ * Function that returns the list of Required properties
+ * of known standard objects.
+ *
+ * @param object_type - enumerated BACNET_OBJECT_TYPE
+ * @return returns a pointer to a '-1' terminated array of
+ * type 'int' that contain BACnet object properties for the given object
+ * type.
+ */
+const int *property_list_bacnet_array(void)
+{
+    return Properties_BACnetARRAY;
+}
+
+/**
+ * @brief Determine if the object property is a BACnetARRAY property
+ * @param object_type - object-type to be checked
+ * @param object_property - object-property to be checked
+ * @return true if the property is a BACnetARRAY property
+ */
+bool property_list_bacnet_array_member(
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID object_property)
+{
+    switch (object_type) {
+        case OBJECT_GLOBAL_GROUP:
+            switch (object_property) {
+                case PROP_PRESENT_VALUE:
+                    /* special - the only present-value that is an array! */
+                    return true;
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return property_list_member(Properties_BACnetARRAY, object_property);
+}
+#endif
+
+/**
+ * @brief Determine if this property is required to be writable
+ * @note Property Conformance Code of W means writable
+ * @param object_type - object-type to be checked
+ * @param object_property - object-property to be checked
+ * @return true if the property is a required writable property
+ */
+bool property_list_writable_member(
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID object_property)
+{
+    bool writable = false;
+
+    switch (object_type) {
+        case OBJECT_ANALOG_OUTPUT:
+        case OBJECT_BINARY_OUTPUT:
+        case OBJECT_MULTI_STATE_OUTPUT:
+        case OBJECT_BINARY_LIGHTING_OUTPUT:
+        case OBJECT_ACCESS_DOOR:
+        case OBJECT_COMMAND:
+        case OBJECT_STAGING:
+            if (object_property == PROP_PRESENT_VALUE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_AVERAGING:
+            if ((object_property == PROP_ATTEMPTED_SAMPLES) ||
+                (object_property == PROP_WINDOW_INTERVAL) ||
+                (object_property == PROP_WINDOW_SAMPLES)) {
+                writable = true;
+            }
+            break;
+        case OBJECT_FILE:
+            if (object_property == PROP_ARCHIVE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_LIFE_SAFETY_POINT:
+        case OBJECT_LIFE_SAFETY_ZONE:
+            if (object_property == PROP_MODE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_PROGRAM:
+            if (object_property == PROP_PROGRAM_CHANGE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_PULSE_CONVERTER:
+            if (object_property == PROP_ADJUST_VALUE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_EVENT_LOG:
+        case OBJECT_TRENDLOG:
+        case OBJECT_TREND_LOG_MULTIPLE:
+            if ((object_property == PROP_ENABLE) ||
+                (object_property == PROP_RECORD_COUNT)) {
+                writable = true;
+            }
+            break;
+        case OBJECT_LOAD_CONTROL:
+            if ((object_property == PROP_REQUESTED_SHED_LEVEL) ||
+                (object_property == PROP_START_TIME) ||
+                (object_property == PROP_SHED_DURATION) ||
+                (object_property == PROP_DUTY_WINDOW) ||
+                (object_property == PROP_SHED_LEVELS)) {
+                writable = true;
+            }
+            break;
+        case OBJECT_ACCESS_CREDENTIAL:
+        case OBJECT_ACCESS_RIGHTS:
+        case OBJECT_ACCESS_USER:
+        case OBJECT_ACCESS_ZONE:
+            if (object_property == PROP_GLOBAL_IDENTIFIER) {
+                writable = true;
+            }
+            break;
+        case OBJECT_NETWORK_SECURITY:
+            if ((object_property == PROP_BASE_DEVICE_SECURITY_POLICY) ||
+                (object_property == PROP_NETWORK_ACCESS_SECURITY_POLICIES) ||
+                (object_property == PROP_SECURITY_TIME_WINDOW) ||
+                (object_property == PROP_PACKET_REORDER_TIME) ||
+                (object_property == PROP_LAST_KEY_SERVER) ||
+                (object_property == PROP_SECURITY_PDU_TIMEOUT) ||
+                (object_property == PROP_LAST_KEY_SERVER) ||
+                (object_property == PROP_SECURITY_PDU_TIMEOUT) ||
+                (object_property == PROP_DO_NOT_HIDE)) {
+                writable = true;
+            }
+            break;
+        case OBJECT_NOTIFICATION_FORWARDER:
+            if (object_property == PROP_SUBSCRIBED_RECIPIENTS) {
+                writable = true;
+            }
+            break;
+        case OBJECT_CHANNEL:
+            if ((object_property == PROP_PRESENT_VALUE) ||
+                (object_property == PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES) ||
+                (object_property == PROP_CHANNEL_NUMBER) ||
+                (object_property == PROP_CONTROL_GROUPS)) {
+                writable = true;
+            }
+            break;
+        case OBJECT_LIGHTING_OUTPUT:
+            if ((object_property == PROP_PRESENT_VALUE) ||
+                (object_property == PROP_LIGHTING_COMMAND)) {
+                writable = true;
+            }
+            break;
+        case OBJECT_AUDIT_LOG:
+            if (object_property == PROP_ENABLE) {
+                writable = true;
+            }
+            break;
+        case OBJECT_COLOR:
+        case OBJECT_COLOR_TEMPERATURE:
+            if ((object_property == PROP_PRESENT_VALUE) ||
+                (object_property == PROP_COLOR_COMMAND)) {
+                writable = true;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return writable;
+}

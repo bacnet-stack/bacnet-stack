@@ -1,33 +1,13 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/** @file device-client.c Lightweight base "class" for handling all
+/**
+ * @file
+ * @brief Lightweight base "class" for handling all
  * BACnet objects belonging to a BACnet device, as well as
  * Device-specific properties.  This Device instance is designed to
- * meet minimal functionality for simple clients. */
-
+ * meet minimal functionality for simple clients.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -40,6 +20,7 @@
 #include "bacnet/apdu.h"
 #include "bacnet/proplist.h"
 #include "bacnet/rp.h" /* ReadProperty handling */
+#include "bacnet/dcc.h" /* DeviceCommunicationControl handling */
 #include "bacnet/version.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
@@ -101,8 +82,7 @@ static uint32_t Database_Revision = 0;
 /* Slave_Address_Binding */
 /* Profile_Name */
 
-/* local forward (semi-private) and external prototypes */
-int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
+/* external prototypes */
 extern int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
 extern bool Routed_Device_Write_Property_Local(
     BACNET_WRITE_PROPERTY_DATA *wp_data);
@@ -163,6 +143,25 @@ static struct object_functions *Device_Objects_Find_Functions(
     }
 
     return (NULL);
+}
+
+/** Try to find a rr_info_function helper function for the requested object
+ * type.
+ * @ingroup ObjIntf
+ *
+ * @param object_type [in] The type of BACnet Object the handler wants to
+ * access.
+ * @return Pointer to the object helper function that implements the
+ *         ReadRangeInfo function, Object_RR_Info, for this type of Object on
+ *         success, else a NULL pointer if the type of Object isn't supported
+ *         or doesn't have a ReadRangeInfo function.
+ */
+rr_info_function Device_Objects_RR_Info(BACNET_OBJECT_TYPE object_type)
+{
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    return (pObject != NULL ? pObject->Object_RR_Info : NULL);
 }
 
 /** For a given object type, returns the special property list.
@@ -250,6 +249,80 @@ void Device_Property_Lists(
     return;
 }
 
+static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
+static const char *Reinit_Password = "filister";
+
+/** Commands a Device re-initialization, to a given state.
+ * The request's password must match for the operation to succeed.
+ * This implementation provides a framework, but doesn't
+ * actually *DO* anything.
+ * @note You could use a mix of states and passwords to multiple outcomes.
+ * @note You probably want to restart *after* the simple ack has been sent
+ *       from the return handler, so just set a local flag here.
+ * @ingroup ObjIntf
+ *
+ * @param rd_data [in,out] The information from the RD request.
+ *                         On failure, the error class and code will be set.
+ * @return True if succeeds (password is correct), else False.
+ */
+bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
+{
+    bool status = false;
+
+    /* Note: you could use a mix of state and password to multiple things */
+    if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
+        switch (rd_data->state) {
+            case BACNET_REINIT_COLDSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                /* note: you probably want to restart *after* the
+                   simple ack has been sent from the return handler
+                   so just set a flag from here */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            case BACNET_REINIT_WARMSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                /* note: restart *after* the simple ack has been sent */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            case BACNET_REINIT_STARTBACKUP:
+            case BACNET_REINIT_ENDBACKUP:
+            case BACNET_REINIT_STARTRESTORE:
+            case BACNET_REINIT_ENDRESTORE:
+            case BACNET_REINIT_ABORTRESTORE:
+                if (dcc_communication_disabled()) {
+                    rd_data->error_class = ERROR_CLASS_SERVICES;
+                    rd_data->error_code = ERROR_CODE_COMMUNICATION_DISABLED;
+                } else {
+                    rd_data->error_class = ERROR_CLASS_SERVICES;
+                    rd_data->error_code =
+                        ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+                }
+                break;
+            case BACNET_REINIT_ACTIVATE_CHANGES:
+                /* note: activate changes *after* the simple ack is sent */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            default:
+                rd_data->error_class = ERROR_CLASS_SERVICES;
+                rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+                break;
+        }
+    } else {
+        rd_data->error_class = ERROR_CLASS_SECURITY;
+        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
+    }
+
+    return status;
+}
+
+BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void)
+{
+    return Reinitialize_State;
+}
+
 unsigned Device_Count(void)
 {
     return 1;
@@ -321,6 +394,11 @@ bool Device_Set_Object_Name(BACNET_CHARACTER_STRING *object_name)
     }
 
     return status;
+}
+
+bool Device_Object_Name_ANSI_Init(const char *value)
+{
+    return characterstring_init_ansi(&My_Object_Name, value);
 }
 
 BACNET_DEVICE_STATUS Device_System_Status(void)

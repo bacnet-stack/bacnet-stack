@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.3.5
+  VERSION 1.3.8
   LANGUAGES C)
 
 #
@@ -25,6 +25,11 @@ option(
   ON)
 
 option(
+  BACNET_PROPERTY_ARRAY_LISTS
+  "enable property array lists"
+  ON)
+
+option(
   BACNET_BUILD_PIFACE_APP
   "compile the piface app"
   OFF)
@@ -34,10 +39,10 @@ option(
   "compile the bacpoll app"
   ON)
 
-  option(
-    BACNET_BUILD_BACDISCOVER_APP
-    "compile the bacdiscover app"
-    ON)
+option(
+  BACNET_BUILD_BACDISCOVER_APP
+  "compile the bacdiscover app"
+  ON)
 
 option(
   BACDL_ETHERNET
@@ -96,16 +101,73 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
+set(CMAKE_C_STANDARD 90)
+
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic)
-  add_compile_options(-Wfloat-equal -Wconversion -Wparentheses)
-  add_compile_options(-Wunused-value -Wreturn-type -Wswitch-default)
-  add_compile_options(-Wuninitialized -Winit-self)
+  # Add more warnings
+  add_compile_options(-Wfloat-equal -Wconversion)
+  add_compile_options(-Wfloat-conversion -Wdouble-promotion)
+  add_compile_options(-Wredundant-decls -Wmissing-declarations)
+  add_compile_options(-Wswitch-default)
+  add_compile_options(-Wunused-variable)
+  add_compile_options(-Wcast-qual)
+
+  # Don't warn about conversion, sign, compares since they are common in
+  # embedded
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
-  add_compile_options(-Wno-sign-compare -Wno-long-long)
-  add_compile_options(-Wno-implicit-fallthrough -Wno-attributes)
-  add_compile_options(-Wunused-variable -Wunused-function)
-  add_compile_options(-Wunused-parameter)
+  add_compile_options(-Wno-sign-compare)
+
+  if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+    # Just noise from clang
+    add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+
+    # Clang does not like _Bool which is not C90. We could fix this at some
+    # point.
+    add_compile_options(-Wno-c99-extensions)
+  endif()
+
+  if (APPLE)
+    # Apple defines UINT64_MAX with ULL suffix. This is not C90 compliant.
+    add_compile_options(-Wno-long-long)
+  endif()
+
+  # Should be fixed in a future.
+  add_compile_options(-Wno-cast-qual)
+  add_compile_options(-Wno-double-promotion)
+  add_compile_options(-Wno-float-conversion)
+  add_compile_options(-Wno-missing-declarations)
+  add_compile_options(-Wno-unused-but-set-variable)
+elseif(MSVC)
+  add_compile_options(/Wall)
+
+  # Potentially uninitialized local variable. Definetly fix these. There might
+  # be false positives but it is better to fix them also.
+  add_compile_options(/wd4701)
+
+  # Function is unsafe (strtok, sscanf, fopen, strerror).
+  add_compile_options(/wd4996)
+
+  # Handle all enums values in switch.
+  add_compile_options(/wd4061)
+
+  # Possible loss of data.
+  add_compile_options(/wd4242 /wd4244 /wd4267)
+
+  # Signed/unsigned mismatch.
+  add_compile_options(/wd4018 /wd4388 /wd4389)
+
+  # Not defined as a preprocessor macro.
+  add_compile_options(/wd4668)
+
+  # Function not inlined.
+  add_compile_options(/wd4710)
+
+  # Compiler adds padding to structures.
+  add_compile_options(/wd4820)
+
+  # Might be slower if builded with /Qspectre
+  add_compile_options(/wd5045)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -119,392 +181,398 @@ endif()
 find_package(Threads)
 
 add_library(${PROJECT_NAME}
-    src/bacnet/abort.c
-    src/bacnet/abort.h
-    src/bacnet/access_rule.c
-    src/bacnet/access_rule.h
-    src/bacnet/alarm_ack.c
-    src/bacnet/alarm_ack.h
-    src/bacnet/apdu.h
-    src/bacnet/arf.c
-    src/bacnet/arf.h
-    src/bacnet/assigned_access_rights.c
-    src/bacnet/assigned_access_rights.h
-    src/bacnet/authentication_factor.c
-    src/bacnet/authentication_factor_format.c
-    src/bacnet/authentication_factor_format.h
-    src/bacnet/authentication_factor.h
-    src/bacnet/awf.c
-    src/bacnet/awf.h
-    src/bacnet/bacaddr.c
-    src/bacnet/bacaddr.h
-    src/bacnet/bacapp.c
-    src/bacnet/bacapp.h
-    src/bacnet/bacdcode.c
-    src/bacnet/bacdcode.h
-    src/bacnet/bacdef.h
-    src/bacnet/bacdest.c
-    src/bacnet/bacdest.h
-    src/bacnet/bacdevobjpropref.c
-    src/bacnet/bacdevobjpropref.h
-    src/bacnet/bacenum.h
-    src/bacnet/bacerror.c
-    src/bacnet/bacerror.h
-    src/bacnet/bacint.c
-    src/bacnet/bacint.h
-    src/bacnet/bacprop.c
-    src/bacnet/bacprop.h
-    src/bacnet/bacpropstates.c
-    src/bacnet/bacpropstates.h
-    src/bacnet/bacreal.c
-    src/bacnet/bacreal.h
-    src/bacnet/bacstr.c
-    src/bacnet/bacstr.h
-    src/bacnet/bactext.c
-    src/bacnet/bactext.h
-    src/bacnet/bactimevalue.c
-    src/bacnet/bactimevalue.h
-    src/bacnet/dailyschedule.c
-    src/bacnet/dailyschedule.h
-    src/bacnet/weeklyschedule.c
-    src/bacnet/weeklyschedule.h
-    src/bacnet/special_event.c
-    src/bacnet/special_event.h
-    $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
-    $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
-    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
-    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
-    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
-    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
-    src/bacnet/basic/binding/address.c
-    src/bacnet/basic/binding/address.h
-    src/bacnet/basic/npdu/h_npdu.c
-    src/bacnet/basic/npdu/h_npdu.h
-    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.c>
-    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.h>
-    src/bacnet/basic/npdu/s_router.c
-    src/bacnet/basic/npdu/s_router.h
-    src/bacnet/basic/object/access_credential.c
-    src/bacnet/basic/object/access_credential.h
-    src/bacnet/basic/object/access_door.c
-    src/bacnet/basic/object/access_door.h
-    src/bacnet/basic/object/access_point.c
-    src/bacnet/basic/object/access_point.h
-    src/bacnet/basic/object/access_rights.c
-    src/bacnet/basic/object/access_rights.h
-    src/bacnet/basic/object/access_user.c
-    src/bacnet/basic/object/access_user.h
-    src/bacnet/basic/object/access_zone.c
-    src/bacnet/basic/object/access_zone.h
-    src/bacnet/basic/object/acc.c
-    src/bacnet/basic/object/ai.c
-    src/bacnet/basic/object/ai.h
-    src/bacnet/basic/object/ao.c
-    src/bacnet/basic/object/ao.h
-    src/bacnet/basic/object/av.c
-    src/bacnet/basic/object/av.h
-    src/bacnet/basic/object/bacfile.c
-    src/bacnet/basic/object/bacfile.h
-    src/bacnet/basic/object/bi.c
-    src/bacnet/basic/object/bi.h
-    src/bacnet/basic/object/blo.c
-    src/bacnet/basic/object/blo.h
-    src/bacnet/basic/object/bo.c
-    src/bacnet/basic/object/bo.h
-    src/bacnet/basic/object/bv.c
-    src/bacnet/basic/object/bv.h
-    src/bacnet/basic/object/channel.c
-    src/bacnet/basic/object/channel.h
-    src/bacnet/basic/object/calendar.c
-    src/bacnet/basic/object/calendar.h
-    src/bacnet/basic/object/color_object.c
-    src/bacnet/basic/object/color_object.h
-    src/bacnet/basic/object/color_temperature.c
-    src/bacnet/basic/object/color_temperature.h
-    # src/bacnet/basic/object/client/device-client.c
-    src/bacnet/basic/object/command.c
-    src/bacnet/basic/object/command.h
-    src/bacnet/basic/object/credential_data_input.c
-    src/bacnet/basic/object/credential_data_input.h
-    src/bacnet/basic/object/csv.c
-    src/bacnet/basic/object/csv.h
-    src/bacnet/basic/object/device.c
-    src/bacnet/basic/object/device.h
-    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/object/gateway/gw_device.c>
-    src/bacnet/basic/object/iv.c
-    src/bacnet/basic/object/iv.h
-    src/bacnet/basic/object/lc.c
-    src/bacnet/basic/object/lc.h
-    src/bacnet/basic/object/lo.c
-    src/bacnet/basic/object/lo.h
-    src/bacnet/basic/object/lsp.c
-    src/bacnet/basic/object/lsp.h
-    src/bacnet/basic/object/lsz.c
-    src/bacnet/basic/object/lsz.h
-    src/bacnet/basic/object/ms-input.c
-    src/bacnet/basic/object/ms-input.h
-    src/bacnet/basic/object/mso.c
-    src/bacnet/basic/object/mso.h
-    src/bacnet/basic/object/msv.c
-    src/bacnet/basic/object/msv.h
-    src/bacnet/basic/object/nc.c
-    src/bacnet/basic/object/nc.h
-    src/bacnet/basic/object/netport.c
-    src/bacnet/basic/object/netport.h
-    src/bacnet/basic/object/objects.c
-    src/bacnet/basic/object/objects.h
-    src/bacnet/basic/object/osv.c
-    src/bacnet/basic/object/osv.h
-    src/bacnet/basic/object/piv.c
-    src/bacnet/basic/object/piv.h
-    src/bacnet/basic/object/schedule.c
-    src/bacnet/basic/object/schedule.h
-    src/bacnet/basic/object/time_value.c
-    src/bacnet/basic/object/time_value.h
-    src/bacnet/basic/object/trendlog.c
-    src/bacnet/basic/object/trendlog.h
-    src/bacnet/basic/service/h_alarm_ack.c
-    src/bacnet/basic/service/h_alarm_ack.h
-    src/bacnet/basic/service/h_apdu.c
-    src/bacnet/basic/service/h_apdu.h
-    src/bacnet/basic/service/h_arf_a.c
-    src/bacnet/basic/service/h_arf_a.h
-    src/bacnet/basic/service/h_arf.c
-    src/bacnet/basic/service/h_arf.h
-    src/bacnet/basic/service/h_awf.c
-    src/bacnet/basic/service/h_awf.h
-    src/bacnet/basic/service/h_ccov.c
-    src/bacnet/basic/service/h_ccov.h
-    src/bacnet/basic/service/h_create_object.c
-    src/bacnet/basic/service/h_create_object.h
-    src/bacnet/basic/service/h_cov.c
-    src/bacnet/basic/service/h_cov.h
-    src/bacnet/basic/service/h_dcc.c
-    src/bacnet/basic/service/h_dcc.h
-    src/bacnet/basic/service/h_delete_object.c
-    src/bacnet/basic/service/h_delete_object.h
-    src/bacnet/basic/service/h_gas_a.c
-    src/bacnet/basic/service/h_gas_a.h
-    src/bacnet/basic/service/h_get_alarm_sum.c
-    src/bacnet/basic/service/h_get_alarm_sum.h
-    src/bacnet/basic/service/h_getevent_a.c
-    src/bacnet/basic/service/h_getevent_a.h
-    src/bacnet/basic/service/h_getevent.c
-    src/bacnet/basic/service/h_getevent.h
-    src/bacnet/basic/service/h_iam.c
-    src/bacnet/basic/service/h_iam.h
-    src/bacnet/basic/service/h_ihave.c
-    src/bacnet/basic/service/h_ihave.h
-    src/bacnet/basic/service/h_lso.c
-    src/bacnet/basic/service/h_lso.h
-    src/bacnet/basic/service/h_list_element.c
-    src/bacnet/basic/service/h_list_element.h
-    src/bacnet/basic/service/h_noserv.c
-    src/bacnet/basic/service/h_noserv.h
-    src/bacnet/basic/service/h_rd.c
-    src/bacnet/basic/service/h_rd.h
-    src/bacnet/basic/service/h_rp_a.c
-    src/bacnet/basic/service/h_rp_a.h
-    src/bacnet/basic/service/h_rp.c
-    src/bacnet/basic/service/h_rp.h
-    src/bacnet/basic/service/h_rpm_a.c
-    src/bacnet/basic/service/h_rpm_a.h
-    src/bacnet/basic/service/h_rpm.c
-    src/bacnet/basic/service/h_rpm.h
-    src/bacnet/basic/service/h_rr_a.c
-    src/bacnet/basic/service/h_rr_a.h
-    src/bacnet/basic/service/h_rr.c
-    src/bacnet/basic/service/h_rr.h
-    src/bacnet/basic/service/h_ts.c
-    src/bacnet/basic/service/h_ts.h
-    src/bacnet/basic/service/h_ucov.c
-    src/bacnet/basic/service/h_ucov.h
-    src/bacnet/basic/service/h_upt.c
-    src/bacnet/basic/service/h_upt.h
-    src/bacnet/basic/service/h_whohas.c
-    src/bacnet/basic/service/h_whohas.h
-    src/bacnet/basic/service/h_whois.c
-    src/bacnet/basic/service/h_whois.h
-    src/bacnet/basic/service/h_wp.c
-    src/bacnet/basic/service/h_wp.h
-    src/bacnet/basic/service/h_wpm.c
-    src/bacnet/basic/service/h_wpm.h
-    src/bacnet/basic/service/s_abort.c
-    src/bacnet/basic/service/s_abort.h
-    src/bacnet/basic/service/s_ack_alarm.c
-    src/bacnet/basic/service/s_ack_alarm.h
-    src/bacnet/basic/service/s_arfs.c
-    src/bacnet/basic/service/s_arfs.h
-    src/bacnet/basic/service/s_awfs.c
-    src/bacnet/basic/service/s_awfs.h
-    src/bacnet/basic/service/s_cevent.c
-    src/bacnet/basic/service/s_cevent.h
-    src/bacnet/basic/service/s_create_object.c
-    src/bacnet/basic/service/s_create_object.h
-    src/bacnet/basic/service/s_cov.c
-    src/bacnet/basic/service/s_cov.h
-    src/bacnet/basic/service/s_dcc.c
-    src/bacnet/basic/service/s_dcc.h
-    src/bacnet/basic/service/s_delete_object.c
-    src/bacnet/basic/service/s_delete_object.h
-    src/bacnet/basic/service/s_error.c
-    src/bacnet/basic/service/s_error.h
-    src/bacnet/basic/service/s_get_alarm_sum.c
-    src/bacnet/basic/service/s_get_alarm_sum.h
-    src/bacnet/basic/service/s_get_event.c
-    src/bacnet/basic/service/s_getevent.c
-    src/bacnet/basic/service/s_get_event.h
-    src/bacnet/basic/service/s_getevent.h
-    src/bacnet/basic/service/s_iam.c
-    src/bacnet/basic/service/s_iam.h
-    src/bacnet/basic/service/s_ihave.c
-    src/bacnet/basic/service/s_ihave.h
-    src/bacnet/basic/service/s_list_element.c
-    src/bacnet/basic/service/s_list_element.h
-    src/bacnet/basic/service/s_lso.c
-    src/bacnet/basic/service/s_lso.h
-    src/bacnet/basic/service/s_rd.c
-    src/bacnet/basic/service/s_rd.h
-    src/bacnet/basic/service/s_readrange.c
-    src/bacnet/basic/service/s_readrange.h
-    src/bacnet/basic/service/s_rp.c
-    src/bacnet/basic/service/s_rp.h
-    src/bacnet/basic/service/s_rpm.c
-    src/bacnet/basic/service/s_rpm.h
-    src/bacnet/basic/service/s_ts.c
-    src/bacnet/basic/service/s_ts.h
-    src/bacnet/basic/service/s_uevent.c
-    src/bacnet/basic/service/s_uevent.h
-    src/bacnet/basic/service/s_upt.c
-    src/bacnet/basic/service/s_upt.h
-    src/bacnet/basic/service/s_whohas.c
-    src/bacnet/basic/service/s_whohas.h
-    src/bacnet/basic/service/s_whois.c
-    src/bacnet/basic/service/s_whois.h
-    src/bacnet/basic/service/s_wp.c
-    src/bacnet/basic/service/s_wp.h
-    src/bacnet/basic/service/s_wpm.c
-    src/bacnet/basic/service/s_wpm.h
-    src/bacnet/basic/services.h
-    src/bacnet/basic/sys/bigend.c
-    src/bacnet/basic/sys/bigend.h
-    src/bacnet/basic/sys/color_rgb.c
-    src/bacnet/basic/sys/color_rgb.h
-    src/bacnet/basic/sys/days.c
-    src/bacnet/basic/sys/days.h
-    src/bacnet/basic/sys/debug.c
-    src/bacnet/basic/sys/debug.h
-    src/bacnet/basic/sys/fifo.c
-    src/bacnet/basic/sys/fifo.h
-    src/bacnet/basic/sys/filename.c
-    src/bacnet/basic/sys/filename.h
-    src/bacnet/basic/sys/key.h
-    src/bacnet/basic/sys/keylist.c
-    src/bacnet/basic/sys/keylist.h
-    src/bacnet/basic/sys/linear.c
-    src/bacnet/basic/sys/linear.h
-    src/bacnet/basic/sys/mstimer.c
-    src/bacnet/basic/sys/mstimer.h
-    src/bacnet/basic/sys/ringbuf.c
-    src/bacnet/basic/sys/ringbuf.h
-    src/bacnet/basic/sys/sbuf.c
-    src/bacnet/basic/sys/sbuf.h
-    src/bacnet/basic/tsm/tsm.c
-    src/bacnet/basic/tsm/tsm.h
-    src/bacnet/basic/sys/bits.h
-    src/bacnet/basic/sys/bytes.h
-    src/bacnet/config.h
-    src/bacnet/calendar_entry.c
-    src/bacnet/calendar_entry.h
-    src/bacnet/cov.c
-    src/bacnet/cov.h
-    src/bacnet/create_object.c
-    src/bacnet/create_object.h
-    src/bacnet/credential_authentication_factor.c
-    src/bacnet/credential_authentication_factor.h
-    src/bacnet/datalink/arcnet.h
-    src/bacnet/datalink/bacsec.c
-    src/bacnet/datalink/bacsec.h
-    src/bacnet/datalink/bip6.h
-    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.h>
-    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.c>
-    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.h>
-    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.h>
-    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
-    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
-    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
-    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.h>
-    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
-    src/bacnet/datalink/datalink.c
-    src/bacnet/datalink/datalink.h
-    src/bacnet/datalink/dlenv.c
-    src/bacnet/datalink/dlenv.h
-    src/bacnet/datalink/dlmstp.h
-    src/bacnet/datalink/ethernet.h
-    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/mstp.c>
-    src/bacnet/datalink/mstpdef.h
-    src/bacnet/datalink/mstp.h
-    src/bacnet/datalink/mstptext.c
-    src/bacnet/datalink/mstptext.h
-    src/bacnet/datetime.c
-    src/bacnet/datetime.h
-    src/bacnet/dcc.c
-    src/bacnet/dcc.h
-    src/bacnet/delete_object.c
-    src/bacnet/delete_object.h
-    src/bacnet/event.c
-    src/bacnet/event.h
-    src/bacnet/get_alarm_sum.c
-    src/bacnet/get_alarm_sum.h
-    src/bacnet/getevent.c
-    src/bacnet/getevent.h
-    src/bacnet/hostnport.c
-    src/bacnet/hostnport.h
-    src/bacnet/iam.c
-    src/bacnet/iam.h
-    src/bacnet/ihave.c
-    src/bacnet/ihave.h
-    src/bacnet/indtext.c
-    src/bacnet/indtext.h
-    src/bacnet/lighting.c
-    src/bacnet/lighting.h
-    src/bacnet/list_element.c
-    src/bacnet/list_element.h
-    src/bacnet/lso.c
-    src/bacnet/lso.h
-    src/bacnet/memcopy.c
-    src/bacnet/memcopy.h
-    src/bacnet/npdu.c
-    src/bacnet/npdu.h
-    src/bacnet/property.c
-    src/bacnet/property.h
-    src/bacnet/proplist.c
-    src/bacnet/proplist.h
-    src/bacnet/ptransfer.c
-    src/bacnet/ptransfer.h
-    src/bacnet/rd.c
-    src/bacnet/rd.h
-    src/bacnet/readrange.c
-    src/bacnet/readrange.h
-    src/bacnet/reject.c
-    src/bacnet/reject.h
-    src/bacnet/rp.c
-    src/bacnet/rp.h
-    src/bacnet/rpm.c
-    src/bacnet/rpm.h
-    src/bacnet/timestamp.c
-    src/bacnet/timestamp.h
-    src/bacnet/timesync.c
-    src/bacnet/timesync.h
-    src/bacnet/version.h
-    src/bacnet/whohas.c
-    src/bacnet/whohas.h
-    src/bacnet/whois.c
-    src/bacnet/whois.h
-    src/bacnet/wp.c
-    src/bacnet/wp.h
-    src/bacnet/wpm.c
-    src/bacnet/wpm.h)
+  src/bacnet/abort.c
+  src/bacnet/abort.h
+  src/bacnet/access_rule.c
+  src/bacnet/access_rule.h
+  src/bacnet/alarm_ack.c
+  src/bacnet/alarm_ack.h
+  src/bacnet/apdu.h
+  src/bacnet/arf.c
+  src/bacnet/arf.h
+  src/bacnet/assigned_access_rights.c
+  src/bacnet/assigned_access_rights.h
+  src/bacnet/authentication_factor.c
+  src/bacnet/authentication_factor_format.c
+  src/bacnet/authentication_factor_format.h
+  src/bacnet/authentication_factor.h
+  src/bacnet/awf.c
+  src/bacnet/awf.h
+  src/bacnet/bacaddr.c
+  src/bacnet/bacaddr.h
+  src/bacnet/bacaction.c
+  src/bacnet/bacaction.h
+  src/bacnet/bacapp.c
+  src/bacnet/bacapp.h
+  src/bacnet/bacdcode.c
+  src/bacnet/bacdcode.h
+  src/bacnet/bacdef.h
+  src/bacnet/bacdest.c
+  src/bacnet/bacdest.h
+  src/bacnet/bacdevobjpropref.c
+  src/bacnet/bacdevobjpropref.h
+  src/bacnet/bacenum.h
+  src/bacnet/bacerror.c
+  src/bacnet/bacerror.h
+  src/bacnet/bacint.c
+  src/bacnet/bacint.h
+  src/bacnet/bacprop.c
+  src/bacnet/bacprop.h
+  src/bacnet/bacpropstates.c
+  src/bacnet/bacpropstates.h
+  src/bacnet/bacreal.c
+  src/bacnet/bacreal.h
+  src/bacnet/bacstr.c
+  src/bacnet/bacstr.h
+  src/bacnet/bactext.c
+  src/bacnet/bactext.h
+  src/bacnet/bactimevalue.c
+  src/bacnet/bactimevalue.h
+  src/bacnet/dailyschedule.c
+  src/bacnet/dailyschedule.h
+  src/bacnet/weeklyschedule.c
+  src/bacnet/weeklyschedule.h
+  src/bacnet/special_event.c
+  src/bacnet/special_event.h
+  $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
+  $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
+  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
+  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
+  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
+  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
+  src/bacnet/basic/binding/address.c
+  src/bacnet/basic/binding/address.h
+  src/bacnet/basic/npdu/h_npdu.c
+  src/bacnet/basic/npdu/h_npdu.h
+  $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.c>
+  $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/npdu/h_routed_npdu.h>
+  src/bacnet/basic/npdu/s_router.c
+  src/bacnet/basic/npdu/s_router.h
+  src/bacnet/basic/object/access_credential.c
+  src/bacnet/basic/object/access_credential.h
+  src/bacnet/basic/object/access_door.c
+  src/bacnet/basic/object/access_door.h
+  src/bacnet/basic/object/access_point.c
+  src/bacnet/basic/object/access_point.h
+  src/bacnet/basic/object/access_rights.c
+  src/bacnet/basic/object/access_rights.h
+  src/bacnet/basic/object/access_user.c
+  src/bacnet/basic/object/access_user.h
+  src/bacnet/basic/object/access_zone.c
+  src/bacnet/basic/object/access_zone.h
+  src/bacnet/basic/object/acc.c
+  src/bacnet/basic/object/ai.c
+  src/bacnet/basic/object/ai.h
+  src/bacnet/basic/object/ao.c
+  src/bacnet/basic/object/ao.h
+  src/bacnet/basic/object/av.c
+  src/bacnet/basic/object/av.h
+  src/bacnet/basic/object/bacfile.c
+  src/bacnet/basic/object/bacfile.h
+  src/bacnet/basic/object/bi.c
+  src/bacnet/basic/object/bi.h
+  src/bacnet/basic/object/bitstring_value.c
+  src/bacnet/basic/object/bitstring_value.h
+  src/bacnet/basic/object/blo.c
+  src/bacnet/basic/object/blo.h
+  src/bacnet/basic/object/bo.c
+  src/bacnet/basic/object/bo.h
+  src/bacnet/basic/object/bv.c
+  src/bacnet/basic/object/bv.h
+  src/bacnet/basic/object/channel.c
+  src/bacnet/basic/object/channel.h
+  src/bacnet/basic/object/calendar.c
+  src/bacnet/basic/object/calendar.h
+  src/bacnet/basic/object/color_object.c
+  src/bacnet/basic/object/color_object.h
+  src/bacnet/basic/object/color_temperature.c
+  src/bacnet/basic/object/color_temperature.h
+  # src/bacnet/basic/object/client/device-client.c
+  src/bacnet/basic/object/command.c
+  src/bacnet/basic/object/command.h
+  src/bacnet/basic/object/credential_data_input.c
+  src/bacnet/basic/object/credential_data_input.h
+  src/bacnet/basic/object/csv.c
+  src/bacnet/basic/object/csv.h
+  src/bacnet/basic/object/device.c
+  src/bacnet/basic/object/device.h
+  $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/object/gateway/gw_device.c>
+  src/bacnet/basic/object/iv.c
+  src/bacnet/basic/object/iv.h
+  src/bacnet/basic/object/lc.c
+  src/bacnet/basic/object/lc.h
+  src/bacnet/basic/object/lo.c
+  src/bacnet/basic/object/lo.h
+  src/bacnet/basic/object/lsp.c
+  src/bacnet/basic/object/lsp.h
+  src/bacnet/basic/object/lsz.c
+  src/bacnet/basic/object/lsz.h
+  src/bacnet/basic/object/ms-input.c
+  src/bacnet/basic/object/ms-input.h
+  src/bacnet/basic/object/mso.c
+  src/bacnet/basic/object/mso.h
+  src/bacnet/basic/object/msv.c
+  src/bacnet/basic/object/msv.h
+  src/bacnet/basic/object/nc.c
+  src/bacnet/basic/object/nc.h
+  src/bacnet/basic/object/netport.c
+  src/bacnet/basic/object/netport.h
+  src/bacnet/basic/object/objects.c
+  src/bacnet/basic/object/objects.h
+  src/bacnet/basic/object/osv.c
+  src/bacnet/basic/object/osv.h
+  src/bacnet/basic/object/piv.c
+  src/bacnet/basic/object/piv.h
+  src/bacnet/basic/object/schedule.c
+  src/bacnet/basic/object/schedule.h
+  src/bacnet/basic/object/structured_view.c
+  src/bacnet/basic/object/structured_view.h
+  src/bacnet/basic/object/time_value.c
+  src/bacnet/basic/object/time_value.h
+  src/bacnet/basic/object/trendlog.c
+  src/bacnet/basic/object/trendlog.h
+  src/bacnet/basic/service/h_alarm_ack.c
+  src/bacnet/basic/service/h_alarm_ack.h
+  src/bacnet/basic/service/h_apdu.c
+  src/bacnet/basic/service/h_apdu.h
+  src/bacnet/basic/service/h_arf_a.c
+  src/bacnet/basic/service/h_arf_a.h
+  src/bacnet/basic/service/h_arf.c
+  src/bacnet/basic/service/h_arf.h
+  src/bacnet/basic/service/h_awf.c
+  src/bacnet/basic/service/h_awf.h
+  src/bacnet/basic/service/h_ccov.c
+  src/bacnet/basic/service/h_ccov.h
+  src/bacnet/basic/service/h_create_object.c
+  src/bacnet/basic/service/h_create_object.h
+  src/bacnet/basic/service/h_cov.c
+  src/bacnet/basic/service/h_cov.h
+  src/bacnet/basic/service/h_dcc.c
+  src/bacnet/basic/service/h_dcc.h
+  src/bacnet/basic/service/h_delete_object.c
+  src/bacnet/basic/service/h_delete_object.h
+  src/bacnet/basic/service/h_gas_a.c
+  src/bacnet/basic/service/h_gas_a.h
+  src/bacnet/basic/service/h_get_alarm_sum.c
+  src/bacnet/basic/service/h_get_alarm_sum.h
+  src/bacnet/basic/service/h_getevent_a.c
+  src/bacnet/basic/service/h_getevent_a.h
+  src/bacnet/basic/service/h_getevent.c
+  src/bacnet/basic/service/h_getevent.h
+  src/bacnet/basic/service/h_iam.c
+  src/bacnet/basic/service/h_iam.h
+  src/bacnet/basic/service/h_ihave.c
+  src/bacnet/basic/service/h_ihave.h
+  src/bacnet/basic/service/h_lso.c
+  src/bacnet/basic/service/h_lso.h
+  src/bacnet/basic/service/h_list_element.c
+  src/bacnet/basic/service/h_list_element.h
+  src/bacnet/basic/service/h_noserv.c
+  src/bacnet/basic/service/h_noserv.h
+  src/bacnet/basic/service/h_rd.c
+  src/bacnet/basic/service/h_rd.h
+  src/bacnet/basic/service/h_rp_a.c
+  src/bacnet/basic/service/h_rp_a.h
+  src/bacnet/basic/service/h_rp.c
+  src/bacnet/basic/service/h_rp.h
+  src/bacnet/basic/service/h_rpm_a.c
+  src/bacnet/basic/service/h_rpm_a.h
+  src/bacnet/basic/service/h_rpm.c
+  src/bacnet/basic/service/h_rpm.h
+  src/bacnet/basic/service/h_rr_a.c
+  src/bacnet/basic/service/h_rr_a.h
+  src/bacnet/basic/service/h_rr.c
+  src/bacnet/basic/service/h_rr.h
+  src/bacnet/basic/service/h_ts.c
+  src/bacnet/basic/service/h_ts.h
+  src/bacnet/basic/service/h_ucov.c
+  src/bacnet/basic/service/h_ucov.h
+  src/bacnet/basic/service/h_upt.c
+  src/bacnet/basic/service/h_upt.h
+  src/bacnet/basic/service/h_whohas.c
+  src/bacnet/basic/service/h_whohas.h
+  src/bacnet/basic/service/h_whois.c
+  src/bacnet/basic/service/h_whois.h
+  src/bacnet/basic/service/h_wp.c
+  src/bacnet/basic/service/h_wp.h
+  src/bacnet/basic/service/h_wpm.c
+  src/bacnet/basic/service/h_wpm.h
+  src/bacnet/basic/service/s_abort.c
+  src/bacnet/basic/service/s_abort.h
+  src/bacnet/basic/service/s_ack_alarm.c
+  src/bacnet/basic/service/s_ack_alarm.h
+  src/bacnet/basic/service/s_arfs.c
+  src/bacnet/basic/service/s_arfs.h
+  src/bacnet/basic/service/s_awfs.c
+  src/bacnet/basic/service/s_awfs.h
+  src/bacnet/basic/service/s_cevent.c
+  src/bacnet/basic/service/s_cevent.h
+  src/bacnet/basic/service/s_create_object.c
+  src/bacnet/basic/service/s_create_object.h
+  src/bacnet/basic/service/s_cov.c
+  src/bacnet/basic/service/s_cov.h
+  src/bacnet/basic/service/s_dcc.c
+  src/bacnet/basic/service/s_dcc.h
+  src/bacnet/basic/service/s_delete_object.c
+  src/bacnet/basic/service/s_delete_object.h
+  src/bacnet/basic/service/s_error.c
+  src/bacnet/basic/service/s_error.h
+  src/bacnet/basic/service/s_get_alarm_sum.c
+  src/bacnet/basic/service/s_get_alarm_sum.h
+  src/bacnet/basic/service/s_get_event.c
+  src/bacnet/basic/service/s_getevent.c
+  src/bacnet/basic/service/s_get_event.h
+  src/bacnet/basic/service/s_getevent.h
+  src/bacnet/basic/service/s_iam.c
+  src/bacnet/basic/service/s_iam.h
+  src/bacnet/basic/service/s_ihave.c
+  src/bacnet/basic/service/s_ihave.h
+  src/bacnet/basic/service/s_list_element.c
+  src/bacnet/basic/service/s_list_element.h
+  src/bacnet/basic/service/s_lso.c
+  src/bacnet/basic/service/s_lso.h
+  src/bacnet/basic/service/s_rd.c
+  src/bacnet/basic/service/s_rd.h
+  src/bacnet/basic/service/s_readrange.c
+  src/bacnet/basic/service/s_readrange.h
+  src/bacnet/basic/service/s_rp.c
+  src/bacnet/basic/service/s_rp.h
+  src/bacnet/basic/service/s_rpm.c
+  src/bacnet/basic/service/s_rpm.h
+  src/bacnet/basic/service/s_ts.c
+  src/bacnet/basic/service/s_ts.h
+  src/bacnet/basic/service/s_uevent.c
+  src/bacnet/basic/service/s_uevent.h
+  src/bacnet/basic/service/s_upt.c
+  src/bacnet/basic/service/s_upt.h
+  src/bacnet/basic/service/s_whohas.c
+  src/bacnet/basic/service/s_whohas.h
+  src/bacnet/basic/service/s_whois.c
+  src/bacnet/basic/service/s_whois.h
+  src/bacnet/basic/service/s_wp.c
+  src/bacnet/basic/service/s_wp.h
+  src/bacnet/basic/service/s_wpm.c
+  src/bacnet/basic/service/s_wpm.h
+  src/bacnet/basic/services.h
+  src/bacnet/basic/sys/bigend.c
+  src/bacnet/basic/sys/bigend.h
+  src/bacnet/basic/sys/color_rgb.c
+  src/bacnet/basic/sys/color_rgb.h
+  src/bacnet/basic/sys/days.c
+  src/bacnet/basic/sys/days.h
+  src/bacnet/basic/sys/debug.c
+  src/bacnet/basic/sys/debug.h
+  src/bacnet/basic/sys/fifo.c
+  src/bacnet/basic/sys/fifo.h
+  src/bacnet/basic/sys/filename.c
+  src/bacnet/basic/sys/filename.h
+  src/bacnet/basic/sys/key.h
+  src/bacnet/basic/sys/keylist.c
+  src/bacnet/basic/sys/keylist.h
+  src/bacnet/basic/sys/linear.c
+  src/bacnet/basic/sys/linear.h
+  src/bacnet/basic/sys/mstimer.c
+  src/bacnet/basic/sys/mstimer.h
+  src/bacnet/basic/sys/ringbuf.c
+  src/bacnet/basic/sys/ringbuf.h
+  src/bacnet/basic/sys/sbuf.c
+  src/bacnet/basic/sys/sbuf.h
+  src/bacnet/basic/tsm/tsm.c
+  src/bacnet/basic/tsm/tsm.h
+  src/bacnet/basic/sys/bits.h
+  src/bacnet/basic/sys/bytes.h
+  src/bacnet/config.h
+  src/bacnet/calendar_entry.c
+  src/bacnet/calendar_entry.h
+  src/bacnet/cov.c
+  src/bacnet/cov.h
+  src/bacnet/create_object.c
+  src/bacnet/create_object.h
+  src/bacnet/credential_authentication_factor.c
+  src/bacnet/credential_authentication_factor.h
+  src/bacnet/datalink/arcnet.h
+  src/bacnet/datalink/bacsec.c
+  src/bacnet/datalink/bacsec.h
+  src/bacnet/datalink/bip6.h
+  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.h>
+  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.c>
+  $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.h>
+  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.h>
+  $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
+  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
+  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
+  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.h>
+  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
+  src/bacnet/datalink/datalink.c
+  src/bacnet/datalink/datalink.h
+  src/bacnet/datalink/dlenv.c
+  src/bacnet/datalink/dlenv.h
+  src/bacnet/datalink/dlmstp.h
+  src/bacnet/datalink/ethernet.h
+  $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/mstp.c>
+  src/bacnet/datalink/mstpdef.h
+  src/bacnet/datalink/mstp.h
+  src/bacnet/datalink/mstptext.c
+  src/bacnet/datalink/mstptext.h
+  src/bacnet/datetime.c
+  src/bacnet/datetime.h
+  src/bacnet/dcc.c
+  src/bacnet/dcc.h
+  src/bacnet/delete_object.c
+  src/bacnet/delete_object.h
+  src/bacnet/event.c
+  src/bacnet/event.h
+  src/bacnet/get_alarm_sum.c
+  src/bacnet/get_alarm_sum.h
+  src/bacnet/getevent.c
+  src/bacnet/getevent.h
+  src/bacnet/hostnport.c
+  src/bacnet/hostnport.h
+  src/bacnet/iam.c
+  src/bacnet/iam.h
+  src/bacnet/ihave.c
+  src/bacnet/ihave.h
+  src/bacnet/indtext.c
+  src/bacnet/indtext.h
+  src/bacnet/lighting.c
+  src/bacnet/lighting.h
+  src/bacnet/list_element.c
+  src/bacnet/list_element.h
+  src/bacnet/lso.c
+  src/bacnet/lso.h
+  src/bacnet/memcopy.c
+  src/bacnet/memcopy.h
+  src/bacnet/npdu.c
+  src/bacnet/npdu.h
+  src/bacnet/property.c
+  src/bacnet/property.h
+  src/bacnet/proplist.c
+  src/bacnet/proplist.h
+  src/bacnet/ptransfer.c
+  src/bacnet/ptransfer.h
+  src/bacnet/rd.c
+  src/bacnet/rd.h
+  src/bacnet/readrange.c
+  src/bacnet/readrange.h
+  src/bacnet/reject.c
+  src/bacnet/reject.h
+  src/bacnet/rp.c
+  src/bacnet/rp.h
+  src/bacnet/rpm.c
+  src/bacnet/rpm.h
+  src/bacnet/timestamp.c
+  src/bacnet/timestamp.h
+  src/bacnet/timesync.c
+  src/bacnet/timesync.h
+  src/bacnet/version.h
+  src/bacnet/whohas.c
+  src/bacnet/whohas.h
+  src/bacnet/whois.c
+  src/bacnet/whois.h
+  src/bacnet/wp.c
+  src/bacnet/wp.h
+  src/bacnet/wpm.c
+  src/bacnet/wpm.h)
 target_sources(
   ${PROJECT_NAME}
   PRIVATE
@@ -529,7 +597,8 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_MSTP}>:BACDL_MSTP>
   $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
-  $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>
+  $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
+  $<$<BOOL:${BACNET_PROPERTY_ARRAY_LISTS}>:BACNET_PROPERTY_ARRAY_LISTS=1>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
@@ -579,10 +648,6 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_BIP}>:ws2_32>
     $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
 
-  if(MSVC)
-    add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
-  endif()
-
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
@@ -597,6 +662,7 @@ elseif(WIN32)
 elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+  add_compile_definitions(BACNET_PORT=bsd)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
@@ -617,7 +683,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-  $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>)
+  $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>
+)
 
 #
 # examples
@@ -671,9 +738,24 @@ if(BACNET_STACK_BUILD_APPS)
   if(BACDL_MSTP)
     add_executable(mstpcap apps/mstpcap/main.c)
     target_link_libraries(mstpcap PRIVATE ${PROJECT_NAME})
+    target_compile_options(mstpcap PRIVATE
+      # NOTE: Might be that this example currently doesn't work on Windows because
+      # of the following warning:
+
+      # 'strncasecmp': macro redefinition
+      $<$<C_COMPILER_ID:MSVC>:/wd4005>
+      # 'gettimeofday' undefined; assuming extern returning int
+      $<$<C_COMPILER_ID:MSVC>:/wd4013>
+    )
 
     add_executable(mstpcrc apps/mstpcrc/main.c)
     target_link_libraries(mstpcrc PRIVATE ${PROJECT_NAME})
+    target_compile_options(mstpcrc PRIVATE
+      # NOTE: Might be that this example currently doesn't work on Windows because
+      # of the following warning:
+      # 'gettimeofday' undefined; assuming extern returning int
+      $<$<C_COMPILER_ID:MSVC>:/wd4013>
+    )
   endif()
 
   if(BACNET_BUILD_PIFACE_APP)
@@ -683,22 +765,30 @@ if(BACNET_STACK_BUILD_APPS)
 
   if(BACNET_BUILD_BACPOLL_APP)
     add_executable(bacpoll
-        apps/server-client/main.c
-        src/bacnet/basic/client/bac-task.c
-        src/bacnet/basic/client/bac-data.c
-        src/bacnet/basic/client/bac-rw.c)
+      apps/server-client/main.c
+      src/bacnet/basic/client/bac-task.c
+      src/bacnet/basic/client/bac-data.c
+      src/bacnet/basic/client/bac-rw.c)
     target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacpoll PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
   endif(BACNET_BUILD_BACPOLL_APP)
 
   if(BACNET_BUILD_BACDISCOVER_APP)
-  add_executable(bacdiscover
-        apps/server-discover/main.c
-        src/bacnet/basic/client/bac-discover.c
-        src/bacnet/basic/client/bac-rw.c)
-  target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+    add_executable(bacdiscover
+      apps/server-discover/main.c
+      src/bacnet/basic/client/bac-discover.c
+      src/bacnet/basic/client/bac-rw.c)
+    target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacdiscover PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
   endif(BACNET_BUILD_BACDISCOVER_APP)
 
-  if(NOT BACDL_ETHERNET)
+  if(BACDL_BIP OR BACDL_BIP6)
     add_executable(readbdt apps/readbdt/main.c)
     target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
 
@@ -724,26 +814,40 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(reinit apps/reinit/main.c)
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
 
-  if(BACDL_MSTP)
-    add_executable(
-      router
-      apps/router/ipmodule.c
-      apps/router/ipmodule.h
-      apps/router/main.c
-      apps/router/msgqueue.c
-      apps/router/msgqueue.h
-      apps/router/mstpmodule.c
-      apps/router/mstpmodule.h
-      apps/router/network_layer.c
-      apps/router/network_layer.h
-      apps/router/portthread.c
-      apps/router/portthread.h)
+  if(BACDL_MSTP AND NOT WIN32)
+    find_library(LIBCONFIG_LIBRARIES NAMES config)
+    if(NOT LIBCONFIG_LIBRARIES)
+      message(WARNING "BACNET: Will not build apps/router as libconfig not found")
+      return()
+    else()
+      add_executable(
+        router
+        apps/router/ipmodule.c
+        apps/router/ipmodule.h
+        apps/router/main.c
+        apps/router/msgqueue.c
+        apps/router/msgqueue.h
+        apps/router/mstpmodule.c
+        apps/router/mstpmodule.h
+        apps/router/network_layer.c
+        apps/router/network_layer.h
+        apps/router/portthread.c
+        apps/router/portthread.h)
 
-    target_link_libraries(
-      router
-      PRIVATE ${PROJECT_NAME}
-              # needs libconfig
-              -lconfig)
+      target_link_libraries(
+        router
+        PRIVATE ${PROJECT_NAME}
+                # needs libconfig
+                -lconfig)
+
+      target_compile_options(router PRIVATE
+        # These make this example not totally C90 compatible but it is ok.
+
+        -Wno-declaration-after-statement
+        -Wno-overlength-strings
+        -Wno-variadic-macros
+      )
+    endif()
   endif()
 
   if(BACDL_BIP6)
@@ -756,6 +860,10 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(server apps/server/main.c)
   target_link_libraries(server PRIVATE ${PROJECT_NAME})
+  target_compile_options(server PRIVATE
+    # Unreachable code because we have endless loop.
+    $<$<C_COMPILER_ID:MSVC>:/wd4702>
+  )
 
   add_executable(timesync apps/timesync/main.c)
   target_link_libraries(timesync PRIVATE ${PROJECT_NAME})

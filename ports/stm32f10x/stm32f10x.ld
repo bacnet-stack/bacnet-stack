@@ -22,10 +22,10 @@ SECTIONS
         *(.gnu.linkonce.r.*)
         . = ALIGN(4);
         _etext = .;
-		_sidata = _etext;
+        _sidata = _etext;
         PROVIDE(etext = .);
-     		_fini = . ;
-				*(.fini)
+            _fini = . ;
+                *(.fini)
 
     } >flash
 
@@ -40,20 +40,20 @@ SECTIONS
         _edata = .;
     } >sram
 
-		.ARM.extab :
-		{
-		    *(.ARM.extab*)
-		} >sram
+        .ARM.extab :
+        {
+            *(.ARM.extab*)
+        } >sram
 
-		__exidx_start = .;
-		.ARM.exidx :
-		{
-		    *(.ARM.exidx*)
-		} >sram
-		__exidx_end = .;
+        __exidx_start = .;
+        .ARM.exidx :
+        {
+            *(.ARM.exidx*)
+        } >sram
+        __exidx_end = .;
 
     .bss (NOLOAD) : {
-		. = ALIGN(4);
+        . = ALIGN(4);
         /* This is used by the startup in order to initialize the .bss secion */
         _sbss = .;
         *(.bss .bss.*)

@@ -349,20 +349,16 @@ static void testKeySample(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(keylist_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(keylist_tests,
-     ztest_unit_test(testKeyListFIFO),
-     ztest_unit_test(testKeyListFILO),
-     ztest_unit_test(testKeyListDataKey),
-     ztest_unit_test(testKeyListDataIndex),
-     ztest_unit_test(testKeyListLarge),
-     ztest_unit_test(testKeySample)
-     );
+    ztest_test_suite(
+        keylist_tests, ztest_unit_test(testKeyListFIFO),
+        ztest_unit_test(testKeyListFILO), ztest_unit_test(testKeyListDataKey),
+        ztest_unit_test(testKeyListDataIndex),
+        ztest_unit_test(testKeyListLarge), ztest_unit_test(testKeySample));
 
     ztest_run_test_suite(keylist_tests);
 }

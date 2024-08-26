@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stdbool.h>
@@ -284,11 +267,12 @@ uint32_t Device_Index_To_Instance(unsigned index)
 
 static char *Device_Name_Default(void)
 {
-    static char text_string[32]; /* okay for single thread */
+    static char text[32]; /* okay for single thread */
 
-    sprintf(text_string, "DEVICE-%lu", Object_Instance_Number);
+    snprintf(text, sizeof(text), "DEVICE-%lu",
+        (unsigned long)Object_Instance_Number);
 
-    return text_string;
+    return text;
 }
 
 bool Device_Object_Name(

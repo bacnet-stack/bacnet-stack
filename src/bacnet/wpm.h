@@ -1,29 +1,13 @@
-/**************************************************************************
-*
-* Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-#ifndef WRITEPROPERTYMULTIPLE_H
-#define WRITEPROPERTYMULTIPLE_H
+/**
+ * @file
+ * @brief API for BACnet WritePropertyMultiple service encoder and decoder
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_WRITE_PROPERTY_MULTIPLE_H
+#define BACNET_WRITE_PROPERTY_MULTIPLE_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -77,14 +61,14 @@ extern "C" {
     BACNET_STACK_EXPORT
     int wpm_encode_apdu_object_end(
         uint8_t * apdu);
-        
+
     BACNET_STACK_EXPORT
-    int write_property_multiple_request_encode(uint8_t *apdu, 
+    int write_property_multiple_request_encode(uint8_t *apdu,
         BACNET_WRITE_ACCESS_DATA *data);
     BACNET_STACK_EXPORT
     size_t write_property_multiple_request_service_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
+        uint8_t *apdu,
+        size_t apdu_size,
         BACNET_WRITE_ACCESS_DATA *data);
 
     BACNET_STACK_EXPORT

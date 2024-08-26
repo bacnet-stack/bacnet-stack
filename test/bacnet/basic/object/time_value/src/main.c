@@ -37,11 +37,8 @@ static void testTimeValue(void)
     zassert_true(count > 0, NULL);
     object_instance = Time_Value_Index_To_Instance(0);
     bacnet_object_properties_read_write_test(
-        OBJECT_TIME_VALUE,
-        object_instance,
-        Time_Value_Property_Lists,
-        Time_Value_Read_Property,
-        Time_Value_Write_Property,
+        OBJECT_TIME_VALUE, object_instance, Time_Value_Property_Lists,
+        Time_Value_Read_Property, Time_Value_Write_Property,
         skip_fail_property_list);
     /* check the delete function */
     status = Time_Value_Delete(object_instance);
@@ -56,9 +53,7 @@ ZTEST_SUITE(bacnet_tv, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(tv_tests,
-     ztest_unit_test(testTimeValue)
-     );
+    ztest_test_suite(tv_tests, ztest_unit_test(testTimeValue));
 
     ztest_run_test_suite(tv_tests);
 }

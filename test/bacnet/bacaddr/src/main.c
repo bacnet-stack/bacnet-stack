@@ -21,7 +21,6 @@ static void test_BACNET_ADDRESS(void)
 #endif
 {
     BACNET_ADDRESS src = { 0 }, dest = { 0 };
-    BACNET_ADDRESS test_src = { 0 }, test_dest = { 0 };
     BACNET_MAC_ADDRESS mac = { 0 }, adr = { 0 };
     uint16_t dnet = 0;
     bool status = false;
@@ -258,7 +257,8 @@ ZTEST_SUITE(bacnet_address_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacnet_address_tests, ztest_unit_test(test_BACNET_ADDRESS),
+    ztest_test_suite(
+        bacnet_address_tests, ztest_unit_test(test_BACNET_ADDRESS),
         ztest_unit_test(test_BACNET_MAC_ADDRESS),
         ztest_unit_test(test_BACnetAddress_Codec));
 

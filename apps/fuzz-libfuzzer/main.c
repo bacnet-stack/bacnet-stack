@@ -1,32 +1,9 @@
 /**
  * @file
- * @author Steve Karg, Anthony Delorenzo
- * @date 2020
- * @brief
- *
- * @section LICENSE
- *
- * Copyright (C) 2020 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * @brief command line fuzz (data scrambling) interface for security testing
+ * @author Anthony Delorenzo <anthony@crystalpeaksecurity.com>
+ * @date 2023
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
@@ -59,7 +36,7 @@
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 
-// Pull in all of this... 
+// Pull in all of this...
 #include "../router-mstp/main.c"
 
 static void Init_Service_Handlers(void) {
@@ -106,7 +83,7 @@ extern int Device_Reinitialize(void) {
     return 0;
 }
 
-extern bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance) { 
+extern bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance) {
     return false;
 }
 extern void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance) {
@@ -121,11 +98,11 @@ extern bool Device_Encode_Value_List(BACNET_OBJECT_TYPE object_type,
 
 }
 
-extern int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA * list_element) { 
+extern int Device_Add_List_Element(BACNET_LIST_ELEMENT_DATA * list_element) {
     return BACNET_STATUS_ERROR;
 }
 
-extern int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA * list_element) { 
+extern int Device_Remove_List_Element(BACNET_LIST_ELEMENT_DATA * list_element) {
     return BACNET_STATUS_ERROR;
 }
 
@@ -134,7 +111,7 @@ extern bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data) {
 }
 
 int LLVMFuzzerTestOneInput(uint8_t *data, size_t size) {
-    BACNET_ADDRESS src = { 0 }; 
+    BACNET_ADDRESS src = { 0 };
 
     Init_Service_Handlers();
 
