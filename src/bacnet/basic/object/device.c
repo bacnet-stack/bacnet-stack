@@ -1679,7 +1679,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_SERIAL_NUMBER:
-                ffprintf(stderr, "Device_Write_Property_Local: PROP_SERIAL_NUMBER\n");
+                fprintf(stderr, "Device_Write_Property_Local: PROP_SERIAL_NUMBER\n");
             break;
 #if defined(BACNET_TIME_MASTER)
         case PROP_TIME_SYNCHRONIZATION_INTERVAL:
