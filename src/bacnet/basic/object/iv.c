@@ -233,7 +233,7 @@ bool Integer_Value_Present_Value_Set(
 bool Integer_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
     struct integer_object *pObject;
 

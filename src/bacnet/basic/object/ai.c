@@ -233,7 +233,7 @@ void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
 bool Analog_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";
+    char text_string[32] = "";
     bool status = false;
     struct analog_input_descr *pObject;
 

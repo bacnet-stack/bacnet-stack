@@ -145,7 +145,7 @@ BACNET_OCTET_STRING *OctetString_Value_Present_Value(uint32_t object_instance)
 bool OctetString_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
 
     if (object_instance < MAX_OCTETSTRING_VALUES) {

@@ -182,7 +182,7 @@ unsigned Schedule_Instance_To_Index(uint32_t instance)
 bool Schedule_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32] = ""; /* okay for single thread */
+    char text[32] = "";
     unsigned int index;
     bool status = false;
 

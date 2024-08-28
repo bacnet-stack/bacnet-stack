@@ -245,7 +245,7 @@ bool Analog_Value_Present_Value_Set(
 bool Analog_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";
+    char text_string[32] = "";
     bool status = false;
     struct analog_value_descr *pObject;
 
