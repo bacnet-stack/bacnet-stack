@@ -584,7 +584,7 @@ static bool Binary_Value_Present_Value_Write(
 bool Binary_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
     struct object_data *pObject;
 
@@ -617,13 +617,29 @@ bool Binary_Value_Name_Set(uint32_t object_instance, char *new_name)
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
-        if (new_name) {
-            status = true;
-            pObject->Object_Name = new_name;
-        }
+        status = true;
+        pObject->Object_Name = new_name;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Binary_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Binary_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**

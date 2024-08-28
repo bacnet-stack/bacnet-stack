@@ -322,6 +322,7 @@ bool Network_Port_Name_Set(uint32_t object_instance, char *new_name)
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Object_Name = new_name;
+        status = true;
     }
 
     return status;

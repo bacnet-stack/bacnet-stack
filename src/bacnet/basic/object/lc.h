@@ -93,6 +93,8 @@ bool Load_Control_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
 bool Load_Control_Name_Set(uint32_t object_instance, char *new_name);
+BACNET_STACK_EXPORT
+const char *Load_Control_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 BACNET_SHED_STATE Load_Control_Present_Value(uint32_t object_instance);

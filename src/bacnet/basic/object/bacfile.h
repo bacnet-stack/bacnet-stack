@@ -29,6 +29,7 @@ extern "C" {
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+
     BACNET_STACK_EXPORT
     bool bacfile_object_name(
         uint32_t object_instance,
@@ -37,6 +38,10 @@ extern "C" {
     bool bacfile_object_name_set(
         uint32_t object_instance,
         char *new_name);
+    BACNET_STACK_EXPORT
+    const char * bacfile_name_ansi(
+        uint32_t object_instance);
+
     BACNET_STACK_EXPORT
     bool bacfile_valid_instance(
         uint32_t object_instance);

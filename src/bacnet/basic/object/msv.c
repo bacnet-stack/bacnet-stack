@@ -488,12 +488,30 @@ bool Multistate_Value_Name_Set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Multistate_Value_Object(object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Object_Name = new_name;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Multistate_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Multistate_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -604,7 +622,7 @@ bool Multistate_Value_Description_Set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Multistate_Value_Object(object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Description = new_name;
     }

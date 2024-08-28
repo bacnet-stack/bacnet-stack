@@ -116,7 +116,7 @@ unsigned Access_Zone_Instance_To_Index(uint32_t object_instance)
 bool Access_Zone_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
 
     if (object_instance < MAX_ACCESS_ZONES) {

@@ -66,6 +66,9 @@ extern "C" {
     bool Multistate_Output_Name_Set(
         uint32_t object_instance,
         char *new_name);
+    BACNET_STACK_EXPORT
+    const char *Multistate_Output_Name_ASCII(
+        uint32_t object_instance);
 
     BACNET_STACK_EXPORT
     uint32_t Multistate_Output_Present_Value(

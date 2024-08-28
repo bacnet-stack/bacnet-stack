@@ -120,6 +120,8 @@ bool Channel_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
 bool Channel_Name_Set(uint32_t object_instance, char *new_name);
+BACNET_STACK_EXPORT
+const char *Channel_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);

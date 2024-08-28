@@ -85,6 +85,8 @@ bool Binary_Lighting_Output_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
 bool Binary_Lighting_Output_Name_Set(uint32_t object_instance, char *new_name);
+BACNET_STACK_EXPORT
+const char *Binary_Lighting_Output_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 char *Binary_Lighting_Output_Description(uint32_t instance);

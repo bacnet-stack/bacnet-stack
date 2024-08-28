@@ -52,6 +52,10 @@ static void test_BitString_Value_Object(void)
         OBJECT_BINARY_INPUT, instance, BitString_Value_Property_Lists,
         BitString_Value_Read_Property, BitString_Value_Write_Property,
         skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        instance,
+        BitString_Value_Name_Set,
+        BitString_Value_Name_ASCII);
     /* test specific WriteProperty values */
     BitString_Value_Write_Disable(instance);
     status = BitString_Value_Write_Enabled(instance);

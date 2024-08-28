@@ -245,7 +245,7 @@ bool Analog_Value_Present_Value_Set(
 bool Analog_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";
+    char text_string[32] = "";
     bool status = false;
     struct analog_value_descr *pObject;
 
@@ -285,6 +285,24 @@ bool Analog_Value_Name_Set(uint32_t object_instance, char *new_name)
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Analog_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct analog_value_descr *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**

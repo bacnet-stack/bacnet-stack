@@ -50,6 +50,8 @@ bool Structured_View_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
 bool Structured_View_Name_Set(uint32_t object_instance, char *new_name);
+BACNET_STACK_EXPORT
+const char *Structured_View_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
