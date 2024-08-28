@@ -31,7 +31,8 @@ extern "C" {
 /* Bit string of up to 32 bits for Trend Log storage */
 
     typedef struct tl_bits {
-        uint8_t ucLen;  /* bytes used in upper nibble/bits free in lower nibble */
+        /* Bytes used in upper nibble/bits free in lower nibble */
+        uint8_t ucLen;
         uint8_t ucStore[4];
     } TL_BITS;
 
@@ -48,7 +49,8 @@ extern "C" {
     typedef struct tl_data_record {
         bacnet_time_t tTimeStamp;      /* When the event occurred */
         uint8_t ucRecType;      /* What type of Event */
-        uint8_t ucStatus;       /* Optional Status for read value in b0-b2, b7 = 1 if status is used */
+        /* Optional Status for read value in b0-b2, b7 = 1 if status is used */
+        uint8_t ucStatus;
         union {
             uint8_t ucLogStatus;        /* Change of log state flags */
             uint8_t ucBoolean;  /* Stored boolean value */
@@ -76,14 +78,17 @@ extern "C" {
         BACNET_DATE_TIME StopTime;      /* BACnet format stop time */
         bacnet_time_t tStopTime;       /* Local time working copy of stop time */
         uint8_t ucTimeFlags;    /* Shorthand info on times */
-        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE Source; /* Where the data comes from */
+        /* Where the data comes from */
+        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE Source;
         uint32_t ulLogInterval; /* Time between entries in seconds */
         bool bStopWhenFull;     /* Log halts when full if true */
         uint32_t ulRecordCount; /* Count of items currently in the buffer */
-        uint32_t ulTotalRecordCount;    /* Count of all items that have ever been inserted into the buffer */
+        /* Count of all items that have ever been inserted into the buffer */
+        uint32_t ulTotalRecordCount;
         BACNET_LOGGING_TYPE LoggingType;        /* Polled/cov/triggered */
         bool bAlignIntervals;   /* If true align to the clock */
-        uint32_t ulIntervalOffset;      /* Offset from start of period for taking reading in seconds */
+        /* Offset from start of period for taking reading in seconds */
+        uint32_t ulIntervalOffset;
         bool bTrigger;  /* Set to 1 to cause a reading to be taken */
         int iIndex;     /* Current insertion point */
         bacnet_time_t tLastDataTime;

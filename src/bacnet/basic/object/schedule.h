@@ -22,15 +22,18 @@
 #include "bacnet/special_event.h"
 
 #ifndef BACNET_WEEKLY_SCHEDULE_SIZE
-#define BACNET_WEEKLY_SCHEDULE_SIZE 8   /* maximum number of data points for each day */
+/* Maximum number of data points for each day */
+#define BACNET_WEEKLY_SCHEDULE_SIZE 8
 #endif
 
 #ifndef BACNET_SCHEDULE_OBJ_PROP_REF_SIZE
-#define BACNET_SCHEDULE_OBJ_PROP_REF_SIZE 4     /* maximum number of obj prop references */
+/* Maximum number of obj prop references */
+#define BACNET_SCHEDULE_OBJ_PROP_REF_SIZE 4
 #endif
 
 #ifndef BACNET_EXCEPTION_SCHEDULE_SIZE
-#define BACNET_EXCEPTION_SCHEDULE_SIZE 8 /* maximum number of special events */
+/* Maximum number of special events */
+#define BACNET_EXCEPTION_SCHEDULE_SIZE 8
 #endif
 
 #ifdef __cplusplus
@@ -60,9 +63,10 @@ extern "C" {
         /*
          * Caution: This is a converted to BACNET_PRIMITIVE_APPLICATION_DATA_VALUE.
          * Only some data types may be used!
+         *
+         * Must be set to a valid value. Default is Schedule_Default.
          */
-        BACNET_APPLICATION_DATA_VALUE Present_Value;   /* must be set to a valid value
-                                                         * default is Schedule_Default */
+        BACNET_APPLICATION_DATA_VALUE Present_Value;
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
             Object_Property_References[BACNET_SCHEDULE_OBJ_PROP_REF_SIZE];
         uint8_t obj_prop_ref_cnt;       /* actual number of obj_prop references */

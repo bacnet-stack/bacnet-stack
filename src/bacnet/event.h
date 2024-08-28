@@ -35,12 +35,14 @@ typedef enum {
 */
 
 
-/** Enable decoding of complex-event-type property-values. If set to 0, the values are decoded and discarded. */
+/** Enable decoding of complex-event-type property-values. If set to 0, the
+ * values are decoded and discarded. */
 #ifndef BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS
 #define BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS 1
 #endif
 
-/** Max complex-event-type property-values to decode. Events with more values fail to decode. */
+/** Max complex-event-type property-values to decode. Events with more values
+ * fail to decode. */
 #ifndef BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS
 #define BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS 5
 #endif
@@ -54,7 +56,8 @@ typedef struct BACnet_Event_Notification_Data {
     uint32_t notificationClass;
     uint8_t priority;
     BACNET_EVENT_TYPE eventType;
-    BACNET_CHARACTER_STRING *messageText;       /* OPTIONAL - Set to NULL if not being used */
+    /* OPTIONAL - Set to NULL if not being used */
+    BACNET_CHARACTER_STRING *messageText;
     BACNET_NOTIFY_TYPE notifyType;
     bool ackRequired;
     BACNET_EVENT_STATE fromState;
@@ -168,7 +171,8 @@ typedef struct BACnet_Event_Notification_Data {
         } accessEvent;
 #if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
         /*
-         * complex-event-type - a sequence of values, used for proprietary event types
+         * complex-event-type - a sequence of values, used for proprietary event
+         * types
          */
         struct {
             BACNET_PROPERTY_VALUE values[BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS];
@@ -249,7 +253,8 @@ extern "C" {
  * These BIBBs prescribe the BACnet capabilities required to interoperably
  * perform the alarm and event management functions enumerated in 22.2.1.2
  * for the BACnet devices defined therein.
-          *//** @defgroup EVNOTFCN Alarm and Event-Notification (AE-N)
+ */
+/** @defgroup EVNOTFCN Alarm and Event-Notification (AE-N)
  * @ingroup ALMEVNT
  * 13.6 ConfirmedCOVNotification Service <br>
  * The ConfirmedCOVNotification service is used to notify subscribers about
@@ -266,7 +271,8 @@ extern "C" {
  * For unsubscribed notifications, the algorithm for determining when to issue
  * this service is a local matter and may be based on a change of value,
  * periodic updating, or some other criteria.
-          *//** @defgroup ALMACK  Alarm and Event-ACK (AE-ACK)
+ */
+/** @defgroup ALMACK  Alarm and Event-ACK (AE-ACK)
  * @ingroup ALMEVNT
  * 13.5 AcknowledgeAlarm Service <br>
  * In some systems a device may need to know that an operator has seen the alarm
@@ -275,6 +281,7 @@ extern "C" {
  * notification with 'AckRequired' = TRUE. Ensuring that the acknowledgment
  * actually comes from a person with appropriate authority is a local matter.
  * This service may be used in conjunction with either the
- * ConfirmedEventNotification service or the UnconfirmedEventNotification service.
+ * ConfirmedEventNotification service or the
+ * UnconfirmedEventNotificationservice.
  */
 #endif /* BACNET_EVENT_H_ */

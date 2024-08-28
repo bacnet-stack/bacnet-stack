@@ -167,7 +167,8 @@ extern "C" {
  * - BACDL_CUSTOM    -- For externally linked datalink_xxx functions
  * - Clause 10 POINT-TO-POINT (PTP) and Clause 11 EIA/CEA-709.1 ("LonTalk") LAN
  *   are not currently supported by this project.
-                                                                                                                                                                                              *//** @defgroup DLTemplates DataLink Template Functions
+ */
+/** @defgroup DLTemplates DataLink Template Functions
  * @ingroup DataLink
  * Most of the functions in this group are function templates which are assigned
  * to a specific DataLink network layer implementation either at compile time or
