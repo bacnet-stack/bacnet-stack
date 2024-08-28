@@ -9,9 +9,9 @@ BACNET_CORE := $(BACNET_SRC)/bacnet
 BACNET_BASIC := $(BACNET_CORE)/basic
 BACNET_INCLUDE := $(BACNET_SRC)
 PLATFORM_DIR = .
-LIBRARY_STM32 = ./STM32F4xx_StdPeriph_Driver/src
-LIBRARY_STM32_INCLUDES = ./STM32F4xx_StdPeriph_Driver/inc
-LIBRARY_CMSIS = ./CMSIS
+LIBRARY_STM32 = ./external/STM32F4xx_StdPeriph_Driver/src
+LIBRARY_STM32_INCLUDES = ./external/STM32F4xx_StdPeriph_Driver/inc
+LIBRARY_CMSIS = ./external/CMSIS
 
 CSTACK_TOOL := $(BACNET_DIR)/tools/avstack/avstack.pl
 MEMAP_TOOL := $(BACNET_DIR)/tools/memap/memap.py

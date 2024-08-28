@@ -103,10 +103,10 @@ endif()
 set(LIBRARY_BACNET_INC "${CMAKE_SOURCE_DIR}/../../src")
 set(LIBRARY_BACNET_CORE "${CMAKE_SOURCE_DIR}/../../src/bacnet")
 set(LIBRARY_BACNET_BASIC "${CMAKE_SOURCE_DIR}/../../src/bacnet/basic")
-set(LIBRARY_STM32_SRC "${CMAKE_SOURCE_DIR}/STM32F4xx_StdPeriph_Driver/src")
-set(LIBRARY_STM32_INC "${CMAKE_SOURCE_DIR}/STM32F4xx_StdPeriph_Driver/inc")
-set(LIBRARY_CMSIS_INC "${CMAKE_SOURCE_DIR}/CMSIS")
-set(LIBRARY_CMSIS_GCC_INC "${CMAKE_SOURCE_DIR}/CMSIS/gcc_ride7")
+set(LIBRARY_STM32_SRC "${CMAKE_SOURCE_DIR}/external/STM32F4xx_StdPeriph_Driver/src")
+set(LIBRARY_STM32_INC "${CMAKE_SOURCE_DIR}/external/STM32F4xx_StdPeriph_Driver/inc")
+set(LIBRARY_CMSIS_INC "${CMAKE_SOURCE_DIR}/external/CMSIS")
+set(LIBRARY_CMSIS_GCC_INC "${CMAKE_SOURCE_DIR}/external/CMSIS/gcc_ride7")
 
 set(BACNET_PROJECT_SOURCE
     ${LIBRARY_STM32_SRC}/stm32f4xx_adc.c
@@ -220,8 +220,8 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/whois.c
     ${LIBRARY_BACNET_CORE}/wp.c
 
-    CMSIS/gcc_ride7/startup_stm32f4xx.s
-    CMSIS/stm32f4xx.h
+    ${LIBRARY_CMSIS_GCC_INC}/startup_stm32f4xx.s
+    ${LIBRARY_CMSIS_INC}/stm32f4xx.h
 )
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/stm32f4xx.ld)
