@@ -47,11 +47,10 @@ repos:
         args: ["--whitespaces-count", "2"]
         files: '.*\.(yaml|yml|html|htm)|Dockerfile$'
 
-  # We will enable this in future.
-  # - repo: https://github.com/pre-commit/mirrors-clang-format
-  #   rev: 3b03191b6a60cba0fc25c2dc2e30ea4854d897eb # v17.0.5
-  #   hooks:
-  #     - id: clang-format
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: 05241dc3def184dba136e62d54ff57f1c8a497a9 # v17.0.6
+    hooks:
+      - id: clang-format
 
   # We might enable this in future.
   # - repo: https://github.com/pre-commit/mirrors-prettier
