@@ -259,7 +259,7 @@ bool Integer_Value_Object_Name(
  * @param  new_name - holds the object-name to be set
  * @return  true if object-name was set
  */
-bool Integer_Value_Object_Name_Set(uint32_t object_instance,
+bool Integer_Value_Name_Set(uint32_t object_instance,
     char *new_name)
 {
     bool status = false;
