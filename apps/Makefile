@@ -154,7 +154,7 @@ WARNING_ALL += -Wunused-variable
 # since they are common in embedded
 WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
 WARNING_ALL += -Wno-long-long -Wno-attributes
-  # don't warn about implicit fallthrough since it's common in network protocols
+# don't warn about implicit fallthrough since it's common in network protocols
 WARNING_ALL += -Wno-implicit-fallthrough
 #WARNING_ALL += -Werror
 WARNINGS ?= $(WARNING_ALL)
