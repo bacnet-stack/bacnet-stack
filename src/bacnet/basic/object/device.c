@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -471,7 +472,7 @@ static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, PROP_OBJECT_LIST,
     PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_SEGMENTATION_SUPPORTED,
     PROP_APDU_TIMEOUT, PROP_NUMBER_OF_APDU_RETRIES, PROP_DEVICE_ADDRESS_BINDING,
-    PROP_DATABASE_REVISION, -1 };
+    PROP_DATABASE_REVISION,PROP_SERIAL_NUMBER, -1 };
 
 static const int Device_Properties_Optional[] = {
 #if defined(BACDL_MSTP)
@@ -1293,6 +1294,9 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
+        case PROP_SERIAL_NUMBER:
+            fprintf(stderr, "Device_Read_Property_Local: PROP_SERIAL_NUMBER\n");
+            break;
         case PROP_FIRMWARE_REVISION:
             characterstring_init_ansi(&char_string, BACnet_Version);
             apdu_len =
@@ -1673,6 +1677,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     characterstring_value(&value.type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
+            break;
+        case PROP_SERIAL_NUMBER:
+                ffprintf(stderr, "Device_Write_Property_Local: PROP_SERIAL_NUMBER\n");
             break;
 #if defined(BACNET_TIME_MASTER)
         case PROP_TIME_SYNCHRONIZATION_INTERVAL:
