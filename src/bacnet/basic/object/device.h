@@ -396,6 +396,11 @@ extern "C" {
         size_t length);
 
     BACNET_STACK_EXPORT
+    bool Device_Set_Serial_Number(
+        const char *serial_number,
+        size_t length);
+
+    BACNET_STACK_EXPORT
     const char *Device_Firmware_Revision(
         void);
 
