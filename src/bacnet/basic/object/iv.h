@@ -45,7 +45,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Integer_Value_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
     BACNET_STACK_EXPORT
     const char *Integer_Value_Name_ASCII(
         uint32_t object_instance);
@@ -92,7 +92,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Integer_Value_Description_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
     BACNET_STACK_EXPORT
     char *Integer_Value_Description_ANSI(
         uint32_t object_instance);

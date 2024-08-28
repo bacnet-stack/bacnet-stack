@@ -260,7 +260,7 @@ bool Integer_Value_Object_Name(
  * @return  true if object-name was set
  */
 bool Integer_Value_Name_Set(uint32_t object_instance,
-    char *new_name)
+    const char *new_name)
 {
     bool status = false;
     struct integer_object *pObject;
@@ -328,7 +328,7 @@ bool Integer_Value_Description(
  * @return  true if object-name was set
  */
 bool Integer_Value_Description_Set(uint32_t object_instance,
-    char *new_name)
+    const char *new_name)
 {
     bool status = false; /* return value */
     struct integer_object *pObject;

@@ -45,7 +45,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Life_Safety_Point_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
     BACNET_STACK_EXPORT
     const char *Life_Safety_Point_Name_ASCII(
         uint32_t object_instance);

@@ -26,6 +26,8 @@ static void testInteger_Value(void)
     unsigned count = 0;
     uint32_t object_instance = BACNET_MAX_INSTANCE, test_object_instance = 0;
     const int skip_fail_property_list[] = { -1 };
+    const char *test_name = NULL;
+    char *sample_name = "sample";
 
     Integer_Value_Init();
     object_instance = Integer_Value_Create(object_instance);
@@ -37,10 +39,16 @@ static void testInteger_Value(void)
         OBJECT_INTEGER_VALUE, object_instance, Integer_Value_Property_Lists,
         Integer_Value_Read_Property, Integer_Value_Write_Property,
         skip_fail_property_list);
-    bacnet_object_name_ascii_test(
-        object_instance,
-        Integer_Value_Name_Set,
-        Integer_Value_Name_ASCII);
+    /* test the ASCII name get/set */
+    status = Integer_Value_Name_Set(object_instance, sample_name);
+    zassert_true(status, NULL);
+    test_name = Integer_Value_Name_ASCII(object_instance);
+    zassert_equal(test_name, sample_name, NULL);
+    status = Integer_Value_Name_Set(object_instance, NULL);
+    zassert_true(status, NULL);
+    test_name = Integer_Value_Name_ASCII(object_instance);
+    zassert_equal(test_name, NULL, NULL);
+    /* cleanup */
     status = Integer_Value_Delete(object_instance);
     zassert_true(status, NULL);
 }

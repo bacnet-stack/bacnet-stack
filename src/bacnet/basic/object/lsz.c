@@ -220,7 +220,7 @@ bool Life_Safety_Zone_Object_Name(
  * @param  new_name - holds the object-name to be set
  * @return  true if object-name was set
  */
-bool Life_Safety_Zone_Name_Set(uint32_t object_instance, char *new_name)
+bool Life_Safety_Zone_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false;
     struct object_data *pObject;
