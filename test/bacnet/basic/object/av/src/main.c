@@ -40,6 +40,10 @@ static void testAnalog_Value(void)
         OBJECT_ANALOG_VALUE, object_instance, Analog_Value_Property_Lists,
         Analog_Value_Read_Property, Analog_Value_Write_Property,
         skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance,
+        Analog_Value_Name_Set,
+        Analog_Value_Name_ASCII);
     status = Analog_Value_Delete(object_instance);
     zassert_true(status, NULL);
 }

@@ -40,6 +40,10 @@ static void testMultistateOutput(void)
         OBJECT_MULTI_STATE_OUTPUT, object_instance,
         Multistate_Output_Property_Lists, Multistate_Output_Read_Property,
         Multistate_Output_Write_Property, skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance,
+        Multistate_Output_Name_Set,
+        Multistate_Output_Name_ASCII);
     status = Multistate_Output_Delete(object_instance);
     zassert_true(status, NULL);
 }

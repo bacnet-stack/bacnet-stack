@@ -37,6 +37,10 @@ static void testInteger_Value(void)
         OBJECT_INTEGER_VALUE, object_instance, Integer_Value_Property_Lists,
         Integer_Value_Read_Property, Integer_Value_Write_Property,
         skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance,
+        Integer_Value_Name_Set,
+        Integer_Value_Name_ASCII);
     status = Integer_Value_Delete(object_instance);
     zassert_true(status, NULL);
 }

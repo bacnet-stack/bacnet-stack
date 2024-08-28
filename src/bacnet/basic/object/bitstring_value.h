@@ -77,6 +77,9 @@ extern "C" {
     bool BitString_Value_Name_Set(
         uint32_t object_instance,
         char *new_name);
+    BACNET_STACK_EXPORT
+    const char *BitString_Value_Name_ASCII(
+        uint32_t object_instance);
 
     BACNET_STACK_EXPORT
     bool BitString_Value_Present_Value(

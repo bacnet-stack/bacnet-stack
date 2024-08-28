@@ -46,6 +46,8 @@ bool Color_Temperature_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
 bool Color_Temperature_Name_Set(uint32_t object_instance, char *new_name);
+BACNET_STACK_EXPORT
+const char *Color_Temperature_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int Color_Temperature_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);

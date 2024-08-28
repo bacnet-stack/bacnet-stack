@@ -40,6 +40,10 @@ static void testBinaryOutput(void)
         OBJECT_BINARY_OUTPUT, object_instance, Binary_Output_Property_Lists,
         Binary_Output_Read_Property, Binary_Output_Write_Property,
         skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance,
+        Binary_Output_Name_Set,
+        Binary_Output_Name_ASCII);
     status = Binary_Output_Delete(object_instance);
     zassert_true(status, NULL);
 }

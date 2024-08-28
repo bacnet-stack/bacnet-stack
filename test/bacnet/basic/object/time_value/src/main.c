@@ -40,6 +40,10 @@ static void testTimeValue(void)
         OBJECT_TIME_VALUE, object_instance, Time_Value_Property_Lists,
         Time_Value_Read_Property, Time_Value_Write_Property,
         skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance,
+        Time_Value_Name_Set,
+        Time_Value_Name_ASCII);
     /* check the delete function */
     status = Time_Value_Delete(object_instance);
     zassert_true(status, NULL);

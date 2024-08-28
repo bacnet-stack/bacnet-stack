@@ -42,6 +42,13 @@ extern "C" {
     bool Integer_Value_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    BACNET_STACK_EXPORT
+    bool Integer_Value_Name_Set(
+        uint32_t object_instance,
+        char *new_name);
+    BACNET_STACK_EXPORT
+    const char *Integer_Value_Name_ASCII(
+        uint32_t object_instance);
 
     BACNET_STACK_EXPORT
     int Integer_Value_Read_Property(
@@ -78,7 +85,6 @@ extern "C" {
             uint32_t object_instance,
             uint32_t value);
 
-
     BACNET_STACK_EXPORT
     bool Integer_Value_Description(
         uint32_t object_instance,
@@ -87,6 +93,9 @@ extern "C" {
     bool Integer_Value_Description_Set(
         uint32_t instance,
         char *new_name);
+    BACNET_STACK_EXPORT
+    char *Integer_Value_Description_ANSI(
+        uint32_t object_instance);
 
     BACNET_STACK_EXPORT
     uint16_t Integer_Value_Units(

@@ -100,6 +100,9 @@ extern "C" {
     bool Lighting_Output_Name_Set(
         uint32_t object_instance,
         char *new_name);
+    BACNET_STACK_EXPORT
+    const char *Lighting_Output_Name_ASCII(
+        uint32_t object_instance);
 
     BACNET_STACK_EXPORT
     char *Lighting_Output_Description(

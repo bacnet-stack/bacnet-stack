@@ -37,6 +37,8 @@ static void testCalendar(void)
     uint32_t test_instance = 0;
     bool status = false;
     unsigned index;
+    const char *test_name = NULL;
+    char *sample_name = "sample";
 
     Calendar_Init();
     test_instance = Calendar_Create(instance);
@@ -127,6 +129,15 @@ static void testCalendar(void)
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     status = Calendar_Write_Property(&wpdata);
     zassert_false(status, NULL);
+    /* test the ASCII name get/set */
+    status = Calendar_Name_Set(instance, sample_name);
+    zassert_true(status, NULL);
+    test_name = Calendar_Name_ASCII(instance);
+    zassert_equal(test_name, sample_name, NULL);
+    status = Calendar_Name_Set(instance, NULL);
+    zassert_true(status, NULL);
+    test_name = Calendar_Name_ASCII(instance);
+    zassert_equal(test_name, NULL, NULL);
     /* check the delete function */
     status = Calendar_Delete(instance);
     zassert_true(status, NULL);

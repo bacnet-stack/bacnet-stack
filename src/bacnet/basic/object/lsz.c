@@ -215,6 +215,44 @@ bool Life_Safety_Zone_Object_Name(
 }
 
 /**
+ * @brief For a given object instance-number, sets the object-name
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ * @return  true if object-name was set
+ */
+bool Life_Safety_Zone_Name_Set(uint32_t object_instance, char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = true;
+        pObject->Object_Name = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Life_Safety_Zone_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
+}
+
+/**
  * @brief For a given object instance-number, gets the property value
  * @param  object_instance - object-instance number of the object
  * @return property value

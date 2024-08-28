@@ -288,6 +288,24 @@ bool Analog_Value_Name_Set(uint32_t object_instance, char *new_name)
 }
 
 /**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Analog_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct analog_value_descr *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
+}
+
+/**
  * For a given object instance-number, gets the event-state property value
  *
  * @param  object_instance - object-instance number of the object

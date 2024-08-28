@@ -657,6 +657,10 @@ static void test_Load_Control_Read_Write_Property(void)
         OBJECT_LOAD_CONTROL, object_instance, Load_Control_Property_Lists,
         Load_Control_Read_Property, Load_Control_Write_Property,
         skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance,
+        Load_Control_Name_Set,
+        Load_Control_Name_ASCII);
     test_teardown(object_instance);
 }
 

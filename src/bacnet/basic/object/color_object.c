@@ -714,12 +714,30 @@ bool Color_Name_Set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         pObject->Object_Name = new_name;
         status = true;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name ANSI-C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Color_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -760,7 +778,7 @@ bool Color_Description_Set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Description = new_name;
     }

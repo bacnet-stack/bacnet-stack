@@ -41,6 +41,10 @@ static void testLifeSafetyZone(void)
         OBJECT_LIFE_SAFETY_ZONE, object_instance,
         Life_Safety_Zone_Property_Lists, Life_Safety_Zone_Read_Property,
         Life_Safety_Zone_Write_Property, skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance,
+        Life_Safety_Zone_Name_Set,
+        Life_Safety_Zone_Name_ASCII);
 }
 /**
  * @}

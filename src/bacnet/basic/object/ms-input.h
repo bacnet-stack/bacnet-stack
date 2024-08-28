@@ -71,6 +71,9 @@ extern "C" {
     bool Multistate_Input_Name_Set(
         uint32_t object_instance,
         char *new_name);
+    BACNET_STACK_EXPORT
+    const char *Multistate_Input_Name_ASCII(
+        uint32_t object_instance);
 
     BACNET_STACK_EXPORT
     uint32_t Multistate_Input_Present_Value(

@@ -48,6 +48,8 @@ bool Calendar_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
 bool Calendar_Name_Set(uint32_t object_instance, char *new_name);
+BACNET_STACK_EXPORT
+const char *Calendar_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);

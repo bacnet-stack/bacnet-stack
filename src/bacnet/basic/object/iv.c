@@ -43,8 +43,8 @@ struct integer_object {
     uint32_t COV_Increment;
     uint16_t Units;
     uint32_t Instance;
-    BACNET_CHARACTER_STRING Name;
-    BACNET_CHARACTER_STRING Description;
+    const char *Object_Name;
+    const char *Description;
 } INTERGER_VALUE_DESCR;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -233,20 +233,63 @@ bool Integer_Value_Present_Value_Set(
 bool Integer_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
+    static char text[32] = ""; /* okay for single thread */
     bool status = false;
+    struct integer_object *pObject;
 
-    struct integer_object *pObject = Integer_Value_Object(object_instance);
-
-    if (!object_name) {
-        return false;
-    }
-
+    pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        *object_name = pObject->Name;
-        status = true;
+        if (pObject->Object_Name) {
+            status =
+                characterstring_init_ansi(object_name, pObject->Object_Name);
+        } else {
+            snprintf(
+                text, sizeof(text), "INTEGER-VALUE-%lu",
+                (unsigned long)object_instance);
+            status = characterstring_init_ansi(object_name, text);
+        }
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object-name
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ * @return  true if object-name was set
+ */
+bool Integer_Value_Object_Name_Set(uint32_t object_instance,
+    char *new_name)
+{
+    bool status = false;
+    struct integer_object *pObject;
+
+    pObject = Integer_Value_Object(object_instance);
+    if (pObject) {
+        status = true;
+        pObject->Object_Name = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Integer_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct integer_object *pObject;
+
+    pObject = Integer_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -263,18 +306,62 @@ bool Integer_Value_Description(
     uint32_t object_instance, BACNET_CHARACTER_STRING *description)
 {
     bool status = false;
-    struct integer_object *pObject = Integer_Value_Object(object_instance);
+    struct integer_object *pObject;
 
-    if (!description) {
-        return false;
-    }
-
+    pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        *description = pObject->Description;
-        return true;
+        if (pObject->Description) {
+            status = characterstring_init_ansi(description,
+                pObject->Description);
+        } else {
+            status = characterstring_init_ansi(description, "");
+        }
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if object-name was set
+ */
+bool Integer_Value_Description_Set(uint32_t object_instance,
+    char *new_name)
+{
+    bool status = false; /* return value */
+    struct integer_object *pObject;
+
+    pObject = Integer_Value_Object(object_instance);
+    if (pObject) {
+        status = true;
+        pObject->Description = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+char *Integer_Value_Description_ANSI(uint32_t object_instance)
+{
+    char *name = NULL;
+    struct integer_object *pObject;
+
+    pObject = Integer_Value_Object(object_instance);
+    if (pObject) {
+        if (pObject->Description == NULL) {
+            name = "";
+        } else {
+            name = (char *)pObject->Description;
+        }
+    }
+
+    return name;
 }
 
 /**
@@ -643,8 +730,8 @@ uint32_t Integer_Value_Create(uint32_t object_instance)
                 return BACNET_MAX_INSTANCE;
             }
 
-            characterstring_init_ansi(&pObject->Name, "");
-            characterstring_init_ansi(&pObject->Description, "");
+            pObject->Object_Name = NULL;
+            pObject->Description = NULL;
             pObject->COV_Increment = 1;
             pObject->Present_Value = 0;
             pObject->Prior_Value   = 0;

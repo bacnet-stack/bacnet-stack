@@ -11,6 +11,7 @@
 #include <bacnet/rp.h>
 #include <bacnet/rpm.h>
 #include <bacnet/wp.h>
+#include "property_test.h"
 
 /**
  * @brief Perform a read/write test on a property
@@ -220,4 +221,29 @@ void bacnet_object_properties_read_write_test(
         status = write_property(&wpdata);
         zassert_false(status, NULL);
     }
+}
+
+/**
+ * @brief Perform a test on the ASCII name of an object
+ * @param object_instance The instance number of the object to test
+ * @param ascii_set The function to set the ASCII name
+ * @param ascii_get The function to get the ASCII name
+ */
+void bacnet_object_name_ascii_test(
+    uint32_t object_instance,
+    object_name_ascii_set_function ascii_set,
+    object_name_ascii_function ascii_get)
+{
+    bool status = false;
+    const char *test_name = NULL;
+    char *sample_name = "sample";
+
+    status = ascii_set(object_instance, sample_name);
+    zassert_true(status, NULL);
+    test_name = ascii_get(object_instance);
+    zassert_equal(test_name, sample_name, NULL);
+    status = ascii_set(object_instance, NULL);
+    zassert_true(status, NULL);
+    test_name = ascii_get(object_instance);
+    zassert_equal(test_name, NULL, NULL);
 }
