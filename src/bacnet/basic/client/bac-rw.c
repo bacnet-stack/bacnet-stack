@@ -210,6 +210,11 @@ static void bacnet_read_property_ack_process(
     BACNET_ARRAY_INDEX array_index = 0;
 
     if (rp_data) {
+        if (rp_data->error_code != ERROR_CODE_SUCCESS) {
+            if (bacnet_read_write_value_callback) {
+                bacnet_read_write_value_callback(device_id, rp_data, NULL);
+            }
+        }
         apdu = rp_data->application_data;
         apdu_len = rp_data->application_data_len;
         while (apdu_len) {
@@ -269,12 +274,13 @@ static void My_Read_Property_Ack_Handler(uint8_t *service_request,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
-    BACNET_READ_PROPERTY_DATA rp_data;
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
     uint32_t device_id = 0;
 
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
         address_get_device_id(src, &device_id);
+        rp_data.error_code = ERROR_CODE_SUCCESS;
         len = rp_ack_decode_service_request(
             service_request, service_len, &rp_data);
         if (len < 0) {
@@ -308,6 +314,7 @@ static void My_Read_Property_Multiple_Ack_Handler(uint8_t *apdu,
     address_get_device_id(src, &device_id);
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
+        rp_data.error_code = ERROR_CODE_SUCCESS;
         rpm_ack_object_property_process(apdu, apdu_len,
             device_id, &rp_data,
             bacnet_read_property_ack_process);
