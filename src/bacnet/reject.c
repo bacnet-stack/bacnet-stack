@@ -186,7 +186,7 @@ int reject_encode_apdu(uint8_t *apdu, uint8_t invoke_id, uint8_t reject_reason)
  *
  * @return Bytes encoded, typically 3.
  */
-int reject_decode_service_request(uint8_t *apdu,
+int reject_decode_service_request(const uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t *reject_reason)

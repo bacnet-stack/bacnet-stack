@@ -100,7 +100,7 @@ extern int bip_get_local_netmask(
 
 BACNET_STACK_EXPORT
 extern int bip_get_local_address_ioctl(
-    char *ifname,
+    const char *ifname,
     struct in_addr *addr,
     int request);
 

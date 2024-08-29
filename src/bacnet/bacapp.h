@@ -225,17 +225,17 @@ extern "C" {
     BACNET_STACK_EXPORT
     int bacapp_property_value_encode(
         uint8_t *apdu,
-        BACNET_PROPERTY_VALUE *value);
+        const BACNET_PROPERTY_VALUE *value);
     BACNET_STACK_EXPORT
     int bacapp_property_value_decode(
-        uint8_t *apdu,
+        const uint8_t *apdu,
         uint32_t apdu_size,
         BACNET_PROPERTY_VALUE *value);
 
     BACNET_STACK_EXPORT
     int bacapp_encode_data(
         uint8_t * apdu,
-        BACNET_APPLICATION_DATA_VALUE * value);
+        const BACNET_APPLICATION_DATA_VALUE * value);
     BACNET_STACK_EXPORT
     int bacapp_encode_known_property(
         uint8_t *apdu,
@@ -244,7 +244,7 @@ extern "C" {
         BACNET_PROPERTY_ID property);
     BACNET_STACK_EXPORT
     int bacapp_data_decode(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint32_t apdu_size,
         uint8_t tag_data_type,
         uint32_t len_value_type,
@@ -252,31 +252,31 @@ extern "C" {
     BACNET_STACK_DEPRECATED("Use bacapp_data_decode() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_data(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint8_t tag_data_type,
         uint32_t len_value_type,
         BACNET_APPLICATION_DATA_VALUE * value);
 
     BACNET_STACK_EXPORT
     int bacapp_decode_application_data(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint32_t apdu_size,
         BACNET_APPLICATION_DATA_VALUE * value);
 
     BACNET_STACK_EXPORT
     bool bacapp_decode_application_data_safe(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint32_t apdu_size,
         BACNET_APPLICATION_DATA_VALUE * value);
 
     BACNET_STACK_EXPORT
     int bacapp_encode_application_data(
         uint8_t * apdu,
-        BACNET_APPLICATION_DATA_VALUE * value);
+        const BACNET_APPLICATION_DATA_VALUE * value);
 
     BACNET_STACK_EXPORT
     int bacapp_decode_context_data(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
@@ -292,7 +292,7 @@ extern "C" {
     int bacapp_encode_context_data_value(
         uint8_t * apdu,
         uint8_t context_tag_number,
-        BACNET_APPLICATION_DATA_VALUE * value);
+        const BACNET_APPLICATION_DATA_VALUE * value);
 
     BACNET_STACK_DEPRECATED("Use bacapp_known_property_tag() instead")
     BACNET_STACK_EXPORT
@@ -302,19 +302,19 @@ extern "C" {
     BACNET_STACK_DEPRECATED("Use bacapp_encode_known_property() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_generic_property(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID prop);
 
     BACNET_STACK_EXPORT
     int bacapp_decode_application_tag_value(
-        uint8_t *apdu,
+        const uint8_t *apdu,
         size_t apdu_size,
         BACNET_APPLICATION_TAG tag,
         BACNET_APPLICATION_DATA_VALUE *value);
     BACNET_STACK_EXPORT
-    int bacapp_decode_known_property(uint8_t *apdu,
+    int bacapp_decode_known_property(const uint8_t *apdu,
         int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE *value,
         BACNET_OBJECT_TYPE object_type,
@@ -333,27 +333,27 @@ extern "C" {
     BACNET_STACK_DEPRECATED("Use bacnet_enclosed_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_data_len(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
 
     BACNET_STACK_DEPRECATED("Use bacnet_application_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_data_len(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint8_t tag_data_type,
         uint32_t len_value_type);
 
     BACNET_STACK_DEPRECATED("Use bacnet_enclosed_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_application_data_len(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned max_apdu_len);
 
     BACNET_STACK_DEPRECATED("Use bacnet_enclosed_data_length() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_context_data_len(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
 
@@ -371,7 +371,7 @@ extern "C" {
     int bacapp_snprintf_value(
         char *str,
         size_t str_len,
-        BACNET_OBJECT_PROPERTY_VALUE * object_value);
+        const BACNET_OBJECT_PROPERTY_VALUE * object_value);
 
     BACNET_STACK_EXPORT
     bool bacapp_parse_application_data(
@@ -382,12 +382,12 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool bacapp_print_value(
         FILE * stream,
-        BACNET_OBJECT_PROPERTY_VALUE * value);
+        const BACNET_OBJECT_PROPERTY_VALUE * value);
 
     BACNET_STACK_EXPORT
     bool bacapp_same_value(
-        BACNET_APPLICATION_DATA_VALUE * value,
-        BACNET_APPLICATION_DATA_VALUE * test_value);
+        const BACNET_APPLICATION_DATA_VALUE * value,
+        const BACNET_APPLICATION_DATA_VALUE * test_value);
 
 #ifdef __cplusplus
 }

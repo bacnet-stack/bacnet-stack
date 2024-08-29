@@ -30,7 +30,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int iam_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint32_t * pDevice_id,
         unsigned *pMax_apdu,
         int *pSegmentation,

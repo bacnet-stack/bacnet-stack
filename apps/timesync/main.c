@@ -82,14 +82,14 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s [--dnet][--dadr][--mac]\n", filename);
     printf("       [--date][--time]\n");
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet TimeSynchronization request.\n");
     printf("\n");
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     BACNET_ADDRESS dest = { 0 };
     bool global_broadcast = true;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     /* decode any command line parameters */
     filename = filename_remove_path(argv[0]);

@@ -14,7 +14,8 @@
 #include "network_layer.h"
 #include "bacnet/bacint.h"
 
-uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
+uint16_t process_network_message(
+    const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 {
     BACNET_NPDU_DATA npdu_data;
     ROUTER_PORT *srcport;

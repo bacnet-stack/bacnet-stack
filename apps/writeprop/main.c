@@ -136,14 +136,14 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s device-instance object-type object-instance "
            "property priority index tag value [tag value...]\n",
         filename);
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf(
         "device-instance:\n"

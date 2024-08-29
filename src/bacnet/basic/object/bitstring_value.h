@@ -76,7 +76,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool BitString_Value_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
     BACNET_STACK_EXPORT
     const char *BitString_Value_Name_ASCII(
         uint32_t object_instance);
@@ -88,15 +88,15 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool BitString_Value_Present_Value_Set(
         uint32_t object_instance,
-        BACNET_BIT_STRING * value);
+        const BACNET_BIT_STRING * value);
 
     BACNET_STACK_EXPORT
-    char *BitString_Value_Description(
+    const char *BitString_Value_Description(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool BitString_Value_Description_Set(
         uint32_t object_instance,
-        char *text_string);
+        const char *text_string);
 
     BACNET_STACK_EXPORT
     bool BitString_Value_Out_Of_Service(

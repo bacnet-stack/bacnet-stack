@@ -78,7 +78,7 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s [device-instance vendor-id max-apdu segmentation]\n",
         filename);
@@ -86,7 +86,7 @@ static void print_usage(char *filename)
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet I-Am message for a device.\n");
     printf("--mac A\n"
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
     unsigned timeout = 100; /* milliseconds */
     int argi = 0;
     unsigned int target_args = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
     long retry_count = 0;
 
     filename = filename_remove_path(argv[0]);

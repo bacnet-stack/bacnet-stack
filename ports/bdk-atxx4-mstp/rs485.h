@@ -23,7 +23,7 @@ extern "C" {
     bool rs485_receive_error(
         void);
     void rs485_bytes_send(
-        uint8_t * buffer,       /* data to send */
+        const uint8_t * buffer,       /* data to send */
         uint16_t nbytes);       /* number of bytes of data */
     uint32_t rs485_baud_rate(
         void);

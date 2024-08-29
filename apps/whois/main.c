@@ -73,7 +73,7 @@ static struct address_entry *alloc_address_entry(void)
 }
 
 static void address_table_add(
-    uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
+    uint32_t device_id, unsigned max_apdu, const BACNET_ADDRESS *src)
 {
     struct address_entry *pMatch;
     uint8_t flags = 0;
@@ -185,7 +185,7 @@ static void init_service_handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_macaddr(uint8_t *addr, int len)
+static void print_macaddr(const uint8_t *addr, int len)
 {
     int j = 0;
 
@@ -246,7 +246,7 @@ static void print_address_cache(void)
     }
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s", filename);
     printf(" [device-instance-min [device-instance-max]]\n");
@@ -254,7 +254,7 @@ static void print_usage(char *filename)
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet WhoIs service request to a device or multiple\n"
         "devices, and wait for responses. Displays any devices found\n"
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
     bool global_broadcast = true;
     int argi = 0;
     unsigned int target_args = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
     bool repeat_forever = false;
     long retry_count = 0;
 

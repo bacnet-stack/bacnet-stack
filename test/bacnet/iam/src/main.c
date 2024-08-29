@@ -20,7 +20,7 @@
  * @brief Test
  */
 static int iam_decode_apdu(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     uint32_t *pDevice_id,
     unsigned *pMax_apdu,
     int *pSegmentation,

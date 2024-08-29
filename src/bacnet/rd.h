@@ -34,23 +34,23 @@ extern "C" {
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_REINITIALIZED_STATE state,
-        BACNET_CHARACTER_STRING * password);
+        const BACNET_CHARACTER_STRING * password);
 
     BACNET_STACK_EXPORT
     int reinitialize_device_encode(uint8_t *apdu,
         BACNET_REINITIALIZED_STATE state,
-        BACNET_CHARACTER_STRING *password);
+        const BACNET_CHARACTER_STRING *password);
 
     BACNET_STACK_EXPORT
     size_t reinitialize_device_request_encode(
         uint8_t *apdu, size_t apdu_size,
         BACNET_REINITIALIZED_STATE state,
-        BACNET_CHARACTER_STRING *password);
+        const BACNET_CHARACTER_STRING *password);
 
 /* decode the service request only */
     BACNET_STACK_EXPORT
     int rd_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_REINITIALIZED_STATE * state,
         BACNET_CHARACTER_STRING * password);

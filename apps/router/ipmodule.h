@@ -45,8 +45,8 @@ bool dl_ip_init(
 
 int dl_ip_send(
     IP_DATA * data,
-    BACNET_ADDRESS * dest,
-    uint8_t * pdu,
+    const BACNET_ADDRESS * dest,
+    const uint8_t * pdu,
     unsigned pdu_len);
 
 int dl_ip_recv(

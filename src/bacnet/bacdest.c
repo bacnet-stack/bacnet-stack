@@ -67,7 +67,8 @@ void bacnet_destination_default_init(BACNET_DESTINATION *destination)
  * @param r2 - BACnetRecipient 2 structure
  * @return true if r1 and r2 are the same
  */
-bool bacnet_recipient_same(BACNET_RECIPIENT *r1, BACNET_RECIPIENT *r2)
+bool bacnet_recipient_same(
+    const BACNET_RECIPIENT *r1, const BACNET_RECIPIENT *r2)
 {
     bool status = false;
 
@@ -98,7 +99,7 @@ bool bacnet_recipient_same(BACNET_RECIPIENT *r1, BACNET_RECIPIENT *r2)
  * @param src - BACnetRecipient 1 structure
  * @param dest - BACnetRecipient 2 structure
  */
-void bacnet_recipient_copy(BACNET_RECIPIENT *dest, BACNET_RECIPIENT *src)
+void bacnet_recipient_copy(BACNET_RECIPIENT *dest, const BACNET_RECIPIENT *src)
 {
     if (dest && src) {
         memmove(dest, src, sizeof(BACNET_RECIPIENT));
@@ -110,7 +111,7 @@ void bacnet_recipient_copy(BACNET_RECIPIENT *dest, BACNET_RECIPIENT *src)
  * @param recipient - BACnetRecipient structure
  * @return true if BACnetRecipient is equal to the device object wildcard
  */
-bool bacnet_recipient_device_wildcard(BACNET_RECIPIENT *recipient)
+bool bacnet_recipient_device_wildcard(const BACNET_RECIPIENT *recipient)
 {
     bool status = false;
 
@@ -130,7 +131,7 @@ bool bacnet_recipient_device_wildcard(BACNET_RECIPIENT *recipient)
  * @param recipient - BACnetRecipient structure
  * @return true if BACnetRecipient is a valid device object instance
  */
-bool bacnet_recipient_device_valid(BACNET_RECIPIENT *recipient)
+bool bacnet_recipient_device_valid(const BACNET_RECIPIENT *recipient)
 {
     bool status = false;
 
@@ -151,7 +152,8 @@ bool bacnet_recipient_device_valid(BACNET_RECIPIENT *recipient)
  * @param d2 - BACnetDestination 2 structure
  * @return true if dest1 and dest2 are the same
  */
-bool bacnet_destination_same(BACNET_DESTINATION *d1, BACNET_DESTINATION *d2)
+bool bacnet_destination_same(
+    const BACNET_DESTINATION *d1, const BACNET_DESTINATION *d2)
 {
     bool status = false;
 
@@ -185,7 +187,8 @@ bool bacnet_destination_same(BACNET_DESTINATION *d1, BACNET_DESTINATION *d2)
  * @param dest - BACnetDestination 1 structure
  * @param src - BACnetDestination 2 structure
  */
-void bacnet_destination_copy(BACNET_DESTINATION *dest, BACNET_DESTINATION *src)
+void bacnet_destination_copy(
+    BACNET_DESTINATION *dest, const BACNET_DESTINATION *src)
 {
     if (dest && src) {
         memmove(dest, src, sizeof(BACNET_DESTINATION));
@@ -197,7 +200,7 @@ void bacnet_destination_copy(BACNET_DESTINATION *dest, BACNET_DESTINATION *src)
  * @param d1 - BACnetDestination 1 structure
  * @return true if d1 and d2 (defaults) are the same
  */
-bool bacnet_destination_default(BACNET_DESTINATION *d1)
+bool bacnet_destination_default(const BACNET_DESTINATION *d1)
 {
     BACNET_DESTINATION d2 = { 0 };
 
@@ -224,7 +227,8 @@ bool bacnet_destination_default(BACNET_DESTINATION *d1)
  *
  * @return bytes encoded or zero on error.
  */
-int bacnet_destination_encode(uint8_t *apdu, BACNET_DESTINATION *destination)
+int bacnet_destination_encode(
+    uint8_t *apdu, const BACNET_DESTINATION *destination)
 {
     int apdu_len = 0, len = 0;
 
@@ -300,7 +304,7 @@ int bacnet_destination_encode(uint8_t *apdu, BACNET_DESTINATION *destination)
  * @return length of the APDU buffer, or 0 if not able to encode
  */
 int bacnet_destination_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DESTINATION *destination)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DESTINATION *destination)
 {
     int len = 0;
     int apdu_len = 0;
@@ -343,7 +347,7 @@ int bacnet_destination_context_encode(
  * @return bytes encoded or #BACNET_STATUS_REJECT on error.
  */
 int bacnet_destination_decode(
-    uint8_t *apdu, int apdu_size, BACNET_DESTINATION *destination)
+    const uint8_t *apdu, int apdu_size, BACNET_DESTINATION *destination)
 {
     int len = 0, apdu_len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
@@ -519,7 +523,7 @@ int bacnet_destination_to_ascii(
     buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
     comma = false;
     for (i = 0; i < 7; i++) {
-        if (bitstring_bit((BACNET_BIT_STRING *)&bacdest->ValidDays, i)) {
+        if (bitstring_bit(&bacdest->ValidDays, i)) {
             if (comma) {
                 len = snprintf(buf, buf_size, ",");
                 buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
@@ -602,15 +606,12 @@ int bacnet_destination_to_ascii(
     comma = false;
     /* TODO remove casting when bitstring_bit() has const added - Github issue
      * #320 */
-    if (bitstring_bit(
-            (BACNET_BIT_STRING *)&bacdest->Transitions,
-            TRANSITION_TO_OFFNORMAL)) {
+    if (bitstring_bit(&bacdest->Transitions, TRANSITION_TO_OFFNORMAL)) {
         len = snprintf(buf, buf_size, "to-offnormal");
         buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
         comma = true;
     }
-    if (bitstring_bit(
-            (BACNET_BIT_STRING *)&bacdest->Transitions, TRANSITION_TO_FAULT)) {
+    if (bitstring_bit(&bacdest->Transitions, TRANSITION_TO_FAULT)) {
         if (comma) {
             len = snprintf(buf, buf_size, ",");
             buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
@@ -619,8 +620,7 @@ int bacnet_destination_to_ascii(
         buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);
         comma = true;
     }
-    if (bitstring_bit(
-            (BACNET_BIT_STRING *)&bacdest->Transitions, TRANSITION_TO_NORMAL)) {
+    if (bitstring_bit(&bacdest->Transitions, TRANSITION_TO_NORMAL)) {
         if (comma) {
             len = snprintf(buf, buf_size, ",");
             buf_len += bacapp_snprintf_shift(len, &buf, &buf_size);

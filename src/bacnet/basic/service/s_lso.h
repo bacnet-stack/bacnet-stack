@@ -28,7 +28,7 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 uint8_t Send_Life_Safety_Operation_Data(uint32_t device_id,
-                                        BACNET_LSO_DATA* data);
+                                        const BACNET_LSO_DATA* data);
 
 #ifdef __cplusplus
 }

@@ -37,7 +37,10 @@ int whois_encode_apdu(uint8_t *apdu, int32_t low_limit, int32_t high_limit)
 
 /* decode the service request only */
 int whois_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, int32_t *pLow_limit, int32_t *pHigh_limit)
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    int32_t *pLow_limit,
+    int32_t *pHigh_limit)
 {
     unsigned int len = 0;
     uint8_t tag_number = 0;

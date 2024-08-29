@@ -64,7 +64,7 @@ int iam_encode_apdu(uint8_t *apdu,
  *
  * @return Total length of the apdu, zero otherwise.
  */
-int iam_decode_service_request(uint8_t *apdu,
+int iam_decode_service_request(const uint8_t *apdu,
     uint32_t *pDevice_id,
     unsigned *pMax_apdu,
     int *pSegmentation,

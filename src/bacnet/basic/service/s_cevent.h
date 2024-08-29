@@ -28,10 +28,10 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 uint8_t Send_CEvent_Notify(uint32_t device_id,
-                           BACNET_EVENT_NOTIFICATION_DATA* data);
+                           const BACNET_EVENT_NOTIFICATION_DATA* data);
 BACNET_STACK_EXPORT
 uint8_t Send_CEvent_Notify_Address(uint8_t *pdu, uint16_t pdu_size,
-    BACNET_EVENT_NOTIFICATION_DATA *data, BACNET_ADDRESS *dest);
+    const BACNET_EVENT_NOTIFICATION_DATA *data, BACNET_ADDRESS *dest);
 
 #ifdef __cplusplus
 }

@@ -48,7 +48,7 @@ BACNET_STACK_EXPORT
 bool Color_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
-bool Color_Name_Set(uint32_t object_instance, char *new_name);
+bool Color_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
 const char *Color_Name_ASCII(uint32_t object_instance);
 
@@ -59,7 +59,8 @@ BACNET_STACK_EXPORT
 bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
-bool Color_Present_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value);
+bool Color_Present_Value_Set(
+    uint32_t object_instance, const BACNET_XY_COLOR *value);
 BACNET_STACK_EXPORT
 bool Color_Present_Value(uint32_t object_instance, BACNET_XY_COLOR *value);
 BACNET_STACK_EXPORT
@@ -67,17 +68,20 @@ void Color_Write_Present_Value_Callback_Set(
     color_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
-bool Color_Tracking_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value);
+bool Color_Tracking_Value_Set(
+    uint32_t object_instance, const BACNET_XY_COLOR *value);
 BACNET_STACK_EXPORT
 bool Color_Tracking_Value(uint32_t object_instance, BACNET_XY_COLOR *value);
 
 BACNET_STACK_EXPORT
 bool Color_Command(uint32_t object_instance, BACNET_COLOR_COMMAND *value);
 BACNET_STACK_EXPORT
-bool Color_Command_Set(uint32_t object_instance, BACNET_COLOR_COMMAND *value);
+bool Color_Command_Set(
+    uint32_t object_instance, const BACNET_COLOR_COMMAND *value);
 
 BACNET_STACK_EXPORT
-bool Color_Default_Color_Set(uint32_t object_instance, BACNET_XY_COLOR *value);
+bool Color_Default_Color_Set(
+    uint32_t object_instance, const BACNET_XY_COLOR *value);
 BACNET_STACK_EXPORT
 bool Color_Default_Color(uint32_t object_instance, BACNET_XY_COLOR *value);
 
@@ -99,9 +103,9 @@ bool Color_Transition_Set(
     uint32_t object_instance, BACNET_COLOR_TRANSITION value);
 
 BACNET_STACK_EXPORT
-char *Color_Description(uint32_t instance);
+const char *Color_Description(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Color_Description_Set(uint32_t instance, char *new_name);
+bool Color_Description_Set(uint32_t instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 bool Color_Write_Enabled(uint32_t instance);

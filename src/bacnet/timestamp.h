@@ -43,41 +43,41 @@ extern "C" {
     BACNET_STACK_EXPORT
     void bacapp_timestamp_time_set(
         BACNET_TIMESTAMP * dest,
-        BACNET_TIME *btime);
+        const BACNET_TIME *btime);
 
     BACNET_STACK_EXPORT
     void bacapp_timestamp_datetime_set(
         BACNET_TIMESTAMP * dest,
-        BACNET_DATE_TIME * bdateTime);
+        const BACNET_DATE_TIME * bdateTime);
 
     BACNET_STACK_EXPORT
     void bacapp_timestamp_copy(
         BACNET_TIMESTAMP * dest,
-        BACNET_TIMESTAMP * src);
+        const BACNET_TIMESTAMP * src);
 
     BACNET_STACK_EXPORT
     bool bacapp_timestamp_same(
-        BACNET_TIMESTAMP *value1,
-        BACNET_TIMESTAMP *value2);
+        const BACNET_TIMESTAMP *value1,
+        const BACNET_TIMESTAMP *value2);
 
     BACNET_STACK_EXPORT
     int bacapp_encode_timestamp(
         uint8_t * apdu,
-        BACNET_TIMESTAMP * value);
+        const BACNET_TIMESTAMP * value);
     BACNET_STACK_EXPORT
     int bacapp_encode_context_timestamp(
         uint8_t * apdu,
         uint8_t tag_number,
-        BACNET_TIMESTAMP * value);
+        const BACNET_TIMESTAMP * value);
 
     BACNET_STACK_EXPORT
     int bacnet_timestamp_decode(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint32_t apdu_size,
         BACNET_TIMESTAMP * value);
     BACNET_STACK_EXPORT
     int bacnet_timestamp_context_decode(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint32_t apdu_size,
         uint8_t tag_number,
         BACNET_TIMESTAMP * value);
@@ -85,12 +85,12 @@ extern "C" {
     BACNET_STACK_DEPRECATED("Use bacnet_timestamp_decode() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_timestamp(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         BACNET_TIMESTAMP * value);
     BACNET_STACK_DEPRECATED("Use bacnet_timestamp_context_decode() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_context_timestamp(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint8_t tag_number,
         BACNET_TIMESTAMP * value);
 
@@ -102,7 +102,7 @@ extern "C" {
     int bacapp_timestamp_to_ascii(
         char *str,
         size_t str_size,
-        BACNET_TIMESTAMP *timestamp);
+        const BACNET_TIMESTAMP *timestamp);
 
 #ifdef __cplusplus
 }

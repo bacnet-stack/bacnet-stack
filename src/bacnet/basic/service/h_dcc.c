@@ -29,7 +29,7 @@ static char My_Password[32] = "filister";
 /** Sets (non-volatile hold) the password to be used for DCC requests.
  * @param new_password [in] The new DCC password, of up to 31 characters.
  */
-void handler_dcc_password_set(char *new_password)
+void handler_dcc_password_set(const char *new_password)
 {
     size_t i = 0; /* loop counter */
 

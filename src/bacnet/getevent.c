@@ -19,7 +19,7 @@
  * @return Bytes encoded.
  */
 int getevent_apdu_encode(uint8_t *apdu,
-    BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
+    const BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
 {
     int len = 0;
     int apdu_len = 0;
@@ -44,7 +44,7 @@ int getevent_apdu_encode(uint8_t *apdu,
  */
 size_t getevent_service_request_encode(
     uint8_t *apdu, size_t apdu_size,
-    BACNET_OBJECT_ID *data)
+    const BACNET_OBJECT_ID *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -69,7 +69,7 @@ size_t getevent_service_request_encode(
  */
 int getevent_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
-    BACNET_OBJECT_ID *data)
+    const BACNET_OBJECT_ID *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -99,7 +99,7 @@ int getevent_encode_apdu(uint8_t *apdu,
  *
  * @return Bytes encoded.
  */
-int getevent_decode_service_request(uint8_t *apdu,
+int getevent_decode_service_request(const uint8_t *apdu,
     unsigned apdu_len,
     BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
 {
@@ -202,7 +202,7 @@ int getevent_ack_encode_apdu_end(
     return apdu_len;
 }
 
-int getevent_ack_decode_service_request(uint8_t *apdu,
+int getevent_ack_decode_service_request(const uint8_t *apdu,
     int apdu_len, /* total length of the apdu */
     BACNET_GET_EVENT_INFORMATION_DATA *get_event_data,
     bool *moreEvents)

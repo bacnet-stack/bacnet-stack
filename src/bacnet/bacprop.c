@@ -45,7 +45,7 @@ PROP_TAG_DATA bacnet_object_device_property_tag_map[] = {
  * @return Value found or the default value.
  */
 signed bacprop_tag_by_index_default(
-    PROP_TAG_DATA *data_list, signed index, signed default_ret)
+    const PROP_TAG_DATA *data_list, signed index, signed default_ret)
 {
     signed pUnsigned = 0;
 

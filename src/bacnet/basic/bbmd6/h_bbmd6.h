@@ -41,14 +41,14 @@ extern "C" {
         uint16_t mtu_len);
 
     BACNET_STACK_EXPORT
-    int bvlc6_send_pdu(BACNET_ADDRESS *dest,
-        BACNET_NPDU_DATA *npdu_data,
-        uint8_t *pdu,
+    int bvlc6_send_pdu(const BACNET_ADDRESS *dest,
+        const BACNET_NPDU_DATA *npdu_data,
+        const uint8_t *pdu,
         unsigned pdu_len);
 
     BACNET_STACK_EXPORT
     int bvlc6_register_with_bbmd(
-        BACNET_IP6_ADDRESS *bbmd_addr,
+        const BACNET_IP6_ADDRESS *bbmd_addr,
         uint16_t time_to_live_seconds);
 
     BACNET_STACK_EXPORT

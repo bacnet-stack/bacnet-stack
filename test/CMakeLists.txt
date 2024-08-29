@@ -24,6 +24,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wswitch-default)
     add_compile_options(-Wunused-variable)
     add_compile_options(-Wcast-qual)
+    add_compile_options(-Wwrite-strings)
 
     # don't warn about conversion, sign, compares, long long and attributes
     # since they are common in embedded
@@ -41,6 +42,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_compile_options(-Wno-float-conversion)
     add_compile_options(-Wno-missing-declarations)
     add_compile_options(-Wno-unused-but-set-variable)
+    add_compile_options(-Wno-write-strings)
 
     add_link_options(-fprofile-arcs -ftest-coverage)
 endif()

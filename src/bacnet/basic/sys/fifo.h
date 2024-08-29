@@ -102,7 +102,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool FIFO_Add(
         FIFO_BUFFER * b,
-        uint8_t * data_bytes,
+        const uint8_t * data_bytes,
         unsigned count);
 
     BACNET_STACK_EXPORT

@@ -188,7 +188,7 @@ bool Color_Present_Value(uint32_t object_instance, BACNET_XY_COLOR *value)
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Color_Present_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
+bool Color_Present_Value_Set(uint32_t object_instance, const BACNET_XY_COLOR *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -214,7 +214,7 @@ bool Color_Present_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
  * @return  true if values are within range and present-value is set.
  */
 static bool Color_Present_Value_Write(uint32_t object_instance,
-    BACNET_XY_COLOR *value,
+    const BACNET_XY_COLOR *value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -273,7 +273,8 @@ bool Color_Tracking_Value(uint32_t object_instance, BACNET_XY_COLOR *value)
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Color_Tracking_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
+bool Color_Tracking_Value_Set(
+    uint32_t object_instance, const BACNET_XY_COLOR *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -315,7 +316,8 @@ bool Color_Command(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
  * @param  value - color command data
  * @return  true if values are within range and value is set.
  */
-bool Color_Command_Set(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
+bool Color_Command_Set(
+    uint32_t object_instance, const BACNET_COLOR_COMMAND *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -341,7 +343,7 @@ bool Color_Command_Set(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
  * @return  true if values are within range and present-value is set.
  */
 static bool Color_Command_Write(uint32_t object_instance,
-    BACNET_COLOR_COMMAND *value,
+    const BACNET_COLOR_COMMAND *value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -440,7 +442,8 @@ bool Color_Default_Color(uint32_t object_instance, BACNET_XY_COLOR *value)
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Color_Default_Color_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
+bool Color_Default_Color_Set(
+    uint32_t object_instance, const BACNET_XY_COLOR *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -466,7 +469,7 @@ bool Color_Default_Color_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
  * @return  true if values are within range and present-value is set.
  */
 static bool Color_Default_Color_Write(uint32_t object_instance,
-    BACNET_XY_COLOR *value,
+    const BACNET_XY_COLOR *value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -708,7 +711,7 @@ bool Color_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Color_Name_Set(uint32_t object_instance, char *new_name)
+bool Color_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -747,15 +750,15 @@ const char *Color_Name_ASCII(uint32_t object_instance)
  *
  * @return description text or NULL if not found
  */
-char *Color_Description(uint32_t object_instance)
+const char *Color_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -772,7 +775,7 @@ char *Color_Description(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Color_Description_Set(uint32_t object_instance, char *new_name)
+bool Color_Description_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -987,7 +990,7 @@ bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     int apdu_size = 0;
-    uint8_t *apdu = NULL;
+    const uint8_t *apdu = NULL;
 
     /* decode the some of the request */
     apdu = wp_data->application_data;

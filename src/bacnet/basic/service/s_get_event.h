@@ -28,10 +28,10 @@ extern "C" {
 BACNET_STACK_EXPORT
 uint8_t Send_Get_Event_Information_Address(
     BACNET_ADDRESS *dest, uint16_t max_apdu,
-    BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
+    const BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
 BACNET_STACK_EXPORT
 uint8_t Send_Get_Event_Information(
-    uint32_t device_id, BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
+    uint32_t device_id, const BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
 
 #ifdef __cplusplus
 }

@@ -56,35 +56,35 @@ extern "C" {
     BACNET_STACK_EXPORT
     int read_property_request_encode(
         uint8_t *apdu,
-        BACNET_READ_PROPERTY_DATA *data);
+        const BACNET_READ_PROPERTY_DATA *data);
 
     BACNET_STACK_EXPORT
     size_t read_property_request_service_encode(
         uint8_t *apdu,
         size_t apdu_size,
-        BACNET_READ_PROPERTY_DATA *data);
+        const BACNET_READ_PROPERTY_DATA *data);
 
     BACNET_STACK_EXPORT
     int read_property_ack_encode(
         uint8_t *apdu,
-        BACNET_READ_PROPERTY_DATA *data);
+        const BACNET_READ_PROPERTY_DATA *data);
 
     BACNET_STACK_EXPORT
     size_t read_property_ack_service_encode(
         uint8_t *apdu,
         size_t apdu_size,
-        BACNET_READ_PROPERTY_DATA *data);
+        const BACNET_READ_PROPERTY_DATA *data);
 
     BACNET_STACK_EXPORT
     int rp_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+        const BACNET_READ_PROPERTY_DATA * rpdata);
 
 /* decode the service request only */
     BACNET_STACK_EXPORT
     int rp_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
@@ -93,7 +93,7 @@ extern "C" {
     int rp_ack_encode_apdu_init(
         uint8_t * apdu,
         uint8_t invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+        const BACNET_READ_PROPERTY_DATA * rpdata);
 
     BACNET_STACK_EXPORT
     int rp_ack_encode_apdu_object_property_end(
@@ -104,7 +104,7 @@ extern "C" {
     int rp_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+        const BACNET_READ_PROPERTY_DATA * rpdata);
 
     BACNET_STACK_EXPORT
     int rp_ack_decode_service_request(

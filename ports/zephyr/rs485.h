@@ -32,8 +32,8 @@ extern "C" {
     BACNET_STACK_EXPORT
     void RS485_Send_Frame(
         volatile struct mstp_port_struct_t *mstp_port,  /* port specific data */
-        uint8_t * buffer,       /* frame to send (up to 501 bytes of data) */
-        uint16_t nbytes);       /* number of bytes of data (up to 501) */
+        const uint8_t * buffer,     /* frame to send (up to 501 bytes of data) */
+        uint16_t nbytes);           /* number of bytes of data (up to 501) */
 
     BACNET_STACK_EXPORT
     void RS485_Check_UART_Data(

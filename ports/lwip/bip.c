@@ -67,7 +67,7 @@ uint32_t bip_stats_drop(void)
  * @param addr - network IPv4 address
  * @return true if the address is set
  */
-bool bip_set_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_addr(const BACNET_IP_ADDRESS *addr)
 {
     return bvlc_address_copy(&BIP_Address, addr);
 }
@@ -87,7 +87,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  * @param network IPv4 broadcast address
  * @return true if the broadcast address is retrieved
  */
-bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
 {
     return bvlc_address_copy(&BIP_Broadcast_Address, addr);
 }
@@ -137,7 +137,7 @@ uint16_t bip_get_port(void)
  * @param address - IPv4 address from LwIP
  * @param mac - IP address from BACnet/IP
  */
-static void bip_mac_to_addr(ip4_addr_t *address, uint8_t *mac)
+static void bip_mac_to_addr(ip4_addr_t *address, const uint8_t *mac)
 {
     if (mac && address) {
         address->addr = ((u32_t)((((uint32_t)mac[0]) << 24) & 0xff000000));
@@ -153,7 +153,7 @@ static void bip_mac_to_addr(ip4_addr_t *address, uint8_t *mac)
  * @param address - IPv4 address from LwIP
  * @param port - IPv4 UDP port number
  */
-static int bip_decode_bip_address(BACNET_IP_ADDRESS *baddr,
+static int bip_decode_bip_address(const BACNET_IP_ADDRESS *baddr,
     ip_addr_t *address,
     uint16_t *port)
 {
@@ -215,7 +215,7 @@ static int bip_encode_bip_address(BACNET_IP_ADDRESS *baddr,
  * @return number of bytes sent, or 0 on failure.
  */
 int bip_send_mpdu(
-    BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     struct pbuf *pkt = NULL;
     /* addr and port in host format */

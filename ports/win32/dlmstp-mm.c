@@ -291,18 +291,18 @@ uint16_t MSTP_Get_Send(
  */
 void MSTP_Send_Frame(
     struct mstp_port_struct_t *mstp_port,
-    uint8_t * buffer,
+    const uint8_t * buffer,
     uint16_t nbytes)
 {
     RS485_Send_Frame(mstp_port, buffer, nbytes);
 }
 
-bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
+bool dlmstp_compare_data_expecting_reply(const uint8_t *request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,
-    uint8_t *reply_pdu,
+    const uint8_t *reply_pdu,
     uint16_t reply_pdu_len,
-    BACNET_ADDRESS *dest_address)
+    const BACNET_ADDRESS *dest_address)
 {
     uint16_t offset;
     /* One way to check the message is to compare NPDU

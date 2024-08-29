@@ -161,14 +161,14 @@ static void cleanup(void)
     }
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s device-id object-type object-instance "
             "process-id <[un]confirmed lifetime|cancel>\n",
         filename);
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Subscribe to a BACnet object for Change-of-Value notifications\n"
         "in a BACnet device and print the Change-of-Value notifications.\n");
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     time_t delta_seconds = 0;
     bool found = false;
-    char *filename = NULL;
+    const char *filename = NULL;
     bool print_usage_terse = false;
     bool print_usage_verbose = false;
     BACNET_SUBSCRIBE_COV_DATA *cov_data = NULL;

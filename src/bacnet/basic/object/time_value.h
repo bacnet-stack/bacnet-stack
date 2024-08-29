@@ -47,7 +47,7 @@ BACNET_STACK_EXPORT
 bool Time_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
-bool Time_Value_Name_Set(uint32_t object_instance, char *new_name);
+bool Time_Value_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
 const char *Time_Value_Name_ASCII(uint32_t object_instance);
 
@@ -58,7 +58,8 @@ BACNET_STACK_EXPORT
 bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
-bool Time_Value_Present_Value_Set(uint32_t object_instance, BACNET_TIME *value);
+bool Time_Value_Present_Value_Set(
+    uint32_t object_instance, const BACNET_TIME *value);
 BACNET_STACK_EXPORT
 bool Time_Value_Present_Value(uint32_t object_instance, BACNET_TIME *value);
 BACNET_STACK_EXPORT
@@ -74,9 +75,9 @@ BACNET_STACK_EXPORT
 bool Time_Value_Out_Of_Service_Set(uint32_t object_instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
-char *Time_Value_Description(uint32_t object_instance);
+const char *Time_Value_Value_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Time_Value_Description_Set(uint32_t object_instance, char *new_name);
+bool Time_Value_Description_Set(uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 bool Time_Value_Write_Enabled(uint32_t instance);

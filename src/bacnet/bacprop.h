@@ -25,7 +25,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     signed bacprop_tag_by_index_default(
-        PROP_TAG_DATA * data_list,
+        const PROP_TAG_DATA * data_list,
         signed index,
         signed default_ret);
 

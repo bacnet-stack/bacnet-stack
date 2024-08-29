@@ -100,9 +100,9 @@ void handler_who_is_unicast(
  *          back to the src, else False if should broadcast
  * response(s).
  */
-static void check_who_is_for_routing(uint8_t *service_request,
+static void check_who_is_for_routing(const uint8_t *service_request,
     uint16_t service_len,
-    BACNET_ADDRESS *src,
+    const BACNET_ADDRESS *src,
     bool is_unicast)
 {
     int len = 0;

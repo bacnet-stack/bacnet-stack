@@ -72,7 +72,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Command_Description_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     int Command_Read_Property(

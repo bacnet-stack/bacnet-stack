@@ -56,7 +56,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     void ethernet_set_my_address(
-        BACNET_ADDRESS * my_address);
+        const BACNET_ADDRESS * my_address);
     BACNET_STACK_EXPORT
     void ethernet_get_my_address(
         BACNET_ADDRESS * my_address);
@@ -68,7 +68,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     void ethernet_debug_address(
         const char *info,
-        BACNET_ADDRESS * dest);
+        const BACNET_ADDRESS * dest);
     BACNET_STACK_EXPORT
     int ethernet_send(
         uint8_t * mtu,

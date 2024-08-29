@@ -21,7 +21,8 @@
  * @brief Test
  */
 static void testTimeSyncRecipientData(
-    BACNET_RECIPIENT_LIST *recipient1, BACNET_RECIPIENT_LIST *recipient2)
+    const BACNET_RECIPIENT_LIST *recipient1,
+    const BACNET_RECIPIENT_LIST *recipient2)
 {
     unsigned i = 0;
 
@@ -124,7 +125,7 @@ static void testTimeSyncRecipient(void)
 }
 
 static int timesync_decode_apdu_service(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     BACNET_UNCONFIRMED_SERVICE service,
     unsigned apdu_len,
     BACNET_DATE *my_date,
@@ -149,7 +150,7 @@ static int timesync_decode_apdu_service(
 }
 
 int timesync_utc_decode_apdu(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_len,
     BACNET_DATE *my_date,
     BACNET_TIME *my_time)
@@ -160,7 +161,7 @@ int timesync_utc_decode_apdu(
 }
 
 int timesync_decode_apdu(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_len,
     BACNET_DATE *my_date,
     BACNET_TIME *my_time)
@@ -170,7 +171,8 @@ int timesync_decode_apdu(
         my_time);
 }
 
-static void testTimeSyncData(BACNET_DATE *my_date, BACNET_TIME *my_time)
+static void testTimeSyncData(
+    const BACNET_DATE *my_date, const BACNET_TIME *my_time)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;

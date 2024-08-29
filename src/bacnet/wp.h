@@ -56,39 +56,39 @@ extern "C" {
     BACNET_STACK_EXPORT
     size_t writeproperty_apdu_encode(
         uint8_t *apdu,
-        BACNET_WRITE_PROPERTY_DATA *data);
+        const BACNET_WRITE_PROPERTY_DATA *data);
     BACNET_STACK_EXPORT
     size_t writeproperty_service_request_encode(
         uint8_t *apdu,
         size_t apdu_size,
-        BACNET_WRITE_PROPERTY_DATA *data);
+        const BACNET_WRITE_PROPERTY_DATA *data);
     BACNET_STACK_EXPORT
     int wp_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
+        const BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     /* decode the service request only */
     BACNET_STACK_EXPORT
     int wp_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     BACNET_STACK_EXPORT
     bool write_property_type_valid(
         BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_APPLICATION_DATA_VALUE * value,
+        const BACNET_APPLICATION_DATA_VALUE * value,
         uint8_t expected_tag);
     BACNET_STACK_EXPORT
     bool write_property_string_valid(
         BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_APPLICATION_DATA_VALUE * value,
+        const BACNET_APPLICATION_DATA_VALUE * value,
         size_t len_max);
     BACNET_STACK_EXPORT
     bool write_property_empty_string_valid(
         BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_APPLICATION_DATA_VALUE * value,
+        const BACNET_APPLICATION_DATA_VALUE * value,
         size_t len_max);
 
 #ifdef __cplusplus

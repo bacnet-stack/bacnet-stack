@@ -381,7 +381,7 @@ bool Device_Object_Name(
     return status;
 }
 
-bool Device_Set_Object_Name(BACNET_CHARACTER_STRING *object_name)
+bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false; /*return value */
 
@@ -689,7 +689,7 @@ bool Device_Object_List_Identifier(
  * Object.
  * @return True on success or else False if not found.
  */
-bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
+bool Device_Valid_Object_Name(const BACNET_CHARACTER_STRING *object_name1,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {

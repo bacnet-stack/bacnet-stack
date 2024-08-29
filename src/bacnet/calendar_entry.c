@@ -27,7 +27,7 @@
  * @param value Pointer to the property data to be encoded.
  * @return bytes encoded or zero on error.
  */
-int bacnet_calendar_entry_encode(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value)
+int bacnet_calendar_entry_encode(uint8_t *apdu, const BACNET_CALENDAR_ENTRY *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -68,7 +68,7 @@ int bacnet_calendar_entry_encode(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value)
  * @return  number of bytes encoded, or 0 if unable to encode.
  */
 int bacnet_calendar_entry_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_CALENDAR_ENTRY *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_CALENDAR_ENTRY *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -99,7 +99,7 @@ int bacnet_calendar_entry_context_encode(
  * @return number of bytes decoded, or BACNET_STATUS_REJECT
  */
 int bacnet_calendar_entry_decode(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_CALENDAR_ENTRY *entry)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_CALENDAR_ENTRY *entry)
 {
     int apdu_len = 0;
     int len = 0;
@@ -174,7 +174,7 @@ int bacnet_calendar_entry_decode(
  *
  * @return number of bytes decoded, or BACNET_STATUS_REJECT
  */
-int bacnet_calendar_entry_context_decode(uint8_t *apdu,
+int bacnet_calendar_entry_context_decode(const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_CALENDAR_ENTRY *value)
@@ -211,7 +211,7 @@ int bacnet_calendar_entry_context_decode(uint8_t *apdu,
  * @param month - month to compare
  * @return true if the same month including special values, else false
  */
-static bool month_match(BACNET_DATE *date, uint8_t month)
+static bool month_match(const BACNET_DATE *date, uint8_t month)
 {
     if (month == 0xff) {
         return true;
@@ -231,7 +231,7 @@ static bool month_match(BACNET_DATE *date, uint8_t month)
  * @param weekofmonth - week of the month to compare
  * @return true if the same week of the month including special values
  */
-static bool weekofmonth_match(BACNET_DATE *date, uint8_t weekofmonth)
+static bool weekofmonth_match(const BACNET_DATE *date, uint8_t weekofmonth)
 {
     bool st = false;
     uint8_t day_to_end_month;
@@ -272,7 +272,7 @@ static bool weekofmonth_match(BACNET_DATE *date, uint8_t weekofmonth)
  * @param dayofweek - day of the week to compare
  * @return true if the same day of the week including special values
  */
-static bool dayofweek_match(BACNET_DATE *date, uint8_t dayofweek)
+static bool dayofweek_match(const BACNET_DATE *date, uint8_t dayofweek)
 {
     if (dayofweek == 0xff) {
         return true;
@@ -291,7 +291,7 @@ static bool dayofweek_match(BACNET_DATE *date, uint8_t dayofweek)
  * @return true if a BACnetCalendarEntry includes the BACnetDate value
  */
 bool bacapp_date_in_calendar_entry(
-    BACNET_DATE *date, BACNET_CALENDAR_ENTRY *entry)
+    const BACNET_DATE *date, const BACNET_CALENDAR_ENTRY *entry)
 {
     if (!entry) {
         return false;
@@ -332,7 +332,7 @@ bool bacapp_date_in_calendar_entry(
  * @return true if both BACnetCalendarEntry are the same
  */
 bool bacnet_calendar_entry_same(
-    BACNET_CALENDAR_ENTRY *value1, BACNET_CALENDAR_ENTRY *value2)
+    const BACNET_CALENDAR_ENTRY *value1, const BACNET_CALENDAR_ENTRY *value2)
 {
     if (!value1 || !value2) {
         return false;

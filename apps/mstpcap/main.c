@@ -121,7 +121,8 @@ struct mstp_statistics {
 static struct mstp_statistics MSTP_Statistics[MAX_MSTP_DEVICES];
 static uint32_t Invalid_Frame_Count;
 
-static uint32_t timeval_diff_ms(struct timeval *old, struct timeval *now)
+static uint32_t timeval_diff_ms(
+    const struct timeval *old, const struct timeval *now)
 {
     uint32_t ms = 0;
 
@@ -132,17 +133,18 @@ static uint32_t timeval_diff_ms(struct timeval *old, struct timeval *now)
     return ms;
 }
 
-static void mstp_monitor_i_am(uint8_t mac, uint8_t *pdu, uint16_t pdu_len)
+static void mstp_monitor_i_am(
+    uint8_t mac, const uint8_t *pdu, uint16_t pdu_len)
 {
     BACNET_ADDRESS src = { 0 };
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
     int apdu_offset = 0;
     uint16_t apdu_len = 0;
-    uint8_t *apdu = NULL;
+    const uint8_t *apdu = NULL;
     uint8_t pdu_type = 0;
     uint8_t service_choice = 0;
-    uint8_t *service_request = NULL;
+    const uint8_t *service_request = NULL;
     uint32_t device_id = 0;
     int len = 0;
 
@@ -171,7 +173,8 @@ static void mstp_monitor_i_am(uint8_t mac, uint8_t *pdu, uint16_t pdu_len)
 }
 
 static void packet_statistics(
-    struct timeval *tv, struct mstp_port_struct_t *mstp_port)
+    const struct timeval *tv,
+    const struct mstp_port_struct_t *mstp_port)
 {
     static struct timeval old_tv = { 0 };
     static uint8_t old_frame = 255;
@@ -423,7 +426,7 @@ uint16_t MSTP_Get_Send(
  */
 void MSTP_Send_Frame(
     struct mstp_port_struct_t *mstp_port,
-    uint8_t * buffer,
+    const uint8_t * buffer,
     uint16_t nbytes)
 {
     (void)mstp_port;
@@ -443,7 +446,7 @@ static char Capture_Filename[64] = "mstp_20090123091200.cap";
 static FILE *File_Handle = NULL; /* stream pointer */
 #if defined(_WIN32)
 static HANDLE Pipe_Handle = INVALID_HANDLE_VALUE; /* pipe handle */
-static void named_pipe_create(char *pipe_name)
+static void named_pipe_create(const char *pipe_name)
 {
     if (!Wireshark_Capture) {
         fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", pipe_name);
@@ -510,7 +513,7 @@ static size_t data_write_header(
 }
 #else
 static int FD_Pipe = -1;
-static void named_pipe_create(char *name)
+static void named_pipe_create(const char *name)
 {
     int rv = 0;
     rv = mkfifo(name, 0666);
@@ -915,7 +918,7 @@ static void signal_init(void)
 }
 #endif
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s", filename);
     printf(" [--scan <filename>]\n");
@@ -925,7 +928,7 @@ static void print_usage(char *filename)
     printf(" [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("%s --scan <filename>\n"
            "perform statistic analysis on MS/TP capture file.\n",
@@ -986,7 +989,7 @@ int main(int argc, char *argv[])
     uint32_t packet_count = 0;
     uint32_t header_len = 0;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     MSTP_Port.InputBuffer = &RxBuffer[0];
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);

@@ -23,7 +23,9 @@
  * @return number of apdu bytes decoded, or BACNET_STATUS_ERROR on error.
  */
 static int complex_event_type_values_decode(
-    uint8_t *apdu, unsigned apdu_size, BACNET_EVENT_NOTIFICATION_DATA *data)
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    BACNET_EVENT_NOTIFICATION_DATA *data)
 {
     int len = 0; /* return value */
     BACNET_PROPERTY_VALUE *value;
@@ -73,7 +75,7 @@ static int complex_event_type_values_decode(
  * @return number of bytes encoded, or zero if unable to encode
  */
 int uevent_notify_encode_apdu(
-    uint8_t *apdu, BACNET_EVENT_NOTIFICATION_DATA *data)
+    uint8_t *apdu, const BACNET_EVENT_NOTIFICATION_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -105,7 +107,9 @@ int uevent_notify_encode_apdu(
  * @return number of bytes encoded, or zero if unable to encode
  */
 int cevent_notify_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_EVENT_NOTIFICATION_DATA *data)
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    const BACNET_EVENT_NOTIFICATION_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -138,7 +142,7 @@ int cevent_notify_encode_apdu(
  * @return number of bytes encoded, or zero if unable to encode
  */
 int event_notify_encode_service_request(
-    uint8_t *apdu, BACNET_EVENT_NOTIFICATION_DATA *data)
+    uint8_t *apdu, const BACNET_EVENT_NOTIFICATION_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -686,7 +690,9 @@ int event_notify_encode_service_request(
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t event_notification_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_EVENT_NOTIFICATION_DATA *data)
+    uint8_t *apdu,
+    size_t apdu_size,
+    const BACNET_EVENT_NOTIFICATION_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -709,7 +715,9 @@ size_t event_notification_service_request_encode(
  * @return Bytes decoded or BACNET_STATUS_ERROR on error.
  */
 int event_notify_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_EVENT_NOTIFICATION_DATA *data)
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    BACNET_EVENT_NOTIFICATION_DATA *data)
 {
     int len = 0; /* return value */
     int section_length = 0;

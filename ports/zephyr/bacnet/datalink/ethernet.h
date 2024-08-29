@@ -71,7 +71,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     void bacnet_ethernet_set_my_address(
-        BACNET_ADDRESS * my_address);
+        const BACNET_ADDRESS * my_address);
     BACNET_STACK_EXPORT
     void bacnet_ethernet_get_my_address(
         BACNET_ADDRESS * my_address);

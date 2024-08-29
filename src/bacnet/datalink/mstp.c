@@ -98,7 +98,7 @@ static __inline__ void printf_master(const char *format, ...)
             x++;                     \
     }
 
-bool MSTP_Line_Active(struct mstp_port_struct_t *mstp_port)
+bool MSTP_Line_Active(const struct mstp_port_struct_t *mstp_port)
 {
     if (!mstp_port) {
         return false;
@@ -162,7 +162,7 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer,
     uint8_t frame_type,
     uint8_t destination,
     uint8_t source,
-    uint8_t *data,
+    const uint8_t *data,
     uint16_t data_len)
 {
     uint8_t crc8 = 0xFF; /* used to calculate the crc value */
@@ -259,7 +259,7 @@ void MSTP_Create_And_Send_Frame(struct mstp_port_struct_t *mstp_port,
     uint8_t frame_type,
     uint8_t destination,
     uint8_t source,
-    uint8_t *data,
+    const uint8_t *data,
     uint16_t data_len)
 {
     uint16_t len = 0; /* number of bytes to send */
@@ -268,7 +268,7 @@ void MSTP_Create_And_Send_Frame(struct mstp_port_struct_t *mstp_port,
         MSTP_Create_Frame(mstp_port->OutputBuffer, mstp_port->OutputBufferSize,
             frame_type, destination, source, data, data_len);
 
-    MSTP_Send_Frame(mstp_port, (uint8_t *)&mstp_port->OutputBuffer[0], len);
+    MSTP_Send_Frame(mstp_port, &mstp_port->OutputBuffer[0], len);
     /* FIXME: be sure to reset SilenceTimer() after each octet is sent! */
 }
 
@@ -778,7 +778,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 uint8_t frame_type = mstp_port->OutputBuffer[2];
                 uint8_t destination = mstp_port->OutputBuffer[3];
                 MSTP_Send_Frame(mstp_port,
-                    (uint8_t *)&mstp_port->OutputBuffer[0], (uint16_t)length);
+                    &mstp_port->OutputBuffer[0], (uint16_t)length);
                 mstp_port->FrameCount++;
                 switch (frame_type) {
                     case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
@@ -1159,7 +1159,7 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                  * frame  */
                 /* and enter the IDLE state to wait for the next frame. */
                 MSTP_Send_Frame(mstp_port,
-                    (uint8_t *)&mstp_port->OutputBuffer[0], (uint16_t)length);
+                    &mstp_port->OutputBuffer[0], (uint16_t)length);
                 mstp_port->master_state = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
                 mstp_port->ReceivedValidFrame = false;
@@ -1255,8 +1255,7 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
             /* and enter the IDLE state to wait for the next frame.
                 */
             MSTP_Send_Frame(mstp_port,
-                (uint8_t *)&mstp_port->OutputBuffer[0],
-                (uint16_t)length);
+                &mstp_port->OutputBuffer[0], (uint16_t)length);
             /* clear our flag we were holding for comparison */
             mstp_port->ReceivedValidFrame = false;
         } else if (mstp_port->SilenceTimer((void *)mstp_port) >

@@ -56,7 +56,7 @@ int bvlc_encode_header(
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_header(uint8_t *pdu,
+int bvlc_decode_header(const uint8_t *pdu,
     uint16_t pdu_len,
     uint8_t *message_type,
     uint16_t *message_length)
@@ -127,7 +127,8 @@ int bvlc_encode_result(uint8_t *pdu, uint16_t pdu_size, uint16_t result_code)
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_result(uint8_t *pdu, uint16_t pdu_len, uint16_t *result_code)
+int bvlc_decode_result(
+    const uint8_t *pdu, uint16_t pdu_len, uint16_t *result_code)
 {
     int bytes_consumed = 0;
     const uint16_t length = 2;
@@ -150,7 +151,7 @@ int bvlc_decode_result(uint8_t *pdu, uint16_t pdu_len, uint16_t *result_code)
  */
 bool bvlc_broadcast_distribution_mask_copy(
     BACNET_IP_BROADCAST_DISTRIBUTION_MASK *dst,
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *src)
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *src)
 {
     bool status = false;
     unsigned int i = 0;
@@ -172,8 +173,8 @@ bool bvlc_broadcast_distribution_mask_copy(
  * @return true if the masks are different
  */
 bool bvlc_broadcast_distribution_mask_different(
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *dst,
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *src)
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *dst,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *src)
 {
     bool status = false;
     unsigned int i = 0;
@@ -196,8 +197,8 @@ bool bvlc_broadcast_distribution_mask_different(
  * @return true if the addresses are different
  */
 bool bvlc_broadcast_distribution_table_entry_different(
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *dst,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *src)
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *dst,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *src)
 {
     bool status = false;
 
@@ -220,7 +221,7 @@ bool bvlc_broadcast_distribution_table_entry_different(
  */
 bool bvlc_broadcast_distribution_table_entry_copy(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *dst,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *src)
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *src)
 {
     bool status = false;
 
@@ -327,7 +328,7 @@ void bvlc_broadcast_distribution_table_link_array(
  */
 bool bvlc_broadcast_distribution_table_entry_append(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_new)
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_new)
 {
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry = NULL;
     bool status = false;
@@ -363,8 +364,8 @@ bool bvlc_broadcast_distribution_table_entry_append(
  */
 bool bvlc_broadcast_distribution_table_entry_set(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry,
-    BACNET_IP_ADDRESS *addr,
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask)
+    const BACNET_IP_ADDRESS *addr,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask)
 {
     bool status = false;
 
@@ -405,7 +406,8 @@ bool bvlc_broadcast_distribution_mask_from_host(
  * @return true if the broadcast distribution was retrieved
  */
 bool bvlc_broadcast_distribution_mask_to_host(
-    uint32_t *broadcast_mask, BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask)
+    uint32_t *broadcast_mask,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask)
 {
     bool status = false;
 
@@ -449,7 +451,7 @@ void bvlc_broadcast_distribution_mask_set(
  * @param addr3 - broadcast distribution mask octet
  */
 void bvlc_broadcast_distribution_mask_get(
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask,
     uint8_t *addr0,
     uint8_t *addr1,
     uint8_t *addr2,
@@ -485,7 +487,7 @@ void bvlc_broadcast_distribution_mask_get(
  */
 bool bvlc_broadcast_distribution_table_entry_forward_address(
     BACNET_IP_ADDRESS *addr,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry)
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry)
 {
     bool status = false;
 
@@ -582,7 +584,7 @@ int bvlc_broadcast_distribution_table_encode(uint8_t *apdu,
  * @param bdt_head - head of a BDT linked list
  * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
  */
-int bvlc_broadcast_distribution_table_decode(uint8_t *apdu,
+int bvlc_broadcast_distribution_table_decode(const uint8_t *apdu,
     uint16_t apdu_len,
     BACNET_ERROR_CODE *error_code,
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
@@ -769,7 +771,7 @@ int bvlc_encode_write_broadcast_distribution_table(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_write_broadcast_distribution_table(uint8_t *pdu,
+int bvlc_decode_write_broadcast_distribution_table(const uint8_t *pdu,
     uint16_t pdu_len,
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list)
 {
@@ -899,7 +901,7 @@ int bvlc_encode_read_broadcast_distribution_table_ack(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_read_broadcast_distribution_table_ack(uint8_t *pdu,
+int bvlc_decode_read_broadcast_distribution_table_ack(const uint8_t *pdu,
     uint16_t pdu_len,
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list)
 {
@@ -956,8 +958,8 @@ int bvlc_decode_read_broadcast_distribution_table_ack(uint8_t *pdu,
  */
 int bvlc_encode_forwarded_npdu(uint8_t *pdu,
     uint16_t pdu_size,
-    BACNET_IP_ADDRESS *bip_address,
-    uint8_t *npdu,
+    const BACNET_IP_ADDRESS *bip_address,
+    const uint8_t *npdu,
     uint16_t npdu_len)
 {
     int bytes_encoded = 0;
@@ -997,7 +999,7 @@ int bvlc_encode_forwarded_npdu(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_forwarded_npdu(uint8_t *pdu,
+int bvlc_decode_forwarded_npdu(const uint8_t *pdu,
     uint16_t pdu_len,
     BACNET_IP_ADDRESS *bip_address,
     uint8_t *npdu,
@@ -1076,7 +1078,7 @@ int bvlc_encode_register_foreign_device(
  * @return number of bytes decoded
  */
 int bvlc_decode_register_foreign_device(
-    uint8_t *pdu, uint16_t pdu_len, uint16_t *ttl_seconds)
+    const uint8_t *pdu, uint16_t pdu_len, uint16_t *ttl_seconds)
 {
     int bytes_consumed = 0;
     const uint16_t length = 2;
@@ -1187,8 +1189,8 @@ int bvlc_encode_read_foreign_device_table(uint8_t *pdu, uint16_t pdu_size)
  * @return true if the entries are different
  */
 bool bvlc_foreign_device_table_entry_different(
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *entry1,
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *entry2)
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *entry1,
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *entry2)
 {
     if (entry1 && entry2) {
         if (bvlc_address_different(
@@ -1208,7 +1210,7 @@ bool bvlc_foreign_device_table_entry_different(
  */
 bool bvlc_foreign_device_table_entry_copy(
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *entry1,
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *entry2)
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *entry2)
 {
     bool status = false;
 
@@ -1257,7 +1259,8 @@ void bvlc_foreign_device_table_maintenance_timer(
  * @return true if the Foreign Device entry was found and removed.
  */
 bool bvlc_foreign_device_table_entry_delete(
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list, BACNET_IP_ADDRESS *addr)
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
+    const BACNET_IP_ADDRESS *addr)
 {
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry = NULL;
     bool status = false;
@@ -1287,7 +1290,7 @@ bool bvlc_foreign_device_table_entry_delete(
  */
 bool bvlc_foreign_device_table_entry_add(
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
-    BACNET_IP_ADDRESS *addr,
+    const BACNET_IP_ADDRESS *addr,
     uint16_t ttl_seconds)
 {
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry = NULL;
@@ -1471,7 +1474,7 @@ int bvlc_encode_read_foreign_device_table_ack(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_read_foreign_device_table_ack(uint8_t *pdu,
+int bvlc_decode_read_foreign_device_table_ack(const uint8_t *pdu,
     uint16_t pdu_len,
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list)
 {
@@ -1521,7 +1524,7 @@ int bvlc_decode_read_foreign_device_table_ack(uint8_t *pdu,
  *                                        of the table entry to be deleted.
  */
 int bvlc_encode_delete_foreign_device(
-    uint8_t *pdu, uint16_t pdu_size, BACNET_IP_ADDRESS *ip_address)
+    uint8_t *pdu, uint16_t pdu_size, const BACNET_IP_ADDRESS *ip_address)
 {
     int bytes_encoded = 0;
     const uint16_t length = 0x000A;
@@ -1552,7 +1555,7 @@ int bvlc_encode_delete_foreign_device(
  * @return number of bytes decoded
  */
 int bvlc_decode_delete_foreign_device(
-    uint8_t *pdu, uint16_t pdu_len, BACNET_IP_ADDRESS *ip_address)
+    const uint8_t *pdu, uint16_t pdu_len, BACNET_IP_ADDRESS *ip_address)
 {
     int bytes_consumed = 0;
     const uint16_t length = BIP_ADDRESS_MAX;
@@ -1586,7 +1589,7 @@ int bvlc_decode_delete_foreign_device(
  * BACnet NPDU from Originating Device:  Variable length
  */
 int bvlc_encode_distribute_broadcast_to_network(
-    uint8_t *pdu, uint16_t pdu_size, uint8_t *npdu, uint16_t npdu_len)
+    uint8_t *pdu, uint16_t pdu_size, const uint8_t *npdu, uint16_t npdu_len)
 {
     int bytes_encoded = 0;
     uint16_t length = 1 + 1 + 2;
@@ -1620,7 +1623,7 @@ int bvlc_encode_distribute_broadcast_to_network(
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_distribute_broadcast_to_network(uint8_t *pdu,
+int bvlc_decode_distribute_broadcast_to_network(const uint8_t *pdu,
     uint16_t pdu_len,
     uint8_t *npdu,
     uint16_t npdu_size,
@@ -1661,7 +1664,7 @@ int bvlc_decode_distribute_broadcast_to_network(uint8_t *pdu,
  * BACnet NPDU:   Variable length
  */
 int bvlc_encode_original_unicast(
-    uint8_t *pdu, uint16_t pdu_size, uint8_t *npdu, uint16_t npdu_len)
+    uint8_t *pdu, uint16_t pdu_size, const uint8_t *npdu, uint16_t npdu_len)
 {
     int bytes_encoded = 0;
     uint16_t length = 4;
@@ -1695,7 +1698,7 @@ int bvlc_encode_original_unicast(
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_original_unicast(uint8_t *pdu,
+int bvlc_decode_original_unicast(const uint8_t *pdu,
     uint16_t pdu_len,
     uint8_t *npdu,
     uint16_t npdu_size,
@@ -1736,7 +1739,7 @@ int bvlc_decode_original_unicast(uint8_t *pdu,
  * BACnet NPDU:   Variable length
  */
 int bvlc_encode_original_broadcast(
-    uint8_t *pdu, uint16_t pdu_size, uint8_t *npdu, uint16_t npdu_len)
+    uint8_t *pdu, uint16_t pdu_size, const uint8_t *npdu, uint16_t npdu_len)
 {
     int bytes_encoded = 0;
     uint16_t length = 4;
@@ -1770,7 +1773,7 @@ int bvlc_encode_original_broadcast(
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_original_broadcast(uint8_t *pdu,
+int bvlc_decode_original_broadcast(const uint8_t *pdu,
     uint16_t pdu_len,
     uint8_t *npdu,
     uint16_t npdu_size,
@@ -1811,7 +1814,7 @@ int bvlc_decode_original_broadcast(uint8_t *pdu,
  * Security Wrapper:            Variable length
  */
 int bvlc_encode_secure_bvll(
-    uint8_t *pdu, uint16_t pdu_size, uint8_t *sbuf, uint16_t sbuf_len)
+    uint8_t *pdu, uint16_t pdu_size, const uint8_t *sbuf, uint16_t sbuf_len)
 {
     int bytes_encoded = 0;
     uint16_t length = 1 + 1 + 2;
@@ -1845,7 +1848,7 @@ int bvlc_encode_secure_bvll(
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_secure_bvll(uint8_t *pdu,
+int bvlc_decode_secure_bvll(const uint8_t *pdu,
     uint16_t pdu_len,
     uint8_t *sbuf,
     uint16_t sbuf_size,
@@ -1914,7 +1917,7 @@ int bvlc_encode_address(
  * @return number of bytes decoded
  */
 int bvlc_decode_address(
-    uint8_t *pdu, uint16_t pdu_len, BACNET_IP_ADDRESS *bip_address)
+    const uint8_t *pdu, uint16_t pdu_len, BACNET_IP_ADDRESS *bip_address)
 {
     int bytes_consumed = 0;
     uint16_t length = BIP_ADDRESS_MAX;
@@ -2068,7 +2071,7 @@ bool bvlc_address_set(BACNET_IP_ADDRESS *addr,
  *
  * @return true if the address is set
  */
-bool bvlc_address_get(BACNET_IP_ADDRESS *addr,
+bool bvlc_address_get(const BACNET_IP_ADDRESS *addr,
     uint8_t *addr0,
     uint8_t *addr1,
     uint8_t *addr2,
@@ -2201,7 +2204,7 @@ void bvlc_address_from_network(BACNET_IP_ADDRESS *dst, uint32_t addr)
  * @return true if a valid address was set
  */
 bool bvlc_ip_address_to_bacnet_local(
-    BACNET_ADDRESS *addr, BACNET_IP_ADDRESS *ipaddr)
+    BACNET_ADDRESS *addr, const BACNET_IP_ADDRESS *ipaddr)
 {
     bool status = false;
 
@@ -2239,7 +2242,7 @@ bool bvlc_ip_address_to_bacnet_local(
  * @return true if a valid address was set
  */
 bool bvlc_ip_address_from_bacnet_local(
-    BACNET_IP_ADDRESS *ipaddr, BACNET_ADDRESS *addr)
+    BACNET_IP_ADDRESS *ipaddr, const BACNET_ADDRESS *addr)
 {
     bool status = false;
 
@@ -2266,7 +2269,7 @@ bool bvlc_ip_address_from_bacnet_local(
  * @return true if a valid address was set
  */
 bool bvlc_ip_address_to_bacnet_remote(
-    BACNET_ADDRESS *addr, uint16_t dnet, BACNET_IP_ADDRESS *ipaddr)
+    BACNET_ADDRESS *addr, uint16_t dnet, const BACNET_IP_ADDRESS *ipaddr)
 {
     bool status = false;
 
@@ -2298,7 +2301,7 @@ bool bvlc_ip_address_to_bacnet_remote(
  * @return true if a valid address was set
  */
 bool bvlc_ip_address_from_bacnet_remote(
-    BACNET_IP_ADDRESS *ipaddr, uint16_t *dnet, BACNET_ADDRESS *addr)
+    BACNET_IP_ADDRESS *ipaddr, uint16_t *dnet, const BACNET_ADDRESS *addr)
 {
     bool status = false;
 
@@ -2335,7 +2338,7 @@ bool bvlc_ip_address_from_bacnet_remote(
  */
 int bvlc_encode_broadcast_distribution_mask(uint8_t *pdu,
     uint16_t pdu_size,
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask)
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask)
 {
     int bytes_encoded = 0;
     unsigned i = 0;
@@ -2363,7 +2366,7 @@ int bvlc_encode_broadcast_distribution_mask(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_broadcast_distribution_mask(uint8_t *pdu,
+int bvlc_decode_broadcast_distribution_mask(const uint8_t *pdu,
     uint16_t pdu_len,
     BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask)
 {
@@ -2398,7 +2401,7 @@ int bvlc_decode_broadcast_distribution_mask(uint8_t *pdu,
  */
 int bvlc_encode_broadcast_distribution_table_entry(uint8_t *pdu,
     uint16_t pdu_size,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry)
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry)
 {
     int bytes_encoded = 0;
     int len = 0;
@@ -2437,7 +2440,7 @@ int bvlc_encode_broadcast_distribution_table_entry(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_broadcast_distribution_table_entry(uint8_t *pdu,
+int bvlc_decode_broadcast_distribution_table_entry(const uint8_t *pdu,
     uint16_t pdu_len,
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry)
 {
@@ -2479,7 +2482,7 @@ int bvlc_decode_broadcast_distribution_table_entry(uint8_t *pdu,
  */
 int bvlc_encode_foreign_device_table_entry(uint8_t *pdu,
     uint16_t pdu_size,
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
 {
     int bytes_encoded = 0;
     int len = 0;
@@ -2521,7 +2524,7 @@ int bvlc_encode_foreign_device_table_entry(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc_decode_foreign_device_table_entry(uint8_t *pdu,
+int bvlc_decode_foreign_device_table_entry(const uint8_t *pdu,
     uint16_t pdu_len,
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
 {
@@ -2598,7 +2601,7 @@ const char *bvlc_result_code_name(uint16_t result_code)
  * @return length of the APDU buffer
  */
 int bvlc_foreign_device_bbmd_host_address_encode(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_IP_ADDRESS *ip_address)
+    uint8_t *apdu, uint16_t apdu_size, const BACNET_IP_ADDRESS *ip_address)
 {
     BACNET_HOST_N_PORT address = { 0 };
     int apdu_len = 0;
@@ -2623,7 +2626,7 @@ int bvlc_foreign_device_bbmd_host_address_encode(
  * @param ip_address - IP address and port number
  * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
  */
-int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
+int bvlc_foreign_device_bbmd_host_address_decode(const uint8_t *apdu,
     uint16_t apdu_len,
     BACNET_ERROR_CODE *error_code,
     BACNET_IP_ADDRESS *ip_address)

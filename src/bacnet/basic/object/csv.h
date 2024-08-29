@@ -59,7 +59,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Present_Value(
@@ -68,11 +68,11 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Present_Value_Set(
         uint32_t object_instance,
-        BACNET_CHARACTER_STRING * value);
+        const BACNET_CHARACTER_STRING * value);
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Description_Set(
         uint32_t object_instance,
-        char *text_string);
+        const char *text_string);
     BACNET_STACK_EXPORT
     bool CharacterString_Value_Out_Of_Service(
         uint32_t object_instance);

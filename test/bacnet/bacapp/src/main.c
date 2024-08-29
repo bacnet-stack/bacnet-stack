@@ -860,7 +860,7 @@ static void testBACnetApplicationDataLength(void)
  * @brief Test
  */
 static bool
-verifyBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *value)
+verifyBACnetApplicationDataValue(const BACNET_APPLICATION_DATA_VALUE *value)
 {
     uint8_t apdu[480] = { 0 };
     int apdu_len = 0;
@@ -917,7 +917,7 @@ verifyBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *value)
  * @brief Test
  */
 static void verifyBACnetComplexDataValue(
-    BACNET_APPLICATION_DATA_VALUE *value,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_OBJECT_TYPE object_type,
     BACNET_PROPERTY_ID prop)
 {

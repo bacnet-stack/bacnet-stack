@@ -50,7 +50,7 @@ long bip_getaddrbyname(const char *host_name)
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for Linux, ifname is eth0, ath0, arc0, and others.
  */
-void bip_set_interface(char *ifname)
+void bip_set_interface(const char *ifname)
 {
     uint8_t local_address[] = { 0, 0, 0, 0 };
     uint8_t broadcast_address[] = { 0, 0, 0, 0 };

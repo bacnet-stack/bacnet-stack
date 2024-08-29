@@ -121,7 +121,7 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s device-instance object-type object-instance property\n",
         filename);
@@ -129,7 +129,7 @@ static void print_usage(char *filename)
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Read a range of properties from an array or list property\n"
         "in an object in a BACnet device and print the values.\n");
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
     int year, month, day, wday;
     unsigned object_type = 0;
     unsigned object_property = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {

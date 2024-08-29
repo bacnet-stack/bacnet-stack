@@ -64,7 +64,7 @@ void handler_who_is(
     } else if (len != -1) {
         /* is my device id within the limits? */
         target_device = Device_Object_Instance_Number();
-        if (((target_device >= low_limit) && (target_device <= high_limit)) {
+        if ((target_device >= low_limit) && (target_device <= high_limit)) {
             sendIamUnicast(&Handler_Transmit_Buffer[0], src);
         }
     }

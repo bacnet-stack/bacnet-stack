@@ -23,7 +23,7 @@
  * @param dest - #BACNET_ADDRESS to be copied into
  * @param src -  #BACNET_ADDRESS to be copied from
  */
-void bacnet_address_copy(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
+void bacnet_address_copy(BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
 {
     int i = 0;
 
@@ -46,7 +46,7 @@ void bacnet_address_copy(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
  * @param src -  #BACNET_ADDRESS to be compared
  * @return true if the same values
  */
-bool bacnet_address_same(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
+bool bacnet_address_same(const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
 {
     uint8_t i = 0; /* loop counter */
 
@@ -96,9 +96,9 @@ bool bacnet_address_same(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
  * @return true if configured
  */
 bool bacnet_address_init(BACNET_ADDRESS *dest,
-    BACNET_MAC_ADDRESS *mac,
+    const BACNET_MAC_ADDRESS *mac,
     uint16_t dnet,
-    BACNET_MAC_ADDRESS *adr)
+    const BACNET_MAC_ADDRESS *adr)
 {
     uint8_t i = 0; /* loop counter */
 
@@ -146,7 +146,8 @@ bool bacnet_address_init(BACNET_ADDRESS *dest,
  * @param src -  #BACNET_MAC_ADDRESS to be compared
  * @return true if the same values
  */
-bool bacnet_address_mac_same(BACNET_MAC_ADDRESS *dest, BACNET_MAC_ADDRESS *src)
+bool bacnet_address_mac_same(
+    const BACNET_MAC_ADDRESS *dest, const BACNET_MAC_ADDRESS *src)
 {
     uint8_t i = 0; /* loop counter */
 
@@ -173,7 +174,8 @@ bool bacnet_address_mac_same(BACNET_MAC_ADDRESS *dest, BACNET_MAC_ADDRESS *src)
  * @param adr [in] address to initialize, null if empty
  * @param len [in] length of address in bytes
  */
-void bacnet_address_mac_init(BACNET_MAC_ADDRESS *mac, uint8_t *adr, uint8_t len)
+void bacnet_address_mac_init(
+    BACNET_MAC_ADDRESS *mac, const uint8_t *adr, uint8_t len)
 {
     uint8_t i = 0;
 
@@ -251,7 +253,7 @@ bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
  * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
  */
 int bacnet_address_decode(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_ADDRESS *value)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_ADDRESS *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -304,7 +306,7 @@ int bacnet_address_decode(
  * @param value - parameter to store the value after decoding
  * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
  */
-int bacnet_address_context_decode(uint8_t *apdu,
+int bacnet_address_context_decode(const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_ADDRESS *value)
@@ -339,7 +341,7 @@ int bacnet_address_context_decode(uint8_t *apdu,
  *
  * @return number of apdu bytes created
  */
-int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
+int encode_bacnet_address(uint8_t *apdu, const BACNET_ADDRESS *destination)
 {
     int apdu_len = 0;
     BACNET_OCTET_STRING mac_addr;
@@ -368,7 +370,7 @@ int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
  * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
  * @deprecated use bacnet_address_decode() instead
  */
-int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *value)
+int decode_bacnet_address(const uint8_t *apdu, BACNET_ADDRESS *value)
 {
     return bacnet_address_decode(apdu, MAX_APDU, value);
 }
@@ -380,7 +382,7 @@ int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *value)
  * @return number of apdu bytes created
  */
 int encode_context_bacnet_address(
-    uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *destination)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_ADDRESS *destination)
 {
     int len = 0;
     uint8_t *apdu_offset = NULL;
@@ -406,7 +408,7 @@ int encode_context_bacnet_address(
  * @deprecated use bacnet_address_context_decode() instead
  */
 int decode_context_bacnet_address(
-    uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *value)
+    const uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *value)
 {
     return bacnet_address_context_decode(apdu, MAX_APDU, tag_number, value);
 }

@@ -261,7 +261,7 @@ bool Analog_Input_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Analog_Input_Name_Set(uint32_t object_instance, char *new_name)
+bool Analog_Input_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false;
     struct analog_input_descr *pObject;
@@ -322,10 +322,10 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
  */
-char *Analog_Input_Description(uint32_t object_instance)
+const char *Analog_Input_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct analog_input_descr *pObject;
+    const char *name = NULL;
+    const struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
@@ -341,7 +341,8 @@ char *Analog_Input_Description(uint32_t object_instance)
  * @param  new_name - holds the description to be set
  * @return  true if object-name was set
  */
-bool Analog_Input_Description_Set(uint32_t object_instance, char *new_name)
+bool Analog_Input_Description_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct analog_input_descr *pObject;

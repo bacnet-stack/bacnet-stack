@@ -34,7 +34,7 @@ static BACNET_DATE_TIME Next_Sync_Time;
 #endif
 
 #if PRINT_ENABLED
-static void show_bacnet_date_time(BACNET_DATE *bdate, BACNET_TIME *btime)
+static void show_bacnet_date_time(const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     /* show the date received */
     fprintf(stderr, "%u", (unsigned)bdate->year);

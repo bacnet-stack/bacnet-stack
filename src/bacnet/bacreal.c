@@ -21,7 +21,7 @@
 
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* returns the number of apdu bytes consumed */
-int decode_real(uint8_t *apdu, float *real_value)
+int decode_real(const uint8_t *apdu, float *real_value)
 {
     union {
         uint8_t byte[4];
@@ -49,7 +49,7 @@ int decode_real(uint8_t *apdu, float *real_value)
     return 4;
 }
 
-int decode_real_safe(uint8_t *apdu, uint32_t len_value, float *real_value)
+int decode_real_safe(const uint8_t *apdu, uint32_t len_value, float *real_value)
 {
     if (len_value != 4) {
         if (real_value) {
@@ -93,7 +93,7 @@ int encode_bacnet_real(float value, uint8_t *apdu)
 
 /* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
 /* returns the number of apdu bytes consumed */
-int decode_double(uint8_t *apdu, double *double_value)
+int decode_double(const uint8_t *apdu, double *double_value)
 {
     union {
         uint8_t byte[8];
@@ -129,7 +129,8 @@ int decode_double(uint8_t *apdu, double *double_value)
     return 8;
 }
 
-int decode_double_safe(uint8_t *apdu, uint32_t len_value, double *double_value)
+int decode_double_safe(
+    const uint8_t *apdu, uint32_t len_value, double *double_value)
 {
     if (len_value != 8) {
         if (double_value) {

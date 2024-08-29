@@ -36,10 +36,10 @@ int iam_encode_pdu(uint8_t* buffer, BACNET_ADDRESS* dest,
 BACNET_STACK_EXPORT
 void Send_I_Am(uint8_t* buffer);
 BACNET_STACK_EXPORT
-int iam_unicast_encode_pdu(uint8_t* buffer, BACNET_ADDRESS* src,
+int iam_unicast_encode_pdu(uint8_t* buffer, const BACNET_ADDRESS* src,
                            BACNET_ADDRESS* dest, BACNET_NPDU_DATA* npdu_data);
 BACNET_STACK_EXPORT
-void Send_I_Am_Unicast(uint8_t* buffer, BACNET_ADDRESS* src);
+void Send_I_Am_Unicast(uint8_t* buffer, const BACNET_ADDRESS* src);
 
 #ifdef __cplusplus
 }

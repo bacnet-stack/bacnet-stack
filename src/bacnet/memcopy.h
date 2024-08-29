@@ -22,7 +22,7 @@ extern "C" {
         size_t len);
     size_t memcopy(
         void *dest,
-        void *src,
+        const void *src,
         size_t offset,
         size_t len,
         size_t max);

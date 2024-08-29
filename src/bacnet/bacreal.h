@@ -20,13 +20,13 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     int decode_real_safe(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint32_t len_value,
         float *real_value);
 
     BACNET_STACK_EXPORT
     int decode_real(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         float *real_value);
 
     BACNET_STACK_EXPORT
@@ -35,11 +35,11 @@ extern "C" {
         uint8_t * apdu);
     BACNET_STACK_EXPORT
     int decode_double(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         double *real_value);
     BACNET_STACK_EXPORT
     int decode_double_safe(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         uint32_t len_value,
         double *double_value);
 

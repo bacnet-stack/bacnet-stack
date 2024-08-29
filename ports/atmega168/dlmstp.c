@@ -226,7 +226,7 @@ static void MSTP_Send_Frame(
     uint8_t frame_type, /* type of frame to send - see defines */
     uint8_t destination, /* destination address */
     uint8_t source, /* source address */
-    uint8_t *pdu, /* any data to be sent - may be null */
+    const uint8_t *pdu, /* any data to be sent - may be null */
     uint16_t pdu_len)
 { /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF; /* used to calculate the crc value */
@@ -635,7 +635,7 @@ static bool MSTP_Master_Node_FSM(void)
             if (TransmitPacketLen) {
                 MSTP_Send_Frame(FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY,
                     MSTP_BROADCAST_ADDRESS, This_Station,
-                    (uint8_t *)&TransmitPacket[0], TransmitPacketLen);
+                    &TransmitPacket[0], TransmitPacketLen);
                 FrameCount++;
             } else {
                 /* NothingToSend */
@@ -959,7 +959,7 @@ static bool MSTP_Master_Node_FSM(void)
                 /* Note: optimized such that we are never a client */
                 MSTP_Send_Frame(FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY,
                     TransmitPacketDest, This_Station,
-                    (uint8_t *)&TransmitPacket[0], TransmitPacketLen);
+                    &TransmitPacket[0], TransmitPacketLen);
                 MSTP_Flag.TransmitPacketPending = false;
                 Master_State = MSTP_MASTER_STATE_IDLE;
             } else {

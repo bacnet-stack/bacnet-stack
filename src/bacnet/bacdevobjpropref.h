@@ -57,94 +57,107 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 int bacapp_encode_device_obj_property_ref(
-    uint8_t *apdu, BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
+    uint8_t *apdu, const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_context_device_obj_property_ref(uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
 
 BACNET_STACK_DEPRECATED(
     "Use bacnet_device_object_property_reference_decode() instead")
 BACNET_STACK_EXPORT
 int bacapp_decode_device_obj_property_ref(
-    uint8_t *apdu, BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
+    const uint8_t *apdu, BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
 
 BACNET_STACK_DEPRECATED(
     "Use bacnet_device_object_property_reference_context_decode() instead")
 BACNET_STACK_EXPORT
-int bacapp_decode_context_device_obj_property_ref(uint8_t *apdu,
+int bacapp_decode_context_device_obj_property_ref(const uint8_t *apdu,
     uint8_t tag_number,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_device_obj_ref(
-    uint8_t *apdu, BACNET_DEVICE_OBJECT_REFERENCE *value);
+    uint8_t *apdu, const BACNET_DEVICE_OBJECT_REFERENCE *value);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_context_device_obj_ref(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DEVICE_OBJECT_REFERENCE *value);
+    uint8_t *apdu,
+    uint8_t tag_number,
+    const BACNET_DEVICE_OBJECT_REFERENCE *value);
 
 BACNET_STACK_EXPORT
 int bacapp_decode_device_obj_ref(
-    uint8_t *apdu, BACNET_DEVICE_OBJECT_REFERENCE *value);
+    const uint8_t *apdu, BACNET_DEVICE_OBJECT_REFERENCE *value);
 
 BACNET_STACK_EXPORT
 int bacapp_decode_context_device_obj_ref(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DEVICE_OBJECT_REFERENCE *value);
+    const uint8_t *apdu,
+    uint8_t tag_number,
+    BACNET_DEVICE_OBJECT_REFERENCE *value);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_obj_property_ref(
-    uint8_t *apdu, BACNET_OBJECT_PROPERTY_REFERENCE *value);
+    uint8_t *apdu, const BACNET_OBJECT_PROPERTY_REFERENCE *value);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_context_obj_property_ref(
-    uint8_t *apdu, uint8_t tag_number, BACNET_OBJECT_PROPERTY_REFERENCE *value);
+    uint8_t *apdu,
+    uint8_t tag_number,
+    const BACNET_OBJECT_PROPERTY_REFERENCE *value);
 
 BACNET_STACK_EXPORT
-int bacapp_decode_obj_property_ref(uint8_t *apdu,
+int bacapp_decode_obj_property_ref(
+    const uint8_t *apdu,
     uint16_t apdu_len_max,
     BACNET_OBJECT_PROPERTY_REFERENCE *value);
 
 BACNET_STACK_EXPORT
-int bacapp_decode_context_obj_property_ref(uint8_t *apdu,
+int bacapp_decode_context_obj_property_ref(
+    const uint8_t *apdu,
     uint16_t apdu_len_max,
     uint8_t tag_number,
     BACNET_OBJECT_PROPERTY_REFERENCE *value);
 
 BACNET_STACK_EXPORT
-int bacnet_device_object_property_reference_decode(uint8_t *apdu,
+int bacnet_device_object_property_reference_decode(
+    const uint8_t *apdu,
     uint32_t apdu_size,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
 BACNET_STACK_EXPORT
-int bacnet_device_object_property_reference_context_decode(uint8_t *apdu,
+int bacnet_device_object_property_reference_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
 
 BACNET_STACK_EXPORT
 int bacnet_device_object_reference_decode(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_DEVICE_OBJECT_REFERENCE *value);
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_DEVICE_OBJECT_REFERENCE *value);
 BACNET_STACK_EXPORT
-int bacnet_device_object_reference_context_decode(uint8_t *apdu,
+int bacnet_device_object_reference_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_DEVICE_OBJECT_REFERENCE *value);
 
 BACNET_STACK_EXPORT
 bool bacnet_device_object_property_reference_same(
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value1,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value2);
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value1,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value2);
 
 BACNET_STACK_EXPORT
 bool bacnet_device_object_reference_same(
-    BACNET_DEVICE_OBJECT_REFERENCE *value1,
-    BACNET_DEVICE_OBJECT_REFERENCE *value2);
+    const BACNET_DEVICE_OBJECT_REFERENCE *value1,
+    const BACNET_DEVICE_OBJECT_REFERENCE *value2);
 
 BACNET_STACK_EXPORT
 bool bacnet_object_property_reference_same(
-    BACNET_OBJECT_PROPERTY_REFERENCE *value1,
-    BACNET_OBJECT_PROPERTY_REFERENCE *value2);
+    const BACNET_OBJECT_PROPERTY_REFERENCE *value1,
+    const BACNET_OBJECT_PROPERTY_REFERENCE *value2);
 
 #ifdef __cplusplus
 }

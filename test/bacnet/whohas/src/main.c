@@ -18,7 +18,7 @@
  * @brief Test
  */
 int whohas_decode_apdu(
-    uint8_t *apdu, unsigned apdu_size, BACNET_WHO_HAS_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_WHO_HAS_DATA *data)
 {
     int len = 0;
 

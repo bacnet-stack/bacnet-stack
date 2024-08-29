@@ -99,7 +99,7 @@ void Channel_Property_Lists(
  */
 bool Channel_Valid_Instance(uint32_t object_instance)
 {
-    struct object_data *pObject;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -179,7 +179,7 @@ BACNET_CHANNEL_VALUE *Channel_Present_Value(uint32_t object_instance)
 unsigned Channel_Last_Priority(uint32_t object_instance)
 {
     unsigned priority = 0;
-    struct object_data *pObject;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -199,7 +199,7 @@ unsigned Channel_Last_Priority(uint32_t object_instance)
 BACNET_WRITE_STATUS Channel_Write_Status(uint32_t object_instance)
 {
     BACNET_WRITE_STATUS write_status = BACNET_WRITE_STATUS_IDLE;
-    struct object_data *pObject;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -219,7 +219,7 @@ BACNET_WRITE_STATUS Channel_Write_Status(uint32_t object_instance)
 uint16_t Channel_Number(uint32_t object_instance)
 {
     uint16_t value = 0;
-    struct object_data *pObject;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -266,7 +266,7 @@ static int Channel_Reference_List_Member_Element_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
 {
     int apdu_len = BACNET_STATUS_ERROR;
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value;
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value;
     unsigned count = 0;
 
     count = Channel_Reference_List_Member_Count(object_instance);
@@ -287,7 +287,7 @@ static int Channel_Reference_List_Member_Element_Encode(
  * @return member count
  */
 static bool Channel_Reference_List_Member_Valid(
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
 {
     bool status = false;
 
@@ -348,7 +348,7 @@ BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Channel_Reference_List_Member_Element(
  */
 bool Channel_Reference_List_Member_Element_Set(uint32_t object_instance,
     unsigned array_index,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc)
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
     bool status = false;
@@ -378,7 +378,7 @@ bool Channel_Reference_List_Member_Element_Set(uint32_t object_instance,
  * zero if not added
  */
 unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc)
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
     unsigned array_index = 0;
@@ -414,7 +414,7 @@ uint16_t Channel_Control_Groups_Element(
     uint32_t object_instance, int32_t array_index)
 {
     uint16_t value = 0;
-    struct object_data *pObject;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -469,7 +469,7 @@ static int Channel_Control_Groups_Element_Encode(
 {
     int apdu_len = BACNET_STATUS_ERROR;
     uint16_t value = 1;
-    struct object_data *pObject;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject && (array_index < CONTROL_GROUPS_MAX)) {
@@ -490,7 +490,7 @@ static int Channel_Control_Groups_Element_Encode(
  * @return  true if values are able to be copied
  */
 bool Channel_Value_Copy(
-    BACNET_CHANNEL_VALUE *cvalue, BACNET_APPLICATION_DATA_VALUE *value)
+    BACNET_CHANNEL_VALUE *cvalue, const BACNET_APPLICATION_DATA_VALUE *value)
 {
     bool status = false;
 
@@ -631,7 +631,7 @@ bool Channel_Value_Copy(
  * @return  number of bytes in the APDU, or BACNET_STATUS_ERROR
  */
 int Channel_Value_Encode(
-    uint8_t *apdu, int apdu_max, BACNET_CHANNEL_VALUE *value)
+    uint8_t *apdu, int apdu_max, const BACNET_CHANNEL_VALUE *value)
 {
     int apdu_len = BACNET_STATUS_ERROR;
 
@@ -743,7 +743,7 @@ int Channel_Value_Encode(
  * @return  number of bytes in the APDU, or BACNET_STATUS_ERROR if error.
  */
 static int Coerce_Data_Encode(uint8_t *apdu,
-    BACNET_APPLICATION_DATA_VALUE *value,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_APPLICATION_TAG tag)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -1060,7 +1060,7 @@ static int Coerce_Data_Encode(uint8_t *apdu,
  */
 int Channel_Coerce_Data_Encode(uint8_t *apdu,
     size_t apdu_size,
-    BACNET_APPLICATION_DATA_VALUE *value,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_APPLICATION_TAG tag)
 {
     int len;
@@ -1084,7 +1084,7 @@ int Channel_Coerce_Data_Encode(uint8_t *apdu,
  * @return  true if values are within range and present-value is sent.
  */
 bool Channel_Write_Member_Value(
-    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_APPLICATION_DATA_VALUE *value)
+    BACNET_WRITE_PROPERTY_DATA *wp_data, const BACNET_APPLICATION_DATA_VALUE *value)
 {
     bool status = false;
     int apdu_len = 0;
@@ -1191,13 +1191,13 @@ bool Channel_Write_Member_Value(
  * @return  true if values are within range and present-value is sent.
  */
 static bool Channel_Write_Members(struct object_data *pObject,
-    BACNET_APPLICATION_DATA_VALUE *value,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     uint8_t priority)
 {
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     bool status = false;
     unsigned m = 0;
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
 
     if (pObject && value) {
         pObject->Write_Status = BACNET_WRITE_STATUS_IN_PROGRESS;
@@ -1244,7 +1244,7 @@ static bool Channel_Write_Members(struct object_data *pObject,
  * @return true if values are within range and present-value is sent.
  */
 bool Channel_Present_Value_Set(
-    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_APPLICATION_DATA_VALUE *value)
+    BACNET_WRITE_PROPERTY_DATA *wp_data, const BACNET_APPLICATION_DATA_VALUE *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -1291,7 +1291,7 @@ bool Channel_Object_Name(
 {
     bool status = false;
     char name_text[24] = "CHANNEL-4194303";
-    struct object_data *pObject;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -1316,7 +1316,7 @@ bool Channel_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Channel_Name_Set(uint32_t object_instance, char *new_name)
+bool Channel_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -1359,7 +1359,7 @@ const char *Channel_Name_ASCII(uint32_t object_instance)
 bool Channel_Out_Of_Service(uint32_t object_instance)
 {
     bool value = false;
-    struct object_data *pObject;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -1402,7 +1402,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    BACNET_CHANNEL_VALUE *cvalue = NULL;
+    const BACNET_CHANNEL_VALUE *cvalue = NULL;
     uint32_t unsigned_value = 0;
     unsigned count = 0;
     bool state = false;

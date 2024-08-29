@@ -27,8 +27,8 @@
  */
 int timesync_encode_apdu_service(uint8_t *apdu,
     BACNET_UNCONFIRMED_SERVICE service,
-    BACNET_DATE *my_date,
-    BACNET_TIME *my_time)
+    const BACNET_DATE *my_date,
+    const BACNET_TIME *my_time)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -55,7 +55,7 @@ int timesync_encode_apdu_service(uint8_t *apdu,
  * @return Count of encoded bytes.
  */
 int timesync_utc_encode_apdu(
-    uint8_t *apdu, BACNET_DATE *my_date, BACNET_TIME *my_time)
+    uint8_t *apdu, const BACNET_DATE *my_date, const BACNET_TIME *my_time)
 {
     return timesync_encode_apdu_service(
         apdu, SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, my_date, my_time);
@@ -70,7 +70,7 @@ int timesync_utc_encode_apdu(
  * @return Count of encoded bytes.
  */
 int timesync_encode_apdu(
-    uint8_t *apdu, BACNET_DATE *my_date, BACNET_TIME *my_time)
+    uint8_t *apdu, const BACNET_DATE *my_date, const BACNET_TIME *my_time)
 {
     return timesync_encode_apdu_service(
         apdu, SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, my_date, my_time);
@@ -86,7 +86,7 @@ int timesync_encode_apdu(
  *
  * @return Count of decoded bytes.
  */
-int timesync_decode_service_request(uint8_t *apdu,
+int timesync_decode_service_request(const uint8_t *apdu,
     unsigned apdu_len,
     BACNET_DATE *my_date,
     BACNET_TIME *my_time)
@@ -240,7 +240,7 @@ int timesync_encode_timesync_recipients(
  *   BACNET_STATUS_ABORT if there was a problem decoding the buffer
  */
 int timesync_decode_timesync_recipients(
-    uint8_t *apdu, unsigned max_apdu, BACNET_RECIPIENT_LIST *recipient)
+    const uint8_t *apdu, unsigned max_apdu, BACNET_RECIPIENT_LIST *recipient)
 {
     int len = 0;
     int apdu_len = 0;

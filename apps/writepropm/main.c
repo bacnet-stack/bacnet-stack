@@ -162,7 +162,7 @@ static void cleanup(void)
     }
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s device-instance object-type object-instance "
            "property[index] priority tag value [property[index] priority tag "
@@ -171,7 +171,7 @@ static void print_usage(char *filename)
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Write one or more properties to one or more objects\n"
         "in a BACnet device.\n");
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
     unsigned property_array_index = 0;
     int scan_count = 0;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {

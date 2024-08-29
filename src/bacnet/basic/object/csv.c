@@ -186,7 +186,7 @@ bool CharacterString_Value_Present_Value(
  * @return  true if values are within range and present-value is set.
  */
 bool CharacterString_Value_Present_Value_Set(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
+    uint32_t object_instance, const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
@@ -332,7 +332,7 @@ static char *CharacterString_Value_Description(uint32_t object_instance)
  * @return True on success, false otherwise.
  */
 bool CharacterString_Value_Description_Set(
-    uint32_t object_instance, char *new_descr)
+    uint32_t object_instance, const char *new_descr)
 {
     unsigned index = 0; /* offset from instance lookup */
     size_t i = 0; /* loop counter */
@@ -390,7 +390,8 @@ bool CharacterString_Value_Object_Name(
  *
  * @return True on success, false otherwise.
  */
-bool CharacterString_Value_Name_Set(uint32_t object_instance, char *new_name)
+bool CharacterString_Value_Name_Set(
+    uint32_t object_instance, const char *new_name)
 {
     unsigned index = 0; /* offset from instance lookup */
     size_t i = 0; /* loop counter */

@@ -9,9 +9,9 @@
 #include <string.h>
 #include "bacnet/basic/sys/filename.h"
 
-char *filename_remove_path(const char *filename_in)
+const char *filename_remove_path(const char *filename_in)
 {
-    char *filename_out = (char *)filename_in;
+    const char *filename_out = filename_in;
 
     /* allow the device ID to be set */
     if (filename_in) {
@@ -24,7 +24,7 @@ char *filename_remove_path(const char *filename_in)
             filename_out++;
         } else {
             /* no slash in filename */
-            filename_out = (char *)filename_in;
+            filename_out = filename_in;
         }
     }
 

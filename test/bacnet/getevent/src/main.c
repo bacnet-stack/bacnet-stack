@@ -20,7 +20,7 @@
  * @brief Test
  */
 static int getevent_decode_apdu(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
@@ -58,7 +58,7 @@ static int getevent_decode_apdu(
 }
 
 static int getevent_ack_decode_apdu(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     int apdu_len, /* total length of the apdu */
     uint8_t *invoke_id,
     BACNET_GET_EVENT_INFORMATION_DATA *get_event_data,

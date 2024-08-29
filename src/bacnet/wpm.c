@@ -38,7 +38,7 @@
  * @return Count of decoded bytes.
  */
 int wpm_decode_object_id(
-    uint8_t *apdu, uint16_t apdu_len, BACNET_WRITE_PROPERTY_DATA *wp_data)
+    const uint8_t *apdu, uint16_t apdu_len, BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
@@ -99,7 +99,7 @@ int wpm_decode_object_id(
  * @return Bytes decoded
  */
 int wpm_decode_object_property(
-    uint8_t *apdu, uint16_t apdu_len, BACNET_WRITE_PROPERTY_DATA *wp_data)
+    const uint8_t *apdu, uint16_t apdu_len, BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
@@ -248,7 +248,7 @@ int wpm_encode_apdu_object_end(uint8_t *apdu)
  * @return number of bytes encoded
  */
 int wpm_encode_apdu_object_property(
-    uint8_t *apdu, BACNET_WRITE_PROPERTY_DATA *wpdata)
+    uint8_t *apdu, const BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -449,7 +449,7 @@ int wpm_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
  * @return Bytes encoded.
  */
 int wpm_error_ack_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA *wp_data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     int len = 0;
 
@@ -493,10 +493,10 @@ int wpm_error_ack_encode_apdu(
  * @return Count of decoded bytes.
  */
 int wpm_error_ack_decode_apdu(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_WRITE_PROPERTY_DATA *wp_data)
+    const uint8_t *apdu, uint16_t apdu_size, BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     int len = 0, apdu_len = 0;
-    uint8_t *apdu_offset = NULL;
+    const uint8_t *apdu_offset = NULL;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     BACNET_OBJECT_PROPERTY_REFERENCE value;

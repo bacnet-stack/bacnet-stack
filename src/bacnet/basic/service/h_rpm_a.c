@@ -39,7 +39,9 @@
  * @return The number of bytes decoded, or -1 on error
  */
 int rpm_ack_decode_service_request(
-    uint8_t *apdu, int apdu_len, BACNET_READ_ACCESS_DATA *read_access_data)
+    const uint8_t *apdu,
+    int apdu_len,
+    BACNET_READ_ACCESS_DATA *read_access_data)
 {
     int decoded_len = 0; /* return value */
     uint32_t error_value = 0; /* decoded error value */

@@ -110,7 +110,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool bacfile_read_ack_stream_data(
         uint32_t instance,
-        BACNET_ATOMIC_READ_FILE_DATA * data);
+        const BACNET_ATOMIC_READ_FILE_DATA * data);
     BACNET_STACK_EXPORT
     bool bacfile_write_stream_data(
         BACNET_ATOMIC_WRITE_FILE_DATA * data);
@@ -120,10 +120,10 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool bacfile_read_ack_record_data(
         uint32_t instance,
-        BACNET_ATOMIC_READ_FILE_DATA * data);
+        const BACNET_ATOMIC_READ_FILE_DATA * data);
     BACNET_STACK_EXPORT
     bool bacfile_write_record_data(
-        BACNET_ATOMIC_WRITE_FILE_DATA * data);
+        const BACNET_ATOMIC_WRITE_FILE_DATA * data);
 
     /* handling for read property service */
     BACNET_STACK_EXPORT
@@ -154,7 +154,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     uint32_t bacfile_write(
         uint32_t object_instance,
-        uint8_t *buffer,
+        const uint8_t *buffer,
         uint32_t buffer_size);
 
     BACNET_STACK_EXPORT

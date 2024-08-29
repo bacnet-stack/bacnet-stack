@@ -295,7 +295,7 @@ size_t cobs_frame_decode(
      * Decode the Encoded CRC-32K field
      */
     crc_len = cobs_decode(crc_buffer, sizeof(crc_buffer),
-        (uint8_t *)(from + length - COBS_ENCODED_CRC_SIZE),
+        from + length - COBS_ENCODED_CRC_SIZE,
         COBS_ENCODED_CRC_SIZE, MSTP_PREAMBLE_X55);
     /*
      * Sanity check length of decoded CRC32K.

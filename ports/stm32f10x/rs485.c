@@ -152,7 +152,7 @@ bool rs485_frame_sent(void)
  * @param nbytes - number of bytes to transmit
  * @return true if added to queue
  */
-void rs485_bytes_send(uint8_t *buffer, /* data to send */
+void rs485_bytes_send(const uint8_t *buffer, /* data to send */
     uint16_t nbytes)
 { /* number of bytes of data */
     uint8_t tx_byte;

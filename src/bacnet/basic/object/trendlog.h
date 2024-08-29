@@ -158,7 +158,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bacnet_time_t TL_BAC_Time_To_Local(
-        BACNET_DATE_TIME * SourceTime);
+        const BACNET_DATE_TIME * SourceTime);
 
     BACNET_STACK_EXPORT
     void TL_Local_Time_To_BAC(

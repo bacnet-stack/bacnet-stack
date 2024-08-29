@@ -331,7 +331,7 @@ uint32_t bacfile_read(uint32_t object_instance, uint8_t *buffer,
  * @param  buffer_size - in bytes
  * @return  file size in bytes
  */
-uint32_t bacfile_write(uint32_t object_instance, uint8_t *buffer,
+uint32_t bacfile_write(uint32_t object_instance, const uint8_t *buffer,
     uint32_t buffer_size)
 {
     const char *pFilename = NULL;
@@ -877,14 +877,14 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
     return found;
 }
 
-bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
+bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     const char *pFilename = NULL;
     bool found = false;
     FILE *pFile = NULL;
     uint32_t i = 0;
     char dummy_data[FILE_RECORD_SIZE];
-    char *pData = NULL;
+    const char *pData = NULL;
 
     pFilename = bacfile_pathname(data->object_instance);
     if (pFilename) {
@@ -913,7 +913,7 @@ bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
                 }
             }
             for (i = 0; i < data->type.record.returnedRecordCount; i++) {
-                if (fwrite(octetstring_value(&data->fileData[i]),
+                if (fwrite(octetstring_value((BACNET_OCTET_STRING*)&data->fileData[i]),
                         octetstring_length(&data->fileData[i]), 1,
                         pFile) != 1) {
                     /* do something if it fails? */
@@ -927,7 +927,7 @@ bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
 }
 
 bool bacfile_read_ack_stream_data(
-    uint32_t instance, BACNET_ATOMIC_READ_FILE_DATA *data)
+    uint32_t instance, const BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     bool found = false;
     FILE *pFile = NULL;
@@ -939,7 +939,7 @@ bool bacfile_read_ack_stream_data(
         pFile = fopen(pFilename, "rb+");
         if (pFile) {
             (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
-            if (fwrite(octetstring_value(&data->fileData[0]),
+            if (fwrite(octetstring_value((BACNET_OCTET_STRING*)&data->fileData[0]),
                     octetstring_length(&data->fileData[0]), 1, pFile) != 1) {
 #if PRINT_ENABLED
                 fprintf(stderr, "Failed to write to %s (%lu)!\n", pFilename,
@@ -954,7 +954,7 @@ bool bacfile_read_ack_stream_data(
 }
 
 bool bacfile_read_ack_record_data(
-    uint32_t instance, BACNET_ATOMIC_READ_FILE_DATA *data)
+    uint32_t instance, const BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     bool found = false;
     FILE *pFile = NULL;
@@ -978,7 +978,7 @@ bool bacfile_read_ack_record_data(
                 }
             }
             for (i = 0; i < data->type.record.RecordCount; i++) {
-                if (fwrite(octetstring_value(&data->fileData[i]),
+                if (fwrite(octetstring_value((BACNET_OCTET_STRING*)&data->fileData[i]),
                         octetstring_length(&data->fileData[i]), 1,
                         pFile) != 1) {
 #if PRINT_ENABLED

@@ -142,15 +142,15 @@ extern "C" {
 
     /* returns true if line is active */
     bool MSTP_Line_Active(
-        volatile struct mstp_port_struct_t *mstp_port);
+        const volatile struct mstp_port_struct_t *mstp_port);
 
     unsigned MSTP_Create_Frame(
         uint8_t * buffer,       /* where frame is loaded */
         unsigned buffer_len,    /* amount of space available */
         uint8_t frame_type,     /* type of frame to send - see defines */
         uint8_t destination,    /* destination address */
-        uint8_t source, /* source address */
-        uint8_t * data, /* any data to be sent - may be null */
+        uint8_t source,         /* source address */
+        const uint8_t * data,   /* any data to be sent - may be null */
         unsigned data_len);     /* number of bytes of data (up to 501) */
 
 

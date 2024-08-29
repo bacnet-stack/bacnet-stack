@@ -69,7 +69,7 @@ void arcnet_cleanup(void)
     return;
 }
 
-static int arcnet_bind(char *interface_name)
+static int arcnet_bind(const char *interface_name)
 {
     int sock_fd = -1; /* return value */
     struct ifreq ifr;

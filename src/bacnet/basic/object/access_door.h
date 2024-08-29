@@ -113,7 +113,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Access_Door_Description_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     bool Access_Door_Out_Of_Service(

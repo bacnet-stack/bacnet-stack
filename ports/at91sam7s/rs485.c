@@ -171,7 +171,7 @@ void RS485_Transmitter_Enable(bool enable)
  * ALGORITHM:   none
  * NOTES:       none
  *****************************************************************************/
-void RS485_Send_Data(uint8_t *buffer, /* data to send */
+void RS485_Send_Data(const uint8_t *buffer, /* data to send */
     uint16_t nbytes)
 { /* number of bytes of data */
     /* LED on send */

@@ -172,7 +172,7 @@ bool BitString_Value_Present_Value(
  * @return  true if value is within range and copied
  */
 bool BitString_Value_Present_Value_Set(
-    uint32_t object_instance, BACNET_BIT_STRING *value)
+    uint32_t object_instance, const BACNET_BIT_STRING *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -306,7 +306,7 @@ BACNET_RELIABILITY BitString_Value_Reliablity(
  * @param  object_instance - object-instance number of the object
  * @return  true the status flag is in Fault
  */
-static bool BitString_Value_Object_Fault(struct object_data *pObject)
+static bool BitString_Value_Object_Fault(const struct object_data *pObject)
 {
     bool fault = false;
 
@@ -460,7 +460,7 @@ bool BitString_Value_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool BitString_Value_Name_Set(uint32_t object_instance, char *new_name)
+bool BitString_Value_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -498,15 +498,15 @@ const char *BitString_Value_Name_ASCII(uint32_t object_instance)
  * @return  C-string pointer to the description,
  *  or NULL if object doesn't exist
  */
-char *BitString_Value_Description(uint32_t object_instance)
+const char *BitString_Value_Description(uint32_t object_instance)
 {
-    char *name = NULL; /* return value */
-    struct object_data *pObject;
+    const char *name = NULL; /* return value */
+    const struct object_data *pObject;
 
     pObject = BitString_Value_Object(object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -525,7 +525,7 @@ char *BitString_Value_Description(uint32_t object_instance)
  * @return True on success, false otherwise.
  */
 bool BitString_Value_Description_Set(
-    uint32_t object_instance, char *value)
+    uint32_t object_instance, const char *value)
 {
     bool status = false; /* return value */
     struct object_data *pObject;

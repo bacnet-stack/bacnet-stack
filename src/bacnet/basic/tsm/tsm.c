@@ -209,9 +209,9 @@ uint8_t tsm_next_free_invokeID(void)
  * @param apdu_len  Bytes valid in the received message.
  */
 void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
-    BACNET_ADDRESS *dest,
-    BACNET_NPDU_DATA *ndpu_data,
-    uint8_t *apdu,
+    const BACNET_ADDRESS *dest,
+    const BACNET_NPDU_DATA *ndpu_data,
+    const uint8_t *apdu,
     uint16_t apdu_len)
 {
     uint16_t j = 0;

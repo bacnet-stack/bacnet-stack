@@ -144,7 +144,7 @@ void RS485_Turnaround_Delay(void)
  * @param buffer - data to send
  * @param nbytes - number of bytes of data
  */
-void RS485_Send_Data(uint8_t *buffer,
+void RS485_Send_Data(const uint8_t *buffer,
     uint16_t nbytes)
 {
     while (nbytes) {

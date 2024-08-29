@@ -21,7 +21,7 @@
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR
  */
 static int wp_decode_apdu(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_WRITE_PROPERTY_DATA *wpdata)
@@ -63,7 +63,7 @@ static int wp_decode_apdu(
     return apdu_len;
 }
 
-static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
+static void testWritePropertyTag(const BACNET_APPLICATION_DATA_VALUE *value)
 {
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     BACNET_WRITE_PROPERTY_DATA test_data = { 0 };

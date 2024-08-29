@@ -40,7 +40,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
     BACNET_STACK_EXPORT
     const char *Network_Port_Object_Name_ASCII(
         uint32_t object_instance);
@@ -51,7 +51,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_Description_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     BACNET_RELIABILITY Network_Port_Reliability(
@@ -105,7 +105,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_MAC_Address_Set(
         uint32_t object_instance,
-        uint8_t *mac_src,
+        const uint8_t *mac_src,
         uint8_t mac_len);
 
     BACNET_STACK_EXPORT
@@ -308,7 +308,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_Remote_BBMD_IP6_Address_Set(
         uint32_t object_instance,
-        uint8_t *addr);
+        const uint8_t *addr);
     BACNET_STACK_EXPORT
     uint16_t Network_Port_Remote_BBMD_BIP6_Port(
         uint32_t object_instance);
@@ -340,7 +340,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_IPv6_Address_Set(
         uint32_t object_instance,
-        uint8_t *ip_address);
+        const uint8_t *ip_address);
 
     BACNET_STACK_EXPORT
     bool Network_Port_IPv6_Multicast_Address(
@@ -349,7 +349,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_IPv6_Multicast_Address_Set(
         uint32_t object_instance,
-        uint8_t *ip_address);
+        const uint8_t *ip_address);
 
     BACNET_STACK_EXPORT
     uint8_t Network_Port_IPv6_Subnet_Prefix(
@@ -366,7 +366,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_IPv6_Gateway_Set(
         uint32_t object_instance,
-        uint8_t *ip_address);
+        const uint8_t *ip_address);
 
     BACNET_STACK_EXPORT
     bool Network_Port_IPv6_DNS_Server(
@@ -377,7 +377,7 @@ extern "C" {
     bool Network_Port_IPv6_DNS_Server_Set(
         uint32_t object_instance,
         unsigned dns_index,
-        uint8_t *ip_address);
+        const uint8_t *ip_address);
 
     BACNET_STACK_EXPORT
     bool Network_Port_IPv6_DHCP_Server(
@@ -386,7 +386,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_IPv6_DHCP_Server_Set(
         uint32_t object_instance,
-        uint8_t *ip_address);
+        const uint8_t *ip_address);
 
     BACNET_STACK_EXPORT
     bool Network_Port_IPv6_Zone_Index(

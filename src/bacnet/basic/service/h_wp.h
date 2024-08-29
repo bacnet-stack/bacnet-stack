@@ -34,7 +34,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool WPValidateString(
-        BACNET_APPLICATION_DATA_VALUE * pValue,
+        const BACNET_APPLICATION_DATA_VALUE * pValue,
         int iMaxLen,
         bool bEmptyAllowed,
         BACNET_ERROR_CLASS * pErrorClass,
@@ -42,7 +42,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool WPValidateArgType(
-        BACNET_APPLICATION_DATA_VALUE * pValue,
+        const BACNET_APPLICATION_DATA_VALUE * pValue,
         uint8_t ucExpectedType,
         BACNET_ERROR_CLASS * pErrorClass,
         BACNET_ERROR_CODE * pErrorCode);

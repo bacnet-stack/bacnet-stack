@@ -52,7 +52,7 @@ unsigned int VMAC_Count(void)
  *
  * @return true if the device ID and MAC are added
  */
-bool VMAC_Add(uint32_t device_id, struct vmac_data *src)
+bool VMAC_Add(uint32_t device_id, const struct vmac_data *src)
 {
     bool status = false;
     struct vmac_data *pVMAC = NULL;
@@ -126,7 +126,9 @@ struct vmac_data *VMAC_Find_By_Key(uint32_t device_id)
  *
  * @return true if the addresses are different
  */
-bool VMAC_Different(struct vmac_data *vmac1, struct vmac_data *vmac2)
+bool VMAC_Different(
+    const struct vmac_data *vmac1,
+    const struct vmac_data *vmac2)
 {
     bool status = false;
     unsigned int i = 0;
@@ -157,7 +159,9 @@ bool VMAC_Different(struct vmac_data *vmac1, struct vmac_data *vmac2)
  *
  * @return true if the addresses are the same
  */
-bool VMAC_Match(struct vmac_data *vmac1, struct vmac_data *vmac2)
+bool VMAC_Match(
+    const struct vmac_data *vmac1,
+    const struct vmac_data *vmac2)
 {
     bool status = false;
     unsigned int i = 0;
@@ -190,7 +194,7 @@ bool VMAC_Match(struct vmac_data *vmac1, struct vmac_data *vmac2)
  *
  * @return true if the VMAC address was found
  */
-bool VMAC_Find_By_Data(struct vmac_data *vmac, uint32_t *device_id)
+bool VMAC_Find_By_Data(const struct vmac_data *vmac, uint32_t *device_id)
 {
     bool status = false;
     struct vmac_data *list_vmac;

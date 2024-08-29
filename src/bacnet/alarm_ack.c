@@ -20,7 +20,7 @@
  * @return number of bytes encoded
  */
 int alarm_ack_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_ALARM_ACK_DATA *data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_ALARM_ACK_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -54,7 +54,7 @@ int alarm_ack_encode_apdu(
  * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded
  */
-int alarm_ack_encode_service_request(uint8_t *apdu, BACNET_ALARM_ACK_DATA *data)
+int alarm_ack_encode_service_request(uint8_t *apdu, const BACNET_ALARM_ACK_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -104,7 +104,7 @@ int alarm_ack_encode_service_request(uint8_t *apdu, BACNET_ALARM_ACK_DATA *data)
 size_t bacnet_acknowledge_alarm_info_request_encode(
     uint8_t *apdu,
     size_t apdu_size,
-    BACNET_ALARM_ACK_DATA *data)
+    const BACNET_ALARM_ACK_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -128,7 +128,7 @@ size_t bacnet_acknowledge_alarm_info_request_encode(
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error.
  */
 int alarm_ack_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_ALARM_ACK_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_ALARM_ACK_DATA *data)
 {
     int len = 0;
     int apdu_len = 0;

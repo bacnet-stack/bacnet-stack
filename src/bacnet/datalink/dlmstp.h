@@ -61,7 +61,7 @@ struct dlmstp_rs485_driver {
     void (*init)(void);
 
     /** Prepare & transmit a packet. */
-    void (*send)(uint8_t *payload, uint16_t payload_len);
+    void (*send)(const uint8_t *payload, uint16_t payload_len);
 
     /** Check if one received byte is available */
     bool (*read)(uint8_t *buf);

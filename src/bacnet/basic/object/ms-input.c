@@ -215,16 +215,16 @@ uint32_t Multistate_Input_Max_States(uint32_t object_instance)
  * @param  state_index - state index number 1..N of the text requested
  * @return  C string retrieved
  */
-char *Multistate_Input_State_Text(
+const char *Multistate_Input_State_Text(
     uint32_t object_instance, uint32_t state_index)
 {
-    char *pName = NULL; /* return value */
-    struct object_data *pObject;
+    const char *pName = NULL; /* return value */
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (state_index > 0) {
-            pName = (char *)state_name_by_index(pObject->State_Text,
+            pName = state_name_by_index(pObject->State_Text,
                 state_index);
         }
     }
@@ -246,7 +246,7 @@ static int Multistate_Input_State_Text_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
 {
     int apdu_len = BACNET_STATUS_ERROR;
-    char *pName = NULL; /* return value */
+    const char *pName = NULL; /* return value */
     BACNET_CHARACTER_STRING char_string = { 0 };
     uint32_t state_index = 1;
 
@@ -482,7 +482,7 @@ bool Multistate_Input_Object_Name(
  * @param  new_name - holds the object-name to be set
  * @return  true if object-name was set
  */
-bool Multistate_Input_Name_Set(uint32_t object_instance, char *new_name)
+bool Multistate_Input_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -537,7 +537,7 @@ BACNET_RELIABILITY Multistate_Input_Reliability(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return  true the status flag is in Fault
  */
-static bool Multistate_Input_Object_Fault(struct object_data *pObject)
+static bool Multistate_Input_Object_Fault(const struct object_data *pObject)
 {
     bool fault = false;
 
@@ -597,14 +597,14 @@ static bool Multistate_Input_Fault(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
  */
-char *Multistate_Input_Description(uint32_t object_instance)
+const char *Multistate_Input_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        name = (char *)pObject->Description;
+        name = pObject->Description;
     }
 
     return name;
@@ -616,7 +616,8 @@ char *Multistate_Input_Description(uint32_t object_instance)
  * @param  new_name - holds the description to be set
  * @return  true if object-name was set
  */
-bool Multistate_Input_Description_Set(uint32_t object_instance, char *new_name)
+bool Multistate_Input_Description_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;

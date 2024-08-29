@@ -51,24 +51,24 @@ extern "C" {
     int dcc_apdu_encode(uint8_t *apdu,
         uint16_t timeDuration,
         BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-        BACNET_CHARACTER_STRING *password);
+        const BACNET_CHARACTER_STRING *password);
     BACNET_STACK_EXPORT
     size_t dcc_service_request_encode(uint8_t *apdu,
         size_t apdu_size,
         uint16_t timeDuration,
         BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-        BACNET_CHARACTER_STRING *password);
+        const BACNET_CHARACTER_STRING *password);
     BACNET_STACK_EXPORT
     int dcc_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         uint16_t timeDuration,
         BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-        BACNET_CHARACTER_STRING * password);
+        const BACNET_CHARACTER_STRING * password);
 
     BACNET_STACK_EXPORT
     int dcc_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         uint16_t * timeDuration,
         BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,

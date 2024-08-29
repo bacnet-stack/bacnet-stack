@@ -38,7 +38,7 @@ extern "C" {
     void address_add(
         uint32_t device_id,
         unsigned max_apdu,
-        BACNET_ADDRESS * src);
+        const BACNET_ADDRESS * src);
 
     BACNET_STACK_EXPORT
     void address_remove_device(
@@ -67,7 +67,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool address_get_device_id(
-        BACNET_ADDRESS * src,
+        const BACNET_ADDRESS * src,
         uint32_t * device_id);
 
     BACNET_STACK_EXPORT
@@ -91,7 +91,7 @@ extern "C" {
     void address_add_binding(
         uint32_t device_id,
         unsigned max_apdu,
-        BACNET_ADDRESS * src);
+        const BACNET_ADDRESS * src);
 
     BACNET_STACK_EXPORT
     int address_list_encode(

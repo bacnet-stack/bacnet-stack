@@ -209,7 +209,7 @@ bool rs485_byte_available(uint8_t *data_register)
  * @param nbytes - number of bytes to transmit
  * @return true if added to queue
  */
-void rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
+void rs485_bytes_send(const uint8_t *buffer, uint16_t nbytes)
 {
     if (buffer && (nbytes > 0)) {
         if (FIFO_Add(&Transmit_Queue, buffer, nbytes)) {

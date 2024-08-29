@@ -89,7 +89,7 @@ uint16_t iCurrent_Device_Idx = 0;
  *         there isn't enough room to add this Device.
  */
 uint16_t Add_Routed_Device(uint32_t Object_Instance,
-    BACNET_CHARACTER_STRING *sObject_Name,
+    const BACNET_CHARACTER_STRING *sObject_Name,
     const char *sDescription)
 {
     int i = Num_Managed_Devices;
@@ -192,7 +192,7 @@ void routed_get_my_address(BACNET_ADDRESS *my_address)
  *         meaning MAC broadcast, so it's an automatic match).
  *         Else False if no match or invalid idx is given.
  */
-bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
+bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, const uint8_t *dadr)
 {
     bool result = false;
     DEVICE_OBJECT_DATA *pDev;
@@ -245,7 +245,8 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
  * match). Else False if no match or invalid idx is given; the cursor will be
  * returned as -1 in these cases.
  */
-bool Routed_Device_GetNext(BACNET_ADDRESS *dest, int *DNET_list, int *cursor)
+bool Routed_Device_GetNext(
+    const BACNET_ADDRESS *dest, const int *DNET_list, int *cursor)
 {
     int dnet = DNET_list[0]; /* Get the DNET of our virtual network */
     int idx = *cursor;
@@ -315,7 +316,7 @@ bool Routed_Device_GetNext(BACNET_ADDRESS *dest, int *DNET_list, int *cursor)
  *          Device (the gateway), or is BACNET_BROADCAST_NETWORK,
  * which is an automatic match. Else False if not a reachable network.
  */
-bool Routed_Device_Is_Valid_Network(uint16_t dest_net, int *DNET_list)
+bool Routed_Device_Is_Valid_Network(uint16_t dest_net, const int *DNET_list)
 {
     int dnet = DNET_list[0]; /* Get the DNET of our virtual network */
     bool bSuccess = false;

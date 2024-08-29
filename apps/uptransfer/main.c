@@ -117,14 +117,14 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s <device-instance|broadcast|dnet=> vendor-id"
         " service-number tag value [tag value...]\n",
         filename);
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet UnconfirmedPrivateTransfer message to the network.\n");
     printf("device-instance:\n"
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     time_t delta_seconds = 0;
     bool found = false;
-    char *filename = NULL;
+    const char *filename = NULL;
     char *value_string = NULL;
     bool status = false;
     int args_remaining = 0, tag_value_arg = 0, i = 0;

@@ -112,6 +112,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   add_compile_options(-Wswitch-default)
   add_compile_options(-Wunused-variable)
   add_compile_options(-Wcast-qual)
+  add_compile_options(-Wwrite-strings)
 
   # Don't warn about conversion, sign, compares since they are common in
   # embedded
@@ -138,6 +139,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   add_compile_options(-Wno-float-conversion)
   add_compile_options(-Wno-missing-declarations)
   add_compile_options(-Wno-unused-but-set-variable)
+  add_compile_options(-Wno-write-strings)
 elseif(MSVC)
   add_compile_options(/Wall)
 

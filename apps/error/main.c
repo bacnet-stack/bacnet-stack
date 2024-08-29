@@ -75,7 +75,7 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s [error-class error-code service-number invoke-id]\n",
         filename);
@@ -83,7 +83,7 @@ static void print_usage(char *filename)
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet Error message to the network.\n");
     printf("--mac A\n"
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     bool specific_address = false;
     int argi = 0;
     unsigned int target_args = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {

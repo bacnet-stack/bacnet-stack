@@ -85,14 +85,14 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s [device-instance-min device-instance-min] "
            "<object-type object-instance | object-name> [--help]\r\n",
         filename);
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     print_usage(filename);
     printf("Send BACnet WhoHas request to devices, \r\n"

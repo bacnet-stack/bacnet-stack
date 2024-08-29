@@ -191,7 +191,7 @@ extern "C" {
     int cevent_notify_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
-        BACNET_EVENT_NOTIFICATION_DATA * data);
+        const BACNET_EVENT_NOTIFICATION_DATA * data);
 
 /***************************************************
 **
@@ -201,7 +201,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     int uevent_notify_encode_apdu(
         uint8_t * apdu,
-        BACNET_EVENT_NOTIFICATION_DATA * data);
+        const BACNET_EVENT_NOTIFICATION_DATA * data);
 
 /***************************************************
 **
@@ -211,13 +211,13 @@ extern "C" {
     BACNET_STACK_EXPORT
     int event_notify_encode_service_request(
         uint8_t * apdu,
-        BACNET_EVENT_NOTIFICATION_DATA * data);
+        const BACNET_EVENT_NOTIFICATION_DATA * data);
 
     BACNET_STACK_EXPORT
     size_t event_notification_service_request_encode(
         uint8_t *apdu,
         size_t apdu_size,
-        BACNET_EVENT_NOTIFICATION_DATA *data);
+        const BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **
@@ -226,7 +226,7 @@ extern "C" {
 ****************************************************/
     BACNET_STACK_EXPORT
     int event_notify_decode_service_request(
-        uint8_t * apdu,
+        const uint8_t * apdu,
         unsigned apdu_len,
         BACNET_EVENT_NOTIFICATION_DATA * data);
 

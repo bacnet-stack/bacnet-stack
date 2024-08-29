@@ -236,7 +236,7 @@ int rpm_encode_apdu(
  * @return number of decoded bytes, or negative on failure.
  */
 int rpm_decode_object_id(
-    uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
+    const uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
 {
     int len = 0;
     BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
@@ -271,7 +271,7 @@ int rpm_decode_object_id(
  * @param apdu_len [in] Count of valid bytes in the buffer.
  * @return number of decoded bytes, or negative on failure.
  */
-int rpm_decode_object_end(uint8_t *apdu, unsigned apdu_len)
+int rpm_decode_object_end(const uint8_t *apdu, unsigned apdu_len)
 {
     int len = 0; /* total length of the apdu, return value */
 
@@ -300,7 +300,7 @@ int rpm_decode_object_end(uint8_t *apdu, unsigned apdu_len)
  * @return number of decoded bytes, or negative on failure.
  */
 int rpm_decode_object_property(
-    uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
+    const uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
 {
     int len = 0;
     int option_len = 0;
@@ -377,7 +377,8 @@ int rpm_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
  * @param rpmdata [in] Pointer to the data used to fill in the APDU.
  * @return number of bytes encoded
  */
-int rpm_ack_encode_apdu_object_begin(uint8_t *apdu, BACNET_RPM_DATA *rpmdata)
+int rpm_ack_encode_apdu_object_begin(
+    uint8_t *apdu, const BACNET_RPM_DATA *rpmdata)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -435,7 +436,9 @@ int rpm_ack_encode_apdu_object_property(
  * @return number of bytes encoded
  */
 int rpm_ack_encode_apdu_object_property_value(
-    uint8_t *apdu, uint8_t *application_data, unsigned application_data_len)
+    uint8_t *apdu,
+    const uint8_t *application_data,
+    unsigned application_data_len)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -519,7 +522,7 @@ int rpm_ack_encode_apdu_object_end(uint8_t *apdu)
  * @return Number of bytes decoded, or negative on error.
  */
 int rpm_ack_decode_object_id(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_size,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
@@ -554,7 +557,7 @@ int rpm_ack_decode_object_id(
  * @param apdu_size size of the application data unit buffer
  * @return Number of bytes decoded, or negative on error.
  */
-int rpm_ack_decode_object_end(uint8_t *apdu, unsigned apdu_size)
+int rpm_ack_decode_object_end(const uint8_t *apdu, unsigned apdu_size)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -577,7 +580,7 @@ int rpm_ack_decode_object_end(uint8_t *apdu, unsigned apdu_size)
  * @return Number of bytes decoded, or negative on error.
  */
 int rpm_ack_decode_object_property(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_size,
     BACNET_PROPERTY_ID *object_property,
     BACNET_ARRAY_INDEX *array_index)

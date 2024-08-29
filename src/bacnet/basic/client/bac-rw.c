@@ -351,7 +351,7 @@ static uint8_t Send_RPM_All_Request(uint32_t device_id,
  * @param service_request [in] The contents of the service request.
  * @return true if the process is finished
  */
-static bool bacnet_read_write_process(TARGET_DATA *target)
+static bool bacnet_read_write_process(const TARGET_DATA *target)
 {
     bool found = false;
     unsigned max_apdu = 0;

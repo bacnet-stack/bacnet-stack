@@ -25,7 +25,7 @@ extern "C" {
     int Send_Network_Layer_Message(
         BACNET_NETWORK_MESSAGE_TYPE network_message_type,
         BACNET_ADDRESS * dst,
-        int *iArgs);
+        const int *iArgs);
     BACNET_STACK_EXPORT
     void Send_Who_Is_Router_To_Network(
         BACNET_ADDRESS * dst,

@@ -15,7 +15,7 @@ extern "C" {
 #endif /* __cplusplus */
 
     BACNET_STACK_EXPORT
-    char *filename_remove_path(
+    const char *filename_remove_path(
         const char *filename_in);
 
 #ifdef __cplusplus

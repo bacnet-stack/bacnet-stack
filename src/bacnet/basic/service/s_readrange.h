@@ -28,7 +28,7 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 uint8_t Send_ReadRange_Request(uint32_t device_id,
-                               BACNET_READ_RANGE_DATA* read_access_data);
+                               const BACNET_READ_RANGE_DATA* read_access_data);
 
 #ifdef __cplusplus
 }

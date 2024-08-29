@@ -28,7 +28,7 @@ extern "C" {
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
     BACNET_STACK_EXPORT
     void handler_dcc_password_set(
-        char *new_password);
+        const char *new_password);
     BACNET_STACK_EXPORT
     char *handler_dcc_password(void);
 

@@ -25,7 +25,7 @@
 #include "portthread.h"
 
 uint16_t process_network_message(
-    BACMSG * msg,
+    const BACMSG * msg,
     MSG_DATA * data,
     uint8_t ** buff);
 

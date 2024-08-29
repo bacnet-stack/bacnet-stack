@@ -34,7 +34,7 @@ void bacapp_timestamp_sequence_set(BACNET_TIMESTAMP *dest, uint16_t sequenceNum)
  * @param dest  Pointer to the destination time stamp structure.
  * @param btime  Pointer to the BACNet time structure.
  */
-void bacapp_timestamp_time_set(BACNET_TIMESTAMP *dest, BACNET_TIME *btime)
+void bacapp_timestamp_time_set(BACNET_TIMESTAMP *dest, const BACNET_TIME *btime)
 {
     if (dest && btime) {
         dest->tag = TIME_STAMP_TIME;
@@ -49,7 +49,7 @@ void bacapp_timestamp_time_set(BACNET_TIMESTAMP *dest, BACNET_TIME *btime)
  * @param bdateTime  Pointer to the BACNet date/time structure.
  */
 void bacapp_timestamp_datetime_set(
-    BACNET_TIMESTAMP *dest, BACNET_DATE_TIME *bdateTime)
+    BACNET_TIMESTAMP *dest, const BACNET_DATE_TIME *bdateTime)
 {
     if (dest && bdateTime) {
         dest->tag = TIME_STAMP_DATETIME;
@@ -62,7 +62,7 @@ void bacapp_timestamp_datetime_set(
  * @param dest  Pointer to the destination time stamp structure.
  * @param src   Pointer to the source time stamp structure.
  */
-void bacapp_timestamp_copy(BACNET_TIMESTAMP *dest, BACNET_TIMESTAMP *src)
+void bacapp_timestamp_copy(BACNET_TIMESTAMP *dest, const BACNET_TIMESTAMP *src)
 {
     if (dest && src) {
         dest->tag = src->tag;
@@ -88,7 +88,8 @@ void bacapp_timestamp_copy(BACNET_TIMESTAMP *dest, BACNET_TIMESTAMP *src)
  * @param value2 - complex data value 2 structure
  * @return true if the two complex data values are the same
  */
-bool bacapp_timestamp_same(BACNET_TIMESTAMP *value1, BACNET_TIMESTAMP *value2)
+bool bacapp_timestamp_same(
+    const BACNET_TIMESTAMP *value1, const BACNET_TIMESTAMP *value2)
 {
     bool status = false;
 
@@ -137,7 +138,7 @@ bool bacapp_timestamp_same(BACNET_TIMESTAMP *value1, BACNET_TIMESTAMP *value2)
  *
  * @return Bytes encoded or 0 on error.
  */
-int bacapp_encode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
+int bacapp_encode_timestamp(uint8_t *apdu, const BACNET_TIMESTAMP *value)
 {
     int len = 0; /* length of each encoding */
 
@@ -178,7 +179,7 @@ int bacapp_encode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
  * @return Bytes encoded or 0 on error.
  */
 int bacapp_encode_context_timestamp(
-    uint8_t *apdu, uint8_t tag_number, BACNET_TIMESTAMP *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_TIMESTAMP *value)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0;
@@ -216,7 +217,7 @@ int bacapp_encode_context_timestamp(
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
  */
 int bacnet_timestamp_decode(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_TIMESTAMP *value)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_TIMESTAMP *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -289,7 +290,7 @@ int bacnet_timestamp_decode(
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
  * @deprecated use bacnet_timestamp_decode() instead
  */
-int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
+int bacapp_decode_timestamp(const uint8_t *apdu, BACNET_TIMESTAMP *value)
 {
     return bacnet_timestamp_decode(apdu, MAX_APDU, value);
 }
@@ -304,7 +305,7 @@ int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
  *               take the time stamp values.
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
  */
-int bacnet_timestamp_context_decode(uint8_t *apdu,
+int bacnet_timestamp_context_decode(const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_TIMESTAMP *value)
@@ -342,7 +343,7 @@ int bacnet_timestamp_context_decode(uint8_t *apdu,
  * @deprecated use bacnet_timestamp_context_decode() instead
  */
 int bacapp_decode_context_timestamp(
-    uint8_t *apdu, uint8_t tag_number, BACNET_TIMESTAMP *value)
+    const uint8_t *apdu, uint8_t tag_number, BACNET_TIMESTAMP *value)
 {
     const uint32_t apdu_size = MAX_APDU;
     int len;
@@ -442,7 +443,7 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
  * @return number of characters printed
 */
 int bacapp_timestamp_to_ascii(char *str, size_t str_size,
-    BACNET_TIMESTAMP *timestamp)
+    const BACNET_TIMESTAMP *timestamp)
 {
     int str_len = 0;
 

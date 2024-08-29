@@ -31,7 +31,7 @@
  * @param target_address [in] BACnet address of target or broadcast
  */
 uint8_t Send_GetEvent(BACNET_ADDRESS *target_address,
-    BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
+    const BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
 {
     int len = 0;
     int pdu_len = 0;

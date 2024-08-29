@@ -162,7 +162,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
  *
  * @param addr - network IPv4 address
  */
-bool bip_set_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_addr(const BACNET_IP_ADDRESS *addr)
 {
     (void)addr;
     /* not something we do within this driver */
@@ -189,7 +189,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  * @param addr - network IPv4 address
  * @return true if the address was set
  */
-bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
 {
     (void)addr;
     /* not something we do within this driver */
@@ -257,7 +257,8 @@ uint8_t bip_get_subnet_prefix(void)
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip_send_mpdu(
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     struct sockaddr_in bip_dest = { 0 };
 
@@ -276,7 +277,7 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     /* Send the packet */
     debug_print_ipv4(
         "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
-    return sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
+    return sendto(BIP_Socket, (const char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
 }
 
@@ -472,7 +473,8 @@ static char *ifname_default(void)
  * @param addr [out] The netmask addr, broadcast addr, ip addr.
  * @param request [in] addr broadaddr netmask
  */
-static int get_local_address(char *ifname, struct in_addr *addr, char *request)
+static int get_local_address(
+    const char *ifname, struct in_addr *addr, const char *request)
 {
     char rv = '\0'; /* return value */
 
@@ -543,7 +545,7 @@ int bip_set_broadcast_binding(
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for MAC OS X, ifname is en0, en1, and others.
  */
-void bip_set_interface(char *ifname)
+void bip_set_interface(const char *ifname)
 {
     struct in_addr local_address;
     struct in_addr broadcast_address;
@@ -602,7 +604,7 @@ void bip_set_interface(char *ifname)
     }
 }
 
-static int createSocket(struct sockaddr_in *sin)
+static int createSocket(const struct sockaddr_in *sin)
 {
     int status = 0; /* return from socket lib calls */
     int sockopt = 0;

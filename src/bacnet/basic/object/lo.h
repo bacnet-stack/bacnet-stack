@@ -99,18 +99,18 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Lighting_Output_Name_Set(
         uint32_t object_instance,
-        char *new_name);
+        const char *new_name);
     BACNET_STACK_EXPORT
     const char *Lighting_Output_Name_ASCII(
         uint32_t object_instance);
 
     BACNET_STACK_EXPORT
-    char *Lighting_Output_Description(
+    const char *Lighting_Output_Description(
         uint32_t instance);
     BACNET_STACK_EXPORT
     bool Lighting_Output_Description_Set(
         uint32_t instance,
-        char *new_name);
+        const char *new_name);
 
     BACNET_STACK_EXPORT
     bool Lighting_Output_Out_Of_Service(
@@ -123,7 +123,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Lighting_Output_Lighting_Command_Set(
         uint32_t object_instance,
-        BACNET_LIGHTING_COMMAND *value);
+        const BACNET_LIGHTING_COMMAND *value);
     BACNET_STACK_EXPORT
     bool Lighting_Output_Lighting_Command(
         uint32_t object_instance,
@@ -219,7 +219,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Lighting_Output_Color_Reference_Set(
         uint32_t object_instance,
-        BACNET_OBJECT_ID *value);
+        const BACNET_OBJECT_ID *value);
 
     BACNET_STACK_EXPORT
     bool Lighting_Output_Override_Color_Reference(
@@ -228,7 +228,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Lighting_Output_Override_Color_Reference_Set(
         uint32_t object_instance,
-        BACNET_OBJECT_ID *value);
+        const BACNET_OBJECT_ID *value);
 
     BACNET_STACK_EXPORT
     void Lighting_Output_Timer(

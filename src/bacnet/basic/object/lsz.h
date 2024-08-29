@@ -98,7 +98,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Life_Safety_Zone_Members_Add(
         uint32_t object_instance,
-        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *data);
+        const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *data);
     BACNET_STACK_EXPORT
     void Life_Safety_Zone_Members_Clear(
         uint32_t object_instance);

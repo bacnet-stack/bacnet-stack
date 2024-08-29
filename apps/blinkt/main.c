@@ -343,7 +343,7 @@ int main(int argc, char *argv[])
     unsigned int target_args = 0;
     uint32_t device_id = BACNET_MAX_INSTANCE;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {

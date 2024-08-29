@@ -20,7 +20,7 @@ bool rs485_rts_enabled(void);
 bool rs485_byte_available(uint8_t *data_register);
 bool rs485_receive_error(void);
 
-void rs485_bytes_send(uint8_t *buffer, uint16_t nbytes);
+void rs485_bytes_send(const uint8_t *buffer, uint16_t nbytes);
 
 uint32_t rs485_baud_rate(void);
 bool rs485_baud_rate_set(uint32_t baud);

@@ -92,7 +92,7 @@ BACNET_STACK_EXPORT
 bool Load_Control_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
-bool Load_Control_Name_Set(uint32_t object_instance, char *new_name);
+bool Load_Control_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
 const char *Load_Control_Name_ASCII(uint32_t object_instance);
 
@@ -103,7 +103,7 @@ BACNET_STACK_EXPORT
 bool Load_Control_Shed_Level_Array_Set(
     uint32_t object_instance,
     uint32_t array_index,
-    struct shed_level_data *value);
+    const struct shed_level_data *value);
 BACNET_STACK_EXPORT
 bool Load_Control_Shed_Level_Array(
     uint32_t object_instance,
@@ -133,7 +133,7 @@ bool Load_Control_Manipulated_Variable_Reference(
 BACNET_STACK_EXPORT
 bool Load_Control_Manipulated_Variable_Reference_Set(
     uint32_t object_instance,
-    BACNET_OBJECT_PROPERTY_REFERENCE *object_property_reference);
+    const BACNET_OBJECT_PROPERTY_REFERENCE *object_property_reference);
 
 BACNET_STACK_EXPORT
 void Load_Control_Manipulated_Object_Write_Callback_Set(
@@ -158,7 +158,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 /* functions used for unit testing */
 BACNET_STACK_EXPORT
-void Load_Control_State_Machine(int object_index, BACNET_DATE_TIME *bdatetime);
+void Load_Control_State_Machine(int object_index, const BACNET_DATE_TIME *bdatetime);
 
 #ifdef __cplusplus
 }

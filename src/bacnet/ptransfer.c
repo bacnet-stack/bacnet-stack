@@ -15,7 +15,7 @@
 /* encode service */
 static int pt_encode_apdu(uint8_t *apdu,
     uint16_t max_apdu,
-    BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    const BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -50,7 +50,7 @@ static int pt_encode_apdu(uint8_t *apdu,
 
 int ptransfer_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
-    BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    const BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -70,7 +70,7 @@ int ptransfer_encode_apdu(uint8_t *apdu,
 }
 
 int uptransfer_encode_apdu(
-    uint8_t *apdu, BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    uint8_t *apdu, const BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -134,7 +134,7 @@ int ptransfer_error_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code,
-    BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    const BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0; /* length of the part of the encoding */
@@ -266,7 +266,7 @@ int ptransfer_error_decode_service_request(uint8_t *apdu,
 
 int ptransfer_ack_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
-    BACNET_PRIVATE_TRANSFER_DATA *private_data)
+    const BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */

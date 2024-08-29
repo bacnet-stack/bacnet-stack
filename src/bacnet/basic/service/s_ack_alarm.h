@@ -28,11 +28,11 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu, uint16_t pdu_size,
-    BACNET_ALARM_ACK_DATA *data, BACNET_ADDRESS *dest);
+    const BACNET_ALARM_ACK_DATA *data, BACNET_ADDRESS *dest);
 
 BACNET_STACK_EXPORT
 uint8_t Send_Alarm_Acknowledgement(uint32_t device_id,
-                                   BACNET_ALARM_ACK_DATA* data);
+                                   const BACNET_ALARM_ACK_DATA* data);
 
 #ifdef __cplusplus
 }

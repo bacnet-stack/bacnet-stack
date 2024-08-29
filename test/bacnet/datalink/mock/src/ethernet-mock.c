@@ -45,7 +45,7 @@ uint16_t ethernet_receive(
     return ztest_get_return_value();
 }
 
-void ethernet_set_my_address(BACNET_ADDRESS *my_address)
+void ethernet_set_my_address(const BACNET_ADDRESS *my_address)
 {
     ztest_check_expected_data(my_address, sizeof(BACNET_ADDRESS));
 }
@@ -60,7 +60,7 @@ void ethernet_get_broadcast_address(BACNET_ADDRESS *dest)
     ztest_copy_return_data(dest, sizeof(BACNET_ADDRESS));
 }
 
-void ethernet_debug_address(const char *info, BACNET_ADDRESS *dest)
+void ethernet_debug_address(const char *info, const BACNET_ADDRESS *dest)
 {
     ztest_check_expected_value(info);
     ztest_check_expected_value(dest);

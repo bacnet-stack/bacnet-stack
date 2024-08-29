@@ -259,7 +259,7 @@ bool Load_Control_Object_Name(
  * @param  new_name - holds the object-name to be set
  * @return  true if object-name was set
  */
-bool Load_Control_Name_Set(uint32_t object_instance, char *new_name)
+bool Load_Control_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false;
     struct object_data *pObject;
@@ -359,7 +359,8 @@ static float Requested_Shed_Level_Value(struct object_data *pObject)
  * @param dest - destination data
  * @param src - source data
  */
-static void Shed_Level_Copy(BACNET_SHED_LEVEL *dest, BACNET_SHED_LEVEL *src)
+static void Shed_Level_Copy(
+    BACNET_SHED_LEVEL *dest, const BACNET_SHED_LEVEL *src)
 {
     if (dest && src) {
         dest->type = src->type;
@@ -445,7 +446,7 @@ static bool Able_To_Meet_Shed_Request(struct object_data *pObject)
  * @param object_index - object index in the list
  * @param bdatetime - current date and time
  */
-void Load_Control_State_Machine(int object_index, BACNET_DATE_TIME *bdatetime)
+void Load_Control_State_Machine(int object_index, const BACNET_DATE_TIME *bdatetime)
 {
     int diff = 0; /* used for datetime comparison */
     float amount;
@@ -799,7 +800,7 @@ bool Load_Control_Manipulated_Variable_Reference(
  */
 bool Load_Control_Manipulated_Variable_Reference_Set(
     uint32_t object_instance,
-    BACNET_OBJECT_PROPERTY_REFERENCE *object_property_reference)
+    const BACNET_OBJECT_PROPERTY_REFERENCE *object_property_reference)
 {
     bool status = false;
     struct object_data *pObject;
@@ -908,7 +909,8 @@ static int Load_Control_Shed_Level_Descriptions_Encode(
  * @param value [in] The value to encode
  * @return The length of the apdu encoded
  */
-static int BACnet_Shed_Level_Encode(uint8_t *apdu, BACNET_SHED_LEVEL *value)
+static int BACnet_Shed_Level_Encode(
+    uint8_t *apdu, const BACNET_SHED_LEVEL *value)
 {
     int apdu_len = 0;
 
@@ -1095,7 +1097,7 @@ int Load_Control_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
  */
 static bool Load_Control_Requested_Shed_Level_Write(
     uint32_t object_instance,
-    BACNET_SHED_LEVEL *value,
+    const BACNET_SHED_LEVEL *value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -1188,7 +1190,7 @@ static bool Load_Control_Requested_Shed_Level_Write(
  */
 static bool Load_Control_Start_Time_Write(
     uint32_t object_instance,
-    BACNET_DATE_TIME *value,
+    const BACNET_DATE_TIME *value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -1602,7 +1604,7 @@ void Load_Control_Manipulated_Object_Read_Callback_Set(
 bool Load_Control_Shed_Level_Array_Set(
     uint32_t object_instance,
     uint32_t array_index,
-    struct shed_level_data *value)
+    const struct shed_level_data *value)
 {
     int key_index;
     struct shed_level_data *entry;

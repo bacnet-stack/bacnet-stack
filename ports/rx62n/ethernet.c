@@ -174,7 +174,7 @@ uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
     return pdu_len;
 }
 
-void ethernet_set_my_address(BACNET_ADDRESS *my_address)
+void ethernet_set_my_address(const BACNET_ADDRESS *my_address)
 {
     int i = 0;
 
