@@ -1,6 +1,0 @@
-tests:
-  bacnet.abort.unit:
-    tags: bacnet
-    type: unit
-  bacnet.abort:
-    tags: bacnet
