@@ -18,7 +18,8 @@
  * @param day [in] Value to encode
  * @return Number of bytes encoded, or  BACNET_STATUS_ERROR if an error occurs
  */
-int bacnet_dailyschedule_context_decode(const uint8_t *apdu,
+int bacnet_dailyschedule_context_decode(
+    const uint8_t *apdu,
     int apdu_size,
     uint8_t tag_number,
     BACNET_DAILY_SCHEDULE *day)
@@ -32,9 +33,9 @@ int bacnet_dailyschedule_context_decode(const uint8_t *apdu,
     if (apdu == NULL) {
         return BACNET_STATUS_ERROR;
     }
-    len = bacnet_time_values_context_decode(apdu, apdu_size,
-        tag_number, &day->Time_Values[0], ARRAY_SIZE(day->Time_Values),
-        &tv_count);
+    len = bacnet_time_values_context_decode(
+        apdu, apdu_size, tag_number, &day->Time_Values[0],
+        ARRAY_SIZE(day->Time_Values), &tv_count);
     if (len < 0) {
         return BACNET_STATUS_ERROR;
     }

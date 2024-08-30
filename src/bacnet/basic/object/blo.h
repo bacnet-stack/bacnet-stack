@@ -53,13 +53,14 @@ BACNET_STACK_EXPORT
 bool Binary_Lighting_Output_Object_Instance_Add(uint32_t instance);
 
 BACNET_STACK_EXPORT
-BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Present_Value(
-    uint32_t object_instance);
+BACNET_BINARY_LIGHTING_PV
+Binary_Lighting_Output_Present_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
-unsigned Binary_Lighting_Output_Present_Value_Priority(
-    uint32_t object_instance);
+unsigned
+Binary_Lighting_Output_Present_Value_Priority(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Binary_Lighting_Output_Present_Value_Set(uint32_t object_instance,
+bool Binary_Lighting_Output_Present_Value_Set(
+    uint32_t object_instance,
     BACNET_BINARY_LIGHTING_PV value,
     unsigned priority);
 BACNET_STACK_EXPORT
@@ -67,15 +68,14 @@ bool Binary_Lighting_Output_Present_Value_Relinquish(
     uint32_t object_instance, unsigned priority);
 
 BACNET_STACK_EXPORT
-BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Relinquish_Default(
-    uint32_t object_instance);
+BACNET_BINARY_LIGHTING_PV
+Binary_Lighting_Output_Relinquish_Default(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Binary_Lighting_Output_Relinquish_Default_Set(
     uint32_t object_instance, BACNET_BINARY_LIGHTING_PV value);
 
 BACNET_STACK_EXPORT
-BACNET_RELIABILITY Binary_Lighting_Output_Reliability(
-    uint32_t object_instance);
+BACNET_RELIABILITY Binary_Lighting_Output_Reliability(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Binary_Lighting_Output_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value);
@@ -102,18 +102,20 @@ void Binary_Lighting_Output_Out_Of_Service_Set(
     uint32_t instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
-BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Lighting_Command_Target_Value(
-    uint32_t object_instance);
+BACNET_BINARY_LIGHTING_PV
+Binary_Lighting_Output_Lighting_Command_Target_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
 unsigned Binary_Lighting_Output_Lighting_Command_Target_Priority(
     uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Binary_Lighting_Output_Lighting_Command_Set(
-    uint32_t object_instance, BACNET_BINARY_LIGHTING_PV value, unsigned priority);
+    uint32_t object_instance,
+    BACNET_BINARY_LIGHTING_PV value,
+    unsigned priority);
 
 BACNET_STACK_EXPORT
-BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Feedback_Value(
-    uint32_t object_instance);
+BACNET_BINARY_LIGHTING_PV
+Binary_Lighting_Output_Feedback_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Binary_Lighting_Output_Feedback_Value_Set(
     uint32_t object_instance, BACNET_BINARY_LIGHTING_PV value);

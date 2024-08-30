@@ -39,9 +39,12 @@ static NOTIFICATION_CLASS_INFO NC_Info[MAX_NOTIFICATION_CLASSES];
 static uint8_t Event_Buffer[MAX_APDU];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Notification_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_NOTIFICATION_CLASS, PROP_PRIORITY,
-    PROP_ACK_REQUIRED, PROP_RECIPIENT_LIST, -1 };
+static const int Notification_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,       PROP_NOTIFICATION_CLASS,
+    PROP_PRIORITY,          PROP_ACK_REQUIRED,
+    PROP_RECIPIENT_LIST,    -1
+};
 
 static const int Notification_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
@@ -50,12 +53,15 @@ static const int Notification_Properties_Proprietary[] = { -1 };
 void Notification_Class_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Notification_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Notification_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Notification_Properties_Proprietary;
+    }
     return;
 }
 
@@ -92,8 +98,9 @@ bool Notification_Class_Valid_Instance(uint32_t object_instance)
     unsigned int index;
 
     index = Notification_Class_Instance_To_Index(object_instance);
-    if (index < MAX_NOTIFICATION_CLASSES)
+    if (index < MAX_NOTIFICATION_CLASSES) {
         return true;
+    }
 
     return false;
 }
@@ -120,8 +127,9 @@ unsigned Notification_Class_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_NOTIFICATION_CLASSES;
 
-    if (object_instance < MAX_NOTIFICATION_CLASSES)
+    if (object_instance < MAX_NOTIFICATION_CLASSES) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -135,7 +143,8 @@ bool Notification_Class_Object_Name(
 
     index = Notification_Class_Instance_To_Index(object_instance);
     if (index < MAX_NOTIFICATION_CLASSES) {
-        snprintf(text, sizeof(text), "NOTIFICATION CLASS %lu",
+        snprintf(
+            text, sizeof(text), "NOTIFICATION CLASS %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
@@ -189,18 +198,22 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_PRIORITY:
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len += encode_application_unsigned(&apdu[0], 3);
-            else {
+            } else {
                 if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                    apdu_len += encode_application_unsigned(&apdu[apdu_len],
+                    apdu_len += encode_application_unsigned(
+                        &apdu[apdu_len],
                         CurrentNotify->Priority[TRANSITION_TO_OFFNORMAL]);
-                    apdu_len += encode_application_unsigned(&apdu[apdu_len],
+                    apdu_len += encode_application_unsigned(
+                        &apdu[apdu_len],
                         CurrentNotify->Priority[TRANSITION_TO_FAULT]);
-                    apdu_len += encode_application_unsigned(&apdu[apdu_len],
+                    apdu_len += encode_application_unsigned(
+                        &apdu[apdu_len],
                         CurrentNotify->Priority[TRANSITION_TO_NORMAL]);
                 } else if (rpdata->array_index <= MAX_BACNET_EVENT_TRANSITION) {
-                    apdu_len += encode_application_unsigned(&apdu[apdu_len],
+                    apdu_len += encode_application_unsigned(
+                        &apdu[apdu_len],
                         CurrentNotify->Priority[rpdata->array_index - 1]);
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -214,11 +227,14 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             u8Val = CurrentNotify->Ack_Required;
 
             bitstring_init(&bit_string);
-            bitstring_set_bit(&bit_string, TRANSITION_TO_OFFNORMAL,
+            bitstring_set_bit(
+                &bit_string, TRANSITION_TO_OFFNORMAL,
                 (u8Val & TRANSITION_TO_OFFNORMAL_MASKED) ? true : false);
-            bitstring_set_bit(&bit_string, TRANSITION_TO_FAULT,
+            bitstring_set_bit(
+                &bit_string, TRANSITION_TO_FAULT,
                 (u8Val & TRANSITION_TO_FAULT_MASKED) ? true : false);
-            bitstring_set_bit(&bit_string, TRANSITION_TO_NORMAL,
+            bitstring_set_bit(
+                &bit_string, TRANSITION_TO_NORMAL,
                 (u8Val & TRANSITION_TO_NORMAL_MASKED) ? true : false);
             /* encode bitstring */
             apdu_len +=
@@ -323,7 +339,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                             wp_data->application_data_len, &value);
                         if ((len == 0) ||
                             (value.tag !=
-                                BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
+                             BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
                             /* Bad decode, wrong tag or following required
                              * parameter missing */
                             wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -341,17 +357,20 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         iOffset += len;
                     }
                     if (status == true) {
-                        for (idx = 0; idx < MAX_BACNET_EVENT_TRANSITION; idx++)
+                        for (idx = 0; idx < MAX_BACNET_EVENT_TRANSITION;
+                             idx++) {
                             CurrentNotify->Priority[idx] = TmpPriority[idx];
+                        }
                     }
                 } else if (wp_data->array_index <= 3) {
                     if (value.type.Unsigned_Int > 255) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                         status = false;
-                    } else
+                    } else {
                         CurrentNotify->Priority[wp_data->array_index - 1] =
                             value.type.Unsigned_Int;
+                    }
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -452,77 +471,87 @@ void Notification_Class_Get_Priorities(
 
     object_index = Notification_Class_Instance_To_Index(Object_Instance);
 
-    if (object_index < MAX_NOTIFICATION_CLASSES)
+    if (object_index < MAX_NOTIFICATION_CLASSES) {
         CurrentNotify = &NC_Info[object_index];
-    else {
-        for (i = 0; i < 3; i++)
+    } else {
+        for (i = 0; i < 3; i++) {
             pPriorityArray[i] = 255;
+        }
         return; /* unknown object */
     }
 
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < 3; i++) {
         pPriorityArray[i] = CurrentNotify->Priority[i];
+    }
 }
 
 bool Notification_Class_Get_Recipient_List(
     uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList)
 {
-  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+    uint32_t object_index =
+        Notification_Class_Instance_To_Index(Object_Instance);
 
-  if (object_index < MAX_NOTIFICATION_CLASSES) {
-    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
-    int i;
+    if (object_index < MAX_NOTIFICATION_CLASSES) {
+        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+        int i;
 
-    for (i = 0; i < NC_MAX_RECIPIENTS; i++)
-      pRecipientList[i] = CurrentNotify->Recipient_List[i];
-  } else {
-    return false; /* unknown object */
-  }
+        for (i = 0; i < NC_MAX_RECIPIENTS; i++) {
+            pRecipientList[i] = CurrentNotify->Recipient_List[i];
+        }
+    } else {
+        return false; /* unknown object */
+    }
 
-  return true;
+    return true;
 }
 
 bool Notification_Class_Set_Recipient_List(
     uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList)
 {
-  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+    uint32_t object_index =
+        Notification_Class_Instance_To_Index(Object_Instance);
 
-  if (object_index < MAX_NOTIFICATION_CLASSES) {
-    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
-    int i;
+    if (object_index < MAX_NOTIFICATION_CLASSES) {
+        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+        int i;
 
-    for (i = 0; i < NC_MAX_RECIPIENTS; i++)
-      CurrentNotify->Recipient_List[i] = pRecipientList[i];
-  } else {
-    return false; /* unknown object */
-  }
+        for (i = 0; i < NC_MAX_RECIPIENTS; i++) {
+            CurrentNotify->Recipient_List[i] = pRecipientList[i];
+        }
+    } else {
+        return false; /* unknown object */
+    }
 
-  return true;
+    return true;
 }
 
 void Notification_Class_Set_Priorities(
     uint32_t Object_Instance, uint32_t *pPriorityArray)
 {
-  uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+    uint32_t object_index =
+        Notification_Class_Instance_To_Index(Object_Instance);
 
-  if (object_index < MAX_NOTIFICATION_CLASSES) {
-    NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
-    int i;
+    if (object_index < MAX_NOTIFICATION_CLASSES) {
+        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+        int i;
 
-    for (i = 0; i < 3; i++)
-      if (pPriorityArray[i] <= 255)
-        CurrentNotify->Priority[i] = pPriorityArray[i];
-  }
+        for (i = 0; i < 3; i++) {
+            if (pPriorityArray[i] <= 255) {
+                CurrentNotify->Priority[i] = pPriorityArray[i];
+            }
+        }
+    }
 }
 
 void Notification_Class_Get_Ack_Required(
     uint32_t Object_Instance, uint8_t *pAckRequired)
 {
-    uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+    uint32_t object_index =
+        Notification_Class_Instance_To_Index(Object_Instance);
 
     if (object_index < MAX_NOTIFICATION_CLASSES) {
-      NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
-      *pAckRequired = CurrentNotify->Ack_Required;
+        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+        *pAckRequired = CurrentNotify->Ack_Required;
     } else {
         *pAckRequired = 0;
         return; /* unknown object */
@@ -532,7 +561,8 @@ void Notification_Class_Get_Ack_Required(
 void Notification_Class_Set_Ack_Required(
     uint32_t Object_Instance, uint8_t Ack_Required)
 {
-    uint32_t object_index = Notification_Class_Instance_To_Index(Object_Instance);
+    uint32_t object_index =
+        Notification_Class_Instance_To_Index(Object_Instance);
 
     if (object_index < MAX_NOTIFICATION_CLASSES) {
         NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
@@ -540,9 +570,8 @@ void Notification_Class_Set_Ack_Required(
     }
 }
 
-
-static bool IsRecipientActive(
-    BACNET_DESTINATION *pBacDest, uint8_t EventToState)
+static bool
+IsRecipientActive(BACNET_DESTINATION *pBacDest, uint8_t EventToState)
 {
     BACNET_DATE_TIME DateTime;
 
@@ -606,10 +635,11 @@ void Notification_Class_common_reporting_function(
     notify_index =
         Notification_Class_Instance_To_Index(event_data->notificationClass);
 
-    if (notify_index < MAX_NOTIFICATION_CLASSES)
+    if (notify_index < MAX_NOTIFICATION_CLASSES) {
         CurrentNotify = &NC_Info[notify_index];
-    else
+    } else {
         return;
+    }
 
     /* Initiating Device Identifier */
     event_data->initiatingObjectIdentifier.type = OBJECT_DEVICE;
@@ -651,7 +681,8 @@ void Notification_Class_common_reporting_function(
     }
 
     /* send notifications for active recipients */
-    PRINTF("Notification Class[%u]: send notifications\n",
+    PRINTF(
+        "Notification Class[%u]: send notifications\n",
         event_data->notificationClass);
     /* pointer to first recipient */
     pBacDest = &CurrentNotify->Recipient_List[0];
@@ -671,20 +702,24 @@ void Notification_Class_common_reporting_function(
             if (pBacDest->Recipient.tag == BACNET_RECIPIENT_TAG_DEVICE) {
                 /* send notification to the specified device */
                 device_id = pBacDest->Recipient.type.device.instance;
-                PRINTF("Notification Class[%u]: send notification to %u\n",
+                PRINTF(
+                    "Notification Class[%u]: send notification to %u\n",
                     event_data->notificationClass, (unsigned)device_id);
-                if (pBacDest->ConfirmedNotify == true)
+                if (pBacDest->ConfirmedNotify == true) {
                     Send_CEvent_Notify(device_id, event_data);
-                else if (address_get_by_device(device_id, &max_apdu, &dest))
+                } else if (address_get_by_device(device_id, &max_apdu, &dest)) {
                     Send_UEvent_Notify(Event_Buffer, event_data, &dest);
-            } else if (pBacDest->Recipient.tag ==
-                BACNET_RECIPIENT_TAG_ADDRESS) {
-                PRINTF("Notification Class[%u]: send notification to ADDR\n",
+                }
+            } else if (
+                pBacDest->Recipient.tag == BACNET_RECIPIENT_TAG_ADDRESS) {
+                PRINTF(
+                    "Notification Class[%u]: send notification to ADDR\n",
                     event_data->notificationClass);
                 /* send notification to the address indicated */
                 if (pBacDest->ConfirmedNotify == true) {
-                    if (address_get_device_id(&dest, &device_id))
+                    if (address_get_device_id(&dest, &device_id)) {
                         Send_CEvent_Notify(device_id, event_data);
+                    }
                 } else {
                     dest = pBacDest->Recipient.type.address;
                     Send_UEvent_Notify(Event_Buffer, event_data, &dest);

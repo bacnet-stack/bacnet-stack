@@ -158,7 +158,8 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 /* functions used for unit testing */
 BACNET_STACK_EXPORT
-void Load_Control_State_Machine(int object_index, const BACNET_DATE_TIME *bdatetime);
+void Load_Control_State_Machine(
+    int object_index, const BACNET_DATE_TIME *bdatetime);
 
 #ifdef __cplusplus
 }

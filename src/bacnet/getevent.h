@@ -31,62 +31,52 @@ typedef struct BACnet_Get_Event_Information_Data {
 /* return 0 if no active event at this index
    return -1 if end of list
    return +1 if active event */
-typedef int (
-    *get_event_info_function) (
-    unsigned index,
-    BACNET_GET_EVENT_INFORMATION_DATA * getevent_data);
+typedef int (*get_event_info_function)(
+    unsigned index, BACNET_GET_EVENT_INFORMATION_DATA *getevent_data);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int getevent_apdu_encode(
-        uint8_t *apdu,
-        const BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
+BACNET_STACK_EXPORT
+int getevent_apdu_encode(
+    uint8_t *apdu, const BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
 
-    BACNET_STACK_DEPRECATED("Use getevent_apdu_encode() instead")
-    BACNET_STACK_EXPORT
-    int getevent_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        const BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
+BACNET_STACK_DEPRECATED("Use getevent_apdu_encode() instead")
+BACNET_STACK_EXPORT
+int getevent_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    const BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
 
-    BACNET_STACK_EXPORT
-    size_t getevent_service_request_encode(
-        uint8_t *apdu, size_t apdu_size,
-        const BACNET_OBJECT_ID *data);
+BACNET_STACK_EXPORT
+size_t getevent_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_OBJECT_ID *data);
 
-    BACNET_STACK_EXPORT
-    int getevent_decode_service_request(
-        const uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_OBJECT_ID * object_id);
+BACNET_STACK_EXPORT
+int getevent_decode_service_request(
+    const uint8_t *apdu, unsigned apdu_len, BACNET_OBJECT_ID *object_id);
 
-    BACNET_STACK_EXPORT
-    int getevent_ack_encode_apdu_init(
-        uint8_t * apdu,
-        size_t max_apdu,
-        uint8_t invoke_id);
+BACNET_STACK_EXPORT
+int getevent_ack_encode_apdu_init(
+    uint8_t *apdu, size_t max_apdu, uint8_t invoke_id);
 
-    BACNET_STACK_EXPORT
-    int getevent_ack_encode_apdu_data(
-        uint8_t * apdu,
-        size_t max_apdu,
-        BACNET_GET_EVENT_INFORMATION_DATA * get_event_data);
+BACNET_STACK_EXPORT
+int getevent_ack_encode_apdu_data(
+    uint8_t *apdu,
+    size_t max_apdu,
+    BACNET_GET_EVENT_INFORMATION_DATA *get_event_data);
 
-    BACNET_STACK_EXPORT
-    int getevent_ack_encode_apdu_end(
-        uint8_t * apdu,
-        size_t max_apdu,
-        bool moreEvents);
+BACNET_STACK_EXPORT
+int getevent_ack_encode_apdu_end(
+    uint8_t *apdu, size_t max_apdu, bool moreEvents);
 
-    BACNET_STACK_EXPORT
-    int getevent_ack_decode_service_request(
-        const uint8_t * apdu,
-        int apdu_len,   /* total length of the apdu */
-        BACNET_GET_EVENT_INFORMATION_DATA * get_event_data,
-        bool * moreEvents);
+BACNET_STACK_EXPORT
+int getevent_ack_decode_service_request(
+    const uint8_t *apdu,
+    int apdu_len, /* total length of the apdu */
+    BACNET_GET_EVENT_INFORMATION_DATA *get_event_data,
+    bool *moreEvents);
 
 #ifdef __cplusplus
 }

@@ -169,7 +169,8 @@ const char *indtext_by_index_default(
  * @param default_name - default string to return if the index is not found
  * @return the string found, or a default string
  */
-const char *indtext_by_index_split_default(INDTEXT_DATA *data_list,
+const char *indtext_by_index_split_default(
+    INDTEXT_DATA *data_list,
     unsigned index,
     unsigned split_index,
     const char *before_split_default_name,

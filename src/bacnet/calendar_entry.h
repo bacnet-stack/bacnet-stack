@@ -46,7 +46,6 @@ typedef struct BACnetCalendarEntry_T {
     struct BACnetCalendarEntry_T *next;
 } BACNET_CALENDAR_ENTRY;
 
-
 BACNET_STACK_EXPORT
 int bacnet_calendar_entry_encode(
     uint8_t *apdu, const BACNET_CALENDAR_ENTRY *value);
@@ -61,12 +60,14 @@ int bacnet_calendar_entry_decode(
 
 BACNET_STACK_EXPORT
 int bacnet_calendar_entry_context_decode(
-    const uint8_t *apdu, uint32_t apdu_max_len, uint8_t tag_number,
+    const uint8_t *apdu,
+    uint32_t apdu_max_len,
+    uint8_t tag_number,
     BACNET_CALENDAR_ENTRY *value);
 
 BACNET_STACK_EXPORT
-bool bacapp_date_in_calendar_entry(const BACNET_DATE *date,
-    const BACNET_CALENDAR_ENTRY *entry);
+bool bacapp_date_in_calendar_entry(
+    const BACNET_DATE *date, const BACNET_CALENDAR_ENTRY *entry);
 
 BACNET_STACK_EXPORT
 bool bacnet_calendar_entry_same(

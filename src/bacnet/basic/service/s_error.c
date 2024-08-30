@@ -35,7 +35,8 @@
  *
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int error_encode_pdu(uint8_t *buffer,
+int error_encode_pdu(
+    uint8_t *buffer,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data,
@@ -68,7 +69,8 @@ int error_encode_pdu(uint8_t *buffer,
  *
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int Send_Error_To_Network(uint8_t *buffer,
+int Send_Error_To_Network(
+    uint8_t *buffer,
     BACNET_ADDRESS *dest,
     uint8_t invoke_id,
     BACNET_CONFIRMED_SERVICE service,
@@ -81,8 +83,9 @@ int Send_Error_To_Network(uint8_t *buffer,
     BACNET_NPDU_DATA npdu_data;
 
     datalink_get_my_address(&src);
-    pdu_len = error_encode_pdu(buffer, dest, &src, &npdu_data, invoke_id,
-        service, error_class, error_code);
+    pdu_len = error_encode_pdu(
+        buffer, dest, &src, &npdu_data, invoke_id, service, error_class,
+        error_code);
     bytes_sent = datalink_send_pdu(dest, &npdu_data, &buffer[0], pdu_len);
 
     return bytes_sent;

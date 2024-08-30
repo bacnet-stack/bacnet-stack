@@ -23,7 +23,7 @@ static int32_t Time_Offset; /* Time offset in ms */
 /**
  * @brief Calculate the time offset from the system clock.
  * @return Time offset in ms
-  */
+ */
 static int32_t time_difference(struct timeval t0, struct timeval t1)
 {
     return (t0.tv_sec - t1.tv_sec) * 1000 + (t0.tv_usec - t1.tv_usec) / 1000;

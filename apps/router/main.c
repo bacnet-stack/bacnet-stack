@@ -140,8 +140,8 @@ int main(int argc, char *argv[])
                         if (is_network_msg(bacmsg)) {
                             msg_data->ref_count = 1;
                             send_to_msgbox(msg_src, &msg_storage);
-                        } else if (msg_data->dest.net !=
-                            BACNET_BROADCAST_NETWORK) {
+                        } else if (
+                            msg_data->dest.net != BACNET_BROADCAST_NETWORK) {
                             msg_data->ref_count = 1;
                             port =
                                 find_dnet(msg_data->dest.net, &msg_data->dest);
@@ -212,7 +212,8 @@ bool read_config(const char *filepath)
 
     /* open configuration file */
     if (!config_read_file(&cfg, filepath)) {
-        PRINT(ERROR, "Config file error: %d - %s\n", config_error_line(&cfg),
+        PRINT(
+            ERROR, "Config file error: %d - %s\n", config_error_line(&cfg),
             config_error_text(&cfg));
         config_destroy(&cfg);
         return false;
@@ -261,13 +262,15 @@ bool read_config(const char *filepath)
                     fd = socket(AF_INET, SOCK_DGRAM, 0);
                     if (fd) {
                         struct ifreq ifr;
-                        strncpy(ifr.ifr_name, current->iface,
+                        strncpy(
+                            ifr.ifr_name, current->iface,
                             sizeof(ifr.ifr_name) - 1);
                         result = ioctl(fd, SIOCGIFADDR, &ifr);
                         if (result != -1) {
                             close(fd);
                         } else {
-                            PRINT(ERROR,
+                            PRINT(
+                                ERROR,
                                 "Error: Invalid interface for BIP device\n");
                             return false;
                         }
@@ -304,7 +307,8 @@ bool read_config(const char *filepath)
                     if (fd != -1) {
                         close(fd);
                     } else {
-                        PRINT(ERROR,
+                        PRINT(
+                            ERROR,
                             "Error: Invalid interface for MSTP device\n");
                         return false;
                     }
@@ -465,13 +469,15 @@ bool parse_cmd(int argc, char *argv[])
                     fd = socket(AF_INET, SOCK_DGRAM, 0);
                     if (fd) {
                         struct ifreq ifr;
-                        strncpy(ifr.ifr_name, current->iface,
+                        strncpy(
+                            ifr.ifr_name, current->iface,
                             sizeof(ifr.ifr_name) - 1);
                         result = ioctl(fd, SIOCGIFADDR, &ifr);
                         if (result != -1) {
                             close(fd);
                         } else {
-                            PRINT(ERROR,
+                            PRINT(
+                                ERROR,
                                 "Error: Invalid interface for BIP device \n");
                             return false;
                         }
@@ -520,7 +526,8 @@ bool parse_cmd(int argc, char *argv[])
                     if (fd != -1) {
                         close(fd);
                     } else {
-                        PRINT(ERROR,
+                        PRINT(
+                            ERROR,
                             "Error: Invalid interface for MSTP device\n");
                         return false;
                     }
@@ -755,8 +762,8 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
     memmove(data, msg->data, sizeof(MSG_DATA));
 
-    apdu_offset = bacnet_npdu_decode(data->pdu, data->pdu_len, &data->dest,
-        &addr, &npdu_data);
+    apdu_offset = bacnet_npdu_decode(
+        data->pdu, data->pdu_len, &data->dest, &addr, &npdu_data);
     apdu_len = data->pdu_len - apdu_offset;
 
     srcport = find_snet(msg->origin);
@@ -787,7 +794,8 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
         *buff = (uint8_t *)malloc(buff_len);
         memmove(*buff, npdu, npdu_len); /* copy newly formed NPDU */
-        memmove(*buff + npdu_len, &data->pdu[apdu_offset],
+        memmove(
+            *buff + npdu_len, &data->pdu[apdu_offset],
             apdu_len); /* copy APDU */
 
     } else {

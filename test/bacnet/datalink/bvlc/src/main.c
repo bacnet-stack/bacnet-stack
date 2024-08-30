@@ -365,8 +365,8 @@ static void test_BVLC_Delete_Foreign_Device(void)
     test_BVLC_Delete_Foreign_Device_Message(&fdt_entry);
 }
 
-static void test_BVLC_Secure_BVLL_Message(
-    const uint8_t *sbuf, uint16_t sbuf_len)
+static void
+test_BVLC_Secure_BVLL_Message(const uint8_t *sbuf, uint16_t sbuf_len)
 {
     uint8_t test_sbuf[50] = { 0 };
     uint8_t pdu[60] = { 0 };

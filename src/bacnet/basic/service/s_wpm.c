@@ -40,7 +40,8 @@
  * @return invoke id of outgoing message, or 0 if device is not bound or no tsm
  * available
  */
-uint8_t Send_Write_Property_Multiple_Request(uint8_t *pdu,
+uint8_t Send_Write_Property_Multiple_Request(
+    uint8_t *pdu,
     size_t max_pdu,
     uint32_t device_id,
     BACNET_WRITE_ACCESS_DATA *write_access_data)
@@ -93,7 +94,8 @@ uint8_t Send_Write_Property_Multiple_Request(uint8_t *pdu,
                 datalink_send_pdu(&dest, &npdu_data, &pdu[0], pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0) {
-                fprintf(stderr,
+                fprintf(
+                    stderr,
                     "Failed to Send WritePropertyMultiple Request (%s)!\n",
                     strerror(errno));
             }
@@ -102,7 +104,8 @@ uint8_t Send_Write_Property_Multiple_Request(uint8_t *pdu,
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send WritePropertyMultiple Request "
                 "(exceeds destination maximum APDU)!\n");
 #endif

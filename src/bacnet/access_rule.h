@@ -36,29 +36,20 @@ typedef struct {
     bool enable;
 } BACNET_ACCESS_RULE;
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int bacapp_encode_access_rule(
-        uint8_t * apdu,
-        const BACNET_ACCESS_RULE * rule);
-    BACNET_STACK_EXPORT
-    int bacapp_encode_context_access_rule(
-        uint8_t * apdu,
-        uint8_t tag_number,
-        const BACNET_ACCESS_RULE * rule);
-    BACNET_STACK_EXPORT
-    int bacapp_decode_access_rule(
-        const uint8_t * apdu,
-        BACNET_ACCESS_RULE * rule);
-    BACNET_STACK_EXPORT
-    int bacapp_decode_context_access_rule(
-        const uint8_t * apdu,
-        uint8_t tag_number,
-        BACNET_ACCESS_RULE * rule);
+BACNET_STACK_EXPORT
+int bacapp_encode_access_rule(uint8_t *apdu, const BACNET_ACCESS_RULE *rule);
+BACNET_STACK_EXPORT
+int bacapp_encode_context_access_rule(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_ACCESS_RULE *rule);
+BACNET_STACK_EXPORT
+int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *rule);
+BACNET_STACK_EXPORT
+int bacapp_decode_context_access_rule(
+    const uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *rule);
 
 #ifdef __cplusplus
 }

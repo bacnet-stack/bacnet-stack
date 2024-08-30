@@ -1,10 +1,10 @@
 /**************************************************************************
-*
-* Copyright (C) 2010 Steve Karg <skarg@users.sourceforge.net>
-*
-* SPDX-License-Identifier: MIT
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2010 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ *********************************************************************/
 #ifndef BACNET_H
 #define BACNET_H
 
@@ -14,10 +14,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    void bacnet_init(
-        void);
-    void bacnet_task(
-        void);
+void bacnet_init(void);
+void bacnet_task(void);
 
 #ifdef __cplusplus
 }

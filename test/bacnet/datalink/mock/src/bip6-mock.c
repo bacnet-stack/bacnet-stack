@@ -96,7 +96,8 @@ bool bip6_set_broadcast_addr(const BACNET_IP6_ADDRESS *addr)
     return ztest_get_return_value();
 }
 
-int bip6_send_mpdu(const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
+int bip6_send_mpdu(
+    const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     ztest_check_expected_value(dest);
     ztest_check_expected_data(mtu, mtu_len);

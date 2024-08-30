@@ -37,7 +37,8 @@
  * @param cov_data [in]  The COV update information to be encoded.
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int ucov_notify_encode_pdu(uint8_t *buffer,
+int ucov_notify_encode_pdu(
+    uint8_t *buffer,
     unsigned buffer_len,
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
@@ -133,7 +134,8 @@ uint8_t Send_COV_Subscribe(
                 sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id, cov_data);
         } else {
             /* subscribe to object */
-            len = cov_subscribe_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            len = cov_subscribe_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len],
                 sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id, cov_data);
         }
         pdu_len += len;
@@ -143,13 +145,15 @@ uint8_t Send_COV_Subscribe(
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
 #if PRINT_ENABLED
-                fprintf(stderr, "Failed to Send SubscribeCOV Request (%s)!\n",
+                fprintf(
+                    stderr, "Failed to Send SubscribeCOV Request (%s)!\n",
                     strerror(errno));
 #endif
             }
@@ -157,7 +161,8 @@ uint8_t Send_COV_Subscribe(
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send SubscribeCOV Request "
                 "(exceeds destination maximum APDU)!\n");
 #endif

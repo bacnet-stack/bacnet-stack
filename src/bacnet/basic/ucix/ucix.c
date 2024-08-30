@@ -15,7 +15,8 @@
 
 static struct uci_ptr ptr;
 
-static __inline__ int ucix_get_ptr(struct uci_context *ctx,
+static __inline__ int ucix_get_ptr(
+    struct uci_context *ctx,
     const char *p,
     const char *s,
     const char *o,
@@ -81,8 +82,9 @@ const char *ucix_get_option(
     if (ucix_get_ptr(ctx, p, s, o, NULL)) {
         return NULL;
     }
-    if (!(ptr.flags & UCI_LOOKUP_COMPLETE))
+    if (!(ptr.flags & UCI_LOOKUP_COMPLETE)) {
         return NULL;
+    }
     e = ptr.last;
     switch (e->type) {
         case UCI_TYPE_SECTION:
@@ -105,7 +107,8 @@ const char *ucix_get_option(
     return value;
 }
 
-int ucix_get_option_int(struct uci_context *ctx,
+int ucix_get_option_int(
+    struct uci_context *ctx,
     const char *p,
     const char *s,
     const char *o,
@@ -129,7 +132,8 @@ void ucix_add_section(
     uci_set(ctx, &ptr);
 }
 
-void ucix_add_option(struct uci_context *ctx,
+void ucix_add_option(
+    struct uci_context *ctx,
     const char *p,
     const char *s,
     const char *o,
@@ -165,7 +169,8 @@ void ucix_revert(
     }
 }
 
-void ucix_for_each_section_type(struct uci_context *ctx,
+void ucix_for_each_section_type(
+    struct uci_context *ctx,
     const char *p,
     const char *t,
     void (*cb)(const char *, void *),
@@ -175,8 +180,9 @@ void ucix_for_each_section_type(struct uci_context *ctx,
     if (ucix_get_ptr(ctx, p, NULL, NULL, NULL)) {
         return;
     }
-    uci_foreach_element(&ptr.p->sections,
-        e) if (!strcmp(t, uci_to_section(e)->type)) cb(e->name, priv);
+    uci_foreach_element(
+        &ptr.p->sections, e) if (!strcmp(t, uci_to_section(e)->type))
+        cb(e->name, priv);
 }
 
 int ucix_commit(struct uci_context *ctx, const char *p)

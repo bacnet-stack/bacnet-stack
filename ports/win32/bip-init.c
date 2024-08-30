@@ -44,13 +44,15 @@ static bool BIP_Debug;
  * @param str - debug info string
  * @param addr - IPv4 address
  */
-static void debug_print_ipv4(const char *str,
+static void debug_print_ipv4(
+    const char *str,
     const struct in_addr *addr,
     const unsigned int port,
     const unsigned int count)
 {
     if (BIP_Debug) {
-        fprintf(stderr, "BIP: %s %s:%hu (%u bytes)\n", str, inet_ntoa(*addr),
+        fprintf(
+            stderr, "BIP: %s %s:%hu (%u bytes)\n", str, inet_ntoa(*addr),
             ntohs(port), count);
         fflush(stderr);
     }
@@ -222,7 +224,8 @@ static char *winsock_error_code_text(int code)
 static void print_last_error(const char *info)
 {
     int Code = WSAGetLastError();
-    fprintf(stderr, "BIP: %s [error code %i] %s\n", info, Code,
+    fprintf(
+        stderr, "BIP: %s [error code %i] %s\n", info, Code,
         winsock_error_code_text(Code));
     fflush(stderr);
 }
@@ -433,8 +436,9 @@ int bip_send_mpdu(
     /* Send the packet */
     debug_print_ipv4(
         "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
-    rv = sendto(BIP_Socket, (const char *)mtu, mtu_len, 0,
-        (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
+    rv = sendto(
+        BIP_Socket, (const char *)mtu, mtu_len, 0, (struct sockaddr *)&bip_dest,
+        sizeof(struct sockaddr));
     if (rv == SOCKET_ERROR) {
         print_last_error("sendto");
     }
@@ -490,10 +494,11 @@ uint16_t bip_receive(
 
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        socket = FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket :
-            BIP_Broadcast_Socket;
-        received_bytes = recvfrom(socket, (char *)&npdu[0], max_npdu, 0,
-            (struct sockaddr *)&sin, &sin_len);
+        socket =
+            FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket : BIP_Broadcast_Socket;
+        received_bytes = recvfrom(
+            socket, (char *)&npdu[0], max_npdu, 0, (struct sockaddr *)&sin,
+            &sin_len);
     } else {
         return 0;
     }
@@ -530,9 +535,9 @@ uint16_t bip_receive(
     debug_print_ipv4(
         "Received MPDU->", &sin.sin_addr, sin.sin_port, received_bytes);
     /* pass the packet into the BBMD handler */
-    offset = socket == BIP_Socket ?
-        bvlc_handler(&addr, src, npdu, received_bytes) :
-        bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
+    offset = socket == BIP_Socket
+        ? bvlc_handler(&addr, src, npdu, received_bytes)
+        : bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
     if (offset > 0) {
         npdu_len = received_bytes - offset;
         if (npdu_len <= max_npdu) {
@@ -560,7 +565,8 @@ uint16_t bip_receive(
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip_send_pdu(BACNET_ADDRESS *dest,
+int bip_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
@@ -612,7 +618,8 @@ static long gethostaddr(void)
         exit(1);
     }
     if (BIP_Debug) {
-        fprintf(stderr, "BIP: host %s at %u.%u.%u.%u\n", host_name,
+        fprintf(
+            stderr, "BIP: host %s at %u.%u.%u.%u\n", host_name,
             (unsigned)((uint8_t *)host_ent->h_addr)[0],
             (unsigned)((uint8_t *)host_ent->h_addr)[1],
             (unsigned)((uint8_t *)host_ent->h_addr)[2],
@@ -685,8 +692,7 @@ int bip_get_local_netmask(struct in_addr *netmask)
  * @param baddr The broadcast socket binding address, in host order.
  * @return 0 on success
  */
-int bip_set_broadcast_binding(
-    const char *ip4_broadcast)
+int bip_set_broadcast_binding(const char *ip4_broadcast)
 {
     BIP_Broadcast_Binding_Address.s_addr = inet_addr(ip4_broadcast);
     BIP_Broadcast_Binding_Address_Override = true;
@@ -699,20 +705,21 @@ static void set_broadcast_address(uint32_t net_address)
 #ifdef BACNET_IP_BROADCAST_USE_CLASSADDR
     long broadcast_address = 0;
 
-    if (IN_CLASSA(ntohl(net_address)))
+    if (IN_CLASSA(ntohl(net_address))) {
         broadcast_address =
             (ntohl(net_address) & ~IN_CLASSA_HOST) | IN_CLASSA_HOST;
-    else if (IN_CLASSB(ntohl(net_address)))
+    } else if (IN_CLASSB(ntohl(net_address))) {
         broadcast_address =
             (ntohl(net_address) & ~IN_CLASSB_HOST) | IN_CLASSB_HOST;
-    else if (IN_CLASSC(ntohl(net_address)))
+    } else if (IN_CLASSC(ntohl(net_address))) {
         broadcast_address =
             (ntohl(net_address) & ~IN_CLASSC_HOST) | IN_CLASSC_HOST;
-    else if (IN_CLASSD(ntohl(net_address)))
+    } else if (IN_CLASSD(ntohl(net_address))) {
         broadcast_address =
             (ntohl(net_address) & ~IN_CLASSD_HOST) | IN_CLASSD_HOST;
-    else
+    } else {
         broadcast_address = INADDR_BROADCAST;
+    }
     BIP_Broadcast_Addr.s_addr = htonl(broadcast_address);
 #else
     /* these are network byte order variables */
@@ -830,9 +837,11 @@ bool bip_init(char *ifname)
     }
     if (BIP_Debug) {
         fprintf(stderr, "BIP: Address: %s\n", inet_ntoa(BIP_Address));
-        fprintf(stderr, "BIP: Broadcast Address: %s\n",
+        fprintf(
+            stderr, "BIP: Broadcast Address: %s\n",
             inet_ntoa(BIP_Broadcast_Addr));
-        fprintf(stderr, "BIP: UDP Port: 0x%04X [%hu]\n", ntohs(BIP_Port),
+        fprintf(
+            stderr, "BIP: UDP Port: 0x%04X [%hu]\n", ntohs(BIP_Port),
             ntohs(BIP_Port));
         fflush(stderr);
     }
@@ -842,7 +851,8 @@ bool bip_init(char *ifname)
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
     sin.sin_addr.s_addr = BIP_Address.s_addr;
     if (BIP_Debug) {
-        fprintf(stderr, "BIP: bind %s:%hu\n", inet_ntoa(sin.sin_addr),
+        fprintf(
+            stderr, "BIP: bind %s:%hu\n", inet_ntoa(sin.sin_addr),
             ntohs(sin.sin_port));
         fflush(stderr);
     }
@@ -863,7 +873,8 @@ bool bip_init(char *ifname)
 #endif
     }
     if (BIP_Debug) {
-        fprintf(stderr, "BIP: broadcast bind %s:%hu\n", inet_ntoa(sin.sin_addr),
+        fprintf(
+            stderr, "BIP: broadcast bind %s:%hu\n", inet_ntoa(sin.sin_addr),
             ntohs(sin.sin_port));
         fflush(stderr);
     }

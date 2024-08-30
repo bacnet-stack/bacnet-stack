@@ -27,8 +27,13 @@ static POSITIVEINTEGER_VALUE_DESCR PIV_Descr[MAX_POSITIVEINTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int PositiveInteger_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_UNITS, -1
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_UNITS,
+    -1
 };
 
 static const int PositiveInteger_Value_Properties_Optional[] = {
@@ -150,7 +155,8 @@ bool PositiveInteger_Value_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_POSITIVEINTEGER_VALUES) {
-        snprintf(text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
+        snprintf(
+            text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
@@ -186,8 +192,9 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(&apdu[0],
-                OBJECT_POSITIVE_INTEGER_VALUE, rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_POSITIVE_INTEGER_VALUE,
+                rpdata->object_instance);
             break;
 
         case PROP_OBJECT_NAME:
@@ -203,7 +210,8 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_PRESENT_VALUE:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 PositiveInteger_Value_Present_Value(rpdata->object_instance));
             break;
 
@@ -212,7 +220,8 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+            bitstring_set_bit(
+                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
                 CurrentAV->Out_Of_Service);
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);

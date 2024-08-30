@@ -123,7 +123,6 @@ int list_element_decode_service_request(
     uint32_t property = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
-
     /* Must have at least 2 tags, an object id and a property identifier
      * of at least 1 byte in length to have any chance of parsing */
     if (apdu_len < 7) {

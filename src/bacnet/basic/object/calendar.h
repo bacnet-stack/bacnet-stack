@@ -64,8 +64,8 @@ void Calendar_Write_Present_Value_Callback_Set(
     calendar_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
-BACNET_CALENDAR_ENTRY *Calendar_Date_List_Get(
-    uint32_t object_instance, uint8_t index);
+BACNET_CALENDAR_ENTRY *
+Calendar_Date_List_Get(uint32_t object_instance, uint8_t index);
 BACNET_STACK_EXPORT
 bool Calendar_Date_List_Add(
     uint32_t object_instance, const BACNET_CALENDAR_ENTRY *value);

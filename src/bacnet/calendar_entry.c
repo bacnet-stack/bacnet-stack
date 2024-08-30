@@ -27,7 +27,8 @@
  * @param value Pointer to the property data to be encoded.
  * @return bytes encoded or zero on error.
  */
-int bacnet_calendar_entry_encode(uint8_t *apdu, const BACNET_CALENDAR_ENTRY *value)
+int bacnet_calendar_entry_encode(
+    uint8_t *apdu, const BACNET_CALENDAR_ENTRY *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -124,8 +125,9 @@ int bacnet_calendar_entry_decode(
     }
     switch (entry->tag) {
         case BACNET_CALENDAR_DATE:
-            len = bacnet_date_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, entry->tag, &entry->type.Date);
+            len = bacnet_date_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, entry->tag,
+                &entry->type.Date);
             if (len <= 0) {
                 return BACNET_STATUS_REJECT;
             }
@@ -133,8 +135,9 @@ int bacnet_calendar_entry_decode(
             break;
 
         case BACNET_CALENDAR_DATE_RANGE:
-            len = bacnet_daterange_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, entry->tag, &entry->type.DateRange);
+            len = bacnet_daterange_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, entry->tag,
+                &entry->type.DateRange);
             if (len <= 0) {
                 return BACNET_STATUS_REJECT;
             }
@@ -142,8 +145,9 @@ int bacnet_calendar_entry_decode(
             break;
 
         case BACNET_CALENDAR_WEEK_N_DAY:
-            len = bacnet_octet_string_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, entry->tag, &octet_string);
+            len = bacnet_octet_string_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, entry->tag,
+                &octet_string);
             if (len <= 0) {
                 return BACNET_STATUS_REJECT;
             }
@@ -174,7 +178,8 @@ int bacnet_calendar_entry_decode(
  *
  * @return number of bytes decoded, or BACNET_STATUS_REJECT
  */
-int bacnet_calendar_entry_context_decode(const uint8_t *apdu,
+int bacnet_calendar_entry_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_CALENDAR_ENTRY *value)
@@ -220,8 +225,8 @@ static bool month_match(const BACNET_DATE *date, uint8_t month)
         return false;
     }
 
-    return ((month == date->month) ||
-        ((month == 13) && (date->month % 2 == 1)) ||
+    return (
+        (month == date->month) || ((month == 13) && (date->month % 2 == 1)) ||
         ((month == 14) && (date->month % 2 == 0)));
 }
 
@@ -306,7 +311,7 @@ bool bacapp_date_in_calendar_entry(
             if ((datetime_compare_date(
                      &entry->type.DateRange.startdate, date) <= 0) &&
                 (datetime_compare_date(date, &entry->type.DateRange.enddate) <=
-                    0)) {
+                 0)) {
                 return true;
             }
             break;
@@ -345,17 +350,19 @@ bool bacnet_calendar_entry_same(
             return datetime_compare_date(
                        &value1->type.Date, &value2->type.Date) == 0;
         case BACNET_CALENDAR_DATE_RANGE:
-            return (datetime_compare_date(&value1->type.DateRange.startdate,
+            return (datetime_compare_date(
+                        &value1->type.DateRange.startdate,
                         &value2->type.DateRange.startdate) == 0) &&
-                (datetime_compare_date(&value2->type.DateRange.enddate,
+                (datetime_compare_date(
+                     &value2->type.DateRange.enddate,
                      &value2->type.DateRange.enddate) == 0);
         case BACNET_CALENDAR_WEEK_N_DAY:
             return (value1->type.WeekNDay.month ==
-                       value2->type.WeekNDay.month) &&
+                    value2->type.WeekNDay.month) &&
                 (value1->type.WeekNDay.weekofmonth ==
-                    value2->type.WeekNDay.weekofmonth) &&
+                 value2->type.WeekNDay.weekofmonth) &&
                 (value1->type.WeekNDay.dayofweek ==
-                    value2->type.WeekNDay.dayofweek);
+                 value2->type.WeekNDay.dayofweek);
         default:
             /* should be unreachable */
             return false;

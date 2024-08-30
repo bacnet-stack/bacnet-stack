@@ -34,7 +34,8 @@ bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
     return status;
 }
 
-uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
+uint16_t apdu_decode_confirmed_service_request(
+    uint8_t *apdu, /* APDU data */
 
     uint16_t apdu_len,
     BACNET_CONFIRMED_SERVICE_DATA *service_data,
@@ -63,7 +64,8 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
     return len;
 }
 
-void apdu_handler(BACNET_ADDRESS *src,
+void apdu_handler(
+    BACNET_ADDRESS *src,
     uint8_t *apdu, /* APDU data */
 
     uint16_t apdu_len)
@@ -87,18 +89,21 @@ void apdu_handler(BACNET_ADDRESS *src,
                     break;
                 }
                 if (service_choice == SERVICE_CONFIRMED_READ_PROPERTY) {
-                    handler_read_property(service_request, service_request_len,
-                        src, &service_data);
+                    handler_read_property(
+                        service_request, service_request_len, src,
+                        &service_data);
                 }
 #ifdef WRITE_PROPERTY
                 else if (service_choice == SERVICE_CONFIRMED_WRITE_PROPERTY) {
-                    handler_write_property(service_request, service_request_len,
-                        src, &service_data);
+                    handler_write_property(
+                        service_request, service_request_len, src,
+                        &service_data);
                 }
 #endif
                 else {
-                    handler_unrecognized_service(service_request,
-                        service_request_len, src, &service_data);
+                    handler_unrecognized_service(
+                        service_request, service_request_len, src,
+                        &service_data);
                 }
                 break;
             case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:

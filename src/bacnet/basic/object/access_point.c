@@ -22,13 +22,26 @@ static bool Access_Point_Initialized = false;
 static ACCESS_POINT_DESCR ap_descr[MAX_ACCESS_POINTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_STATUS_FLAGS, PROP_EVENT_STATE,
-    PROP_RELIABILITY, PROP_OUT_OF_SERVICE, PROP_AUTHENTICATION_STATUS,
-    PROP_ACTIVE_AUTHENTICATION_POLICY, PROP_NUMBER_OF_AUTHENTICATION_POLICIES,
-    PROP_AUTHORIZATION_MODE, PROP_ACCESS_EVENT, PROP_ACCESS_EVENT_TAG,
-    PROP_ACCESS_EVENT_TIME, PROP_ACCESS_EVENT_CREDENTIAL, PROP_ACCESS_DOORS,
-    PROP_PRIORITY_FOR_WRITING, -1 };
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_AUTHENTICATION_STATUS,
+    PROP_ACTIVE_AUTHENTICATION_POLICY,
+    PROP_NUMBER_OF_AUTHENTICATION_POLICIES,
+    PROP_AUTHORIZATION_MODE,
+    PROP_ACCESS_EVENT,
+    PROP_ACCESS_EVENT_TAG,
+    PROP_ACCESS_EVENT_TIME,
+    PROP_ACCESS_EVENT_CREDENTIAL,
+    PROP_ACCESS_DOORS,
+    PROP_PRIORITY_FOR_WRITING,
+    -1
+};
 
 static const int Properties_Optional[] = { -1 };
 
@@ -126,7 +139,8 @@ bool Access_Point_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_ACCESS_POINTS) {
-        snprintf(text, sizeof(text), "ACCESS POINT %lu",
+        snprintf(
+            text, sizeof(text), "ACCESS POINT %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
@@ -219,7 +233,8 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], ap_descr[object_index].active_authentication_policy);
             break;
         case PROP_NUMBER_OF_AUTHENTICATION_POLICIES:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 ap_descr[object_index].number_of_authentication_policies);
             break;
         case PROP_AUTHORIZATION_MODE:
@@ -261,7 +276,8 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 }
             } else {
                 if (rpdata->array_index <= ap_descr[object_index].num_doors) {
-                    apdu_len = bacapp_encode_device_obj_ref(&apdu[0],
+                    apdu_len = bacapp_encode_device_obj_ref(
+                        &apdu[0],
                         &ap_descr[object_index]
                              .access_doors[rpdata->array_index - 1]);
                 } else {

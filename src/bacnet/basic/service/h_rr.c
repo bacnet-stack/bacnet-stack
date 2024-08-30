@@ -66,14 +66,16 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             /* Array access attempted on a non array property */
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        } else if ((pRequest->RequestType != RR_READ_ALL) &&
+        } else if (
+            (pRequest->RequestType != RR_READ_ALL) &&
             ((PropInfo.RequestTypes & pRequest->RequestType) == 0)) {
             /* By Time or By Sequence not supported - By Position is always
              * required */
             pRequest->error_code =
                 ERROR_CODE_OTHER; /* I couldn't see anything more appropriate
                                      so... */
-        } else if ((pRequest->Count == 0) &&
+        } else if (
+            (pRequest->Count == 0) &&
             (pRequest->RequestType != RR_READ_ALL)) { /* Count cannot be zero */
             pRequest->error_code =
                 ERROR_CODE_OTHER; /* I couldn't see anything more appropriate
@@ -103,7 +105,8 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  *  @param service_data  Pointer to the service data,
  *                       taken from the request.
  */
-void handler_read_range(uint8_t *service_request,
+void handler_read_range(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -127,9 +130,9 @@ void handler_read_range(uint8_t *service_request,
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
         fprintf(stderr, "RR: Segmented message.  Sending Abort!\n");
 #endif
@@ -137,13 +140,15 @@ void handler_read_range(uint8_t *service_request,
         memset(&data, 0, sizeof(data)); /* start with blank canvas */
         len = rr_decode_service_request(service_request, service_len, &data);
 #if PRINT_ENABLED
-        if (len <= 0)
+        if (len <= 0) {
             fprintf(stderr, "RR: Unable to decode Request!\n");
+        }
 #endif
         if (len < 0) {
             /* bad decoding - send an abort */
-            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, ABORT_REASON_OTHER, true);
+            len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
             fprintf(stderr, "RR: Bad Encoding.  Sending Abort!\n");
 #endif
@@ -156,8 +161,9 @@ void handler_read_range(uint8_t *service_request,
                 data.application_data = &Temp_Buf[0];
                 data.application_data_len = len;
                 /* FIXME: probably need a length limitation sent with encode */
-                len = rr_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, &data);
+                len = rr_ack_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    &data);
 #if PRINT_ENABLED
                 fprintf(stderr, "RR: Sending Ack!\n");
 #endif
@@ -167,7 +173,8 @@ void handler_read_range(uint8_t *service_request,
                 if (len == -2) {
                     /* BACnet APDU too small to fit data, so proper response is
                      * Abort */
-                    len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    len = abort_encode_apdu(
+                        &Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id,
                         ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
@@ -193,8 +200,9 @@ void handler_read_range(uint8_t *service_request,
         datalink_send_pdu(
             src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
+    if (bytes_sent <= 0) {
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
+    }
 #endif
 
     return;

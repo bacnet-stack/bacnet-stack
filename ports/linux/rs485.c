@@ -569,12 +569,14 @@ void RS485_Initialize(void)
         newserial.custom_divisor = round(((float)newserial.baud_base) / 76800);
         /* we must check that we calculated some sane value;
            small baud bases yield bad custom divisor values */
-        baud_error = fabs(1 -
+        baud_error = fabs(
+            1 -
             ((float)newserial.baud_base) / ((float)newserial.custom_divisor) /
                 76800);
         if ((newserial.custom_divisor == 0) || (baud_error > 0.02)) {
             /* bad divisor */
-            fprintf(stderr, "RS485 bad custom divisor %d, base baud %d\n",
+            fprintf(
+                stderr, "RS485 bad custom divisor %d, base baud %d\n",
                 newserial.custom_divisor, newserial.baud_base);
             exit(EXIT_FAILURE);
         }
@@ -617,19 +619,22 @@ void RS485_Print_Ports(void)
         while (n--) {
             if (strcmp(namelist[n]->d_name, "..") &&
                 strcmp(namelist[n]->d_name, ".")) {
-                snprintf(device_dir, sizeof(device_dir), "%s%s/device", sysdir,
+                snprintf(
+                    device_dir, sizeof(device_dir), "%s%s/device", sysdir,
                     namelist[n]->d_name);
                 /* Stat the devicedir and handle it if it is a symlink */
                 if (lstat(device_dir, &st) == 0 && S_ISLNK(st.st_mode)) {
                     memset(buffer, 0, sizeof(buffer));
-                    snprintf(device_dir, sizeof(device_dir),
-                        "%s%s/device/driver", sysdir, namelist[n]->d_name);
+                    snprintf(
+                        device_dir, sizeof(device_dir), "%s%s/device/driver",
+                        sysdir, namelist[n]->d_name);
                     if (readlink(device_dir, buffer, sizeof(buffer)) > 0) {
                         valid_port = false;
                         driver_name = basename(buffer);
                         if (strcmp(driver_name, "serial8250") == 0) {
                             /* serial8250-devices must be probed */
-                            snprintf(device_dir, sizeof(device_dir), "/dev/%s",
+                            snprintf(
+                                device_dir, sizeof(device_dir), "/dev/%s",
                                 namelist[n]->d_name);
                             fd = open(
                                 device_dir, O_RDWR | O_NONBLOCK | O_NOCTTY);
@@ -649,8 +654,9 @@ void RS485_Print_Ports(void)
                         }
                         if (valid_port) {
                             /* print full absolute file path */
-                            printf("interface {value=/dev/%s}"
-                                   "{display=MS/TP Capture on /dev/%s}\n",
+                            printf(
+                                "interface {value=/dev/%s}"
+                                "{display=MS/TP Capture on /dev/%s}\n",
                                 namelist[n]->d_name, namelist[n]->d_name);
                         }
                     }

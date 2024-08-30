@@ -87,27 +87,21 @@ typedef struct {
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int bacapp_property_state_decode(
-        const uint8_t *apdu,
-        uint32_t apdu_size,
-        BACNET_PROPERTY_STATE *value);
+BACNET_STACK_EXPORT
+int bacapp_property_state_decode(
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_PROPERTY_STATE *value);
 
-    BACNET_STACK_EXPORT
-    int bacapp_decode_property_state(
-        const uint8_t * apdu,
-        BACNET_PROPERTY_STATE * value);
+BACNET_STACK_EXPORT
+int bacapp_decode_property_state(
+    const uint8_t *apdu, BACNET_PROPERTY_STATE *value);
 
-    BACNET_STACK_EXPORT
-    int bacapp_decode_context_property_state(
-        const uint8_t * apdu,
-        uint8_t tag_number,
-        BACNET_PROPERTY_STATE * value);
+BACNET_STACK_EXPORT
+int bacapp_decode_context_property_state(
+    const uint8_t *apdu, uint8_t tag_number, BACNET_PROPERTY_STATE *value);
 
-    BACNET_STACK_EXPORT
-    int bacapp_encode_property_state(
-        uint8_t * apdu,
-        const BACNET_PROPERTY_STATE * value);
+BACNET_STACK_EXPORT
+int bacapp_encode_property_state(
+    uint8_t *apdu, const BACNET_PROPERTY_STATE *value);
 
 #ifdef __cplusplus
 }

@@ -30,7 +30,8 @@
  * device, a range, or any device.
  * @param target_address [in] BACnet address of target or broadcast
  */
-uint8_t Send_GetEvent(BACNET_ADDRESS *target_address,
+uint8_t Send_GetEvent(
+    BACNET_ADDRESS *target_address,
     const BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
 {
     int len = 0;
@@ -52,25 +53,29 @@ uint8_t Send_GetEvent(BACNET_ADDRESS *target_address,
     invoke_id = tsm_next_free_invokeID();
     if (invoke_id) {
         /* encode the APDU portion of the packet */
-        len = getevent_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id,
+        len = getevent_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], invoke_id,
             lastReceivedObjectIdentifier);
         pdu_len += len;
 #if PRINT_ENABLED
         bytes_sent =
 #endif
-            datalink_send_pdu(target_address, &npdu_data,
-                &Handler_Transmit_Buffer[0], pdu_len);
+            datalink_send_pdu(
+                target_address, &npdu_data, &Handler_Transmit_Buffer[0],
+                pdu_len);
 #if PRINT_ENABLED
-        if (bytes_sent <= 0)
-            fprintf(stderr,
-                "Failed to Send GetEventInformation Request (%s)!\n",
+        if (bytes_sent <= 0) {
+            fprintf(
+                stderr, "Failed to Send GetEventInformation Request (%s)!\n",
                 strerror(errno));
+        }
 #endif
     } else {
         tsm_free_invoke_id(invoke_id);
         invoke_id = 0;
 #if PRINT_ENABLED
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "Failed to Send GetEventInformation Request "
             "(exceeds destination maximum APDU)!\n");
 #endif

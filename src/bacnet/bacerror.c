@@ -32,7 +32,8 @@
  * @param error_code - #BACNET_ERROR_CODE value to be encoded
  * @return number of bytes encoded
  */
-int bacerror_encode_apdu(uint8_t *apdu,
+int bacerror_encode_apdu(
+    uint8_t *apdu,
     uint8_t invoke_id,
     BACNET_CONFIRMED_SERVICE service,
     BACNET_ERROR_CLASS error_class,
@@ -84,7 +85,8 @@ int bacerror_encode_apdu(uint8_t *apdu,
  *
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
  */
-int bacerror_decode_error_class_and_code(const uint8_t *apdu,
+int bacerror_decode_error_class_and_code(
+    const uint8_t *apdu,
     unsigned apdu_size,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -96,7 +98,7 @@ int bacerror_decode_error_class_and_code(const uint8_t *apdu,
     if (apdu) {
         /* error class */
         tag_len = bacnet_enumerated_application_decode(
-            &apdu[apdu_len], apdu_size-apdu_len, &decoded_value);
+            &apdu[apdu_len], apdu_size - apdu_len, &decoded_value);
         if (tag_len <= 0) {
             return BACNET_STATUS_ERROR;
         }
@@ -130,7 +132,8 @@ int bacerror_decode_error_class_and_code(const uint8_t *apdu,
  *
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
  */
-int bacerror_decode_service_request(const uint8_t *apdu,
+int bacerror_decode_service_request(
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_CONFIRMED_SERVICE *service,

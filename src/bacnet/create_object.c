@@ -154,8 +154,9 @@ int create_object_decode_service_request(
     apdu_len += len;
     /* CHOICE of Tag [0] or [1] */
     /* object-identifier [1] BACnetObjectIdentifier */
-    len = bacnet_object_id_context_decode(&apdu[apdu_len], apdu_size - apdu_len,
-        1, &object_type, &object_instance);
+    len = bacnet_object_id_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &object_type,
+        &object_instance);
     if (len > 0) {
         if ((object_type >= MAX_BACNET_OBJECT_TYPE) ||
             (object_instance >= BACNET_MAX_INSTANCE)) {
@@ -421,7 +422,7 @@ int create_object_error_ack_service_decode(
         return BACNET_STATUS_REJECT;
     }
     /* Closing Context tag 0 - Error */
-    if (bacnet_is_closing_tag_number(apdu, apdu_size-apdu_len, 0, &len)) {
+    if (bacnet_is_closing_tag_number(apdu, apdu_size - apdu_len, 0, &len)) {
         apdu_len += len;
         apdu += len;
     } else {

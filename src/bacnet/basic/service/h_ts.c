@@ -34,7 +34,8 @@ static BACNET_DATE_TIME Next_Sync_Time;
 #endif
 
 #if PRINT_ENABLED
-static void show_bacnet_date_time(const BACNET_DATE *bdate, const BACNET_TIME *btime)
+static void
+show_bacnet_date_time(const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     /* show the date received */
     fprintf(stderr, "%u", (unsigned)bdate->year);
@@ -146,7 +147,8 @@ static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
 
     for (index = 0; index < MAX_TIME_SYNC_RECIPIENTS; index++) {
         if (Time_Sync_Recipients[index].tag == 1) {
-            Send_TimeSync_Remote(&Time_Sync_Recipients[index].type.address,
+            Send_TimeSync_Remote(
+                &Time_Sync_Recipients[index].type.address,
                 &current_date_time->date, &current_date_time->time);
         }
     }
@@ -269,8 +271,7 @@ void handler_timesync_init(void)
  *
  * @param cb - pointer to #handler_timesync_set_callback_t
  */
-void handler_timesync_set_callback_set(
-    handler_timesync_set_callback_t cb)
+void handler_timesync_set_callback_set(handler_timesync_set_callback_t cb)
 {
     handler_timesync_set_callback = cb;
 }

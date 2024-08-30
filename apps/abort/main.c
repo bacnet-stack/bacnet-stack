@@ -46,8 +46,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     (void)src;
     (void)invoke_id;
@@ -85,31 +85,33 @@ static void print_help(const char *filename)
 {
     printf("Send BACnet Abort message to the network.\n");
     printf("--mac A\n"
-        "Optional destination BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional destination BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf("--dnet N\n"
+    printf(
+        "--dnet N\n"
         "Optional destination BACnet network number N for directed requests.\n"
         "Valid range is from 0 to 65535 where 0 is the local connection\n"
         "and 65535 is network broadcast.\n");
     printf("\n");
     printf("--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network "
-        "number.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("abort-reason:\n"
-        "    number from 0 to 65535\n"
-        "invoke-id:\n"
-        "    number from 1 to 255\n"
-        "server:\n"
-        "    0=false, 1=true\n");
+           "    number from 0 to 65535\n"
+           "invoke-id:\n"
+           "    number from 1 to 255\n"
+           "server:\n"
+           "    0=false, 1=true\n");
     printf("\n");
-    printf("Example:\n"
+    printf(
+        "Example:\n"
         "%s 3 2 1\n",
         filename);
 }
@@ -214,7 +216,8 @@ int main(int argc, char *argv[])
     dlenv_init();
     atexit(datalink_cleanup);
     /* send the request */
-    Send_Abort_To_Network(&Handler_Transmit_Buffer[0], &dest, Target_Invoke_ID,
+    Send_Abort_To_Network(
+        &Handler_Transmit_Buffer[0], &dest, Target_Invoke_ID,
         Target_Abort_Reason, Target_Server);
 
     return 0;

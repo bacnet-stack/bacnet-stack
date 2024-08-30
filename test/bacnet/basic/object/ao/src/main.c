@@ -41,9 +41,7 @@ static void testAnalogOutput(void)
         Analog_Output_Read_Property, Analog_Output_Write_Property,
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
-        object_instance,
-        Analog_Output_Name_Set,
-        Analog_Output_Name_ASCII);
+        object_instance, Analog_Output_Name_Set, Analog_Output_Name_ASCII);
     status = Analog_Output_Delete(object_instance);
     zassert_true(status, NULL);
 }

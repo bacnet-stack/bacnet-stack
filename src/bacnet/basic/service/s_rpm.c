@@ -37,7 +37,8 @@
  * @return invoke id of outgoing message, or 0 if device is not bound or no tsm
  * available
  */
-uint8_t Send_Read_Property_Multiple_Request(uint8_t *pdu,
+uint8_t Send_Read_Property_Multiple_Request(
+    uint8_t *pdu,
     size_t max_pdu,
     uint32_t device_id, /* destination device */
     BACNET_READ_ACCESS_DATA *read_access_data)
@@ -89,16 +90,19 @@ uint8_t Send_Read_Property_Multiple_Request(uint8_t *pdu,
 #endif
                 datalink_send_pdu(&dest, &npdu_data, &pdu[0], pdu_len);
 #if PRINT_ENABLED
-            if (bytes_sent <= 0)
-                fprintf(stderr,
+            if (bytes_sent <= 0) {
+                fprintf(
+                    stderr,
                     "Failed to Send ReadPropertyMultiple Request (%s)!\n",
                     strerror(errno));
+            }
 #endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send ReadPropertyMultiple Request "
                 "(exceeds destination maximum APDU)!\n");
 #endif

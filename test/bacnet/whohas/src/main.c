@@ -22,13 +22,16 @@ int whohas_decode_apdu(
 {
     int len = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST) {
         return -1;
-    if (apdu[1] != SERVICE_UNCONFIRMED_WHO_HAS)
+    }
+    if (apdu[1] != SERVICE_UNCONFIRMED_WHO_HAS) {
         return -1;
+    }
     /* optional limits - must be used as a pair */
     if (apdu_size > 2) {
         len = whohas_decode_service_request(&apdu[2], apdu_size - 2, data);
@@ -82,7 +85,7 @@ static void testWhoHasData(BACNET_WHO_HAS_DATA *data)
     /* test short APDU buffer */
     while (--apdu_len) {
         test_len = bacnet_who_has_service_request_encode(apdu, apdu_len, data);
-        zassert_equal(test_len, 0 , NULL);
+        zassert_equal(test_len, 0, NULL);
     }
     /* decoder bounds checking */
     apdu_len = bacnet_who_has_request_encode(apdu, data);
@@ -93,7 +96,7 @@ static void testWhoHasData(BACNET_WHO_HAS_DATA *data)
     /* test short APDU buffer */
     while (--apdu_len) {
         test_len = whohas_decode_service_request(apdu, apdu_len, data);
-        zassert_equal(test_len, BACNET_STATUS_ERROR , NULL);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     }
 }
 

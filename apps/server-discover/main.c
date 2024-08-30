@@ -80,8 +80,9 @@ static void print_discovered_devices(void)
         milliseconds = bacnet_discover_device_elapsed_milliseconds(device_id);
         heap_ram = bacnet_discover_device_memory(device_id);
         /* convert to KB next highest value */
-        bacnet_discover_property_name(device_id, OBJECT_DEVICE, device_id,
-            PROP_MODEL_NAME, model_name, sizeof(model_name), "");
+        bacnet_discover_property_name(
+            device_id, OBJECT_DEVICE, device_id, PROP_MODEL_NAME, model_name,
+            sizeof(model_name), "");
         printf(
             "device[%u] %7u \"%s\" object_list[%d] in %lums using %lu bytes\n",
             device_index, device_id, model_name, object_count, milliseconds,
@@ -94,10 +95,11 @@ static void print_discovered_devices(void)
                     device_id, object_index, &object_id)) {
                 property_count = bacnet_discover_object_property_count(
                     device_id, object_id.type, object_id.instance);
-                bacnet_discover_property_name(device_id, object_id.type,
-                    object_id.instance, PROP_OBJECT_NAME, object_name,
-                    sizeof(object_name), "");
-                printf("    object_list[%d] %s %u \"%s\" has %u properties\n",
+                bacnet_discover_property_name(
+                    device_id, object_id.type, object_id.instance,
+                    PROP_OBJECT_NAME, object_name, sizeof(object_name), "");
+                printf(
+                    "    object_list[%d] %s %u \"%s\" has %u properties\n",
                     object_index, bactext_object_type_name(object_id.type),
                     object_id.instance, object_name, property_count);
             }
@@ -160,7 +162,8 @@ static void bacnet_server_init(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     mstimer_set(&BACnet_Task_Timer, 1000);
     mstimer_set(&BACnet_TSM_Timer, 50);
@@ -254,17 +257,19 @@ int main(int argc, char *argv[])
         }
     }
     if (device_id > BACNET_MAX_INSTANCE) {
-        debug_perror("device-instance=%u - not greater than %u\n",
-            device_id, BACNET_MAX_INSTANCE);
+        debug_perror(
+            "device-instance=%u - not greater than %u\n", device_id,
+            BACNET_MAX_INSTANCE);
         return 1;
     }
     Device_Set_Object_Instance_Number(device_id);
-    debug_aprintf("BACnet Server-Discovery Demo\n"
-                  "BACnet Stack Version %s\n"
-                  "BACnet Device ID: %u\n"
-                  "DNET: %u every %lu seconds\n"
-                  "Print Devices: every %lu seconds (0=none)\n"
-                  "Max APDU: %d\n",
+    debug_aprintf(
+        "BACnet Server-Discovery Demo\n"
+        "BACnet Stack Version %s\n"
+        "BACnet Device ID: %u\n"
+        "DNET: %u every %lu seconds\n"
+        "Print Devices: every %lu seconds (0=none)\n"
+        "Max APDU: %d\n",
         BACnet_Version, Device_Object_Instance_Number(), dnet, discover_seconds,
         print_seconds, MAX_APDU);
     dlenv_init();

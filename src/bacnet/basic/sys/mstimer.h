@@ -20,12 +20,12 @@
  * \hideinitializer
  */
 struct mstimer {
-  unsigned long start;
-  unsigned long interval;
+    unsigned long start;
+    unsigned long interval;
 };
 
 /* optional callback function form */
-typedef void (*mstimer_callback_function) (void);
+typedef void (*mstimer_callback_function)(void);
 /* optional callback data structure */
 struct mstimer_callback_data_t;
 struct mstimer_callback_data_t {

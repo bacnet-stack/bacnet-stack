@@ -88,7 +88,8 @@ uint16_t iCurrent_Device_Idx = 0;
  * @return The index of this instance in the Devices[] array, or UINT16_MAX if
  *         there isn't enough room to add this Device.
  */
-uint16_t Add_Routed_Device(uint32_t Object_Instance,
+uint16_t Add_Routed_Device(
+    uint32_t Object_Instance,
     const BACNET_CHARACTER_STRING *sObject_Name,
     const char *sDescription)
 {
@@ -100,8 +101,9 @@ uint16_t Add_Routed_Device(uint32_t Object_Instance,
         pDev->bacObj.mObject_Type = OBJECT_DEVICE;
         pDev->bacObj.Object_Instance_Number = Object_Instance;
         if (sObject_Name != NULL) {
-            Routed_Device_Set_Object_Name(sObject_Name->encoding,
-                sObject_Name->value, sObject_Name->length);
+            Routed_Device_Set_Object_Name(
+                sObject_Name->encoding, sObject_Name->value,
+                sObject_Name->length);
         } else {
             Routed_Device_Set_Object_Name(
                 CHARACTER_UTF8, "No Name", strlen("No Name"));
@@ -170,7 +172,8 @@ BACNET_ADDRESS *Get_Routed_Device_Address(int idx)
 void routed_get_my_address(BACNET_ADDRESS *my_address)
 {
     if (my_address) {
-        memcpy(my_address, &Devices[iCurrent_Device_Idx].bacDevAddr,
+        memcpy(
+            my_address, &Devices[iCurrent_Device_Idx].bacDevAddr,
             sizeof(BACNET_ADDRESS));
     }
 }
@@ -590,7 +593,8 @@ void Routed_Device_Inc_Database_Revision(void)
  *          just 1 if no apdu_buff was supplied and service is not supported,
  *          else 0 if service is approved for the current device.
  */
-int Routed_Device_Service_Approval(BACNET_SERVICES_SUPPORTED service,
+int Routed_Device_Service_Approval(
+    BACNET_SERVICES_SUPPORTED service,
     int service_argument,
     uint8_t *apdu_buff,
     uint8_t invoke_id)
@@ -603,7 +607,8 @@ int Routed_Device_Service_Approval(BACNET_SERVICES_SUPPORTED service,
             /* If not the gateway device, we don't support RD */
             if (iCurrent_Device_Idx > 0) {
                 if (apdu_buff != NULL) {
-                    len = reject_encode_apdu(apdu_buff, invoke_id,
+                    len = reject_encode_apdu(
+                        apdu_buff, invoke_id,
                         REJECT_REASON_UNRECOGNIZED_SERVICE);
                 } else {
                     len = 1; /* Non-zero return */
@@ -614,7 +619,8 @@ int Routed_Device_Service_Approval(BACNET_SERVICES_SUPPORTED service,
             /* If not the gateway device, we don't support DCC */
             if (iCurrent_Device_Idx > 0) {
                 if (apdu_buff != NULL) {
-                    len = reject_encode_apdu(apdu_buff, invoke_id,
+                    len = reject_encode_apdu(
+                        apdu_buff, invoke_id,
                         REJECT_REASON_UNRECOGNIZED_SERVICE);
                 } else {
                     len = 1; /* Non-zero return */

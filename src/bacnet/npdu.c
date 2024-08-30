@@ -95,7 +95,8 @@ ABORT.indication               Yes         Yes         Yes        No
  * @return On success, returns the number of bytes which were encoded into
  *  the NPDU section, or 0 if there were problems with the data or encoding.
  */
-int npdu_encode_pdu(uint8_t *npdu,
+int npdu_encode_pdu(
+    uint8_t *npdu,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
     const BACNET_NPDU_DATA *npdu_data)
@@ -259,7 +260,8 @@ int npdu_encode_pdu(uint8_t *npdu,
  * @return On success, returns the number of bytes which were encoded into
  *  the NPDU section, or 0 if there were problems with the data or encoding.
  */
-int bacnet_npdu_encode_pdu(uint8_t *pdu,
+int bacnet_npdu_encode_pdu(
+    uint8_t *pdu,
     uint16_t pdu_size,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
@@ -320,7 +322,8 @@ is expected for the service being issued.
  * @param priority [in] One of the 4 priorities defined in section 6.2.2,
  *                      like B'11' = Life Safety message
  */
-void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
+void npdu_encode_npdu_data(
+    BACNET_NPDU_DATA *npdu_data,
     bool data_expecting_reply,
     BACNET_MESSAGE_PRIORITY priority)
 {
@@ -350,7 +353,8 @@ void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
  * @param priority [in] One of the 4 priorities defined in section 6.2.2,
  *                      like B'11' = Life Safety message
  */
-void npdu_encode_npdu_network(BACNET_NPDU_DATA *npdu_data,
+void npdu_encode_npdu_network(
+    BACNET_NPDU_DATA *npdu_data,
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     bool data_expecting_reply,
     BACNET_MESSAGE_PRIORITY priority)
@@ -389,7 +393,8 @@ void npdu_encode_npdu_network(BACNET_NPDU_DATA *npdu_data,
  * be more bytes left in the NPDU; if not a network msg, the APDU follows. If 0
  * or negative, there were problems with the data or arguments.
  */
-int npdu_decode(const uint8_t *npdu,
+int npdu_decode(
+    const uint8_t *npdu,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data)
@@ -421,7 +426,8 @@ int npdu_decode(const uint8_t *npdu,
  * be more bytes left in the NPDU; if not a network msg, the APDU follows. If 0
  * or negative, there were problems with the data or arguments.
  */
-int bacnet_npdu_decode(const uint8_t *npdu,
+int bacnet_npdu_decode(
+    const uint8_t *npdu,
     uint16_t pdu_len,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,

@@ -45,61 +45,49 @@ extern "C" {
 
 /* Atomic Read File */
 /* encode service */
-    BACNET_STACK_EXPORT
-    int arf_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        const BACNET_ATOMIC_READ_FILE_DATA * data);
-    BACNET_STACK_EXPORT
-    int arf_service_encode_apdu(
-        uint8_t *apdu,
-        const BACNET_ATOMIC_READ_FILE_DATA *data);
-    BACNET_STACK_EXPORT
-    size_t atomicreadfile_service_request_encode(
-        uint8_t *apdu,
-        size_t apdu_size,
-        const BACNET_ATOMIC_READ_FILE_DATA *data);
+BACNET_STACK_EXPORT
+int arf_encode_apdu(
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_ATOMIC_READ_FILE_DATA *data);
+BACNET_STACK_EXPORT
+int arf_service_encode_apdu(
+    uint8_t *apdu, const BACNET_ATOMIC_READ_FILE_DATA *data);
+BACNET_STACK_EXPORT
+size_t atomicreadfile_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_ATOMIC_READ_FILE_DATA *data);
 
 /* decode the service request only */
-    BACNET_STACK_EXPORT
-    int arf_decode_service_request(
-        const uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_ATOMIC_READ_FILE_DATA * data);
+BACNET_STACK_EXPORT
+int arf_decode_service_request(
+    const uint8_t *apdu, unsigned apdu_len, BACNET_ATOMIC_READ_FILE_DATA *data);
 
-    BACNET_STACK_EXPORT
-    int arf_decode_apdu(
-        const uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        BACNET_ATOMIC_READ_FILE_DATA * data);
+BACNET_STACK_EXPORT
+int arf_decode_apdu(
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    uint8_t *invoke_id,
+    BACNET_ATOMIC_READ_FILE_DATA *data);
 
 /* Atomic Read File Ack */
 
 /* encode service */
-    BACNET_STACK_EXPORT
-    int arf_ack_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        const BACNET_ATOMIC_READ_FILE_DATA * data);
-    BACNET_STACK_EXPORT
-    int arf_ack_service_encode_apdu(
-        uint8_t *apdu,
-        const BACNET_ATOMIC_READ_FILE_DATA *data);
+BACNET_STACK_EXPORT
+int arf_ack_encode_apdu(
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_ATOMIC_READ_FILE_DATA *data);
+BACNET_STACK_EXPORT
+int arf_ack_service_encode_apdu(
+    uint8_t *apdu, const BACNET_ATOMIC_READ_FILE_DATA *data);
 
 /* decode the service request only */
-    BACNET_STACK_EXPORT
-    int arf_ack_decode_service_request(
-        const uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_ATOMIC_READ_FILE_DATA * data);
+BACNET_STACK_EXPORT
+int arf_ack_decode_service_request(
+    const uint8_t *apdu, unsigned apdu_len, BACNET_ATOMIC_READ_FILE_DATA *data);
 
-    BACNET_STACK_EXPORT
-    int arf_ack_decode_apdu(
-        const uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        BACNET_ATOMIC_READ_FILE_DATA * data);
+BACNET_STACK_EXPORT
+int arf_ack_decode_apdu(
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    uint8_t *invoke_id,
+    BACNET_ATOMIC_READ_FILE_DATA *data);
 
 #ifdef __cplusplus
 }

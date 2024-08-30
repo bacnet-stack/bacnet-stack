@@ -1,10 +1,10 @@
 /**************************************************************************
-*
-* Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
-*
-* SPDX-License-Identifier: MIT
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ *********************************************************************/
 #ifndef HARDWARE_H
 #define HARDWARE_H
 

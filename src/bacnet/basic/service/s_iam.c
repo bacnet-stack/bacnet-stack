@@ -33,7 +33,8 @@
  * @param segmentation [in] #BACNET_SEGMENTATION enumeration
  * @param vendor_id [in] BACnet vendor ID 0-65535
  */
-void Send_I_Am_To_Network(BACNET_ADDRESS *target_address,
+void Send_I_Am_To_Network(
+    BACNET_ADDRESS *target_address,
     uint32_t device_id,
     unsigned int max_apdu,
     int segmentation,
@@ -53,8 +54,9 @@ void Send_I_Am_To_Network(BACNET_ADDRESS *target_address,
         &Handler_Transmit_Buffer[0], target_address, &my_address, &npdu_data);
     /* encode the APDU portion of the packet */
     /* encode the APDU portion of the packet */
-    len = iam_encode_apdu(&Handler_Transmit_Buffer[pdu_len], device_id,
-        max_apdu, segmentation, vendor_id);
+    len = iam_encode_apdu(
+        &Handler_Transmit_Buffer[pdu_len], device_id, max_apdu, segmentation,
+        vendor_id);
     pdu_len += len;
     bytes_sent = datalink_send_pdu(
         target_address, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
@@ -85,8 +87,9 @@ int iam_encode_pdu(
     pdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
 
     /* encode the APDU portion of the packet */
-    len = iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
-        MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+    len = iam_encode_apdu(
+        &buffer[pdu_len], Device_Object_Instance_Number(), MAX_APDU,
+        SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len += len;
 
     return pdu_len;
@@ -137,7 +140,8 @@ void Send_I_Am(uint8_t *buffer)
  * @param npdu_data [out] The NPDU structure describing the message.
  * @return The length of the message in buffer[].
  */
-int iam_unicast_encode_pdu(uint8_t *buffer,
+int iam_unicast_encode_pdu(
+    uint8_t *buffer,
     const BACNET_ADDRESS *src,
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data)
@@ -155,9 +159,9 @@ int iam_unicast_encode_pdu(uint8_t *buffer,
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
     /* encode the APDU portion of the packet */
-    apdu_len =
-        iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
-            MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+    apdu_len = iam_encode_apdu(
+        &buffer[npdu_len], Device_Object_Instance_Number(), MAX_APDU,
+        SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len = npdu_len + apdu_len;
 
     return pdu_len;

@@ -20,11 +20,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    void handler_i_have(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src);
+BACNET_STACK_EXPORT
+void handler_i_have(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src);
 
 #ifdef __cplusplus
 }

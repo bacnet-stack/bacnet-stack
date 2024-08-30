@@ -20,21 +20,21 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int iam_encode_apdu(
-        uint8_t * apdu,
-        uint32_t device_id,
-        unsigned max_apdu,
-        int segmentation,
-        uint16_t vendor_id);
+BACNET_STACK_EXPORT
+int iam_encode_apdu(
+    uint8_t *apdu,
+    uint32_t device_id,
+    unsigned max_apdu,
+    int segmentation,
+    uint16_t vendor_id);
 
-    BACNET_STACK_EXPORT
-    int iam_decode_service_request(
-        const uint8_t * apdu,
-        uint32_t * pDevice_id,
-        unsigned *pMax_apdu,
-        int *pSegmentation,
-        uint16_t * pVendor_id);
+BACNET_STACK_EXPORT
+int iam_decode_service_request(
+    const uint8_t *apdu,
+    uint32_t *pDevice_id,
+    unsigned *pMax_apdu,
+    int *pSegmentation,
+    uint16_t *pVendor_id);
 
 #ifdef __cplusplus
 }

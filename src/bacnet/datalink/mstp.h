@@ -47,9 +47,9 @@ struct mstp_port_struct_t {
     /* A Boolean flag set to TRUE by the master machine if this node is the
        only known master node. */
     unsigned SoleMaster : 1;
-   /* A Boolean flag set to TRUE if this node is a slave node */
+    /* A Boolean flag set to TRUE if this node is a slave node */
     unsigned SlaveNodeEnabled : 1;
-   /* A Boolean flag set to TRUE if this node is using a ZeroConfig address */
+    /* A Boolean flag set to TRUE if this node is using a ZeroConfig address */
     unsigned ZeroConfigEnabled : 1;
     /* stores the latest received data */
     uint8_t DataRegister;
@@ -204,11 +204,11 @@ struct mstp_port_struct_t {
        not to exceed 35 milliseconds.) */
     uint8_t Tusage_timeout;
 
-   /* The minimum time after the end of the stop bit of the final
-      octet of a received frame before a node may enable its
-      EIA-485 driver: 40 bit times.
-      40 bits is 4 octets including a start and stop bit with each octet.
-      turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
+    /* The minimum time after the end of the stop bit of the final
+       octet of a received frame before a node may enable its
+       EIA-485 driver: 40 bit times.
+       40 bits is 4 octets including a start and stop bit with each octet.
+       turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
     uint8_t Tturnaround_timeout;
 
     /*Platform-specific port data */
@@ -233,7 +233,8 @@ BACNET_STACK_EXPORT
 bool MSTP_Line_Active(const struct mstp_port_struct_t *mstp_port);
 
 BACNET_STACK_EXPORT
-uint16_t MSTP_Create_Frame(uint8_t *buffer,
+uint16_t MSTP_Create_Frame(
+    uint8_t *buffer,
     uint16_t buffer_len,
     uint8_t frame_type,
     uint8_t destination,
@@ -266,26 +267,27 @@ void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port);
 /* FIXME: developer must implement these in their DLMSTP module */
 
 BACNET_STACK_EXPORT
-uint16_t MSTP_Put_Receive(
-   struct mstp_port_struct_t *mstp_port);
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port);
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 BACNET_STACK_EXPORT
-uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port,
+uint16_t MSTP_Get_Send(
+    struct mstp_port_struct_t *mstp_port,
     unsigned timeout); /* milliseconds to wait for a packet */
 /* for the MS/TP state machine to use for getting the reply for
    Data-Expecting-Reply Frame */
 /* Return: amount of PDU data */
 BACNET_STACK_EXPORT
-uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port,
+uint16_t MSTP_Get_Reply(
+    struct mstp_port_struct_t *mstp_port,
     unsigned timeout); /* milliseconds to wait for a packet */
 
 BACNET_STACK_EXPORT
 void MSTP_Send_Frame(
-   struct mstp_port_struct_t *mstp_port,
-   const uint8_t * buffer,
-   uint16_t nbytes);
+    struct mstp_port_struct_t *mstp_port,
+    const uint8_t *buffer,
+    uint16_t nbytes);
 
 #ifdef __cplusplus
 }

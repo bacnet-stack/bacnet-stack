@@ -33,7 +33,8 @@
  * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded
  */
-int arf_service_encode_apdu(uint8_t *apdu, const BACNET_ATOMIC_READ_FILE_DATA *data)
+int arf_service_encode_apdu(
+    uint8_t *apdu, const BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -269,7 +270,8 @@ int arf_decode_service_request(
  *  or NULL for length
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
-int arf_decode_apdu(const uint8_t *apdu,
+int arf_decode_apdu(
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_ATOMIC_READ_FILE_DATA *data)
@@ -560,7 +562,8 @@ int arf_ack_decode_service_request(
  *  or NULL for length
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
-int arf_ack_decode_apdu(const uint8_t *apdu,
+int arf_ack_decode_apdu(
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_ATOMIC_READ_FILE_DATA *data)

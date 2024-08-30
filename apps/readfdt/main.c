@@ -52,8 +52,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -98,16 +98,17 @@ int main(int argc, char *argv[])
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("Send a Read-Foreign-Device-Table message to a BBMD.\r\n"
-               "\r\n"
-               "IP:\r\n"
-               "IP address of the BBMD in dotted decimal notation\r\n"
-               "[port]\r\n"
-               "optional BACnet/IP port number (default=47808=0xBAC0)\r\n"
-               "\r\n"
-               "To send a Read-Foreign-Device-Table message to a BBMD\r\n"
-               "at 192.168.0.1 using port 47808:\r\n"
-               "%s 192.168.0.1 47808\r\n",
+        printf(
+            "Send a Read-Foreign-Device-Table message to a BBMD.\r\n"
+            "\r\n"
+            "IP:\r\n"
+            "IP address of the BBMD in dotted decimal notation\r\n"
+            "[port]\r\n"
+            "optional BACnet/IP port number (default=47808=0xBAC0)\r\n"
+            "\r\n"
+            "To send a Read-Foreign-Device-Table message to a BBMD\r\n"
+            "at 192.168.0.1 using port 47808:\r\n"
+            "%s 192.168.0.1 47808\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }

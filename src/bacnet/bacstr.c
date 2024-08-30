@@ -148,7 +148,8 @@ uint8_t bitstring_bytes_used(const BACNET_BIT_STRING *bit_string)
  *
  * @return Value of the octet.
  */
-uint8_t bitstring_octet(const BACNET_BIT_STRING *bit_string, uint8_t octet_index)
+uint8_t
+bitstring_octet(const BACNET_BIT_STRING *bit_string, uint8_t octet_index)
 {
     uint8_t octet = 0;
 
@@ -356,7 +357,8 @@ bool bitstring_init_ascii(BACNET_BIT_STRING *bit_string, const char *ascii)
  *
  * @return true on success, false if the string exceeds capacity.
  */
-bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
+bool characterstring_init(
+    BACNET_CHARACTER_STRING *char_string,
     uint8_t encoding,
     const char *value,
     size_t length)
@@ -409,7 +411,7 @@ bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
  */
 size_t characterstring_strnlen(const char *str, size_t maxlen)
 {
-    const char* p = memchr(str, 0, maxlen);
+    const char *p = memchr(str, 0, maxlen);
     if (p == NULL) {
         return maxlen;
     }
@@ -430,7 +432,8 @@ size_t characterstring_strnlen(const char *str, size_t maxlen)
 bool characterstring_init_ansi_safe(
     BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax)
 {
-    return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
+    return characterstring_init(
+        char_string, CHARACTER_ANSI_X34, value,
         value ? characterstring_strnlen(value, tmax) : 0);
 }
 
@@ -463,8 +466,9 @@ bool characterstring_copy(
     BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_STRING *src)
 {
     if (dest && src) {
-        return characterstring_init(dest, characterstring_encoding(src),
-            characterstring_value(src), characterstring_length(src));
+        return characterstring_init(
+            dest, characterstring_encoding(src), characterstring_value(src),
+            characterstring_length(src));
     }
 
     return false;
@@ -550,7 +554,8 @@ bool characterstring_same(
  *
  * @return true if the character encoding and string contents are the same
  */
-bool characterstring_ansi_same(const BACNET_CHARACTER_STRING *dest, const char *src)
+bool characterstring_ansi_same(
+    const BACNET_CHARACTER_STRING *dest, const char *src)
 {
     size_t i; /* counter */
     bool same_status = false;
@@ -787,17 +792,19 @@ bool characterstring_printable(const BACNET_CHARACTER_STRING *char_string)
 /* Basic UTF-8 manipulation routines
  * by Jeff Bezanson
  * placed in the public domain Fall 2005 */
-static const char trailingBytesForUTF8[256] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
+static const char trailingBytesForUTF8[256] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5
+};
 
 /**
  * @brief Based on the valid_utf8 routine from the PCRE library by Philip Hazel
@@ -1042,8 +1049,8 @@ bool octetstring_init_ascii_hex(
 bool octetstring_copy(BACNET_OCTET_STRING *dest, const BACNET_OCTET_STRING *src)
 {
     return octetstring_init(
-        dest, octetstring_value(
-            (BACNET_OCTET_STRING *)src), octetstring_length(src));
+        dest, octetstring_value((BACNET_OCTET_STRING *)src),
+        octetstring_length(src));
 }
 
 /**
@@ -1196,7 +1203,8 @@ size_t octetstring_capacity(const BACNET_OCTET_STRING *octet_string)
  * @return true if the octet strings are the same, false otherwise.
  */
 bool octetstring_value_same(
-    const BACNET_OCTET_STRING *octet_string1, const BACNET_OCTET_STRING *octet_string2)
+    const BACNET_OCTET_STRING *octet_string1,
+    const BACNET_OCTET_STRING *octet_string2)
 {
     size_t i = 0; /* loop counter */
 

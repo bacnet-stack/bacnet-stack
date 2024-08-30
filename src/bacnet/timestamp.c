@@ -109,8 +109,9 @@ bool bacapp_timestamp_same(
                     }
                     break;
                 case TIME_STAMP_DATETIME:
-                    if (datetime_compare(&value1->value.dateTime,
-                            &value2->value.dateTime) == 0) {
+                    if (datetime_compare(
+                            &value1->value.dateTime, &value2->value.dateTime) ==
+                        0) {
                         status = true;
                     }
                     break;
@@ -250,8 +251,9 @@ int bacnet_timestamp_decode(
             break;
 
         case TIME_STAMP_SEQUENCE:
-            len = bacnet_unsigned_context_decode(&apdu[apdu_len],
-                apdu_size - apdu_len, tag.number, &unsigned_value);
+            len = bacnet_unsigned_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, tag.number,
+                &unsigned_value);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
@@ -305,7 +307,8 @@ int bacapp_decode_timestamp(const uint8_t *apdu, BACNET_TIMESTAMP *value)
  *               take the time stamp values.
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
  */
-int bacnet_timestamp_context_decode(const uint8_t *apdu,
+int bacnet_timestamp_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_TIMESTAMP *value)
@@ -398,22 +401,26 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
         status = true;
     }
     if (!status) {
-        count = sscanf(ascii, "%4d/%3d/%3d-%3d:%3d:%3d.%3d", &year, &month,
-            &day, &hour, &min, &sec, &hundredths);
+        count = sscanf(
+            ascii, "%4d/%3d/%3d-%3d:%3d:%3d.%3d", &year, &month, &day, &hour,
+            &min, &sec, &hundredths);
         if (count >= 3) {
             timestamp->tag = TIME_STAMP_DATETIME;
-            datetime_set_date(&timestamp->value.dateTime.date, (uint16_t)year,
-                (uint8_t)month, (uint8_t)day);
+            datetime_set_date(
+                &timestamp->value.dateTime.date, (uint16_t)year, (uint8_t)month,
+                (uint8_t)day);
             if (count >= 7) {
-                datetime_set_time(&timestamp->value.dateTime.time,
-                    (uint8_t)hour, (uint8_t)min, (uint8_t)sec,
-                    (uint8_t)hundredths);
+                datetime_set_time(
+                    &timestamp->value.dateTime.time, (uint8_t)hour,
+                    (uint8_t)min, (uint8_t)sec, (uint8_t)hundredths);
             } else if (count >= 6) {
-                datetime_set_time(&timestamp->value.dateTime.time,
-                    (uint8_t)hour, (uint8_t)min, (uint8_t)sec, 0);
+                datetime_set_time(
+                    &timestamp->value.dateTime.time, (uint8_t)hour,
+                    (uint8_t)min, (uint8_t)sec, 0);
             } else if (count >= 5) {
-                datetime_set_time(&timestamp->value.dateTime.time,
-                    (uint8_t)hour, (uint8_t)min, 0, 0);
+                datetime_set_time(
+                    &timestamp->value.dateTime.time, (uint8_t)hour,
+                    (uint8_t)min, 0, 0);
             } else if (count >= 4) {
                 datetime_set_time(
                     &timestamp->value.dateTime.time, (uint8_t)hour, 0, 0, 0);
@@ -441,9 +448,9 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
  * @param str_size - size of the string, or 0 for length only
  * @param ts - pointer to the timestamp
  * @return number of characters printed
-*/
-int bacapp_timestamp_to_ascii(char *str, size_t str_size,
-    const BACNET_TIMESTAMP *timestamp)
+ */
+int bacapp_timestamp_to_ascii(
+    char *str, size_t str_size, const BACNET_TIMESTAMP *timestamp)
 {
     int str_len = 0;
 
@@ -453,8 +460,8 @@ int bacapp_timestamp_to_ascii(char *str, size_t str_size,
     switch (timestamp->tag) {
         case TIME_STAMP_TIME:
             /* 23:59:59.99 */
-            str_len = snprintf(str, str_size,
-                "%02u:%02u:%02u.%02u",
+            str_len = snprintf(
+                str, str_size, "%02u:%02u:%02u.%02u",
                 (unsigned)timestamp->value.time.hour,
                 (unsigned)timestamp->value.time.min,
                 (unsigned)timestamp->value.time.sec,
@@ -462,13 +469,13 @@ int bacapp_timestamp_to_ascii(char *str, size_t str_size,
             break;
         case TIME_STAMP_SEQUENCE:
             /* 65535 */
-            str_len = snprintf(str, str_size, "%u",
-                (unsigned)timestamp->value.sequenceNum);
+            str_len = snprintf(
+                str, str_size, "%u", (unsigned)timestamp->value.sequenceNum);
             break;
         case TIME_STAMP_DATETIME:
             /* 2021/12/31-23:59:59.99 */
-            str_len = snprintf(str, str_size,
-                "%04u/%02u/%02u-%02u:%02u:%02u.%02u",
+            str_len = snprintf(
+                str, str_size, "%04u/%02u/%02u-%02u:%02u:%02u.%02u",
                 (unsigned)timestamp->value.dateTime.date.year,
                 (unsigned)timestamp->value.dateTime.date.month,
                 (unsigned)timestamp->value.dateTime.date.day,

@@ -21,12 +21,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    void get_event_ack_handler(
-        uint8_t *service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS *src,
-        BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data);
+BACNET_STACK_EXPORT
+void get_event_ack_handler(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data);
 
 #ifdef __cplusplus
 }

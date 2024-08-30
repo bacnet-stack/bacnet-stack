@@ -110,8 +110,9 @@ bool ethernet_init(char *if_name)
     int i;
     char msg[200];
 
-    if (ethernet_valid())
+    if (ethernet_valid()) {
         ethernet_cleanup();
+    }
 
     /**
      * Find the interface user specified
@@ -126,8 +127,9 @@ bool ethernet_init(char *if_name)
     }
     /* Scan the list printing every entry */
     for (dev = pcap_all_if; dev; dev = dev->next) {
-        if (strcmp(if_name, dev->name) == 0)
+        if (strcmp(if_name, dev->name) == 0) {
             break;
+        }
     }
     pcap_freealldevs(pcap_all_if); /* we don't need it anymore */
     if (dev == NULL) {
@@ -161,8 +163,9 @@ bool ethernet_init(char *if_name)
         LogError("ethernet.c: error in PacketRequest()\n");
         return false;
     }
-    for (i = 0; i < 6; ++i)
+    for (i = 0; i < 6; ++i) {
         Ethernet_MAC_Address[i] = pOidData->Data[i];
+    }
     PacketCloseAdapter(lpAdapter);
 
     /**
@@ -317,11 +320,13 @@ uint16_t ethernet_receive(
             msg, sizeof(), "ethernet.c: error in receiving packet: %s\n",
             pcap_geterr(pcap_eth802_fp));
         return 0;
-    } else if (res == 0)
+    } else if (res == 0) {
         return 0;
+    }
 
-    if (header->len == 0 || header->caplen == 0)
+    if (header->len == 0 || header->caplen == 0) {
         return 0;
+    }
 
     /* the signature of an 802.2 BACnet packet */
     if ((pkt_data[14] != 0x82) && (pkt_data[15] != 0x82)) {
@@ -343,11 +348,13 @@ uint16_t ethernet_receive(
     (void)decode_unsigned16(&pkt_data[12], &pdu_len);
     pdu_len -= 3 /* DSAP, SSAP, LLC Control */;
     /* copy the buffer into the PDU */
-    if (pdu_len < max_pdu)
+    if (pdu_len < max_pdu) {
         memmove(&pdu[0], &pkt_data[17], pdu_len);
+    }
     /* ignore packets that are too large */
-    else
+    else {
         pdu_len = 0;
+    }
 
     return pdu_len;
 }

@@ -29,13 +29,16 @@ static int iam_decode_apdu(
     int apdu_len = 0; /* total length of the apdu, return value */
 
     /* valid data? */
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST) {
         return -1;
-    if (apdu[1] != SERVICE_UNCONFIRMED_I_AM)
+    }
+    if (apdu[1] != SERVICE_UNCONFIRMED_I_AM) {
         return -1;
+    }
     apdu_len = iam_decode_service_request(
         &apdu[2], pDevice_id, pMax_apdu, pSegmentation, pVendor_id);
 

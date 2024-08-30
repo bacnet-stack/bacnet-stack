@@ -50,8 +50,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -94,35 +94,36 @@ static void print_help(const char *filename)
     printf("Send BACnet TimeSynchronization request.\n");
     printf("\n");
     printf("--date year/month/day[:weekday]\n"
-        "Date formatted 2021/12/31 or 2021/12/31:1\n"
-        "where day is 1..31,\n"
-        "where month is 1=January..12=December,\n"
-        "where weekday is 1=Monday..7=Sunday\n");
+           "Date formatted 2021/12/31 or 2021/12/31:1\n"
+           "where day is 1..31,\n"
+           "where month is 1=January..12=December,\n"
+           "where weekday is 1=Monday..7=Sunday\n");
     printf("\n");
     printf("--time hours:minutes:seconds.hundredths\n"
-        "Time formatted 23:59:59.99 or 23:59:59 or 23:59\n");
+           "Time formatted 23:59:59.99 or 23:59:59 or 23:59\n");
     printf("\n");
     printf("--utc\n"
-        "Send BACnet UTCTimeSynchronization request.\n");
+           "Send BACnet UTCTimeSynchronization request.\n");
     printf("\n");
     printf("--mac A\n"
-        "BACnet mac address."
-        "Valid ranges are from 0 to 255\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "BACnet mac address."
+           "Valid ranges are from 0 to 255\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("--dnet N\n"
-        "BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n");
+           "BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
     printf("\n");
     printf("--dadr A\n"
-        "BACnet mac address on the destination BACnet network number.\n"
-        "Valid ranges are from 0 to 255\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "BACnet mac address on the destination BACnet network number.\n"
+           "Valid ranges are from 0 to 255\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf("Examples:\n"
+    printf(
+        "Examples:\n"
         "Send a TimeSynchronization request to DNET 123:\n"
         "%s --dnet 123\n",
         filename);
@@ -130,8 +131,9 @@ static void print_help(const char *filename)
         "Send a TimeSynchronization request to MAC 10.0.0.1 DNET 123 DADR 5:\n"
         "%s --mac 10.0.0.1 --dnet 123 --dadr 5\n",
         filename);
-    printf("Send a TimeSynchronization request to MAC 10.1.2.3:47808:\n"
-           "%s --mac 10.1.2.3:47808\n",
+    printf(
+        "Send a TimeSynchronization request to MAC 10.1.2.3:47808:\n"
+        "%s --mac 10.1.2.3:47808\n",
         filename);
 }
 
@@ -255,7 +257,8 @@ int main(int argc, char *argv[])
     atexit(datalink_cleanup);
     mstimer_init();
     /* send the request */
-    datetime_local(override_date ? NULL : &bdate, override_time ? NULL : &btime,
+    datetime_local(
+        override_date ? NULL : &bdate, override_time ? NULL : &btime,
         &utc_offset_minutes, &dst_active);
     if (use_utc) {
         /* convert to UTC */
@@ -263,8 +266,8 @@ int main(int argc, char *argv[])
             dst_adjust_minutes = -60;
         }
         datetime_set(&local_time, &bdate, &btime);
-        datetime_local_to_utc(&utc_time, &local_time, utc_offset_minutes,
-            dst_adjust_minutes);
+        datetime_local_to_utc(
+            &utc_time, &local_time, utc_offset_minutes, dst_adjust_minutes);
         Send_TimeSyncUTC_Remote(&dest, &utc_time.date, &utc_time.time);
     } else {
         Send_TimeSync_Remote(&dest, &bdate, &btime);

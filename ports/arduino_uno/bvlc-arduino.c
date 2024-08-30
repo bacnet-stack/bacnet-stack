@@ -54,7 +54,8 @@ static int bvlc_encode_bvlc_result(uint8_t *pdu, BACNET_BVLC_RESULT result_code)
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-static int bvlc_send_mpdu(const uint8_t *dest_addr, /* the destination address */
+static int bvlc_send_mpdu(
+    const uint8_t *dest_addr, /* the destination address */
     const uint16_t *dest_port, /* the destination port */
     uint8_t *mtu, /* the data */
     uint16_t mtu_len)
@@ -72,7 +73,8 @@ static int bvlc_send_mpdu(const uint8_t *dest_addr, /* the destination address *
  * @param dest_addr - destination address
  * @param dest_port - destination port
  */
-static void bvlc_send_result(const uint8_t *dest_addr,
+static void bvlc_send_result(
+    const uint8_t *dest_addr,
     const uint16_t *dest_port, /* the destination address */
     BACNET_BVLC_RESULT result_code)
 {

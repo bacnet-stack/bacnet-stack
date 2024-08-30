@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic UnconfirmedPrivateTransfer service send
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Steve Karg
+ * @date October 2019
+ * @brief Header file for a basic UnconfirmedPrivateTransfer service send
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef SEND_UNCONFIRMED_PRIVATE_TRANSFER_H
 #define SEND_UNCONFIRMED_PRIVATE_TRANSFER_H
 
@@ -28,8 +28,7 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 int Send_UnconfirmedPrivateTransfer(
-    BACNET_ADDRESS* dest,
-    const BACNET_PRIVATE_TRANSFER_DATA* private_data);
+    BACNET_ADDRESS *dest, const BACNET_PRIVATE_TRANSFER_DATA *private_data);
 
 #ifdef __cplusplus
 }

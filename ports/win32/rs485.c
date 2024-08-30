@@ -137,8 +137,9 @@ void RS485_Print_Error(void)
 {
     LPVOID lpMsgBuf;
 
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL,
+        GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         (LPTSTR)&lpMsgBuf, 0, NULL);
     MessageBox(NULL, lpMsgBuf, "GetLastError", MB_OK | MB_ICONINFORMATION);
     LocalFree(lpMsgBuf);
@@ -237,8 +238,8 @@ static void RS485_Cleanup(void)
  *****************************************************************************/
 void RS485_Initialize(void)
 {
-    RS485_Handle = CreateFile(RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0,
-        0, OPEN_EXISTING,
+    RS485_Handle = CreateFile(
+        RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
         /*FILE_FLAG_OVERLAPPED */ 0, 0);
     if (RS485_Handle == INVALID_HANDLE_VALUE) {
         fprintf(stderr, "RS485 unable to open %s\n", RS485_Port_Name);
@@ -397,7 +398,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
 /* Transmits a Frame on the wire */
 void RS485_Send_Frame(
     struct mstp_port_struct_t *mstp_port, /* port specific data */
-    const uint8_t *buffer,  /* frame to send (up to 501 bytes of data) */
+    const uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 { /* number of bytes of data (up to 501) */
     DWORD dwWritten = 0;
@@ -407,12 +408,13 @@ void RS485_Send_Frame(
         uint8_t turnaround_time;
         baud = RS485_Get_Baud_Rate();
         /* wait about 40 bit times since reception */
-        if (baud == 9600)
+        if (baud == 9600) {
             turnaround_time = 4;
-        else if (baud == 19200)
+        } else if (baud == 19200) {
             turnaround_time = 2;
-        else
+        } else {
             turnaround_time = 2;
+        }
         while (mstp_port->SilenceTimer(NULL) < turnaround_time) {
             /* do nothing - wait for timer to increment */
         };
@@ -465,8 +467,9 @@ void RS485_Print_Ports(void)
     for (i = 1; i < 256; i++) {
         if (RS485_Interface_Valid(i)) {
             /* note: format for Wireshark ExtCap */
-            printf("interface {value=COM%u}"
-                   "{display=BACnet MS/TP on COM%u}\n",
+            printf(
+                "interface {value=COM%u}"
+                "{display=BACnet MS/TP on COM%u}\n",
                 i, i);
         }
     }

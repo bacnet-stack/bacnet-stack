@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Andriy Sukhynyuk, Vasyl Tkhir, Andriy Ivasiv
-* @date 2012
-* @brief Message queue module
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Andriy Sukhynyuk, Vasyl Tkhir, Andriy Ivasiv
+ * @date 2012
+ * @brief Message queue module
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef MSGQUEUE_H
 #define MSGQUEUE_H
 
@@ -27,16 +27,9 @@ extern pthread_mutex_t msg_lock;
 
 typedef int MSGBOX_ID;
 
-typedef enum {
-    DATA = 1,
-    SERVICE
-} MSGTYPE;
+typedef enum { DATA = 1, SERVICE } MSGTYPE;
 
-typedef enum {
-    SHUTDOWN,
-    CHG_IP,
-    CHG_MAC
-} MSGSUBTYPE;
+typedef enum { SHUTDOWN, CHG_IP, CHG_MAC } MSGSUBTYPE;
 
 typedef struct _message {
     MSGTYPE type;
@@ -58,25 +51,17 @@ typedef struct _msg_data {
 MSGBOX_ID create_msgbox(void);
 
 /* returns sent byte count */
-bool send_to_msgbox(
-    MSGBOX_ID dest,
-    BACMSG * msg);
+bool send_to_msgbox(MSGBOX_ID dest, BACMSG *msg);
 
 /* returns received message */
-BACMSG *recv_from_msgbox(
-    MSGBOX_ID src,
-    BACMSG * msg,
-    int flags);
+BACMSG *recv_from_msgbox(MSGBOX_ID src, BACMSG *msg, int flags);
 
-void del_msgbox(
-    MSGBOX_ID msgboxid);
+void del_msgbox(MSGBOX_ID msgboxid);
 
 /* free message data structure */
-void free_data(
-    MSG_DATA * data);
+void free_data(MSG_DATA *data);
 
 /* check message reference counter and delete data if needed */
-void check_data(
-    MSG_DATA * data);
+void check_data(MSG_DATA *data);
 
 #endif /* end of MSGQUEUE_H */

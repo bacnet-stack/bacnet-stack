@@ -24,9 +24,15 @@ static ACCESS_RIGHTS_DESCR ar_descr[MAX_ACCESS_RIGHTSS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_GLOBAL_IDENTIFIER,
-    PROP_STATUS_FLAGS, PROP_RELIABILITY, PROP_ENABLE,
-    PROP_NEGATIVE_ACCESS_RULES, PROP_POSITIVE_ACCESS_RULES, -1 };
+                                           PROP_OBJECT_NAME,
+                                           PROP_OBJECT_TYPE,
+                                           PROP_GLOBAL_IDENTIFIER,
+                                           PROP_STATUS_FLAGS,
+                                           PROP_RELIABILITY,
+                                           PROP_ENABLE,
+                                           PROP_NEGATIVE_ACCESS_RULES,
+                                           PROP_POSITIVE_ACCESS_RULES,
+                                           -1 };
 
 static const int Properties_Optional[] = { -1 };
 
@@ -118,7 +124,8 @@ bool Access_Rights_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_ACCESS_RIGHTSS) {
-        snprintf(text, sizeof(text), "ACCESS RIGHTS %lu",
+        snprintf(
+            text, sizeof(text), "ACCESS RIGHTS %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
@@ -179,13 +186,15 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_NEGATIVE_ACCESS_RULES:
             if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(&apdu[0],
+                apdu_len = encode_application_unsigned(
+                    &apdu[0],
                     ar_descr[object_index].negative_access_rules_count);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 0;
                      i < ar_descr[object_index].negative_access_rules_count;
                      i++) {
-                    len = bacapp_encode_access_rule(&apdu[0],
+                    len = bacapp_encode_access_rule(
+                        &apdu[0],
                         &ar_descr[object_index].negative_access_rules[i]);
                     if (apdu_len + len < MAX_APDU) {
                         apdu_len += len;
@@ -199,7 +208,8 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             } else {
                 if (rpdata->array_index <=
                     ar_descr[object_index].negative_access_rules_count) {
-                    apdu_len = bacapp_encode_access_rule(&apdu[0],
+                    apdu_len = bacapp_encode_access_rule(
+                        &apdu[0],
                         &ar_descr[object_index]
                              .negative_access_rules[rpdata->array_index - 1]);
                 } else {
@@ -211,13 +221,15 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_POSITIVE_ACCESS_RULES:
             if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(&apdu[0],
+                apdu_len = encode_application_unsigned(
+                    &apdu[0],
                     ar_descr[object_index].positive_access_rules_count);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 0;
                      i < ar_descr[object_index].positive_access_rules_count;
                      i++) {
-                    len = bacapp_encode_access_rule(&apdu[0],
+                    len = bacapp_encode_access_rule(
+                        &apdu[0],
                         &ar_descr[object_index].positive_access_rules[i]);
                     if (apdu_len + len < MAX_APDU) {
                         apdu_len += len;
@@ -231,7 +243,8 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             } else {
                 if (rpdata->array_index <=
                     ar_descr[object_index].positive_access_rules_count) {
-                    apdu_len = bacapp_encode_access_rule(&apdu[0],
+                    apdu_len = bacapp_encode_access_rule(
+                        &apdu[0],
                         &ar_descr[object_index]
                              .positive_access_rules[rpdata->array_index - 1]);
                 } else {

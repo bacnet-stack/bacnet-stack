@@ -127,8 +127,7 @@ struct vmac_data *VMAC_Find_By_Key(uint32_t device_id)
  * @return true if the addresses are different
  */
 bool VMAC_Different(
-    const struct vmac_data *vmac1,
-    const struct vmac_data *vmac2)
+    const struct vmac_data *vmac1, const struct vmac_data *vmac2)
 {
     bool status = false;
     unsigned int i = 0;
@@ -159,9 +158,7 @@ bool VMAC_Different(
  *
  * @return true if the addresses are the same
  */
-bool VMAC_Match(
-    const struct vmac_data *vmac1,
-    const struct vmac_data *vmac2)
+bool VMAC_Match(const struct vmac_data *vmac1, const struct vmac_data *vmac2)
 {
     bool status = false;
     unsigned int i = 0;

@@ -208,7 +208,8 @@ uint8_t tsm_next_free_invokeID(void)
  * @param apdu  Pointer to the received message.
  * @param apdu_len  Bytes valid in the received message.
  */
-void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
+void tsm_set_confirmed_unsegmented_transaction(
+    uint8_t invokeID,
     const BACNET_ADDRESS *dest,
     const BACNET_NPDU_DATA *ndpu_data,
     const uint8_t *apdu,
@@ -252,7 +253,8 @@ void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
  *                  the count of bytes valid in the
  *                  received message.
  */
-bool tsm_get_transaction_pdu(uint8_t invokeID,
+bool tsm_get_transaction_pdu(
+    uint8_t invokeID,
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *ndpu_data,
     uint8_t *apdu,
@@ -311,8 +313,9 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                 if (plist->RetryCount < apdu_retries()) {
                     plist->RequestTimer = apdu_timeout();
                     plist->RetryCount++;
-                    datalink_send_pdu(&plist->dest, &plist->npdu_data,
-                        &plist->apdu[0], plist->apdu_len);
+                    datalink_send_pdu(
+                        &plist->dest, &plist->npdu_data, &plist->apdu[0],
+                        plist->apdu_len);
                 } else {
                     /* note: the invoke id has not been cleared yet
                        and this indicates a failed message:

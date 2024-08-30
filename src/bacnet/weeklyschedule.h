@@ -20,38 +20,35 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    typedef struct BACnet_Weekly_Schedule {
-        BACNET_DAILY_SCHEDULE weeklySchedule[7];
-        bool singleDay;
-    } BACNET_WEEKLY_SCHEDULE;
+typedef struct BACnet_Weekly_Schedule {
+    BACNET_DAILY_SCHEDULE weeklySchedule[7];
+    bool singleDay;
+} BACNET_WEEKLY_SCHEDULE;
 
-    /** Decode WeeklySchedule */
-    BACNET_STACK_EXPORT
-    int bacnet_weeklyschedule_decode(
-        const uint8_t * apdu,
-        int apdu_size,
-        BACNET_WEEKLY_SCHEDULE * value);
+/** Decode WeeklySchedule */
+BACNET_STACK_EXPORT
+int bacnet_weeklyschedule_decode(
+    const uint8_t *apdu, int apdu_size, BACNET_WEEKLY_SCHEDULE *value);
 
-    /** Encode WeeklySchedule */
-    BACNET_STACK_EXPORT
-    int bacnet_weeklyschedule_encode(
-        uint8_t * apdu,
-        const BACNET_WEEKLY_SCHEDULE * value);
+/** Encode WeeklySchedule */
+BACNET_STACK_EXPORT
+int bacnet_weeklyschedule_encode(
+    uint8_t *apdu, const BACNET_WEEKLY_SCHEDULE *value);
 
-    BACNET_STACK_EXPORT
-    int bacnet_weeklyschedule_context_encode(
-        uint8_t *apdu, uint8_t tag_number,
-        const BACNET_WEEKLY_SCHEDULE *value);
+BACNET_STACK_EXPORT
+int bacnet_weeklyschedule_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_WEEKLY_SCHEDULE *value);
 
-    BACNET_STACK_EXPORT
-    int bacnet_weeklyschedule_context_decode(
-        const uint8_t *apdu, int apdu_size, uint8_t tag_number,
-        BACNET_WEEKLY_SCHEDULE *value);
+BACNET_STACK_EXPORT
+int bacnet_weeklyschedule_context_decode(
+    const uint8_t *apdu,
+    int apdu_size,
+    uint8_t tag_number,
+    BACNET_WEEKLY_SCHEDULE *value);
 
-    BACNET_STACK_EXPORT
-    bool bacnet_weeklyschedule_same(
-        const BACNET_WEEKLY_SCHEDULE *value1,
-        const BACNET_WEEKLY_SCHEDULE *value2);
+BACNET_STACK_EXPORT
+bool bacnet_weeklyschedule_same(
+    const BACNET_WEEKLY_SCHEDULE *value1, const BACNET_WEEKLY_SCHEDULE *value2);
 
 #ifdef __cplusplus
 }

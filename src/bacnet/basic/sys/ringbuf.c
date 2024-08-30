@@ -150,8 +150,8 @@ volatile void *Ringbuf_Peek(RING_BUFFER const *b)
  * @param  data_element - find the next element from this one
  * @return pointer to the data, or NULL if nothing in the list
  */
-volatile void *Ringbuf_Peek_Next(
-    RING_BUFFER const *b, const uint8_t *data_element)
+volatile void *
+Ringbuf_Peek_Next(RING_BUFFER const *b, const uint8_t *data_element)
 {
     unsigned index; /* list index */
     volatile uint8_t *this_element;
@@ -398,7 +398,8 @@ static bool isPowerOfTwo(unsigned int x)
  *
  * @return  true if ring buffer was initialized
  */
-bool Ringbuf_Init(RING_BUFFER *b,
+bool Ringbuf_Init(
+    RING_BUFFER *b,
     volatile uint8_t *buffer,
     unsigned element_size,
     unsigned element_count)

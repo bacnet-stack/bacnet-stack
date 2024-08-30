@@ -150,7 +150,7 @@ uint8_t FIFO_Peek(FIFO_BUFFER const *b)
  * @param length [in] - number of bytes to peek from the FIFO
  * @return number of bytes peeked
  */
-unsigned FIFO_Peek_Ahead(FIFO_BUFFER const *b, uint8_t* buffer, unsigned length)
+unsigned FIFO_Peek_Ahead(FIFO_BUFFER const *b, uint8_t *buffer, unsigned length)
 {
     unsigned count = 0;
     unsigned index;
@@ -164,7 +164,7 @@ unsigned FIFO_Peek_Ahead(FIFO_BUFFER const *b, uint8_t* buffer, unsigned length)
             count = length;
         }
         tail = b->tail;
-        for(i = 0; i < count; i++) {
+        for (i = 0; i < count; i++) {
             index = tail % b->buffer_len;
             buffer[i] = b->buffer[index];
             tail++;

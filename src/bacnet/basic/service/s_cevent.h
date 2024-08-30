@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic ConfirmedEventNotification service send
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Steve Karg
+ * @date October 2019
+ * @brief Header file for a basic ConfirmedEventNotification service send
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef SEND_CONFIRMED_EVENT_NOTIFICATION_H
 #define SEND_CONFIRMED_EVENT_NOTIFICATION_H
 
@@ -27,11 +27,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-uint8_t Send_CEvent_Notify(uint32_t device_id,
-                           const BACNET_EVENT_NOTIFICATION_DATA* data);
+uint8_t Send_CEvent_Notify(
+    uint32_t device_id, const BACNET_EVENT_NOTIFICATION_DATA *data);
 BACNET_STACK_EXPORT
-uint8_t Send_CEvent_Notify_Address(uint8_t *pdu, uint16_t pdu_size,
-    const BACNET_EVENT_NOTIFICATION_DATA *data, BACNET_ADDRESS *dest);
+uint8_t Send_CEvent_Notify_Address(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    const BACNET_EVENT_NOTIFICATION_DATA *data,
+    BACNET_ADDRESS *dest);
 
 #ifdef __cplusplus
 }

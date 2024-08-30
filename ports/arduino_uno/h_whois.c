@@ -41,9 +41,9 @@ void sendIamUnicast(uint8_t *buffer, BACNET_ADDRESS *src)
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(&buffer[0], &dest, &my_address, &npdu_data);
     /* encode the APDU portion of the packet */
-    apdu_len =
-        iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
-            MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+    apdu_len = iam_encode_apdu(
+        &buffer[npdu_len], Device_Object_Instance_Number(), MAX_APDU,
+        SEGMENTATION_NONE, Device_Vendor_Identifier());
     /* send data */
     pdu_len = npdu_len + apdu_len;
     int bytes = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);

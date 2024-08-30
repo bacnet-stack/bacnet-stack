@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic ReadRange service send
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Steve Karg
+ * @date October 2019
+ * @brief Header file for a basic ReadRange service send
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef SEND_READ_RANGE_H
 #define SEND_READ_RANGE_H
 
@@ -27,8 +27,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-uint8_t Send_ReadRange_Request(uint32_t device_id,
-                               const BACNET_READ_RANGE_DATA* read_access_data);
+uint8_t Send_ReadRange_Request(
+    uint32_t device_id, const BACNET_READ_RANGE_DATA *read_access_data);
 
 #ifdef __cplusplus
 }

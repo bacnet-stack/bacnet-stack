@@ -34,7 +34,6 @@ static OS_Keylist Object_List = NULL;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_INTEGER_VALUE;
 
-
 struct integer_object {
     bool Out_Of_Service : 1;
     bool Changed : 1;
@@ -49,13 +48,16 @@ struct integer_object {
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_UNITS, -1 };
+                                                         PROP_OBJECT_NAME,
+                                                         PROP_OBJECT_TYPE,
+                                                         PROP_PRESENT_VALUE,
+                                                         PROP_STATUS_FLAGS,
+                                                         PROP_UNITS,
+                                                         -1 };
 
-static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE,
-    PROP_DESCRIPTION,
-    PROP_COV_INCREMENT,
-    -1 };
+static const int Integer_Value_Properties_Optional[] = {
+    PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, PROP_COV_INCREMENT, -1
+};
 
 static const int Integer_Value_Properties_Proprietary[] = { -1 };
 
@@ -186,7 +188,7 @@ Integer_Value_COV_Detect(struct integer_object *pObject, int32_t value)
     if (pObject) {
         int32_t prior_value = pObject->Prior_Value;
         uint32_t cov_increment = pObject->COV_Increment;
-        uint32_t cov_delta = (uint32_t) abs(prior_value - value);
+        uint32_t cov_delta = (uint32_t)abs(prior_value - value);
 
         if (cov_delta >= cov_increment) {
             pObject->Changed = true;
@@ -209,7 +211,7 @@ bool Integer_Value_Present_Value_Set(
     bool status = false;
     struct integer_object *pObject = Integer_Value_Object(object_instance);
 
-    (void) priority;
+    (void)priority;
 
     if (pObject) {
         Integer_Value_COV_Detect(pObject, value);
@@ -259,8 +261,7 @@ bool Integer_Value_Object_Name(
  * @param  new_name - holds the object-name to be set
  * @return  true if object-name was set
  */
-bool Integer_Value_Name_Set(uint32_t object_instance,
-    const char *new_name)
+bool Integer_Value_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false;
     struct integer_object *pObject;
@@ -311,8 +312,8 @@ bool Integer_Value_Description(
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
         if (pObject->Description) {
-            status = characterstring_init_ansi(description,
-                pObject->Description);
+            status =
+                characterstring_init_ansi(description, pObject->Description);
         } else {
             status = characterstring_init_ansi(description, "");
         }
@@ -327,8 +328,8 @@ bool Integer_Value_Description(
  * @param  new_name - holds the description to be set
  * @return  true if object-name was set
  */
-bool Integer_Value_Description_Set(uint32_t object_instance,
-    const char *new_name)
+bool Integer_Value_Description_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct integer_object *pObject;
@@ -478,8 +479,7 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], Object_Type);
+            apdu_len = encode_application_enumerated(&apdu[0], Object_Type);
             break;
         case PROP_DESCRIPTION:
             if (Integer_Value_Description(
@@ -512,8 +512,8 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], units);
             break;
         case PROP_COV_INCREMENT:
-            apdu_len =
-                encode_application_unsigned(&apdu[0], Integer_Value_COV_Increment(rpdata->object_instance));
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Integer_Value_COV_Increment(rpdata->object_instance));
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -571,8 +571,9 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
             if (status) {
-                Integer_Value_Present_Value_Set(wp_data->object_instance,
-                    value.type.Signed_Int, wp_data->priority);
+                Integer_Value_Present_Value_Set(
+                    wp_data->object_instance, value.type.Signed_Int,
+                    wp_data->priority);
             }
             break;
         case PROP_COV_INCREMENT:
@@ -604,7 +605,6 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             }
             break;
-
     }
 
     return status;
@@ -678,8 +678,9 @@ bool Integer_Value_Encode_Value_List(
         const bool fault = false;
         const bool overridden = false;
 
-        status = cov_value_list_encode_signed_int(value_list, present_value,
-            in_alarm, fault, overridden, out_of_service);
+        status = cov_value_list_encode_signed_int(
+            value_list, present_value, in_alarm, fault, overridden,
+            out_of_service);
     }
 
     return status;
@@ -734,7 +735,7 @@ uint32_t Integer_Value_Create(uint32_t object_instance)
             pObject->Description = NULL;
             pObject->COV_Increment = 1;
             pObject->Present_Value = 0;
-            pObject->Prior_Value   = 0;
+            pObject->Prior_Value = 0;
             pObject->Units = UNITS_PERCENT;
             pObject->Out_Of_Service = false;
             pObject->Changed = false;
@@ -756,7 +757,8 @@ uint32_t Integer_Value_Create(uint32_t object_instance)
 bool Integer_Value_Delete(uint32_t object_instance)
 {
     bool status = false;
-    struct integer_object *pObject = Keylist_Data_Delete(Object_List, object_instance);
+    struct integer_object *pObject =
+        Keylist_Data_Delete(Object_List, object_instance);
 
     if (pObject) {
         free(pObject);

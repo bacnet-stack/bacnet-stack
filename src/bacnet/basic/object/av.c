@@ -1082,10 +1082,11 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                      EVENT_HIGH_LIMIT_ENABLE) &&
                     ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ==
                      EVENT_ENABLE_TO_OFFNORMAL)) {
-                    if (!CurrentAV->Remaining_Time_Delay)
+                    if (!CurrentAV->Remaining_Time_Delay) {
                         CurrentAV->Event_State = EVENT_STATE_HIGH_LIMIT;
-                    else
+                    } else {
                         CurrentAV->Remaining_Time_Delay--;
+                    }
                     break;
                 }
 
@@ -1101,10 +1102,11 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                      EVENT_LOW_LIMIT_ENABLE) &&
                     ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ==
                      EVENT_ENABLE_TO_OFFNORMAL)) {
-                    if (!CurrentAV->Remaining_Time_Delay)
+                    if (!CurrentAV->Remaining_Time_Delay) {
                         CurrentAV->Event_State = EVENT_STATE_LOW_LIMIT;
-                    else
+                    } else {
                         CurrentAV->Remaining_Time_Delay--;
+                    }
                     break;
                 }
                 /* value of the object is still in the same event state */
@@ -1131,10 +1133,12 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                      * indicate a transition to the NORMAL event state. */
                     (!(CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE))) {
                     if ((!CurrentAV->Remaining_Time_Delay) ||
-                        (!(CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE)))
+                        (!(CurrentAV->Limit_Enable &
+                           EVENT_HIGH_LIMIT_ENABLE))) {
                         CurrentAV->Event_State = EVENT_STATE_NORMAL;
-                    else
+                    } else {
                         CurrentAV->Remaining_Time_Delay--;
+                    }
                     break;
                 }
                 /* value of the object is still in the same event state */
@@ -1162,10 +1166,11 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                      * indicate a transition to the NORMAL event state. */
                     (!(CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE))) {
                     if ((!CurrentAV->Remaining_Time_Delay) ||
-                        (!(CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE)))
+                        (!(CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE))) {
                         CurrentAV->Event_State = EVENT_STATE_NORMAL;
-                    else
+                    } else {
                         CurrentAV->Remaining_Time_Delay--;
+                    }
                     break;
                 }
                 /* value of the object is still in the same event state */
@@ -1288,8 +1293,9 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
         /* filled before */
 
         /* From State */
-        if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION)
+        if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
             event_data.fromState = FromState;
+        }
 
         /* To State */
         event_data.toState = CurrentAV->Event_State;
@@ -1447,8 +1453,9 @@ int Analog_Value_Event_Information(
             pObject->Notification_Class, getevent_data->eventPriorities);
 
         return 1; /* active event */
-    } else
+    } else {
         return 0; /* no active event at this index */
+    }
 }
 
 /**
@@ -1601,10 +1608,12 @@ int Analog_Value_Alarm_Summary(
                 pObject->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked);
 
             return 1; /* active alarm */
-        } else
+        } else {
             return 0; /* no active alarm at this index */
-    } else
+        }
+    } else {
         return -1; /* end of list  */
+    }
 }
 #endif /* defined(INTRINSIC_REPORTING) */
 

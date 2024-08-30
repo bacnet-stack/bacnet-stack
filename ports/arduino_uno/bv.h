@@ -1,10 +1,10 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* SPDX-License-Identifier: MIT
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ *********************************************************************/
 #ifndef BV_H
 #define BV_H
 
@@ -18,31 +18,31 @@
 #define MAX_BINARY_VALUES 10
 #endif
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    void Binary_Value_Property_Lists(const int **pRequired,
-        const int **pOptional,
-        const int **pProprietary);
-    bool Binary_Value_Valid_Instance(uint32_t object_instance);
-    unsigned Binary_Value_Count(void);
-    uint32_t Binary_Value_Index_To_Instance(unsigned index);
-    char *Binary_Value_Name(uint32_t object_instance);
+void Binary_Value_Property_Lists(
+    const int **pRequired, const int **pOptional, const int **pProprietary);
+bool Binary_Value_Valid_Instance(uint32_t object_instance);
+unsigned Binary_Value_Count(void);
+uint32_t Binary_Value_Index_To_Instance(unsigned index);
+char *Binary_Value_Name(uint32_t object_instance);
 
-    void Binary_Value_Init(void);
+void Binary_Value_Init(void);
 
-    int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
-        uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        uint32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+int Binary_Value_Encode_Property_APDU(
+    uint8_t *apdu,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID property,
+    uint32_t array_index,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code);
 
-    bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+bool Binary_Value_Write_Property(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code);
 
 #ifdef __cplusplus
 }

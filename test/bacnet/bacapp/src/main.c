@@ -1249,10 +1249,8 @@ static void test_bacapp_data(void)
         /* 1. test encoding matches for NULL and APDU buffer */
         BACNET_APPLICATION_TAG tag = tag_list[i];
         value.tag = tag;
-        null_len =
-            bacapp_encode_application_data(NULL, &value);
-        apdu_len =
-            bacapp_encode_application_data(apdu, &value);
+        null_len = bacapp_encode_application_data(NULL, &value);
+        apdu_len = bacapp_encode_application_data(apdu, &value);
         if (apdu_len != null_len) {
             printf(
                 "bacapp: NULL len=%d != APDU len=%d for tag=%s", null_len,
@@ -1264,8 +1262,7 @@ static void test_bacapp_data(void)
         test_len = 0;
         len = encode_opening_tag(apdu, 3);
         apdu_len += len;
-        len = bacapp_encode_application_data(
-            &apdu[apdu_len], &value);
+        len = bacapp_encode_application_data(&apdu[apdu_len], &value);
         test_len += len;
         apdu_len += len;
         len = encode_closing_tag(&apdu[apdu_len], 3);

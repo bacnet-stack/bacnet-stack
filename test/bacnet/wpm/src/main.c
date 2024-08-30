@@ -17,8 +17,8 @@
 /**
  * @brief Decode service header for WritePropertyMultiple
  */
-static int wpm_decode_apdu(
-    const uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id)
+static int
+wpm_decode_apdu(const uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id)
 {
     int len = 0;
 

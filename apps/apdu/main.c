@@ -57,13 +57,15 @@ static bool BACnet_Debug_Enabled;
 /**
  * @brief Print error messages
  */
-static void MyPrintHandler(const char *hex_ascii,
+static void MyPrintHandler(
+    const char *hex_ascii,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
     debug_printf("[{\n");
-    debug_printf("  \"%s\": {\n"
-                 "    \"error-class\": \"%s\",\n    \"error-code\": \"%s\"",
+    debug_printf(
+        "  \"%s\": {\n"
+        "    \"error-class\": \"%s\",\n    \"error-code\": \"%s\"",
         hex_ascii, bactext_error_class_name((int)error_class),
         bactext_error_code_name((int)error_code));
     debug_printf("\n  }\n}]\n");
@@ -78,7 +80,8 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        MyPrintHandler(APDU_Hex_ASCII, ERROR_CLASS_SERVICES,
+        MyPrintHandler(
+            APDU_Hex_ASCII, ERROR_CLASS_SERVICES,
             abort_convert_to_error_code(abort_reason));
         Error_Detected = true;
     }
@@ -87,12 +90,13 @@ static void MyAbortHandler(
 /**
  * @brief Handler for reject messages
  */
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        MyPrintHandler(APDU_Hex_ASCII, ERROR_CLASS_SERVICES,
+        MyPrintHandler(
+            APDU_Hex_ASCII, ERROR_CLASS_SERVICES,
             reject_convert_to_error_code(reject_reason));
         Error_Detected = true;
     }
@@ -178,17 +182,21 @@ static void print_help(const char *filename)
            "Default delay is 100ms.\n");
     printf("\n");
     printf("Example:\n");
-    printf("Send an APDU to DNET 123:\n"
-           "%s 1 --dnet 123 0123456789ABCDEF\n",
+    printf(
+        "Send an APDU to DNET 123:\n"
+        "%s 1 --dnet 123 0123456789ABCDEF\n",
         filename);
-    printf("Send an APDU to MAC 10.0.0.1 DNET 123 DADR 05h:\n"
-           "%s 1 --mac 10.0.0.1 --dnet 123 --dadr 05 0123456789ABCDEF\n",
+    printf(
+        "Send an APDU to MAC 10.0.0.1 DNET 123 DADR 05h:\n"
+        "%s 1 --mac 10.0.0.1 --dnet 123 --dadr 05 0123456789ABCDEF\n",
         filename);
-    printf("Send APDU to MAC 10.1.2.3:47808:\n"
-           "%s 1 --mac 10.1.2.3:47808  0123456789ABCDEF\n",
+    printf(
+        "Send APDU to MAC 10.1.2.3:47808:\n"
+        "%s 1 --mac 10.1.2.3:47808  0123456789ABCDEF\n",
         filename);
-    printf("Send an APDU to Device 1:\n"
-           "%s 1 0123456789ABCDEF\n",
+    printf(
+        "Send an APDU to Device 1:\n"
+        "%s 1 0123456789ABCDEF\n",
         filename);
 }
 
@@ -228,8 +236,8 @@ static void Send_APDU_To_Network(
  * @param ascii_hex [in] The string of ASCII hex.
  * @return number of bytes converted, or 0 if error.
  */
-static size_t ascii_hex_to_binary(
-    uint8_t *buffer, size_t buffer_size, const char *ascii_hex)
+static size_t
+ascii_hex_to_binary(uint8_t *buffer, size_t buffer_size, const char *ascii_hex)
 {
     unsigned index = 0; /* offset into buffer */
     uint8_t value = 0;
@@ -401,7 +409,8 @@ int main(int argc, char *argv[])
         Target_Device_Object_Instance, &max_apdu, &Target_Address);
     if (found) {
         if (BACnet_Debug_Enabled) {
-            debug_printf("Found Device %u in address_cache.\n",
+            debug_printf(
+                "Found Device %u in address_cache.\n",
                 Target_Device_Object_Instance);
         }
     } else {
@@ -432,7 +441,8 @@ int main(int argc, char *argv[])
         if (found) {
             /* device is bound! */
             if (BACnet_Debug_Enabled) {
-                printf("Sending APDU to Device %u.\n",
+                printf(
+                    "Sending APDU to Device %u.\n",
                     Target_Device_Object_Instance);
             }
             if (mstimer_expired(&apdu_timer)) {

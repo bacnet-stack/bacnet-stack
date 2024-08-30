@@ -43,26 +43,26 @@ typedef struct object_device_t {
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    bool objects_device_delete(int index);
+BACNET_STACK_EXPORT
+bool objects_device_delete(int index);
 
-    BACNET_STACK_EXPORT
-    OBJECT_DEVICE_T *objects_device_new(uint32_t device_instance);
+BACNET_STACK_EXPORT
+OBJECT_DEVICE_T *objects_device_new(uint32_t device_instance);
 
-    BACNET_STACK_EXPORT
-    OBJECT_DEVICE_T *objects_device_by_instance(uint32_t device_instance);
+BACNET_STACK_EXPORT
+OBJECT_DEVICE_T *objects_device_by_instance(uint32_t device_instance);
 
-    BACNET_STACK_EXPORT
-    OBJECT_DEVICE_T *objects_device_data(int index);
+BACNET_STACK_EXPORT
+OBJECT_DEVICE_T *objects_device_data(int index);
 
-    BACNET_STACK_EXPORT
-    int objects_device_count(void);
+BACNET_STACK_EXPORT
+int objects_device_count(void);
 
-    BACNET_STACK_EXPORT
-    uint32_t objects_device_id(int index);
+BACNET_STACK_EXPORT
+uint32_t objects_device_id(int index);
 
-    BACNET_STACK_EXPORT
-    void objects_init(void);
+BACNET_STACK_EXPORT
+void objects_init(void);
 
 #ifdef __cplusplus
 }

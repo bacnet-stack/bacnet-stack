@@ -42,8 +42,7 @@ static void testMultistateValue(void)
         Multistate_Value_Property_Lists, Multistate_Value_Read_Property,
         Multistate_Value_Write_Property, skip_fail_property_list);
     bacnet_object_name_ascii_test(
-        object_instance,
-        Multistate_Value_Name_Set,
+        object_instance, Multistate_Value_Name_Set,
         Multistate_Value_Name_ASCII);
     status = Multistate_Value_Delete(object_instance);
     zassert_true(status, NULL);

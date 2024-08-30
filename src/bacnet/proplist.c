@@ -96,7 +96,8 @@ bool property_lists_member(
  * @return number of APDU bytes in the response, or
  * BACNET_STATUS_ERROR on error.
  */
-int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
+int property_list_encode(
+    BACNET_READ_PROPERTY_DATA *rpdata,
     const int *pListRequired,
     const int *pListOptional,
     const int *pListProprietary)

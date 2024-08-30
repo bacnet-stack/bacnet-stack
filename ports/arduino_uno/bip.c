@@ -37,7 +37,7 @@ static uint8_t BIP_Broadcast_Address[4] = { 0, 0, 0, 0 };
 uint32_t convertBIP_Address2uint32(const suint8_t *bip_address)
 {
     return (uint32_t)((bip_address[0] * 2 ^ 24) + (bip_address[1] * 2 ^ 16) +
-        (bip_address[2] * 2 ^ 8) + bip_address[3]);
+                      (bip_address[2] * 2 ^ 8) + bip_address[3]);
 }
 
 /** Convert from uint32_t IPv4 address to uint8_t[4] address
@@ -76,8 +76,9 @@ bool bip_valid(void)
 
 void bip_set_addr(const uint8_t *net_address)
 { /* in network byte order */
-    for (uint8_t i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < 4; i++) {
         BIP_Address[i] = net_address[i];
+    }
 }
 
 /* returns network byte order */
@@ -88,8 +89,9 @@ uint8_t *bip_get_addr(void)
 
 void bip_set_broadcast_addr(const uint8_t *net_address)
 { /* in network byte order */
-    for (uint8_t i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < 4; i++) {
         BIP_Broadcast_Address[i] = net_address[i];
+    }
 }
 
 /* returns network byte order */
@@ -109,7 +111,8 @@ uint16_t bip_get_port(void)
     return ntohs(BIP_Port);
 }
 
-static int bip_decode_bip_address(const BACNET_ADDRESS *bac_addr,
+static int bip_decode_bip_address(
+    const BACNET_ADDRESS *bac_addr,
     uint8_t *address, /* in network format */
     uint16_t *port)
 { /* in network format */
@@ -133,7 +136,8 @@ static int bip_decode_bip_address(const BACNET_ADDRESS *bac_addr,
  * @param pdu_len [in] Number of bytes in the pdu buffer.
  * @return Number of bytes sent on success, negative number on failure.
  */
-int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+int bip_send_pdu(
+    BACNET_ADDRESS *dest, /* destination address */
 
     BACNET_NPDU_DATA *npdu_data, /* network information */
 
@@ -159,19 +163,22 @@ int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     if ((dest->net == BACNET_BROADCAST_NETWORK) ||
         ((dest->net > 0) && (dest->len == 0)) || (dest->mac_len == 0)) {
         /* broadcast */
-        for (uint8_t i = 0; i < 4; i++)
+        for (uint8_t i = 0; i < 4; i++) {
             address[i] = BIP_Broadcast_Address[i];
+        }
         port = BIP_Port;
         mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
 #ifdef DEBUG
-        fprintf(stderr, "Send Broadcast NPDU to %d.%d.%d.%d:%d\n", address[0],
+        fprintf(
+            stderr, "Send Broadcast NPDU to %d.%d.%d.%d:%d\n", address[0],
             address[1], address[2], address[3], port);
 #endif
     } else if (dest->mac_len == 6) {
         bip_decode_bip_address(dest, address, &port);
         mtu[1] = BVLC_ORIGINAL_UNICAST_NPDU;
 #ifdef DEBUG
-        fprintf(stderr, "Send Unicast NPDU to %d.%d.%d.%d:%d\n", address[0],
+        fprintf(
+            stderr, "Send Unicast NPDU to %d.%d.%d.%d:%d\n", address[0],
             address[1], address[2], address[3], port);
 #endif
     } else {
@@ -207,7 +214,8 @@ int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
  * @param timeout [in] The number of milliseconds to wait for a packet.
  * @return The number of octets (remaining) in the PDU, or zero on failure.
  */
-uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
+uint16_t bip_receive(
+    BACNET_ADDRESS *src, /* source address */
 
     uint8_t *pdu, /* PDU data */
 
@@ -224,8 +232,9 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
     int function = 0;
 
     /* Make sure the socket is open */
-    if (BIP_Socket < 0)
+    if (BIP_Socket < 0) {
         return 0;
+    }
 
     if (getRXReceivedSize_func(CW5100Class_new(), BIP_Socket)) {
         memcpy(&src_addr, &src->mac[0], 4);
@@ -240,12 +249,14 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
     }
 
     /* no problem, just no bytes */
-    if (received_bytes == 0)
+    if (received_bytes == 0) {
         return 0;
+    }
 
     /* the signature of a BACnet/IP packet */
-    if (pdu[0] != BVLL_TYPE_BACNET_IP)
+    if (pdu[0] != BVLL_TYPE_BACNET_IP) {
         return 0;
+    }
 
     /* Erase up to 16 bytes after the received bytes as safety margin to
      * ensure that the decoding functions will run into a 'safe field'
@@ -272,7 +283,7 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
         (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
         if ((convertBIP_Address2uint32(src_addr) ==
-                convertBIP_Address2uint32(BIP_Address)) &&
+             convertBIP_Address2uint32(BIP_Address)) &&
             (src_port == BIP_Port)) {
             pdu_len = 0;
 #if 0
@@ -284,7 +295,8 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
             memcpy(&src->mac[0], &src_addr, 4);
             memcpy(&src->mac[4], &src_port, 2);
 #ifdef DEBUG
-            fprintf(stderr, "BIP receive from %d.%d.%d.%d\n", src->mac[0],
+            fprintf(
+                stderr, "BIP receive from %d.%d.%d.%d\n", src->mac[0],
                 src->mac[1], src->mac[2], src->mac[3]);
 #endif
             /* FIXME: check destination address */
@@ -321,7 +333,7 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
         memcpy(&src_addr, &pdu[4], 4);
         memcpy(&src_port, &pdu[8], 2);
         if ((convertBIP_Address2uint32(src_addr) ==
-                convertBIP_Address2uint32(BIP_Address)) &&
+             convertBIP_Address2uint32(BIP_Address)) &&
             (src_port == BIP_Port)) {
             /* ignore messages from me */
             pdu_len = 0;

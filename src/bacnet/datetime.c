@@ -137,8 +137,8 @@ uint32_t datetime_day_of_year(const BACNET_DATE *bdate)
  * @param day - day of month (1-31)
  * @return number of days since epoch, or 0 if out of range
  */
-uint32_t datetime_ymd_to_days_since_epoch(
-    uint16_t year, uint8_t month, uint8_t day)
+uint32_t
+datetime_ymd_to_days_since_epoch(uint16_t year, uint8_t month, uint8_t day)
 {
     uint32_t days = 0; /* return value */
     uint16_t years = 0; /* loop counter for years */
@@ -475,7 +475,8 @@ void datetime_set_date(
     }
 }
 
-void datetime_set_time(BACNET_TIME *btime,
+void datetime_set_time(
+    BACNET_TIME *btime,
     uint8_t hour,
     uint8_t minute,
     uint8_t seconds,
@@ -506,7 +507,8 @@ void datetime_set(
     }
 }
 
-void datetime_set_values(BACNET_DATE_TIME *bdatetime,
+void datetime_set_values(
+    BACNET_DATE_TIME *bdatetime,
     uint16_t year,
     uint8_t month,
     uint8_t day,
@@ -656,8 +658,9 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
     }
 
     /* convert bdatetime from seconds and days */
-    datetime_hms_from_seconds_since_midnight(bdatetime_minutes * 60,
-        &bdatetime->time.hour, &bdatetime->time.min, NULL);
+    datetime_hms_from_seconds_since_midnight(
+        bdatetime_minutes * 60, &bdatetime->time.hour, &bdatetime->time.min,
+        NULL);
     datetime_days_since_epoch_into_date(bdatetime_days, &bdatetime->date);
 }
 
@@ -974,7 +977,8 @@ void datetime_wildcard_set(BACNET_DATE_TIME *bdatetime)
  *  Values are positive East of UTC and negative West of UTC
  * @return true if the time is converted
  */
-bool datetime_utc_to_local(BACNET_DATE_TIME *local_time,
+bool datetime_utc_to_local(
+    BACNET_DATE_TIME *local_time,
     const BACNET_DATE_TIME *utc_time,
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes)
@@ -1006,7 +1010,8 @@ bool datetime_utc_to_local(BACNET_DATE_TIME *local_time,
  *  Values are positive East of UTC and negative West of UTC
  * @return true if the time is converted
  */
-bool datetime_local_to_utc(BACNET_DATE_TIME *utc_time,
+bool datetime_local_to_utc(
+    BACNET_DATE_TIME *utc_time,
     const BACNET_DATE_TIME *local_time,
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes)
@@ -1137,7 +1142,8 @@ int bacapp_decode_datetime(const uint8_t *apdu, BACNET_DATE_TIME *value)
  * @param value - parameter to store the value after decoding
  * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
  */
-int bacnet_datetime_context_decode(const uint8_t *apdu,
+int bacnet_datetime_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_DATE_TIME *value)
@@ -1185,13 +1191,13 @@ int bacapp_decode_context_datetime(
  * @return true if the two complex data values are the same
  */
 bool bacnet_daterange_same(
-    const BACNET_DATE_RANGE *value1,
-    const BACNET_DATE_RANGE *value2)
+    const BACNET_DATE_RANGE *value1, const BACNET_DATE_RANGE *value2)
 {
     bool status = false;
 
     if (value1 && value2) {
-        if ((datetime_compare_date(&value1->startdate, &value2->startdate) == 0) &&
+        if ((datetime_compare_date(&value1->startdate, &value2->startdate) ==
+             0) &&
             (datetime_compare_date(&value1->enddate, &value2->enddate) == 0)) {
             status = true;
         }
@@ -1309,7 +1315,8 @@ int bacnet_daterange_context_encode(
  * @param value - value to encode
  * @return number of bytes decoded, BACNET_STATUS_ERROR on error
  */
-int bacnet_daterange_context_decode(const uint8_t *apdu,
+int bacnet_daterange_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_DATE_RANGE *value)
@@ -1384,11 +1391,9 @@ int datetime_date_to_ascii(const BACNET_DATE *bdate, char *str, size_t str_size)
         return 0;
     }
     /* 2021/12/31 */
-    str_len = snprintf(str, str_size,
-        "%04u/%02u/%02u",
-        (unsigned)bdate->year,
-        (unsigned)bdate->month,
-        (unsigned)bdate->day);
+    str_len = snprintf(
+        str, str_size, "%04u/%02u/%02u", (unsigned)bdate->year,
+        (unsigned)bdate->month, (unsigned)bdate->day);
 
     return str_len;
 }
@@ -1445,11 +1450,9 @@ int datetime_time_to_ascii(const BACNET_TIME *btime, char *str, size_t str_size)
         return 0;
     }
     /* 23:59:59.99 */
-    str_len = snprintf(str, str_size,
-        "%02u:%02u:%02u.%02u",
-        (unsigned)btime->hour,
-        (unsigned)btime->min,
-        (unsigned)btime->sec,
+    str_len = snprintf(
+        str, str_size, "%02u:%02u:%02u.%02u", (unsigned)btime->hour,
+        (unsigned)btime->min, (unsigned)btime->sec,
         (unsigned)btime->hundredths);
 
     return str_len;
@@ -1468,8 +1471,9 @@ bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii)
     int hour = 0, min = 0, sec = 0, hundredths = 0;
     int count = 0;
 
-    count = sscanf(ascii, "%4d/%3d/%3d-%3d:%3d:%3d.%3d", &year, &month, &day,
-        &hour, &min, &sec, &hundredths);
+    count = sscanf(
+        ascii, "%4d/%3d/%3d-%3d:%3d:%3d.%3d", &year, &month, &day, &hour, &min,
+        &sec, &hundredths);
     if (count >= 3) {
         datetime_set_date(
             &bdatetime->date, (uint16_t)year, (uint8_t)month, (uint8_t)day);
@@ -1490,7 +1494,8 @@ bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii)
  * @param str_size - size of the string, or 0 for length only
  * @return number of characters printed
  */
-int datetime_to_ascii(const BACNET_DATE_TIME *bdatetime, char *str, size_t str_size)
+int datetime_to_ascii(
+    const BACNET_DATE_TIME *bdatetime, char *str, size_t str_size)
 {
     int str_len = 0;
 
@@ -1498,14 +1503,11 @@ int datetime_to_ascii(const BACNET_DATE_TIME *bdatetime, char *str, size_t str_s
         return 0;
     }
     /* 2021/12/31-23:59:59.99 */
-    str_len = snprintf(str, str_size,
-        "%04u/%02u/%02u-%02u:%02u:%02u.%02u",
-        (unsigned)bdatetime->date.year,
-        (unsigned)bdatetime->date.month,
-        (unsigned)bdatetime->date.day,
-        (unsigned)bdatetime->time.hour,
-        (unsigned)bdatetime->time.min,
-        (unsigned)bdatetime->time.sec,
+    str_len = snprintf(
+        str, str_size, "%04u/%02u/%02u-%02u:%02u:%02u.%02u",
+        (unsigned)bdatetime->date.year, (unsigned)bdatetime->date.month,
+        (unsigned)bdatetime->date.day, (unsigned)bdatetime->time.hour,
+        (unsigned)bdatetime->time.min, (unsigned)bdatetime->time.sec,
         (unsigned)bdatetime->time.hundredths);
 
     return str_len;

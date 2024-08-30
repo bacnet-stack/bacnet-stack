@@ -25,7 +25,8 @@
  *
  * @return Count of encoded bytes.
  */
-int timesync_encode_apdu_service(uint8_t *apdu,
+int timesync_encode_apdu_service(
+    uint8_t *apdu,
     BACNET_UNCONFIRMED_SERVICE service,
     const BACNET_DATE *my_date,
     const BACNET_TIME *my_time)
@@ -86,7 +87,8 @@ int timesync_encode_apdu(
  *
  * @return Count of decoded bytes.
  */
-int timesync_decode_service_request(const uint8_t *apdu,
+int timesync_decode_service_request(
+    const uint8_t *apdu,
     unsigned apdu_len,
     BACNET_DATE *my_date,
     BACNET_TIME *my_time)
@@ -164,8 +166,8 @@ int timesync_encode_timesync_recipients(
         if (pRecipient->tag == 0) {
             if (max_apdu >= (1 + 4)) {
                 /* CHOICE - device [0] BACnetObjectIdentifier */
-                len = encode_context_object_id(&apdu[apdu_len], 0,
-                    pRecipient->type.device.type,
+                len = encode_context_object_id(
+                    &apdu[apdu_len], 0, pRecipient->type.device.type,
                     pRecipient->type.device.instance);
                 apdu_len += len;
             } else {
@@ -191,12 +193,12 @@ int timesync_encode_timesync_recipients(
                 if (pRecipient->type.address.net == BACNET_BROADCAST_NETWORK) {
                     octetstring_init(&octet_string, NULL, 0);
                 } else if (pRecipient->type.address.net) {
-                    octetstring_init(&octet_string,
-                        &pRecipient->type.address.adr[0],
+                    octetstring_init(
+                        &octet_string, &pRecipient->type.address.adr[0],
                         pRecipient->type.address.len);
                 } else {
-                    octetstring_init(&octet_string,
-                        &pRecipient->type.address.mac[0],
+                    octetstring_init(
+                        &octet_string, &pRecipient->type.address.mac[0],
                         pRecipient->type.address.mac_len);
                 }
                 len = encode_application_octet_string(
@@ -263,8 +265,8 @@ int timesync_decode_timesync_recipients(
             if ((unsigned)(apdu_len + 4) > max_apdu) {
                 return BACNET_STATUS_ABORT;
             }
-            len = decode_context_object_id(&apdu[apdu_len], 0,
-                &pRecipient->type.device.type,
+            len = decode_context_object_id(
+                &apdu[apdu_len], 0, &pRecipient->type.device.type,
                 &pRecipient->type.device.instance);
             if (len < 0) {
                 return BACNET_STATUS_ABORT;
@@ -297,8 +299,9 @@ int timesync_decode_timesync_recipients(
             if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
                 return BACNET_STATUS_ABORT;
             }
-            len = bacnet_octet_string_decode(&apdu[apdu_len],
-                max_apdu - apdu_len, len_value_type, &octet_string);
+            len = bacnet_octet_string_decode(
+                &apdu[apdu_len], max_apdu - apdu_len, len_value_type,
+                &octet_string);
             if (len < 0) {
                 return BACNET_STATUS_ERROR;
             }
@@ -306,13 +309,13 @@ int timesync_decode_timesync_recipients(
             if (octetstring_length(&octet_string) == 0) {
                 /* -- A string of length 0 indicates a broadcast */
             } else if (pRecipient->type.address.net) {
-                pRecipient->type.address.len =
-                    octetstring_copy_value(&pRecipient->type.address.adr[0],
-                        sizeof(pRecipient->type.address.adr), &octet_string);
+                pRecipient->type.address.len = octetstring_copy_value(
+                    &pRecipient->type.address.adr[0],
+                    sizeof(pRecipient->type.address.adr), &octet_string);
             } else {
-                pRecipient->type.address.mac_len =
-                    octetstring_copy_value(&pRecipient->type.address.mac[0],
-                        sizeof(pRecipient->type.address.mac), &octet_string);
+                pRecipient->type.address.mac_len = octetstring_copy_value(
+                    &pRecipient->type.address.mac[0],
+                    sizeof(pRecipient->type.address.mac), &octet_string);
             }
             if (!decode_is_closing_tag_number(&apdu[apdu_len], 1)) {
                 return BACNET_STATUS_ABORT;

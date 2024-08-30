@@ -36,7 +36,8 @@ static int printf_stderr(const char *format, ...)
     return length;
 }
 #else
-static int printf_stderr(const char *format, ...) {
+static int printf_stderr(const char *format, ...)
+{
     (void)format;
     return 0;
 }
@@ -113,8 +114,8 @@ void bvlc6_maintenance_timer(uint16_t seconds)
  *
  * @return true if the address was set
  */
-static bool bbmd6_address_from_vmac(
-    BACNET_IP6_ADDRESS *addr, const struct vmac_data *vmac)
+static bool
+bbmd6_address_from_vmac(BACNET_IP6_ADDRESS *addr, const struct vmac_data *vmac)
 {
     bool status = false;
     unsigned int i = 0;
@@ -138,8 +139,8 @@ static bool bbmd6_address_from_vmac(
  *
  * @return true if the address was set
  */
-static bool bbmd6_address_to_vmac(
-    struct vmac_data *vmac, const BACNET_IP6_ADDRESS *addr)
+static bool
+bbmd6_address_to_vmac(struct vmac_data *vmac, const BACNET_IP6_ADDRESS *addr)
 {
     bool status = false;
     unsigned int i = 0;
@@ -178,13 +179,15 @@ static void bbmd6_add_vmac(uint32_t device_id, const BACNET_IP6_ADDRESS *addr)
             } else {
                 /* VMAC exists, but device ID changed */
                 VMAC_Delete(list_device_id);
-                PRINTF("BVLC6: VMAC existed for %u [",
+                PRINTF(
+                    "BVLC6: VMAC existed for %u [",
                     (unsigned int)list_device_id);
                 for (i = 0; i < new_vmac.mac_len; i++) {
                     PRINTF("%02X", new_vmac.mac[i]);
                 }
                 PRINTF("]\n");
-                PRINTF("BVLC6: Removed VMAC for %lu.\n",
+                PRINTF(
+                    "BVLC6: Removed VMAC for %lu.\n",
                     (unsigned long)list_device_id);
             }
         }
@@ -193,25 +196,23 @@ static void bbmd6_add_vmac(uint32_t device_id, const BACNET_IP6_ADDRESS *addr)
             if (vmac) {
                 /* device ID already exists. Update MAC. */
                 memmove(vmac, &new_vmac, sizeof(struct vmac_data));
-                PRINTF("BVLC6: VMAC for %u [",
-                    (unsigned int)device_id);
+                PRINTF("BVLC6: VMAC for %u [", (unsigned int)device_id);
                 for (i = 0; i < new_vmac.mac_len; i++) {
                     PRINTF("%02X", new_vmac.mac[i]);
                 }
                 PRINTF("]\n");
-                PRINTF("BVLC6: Updated VMAC for %lu.\n",
-                    (unsigned long)device_id);
+                PRINTF(
+                    "BVLC6: Updated VMAC for %lu.\n", (unsigned long)device_id);
             } else {
                 /* new entry - add it! */
                 VMAC_Add(device_id, &new_vmac);
-                PRINTF("BVLC6: VMAC for %u [",
-                    (unsigned int)device_id);
+                PRINTF("BVLC6: VMAC for %u [", (unsigned int)device_id);
                 for (i = 0; i < new_vmac.mac_len; i++) {
                     PRINTF("%02X", new_vmac.mac[i]);
                 }
                 PRINTF("]\n");
-                PRINTF("BVLC6: Added VMAC for %lu.\n",
-                    (unsigned long)device_id);
+                PRINTF(
+                    "BVLC6: Added VMAC for %lu.\n", (unsigned long)device_id);
             }
         }
     }
@@ -260,7 +261,8 @@ static bool bbmd6_address_from_bacnet_address(
         if (status) {
             vmac = VMAC_Find_By_Key(device_id);
             if (vmac) {
-                PRINTF("BVLC6: Found VMAC %lu (len=%u).\n",
+                PRINTF(
+                    "BVLC6: Found VMAC %lu (len=%u).\n",
                     (unsigned long)device_id, (unsigned)vmac->mac_len);
                 status = bbmd6_address_from_vmac(addr, vmac);
                 if (vmac_src) {
@@ -285,7 +287,8 @@ static bool bbmd6_address_from_bacnet_address(
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bvlc6_send_pdu(const BACNET_ADDRESS *dest,
+int bvlc6_send_pdu(
+    const BACNET_ADDRESS *dest,
     const BACNET_NPDU_DATA *npdu_data,
     const uint8_t *pdu,
     unsigned pdu_len)
@@ -408,7 +411,8 @@ static void bbmd6_send_pdu_fdt(uint8_t *mtu, unsigned int mtu_len)
  * @param npdu - the bytes of NPDU+APDU data to send
  * @param npdu_len - the number of bytes of NPDU+APDU data to send
  */
-static void bbmd6_send_forward_npdu(BACNET_IP6_ADDRESS *address,
+static void bbmd6_send_forward_npdu(
+    BACNET_IP6_ADDRESS *address,
     uint32_t vmac_src,
     uint8_t *npdu,
     unsigned int npdu_len)
@@ -647,7 +651,8 @@ static void bbmd6_address_resolution_ack_handler(
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
+int bvlc6_bbmd_disabled_handler(
+    BACNET_IP6_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len)
@@ -766,8 +771,9 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
                     /* ignore messages from my IPv6 address */
                     PRINTF("BIP6: Forwarded-NPDU is me!\n");
                 } else {
-                    function_len = bvlc6_decode_forwarded_npdu(pdu, pdu_len,
-                        &vmac_src, &fwd_address, NULL, 0, &npdu_len);
+                    function_len = bvlc6_decode_forwarded_npdu(
+                        pdu, pdu_len, &vmac_src, &fwd_address, NULL, 0,
+                        &npdu_len);
                     if (function_len) {
                         /* The Virtual MAC address table shall be updated
                            using the respective parameter values of the
@@ -825,7 +831,8 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-int bvlc6_bbmd_enabled_handler(BACNET_IP6_ADDRESS *addr,
+int bvlc6_bbmd_enabled_handler(
+    BACNET_IP6_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len)
@@ -1020,7 +1027,8 @@ int bvlc6_bbmd_enabled_handler(BACNET_IP6_ADDRESS *addr,
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-int bvlc6_handler(BACNET_IP6_ADDRESS *addr,
+int bvlc6_handler(
+    BACNET_IP6_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *npdu,
     uint16_t npdu_len)
@@ -1041,8 +1049,8 @@ int bvlc6_handler(BACNET_IP6_ADDRESS *addr,
  *         0 if no registration request is sent, or
  *         -1 if registration fails.
  */
-int bvlc6_register_with_bbmd(const BACNET_IP6_ADDRESS *bbmd_addr,
-    uint16_t ttl_seconds)
+int bvlc6_register_with_bbmd(
+    const BACNET_IP6_ADDRESS *bbmd_addr, uint16_t ttl_seconds)
 {
     uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;

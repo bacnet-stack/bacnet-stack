@@ -35,7 +35,8 @@
  *
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int abort_encode_pdu(uint8_t *buffer,
+int abort_encode_pdu(
+    uint8_t *buffer,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data,
@@ -66,7 +67,8 @@ int abort_encode_pdu(uint8_t *buffer,
  *
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int Send_Abort_To_Network(uint8_t *buffer,
+int Send_Abort_To_Network(
+    uint8_t *buffer,
     BACNET_ADDRESS *dest,
     uint8_t invoke_id,
     BACNET_ABORT_REASON reason,

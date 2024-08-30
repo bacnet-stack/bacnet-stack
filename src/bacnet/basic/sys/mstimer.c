@@ -49,7 +49,8 @@ void mstimer_callback_handler(void)
  * @param callback - pointer to a #timer_callback_function function
  * @param milliseconds - how often to call the function
  */
-void mstimer_callback(struct mstimer_callback_data_t *new_cb,
+void mstimer_callback(
+    struct mstimer_callback_data_t *new_cb,
     mstimer_callback_function callback,
     unsigned long milliseconds)
 {
@@ -136,7 +137,8 @@ void mstimer_restart(struct mstimer *t)
 int mstimer_expired(const struct mstimer *t)
 {
     if (t->interval) {
-        return ((unsigned long)((mstimer_now()) - (t->start + t->interval)) <
+        return (
+            (unsigned long)((mstimer_now()) - (t->start + t->interval)) <
             ((unsigned long)(~((unsigned long)0)) >> 1));
     }
 

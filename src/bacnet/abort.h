@@ -18,29 +18,23 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    BACNET_ABORT_REASON abort_convert_error_code(
-        BACNET_ERROR_CODE error_code);
-    BACNET_STACK_EXPORT
-    bool abort_valid_error_code(
-        BACNET_ERROR_CODE error_code);
-    BACNET_STACK_EXPORT
-    BACNET_ERROR_CODE abort_convert_to_error_code(
-        BACNET_ABORT_REASON abort_code);
+BACNET_STACK_EXPORT
+BACNET_ABORT_REASON abort_convert_error_code(BACNET_ERROR_CODE error_code);
+BACNET_STACK_EXPORT
+bool abort_valid_error_code(BACNET_ERROR_CODE error_code);
+BACNET_STACK_EXPORT
+BACNET_ERROR_CODE abort_convert_to_error_code(BACNET_ABORT_REASON abort_code);
 
-    BACNET_STACK_EXPORT
-    int abort_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        uint8_t abort_reason,
-        bool server);
+BACNET_STACK_EXPORT
+int abort_encode_apdu(
+    uint8_t *apdu, uint8_t invoke_id, uint8_t abort_reason, bool server);
 
-    BACNET_STACK_EXPORT
-    int abort_decode_service_request(
-        const uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        uint8_t * abort_reason);
+BACNET_STACK_EXPORT
+int abort_decode_service_request(
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    uint8_t *invoke_id,
+    uint8_t *abort_reason);
 
 #ifdef __cplusplus
 }

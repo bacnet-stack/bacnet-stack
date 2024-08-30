@@ -258,16 +258,19 @@ static void *dlmstp_master_fsm_task(void *pArg)
             silence = mstp_port->SilenceTimer(NULL);
             switch (mstp_port->master_state) {
                 case MSTP_MASTER_STATE_IDLE:
-                    if (silence >= Tno_token)
+                    if (silence >= Tno_token) {
                         run_master = true;
+                    }
                     break;
                 case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-                    if (silence >= mstp_port->Treply_timeout)
+                    if (silence >= mstp_port->Treply_timeout) {
                         run_master = true;
+                    }
                     break;
                 case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-                    if (silence >= mstp_port->Tusage_timeout)
+                    if (silence >= mstp_port->Tusage_timeout) {
                         run_master = true;
+                    }
                     break;
                 default:
                     run_master = true;
@@ -324,8 +327,9 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
     if (!poSharedData->Receive_Packet.ready) {
         /* bounds check - maybe this should send an abort? */
         pdu_len = mstp_port->DataLength;
-        if (pdu_len > sizeof(poSharedData->Receive_Packet.pdu))
+        if (pdu_len > sizeof(poSharedData->Receive_Packet.pdu)) {
             pdu_len = sizeof(poSharedData->Receive_Packet.pdu);
+        }
         memmove(
             (void *)&poSharedData->Receive_Packet.pdu[0],
             (void *)&mstp_port->InputBuffer[0], pdu_len);
@@ -580,8 +584,9 @@ void dlmstp_set_mac_address(void *poPort, uint8_t mac_address)
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
         mstp_port->This_Station = mac_address;
-        if (mac_address > mstp_port->Nmax_master)
+        if (mac_address > mstp_port->Nmax_master) {
             dlmstp_set_max_master(mstp_port, mac_address);
+        }
     }
 
     return;

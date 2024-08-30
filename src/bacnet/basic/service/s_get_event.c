@@ -37,7 +37,8 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
 
-uint8_t Send_Get_Event_Information_Address(BACNET_ADDRESS *dest,
+uint8_t Send_Get_Event_Information_Address(
+    BACNET_ADDRESS *dest,
     uint16_t max_apdu,
     const BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
 {
@@ -59,29 +60,34 @@ uint8_t Send_Get_Event_Information_Address(BACNET_ADDRESS *dest,
         pdu_len = npdu_encode_pdu(
             &Handler_Transmit_Buffer[0], dest, &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
-        len = getevent_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id,
+        len = getevent_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], invoke_id,
             lastReceivedObjectIdentifier);
 
         pdu_len += len;
         if ((uint16_t)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t)pdu_len);
 #if PRINT_ENABLED
             bytes_sent =
 #endif
                 datalink_send_pdu(
                     dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-            if (bytes_sent <= 0)
-                fprintf(stderr,
+            if (bytes_sent <= 0) {
+                fprintf(
+                    stderr,
                     "Failed to Send Get Event Information Request (%s)!\n",
                     strerror(errno));
+            }
 #endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send Get Event Information Request "
                 "(exceeds destination maximum APDU)!\n");
 #endif

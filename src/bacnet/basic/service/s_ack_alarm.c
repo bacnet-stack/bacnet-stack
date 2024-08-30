@@ -38,7 +38,8 @@
  * @return invoke id of outgoing message, or 0 if communication is disabled,
  *         or no tsm slot is available.
  */
-uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu,
+uint8_t Send_Alarm_Acknowledgement_Address(
+    uint8_t *pdu,
     uint16_t pdu_size,
     const BACNET_ALARM_ACK_DATA *data,
     BACNET_ADDRESS *dest)
@@ -77,7 +78,8 @@ uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu,
                 invoke_id, dest, &npdu_data, pdu, (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
             if (bytes_sent <= 0) {
-                PRINTF("Failed to Send Alarm Ack Request (%s)!\n",
+                PRINTF(
+                    "Failed to Send Alarm Ack Request (%s)!\n",
                     strerror(errno));
             }
         } else {

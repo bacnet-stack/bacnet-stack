@@ -23,10 +23,10 @@
 
 /* declare a single physical layer using your compiler define.
    see datalink.h for possible defines. */
-#if !(defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || \
-    defined(BACDL_MSTP) || defined(BACDL_BIP) || defined(BACDL_BIP6) || \
-    defined(BACDL_TEST) || defined(BACDL_ALL) || defined(BACDL_NONE) || \
-    defined(BACDL_CUSTOM))
+#if !(                                                                         \
+    defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || defined(BACDL_MSTP) || \
+    defined(BACDL_BIP) || defined(BACDL_BIP6) || defined(BACDL_TEST) ||        \
+    defined(BACDL_ALL) || defined(BACDL_NONE) || defined(BACDL_CUSTOM))
 #define BACDL_BIP
 #endif
 
@@ -50,9 +50,9 @@
 /* Enable the Gateway (Routing) functionality here, if desired. */
 #if !defined(MAX_NUM_DEVICES)
 #ifdef BAC_ROUTING
-#define MAX_NUM_DEVICES 32       /* Eg, Gateway + 31 remote devices */
+#define MAX_NUM_DEVICES 32 /* Eg, Gateway + 31 remote devices */
 #else
-#define MAX_NUM_DEVICES 1       /* Just the one normal BACnet Device Object */
+#define MAX_NUM_DEVICES 1 /* Just the one normal BACnet Device Object */
 #endif
 #endif
 
@@ -70,27 +70,27 @@
 /* 50 is the minimum; adjust to your memory and physical layer constraints */
 /* Lon=206, MS/TP=480 or 1476, ARCNET=480, Ethernet=1476, BACnet/IP=1476 */
 #if !defined(MAX_APDU)
-    /* #define MAX_APDU 50 */
-    /* #define MAX_APDU 1476 */
+/* #define MAX_APDU 50 */
+/* #define MAX_APDU 1476 */
 #if defined(BACDL_BIP)
 #define MAX_APDU 1476
 /* #define MAX_APDU 128 enable this IP for testing
    readrange so you get the More Follows flag set */
 #elif defined(BACDL_BIP6)
 #define MAX_APDU 1476
-#elif defined (BACDL_ETHERNET)
+#elif defined(BACDL_ETHERNET)
 #if defined(BACNET_SECURITY)
 #define MAX_APDU 1420
 #else
 #define MAX_APDU 1476
 #endif
-#elif defined (BACDL_ARCNET)
+#elif defined(BACDL_ARCNET)
 #if defined(BACNET_SECURITY)
 #define MAX_APDU 412
 #else
 #define MAX_APDU 480
 #endif
-#elif defined (BACDL_MSTP)
+#elif defined(BACDL_MSTP)
 #if defined(BACNET_SECURITY)
 #define MAX_APDU 412
 #else
@@ -170,12 +170,12 @@
 #endif
 /* clang-format on */
 
-#if defined (BACAPP_ALL)
+#if defined(BACAPP_ALL)
 #define BACAPP_MINIMAL
 #define BACAPP_TYPES_EXTRA
 #endif
 
-#if defined (BACAPP_MINIMAL)
+#if defined(BACAPP_MINIMAL)
 #define BACAPP_NULL
 #define BACAPP_BOOLEAN
 #define BACAPP_UNSIGNED
@@ -190,7 +190,7 @@
 #define BACAPP_OBJECT_ID
 #endif
 
-#if defined (BACAPP_TYPES_EXTRA)
+#if defined(BACAPP_TYPES_EXTRA)
 #define BACAPP_DOUBLE
 #define BACAPP_TIMESTAMP
 #define BACAPP_DATETIME
@@ -245,11 +245,11 @@
 #endif
 
 #ifndef MAX_CHARACTER_STRING_BYTES
-#define MAX_CHARACTER_STRING_BYTES (MAX_APDU-6)
+#define MAX_CHARACTER_STRING_BYTES (MAX_APDU - 6)
 #endif
 
 #ifndef MAX_OCTET_STRING_BYTES
-#define MAX_OCTET_STRING_BYTES (MAX_APDU-6)
+#define MAX_OCTET_STRING_BYTES (MAX_APDU - 6)
 #endif
 
 /**
@@ -261,26 +261,26 @@
  * to be required in embedded systems using the stack.
  */
 #ifndef BACNET_SVC_SERVER
-    /* default to client-server device for the example apps to build. */
-    #define BACNET_SVC_SERVER      0
+/* default to client-server device for the example apps to build. */
+#define BACNET_SVC_SERVER 0
 #endif
 
 #if (BACNET_SVC_SERVER == 0)
-    /* client-server device */
-    #define BACNET_SVC_I_HAVE_A    1
-    #define BACNET_SVC_WP_A        1
-    #define BACNET_SVC_RP_A        1
-    #define BACNET_SVC_RPM_A       1
-    #define BACNET_SVC_DCC_A       1
-    #define BACNET_SVC_RD_A        1
-    #define BACNET_SVC_TS_A        1
-    #define BACNET_USE_OCTETSTRING 1
-    #define BACNET_USE_DOUBLE      1
-    #define BACNET_USE_SIGNED      1
+/* client-server device */
+#define BACNET_SVC_I_HAVE_A 1
+#define BACNET_SVC_WP_A 1
+#define BACNET_SVC_RP_A 1
+#define BACNET_SVC_RPM_A 1
+#define BACNET_SVC_DCC_A 1
+#define BACNET_SVC_RD_A 1
+#define BACNET_SVC_TS_A 1
+#define BACNET_USE_OCTETSTRING 1
+#define BACNET_USE_DOUBLE 1
+#define BACNET_USE_SIGNED 1
 #endif
 
 /* Do them one by one */
-#ifndef BACNET_SVC_I_HAVE_A     /* Do we send I_Have requests? */
+#ifndef BACNET_SVC_I_HAVE_A /* Do we send I_Have requests? */
 #define BACNET_SVC_I_HAVE_A 0
 #endif
 
@@ -292,11 +292,11 @@
 #define BACNET_SVC_RP_A 0
 #endif
 
-#ifndef BACNET_SVC_RPM_A        /* Do we send ReadPropertyMultiple requests? */
+#ifndef BACNET_SVC_RPM_A /* Do we send ReadPropertyMultiple requests? */
 #define BACNET_SVC_RPM_A 0
 #endif
 
-#ifndef BACNET_SVC_DCC_A        /* Do we send DeviceCommunicationControl requests? */
+#ifndef BACNET_SVC_DCC_A /* Do we send DeviceCommunicationControl requests? */
 #define BACNET_SVC_DCC_A 0
 #endif
 
@@ -304,15 +304,15 @@
 #define BACNET_SVC_RD_A 0
 #endif
 
-#ifndef BACNET_USE_OCTETSTRING  /* Do we need any octet strings? */
+#ifndef BACNET_USE_OCTETSTRING /* Do we need any octet strings? */
 #define BACNET_USE_OCTETSTRING 0
 #endif
 
-#ifndef BACNET_USE_DOUBLE       /* Do we need any doubles? */
+#ifndef BACNET_USE_DOUBLE /* Do we need any doubles? */
 #define BACNET_USE_DOUBLE 0
 #endif
 
-#ifndef BACNET_USE_SIGNED       /* Do we need any signed integers */
+#ifndef BACNET_USE_SIGNED /* Do we need any signed integers */
 #define BACNET_USE_SIGNED 0
 #endif
 

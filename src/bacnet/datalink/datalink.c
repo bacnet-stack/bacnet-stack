@@ -77,7 +77,8 @@ bool datalink_init(char *ifname)
     return status;
 }
 
-int datalink_send_pdu(BACNET_ADDRESS *dest,
+int datalink_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
@@ -272,7 +273,8 @@ bool datalink_init(char *ifname)
     return true;
 }
 
-int datalink_send_pdu(BACNET_ADDRESS *dest,
+int datalink_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)

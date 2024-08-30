@@ -18,19 +18,19 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    void handler_add_list_element(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA *service_data);
+BACNET_STACK_EXPORT
+void handler_add_list_element(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
-    BACNET_STACK_EXPORT
-    void handler_remove_list_element(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA *service_data);
+BACNET_STACK_EXPORT
+void handler_remove_list_element(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 #ifdef __cplusplus
 }

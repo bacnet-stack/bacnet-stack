@@ -53,8 +53,8 @@ int Send_UnconfirmedPrivateTransfer(
         dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
 #if PRINT_ENABLED
-        fprintf(stderr,
-            "Failed to Send UnconfirmedPrivateTransfer Request (%s)!\n",
+        fprintf(
+            stderr, "Failed to Send UnconfirmedPrivateTransfer Request (%s)!\n",
             strerror(errno));
 #endif
     }

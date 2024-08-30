@@ -30,7 +30,8 @@
  * @return invoke id of outgoing message, or 0 if communication is disabled,
  *         or no tsm slot is available.
  */
-uint8_t Send_CEvent_Notify_Address(uint8_t *pdu,
+uint8_t Send_CEvent_Notify_Address(
+    uint8_t *pdu,
     uint16_t pdu_size,
     const BACNET_EVENT_NOTIFICATION_DATA *data,
     BACNET_ADDRESS *dest)
@@ -74,7 +75,8 @@ uint8_t Send_CEvent_Notify_Address(uint8_t *pdu,
                 datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0) {
-                fprintf(stderr,
+                fprintf(
+                    stderr,
                     "Failed to Send ConfirmedEventNotification Request (%s)!\n",
                     strerror(errno));
             }
@@ -83,7 +85,8 @@ uint8_t Send_CEvent_Notify_Address(uint8_t *pdu,
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send ConfirmedEventNotification Request "
                 "(exceeds destination maximum APDU)!\n");
 #endif

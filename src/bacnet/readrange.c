@@ -480,7 +480,8 @@ int rr_ack_encode_apdu(
  *
  *  @return Bytes decoded.
  */
-int rr_ack_decode_service_request(uint8_t *apdu,
+int rr_ack_decode_service_request(
+    uint8_t *apdu,
     int apdu_len, /* total length of the apdu */
     BACNET_READ_RANGE_DATA *rrdata)
 {
