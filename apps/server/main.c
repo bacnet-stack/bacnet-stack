@@ -106,16 +106,15 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 #define LIGHTING_OBJECT_RELAY OBJECT_BINARY_OUTPUT
 #endif
 
-static BACNET_SUBORDINATE_DATA Lighting_Subordinate[] =
-{
-    {0, LIGHTING_OBJECT_WATTS, 1, "watt-hours", 0, 0, NULL},
-    {0, LIGHTING_OBJECT_ADR, 1, "demand-response", 0, 0, NULL},
-    {0, LIGHTING_OBJECT_SCENE, 1, "scene",  0, 0, NULL},
-    {0, LIGHTING_OBJECT_LIGHT, 1, "light",  0, 0, NULL},
-    {0, LIGHTING_OBJECT_RELAY, 1, "relay",  0, 0, NULL},
+static BACNET_SUBORDINATE_DATA Lighting_Subordinate[] = {
+    { 0, LIGHTING_OBJECT_WATTS, 1, "watt-hours", 0, 0, NULL },
+    { 0, LIGHTING_OBJECT_ADR, 1, "demand-response", 0, 0, NULL },
+    { 0, LIGHTING_OBJECT_SCENE, 1, "scene", 0, 0, NULL },
+    { 0, LIGHTING_OBJECT_LIGHT, 1, "light", 0, 0, NULL },
+    { 0, LIGHTING_OBJECT_RELAY, 1, "relay", 0, 0, NULL },
 #if (BACNET_PROTOCOL_REVISION >= 24)
-    {0, OBJECT_COLOR, 1, "color", 0, 0, NULL},
-    {0, OBJECT_COLOR_TEMPERATURE, 1, "color-temperature", 0, 0, NULL},
+    { 0, OBJECT_COLOR, 1, "color", 0, 0, NULL },
+    { 0, OBJECT_COLOR_TEMPERATURE, 1, "color-temperature", 0, 0, NULL },
 #endif
 };
 
@@ -132,8 +131,8 @@ static void Structured_View_Update(void)
     device_id = Device_Object_Instance_Number();
     for (i = 0; i < ARRAY_SIZE(Lighting_Subordinate); i++) {
         /* link the lists */
-        if (i < (ARRAY_SIZE(Lighting_Subordinate)-1)) {
-            Lighting_Subordinate[i].next = &Lighting_Subordinate[i+1];
+        if (i < (ARRAY_SIZE(Lighting_Subordinate) - 1)) {
+            Lighting_Subordinate[i].next = &Lighting_Subordinate[i + 1];
         }
         /* update the device instance to internal */
         Lighting_Subordinate[i].Device_Instance = device_id;
@@ -168,7 +167,8 @@ static void Init_Service_Handlers(void)
     for (i = 0; i <= BACNET_OBJECT_TYPE_LAST; i++) {
         object_data.object_type = i;
         if (Device_Create_Object(&object_data)) {
-            printf("Created object %s-%u\n", bactext_object_type_name(i),
+            printf(
+                "Created object %s-%u\n", bactext_object_type_name(i),
                 (unsigned)object_data.object_instance);
         }
     }
@@ -224,10 +224,12 @@ static void Init_Service_Handlers(void)
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* handle the data coming back from private requests */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
         handler_unconfirmed_private_transfer);
 #if defined(INTRINSIC_REPORTING)
     apdu_set_confirmed_handler(
@@ -247,10 +249,10 @@ static void Init_Service_Handlers(void)
     /* configure the cyclic timers */
     mstimer_set(&BACnet_Task_Timer, 1000UL);
     mstimer_set(&BACnet_TSM_Timer, 50UL);
-    mstimer_set(&BACnet_Address_Timer, 60UL*1000UL);
+    mstimer_set(&BACnet_Address_Timer, 60UL * 1000UL);
     mstimer_set(&BACnet_Object_Timer, 100UL);
 #if defined(INTRINSIC_REPORTING)
-    mstimer_set(&BACnet_Notification_Timer, NC_RESCAN_RECIPIENTS_SECS*1000UL);
+    mstimer_set(&BACnet_Notification_Timer, NC_RESCAN_RECIPIENTS_SECS * 1000UL);
 #endif
 }
 
@@ -269,11 +271,13 @@ static void print_help(const char *filename)
            "device-name:\n"
            "The Device object-name is the text name for the device.\n"
            "\nExample:\n");
-    printf("To simulate Device 123, use the following command:\n"
-           "%s 123\n",
+    printf(
+        "To simulate Device 123, use the following command:\n"
+        "%s 123\n",
         filename);
-    printf("To simulate Device 123 named Fred, use following command:\n"
-           "%s 123 Fred\n",
+    printf(
+        "To simulate Device 123 named Fred, use following command:\n"
+        "%s 123 Fred\n",
         filename);
 }
 
@@ -325,8 +329,9 @@ int main(int argc, char *argv[])
     }
 #if defined(BAC_UCI)
     ctx = ucix_init("bacnet_dev");
-    if (!ctx)
+    if (!ctx) {
         fprintf(stderr, "Failed to load config file bacnet_dev\n");
+    }
     uciId = ucix_get_option_int(ctx, "bacnet_dev", "0", "Id", 0);
     if (uciId != 0) {
         Device_Set_Object_Instance_Number(uciId);
@@ -342,10 +347,11 @@ int main(int argc, char *argv[])
     ucix_cleanup(ctx);
 #endif /* defined(BAC_UCI) */
 
-    printf("BACnet Server Demo\n"
-           "BACnet Stack Version %s\n"
-           "BACnet Device ID: %u\n"
-           "Max APDU: %d\n",
+    printf(
+        "BACnet Server Demo\n"
+        "BACnet Stack Version %s\n"
+        "BACnet Device ID: %u\n"
+        "Max APDU: %d\n",
         BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
     /* load any static address bindings to show up
        in our device bindings list */
@@ -357,8 +363,9 @@ int main(int argc, char *argv[])
 #if defined(BAC_UCI)
     const char *uciname;
     ctx = ucix_init("bacnet_dev");
-    if (!ctx)
+    if (!ctx) {
         fprintf(stderr, "Failed to load config file bacnet_dev\n");
+    }
     uciname = ucix_get_option(ctx, "bacnet_dev", "0", "Name");
     if (uciname != 0) {
         Device_Object_Name_ANSI_Init(uciname);
@@ -390,7 +397,7 @@ int main(int argc, char *argv[])
         if (mstimer_expired(&BACnet_Task_Timer)) {
             mstimer_reset(&BACnet_Task_Timer);
             elapsed_milliseconds = mstimer_interval(&BACnet_Task_Timer);
-            elapsed_seconds = elapsed_milliseconds/1000;
+            elapsed_seconds = elapsed_milliseconds / 1000;
             /* 1 second tasks */
             dcc_timer_seconds(elapsed_seconds);
             datalink_maintenance_timer(elapsed_seconds);
@@ -413,7 +420,7 @@ int main(int argc, char *argv[])
         if (mstimer_expired(&BACnet_Address_Timer)) {
             mstimer_reset(&BACnet_Address_Timer);
             elapsed_milliseconds = mstimer_interval(&BACnet_Address_Timer);
-            elapsed_seconds = elapsed_milliseconds/1000;
+            elapsed_seconds = elapsed_milliseconds / 1000;
             address_cache_timer(elapsed_seconds);
         }
         handler_cov_task();

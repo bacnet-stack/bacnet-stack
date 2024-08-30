@@ -20,16 +20,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-    BACNET_STACK_EXPORT
-    void handler_ccov_notification_add(
-        BACNET_COV_NOTIFICATION *callback);
+BACNET_STACK_EXPORT
+void handler_ccov_notification_add(BACNET_COV_NOTIFICATION *callback);
 
-    BACNET_STACK_EXPORT
-    void handler_ccov_notification(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data);
+BACNET_STACK_EXPORT
+void handler_ccov_notification(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 #ifdef __cplusplus
 }

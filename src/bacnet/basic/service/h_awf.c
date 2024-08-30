@@ -59,7 +59,8 @@ standard.
 */
 
 #if defined(BACFILE)
-void handler_atomic_write_file(uint8_t *service_request,
+void handler_atomic_write_file(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -83,9 +84,9 @@ void handler_atomic_write_file(uint8_t *service_request,
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
         fprintf(stderr, "Segmented Message. Sending Abort!\n");
 #endif
@@ -94,8 +95,9 @@ void handler_atomic_write_file(uint8_t *service_request,
     len = awf_decode_service_request(service_request, service_len, &data);
     /* bad decoding - send an abort */
     if (len < 0) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "Bad Encoding. Sending Abort!\n");
 #endif
@@ -107,12 +109,14 @@ void handler_atomic_write_file(uint8_t *service_request,
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (bacfile_write_stream_data(&data)) {
 #if PRINT_ENABLED
-                fprintf(stderr, "AWF: Stream offset %d, %d bytes\n",
+                fprintf(
+                    stderr, "AWF: Stream offset %d, %d bytes\n",
                     data.type.stream.fileStartPosition,
                     (int)octetstring_length(&data.fileData[0]));
 #endif
-                len = awf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, &data);
+                len = awf_ack_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    &data);
             } else {
                 error = true;
                 error_class = ERROR_CLASS_OBJECT;
@@ -121,12 +125,14 @@ void handler_atomic_write_file(uint8_t *service_request,
         } else if (data.access == FILE_RECORD_ACCESS) {
             if (bacfile_write_record_data(&data)) {
 #if PRINT_ENABLED
-                fprintf(stderr, "AWF: StartRecord %d, RecordCount %u\n",
+                fprintf(
+                    stderr, "AWF: StartRecord %d, RecordCount %u\n",
                     data.type.record.fileStartRecord,
                     data.type.record.returnedRecordCount);
 #endif
-                len = awf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, &data);
+                len = awf_ack_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    &data);
             } else {
                 error = true;
                 error_class = ERROR_CLASS_OBJECT;
@@ -146,9 +152,9 @@ void handler_atomic_write_file(uint8_t *service_request,
         error_code = ERROR_CODE_INCONSISTENT_OBJECT_TYPE;
     }
     if (error) {
-        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
-            error_class, error_code);
+        len = bacerror_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            SERVICE_CONFIRMED_ATOMIC_WRITE_FILE, error_class, error_code);
     }
 AWF_ABORT:
     pdu_len += len;

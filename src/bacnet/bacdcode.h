@@ -49,7 +49,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-int encode_tag(uint8_t *apdu,
+int encode_tag(
+    uint8_t *apdu,
     uint8_t tag_number,
     bool context_specific,
     uint32_t len_value_type);
@@ -61,8 +62,7 @@ int encode_closing_tag(uint8_t *apdu, uint8_t tag_number);
 BACNET_STACK_EXPORT
 int bacnet_tag_encode(uint8_t *apdu, uint32_t apdu_size, const BACNET_TAG *tag);
 BACNET_STACK_EXPORT
-int bacnet_tag_decode(
-    const uint8_t *apdu, uint32_t apdu_size, BACNET_TAG *tag);
+int bacnet_tag_decode(const uint8_t *apdu, uint32_t apdu_size, BACNET_TAG *tag);
 
 BACNET_STACK_EXPORT
 bool bacnet_is_opening_tag(const uint8_t *apdu, uint32_t apdu_size);
@@ -89,20 +89,23 @@ bool bacnet_is_opening_tag_number(
     int *tag_length);
 BACNET_STACK_EXPORT
 bool bacnet_is_closing_tag_number(
-    const uint8_t *apdu, uint32_t apdu_size, uint8_t tag_number,
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
     int *tag_length);
 
 BACNET_STACK_EXPORT
-int bacnet_application_data_length(
-    uint8_t tag_number, uint32_t len_value_type);
+int bacnet_application_data_length(uint8_t tag_number, uint32_t len_value_type);
 BACNET_STACK_EXPORT
-int bacnet_enclosed_data_length(
-    const uint8_t *apdu, size_t apdu_size);
+int bacnet_enclosed_data_length(const uint8_t *apdu, size_t apdu_size);
 
 BACNET_STACK_DEPRECATED("Use bacnet_tag_decode() instead")
 BACNET_STACK_EXPORT
 int bacnet_tag_number_and_value_decode(
-    const uint8_t *apdu, uint32_t apdu_size, uint8_t *tag_number, uint32_t *value);
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t *tag_number,
+    uint32_t *value);
 BACNET_STACK_DEPRECATED("Use bacnet_tag_number_decode() instead")
 BACNET_STACK_EXPORT
 int decode_tag_number(const uint8_t *apdu, uint8_t *tag_number);
@@ -158,7 +161,8 @@ BACNET_STACK_EXPORT
 int bacnet_boolean_application_decode(
     const uint8_t *apdu, uint32_t apdu_len_max, bool *value);
 BACNET_STACK_EXPORT
-int bacnet_boolean_context_decode(const uint8_t *apdu,
+int bacnet_boolean_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_len_max,
     uint8_t tag_value,
     bool *boolean_value);
@@ -166,7 +170,8 @@ int bacnet_boolean_context_decode(const uint8_t *apdu,
 BACNET_STACK_EXPORT
 int encode_bitstring(uint8_t *apdu, const BACNET_BIT_STRING *bit_string);
 BACNET_STACK_EXPORT
-int encode_application_bitstring(uint8_t *apdu, const BACNET_BIT_STRING *bit_string);
+int encode_application_bitstring(
+    uint8_t *apdu, const BACNET_BIT_STRING *bit_string);
 BACNET_STACK_EXPORT
 int encode_context_bitstring(
     uint8_t *apdu, uint8_t tag_number, const BACNET_BIT_STRING *bit_string);
@@ -179,7 +184,8 @@ BACNET_STACK_EXPORT
 int decode_context_bitstring(
     const uint8_t *apdu, uint8_t tag_number, BACNET_BIT_STRING *bit_string);
 BACNET_STACK_EXPORT
-int bacnet_bitstring_decode(const uint8_t *apdu,
+int bacnet_bitstring_decode(
+    const uint8_t *apdu,
     uint32_t apdu_len_max,
     uint32_t len_value,
     BACNET_BIT_STRING *value);
@@ -203,13 +209,20 @@ BACNET_STACK_EXPORT
 int encode_context_real(uint8_t *apdu, uint8_t tag_number, float value);
 BACNET_STACK_DEPRECATED("Use bacnet_real_context_decode() instead")
 BACNET_STACK_EXPORT
-int decode_context_real(const uint8_t *apdu, uint8_t tag_number, float *real_value);
+int decode_context_real(
+    const uint8_t *apdu, uint8_t tag_number, float *real_value);
 BACNET_STACK_EXPORT
 int bacnet_real_decode(
-    const uint8_t *apdu, uint32_t apdu_len_max, uint32_t len_value, float *value);
+    const uint8_t *apdu,
+    uint32_t apdu_len_max,
+    uint32_t len_value,
+    float *value);
 BACNET_STACK_EXPORT
 int bacnet_real_context_decode(
-    const uint8_t *apdu, uint32_t apdu_len_max, uint8_t tag_value, float *value);
+    const uint8_t *apdu,
+    uint32_t apdu_len_max,
+    uint8_t tag_value,
+    float *value);
 BACNET_STACK_EXPORT
 int bacnet_real_application_encode(
     uint8_t *apdu, uint32_t apdu_size, float value);
@@ -227,10 +240,16 @@ int decode_context_double(
     const uint8_t *apdu, uint8_t tag_number, double *double_value);
 BACNET_STACK_EXPORT
 int bacnet_double_decode(
-    const uint8_t *apdu, uint32_t apdu_len_max, uint32_t len_value, double *value);
+    const uint8_t *apdu,
+    uint32_t apdu_len_max,
+    uint32_t len_value,
+    double *value);
 BACNET_STACK_EXPORT
 int bacnet_double_context_decode(
-    const uint8_t *apdu, uint32_t apdu_len_max, uint8_t tag_value, double *value);
+    const uint8_t *apdu,
+    uint32_t apdu_len_max,
+    uint8_t tag_value,
+    double *value);
 BACNET_STACK_EXPORT
 int bacnet_double_application_encode(
     uint8_t *apdu, uint32_t apdu_size, double value);
@@ -242,7 +261,8 @@ BACNET_STACK_EXPORT
 int encode_bacnet_object_id(
     uint8_t *apdu, BACNET_OBJECT_TYPE object_type, uint32_t instance);
 BACNET_STACK_EXPORT
-int encode_context_object_id(uint8_t *apdu,
+int encode_context_object_id(
+    uint8_t *apdu,
     uint8_t tag_number,
     BACNET_OBJECT_TYPE object_type,
     uint32_t instance);
@@ -257,17 +277,20 @@ int decode_object_id(
     uint32_t *object_instance);
 BACNET_STACK_DEPRECATED("Use bacnet_object_id_context_decode() instead")
 BACNET_STACK_EXPORT
-int decode_context_object_id(const uint8_t *apdu,
+int decode_context_object_id(
+    const uint8_t *apdu,
     uint8_t tag_number,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *instance);
 BACNET_STACK_EXPORT
-int decode_object_id_safe(const uint8_t *apdu,
+int decode_object_id_safe(
+    const uint8_t *apdu,
     uint32_t len_value,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance);
 BACNET_STACK_EXPORT
-int bacnet_object_id_decode(const uint8_t *apdu,
+int bacnet_object_id_decode(
+    const uint8_t *apdu,
     uint32_t apdu_len_max,
     uint32_t len_value,
     BACNET_OBJECT_TYPE *object_type,
@@ -310,7 +333,8 @@ BACNET_STACK_EXPORT
 int decode_context_octet_string(
     const uint8_t *apdu, uint8_t tag_number, BACNET_OCTET_STRING *octet_string);
 BACNET_STACK_EXPORT
-int bacnet_octet_string_decode(const uint8_t *apdu,
+int bacnet_octet_string_decode(
+    const uint8_t *apdu,
     uint32_t apdu_len_max,
     uint32_t len_value,
     BACNET_OCTET_STRING *value);
@@ -329,7 +353,8 @@ int bacnet_octet_string_context_decode(
     BACNET_OCTET_STRING *value);
 
 BACNET_STACK_EXPORT
-uint32_t encode_bacnet_character_string_safe(uint8_t *apdu,
+uint32_t encode_bacnet_character_string_safe(
+    uint8_t *apdu,
     uint32_t max_apdu,
     uint8_t encoding,
     const char *pString,
@@ -342,7 +367,9 @@ int encode_application_character_string(
     uint8_t *apdu, const BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_EXPORT
 int encode_context_character_string(
-    uint8_t *apdu, uint8_t tag_number, const BACNET_CHARACTER_STRING *char_string);
+    uint8_t *apdu,
+    uint8_t tag_number,
+    const BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_DEPRECATED("Use bacnet_character_string_decode() instead")
 BACNET_STACK_EXPORT
 int decode_character_string(
@@ -356,7 +383,8 @@ int decode_context_character_string(
     uint8_t tag_number,
     BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_EXPORT
-int bacnet_character_string_decode(const uint8_t *apdu,
+int bacnet_character_string_decode(
+    const uint8_t *apdu,
     uint32_t apdu_len_max,
     uint32_t len_value,
     BACNET_CHARACTER_STRING *char_string);
@@ -390,7 +418,8 @@ BACNET_STACK_EXPORT
 int decode_context_unsigned(
     const uint8_t *apdu, uint8_t tag_number, BACNET_UNSIGNED_INTEGER *value);
 BACNET_STACK_EXPORT
-int bacnet_unsigned_decode(const uint8_t *apdu,
+int bacnet_unsigned_decode(
+    const uint8_t *apdu,
     uint32_t apdu_max_len,
     uint32_t len_value,
     BACNET_UNSIGNED_INTEGER *value);
@@ -419,11 +448,15 @@ BACNET_STACK_EXPORT
 int decode_signed(const uint8_t *apdu, uint32_t len_value, int32_t *value);
 BACNET_STACK_DEPRECATED("Use bacnet_signed_context_decode() instead")
 BACNET_STACK_EXPORT
-int decode_context_signed(const uint8_t *apdu, uint8_t tag_number, int32_t *value);
+int decode_context_signed(
+    const uint8_t *apdu, uint8_t tag_number, int32_t *value);
 
 BACNET_STACK_EXPORT
 int bacnet_signed_decode(
-    const uint8_t *apdu, uint32_t apdu_size, uint32_t len_value, int32_t *value);
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint32_t len_value,
+    int32_t *value);
 BACNET_STACK_EXPORT
 int bacnet_signed_context_decode(
     const uint8_t *apdu, uint32_t apdu_size, uint8_t tag_value, int32_t *value);
@@ -450,8 +483,10 @@ int decode_context_enumerated(
     const uint8_t *apdu, uint8_t tag_value, uint32_t *value);
 BACNET_STACK_EXPORT
 int bacnet_enumerated_decode(
-    const uint8_t *apdu, uint32_t apdu_max_len, uint32_t len_value, uint32_t *value);
-
+    const uint8_t *apdu,
+    uint32_t apdu_max_len,
+    uint32_t len_value,
+    uint32_t *value);
 
 BACNET_STACK_EXPORT
 int bacnet_enumerated_application_encode(
@@ -461,7 +496,10 @@ int bacnet_enumerated_application_decode(
     const uint8_t *apdu, uint32_t apdu_len_max, uint32_t *value);
 BACNET_STACK_EXPORT
 int bacnet_enumerated_context_decode(
-    const uint8_t *apdu, uint32_t apdu_len_max, uint8_t tag_value, uint32_t *value);
+    const uint8_t *apdu,
+    uint32_t apdu_len_max,
+    uint8_t tag_value,
+    uint32_t *value);
 
 BACNET_STACK_EXPORT
 int encode_bacnet_time(uint8_t *apdu, const BACNET_TIME *btime);
@@ -485,12 +523,14 @@ BACNET_STACK_EXPORT
 int decode_context_bacnet_time(
     const uint8_t *apdu, uint8_t tag_number, BACNET_TIME *btime);
 BACNET_STACK_EXPORT
-int bacnet_time_decode(const uint8_t *apdu,
+int bacnet_time_decode(
+    const uint8_t *apdu,
     uint32_t apdu_len_max,
     uint32_t len_value,
     BACNET_TIME *value);
 BACNET_STACK_EXPORT
-int bacnet_time_context_decode(const uint8_t *apdu,
+int bacnet_time_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_len_max,
     uint8_t tag_value,
     BACNET_TIME *value);
@@ -523,7 +563,8 @@ BACNET_STACK_EXPORT
 int decode_context_date(
     const uint8_t *apdu, uint8_t tag_number, BACNET_DATE *bdate);
 BACNET_STACK_EXPORT
-int bacnet_date_decode(const uint8_t *apdu,
+int bacnet_date_decode(
+    const uint8_t *apdu,
     uint32_t apdu_len_max,
     uint32_t len_value,
     BACNET_DATE *value);
@@ -535,7 +576,8 @@ BACNET_STACK_EXPORT
 int bacnet_date_application_decode(
     const uint8_t *apdu, uint32_t apdu_len_max, BACNET_DATE *value);
 BACNET_STACK_EXPORT
-int bacnet_date_context_decode(const uint8_t *apdu,
+int bacnet_date_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_len_max,
     uint8_t tag_value,
     BACNET_DATE *value);
@@ -555,7 +597,8 @@ BACNET_STACK_EXPORT
 int encode_simple_ack(uint8_t *apdu, uint8_t invoke_id, uint8_t service_choice);
 
 BACNET_STACK_EXPORT
-int bacnet_array_encode(uint32_t object_instance,
+int bacnet_array_encode(
+    uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
     bacnet_array_property_element_encode_function encoder,
     BACNET_UNSIGNED_INTEGER array_size,
@@ -564,23 +607,23 @@ int bacnet_array_encode(uint32_t object_instance,
 
 /* from clause 20.2.1.2 Tag Number */
 /* true if extended tag numbering is used */
-#define IS_EXTENDED_TAG_NUMBER(x) (((x)&0xF0) == 0xF0)
+#define IS_EXTENDED_TAG_NUMBER(x) (((x) & 0xF0) == 0xF0)
 
 /* from clause 20.2.1.3.1 Primitive Data */
 /* true if the extended value is used */
-#define IS_EXTENDED_VALUE(x) (((x)&0x07) == 5)
+#define IS_EXTENDED_VALUE(x) (((x) & 0x07) == 5)
 
 /* from clause 20.2.1.1 Class */
 /* true if the tag is context specific */
-#define IS_CONTEXT_SPECIFIC(x) (((x)&BIT(3)) == BIT(3))
+#define IS_CONTEXT_SPECIFIC(x) (((x) & BIT(3)) == BIT(3))
 
 /* from clause 20.2.1.3.2 Constructed Data */
 /* true if the tag is an opening tag */
-#define IS_OPENING_TAG(x) (((x)&0x07) == 6)
+#define IS_OPENING_TAG(x) (((x) & 0x07) == 6)
 
 /* from clause 20.2.1.3.2 Constructed Data */
 /* true if the tag is a closing tag */
-#define IS_CLOSING_TAG(x) (((x)&0x07) == 7)
+#define IS_CLOSING_TAG(x) (((x) & 0x07) == 7)
 
 #ifdef __cplusplus
 }

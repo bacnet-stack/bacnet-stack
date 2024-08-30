@@ -303,7 +303,8 @@ static void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
  *
  * @return number of bytes sent
  */
-static int datalink_send_pdu(uint16_t snet,
+static int datalink_send_pdu(
+    uint16_t snet,
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
@@ -347,7 +348,8 @@ static void send_i_am_router_to_network(uint16_t snet, uint16_t net)
     DNET *dnet = NULL;
 
     datalink_get_broadcast_address(&dest);
-    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK,
+    npdu_encode_npdu_network(
+        &npdu_data, NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK,
         data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
     /* We don't need src information, since a message can't originate from
        our downstream BACnet network. */
@@ -398,8 +400,8 @@ static void send_i_am_router_to_network(uint16_t snet, uint16_t net)
  *  Optionally may designate a particular router destination,
  *  especially when ACKing receipt of this message type.
  */
-static void send_initialize_routing_table_ack(
-    uint8_t snet, const BACNET_ADDRESS *dst)
+static void
+send_initialize_routing_table_ack(uint8_t snet, const BACNET_ADDRESS *dst)
 {
     BACNET_ADDRESS dest;
     bool data_expecting_reply = false;
@@ -415,8 +417,9 @@ static void send_initialize_routing_table_ack(
     } else {
         datalink_get_broadcast_address(&dest);
     }
-    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE_ACK,
-        data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_network(
+        &npdu_data, NETWORK_MESSAGE_INIT_RT_TABLE_ACK, data_expecting_reply,
+        MESSAGE_PRIORITY_NORMAL);
     /* We don't need src information, since a message can't originate from
        our downstream BACnet network. */
     pdu_len = npdu_encode_pdu(&Tx_Buffer[0], &dest, NULL, &npdu_data);
@@ -475,9 +478,9 @@ static void send_reject_message_to_network(
     } else {
         datalink_get_broadcast_address(&dest);
     }
-    npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, data_expecting_reply,
-        MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_network(
+        &npdu_data, NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK,
+        data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
     /* We don't need src information, since a message can't originate from
        our downstream BACnet network. */
     pdu_len = npdu_encode_pdu(&Tx_Buffer[0], &dest, NULL, &npdu_data);
@@ -506,9 +509,9 @@ static void send_who_is_router_to_network(uint16_t snet, uint16_t dnet)
     int len = 0;
 
     datalink_get_broadcast_address(&dest);
-    npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, data_expecting_reply,
-        MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_network(
+        &npdu_data, NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK,
+        data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(&Tx_Buffer[0], &dest, NULL, &npdu_data);
     if (dnet) {
         len = encode_unsigned16(&Tx_Buffer[pdu_len], dnet);
@@ -574,7 +577,8 @@ static void send_who_is_router_to_network(uint16_t snet, uint16_t dnet)
  *  bytes that have already been decoded.
  * @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
-static void who_is_router_to_network_handler(uint16_t snet,
+static void who_is_router_to_network_handler(
+    uint16_t snet,
     const BACNET_ADDRESS *src,
     const BACNET_NPDU_DATA *npdu_data,
     const uint8_t *npdu,
@@ -627,7 +631,8 @@ static void who_is_router_to_network_handler(uint16_t snet,
  *  bytes that have already been decoded.
  * @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
-static void network_control_handler(uint16_t snet,
+static void network_control_handler(
+    uint16_t snet,
     BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *npdu,
@@ -803,7 +808,8 @@ static void routed_src_address(
  * @param apdu [in] The apdu portion of the request, to be processed.
  * @param apdu_len [in] The total (remaining) length of the apdu.
  */
-static void routed_apdu_handler(uint16_t snet,
+static void routed_apdu_handler(
+    uint16_t snet,
     BACNET_NPDU_DATA *npdu,
     BACNET_ADDRESS *src,
     BACNET_ADDRESS *dest,
@@ -842,7 +848,8 @@ static void routed_apdu_handler(uint16_t snet,
         port = Router_Table_Head;
         while (port != NULL) {
             if (port->net != snet) {
-                datalink_send_pdu(port->net, &local_dest, npdu, &Tx_Buffer[0],
+                datalink_send_pdu(
+                    port->net, &local_dest, npdu, &Tx_Buffer[0],
                     npdu_len + apdu_len);
             }
             port = port->next;
@@ -869,7 +876,8 @@ static void routed_apdu_handler(uint16_t snet,
             npdu_len =
                 npdu_encode_pdu(&Tx_Buffer[0], &local_dest, &router_src, npdu);
             memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-            datalink_send_pdu(port->net, &local_dest, npdu, &Tx_Buffer[0],
+            datalink_send_pdu(
+                port->net, &local_dest, npdu, &Tx_Buffer[0],
                 npdu_len + apdu_len);
         } else {
             debug_printf(
@@ -886,7 +894,8 @@ static void routed_apdu_handler(uint16_t snet,
             npdu_len =
                 npdu_encode_pdu(&Tx_Buffer[0], &remote_dest, &router_src, npdu);
             memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
-            datalink_send_pdu(port->net, &remote_dest, npdu, &Tx_Buffer[0],
+            datalink_send_pdu(
+                port->net, &remote_dest, npdu, &Tx_Buffer[0],
                 npdu_len + apdu_len);
         }
     } else if (dest->net) {
@@ -902,8 +911,8 @@ static void routed_apdu_handler(uint16_t snet,
         port = Router_Table_Head;
         while (port != NULL) {
             if (port->net != snet) {
-                datalink_send_pdu(port->net, dest, npdu, &Tx_Buffer[0],
-                    npdu_len + apdu_len);
+                datalink_send_pdu(
+                    port->net, dest, npdu, &Tx_Buffer[0], npdu_len + apdu_len);
             }
             port = port->next;
         }
@@ -947,8 +956,9 @@ static void my_routing_npdu_handler(
             fprintf(stderr, "NPDU: Decoding failed; Discarded!\n");
         } else if (npdu_data.network_layer_message) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
-                network_control_handler(snet, src, &npdu_data,
-                    &pdu[apdu_offset], (uint16_t)(pdu_len - apdu_offset));
+                network_control_handler(
+                    snet, src, &npdu_data, &pdu[apdu_offset],
+                    (uint16_t)(pdu_len - apdu_offset));
             } else {
                 /* The DNET is set, but we don't support downstream routers,
                  * so we just silently drop this network layer message,
@@ -962,17 +972,19 @@ static void my_routing_npdu_handler(
                    routing information cause they are not for us */
                 if ((dest.net == BACNET_BROADCAST_NETWORK) &&
                     ((pdu[apdu_offset] & 0xF0) ==
-                        PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
+                     PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
                     /* hack for 5.4.5.1 - IDLE */
                     /* ConfirmedBroadcastReceived */
                     /* then enter IDLE - ignore the PDU */
                 } else {
-                    routed_apdu_handler(snet, &npdu_data, src, &dest,
-                        &pdu[apdu_offset], (uint16_t)(pdu_len - apdu_offset));
+                    routed_apdu_handler(
+                        snet, &npdu_data, src, &dest, &pdu[apdu_offset],
+                        (uint16_t)(pdu_len - apdu_offset));
                     /* add a Device object and application layer */
                     if ((dest.net == 0) ||
                         (dest.net == BACNET_BROADCAST_NETWORK)) {
-                        apdu_handler(src, &pdu[apdu_offset],
+                        apdu_handler(
+                            src, &pdu[apdu_offset],
                             (uint16_t)(pdu_len - apdu_offset));
                     }
                 }
@@ -984,7 +996,7 @@ static void my_routing_npdu_handler(
     } else {
         fprintf(
             stderr, "NPDU: unsupported protocol version %u.  Discarded!\n",
-                protocol_version);
+            protocol_version);
     }
 
     return;
@@ -1026,8 +1038,9 @@ static void datalink_init(void)
     pEnv = getenv("BACNET_BIP6_BROADCAST");
     if (pEnv) {
         BACNET_IP6_ADDRESS addr;
-        bvlc6_address_set(&addr, (uint16_t)strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0,
-            0, BIP6_MULTICAST_GROUP_ID);
+        bvlc6_address_set(
+            &addr, (uint16_t)strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0, 0,
+            BIP6_MULTICAST_GROUP_ID);
         bip6_set_broadcast_addr(&addr);
     }
     if (!bip6_init(getenv("BACNET_BIP6_IFACE"))) {

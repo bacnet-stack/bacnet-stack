@@ -27,8 +27,9 @@ static BACNET_BINARY_PV Present_Value[MAX_BINARY_VALUES];
 /* we simply have 0-n object instances. */
 bool Binary_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_BINARY_VALUES)
+    if (object_instance < MAX_BINARY_VALUES) {
         return true;
+    }
 
     return false;
 }
@@ -50,8 +51,9 @@ unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_VALUES;
 
-    if (object_instance < MAX_BINARY_VALUES)
+    if (object_instance < MAX_BINARY_VALUES) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -81,7 +83,8 @@ char *Binary_Value_Name(uint32_t object_instance)
 }
 
 /* return apdu len, or -1 on error */
-int Binary_Value_Encode_Property_APDU(uint8_t *apdu,
+int Binary_Value_Encode_Property_APDU(
+    uint8_t *apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     uint32_t array_index,
@@ -153,7 +156,8 @@ int Binary_Value_Encode_Property_APDU(uint8_t *apdu,
 }
 
 /* returns true if successful */
-bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data,
+bool Binary_Value_Write_Property(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {

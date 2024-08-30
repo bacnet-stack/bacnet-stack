@@ -29,8 +29,9 @@ float AV_Present_Value[MAX_ANALOG_VALUES];
 /* given instance exists */
 bool Analog_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ANALOG_VALUES)
+    if (object_instance < MAX_ANALOG_VALUES) {
         return true;
+    }
 
     return false;
 }
@@ -69,7 +70,8 @@ char *Analog_Value_Name(uint32_t object_instance)
 }
 
 /* return apdu len, or -1 on error */
-int Analog_Value_Encode_Property_APDU(uint8_t *apdu,
+int Analog_Value_Encode_Property_APDU(
+    uint8_t *apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     uint32_t array_index,
@@ -136,7 +138,8 @@ int Analog_Value_Encode_Property_APDU(uint8_t *apdu,
 }
 
 /* returns true if successful */
-bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data,
+bool Analog_Value_Write_Property(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {

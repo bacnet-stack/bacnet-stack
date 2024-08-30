@@ -23,14 +23,25 @@ static ACCESS_DOOR_DESCR ad_descr[MAX_ACCESS_DOORS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE, PROP_RELIABILITY, PROP_OUT_OF_SERVICE,
-    PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT, PROP_DOOR_PULSE_TIME,
-    PROP_DOOR_EXTENDED_PULSE_TIME, PROP_DOOR_OPEN_TOO_LONG_TIME, -1 };
+                                           PROP_OBJECT_NAME,
+                                           PROP_OBJECT_TYPE,
+                                           PROP_PRESENT_VALUE,
+                                           PROP_STATUS_FLAGS,
+                                           PROP_EVENT_STATE,
+                                           PROP_RELIABILITY,
+                                           PROP_OUT_OF_SERVICE,
+                                           PROP_PRIORITY_ARRAY,
+                                           PROP_RELINQUISH_DEFAULT,
+                                           PROP_DOOR_PULSE_TIME,
+                                           PROP_DOOR_EXTENDED_PULSE_TIME,
+                                           PROP_DOOR_OPEN_TOO_LONG_TIME,
+                                           -1 };
 
-static const int Properties_Optional[] = { PROP_DOOR_STATUS, PROP_LOCK_STATUS,
-    PROP_SECURED_STATUS, PROP_DOOR_UNLOCK_DELAY_TIME, PROP_DOOR_ALARM_STATE,
-    -1 };
+static const int Properties_Optional[] = {
+    PROP_DOOR_STATUS,      PROP_LOCK_STATUS,
+    PROP_SECURED_STATUS,   PROP_DOOR_UNLOCK_DELAY_TIME,
+    PROP_DOOR_ALARM_STATE, -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -260,7 +271,8 @@ bool Access_Door_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_ACCESS_DOORS) {
-        snprintf(text, sizeof(text), "ACCESS DOOR %lu",
+        snprintf(
+            text, sizeof(text), "ACCESS DOOR %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
@@ -349,9 +361,10 @@ int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_PRIORITY_ARRAY:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index, Access_Door_Priority_Array_Encode,
-                BACNET_MAX_PRIORITY, apdu, apdu_size);
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Access_Door_Priority_Array_Encode, BACNET_MAX_PRIORITY, apdu,
+                apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -361,7 +374,8 @@ int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_RELINQUISH_DEFAULT:
-            apdu_len = encode_application_enumerated(&apdu[0],
+            apdu_len = encode_application_enumerated(
+                &apdu[0],
                 Access_Door_Relinquish_Default(rpdata->object_instance));
             break;
         case PROP_DOOR_STATUS:
@@ -447,7 +461,8 @@ bool Access_Door_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
-                status = Access_Door_Present_Value_Set(wp_data->object_instance,
+                status = Access_Door_Present_Value_Set(
+                    wp_data->object_instance,
                     (BACNET_DOOR_VALUE)value.type.Enumerated,
                     wp_data->priority);
                 if (wp_data->priority == 6) {

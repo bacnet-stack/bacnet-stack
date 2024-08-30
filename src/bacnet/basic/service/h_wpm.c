@@ -41,7 +41,8 @@
  * @return number of bytes decoded, or BACNET_STATUS_REJECT,
  *  or BACNET_STATUS_ERROR
  */
-static int write_property_multiple_decode(const uint8_t *apdu,
+static int write_property_multiple_decode(
+    const uint8_t *apdu,
     uint16_t apdu_len,
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     write_property_function device_write_property)
@@ -67,8 +68,9 @@ static int write_property_multiple_decode(const uint8_t *apdu,
                         &apdu[offset], apdu_len - offset, wp_data);
                     if (len > 0) {
                         offset += len;
-                        PRINTF("WPM: type=%lu instance=%lu property=%lu "
-                               "priority=%lu index=%ld\n",
+                        PRINTF(
+                            "WPM: type=%lu instance=%lu property=%lu "
+                            "priority=%lu index=%ld\n",
                             (unsigned long)wp_data->object_type,
                             (unsigned long)wp_data->object_instance,
                             (unsigned long)wp_data->object_property,
@@ -78,9 +80,9 @@ static int write_property_multiple_decode(const uint8_t *apdu,
                             if (device_write_property(wp_data) == false) {
                                 /* Workaround BTL Specified Test 9.23.2.X5 */
                                 if ((wp_data->error_class ==
-                                        ERROR_CLASS_PROPERTY) &&
+                                     ERROR_CLASS_PROPERTY) &&
                                     (wp_data->error_code ==
-                                        ERROR_CODE_INVALID_DATA_TYPE)) {
+                                     ERROR_CODE_INVALID_DATA_TYPE)) {
                                     wp_data->error_class = ERROR_CLASS_SERVICES;
                                     wp_data->error_code =
                                         ERROR_CODE_INVALID_TAG;
@@ -129,7 +131,8 @@ static int write_property_multiple_decode(const uint8_t *apdu,
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_write_property_multiple(uint8_t *service_request,
+void handler_write_property_multiple(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -168,18 +171,18 @@ void handler_write_property_multiple(uint8_t *service_request,
     } else {
         /* handle any errors */
         if (len == BACNET_STATUS_ABORT) {
-            apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id,
+            apdu_len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 abort_convert_error_code(wp_data.error_code), true);
             PRINTF("WPM: Sending Abort!\n");
         } else if (len == BACNET_STATUS_ERROR) {
-            apdu_len =
-                wpm_error_ack_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                    service_data->invoke_id, &wp_data);
+            apdu_len = wpm_error_ack_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
+                &wp_data);
             PRINTF("WPM: Sending Error!\n");
         } else if (len == BACNET_STATUS_REJECT) {
-            apdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id,
+            apdu_len = reject_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 reject_convert_error_code(wp_data.error_code));
             PRINTF("WPM: Sending Reject!\n");
         }

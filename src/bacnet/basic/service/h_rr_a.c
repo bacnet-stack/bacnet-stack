@@ -75,14 +75,16 @@ static void PrintReadRangeData(BACNET_READ_RANGE_DATA *data)
             }
         }
 #if PRINT_ENABLED
-        if (print_brace)
+        if (print_brace) {
             fprintf(stdout, "}");
+        }
         fprintf(stdout, "\r\n");
 #endif
     }
 }
 
-void handler_read_range_ack(uint8_t *service_request,
+void handler_read_range_ack(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)

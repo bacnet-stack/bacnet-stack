@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #ifndef LO_NIB
-#define LO_NIB(b) ((b)&0xF)
+#define LO_NIB(b) ((b) & 0xF)
 #endif
 
 #ifndef HI_NIB

@@ -60,7 +60,8 @@ int bacapp_encode_device_obj_property_ref(
     uint8_t *apdu, const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
 
 BACNET_STACK_EXPORT
-int bacapp_encode_context_device_obj_property_ref(uint8_t *apdu,
+int bacapp_encode_context_device_obj_property_ref(
+    uint8_t *apdu,
     uint8_t tag_number,
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
 
@@ -73,7 +74,8 @@ int bacapp_decode_device_obj_property_ref(
 BACNET_STACK_DEPRECATED(
     "Use bacnet_device_object_property_reference_context_decode() instead")
 BACNET_STACK_EXPORT
-int bacapp_decode_context_device_obj_property_ref(const uint8_t *apdu,
+int bacapp_decode_context_device_obj_property_ref(
+    const uint8_t *apdu,
     uint8_t tag_number,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value);
 

@@ -23,21 +23,20 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    void handler_get_event_information_set(
-        BACNET_OBJECT_TYPE object_type,
-        get_event_info_function pFunction);
+BACNET_STACK_EXPORT
+void handler_get_event_information_set(
+    BACNET_OBJECT_TYPE object_type, get_event_info_function pFunction);
 
-    BACNET_STACK_EXPORT
-    void handler_get_event_information(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data);
+BACNET_STACK_EXPORT
+void handler_get_event_information(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
-    BACNET_STACK_EXPORT
-    void ge_ack_print_data(BACNET_GET_EVENT_INFORMATION_DATA* data,
-                           uint32_t device_id);
+BACNET_STACK_EXPORT
+void ge_ack_print_data(
+    BACNET_GET_EVENT_INFORMATION_DATA *data, uint32_t device_id);
 
 #ifdef __cplusplus
 }

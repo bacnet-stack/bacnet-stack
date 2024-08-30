@@ -36,8 +36,9 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
 
     iLen = 0;
 
-    if (cBlockNum >= MY_MAX_BLOCK)
+    if (cBlockNum >= MY_MAX_BLOCK) {
         return;
+    }
 
     tag_len =
         decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
@@ -136,12 +137,14 @@ static void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
             cBlockNumber = (char)ulTemp;
             DecodeBlock(cBlockNumber, &data->serviceParameters[iLen]);
         } else { /* Read error */
-            printf("Private Transfer read operation returned error code: %lu\n",
+            printf(
+                "Private Transfer read operation returned error code: %lu\n",
                 (unsigned long)uiErrorCode);
             return;
         }
     } else { /* Write I/O block - should just be an OK type message */
-        printf("Private Transfer write operation returned error code: %lu\n",
+        printf(
+            "Private Transfer write operation returned error code: %lu\n",
             (unsigned long)uiErrorCode);
     }
 }
@@ -152,7 +155,8 @@ static void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
  * and decide what to do next...
  */
 
-void handler_conf_private_trans_ack(uint8_t *service_request,
+void handler_conf_private_trans_ack(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
@@ -176,7 +180,8 @@ void handler_conf_private_trans_ack(uint8_t *service_request,
     printf("Received Confirmed Private Transfer Ack!\n");
 #endif
 
-    len = ptransfer_decode_service_request(service_request, service_len,
+    len = ptransfer_decode_service_request(
+        service_request, service_len,
         &data); /* Same decode for ack as for service request! */
     if (len < 0) {
 #if PRINT_ENABLED

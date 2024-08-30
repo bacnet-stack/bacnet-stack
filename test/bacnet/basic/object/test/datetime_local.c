@@ -31,8 +31,7 @@ bool datetime_local(
     return true;
 }
 
-void datetime_timesync(
-    BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
+void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
     if (bdate) {
         datetime_copy_date(&BACnet_Date, bdate);

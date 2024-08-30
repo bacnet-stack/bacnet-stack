@@ -133,13 +133,16 @@ static int timesync_decode_apdu_service(
 {
     int len = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST) {
         return -1;
-    if (apdu[1] != service)
+    }
+    if (apdu[1] != service) {
         return -1;
+    }
     /* optional limits - must be used as a pair */
     if (apdu_len > 2) {
         len = timesync_decode_service_request(
@@ -171,8 +174,8 @@ int timesync_decode_apdu(
         my_time);
 }
 
-static void testTimeSyncData(
-    const BACNET_DATE *my_date, const BACNET_TIME *my_time)
+static void
+testTimeSyncData(const BACNET_DATE *my_date, const BACNET_TIME *my_time)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;

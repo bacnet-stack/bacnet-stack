@@ -359,8 +359,8 @@ static float Requested_Shed_Level_Value(struct object_data *pObject)
  * @param dest - destination data
  * @param src - source data
  */
-static void Shed_Level_Copy(
-    BACNET_SHED_LEVEL *dest, const BACNET_SHED_LEVEL *src)
+static void
+Shed_Level_Copy(BACNET_SHED_LEVEL *dest, const BACNET_SHED_LEVEL *src)
 {
     if (dest && src) {
         dest->type = src->type;
@@ -446,7 +446,8 @@ static bool Able_To_Meet_Shed_Request(struct object_data *pObject)
  * @param object_index - object index in the list
  * @param bdatetime - current date and time
  */
-void Load_Control_State_Machine(int object_index, const BACNET_DATE_TIME *bdatetime)
+void Load_Control_State_Machine(
+    int object_index, const BACNET_DATE_TIME *bdatetime)
 {
     int diff = 0; /* used for datetime comparison */
     float amount;
@@ -909,8 +910,8 @@ static int Load_Control_Shed_Level_Descriptions_Encode(
  * @param value [in] The value to encode
  * @return The length of the apdu encoded
  */
-static int BACnet_Shed_Level_Encode(
-    uint8_t *apdu, const BACNET_SHED_LEVEL *value)
+static int
+BACnet_Shed_Level_Encode(uint8_t *apdu, const BACNET_SHED_LEVEL *value)
 {
     int apdu_len = 0;
 

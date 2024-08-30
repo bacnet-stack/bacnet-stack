@@ -39,7 +39,8 @@ static void match_name_or_object(const BACNET_WHO_HAS_DATA *data)
         found = Device_Valid_Object_Name(
             &data->object.name, &object_type, &object_instance);
         if (found) {
-            Send_I_Have(Device_Object_Instance_Number(),
+            Send_I_Have(
+                Device_Object_Instance_Number(),
                 (BACNET_OBJECT_TYPE)object_type, object_instance,
                 &data->object.name);
         }
@@ -49,7 +50,8 @@ static void match_name_or_object(const BACNET_WHO_HAS_DATA *data)
             (BACNET_OBJECT_TYPE)data->object.identifier.type,
             data->object.identifier.instance, &object_name);
         if (found) {
-            Send_I_Have(Device_Object_Instance_Number(),
+            Send_I_Have(
+                Device_Object_Instance_Number(),
                 (BACNET_OBJECT_TYPE)data->object.identifier.type,
                 data->object.identifier.instance, &object_name);
         }
@@ -77,8 +79,8 @@ void handler_who_has(
     if (len > 0) {
         if ((data.low_limit == -1) || (data.high_limit == -1)) {
             directed_to_me = true;
-        } else if ((Device_Object_Instance_Number() >=
-                       (uint32_t)data.low_limit) &&
+        } else if (
+            (Device_Object_Instance_Number() >= (uint32_t)data.low_limit) &&
             (Device_Object_Instance_Number() <= (uint32_t)data.high_limit)) {
             directed_to_me = true;
         }
@@ -126,8 +128,9 @@ void handler_who_has_for_routing(
             dev_instance = Device_Object_Instance_Number();
             if ((data.low_limit == -1) || (data.high_limit == -1) ||
                 ((dev_instance >= data.low_limit) &&
-                    (dev_instance <= data.high_limit)))
+                 (dev_instance <= data.high_limit))) {
                 match_name_or_object(&data);
+            }
         }
     }
 }

@@ -20,12 +20,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    void handler_unrecognized_service(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * dest,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data);
+BACNET_STACK_EXPORT
+void handler_unrecognized_service(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *dest,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 #ifdef __cplusplus
 }

@@ -76,7 +76,8 @@ size_t memcopy(void *dest, void *src, size_t offset, size_t len, size_t max)
  * @return returns zero if there is not enough space, or returns
  * the number of bytes copied.
  */
-size_t memcopy(void *dest,
+size_t memcopy(
+    void *dest,
     const void *src,
     size_t offset, /* where in dest to put the data */
     size_t len, /* amount of data to copy */

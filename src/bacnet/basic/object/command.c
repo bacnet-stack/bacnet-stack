@@ -325,8 +325,7 @@ static COMMAND_DESCR *Object_Data(uint32_t object_instance)
     return NULL;
 }
 
-BACNET_ACTION_LIST * Command_Action_List_Entry(
-    uint32_t instance, unsigned index)
+BACNET_ACTION_LIST *Command_Action_List_Entry(uint32_t instance, unsigned index)
 {
     COMMAND_DESCR *pObject;
     BACNET_ACTION_LIST *pAction = NULL;
@@ -342,8 +341,7 @@ BACNET_ACTION_LIST * Command_Action_List_Entry(
 /**
  * @brief For a given object instance-number, returns the number of actions
  */
-unsigned Command_Action_List_Count(
-    uint32_t instance)
+unsigned Command_Action_List_Count(uint32_t instance)
 {
     (void)instance;
     return MAX_COMMAND_ACTIONS;
@@ -367,8 +365,7 @@ static int Command_Action_List_Encode(
 
     pObject = Object_Data(object_instance);
     if (pObject && (index < MAX_COMMAND_ACTIONS)) {
-        apdu_len = bacnet_action_command_encode(
-            apdu, &pObject->Action[index]);
+        apdu_len = bacnet_action_command_encode(apdu, &pObject->Action[index]);
     }
 
     return apdu_len;
@@ -427,9 +424,10 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Command_All_Writes_Successful(rpdata->object_instance));
             break;
         case PROP_ACTION:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index, Command_Action_List_Encode,
-                MAX_COMMAND_ACTIONS, apdu, apdu_size);
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Command_Action_List_Encode, MAX_COMMAND_ACTIONS, apdu,
+                apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;

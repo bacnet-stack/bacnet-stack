@@ -86,7 +86,8 @@ DEFINE_FAKE_VALUE_FUNC(int, bacnet_signed_application_decode, uint8_t *, uint16_
 DEFINE_FAKE_VALUE_FUNC(int, bacnet_enumerated_decode, uint8_t *, uint16_t, uint32_t, uint32_t *);
 DEFINE_FAKE_VALUE_FUNC(int, bacnet_enumerated_context_decode, uint8_t *, uint16_t, uint8_t, uint32_t *);
 #endif
-DEFINE_FAKE_VALUE_FUNC(int, decode_enumerated, const uint8_t *, uint32_t, uint32_t *);
+DEFINE_FAKE_VALUE_FUNC(
+    int, decode_enumerated, const uint8_t *, uint32_t, uint32_t *);
 #if 0
 DEFINE_FAKE_VALUE_FUNC(int, decode_context_enumerated, uint8_t *, uint8_t, uint32_t *);
 DEFINE_FAKE_VALUE_FUNC(int, encode_bacnet_enumerated, uint8_t *, uint32_t);

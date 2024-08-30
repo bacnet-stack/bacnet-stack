@@ -42,9 +42,7 @@ static void testBinaryInput(void)
         Binary_Input_Read_Property, Binary_Input_Write_Property,
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
-        object_instance,
-        Binary_Input_Name_Set,
-        Binary_Input_Name_ASCII);
+        object_instance, Binary_Input_Name_Set, Binary_Input_Name_ASCII);
     status = Binary_Input_Delete(object_instance);
     zassert_true(status, NULL);
 }

@@ -120,7 +120,8 @@ static void my_i_am_handler(
         if (BACnet_Debug_Enabled) {
             fprintf(stderr, " from %lu, MAC = ", (unsigned long)device_id);
             if ((src->mac_len == 6) && (src->len == 0)) {
-                fprintf(stderr, "%u.%u.%u.%u %02X%02X\n", (unsigned)src->mac[0],
+                fprintf(
+                    stderr, "%u.%u.%u.%u %02X%02X\n", (unsigned)src->mac[0],
                     (unsigned)src->mac[1], (unsigned)src->mac[2],
                     (unsigned)src->mac[3], (unsigned)src->mac[4],
                     (unsigned)src->mac[5]);
@@ -156,13 +157,14 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
-    fprintf(stderr, "BACnet Reject: %s\n",
+    fprintf(
+        stderr, "BACnet Reject: %s\n",
         bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
@@ -213,7 +215,8 @@ static void print_address_cache(void)
     /*  NOTE: this string format is parsed by src/address.c,
        so these must be compatible. */
 
-    printf(";%-7s  %-20s %-5s %-20s %-4s\n", "Device", "MAC (hex)", "SNET",
+    printf(
+        ";%-7s  %-20s %-5s %-20s %-4s\n", "Device", "MAC (hex)", "SNET",
         "SADR (hex)", "APDU");
     printf(";-------- -------------------- ----- -------------------- ----\n");
 
@@ -257,68 +260,75 @@ static void print_usage(const char *filename)
 static void print_help(const char *filename)
 {
     printf("Send BACnet WhoIs service request to a device or multiple\n"
-        "devices, and wait for responses. Displays any devices found\n"
-        "and their network information.\n");
+           "devices, and wait for responses. Displays any devices found\n"
+           "and their network information.\n");
     printf("\n");
     printf("device-instance:\n"
-        "BACnet Device Object Instance number that you are trying\n"
-        "to send a Who-Is service request. The value should be in\n"
-        "the range of 0 to 4194303. A range of values can also be\n"
-        "specified by using a minimum value and a maximum value.\n");
+           "BACnet Device Object Instance number that you are trying\n"
+           "to send a Who-Is service request. The value should be in\n"
+           "the range of 0 to 4194303. A range of values can also be\n"
+           "specified by using a minimum value and a maximum value.\n");
     printf("\n");
     printf("--mac A\n"
-        "BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("--dnet N\n"
-        "BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n");
+           "BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
     printf("\n");
     printf("--dadr A\n"
-        "BACnet mac address on the destination BACnet network number.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "BACnet mac address on the destination BACnet network number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("--repeat\n"
-        "Send the message repeatedly until signalled to quit.\n"
-        "Default is disabled, using the APDU timeout as time to quit.\n");
+           "Send the message repeatedly until signalled to quit.\n"
+           "Default is disabled, using the APDU timeout as time to quit.\n");
     printf("\n");
     printf("--retry C\n"
-        "Send the message C number of times\n"
-        "Default is retry 0, only sending one time.\n");
+           "Send the message C number of times\n"
+           "Default is retry 0, only sending one time.\n");
     printf("\n");
     printf("--timeout T\n"
-        "Wait T milliseconds after sending before retry\n"
-        "Default delay is 3000ms.\n");
+           "Wait T milliseconds after sending before retry\n"
+           "Default delay is 3000ms.\n");
     printf("\n");
     printf("--delay M\n"
-        "Wait M milliseconds for responses after sending\n"
-        "Default delay is 100ms.\n");
+           "Wait M milliseconds for responses after sending\n"
+           "Default delay is 100ms.\n");
     printf("\n");
     printf("Example:\n");
-    printf("Send a WhoIs request to DNET 123:\n"
+    printf(
+        "Send a WhoIs request to DNET 123:\n"
         "%s --dnet 123\n",
         filename);
-    printf("Send a WhoIs request to MAC 10.0.0.1 DNET 123 DADR 05h:\n"
+    printf(
+        "Send a WhoIs request to MAC 10.0.0.1 DNET 123 DADR 05h:\n"
         "%s --mac 10.0.0.1 --dnet 123 --dadr 05\n",
         filename);
-    printf("Send a WhoIs request to MAC 10.1.2.3:47808:\n"
+    printf(
+        "Send a WhoIs request to MAC 10.1.2.3:47808:\n"
         "%s --mac 10.1.2.3:47808\n",
         filename);
-    printf("Send a WhoIs request to Device 123:\n"
+    printf(
+        "Send a WhoIs request to Device 123:\n"
         "%s 123\n",
         filename);
-    printf("Send a WhoIs request to Devices from 1000 to 9000:\n"
+    printf(
+        "Send a WhoIs request to Devices from 1000 to 9000:\n"
         "%s 1000 9000\n",
         filename);
-    printf("Send a WhoIs request to Devices from 1000 to 9000 on DNET 123:\n"
+    printf(
+        "Send a WhoIs request to Devices from 1000 to 9000 on DNET 123:\n"
         "%s 1000 9000 --dnet 123\n",
         filename);
-    printf("Send a WhoIs request to all devices:\n"
+    printf(
+        "Send a WhoIs request to all devices:\n"
         "%s\n",
         filename);
 }
@@ -446,12 +456,14 @@ int main(int argc, char *argv[])
         }
     }
     if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance-min=%u - not greater than %u\n",
+        fprintf(
+            stderr, "device-instance-min=%u - not greater than %u\n",
             Target_Object_Instance_Min, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Instance_Max > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance-max=%u - not greater than %u\n",
+        fprintf(
+            stderr, "device-instance-max=%u - not greater than %u\n",
             Target_Object_Instance_Max, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -491,7 +503,8 @@ int main(int argc, char *argv[])
         }
         if (mstimer_expired(&apdu_timer)) {
             if (repeat_forever || retry_count) {
-                Send_WhoIs_To_Network(&dest, Target_Object_Instance_Min,
+                Send_WhoIs_To_Network(
+                    &dest, Target_Object_Instance_Min,
                     Target_Object_Instance_Max);
                 retry_count--;
             } else {

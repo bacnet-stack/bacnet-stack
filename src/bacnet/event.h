@@ -34,7 +34,6 @@ typedef enum {
 ** Based on UnconfirmedEventNotification-Request
 */
 
-
 /** Enable decoding of complex-event-type property-values. If set to 0, the
  * values are decoded and discarded. */
 #ifndef BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS
@@ -46,7 +45,6 @@ typedef enum {
 #ifndef BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS
 #define BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS 5
 #endif
-
 
 typedef struct BACnet_Event_Notification_Data {
     uint32_t processIdentifier;
@@ -94,8 +92,8 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_BIT_STRING statusFlags;
         } changeOfValue;
         /*
-          ** EVENT_COMMAND_FAILURE
-          */
+         ** EVENT_COMMAND_FAILURE
+         */
         struct {
             union {
                 BACNET_BINARY_PV binaryValue;
@@ -175,12 +173,12 @@ typedef struct BACnet_Event_Notification_Data {
          * types
          */
         struct {
-            BACNET_PROPERTY_VALUE values[BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS];
+            BACNET_PROPERTY_VALUE
+            values[BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS];
         } complexEventType;
 #endif
     } notificationParams;
 } BACNET_EVENT_NOTIFICATION_DATA;
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -191,60 +189,57 @@ extern "C" {
 ** Creates a Confirmed Event Notification APDU
 **
 ****************************************************/
-    BACNET_STACK_EXPORT
-    int cevent_notify_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        const BACNET_EVENT_NOTIFICATION_DATA * data);
+BACNET_STACK_EXPORT
+int cevent_notify_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    const BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **
 ** Creates an Unconfirmed Event Notification APDU
 **
 ****************************************************/
-    BACNET_STACK_EXPORT
-    int uevent_notify_encode_apdu(
-        uint8_t * apdu,
-        const BACNET_EVENT_NOTIFICATION_DATA * data);
+BACNET_STACK_EXPORT
+int uevent_notify_encode_apdu(
+    uint8_t *apdu, const BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **
 ** Encodes the service data part of Event Notification
 **
 ****************************************************/
-    BACNET_STACK_EXPORT
-    int event_notify_encode_service_request(
-        uint8_t * apdu,
-        const BACNET_EVENT_NOTIFICATION_DATA * data);
+BACNET_STACK_EXPORT
+int event_notify_encode_service_request(
+    uint8_t *apdu, const BACNET_EVENT_NOTIFICATION_DATA *data);
 
-    BACNET_STACK_EXPORT
-    size_t event_notification_service_request_encode(
-        uint8_t *apdu,
-        size_t apdu_size,
-        const BACNET_EVENT_NOTIFICATION_DATA *data);
+BACNET_STACK_EXPORT
+size_t event_notification_service_request_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    const BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **
 ** Decodes the service data part of Event Notification
 **
 ****************************************************/
-    BACNET_STACK_EXPORT
-    int event_notify_decode_service_request(
-        const uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_EVENT_NOTIFICATION_DATA * data);
+BACNET_STACK_EXPORT
+int event_notify_decode_service_request(
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **
 ** Sends an Unconfirmed Event Notification to a dest
 **
 ****************************************************/
-    BACNET_STACK_EXPORT
-    int uevent_notify_send(
-        uint8_t * buffer,
-        BACNET_EVENT_NOTIFICATION_DATA * data,
-        BACNET_ADDRESS * dest);
-
+BACNET_STACK_EXPORT
+int uevent_notify_send(
+    uint8_t *buffer,
+    BACNET_EVENT_NOTIFICATION_DATA *data,
+    BACNET_ADDRESS *dest);
 
 #ifdef __cplusplus
 }

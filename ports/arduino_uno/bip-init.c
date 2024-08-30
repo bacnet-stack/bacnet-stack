@@ -12,7 +12,7 @@
 #include "bacnet/datalink/bip.h"
 #include "socketWrapper.h"
 #include "w5100Wrapper.h"
-//#include "bacport.h"
+// #include "bacport.h"
 
 /** @file linux/bip-init.c  Initializes BACnet/IP interface (Linux). */
 
@@ -61,7 +61,8 @@ void bip_set_interface(const char *ifname)
     bip_set_addr(local_address);
     if (BIP_Debug) {
         fprintf(stderr, "Interface: %s\n", ifname);
-        fprintf(stderr, "IP Address: %d.%d.%d.%d\n", local_address[0],
+        fprintf(
+            stderr, "IP Address: %d.%d.%d.%d\n", local_address[0],
             local_address[1], local_address[2], local_address[3]);
     }
 
@@ -74,9 +75,9 @@ void bip_set_interface(const char *ifname)
 
     bip_set_broadcast_addr(broadcast_address);
     if (BIP_Debug) {
-        fprintf(stderr, "IP Broadcast Address: %d.%d.%d.%d\n",
-            broadcast_address[0], broadcast_address[1], broadcast_address[2],
-            broadcast_address[3]);
+        fprintf(
+            stderr, "IP Broadcast Address: %d.%d.%d.%d\n", broadcast_address[0],
+            broadcast_address[1], broadcast_address[2], broadcast_address[3]);
     }
 }
 
@@ -102,10 +103,11 @@ bool bip_init(char *ifname)
     uint8_t sock_fd = 0;
     bool isOpen = false;
 
-    if (ifname)
+    if (ifname) {
         bip_set_interface(ifname);
-    else
+    } else {
         bip_set_interface("eth0");
+    }
 
     /* assumes that the driver has already been initialized */
     for (sock_fd = 0; sock_fd < MAX_SOCK_NUM; sock_fd++) {

@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic GetEvent service send
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Steve Karg
+ * @date October 2019
+ * @brief Header file for a basic GetEvent service send
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef SEND_GET_EVENT_H
 #define SEND_GET_EVENT_H
 
@@ -26,8 +26,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-uint8_t Send_GetEvent(BACNET_ADDRESS* target_address,
-                      const BACNET_OBJECT_ID* lastReceivedObjectIdentifier);
+uint8_t Send_GetEvent(
+    BACNET_ADDRESS *target_address,
+    const BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
 BACNET_STACK_EXPORT
 uint8_t Send_GetEvent_Global(void);
 

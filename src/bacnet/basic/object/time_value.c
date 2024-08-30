@@ -49,21 +49,27 @@ static time_value_write_present_value_callback
     Time_Value_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Time_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    -1 };
+static const int Time_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
+};
 
 static const int Time_Value_Properties_Optional[] = { PROP_DESCRIPTION,
-    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1 };
+                                                      PROP_EVENT_STATE,
+                                                      PROP_OUT_OF_SERVICE, -1 };
 
 static const int Time_Value_Properties_Proprietary[] = { -1 };
 
 /* standard properties that are arrays for this object,
    but not necessary supported in this object */
-static const int BACnetARRAY_Properties[] = {
-    PROP_PRIORITY_ARRAY, PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS,
-    PROP_EVENT_MESSAGE_TEXTS_CONFIG, PROP_VALUE_SOURCE_ARRAY,
-    PROP_COMMAND_TIME_ARRAY, PROP_TAGS, -1 };
+static const int BACnetARRAY_Properties[] = { PROP_PRIORITY_ARRAY,
+                                              PROP_EVENT_TIME_STAMPS,
+                                              PROP_EVENT_MESSAGE_TEXTS,
+                                              PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+                                              PROP_VALUE_SOURCE_ARRAY,
+                                              PROP_COMMAND_TIME_ARRAY,
+                                              PROP_TAGS,
+                                              -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -227,7 +233,8 @@ bool Time_Value_Present_Value_Set(
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Time_Value_Present_Value_Write(uint32_t object_instance,
+static bool Time_Value_Present_Value_Write(
+    uint32_t object_instance,
     BACNET_TIME *value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
@@ -375,7 +382,6 @@ const char *Time_Value_Name_ASCII(uint32_t object_instance)
     return name;
 }
 
-
 /**
  * For a given object instance-number, returns the description
  *
@@ -496,11 +502,13 @@ bool Time_Value_Encode_Value_List(
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN, false);
         if (Time_Value_Out_Of_Service(object_instance)) {
-            bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_OUT_OF_SERVICE, true);
+            bitstring_set_bit(
+                &value_list->value.type.Bit_String, STATUS_FLAG_OUT_OF_SERVICE,
+                true);
         } else {
-            bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_OUT_OF_SERVICE, false);
+            bitstring_set_bit(
+                &value_list->value.type.Bit_String, STATUS_FLAG_OUT_OF_SERVICE,
+                false);
         }
         value_list->priority = BACNET_NO_PRIORITY;
         value_list->next = NULL;
@@ -559,7 +567,8 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+            bitstring_set_bit(
+                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
                 Time_Value_Out_Of_Service(rpdata->object_instance));
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -631,10 +640,10 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 status = write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_TIME);
                 if (status) {
-                    status =
-                        Time_Value_Present_Value_Write(wp_data->object_instance,
-                            &value.type.Time, wp_data->priority,
-                            &wp_data->error_class, &wp_data->error_code);
+                    status = Time_Value_Present_Value_Write(
+                        wp_data->object_instance, &value.type.Time,
+                        wp_data->priority, &wp_data->error_class,
+                        &wp_data->error_code);
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -650,7 +659,8 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         default:
-            if (property_lists_member(Time_Value_Properties_Required,
+            if (property_lists_member(
+                    Time_Value_Properties_Required,
                     Time_Value_Properties_Optional,
                     Time_Value_Properties_Proprietary,
                     wp_data->object_property)) {
@@ -689,7 +699,8 @@ uint8_t Time_Value_Status_Flags(uint32_t object_instance)
     bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
     bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
     bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-    bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+    bitstring_set_bit(
+        &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
         Time_Value_Out_Of_Service(object_instance));
 
     return bitstring_octet(&bit_string, 0);

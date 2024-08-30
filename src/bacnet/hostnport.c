@@ -542,14 +542,16 @@ int bacnet_bdt_entry_decode(
     apdu_len += len;
     /* BACnetHostNPort ::= SEQUENCE */
     len = host_n_port_decode(
-        &apdu[apdu_len], apdu_size-apdu_len, error_code, &address->bbmd_address);
+        &apdu[apdu_len], apdu_size - apdu_len, error_code,
+        &address->bbmd_address);
     if (len > 0) {
         apdu_len += len;
     } else {
         return BACNET_STATUS_REJECT;
     }
     /*  bbmd-address [0] BACnetHostNPort - closing */
-    if (!bacnet_is_closing_tag_number(&apdu[apdu_len], apdu_size-apdu_len, 0, &len)) {
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
         if (error_code) {
             *error_code = ERROR_CODE_REJECT_INVALID_TAG;
         }
@@ -558,7 +560,7 @@ int bacnet_bdt_entry_decode(
     apdu_len += len;
     /* broadcast-mask [1] OCTET STRING */
     len = bacnet_octet_string_context_decode(
-        &apdu[apdu_len], apdu_size-apdu_len, 1, &address->broadcast_mask);
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &address->broadcast_mask);
     if (len > 0) {
         apdu_len += len;
     }
@@ -709,9 +711,9 @@ bool bacnet_bdt_entry_from_ascii(BACNET_BDT_ENTRY *value, const char *argv)
         if (name && isalnum(name[0])) {
             value->bbmd_address.host_ip_address = false;
             value->bbmd_address.host_name = true;
-            characterstring_init(&value->bbmd_address.host.name,
-                CHARACTER_ANSI_X34,
-                name, name_len);
+            characterstring_init(
+                &value->bbmd_address.host.name, CHARACTER_ANSI_X34, name,
+                name_len);
         } else {
             value->bbmd_address.host_ip_address = false;
             value->bbmd_address.host_name = false;
@@ -878,8 +880,7 @@ int bacnet_fdt_entry_decode(
     }
     /* bacnetip-address [0] OCTET STRING */
     len = bacnet_octet_string_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 0,
-        &entry->bacnetip_address);
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &entry->bacnetip_address);
     if (len > 0) {
         apdu_len += len;
     } else {
@@ -899,8 +900,7 @@ int bacnet_fdt_entry_decode(
     }
     /* remaining-time-to-live [2] Unsigned16 */
     len = bacnet_unsigned_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 2,
-         &unsigned_value);
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &unsigned_value);
     if ((len > 0) && (unsigned_value <= UINT16_MAX)) {
         entry->remaining_time_to_live = unsigned_value;
         apdu_len += len;

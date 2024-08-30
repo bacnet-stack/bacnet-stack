@@ -55,7 +55,6 @@ static void testLifeSafetyZone(void)
     zassert_equal(test_name, NULL, NULL);
     /* cleanup */
     status = Life_Safety_Zone_Delete(object_instance);
-
 }
 /**
  * @}

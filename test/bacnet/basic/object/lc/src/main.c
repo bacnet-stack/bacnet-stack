@@ -255,8 +255,7 @@ static bool Test_Present_Value_Priority_Set(float value, unsigned priority)
  * @param  priority - priority-array index value 1..16
  * @return  true if values are within range and present-value is relinquished.
  */
-static bool Test_Present_Value_Priority_Relinquish(
-    unsigned priority)
+static bool Test_Present_Value_Priority_Relinquish(unsigned priority)
 {
     bool status = false;
 
@@ -615,8 +614,8 @@ static void testLoadControlStateMachine(void)
         Load_Control_Present_Value(object_instance), BACNET_SHED_COMPLIANT,
         NULL);
     level = Test_Present_Value();
-    zassert_true(islessgreater(100.0f, level),
-        "Present Value = %f", (double)level);
+    zassert_true(
+        islessgreater(100.0f, level), "Present Value = %f", (double)level);
     priority = Test_Present_Value_Priority();
     zassert_equal(
         Load_Control_Priority_For_Writing(object_instance), priority, NULL);
@@ -658,9 +657,7 @@ static void test_Load_Control_Read_Write_Property(void)
         Load_Control_Read_Property, Load_Control_Write_Property,
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
-        object_instance,
-        Load_Control_Name_Set,
-        Load_Control_Name_ASCII);
+        object_instance, Load_Control_Name_Set, Load_Control_Name_ASCII);
     test_teardown(object_instance);
 }
 

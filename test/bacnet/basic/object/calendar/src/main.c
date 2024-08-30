@@ -230,16 +230,18 @@ static void testPresentValue(void)
     value->type.WeekNDay.weekofmonth = (date.day - 1) % 7 + 1;
     zassert_true(Calendar_Present_Value(instance), NULL);
     value->type.WeekNDay.weekofmonth++;
-    if (value->type.WeekNDay.weekofmonth > 5)
+    if (value->type.WeekNDay.weekofmonth > 5) {
         value->type.WeekNDay.weekofmonth = 1;
+    }
     zassert_false(Calendar_Present_Value(instance), NULL);
     value->type.WeekNDay.weekofmonth = 0xff;
 
     value->type.WeekNDay.dayofweek = date.wday;
     zassert_true(Calendar_Present_Value(instance), NULL);
     value->type.WeekNDay.dayofweek++;
-    if (value->type.WeekNDay.dayofweek > 7)
+    if (value->type.WeekNDay.dayofweek > 7) {
         value->type.WeekNDay.dayofweek = 1;
+    }
     zassert_false(Calendar_Present_Value(instance), NULL);
 
     Calendar_Date_List_Delete_All(instance);

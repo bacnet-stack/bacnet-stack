@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic ReinitializeDevice service send
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Steve Karg
+ * @date October 2019
+ * @brief Header file for a basic ReinitializeDevice service send
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef SEND_REINITIALIZE_DEVICE_H
 #define SEND_REINITIALIZE_DEVICE_H
 
@@ -26,9 +26,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-uint8_t Send_Reinitialize_Device_Request(uint32_t device_id,
-                                         BACNET_REINITIALIZED_STATE state,
-                                         const char *password);
+uint8_t Send_Reinitialize_Device_Request(
+    uint32_t device_id, BACNET_REINITIALIZED_STATE state, const char *password);
 
 #ifdef __cplusplus
 }

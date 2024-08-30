@@ -28,20 +28,25 @@ static int rpm_ack_decode_apdu(
 {
     int offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_COMPLEX_ACK)
+    if (apdu[0] != PDU_TYPE_COMPLEX_ACK) {
         return -1;
+    }
     *invoke_id = apdu[1];
-    if (apdu[2] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE)
+    if (apdu[2] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE) {
         return -1;
+    }
     offset = 3;
     if (apdu_len > offset) {
-        if (service_request)
+        if (service_request) {
             *service_request = &apdu[offset];
-        if (service_request_len)
+        }
+        if (service_request_len) {
             *service_request_len = apdu_len - offset;
+        }
     }
 
     return offset;
@@ -56,22 +61,27 @@ static int rpm_decode_apdu(
 {
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
         return -1;
+    }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE)
+    if (apdu[3] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE) {
         return -1;
+    }
     offset = 4;
 
     if (apdu_len > offset) {
-        if (service_request)
+        if (service_request) {
             *service_request = &apdu[offset];
-        if (service_request_len)
+        }
+        if (service_request_len) {
             *service_request_len = apdu_len - offset;
+        }
     }
 
     return offset;

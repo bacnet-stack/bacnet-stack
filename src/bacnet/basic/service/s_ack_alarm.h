@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic AlarmAcknowledgement service send
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Steve Karg
+ * @date October 2019
+ * @brief Header file for a basic AlarmAcknowledgement service send
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef SEND_ALARM_ACKNOWLEDGEMENT_H
 #define SEND_ALARM_ACKNOWLEDGEMENT_H
 
@@ -27,12 +27,15 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu, uint16_t pdu_size,
-    const BACNET_ALARM_ACK_DATA *data, BACNET_ADDRESS *dest);
+uint8_t Send_Alarm_Acknowledgement_Address(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    const BACNET_ALARM_ACK_DATA *data,
+    BACNET_ADDRESS *dest);
 
 BACNET_STACK_EXPORT
-uint8_t Send_Alarm_Acknowledgement(uint32_t device_id,
-                                   const BACNET_ALARM_ACK_DATA* data);
+uint8_t Send_Alarm_Acknowledgement(
+    uint32_t device_id, const BACNET_ALARM_ACK_DATA *data);
 
 #ifdef __cplusplus
 }

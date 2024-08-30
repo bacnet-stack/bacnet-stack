@@ -23,7 +23,8 @@
  * @param value [in] pointer to the BACNET_APPLICATION_DATA_VALUE structure
  *  which is packed with the decoded value from the ReadProperty request.
  */
-typedef void (*bacnet_read_write_value_callback_t)(uint32_t device_instance,
+typedef void (*bacnet_read_write_value_callback_t)(
+    uint32_t device_instance,
     BACNET_READ_PROPERTY_DATA *rp_data,
     BACNET_APPLICATION_DATA_VALUE *value);
 
@@ -35,7 +36,8 @@ typedef void (*bacnet_read_write_value_callback_t)(uint32_t device_instance,
  * @param segmentation [in] segmentation flag
  * @param vendor_id [in] vendor identifier
  */
-typedef void (*bacnet_read_write_device_callback_t)(uint32_t device_instance,
+typedef void (*bacnet_read_write_device_callback_t)(
+    uint32_t device_instance,
     unsigned max_apdu,
     int segmentation,
     uint16_t vendor_id);
@@ -53,13 +55,15 @@ bool bacnet_read_write_idle(void);
 BACNET_STACK_EXPORT
 bool bacnet_read_write_busy(void);
 BACNET_STACK_EXPORT
-bool bacnet_read_property_queue(uint32_t device_id,
+bool bacnet_read_property_queue(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
     uint32_t array_index);
 BACNET_STACK_EXPORT
-bool bacnet_write_property_real_queue(uint32_t device_id,
+bool bacnet_write_property_real_queue(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
@@ -67,22 +71,16 @@ bool bacnet_write_property_real_queue(uint32_t device_id,
     uint8_t priority,
     uint32_t array_index);
 BACNET_STACK_EXPORT
-bool bacnet_write_property_null_queue(uint32_t device_id,
+bool bacnet_write_property_null_queue(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
     uint8_t priority,
     uint32_t array_index);
 BACNET_STACK_EXPORT
-bool bacnet_write_property_enumerated_queue(uint32_t device_id,
-    BACNET_OBJECT_TYPE object_type,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID object_property,
-    unsigned int value,
-    uint8_t priority,
-    uint32_t array_index);
-BACNET_STACK_EXPORT
-bool bacnet_write_property_unsigned_queue(uint32_t device_id,
+bool bacnet_write_property_enumerated_queue(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
@@ -90,7 +88,17 @@ bool bacnet_write_property_unsigned_queue(uint32_t device_id,
     uint8_t priority,
     uint32_t array_index);
 BACNET_STACK_EXPORT
-bool bacnet_write_property_signed_queue(uint32_t device_id,
+bool bacnet_write_property_unsigned_queue(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    unsigned int value,
+    uint8_t priority,
+    uint32_t array_index);
+BACNET_STACK_EXPORT
+bool bacnet_write_property_signed_queue(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
@@ -98,7 +106,8 @@ bool bacnet_write_property_signed_queue(uint32_t device_id,
     uint8_t priority,
     uint32_t array_index);
 BACNET_STACK_EXPORT
-bool bacnet_write_property_boolean_queue(uint32_t device_id,
+bool bacnet_write_property_boolean_queue(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,

@@ -16,8 +16,8 @@
     for BACnet/Ethernet. */
 
 /* commonly used comparison address for ethernet */
-static uint8_t Ethernet_Broadcast[MAX_MAC_LEN] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF };
+static uint8_t Ethernet_Broadcast[MAX_MAC_LEN] = { 0xFF, 0xFF, 0xFF,
+                                                   0xFF, 0xFF, 0xFF };
 
 /* IEEE maintains list of 48-bit MAC "addresses" AKA EUI-48 identifiers.
    An EUI-48 is structured into an initial 3-octet OUI
@@ -26,8 +26,8 @@ static uint8_t Ethernet_Broadcast[MAX_MAC_LEN] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 /* see [RFC5342] for current information and registration procedures. */
 /* The OUI 00-00-5E has been allocated to IANA. */
 /* my local device data - MAC address */
-static uint8_t Ethernet_MAC_Address[MAX_MAC_LEN] = { 0x00, 0x00, 0x5E, 0x00,
-    0x00, 0x01 };
+static uint8_t Ethernet_MAC_Address[MAX_MAC_LEN] = { 0x00, 0x00, 0x5E,
+                                                     0x00, 0x00, 0x01 };
 
 /* status of the link */
 static int32_t Ethernet_Status = R_ETHER_ERROR;
@@ -69,7 +69,8 @@ int ethernet_send(uint8_t *mtu, int mtu_len)
 
 /* function to send a packet out the 802.2 socket */
 /* returns number of bytes sent on success, negative on failure */
-int ethernet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+int ethernet_send_pdu(
+    BACNET_ADDRESS *dest, /* destination address */
     BACNET_NPDU_DATA *npdu_data, /* network information */
     uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len)
@@ -129,7 +130,8 @@ int ethernet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
 
 /* receives an 802.2 framed packet */
 /* returns the number of octets in the PDU, or zero on failure */
-uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
+uint16_t ethernet_receive(
+    BACNET_ADDRESS *src, /* source address */
     uint8_t *pdu, /* PDU data */
     uint16_t max_pdu, /* amount of space available in the PDU  */
     unsigned timeout)
@@ -139,13 +141,15 @@ uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
     uint16_t pdu_len = 0; /* return value */
 
     /* Make sure the socket is open */
-    if (!ethernet_valid())
+    if (!ethernet_valid()) {
         return 0;
+    }
 
     received_bytes = R_Ether_Read(0, (void *)buf);
 
-    if (received_bytes == 0)
+    if (received_bytes == 0) {
         return 0;
+    }
 
     /* the signature of an 802.2 BACnet packet */
     if ((buf[14] != 0x82) && (buf[15] != 0x82)) {
@@ -165,11 +169,13 @@ uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
     (void)decode_unsigned16(&buf[12], &pdu_len);
     pdu_len -= 3 /* DSAP, SSAP, LLC Control */;
     /* copy the buffer into the PDU */
-    if (pdu_len < max_pdu)
+    if (pdu_len < max_pdu) {
         memmove(&pdu[0], &buf[17], pdu_len);
+    }
     /* ignore packets that are too large */
-    else
+    else {
         pdu_len = 0;
+    }
 
     return pdu_len;
 }

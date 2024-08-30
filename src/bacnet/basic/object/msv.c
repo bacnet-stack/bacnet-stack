@@ -47,12 +47,14 @@ static const char *Default_State_Text = "State 1\0"
                                         "State 3\0";
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_NUMBER_OF_STATES, -1 };
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS,     PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_NUMBER_OF_STATES, -1
+};
 
 static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
-    -1 };
+                                           -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -217,8 +219,8 @@ uint32_t Multistate_Value_Max_States(uint32_t object_instance)
  * @param  state_index - state index number 1..N of the text requested
  * @return  C string retrieved
  */
-const char *Multistate_Value_State_Text(
-    uint32_t object_instance, uint32_t state_index)
+const char *
+Multistate_Value_State_Text(uint32_t object_instance, uint32_t state_index)
 {
     const char *pName = NULL; /* return value */
     const struct object_data *pObject;
@@ -363,7 +365,8 @@ bool Multistate_Value_Present_Value_Set(
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Multistate_Value_Present_Value_Write(uint32_t object_instance,
+static bool Multistate_Value_Present_Value_Write(
+    uint32_t object_instance,
     uint32_t value,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -465,7 +468,8 @@ bool Multistate_Value_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "MULTI-STATE INPUT %lu",
+            snprintf(
+                name_text, sizeof(name_text), "MULTI-STATE INPUT %lu",
                 (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
@@ -681,9 +685,9 @@ bool Multistate_Value_Encode_Value_List(
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
         fault = Multistate_Value_Object_Fault(pObject);
-        status =
-            cov_value_list_encode_unsigned(value_list, pObject->Present_Value,
-                in_alarm, fault, overridden, pObject->Out_Of_Service);
+        status = cov_value_list_encode_unsigned(
+            value_list, pObject->Present_Value, in_alarm, fault, overridden,
+            pObject->Out_Of_Service);
     }
     return status;
 }
@@ -745,7 +749,8 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_RELIABILITY:
-            apdu_len = encode_application_enumerated(&apdu[0],
+            apdu_len = encode_application_enumerated(
+                &apdu[0],
                 Multistate_Value_Reliability(rpdata->object_instance));
             break;
         case PROP_EVENT_STATE:
@@ -758,14 +763,16 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_NUMBER_OF_STATES:
-            apdu_len = encode_application_unsigned(&apdu[apdu_len],
+            apdu_len = encode_application_unsigned(
+                &apdu[apdu_len],
                 Multistate_Value_Max_States(rpdata->object_instance));
             break;
         case PROP_STATE_TEXT:
             max_states = Multistate_Value_Max_States(rpdata->object_instance);
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index, Multistate_Value_State_Text_Encode,
-                max_states, apdu, apdu_size);
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Multistate_Value_State_Text_Encode, max_states, apdu,
+                apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -775,7 +782,8 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Multistate_Value_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -848,7 +856,8 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         default:
-            if (property_lists_member(Properties_Required, Properties_Optional,
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
                     Properties_Proprietary, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

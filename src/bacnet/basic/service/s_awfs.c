@@ -26,7 +26,8 @@
 
 /** @file s_awfs.c  Send part of an Atomic Write File Stream request. */
 
-uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
+uint8_t Send_Atomic_Write_File_Stream(
+    uint32_t device_id,
     uint32_t file_instance,
     int fileStartPosition,
     const BACNET_OCTET_STRING *fileData)
@@ -78,24 +79,29 @@ uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
                we have a way to check for that and update the
                max_apdu in the address binding table. */
             if ((unsigned)pdu_len <= max_apdu) {
-                tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                    &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+                tsm_set_confirmed_unsegmented_transaction(
+                    invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                    (uint16_t)pdu_len);
 #if PRINT_ENABLED
                 bytes_sent =
 #endif
-                    datalink_send_pdu(&dest, &npdu_data,
-                        &Handler_Transmit_Buffer[0], pdu_len);
+                    datalink_send_pdu(
+                        &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                        pdu_len);
 #if PRINT_ENABLED
-                if (bytes_sent <= 0)
-                    fprintf(stderr,
+                if (bytes_sent <= 0) {
+                    fprintf(
+                        stderr,
                         "Failed to Send AtomicWriteFile Request (%s)!\n",
                         strerror(errno));
+                }
 #endif
             } else {
                 tsm_free_invoke_id(invoke_id);
                 invoke_id = 0;
 #if PRINT_ENABLED
-                fprintf(stderr,
+                fprintf(
+                    stderr,
                     "Failed to Send AtomicWriteFile Request "
                     "(payload [%d] exceeds destination maximum APDU [%u])!\n",
                     pdu_len, max_apdu);
@@ -105,7 +111,8 @@ uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send AtomicWriteFile Request "
                 "(payload [%d] exceeds octet string capacity)!\n",
                 pdu_len);

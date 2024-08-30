@@ -57,18 +57,27 @@ static analog_output_write_present_value_callback
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 
-static const int Analog_Output_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_UNITS, PROP_PRIORITY_ARRAY,
+static const int Analog_Output_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_UNITS,
+    PROP_PRIORITY_ARRAY,
     PROP_RELINQUISH_DEFAULT,
 #if (BACNET_PROTOCOL_REVISION >= 17)
     PROP_CURRENT_COMMAND_PRIORITY,
 #endif
-    -1 };
+    -1
+};
 
-static const int Analog_Output_Properties_Optional[] = { PROP_RELIABILITY,
-    PROP_DESCRIPTION, PROP_COV_INCREMENT, PROP_MIN_PRES_VALUE,
-    PROP_MAX_PRES_VALUE, -1 };
+static const int Analog_Output_Properties_Optional[] = {
+    PROP_RELIABILITY,    PROP_DESCRIPTION,    PROP_COV_INCREMENT,
+    PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE, -1
+};
 
 static const int Analog_Output_Properties_Proprietary[] = { -1 };
 
@@ -278,8 +287,8 @@ bool Analog_Output_Relinquish_Default_Set(uint32_t object_instance, float value)
  * @param  pObject - specific object with valid data
  * @param  value - floating point analog value
  */
-static void Analog_Output_Present_Value_COV_Detect(
-    struct object_data *pObject, float value)
+static void
+Analog_Output_Present_Value_COV_Detect(struct object_data *pObject, float value)
 {
     float prior_value = 0.0;
     float cov_increment = 0.0;
@@ -366,7 +375,8 @@ bool Analog_Output_Present_Value_Relinquish(
  * @param  error_code - BACnet Error code
  * @return  true if values are within range and present-value is set.
  */
-static bool Analog_Output_Present_Value_Write(uint32_t object_instance,
+static bool Analog_Output_Present_Value_Write(
+    uint32_t object_instance,
     float value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
@@ -380,7 +390,8 @@ static bool Analog_Output_Present_Value_Write(uint32_t object_instance,
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
-            (value >= pObject->Min_Pres_Value) && (value <= pObject->Max_Pres_Value)) {
+            (value >= pObject->Min_Pres_Value) &&
+            (value <= pObject->Max_Pres_Value)) {
             if (priority != 6) {
                 old_value = Analog_Output_Present_Value(object_instance);
                 Analog_Output_Present_Value_Set(
@@ -491,7 +502,8 @@ bool Analog_Output_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "ANALOG OUTPUT %lu",
+            snprintf(
+                name_text, sizeof(name_text), "ANALOG OUTPUT %lu",
                 (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
@@ -907,8 +919,9 @@ bool Analog_Output_Encode_Value_List(
         if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
             fault = true;
         }
-        status = cov_value_list_encode_real(value_list, pObject->Prior_Value,
-            in_alarm, fault, overridden, pObject->Out_Of_Service);
+        status = cov_value_list_encode_real(
+            value_list, pObject->Prior_Value, in_alarm, fault, overridden,
+            pObject->Out_Of_Service);
     }
 
     return status;
@@ -1028,9 +1041,10 @@ int Analog_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], units);
             break;
         case PROP_PRIORITY_ARRAY:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index, Analog_Output_Priority_Array_Encode,
-                BACNET_MAX_PRIORITY, apdu, apdu_size);
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Analog_Output_Priority_Array_Encode, BACNET_MAX_PRIORITY, apdu,
+                apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -1045,7 +1059,8 @@ int Analog_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Analog_Output_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -1118,10 +1133,10 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
-                status =
-                    Analog_Output_Present_Value_Write(wp_data->object_instance,
-                        value.type.Real, wp_data->priority,
-                        &wp_data->error_class, &wp_data->error_code);
+                status = Analog_Output_Present_Value_Write(
+                    wp_data->object_instance, value.type.Real,
+                    wp_data->priority, &wp_data->error_class,
+                    &wp_data->error_code);
             } else {
                 status = write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_NULL);

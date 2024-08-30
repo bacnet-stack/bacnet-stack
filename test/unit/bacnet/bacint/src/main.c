@@ -48,8 +48,8 @@ static void test_unsigned16(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >> 8);
-    test_apdu[3] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 8);
+    test_apdu[3] = (uint8_t)(test_value >> 0);
     zassert_equal(2, encode_unsigned16(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(2, decode_unsigned16(&apdu[2], &value), NULL);
@@ -57,8 +57,8 @@ static void test_unsigned16(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >> 8);
-    test_apdu[3] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 8);
+    test_apdu[3] = (uint8_t)(test_value >> 0);
     zassert_equal(2, encode_unsigned16(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(2, decode_unsigned16(&apdu[2], &value), NULL);
@@ -67,8 +67,8 @@ static void test_unsigned16(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >> 8);
-    test_apdu[4] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 8);
+    test_apdu[4] = (uint8_t)(test_value >> 0);
     zassert_equal(2, encode_unsigned16(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(2, decode_unsigned16(&apdu[3], &value), NULL);
@@ -76,8 +76,8 @@ static void test_unsigned16(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >> 8);
-    test_apdu[4] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 8);
+    test_apdu[4] = (uint8_t)(test_value >> 0);
     zassert_equal(2, encode_unsigned16(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(2, decode_unsigned16(&apdu[3], &value), NULL);
@@ -122,9 +122,9 @@ static void test_unsigned24(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>16);
-    test_apdu[3] = (uint8_t) (test_value >> 8);
-    test_apdu[4] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 16);
+    test_apdu[3] = (uint8_t)(test_value >> 8);
+    test_apdu[4] = (uint8_t)(test_value >> 0);
     zassert_equal(3, encode_unsigned24(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(3, decode_unsigned24(&apdu[2], &value), NULL);
@@ -132,9 +132,9 @@ static void test_unsigned24(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>16);
-    test_apdu[3] = (uint8_t) (test_value >> 8);
-    test_apdu[4] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 16);
+    test_apdu[3] = (uint8_t)(test_value >> 8);
+    test_apdu[4] = (uint8_t)(test_value >> 0);
     zassert_equal(3, encode_unsigned24(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(3, decode_unsigned24(&apdu[2], &value), NULL);
@@ -143,9 +143,9 @@ static void test_unsigned24(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>16);
-    test_apdu[4] = (uint8_t) (test_value >> 8);
-    test_apdu[5] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 16);
+    test_apdu[4] = (uint8_t)(test_value >> 8);
+    test_apdu[5] = (uint8_t)(test_value >> 0);
     zassert_equal(3, encode_unsigned24(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(3, decode_unsigned24(&apdu[3], &value), NULL);
@@ -153,9 +153,9 @@ static void test_unsigned24(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>16);
-    test_apdu[4] = (uint8_t) (test_value >> 8);
-    test_apdu[5] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 16);
+    test_apdu[4] = (uint8_t)(test_value >> 8);
+    test_apdu[5] = (uint8_t)(test_value >> 0);
     zassert_equal(3, encode_unsigned24(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(3, decode_unsigned24(&apdu[3], &value), NULL);
@@ -200,10 +200,10 @@ static void test_unsigned32(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>24);
-    test_apdu[3] = (uint8_t) (test_value >>16);
-    test_apdu[4] = (uint8_t) (test_value >> 8);
-    test_apdu[5] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 24);
+    test_apdu[3] = (uint8_t)(test_value >> 16);
+    test_apdu[4] = (uint8_t)(test_value >> 8);
+    test_apdu[5] = (uint8_t)(test_value >> 0);
     zassert_equal(4, encode_unsigned32(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(4, decode_unsigned32(&apdu[2], &value), NULL);
@@ -211,10 +211,10 @@ static void test_unsigned32(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>24);
-    test_apdu[3] = (uint8_t) (test_value >>16);
-    test_apdu[4] = (uint8_t) (test_value >> 8);
-    test_apdu[5] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 24);
+    test_apdu[3] = (uint8_t)(test_value >> 16);
+    test_apdu[4] = (uint8_t)(test_value >> 8);
+    test_apdu[5] = (uint8_t)(test_value >> 0);
     zassert_equal(4, encode_unsigned32(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(4, decode_unsigned32(&apdu[2], &value), NULL);
@@ -223,10 +223,10 @@ static void test_unsigned32(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>24);
-    test_apdu[4] = (uint8_t) (test_value >>16);
-    test_apdu[5] = (uint8_t) (test_value >> 8);
-    test_apdu[6] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 24);
+    test_apdu[4] = (uint8_t)(test_value >> 16);
+    test_apdu[5] = (uint8_t)(test_value >> 8);
+    test_apdu[6] = (uint8_t)(test_value >> 0);
     zassert_equal(4, encode_unsigned32(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(4, decode_unsigned32(&apdu[3], &value), NULL);
@@ -234,10 +234,10 @@ static void test_unsigned32(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>24);
-    test_apdu[4] = (uint8_t) (test_value >>16);
-    test_apdu[5] = (uint8_t) (test_value >> 8);
-    test_apdu[6] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 24);
+    test_apdu[4] = (uint8_t)(test_value >> 16);
+    test_apdu[5] = (uint8_t)(test_value >> 8);
+    test_apdu[6] = (uint8_t)(test_value >> 0);
     zassert_equal(4, encode_unsigned32(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(4, decode_unsigned32(&apdu[3], &value), NULL);
@@ -283,11 +283,11 @@ static void test_unsigned40(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>32);
-    test_apdu[3] = (uint8_t) (test_value >>24);
-    test_apdu[4] = (uint8_t) (test_value >>16);
-    test_apdu[5] = (uint8_t) (test_value >> 8);
-    test_apdu[6] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 32);
+    test_apdu[3] = (uint8_t)(test_value >> 24);
+    test_apdu[4] = (uint8_t)(test_value >> 16);
+    test_apdu[5] = (uint8_t)(test_value >> 8);
+    test_apdu[6] = (uint8_t)(test_value >> 0);
     zassert_equal(5, encode_unsigned40(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(5, decode_unsigned40(&apdu[2], &value), NULL);
@@ -295,11 +295,11 @@ static void test_unsigned40(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>32);
-    test_apdu[3] = (uint8_t) (test_value >>24);
-    test_apdu[4] = (uint8_t) (test_value >>16);
-    test_apdu[5] = (uint8_t) (test_value >> 8);
-    test_apdu[6] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 32);
+    test_apdu[3] = (uint8_t)(test_value >> 24);
+    test_apdu[4] = (uint8_t)(test_value >> 16);
+    test_apdu[5] = (uint8_t)(test_value >> 8);
+    test_apdu[6] = (uint8_t)(test_value >> 0);
     zassert_equal(5, encode_unsigned40(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(5, decode_unsigned40(&apdu[2], &value), NULL);
@@ -308,11 +308,11 @@ static void test_unsigned40(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>32);
-    test_apdu[4] = (uint8_t) (test_value >>24);
-    test_apdu[5] = (uint8_t) (test_value >>16);
-    test_apdu[6] = (uint8_t) (test_value >> 8);
-    test_apdu[7] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 32);
+    test_apdu[4] = (uint8_t)(test_value >> 24);
+    test_apdu[5] = (uint8_t)(test_value >> 16);
+    test_apdu[6] = (uint8_t)(test_value >> 8);
+    test_apdu[7] = (uint8_t)(test_value >> 0);
     zassert_equal(5, encode_unsigned40(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(5, decode_unsigned40(&apdu[3], &value), NULL);
@@ -320,11 +320,11 @@ static void test_unsigned40(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>32);
-    test_apdu[4] = (uint8_t) (test_value >>24);
-    test_apdu[5] = (uint8_t) (test_value >>16);
-    test_apdu[6] = (uint8_t) (test_value >> 8);
-    test_apdu[7] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 32);
+    test_apdu[4] = (uint8_t)(test_value >> 24);
+    test_apdu[5] = (uint8_t)(test_value >> 16);
+    test_apdu[6] = (uint8_t)(test_value >> 8);
+    test_apdu[7] = (uint8_t)(test_value >> 0);
     zassert_equal(5, encode_unsigned40(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(5, decode_unsigned40(&apdu[3], &value), NULL);
@@ -377,12 +377,12 @@ static void test_unsigned48(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>40);
-    test_apdu[3] = (uint8_t) (test_value >>32);
-    test_apdu[4] = (uint8_t) (test_value >>24);
-    test_apdu[5] = (uint8_t) (test_value >>16);
-    test_apdu[6] = (uint8_t) (test_value >> 8);
-    test_apdu[7] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 40);
+    test_apdu[3] = (uint8_t)(test_value >> 32);
+    test_apdu[4] = (uint8_t)(test_value >> 24);
+    test_apdu[5] = (uint8_t)(test_value >> 16);
+    test_apdu[6] = (uint8_t)(test_value >> 8);
+    test_apdu[7] = (uint8_t)(test_value >> 0);
     zassert_equal(6, encode_unsigned48(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(6, decode_unsigned48(&apdu[2], &value), NULL);
@@ -390,12 +390,12 @@ static void test_unsigned48(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>40);
-    test_apdu[3] = (uint8_t) (test_value >>32);
-    test_apdu[4] = (uint8_t) (test_value >>24);
-    test_apdu[5] = (uint8_t) (test_value >>16);
-    test_apdu[6] = (uint8_t) (test_value >> 8);
-    test_apdu[7] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 40);
+    test_apdu[3] = (uint8_t)(test_value >> 32);
+    test_apdu[4] = (uint8_t)(test_value >> 24);
+    test_apdu[5] = (uint8_t)(test_value >> 16);
+    test_apdu[6] = (uint8_t)(test_value >> 8);
+    test_apdu[7] = (uint8_t)(test_value >> 0);
     zassert_equal(6, encode_unsigned48(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(6, decode_unsigned48(&apdu[2], &value), NULL);
@@ -404,12 +404,12 @@ static void test_unsigned48(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>40);
-    test_apdu[4] = (uint8_t) (test_value >>32);
-    test_apdu[5] = (uint8_t) (test_value >>24);
-    test_apdu[6] = (uint8_t) (test_value >>16);
-    test_apdu[7] = (uint8_t) (test_value >> 8);
-    test_apdu[8] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 40);
+    test_apdu[4] = (uint8_t)(test_value >> 32);
+    test_apdu[5] = (uint8_t)(test_value >> 24);
+    test_apdu[6] = (uint8_t)(test_value >> 16);
+    test_apdu[7] = (uint8_t)(test_value >> 8);
+    test_apdu[8] = (uint8_t)(test_value >> 0);
     zassert_equal(6, encode_unsigned48(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(6, decode_unsigned48(&apdu[3], &value), NULL);
@@ -417,12 +417,12 @@ static void test_unsigned48(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>40);
-    test_apdu[4] = (uint8_t) (test_value >>32);
-    test_apdu[5] = (uint8_t) (test_value >>24);
-    test_apdu[6] = (uint8_t) (test_value >>16);
-    test_apdu[7] = (uint8_t) (test_value >> 8);
-    test_apdu[8] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 40);
+    test_apdu[4] = (uint8_t)(test_value >> 32);
+    test_apdu[5] = (uint8_t)(test_value >> 24);
+    test_apdu[6] = (uint8_t)(test_value >> 16);
+    test_apdu[7] = (uint8_t)(test_value >> 8);
+    test_apdu[8] = (uint8_t)(test_value >> 0);
     zassert_equal(6, encode_unsigned48(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(6, decode_unsigned48(&apdu[3], &value), NULL);
@@ -475,13 +475,13 @@ static void test_unsigned56(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>48);
-    test_apdu[3] = (uint8_t) (test_value >>40);
-    test_apdu[4] = (uint8_t) (test_value >>32);
-    test_apdu[5] = (uint8_t) (test_value >>24);
-    test_apdu[6] = (uint8_t) (test_value >>16);
-    test_apdu[7] = (uint8_t) (test_value >> 8);
-    test_apdu[8] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 48);
+    test_apdu[3] = (uint8_t)(test_value >> 40);
+    test_apdu[4] = (uint8_t)(test_value >> 32);
+    test_apdu[5] = (uint8_t)(test_value >> 24);
+    test_apdu[6] = (uint8_t)(test_value >> 16);
+    test_apdu[7] = (uint8_t)(test_value >> 8);
+    test_apdu[8] = (uint8_t)(test_value >> 0);
     zassert_equal(7, encode_unsigned56(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(7, decode_unsigned56(&apdu[2], &value), NULL);
@@ -489,13 +489,13 @@ static void test_unsigned56(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>48);
-    test_apdu[3] = (uint8_t) (test_value >>40);
-    test_apdu[4] = (uint8_t) (test_value >>32);
-    test_apdu[5] = (uint8_t) (test_value >>24);
-    test_apdu[6] = (uint8_t) (test_value >>16);
-    test_apdu[7] = (uint8_t) (test_value >> 8);
-    test_apdu[8] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 48);
+    test_apdu[3] = (uint8_t)(test_value >> 40);
+    test_apdu[4] = (uint8_t)(test_value >> 32);
+    test_apdu[5] = (uint8_t)(test_value >> 24);
+    test_apdu[6] = (uint8_t)(test_value >> 16);
+    test_apdu[7] = (uint8_t)(test_value >> 8);
+    test_apdu[8] = (uint8_t)(test_value >> 0);
     zassert_equal(7, encode_unsigned56(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(7, decode_unsigned56(&apdu[2], &value), NULL);
@@ -504,13 +504,13 @@ static void test_unsigned56(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>48);
-    test_apdu[4] = (uint8_t) (test_value >>40);
-    test_apdu[5] = (uint8_t) (test_value >>32);
-    test_apdu[6] = (uint8_t) (test_value >>24);
-    test_apdu[7] = (uint8_t) (test_value >>16);
-    test_apdu[8] = (uint8_t) (test_value >> 8);
-    test_apdu[9] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 48);
+    test_apdu[4] = (uint8_t)(test_value >> 40);
+    test_apdu[5] = (uint8_t)(test_value >> 32);
+    test_apdu[6] = (uint8_t)(test_value >> 24);
+    test_apdu[7] = (uint8_t)(test_value >> 16);
+    test_apdu[8] = (uint8_t)(test_value >> 8);
+    test_apdu[9] = (uint8_t)(test_value >> 0);
     zassert_equal(7, encode_unsigned56(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(7, decode_unsigned56(&apdu[3], &value), NULL);
@@ -518,13 +518,13 @@ static void test_unsigned56(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>48);
-    test_apdu[4] = (uint8_t) (test_value >>40);
-    test_apdu[5] = (uint8_t) (test_value >>32);
-    test_apdu[6] = (uint8_t) (test_value >>24);
-    test_apdu[7] = (uint8_t) (test_value >>16);
-    test_apdu[8] = (uint8_t) (test_value >> 8);
-    test_apdu[9] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 48);
+    test_apdu[4] = (uint8_t)(test_value >> 40);
+    test_apdu[5] = (uint8_t)(test_value >> 32);
+    test_apdu[6] = (uint8_t)(test_value >> 24);
+    test_apdu[7] = (uint8_t)(test_value >> 16);
+    test_apdu[8] = (uint8_t)(test_value >> 8);
+    test_apdu[9] = (uint8_t)(test_value >> 0);
     zassert_equal(7, encode_unsigned56(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(7, decode_unsigned56(&apdu[3], &value), NULL);
@@ -577,14 +577,14 @@ static void test_unsigned64(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>56);
-    test_apdu[3] = (uint8_t) (test_value >>48);
-    test_apdu[4] = (uint8_t) (test_value >>40);
-    test_apdu[5] = (uint8_t) (test_value >>32);
-    test_apdu[6] = (uint8_t) (test_value >>24);
-    test_apdu[7] = (uint8_t) (test_value >>16);
-    test_apdu[8] = (uint8_t) (test_value >> 8);
-    test_apdu[9] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 56);
+    test_apdu[3] = (uint8_t)(test_value >> 48);
+    test_apdu[4] = (uint8_t)(test_value >> 40);
+    test_apdu[5] = (uint8_t)(test_value >> 32);
+    test_apdu[6] = (uint8_t)(test_value >> 24);
+    test_apdu[7] = (uint8_t)(test_value >> 16);
+    test_apdu[8] = (uint8_t)(test_value >> 8);
+    test_apdu[9] = (uint8_t)(test_value >> 0);
     zassert_equal(8, encode_unsigned64(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(8, decode_unsigned64(&apdu[2], &value), NULL);
@@ -592,14 +592,14 @@ static void test_unsigned64(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>56);
-    test_apdu[3] = (uint8_t) (test_value >>48);
-    test_apdu[4] = (uint8_t) (test_value >>40);
-    test_apdu[5] = (uint8_t) (test_value >>32);
-    test_apdu[6] = (uint8_t) (test_value >>24);
-    test_apdu[7] = (uint8_t) (test_value >>16);
-    test_apdu[8] = (uint8_t) (test_value >> 8);
-    test_apdu[9] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 56);
+    test_apdu[3] = (uint8_t)(test_value >> 48);
+    test_apdu[4] = (uint8_t)(test_value >> 40);
+    test_apdu[5] = (uint8_t)(test_value >> 32);
+    test_apdu[6] = (uint8_t)(test_value >> 24);
+    test_apdu[7] = (uint8_t)(test_value >> 16);
+    test_apdu[8] = (uint8_t)(test_value >> 8);
+    test_apdu[9] = (uint8_t)(test_value >> 0);
     zassert_equal(8, encode_unsigned64(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(8, decode_unsigned64(&apdu[2], &value), NULL);
@@ -608,14 +608,14 @@ static void test_unsigned64(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>56);
-    test_apdu[4] = (uint8_t) (test_value >>48);
-    test_apdu[5] = (uint8_t) (test_value >>40);
-    test_apdu[6] = (uint8_t) (test_value >>32);
-    test_apdu[7] = (uint8_t) (test_value >>24);
-    test_apdu[8] = (uint8_t) (test_value >>16);
-    test_apdu[9] = (uint8_t) (test_value >> 8);
-    test_apdu[10] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 56);
+    test_apdu[4] = (uint8_t)(test_value >> 48);
+    test_apdu[5] = (uint8_t)(test_value >> 40);
+    test_apdu[6] = (uint8_t)(test_value >> 32);
+    test_apdu[7] = (uint8_t)(test_value >> 24);
+    test_apdu[8] = (uint8_t)(test_value >> 16);
+    test_apdu[9] = (uint8_t)(test_value >> 8);
+    test_apdu[10] = (uint8_t)(test_value >> 0);
     zassert_equal(8, encode_unsigned64(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(8, decode_unsigned64(&apdu[3], &value), NULL);
@@ -623,14 +623,14 @@ static void test_unsigned64(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>56);
-    test_apdu[4] = (uint8_t) (test_value >>48);
-    test_apdu[5] = (uint8_t) (test_value >>40);
-    test_apdu[6] = (uint8_t) (test_value >>32);
-    test_apdu[7] = (uint8_t) (test_value >>24);
-    test_apdu[8] = (uint8_t) (test_value >>16);
-    test_apdu[9] = (uint8_t) (test_value >> 8);
-    test_apdu[10] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 56);
+    test_apdu[4] = (uint8_t)(test_value >> 48);
+    test_apdu[5] = (uint8_t)(test_value >> 40);
+    test_apdu[6] = (uint8_t)(test_value >> 32);
+    test_apdu[7] = (uint8_t)(test_value >> 24);
+    test_apdu[8] = (uint8_t)(test_value >> 16);
+    test_apdu[9] = (uint8_t)(test_value >> 8);
+    test_apdu[10] = (uint8_t)(test_value >> 0);
     zassert_equal(8, encode_unsigned64(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(8, decode_unsigned64(&apdu[3], &value), NULL);
@@ -659,35 +659,35 @@ static void test_unsigned_length(void)
     zassert_equal(2, bacnet_unsigned_length(0xFFUL << 8), NULL);
     zassert_equal(2, bacnet_unsigned_length(0xFFFFUL), NULL);
 
-    zassert_equal(3, bacnet_unsigned_length(1UL <<16), NULL);
-    zassert_equal(3, bacnet_unsigned_length(0x7DUL <<16), NULL);
-    zassert_equal(3, bacnet_unsigned_length(0xFFUL <<16), NULL);
+    zassert_equal(3, bacnet_unsigned_length(1UL << 16), NULL);
+    zassert_equal(3, bacnet_unsigned_length(0x7DUL << 16), NULL);
+    zassert_equal(3, bacnet_unsigned_length(0xFFUL << 16), NULL);
     zassert_equal(3, bacnet_unsigned_length(0xFFFFFFUL), NULL);
 
-    zassert_equal(4, bacnet_unsigned_length(1UL <<24), NULL);
-    zassert_equal(4, bacnet_unsigned_length(0x7DUL <<24), NULL);
-    zassert_equal(4, bacnet_unsigned_length(0xFFUL <<24), NULL);
+    zassert_equal(4, bacnet_unsigned_length(1UL << 24), NULL);
+    zassert_equal(4, bacnet_unsigned_length(0x7DUL << 24), NULL);
+    zassert_equal(4, bacnet_unsigned_length(0xFFUL << 24), NULL);
     zassert_equal(4, bacnet_unsigned_length(0xFFFFFFFFUL), NULL);
 
 #ifdef UINT64_MAX
-    zassert_equal(5, bacnet_unsigned_length(1ULL <<32), NULL);
-    zassert_equal(5, bacnet_unsigned_length(0x7DULL <<32), NULL);
-    zassert_equal(5, bacnet_unsigned_length(0xFFULL <<32), NULL);
+    zassert_equal(5, bacnet_unsigned_length(1ULL << 32), NULL);
+    zassert_equal(5, bacnet_unsigned_length(0x7DULL << 32), NULL);
+    zassert_equal(5, bacnet_unsigned_length(0xFFULL << 32), NULL);
     zassert_equal(5, bacnet_unsigned_length(0xFFFFFFFFFFULL), NULL);
 
-    zassert_equal(6, bacnet_unsigned_length(1ULL <<40), NULL);
-    zassert_equal(6, bacnet_unsigned_length(0x7DULL <<40), NULL);
-    zassert_equal(6, bacnet_unsigned_length(0xFFULL <<40), NULL);
+    zassert_equal(6, bacnet_unsigned_length(1ULL << 40), NULL);
+    zassert_equal(6, bacnet_unsigned_length(0x7DULL << 40), NULL);
+    zassert_equal(6, bacnet_unsigned_length(0xFFULL << 40), NULL);
     zassert_equal(6, bacnet_unsigned_length(0xFFFFFFFFFFFFULL), NULL);
 
-    zassert_equal(7, bacnet_unsigned_length(1ULL <<48), NULL);
-    zassert_equal(7, bacnet_unsigned_length(0x7DULL <<48), NULL);
-    zassert_equal(7, bacnet_unsigned_length(0xFFULL <<48), NULL);
+    zassert_equal(7, bacnet_unsigned_length(1ULL << 48), NULL);
+    zassert_equal(7, bacnet_unsigned_length(0x7DULL << 48), NULL);
+    zassert_equal(7, bacnet_unsigned_length(0xFFULL << 48), NULL);
     zassert_equal(7, bacnet_unsigned_length(0xFFFFFFFFFFFFFFULL), NULL);
 
-    zassert_equal(8, bacnet_unsigned_length(1ULL <<56), NULL);
-    zassert_equal(8, bacnet_unsigned_length(0x7DULL <<56), NULL);
-    zassert_equal(8, bacnet_unsigned_length(0xFFULL <<56), NULL);
+    zassert_equal(8, bacnet_unsigned_length(1ULL << 56), NULL);
+    zassert_equal(8, bacnet_unsigned_length(0x7DULL << 56), NULL);
+    zassert_equal(8, bacnet_unsigned_length(0xFFULL << 56), NULL);
     zassert_equal(8, bacnet_unsigned_length(0xFFFFFFFFFFFFFFFFULL), NULL);
 #endif
 }
@@ -731,7 +731,7 @@ static void test_signed8(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 0);
     zassert_equal(1, encode_signed8(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(1, decode_signed8(&apdu[2], &value), NULL);
@@ -739,7 +739,7 @@ static void test_signed8(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 0);
     zassert_equal(1, encode_signed8(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(1, decode_signed8(&apdu[2], &value), NULL);
@@ -748,7 +748,7 @@ static void test_signed8(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 0);
     zassert_equal(1, encode_signed8(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(1, decode_signed8(&apdu[3], &value), NULL);
@@ -756,7 +756,7 @@ static void test_signed8(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 0);
     zassert_equal(1, encode_signed8(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(1, decode_signed8(&apdu[3], &value), NULL);
@@ -809,8 +809,8 @@ static void test_signed16(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >> 8);
-    test_apdu[3] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 8);
+    test_apdu[3] = (uint8_t)(test_value >> 0);
     zassert_equal(2, encode_signed16(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(2, decode_signed16(&apdu[2], &value), NULL);
@@ -818,8 +818,8 @@ static void test_signed16(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >> 8);
-    test_apdu[3] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 8);
+    test_apdu[3] = (uint8_t)(test_value >> 0);
     zassert_equal(2, encode_signed16(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(2, decode_signed16(&apdu[2], &value), NULL);
@@ -828,8 +828,8 @@ static void test_signed16(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >> 8);
-    test_apdu[4] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 8);
+    test_apdu[4] = (uint8_t)(test_value >> 0);
     zassert_equal(2, encode_signed16(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(2, decode_signed16(&apdu[3], &value), NULL);
@@ -837,8 +837,8 @@ static void test_signed16(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >> 8);
-    test_apdu[4] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 8);
+    test_apdu[4] = (uint8_t)(test_value >> 0);
     zassert_equal(2, encode_signed16(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(2, decode_signed16(&apdu[3], &value), NULL);
@@ -887,9 +887,9 @@ static void test_signed24(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>16);
-    test_apdu[3] = (uint8_t) (test_value >> 8);
-    test_apdu[4] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 16);
+    test_apdu[3] = (uint8_t)(test_value >> 8);
+    test_apdu[4] = (uint8_t)(test_value >> 0);
     zassert_equal(3, encode_signed24(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(3, decode_signed24(&apdu[2], &value), NULL);
@@ -897,9 +897,9 @@ static void test_signed24(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>16);
-    test_apdu[3] = (uint8_t) (test_value >> 8);
-    test_apdu[4] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 16);
+    test_apdu[3] = (uint8_t)(test_value >> 8);
+    test_apdu[4] = (uint8_t)(test_value >> 0);
     zassert_equal(3, encode_signed24(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(3, decode_signed24(&apdu[2], &value), NULL);
@@ -908,9 +908,9 @@ static void test_signed24(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>16);
-    test_apdu[4] = (uint8_t) (test_value >> 8);
-    test_apdu[5] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 16);
+    test_apdu[4] = (uint8_t)(test_value >> 8);
+    test_apdu[5] = (uint8_t)(test_value >> 0);
     zassert_equal(3, encode_signed24(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(3, decode_signed24(&apdu[3], &value), NULL);
@@ -918,9 +918,9 @@ static void test_signed24(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>16);
-    test_apdu[4] = (uint8_t) (test_value >> 8);
-    test_apdu[5] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 16);
+    test_apdu[4] = (uint8_t)(test_value >> 8);
+    test_apdu[5] = (uint8_t)(test_value >> 0);
     zassert_equal(3, encode_signed24(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(3, decode_signed24(&apdu[3], &value), NULL);
@@ -969,10 +969,10 @@ static void test_signed32(void)
     /* Verify aligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>24);
-    test_apdu[3] = (uint8_t) (test_value >>16);
-    test_apdu[4] = (uint8_t) (test_value >> 8);
-    test_apdu[5] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 24);
+    test_apdu[3] = (uint8_t)(test_value >> 16);
+    test_apdu[4] = (uint8_t)(test_value >> 8);
+    test_apdu[5] = (uint8_t)(test_value >> 0);
     zassert_equal(4, encode_signed32(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(4, decode_signed32(&apdu[2], &value), NULL);
@@ -980,10 +980,10 @@ static void test_signed32(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[2] = (uint8_t) (test_value >>24);
-    test_apdu[3] = (uint8_t) (test_value >>16);
-    test_apdu[4] = (uint8_t) (test_value >> 8);
-    test_apdu[5] = (uint8_t) (test_value >> 0);
+    test_apdu[2] = (uint8_t)(test_value >> 24);
+    test_apdu[3] = (uint8_t)(test_value >> 16);
+    test_apdu[4] = (uint8_t)(test_value >> 8);
+    test_apdu[5] = (uint8_t)(test_value >> 0);
     zassert_equal(4, encode_signed32(&apdu[2], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(4, decode_signed32(&apdu[2], &value), NULL);
@@ -992,10 +992,10 @@ static void test_signed32(void)
     /* Verify unaligned access with no extra bytes written */
     memset(test_apdu, ~0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>24);
-    test_apdu[4] = (uint8_t) (test_value >>16);
-    test_apdu[5] = (uint8_t) (test_value >> 8);
-    test_apdu[6] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 24);
+    test_apdu[4] = (uint8_t)(test_value >> 16);
+    test_apdu[5] = (uint8_t)(test_value >> 8);
+    test_apdu[6] = (uint8_t)(test_value >> 0);
     zassert_equal(4, encode_signed32(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(4, decode_signed32(&apdu[3], &value), NULL);
@@ -1003,10 +1003,10 @@ static void test_signed32(void)
 
     memset(test_apdu, 0U, sizeof(test_apdu));
     memcpy(apdu, test_apdu, sizeof(test_apdu));
-    test_apdu[3] = (uint8_t) (test_value >>24);
-    test_apdu[4] = (uint8_t) (test_value >>16);
-    test_apdu[5] = (uint8_t) (test_value >> 8);
-    test_apdu[6] = (uint8_t) (test_value >> 0);
+    test_apdu[3] = (uint8_t)(test_value >> 24);
+    test_apdu[4] = (uint8_t)(test_value >> 16);
+    test_apdu[5] = (uint8_t)(test_value >> 8);
+    test_apdu[6] = (uint8_t)(test_value >> 0);
     zassert_equal(4, encode_signed32(&apdu[3], test_value), NULL);
     zassert_mem_equal(test_apdu, apdu, sizeof(test_apdu), NULL);
     zassert_equal(4, decode_signed32(&apdu[3], &value), NULL);
@@ -1051,27 +1051,19 @@ static void test_signed_length(void)
 #endif /* BACNET_USE_SIGNED */
 }
 
-
 #ifdef CONFIG_ZTEST_NEW_API
 ZTEST_SUITE(bacnet_bacint, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacnet_bacint,
-     ztest_unit_test(test_unsigned16),
-     ztest_unit_test(test_unsigned24),
-     ztest_unit_test(test_unsigned32),
-     ztest_unit_test(test_unsigned40),
-     ztest_unit_test(test_unsigned48),
-     ztest_unit_test(test_unsigned56),
-     ztest_unit_test(test_unsigned64),
-     ztest_unit_test(test_unsigned_length),
-     ztest_unit_test(test_signed8),
-     ztest_unit_test(test_signed16),
-     ztest_unit_test(test_signed24),
-     ztest_unit_test(test_signed32),
-     ztest_unit_test(test_signed_length)
-     );
+    ztest_test_suite(
+        bacnet_bacint, ztest_unit_test(test_unsigned16),
+        ztest_unit_test(test_unsigned24), ztest_unit_test(test_unsigned32),
+        ztest_unit_test(test_unsigned40), ztest_unit_test(test_unsigned48),
+        ztest_unit_test(test_unsigned56), ztest_unit_test(test_unsigned64),
+        ztest_unit_test(test_unsigned_length), ztest_unit_test(test_signed8),
+        ztest_unit_test(test_signed16), ztest_unit_test(test_signed24),
+        ztest_unit_test(test_signed32), ztest_unit_test(test_signed_length));
     ztest_run_test_suite(bacnet_bacint);
 }
 #endif

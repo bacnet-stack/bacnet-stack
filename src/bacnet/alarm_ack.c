@@ -54,7 +54,8 @@ int alarm_ack_encode_apdu(
  * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded
  */
-int alarm_ack_encode_service_request(uint8_t *apdu, const BACNET_ALARM_ACK_DATA *data)
+int alarm_ack_encode_service_request(
+    uint8_t *apdu, const BACNET_ALARM_ACK_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -67,7 +68,8 @@ int alarm_ack_encode_service_request(uint8_t *apdu, const BACNET_ALARM_ACK_DATA 
     if (apdu) {
         apdu += len;
     }
-    len = encode_context_object_id(apdu, 1, data->eventObjectIdentifier.type,
+    len = encode_context_object_id(
+        apdu, 1, data->eventObjectIdentifier.type,
         data->eventObjectIdentifier.instance);
     apdu_len += len;
     if (apdu) {
@@ -102,9 +104,7 @@ int alarm_ack_encode_service_request(uint8_t *apdu, const BACNET_ALARM_ACK_DATA 
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t bacnet_acknowledge_alarm_info_request_encode(
-    uint8_t *apdu,
-    size_t apdu_size,
-    const BACNET_ALARM_ACK_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_ALARM_ACK_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -116,7 +116,6 @@ size_t bacnet_acknowledge_alarm_info_request_encode(
     }
 
     return apdu_len;
-
 }
 
 /**

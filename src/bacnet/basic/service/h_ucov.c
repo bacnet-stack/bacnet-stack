@@ -106,7 +106,8 @@ void handler_ucov_notification(
         handler_ucov_notification_callback(&cov_data);
         PRINTF("UCOV: PID=%u ", cov_data.subscriberProcessIdentifier);
         PRINTF("instance=%u ", cov_data.initiatingDeviceIdentifier);
-        PRINTF("%s %u ",
+        PRINTF(
+            "%s %u ",
             bactext_object_type_name(cov_data.monitoredObjectIdentifier.type),
             cov_data.monitoredObjectIdentifier.instance);
         PRINTF("time remaining=%u seconds ", cov_data.timeRemaining);
@@ -115,7 +116,8 @@ void handler_ucov_notification(
         while (pProperty_value) {
             PRINTF("UCOV: ");
             if (pProperty_value->propertyIdentifier < 512) {
-                PRINTF("%s ",
+                PRINTF(
+                    "%s ",
                     bactext_property_name(pProperty_value->propertyIdentifier));
             } else {
                 PRINTF("proprietary %u ", pProperty_value->propertyIdentifier);

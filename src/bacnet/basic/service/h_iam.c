@@ -41,7 +41,8 @@ void handler_i_am_add(
 #endif
     if (len != -1) {
 #if PRINT_ENABLED
-        fprintf(stderr, " from %lu, MAC = %d.%d.%d.%d.%d.%d\n",
+        fprintf(
+            stderr, " from %lu, MAC = %d.%d.%d.%d.%d.%d\n",
             (unsigned long)device_id, src->mac[0], src->mac[1], src->mac[2],
             src->mac[3], src->mac[4], src->mac[5]);
 #endif

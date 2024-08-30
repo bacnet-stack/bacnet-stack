@@ -46,18 +46,20 @@ int bacnet_special_event_decode(
     if (tag.opening &&
         (tag.number == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY)) {
         value->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
-        len = bacnet_calendar_entry_context_decode(&apdu[apdu_len],
-            apdu_size - apdu_len, BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
+        len = bacnet_calendar_entry_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len,
+            BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
             &value->period.calendarEntry);
         if (len < 0) {
             return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
-    } else if (tag.context &&
+    } else if (
+        tag.context &&
         (tag.number == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE)) {
         value->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
-        len = bacnet_object_id_context_decode(&apdu[apdu_len],
-            apdu_size - apdu_len,
+        len = bacnet_object_id_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len,
             BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE,
             &value->period.calendarReference.type,
             &value->period.calendarReference.instance);
@@ -104,8 +106,8 @@ int bacnet_special_event_encode(
     int len;
 
     if (value->periodTag == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY) {
-        len = bacnet_calendar_entry_context_encode(apdu,
-            BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
+        len = bacnet_calendar_entry_context_encode(
+            apdu, BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
             &value->period.calendarEntry);
         if (len < 0) {
             return -1;
@@ -115,8 +117,8 @@ int bacnet_special_event_encode(
             apdu += len;
         }
     } else {
-        len = encode_context_object_id(apdu,
-            BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE,
+        len = encode_context_object_id(
+            apdu, BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE,
             value->period.calendarReference.type,
             value->period.calendarReference.instance);
         if (len < 0) {
@@ -185,7 +187,8 @@ int bacnet_special_event_context_encode(
  * @param value - BACnetSpecialEvent structure
  * @return length of the APDU buffer, or BACNET_STATUS_ERROR if unable to decode
  */
-int bacnet_special_event_context_decode(const uint8_t *apdu,
+int bacnet_special_event_context_decode(
+    const uint8_t *apdu,
     int apdu_size,
     uint8_t tag_number,
     BACNET_SPECIAL_EVENT *value)

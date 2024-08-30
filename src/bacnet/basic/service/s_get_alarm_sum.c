@@ -60,24 +60,27 @@ uint8_t Send_Get_Alarm_Summary_Address(BACNET_ADDRESS *dest, uint16_t max_apdu)
 
         pdu_len += len;
         if ((uint16_t)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t)pdu_len);
 #if PRINT_ENABLED
             bytes_sent =
 #endif
                 datalink_send_pdu(
                     dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-            if (bytes_sent <= 0)
-                fprintf(stderr,
-                    "Failed to Send Get Alarm Summary Request (%s)!\n",
+            if (bytes_sent <= 0) {
+                fprintf(
+                    stderr, "Failed to Send Get Alarm Summary Request (%s)!\n",
                     strerror(errno));
+            }
 #endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send Get Alarm Summary Request "
                 "(exceeds destination maximum APDU)!\n");
 #endif

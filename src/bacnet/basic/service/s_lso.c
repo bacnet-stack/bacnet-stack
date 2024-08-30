@@ -29,8 +29,8 @@
 
 /* returns the invoke ID for confirmed request, or zero on failure */
 
-uint8_t Send_Life_Safety_Operation_Data(
-    uint32_t device_id, const BACNET_LSO_DATA *data)
+uint8_t
+Send_Life_Safety_Operation_Data(uint32_t device_id, const BACNET_LSO_DATA *data)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -69,23 +69,27 @@ uint8_t Send_Life_Safety_Operation_Data(
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t)pdu_len);
 #if PRINT_ENABLED
             bytes_sent =
 #endif
                 datalink_send_pdu(
                     &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-            if (bytes_sent <= 0)
-                fprintf(stderr, "Failed to Send Life Safe Op Request (%s)!\n",
+            if (bytes_sent <= 0) {
+                fprintf(
+                    stderr, "Failed to Send Life Safe Op Request (%s)!\n",
                     strerror(errno));
+            }
 #endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send Life Safe Op Request "
                 "(exceeds destination maximum APDU)!\n");
 #endif

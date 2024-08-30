@@ -46,7 +46,8 @@ static bool End_Of_File_Detected = false;
 static bool Error_Detected = false;
 static uint8_t Current_Invoke_ID = 0;
 
-static void Atomic_Write_File_Error_Handler(BACNET_ADDRESS *src,
+static void Atomic_Write_File_Error_Handler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
@@ -66,18 +67,20 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Current_Invoke_ID)) {
-        printf("BACnet Abort: %s\r\n",
+        printf(
+            "BACnet Abort: %s\r\n",
             bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Current_Invoke_ID)) {
-        printf("BACnet Reject: %s\r\n",
+        printf(
+            "BACnet Reject: %s\r\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -148,8 +151,9 @@ int main(int argc, char *argv[])
 
     if (argc < 4) {
         /* FIXME: what about access method - record or stream? */
-        printf("%s device-instance file-instance local-name [octet count] [pad "
-               "value]\r\n",
+        printf(
+            "%s device-instance file-instance local-name [octet count] [pad "
+            "value]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -158,12 +162,14 @@ int main(int argc, char *argv[])
     Target_File_Object_Instance = strtol(argv[2], NULL, 0);
     Local_File_Name = argv[3];
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - not greater than %u\r\n",
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_File_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "file-instance=%u - not greater than %u\r\n",
+        fprintf(
+            stderr, "file-instance=%u - not greater than %u\r\n",
             Target_File_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -251,12 +257,14 @@ int main(int argc, char *argv[])
                 pFile = fopen(Local_File_Name, "rb");
                 if (pFile) {
                     (void)fseek(pFile, fileStartPosition, SEEK_SET);
-                    len = fread(octetstring_value(&fileData), 1,
-                        requestedOctetCount, pFile);
+                    len = fread(
+                        octetstring_value(&fileData), 1, requestedOctetCount,
+                        pFile);
                     if (len < requestedOctetCount) {
                         End_Of_File_Detected = true;
                         if (pad_byte) {
-                            memset(octetstring_value(&fileData) + len + 1,
+                            memset(
+                                octetstring_value(&fileData) + len + 1,
                                 (int)Target_File_Requested_Octet_Pad_Byte,
                                 requestedOctetCount - len);
                             len = requestedOctetCount;

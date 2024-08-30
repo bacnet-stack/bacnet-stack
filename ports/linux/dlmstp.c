@@ -267,16 +267,19 @@ static void *dlmstp_master_fsm_task(void *pArg)
             silence = MSTP_Port.SilenceTimer(&MSTP_Port);
             switch (MSTP_Port.master_state) {
                 case MSTP_MASTER_STATE_IDLE:
-                    if (silence >= Tno_token)
+                    if (silence >= Tno_token) {
                         run_master = true;
+                    }
                     break;
                 case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-                    if (silence >= Treply_timeout)
+                    if (silence >= Treply_timeout) {
                         run_master = true;
+                    }
                     break;
                 case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-                    if (silence >= Tusage_timeout)
+                    if (silence >= Tusage_timeout) {
                         run_master = true;
+                    }
                     break;
                 default:
                     run_master = true;
@@ -290,8 +293,9 @@ static void *dlmstp_master_fsm_task(void *pArg)
                     /* do nothing while immediate transitioning */
                     run_loop = MSTP_Master_Node_FSM(&MSTP_Port);
                     pthread_mutex_lock(&Thread_Mutex);
-                    if (!run_thread)
+                    if (!run_thread) {
                         run_loop = false;
+                    }
                     pthread_mutex_unlock(&Thread_Mutex);
                 }
             } else if (MSTP_Port.This_Station < 255) {
@@ -578,8 +582,9 @@ void dlmstp_set_mac_address(uint8_t mac_address)
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
         MSTP_Port.This_Station = mac_address;
-        if (mac_address > MSTP_Port.Nmax_master)
+        if (mac_address > MSTP_Port.Nmax_master) {
             dlmstp_set_max_master(mac_address);
+        }
     }
 
     return;

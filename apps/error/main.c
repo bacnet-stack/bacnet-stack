@@ -47,8 +47,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     (void)src;
     (void)invoke_id;
@@ -77,7 +77,8 @@ static void Init_Service_Handlers(void)
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s [error-class error-code service-number invoke-id]\n",
+    printf(
+        "Usage: %s [error-class error-code service-number invoke-id]\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
@@ -87,32 +88,34 @@ static void print_help(const char *filename)
 {
     printf("Send BACnet Error message to the network.\n");
     printf("--mac A\n"
-        "Optional destination BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional destination BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf("--dnet N\n"
+    printf(
+        "--dnet N\n"
         "Optional destination BACnet network number N for directed requests.\n"
         "Valid range is from 0 to 65535 where 0 is the local connection\n"
         "and 65535 is network broadcast.\n");
     printf("\n");
     printf("--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional BACnet mac address on the destination BACnet network.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf("error-class:\n"
-           "    number from 0 to 65535\n"
-           "error-code:\n"
-           "    number from 0 to 65535\n"
-           "service-number:\n"
-           "    number from 0 to 65535 for BACnet Services\n"
-           "invoke-id:\n"
-           "    number from 1 to 255\n"
-           "Example:\n"
-           "%s 3 2 1\n",
+    printf(
+        "error-class:\n"
+        "    number from 0 to 65535\n"
+        "error-code:\n"
+        "    number from 0 to 65535\n"
+        "service-number:\n"
+        "    number from 0 to 65535 for BACnet Services\n"
+        "invoke-id:\n"
+        "    number from 1 to 255\n"
+        "Example:\n"
+        "%s 3 2 1\n",
         filename);
 }
 
@@ -219,8 +222,9 @@ int main(int argc, char *argv[])
     dlenv_init();
     atexit(datalink_cleanup);
     /* send the request */
-    Send_Error_To_Network(&Handler_Transmit_Buffer[0], &dest, Target_Invoke_ID,
-        Target_Service, Target_Error_Class, Target_Error_Code);
+    Send_Error_To_Network(
+        &Handler_Transmit_Buffer[0], &dest, Target_Invoke_ID, Target_Service,
+        Target_Error_Class, Target_Error_Code);
 
     return 0;
 }

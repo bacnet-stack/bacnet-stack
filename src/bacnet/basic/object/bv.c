@@ -1588,8 +1588,9 @@ int Binary_Value_Event_Information(
              false) |
             (pObject->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
              false);
-    } else
+    } else {
         return -1; /* end of list  */
+    }
 
     if ((IsActiveEvent) || (IsNotAckedTransitions)) {
         /* Object Identifier */
@@ -1633,8 +1634,9 @@ int Binary_Value_Event_Information(
             pObject->Notification_Class, getevent_data->eventPriorities);
 
         return 1; /* active event */
-    } else
+    } else {
         return 0; /* no active event at this index */
+    }
 }
 
 int Binary_Value_Alarm_Ack(
@@ -1774,10 +1776,12 @@ int Binary_Value_Alarm_Summary(
                 &getalarm_data->acknowledgedTransitions, TRANSITION_TO_NORMAL,
                 pObject->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked);
             return 1; /* active alarm */
-        } else
+        } else {
             return 0; /* no active alarm at this index */
-    } else
+        }
+    } else {
         return -1; /* end of list  */
+    }
 }
 
 /**
@@ -1958,10 +1962,11 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
                 if ((PresentVal == pObject->Alarm_Value) &&
                     ((pObject->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ==
                      EVENT_ENABLE_TO_OFFNORMAL)) {
-                    if (!pObject->Remaining_Time_Delay)
+                    if (!pObject->Remaining_Time_Delay) {
                         pObject->Event_State = EVENT_STATE_OFFNORMAL;
-                    else
+                    } else {
                         pObject->Remaining_Time_Delay--;
+                    }
                     break;
                 }
 
@@ -1978,10 +1983,11 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
                 if ((PresentVal != pObject->Alarm_Value) &&
                     ((pObject->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
                      EVENT_ENABLE_TO_NORMAL)) {
-                    if (!pObject->Remaining_Time_Delay)
+                    if (!pObject->Remaining_Time_Delay) {
                         pObject->Event_State = EVENT_STATE_NORMAL;
-                    else
+                    } else {
                         pObject->Remaining_Time_Delay--;
+                    }
                     break;
                 }
 
@@ -2093,8 +2099,9 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
         /* filled before */
 
         /* From State */
-        if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION)
+        if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
             event_data.fromState = FromState;
+        }
 
         /* To State */
         event_data.toState = pObject->Event_State;

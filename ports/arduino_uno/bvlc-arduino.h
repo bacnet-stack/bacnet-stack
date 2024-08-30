@@ -16,10 +16,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
-uint16_t bvlc_for_non_bbmd(uint8_t * addr,
-    uint16_t * port,
-    uint8_t * npdu,
-    uint16_t received_bytes);
+uint16_t bvlc_for_non_bbmd(
+    uint8_t *addr, uint16_t *port, uint8_t *npdu, uint16_t received_bytes);
 
 BACNET_BVLC_FUNCTION bvlc_get_function_code(void);
 

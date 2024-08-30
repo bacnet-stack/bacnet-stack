@@ -118,7 +118,8 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
  * @param true if DST is enabled and active
  * @return true if local time was retrieved
  */
-bool datetime_local(BACNET_DATE *bdate,
+bool datetime_local(
+    BACNET_DATE *bdate,
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active)
@@ -152,15 +153,17 @@ bool datetime_local(BACNET_DATE *bdate,
          *   int    tm_yday  Day of year [0,365].
          *   int    tm_isdst Daylight Savings flag.
          */
-        datetime_set_date(bdate, (uint16_t)tblock->tm_year + 1900,
+        datetime_set_date(
+            bdate, (uint16_t)tblock->tm_year + 1900,
             (uint8_t)tblock->tm_mon + 1, (uint8_t)tblock->tm_mday);
 #if !defined(_MSC_VER)
-        datetime_set_time(btime, (uint8_t)tblock->tm_hour,
-            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec,
-            (uint8_t)(tv.tv_usec / 10000));
+        datetime_set_time(
+            btime, (uint8_t)tblock->tm_hour, (uint8_t)tblock->tm_min,
+            (uint8_t)tblock->tm_sec, (uint8_t)(tv.tv_usec / 10000));
 #else
-        datetime_set_time(btime, (uint8_t)tblock->tm_hour,
-            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec, 0);
+        datetime_set_time(
+            btime, (uint8_t)tblock->tm_hour, (uint8_t)tblock->tm_min,
+            (uint8_t)tblock->tm_sec, 0);
 #endif
         if (dst_active) {
             /* The value of tm_isdst is:

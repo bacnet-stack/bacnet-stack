@@ -33,12 +33,14 @@ int ccov_notify_decode_apdu(
         return -1;
     }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
         return -2;
+    }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_COV_NOTIFICATION)
+    if (apdu[3] != SERVICE_CONFIRMED_COV_NOTIFICATION) {
         return -3;
+    }
     offset = 4;
 
     /* optional limits - must be used as a pair */
@@ -56,13 +58,16 @@ int ucov_notify_decode_apdu(
     int len = 0;
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST) {
         return -2;
-    if (apdu[1] != SERVICE_UNCONFIRMED_COV_NOTIFICATION)
+    }
+    if (apdu[1] != SERVICE_UNCONFIRMED_COV_NOTIFICATION) {
         return -3;
+    }
     /* optional limits - must be used as a pair */
     offset = 2;
     if (apdu_len > offset) {
@@ -82,15 +87,18 @@ static int cov_subscribe_decode_apdu(
     int len = 0;
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
         return -2;
+    }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_SUBSCRIBE_COV)
+    if (apdu[3] != SERVICE_CONFIRMED_SUBSCRIBE_COV) {
         return -3;
+    }
     offset = 4;
 
     /* optional limits - must be used as a pair */
@@ -111,15 +119,18 @@ static int cov_subscribe_property_decode_apdu(
     int len = 0;
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
         return -2;
+    }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY)
+    if (apdu[3] != SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY) {
         return -3;
+    }
     offset = 4;
 
     /* optional limits - must be used as a pair */
@@ -132,8 +143,8 @@ static int cov_subscribe_property_decode_apdu(
 }
 
 /* dummy function stubs */
-static void testCOVNotifyData(
-    const BACNET_COV_DATA *data, BACNET_COV_DATA *test_data)
+static void
+testCOVNotifyData(const BACNET_COV_DATA *data, BACNET_COV_DATA *test_data)
 {
     const BACNET_PROPERTY_VALUE *value = NULL;
     BACNET_PROPERTY_VALUE *test_value = NULL;
@@ -295,8 +306,7 @@ static void testCOVSubscribePropertyData(
     }
 }
 
-static void
-testCOVSubscribeEncoding(
+static void testCOVSubscribeEncoding(
     uint8_t invoke_id, const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     uint8_t apdu[480] = { 0 };

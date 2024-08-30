@@ -122,7 +122,8 @@ static void ProcessPT(BACNET_PRIVATE_TRANSFER_DATA *data)
                 data->serviceParametersLen = 0;
                 return;
             }
-            iLen += decode_real(&data->serviceParameters[iLen],
+            iLen += decode_real(
+                &data->serviceParameters[iLen],
                 &MyData[(int8_t)cBlockNumber].fMyReal);
 
             tag_len = decode_tag_number_and_value(
@@ -135,7 +136,8 @@ static void ProcessPT(BACNET_PRIVATE_TRANSFER_DATA *data)
             decode_character_string(
                 &data->serviceParameters[iLen], len_value_type, &bsTemp);
             /* Only copy as much as we can accept */
-            strncpy((char *)MyData[(int8_t)cBlockNumber].sMyString,
+            strncpy(
+                (char *)MyData[(int8_t)cBlockNumber].sMyString,
                 characterstring_value(&bsTemp), MY_MAX_STR);
             /* Make sure it is nul terminated */
             MyData[(int8_t)cBlockNumber].sMyString[MY_MAX_STR] = '\0';
@@ -160,7 +162,8 @@ static void ProcessPT(BACNET_PRIVATE_TRANSFER_DATA *data)
  *
  */
 
-void handler_conf_private_trans(uint8_t *service_request,
+void handler_conf_private_trans(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -194,9 +197,9 @@ void handler_conf_private_trans(uint8_t *service_request,
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
 
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
         fprintf(stderr, "CPT: Segmented Message. Sending Abort!\n");
 #endif
@@ -206,8 +209,9 @@ void handler_conf_private_trans(uint8_t *service_request,
     len = ptransfer_decode_service_request(service_request, service_len, &data);
     /* bad decoding - send an abort */
     if (len < 0) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "CPT: Bad Encoding. Sending Abort!\n");
 #endif
@@ -247,8 +251,9 @@ void handler_conf_private_trans(uint8_t *service_request,
     }
 
     if (error) {
-        len = ptransfer_error_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, error_class, error_code, &data);
+        len = ptransfer_error_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            error_class, error_code, &data);
     }
 CPT_ABORT:
     pdu_len += len;

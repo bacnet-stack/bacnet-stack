@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h> /* for time */
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <locale.h>
 #endif
 /* BACnet Stack defines - first */
@@ -60,14 +60,16 @@ static bool Error_Detected = false;
 /* specific request data */
 static BACNET_READ_RANGE_DATA RR_Request;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\r\n",
+        printf(
+            "BACnet Error: %s: %s\r\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -86,12 +88,13 @@ static void MyAbortHandler(
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
+        printf(
+            "BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -123,7 +126,8 @@ static void Init_Service_Handlers(void)
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s device-instance object-type object-instance property\n",
+    printf(
+        "Usage: %s device-instance object-type object-instance property\n",
         filename);
     printf("       range-type <index|<date time>> count\n");
     printf("       [--version][--help]\n");
@@ -132,48 +136,48 @@ static void print_usage(const char *filename)
 static void print_help(const char *filename)
 {
     printf("Read a range of properties from an array or list property\n"
-        "in an object in a BACnet device and print the values.\n");
+           "in an object in a BACnet device and print the values.\n");
     printf("\n");
     printf("device-instance:\n"
-        "BACnet Device Object Instance number that you are\n"
-        "trying to communicate to.  This number will be used\n"
-        "to try and bind with the device using Who-Is and\n"
-        "I-Am services.  For example, if you were reading\n"
-        "Device Object 123, the device-instance would be 123.\n");
+           "BACnet Device Object Instance number that you are\n"
+           "trying to communicate to.  This number will be used\n"
+           "to try and bind with the device using Who-Is and\n"
+           "I-Am services.  For example, if you were reading\n"
+           "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("object-type:\n"
-        "The object type is the integer value of the enumeration\n"
-        "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
-        "that you are reading.  For example if you were\n"
-        "reading Trend Log 2, the object-type would be 20.\n");
+           "The object type is the integer value of the enumeration\n"
+           "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
+           "that you are reading.  For example if you were\n"
+           "reading Trend Log 2, the object-type would be 20.\n");
     printf("\n");
     printf("object-instance:\n"
-        "This is the object instance number of the object that\n"
-        "you are reading.  For example, if you were reading\n"
-        "Trend Log 2, the object-instance would be 2.\n");
+           "This is the object instance number of the object that\n"
+           "you are reading.  For example, if you were reading\n"
+           "Trend Log 2, the object-instance would be 2.\n");
     printf("\n");
     printf("property:\n"
-        "The property is an integer value of the enumeration\n"
-        "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
-        "you are reading.  For example, if you were reading the\n"
-        "Log_Buffer property, use 131 as the property.\n");
+           "The property is an integer value of the enumeration\n"
+           "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
+           "you are reading.  For example, if you were reading the\n"
+           "Log_Buffer property, use 131 as the property.\n");
     printf("\n");
     printf("range-type:\n"
-        "1=By Position\n"
-        "2=By Sequence\n"
-        "3=By Time\n"
-        "4=All\n");
+           "1=By Position\n"
+           "2=By Sequence\n"
+           "3=By Time\n"
+           "4=All\n");
     printf("\n");
     printf("index or date/time:\n"
-        "This integer parameter is the starting index, or date & time.\n");
+           "This integer parameter is the starting index, or date & time.\n");
     printf("\n");
     printf("count:\n"
-        "This integer parameter is the number of elements to read.\n");
+           "This integer parameter is the number of elements to read.\n");
     printf("\n");
     printf("Example:\n"
-        "If you want read the Log_Buffer of Trend Log 2\n"
-        "in Device 123, from starting position 1 and read 10 entries,\n"
-        "you could send the following commands:\n");
+           "If you want read the Log_Buffer of Trend Log 2\n"
+           "in Device 123, from starting position 1 and read 10 entries,\n"
+           "you could send the following commands:\n");
     printf("%s 123 trend-log 2 log-buffer 1 1 10\n", filename);
     printf("%s 123 trend-log 2 log-buffer 2 1 10\n", filename);
     printf("%s 123 trend-log 2 log-buffer 3 1/1/2014 00:00:01 10\n", filename);
@@ -238,7 +242,8 @@ int main(int argc, char *argv[])
     Target_Object_Range_Type = strtol(argv[5], NULL, 0);
     /* some bounds checking */
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - not greater than %u\r\n",
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -270,8 +275,9 @@ int main(int argc, char *argv[])
         RR_Request.RequestType = RR_BY_TIME;
         count = sscanf(argv[6], "%4d/%3d/%3d:%3d", &year, &month, &day, &wday);
         if (count == 3) {
-            datetime_set_date(&RR_Request.Range.RefTime.date, (uint16_t)year,
-                (uint8_t)month, (uint8_t)day);
+            datetime_set_date(
+                &RR_Request.Range.RefTime.date, (uint16_t)year, (uint8_t)month,
+                (uint8_t)day);
         } else if (count == 4) {
             RR_Request.Range.RefTime.date.year = (uint16_t)year;
             RR_Request.Range.RefTime.date.month = (uint8_t)month;
@@ -320,7 +326,7 @@ int main(int argc, char *argv[])
     address_init();
     Init_Service_Handlers();
     dlenv_init();
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
     /* Internationalized programs must call setlocale()
      * to initiate a specific language operation.
      * This can be done by calling setlocale() as follows.

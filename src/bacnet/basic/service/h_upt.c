@@ -39,9 +39,11 @@ void private_transfer_print_data(BACNET_PRIVATE_TRANSFER_DATA *private_data)
 
     if (private_data) {
 #if PRINT_ENABLED
-        printf("PrivateTransfer:vendorID=%u\r\n",
+        printf(
+            "PrivateTransfer:vendorID=%u\r\n",
             (unsigned)private_data->vendorID);
-        printf("PrivateTransfer:serviceNumber=%lu\r\n",
+        printf(
+            "PrivateTransfer:serviceNumber=%lu\r\n",
             (unsigned long)private_data->serviceNumber);
 #endif
         application_data = private_data->serviceParameters;

@@ -69,9 +69,7 @@ size_t list_element_service_request_encode(
     const BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
 int list_element_decode_service_request(
-    uint8_t *apdu,
-    unsigned apdu_len,
-    BACNET_LIST_ELEMENT_DATA *list_element);
+    uint8_t *apdu, unsigned apdu_len, BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
 int list_element_error_ack_encode(
     uint8_t *apdu, const BACNET_LIST_ELEMENT_DATA *list_element);

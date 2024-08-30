@@ -95,7 +95,8 @@ bool bacnet_address_same(const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
  * @param adr - #BACNET_MAC_ADDRESS behind the remote network
  * @return true if configured
  */
-bool bacnet_address_init(BACNET_ADDRESS *dest,
+bool bacnet_address_init(
+    BACNET_ADDRESS *dest,
     const BACNET_MAC_ADDRESS *mac,
     uint16_t dnet,
     const BACNET_MAC_ADDRESS *adr)
@@ -222,8 +223,9 @@ bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
         mac->len = 6;
         status = true;
     } else {
-        c = sscanf(arg, "%2x:%2x:%2x:%2x:%2x:%2x", &a[0], &a[1], &a[2], &a[3],
-            &a[4], &a[5]);
+        c = sscanf(
+            arg, "%2x:%2x:%2x:%2x:%2x:%2x", &a[0], &a[1], &a[2], &a[3], &a[4],
+            &a[5]);
 
         if (c > 0) {
             for (i = 0; i < c; i++) {
@@ -306,7 +308,8 @@ int bacnet_address_decode(
  * @param value - parameter to store the value after decoding
  * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
  */
-int bacnet_address_context_decode(const uint8_t *apdu,
+int bacnet_address_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_ADDRESS *value)

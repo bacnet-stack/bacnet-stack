@@ -24,11 +24,19 @@ static ACCESS_CREDENTIAL_DESCR ac_descr[MAX_ACCESS_CREDENTIALS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_GLOBAL_IDENTIFIER,
-    PROP_STATUS_FLAGS, PROP_RELIABILITY, PROP_CREDENTIAL_STATUS,
-    PROP_REASON_FOR_DISABLE, PROP_AUTHENTICATION_FACTORS, PROP_ACTIVATION_TIME,
-    PROP_EXPIRATION_TIME, PROP_CREDENTIAL_DISABLE, PROP_ASSIGNED_ACCESS_RIGHTS,
-    -1 };
+                                           PROP_OBJECT_NAME,
+                                           PROP_OBJECT_TYPE,
+                                           PROP_GLOBAL_IDENTIFIER,
+                                           PROP_STATUS_FLAGS,
+                                           PROP_RELIABILITY,
+                                           PROP_CREDENTIAL_STATUS,
+                                           PROP_REASON_FOR_DISABLE,
+                                           PROP_AUTHENTICATION_FACTORS,
+                                           PROP_ACTIVATION_TIME,
+                                           PROP_EXPIRATION_TIME,
+                                           PROP_CREDENTIAL_DISABLE,
+                                           PROP_ASSIGNED_ACCESS_RIGHTS,
+                                           -1 };
 
 static const int Properties_Optional[] = { -1 };
 
@@ -123,7 +131,8 @@ bool Access_Credential_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_ACCESS_CREDENTIALS) {
-        snprintf(text, sizeof(text), "ACCESS CREDENTIAL %lu",
+        snprintf(
+            text, sizeof(text), "ACCESS CREDENTIAL %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
@@ -250,8 +259,8 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_AUTHENTICATION_FACTORS:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
                 Access_Credential_Authentication_Factor_Array_Encode,
                 ac_descr[object_index].auth_factors_count, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
@@ -275,10 +284,11 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], ac_descr[object_index].credential_disable);
             break;
         case PROP_ASSIGNED_ACCESS_RIGHTS:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
                 Access_Credential_Assigned_Access_Rights_Array_Encode,
-                ac_descr[object_index].assigned_access_rights_count, apdu, apdu_size);
+                ac_descr[object_index].assigned_access_rights_count, apdu,
+                apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;

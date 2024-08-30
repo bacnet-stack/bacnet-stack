@@ -153,9 +153,8 @@ static void bip_mac_to_addr(ip4_addr_t *address, const uint8_t *mac)
  * @param address - IPv4 address from LwIP
  * @param port - IPv4 UDP port number
  */
-static int bip_decode_bip_address(const BACNET_IP_ADDRESS *baddr,
-    ip_addr_t *address,
-    uint16_t *port)
+static int bip_decode_bip_address(
+    const BACNET_IP_ADDRESS *baddr, ip_addr_t *address, uint16_t *port)
 {
     int len = 0;
 
@@ -190,9 +189,8 @@ static void bip_addr_to_mac(uint8_t *mac, const ip4_addr_t *address)
  * @param address - IPv4 address from LwIP
  * @param port - IPv4 UDP port number
  */
-static int bip_encode_bip_address(BACNET_IP_ADDRESS *baddr,
-    const ip_addr_t *address,
-    uint16_t port)
+static int bip_encode_bip_address(
+    BACNET_IP_ADDRESS *baddr, const ip_addr_t *address, uint16_t port)
 {
     int len = 0;
 
@@ -249,7 +247,8 @@ int bip_send_mpdu(
  *
  * @return number of bytes sent
  */
-int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+int bip_send_pdu(
+    BACNET_ADDRESS *dest, /* destination address */
     BACNET_NPDU_DATA *npdu_data, /* network information */
     uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len)
@@ -265,7 +264,8 @@ int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
  * @param addr [in] UDP source address
  * @param port [in] UDP port number
  */
-void bip_server_callback(void *arg,
+void bip_server_callback(
+    void *arg,
     struct udp_pcb *upcb,
     struct pbuf *pkt,
     const ip_addr_t *addr,
@@ -275,7 +275,7 @@ void bip_server_callback(void *arg,
     uint16_t npdu_offset = 0;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     BACNET_IP_ADDRESS saddr;
-    uint8_t *npdu = (uint8_t *) pkt->payload;
+    uint8_t *npdu = (uint8_t *)pkt->payload;
     uint16_t npdu_len = pkt->tot_len;
 
     bip_encode_bip_address(&saddr, addr, port);

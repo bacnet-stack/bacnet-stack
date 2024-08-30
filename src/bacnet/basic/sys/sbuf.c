@@ -10,7 +10,8 @@
 #include <stddef.h>
 #include "bacnet/basic/sys/sbuf.h"
 
-void sbuf_init(STATIC_BUFFER *b, /* static buffer structure */
+void sbuf_init(
+    STATIC_BUFFER *b, /* static buffer structure */
     char *data, /* data block */
     unsigned size)
 { /* actual size, in bytes, of the data block or array of data */
@@ -45,7 +46,8 @@ unsigned sbuf_count(STATIC_BUFFER const *b)
 }
 
 /* returns true if successful, false if not enough room to append data */
-bool sbuf_put(STATIC_BUFFER *b, /* static buffer structure */
+bool sbuf_put(
+    STATIC_BUFFER *b, /* static buffer structure */
     unsigned offset, /* where to start */
     const char *data, /* data to place in buffer */
     unsigned data_size)
@@ -69,7 +71,8 @@ bool sbuf_put(STATIC_BUFFER *b, /* static buffer structure */
 }
 
 /* returns true if successful, false if not enough room to append data */
-bool sbuf_append(STATIC_BUFFER *b, /* static buffer structure */
+bool sbuf_append(
+    STATIC_BUFFER *b, /* static buffer structure */
     const char *data, /* data to place in buffer */
     unsigned data_size)
 { /* how many bytes to add */
@@ -83,7 +86,8 @@ bool sbuf_append(STATIC_BUFFER *b, /* static buffer structure */
 }
 
 /* returns true if successful, false if not enough room to append data */
-bool sbuf_truncate(STATIC_BUFFER *b, /* static buffer structure */
+bool sbuf_truncate(
+    STATIC_BUFFER *b, /* static buffer structure */
     unsigned count)
 { /* total number of bytes in to remove */
     bool status = false; /* return value */

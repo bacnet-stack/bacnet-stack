@@ -48,7 +48,8 @@
  *                   bytes that have already been decoded.
  *  @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
-static void network_control_handler(BACNET_ADDRESS *src,
+static void network_control_handler(
+    BACNET_ADDRESS *src,
     int *DNET_list,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *npdu,
@@ -86,7 +87,8 @@ static void network_control_handler(BACNET_ADDRESS *src,
              * -- Unless we act upon NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK
              * later for congestion control - then it could matter.
              */
-            debug_printf("%s for Networks: ",
+            debug_printf(
+                "%s for Networks: ",
                 bactext_network_layer_msg_name(
                     NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK));
             while (npdu_len >= 2) {
@@ -106,7 +108,8 @@ static void network_control_handler(BACNET_ADDRESS *src,
         case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
             if (npdu_len >= 3) {
                 decode_unsigned16(&npdu[1], &dnet);
-                debug_printf("Received %s for Network: ",
+                debug_printf(
+                    "Received %s for Network: ",
                     bactext_network_layer_msg_name(
                         NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK));
                 debug_printf("%hu,  Reason code: %d \n", dnet, npdu[0]);
@@ -175,7 +178,8 @@ static void network_control_handler(BACNET_ADDRESS *src,
  * @param apdu [in] The apdu portion of the request, to be processed.
  * @param apdu_len [in] The total (remaining) length of the apdu.
  */
-static void routed_apdu_handler(BACNET_ADDRESS *src,
+static void routed_apdu_handler(
+    BACNET_ADDRESS *src,
     BACNET_ADDRESS *dest,
     int *DNET_list,
     uint8_t *apdu,
@@ -269,8 +273,9 @@ void routing_npdu_handler(
             debug_printf("NPDU: Decoding failed; Discarded!\n");
         } else if (npdu_data.network_layer_message) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
-                network_control_handler(src, DNET_list, &npdu_data,
-                    &pdu[apdu_offset], (uint16_t)(pdu_len - apdu_offset));
+                network_control_handler(
+                    src, DNET_list, &npdu_data, &pdu[apdu_offset],
+                    (uint16_t)(pdu_len - apdu_offset));
             } else {
                 debug_printf("NPDU: message for our router? Discarded!\n");
                 /* The DNET is set, but we don't support downstream routers,
@@ -279,7 +284,8 @@ void routing_npdu_handler(
             }
         } else if (apdu_offset <= pdu_len) {
             if ((dest.net == 0) || (npdu_data.hop_count > 1)) {
-                routed_apdu_handler(src, &dest, DNET_list, &pdu[apdu_offset],
+                routed_apdu_handler(
+                    src, &dest, DNET_list, &pdu[apdu_offset],
                     (uint16_t)(pdu_len - apdu_offset));
             }
             /* Else, hop_count bottomed out and we discard this one. */

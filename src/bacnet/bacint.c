@@ -26,7 +26,7 @@ int encode_unsigned16(uint8_t *apdu, uint16_t value)
 int decode_unsigned16(const uint8_t *apdu, uint16_t *value)
 {
     if (apdu && value) {
-        *value  = (uint16_t)apdu[0] << 8;
+        *value = (uint16_t)apdu[0] << 8;
         *value |= (uint16_t)apdu[1];
     }
 
@@ -37,8 +37,8 @@ int encode_unsigned24(uint8_t *apdu, uint32_t value)
 {
     if (apdu) {
         apdu[0] = (uint8_t)((value >> 16) & 0xFF);
-        apdu[1] = (uint8_t)((value >> 8)  & 0xFF);
-        apdu[2] = (uint8_t)((value >> 0)  & 0xFF);
+        apdu[1] = (uint8_t)((value >> 8) & 0xFF);
+        apdu[2] = (uint8_t)((value >> 0) & 0xFF);
     }
 
     return 3;
@@ -47,7 +47,7 @@ int encode_unsigned24(uint8_t *apdu, uint32_t value)
 int decode_unsigned24(const uint8_t *apdu, uint32_t *value)
 {
     if (apdu && value) {
-        *value  = (uint32_t)apdu[0] << 16;
+        *value = (uint32_t)apdu[0] << 16;
         *value |= (uint32_t)apdu[1] << 8;
         *value |= (uint32_t)apdu[2];
     }
@@ -60,8 +60,8 @@ int encode_unsigned32(uint8_t *apdu, uint32_t value)
     if (apdu) {
         apdu[0] = (uint8_t)((value >> 24) & 0xFF);
         apdu[1] = (uint8_t)((value >> 16) & 0xFF);
-        apdu[2] = (uint8_t)((value >> 8)  & 0xFF);
-        apdu[3] = (uint8_t)((value >> 0)  & 0xFF);
+        apdu[2] = (uint8_t)((value >> 8) & 0xFF);
+        apdu[3] = (uint8_t)((value >> 0) & 0xFF);
     }
 
     return 4;
@@ -70,7 +70,7 @@ int encode_unsigned32(uint8_t *apdu, uint32_t value)
 int decode_unsigned32(const uint8_t *apdu, uint32_t *value)
 {
     if (apdu && value) {
-        *value  = (uint32_t)apdu[0] << 24;
+        *value = (uint32_t)apdu[0] << 24;
         *value |= (uint32_t)apdu[1] << 16;
         *value |= (uint32_t)apdu[2] << 8;
         *value |= (uint32_t)apdu[3];
@@ -92,8 +92,8 @@ int encode_unsigned40(uint8_t *buffer, uint64_t value)
         buffer[0] = (uint8_t)((value >> 32) & 0xFF);
         buffer[1] = (uint8_t)((value >> 24) & 0xFF);
         buffer[2] = (uint8_t)((value >> 16) & 0xFF);
-        buffer[3] = (uint8_t)((value >> 8)  & 0xFF);
-        buffer[4] = (uint8_t)((value >> 0)  & 0xFF);
+        buffer[3] = (uint8_t)((value >> 8) & 0xFF);
+        buffer[4] = (uint8_t)((value >> 0) & 0xFF);
     }
 
     return 5;
@@ -108,7 +108,7 @@ int encode_unsigned40(uint8_t *buffer, uint64_t value)
 int decode_unsigned40(const uint8_t *buffer, uint64_t *value)
 {
     if (buffer && value) {
-        *value  = (uint64_t)buffer[0] << 32;
+        *value = (uint64_t)buffer[0] << 32;
         *value |= (uint64_t)buffer[1] << 24;
         *value |= (uint64_t)buffer[2] << 16;
         *value |= (uint64_t)buffer[3] << 8;
@@ -131,8 +131,8 @@ int encode_unsigned48(uint8_t *buffer, uint64_t value)
         buffer[1] = (uint8_t)((value >> 32) & 0xFF);
         buffer[2] = (uint8_t)((value >> 24) & 0xFF);
         buffer[3] = (uint8_t)((value >> 16) & 0xFF);
-        buffer[4] = (uint8_t)((value >> 8)  & 0xFF);
-        buffer[5] = (uint8_t)((value >> 0)  & 0xFF);
+        buffer[4] = (uint8_t)((value >> 8) & 0xFF);
+        buffer[5] = (uint8_t)((value >> 0) & 0xFF);
     }
 
     return 6;
@@ -147,7 +147,7 @@ int encode_unsigned48(uint8_t *buffer, uint64_t value)
 int decode_unsigned48(const uint8_t *buffer, uint64_t *value)
 {
     if (buffer && value) {
-        *value  = (uint64_t)buffer[0] << 40;
+        *value = (uint64_t)buffer[0] << 40;
         *value |= (uint64_t)buffer[1] << 32;
         *value |= (uint64_t)buffer[2] << 24;
         *value |= (uint64_t)buffer[3] << 16;
@@ -172,8 +172,8 @@ int encode_unsigned56(uint8_t *buffer, uint64_t value)
         buffer[2] = (uint8_t)((value >> 32) & 0xFF);
         buffer[3] = (uint8_t)((value >> 24) & 0xFF);
         buffer[4] = (uint8_t)((value >> 16) & 0xFF);
-        buffer[5] = (uint8_t)((value >> 8)  & 0xFF);
-        buffer[6] = (uint8_t)((value >> 0)  & 0xFF);
+        buffer[5] = (uint8_t)((value >> 8) & 0xFF);
+        buffer[6] = (uint8_t)((value >> 0) & 0xFF);
     }
 
     return 7;
@@ -188,7 +188,7 @@ int encode_unsigned56(uint8_t *buffer, uint64_t value)
 int decode_unsigned56(const uint8_t *buffer, uint64_t *value)
 {
     if (buffer && value) {
-        *value  = (uint64_t)buffer[0] << 48;
+        *value = (uint64_t)buffer[0] << 48;
         *value |= (uint64_t)buffer[1] << 40;
         *value |= (uint64_t)buffer[2] << 32;
         *value |= (uint64_t)buffer[3] << 24;
@@ -215,8 +215,8 @@ int encode_unsigned64(uint8_t *buffer, uint64_t value)
         buffer[3] = (uint8_t)((value >> 32) & 0xFF);
         buffer[4] = (uint8_t)((value >> 24) & 0xFF);
         buffer[5] = (uint8_t)((value >> 16) & 0xFF);
-        buffer[6] = (uint8_t)((value >> 8)  & 0xFF);
-        buffer[7] = (uint8_t)((value >> 0)  & 0xFF);
+        buffer[6] = (uint8_t)((value >> 8) & 0xFF);
+        buffer[7] = (uint8_t)((value >> 0) & 0xFF);
     }
 
     return 8;
@@ -231,7 +231,7 @@ int encode_unsigned64(uint8_t *buffer, uint64_t value)
 int decode_unsigned64(const uint8_t *buffer, uint64_t *value)
 {
     if (buffer && value) {
-        *value  = (uint64_t)buffer[0] << 56;
+        *value = (uint64_t)buffer[0] << 56;
         *value |= (uint64_t)buffer[1] << 48;
         *value |= (uint64_t)buffer[2] << 40;
         *value |= (uint64_t)buffer[3] << 32;
@@ -339,8 +339,8 @@ int encode_signed24(uint8_t *apdu, int32_t value)
 {
     if (apdu) {
         apdu[0] = (uint8_t)((value >> 16) & 0xFF);
-        apdu[1] = (uint8_t)((value >> 8)  & 0xFF);
-        apdu[2] = (uint8_t)((value >> 0)  & 0xFF);
+        apdu[1] = (uint8_t)((value >> 8) & 0xFF);
+        apdu[2] = (uint8_t)((value >> 0) & 0xFF);
     }
 
     return 3;
@@ -368,8 +368,8 @@ int encode_signed32(uint8_t *apdu, int32_t value)
     if (apdu) {
         apdu[0] = (uint8_t)((value >> 24) & 0xFF);
         apdu[1] = (uint8_t)((value >> 16) & 0xFF);
-        apdu[2] = (uint8_t)((value >> 8)  & 0xFF);
-        apdu[3] = (uint8_t)((value >> 0)  & 0xFF);
+        apdu[2] = (uint8_t)((value >> 8) & 0xFF);
+        apdu[3] = (uint8_t)((value >> 0) & 0xFF);
     }
 
     return 4;
@@ -378,7 +378,7 @@ int encode_signed32(uint8_t *apdu, int32_t value)
 int decode_signed32(const uint8_t *apdu, int32_t *value)
 {
     if (apdu && value) {
-        *value  = (int32_t)apdu[0] << 24;
+        *value = (int32_t)apdu[0] << 24;
         *value |= (int32_t)apdu[1] << 16;
         *value |= (int32_t)apdu[2] << 8;
         *value |= (int32_t)apdu[3];

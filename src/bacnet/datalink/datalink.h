@@ -64,8 +64,7 @@
 extern "C" {
 #endif
 BACNET_STACK_EXPORT
-void routed_get_my_address(
-    BACNET_ADDRESS * my_address);
+void routed_get_my_address(BACNET_ADDRESS *my_address);
 #ifdef __cplusplus
 }
 #endif
@@ -93,51 +92,43 @@ void routed_get_my_address(
 #include "bacnet/npdu.h"
 
 #define MAX_HEADER (8)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define MAX_MPDU (MAX_HEADER + MAX_PDU)
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    bool datalink_init(char *ifname);
+BACNET_STACK_EXPORT
+bool datalink_init(char *ifname);
 
-    BACNET_STACK_EXPORT
-    int datalink_send_pdu(
-        BACNET_ADDRESS * dest,
-        BACNET_NPDU_DATA * npdu_data,
-        uint8_t * pdu,
-        unsigned pdu_len);
+BACNET_STACK_EXPORT
+int datalink_send_pdu(
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len);
 
-    BACNET_STACK_EXPORT
-    uint16_t datalink_receive(
-        BACNET_ADDRESS * src,
-        uint8_t * pdu,
-        uint16_t max_pdu,
-        unsigned timeout);
+BACNET_STACK_EXPORT
+uint16_t datalink_receive(
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout);
 
-    BACNET_STACK_EXPORT
-    void datalink_cleanup(
-        void);
+BACNET_STACK_EXPORT
+void datalink_cleanup(void);
 
-    BACNET_STACK_EXPORT
-    void datalink_get_broadcast_address(
-        BACNET_ADDRESS * dest);
+BACNET_STACK_EXPORT
+void datalink_get_broadcast_address(BACNET_ADDRESS *dest);
 
-    BACNET_STACK_EXPORT
-    void datalink_get_my_address(
-        BACNET_ADDRESS * my_address);
+BACNET_STACK_EXPORT
+void datalink_get_my_address(BACNET_ADDRESS *my_address);
 
-    BACNET_STACK_EXPORT
-    void datalink_set_interface(
-        char *ifname);
+BACNET_STACK_EXPORT
+void datalink_set_interface(char *ifname);
 
-    BACNET_STACK_EXPORT
-    void datalink_set(
-        char *datalink_string);
+BACNET_STACK_EXPORT
+void datalink_set(char *datalink_string);
 
-    BACNET_STACK_EXPORT
-    void datalink_maintenance_timer(uint16_t seconds);
+BACNET_STACK_EXPORT
+void datalink_maintenance_timer(uint16_t seconds);
 
 #ifdef __cplusplus
 }

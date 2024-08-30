@@ -21,10 +21,10 @@ extern "C" {
 BACNET_STACK_EXPORT
 void bacnet_address_copy(BACNET_ADDRESS *dest, const BACNET_ADDRESS *src);
 BACNET_STACK_EXPORT
-bool bacnet_address_same(
-    const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src);
+bool bacnet_address_same(const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src);
 BACNET_STACK_EXPORT
-bool bacnet_address_init(BACNET_ADDRESS *dest,
+bool bacnet_address_init(
+    BACNET_ADDRESS *dest,
     const BACNET_MAC_ADDRESS *mac,
     uint16_t dnet,
     const BACNET_MAC_ADDRESS *adr);
@@ -42,7 +42,8 @@ BACNET_STACK_EXPORT
 int bacnet_address_decode(
     const uint8_t *apdu, uint32_t adpu_size, BACNET_ADDRESS *value);
 BACNET_STACK_EXPORT
-int bacnet_address_context_decode(const uint8_t *apdu,
+int bacnet_address_context_decode(
+    const uint8_t *apdu,
     uint32_t adpu_size,
     uint8_t tag_number,
     BACNET_ADDRESS *value);

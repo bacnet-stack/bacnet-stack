@@ -28,7 +28,8 @@
 /** @file s_readrange.c  Send a ReadRange request. */
 
 /* returns invoke id of 0 if device is not bound or no tsm available */
-uint8_t Send_ReadRange_Request(uint32_t device_id, /* destination device */
+uint8_t Send_ReadRange_Request(
+    uint32_t device_id, /* destination device */
     const BACNET_READ_RANGE_DATA *read_access_data)
 {
     BACNET_ADDRESS dest;
@@ -75,23 +76,27 @@ uint8_t Send_ReadRange_Request(uint32_t device_id, /* destination device */
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t)pdu_len);
 #if PRINT_ENABLED
             bytes_sent =
 #endif
                 datalink_send_pdu(
                     &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-            if (bytes_sent <= 0)
-                fprintf(stderr, "Failed to Send ReadRange Request (%s)!\n",
+            if (bytes_sent <= 0) {
+                fprintf(
+                    stderr, "Failed to Send ReadRange Request (%s)!\n",
                     strerror(errno));
+            }
 #endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send ReadRange Request (exceeds destination "
                 "maximum APDU)!\n");
 #endif

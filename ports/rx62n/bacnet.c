@@ -49,7 +49,8 @@ void bacnet_init(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* start the cyclic 1 second timer for DCC */
     mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
@@ -57,14 +58,17 @@ void bacnet_init(void)
     Send_I_Am(&Handler_Transmit_Buffer[0]);
 }
 
-/** Static receive buffer, initialized with zeros by the C Library Startup Code. */
+/** Static receive buffer, initialized with zeros by the C Library Startup Code.
+ */
 
-static uint8_t PDUBuffer[MAX_MPDU + 16 /* Add a little safety margin to the buffer,
-                                        * so that in the rare case, the message
-                                        * would be filled up to MAX_MPDU and some
-                                        * decoding functions would overrun, these
-                                        * decoding functions will just end up in
-                                        * a safe field of static zeros. */];
+static uint8_t PDUBuffer
+    [MAX_MPDU + 16 /* Add a little safety margin to the buffer,
+                    * so that in the rare case, the message
+                    * would be filled up to MAX_MPDU and some
+                    * decoding functions would overrun, these
+                    * decoding functions will just end up in
+                    * a safe field of static zeros. */
+];
 
 void bacnet_task(void)
 {

@@ -56,11 +56,11 @@ static bool Error_Detected = false;
 /* Used for verbose */
 static bool Verbose = false;
 
-static void MyPrintHandler(
-    BACNET_ERROR_CLASS error_class,
-    BACNET_ERROR_CODE error_code)
+static void
+MyPrintHandler(BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code)
 {
-    printf("[{\n  \"%s\": {\n"
+    printf(
+        "[{\n  \"%s\": {\n"
         "    \"object-type\": \"%s\",\n    \"object-instance\": %lu,\n"
         "    \"error-class\": \"%s\",\n    \"error-code\": \"%s\"\n  }\n}]\n",
         bactext_confirmed_service_name(SERVICE_CONFIRMED_DELETE_OBJECT),
@@ -70,7 +70,8 @@ static void MyPrintHandler(
         bactext_error_code_name((int)error_code));
 }
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
@@ -82,8 +83,7 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     }
 }
 
-static void MySimpleAckHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id)
+static void MySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
@@ -97,19 +97,19 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        MyPrintHandler(ERROR_CLASS_SERVICES,
-            abort_convert_to_error_code(abort_reason));
+        MyPrintHandler(
+            ERROR_CLASS_SERVICES, abort_convert_to_error_code(abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        MyPrintHandler(ERROR_CLASS_SERVICES,
-            reject_convert_to_error_code(reject_reason));
+        MyPrintHandler(
+            ERROR_CLASS_SERVICES, reject_convert_to_error_code(reject_reason));
         Error_Detected = true;
     }
 }
@@ -138,8 +138,7 @@ static void Init_Service_Handlers(void)
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s device-instance object-type object-instance\n",
-        filename);
+    printf("Usage: %s device-instance object-type object-instance\n", filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help][--verbose]\n");
 }
@@ -168,10 +167,11 @@ static void print_help(const char *filename)
            "you are deleting.  For example, if you were deleting\n"
            "Analog Output 2, the object-instance would be 2.\n");
     printf("\n");
-    printf("Example:\n"
-           "If you want to DeleteObject an Analog Input 1\n"
-           "send the following command:\n"
-           "%s 123 0 1\n",
+    printf(
+        "Example:\n"
+        "If you want to DeleteObject an Analog Input 1\n"
+        "send the following command:\n"
+        "%s 123 0 1\n",
         filename);
 }
 
@@ -236,8 +236,8 @@ int main(int argc, char *argv[])
             if (target_args == 0) {
                 object_instance = strtoul(argv[argi], NULL, 0);
                 if (object_instance > BACNET_MAX_INSTANCE) {
-                    fprintf(stderr,
-                        "device-instance=%u - not greater than %u\n",
+                    fprintf(
+                        stderr, "device-instance=%u - not greater than %u\n",
                         object_instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -254,8 +254,8 @@ int main(int argc, char *argv[])
             } else if (target_args == 2) {
                 object_instance = strtoul(argv[argi], NULL, 0);
                 if (object_instance > BACNET_MAX_INSTANCE) {
-                    fprintf(stderr,
-                        "object-instance=%u - not greater than %u\n",
+                    fprintf(
+                        stderr, "object-instance=%u - not greater than %u\n",
                         Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -289,7 +289,8 @@ int main(int argc, char *argv[])
         Target_Device_Object_Instance, &max_apdu, &Target_Address);
     if (found) {
         if (Verbose) {
-            printf("Found Device %u in address_cache.\n",
+            printf(
+                "Found Device %u in address_cache.\n",
                 Target_Device_Object_Instance);
         }
     } else {
@@ -302,7 +303,8 @@ int main(int argc, char *argv[])
             /* device is bound! */
             if (Request_Invoke_ID == 0) {
                 if (Verbose) {
-                    printf("Sending DeleteObject to Device %u.\n",
+                    printf(
+                        "Sending DeleteObject to Device %u.\n",
                         Target_Device_Object_Instance);
                 }
                 Request_Invoke_ID = Send_Delete_Object_Request(
@@ -311,8 +313,8 @@ int main(int argc, char *argv[])
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                MyPrintHandler(ERROR_CLASS_COMMUNICATION,
-                    ERROR_CODE_ABORT_TSM_TIMEOUT);
+                MyPrintHandler(
+                    ERROR_CLASS_COMMUNICATION, ERROR_CODE_ABORT_TSM_TIMEOUT);
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
                 /* abort */
@@ -332,10 +334,11 @@ int main(int argc, char *argv[])
             mstimer_reset(&maintenance_timer);
             tsm_timer_milliseconds(mstimer_interval(&maintenance_timer));
             datalink_maintenance_timer(
-                mstimer_interval(&maintenance_timer)/1000L);
+                mstimer_interval(&maintenance_timer) / 1000L);
         }
         if (mstimer_expired(&apdu_timer)) {
-            MyPrintHandler(ERROR_CLASS_COMMUNICATION,
+            MyPrintHandler(
+                ERROR_CLASS_COMMUNICATION,
                 ERROR_CODE_ABORT_APPLICATION_EXCEEDED_REPLY_TIME);
             Error_Detected = true;
         }

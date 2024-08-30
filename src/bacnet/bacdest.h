@@ -82,8 +82,7 @@ void bacnet_destination_copy(
     BACNET_DESTINATION *dest, const BACNET_DESTINATION *src);
 
 BACNET_STACK_EXPORT
-void bacnet_recipient_copy(
-    BACNET_RECIPIENT *dest, const BACNET_RECIPIENT *src);
+void bacnet_recipient_copy(BACNET_RECIPIENT *dest, const BACNET_RECIPIENT *src);
 BACNET_STACK_EXPORT
 bool bacnet_recipient_same(
     const BACNET_RECIPIENT *r1, const BACNET_RECIPIENT *r2);

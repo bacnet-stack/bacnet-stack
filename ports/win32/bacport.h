@@ -1,10 +1,10 @@
 /**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* SPDX-License-Identifier: MIT
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ *********************************************************************/
 
 #ifndef BACPORT_H
 #define BACPORT_H
@@ -15,10 +15,10 @@
 #define STRICT 1
 /* Windows XP minimum */
 #if (_WIN32_WINNT < _WIN32_WINNT_WINXP)
-  #undef _WIN32_WINNT
-  #define _WIN32_WINNT _WIN32_WINNT_WINXP
-  #undef NTDDI_VERSION
-  #define NTDDI_VERSION NTDDI_WINXP
+#undef _WIN32_WINNT
+#define _WIN32_WINNT _WIN32_WINNT_WINXP
+#undef NTDDI_VERSION
+#define NTDDI_VERSION NTDDI_WINXP
 #endif
 
 #include <windows.h>
@@ -38,10 +38,10 @@
 #ifdef __MINGW32__
 #include <ws2spi.h>
 #else
-#pragma warning( push )
-#pragma warning(disable: 4101 4191)
+#pragma warning(push)
+#pragma warning(disable : 4101 4191)
 #include <wspiapi.h>
-#pragma warning( pop )
+#pragma warning(pop)
 /* add winmm.lib to our build */
 #pragma comment(lib, "winmm.lib")
 #endif
@@ -60,14 +60,12 @@
 #endif
 
 BACNET_STACK_EXPORT
-extern int bip_get_local_netmask(
-    struct in_addr *netmask);
+extern int bip_get_local_netmask(struct in_addr *netmask);
 
-#define BACNET_OBJECT_TABLE(table_name, _type, _init, _count,               \
-                            _index_to_instance, _valid_instance, _object_name, \
-                            _read_property, _write_property, _RPM_list,     \
-                            _RR_info, _iterator, _value_list, _COV,         \
-                            _COV_clear, _intrinsic_reporting)               \
+#define BACNET_OBJECT_TABLE(                                               \
+    table_name, _type, _init, _count, _index_to_instance, _valid_instance, \
+    _object_name, _read_property, _write_property, _RPM_list, _RR_info,    \
+    _iterator, _value_list, _COV, _COV_clear, _intrinsic_reporting)        \
     static_assert(false, "Unsupported BACNET_OBJECT_TABLE for this platform")
 
 #endif

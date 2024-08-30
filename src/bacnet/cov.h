@@ -72,13 +72,15 @@ int ucov_notify_send(
     uint8_t *apdu, unsigned max_apdu_len, BACNET_COV_DATA *data);
 
 BACNET_STACK_EXPORT
-int ccov_notify_encode_apdu(uint8_t *apdu,
+int ccov_notify_encode_apdu(
+    uint8_t *apdu,
     unsigned max_apdu_len,
     uint8_t invoke_id,
     const BACNET_COV_DATA *data);
 
 BACNET_STACK_EXPORT
-int ccov_notify_decode_apdu(const uint8_t *apdu,
+int ccov_notify_decode_apdu(
+    const uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     BACNET_COV_DATA *data);
@@ -101,85 +103,86 @@ size_t cov_subscribe_property_service_request_encode(
     uint8_t *apdu, size_t apdu_size, const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
-int cov_subscribe_property_encode_apdu(uint8_t *apdu,
+int cov_subscribe_property_encode_apdu(
+    uint8_t *apdu,
     unsigned max_apdu_len,
     uint8_t invoke_id,
     const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 int cov_subscribe_decode_service_request(
-    const uint8_t *apdu,
-    unsigned apdu_len,
-    BACNET_SUBSCRIBE_COV_DATA *data);
+    const uint8_t *apdu, unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
-int cov_subscribe_apdu_encode(uint8_t *apdu,
-    const BACNET_SUBSCRIBE_COV_DATA *data);
+int cov_subscribe_apdu_encode(
+    uint8_t *apdu, const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 size_t cov_subscribe_service_request_encode(
-    uint8_t *apdu,
-    size_t apdu_size,
-    const BACNET_SUBSCRIBE_COV_DATA *data);
+    uint8_t *apdu, size_t apdu_size, const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
-int cov_subscribe_encode_apdu(uint8_t *apdu,
+int cov_subscribe_encode_apdu(
+    uint8_t *apdu,
     unsigned max_apdu_len,
     uint8_t invoke_id,
     const BACNET_SUBSCRIBE_COV_DATA *data);
 
 BACNET_STACK_EXPORT
 void cov_property_value_list_link(
-    BACNET_PROPERTY_VALUE *value_list,
-    size_t count);
+    BACNET_PROPERTY_VALUE *value_list, size_t count);
 BACNET_STACK_EXPORT
 void cov_data_value_list_link(
-    BACNET_COV_DATA *data,
-    BACNET_PROPERTY_VALUE *value_list,
-    size_t count);
+    BACNET_COV_DATA *data, BACNET_PROPERTY_VALUE *value_list, size_t count);
 
 BACNET_STACK_EXPORT
-bool cov_value_list_encode_real(BACNET_PROPERTY_VALUE *value_list,
+bool cov_value_list_encode_real(
+    BACNET_PROPERTY_VALUE *value_list,
     float value,
     bool in_alarm,
     bool fault,
     bool overridden,
     bool out_of_service);
 BACNET_STACK_EXPORT
-bool cov_value_list_encode_enumerated(BACNET_PROPERTY_VALUE *value_list,
+bool cov_value_list_encode_enumerated(
+    BACNET_PROPERTY_VALUE *value_list,
     uint32_t value,
     bool in_alarm,
     bool fault,
     bool overridden,
     bool out_of_service);
 BACNET_STACK_EXPORT
-bool cov_value_list_encode_unsigned(BACNET_PROPERTY_VALUE *value_list,
+bool cov_value_list_encode_unsigned(
+    BACNET_PROPERTY_VALUE *value_list,
     uint32_t value,
     bool in_alarm,
     bool fault,
     bool overridden,
     bool out_of_service);
 BACNET_STACK_EXPORT
-bool cov_value_list_encode_signed_int(BACNET_PROPERTY_VALUE *value_list,
+bool cov_value_list_encode_signed_int(
+    BACNET_PROPERTY_VALUE *value_list,
     int32_t value,
     bool in_alarm,
     bool fault,
     bool overridden,
     bool out_of_service);
 BACNET_STACK_EXPORT
-bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
+bool cov_value_list_encode_character_string(
+    BACNET_PROPERTY_VALUE *value_list,
     const BACNET_CHARACTER_STRING *value,
     bool in_alarm,
     bool fault,
     bool overridden,
     bool out_of_service);
-    BACNET_STACK_EXPORT
-    bool cov_value_list_encode_bit_string(BACNET_PROPERTY_VALUE *value_list,
-        const BACNET_BIT_STRING *value,
-        bool in_alarm,
-        bool fault,
-        bool overridden,
-        bool out_of_service);
+BACNET_STACK_EXPORT
+bool cov_value_list_encode_bit_string(
+    BACNET_PROPERTY_VALUE *value_list,
+    const BACNET_BIT_STRING *value,
+    bool in_alarm,
+    bool fault,
+    bool overridden,
+    bool out_of_service);
 
 #ifdef __cplusplus
 }

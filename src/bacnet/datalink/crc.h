@@ -19,14 +19,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    uint8_t CRC_Calc_Header(
-        uint8_t dataValue,
-        uint8_t crcValue);
-    BACNET_STACK_EXPORT
-    uint16_t CRC_Calc_Data(
-        uint8_t dataValue,
-        uint16_t crcValue);
+BACNET_STACK_EXPORT
+uint8_t CRC_Calc_Header(uint8_t dataValue, uint8_t crcValue);
+BACNET_STACK_EXPORT
+uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue);
 
 #ifdef __cplusplus
 }

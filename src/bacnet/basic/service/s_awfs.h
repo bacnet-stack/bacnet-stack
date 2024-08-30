@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic AtomicWriteFile stream service send
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Steve Karg
+ * @date October 2019
+ * @brief Header file for a basic AtomicWriteFile stream service send
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef SEND_ATOMIC_WRITE_FILE_STREAM_H
 #define SEND_ATOMIC_WRITE_FILE_STREAM_H
 
@@ -26,10 +26,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
-                                      uint32_t file_instance,
-                                      int fileStartPosition,
-                                      const BACNET_OCTET_STRING* fileData);
+uint8_t Send_Atomic_Write_File_Stream(
+    uint32_t device_id,
+    uint32_t file_instance,
+    int fileStartPosition,
+    const BACNET_OCTET_STRING *fileData);
 
 #ifdef __cplusplus
 }

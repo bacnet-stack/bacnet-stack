@@ -85,12 +85,13 @@ void debug_printf_hex(
     uint32_t offset,
     const uint8_t *buffer,
     size_t buffer_length,
-    const char *format, ...)
+    const char *format,
+    ...)
 {
 #if DEBUG_ENABLED
     size_t i = 0;
     bool new_line = true;
-    char line[16+1] = {0};
+    char line[16 + 1] = { 0 };
     size_t remainder = 0;
     va_list ap;
 
@@ -102,21 +103,21 @@ void debug_printf_hex(
         for (i = 0; i < buffer_length; i++) {
             if (new_line) {
                 new_line = false;
-                printf("%08x  ", (unsigned int)(offset+i));
-                memset(line, '.', sizeof(line)-1);
+                printf("%08x  ", (unsigned int)(offset + i));
+                memset(line, '.', sizeof(line) - 1);
             }
             printf("%02x ", buffer[i]);
             if (isprint(buffer[i])) {
-                line[i%16] = buffer[i];
+                line[i % 16] = buffer[i];
             }
-            if ((i != 0) && (!((i+1)%16))) {
+            if ((i != 0) && (!((i + 1) % 16))) {
                 printf(" %s\n", line);
                 new_line = true;
             }
         }
-        remainder = buffer_length%16;
+        remainder = buffer_length % 16;
         if (remainder) {
-            for (i = 0; i < (16-remainder); i++) {
+            for (i = 0; i < (16 - remainder); i++) {
                 printf("   ");
             }
             printf(" %s\n", line);
@@ -187,7 +188,7 @@ int debug_fprintf(FILE *stream, const char *format, ...)
  * @param ... - variable arguments
  * @note This function is only available if
  * PRINT_ENABLED is non-zero
-*/
+ */
 void debug_perror(const char *format, ...)
 {
 #if PRINT_ENABLED

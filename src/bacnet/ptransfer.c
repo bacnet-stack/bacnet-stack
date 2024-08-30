@@ -13,7 +13,8 @@
 #include "bacnet/ptransfer.h"
 
 /* encode service */
-static int pt_encode_apdu(uint8_t *apdu,
+static int pt_encode_apdu(
+    uint8_t *apdu,
     uint16_t max_apdu,
     const BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
@@ -48,7 +49,8 @@ static int pt_encode_apdu(uint8_t *apdu,
     return apdu_len;
 }
 
-int ptransfer_encode_apdu(uint8_t *apdu,
+int ptransfer_encode_apdu(
+    uint8_t *apdu,
     uint8_t invoke_id,
     const BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
@@ -88,7 +90,8 @@ int uptransfer_encode_apdu(
 }
 
 /* decode the service request only */
-int ptransfer_decode_service_request(uint8_t *apdu,
+int ptransfer_decode_service_request(
+    uint8_t *apdu,
     unsigned apdu_len,
     BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
@@ -130,7 +133,8 @@ int ptransfer_decode_service_request(uint8_t *apdu,
     return len;
 }
 
-int ptransfer_error_encode_apdu(uint8_t *apdu,
+int ptransfer_error_encode_apdu(
+    uint8_t *apdu,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code,
@@ -181,7 +185,8 @@ int ptransfer_error_encode_apdu(uint8_t *apdu,
 }
 
 /* decode the service request only */
-int ptransfer_error_decode_service_request(uint8_t *apdu,
+int ptransfer_error_decode_service_request(
+    uint8_t *apdu,
     unsigned apdu_len,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code,
@@ -264,7 +269,8 @@ int ptransfer_error_decode_service_request(uint8_t *apdu,
     return len;
 }
 
-int ptransfer_ack_encode_apdu(uint8_t *apdu,
+int ptransfer_ack_encode_apdu(
+    uint8_t *apdu,
     uint8_t invoke_id,
     const BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {

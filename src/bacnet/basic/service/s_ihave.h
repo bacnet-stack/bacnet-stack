@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic I-Have service send
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Steve Karg
+ * @date October 2019
+ * @brief Header file for a basic I-Have service send
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef SEND_I_HAVE_H
 #define SEND_I_HAVE_H
 
@@ -25,12 +25,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    void Send_I_Have(
-        uint32_t device_id,
-        BACNET_OBJECT_TYPE object_type,
-        uint32_t object_instance,
-        const BACNET_CHARACTER_STRING * object_name);
+BACNET_STACK_EXPORT
+void Send_I_Have(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    const BACNET_CHARACTER_STRING *object_name);
 
 #ifdef __cplusplus
 }

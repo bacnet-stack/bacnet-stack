@@ -49,7 +49,8 @@ void mstimer_init(void)
     /* configure for 1ms resolution - if possible */
     Timer_Period = min(max(tc.wPeriodMin, 1L), tc.wPeriodMax);
     if (Timer_Period != 1L) {
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "Failed to set timer to 1ms.  "
             "Time period set to %ums\n",
             (unsigned)Timer_Period);

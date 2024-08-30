@@ -24,10 +24,13 @@ static bool Credential_Data_Input_Initialized = false;
 static CREDENTIAL_DATA_INPUT_DESCR cdi_descr[MAX_CREDENTIAL_DATA_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_RELIABILITY, PROP_OUT_OF_SERVICE, PROP_SUPPORTED_FORMATS,
-    PROP_UPDATE_TIME, -1 };
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,      PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,    PROP_SUPPORTED_FORMATS,
+    PROP_UPDATE_TIME,       -1
+};
 
 static const int Properties_Optional[] = { -1 };
 
@@ -122,7 +125,8 @@ bool Credential_Data_Input_Object_Name(
     bool status = false;
 
     if (object_instance < MAX_CREDENTIAL_DATA_INPUTS) {
-        snprintf(text, sizeof(text), "CREDENTIAL DATA INPUT %lu",
+        snprintf(
+            text, sizeof(text), "CREDENTIAL DATA INPUT %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
@@ -174,8 +178,9 @@ int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         Credential_Data_Input_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(&apdu[0],
-                OBJECT_CREDENTIAL_DATA_INPUT, rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_CREDENTIAL_DATA_INPUT,
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             Credential_Data_Input_Object_Name(
@@ -217,7 +222,8 @@ int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 0; i < cdi_descr[object_index].supported_formats_count;
                      i++) {
-                    len = bacapp_encode_authentication_factor_format(&apdu[0],
+                    len = bacapp_encode_authentication_factor_format(
+                        &apdu[0],
                         &cdi_descr[object_index].supported_formats[i]);
                     if (apdu_len + len < MAX_APDU) {
                         apdu_len += len;
@@ -231,10 +237,10 @@ int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             } else {
                 if (rpdata->array_index <=
                     cdi_descr[object_index].supported_formats_count) {
-                    apdu_len =
-                        bacapp_encode_authentication_factor_format(&apdu[0],
-                            &cdi_descr[object_index]
-                                 .supported_formats[rpdata->array_index - 1]);
+                    apdu_len = bacapp_encode_authentication_factor_format(
+                        &apdu[0],
+                        &cdi_descr[object_index]
+                             .supported_formats[rpdata->array_index - 1]);
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -300,7 +306,8 @@ bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 len = bacapp_decode_authentication_factor(
                     wp_data->application_data, &tmp);
                 if (len > 0) {
-                    memcpy(&cdi_descr[object_index].present_value, &tmp,
+                    memcpy(
+                        &cdi_descr[object_index].present_value, &tmp,
                         sizeof(BACNET_AUTHENTICATION_FACTOR));
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;

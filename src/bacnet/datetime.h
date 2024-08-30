@@ -81,7 +81,8 @@ BACNET_STACK_EXPORT
 void datetime_set_date(
     BACNET_DATE *bdate, uint16_t year, uint8_t month, uint8_t day);
 BACNET_STACK_EXPORT
-void datetime_set_time(BACNET_TIME *btime,
+void datetime_set_time(
+    BACNET_TIME *btime,
     uint8_t hour,
     uint8_t minute,
     uint8_t seconds,
@@ -92,7 +93,8 @@ void datetime_set(
     const BACNET_DATE *bdate,
     const BACNET_TIME *btime);
 BACNET_STACK_EXPORT
-void datetime_set_values(BACNET_DATE_TIME *bdatetime,
+void datetime_set_values(
+    BACNET_DATE_TIME *bdatetime,
     uint16_t year,
     uint8_t month,
     uint8_t day,
@@ -126,8 +128,8 @@ void datetime_days_since_epoch_into_date(uint32_t days, BACNET_DATE *bdate);
 BACNET_STACK_EXPORT
 uint32_t datetime_day_of_year(const BACNET_DATE *bdate);
 BACNET_STACK_EXPORT
-uint32_t datetime_ymd_to_days_since_epoch(
-    uint16_t year, uint8_t month, uint8_t day);
+uint32_t
+datetime_ymd_to_days_since_epoch(uint16_t year, uint8_t month, uint8_t day);
 BACNET_STACK_EXPORT
 void datetime_day_of_year_into_date(
     uint32_t days, uint16_t year, BACNET_DATE *bdate);
@@ -240,12 +242,14 @@ BACNET_STACK_EXPORT
 void datetime_time_wildcard_set(BACNET_TIME *btime);
 
 BACNET_STACK_EXPORT
-bool datetime_local_to_utc(BACNET_DATE_TIME *utc_time,
+bool datetime_local_to_utc(
+    BACNET_DATE_TIME *utc_time,
     const BACNET_DATE_TIME *local_time,
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes);
 BACNET_STACK_EXPORT
-bool datetime_utc_to_local(BACNET_DATE_TIME *local_time,
+bool datetime_utc_to_local(
+    BACNET_DATE_TIME *local_time,
     const BACNET_DATE_TIME *utc_time,
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes);
@@ -253,15 +257,18 @@ bool datetime_utc_to_local(BACNET_DATE_TIME *local_time,
 BACNET_STACK_EXPORT
 bool datetime_date_init_ascii(BACNET_DATE *bdate, const char *ascii);
 BACNET_STACK_EXPORT
-int datetime_date_to_ascii(const BACNET_DATE *bdate, char *str, size_t str_size);
+int datetime_date_to_ascii(
+    const BACNET_DATE *bdate, char *str, size_t str_size);
 BACNET_STACK_EXPORT
 bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii);
 BACNET_STACK_EXPORT
-int datetime_time_to_ascii(const BACNET_TIME *btime, char *str, size_t str_size);
+int datetime_time_to_ascii(
+    const BACNET_TIME *btime, char *str, size_t str_size);
 BACNET_STACK_EXPORT
 bool datetime_init_ascii(BACNET_DATE_TIME *bdatetime, const char *ascii);
 BACNET_STACK_EXPORT
-int datetime_to_ascii(const BACNET_DATE_TIME *bdatetime, char *str, size_t str_size);
+int datetime_to_ascii(
+    const BACNET_DATE_TIME *bdatetime, char *str, size_t str_size);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_datetime(uint8_t *apdu, const BACNET_DATE_TIME *value);
@@ -273,40 +280,41 @@ int bacnet_datetime_decode(
     const uint8_t *apdu, uint32_t apdu_size, BACNET_DATE_TIME *value);
 BACNET_STACK_EXPORT
 int bacnet_datetime_context_decode(
-    const uint8_t *apdu, uint32_t apdu_size,  uint8_t tag_number,
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
     BACNET_DATE_TIME *value);
 
 BACNET_STACK_DEPRECATED("Use bacnet_datetime_decode() instead")
 BACNET_STACK_EXPORT
-int bacapp_decode_datetime(
-    const uint8_t *apdu, BACNET_DATE_TIME *value);
+int bacapp_decode_datetime(const uint8_t *apdu, BACNET_DATE_TIME *value);
 BACNET_STACK_DEPRECATED("Use bacnet_datetime_context_decode() instead")
 BACNET_STACK_EXPORT
-int bacapp_decode_context_datetime(const uint8_t *apdu,
-    uint8_t tag_number,
-    BACNET_DATE_TIME *value);
+int bacapp_decode_context_datetime(
+    const uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value);
 
 BACNET_STACK_EXPORT
-bool bacnet_daterange_same(const BACNET_DATE_RANGE *value1,
-    const BACNET_DATE_RANGE *value2);
+bool bacnet_daterange_same(
+    const BACNET_DATE_RANGE *value1, const BACNET_DATE_RANGE *value2);
 BACNET_STACK_EXPORT
 int bacnet_daterange_encode(uint8_t *apdu, const BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
-int bacnet_daterange_decode(const uint8_t *apdu,
-    uint32_t apdu_size,
-    BACNET_DATE_RANGE *value);
+int bacnet_daterange_decode(
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
 int bacnet_daterange_context_encode(
     uint8_t *apdu, uint8_t tag_number, const BACNET_DATE_RANGE *value);
 BACNET_STACK_EXPORT
-int bacnet_daterange_context_decode(const uint8_t *apdu,
+int bacnet_daterange_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_DATE_RANGE *value);
 
 /* implementation agnostic functions - create your own! */
 BACNET_STACK_EXPORT
-bool datetime_local(BACNET_DATE *bdate,
+bool datetime_local(
+    BACNET_DATE *bdate,
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active);

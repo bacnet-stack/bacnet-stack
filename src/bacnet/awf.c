@@ -4,7 +4,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2005
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
-*/
+ */
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -34,7 +34,8 @@
  * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded
  */
-int awf_service_encode_apdu(uint8_t *apdu, const BACNET_ATOMIC_WRITE_FILE_DATA *data)
+int awf_service_encode_apdu(
+    uint8_t *apdu, const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -180,7 +181,9 @@ int awf_encode_apdu(
  * @return number of bytes decoded or BACNET_STATUS_ERROR on error.
  */
 int awf_decode_service_request(
-    const uint8_t *apdu, unsigned apdu_size, BACNET_ATOMIC_WRITE_FILE_DATA *data)
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     /* return value */
     int apdu_len = 0;
@@ -299,7 +302,8 @@ int awf_decode_service_request(
  *  or NULL for length
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
-int awf_decode_apdu(const uint8_t *apdu,
+int awf_decode_apdu(
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_ATOMIC_WRITE_FILE_DATA *data)
@@ -410,7 +414,9 @@ int awf_ack_encode_apdu(
  * @return number of bytes encoded or BACNET_STATUS_ERROR on error.
  */
 int awf_ack_decode_service_request(
-    const uint8_t *apdu, unsigned apdu_size, BACNET_ATOMIC_WRITE_FILE_DATA *data)
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     int len = 0, apdu_len = 0;
     int32_t signed_integer;
@@ -463,7 +469,8 @@ int awf_ack_decode_service_request(
  *  or NULL for length
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
-int awf_ack_decode_apdu(const uint8_t *apdu,
+int awf_ack_decode_apdu(
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_ATOMIC_WRITE_FILE_DATA *data)

@@ -32,8 +32,7 @@ int life_safety_operation_encode(uint8_t *apdu, const BACNET_LSO_DATA *data)
         apdu += len;
     }
     /* tag 1 - requestingSource */
-    len = encode_context_character_string(
-        apdu, 1, &data->requestingSrc);
+    len = encode_context_character_string(apdu, 1, &data->requestingSrc);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -46,8 +45,8 @@ int life_safety_operation_encode(uint8_t *apdu, const BACNET_LSO_DATA *data)
     }
     /* Object ID */
     if (data->use_target) {
-        len = encode_context_object_id(apdu, 3,
-            data->targetObject.type, data->targetObject.instance);
+        len = encode_context_object_id(
+            apdu, 3, data->targetObject.type, data->targetObject.instance);
         apdu_len += len;
     }
 
@@ -143,8 +142,9 @@ int lso_decode_service_request(
          ** This is an optional parameter, so don't fail if it doesn't exist
          */
         if (decode_is_context_tag(&apdu[len], 3)) {
-            section_length = decode_context_object_id(&apdu[len], 3,
-                &data->targetObject.type, &data->targetObject.instance);
+            section_length = decode_context_object_id(
+                &apdu[len], 3, &data->targetObject.type,
+                &data->targetObject.instance);
             if (section_length == BACNET_STATUS_ERROR) {
                 return BACNET_STATUS_ERROR;
             }

@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic LifeSafetyOperation service send
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Steve Karg
+ * @date October 2019
+ * @brief Header file for a basic LifeSafetyOperation service send
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef SEND_LIFE_SAFETY_OPERATION_H
 #define SEND_LIFE_SAFETY_OPERATION_H
 
@@ -27,8 +27,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-uint8_t Send_Life_Safety_Operation_Data(uint32_t device_id,
-                                        const BACNET_LSO_DATA* data);
+uint8_t Send_Life_Safety_Operation_Data(
+    uint32_t device_id, const BACNET_LSO_DATA *data);
 
 #ifdef __cplusplus
 }

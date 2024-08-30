@@ -75,9 +75,10 @@ void Send_WhoHas_Name(
         datalink_send_pdu(
             &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
+    if (bytes_sent <= 0) {
         fprintf(
             stderr, "Failed to Send Who-Has Request (%s)!\n", strerror(errno));
+    }
 #endif
 }
 
@@ -92,7 +93,8 @@ void Send_WhoHas_Name(
  * @param object_type [in] The BACNET_OBJECT_TYPE of the desired Object.
  * @param object_instance [in] The ID of the desired Object.
  */
-void Send_WhoHas_Object(int32_t low_limit,
+void Send_WhoHas_Object(
+    int32_t low_limit,
     int32_t high_limit,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance)
@@ -133,8 +135,9 @@ void Send_WhoHas_Object(int32_t low_limit,
         datalink_send_pdu(
             &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
+    if (bytes_sent <= 0) {
         fprintf(
             stderr, "Failed to Send Who-Has Request (%s)!\n", strerror(errno));
+    }
 #endif
 }

@@ -41,9 +41,7 @@ static void test_object_structured_view(void)
         OBJECT_STRUCTURED_VIEW, instance, Structured_View_Property_Lists,
         Structured_View_Read_Property, NULL, skip_fail_property_list);
     bacnet_object_name_ascii_test(
-        instance,
-        Structured_View_Name_Set,
-        Structured_View_Name_ASCII);
+        instance, Structured_View_Name_Set, Structured_View_Name_ASCII);
 }
 /**
  * @}

@@ -100,7 +100,8 @@ void handler_who_is_unicast(
  *          back to the src, else False if should broadcast
  * response(s).
  */
-static void check_who_is_for_routing(const uint8_t *service_request,
+static void check_who_is_for_routing(
+    const uint8_t *service_request,
     uint16_t service_len,
     const BACNET_ADDRESS *src,
     bool is_unicast)
@@ -128,10 +129,11 @@ static void check_who_is_for_routing(const uint8_t *service_request,
         /* If len == 0, no limits and always respond */
         if ((len == 0) ||
             ((dev_instance >= low_limit) && (dev_instance <= high_limit))) {
-            if (is_unicast)
+            if (is_unicast) {
                 Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
-            else
+            } else {
                 Send_I_Am(&Handler_Transmit_Buffer[0]);
+            }
         }
     }
 }

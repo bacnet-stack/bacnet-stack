@@ -24,7 +24,8 @@
  * @param  old_value - BACnetXYColor value prior to write
  * @param  value - BACnetXYColor value of the write
  */
-typedef void (*color_write_present_value_callback)(uint32_t object_instance,
+typedef void (*color_write_present_value_callback)(
+    uint32_t object_instance,
     BACNET_XY_COLOR *old_value,
     BACNET_XY_COLOR *value);
 

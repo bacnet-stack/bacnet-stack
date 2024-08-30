@@ -1,13 +1,13 @@
 /**
-* @file
-* @author Steve Karg
-* @date October 2019
-* @brief Header file for a basic DeviceCommunicationControl service send
-*
-* @section LICENSE
-*
-* SPDX-License-Identifier: MIT
-*/
+ * @file
+ * @author Steve Karg
+ * @date October 2019
+ * @brief Header file for a basic DeviceCommunicationControl service send
+ *
+ * @section LICENSE
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef SEND_DCC_H
 #define SEND_DCC_H
 
@@ -27,7 +27,8 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 uint8_t Send_Device_Communication_Control_Request(
-    uint32_t device_id, uint16_t timeDuration,
+    uint32_t device_id,
+    uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE state,
     const char *password);
 

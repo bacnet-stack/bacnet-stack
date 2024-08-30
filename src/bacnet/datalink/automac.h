@@ -26,39 +26,23 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    void automac_init(
-        void);
+void automac_init(void);
 
-    bool automac_free_address_valid(
-        uint8_t mac);
-    uint8_t automac_free_address_count(
-        void);
-    uint8_t automac_free_address_mac(
-        uint8_t count);
-    uint8_t automac_free_address_random(
-        void);
-    void automac_pfm_set(
-        uint8_t mac);
-    void automac_token_set(
-        uint8_t mac);
-    void automac_emitter_set(
-        uint8_t mac);
-    uint8_t automac_next_station(
-        uint8_t mac);
-    uint8_t automac_address(
-        void);
-    void automac_address_set(
-        uint8_t mac);
-    void automac_address_init(
-        void);
-    uint16_t automac_time_slot(
-        void);
-    bool automac_pfm_cycle_complete(
-        void);
-    bool automac_enabled(
-        void);
-    void automac_enabled_set(
-        bool status);
+bool automac_free_address_valid(uint8_t mac);
+uint8_t automac_free_address_count(void);
+uint8_t automac_free_address_mac(uint8_t count);
+uint8_t automac_free_address_random(void);
+void automac_pfm_set(uint8_t mac);
+void automac_token_set(uint8_t mac);
+void automac_emitter_set(uint8_t mac);
+uint8_t automac_next_station(uint8_t mac);
+uint8_t automac_address(void);
+void automac_address_set(uint8_t mac);
+void automac_address_init(void);
+uint16_t automac_time_slot(void);
+bool automac_pfm_cycle_complete(void);
+bool automac_enabled(void);
+void automac_enabled_set(bool status);
 
 #ifdef __cplusplus
 }

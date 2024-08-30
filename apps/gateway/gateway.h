@@ -18,9 +18,9 @@
 
 /* Device configuration definitions. */
 #define FIRST_DEVICE_NUMBER 260001
-#define VIRTUAL_DNET  2709      /* your choice of number here */
+#define VIRTUAL_DNET 2709 /* your choice of number here */
 #define DEV_NAME_BASE "Gateway Demo Device"
 #define DEV_DESCR_GATEWAY "Gateway Device and Router"
-#define DEV_DESCR_REMOTE  "Routed Remote Device"
+#define DEV_DESCR_REMOTE "Routed Remote Device"
 
 #endif

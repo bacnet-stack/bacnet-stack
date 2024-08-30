@@ -40,49 +40,65 @@
 
 static void Init_Service_Handlers()
 {
-
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_unicast);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_unicast);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE, handler_read_range);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL, handler_device_communication_control);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_RANGE, handler_read_range);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+        handler_device_communication_control);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_add);
 }
-
 
 /*
  * FIXME: This is a hack to get things linking correctly
  */
-extern int cov_subscribe(void) {
+extern int cov_subscribe(void)
+{
     return 0;
 }
-extern int Device_Value_List_Supported(void) {
+extern int Device_Value_List_Supported(void)
+{
     return 0;
 }
-extern int Encode_RR_payload(void) {
+extern int Encode_RR_payload(void)
+{
     return 0;
 }
-extern int Device_Objects_RR_Info(void) {
+extern int Device_Objects_RR_Info(void)
+{
     return 0;
 }
-extern int Device_Write_Property(void) {
+extern int Device_Write_Property(void)
+{
     return 0;
 }
-extern int Device_Reinitialize(void) {
+extern int Device_Reinitialize(void)
+{
     return 0;
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -99,5 +115,4 @@ int main(int argc, char *argv[])
     }
 
     return 0;
-
 }

@@ -72,8 +72,9 @@ int bacapp_property_state_decode(
             apdu_len++;
         }
     } else if (tag.number == PROP_STATE_INTEGER_VALUE) {
-        len = bacnet_signed_decode(&apdu[apdu_len], apdu_size - apdu_len,
-            tag.len_value_type, &integer_value);
+        len = bacnet_signed_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
+            &integer_value);
         if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
@@ -82,8 +83,9 @@ int bacapp_property_state_decode(
             value->state.integerValue = integer_value;
         }
     } else {
-        len = bacnet_enumerated_decode(&apdu[apdu_len], apdu_size - apdu_len,
-            tag.len_value_type, &enum_value);
+        len = bacnet_enumerated_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
+            &enum_value);
         if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }

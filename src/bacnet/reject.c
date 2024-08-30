@@ -96,7 +96,6 @@ bool reject_valid_error_code(BACNET_ERROR_CODE error_code)
     return status;
 }
 
-
 /**
  * @brief Convert a reject code to BACnet Error code
  * @param reject_code - code to be converted
@@ -186,7 +185,8 @@ int reject_encode_apdu(uint8_t *apdu, uint8_t invoke_id, uint8_t reject_reason)
  *
  * @return Bytes encoded, typically 3.
  */
-int reject_decode_service_request(const uint8_t *apdu,
+int reject_decode_service_request(
+    const uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t *reject_reason)

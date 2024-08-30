@@ -57,16 +57,23 @@ static binary_output_write_present_value_callback
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_POLARITY, PROP_PRIORITY_ARRAY,
-    PROP_RELINQUISH_DEFAULT,
+                                           PROP_OBJECT_NAME,
+                                           PROP_OBJECT_TYPE,
+                                           PROP_PRESENT_VALUE,
+                                           PROP_STATUS_FLAGS,
+                                           PROP_EVENT_STATE,
+                                           PROP_OUT_OF_SERVICE,
+                                           PROP_POLARITY,
+                                           PROP_PRIORITY_ARRAY,
+                                           PROP_RELINQUISH_DEFAULT,
 #if (BACNET_PROTOCOL_REVISION >= 17)
-    PROP_CURRENT_COMMAND_PRIORITY,
+                                           PROP_CURRENT_COMMAND_PRIORITY,
 #endif
-    -1 };
+                                           -1 };
 
-static const int Properties_Optional[] = { PROP_RELIABILITY,
-    PROP_DESCRIPTION, PROP_ACTIVE_TEXT, PROP_INACTIVE_TEXT, -1 };
+static const int Properties_Optional[] = { PROP_RELIABILITY, PROP_DESCRIPTION,
+                                           PROP_ACTIVE_TEXT, PROP_INACTIVE_TEXT,
+                                           -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -162,8 +169,7 @@ unsigned Binary_Output_Instance_To_Index(uint32_t object_instance)
  * @param pObject - pointer to the object data
  * @return The present-value of the object
  */
-static BACNET_BINARY_PV Object_Present_Value(
-    struct object_data *pObject)
+static BACNET_BINARY_PV Object_Present_Value(struct object_data *pObject)
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
     unsigned p = 0;
@@ -352,7 +358,8 @@ bool Binary_Output_Present_Value_Relinquish(
  * @param  error_code - BACnet Error code
  * @return  true if values are within range and present-value is set.
  */
-static bool Binary_Output_Present_Value_Write(uint32_t object_instance,
+static bool Binary_Output_Present_Value_Write(
+    uint32_t object_instance,
     BACNET_BINARY_PV value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
@@ -519,7 +526,8 @@ bool Binary_Output_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "BINARY OUTPUT %lu",
+            snprintf(
+                name_text, sizeof(name_text), "BINARY OUTPUT %lu",
                 (unsigned long)object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
@@ -942,14 +950,13 @@ bool Binary_Output_Encode_Value_List(
     const bool overridden = false;
     BACNET_BINARY_PV value;
 
-
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         fault = Binary_Output_Object_Fault(pObject);
         value = Object_Present_Value(pObject);
-        status =
-            cov_value_list_encode_enumerated(value_list, value,
-                in_alarm, fault, overridden, pObject->Out_Of_Service);
+        status = cov_value_list_encode_enumerated(
+            value_list, value, in_alarm, fault, overridden,
+            pObject->Out_Of_Service);
     }
     return status;
 }
@@ -1028,9 +1035,10 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], polarity);
             break;
         case PROP_PRIORITY_ARRAY:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index, Binary_Output_Priority_Array_Encode,
-                BACNET_MAX_PRIORITY, apdu, apdu_size);
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Binary_Output_Priority_Array_Encode, BACNET_MAX_PRIORITY, apdu,
+                apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -1045,19 +1053,22 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Binary_Output_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_ACTIVE_TEXT:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Binary_Output_Active_Text(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_INACTIVE_TEXT:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Binary_Output_Inactive_Text(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -1126,10 +1137,10 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                status =
-                    Binary_Output_Present_Value_Write(wp_data->object_instance,
-                        value.type.Enumerated, wp_data->priority,
-                        &wp_data->error_class, &wp_data->error_code);
+                status = Binary_Output_Present_Value_Write(
+                    wp_data->object_instance, value.type.Enumerated,
+                    wp_data->priority, &wp_data->error_class,
+                    &wp_data->error_code);
             } else {
                 status = write_property_type_valid(
                     wp_data, &value, BACNET_APPLICATION_TAG_NULL);
@@ -1149,7 +1160,8 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         default:
-            if (property_lists_member(Properties_Required, Properties_Optional,
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
                     Properties_Proprietary, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

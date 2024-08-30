@@ -105,8 +105,9 @@ void *dl_mstp_thread(void *pArgs)
                         msg_data->dest.mac_len = 1;
                     }
 
-                    dlmstp_send_pdu(&mstp_port, &(msg_data->dest),
-                        msg_data->pdu, msg_data->pdu_len);
+                    dlmstp_send_pdu(
+                        &mstp_port, &(msg_data->dest), msg_data->pdu,
+                        msg_data->pdu_len);
 
                     check_data(msg_data);
 
@@ -129,13 +130,15 @@ void *dl_mstp_thread(void *pArgs)
 
             if (pdu_len > 0) {
                 msg_data = (MSG_DATA *)malloc(sizeof(MSG_DATA));
-                memmove(&(msg_data->src),
+                memmove(
+                    &(msg_data->src),
                     (const void *)&(shared_port_data.Receive_Packet.address),
                     sizeof(shared_port_data.Receive_Packet.address));
                 msg_data->src.adr[0] = msg_data->src.mac[0];
                 msg_data->src.len = 1;
                 msg_data->pdu = (uint8_t *)malloc(pdu_len);
-                memmove(msg_data->pdu,
+                memmove(
+                    msg_data->pdu,
                     (const void *)&(shared_port_data.Receive_Packet.pdu),
                     pdu_len);
                 msg_data->pdu_len = pdu_len;

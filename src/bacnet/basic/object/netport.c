@@ -729,7 +729,7 @@ bool Network_Port_MAC_Address(
     if (mac_address) {
         mac_len = Network_Port_MAC_Address_Value(
             object_instance, mac_address->value, sizeof(mac_address->value));
-            mac_address->length = mac_len;
+        mac_address->length = mac_len;
     }
 
     return mac_len > 0;
@@ -3035,7 +3035,8 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
  * @param  object_property [in] BACnet object property
  * @return true if the object property is a BACnetARRAY datatype
  */
-static bool Network_Port_BACnetArray_Property(BACNET_PROPERTY_ID object_property)
+static bool
+Network_Port_BACnetArray_Property(BACNET_PROPERTY_ID object_property)
 {
     bool status = false;
 

@@ -85,7 +85,9 @@ int bacnet_action_property_value_encode(
  * @return number of bytes encoded
  */
 int bacnet_action_property_value_decode(
-    const uint8_t *apdu, uint32_t apdu_size, BACNET_ACTION_PROPERTY_VALUE *value)
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_ACTION_PROPERTY_VALUE *value)
 {
     int len = 0;
     int apdu_len = 0;

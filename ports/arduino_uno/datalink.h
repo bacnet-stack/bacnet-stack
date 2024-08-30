@@ -1,10 +1,10 @@
 /**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* SPDX-License-Identifier: MIT
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ *********************************************************************/
 #ifndef DATALINK_H
 #define DATALINK_H
 
@@ -46,17 +46,17 @@
 #include "bvlc-arduino.h"
 
 #define datalink_init bip_init
-//#if defined(BBMD_ENABLED) && BBMD_ENABLED
-//#define datalink_send_pdu bvlc_send_pdu
-//#define datalink_receive bvlc_receive
-//#else
+// #if defined(BBMD_ENABLED) && BBMD_ENABLED
+// #define datalink_send_pdu bvlc_send_pdu
+// #define datalink_receive bvlc_receive
+// #else
 #define datalink_send_pdu bip_send_pdu
 #define datalink_receive bip_receive
-//#endif
+// #endif
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #ifdef BAC_ROUTING
-extern void routed_get_my_address(BACNET_ADDRESS * my_address);
+extern void routed_get_my_address(BACNET_ADDRESS *my_address);
 #define datalink_get_my_address routed_get_my_address
 #else
 #define datalink_get_my_address bip_get_my_address
@@ -66,25 +66,24 @@ extern void routed_get_my_address(BACNET_ADDRESS * my_address);
 #include "bacnet/npdu.h"
 
 #define MAX_HEADER (8)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define MAX_MPDU (MAX_HEADER + MAX_PDU)
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    int datalink_send_pdu(BACNET_ADDRESS * dest,
-        BACNET_NPDU_DATA * npdu_data,
-        uint8_t * pdu,
-        unsigned pdu_len);
-    extern uint16_t datalink_receive(BACNET_ADDRESS * src,
-        uint8_t * pdu,
-        uint16_t max_pdu,
-        unsigned timeout);
-    extern void datalink_cleanup(void);
-    extern void datalink_get_broadcast_address(BACNET_ADDRESS * dest);
-    extern void datalink_get_my_address(BACNET_ADDRESS * my_address);
-    extern void datalink_set_interface(char *ifname);
-    extern void datalink_set(char *datalink_string);
+int datalink_send_pdu(
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len);
+extern uint16_t datalink_receive(
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout);
+extern void datalink_cleanup(void);
+extern void datalink_get_broadcast_address(BACNET_ADDRESS *dest);
+extern void datalink_get_my_address(BACNET_ADDRESS *my_address);
+extern void datalink_set_interface(char *ifname);
+extern void datalink_set(char *datalink_string);
 
 #ifdef __cplusplus
 }

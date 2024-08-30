@@ -411,9 +411,8 @@ int rp_ack_encode_apdu(
  * @return Number of decoded bytes (could be less than apdu_len),
  *          or -1 on decoding error.
  */
-int rp_ack_decode_service_request(uint8_t *apdu,
-    int apdu_size,
-    BACNET_READ_PROPERTY_DATA *data)
+int rp_ack_decode_service_request(
+    uint8_t *apdu, int apdu_size, BACNET_READ_PROPERTY_DATA *data)
 {
     int apdu_len = 0; /* return value */
     int len = 0;
@@ -472,8 +471,8 @@ int rp_ack_decode_service_request(uint8_t *apdu,
         return BACNET_STATUS_ERROR;
     }
     /* determine the length of the data blob */
-    data_len = bacnet_enclosed_data_length(&apdu[apdu_len],
-        apdu_size - apdu_len);
+    data_len =
+        bacnet_enclosed_data_length(&apdu[apdu_len], apdu_size - apdu_len);
     if (data_len == BACNET_STATUS_ERROR) {
         return BACNET_STATUS_ERROR;
     }

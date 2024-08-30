@@ -100,8 +100,8 @@ static void testAtomicWriteFile(void)
     return;
 }
 
-static void testAtomicWriteFileAckAccess(
-    const BACNET_ATOMIC_WRITE_FILE_DATA *data)
+static void
+testAtomicWriteFileAckAccess(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     BACNET_ATOMIC_WRITE_FILE_DATA test_data = { 0 };
     uint8_t apdu[480] = { 0 };

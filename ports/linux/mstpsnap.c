@@ -68,8 +68,7 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
-uint16_t MSTP_Get_Send(
-    struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
@@ -84,7 +83,7 @@ uint16_t MSTP_Get_Send(
  */
 void MSTP_Send_Frame(
     struct mstp_port_struct_t *mstp_port,
-    const uint8_t * buffer,
+    const uint8_t *buffer,
     uint16_t nbytes)
 {
     (void)mstp_port;
@@ -92,8 +91,7 @@ void MSTP_Send_Frame(
     (void)nbytes;
 }
 
-uint16_t MSTP_Get_Reply(
-    struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
@@ -140,8 +138,8 @@ static int network_init(const char *name, int protocol)
     return sockfd;
 }
 
-static void snap_received_packet(
-    const struct mstp_port_struct_t *mstp_port, int sockfd)
+static void
+snap_received_packet(const struct mstp_port_struct_t *mstp_port, int sockfd)
 {
     uint16_t mtu_len = 0; /* number of octets of packet saved in file */
     unsigned i = 0; /* counter */
@@ -267,7 +265,8 @@ int main(int argc, char *argv[])
     MSTP_Port.SilenceTimer = Timer_Silence;
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(mstp_port);
-    fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
+    fprintf(
+        stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long)RS485_Get_Baud_Rate());
     atexit(cleanup);
 #if defined(_WIN32)

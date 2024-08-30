@@ -20,40 +20,40 @@ typedef struct BACnet_Reinitialize_Device_Data {
     BACNET_ERROR_CODE error_code;
 } BACNET_REINITIALIZE_DEVICE_DATA;
 
-typedef bool(
-    *reinitialize_device_function) (
-    BACNET_REINITIALIZE_DEVICE_DATA * rd_data);
-
+typedef bool (*reinitialize_device_function)(
+    BACNET_REINITIALIZE_DEVICE_DATA *rd_data);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int rd_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_REINITIALIZED_STATE state,
-        const BACNET_CHARACTER_STRING * password);
+BACNET_STACK_EXPORT
+int rd_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    BACNET_REINITIALIZED_STATE state,
+    const BACNET_CHARACTER_STRING *password);
 
-    BACNET_STACK_EXPORT
-    int reinitialize_device_encode(uint8_t *apdu,
-        BACNET_REINITIALIZED_STATE state,
-        const BACNET_CHARACTER_STRING *password);
+BACNET_STACK_EXPORT
+int reinitialize_device_encode(
+    uint8_t *apdu,
+    BACNET_REINITIALIZED_STATE state,
+    const BACNET_CHARACTER_STRING *password);
 
-    BACNET_STACK_EXPORT
-    size_t reinitialize_device_request_encode(
-        uint8_t *apdu, size_t apdu_size,
-        BACNET_REINITIALIZED_STATE state,
-        const BACNET_CHARACTER_STRING *password);
+BACNET_STACK_EXPORT
+size_t reinitialize_device_request_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_REINITIALIZED_STATE state,
+    const BACNET_CHARACTER_STRING *password);
 
 /* decode the service request only */
-    BACNET_STACK_EXPORT
-    int rd_decode_service_request(
-        const uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_REINITIALIZED_STATE * state,
-        BACNET_CHARACTER_STRING * password);
+BACNET_STACK_EXPORT
+int rd_decode_service_request(
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    BACNET_REINITIALIZED_STATE *state,
+    BACNET_CHARACTER_STRING *password);
 
 #ifdef __cplusplus
 }

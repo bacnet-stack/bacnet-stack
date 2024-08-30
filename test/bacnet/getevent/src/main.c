@@ -67,14 +67,17 @@ static int getevent_ack_decode_apdu(
     int len = 0;
     int offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_COMPLEX_ACK)
+    if (apdu[0] != PDU_TYPE_COMPLEX_ACK) {
         return -1;
+    }
     *invoke_id = apdu[1];
-    if (apdu[2] != SERVICE_CONFIRMED_GET_EVENT_INFORMATION)
+    if (apdu[2] != SERVICE_CONFIRMED_GET_EVENT_INFORMATION) {
         return -1;
+    }
     offset = 3;
     if (apdu_len > offset) {
         len = getevent_ack_decode_service_request(

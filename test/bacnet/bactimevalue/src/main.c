@@ -53,7 +53,7 @@ static void test_BACnetTimeValue(BACNET_TIME_VALUE *value)
     }
 
     len = bacnet_time_value_context_encode(apdu, tag_number, value);
-    null_len = bacnet_time_value_context_encode(NULL,tag_number, value);
+    null_len = bacnet_time_value_context_encode(NULL, tag_number, value);
     zassert_equal(len, null_len, NULL);
     apdu_len =
         bacnet_time_value_context_decode(apdu, len, tag_number, &test_value);
@@ -67,7 +67,8 @@ static void test_BACnetTimeValue(BACNET_TIME_VALUE *value)
     zassert_true(status, NULL);
     /* apdu too short testing */
     while (--apdu_len) {
-        len = bacnet_time_value_context_decode(apdu, apdu_len, tag_number, &test_value);
+        len = bacnet_time_value_context_decode(
+            apdu, apdu_len, tag_number, &test_value);
         zassert_true(len < 0, NULL);
     }
     /* negative testing */
@@ -162,11 +163,11 @@ static void test_BACnetTimeValues(void)
         BACNET_APPLICATION_TAG_OBJECT_ID, "8:4194303", &value);
     zassert_true(status, NULL);
     rc = bacnet_application_to_primitive_data_value(&time_value.Value, &value);
-    zassert_equal(rc, BACNET_STATUS_ERROR ,"rc=%d", rc);
+    zassert_equal(rc, BACNET_STATUS_ERROR, "rc=%d", rc);
     rc = bacnet_application_to_primitive_data_value(NULL, &value);
-    zassert_equal(rc, BACNET_STATUS_ERROR ,"rc=%d", rc);
+    zassert_equal(rc, BACNET_STATUS_ERROR, "rc=%d", rc);
     rc = bacnet_application_to_primitive_data_value(&time_value.Value, NULL);
-    zassert_equal(rc, BACNET_STATUS_ERROR ,"rc=%d", rc);
+    zassert_equal(rc, BACNET_STATUS_ERROR, "rc=%d", rc);
     rc = bacnet_primitive_to_application_data_value(NULL, &time_value.Value);
     zassert_equal(rc, BACNET_STATUS_ERROR, NULL);
     rc = bacnet_primitive_to_application_data_value(&value, NULL);

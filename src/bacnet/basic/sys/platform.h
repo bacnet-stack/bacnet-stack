@@ -23,11 +23,11 @@
 #endif
 
 #ifndef isgreaterequal
-#define isgreaterequal(x, y) ((x) > (y) || !islessgreater((x),(y)))
+#define isgreaterequal(x, y) ((x) > (y) || !islessgreater((x), (y)))
 #endif
 
 #ifndef islessequal
-#define islessequal(x, y) ((x) < (y) || !islessgreater((x),(y)))
+#define islessequal(x, y) ((x) < (y) || !islessgreater((x), (y)))
 #endif
 
 #ifndef ARRAY_SIZE
@@ -61,15 +61,17 @@
 #define snprintf c99_snprintf
 #define vsnprintf c99_vsnprintf
 
-__inline int c99_vsnprintf(
-    char *outBuf, size_t size, const char *format, va_list ap)
+__inline int
+c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
 {
     int count = -1;
 
-    if (size != 0)
+    if (size != 0) {
         count = _vsnprintf_s(outBuf, size, _TRUNCATE, format, ap);
-    if (count == -1)
+    }
+    if (count == -1) {
         count = _vscprintf(format, ap);
+    }
 
     return count;
 }

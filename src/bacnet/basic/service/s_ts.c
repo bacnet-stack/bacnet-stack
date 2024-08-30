@@ -63,9 +63,11 @@ void Send_TimeSync_Remote(
         datalink_send_pdu(
             dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send Time-Synchronization Request (%s)!\n",
+    if (bytes_sent <= 0) {
+        fprintf(
+            stderr, "Failed to Send Time-Synchronization Request (%s)!\n",
             strerror(errno));
+    }
 #endif
 }
 
@@ -120,10 +122,11 @@ void Send_TimeSyncUTC_Remote(
         datalink_send_pdu(
             dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr,
-            "Failed to Send UTC-Time-Synchronization Request (%s)!\n",
+    if (bytes_sent <= 0) {
+        fprintf(
+            stderr, "Failed to Send UTC-Time-Synchronization Request (%s)!\n",
             strerror(errno));
+    }
 #endif
 }
 
