@@ -551,6 +551,12 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  */
 void dlenv_init(void)
 {
+#if defined(BACDL_BIP)
+    BACNET_IP_ADDRESS addr;
+#endif
+#if defined(BACDL_BIP6)
+    BACNET_IP6_ADDRESS addr6;
+#endif
     char *pEnv = NULL;
 
 #if defined(BACDL_MULTIPLE)
@@ -562,7 +568,6 @@ void dlenv_init(void)
     }
 #endif
 #if defined(BACDL_BIP6)
-    BACNET_IP6_ADDRESS addr6;
     pEnv = getenv("BACNET_BIP6_DEBUG");
     if (pEnv) {
         bip6_debug_enable();
@@ -588,7 +593,6 @@ void dlenv_init(void)
     }
 #endif
 #if defined(BACDL_BIP)
-    BACNET_IP_ADDRESS addr;
     pEnv = getenv("BACNET_IP_DEBUG");
     if (pEnv) {
         bip_debug_enable();
