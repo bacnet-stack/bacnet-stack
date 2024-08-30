@@ -29,7 +29,9 @@
 #if defined(BACDL_MSTP)
 #include "bacnet/datalink/dlmstp.h"
 #endif
+#ifdef HAVE_STRINGS_H
 #include <strings.h> /* for strcasecmp() */
+#endif
 
 static enum {
     DATALINK_NONE = 0,
