@@ -70,6 +70,7 @@ list(APPEND testdirs
 
 list(APPEND testdirs
   bacnet/abort
+  bacnet/access_rule
   bacnet/alarm_ack
   bacnet/arf
   bacnet/awf

@@ -197,37 +197,62 @@ int bacnet_access_rule_decode(
 /**
  * @brief Decode the BACnetAccessRule
  * @param apdu  Pointer to the buffer for decoding.
- * @param rule  Pointer to the data to be stored
+ * @param data  Pointer to the data to be stored
  * @return number of bytes decoded
  * @deprecated Use bacapp_access_rule_decode() instead
  */
-int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *rule)
+int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *data)
 {
-    return bacnet_access_rule_decode(apdu, MAX_APDU, rule);
+    return bacnet_access_rule_decode(apdu, MAX_APDU, data);
 }
 
-int bacapp_decode_context_access_rule(
-    const uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *rule)
+/**
+ * @brief Decode the BACnetAccessRule as Context Tagged
+ * @param apdu  Pointer to the buffer for decoding.
+ * @param apdu_size The size of the buffer for decoding.
+ * @param tag_number  Tag number
+ * @param data  Pointer to the data to be stored
+ * @return number of bytes decoded or BACNET_STATUS_ERROR on error
+ */
+int bacnet_access_rule_context_decode(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    uint8_t tag_number,
+    BACNET_ACCESS_RULE *data)
 {
     int len = 0;
-    int section_length;
+    int apdu_len = 0;
 
-    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
-        len++;
-        section_length = bacapp_decode_access_rule(&apdu[len], rule);
-
-        if (section_length == -1) {
-            len = -1;
-        } else {
-            len += section_length;
-            if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
-                len++;
-            } else {
-                len = -1;
-            }
-        }
-    } else {
-        len = -1;
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
     }
-    return len;
+    apdu_len += len;
+    len =
+        bacnet_access_rule_decode(&apdu[apdu_len], apdu_size - apdu_len, data);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode the BACnetAccessRule as Context Tagged
+ * @param apdu  Pointer to the buffer for decoding.
+ * @param tag_number  Tag number
+ * @param data  Pointer to the data to be stored
+ * @return number of bytes decoded or BACNET_STATUS_ERROR on error
+ * @deprecated Use bacnet_access_rule_context_decode() instead
+ */
+int bacapp_decode_context_access_rule(
+    const uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *data)
+{
+    return bacnet_access_rule_context_decode(apdu, MAX_APDU, tag_number, data);
 }
