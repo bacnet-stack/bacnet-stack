@@ -259,6 +259,26 @@ bool Analog_Value_Present_Value_Set(
 }
 
 /**
+ * For a given object instance-number, sets the backed up present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point analog value
+ * @return  true if values are within range and present-value is set.
+ */
+bool Analog_Value_Present_Value_Backup_Set(uint32_t object_instance, float value)
+{
+    struct analog_value_descr * const pObject = Analog_Value_Object(object_instance);
+    bool status = false;
+
+    if (pObject) {
+        pObject->Present_Value_Backup = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, return the present value.
  *
  * @param  object_instance - object-instance number of the object

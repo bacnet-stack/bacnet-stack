@@ -87,6 +87,10 @@ extern "C" {
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * value);
     BACNET_STACK_EXPORT
+    bool CharacterString_Value_Present_Value_Backup_Set(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *present_value);
+    BACNET_STACK_EXPORT
     bool CharacterString_Value_Description_Set(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING *text_string);

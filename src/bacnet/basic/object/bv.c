@@ -440,6 +440,34 @@ bool Binary_Value_Present_Value_Set(
 }
 
 /**
+ * @brief For a given object instance-number, sets the backed up present-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - enumerated binary present-value
+ * @return  true if values are within range and present-value is set.
+ */
+bool Binary_Value_Present_Value_Backup_Set(
+    uint32_t object_instance, BACNET_BINARY_PV value)
+{
+    bool status = false;
+    struct object_data * const pObject = Binary_Value_Object(object_instance);
+    if (pObject) {
+        if (value <= MAX_BINARY_PV) {
+            if (pObject->Polarity != POLARITY_NORMAL) {
+                if (value == BINARY_INACTIVE) {
+                    value = BINARY_ACTIVE;
+                } else {
+                    value = BINARY_INACTIVE;
+                }
+            }
+            pObject->Present_Value_Backup = value;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object

@@ -302,6 +302,30 @@ bool Integer_Value_Present_Value_Set(
 }
 
 /**
+ * For a given object instance-number, sets the backed up present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - integer value
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+bool Integer_Value_Present_Value_Backup_Set(
+    uint32_t object_instance, int32_t value, uint8_t priority)
+{
+    bool status = false;
+    struct integer_object * const pObject = Integer_Value_Object(object_instance);
+
+    (void) priority;
+
+    if (pObject) {
+        pObject->Present_Value_Backup = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, loads the object-name into
  * a characterstring. Note that the object name must be unique
  * within this device.
