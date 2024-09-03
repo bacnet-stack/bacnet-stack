@@ -70,35 +70,6 @@ int bacapp_encode_access_rule(uint8_t *apdu, const BACNET_ACCESS_RULE *rule)
 }
 
 /**
- * @brief Encode the BACnetAccessRule as Context Tagged
- * @param apdu  Pointer to the buffer for encoding, or NULL for length
- * @param tag_number  Tag number
- * @param rule  Pointer to the data to be encoded
- * @return number of bytes encoded
- */
-int bacapp_encode_context_access_rule(
-    uint8_t *apdu, uint8_t tag_number, const BACNET_ACCESS_RULE *rule)
-{
-    int len;
-    int apdu_len = 0;
-
-    len = encode_opening_tag(apdu, tag_number);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = bacapp_encode_access_rule(apdu, rule);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = encode_closing_tag(apdu, tag_number);
-    apdu_len += len;
-
-    return apdu_len;
-}
-
-/**
  * @brief Decode the BACnetAccessRule
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  The size of the buffer for decoding.
@@ -207,52 +178,56 @@ int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *data)
 }
 
 /**
- * @brief Decode the BACnetAccessRule as Context Tagged
- * @param apdu  Pointer to the buffer for decoding.
- * @param apdu_size The size of the buffer for decoding.
- * @param tag_number  Tag number
- * @param data  Pointer to the data to be stored
- * @return number of bytes decoded or BACNET_STATUS_ERROR on error
+ * @brief Parse a string into a BACnet Shed Level value
+ * @param value [out] The BACnet Shed Level value
+ * @param argv [in] The string to parse
+ * @return True on success, else False
  */
-int bacnet_access_rule_context_decode(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_ACCESS_RULE *data)
+bool bacnet_shed_level_from_ascii(BACNET_ACCESS_RULE *value, const char *argv)
 {
-    int len = 0;
-    int apdu_len = 0;
+    bool status = false;
+    int count;
+    unsigned percent, level;
+    float amount;
+    const char *percentage;
+    const char *decimal_point;
 
-    if (!bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
+    if (!status) {
+        percentage = strchr(argv, '%');
+        if (percentage) {
+            count = sscanf(argv, "%u", &percent);
+            if (count == 1) {
+                value->type = BACNET_SHED_TYPE_PERCENT;
+                value->value.percent = percent;
+                status = true;
+            }
+        }
     }
-    apdu_len += len;
-    len =
-        bacnet_access_rule_decode(&apdu[apdu_len], apdu_size - apdu_len, data);
-    if (len <= 0) {
-        return BACNET_STATUS_ERROR;
+    if (!status) {
+        decimal_point = strchr(argv, '.');
+        if (decimal_point) {
+            count = sscanf(argv, "%f", &amount);
+            if (count == 1) {
+                value->type = BACNET_SHED_TYPE_AMOUNT;
+                value->value.amount = amount;
+                status = true;
+            }
+        }
     }
-    apdu_len += len;
-    if (!bacnet_is_closing_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
+    if (!status) {
+        count = sscanf(argv, "%u", &level);
+        if (count == 1) {
+            value->type = BACNET_SHED_TYPE_LEVEL;
+            value->value.level = level;
+            status = true;
+        }
     }
-    apdu_len += len;
 
-    return apdu_len;
+    return status;
 }
 
-/**
- * @brief Decode the BACnetAccessRule as Context Tagged
- * @param apdu  Pointer to the buffer for decoding.
- * @param tag_number  Tag number
- * @param data  Pointer to the data to be stored
- * @return number of bytes decoded or BACNET_STATUS_ERROR on error
- * @deprecated Use bacnet_access_rule_context_decode() instead
- */
-int bacapp_decode_context_access_rule(
-    const uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *data)
+bool bacnet_shed_level_same(
+    const BACNET_ACCESS_RULE *value1, const BACNET_ACCESS_RULE *value2)
 {
-    return bacnet_access_rule_context_decode(apdu, MAX_APDU, tag_number, data);
+    return false;
 }
