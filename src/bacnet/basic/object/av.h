@@ -102,6 +102,12 @@ extern "C" {
         uint32_t object_instance,
         float value,
         uint8_t priority);
+
+    BACNET_STACK_EXPORT
+    bool Analog_Value_Present_Value_Backup_Set(
+            uint32_t object_instance,
+            float value);
+
     BACNET_STACK_EXPORT
     float Analog_Value_Present_Value(
         uint32_t object_instance);

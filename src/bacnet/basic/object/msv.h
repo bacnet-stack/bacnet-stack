@@ -83,6 +83,11 @@ extern "C" {
         uint32_t value);
 
     BACNET_STACK_EXPORT
+    bool Multistate_Value_Present_Value_Backup_Set(
+        uint32_t object_instance,
+        uint32_t value);
+
+    BACNET_STACK_EXPORT
     bool Multistate_Value_Change_Of_Value(
         uint32_t instance);
     BACNET_STACK_EXPORT

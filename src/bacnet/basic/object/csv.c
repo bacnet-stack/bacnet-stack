@@ -286,6 +286,28 @@ bool CharacterString_Value_Present_Value_Set(
     return status;
 }
 
+/**
+ * For a given object instance-number, sets the backed up present-value,
+ * taken from another BACnet string.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  present_value - Pointer to the new BACnet string value.
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+
+bool CharacterString_Value_Present_Value_Backup_Set(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *present_value)
+{
+    bool status = false;
+    unsigned index = CharacterString_Value_Instance_To_Index(object_instance);
+
+    if (index < CSV_Max_Index) {
+        status = characterstring_copy(&Present_Value_Backup[index], present_value);
+    }
+
+    return status;
+}
 
 /**
  * For a given object instance-number, read the out of service value.

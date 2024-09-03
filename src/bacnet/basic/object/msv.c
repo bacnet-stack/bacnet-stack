@@ -354,6 +354,29 @@ bool Multistate_Value_Present_Value_Set(
 }
 
 /**
+ * @brief For a given object instance-number, sets the backed up present-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - integer multi-state value 1..N
+ * @return  true if values are within range and present-value is set.
+ */
+bool Multistate_Value_Present_Value_Backup_Set(
+    uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    unsigned max_states = 0;
+    struct object_data * const pObject = Multistate_Value_Object(object_instance);
+    if (pObject) {
+        max_states = state_name_count(pObject->State_Text);
+        if ((value >= 1) && (value <= max_states)) {
+            pObject->Present_Value_Backup = value;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object

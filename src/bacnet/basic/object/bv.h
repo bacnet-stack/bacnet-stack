@@ -175,6 +175,10 @@ extern "C" {
     bool Binary_Value_Present_Value_Set(
         uint32_t object_instance, BACNET_BINARY_PV value);
     BACNET_STACK_EXPORT
+    bool Binary_Value_Present_Value_Backup_Set(
+        uint32_t object_instance,
+        BACNET_BINARY_PV value);
+    BACNET_STACK_EXPORT
     bool Binary_Value_Change_Of_Value(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
