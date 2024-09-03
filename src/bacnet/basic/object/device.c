@@ -846,18 +846,18 @@ bool Device_Set_Model_Name(const char *name, size_t length)
     return status;
 }
 
-// bool Device_Set_Serial_Number(const char *serial_number, size_t length)
-// {
-//     bool status = false; /*return value */
-
-//     if (length < sizeof(Serial_Number)) {
-//         memmove(Serial_Number, serial_number, length);
-//         Serial_Number[length] = 0;
-//         status = true;
-//     }
-
-//     return status;
-// }
+bool Device_Set_Serial_Number(const char *serial_number, size_t length)
+{
+    bool status = false; /*return value */
+    fprintf(stderr, "Device_Set_Serial_Number: %s\n", serial_number);
+    if (length < sizeof(Serial_Number)) {
+        memmove(Serial_Number, serial_number, length);
+        Serial_Number[length] = 0;
+        status = true;
+    }
+    fprintf(stderr, "Device_Set_Serial_Number: %s\n", Serial_Number);
+    return status;
+}
 
 
 const char *Device_Firmware_Revision(void)
@@ -1311,9 +1311,9 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_SERIAL_NUMBER:
             fprintf(stderr, "Device_Read_Property_Local: PROP_SERIAL_NUMBER\n");
-            // characterstring_init_ansi(&char_string, Serial_Number);
-            // apdu_len =
-            //     encode_application_character_string(&apdu[0], &char_string);
+            characterstring_init_ansi(&char_string, Serial_Number);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FIRMWARE_REVISION:
             characterstring_init_ansi(&char_string, BACnet_Version);
@@ -1688,6 +1688,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MODEL_NAME:
+            fprintf(stderr, "Device_Write_Property_Local: PROP_MODEL_NAME\n");
             status = write_property_empty_string_valid(
                 wp_data, &value, MAX_DEV_MOD_LEN);
             if (status) {
@@ -1697,7 +1698,15 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_SERIAL_NUMBER:
-                fprintf(stderr, "Device_Write_Property_Local: PROP_SERIAL_NUMBER\n");
+            fprintf(stderr, "Device_Write_Property_Local: PROP_SERIAL_NUMBER\n");
+
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_MOD_LEN);
+            if (status) {
+                Device_Set_Serial_Number(
+                    characterstring_value(&value.type.Character_String),
+                    characterstring_length(&value.type.Character_String));
+            }
             break;
 #if defined(BACNET_TIME_MASTER)
         case PROP_TIME_SYNCHRONIZATION_INTERVAL:
