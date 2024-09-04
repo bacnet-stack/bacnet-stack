@@ -515,7 +515,7 @@ static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
 static char Model_Name[MAX_DEV_MOD_LEN + 1] = "GNU";
-static char Serial_Number[MAX_DEV_MOD_LEN + 1];
+static char Serial_Number[MAX_DEV_MOD_LEN + 1] = "";
 static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.0";
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
@@ -851,7 +851,7 @@ bool Device_Set_Serial_Number(const char *serial_number, size_t length)
 
     if (length < sizeof(Serial_Number)) {
         memmove(Serial_Number, serial_number, length);
-        Serial_Number[length] = 0;
+        Serial_Number[length] = '\0';
         status = true;
     }
 
