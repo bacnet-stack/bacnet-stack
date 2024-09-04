@@ -471,7 +471,7 @@ static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, PROP_OBJECT_LIST,
     PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_SEGMENTATION_SUPPORTED,
     PROP_APDU_TIMEOUT, PROP_NUMBER_OF_APDU_RETRIES, PROP_DEVICE_ADDRESS_BINDING,
-    PROP_DATABASE_REVISION, -1 };
+    PROP_DATABASE_REVISION, PROP_SERIAL_NUMBER, -1 };
 
 static const int Device_Properties_Optional[] = {
 #if defined(BACDL_MSTP)
@@ -515,6 +515,7 @@ static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static char *Vendor_Name = BACNET_VENDOR_NAME;
 static uint16_t Vendor_Identifier = BACNET_VENDOR_ID;
 static char Model_Name[MAX_DEV_MOD_LEN + 1] = "GNU";
+static char Serial_Number[MAX_DEV_MOD_LEN + 1] = "";
 static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.0";
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
@@ -843,6 +844,20 @@ bool Device_Set_Model_Name(const char *name, size_t length)
 
     return status;
 }
+
+bool Device_Set_Serial_Number(const char *serial_number, size_t length)
+{
+    bool status = false; /*return value */
+
+    if (length < sizeof(Serial_Number)) {
+        memmove(Serial_Number, serial_number, length);
+        Serial_Number[length] = '\0';
+        status = true;
+    }
+
+    return status;
+}
+
 
 const char *Device_Firmware_Revision(void)
 {
@@ -1293,6 +1308,11 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
+        case PROP_SERIAL_NUMBER:
+            characterstring_init_ansi(&char_string, Serial_Number);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
         case PROP_FIRMWARE_REVISION:
             characterstring_init_ansi(&char_string, BACnet_Version);
             apdu_len =
@@ -1670,6 +1690,15 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, MAX_DEV_MOD_LEN);
             if (status) {
                 Device_Set_Model_Name(
+                    characterstring_value(&value.type.Character_String),
+                    characterstring_length(&value.type.Character_String));
+            }
+            break;
+        case PROP_SERIAL_NUMBER:
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_MOD_LEN);
+            if (status) {
+                Device_Set_Serial_Number(
                     characterstring_value(&value.type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
