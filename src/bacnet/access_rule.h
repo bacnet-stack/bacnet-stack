@@ -51,9 +51,9 @@ int bacnet_access_rule_decode(
     const uint8_t *apdu, size_t apdu_size, BACNET_ACCESS_RULE *data);
 
 BACNET_STACK_EXPORT
-bool bacnet_shed_level_from_ascii(BACNET_ACCESS_RULE *value, const char *argv);
+bool bacnet_access_rule_from_ascii(BACNET_ACCESS_RULE *value, const char *argv);
 BACNET_STACK_EXPORT
-bool bacnet_shed_level_same(
+bool bacnet_access_rule_same(
     const BACNET_ACCESS_RULE *value1, const BACNET_ACCESS_RULE *value2);
 
 #ifdef __cplusplus
