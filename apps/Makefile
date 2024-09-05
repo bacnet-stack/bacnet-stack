@@ -145,13 +145,17 @@ CSTANDARD ?= -std=gnu89
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
 DEBUGGING ?=
-WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion -Wparentheses
-WARNING_ALL += -pedantic -Wunused-parameter -Wunused-variable -Wreturn-type
-WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
-WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
+# enable all relevant warnings that find bugs
+WARNING_ALL := -Wall -Wextra -pedantic
+WARNING_ALL += -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default
+WARNING_ALL += -Wunused-variable
+# don't warn about conversion, sign, compares, long long and attributes
+# since they are common in embedded
 WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
-WARNING_ALL += -Wno-long-long -Wno-implicit-fallthrough -Wno-attributes
-#WARNING_ALL += -Wredundant-decls
+WARNING_ALL += -Wno-long-long -Wno-attributes
+# don't warn about implicit fallthrough since it's common in network protocols
+WARNING_ALL += -Wno-implicit-fallthrough
 #WARNING_ALL += -Werror
 WARNINGS ?= $(WARNING_ALL)
 # dead code removal
@@ -174,6 +178,7 @@ BACNET_DEFINES += -DBACFILE
 BACNET_DEFINES += -DINTRINSIC_REPORTING
 BACNET_DEFINES += -DBACNET_TIME_MASTER
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
+BACNET_DEFINES += -DBACNET_PROPERTY_ARRAY_LISTS=1
 BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=24
 
 # put all the flags together
@@ -218,6 +223,10 @@ endif
 endif
 
 ifeq (${BACNET_PORT},win32)
+	SUBDIRS += mstpcap mstpcrc
+endif
+
+ifeq (${BACNET_PORT},bsd)
 	SUBDIRS += mstpcap mstpcrc
 endif
 
@@ -450,4 +459,3 @@ fuzz-afl: $(BACNET_LIB_TARGET)
 .PHONY: writepropm
 writepropm: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
-

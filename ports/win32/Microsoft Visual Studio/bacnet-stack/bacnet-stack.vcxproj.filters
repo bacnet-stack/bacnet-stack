@@ -78,6 +78,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\bacaddr.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaction.c">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\bacapp.c">
       <Filter>Source Files\src\bacnet</Filter>
     </ClCompile>
@@ -384,6 +387,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\structured_view.c">
+      <Filter>Source Files\src\bacnet\basic\object</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c">
       <Filter>Source Files\src\bacnet\basic\object</Filter>
     </ClCompile>
@@ -621,6 +627,9 @@
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\bacaddr.h">
+      <Filter>Source Files\src\bacnet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\bacaction.h">
       <Filter>Source Files\src\bacnet</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\bacapp.h">

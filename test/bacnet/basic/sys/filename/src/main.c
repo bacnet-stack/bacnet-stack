@@ -25,12 +25,12 @@ ZTEST(filename_tests, testFilename)
 static void testFilename(void)
 #endif
 {
-    char *data1 = "c:\\Joshua\\run";
-    char *data2 = "/home/Anna/run";
-    char *data3 = "c:\\Program Files\\Christopher\\run.exe";
-    char *data4 = "//Mary/data/run";
-    char *data5 = "bin\\run";
-    char *filename = NULL;
+    const char *data1 = "c:\\Joshua\\run";
+    const char *data2 = "/home/Anna/run";
+    const char *data3 = "c:\\Program Files\\Christopher\\run.exe";
+    const char *data4 = "//Mary/data/run";
+    const char *data5 = "bin\\run";
+    const char *filename = NULL;
 
     filename = filename_remove_path(data1);
     zassert_equal(strcmp("run", filename), 0, NULL);

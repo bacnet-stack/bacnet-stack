@@ -1,44 +1,17 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2009 Peter Mc Shane
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet ReadRange-Request encode and decode helper functions
+ * @author Peter Mc Shane <petermcs@users.sourceforge.net>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/readrange.h"
-
-/** @file readrange.c  Encode/Decode ReadRange requests */
 
 /*
  * ReadRange-Request ::= SEQUENCE {
@@ -70,7 +43,7 @@
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int read_range_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *data)
+int read_range_encode(uint8_t *apdu, const BACNET_READ_RANGE_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -183,7 +156,7 @@ int read_range_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t read_range_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_READ_RANGE_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_READ_RANGE_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -207,7 +180,7 @@ size_t read_range_request_encode(
  *  @return Bytes encoded.
  */
 int rr_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_READ_RANGE_DATA *data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_RANGE_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -239,7 +212,7 @@ int rr_encode_apdu(
  *  @return Bytes encoded.
  */
 int rr_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_READ_RANGE_DATA *rrdata)
+    const uint8_t *apdu, unsigned apdu_len, BACNET_READ_RANGE_DATA *rrdata)
 {
     unsigned len = 0;
     unsigned TagLen = 0;
@@ -420,7 +393,7 @@ int rr_decode_service_request(
  * ReadRange-ACK ::= SEQUENCE {
  *     objectIdentifier    [0] BACnetObjectIdentifier,
  *     propertyIdentifier  [1] BACnetPropertyIdentifier,
- *     propertyArrayIndex  [2] Unsigned OPTIONAL	,  -- used only with
+ *     propertyArrayIndex  [2] Unsigned OPTIONAL,  -- used only with
  * array datatype resultFlags         [3] BACnetResultFlags, itemCount [4]
  * Unsigned, itemData            [5] SEQUENCE OF ABSTRACT-SYNTAX.&TYPE,
  *     firstSequenceNumber [6] Unsigned32 OPTIONAL -- used only if 'Item
@@ -441,7 +414,7 @@ int rr_decode_service_request(
  * @return The count of encoded bytes.
  */
 int rr_ack_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_READ_RANGE_DATA *rrdata)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_RANGE_DATA *rrdata)
 {
     int imax = 0;
     int len = 0; /* length of each encoding */
@@ -507,7 +480,8 @@ int rr_ack_encode_apdu(
  *
  *  @return Bytes decoded.
  */
-int rr_ack_decode_service_request(uint8_t *apdu,
+int rr_ack_decode_service_request(
+    uint8_t *apdu,
     int apdu_len, /* total length of the apdu */
     BACNET_READ_RANGE_DATA *rrdata)
 {

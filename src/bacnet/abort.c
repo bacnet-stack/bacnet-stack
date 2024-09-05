@@ -1,44 +1,17 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet Abort Reason Encoding and Decoding
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Peter McShane <petermcs@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/abort.h"
-
-/** @file abort.c  Abort Encoding/Decoding */
 
 /**
  * @brief Convert error-code into abort-reason
@@ -241,7 +214,10 @@ int abort_encode_apdu(
  * @return Total length of the apdu, typically 2 on success, zero otherwise.
  */
 int abort_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id, uint8_t *abort_reason)
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    uint8_t *invoke_id,
+    uint8_t *abort_reason)
 {
     int len = 0;
 

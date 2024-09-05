@@ -1,36 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2007 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+ *
+ * Copyright (C) 2007 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -40,6 +14,26 @@
 #include "bacnet/apdu.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/basic/services.h"
+
+static uint8_t Local_Network_Priority; /* Fixing test 10.1.2 Network priority */
+
+/**
+ * @brief get the local network priority
+ * @return local network priority
+ */
+uint8_t apdu_network_priority(void)
+{
+    return Local_Network_Priority;
+}
+
+/**
+ * @brief set the local network priority
+ * @param net - local network priority
+ */
+void apdu_network_priority_set(uint8_t pri)
+{
+    Local_Network_Priority = pri & 0x03;
+}
 
 bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
 {
@@ -76,6 +70,7 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
     service_data->max_segs = decode_max_segs(apdu[1]);
     service_data->max_resp = decode_max_apdu(apdu[1]);
     service_data->invoke_id = apdu[2];
+    service_data->priority = apdu_network_priority();
     len = 3;
     if (service_data->segmented_message) {
         service_data->sequence_number = apdu[len++];

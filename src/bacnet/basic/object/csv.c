@@ -1,30 +1,11 @@
-/**************************************************************************
- *
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* CharacterString Value Objects */
-
+/**
+ * @file
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @brief A basic BACnet CharacterString Value object with a CharacterString
+ * as the datatype for the present-value property.
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -53,15 +34,14 @@ static bool Out_Of_Service[MAX_CHARACTERSTRING_VALUES];
 static bool Changed[MAX_CHARACTERSTRING_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    -1 };
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
+};
 
-static const int Properties_Optional[] = {
-    #if (CHARACTERSTRING_INTRINSIC_REPORTING)
-    PROP_EVENT_STATE,
-    #endif
-    PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1 };
+static const int Properties_Optional[] = { PROP_EVENT_STATE,
+                                           PROP_OUT_OF_SERVICE,
+                                           PROP_DESCRIPTION, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -269,7 +249,7 @@ bool CharacterString_Value_Present_Value(
  */
 
 bool CharacterString_Value_Present_Value_Set(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *present_value)
+    uint32_t object_instance, const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
@@ -335,8 +315,8 @@ bool CharacterString_Value_Out_Of_Service(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @param  true/false
  */
-static void CharacterString_Value_Out_Of_Service_Set(
-    uint32_t object_instance, bool value)
+static void
+CharacterString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     unsigned index = 0;
 
@@ -406,8 +386,8 @@ bool CharacterString_Value_Encode_Value_List(
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < MAX_CHARACTERSTRING_VALUES) {
-        status = cov_value_list_encode_character_string(value_list,
-            &Present_Value[index], in_alarm, fault, overridden,
+        status = cov_value_list_encode_character_string(
+            value_list, &Present_Value[index], in_alarm, fault, overridden,
             Out_Of_Service[index]);
     }
 
@@ -499,7 +479,8 @@ bool CharacterString_Value_Object_Name(
  *
  * @return True on success, false otherwise.
  */
-bool CharacterString_Value_Name_Set(uint32_t object_instance, char *new_name)
+bool CharacterString_Value_Name_Set(
+    uint32_t object_instance, const char *new_name)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false; /* return value */
@@ -556,8 +537,9 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(&apdu[0],
-                OBJECT_CHARACTERSTRING_VALUE, rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_CHARACTERSTRING_VALUE,
+                rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
@@ -569,7 +551,8 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_DESCRIPTION:
-            if (characterstring_init_ansi(&char_string,
+            if (characterstring_init_ansi(
+                    &char_string,
                     CharacterString_Value_Description(
                         rpdata->object_instance))) {
                 apdu_len =

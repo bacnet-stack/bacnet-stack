@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2005 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <ifaddrs.h>
@@ -189,7 +162,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
  *
  * @param addr - network IPv4 address
  */
-bool bip_set_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_addr(const BACNET_IP_ADDRESS *addr)
 {
     (void)addr;
     /* not something we do within this driver */
@@ -216,7 +189,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  * @param addr - network IPv4 address
  * @return true if the address was set
  */
-bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
 {
     (void)addr;
     /* not something we do within this driver */
@@ -284,7 +257,8 @@ uint8_t bip_get_subnet_prefix(void)
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip_send_mpdu(
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     struct sockaddr_in bip_dest = { 0 };
 
@@ -303,7 +277,7 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     /* Send the packet */
     debug_print_ipv4(
         "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
-    return sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
+    return sendto(BIP_Socket, (const char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
 }
 
@@ -499,7 +473,8 @@ static char *ifname_default(void)
  * @param addr [out] The netmask addr, broadcast addr, ip addr.
  * @param request [in] addr broadaddr netmask
  */
-static int get_local_address(char *ifname, struct in_addr *addr, char *request)
+static int get_local_address(
+    const char *ifname, struct in_addr *addr, const char *request)
 {
     char rv = '\0'; /* return value */
 
@@ -545,8 +520,7 @@ int bip_get_local_netmask(struct in_addr *netmask)
     if (ifname == NULL)
         ifname = "en0";
     printf("ifname %s", ifname);
-    char *request = "netmask";
-    rv = get_local_address(ifname, netmask, request);
+    rv = get_local_address(ifname, netmask, "netmask");
 
     return rv;
 }
@@ -571,7 +545,7 @@ int bip_set_broadcast_binding(
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for MAC OS X, ifname is en0, en1, and others.
  */
-void bip_set_interface(char *ifname)
+void bip_set_interface(const char *ifname)
 {
     struct in_addr local_address;
     struct in_addr broadcast_address;
@@ -630,7 +604,7 @@ void bip_set_interface(char *ifname)
     }
 }
 
-static int createSocket(struct sockaddr_in *sin)
+static int createSocket(const struct sockaddr_in *sin)
 {
     int status = 0; /* return from socket lib calls */
     int sockopt = 0;

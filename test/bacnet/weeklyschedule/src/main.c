@@ -39,7 +39,6 @@ static void test_BACnetWeeklySchedule(void)
     BACNET_WEEKLY_SCHEDULE empty_value = { 0 };
     BACNET_WEEKLY_SCHEDULE value = { 0 };
     BACNET_WEEKLY_SCHEDULE decoded = { 0 };
-    int diff = 0;
     bool status = false;
     uint8_t tag_number = 0;
 

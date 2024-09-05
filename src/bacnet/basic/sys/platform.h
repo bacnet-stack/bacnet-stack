@@ -1,25 +1,33 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2022
  * @brief Platform libc and compiler abstraction layer
- *
- * @section DESCRIPTION
- *
- * This libc and compiler abstraction layer assists with differences
+ * @details This libc and compiler abstraction layer assists with differences
  * between compiler and libc versions, capabilities, and C standards.
- *
- * @copyright 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_SYS_PLATFORM_H
 #define BACNET_SYS_PLATFORM_H
 #include <stddef.h>
+#include <string.h>
+#include <limits.h>
 #include <math.h>
+
+#ifndef INT_MAX
+#define INT_MAX (~0U >> 1U)
+#endif
 
 #ifndef islessgreater
 #define islessgreater(x, y) ((x) < (y) || (x) > (y))
+#endif
+
+#ifndef isgreaterequal
+#define isgreaterequal(x, y) ((x) > (y) || !islessgreater((x), (y)))
+#endif
+
+#ifndef islessequal
+#define islessequal(x, y) ((x) < (y) || !islessgreater((x), (y)))
 #endif
 
 #ifndef ARRAY_SIZE
@@ -44,21 +52,26 @@
 #ifndef strncasecmp
 #define strncasecmp _strnicmp
 #endif
+#ifndef __inline__
+#define __inline__ __inline
+#endif
 #if (_MSC_VER < 1900)
 #include <stdio.h>
 #include <stdarg.h>
 #define snprintf c99_snprintf
 #define vsnprintf c99_vsnprintf
 
-__inline int c99_vsnprintf(
-    char *outBuf, size_t size, const char *format, va_list ap)
+__inline int
+c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
 {
     int count = -1;
 
-    if (size != 0)
+    if (size != 0) {
         count = _vsnprintf_s(outBuf, size, _TRUNCATE, format, ap);
-    if (count == -1)
+    }
+    if (count == -1) {
         count = _vscprintf(format, ap);
+    }
 
     return count;
 }
@@ -74,17 +87,6 @@ __inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
 
     return count;
 }
-#endif
-#elif defined(__ZEPHYR__)
-#include <strings.h>
-/* For some reason my Zephyr build for non-native targets does not
- *  see a definition for strnlen(), but it is visible in when
- *  compiling for native_posix. This results in the compiler
- *  emitting a warning, forcing Zephyr's sanitycheck() script to stop.
- *  Until this is chased down, the definition is being provided here.
- */
-#if !CONFIG_NATIVE_APPLICATION
-size_t strnlen(const char *, size_t);
 #endif
 #endif
 
@@ -104,12 +106,6 @@ size_t strnlen(const char *, size_t);
 #define BACNET_STACK_FALLTHROUGH() __attribute__((fallthrough))
 #else
 #define BACNET_STACK_FALLTHROUGH() /* fall through */
-#endif
-
-#if defined(_MSC_VER)
-/* Silence the warnings about unsafe versions of library functions */
-/* as we need to keep the code portable */
-#pragma warning(disable : 4996)
 #endif
 
 #endif

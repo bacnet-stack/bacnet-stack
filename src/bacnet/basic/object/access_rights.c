@@ -1,30 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* Access Rights Objects - customize for your use */
-
+/**
+ * @file
+ * @brief A basic BACnet Access Rights Objects implementation.
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -44,9 +24,15 @@ static ACCESS_RIGHTS_DESCR ar_descr[MAX_ACCESS_RIGHTSS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_GLOBAL_IDENTIFIER,
-    PROP_STATUS_FLAGS, PROP_RELIABILITY, PROP_ENABLE,
-    PROP_NEGATIVE_ACCESS_RULES, PROP_POSITIVE_ACCESS_RULES, -1 };
+                                           PROP_OBJECT_NAME,
+                                           PROP_OBJECT_TYPE,
+                                           PROP_GLOBAL_IDENTIFIER,
+                                           PROP_STATUS_FLAGS,
+                                           PROP_RELIABILITY,
+                                           PROP_ENABLE,
+                                           PROP_NEGATIVE_ACCESS_RULES,
+                                           PROP_POSITIVE_ACCESS_RULES,
+                                           -1 };
 
 static const int Properties_Optional[] = { -1 };
 
@@ -134,11 +120,12 @@ unsigned Access_Rights_Instance_To_Index(uint32_t object_instance)
 bool Access_Rights_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
 
     if (object_instance < MAX_ACCESS_RIGHTSS) {
-        snprintf(text, sizeof(text), "ACCESS RIGHTS %lu", 
+        snprintf(
+            text, sizeof(text), "ACCESS RIGHTS %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
@@ -199,13 +186,15 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_NEGATIVE_ACCESS_RULES:
             if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(&apdu[0],
+                apdu_len = encode_application_unsigned(
+                    &apdu[0],
                     ar_descr[object_index].negative_access_rules_count);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 0;
                      i < ar_descr[object_index].negative_access_rules_count;
                      i++) {
-                    len = bacapp_encode_access_rule(&apdu[0],
+                    len = bacapp_encode_access_rule(
+                        &apdu[0],
                         &ar_descr[object_index].negative_access_rules[i]);
                     if (apdu_len + len < MAX_APDU) {
                         apdu_len += len;
@@ -219,7 +208,8 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             } else {
                 if (rpdata->array_index <=
                     ar_descr[object_index].negative_access_rules_count) {
-                    apdu_len = bacapp_encode_access_rule(&apdu[0],
+                    apdu_len = bacapp_encode_access_rule(
+                        &apdu[0],
                         &ar_descr[object_index]
                              .negative_access_rules[rpdata->array_index - 1]);
                 } else {
@@ -231,13 +221,15 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_POSITIVE_ACCESS_RULES:
             if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(&apdu[0],
+                apdu_len = encode_application_unsigned(
+                    &apdu[0],
                     ar_descr[object_index].positive_access_rules_count);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 0;
                      i < ar_descr[object_index].positive_access_rules_count;
                      i++) {
-                    len = bacapp_encode_access_rule(&apdu[0],
+                    len = bacapp_encode_access_rule(
+                        &apdu[0],
                         &ar_descr[object_index].positive_access_rules[i]);
                     if (apdu_len + len < MAX_APDU) {
                         apdu_len += len;
@@ -251,7 +243,8 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             } else {
                 if (rpdata->array_index <=
                     ar_descr[object_index].positive_access_rules_count) {
-                    apdu_len = bacapp_encode_access_rule(&apdu[0],
+                    apdu_len = bacapp_encode_access_rule(
+                        &apdu[0],
                         &ar_descr[object_index]
                              .positive_access_rules[rpdata->array_index - 1]);
                 } else {

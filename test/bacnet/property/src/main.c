@@ -1,13 +1,11 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
+/**
+ * @file
+ * @brief Unit test for BACnet property special lists
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
  *
  * SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/property.h>
 
@@ -22,7 +20,7 @@
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(property_tests, testPropList)
 #else
-void testPropList(void)
+static void testPropList(void)
 #endif
 {
     unsigned i = 0, j = 0;
@@ -30,6 +28,7 @@ void testPropList(void)
     BACNET_PROPERTY_ID property = MAX_BACNET_PROPERTY_ID;
     unsigned object_id = 0, object_name = 0, object_type = 0;
     struct special_property_list_t property_list = { 0 };
+    bool status = false;
 
     for (i = 0; i < OBJECT_PROPRIETARY_MIN; i++) {
         count = property_list_special_count((BACNET_OBJECT_TYPE)i, PROP_ALL);
@@ -68,7 +67,24 @@ void testPropList(void)
                 property_list.Required.pList, PROP_OBJECT_NAME),
             NULL);
     }
+    /* property is a BACnetARRAY */
+    for (i = 0; i < OBJECT_PROPRIETARY_MIN; i++) {
+        object_type = i;
+        status =
+            property_list_bacnet_array_member(object_type, PROP_PRESENT_VALUE);
+        if (object_type == OBJECT_GLOBAL_GROUP) {
+            zassert_true(status, NULL);
+        } else {
+            zassert_false(status, NULL);
+        }
+        status =
+            property_list_bacnet_array_member(object_type, PROP_PRIORITY_ARRAY);
+        zassert_true(status, NULL);
+    }
+    count = property_list_count(property_list_bacnet_array());
+    zassert_true(count > 0, NULL);
 }
+
 /**
  * @}
  */

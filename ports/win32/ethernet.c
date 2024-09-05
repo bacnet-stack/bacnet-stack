@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg, modified by Kevin Liao
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2005 Steve Karg, modified by Kevin Liao
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <assert.h>
@@ -137,8 +110,9 @@ bool ethernet_init(char *if_name)
     int i;
     char msg[200];
 
-    if (ethernet_valid())
+    if (ethernet_valid()) {
         ethernet_cleanup();
+    }
 
     /**
      * Find the interface user specified
@@ -153,8 +127,9 @@ bool ethernet_init(char *if_name)
     }
     /* Scan the list printing every entry */
     for (dev = pcap_all_if; dev; dev = dev->next) {
-        if (strcmp(if_name, dev->name) == 0)
+        if (strcmp(if_name, dev->name) == 0) {
             break;
+        }
     }
     pcap_freealldevs(pcap_all_if); /* we don't need it anymore */
     if (dev == NULL) {
@@ -188,8 +163,9 @@ bool ethernet_init(char *if_name)
         LogError("ethernet.c: error in PacketRequest()\n");
         return false;
     }
-    for (i = 0; i < 6; ++i)
+    for (i = 0; i < 6; ++i) {
         Ethernet_MAC_Address[i] = pOidData->Data[i];
+    }
     PacketCloseAdapter(lpAdapter);
 
     /**
@@ -344,11 +320,13 @@ uint16_t ethernet_receive(
             msg, sizeof(), "ethernet.c: error in receiving packet: %s\n",
             pcap_geterr(pcap_eth802_fp));
         return 0;
-    } else if (res == 0)
+    } else if (res == 0) {
         return 0;
+    }
 
-    if (header->len == 0 || header->caplen == 0)
+    if (header->len == 0 || header->caplen == 0) {
         return 0;
+    }
 
     /* the signature of an 802.2 BACnet packet */
     if ((pkt_data[14] != 0x82) && (pkt_data[15] != 0x82)) {
@@ -370,16 +348,18 @@ uint16_t ethernet_receive(
     (void)decode_unsigned16(&pkt_data[12], &pdu_len);
     pdu_len -= 3 /* DSAP, SSAP, LLC Control */;
     /* copy the buffer into the PDU */
-    if (pdu_len < max_pdu)
+    if (pdu_len < max_pdu) {
         memmove(&pdu[0], &pkt_data[17], pdu_len);
+    }
     /* ignore packets that are too large */
-    else
+    else {
         pdu_len = 0;
+    }
 
     return pdu_len;
 }
 
-void ethernet_set_my_address(BACNET_ADDRESS *my_address)
+void ethernet_set_my_address(const BACNET_ADDRESS *my_address)
 {
     int i = 0;
 
@@ -427,7 +407,7 @@ void ethernet_get_broadcast_address(BACNET_ADDRESS *dest)
     return;
 }
 
-void ethernet_debug_address(const char *info, BACNET_ADDRESS *dest)
+void ethernet_debug_address(const char *info, const BACNET_ADDRESS *dest)
 {
     int i = 0; /* counter */
     char msg[200];

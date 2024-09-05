@@ -1,26 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2014 Kerry Lynn <kerlyn@ieee.org>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *********************************************************************/
+/**
+ * @file
+ * @brief BACnet MSTP COBS encoding for extended frames
+ * @author Kerry Lynn <kerlyn@ieee.org>
+ * @date 2014
+ * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLMSTP BACnet MS/TP DataLink Network Layer
+ * @ingroup DataLink
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include "bacnet/datalink/mstpdef.h"
@@ -86,7 +72,8 @@ uint32_t cobs_crc32k(uint8_t dataValue, uint32_t crc32kValue)
  * @return the length of the encoded data, or 0 if error
  * @note This function is copied mostly from the BACnet standard.
  */
-size_t cobs_encode(uint8_t *buffer,
+size_t cobs_encode(
+    uint8_t *buffer,
     size_t buffer_size,
     const uint8_t *from,
     size_t length,
@@ -191,9 +178,9 @@ size_t cobs_frame_encode(
      */
     crc32K = ~crc32K;
     (void)cobs_crc32k_encode(crc_buffer, sizeof(crc_buffer), crc32K);
-    cobs_crc_len = cobs_encode((uint8_t *)(buffer + cobs_data_len),
-        buffer_size - cobs_data_len, crc_buffer, sizeof(crc_buffer),
-        MSTP_PREAMBLE_X55);
+    cobs_crc_len = cobs_encode(
+        (uint8_t *)(buffer + cobs_data_len), buffer_size - cobs_data_len,
+        crc_buffer, sizeof(crc_buffer), MSTP_PREAMBLE_X55);
     if (cobs_crc_len == 0) {
         return 0;
     }
@@ -215,7 +202,8 @@ size_t cobs_frame_encode(
  * @return the length of the decoded buffer, or 0 if error
  * @note This function is copied directly from the BACnet standard.
  */
-size_t cobs_decode(uint8_t *buffer,
+size_t cobs_decode(
+    uint8_t *buffer,
     size_t buffer_size,
     const uint8_t *from,
     size_t length,
@@ -308,8 +296,8 @@ size_t cobs_frame_decode(
     /*
      * Decode the Encoded CRC-32K field
      */
-    crc_len = cobs_decode(crc_buffer, sizeof(crc_buffer),
-        (uint8_t *)(from + length - COBS_ENCODED_CRC_SIZE),
+    crc_len = cobs_decode(
+        crc_buffer, sizeof(crc_buffer), from + length - COBS_ENCODED_CRC_SIZE,
         COBS_ENCODED_CRC_SIZE, MSTP_PREAMBLE_X55);
     /*
      * Sanity check length of decoded CRC32K.

@@ -23,8 +23,9 @@
  * @addtogroup bacnet_tests
  * @{
  */
-
+#ifdef BACNET_ADDRESS_CACHE_FILE
 static const char *Address_Cache_Filename = "address_cache";
+#endif
 
 /**
  * @brief Test
@@ -44,6 +45,7 @@ static void set_address(unsigned index, BACNET_ADDRESS *dest)
     }
 }
 
+#ifdef BACNET_ADDRESS_CACHE_FILE
 static void set_file_address(
     const char *pFilename,
     uint32_t device_id,
@@ -78,6 +80,7 @@ static void set_file_address(
         fclose(pFile);
     }
 }
+#endif
 
 #ifdef BACNET_ADDRESS_CACHE_FILE
 /* Validate that the address data in the file */

@@ -1,26 +1,10 @@
 /**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+ *
+ * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ *********************************************************************/
 #ifndef BACNET_BASIC_TSM_TSM_H
 #define BACNET_BASIC_TSM_TSM_H
 
@@ -39,14 +23,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
-    BACNET_STACK_EXPORT extern 
-    uint8_t Handler_Transmit_Buffer[MAX_PDU];
+/* FIXME: modify basic service handlers to use TSM rather than this buffer! */
+BACNET_STACK_EXPORT extern uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
 
 #if (!MAX_TSM_TRANSACTIONS)
 #define tsm_free_invoke_id(x) (void)x;
@@ -96,62 +78,50 @@ typedef struct BACnet_TSM_Data {
     unsigned apdu_len;
 } BACNET_TSM_DATA;
 
-typedef void (
-    *tsm_timeout_function) (
-    uint8_t invoke_id);
-
+typedef void (*tsm_timeout_function)(uint8_t invoke_id);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    void tsm_set_timeout_handler(
-        tsm_timeout_function pFunction);
+BACNET_STACK_EXPORT
+void tsm_set_timeout_handler(tsm_timeout_function pFunction);
 
-    BACNET_STACK_EXPORT
-    bool tsm_transaction_available(
-        void);
-    BACNET_STACK_EXPORT
-    uint8_t tsm_transaction_idle_count(
-        void);
-    BACNET_STACK_EXPORT
-    void tsm_timer_milliseconds(
-        uint16_t milliseconds);
+BACNET_STACK_EXPORT
+bool tsm_transaction_available(void);
+BACNET_STACK_EXPORT
+uint8_t tsm_transaction_idle_count(void);
+BACNET_STACK_EXPORT
+void tsm_timer_milliseconds(uint16_t milliseconds);
 /* free the invoke ID when the reply comes back */
-    BACNET_STACK_EXPORT
-    void tsm_free_invoke_id(
-        uint8_t invokeID);
+BACNET_STACK_EXPORT
+void tsm_free_invoke_id(uint8_t invokeID);
 /* use these in tandem */
-    BACNET_STACK_EXPORT
-    uint8_t tsm_next_free_invokeID(
-        void);
-    BACNET_STACK_EXPORT
-    void tsm_invokeID_set(
-        uint8_t invokeID);
+BACNET_STACK_EXPORT
+uint8_t tsm_next_free_invokeID(void);
+BACNET_STACK_EXPORT
+void tsm_invokeID_set(uint8_t invokeID);
 /* returns the same invoke ID that was given */
-    BACNET_STACK_EXPORT
-    void tsm_set_confirmed_unsegmented_transaction(
-        uint8_t invokeID,
-        BACNET_ADDRESS * dest,
-        BACNET_NPDU_DATA * ndpu_data,
-        uint8_t * apdu,
-        uint16_t apdu_len);
+BACNET_STACK_EXPORT
+void tsm_set_confirmed_unsegmented_transaction(
+    uint8_t invokeID,
+    const BACNET_ADDRESS *dest,
+    const BACNET_NPDU_DATA *ndpu_data,
+    const uint8_t *apdu,
+    uint16_t apdu_len);
 /* returns true if transaction is found */
-    BACNET_STACK_EXPORT
-    bool tsm_get_transaction_pdu(
-        uint8_t invokeID,
-        BACNET_ADDRESS * dest,
-        BACNET_NPDU_DATA * ndpu_data,
-        uint8_t * apdu,
-        uint16_t * apdu_len);
+BACNET_STACK_EXPORT
+bool tsm_get_transaction_pdu(
+    uint8_t invokeID,
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *ndpu_data,
+    uint8_t *apdu,
+    uint16_t *apdu_len);
 
-    BACNET_STACK_EXPORT
-    bool tsm_invoke_id_free(
-        uint8_t invokeID);
-    BACNET_STACK_EXPORT
-    bool tsm_invoke_id_failed(
-        uint8_t invokeID);
+BACNET_STACK_EXPORT
+bool tsm_invoke_id_free(uint8_t invokeID);
+BACNET_STACK_EXPORT
+bool tsm_invoke_id_failed(uint8_t invokeID);
 
 #ifdef __cplusplus
 }

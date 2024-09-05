@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
@@ -52,11 +35,13 @@
  * @param apdu [in] The received apdu data.
  * @param apdu_len [in] Total length of the apdu.
  * @param read_access_data [out] Pointer to the head of the linked list
- * 			where the RPM data is to be stored.
+ *          where the RPM data is to be stored.
  * @return The number of bytes decoded, or -1 on error
  */
 int rpm_ack_decode_service_request(
-    uint8_t *apdu, int apdu_len, BACNET_READ_ACCESS_DATA *read_access_data)
+    const uint8_t *apdu,
+    int apdu_len,
+    BACNET_READ_ACCESS_DATA *read_access_data)
 {
     int decoded_len = 0; /* return value */
     uint32_t error_value = 0; /* decoded error value */
@@ -77,7 +62,8 @@ int rpm_ack_decode_service_request(
     rpm_object = read_access_data;
     old_rpm_object = rpm_object;
     while (rpm_object && apdu_len) {
-        len = rpm_ack_decode_object_id(apdu, apdu_len, &rpm_object->object_type,
+        len = rpm_ack_decode_object_id(
+            apdu, apdu_len, &rpm_object->object_type,
             &rpm_object->object_instance);
         if (len <= 0) {
             old_rpm_object->next = NULL;
@@ -95,8 +81,8 @@ int rpm_ack_decode_service_request(
         rpm_object->listOfProperties = rpm_property;
         old_rpm_property = rpm_property;
         while (rpm_property && apdu_len) {
-            len = rpm_ack_decode_object_property(apdu, apdu_len,
-                &rpm_property->propertyIdentifier,
+            len = rpm_ack_decode_object_property(
+                apdu, apdu_len, &rpm_property->propertyIdentifier,
                 &rpm_property->propertyArrayIndex);
             if (len <= 0) {
                 old_rpm_property->next = NULL;
@@ -112,8 +98,7 @@ int rpm_ack_decode_service_request(
             apdu_len -= len;
             apdu += len;
             if (apdu_len && decode_is_opening_tag_number(apdu, 4)) {
-                data_len = bacapp_data_len(apdu, (unsigned)apdu_len, 
-                    rpm_property->propertyIdentifier);
+                data_len = bacnet_enclosed_data_length(apdu, apdu_len);
                 /* propertyValue */
                 decoded_len++;
                 apdu_len--;
@@ -131,8 +116,9 @@ int rpm_ack_decode_service_request(
                     apdu++;
                 } else {
                     while (value && (apdu_len > 0)) {
-                        len = bacapp_decode_known_property(apdu,
-                            (unsigned)apdu_len, value, rpm_object->object_type,
+                        len = bacapp_decode_known_property(
+                            apdu, (unsigned)apdu_len, value,
+                            rpm_object->object_type,
                             rpm_property->propertyIdentifier);
                         /* If len == 0 then it's an empty structure, which is
                          * OK. */
@@ -143,7 +129,8 @@ int rpm_ack_decode_service_request(
                                 len = data_len;
                                 bacapp_value_list_init(value, 1);
                             } else {
-                                PERROR("RPM Ack: unable to decode! %s:%s\n",
+                                PERROR(
+                                    "RPM Ack: unable to decode! %s:%s\n",
                                     bactext_object_type_name(
                                         rpm_object->object_type),
                                     bactext_property_name(
@@ -166,7 +153,8 @@ int rpm_ack_decode_service_request(
                                 1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                             old_value->next = value;
                         } else {
-                            PERROR("RPM Ack: decoded %s:%s len=%d\n",
+                            PERROR(
+                                "RPM Ack: decoded %s:%s len=%d\n",
                                 bactext_object_type_name(
                                     rpm_object->object_type),
                                 bactext_property_name(
@@ -242,7 +230,8 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
     bool array_value = false;
 
     if (rpm_data) {
-        PRINTF("%s #%lu\r\n", bactext_object_type_name(rpm_data->object_type),
+        PRINTF(
+            "%s #%lu\r\n", bactext_object_type_name(rpm_data->object_type),
             (unsigned long)rpm_data->object_instance);
         PRINTF("{\r\n");
         listOfProperties = rpm_data->listOfProperties;
@@ -251,14 +240,16 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
                 (listOfProperties->propertyIdentifier > 4194303)) {
                 /* Enumerated values 0-511 and 4194304+ are reserved
                    for definition by ASHRAE.*/
-                PRINTF("    %s: ",
+                PRINTF(
+                    "    %s: ",
                     bactext_property_name(
                         listOfProperties->propertyIdentifier));
             } else {
                 /* Enumerated values 512-4194303 may be used
                     by others subject to the procedures and
                     constraints described in Clause 23. */
-                PRINTF("    proprietary %u: ",
+                PRINTF(
+                    "    proprietary %u: ",
                     (unsigned)listOfProperties->propertyIdentifier);
             }
             if (listOfProperties->propertyArrayIndex != BACNET_ARRAY_ALL) {
@@ -298,7 +289,8 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
                 }
             } else {
                 /* AccessError */
-                PRINTF("BACnet Error: %s: %s\r\n",
+                PRINTF(
+                    "BACnet Error: %s: %s\r\n",
                     bactext_error_class_name(
                         (int)listOfProperties->error.error_class),
                     bactext_error_code_name(
@@ -358,7 +350,8 @@ BACNET_READ_ACCESS_DATA *rpm_data_free(BACNET_READ_ACCESS_DATA *rpm_data)
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_read_property_multiple_ack(uint8_t *service_request,
+void handler_read_property_multiple_ack(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)

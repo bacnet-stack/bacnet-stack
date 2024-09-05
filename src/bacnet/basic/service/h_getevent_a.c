@@ -1,40 +1,15 @@
 /**
  * @file
+ * @brief A basic GetEventNotification-ACK service handling
+ * @details The GetEventInformation service ACK service handler is used
+ * by a client BACnet-user to obtain a summary of all "active event states".
+ * The term "active event states" refers to all event-initiating objects
+ * that have an Event_State property whose value is not equal to NORMAL,
+ * or have an Acked_Transitions property, which has at least one of the bits
+ * (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE.
  * @author Daniel Blazevic <daniel.blazevic@gmail.com>
  * @date 2014
- * @brief GetEvent ACK service handling
- *
- * @section LICENSE
- *
- * Copyright (C) 2014 Daniel Blazevic <daniel.blazevic@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @section DESCRIPTION
- *
- * The GetEventInformation service ACK service handler is used by a client
- * BACnet-user to obtain a summary of all "active event states". The term
- * "active event states" refers to all event-initiating objects that have an
- * Event_State property whose value is not equal to NORMAL, or have an
- * Acked_Transitions property, which has at least one of the bits
- * (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE.
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <assert.h>
 /* BACnet Stack defines - first */
@@ -61,7 +36,8 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_ACK_DATA information
  * decoded from the APDU header of this message.
  */
-void get_event_ack_handler(uint8_t *service_request,
+void get_event_ack_handler(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)

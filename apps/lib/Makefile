@@ -11,7 +11,17 @@ BACNET_DEFINES ?=
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
 DEBUGGING ?=
-WARNINGS ?= -Wall -Wmissing-prototypes
+# enable all relevant warnings that find bugs
+WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
+# don't warn about conversion, sign, compares, long long and attributes
+# since they are common in embedded
+WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+WARNING_ALL += -Wno-long-long -Wno-attributes
+# don't warn about implicit fallthrough since it's common in network protocols
+WARNING_ALL += -Wno-implicit-fallthrough
+#WARNING_ALL += -Werror
+WARNINGS ?= $(WARNING_ALL)
 # dead code removal
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0

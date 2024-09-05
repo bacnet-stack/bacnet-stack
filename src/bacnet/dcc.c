@@ -1,44 +1,16 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2006 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet DeviceCommunicationControl encode and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/dcc.h"
-
-/** @file dcc.c  Enable/Disable Device Communication Control (DCC) */
 
 /* note: the disable and time are not expected to survive
    over a power cycle or reinitialization. */
@@ -169,10 +141,11 @@ bool dcc_set_status_duration(
  *
  * @return Bytes encoded or zero on an error.
  */
-int dcc_apdu_encode(uint8_t *apdu,
+int dcc_apdu_encode(
+    uint8_t *apdu,
     uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-    BACNET_CHARACTER_STRING *password)
+    const BACNET_CHARACTER_STRING *password)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -211,11 +184,12 @@ int dcc_apdu_encode(uint8_t *apdu,
  * @param password  Pointer to an optional password.
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
-size_t dcc_service_request_encode(uint8_t *apdu,
+size_t dcc_service_request_encode(
+    uint8_t *apdu,
     size_t apdu_size,
     uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-    BACNET_CHARACTER_STRING *password)
+    const BACNET_CHARACTER_STRING *password)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -240,11 +214,12 @@ size_t dcc_service_request_encode(uint8_t *apdu,
  * @param password  Pointer to an optional password, NULL=optional
  * @return Bytes encoded or zero on an error.
  */
-int dcc_encode_apdu(uint8_t *apdu,
+int dcc_encode_apdu(
+    uint8_t *apdu,
     uint8_t invoke_id,
     uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-    BACNET_CHARACTER_STRING *password)
+    const BACNET_CHARACTER_STRING *password)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -260,8 +235,7 @@ int dcc_encode_apdu(uint8_t *apdu,
     if (apdu) {
         apdu += len;
     }
-    len = dcc_apdu_encode(
-        apdu, timeDuration, enable_disable, password);
+    len = dcc_apdu_encode(apdu, timeDuration, enable_disable, password);
     apdu_len += len;
 
     return apdu_len;
@@ -280,7 +254,8 @@ int dcc_encode_apdu(uint8_t *apdu,
  *
  * @return Bytes decoded, or BACNET_STATUS_ABORT or BACNET_STATUS_REJECT
  */
-int dcc_decode_service_request(uint8_t *apdu,
+int dcc_decode_service_request(
+    const uint8_t *apdu,
     unsigned apdu_len_max,
     uint16_t *timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE *enable_disable,
@@ -336,13 +311,15 @@ int dcc_decode_service_request(uint8_t *apdu,
                    context tag number or result in an error */
                 return BACNET_STATUS_ABORT;
             }
-            len = bacnet_tag_number_and_value_decode(&apdu[apdu_len],
-                apdu_len_max - apdu_len, &tag_number, &len_value_type);
+            len = bacnet_tag_number_and_value_decode(
+                &apdu[apdu_len], apdu_len_max - apdu_len, &tag_number,
+                &len_value_type);
             if (len > 0) {
                 apdu_len += len;
                 if ((unsigned)apdu_len < apdu_len_max) {
-                    len = bacnet_character_string_decode(&apdu[apdu_len],
-                        apdu_len_max - apdu_len, len_value_type, password);
+                    len = bacnet_character_string_decode(
+                        &apdu[apdu_len], apdu_len_max - apdu_len,
+                        len_value_type, password);
                     if (len > 0) {
                         password_length = len_value_type - 1;
                         if ((password_length >= 1) && (password_length <= 20)) {

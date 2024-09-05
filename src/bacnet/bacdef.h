@@ -3,15 +3,14 @@
  * @brief Core BACnet defines and enumerations and structures
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
- * @copyright 2004 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACDEF_H
-#define BACDEF_H
+#ifndef BACNET_DEFINES_H
+#define BACNET_DEFINES_H
 
 #include <stddef.h>
 #include <stdint.h>
+#include <limits.h>
 /* config is always first to allow developers to override */
 #include "bacnet/config.h"
 
@@ -133,7 +132,7 @@
 #elif (BACNET_PROTOCOL_REVISION == 24)
 /* Addendum 135-2020ca, 135-2020cc, 135-2020bv */
 #define MAX_ASHRAE_OBJECT_TYPE 65
-#define MAX_BACNET_SERVICES_SUPPORTED 47
+#define MAX_BACNET_SERVICES_SUPPORTED 49
 #else
 #error MAX_ASHRAE_OBJECT_TYPE and MAX_BACNET_SERVICES_SUPPORTED not defined!
 #endif
@@ -226,11 +225,11 @@ typedef struct BACnet_Object_List_Init_s {
 #define MAX_NPDU (1 + 1 + 2 + 1 + MAX_MAC_LEN + 2 + 1 + MAX_MAC_LEN + 1 + 1 + 2)
 #define MAX_PDU (MAX_APDU + MAX_NPDU)
 
-#define BACNET_ID_VALUE(bacnet_object_instance, bacnet_object_type)       \
-    ((((bacnet_object_type)&BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) | \
-        ((bacnet_object_instance)&BACNET_MAX_INSTANCE))
+#define BACNET_ID_VALUE(bacnet_object_instance, bacnet_object_type)         \
+    ((((bacnet_object_type) & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) | \
+     ((bacnet_object_instance) & BACNET_MAX_INSTANCE))
 #define BACNET_INSTANCE(bacnet_object_id_num) \
-    ((bacnet_object_id_num)&BACNET_MAX_INSTANCE)
+    ((bacnet_object_id_num) & BACNET_MAX_INSTANCE)
 #define BACNET_TYPE(bacnet_object_id_num) \
     (((bacnet_object_id_num) >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT)
 

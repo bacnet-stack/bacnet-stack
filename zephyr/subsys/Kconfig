@@ -1,9 +1,0 @@
-# Copyright (c) 2020 Legrand North America, LLC.
-# SPDX-License-Identifier: MIT
-
-# Kconfig - Subsystem configuration options
-
-comment "BACnet Subsystems"
-
-rsource "object/Kconfig"
-rsource "server/Kconfig"
