@@ -22,14 +22,15 @@
  * @brief Test
  */
 static void test_BVLC_Address(
-    BACNET_IP_ADDRESS *bip_address_1, BACNET_IP_ADDRESS *bip_address_2)
+    const BACNET_IP_ADDRESS *bip_address_1,
+    const BACNET_IP_ADDRESS *bip_address_2)
 {
     zassert_false(bvlc_address_different(bip_address_1, bip_address_2), NULL);
 }
 
 static void test_BVLC_Broadcast_Distribution_Mask(
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask_1,
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask_2)
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask_1,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask_2)
 {
     zassert_false(
         bvlc_broadcast_distribution_mask_different(bd_mask_1, bd_mask_2), NULL);
@@ -68,7 +69,7 @@ static void test_BVLC_Foreign_Device_Table_Entry(
 }
 
 static int test_BVLC_Header(
-    uint8_t *pdu,
+    const uint8_t *pdu,
     uint16_t pdu_len,
     uint8_t *message_type,
     uint16_t *message_length)
@@ -175,8 +176,8 @@ static void test_BVLC_Original_Unicast_NPDU(void)
     test_BVLC_Original_Unicast_NPDU_Message(npdu, npdu_len);
 }
 
-static void
-test_BVLC_Original_Broadcast_NPDU_Message(uint8_t *npdu, uint16_t npdu_len)
+static void test_BVLC_Original_Broadcast_NPDU_Message(
+    const uint8_t *npdu, uint16_t npdu_len)
 {
     uint8_t test_npdu[50] = { 0 };
     uint8_t pdu[60] = { 0 };
@@ -223,7 +224,9 @@ static void test_BVLC_Original_Broadcast_NPDU(void)
 }
 
 static void test_BVLC_Forwarded_NPDU_Message(
-    uint8_t *npdu, uint16_t npdu_len, BACNET_IP_ADDRESS *bip_address)
+    const uint8_t *npdu,
+    uint16_t npdu_len,
+    const BACNET_IP_ADDRESS *bip_address)
 {
     uint8_t test_npdu[50] = { 0 };
     uint8_t pdu[75] = { 0 };
@@ -314,7 +317,7 @@ static void test_BVLC_Register_Foreign_Device(void)
 }
 
 static void test_BVLC_Delete_Foreign_Device_Message(
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
 {
     uint8_t pdu[64] = { 0 };
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY test_fdt_entry = { 0 };
@@ -362,7 +365,8 @@ static void test_BVLC_Delete_Foreign_Device(void)
     test_BVLC_Delete_Foreign_Device_Message(&fdt_entry);
 }
 
-static void test_BVLC_Secure_BVLL_Message(uint8_t *sbuf, uint16_t sbuf_len)
+static void
+test_BVLC_Secure_BVLL_Message(const uint8_t *sbuf, uint16_t sbuf_len)
 {
     uint8_t test_sbuf[50] = { 0 };
     uint8_t pdu[60] = { 0 };
@@ -429,7 +433,7 @@ static void test_BVLC_Read_Broadcast_Distribution_Table_Message(void)
 }
 
 static void test_BVLC_Distribute_Broadcast_To_Network_Message(
-    uint8_t *npdu, uint16_t npdu_len)
+    const uint8_t *npdu, uint16_t npdu_len)
 {
     uint8_t test_npdu[50] = { 0 };
     uint8_t pdu[60] = { 0 };

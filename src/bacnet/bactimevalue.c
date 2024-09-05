@@ -65,7 +65,7 @@ static bool is_data_value_schedule_compatible(uint8_t tag)
  * @param value - value to be encoded
  * @return the number of apdu bytes encoded
  */
-int bacnet_time_value_encode(uint8_t *apdu, BACNET_TIME_VALUE *value)
+int bacnet_time_value_encode(uint8_t *apdu, const BACNET_TIME_VALUE *value)
 {
     int len;
     int apdu_len = 0;
@@ -86,7 +86,7 @@ int bacnet_time_value_encode(uint8_t *apdu, BACNET_TIME_VALUE *value)
     return apdu_len;
 }
 
-int bacapp_encode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
+int bacapp_encode_time_value(uint8_t *apdu, const BACNET_TIME_VALUE *value)
 {
     return bacnet_time_value_encode(apdu, value);
 }
@@ -100,7 +100,7 @@ int bacapp_encode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
  * @return the number of apdu bytes encoded
  */
 int bacnet_time_value_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_TIME_VALUE *value)
 {
     int len;
     int apdu_len = 0;
@@ -122,7 +122,7 @@ int bacnet_time_value_context_encode(
 }
 
 int bacapp_encode_context_time_value(
-    uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_TIME_VALUE *value)
 {
     return bacnet_time_value_context_encode(apdu, tag_number, value);
 }
@@ -178,7 +178,7 @@ int bacnet_primitive_to_application_data_value(
  * @return  number of bytes decoded, or BACNET_STATUS_ERROR if errors occur
  */
 int bacnet_time_value_decode(
-    uint8_t *apdu, int apdu_size, BACNET_TIME_VALUE *value)
+    const uint8_t *apdu, int apdu_size, BACNET_TIME_VALUE *value)
 {
     int len;
     int apdu_len = 0;
@@ -206,7 +206,7 @@ int bacnet_time_value_decode(
     return apdu_len;
 }
 
-int bacapp_decode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
+int bacapp_decode_time_value(const uint8_t *apdu, BACNET_TIME_VALUE *value)
 {
     return bacnet_time_value_decode(apdu, MAX_APDU, value);
 }
@@ -220,7 +220,10 @@ int bacapp_decode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
  */
 int bacnet_time_value_context_decode(
-    uint8_t *apdu, int apdu_size, uint8_t tag_number, BACNET_TIME_VALUE *value)
+    const uint8_t *apdu,
+    int apdu_size,
+    uint8_t tag_number,
+    BACNET_TIME_VALUE *value)
 {
     int len;
     int apdu_len = 0;
@@ -249,7 +252,7 @@ int bacnet_time_value_context_decode(
 }
 
 int bacapp_decode_context_time_value(
-    uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value)
+    const uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value)
 {
     return bacnet_time_value_context_decode(apdu, MAX_APDU, tag_number, value);
 }
@@ -264,7 +267,7 @@ int bacapp_decode_context_time_value(
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
  */
 int bacnet_time_values_context_decode(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     const int apdu_size,
     const uint8_t tag_number,
     BACNET_TIME_VALUE *time_values,
@@ -332,7 +335,7 @@ int bacnet_time_values_context_decode(
 int bacnet_time_values_context_encode(
     uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_TIME_VALUE *time_values,
+    const BACNET_TIME_VALUE *time_values,
     unsigned int max_time_values)
 {
     unsigned int j;

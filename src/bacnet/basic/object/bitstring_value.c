@@ -41,12 +41,14 @@ static bitstring_value_write_present_value_callback
     BitString_Value_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    -1 };
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
+};
 
 static const int Properties_Optional[] = { PROP_RELIABILITY,
-    PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1 };
+                                           PROP_OUT_OF_SERVICE,
+                                           PROP_DESCRIPTION, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -172,7 +174,7 @@ bool BitString_Value_Present_Value(
  * @return  true if value is within range and copied
  */
 bool BitString_Value_Present_Value_Set(
-    uint32_t object_instance, BACNET_BIT_STRING *value)
+    uint32_t object_instance, const BACNET_BIT_STRING *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -265,8 +267,7 @@ bool BitString_Value_Out_Of_Service(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @param  true/false
  */
-void BitString_Value_Out_Of_Service_Set(
-    uint32_t object_instance, bool value)
+void BitString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     struct object_data *pObject;
 
@@ -286,8 +287,7 @@ void BitString_Value_Out_Of_Service_Set(
  * @param  object_instance - object-instance number of the object
  * @return  BACNET_RELIABILITY value
  */
-BACNET_RELIABILITY BitString_Value_Reliablity(
-    uint32_t object_instance)
+BACNET_RELIABILITY BitString_Value_Reliablity(uint32_t object_instance)
 {
     BACNET_RELIABILITY value = RELIABILITY_NO_FAULT_DETECTED;
     struct object_data *pObject;
@@ -298,7 +298,6 @@ BACNET_RELIABILITY BitString_Value_Reliablity(
     }
 
     return value;
-
 }
 
 /**
@@ -306,7 +305,7 @@ BACNET_RELIABILITY BitString_Value_Reliablity(
  * @param  object_instance - object-instance number of the object
  * @return  true the status flag is in Fault
  */
-static bool BitString_Value_Object_Fault(struct object_data *pObject)
+static bool BitString_Value_Object_Fault(const struct object_data *pObject)
 {
     bool fault = false;
 
@@ -411,8 +410,8 @@ bool BitString_Value_Encode_Value_List(
 
     pObject = BitString_Value_Object(object_instance);
     if (pObject) {
-        status = cov_value_list_encode_bit_string(value_list,
-            &pObject->Present_Value, in_alarm, fault, overridden,
+        status = cov_value_list_encode_bit_string(
+            value_list, &pObject->Present_Value, in_alarm, fault, overridden,
             pObject->Out_Of_Service);
     }
 
@@ -442,7 +441,8 @@ bool BitString_Value_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "BITSTRING_VALUE-%u",
+            snprintf(
+                name_text, sizeof(name_text), "BITSTRING_VALUE-%u",
                 object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
@@ -460,20 +460,36 @@ bool BitString_Value_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool BitString_Value_Name_Set(uint32_t object_instance, char *new_name)
+bool BitString_Value_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
 
     pObject = BitString_Value_Object(object_instance);
     if (pObject) {
-        if (new_name) {
-            status = true;
-            pObject->Object_Name = new_name;
-        }
+        status = true;
+        pObject->Object_Name = new_name;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *BitString_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = BitString_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -482,15 +498,15 @@ bool BitString_Value_Name_Set(uint32_t object_instance, char *new_name)
  * @return  C-string pointer to the description,
  *  or NULL if object doesn't exist
  */
-char *BitString_Value_Description(uint32_t object_instance)
+const char *BitString_Value_Description(uint32_t object_instance)
 {
-    char *name = NULL; /* return value */
-    struct object_data *pObject;
+    const char *name = NULL; /* return value */
+    const struct object_data *pObject;
 
     pObject = BitString_Value_Object(object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -509,7 +525,7 @@ char *BitString_Value_Description(uint32_t object_instance)
  * @return True on success, false otherwise.
  */
 bool BitString_Value_Description_Set(
-    uint32_t object_instance, char *value)
+    uint32_t object_instance, const char *value)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -546,8 +562,8 @@ int BitString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(&apdu[0],
-                OBJECT_BITSTRING_VALUE, rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_BITSTRING_VALUE, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             if (BitString_Value_Object_Name(
@@ -558,13 +574,13 @@ int BitString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
-                &char_string, BitString_Value_Description(
-                rpdata->object_instance));
+                &char_string,
+                BitString_Value_Description(rpdata->object_instance));
             apdu_len = encode_application_character_string(apdu, &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(
-                &apdu[0], OBJECT_BITSTRING_VALUE);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_BITSTRING_VALUE);
             break;
         case PROP_PRESENT_VALUE:
             BitString_Value_Present_Value(rpdata->object_instance, &bit_string);
@@ -586,9 +602,8 @@ int BitString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_RELIABILITY:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                BitString_Value_Reliablity(rpdata->object_instance));
+            apdu_len = encode_application_enumerated(
+                &apdu[0], BitString_Value_Reliablity(rpdata->object_instance));
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -668,8 +683,8 @@ bool BitString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         default:
             if (property_lists_member(
-                Properties_Required, Properties_Optional, 
-                Properties_Proprietary, wp_data->object_property)) {
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {

@@ -61,10 +61,17 @@ static binary_lighting_output_blink_warn_callback
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
 static const int Binary_Lighting_Output_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_OUT_OF_SERVICE,
-    PROP_BLINK_WARN_ENABLE, PROP_EGRESS_TIME, PROP_EGRESS_ACTIVE,
-    PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT,
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_OUT_OF_SERVICE,
+    PROP_BLINK_WARN_ENABLE,
+    PROP_EGRESS_TIME,
+    PROP_EGRESS_ACTIVE,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
 #if (BACNET_PROTOCOL_REVISION >= 17)
     PROP_CURRENT_COMMAND_PRIORITY,
 #endif
@@ -171,7 +178,7 @@ unsigned Binary_Lighting_Output_Instance_To_Index(uint32_t object_instance)
  * @return the priority-array active status for the specific priority
  */
 static bool Priority_Array_Active(
-    struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+    const struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     bool active = false;
 
@@ -193,7 +200,7 @@ static bool Priority_Array_Active(
  * @return The priority-array value for the specific priority
  */
 static BACNET_BINARY_LIGHTING_PV Priority_Array_Next_Value(
-    struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+    const struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     unsigned p = 0;
@@ -216,8 +223,8 @@ static BACNET_BINARY_LIGHTING_PV Priority_Array_Next_Value(
  *
  * @return  present-value of the object
  */
-BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Present_Value(
-    uint32_t object_instance)
+BACNET_BINARY_LIGHTING_PV
+Binary_Lighting_Output_Present_Value(uint32_t object_instance)
 {
     BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     struct object_data *pObject;
@@ -238,7 +245,7 @@ BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Present_Value(
  * @return The priority-array value for the specific priority
  */
 static BACNET_BINARY_LIGHTING_PV Priority_Array_Value(
-    struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+    const struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
 
@@ -290,7 +297,7 @@ static int Binary_Lighting_Output_Priority_Array_Encode(
  *
  * @return  active priority 1..16, or 0 if no priority is active
  */
-static unsigned Present_Value_Priority(struct object_data *pObject)
+static unsigned Present_Value_Priority(const struct object_data *pObject)
 {
     unsigned p = 0; /* loop counter */
     unsigned priority = 0; /* return value */
@@ -314,8 +321,8 @@ static unsigned Present_Value_Priority(struct object_data *pObject)
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Present_Value_Relinquish(
-    struct object_data *pObject, unsigned priority)
+static bool
+Present_Value_Relinquish(struct object_data *pObject, unsigned priority)
 {
     bool status = false;
 
@@ -340,7 +347,8 @@ static bool Present_Value_Relinquish(
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Present_Value_Set(struct object_data *pObject,
+static bool Present_Value_Set(
+    struct object_data *pObject,
     BACNET_BINARY_LIGHTING_PV value,
     unsigned priority)
 {
@@ -391,7 +399,8 @@ unsigned Binary_Lighting_Output_Present_Value_Priority(uint32_t object_instance)
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Binary_Lighting_Output_Present_Value_Set(uint32_t object_instance,
+bool Binary_Lighting_Output_Present_Value_Set(
+    uint32_t object_instance,
     BACNET_BINARY_LIGHTING_PV value,
     unsigned priority)
 {
@@ -426,8 +435,9 @@ static void Present_Value_On_Off_Handler(uint32_t object_instance)
         if (pObject->Feedback_Value != pObject->Target_Value) {
             if ((!pObject->Out_Of_Service) &&
                 (Binary_Lighting_Output_Write_Value_Callback)) {
-                Binary_Lighting_Output_Write_Value_Callback(object_instance,
-                    pObject->Feedback_Value, pObject->Target_Value);
+                Binary_Lighting_Output_Write_Value_Callback(
+                    object_instance, pObject->Feedback_Value,
+                    pObject->Target_Value);
             }
             pObject->Feedback_Value = pObject->Target_Value;
         }
@@ -563,8 +573,7 @@ static void Present_Value_Warn_Handler(uint32_t object_instance)
         pObject->Target_Value = BINARY_LIGHTING_PV_ON;
     } else if (pObject->Target_Value == BINARY_LIGHTING_PV_WARN_OFF) {
         pObject->Target_Value = BINARY_LIGHTING_PV_OFF;
-    } else if (pObject->Target_Value ==
-        BINARY_LIGHTING_PV_WARN_RELINQUISH) {
+    } else if (pObject->Target_Value == BINARY_LIGHTING_PV_WARN_RELINQUISH) {
         pObject->Target_Value = BINARY_LIGHTING_PV_OFF;
     }
 }
@@ -629,7 +638,8 @@ void Binary_Lighting_Output_Timer(
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Binary_Lighting_Output_Present_Value_Write(uint32_t object_instance,
+static bool Binary_Lighting_Output_Present_Value_Write(
+    uint32_t object_instance,
     BACNET_BINARY_LIGHTING_PV value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
@@ -656,7 +666,8 @@ static bool Binary_Lighting_Output_Present_Value_Write(uint32_t object_instance,
                     Present_Value_On_Off_Handler(object_instance);
                 }
                 status = true;
-            } else if ((value >= BINARY_LIGHTING_PV_PROPRIETARY_MIN) &&
+            } else if (
+                (value >= BINARY_LIGHTING_PV_PROPRIETARY_MIN) &&
                 (value <= BINARY_LIGHTING_PV_PROPRIETARY_MAX)) {
                 pObject->Target_Priority = priority;
                 pObject->Target_Value = value;
@@ -770,7 +781,8 @@ bool Binary_Lighting_Output_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "BINARY-LIGHTING-OUTPUT-%u",
+            snprintf(
+                name_text, sizeof(name_text), "BINARY-LIGHTING-OUTPUT-%u",
                 object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
@@ -787,18 +799,37 @@ bool Binary_Lighting_Output_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Binary_Lighting_Output_Name_Set(uint32_t object_instance, char *new_name)
+bool Binary_Lighting_Output_Name_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Object_Name = new_name;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Binary_Lighting_Output_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -808,15 +839,15 @@ bool Binary_Lighting_Output_Name_Set(uint32_t object_instance, char *new_name)
  *
  * @return description text or NULL if not found
  */
-char *Binary_Lighting_Output_Description(uint32_t object_instance)
+const char *Binary_Lighting_Output_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -834,13 +865,13 @@ char *Binary_Lighting_Output_Description(uint32_t object_instance)
  * @return  true if object-name was set
  */
 bool Binary_Lighting_Output_Description_Set(
-    uint32_t object_instance, char *new_name)
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Description = new_name;
     }
@@ -857,7 +888,8 @@ bool Binary_Lighting_Output_Description_Set(
  *
  * @return  true if lighting target value was set
  */
-bool Binary_Lighting_Output_Lighting_Command_Set(uint32_t object_instance,
+bool Binary_Lighting_Output_Lighting_Command_Set(
+    uint32_t object_instance,
     BACNET_BINARY_LIGHTING_PV value,
     unsigned priority)
 {
@@ -879,8 +911,8 @@ bool Binary_Lighting_Output_Lighting_Command_Set(uint32_t object_instance,
  * @param object_instance - object-instance number of the object
  * @return lighting command target value
  */
-BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Lighting_Command_Target_Value(
-    uint32_t object_instance)
+BACNET_BINARY_LIGHTING_PV
+Binary_Lighting_Output_Lighting_Command_Target_Value(uint32_t object_instance)
 {
     BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     struct object_data *pObject;
@@ -920,8 +952,8 @@ unsigned Binary_Lighting_Output_Lighting_Command_Target_Priority(
  *
  * @return the tracking-value of this object instance.
  */
-BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Feedback_Value(
-    uint32_t object_instance)
+BACNET_BINARY_LIGHTING_PV
+Binary_Lighting_Output_Feedback_Value(uint32_t object_instance)
 {
     BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     struct object_data *pObject;
@@ -1123,8 +1155,8 @@ void Binary_Lighting_Output_Out_Of_Service_Set(
  *
  * @return  relinquish-default property value
  */
-BACNET_BINARY_LIGHTING_PV Binary_Lighting_Output_Relinquish_Default(
-    uint32_t object_instance)
+BACNET_BINARY_LIGHTING_PV
+Binary_Lighting_Output_Relinquish_Default(uint32_t object_instance)
 {
     BACNET_BINARY_LIGHTING_PV value = BINARY_LIGHTING_PV_OFF;
     struct object_data *pObject;
@@ -1291,8 +1323,8 @@ int Binary_Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_PRIORITY_ARRAY:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
                 Binary_Lighting_Output_Priority_Array_Encode,
                 BACNET_MAX_PRIORITY, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
@@ -1320,7 +1352,8 @@ int Binary_Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #endif
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Binary_Lighting_Output_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);

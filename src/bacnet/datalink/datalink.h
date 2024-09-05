@@ -14,6 +14,25 @@
 
 #if defined(BACDL_ETHERNET)
 #include "bacnet/datalink/ethernet.h"
+#endif
+#if defined(BACDL_ARCNET)
+#include "bacnet/datalink/arcnet.h"
+#endif
+#if defined(BACDL_MSTP)
+#include "bacnet/datalink/dlmstp.h"
+#endif
+#if defined(BACDL_BIP)
+#include "bacnet/datalink/bip.h"
+#include "bacnet/datalink/bvlc.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
+#endif
+#if defined(BACDL_BIP6)
+#include "bacnet/datalink/bip6.h"
+#include "bacnet/datalink/bvlc6.h"
+#include "bacnet/basic/bbmd6/h_bbmd6.h"
+#endif
+
+#if defined(BACDL_ETHERNET) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU ETHERNET_MPDU_MAX
 
 #define datalink_init ethernet_init
@@ -24,8 +43,7 @@
 #define datalink_get_my_address ethernet_get_my_address
 #define datalink_maintenance_timer(s)
 
-#elif defined(BACDL_ARCNET)
-#include "bacnet/datalink/arcnet.h"
+#elif defined(BACDL_ARCNET) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU ARCNET_MPDU_MAX
 
 #define datalink_init arcnet_init
@@ -36,8 +54,7 @@
 #define datalink_get_my_address arcnet_get_my_address
 #define datalink_maintenance_timer(s)
 
-#elif defined(BACDL_MSTP)
-#include "bacnet/datalink/dlmstp.h"
+#elif defined(BACDL_MSTP) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU DLMSTP_MPDU_MAX
 
 #define datalink_init dlmstp_init
@@ -48,10 +65,7 @@
 #define datalink_get_my_address dlmstp_get_my_address
 #define datalink_maintenance_timer(s)
 
-#elif defined(BACDL_BIP)
-#include "bacnet/datalink/bip.h"
-#include "bacnet/datalink/bvlc.h"
-#include "bacnet/basic/bbmd/h_bbmd.h"
+#elif defined(BACDL_BIP) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU BIP_MPDU_MAX
 
 #define datalink_init bip_init
@@ -64,8 +78,7 @@
 extern "C" {
 #endif
 BACNET_STACK_EXPORT
-void routed_get_my_address(
-    BACNET_ADDRESS * my_address);
+void routed_get_my_address(BACNET_ADDRESS *my_address);
 #ifdef __cplusplus
 }
 #endif
@@ -75,10 +88,7 @@ void routed_get_my_address(
 #endif
 #define datalink_maintenance_timer(s) bvlc_maintenance_timer(s)
 
-#elif defined(BACDL_BIP6)
-#include "bacnet/datalink/bip6.h"
-#include "bacnet/datalink/bvlc6.h"
-#include "bacnet/basic/bbmd6/h_bbmd6.h"
+#elif defined(BACDL_BIP6) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU BIP6_MPDU_MAX
 
 #define datalink_init bip6_init
@@ -89,55 +99,47 @@ void routed_get_my_address(
 #define datalink_get_my_address bip6_get_my_address
 #define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
 
-#elif defined(BACDL_ALL) || defined(BACDL_NONE) || defined(BACDL_CUSTOM)
+#elif !defined(BACDL_TEST) /* Multiple, none or custom datalink */
 #include "bacnet/npdu.h"
 
 #define MAX_HEADER (8)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define MAX_MPDU (MAX_HEADER + MAX_PDU)
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    bool datalink_init(char *ifname);
+BACNET_STACK_EXPORT
+bool datalink_init(char *ifname);
 
-    BACNET_STACK_EXPORT
-    int datalink_send_pdu(
-        BACNET_ADDRESS * dest,
-        BACNET_NPDU_DATA * npdu_data,
-        uint8_t * pdu,
-        unsigned pdu_len);
+BACNET_STACK_EXPORT
+int datalink_send_pdu(
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len);
 
-    BACNET_STACK_EXPORT
-    uint16_t datalink_receive(
-        BACNET_ADDRESS * src,
-        uint8_t * pdu,
-        uint16_t max_pdu,
-        unsigned timeout);
+BACNET_STACK_EXPORT
+uint16_t datalink_receive(
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout);
 
-    BACNET_STACK_EXPORT
-    void datalink_cleanup(
-        void);
+BACNET_STACK_EXPORT
+void datalink_cleanup(void);
 
-    BACNET_STACK_EXPORT
-    void datalink_get_broadcast_address(
-        BACNET_ADDRESS * dest);
+BACNET_STACK_EXPORT
+void datalink_get_broadcast_address(BACNET_ADDRESS *dest);
 
-    BACNET_STACK_EXPORT
-    void datalink_get_my_address(
-        BACNET_ADDRESS * my_address);
+BACNET_STACK_EXPORT
+void datalink_get_my_address(BACNET_ADDRESS *my_address);
 
-    BACNET_STACK_EXPORT
-    void datalink_set_interface(
-        char *ifname);
+BACNET_STACK_EXPORT
+void datalink_set_interface(char *ifname);
 
-    BACNET_STACK_EXPORT
-    void datalink_set(
-        char *datalink_string);
+BACNET_STACK_EXPORT
+void datalink_set(char *datalink_string);
 
-    BACNET_STACK_EXPORT
-    void datalink_maintenance_timer(uint16_t seconds);
+BACNET_STACK_EXPORT
+void datalink_maintenance_timer(uint16_t seconds);
 
 #ifdef __cplusplus
 }
@@ -167,7 +169,8 @@ extern "C" {
  * - BACDL_CUSTOM    -- For externally linked datalink_xxx functions
  * - Clause 10 POINT-TO-POINT (PTP) and Clause 11 EIA/CEA-709.1 ("LonTalk") LAN
  *   are not currently supported by this project.
-                                                                                                                                                                                              *//** @defgroup DLTemplates DataLink Template Functions
+ */
+/** @defgroup DLTemplates DataLink Template Functions
  * @ingroup DataLink
  * Most of the functions in this group are function templates which are assigned
  * to a specific DataLink network layer implementation either at compile time or

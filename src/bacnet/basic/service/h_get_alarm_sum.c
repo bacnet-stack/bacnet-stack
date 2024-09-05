@@ -32,7 +32,8 @@ void handler_get_alarm_summary_set(
     }
 }
 
-void handler_get_alarm_summary(uint8_t *service_request,
+void handler_get_alarm_summary(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -58,9 +59,9 @@ void handler_get_alarm_summary(uint8_t *service_request,
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
-        apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        apdu_len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
         fprintf(stderr, "GetAlarmSummary: Segmented message. Sending Abort!\n");
 #endif
@@ -100,17 +101,18 @@ GET_ALARM_SUMMARY_ERROR:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
-            apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
+            apdu_len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
             fprintf(
                 stderr, "GetAlarmSummary: Reply too big to fit into APDU!\n");
 #endif
         } else {
-            apdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_GET_ALARM_SUMMARY,
-                ERROR_CLASS_PROPERTY, ERROR_CODE_OTHER);
+            apdu_len = bacerror_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                SERVICE_CONFIRMED_GET_ALARM_SUMMARY, ERROR_CLASS_PROPERTY,
+                ERROR_CODE_OTHER);
 #if PRINT_ENABLED
             fprintf(stderr, "GetAlarmSummary: Sending Error!\n");
 #endif
@@ -126,7 +128,7 @@ GET_ALARM_SUMMARY_ABORT:
         /*fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno)); */
     }
 #else
-    bytes_sent = bytes_sent;
+    (void)bytes_sent;
 #endif
 
     return;

@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet BVLC message 
+ * @brief command line tool that sends a BACnet BVLC message
  * Write-Broadcast-Distribution-Table to a BBMD on the network,
  * and prints the result code received.  This is useful for
  * configuring the BBMD on the network.
@@ -58,8 +58,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -106,7 +106,8 @@ int main(int argc, char *argv[])
     uint16_t result_code = 0;
 
     if (argc < 2) {
-        printf("Usage: %s IP port <IP:port[:mask]> [<IP:port[:mask]>]\r\n",
+        printf(
+            "Usage: %s IP port <IP:port[:mask]> [<IP:port[:mask]>]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -153,8 +154,9 @@ int main(int argc, char *argv[])
     argi = 3;
     while (argc > argi) {
         bdt_entry = &BBMD_Table_Entry[bdti];
-        c = sscanf(argv[argi], "%3u.%3u.%3u.%3u:%5u:%3u.%3u.%3u.%3u", &a[0],
-            &a[1], &a[2], &a[3], &p, &m[0], &m[1], &m[2], &m[3]);
+        c = sscanf(
+            argv[argi], "%3u.%3u.%3u.%3u:%5u:%3u.%3u.%3u.%3u", &a[0], &a[1],
+            &a[2], &a[3], &p, &m[0], &m[1], &m[2], &m[3]);
         if ((c == 4) || (c == 5) || (c == 9)) {
             bvlc_address_set(&bdt_entry->dest_address, a[0], a[1], a[2], a[3]);
             if ((c == 5) || (c == 9)) {

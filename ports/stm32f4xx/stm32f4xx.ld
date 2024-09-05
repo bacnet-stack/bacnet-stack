@@ -5,7 +5,7 @@ MEMORY
 }
 
 _estack = 0x20000000 + 128k - 4; /* End of SRAM */
-    
+
 /* Generate a link error if heap and stack don't fit into RAM */
 _Min_Heap_Size = 48K;
 /* Analysis from MAP file and Stack Usage (su) +

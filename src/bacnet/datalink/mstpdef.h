@@ -49,12 +49,12 @@
 /* frame specific data */
 #define MSTP_PREAMBLE_X55 (0x55)
 /* The length of the data portion of a Test_Request, Test_Response,
-   BACnet Data Expecting Reply, or BACnet Data Not Expecting Reply frame 
-   may range from 0 to 501 octets. 
-   The length of the data portion of a proprietary frame shall 
+   BACnet Data Expecting Reply, or BACnet Data Not Expecting Reply frame
+   may range from 0 to 501 octets.
+   The length of the data portion of a proprietary frame shall
    be in the range of 2 to 501 octets.*/
 #define MSTP_FRAME_NPDU_MAX 501
-/* COBS-encoded frames data parameter length is between 
+/* COBS-encoded frames data parameter length is between
    502 and 1497 octets, inclusive */
 #define MSTP_EXTENDED_FRAME_NPDU_MAX 1497
 

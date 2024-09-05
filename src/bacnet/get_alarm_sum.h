@@ -25,42 +25,34 @@ typedef struct BACnet_Get_Alarm_Summary_Data {
     struct BACnet_Get_Alarm_Summary_Data *next;
 } BACNET_GET_ALARM_SUMMARY_DATA;
 
-
 /* return 0 if no active alarm at this index
    return -1 if end of list
    return +1 if active alarm */
-typedef int (
-    *get_alarm_summary_function) (
-    unsigned index,
-    BACNET_GET_ALARM_SUMMARY_DATA * getalarm_data);
-
+typedef int (*get_alarm_summary_function)(
+    unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int get_alarm_summary_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id);
+BACNET_STACK_EXPORT
+int get_alarm_summary_encode_apdu(uint8_t *apdu, uint8_t invoke_id);
 
-    /* encode service */
-    BACNET_STACK_EXPORT
-    int get_alarm_summary_ack_encode_apdu_init(
-        uint8_t * apdu,
-        uint8_t invoke_id);
+/* encode service */
+BACNET_STACK_EXPORT
+int get_alarm_summary_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id);
 
-    BACNET_STACK_EXPORT
-    int get_alarm_summary_ack_encode_apdu_data(
-        uint8_t * apdu,
-        size_t max_apdu,
-        BACNET_GET_ALARM_SUMMARY_DATA * get_alarm_data);
+BACNET_STACK_EXPORT
+int get_alarm_summary_ack_encode_apdu_data(
+    uint8_t *apdu,
+    size_t max_apdu,
+    const BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data);
 
-    BACNET_STACK_EXPORT
-    int get_alarm_summary_ack_decode_apdu_data(
-        uint8_t * apdu,
-        size_t max_apdu,
-        BACNET_GET_ALARM_SUMMARY_DATA * get_alarm_data);
+BACNET_STACK_EXPORT
+int get_alarm_summary_ack_decode_apdu_data(
+    const uint8_t *apdu,
+    size_t max_apdu,
+    BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data);
 
 #ifdef __cplusplus
 }

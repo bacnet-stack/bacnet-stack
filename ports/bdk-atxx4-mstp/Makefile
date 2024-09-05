@@ -402,7 +402,7 @@ showfuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_READ_FUSES)
 
 bootloader:
-	make -C bootloader all
+	make -C external/bootloader all
 
 ## Clean target
 .PHONY: clean

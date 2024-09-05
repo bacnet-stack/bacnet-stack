@@ -195,18 +195,36 @@ bool Structured_View_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Structured_View_Name_Set(uint32_t object_instance, char *new_name)
+bool Structured_View_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Object_Name = new_name;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Structured_View_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -216,15 +234,15 @@ bool Structured_View_Name_Set(uint32_t object_instance, char *new_name)
  *
  * @return description text or NULL if not found
  */
-char *Structured_View_Description(uint32_t object_instance)
+const char *Structured_View_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -241,7 +259,8 @@ char *Structured_View_Description(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Structured_View_Description_Set(uint32_t object_instance, char *new_name)
+bool Structured_View_Description_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -299,15 +318,15 @@ bool Structured_View_Node_Type_Set(
  * @param  object_instance - object-instance number of the object
  * @return Node_Subtype text or NULL if not found
  */
-char *Structured_View_Node_Subtype(uint32_t object_instance)
+const char *Structured_View_Node_Subtype(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Node_Subtype;
+            name = pObject->Node_Subtype;
         } else {
             name = "";
         }
@@ -322,7 +341,8 @@ char *Structured_View_Node_Subtype(uint32_t object_instance)
  * @param  new_name - holds the Node_Subtype to be set
  * @return  true if Node_Subtype was set
  */
-bool Structured_View_Node_Subtype_Set(uint32_t object_instance, char *new_name)
+bool Structured_View_Node_Subtype_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -442,7 +462,7 @@ Structured_View_Represents(uint32_t object_instance)
  * @return  true if Represents was set
  */
 bool Structured_View_Represents_Set(
-    uint32_t object_instance, BACNET_DEVICE_OBJECT_REFERENCE *represents)
+    uint32_t object_instance, const BACNET_DEVICE_OBJECT_REFERENCE *represents)
 {
     bool status = false; /* return value */
     struct object_data *pObject;

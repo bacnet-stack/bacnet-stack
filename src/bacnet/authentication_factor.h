@@ -25,27 +25,20 @@ typedef struct BACnetAuthenticationFactor {
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int bacapp_encode_authentication_factor(
-        uint8_t * apdu,
-        BACNET_AUTHENTICATION_FACTOR * af);
-    BACNET_STACK_EXPORT
-    int bacapp_encode_context_authentication_factor(
-        uint8_t * apdu,
-        uint8_t tag,
-        BACNET_AUTHENTICATION_FACTOR * af);
-    BACNET_STACK_EXPORT
-    int bacapp_decode_authentication_factor(
-        uint8_t * apdu,
-        BACNET_AUTHENTICATION_FACTOR * af);
-    BACNET_STACK_EXPORT
-    int bacapp_decode_context_authentication_factor(
-        uint8_t * apdu,
-        uint8_t tag,
-        BACNET_AUTHENTICATION_FACTOR * af);
+BACNET_STACK_EXPORT
+int bacapp_encode_authentication_factor(
+    uint8_t *apdu, const BACNET_AUTHENTICATION_FACTOR *af);
+BACNET_STACK_EXPORT
+int bacapp_encode_context_authentication_factor(
+    uint8_t *apdu, uint8_t tag, const BACNET_AUTHENTICATION_FACTOR *af);
+BACNET_STACK_EXPORT
+int bacapp_decode_authentication_factor(
+    const uint8_t *apdu, BACNET_AUTHENTICATION_FACTOR *af);
+BACNET_STACK_EXPORT
+int bacapp_decode_context_authentication_factor(
+    const uint8_t *apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR *af);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 #endif
-

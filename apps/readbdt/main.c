@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet BVLC message, and displays 
+ * @brief command line tool that sends a BACnet BVLC message, and displays
  * the reply, for a Read-Broadcast-Distribution-Table message to a peer BBMD.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2012
@@ -24,6 +24,8 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/bvlc.h"
+#include "bacnet/datalink/bip.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
 /* some demo stuff needed */
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/filename.h"
@@ -50,8 +52,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;

@@ -19,7 +19,7 @@
 /**
  * @brief Test
  */
-static void testIHaveData(BACNET_I_HAVE_DATA *data)
+static void testIHaveData(const BACNET_I_HAVE_DATA *data)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;

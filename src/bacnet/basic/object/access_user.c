@@ -22,9 +22,11 @@ static bool Access_User_Initialized = false;
 static ACCESS_USER_DESCR au_descr[MAX_ACCESS_USERS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_GLOBAL_IDENTIFIER,
-    PROP_STATUS_FLAGS, PROP_RELIABILITY, PROP_USER_TYPE, PROP_CREDENTIALS, -1 };
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_GLOBAL_IDENTIFIER, PROP_STATUS_FLAGS, PROP_RELIABILITY,
+    PROP_USER_TYPE,         PROP_CREDENTIALS,  -1
+};
 
 static const int Properties_Optional[] = { -1 };
 
@@ -111,11 +113,12 @@ unsigned Access_User_Instance_To_Index(uint32_t object_instance)
 bool Access_User_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
 
     if (object_instance < MAX_ACCESS_USERS) {
-        snprintf(text, sizeof(text), "ACCESS USER %lu", 
+        snprintf(
+            text, sizeof(text), "ACCESS USER %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }

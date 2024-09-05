@@ -19,7 +19,7 @@
  * @return  number of bytes decoded, or BACNET_STATUS_ERROR if errors occur
  */
 int bacnet_weeklyschedule_decode(
-    uint8_t *apdu, int apdu_size, BACNET_WEEKLY_SCHEDULE *value)
+    const uint8_t *apdu, int apdu_size, BACNET_WEEKLY_SCHEDULE *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -60,7 +60,8 @@ int bacnet_weeklyschedule_decode(
  * @return the number of apdu bytes encoded, or BACNET_STATUS_ERROR if value
  * was inconsistent.
  */
-int bacnet_weeklyschedule_encode(uint8_t *apdu, BACNET_WEEKLY_SCHEDULE *value)
+int bacnet_weeklyschedule_encode(
+    uint8_t *apdu, const BACNET_WEEKLY_SCHEDULE *value)
 {
     int apdu_len = 0;
     int len = 0;
@@ -89,7 +90,7 @@ int bacnet_weeklyschedule_encode(uint8_t *apdu, BACNET_WEEKLY_SCHEDULE *value)
  * @return length of the APDU buffer, or 0 if not able to encode
  */
 int bacnet_weeklyschedule_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_WEEKLY_SCHEDULE *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_WEEKLY_SCHEDULE *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -124,7 +125,7 @@ int bacnet_weeklyschedule_context_encode(
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
  */
 int bacnet_weeklyschedule_context_decode(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     int apdu_size,
     uint8_t tag_number,
     BACNET_WEEKLY_SCHEDULE *value)
@@ -168,11 +169,11 @@ int bacnet_weeklyschedule_context_decode(
  * @return true if the same
  */
 bool bacnet_weeklyschedule_same(
-    BACNET_WEEKLY_SCHEDULE *value1, BACNET_WEEKLY_SCHEDULE *value2)
+    const BACNET_WEEKLY_SCHEDULE *value1, const BACNET_WEEKLY_SCHEDULE *value2)
 {
     BACNET_APPLICATION_DATA_VALUE adv1, adv2;
-    BACNET_DAILY_SCHEDULE *ds1, *ds2;
-    BACNET_TIME_VALUE *tv1, *tv2;
+    const BACNET_DAILY_SCHEDULE *ds1, *ds2;
+    const BACNET_TIME_VALUE *tv1, *tv2;
     int wi, ti;
 
     for (wi = 0; wi < 7; wi++) {

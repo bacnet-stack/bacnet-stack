@@ -36,88 +36,70 @@ struct BACnet_Read_Access_Data;
  * @return The length of the apdu encoded or -1 for error or
  *         -2 for abort message.
  */
-typedef int (
-    *read_property_function) (
-    BACNET_READ_PROPERTY_DATA * rp_data);
+typedef int (*read_property_function)(BACNET_READ_PROPERTY_DATA *rp_data);
 
 /**
  * @brief Process a ReadProperty-ACK message
  * @param device_id [in] The device ID of the source of the message
  * @param rp_data [in] The contents of the ReadProperty-ACK message
  */
-typedef void (
-    *read_property_ack_process) (
+typedef void (*read_property_ack_process)(
     uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int read_property_request_encode(
-        uint8_t *apdu, 
-        BACNET_READ_PROPERTY_DATA *data);
+BACNET_STACK_EXPORT
+int read_property_request_encode(
+    uint8_t *apdu, const BACNET_READ_PROPERTY_DATA *data);
 
-    BACNET_STACK_EXPORT
-    size_t read_property_request_service_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
-        BACNET_READ_PROPERTY_DATA *data);
+BACNET_STACK_EXPORT
+size_t read_property_request_service_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_READ_PROPERTY_DATA *data);
 
-    BACNET_STACK_EXPORT
-    int read_property_ack_encode(
-        uint8_t *apdu, 
-        BACNET_READ_PROPERTY_DATA *data);
+BACNET_STACK_EXPORT
+int read_property_ack_encode(
+    uint8_t *apdu, const BACNET_READ_PROPERTY_DATA *data);
 
-    BACNET_STACK_EXPORT
-    size_t read_property_ack_service_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
-        BACNET_READ_PROPERTY_DATA *data);
+BACNET_STACK_EXPORT
+size_t read_property_ack_service_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_READ_PROPERTY_DATA *data);
 
-    BACNET_STACK_EXPORT
-    int rp_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+BACNET_STACK_EXPORT
+int rp_encode_apdu(
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_PROPERTY_DATA *rpdata);
 
 /* decode the service request only */
-    BACNET_STACK_EXPORT
-    int rp_decode_service_request(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+BACNET_STACK_EXPORT
+int rp_decode_service_request(
+    const uint8_t *apdu, unsigned apdu_len, BACNET_READ_PROPERTY_DATA *rpdata);
 
-    /* method to encode the ack without extra buffer */
-    BACNET_STACK_EXPORT
-    int rp_ack_encode_apdu_init(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+/* method to encode the ack without extra buffer */
+BACNET_STACK_EXPORT
+int rp_ack_encode_apdu_init(
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_PROPERTY_DATA *rpdata);
 
-    BACNET_STACK_EXPORT
-    int rp_ack_encode_apdu_object_property_end(
-        uint8_t * apdu);
+BACNET_STACK_EXPORT
+int rp_ack_encode_apdu_object_property_end(uint8_t *apdu);
 
-    /* method to encode the ack using extra buffer */
-    BACNET_STACK_EXPORT
-    int rp_ack_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+/* method to encode the ack using extra buffer */
+BACNET_STACK_EXPORT
+int rp_ack_encode_apdu(
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_PROPERTY_DATA *rpdata);
 
-    BACNET_STACK_EXPORT
-    int rp_ack_decode_service_request(
-        uint8_t * apdu,
-        int apdu_len,   /* total length of the apdu */
-        BACNET_READ_PROPERTY_DATA * rpdata);
+BACNET_STACK_EXPORT
+int rp_ack_decode_service_request(
+    uint8_t *apdu,
+    int apdu_len, /* total length of the apdu */
+    BACNET_READ_PROPERTY_DATA *rpdata);
 
-    /* Decode instead to RPM-style data structure. */
-    BACNET_STACK_EXPORT
-    int rp_ack_fully_decode_service_request(
-        uint8_t * apdu,
-        int apdu_len,
-        struct BACnet_Read_Access_Data *read_access_data);
+/* Decode instead to RPM-style data structure. */
+BACNET_STACK_EXPORT
+int rp_ack_fully_decode_service_request(
+    uint8_t *apdu,
+    int apdu_len,
+    struct BACnet_Read_Access_Data *read_access_data);
 
 #ifdef __cplusplus
 }
@@ -125,8 +107,8 @@ extern "C" {
 /** @defgroup DataShare Data Sharing BIBBs
  * These BIBBs prescribe the BACnet capabilities required to interoperably
  * perform the data sharing functions enumerated in 22.2.1.1 for the BACnet
-     * devices defined therein.
-*/
+ * devices defined therein.
+ */
 
 /** @defgroup DSRP Data Sharing -Read Property Service (DS-RP)
  * @ingroup DataShare

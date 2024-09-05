@@ -247,7 +247,7 @@ ports:	atmega168 bdk-atxx4-mstp at91sam7s stm32f10x stm32f4xx
 
 .PHONY: ports-clean
 ports-clean: atmega168-clean bdk-atxx4-mstp-clean at91sam7s-clean \
- stm32f10x-clean stm32f4xx-clean xplained-clean
+	stm32f10x-clean stm32f4xx-clean xplained-clean
 
 .PHONY: atmega168
 atmega168: ports/atmega168/Makefile

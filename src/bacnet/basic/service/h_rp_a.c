@@ -50,12 +50,13 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
         /* FIXME: what if application_data_len is bigger than 255? */
         /* value? need to loop until all of the len is gone... */
         for (;;) {
-            len = bacapp_decode_known_property(application_data,
-                (unsigned)application_data_len, &value, data->object_type,
-                data->object_property);
+            len = bacapp_decode_known_property(
+                application_data, (unsigned)application_data_len, &value,
+                data->object_type, data->object_property);
 
             if (len < 0) {
-                PRINTF_ERR("RP Ack: unable to decode! %s:%s\n",
+                PRINTF_ERR(
+                    "RP Ack: unable to decode! %s:%s\n",
                     bactext_object_type_name(data->object_type),
                     bactext_property_name(data->object_property));
                 break;
@@ -92,8 +93,9 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
             }
         }
 #if PRINT_ENABLED
-        if (print_brace)
+        if (print_brace) {
             fprintf(stdout, "}");
+        }
         fprintf(stdout, "\r\n");
 #endif
     }
@@ -110,7 +112,8 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_read_property_ack(uint8_t *service_request,
+void handler_read_property_ack(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
@@ -139,9 +142,9 @@ void handler_read_property_ack(uint8_t *service_request,
  * @param apdu [in] The received apdu data.
  * @param apdu_len [in] Total length of the apdu.
  * @param read_access_data [out] Pointer to the head of the linked list
- * 			where the RP data is to be stored.
+ *          where the RP data is to be stored.
  * @return Number of decoded bytes (could be less than apdu_len),
- * 			or -1 on decoding error.
+ *          or -1 on decoding error.
  */
 int rp_ack_fully_decode_service_request(
     uint8_t *apdu, int apdu_len, BACNET_READ_ACCESS_DATA *read_access_data)

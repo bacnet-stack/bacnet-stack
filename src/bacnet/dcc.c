@@ -141,10 +141,11 @@ bool dcc_set_status_duration(
  *
  * @return Bytes encoded or zero on an error.
  */
-int dcc_apdu_encode(uint8_t *apdu,
+int dcc_apdu_encode(
+    uint8_t *apdu,
     uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-    BACNET_CHARACTER_STRING *password)
+    const BACNET_CHARACTER_STRING *password)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -183,11 +184,12 @@ int dcc_apdu_encode(uint8_t *apdu,
  * @param password  Pointer to an optional password.
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
-size_t dcc_service_request_encode(uint8_t *apdu,
+size_t dcc_service_request_encode(
+    uint8_t *apdu,
     size_t apdu_size,
     uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-    BACNET_CHARACTER_STRING *password)
+    const BACNET_CHARACTER_STRING *password)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -212,11 +214,12 @@ size_t dcc_service_request_encode(uint8_t *apdu,
  * @param password  Pointer to an optional password, NULL=optional
  * @return Bytes encoded or zero on an error.
  */
-int dcc_encode_apdu(uint8_t *apdu,
+int dcc_encode_apdu(
+    uint8_t *apdu,
     uint8_t invoke_id,
     uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-    BACNET_CHARACTER_STRING *password)
+    const BACNET_CHARACTER_STRING *password)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -232,8 +235,7 @@ int dcc_encode_apdu(uint8_t *apdu,
     if (apdu) {
         apdu += len;
     }
-    len = dcc_apdu_encode(
-        apdu, timeDuration, enable_disable, password);
+    len = dcc_apdu_encode(apdu, timeDuration, enable_disable, password);
     apdu_len += len;
 
     return apdu_len;
@@ -252,7 +254,8 @@ int dcc_encode_apdu(uint8_t *apdu,
  *
  * @return Bytes decoded, or BACNET_STATUS_ABORT or BACNET_STATUS_REJECT
  */
-int dcc_decode_service_request(uint8_t *apdu,
+int dcc_decode_service_request(
+    const uint8_t *apdu,
     unsigned apdu_len_max,
     uint16_t *timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE *enable_disable,
@@ -308,13 +311,15 @@ int dcc_decode_service_request(uint8_t *apdu,
                    context tag number or result in an error */
                 return BACNET_STATUS_ABORT;
             }
-            len = bacnet_tag_number_and_value_decode(&apdu[apdu_len],
-                apdu_len_max - apdu_len, &tag_number, &len_value_type);
+            len = bacnet_tag_number_and_value_decode(
+                &apdu[apdu_len], apdu_len_max - apdu_len, &tag_number,
+                &len_value_type);
             if (len > 0) {
                 apdu_len += len;
                 if ((unsigned)apdu_len < apdu_len_max) {
-                    len = bacnet_character_string_decode(&apdu[apdu_len],
-                        apdu_len_max - apdu_len, len_value_type, password);
+                    len = bacnet_character_string_decode(
+                        &apdu[apdu_len], apdu_len_max - apdu_len,
+                        len_value_type, password);
                     if (len > 0) {
                         password_length = len_value_type - 1;
                         if ((password_length >= 1) && (password_length <= 20)) {

@@ -40,7 +40,7 @@ static void test_BitString_Value_Object(void)
     zassert_true(status, NULL);
     status = BitString_Value_Valid_Instance(instance);
     zassert_true(status, NULL);
-    status = BitString_Value_Valid_Instance(instance+1);
+    status = BitString_Value_Valid_Instance(instance + 1);
     zassert_false(status, NULL);
     test_count = BitString_Value_Count();
     zassert_equal(test_count, 1, NULL);
@@ -52,6 +52,8 @@ static void test_BitString_Value_Object(void)
         OBJECT_BINARY_INPUT, instance, BitString_Value_Property_Lists,
         BitString_Value_Read_Property, BitString_Value_Write_Property,
         skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        instance, BitString_Value_Name_Set, BitString_Value_Name_ASCII);
     /* test specific WriteProperty values */
     BitString_Value_Write_Disable(instance);
     status = BitString_Value_Write_Enabled(instance);
@@ -69,24 +71,24 @@ static void test_BitString_Value_Object(void)
     wpdata.object_property = PROP_PRESENT_VALUE;
     value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
     bitstring_init(&value.type.Bit_String);
-    wpdata.application_data_len = bacapp_encode_application_data(
-        wpdata.application_data, &value);
+    wpdata.application_data_len =
+        bacapp_encode_application_data(wpdata.application_data, &value);
     status = BitString_Value_Write_Property(&wpdata);
     zassert_true(status, NULL);
     /* WP to out-of-service */
     wpdata.object_property = PROP_OUT_OF_SERVICE;
     value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
     value.type.Boolean = false;
-    wpdata.application_data_len = bacapp_encode_application_data(
-        wpdata.application_data, &value);
+    wpdata.application_data_len =
+        bacapp_encode_application_data(wpdata.application_data, &value);
     status = BitString_Value_Write_Property(&wpdata);
     zassert_true(status, NULL);
     /* WP to status-flags - read-only */
     wpdata.object_property = PROP_STATUS_FLAGS;
     value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
     bitstring_init(&value.type.Bit_String);
-    wpdata.application_data_len = bacapp_encode_application_data(
-        wpdata.application_data, &value);
+    wpdata.application_data_len =
+        bacapp_encode_application_data(wpdata.application_data, &value);
     status = BitString_Value_Write_Property(&wpdata);
     zassert_false(status, NULL);
     zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
@@ -95,8 +97,8 @@ static void test_BitString_Value_Object(void)
     wpdata.object_property = PROP_PRESENT_VALUE;
     value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
     wpdata.array_index = 0;
-    wpdata.application_data_len = bacapp_encode_application_data(
-        wpdata.application_data, &value);
+    wpdata.application_data_len =
+        bacapp_encode_application_data(wpdata.application_data, &value);
     status = BitString_Value_Write_Property(&wpdata);
     zassert_false(status, NULL);
     zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
@@ -110,21 +112,21 @@ static void test_BitString_Value_Object(void)
     zassert_false(status, NULL);
     /* set same value */
     BitString_Value_Change_Of_Value_Clear(instance);
-    status = BitString_Value_Present_Value_Set(instance,
-        &value.type.Bit_String);
+    status =
+        BitString_Value_Present_Value_Set(instance, &value.type.Bit_String);
     zassert_true(status, NULL);
     status = BitString_Value_Change_Of_Value(instance);
     zassert_false(status, NULL);
     /* set different value */
     bitstring_set_bit(&value.type.Bit_String, 1, true);
-    status = BitString_Value_Present_Value_Set(instance,
-        &value.type.Bit_String);
+    status =
+        BitString_Value_Present_Value_Set(instance, &value.type.Bit_String);
     zassert_true(status, NULL);
     status = BitString_Value_Change_Of_Value(instance);
     zassert_true(status, NULL);
     /* COV */
-    cov_property_value_list_link(value_list,
-        sizeof(value_list)/sizeof(value_list[0]));
+    cov_property_value_list_link(
+        value_list, sizeof(value_list) / sizeof(value_list[0]));
     status = BitString_Value_Encode_Value_List(instance, value_list);
     zassert_true(status, NULL);
     /* delete */
@@ -145,9 +147,9 @@ ZTEST_SUITE(bitstring_value_object_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bitstring_value_object_tests,
-     ztest_unit_test(test_BitString_Value_Object)
-     );
+    ztest_test_suite(
+        bitstring_value_object_tests,
+        ztest_unit_test(test_BitString_Value_Object));
 
     ztest_run_test_suite(bitstring_value_object_tests);
 }

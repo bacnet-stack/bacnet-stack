@@ -20,59 +20,54 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* return the status */
-    BACNET_STACK_EXPORT
-    BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(
-        void);
-    BACNET_STACK_EXPORT
-    bool dcc_communication_enabled(
-        void);
-    BACNET_STACK_EXPORT
-    bool dcc_communication_disabled(
-        void);
-    BACNET_STACK_EXPORT
-    bool dcc_communication_initiation_disabled(
-        void);
+BACNET_STACK_EXPORT
+BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(void);
+BACNET_STACK_EXPORT
+bool dcc_communication_enabled(void);
+BACNET_STACK_EXPORT
+bool dcc_communication_disabled(void);
+BACNET_STACK_EXPORT
+bool dcc_communication_initiation_disabled(void);
 /* return the time */
-    BACNET_STACK_EXPORT
-    uint32_t dcc_duration_seconds(
-        void);
+BACNET_STACK_EXPORT
+uint32_t dcc_duration_seconds(void);
 /* called every second or so.  If more than one second,
   then seconds should be the number of seconds to tick away */
-    BACNET_STACK_EXPORT
-    void dcc_timer_seconds(
-        uint32_t seconds);
+BACNET_STACK_EXPORT
+void dcc_timer_seconds(uint32_t seconds);
 /* setup the communication values */
-    BACNET_STACK_EXPORT
-    bool dcc_set_status_duration(
-        BACNET_COMMUNICATION_ENABLE_DISABLE status,
-        uint16_t minutes);
+BACNET_STACK_EXPORT
+bool dcc_set_status_duration(
+    BACNET_COMMUNICATION_ENABLE_DISABLE status, uint16_t minutes);
 
-    BACNET_STACK_EXPORT
-    int dcc_apdu_encode(uint8_t *apdu,
-        uint16_t timeDuration,
-        BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-        BACNET_CHARACTER_STRING *password);
-    BACNET_STACK_EXPORT
-    size_t dcc_service_request_encode(uint8_t *apdu,
-        size_t apdu_size,
-        uint16_t timeDuration,
-        BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-        BACNET_CHARACTER_STRING *password);
-    BACNET_STACK_EXPORT
-    int dcc_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        uint16_t timeDuration, 
-        BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-        BACNET_CHARACTER_STRING * password); 
+BACNET_STACK_EXPORT
+int dcc_apdu_encode(
+    uint8_t *apdu,
+    uint16_t timeDuration,
+    BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
+    const BACNET_CHARACTER_STRING *password);
+BACNET_STACK_EXPORT
+size_t dcc_service_request_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    uint16_t timeDuration,
+    BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
+    const BACNET_CHARACTER_STRING *password);
+BACNET_STACK_EXPORT
+int dcc_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    uint16_t timeDuration,
+    BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
+    const BACNET_CHARACTER_STRING *password);
 
-    BACNET_STACK_EXPORT
-    int dcc_decode_service_request(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        uint16_t * timeDuration,
-        BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
-        BACNET_CHARACTER_STRING * password);
+BACNET_STACK_EXPORT
+int dcc_decode_service_request(
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    uint16_t *timeDuration,
+    BACNET_COMMUNICATION_ENABLE_DISABLE *enable_disable,
+    BACNET_CHARACTER_STRING *password);
 
 #ifdef __cplusplus
 }
@@ -93,8 +88,8 @@ extern "C" {
  * instruct a remote device to stop initiating and optionally stop responding
  * to all APDUs (except DeviceCommunicationControl or, if supported,
  * ReinitializeDevice) on the communication network or internetwork for a
- * specified duration of time. This service is primarily used by a human operator
- * for diagnostic purposes. A password may be required from the client
+ * specified duration of time. This service is primarily used by a human
+ * operator for diagnostic purposes. A password may be required from the client
  * BACnet-user prior to executing the service. The time duration may be set to
  * "indefinite," meaning communication must be re-enabled by a
  * DeviceCommunicationControl or, if supported, ReinitializeDevice service,

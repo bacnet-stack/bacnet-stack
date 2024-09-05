@@ -148,13 +148,13 @@ DEBUGGING ?=
 # enable all relevant warnings that find bugs
 WARNING_ALL := -Wall -Wextra -pedantic
 WARNING_ALL += -Wfloat-equal -Wconversion
-WARNING_ALL += -Wredundant-decls -Wswitch-default 
+WARNING_ALL += -Wredundant-decls -Wswitch-default
 WARNING_ALL += -Wunused-variable
 # don't warn about conversion, sign, compares, long long and attributes
 # since they are common in embedded
 WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
 WARNING_ALL += -Wno-long-long -Wno-attributes
-  # don't warn about implicit fallthrough since it's common in network protocols
+# don't warn about implicit fallthrough since it's common in network protocols
 WARNING_ALL += -Wno-implicit-fallthrough
 #WARNING_ALL += -Werror
 WARNINGS ?= $(WARNING_ALL)
@@ -223,6 +223,10 @@ endif
 endif
 
 ifeq (${BACNET_PORT},win32)
+	SUBDIRS += mstpcap mstpcrc
+endif
+
+ifeq (${BACNET_PORT},bsd)
 	SUBDIRS += mstpcap mstpcrc
 endif
 
@@ -455,4 +459,3 @@ fuzz-afl: $(BACNET_LIB_TARGET)
 .PHONY: writepropm
 writepropm: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
-

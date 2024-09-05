@@ -1,6 +1,0 @@
-tests:
-  bacnet.basic.object.calendar:
-    tags: bacnet
-  bacnet.basic.object.calendar.unit:
-    tags: bacnet
-    type: unit

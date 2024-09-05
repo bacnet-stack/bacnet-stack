@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnet ReadProperty-Request and ReadProperty-ACK encode and decode 
+ * @brief BACnet ReadProperty-Request and ReadProperty-ACK encode and decode
  *  helper functions
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2005
@@ -29,7 +29,8 @@
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int read_property_request_encode(uint8_t *apdu, BACNET_READ_PROPERTY_DATA *data)
+int read_property_request_encode(
+    uint8_t *apdu, const BACNET_READ_PROPERTY_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -71,7 +72,7 @@ int read_property_request_encode(uint8_t *apdu, BACNET_READ_PROPERTY_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t read_property_request_service_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_READ_PROPERTY_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_READ_PROPERTY_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -94,7 +95,7 @@ size_t read_property_request_service_encode(
  * @return Bytes encoded or zero on error.
  */
 int rp_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_READ_PROPERTY_DATA *data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_PROPERTY_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -126,7 +127,7 @@ int rp_encode_apdu(
  * @return number of bytes decoded, or #BACNET_STATUS_REJECT
  */
 int rp_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_READ_PROPERTY_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_READ_PROPERTY_DATA *data)
 {
     int len = 0;
     int apdu_len = 0;
@@ -218,7 +219,8 @@ int rp_decode_service_request(
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int read_property_ack_encode(uint8_t *apdu, BACNET_READ_PROPERTY_DATA *data)
+int read_property_ack_encode(
+    uint8_t *apdu, const BACNET_READ_PROPERTY_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -274,7 +276,7 @@ int read_property_ack_encode(uint8_t *apdu, BACNET_READ_PROPERTY_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t read_property_ack_service_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_READ_PROPERTY_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_READ_PROPERTY_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -297,7 +299,7 @@ size_t read_property_ack_service_encode(
  * @return Bytes decoded or zero on error.
  */
 int rp_ack_encode_apdu_init(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_READ_PROPERTY_DATA *rpdata)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -367,7 +369,7 @@ int rp_ack_encode_apdu_object_property_end(uint8_t *apdu)
  * @return Bytes encoded or zero on error.
  */
 int rp_ack_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_READ_PROPERTY_DATA *rpdata)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int imax = 0;
     int len = 0; /* length of each encoding */
@@ -407,11 +409,10 @@ int rp_ack_encode_apdu(
  * @param apdu_size [in] The total length of the apdu.
  * @param rpdata [out] The structure holding the partially decoded result.
  * @return Number of decoded bytes (could be less than apdu_len),
- * 			or -1 on decoding error.
+ *          or -1 on decoding error.
  */
-int rp_ack_decode_service_request(uint8_t *apdu,
-    int apdu_size,
-    BACNET_READ_PROPERTY_DATA *data)
+int rp_ack_decode_service_request(
+    uint8_t *apdu, int apdu_size, BACNET_READ_PROPERTY_DATA *data)
 {
     int apdu_len = 0; /* return value */
     int len = 0;
@@ -470,8 +471,8 @@ int rp_ack_decode_service_request(uint8_t *apdu,
         return BACNET_STATUS_ERROR;
     }
     /* determine the length of the data blob */
-    data_len = bacnet_enclosed_data_length(&apdu[apdu_len], 
-        apdu_size - apdu_len);
+    data_len =
+        bacnet_enclosed_data_length(&apdu[apdu_len], apdu_size - apdu_len);
     if (data_len == BACNET_STATUS_ERROR) {
         return BACNET_STATUS_ERROR;
     }

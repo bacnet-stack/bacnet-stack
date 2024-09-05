@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.3.7
+  VERSION 1.3.8
   LANGUAGES C)
 
 #
@@ -39,40 +39,44 @@ option(
   "compile the bacpoll app"
   ON)
 
-  option(
-    BACNET_BUILD_BACDISCOVER_APP
-    "compile the bacdiscover app"
-    ON)
+option(
+  BACNET_BUILD_BACDISCOVER_APP
+  "compile the bacdiscover app"
+  ON)
 
 option(
   BACDL_ETHERNET
-  "compile with ethernet support"
+  "compile with ethernet datalink support"
   OFF)
 
 option(
   BACDL_MSTP
-  "compile with mstp support"
+  "compile with mstp datalink support"
   OFF)
 
 option(
   BACDL_ARCNET
-  "compile with arcnet support"
+  "compile with arcnet datalink support"
   OFF)
 
 option(
   BACDL_BIP
-  "compile with ip support"
+  "compile with ip datalink support"
   ON)
 
 option(
   BACDL_BIP6
-  "compile with ipv6 support"
+  "compile with ipv6 datalink support"
   OFF)
 
-option(
-  BACDL_NONE
-  "compile without datalink"
-  OFF)
+if(NOT (BACDL_ETHERNET OR
+        BACDL_MSTP OR
+        BACDL_ARCNET OR
+        BACDL_BIP OR
+        BACDL_BIP6 OR
+        BACDL_CUSTOM))
+  add_definitions(-DBACDL_NONE)
+endif()
 
 set(BACNET_PROTOCOL_REVISION 19)
 
@@ -101,18 +105,75 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
+set(CMAKE_C_STANDARD 90)
+
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic)
+  # Add more warnings
   add_compile_options(-Wfloat-equal -Wconversion)
-  add_compile_options(-Wredundant-decls -Wswitch-default)
+  add_compile_options(-Wfloat-conversion -Wdouble-promotion)
+  add_compile_options(-Wredundant-decls -Wmissing-declarations)
+  add_compile_options(-Wswitch-default)
   add_compile_options(-Wunused-variable)
-  # don't warn about conversion, sign, compares, long long and attributes
-  # since they are common in embedded
+  add_compile_options(-Wcast-qual)
+  add_compile_options(-Wwrite-strings)
+
+  # Don't warn about conversion, sign, compares since they are common in
+  # embedded
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
-  add_compile_options(-Wno-sign-compare -Wno-long-long)
-  add_compile_options(-Wno-attributes)
-  # don't warn about implicit fallthrough since it's common in network protocols
-  add_compile_options(-Wno-implicit-fallthrough)
+  add_compile_options(-Wno-sign-compare)
+
+  if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+    # Just noise from clang
+    add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+
+    # Clang does not like _Bool which is not C90. We could fix this at some
+    # point.
+    add_compile_options(-Wno-c99-extensions)
+  endif()
+
+  if (APPLE)
+    # Apple defines UINT64_MAX with ULL suffix. This is not C90 compliant.
+    add_compile_options(-Wno-long-long)
+  endif()
+
+  # Should be fixed in a future.
+  add_compile_options(-Wno-cast-qual)
+  add_compile_options(-Wno-double-promotion)
+  add_compile_options(-Wno-float-conversion)
+  add_compile_options(-Wno-missing-declarations)
+  add_compile_options(-Wno-unused-but-set-variable)
+  add_compile_options(-Wno-write-strings)
+elseif(MSVC)
+  add_compile_options(/Wall)
+
+  # Potentially uninitialized local variable. Definetly fix these. There might
+  # be false positives but it is better to fix them also.
+  add_compile_options(/wd4701)
+
+  # Function is unsafe (strtok, sscanf, fopen, strerror).
+  add_compile_options(/wd4996)
+
+  # Handle all enums values in switch.
+  add_compile_options(/wd4061)
+
+  # Possible loss of data.
+  add_compile_options(/wd4242 /wd4244 /wd4267)
+
+  # Signed/unsigned mismatch.
+  add_compile_options(/wd4018 /wd4388 /wd4389)
+
+  # Not defined as a preprocessor macro.
+  add_compile_options(/wd4668)
+
+  # Function not inlined.
+  add_compile_options(/wd4710)
+
+  # Compiler adds padding to structures.
+  add_compile_options(/wd4820)
+
+  # Might be slower if builded with /Qspectre
+  add_compile_options(/wd5045)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -593,10 +654,6 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_BIP}>:ws2_32>
     $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
 
-  if(MSVC)
-    add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
-  endif()
-
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
     $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
@@ -687,9 +744,24 @@ if(BACNET_STACK_BUILD_APPS)
   if(BACDL_MSTP)
     add_executable(mstpcap apps/mstpcap/main.c)
     target_link_libraries(mstpcap PRIVATE ${PROJECT_NAME})
+    target_compile_options(mstpcap PRIVATE
+      # NOTE: Might be that this example currently doesn't work on Windows because
+      # of the following warning:
+
+      # 'strncasecmp': macro redefinition
+      $<$<C_COMPILER_ID:MSVC>:/wd4005>
+      # 'gettimeofday' undefined; assuming extern returning int
+      $<$<C_COMPILER_ID:MSVC>:/wd4013>
+    )
 
     add_executable(mstpcrc apps/mstpcrc/main.c)
     target_link_libraries(mstpcrc PRIVATE ${PROJECT_NAME})
+    target_compile_options(mstpcrc PRIVATE
+      # NOTE: Might be that this example currently doesn't work on Windows because
+      # of the following warning:
+      # 'gettimeofday' undefined; assuming extern returning int
+      $<$<C_COMPILER_ID:MSVC>:/wd4013>
+    )
   endif()
 
   if(BACNET_BUILD_PIFACE_APP)
@@ -704,6 +776,10 @@ if(BACNET_STACK_BUILD_APPS)
       src/bacnet/basic/client/bac-data.c
       src/bacnet/basic/client/bac-rw.c)
     target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacpoll PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
   endif(BACNET_BUILD_BACPOLL_APP)
 
   if(BACNET_BUILD_BACDISCOVER_APP)
@@ -711,7 +787,11 @@ if(BACNET_STACK_BUILD_APPS)
       apps/server-discover/main.c
       src/bacnet/basic/client/bac-discover.c
       src/bacnet/basic/client/bac-rw.c)
-  target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+    target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacdiscover PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
   endif(BACNET_BUILD_BACDISCOVER_APP)
 
   if(BACDL_BIP OR BACDL_BIP6)
@@ -740,26 +820,40 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(reinit apps/reinit/main.c)
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
 
-  if(BACDL_MSTP)
-    add_executable(
-      router
-      apps/router/ipmodule.c
-      apps/router/ipmodule.h
-      apps/router/main.c
-      apps/router/msgqueue.c
-      apps/router/msgqueue.h
-      apps/router/mstpmodule.c
-      apps/router/mstpmodule.h
-      apps/router/network_layer.c
-      apps/router/network_layer.h
-      apps/router/portthread.c
-      apps/router/portthread.h)
+  if(BACDL_MSTP AND NOT WIN32)
+    find_library(LIBCONFIG_LIBRARIES NAMES config)
+    if(NOT LIBCONFIG_LIBRARIES)
+      message(WARNING "BACNET: Will not build apps/router as libconfig not found")
+      return()
+    else()
+      add_executable(
+        router
+        apps/router/ipmodule.c
+        apps/router/ipmodule.h
+        apps/router/main.c
+        apps/router/msgqueue.c
+        apps/router/msgqueue.h
+        apps/router/mstpmodule.c
+        apps/router/mstpmodule.h
+        apps/router/network_layer.c
+        apps/router/network_layer.h
+        apps/router/portthread.c
+        apps/router/portthread.h)
 
-    target_link_libraries(
-      router
-      PRIVATE ${PROJECT_NAME}
-              # needs libconfig
-              -lconfig)
+      target_link_libraries(
+        router
+        PRIVATE ${PROJECT_NAME}
+                # needs libconfig
+                -lconfig)
+
+      target_compile_options(router PRIVATE
+        # These make this example not totally C90 compatible but it is ok.
+
+        -Wno-declaration-after-statement
+        -Wno-overlength-strings
+        -Wno-variadic-macros
+      )
+    endif()
   endif()
 
   if(BACDL_BIP6)
@@ -772,6 +866,10 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(server apps/server/main.c)
   target_link_libraries(server PRIVATE ${PROJECT_NAME})
+  target_compile_options(server PRIVATE
+    # Unreachable code because we have endless loop.
+    $<$<C_COMPILER_ID:MSVC>:/wd4702>
+  )
 
   add_executable(timesync apps/timesync/main.c)
   target_link_libraries(timesync PRIVATE ${PROJECT_NAME})
@@ -868,9 +966,9 @@ message(STATUS "BACNET: CMAKE_CXX_COMPILER_VERSION:.....\"${CMAKE_CXX_COMPILER_V
 message(STATUS "BACNET: CMAKE_BUILD_TYPE:...............\"${CMAKE_BUILD_TYPE}\"")
 message(STATUS "BACNET: CMAKE_INSTALL_PREFIX:...........\"${CMAKE_INSTALL_PREFIX}\"")
 message(STATUS "BACNET: BACNET_PROTOCOL_REVISION:.......\"${BACNET_PROTOCOL_REVISION}\"")
+message(STATUS "BACNET: Selected datalinks:")
 message(STATUS "BACNET: BACDL_BIP6:.....................\"${BACDL_BIP6}\"")
 message(STATUS "BACNET: BACDL_BIP:......................\"${BACDL_BIP}\"")
 message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")
-message(STATUS "BACNET: BACDL_NONE:.....................\"${BACDL_NONE}\"")

@@ -33,7 +33,7 @@ STRIP = $(PREFIX)strip
 SIZE = $(PREFIX)size
 
 # Source locations
-SDK_DIR = ASF
+SDK_DIR = external/ASF
 BACNET_DIR = ../../src
 BACNET_CORE = $(BACNET_DIR)/bacnet
 BACNET_BASIC = $(BACNET_CORE)/basic
@@ -161,7 +161,7 @@ SDK_INCLUDES += -I$(SDK_DIR)/common/services/serial
 SDK_INCLUDES += -I$(SDK_DIR)/common/utils/stdio/stdio_serial
 SDK_INCLUDES += -I$(SDK_DIR)/xmega/services/timeout
 
-INCLUDES = -I. -I./config -I$(BACNET_DIR) $(SDK_INCLUDES)
+INCLUDES = -I. -I./external/config -I$(BACNET_DIR) $(SDK_INCLUDES)
 
 # Source to Object conversion
 COBJ = $(CSRC:.c=.o)

@@ -22,34 +22,38 @@ extern "C" {
 
 /* user application function prototypes */
 BACNET_STACK_EXPORT
-int bvlc_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *npdu,
     uint16_t npdu_len);
 
 BACNET_STACK_EXPORT
-int bvlc_broadcast_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_broadcast_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *npdu,
     uint16_t npdu_len);
 
 BACNET_STACK_EXPORT
-int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_bbmd_enabled_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len);
 
 BACNET_STACK_EXPORT
-int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_bbmd_disabled_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len);
 
-
 BACNET_STACK_EXPORT
-int bvlc_send_pdu(BACNET_ADDRESS *dest,
-    BACNET_NPDU_DATA *npdu_data,
-    uint8_t *pdu,
+int bvlc_send_pdu(
+    const BACNET_ADDRESS *dest,
+    const BACNET_NPDU_DATA *npdu_data,
+    const uint8_t *pdu,
     unsigned pdu_len);
 
 BACNET_STACK_EXPORT
@@ -76,24 +80,23 @@ void bvlc_debug_disable(void);
 
 /* send a Read BDT request */
 BACNET_STACK_EXPORT
-int bvlc_bbmd_read_bdt(BACNET_IP_ADDRESS *bbmd_addr);
+int bvlc_bbmd_read_bdt(const BACNET_IP_ADDRESS *bbmd_addr);
 BACNET_STACK_EXPORT
-int bvlc_bbmd_write_bdt(BACNET_IP_ADDRESS *bbmd_addr,
+int bvlc_bbmd_write_bdt(
+    const BACNET_IP_ADDRESS *bbmd_addr,
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
 /* send a Read FDT request */
 BACNET_STACK_EXPORT
-int bvlc_bbmd_read_fdt(BACNET_IP_ADDRESS *bbmd_addr);
+int bvlc_bbmd_read_fdt(const BACNET_IP_ADDRESS *bbmd_addr);
 
 /* registers with a bbmd as a foreign device */
 BACNET_STACK_EXPORT
 int bvlc_register_with_bbmd(
-    BACNET_IP_ADDRESS *address, uint16_t time_to_live_seconds);
+    const BACNET_IP_ADDRESS *address, uint16_t time_to_live_seconds);
 BACNET_STACK_EXPORT
-void bvlc_remote_bbmd_address(
-    BACNET_IP_ADDRESS *address);
+void bvlc_remote_bbmd_address(BACNET_IP_ADDRESS *address);
 BACNET_STACK_EXPORT
-uint16_t bvlc_remote_bbmd_lifetime(
-    void);
+uint16_t bvlc_remote_bbmd_lifetime(void);
 
 /* Local interface to manage BBMD.
  * The interface user needs to handle mutual exclusion if needed i.e.

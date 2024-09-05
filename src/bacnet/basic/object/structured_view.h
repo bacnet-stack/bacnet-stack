@@ -49,15 +49,18 @@ BACNET_STACK_EXPORT
 bool Structured_View_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
-bool Structured_View_Name_Set(uint32_t object_instance, char *new_name);
+bool Structured_View_Name_Set(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
+const char *Structured_View_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int Structured_View_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 
 BACNET_STACK_EXPORT
-char *Structured_View_Description(uint32_t object_instance);
+const char *Structured_View_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Structured_View_Description_Set(uint32_t object_instance, char *new_name);
+bool Structured_View_Description_Set(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 BACNET_NODE_TYPE Structured_View_Node_Type(uint32_t object_instance);
@@ -66,9 +69,10 @@ bool Structured_View_Node_Type_Set(
     uint32_t object_instance, BACNET_NODE_TYPE node_type);
 
 BACNET_STACK_EXPORT
-char *Structured_View_Node_Subtype(uint32_t object_instance);
+const char *Structured_View_Node_Subtype(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Structured_View_Node_Subtype_Set(uint32_t object_instance, char *new_name);
+bool Structured_View_Node_Subtype_Set(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 BACNET_SUBORDINATE_DATA *
@@ -76,6 +80,11 @@ Structured_View_Subordinate_List(uint32_t object_instance);
 BACNET_STACK_EXPORT
 void Structured_View_Subordinate_List_Set(
     uint32_t object_instance, BACNET_SUBORDINATE_DATA *subordinate_list);
+BACNET_STACK_EXPORT
+BACNET_SUBORDINATE_DATA *Structured_View_Subordinate_List_Member(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index);
+BACNET_STACK_EXPORT
+unsigned int Structured_View_Subordinate_List_Count(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 BACNET_RELATIONSHIP
@@ -85,11 +94,24 @@ bool Structured_View_Default_Subordinate_Relationship_Set(
     uint32_t object_instance, BACNET_RELATIONSHIP relationship);
 
 BACNET_STACK_EXPORT
+int Structured_View_Subordinate_List_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
+BACNET_STACK_EXPORT
+int Structured_View_Subordinate_Annotations_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
+BACNET_STACK_EXPORT
+int Structured_View_Subordinate_Node_Types_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
+BACNET_STACK_EXPORT
+int Structured_View_Subordinate_Relationships_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
+
+BACNET_STACK_EXPORT
 BACNET_DEVICE_OBJECT_REFERENCE *
 Structured_View_Represents(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Structured_View_Represents_Set(
-    uint32_t object_instance, BACNET_DEVICE_OBJECT_REFERENCE *represents);
+    uint32_t object_instance, const BACNET_DEVICE_OBJECT_REFERENCE *represents);
 
 BACNET_STACK_EXPORT
 uint32_t Structured_View_Create(uint32_t object_instance);

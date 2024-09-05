@@ -39,55 +39,51 @@ typedef struct BACnet_Atomic_Write_File_Data {
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int awf_service_encode_apdu(
-        uint8_t *apdu, 
-        BACNET_ATOMIC_WRITE_FILE_DATA *data);
-    BACNET_STACK_EXPORT
-    int atomicwritefile_service_request_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
-        BACNET_ATOMIC_WRITE_FILE_DATA *data);
+BACNET_STACK_EXPORT
+int awf_service_encode_apdu(
+    uint8_t *apdu, const BACNET_ATOMIC_WRITE_FILE_DATA *data);
+BACNET_STACK_EXPORT
+int atomicwritefile_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_ATOMIC_WRITE_FILE_DATA *data);
 
-    BACNET_STACK_EXPORT
-    int awf_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_ATOMIC_WRITE_FILE_DATA * data);
+BACNET_STACK_EXPORT
+int awf_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    const BACNET_ATOMIC_WRITE_FILE_DATA *data);
 
-    BACNET_STACK_EXPORT
-    int awf_decode_service_request(
-        uint8_t * apdu,
-        unsigned apdu_size,
-        BACNET_ATOMIC_WRITE_FILE_DATA * data);
-    BACNET_STACK_EXPORT
-    int awf_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_size,
-        uint8_t * invoke_id,
-        BACNET_ATOMIC_WRITE_FILE_DATA * data);
+BACNET_STACK_EXPORT
+int awf_decode_service_request(
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    BACNET_ATOMIC_WRITE_FILE_DATA *data);
+BACNET_STACK_EXPORT
+int awf_decode_apdu(
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    uint8_t *invoke_id,
+    BACNET_ATOMIC_WRITE_FILE_DATA *data);
 
-    BACNET_STACK_EXPORT
-    int awf_ack_service_encode_apdu(
-        uint8_t *apdu, 
-        BACNET_ATOMIC_WRITE_FILE_DATA *data);
-    BACNET_STACK_EXPORT
-    int awf_ack_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_ATOMIC_WRITE_FILE_DATA * data);
+BACNET_STACK_EXPORT
+int awf_ack_service_encode_apdu(
+    uint8_t *apdu, const BACNET_ATOMIC_WRITE_FILE_DATA *data);
+BACNET_STACK_EXPORT
+int awf_ack_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    const BACNET_ATOMIC_WRITE_FILE_DATA *data);
 
-    BACNET_STACK_EXPORT
-    int awf_ack_decode_service_request(
-        uint8_t * apdu,
-        unsigned apdu_size,
-        BACNET_ATOMIC_WRITE_FILE_DATA * data);
-    BACNET_STACK_EXPORT
-    int awf_ack_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_size,
-        uint8_t * invoke_id,
-        BACNET_ATOMIC_WRITE_FILE_DATA * data);
+BACNET_STACK_EXPORT
+int awf_ack_decode_service_request(
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    BACNET_ATOMIC_WRITE_FILE_DATA *data);
+BACNET_STACK_EXPORT
+int awf_ack_decode_apdu(
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    uint8_t *invoke_id,
+    BACNET_ATOMIC_WRITE_FILE_DATA *data);
 
 #ifdef __cplusplus
 }

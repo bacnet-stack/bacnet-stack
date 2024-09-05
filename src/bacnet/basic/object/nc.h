@@ -1,7 +1,7 @@
 /**
  * @file
  * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
- * @date 2011 
+ * @date 2011
  * @brief API for a basic BACnet Notification Class object
  * @copyright SPDX-License-Identifier: MIT
  */
@@ -33,7 +33,7 @@ typedef struct Notification_Class_info {
         Priority[MAX_BACNET_EVENT_TRANSITION]; /* BACnetARRAY[3] of Unsigned */
     uint8_t Ack_Required; /* BACnetEventTransitionBits */
     BACNET_DESTINATION
-        Recipient_List[NC_MAX_RECIPIENTS]; /* List of BACnetDestination */
+    Recipient_List[NC_MAX_RECIPIENTS]; /* List of BACnetDestination */
 } NOTIFICATION_CLASS_INFO;
 
 /* Indicates whether the transaction has been confirmed */

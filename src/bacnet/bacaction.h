@@ -83,24 +83,28 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 int bacnet_action_property_value_encode(
-    uint8_t *apdu, BACNET_ACTION_PROPERTY_VALUE *value);
+    uint8_t *apdu, const BACNET_ACTION_PROPERTY_VALUE *value);
 BACNET_STACK_EXPORT
 int bacnet_action_property_value_decode(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_ACTION_PROPERTY_VALUE *value);
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_ACTION_PROPERTY_VALUE *value);
 BACNET_STACK_EXPORT
 bool bacnet_action_property_value_same(
-    BACNET_ACTION_PROPERTY_VALUE *value1, BACNET_ACTION_PROPERTY_VALUE *value2);
+    const BACNET_ACTION_PROPERTY_VALUE *value1,
+    const BACNET_ACTION_PROPERTY_VALUE *value2);
 
 BACNET_STACK_EXPORT
-int bacnet_action_command_encode(uint8_t *apdu, BACNET_ACTION_LIST *entry);
+int bacnet_action_command_encode(
+    uint8_t *apdu, const BACNET_ACTION_LIST *entry);
 
 BACNET_STACK_EXPORT
 int bacnet_action_command_decode(
-    uint8_t *apdu, size_t apdu_size, BACNET_ACTION_LIST *entry);
+    const uint8_t *apdu, size_t apdu_size, BACNET_ACTION_LIST *entry);
 
 BACNET_STACK_EXPORT
 bool bacnet_action_command_same(
-    BACNET_ACTION_LIST *entry1, BACNET_ACTION_LIST *entry2);
+    const BACNET_ACTION_LIST *entry1, const BACNET_ACTION_LIST *entry2);
 
 #ifdef __cplusplus
 }

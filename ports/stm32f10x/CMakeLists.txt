@@ -1,5 +1,5 @@
 # This is a CMake example for STM32 ARM Cortex-M3 STM32F103RGT6 on
-# a STM32 Discovery Kit evaluation board using the ARM GCC compiler 
+# a STM32 Discovery Kit evaluation board using the ARM GCC compiler
 # and STM32 CMSIS library.
 #
 # Board STM32F103 Discovery Kit
@@ -99,10 +99,10 @@ endif()
 set(LIBRARY_BACNET_INC "${CMAKE_SOURCE_DIR}/../../src")
 set(LIBRARY_BACNET_CORE "${CMAKE_SOURCE_DIR}/../../src/bacnet")
 set(LIBRARY_BACNET_BASIC "${CMAKE_SOURCE_DIR}/../../src/bacnet/basic")
-set(LIBRARY_STM32_SRC "${CMAKE_SOURCE_DIR}/drivers/src")
-set(LIBRARY_STM32_INC "${CMAKE_SOURCE_DIR}/drivers/inc")
-set(LIBRARY_CMSIS_INC "${CMAKE_SOURCE_DIR}/CMSIS")
-set(LIBRARY_CMSIS_GCC_INC "${CMAKE_SOURCE_DIR}/CMSIS/gcc_ride7")
+set(LIBRARY_STM32_SRC "${CMAKE_SOURCE_DIR}/external/drivers/src")
+set(LIBRARY_STM32_INC "${CMAKE_SOURCE_DIR}/external/drivers/inc")
+set(LIBRARY_CMSIS_INC "${CMAKE_SOURCE_DIR}/external/CMSIS")
+set(LIBRARY_CMSIS_GCC_INC "${CMAKE_SOURCE_DIR}/external/CMSIS/gcc_ride7")
 
 set(BACNET_PROJECT_SOURCE
     ${LIBRARY_STM32_SRC}/stm32f10x_adc.c
@@ -205,7 +205,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/wp.c
 
     ${LIBRARY_CMSIS_GCC_INC}/startup_stm32f10x_xl.s
-    CMSIS/stm32f10x.h
+    ${LIBRARY_CMSIS_INC}/stm32f10x.h
 )
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/stm32f10x.ld)
@@ -234,13 +234,13 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
 # inhibit pedantic warnings
 target_compile_options(${EXECUTABLE} PRIVATE
     -Wall -Wextra -pedantic
-    -Wfloat-equal -Wconversion -Wredundant-decls 
+    -Wfloat-equal -Wconversion -Wredundant-decls
     -Wswitch-default
     # don't warn about conversion, sign, compares, long long and attributes
     # since they are common in embedded
-    -Wno-sign-conversion 
+    -Wno-sign-conversion
     -Wno-conversion
-    -Wno-sign-compare 
+    -Wno-sign-compare
     -Wno-long-long
     -Wno-attributes
     # don't warn about implicit fallthrough since it is common in network protocols
@@ -296,7 +296,7 @@ add_custom_target(symbols
 )
 
 # calculate the worst case CSTACK memory usage by size and place into a file
-add_custom_target(cstack 
+add_custom_target(cstack
     DEPENDS ${EXECUTABLE}
     COMMENT "Print CSTACK memory depth by size"
     COMMAND ${CMAKE_CSTACK} ${EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR} 1> ${PROJECT_NAME}.su
@@ -306,7 +306,7 @@ add_custom_target(cstack
 )
 
 # Print file and library sizes
-add_custom_target(memmap 
+add_custom_target(memmap
     DEPENDS ${PROJECT_NAME}.map
     COMMENT "Print file and library memory usage by size"
     COMMAND ${CMAKE_MEMAP} -t GCC_ARM ${PROJECT_NAME}.map

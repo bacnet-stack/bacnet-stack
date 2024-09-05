@@ -45,7 +45,9 @@ static uint8_t TxBuffer[MAX_MPDU];
  * @param nbytes number of bytes to send
  */
 void RS485_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, uint8_t *buffer, uint16_t nbytes)
+    struct mstp_port_struct_t *mstp_port,
+    const uint8_t *buffer,
+    uint16_t nbytes)
 {
     (void)mstp_port;
     (void)buffer;
@@ -61,7 +63,7 @@ static FIFO_BUFFER Test_Queue;
  * @param buffer pointer to the data
  * @param len number of bytes to load
  */
-static void Load_Input_Buffer(uint8_t *buffer, size_t len)
+static void Load_Input_Buffer(const uint8_t *buffer, size_t len)
 {
     static bool initialized = false; /* tracks our init */
     if (!initialized) {
@@ -154,7 +156,9 @@ static void Timer_Silence_Reset(void *pArg)
  * @param nbytes number of bytes to send
  */
 void MSTP_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, uint8_t *buffer, uint16_t nbytes)
+    struct mstp_port_struct_t *mstp_port,
+    const uint8_t *buffer,
+    uint16_t nbytes)
 {
     if (mstp_port && mstp_port->OutputBuffer && buffer && (nbytes > 0) &&
         (nbytes <= mstp_port->OutputBufferSize)) {
@@ -1099,23 +1103,27 @@ static void testZeroConfigNodeFSM(void)
     station = 0;
     test_station = Nmin_poll_station;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station, "station=%u next_station=%u",
-        station, next_station);
+    zassert_equal(
+        next_station, test_station, "station=%u next_station=%u", station,
+        next_station);
     station = Nmin_poll_station;
     test_station = Nmin_poll_station + 1;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station, "station=%u next_station=%u",
-        station, next_station);
+    zassert_equal(
+        next_station, test_station, "station=%u next_station=%u", station,
+        next_station);
     station = Nmax_poll_station - 1;
     test_station = Nmax_poll_station;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station,"station=%u next_station=%u",
-        station, next_station);
+    zassert_equal(
+        next_station, test_station, "station=%u next_station=%u", station,
+        next_station);
     station = Nmax_poll_station;
     test_station = Nmin_poll_station;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station, "station=%u next_station=%u",
-        station, next_station);
+    zassert_equal(
+        next_station, test_station, "station=%u next_station=%u", station,
+        next_station);
 }
 
 /**

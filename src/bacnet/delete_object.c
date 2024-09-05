@@ -28,7 +28,7 @@
  * @return Bytes encoded or zero on error.
  */
 int delete_object_encode_service_request(
-    uint8_t *apdu, BACNET_DELETE_OBJECT_DATA *data)
+    uint8_t *apdu, const BACNET_DELETE_OBJECT_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -56,7 +56,7 @@ int delete_object_encode_service_request(
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 int delete_object_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_DELETE_OBJECT_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_DELETE_OBJECT_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -84,7 +84,7 @@ int delete_object_service_request_encode(
  * @return Bytes decoded or BACNET_STATUS_REJECT on error.
  */
 int delete_object_decode_service_request(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_DELETE_OBJECT_DATA *data)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_DELETE_OBJECT_DATA *data)
 {
     int len = 0;
     int apdu_len = 0;

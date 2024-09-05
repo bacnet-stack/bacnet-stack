@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnet ReadPropertyMultiple -Request and -Ack encode and decode 
+ * @brief BACnet ReadPropertyMultiple -Request and -Ack encode and decode
  * API header file
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2005
@@ -50,16 +50,12 @@ typedef struct BACnet_Read_Access_Data {
  * @param pProprietary [out] Pointer reference for the list of Proprietary
  *                           properties for this BACNET_OBJECT_TYPE.
  */
-typedef void (
-    *rpm_property_lists_function) (
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary);
+typedef void (*rpm_property_lists_function)(
+    const int **pRequired, const int **pOptional, const int **pProprietary);
 
-typedef void (
-    *rpm_object_property_lists_function) (
+typedef void (*rpm_object_property_lists_function)(
     BACNET_OBJECT_TYPE object_type,
-    struct special_property_list_t * pPropertyList);
+    struct special_property_list_t *pPropertyList);
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,121 +68,101 @@ extern "C" {
  until the APDU is full.*/
 
 /* RPM */
-    BACNET_STACK_EXPORT
-    int rpm_encode_apdu_init(
-        uint8_t * apdu,
-        uint8_t invoke_id);
+BACNET_STACK_EXPORT
+int rpm_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id);
 
-    BACNET_STACK_EXPORT
-    int rpm_encode_apdu_object_begin(
-        uint8_t * apdu,
-        BACNET_OBJECT_TYPE object_type,
-        uint32_t object_instance);
+BACNET_STACK_EXPORT
+int rpm_encode_apdu_object_begin(
+    uint8_t *apdu, BACNET_OBJECT_TYPE object_type, uint32_t object_instance);
 
-    BACNET_STACK_EXPORT
-    int rpm_encode_apdu_object_property(
-        uint8_t * apdu,
-        BACNET_PROPERTY_ID object_property,
-        BACNET_ARRAY_INDEX array_index);
+BACNET_STACK_EXPORT
+int rpm_encode_apdu_object_property(
+    uint8_t *apdu,
+    BACNET_PROPERTY_ID object_property,
+    BACNET_ARRAY_INDEX array_index);
 
-    BACNET_STACK_EXPORT
-    int rpm_encode_apdu_object_end(
-        uint8_t * apdu);
+BACNET_STACK_EXPORT
+int rpm_encode_apdu_object_end(uint8_t *apdu);
 
-    BACNET_STACK_EXPORT
-    int read_property_multiple_request_encode(
-        uint8_t *apdu,
-        BACNET_READ_ACCESS_DATA *data); 
-    BACNET_STACK_EXPORT
-    size_t read_property_multiple_request_service_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
-        BACNET_READ_ACCESS_DATA *data);
+BACNET_STACK_EXPORT
+int read_property_multiple_request_encode(
+    uint8_t *apdu, BACNET_READ_ACCESS_DATA *data);
+BACNET_STACK_EXPORT
+size_t read_property_multiple_request_service_encode(
+    uint8_t *apdu, size_t apdu_size, BACNET_READ_ACCESS_DATA *data);
 
-    BACNET_STACK_EXPORT
-    int rpm_encode_apdu(
-        uint8_t * apdu,
-        size_t max_apdu,
-        uint8_t invoke_id,
-        BACNET_READ_ACCESS_DATA * read_access_data);
+BACNET_STACK_EXPORT
+int rpm_encode_apdu(
+    uint8_t *apdu,
+    size_t max_apdu,
+    uint8_t invoke_id,
+    BACNET_READ_ACCESS_DATA *read_access_data);
 
 /* decode the object portion of the service request only */
-    BACNET_STACK_EXPORT
-    int rpm_decode_object_id(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_RPM_DATA * rpmdata);
+BACNET_STACK_EXPORT
+int rpm_decode_object_id(
+    const uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata);
 
 /* is this the end of this object property list? */
-    BACNET_STACK_EXPORT
-    int rpm_decode_object_end(
-        uint8_t * apdu,
-        unsigned apdu_len);
+BACNET_STACK_EXPORT
+int rpm_decode_object_end(const uint8_t *apdu, unsigned apdu_len);
 
 /* decode the object property portion of the service request only */
-    BACNET_STACK_EXPORT
-    int rpm_decode_object_property(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_RPM_DATA * rpmdata);
+BACNET_STACK_EXPORT
+int rpm_decode_object_property(
+    const uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata);
 
 /* RPM Ack - reply from server */
-    BACNET_STACK_EXPORT
-    int rpm_ack_encode_apdu_init(
-        uint8_t * apdu,
-        uint8_t invoke_id);
+BACNET_STACK_EXPORT
+int rpm_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id);
 
-    BACNET_STACK_EXPORT
-    int rpm_ack_encode_apdu_object_begin(
-        uint8_t * apdu,
-        BACNET_RPM_DATA * rpmdata);
+BACNET_STACK_EXPORT
+int rpm_ack_encode_apdu_object_begin(
+    uint8_t *apdu, const BACNET_RPM_DATA *rpmdata);
 
-    BACNET_STACK_EXPORT
-    int rpm_ack_encode_apdu_object_property(
-        uint8_t * apdu,
-        BACNET_PROPERTY_ID object_property,
-        BACNET_ARRAY_INDEX array_index);
+BACNET_STACK_EXPORT
+int rpm_ack_encode_apdu_object_property(
+    uint8_t *apdu,
+    BACNET_PROPERTY_ID object_property,
+    BACNET_ARRAY_INDEX array_index);
 
-    BACNET_STACK_EXPORT
-    int rpm_ack_encode_apdu_object_property_value(
-        uint8_t * apdu,
-        uint8_t * application_data,
-        unsigned application_data_len);
+BACNET_STACK_EXPORT
+int rpm_ack_encode_apdu_object_property_value(
+    uint8_t *apdu,
+    const uint8_t *application_data,
+    unsigned application_data_len);
 
-    BACNET_STACK_EXPORT
-    int rpm_ack_encode_apdu_object_property_error(
-        uint8_t * apdu,
-        BACNET_ERROR_CLASS error_class,
-        BACNET_ERROR_CODE error_code);
+BACNET_STACK_EXPORT
+int rpm_ack_encode_apdu_object_property_error(
+    uint8_t *apdu,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code);
 
-    BACNET_STACK_EXPORT
-    int rpm_ack_encode_apdu_object_end(
-        uint8_t * apdu);
+BACNET_STACK_EXPORT
+int rpm_ack_encode_apdu_object_end(uint8_t *apdu);
 
-    BACNET_STACK_EXPORT
-    int rpm_ack_decode_object_id(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_OBJECT_TYPE * object_type,
-        uint32_t * object_instance);
+BACNET_STACK_EXPORT
+int rpm_ack_decode_object_id(
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    BACNET_OBJECT_TYPE *object_type,
+    uint32_t *object_instance);
 /* is this the end of the list of this objects properties values? */
-    BACNET_STACK_EXPORT
-    int rpm_ack_decode_object_end(
-        uint8_t * apdu,
-        unsigned apdu_len);
-    BACNET_STACK_EXPORT
-    int rpm_ack_decode_object_property(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_PROPERTY_ID * object_property,
-        BACNET_ARRAY_INDEX * array_index);
-    BACNET_STACK_EXPORT
-    void rpm_ack_object_property_process(
-        uint8_t *apdu,
-        unsigned apdu_len,
-        uint32_t device_id,
-        BACNET_READ_PROPERTY_DATA *rp_data,
-        read_property_ack_process callback);
+BACNET_STACK_EXPORT
+int rpm_ack_decode_object_end(const uint8_t *apdu, unsigned apdu_len);
+BACNET_STACK_EXPORT
+int rpm_ack_decode_object_property(
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    BACNET_PROPERTY_ID *object_property,
+    BACNET_ARRAY_INDEX *array_index);
+BACNET_STACK_EXPORT
+void rpm_ack_object_property_process(
+    uint8_t *apdu,
+    unsigned apdu_len,
+    uint32_t device_id,
+    BACNET_READ_PROPERTY_DATA *rp_data,
+    read_property_ack_process callback);
 
 #ifdef __cplusplus
 }

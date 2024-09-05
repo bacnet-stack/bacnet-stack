@@ -137,7 +137,7 @@ static void bacnet_test_task(void)
  **************************************************************************/
 void bacnet_task(void)
 {
-    struct mstp_rx_packet pkt = { { 0 } };
+    struct mstp_rx_packet pkt = { 0 };
     bool pdu_available = false;
 
     /* hello, World! */

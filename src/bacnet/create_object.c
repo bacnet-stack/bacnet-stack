@@ -134,7 +134,7 @@ size_t create_object_service_request_encode(
  * @return Bytes decoded or BACNET_STATUS_REJECT on error.
  */
 int create_object_decode_service_request(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 0;
     int apdu_len = 0;
@@ -154,8 +154,9 @@ int create_object_decode_service_request(
     apdu_len += len;
     /* CHOICE of Tag [0] or [1] */
     /* object-identifier [1] BACnetObjectIdentifier */
-    len = bacnet_object_id_context_decode(&apdu[apdu_len], apdu_size - apdu_len,
-        1, &object_type, &object_instance);
+    len = bacnet_object_id_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &object_type,
+        &object_instance);
     if (len > 0) {
         if ((object_type >= MAX_BACNET_OBJECT_TYPE) ||
             (object_instance >= BACNET_MAX_INSTANCE)) {
@@ -239,7 +240,7 @@ int create_object_decode_service_request(
  * @return number of bytes encoded
  */
 int create_object_ack_service_encode(
-    uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data)
+    uint8_t *apdu, const BACNET_CREATE_OBJECT_DATA *data)
 {
     /* BACnetObjectIdentifier */
     return encode_application_object_id(
@@ -257,7 +258,7 @@ int create_object_ack_service_encode(
  * @return number of bytes encoded
  */
 int create_object_ack_encode(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_CREATE_OBJECT_DATA *data)
 {
     int apdu_len = 3; /* total length of the apdu, return value */
 
@@ -285,7 +286,7 @@ int create_object_ack_encode(
  * @return Bytes encoded or #BACNET_STATUS_ERROR on error.
  */
 int create_object_ack_service_decode(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
+    const uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
 {
     int apdu_len = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
@@ -318,7 +319,7 @@ int create_object_ack_service_decode(
  * @return Bytes encoded or zero on error.
  */
 int create_object_error_ack_service_encode(
-    uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data)
+    uint8_t *apdu, const BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -357,7 +358,7 @@ int create_object_error_ack_service_encode(
  * @return number of bytes encoded
  */
 int create_object_error_ack_encode(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 3;
 
@@ -386,7 +387,7 @@ int create_object_error_ack_encode(
  * @return Bytes encoded or BACNET_STATUS_REJECT on error.
  */
 int create_object_error_ack_service_decode(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
+    const uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data)
 {
     int len = 0, apdu_len = 0;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
@@ -421,7 +422,7 @@ int create_object_error_ack_service_decode(
         return BACNET_STATUS_REJECT;
     }
     /* Closing Context tag 0 - Error */
-    if (bacnet_is_closing_tag_number(apdu, apdu_size-apdu_len, 0, &len)) {
+    if (bacnet_is_closing_tag_number(apdu, apdu_size - apdu_len, 0, &len)) {
         apdu_len += len;
         apdu += len;
     } else {

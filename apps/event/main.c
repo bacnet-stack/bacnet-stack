@@ -50,14 +50,16 @@ static bool Error_Detected = false;
  * @param error_class [in] the error class
  * @param error_code [in] the error code
  */
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\n",
+        printf(
+            "BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -89,12 +91,13 @@ static void MyAbortHandler(
  * @param invoke_id [in] the invokeID from the rejected message
  * @param reject_reason [in] the reason for the rejection
  */
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
+        printf(
+            "BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -105,8 +108,8 @@ static void MyRejectHandler(
  * @param src [in] BACNET_ADDRESS of the source of the message
  * @param invoke_id [in] the invokeID from the rejected message
  */
-static void MyWritePropertySimpleAckHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id)
+static void
+MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
@@ -141,85 +144,88 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s device-id process-id initiating-device-id\n"
-           "    event-object-type event-object-instance\n"
-           "    sequence-number notification-class priority message-text\n"
-           "    notify-type ack-required from-state to-state event-type\n"
-           "    [change-of-bitstring reference-bit-string status-flags]\n"
-           "    [change-of-state new-state-tag new-state-value status-flags]\n",
+    printf(
+        "Usage: %s device-id process-id initiating-device-id\n"
+        "    event-object-type event-object-instance\n"
+        "    sequence-number notification-class priority message-text\n"
+        "    notify-type ack-required from-state to-state event-type\n"
+        "    [change-of-bitstring reference-bit-string status-flags]\n"
+        "    [change-of-state new-state-tag new-state-value status-flags]\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet ConfirmedEventNotification message to a device.\n");
-    printf("device-id:\n"
+    printf(
+        "device-id:\n"
         "BACnet Device Object Instance number that you are trying to\n"
         "communicate to.  This number will be used to try and bind with\n"
         "the device using Who-Is and I-Am services.  For example, if you were\n"
         "notifying Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("process-id:\n"
-        "Process Identifier in the receiving device for which the\n"
-        "notification is intended.\n");
+           "Process Identifier in the receiving device for which the\n"
+           "notification is intended.\n");
     printf("\n");
     printf("initiating-device-id: the BACnet Device Object Instance number\n"
-        "that initiated the ConfirmedEventNotification service request.\n");
+           "that initiated the ConfirmedEventNotification service request.\n");
     printf("\n");
-    printf("event-object-type:\n"
+    printf(
+        "event-object-type:\n"
         "The object type is defined either as the object-type name string\n"
         "as defined in the BACnet specification, or as the integer value.\n");
     printf("\n");
     printf("event-object-instance:\n"
-        "The object instance number of the event object.\n");
+           "The object instance number of the event object.\n");
     printf("\n");
     printf("sequence-number:\n"
-        "The sequence number of the event.\n");
+           "The sequence number of the event.\n");
     printf("\n");
     printf("notification-class:\n"
-        "The notification-class of the event.\n");
+           "The notification-class of the event.\n");
     printf("\n");
     printf("priority:\n"
-        "The priority of the event.\n");
+           "The priority of the event.\n");
     printf("\n");
     printf("message-text:\n"
-        "The message text of the event.\n");
+           "The message text of the event.\n");
     printf("\n");
     printf("notify-type:\n"
-        "The notify type of the event.\n");
+           "The notify type of the event.\n");
     printf("\n");
     printf("ack-required:\n"
-        "The ack-required of the event (0=FALSE,1=TRUE).\n");
+           "The ack-required of the event (0=FALSE,1=TRUE).\n");
     printf("\n");
     printf("from-state:\n"
-        "The from-state of the event.\n");
+           "The from-state of the event.\n");
     printf("\n");
     printf("to-state:\n"
-        "The to-state of the event.\n");
+           "The to-state of the event.\n");
     printf("\n");
     printf("event-type\n"
-        "The event-type of the event.\n");
+           "The event-type of the event.\n");
     printf("\n");
     printf("--mac A\n"
-        "Optional BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("--dnet N\n"
-        "Optional BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n");
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
     printf("\n");
     printf("--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional BACnet mac address on the destination BACnet network.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     (void)filename;
 }
@@ -246,7 +252,7 @@ int main(int argc, char *argv[])
     bool specific_address = false;
     int argi = 0;
     unsigned int target_args = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
     unsigned found_index = 0;
 
     filename = filename_remove_path(argv[0]);
@@ -462,8 +468,8 @@ int main(int argc, char *argv[])
                     /* FIXME: add event type parameters */
                 } else if (event_data.eventType == EVENT_OUT_OF_RANGE) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType ==
-                    EVENT_CHANGE_OF_LIFE_SAFETY) {
+                } else if (
+                    event_data.eventType == EVENT_CHANGE_OF_LIFE_SAFETY) {
                     /* FIXME: add event type parameters */
                 } else if (event_data.eventType == EVENT_EXTENDED) {
                     /* FIXME: add event type parameters */
@@ -477,26 +483,27 @@ int main(int argc, char *argv[])
                     /* FIXME: add event type parameters */
                 } else if (event_data.eventType == EVENT_SIGNED_OUT_OF_RANGE) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType ==
-                    EVENT_UNSIGNED_OUT_OF_RANGE) {
+                } else if (
+                    event_data.eventType == EVENT_UNSIGNED_OUT_OF_RANGE) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType ==
-                    EVENT_CHANGE_OF_CHARACTERSTRING) {
+                } else if (
+                    event_data.eventType == EVENT_CHANGE_OF_CHARACTERSTRING) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType ==
-                    EVENT_CHANGE_OF_STATUS_FLAGS) {
+                } else if (
+                    event_data.eventType == EVENT_CHANGE_OF_STATUS_FLAGS) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType ==
-                    EVENT_CHANGE_OF_RELIABILITY) {
+                } else if (
+                    event_data.eventType == EVENT_CHANGE_OF_RELIABILITY) {
                     /* FIXME: add event type parameters */
                 } else if (event_data.eventType == EVENT_NONE) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType ==
-                    EVENT_CHANGE_OF_DISCRETE_VALUE) {
+                } else if (
+                    event_data.eventType == EVENT_CHANGE_OF_DISCRETE_VALUE) {
                     /* FIXME: add event type parameters */
                 } else if (event_data.eventType == EVENT_CHANGE_OF_TIMER) {
                     /* FIXME: add event type parameters */
-                } else if ((event_data.eventType >= EVENT_PROPRIETARY_MIN) &&
+                } else if (
+                    (event_data.eventType >= EVENT_PROPRIETARY_MIN) &&
                     (event_data.eventType <= EVENT_PROPRIETARY_MAX)) {
                     /* Enumerated values 64-65535 may
                        be used by others subject to
@@ -544,7 +551,8 @@ int main(int argc, char *argv[])
             dest.len = 0;
         }
         address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
-        printf("Added Device %u to address cache\n",
+        printf(
+            "Added Device %u to address cache\n",
             Target_Device_Object_Instance);
     }
     /* setup my info */

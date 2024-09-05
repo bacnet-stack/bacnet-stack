@@ -18,106 +18,60 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    /* unsigned value encoding and decoding */
-    BACNET_STACK_EXPORT
-    int encode_unsigned16(
-        uint8_t * apdu,
-        uint16_t value);
-    BACNET_STACK_EXPORT
-    int decode_unsigned16(
-        uint8_t * apdu,
-        uint16_t * value);
-    BACNET_STACK_EXPORT
-    int encode_unsigned24(
-        uint8_t * apdu,
-        uint32_t value);
-    BACNET_STACK_EXPORT
-    int decode_unsigned24(
-        uint8_t * apdu,
-        uint32_t * value);
-    BACNET_STACK_EXPORT
-    int encode_unsigned32(
-        uint8_t * apdu,
-        uint32_t value);
-    BACNET_STACK_EXPORT
-    int decode_unsigned32(
-        uint8_t * apdu,
-        uint32_t * value);
+/* unsigned value encoding and decoding */
+BACNET_STACK_EXPORT
+int encode_unsigned16(uint8_t *apdu, uint16_t value);
+BACNET_STACK_EXPORT
+int decode_unsigned16(const uint8_t *apdu, uint16_t *value);
+BACNET_STACK_EXPORT
+int encode_unsigned24(uint8_t *apdu, uint32_t value);
+BACNET_STACK_EXPORT
+int decode_unsigned24(const uint8_t *apdu, uint32_t *value);
+BACNET_STACK_EXPORT
+int encode_unsigned32(uint8_t *apdu, uint32_t value);
+BACNET_STACK_EXPORT
+int decode_unsigned32(const uint8_t *apdu, uint32_t *value);
 #ifdef UINT64_MAX
-    BACNET_STACK_EXPORT
-    int encode_unsigned40(
-        uint8_t * buffer,
-        uint64_t value);
-    BACNET_STACK_EXPORT
-    int decode_unsigned40(
-        uint8_t * buffer,
-        uint64_t * value);
-    BACNET_STACK_EXPORT
-    int encode_unsigned48(
-        uint8_t * buffer,
-        uint64_t value);
-    BACNET_STACK_EXPORT
-    int decode_unsigned48(
-        uint8_t * buffer,
-        uint64_t * value);
-    BACNET_STACK_EXPORT
-    int encode_unsigned56(
-        uint8_t * buffer,
-        uint64_t value);
-    BACNET_STACK_EXPORT
-    int decode_unsigned56(
-        uint8_t * buffer,
-        uint64_t * value);
-    BACNET_STACK_EXPORT
-    int encode_unsigned64(
-        uint8_t * buffer,
-        uint64_t value);
-    BACNET_STACK_EXPORT
-    int decode_unsigned64(
-        uint8_t * buffer,
-        uint64_t * value);
+BACNET_STACK_EXPORT
+int encode_unsigned40(uint8_t *buffer, uint64_t value);
+BACNET_STACK_EXPORT
+int decode_unsigned40(const uint8_t *buffer, uint64_t *value);
+BACNET_STACK_EXPORT
+int encode_unsigned48(uint8_t *buffer, uint64_t value);
+BACNET_STACK_EXPORT
+int decode_unsigned48(const uint8_t *buffer, uint64_t *value);
+BACNET_STACK_EXPORT
+int encode_unsigned56(uint8_t *buffer, uint64_t value);
+BACNET_STACK_EXPORT
+int decode_unsigned56(const uint8_t *buffer, uint64_t *value);
+BACNET_STACK_EXPORT
+int encode_unsigned64(uint8_t *buffer, uint64_t value);
+BACNET_STACK_EXPORT
+int decode_unsigned64(const uint8_t *buffer, uint64_t *value);
 #endif
 
-    BACNET_STACK_EXPORT
-    int bacnet_unsigned_length(
-        BACNET_UNSIGNED_INTEGER value);
-    BACNET_STACK_EXPORT
-    int bacnet_signed_length(
-        int32_t value);
+BACNET_STACK_EXPORT
+int bacnet_unsigned_length(BACNET_UNSIGNED_INTEGER value);
+BACNET_STACK_EXPORT
+int bacnet_signed_length(int32_t value);
 
-    /* signed value encoding and decoding */
-    BACNET_STACK_EXPORT
-    int encode_signed8(
-        uint8_t * apdu,
-        int8_t value);
-    BACNET_STACK_EXPORT
-    int decode_signed8(
-        uint8_t * apdu,
-        int32_t * value);
-    BACNET_STACK_EXPORT
-    int encode_signed16(
-        uint8_t * apdu,
-        int16_t value);
-    BACNET_STACK_EXPORT
-    int decode_signed16(
-        uint8_t * apdu,
-        int32_t * value);
-    BACNET_STACK_EXPORT
-    int encode_signed24(
-        uint8_t * apdu,
-        int32_t value);
-    BACNET_STACK_EXPORT
-    int decode_signed24(
-        uint8_t * apdu,
-        int32_t * value);
-    BACNET_STACK_EXPORT
-    int encode_signed32(
-        uint8_t * apdu,
-        int32_t value);
-    BACNET_STACK_EXPORT
-    int decode_signed32(
-        uint8_t * apdu,
-        int32_t * value);
+/* signed value encoding and decoding */
+BACNET_STACK_EXPORT
+int encode_signed8(uint8_t *apdu, int8_t value);
+BACNET_STACK_EXPORT
+int decode_signed8(const uint8_t *apdu, int32_t *value);
+BACNET_STACK_EXPORT
+int encode_signed16(uint8_t *apdu, int16_t value);
+BACNET_STACK_EXPORT
+int decode_signed16(const uint8_t *apdu, int32_t *value);
+BACNET_STACK_EXPORT
+int encode_signed24(uint8_t *apdu, int32_t value);
+BACNET_STACK_EXPORT
+int decode_signed24(const uint8_t *apdu, int32_t *value);
+BACNET_STACK_EXPORT
+int encode_signed32(uint8_t *apdu, int32_t value);
+BACNET_STACK_EXPORT
+int decode_signed32(const uint8_t *apdu, int32_t *value);
 
 #ifdef __cplusplus
 }

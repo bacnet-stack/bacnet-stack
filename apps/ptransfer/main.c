@@ -68,7 +68,8 @@ static int Target_Mode = 0;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
@@ -76,14 +77,15 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
-    printf("BACnet Error: %s: %s\r\n",
-        bactext_error_class_name((int)error_class),
+    printf(
+        "BACnet Error: %s: %s\r\n", bactext_error_class_name((int)error_class),
         bactext_error_code_name((int)error_code));
     /*    Error_Detected = true; */
 }
 
 /* complex error reply function */
-static void MyPrivateTransferErrorHandler(BACNET_ADDRESS *src,
+static void MyPrivateTransferErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     uint8_t service_choice,
     uint8_t *service_request,
@@ -108,13 +110,14 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
-    printf("BACnet Reject: %s\r\n",
+    printf(
+        "BACnet Reject: %s\r\n",
         bactext_reject_reason_name((int)reject_reason));
     Error_Detected = true;
 }
@@ -184,8 +187,9 @@ int main(int argc, char *argv[])
     if (((argc != 2) && (argc != 3)) ||
         ((argc >= 2) && (strcmp(argv[1], "--help") == 0))) {
         printf("%s\n", argv[0]);
-        printf("Usage: %s server local-device-instance\r\n       or\r\n"
-               "       %s remote-device-instance\r\n",
+        printf(
+            "Usage: %s server local-device-instance\r\n       or\r\n"
+            "       %s remote-device-instance\r\n",
             filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             printf(
@@ -220,7 +224,8 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1 + Target_Mode], NULL, 0);
 
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - not greater than %u\r\n",
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -349,8 +354,9 @@ int main(int argc, char *argv[])
                                 case 3:
                                 case 5:
                                 case 7:
-                                    printf("Requesting block %d with invalid "
-                                           "Vendor ID\n",
+                                    printf(
+                                        "Requesting block %d with invalid "
+                                        "Vendor ID\n",
                                         iCount);
                                     invoke_id = Send_Private_Transfer_Request(
                                         Target_Device_Object_Instance,

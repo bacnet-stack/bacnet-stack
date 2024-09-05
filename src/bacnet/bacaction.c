@@ -22,7 +22,7 @@
  * @return number of bytes encoded
  */
 int bacnet_action_property_value_encode(
-    uint8_t *apdu, BACNET_ACTION_PROPERTY_VALUE *value)
+    uint8_t *apdu, const BACNET_ACTION_PROPERTY_VALUE *value)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -85,7 +85,9 @@ int bacnet_action_property_value_encode(
  * @return number of bytes encoded
  */
 int bacnet_action_property_value_decode(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_ACTION_PROPERTY_VALUE *value)
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_ACTION_PROPERTY_VALUE *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -159,7 +161,8 @@ int bacnet_action_property_value_decode(
  * @return true if the two structures are the same
  */
 bool bacnet_action_property_value_same(
-    BACNET_ACTION_PROPERTY_VALUE *value1, BACNET_ACTION_PROPERTY_VALUE *value2)
+    const BACNET_ACTION_PROPERTY_VALUE *value1,
+    const BACNET_ACTION_PROPERTY_VALUE *value2)
 {
     bool status = false; /*return value */
 
@@ -255,7 +258,7 @@ bool bacnet_action_property_value_same(
  * @param entry [in] The BACNET_ACTION_LIST structure to encode
  * @return The length of the encoded data, or BACNET_STATUS_REJECT on error
  */
-int bacnet_action_command_encode(uint8_t *apdu, BACNET_ACTION_LIST *entry)
+int bacnet_action_command_encode(uint8_t *apdu, const BACNET_ACTION_LIST *entry)
 {
     int len = 0;
     int apdu_len = 0;
@@ -349,7 +352,7 @@ int bacnet_action_command_encode(uint8_t *apdu, BACNET_ACTION_LIST *entry)
  * @return The length of the decoded data, or BACNET_STATUS_ERROR on error
  */
 int bacnet_action_command_decode(
-    uint8_t *apdu, size_t apdu_size, BACNET_ACTION_LIST *entry)
+    const uint8_t *apdu, size_t apdu_size, BACNET_ACTION_LIST *entry)
 {
     int len = 0;
     int apdu_len = 0;
@@ -525,7 +528,7 @@ int bacnet_action_command_decode(
  * @return True if the two structures are the same, else False
  */
 bool bacnet_action_command_same(
-    BACNET_ACTION_LIST *entry1, BACNET_ACTION_LIST *entry2)
+    const BACNET_ACTION_LIST *entry1, const BACNET_ACTION_LIST *entry2)
 {
     if (!entry1 || !entry2) {
         return false;

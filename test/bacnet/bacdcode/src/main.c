@@ -1230,10 +1230,8 @@ static void testBACDCodeBitString(void)
         null_len = encode_application_bitstring(NULL, &value);
         zassert_equal(len, null_len, NULL);
         /* decode */
-        len = bacnet_bitstring_application_decode(
-            apdu, null_len, &test_value);
-        zassert_equal(
-            bitstring_bits_used(&test_value), (bit + 1), NULL);
+        len = bacnet_bitstring_application_decode(apdu, null_len, &test_value);
+        zassert_equal(bitstring_bits_used(&test_value), (bit + 1), NULL);
         zassert_true(bitstring_bit(&test_value, bit), NULL);
         len = bacnet_tag_decode(apdu, len, &tag);
         zassert_true(len > 0, NULL);
@@ -1247,26 +1245,22 @@ static void testBACDCodeBitString(void)
         zassert_false(bitstring_bit(&value, bit), NULL);
         /* encode */
         len = bacnet_bitstring_application_encode(apdu, sizeof(apdu), &value);
-        null_len = bacnet_bitstring_application_encode(NULL, sizeof(apdu), &value);
+        null_len =
+            bacnet_bitstring_application_encode(NULL, sizeof(apdu), &value);
         zassert_equal(len, null_len, NULL);
         /* decode */
-        len = bacnet_bitstring_application_decode(
-            apdu, null_len, &test_value);
+        len = bacnet_bitstring_application_decode(apdu, null_len, &test_value);
         len = bacnet_tag_decode(apdu, len, &tag);
         zassert_true(len > 0, NULL);
         zassert_equal(tag.number, BACNET_APPLICATION_TAG_BIT_STRING, NULL);
-        zassert_equal(
-            bitstring_bits_used(&test_value), (bit + 1), NULL);
+        zassert_equal(bitstring_bits_used(&test_value), (bit + 1), NULL);
         zassert_false(bitstring_bit(&test_value, bit), NULL);
     }
     /* test APDU size limits */
-    apdu_len =
-        bacnet_bitstring_application_encode(apdu, sizeof(apdu), &value);
-    null_len =
-        bacnet_bitstring_application_encode(NULL, sizeof(apdu), &value);
+    apdu_len = bacnet_bitstring_application_encode(apdu, sizeof(apdu), &value);
+    null_len = bacnet_bitstring_application_encode(NULL, sizeof(apdu), &value);
     zassert_equal(apdu_len, null_len, NULL);
-    test_len =
-        bacnet_bitstring_application_decode(apdu, apdu_len, &test_value);
+    test_len = bacnet_bitstring_application_decode(apdu, apdu_len, &test_value);
     zassert_equal(
         apdu_len, test_len, "test_len=%d apdu_len=%d", test_len, apdu_len);
     zassert_true(bitstring_same(&value, &test_value), NULL);
@@ -1275,8 +1269,7 @@ static void testBACDCodeBitString(void)
         zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     }
     while (--apdu_len) {
-        len =
-            bacnet_bitstring_application_encode(apdu, apdu_len, &value);
+        len = bacnet_bitstring_application_encode(apdu, apdu_len, &value);
         zassert_equal(len, 0, NULL);
     }
 }
@@ -2017,12 +2010,12 @@ void test_main(void)
 {
     ztest_test_suite(
         bacdcode_tests, ztest_unit_test(testBACnetTagEncoder),
-        ztest_unit_test(testBACnetTagCodec), 
+        ztest_unit_test(testBACnetTagCodec),
         ztest_unit_test(testBACDCodeTags),
         ztest_unit_test(testBACDCodeReal),
         ztest_unit_test(testBACDCodeUnsigned),
         ztest_unit_test(testBACnetUnsigned),
-        ztest_unit_test(testBACDCodeSigned), 
+        ztest_unit_test(testBACDCodeSigned),
         ztest_unit_test(testBACnetSigned),
         ztest_unit_test(testBACnetDateDecodes),
         ztest_unit_test(testBACnetDateRangeDecodes),

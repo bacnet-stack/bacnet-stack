@@ -28,7 +28,7 @@
  * The contents of iArgs are are, per message type:
  * - NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK: Single int for DNET requested
  * - NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK: Array of DNET(s) to send,
- * 		terminated with -1
+ *      terminated with -1
  * - NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK: array of 2 ints,
  *      first is reason, second is DNET of interest
  * - NETWORK_MESSAGE_ROUTER_BUSY_TO_NETWORK: same as I-Am-Router msg
@@ -44,14 +44,15 @@
  *                   the type of message.
  * @return Number of bytes sent, or <=0 if no message was sent.
  */
-int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
+int Send_Network_Layer_Message(
+    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     BACNET_ADDRESS *dst,
-    int *iArgs)
+    const int *iArgs)
 {
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
-    int *pVal = iArgs; /* Start with first value */
+    const int *pVal = iArgs; /* Start with first value */
     bool data_expecting_reply = false;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS bcastDest;
@@ -69,8 +70,9 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     if (network_message_type == NETWORK_MESSAGE_INIT_RT_TABLE) {
         data_expecting_reply = true; /* DER in this one case */
     }
-    npdu_encode_npdu_network(&npdu_data, network_message_type,
-        data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_network(
+        &npdu_data, network_message_type, data_expecting_reply,
+        MESSAGE_PRIORITY_NORMAL);
 
     /* We don't need src information, since a message can't originate from
      * our downstream BACnet network.
@@ -152,16 +154,19 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
             break;
 
         default:
-            debug_printf("Not sent: %s message unsupported \n",
+            debug_printf(
+                "Not sent: %s message unsupported \n",
                 bactext_network_layer_msg_name(network_message_type));
             return 0;
     }
 
     if (dst != NULL) {
-        debug_printf("Sending %s message to BACnet network %u \n",
+        debug_printf(
+            "Sending %s message to BACnet network %u \n",
             bactext_network_layer_msg_name(network_message_type), dst->net);
     } else {
-        debug_printf("Sending %s message to local BACnet network \n",
+        debug_printf(
+            "Sending %s message to local BACnet network \n",
             bactext_network_layer_msg_name(network_message_type));
     }
 
@@ -171,7 +176,8 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
 #if PRINT_ENABLED
     if (bytes_sent <= 0) {
         int wasErrno = errno; /* preserve the errno */
-        debug_printf("Failed to send %s message (%s)!\n",
+        debug_printf(
+            "Failed to send %s message (%s)!\n",
             bactext_network_layer_msg_name(network_message_type),
             strerror(wasErrno));
     }
@@ -209,7 +215,7 @@ void Send_I_Am_Router_To_Network(const int DNET_list[])
 {
     /* Use a NULL dst here since we want a broadcast MAC address. */
     Send_Network_Layer_Message(
-        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, NULL, (int *)DNET_list);
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, NULL, DNET_list);
 }
 
 /** Finds a specific router, or all reachable BACnet networks.
@@ -252,8 +258,7 @@ void Send_Reject_Message_To_Network(
 void Send_Initialize_Routing_Table(BACNET_ADDRESS *dst, const int DNET_list[])
 {
     /* Use a NULL dst here since we want a broadcast MAC address. */
-    Send_Network_Layer_Message(
-        NETWORK_MESSAGE_INIT_RT_TABLE, dst, (int *)DNET_list);
+    Send_Network_Layer_Message(NETWORK_MESSAGE_INIT_RT_TABLE, dst, DNET_list);
 }
 
 /** Sends our Routing Table, built from our DNET[] array, as an ACK.
@@ -277,7 +282,7 @@ void Send_Initialize_Routing_Table_Ack(
     BACNET_ADDRESS *dst, const int DNET_list[])
 {
     Send_Network_Layer_Message(
-        NETWORK_MESSAGE_INIT_RT_TABLE_ACK, dst, (int *)DNET_list);
+        NETWORK_MESSAGE_INIT_RT_TABLE_ACK, dst, DNET_list);
 }
 
 /**

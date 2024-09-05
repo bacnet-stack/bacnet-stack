@@ -124,10 +124,10 @@ int npdu_send_what_is_network_number(BACNET_ADDRESS *dst)
  *                   If src->net and src->len are 0, there is no
  *                   routing source information.
  * @param npdu_data [in] Contains a filled-out structure with information
- * 					 decoded from the NCPI and other NPDU
+ *                   decoded from the NCPI and other NPDU
  * bytes.
  *  @param npdu [in]  Buffer containing the rest of the NPDU, following the
- *  				 bytes that have already been decoded.
+ *                   bytes that have already been decoded.
  *  @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
 static void network_control_handler(

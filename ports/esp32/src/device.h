@@ -2,24 +2,7 @@
 *
 * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
 *
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+* SPDX-License-Identifier: MIT
 *
 *********************************************************************/
 
@@ -291,7 +274,7 @@ extern "C" {
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
     bool Device_Set_Object_Name(
-        BACNET_CHARACTER_STRING * object_name);
+        const BACNET_CHARACTER_STRING * object_name);
     /* Copy a child object name, given its ID. */
     bool Device_Object_Name_Copy(
         BACNET_OBJECT_TYPE object_type,
@@ -357,7 +340,7 @@ extern "C" {
         void);
 
     bool Device_Valid_Object_Name(
-        BACNET_CHARACTER_STRING * object_name,
+        const BACNET_CHARACTER_STRING * object_name,
         BACNET_OBJECT_TYPE *object_type,
         uint32_t * object_instance);
     bool Device_Valid_Object_Id(
@@ -392,7 +375,7 @@ extern "C" {
 
     uint16_t Add_Routed_Device(
         uint32_t Object_Instance,
-        BACNET_CHARACTER_STRING * Object_Name,
+        const BACNET_CHARACTER_STRING * Object_Name,
         const char *Description);
     DEVICE_OBJECT_DATA *Get_Routed_Device_Object(
         int idx);
@@ -405,14 +388,14 @@ extern "C" {
     bool Routed_Device_Address_Lookup(
         int idx,
         uint8_t address_len,
-        uint8_t * mac_adress);
+        const uint8_t * mac_adress);
     bool Routed_Device_GetNext(
-        BACNET_ADDRESS * dest,
-        int *DNET_list,
+        const BACNET_ADDRESS * dest,
+        const int *DNET_list,
         int *cursor);
     bool Routed_Device_Is_Valid_Network(
         uint16_t dest_net,
-        int *DNET_list);
+        const int *DNET_list);
 
     uint32_t Routed_Device_Index_To_Instance(
         unsigned index);
@@ -454,11 +437,13 @@ extern "C" {
  *  - The interface between the implemented Objects and the BAC-stack services,
  *    specifically the handlers, which are mediated through function calls to
  *    the Device object.
-    *//** @defgroup ObjHelpers Object Helper Functions
+ */
+/** @defgroup ObjHelpers Object Helper Functions
  * @ingroup ObjFrmwk
  * This section describes the function templates for the helper functions that
  * provide common object support.
-    *//** @defgroup ObjIntf Handler-to-Object Interface Functions
+ */
+/** @defgroup ObjIntf Handler-to-Object Interface Functions
  * @ingroup ObjFrmwk
  * This section describes the fairly limited set of functions that link the
  * BAC-stack handlers to the BACnet Object instances.  All of these calls are

@@ -23,8 +23,8 @@ int indtext_stricmp(const char *a, const char *b)
     int twin_a, twin_b;
 
     do {
-        twin_a = *(unsigned char *)a;
-        twin_b = *(unsigned char *)b;
+        twin_a = *(const unsigned char *)a;
+        twin_b = *(const unsigned char *)b;
         twin_a = tolower(toupper(twin_a));
         twin_b = tolower(toupper(twin_b));
         a++;
@@ -97,7 +97,7 @@ bool indtext_by_istring(
 }
 
 /**
- * @brief Search a list of strings to find a matching string, 
+ * @brief Search a list of strings to find a matching string,
  * or return a default index
  * @param data_list - list of strings and indices
  * @param search_name - string to search for
@@ -169,7 +169,8 @@ const char *indtext_by_index_default(
  * @param default_name - default string to return if the index is not found
  * @return the string found, or a default string
  */
-const char *indtext_by_index_split_default(INDTEXT_DATA *data_list,
+const char *indtext_by_index_split_default(
+    INDTEXT_DATA *data_list,
     unsigned index,
     unsigned split_index,
     const char *before_split_default_name,

@@ -339,8 +339,9 @@ static void testBACnetSigned8(void)
         test_value = ~0U;
         len = decode_signed8(&apdu[0], &test_value);
         zassert_equal(value, test_value, NULL);
-        if (value == 127)
+        if (value == 127) {
             break;
+        }
     }
 }
 
@@ -376,8 +377,9 @@ static void testBACnetSigned16(void)
         test_value = ~0U;
         len = decode_signed16(&apdu[0], &test_value);
         zassert_equal(value, test_value, NULL);
-        if (value == 32767)
+        if (value == 32767) {
             break;
+        }
     }
 }
 

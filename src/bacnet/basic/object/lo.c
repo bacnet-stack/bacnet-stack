@@ -197,8 +197,8 @@ unsigned Lighting_Output_Instance_To_Index(uint32_t object_instance)
  *    0 to N for individual array members
  * @return the priority-array active status for the specific priority
  */
-static bool
-Priority_Array_Active(struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+static bool Priority_Array_Active(
+    const struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     bool active = false;
 
@@ -218,8 +218,8 @@ Priority_Array_Active(struct object_data *pObject, BACNET_ARRAY_INDEX priority)
  *    0 to N for individual array members
  * @return The priority-array value for the specific priority
  */
-static float
-Priority_Array_Value(struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+static float Priority_Array_Value(
+    const struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     float real_value = 0.0;
 
@@ -241,7 +241,7 @@ Priority_Array_Value(struct object_data *pObject, BACNET_ARRAY_INDEX priority)
  * @return The priority-array value for the specific priority
  */
 static float Priority_Array_Next_Value(
-    struct object_data *pObject, BACNET_ARRAY_INDEX priority)
+    const struct object_data *pObject, BACNET_ARRAY_INDEX priority)
 {
     float real_value = 0.0;
     unsigned p = 0;
@@ -316,7 +316,7 @@ static int Lighting_Output_Priority_Array_Encode(
  *
  * @return  active priority 1..16, or 0 if no priority is active
  */
-static unsigned Present_Value_Priority(struct object_data *pObject)
+static unsigned Present_Value_Priority(const struct object_data *pObject)
 {
     unsigned p = 0; /* loop counter */
     unsigned priority = 0; /* return value */
@@ -534,9 +534,11 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
  * @param value [in] BACnet lighting value
  * @param fade_time [in] BACnet lighting fade time
  */
-static void
-Lighting_Command_Fade_To(struct object_data *pObject,
-    unsigned priority, float value, uint32_t fade_time)
+static void Lighting_Command_Fade_To(
+    struct object_data *pObject,
+    unsigned priority,
+    float value,
+    uint32_t fade_time)
 {
     unsigned current_priority;
 
@@ -560,9 +562,11 @@ Lighting_Command_Fade_To(struct object_data *pObject,
  * @param value [in] BACnet lighting value
  * @param ramp_rate [in] BACnet lighting ramp rate
  */
-static void
-Lighting_Command_Ramp_To(struct object_data *pObject,
-    unsigned priority, float value, float ramp_rate)
+static void Lighting_Command_Ramp_To(
+    struct object_data *pObject,
+    unsigned priority,
+    float value,
+    float ramp_rate)
 {
     unsigned current_priority;
 
@@ -837,18 +841,36 @@ bool Lighting_Output_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Lighting_Output_Name_Set(uint32_t object_instance, char *new_name)
+bool Lighting_Output_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Object_Name = new_name;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Lighting_Output_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -858,15 +880,15 @@ bool Lighting_Output_Name_Set(uint32_t object_instance, char *new_name)
  *
  * @return description text or NULL if not found
  */
-char *Lighting_Output_Description(uint32_t object_instance)
+const char *Lighting_Output_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -883,13 +905,14 @@ char *Lighting_Output_Description(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Lighting_Output_Description_Set(uint32_t object_instance, char *new_name)
+bool Lighting_Output_Description_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Description = new_name;
     }
@@ -906,7 +929,7 @@ bool Lighting_Output_Description_Set(uint32_t object_instance, char *new_name)
  * @return  true if lighting command was set
  */
 bool Lighting_Output_Lighting_Command_Set(
-    uint32_t object_instance, BACNET_LIGHTING_COMMAND *value)
+    uint32_t object_instance, const BACNET_LIGHTING_COMMAND *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -952,7 +975,7 @@ Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
  */
 static bool Lighting_Output_Lighting_Command_Write(
     uint32_t object_instance,
-    BACNET_LIGHTING_COMMAND *value,
+    const BACNET_LIGHTING_COMMAND *value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
@@ -973,8 +996,7 @@ static bool Lighting_Output_Lighting_Command_Write(
         *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         return status;
     }
-    if ((priority < BACNET_MIN_PRIORITY) ||
-        (priority > BACNET_MAX_PRIORITY)) {
+    if ((priority < BACNET_MIN_PRIORITY) || (priority > BACNET_MAX_PRIORITY)) {
         *error_class = ERROR_CLASS_PROPERTY;
         *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return status;
@@ -986,41 +1008,43 @@ static bool Lighting_Output_Lighting_Command_Write(
     }
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        debug_printf("LO[%u]: Lighting-Command@%u: %s\n",
-            object_instance, priority,
+        debug_printf(
+            "LO[%u]: Lighting-Command@%u: %s\n", object_instance, priority,
             bactext_lighting_operation_name(value->operation));
         switch (value->operation) {
             case BACNET_LIGHTS_NONE:
                 status = true;
                 break;
             case BACNET_LIGHTS_FADE_TO:
-                debug_printf("LO[%u]: Lighting-Command@%u Fade-To "
+                debug_printf(
+                    "LO[%u]: Lighting-Command@%u Fade-To "
                     "Target=%f Fade=%u\n",
-                    object_instance, priority,
-                    (double)value->target_level, value->fade_time);
-                Lighting_Command_Fade_To(pObject, priority,
-                    value->target_level, value->fade_time);
+                    object_instance, priority, (double)value->target_level,
+                    value->fade_time);
+                Lighting_Command_Fade_To(
+                    pObject, priority, value->target_level, value->fade_time);
                 status = true;
                 break;
             case BACNET_LIGHTS_RAMP_TO:
-                debug_printf("LO[%u]: Lighting-Command@%u Ramp-To "
+                debug_printf(
+                    "LO[%u]: Lighting-Command@%u Ramp-To "
                     "Target=%f Ramp-Rate=%f\n",
-                    object_instance, priority,
-                    (double)value->target_level, (double)value->ramp_rate);
-                Lighting_Command_Ramp_To(pObject, priority,
-                    value->target_level, value->ramp_rate);
+                    object_instance, priority, (double)value->target_level,
+                    (double)value->ramp_rate);
+                Lighting_Command_Ramp_To(
+                    pObject, priority, value->target_level, value->ramp_rate);
                 status = true;
                 break;
             case BACNET_LIGHTS_STEP_UP:
             case BACNET_LIGHTS_STEP_DOWN:
             case BACNET_LIGHTS_STEP_ON:
             case BACNET_LIGHTS_STEP_OFF:
-                debug_printf("LO[%u]: Lighting-Command@%u Step "
+                debug_printf(
+                    "LO[%u]: Lighting-Command@%u Step "
                     "Step-Increment=%f\n",
-                    object_instance, priority,
-                    (double)value->step_increment);
-                Lighting_Command_Step(pObject,priority,
-                    value->operation,value->step_increment);
+                    object_instance, priority, (double)value->step_increment);
+                Lighting_Command_Step(
+                    pObject, priority, value->operation, value->step_increment);
                 status = true;
                 break;
             case BACNET_LIGHTS_WARN:
@@ -1523,8 +1547,7 @@ static bool Lighting_Output_Default_Step_Increment_Write(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
-        if (isgreaterequal(value, 0.1f) &&
-            islessequal(value, 100.0f)) {
+        if (isgreaterequal(value, 0.1f) && islessequal(value, 100.0f)) {
             pObject->Default_Step_Increment = value;
             status = true;
         } else {
@@ -1840,7 +1863,7 @@ bool Lighting_Output_Color_Reference(
  * @return  true if property value was set
  */
 bool Lighting_Output_Color_Reference_Set(
-    uint32_t object_instance, BACNET_OBJECT_ID *value)
+    uint32_t object_instance, const BACNET_OBJECT_ID *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -1904,7 +1927,7 @@ bool Lighting_Output_Override_Color_Reference(
  * @return  true if property value was set
  */
 bool Lighting_Output_Override_Color_Reference_Set(
-    uint32_t object_instance, BACNET_OBJECT_ID *value)
+    uint32_t object_instance, const BACNET_OBJECT_ID *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -2164,8 +2187,8 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 status = Lighting_Output_Lighting_Command_Write(
                     wp_data->object_instance, &value.type.Lighting_Command,
-                    wp_data->priority,
-                    &wp_data->error_class, &wp_data->error_code);
+                    wp_data->priority, &wp_data->error_class,
+                    &wp_data->error_code);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -2303,10 +2326,10 @@ Lighting_Output_Fade_Handler(uint32_t object_instance, uint16_t milliseconds)
         Lighting_Output_Write_Present_Value_Callback(
             object_instance, old_value, pObject->Tracking_Value);
     } else {
-        debug_printf("LO[%u] Fade Handler Operation=%s Value=%f\n",
-            object_instance,
+        debug_printf(
+            "LO[%u] Fade Handler Operation=%s Value=%f\n", object_instance,
             bactext_lighting_operation_name(
-            pObject->Lighting_Command.operation),
+                pObject->Lighting_Command.operation),
             (double)pObject->Tracking_Value);
     }
 }
@@ -2370,7 +2393,8 @@ Lighting_Output_Ramp_Handler(uint32_t object_instance, uint16_t milliseconds)
                 pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
             }
         } else if (isgreater(old_value, target_value)) {
-            debug_printf("LO[%u] Ramp Handler Down steps=%f tracking=%f\n",
+            debug_printf(
+                "LO[%u] Ramp Handler Down steps=%f tracking=%f\n",
                 object_instance, (double)steps, (double)old_value);
             if (isgreater(old_value, steps)) {
                 step_value = old_value - steps;
@@ -2382,7 +2406,8 @@ Lighting_Output_Ramp_Handler(uint32_t object_instance, uint16_t milliseconds)
                 pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
             }
         } else {
-            debug_printf("LO[%u] Ramp Handler at target=%f tracking=%f\n",
+            debug_printf(
+                "LO[%u] Ramp Handler at target=%f tracking=%f\n",
                 object_instance, (double)target_value, (double)old_value);
             /* stop ramping */
             step_value = target_value;
@@ -2406,10 +2431,10 @@ Lighting_Output_Ramp_Handler(uint32_t object_instance, uint16_t milliseconds)
         Lighting_Output_Write_Present_Value_Callback(
             object_instance, old_value, pObject->Tracking_Value);
     } else {
-        debug_printf("LO[%u] Ramp Handler Operation=%s Value=%f\n",
-            object_instance,
+        debug_printf(
+            "LO[%u] Ramp Handler Operation=%s Value=%f\n", object_instance,
             bactext_lighting_operation_name(
-            pObject->Lighting_Command.operation),
+                pObject->Lighting_Command.operation),
             (double)pObject->Tracking_Value);
     }
 }
@@ -2454,10 +2479,11 @@ static void Lighting_Output_Step_Up_Handler(uint32_t object_instance)
             Lighting_Output_Write_Present_Value_Callback(
                 object_instance, old_value, pObject->Tracking_Value);
         } else {
-            debug_printf("LO[%u] Step Up Handler Operation=%s Value=%f\n",
+            debug_printf(
+                "LO[%u] Step Up Handler Operation=%s Value=%f\n",
                 object_instance,
                 bactext_lighting_operation_name(
-                pObject->Lighting_Command.operation),
+                    pObject->Lighting_Command.operation),
                 (double)pObject->Tracking_Value);
         }
     }
@@ -2505,10 +2531,10 @@ static void Lighting_Output_Step_Down_Handler(uint32_t object_instance)
         Lighting_Output_Write_Present_Value_Callback(
             object_instance, old_value, pObject->Tracking_Value);
     } else {
-        debug_printf("LO[%u] Step Down Handler Operation=%s Value=%f\n",
-            object_instance,
+        debug_printf(
+            "LO[%u] Step Down Handler Operation=%s Value=%f\n", object_instance,
             bactext_lighting_operation_name(
-            pObject->Lighting_Command.operation),
+                pObject->Lighting_Command.operation),
             (double)pObject->Tracking_Value);
     }
 }
@@ -2551,10 +2577,10 @@ static void Lighting_Output_Step_On_Handler(uint32_t object_instance)
         Lighting_Output_Write_Present_Value_Callback(
             object_instance, old_value, pObject->Tracking_Value);
     } else {
-        debug_printf("LO[%u] Step On Handler Operation=%s Value=%f\n",
-            object_instance,
+        debug_printf(
+            "LO[%u] Step On Handler Operation=%s Value=%f\n", object_instance,
             bactext_lighting_operation_name(
-            pObject->Lighting_Command.operation),
+                pObject->Lighting_Command.operation),
             (double)pObject->Tracking_Value);
     }
 }
@@ -2602,10 +2628,10 @@ static void Lighting_Output_Step_Off_Handler(uint32_t object_instance)
         Lighting_Output_Write_Present_Value_Callback(
             object_instance, old_value, pObject->Tracking_Value);
     } else {
-        debug_printf("LO[%u] Step Off Handler Operation=%s Value=%f\n",
-            object_instance,
+        debug_printf(
+            "LO[%u] Step Off Handler Operation=%s Value=%f\n", object_instance,
             bactext_lighting_operation_name(
-            pObject->Lighting_Command.operation),
+                pObject->Lighting_Command.operation),
             (double)pObject->Tracking_Value);
     }
 }

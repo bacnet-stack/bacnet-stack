@@ -1,6 +1,6 @@
-/** 
- * @file 
- * @brief Example application using the BACnet Stack on a Raspberry Pi 
+/**
+ * @file
+ * @brief Example application using the BACnet Stack on a Raspberry Pi
  * with Blinkt! LEDs.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2023
@@ -100,7 +100,8 @@ static void Init_Service_Handlers(void)
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* configure the cyclic timers */
     mstimer_set(&BACnet_Task_Timer, 1000UL);
@@ -141,7 +142,8 @@ static void Lighting_Output_Write_Value_Handler(
             brightness = 0;
         }
         blinkt_set_pixel_brightness(index, brightness);
-        printf("LED[%u]=%.1f%% (%u)\n", (unsigned)index, value,
+        printf(
+            "LED[%u]=%.1f%% (%u)\n", (unsigned)index, value,
             (unsigned)brightness);
     }
 }
@@ -165,7 +167,8 @@ static void Color_Temperature_Write_Value_Handler(
     if (index < blinkt_led_count()) {
         color_rgb_from_temperature(value, &red, &green, &blue);
         blinkt_set_pixel(index, red, green, blue);
-        printf("%u Kelvin RGB[%u]=%u,%u,%u\n", (unsigned)value, (unsigned)index,
+        printf(
+            "%u Kelvin RGB[%u]=%u,%u,%u\n", (unsigned)value, (unsigned)index,
             (unsigned)red, (unsigned)green, (unsigned)blue);
     }
 }
@@ -176,7 +179,8 @@ static void Color_Temperature_Write_Value_Handler(
  * @param  old_value - BACnetXYColor value prior to write
  * @param  value - BACnetXYColor value of the write
  */
-static void Color_Write_Value_Handler(uint32_t object_instance,
+static void Color_Write_Value_Handler(
+    uint32_t object_instance,
     BACNET_XY_COLOR *old_value,
     BACNET_XY_COLOR *value)
 {
@@ -189,12 +193,14 @@ static void Color_Write_Value_Handler(uint32_t object_instance,
         index = object_instance - 1;
     }
     if (index < blinkt_led_count()) {
-        color_rgb_from_xy(&red, &green, &blue, value->x_coordinate,
-            value->y_coordinate, brightness_percent);
+        color_rgb_from_xy(
+            &red, &green, &blue, value->x_coordinate, value->y_coordinate,
+            brightness_percent);
         blinkt_set_pixel(index, red, green, blue);
-        printf("x,y=%0.2f,%0.2f(%.1f%%) RGB[%u]=%u,%u,%u\n",
-            value->x_coordinate, value->y_coordinate, brightness_percent,
-            (unsigned)index, (unsigned)red, (unsigned)green, (unsigned)blue);
+        printf(
+            "x,y=%0.2f,%0.2f(%.1f%%) RGB[%u]=%u,%u,%u\n", value->x_coordinate,
+            value->y_coordinate, brightness_percent, (unsigned)index,
+            (unsigned)red, (unsigned)green, (unsigned)blue);
     }
 }
 
@@ -315,8 +321,9 @@ static void print_help(const char *filename)
     printf("--test:\n"
            "Test the Blinkt! RGB LEDs with a cycling pattern.\n");
     printf("\n");
-    printf("Example:\n"
-           "%s 9009\n",
+    printf(
+        "Example:\n"
+        "%s 9009\n",
         filename);
 }
 
@@ -343,7 +350,7 @@ int main(int argc, char *argv[])
     unsigned int target_args = 0;
     uint32_t device_id = BACNET_MAX_INSTANCE;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -375,15 +382,17 @@ int main(int argc, char *argv[])
         }
     }
     if (device_id > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device=%u - not greater than %u\n", device_id,
+        fprintf(
+            stderr, "device=%u - not greater than %u\n", device_id,
             BACNET_MAX_INSTANCE);
         return 1;
     }
     Device_Set_Object_Instance_Number(device_id);
-    printf("BACnet Raspberry Pi Blinkt! Demo\n"
-           "BACnet Stack Version %s\n"
-           "BACnet Device ID: %u\n"
-           "Max APDU: %d\n",
+    printf(
+        "BACnet Raspberry Pi Blinkt! Demo\n"
+        "BACnet Stack Version %s\n"
+        "BACnet Device ID: %u\n"
+        "Max APDU: %d\n",
         BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
     /* load any static address bindings to show up
        in our device bindings list */

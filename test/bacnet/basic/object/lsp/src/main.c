@@ -39,6 +39,8 @@ static void testLifeSafetyPoint(void)
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     bool status = false;
     unsigned index;
+    const char *test_name = NULL;
+    char *sample_name = "sample";
 
     Life_Safety_Point_Init();
     Life_Safety_Point_Create(instance);
@@ -126,12 +128,23 @@ static void testLifeSafetyPoint(void)
         }
         pOptional++;
     }
+    /* check for unsupported property - use ALL */
     rpdata.object_property = PROP_ALL;
     len = Life_Safety_Point_Read_Property(&rpdata);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     wpdata.object_property = PROP_ALL;
     status = Life_Safety_Point_Write_Property(&wpdata);
     zassert_false(status, NULL);
+    /* test the ASCII name get/set */
+    status = Life_Safety_Point_Name_Set(instance, sample_name);
+    zassert_true(status, NULL);
+    test_name = Life_Safety_Point_Name_ASCII(instance);
+    zassert_equal(test_name, sample_name, NULL);
+    status = Life_Safety_Point_Name_Set(instance, NULL);
+    zassert_true(status, NULL);
+    test_name = Life_Safety_Point_Name_ASCII(instance);
+    zassert_equal(test_name, NULL, NULL);
+    /* cleanup */
     status = Life_Safety_Point_Delete(instance);
     zassert_true(status, NULL);
 

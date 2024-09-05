@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h> /* for time */
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <locale.h>
 #endif
 #define PRINT_ENABLED 1
@@ -56,14 +56,16 @@ static uint8_t Request_Invoke_ID = 0;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\n",
+        printf(
+            "BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -82,12 +84,13 @@ static void MyAbortHandler(
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
+        printf(
+            "BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -104,7 +107,8 @@ static void MyRejectHandler(
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-static void My_Read_Property_Ack_Handler(uint8_t *service_request,
+static void My_Read_Property_Ack_Handler(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
@@ -147,16 +151,17 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s device-instance object-type object-instance "
-           "property [index]\n",
+    printf(
+        "Usage: %s device-instance object-type object-instance "
+        "property [index]\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Read a property from an object in a BACnet device\n"
            "and print the value.\n");
@@ -166,14 +171,12 @@ static void print_help(char *filename)
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf(
-           "--dnet N\n"
+    printf("--dnet N\n"
            "Optional BACnet network number N for directed requests.\n"
            "Valid range is from 0 to 65535 where 0 is the local connection\n"
            "and 65535 is network broadcast.\n");
     printf("\n");
-    printf(
-           "--dadr A\n"
+    printf("--dadr A\n"
            "Optional BACnet mac address on the destination BACnet network "
            "number.\n"
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
@@ -187,8 +190,7 @@ static void print_help(char *filename)
            "I-Am services.  For example, if you were reading\n"
            "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
-    printf(
-           "object-type:\n"
+    printf("object-type:\n"
            "The object type is object that you are reading. It\n"
            "can be defined either as the object-type name string\n"
            "as defined in the BACnet specification, or as the\n"
@@ -196,14 +198,12 @@ static void print_help(char *filename)
            "in bacenum.h. For example if you were reading Analog\n"
            "Output 2, the object-type would be analog-output or 1.\n");
     printf("\n");
-    printf(
-           "object-instance:\n"
+    printf("object-instance:\n"
            "This is the object instance number of the object that\n"
            "you are reading.  For example, if you were reading\n"
            "Analog Output 2, the object-instance would be 2.\n");
     printf("\n");
-    printf(
-           "property:\n"
+    printf("property:\n"
            "The property of the object that you are reading. It\n"
            "can be defined either as the property name string as\n"
            "defined in the BACnet specification, or as an integer\n"
@@ -211,27 +211,26 @@ static void print_help(char *filename)
            "bacenum.h. For example, if you were reading the Present\n"
            "Value property, use present-value or 85 as the property.\n");
     printf("\n");
-    printf(
-           "index:\n"
+    printf("index:\n"
            "This integer parameter is the index number of an array.\n"
            "If the property is an array, individual elements can\n"
            "be read.  If this parameter is missing and the property\n"
            "is an array, the entire array will be read.\n");
     printf("\n");
     printf(
-           "Example:\n"
-           "If you want read the Present-Value of Analog Output 101\n"
-           "in Device 123, you could send either of the following\n"
-           "commands:\n"
-           "%s 123 analog-output 101 present-value\n"
-           "%s 123 1 101 85\n",
+        "Example:\n"
+        "If you want read the Present-Value of Analog Output 101\n"
+        "in Device 123, you could send either of the following\n"
+        "commands:\n"
+        "%s 123 analog-output 101 present-value\n"
+        "%s 123 1 101 85\n",
         filename, filename);
     printf(
-           "If you want read the Priority-Array of Analog Output 101\n"
-           "in Device 123, you could send either of the following\n"
-           "commands:\n"
-           "%s 123 analog-output 101 priority-array\n"
-           "%s 123 1 101 87\n",
+        "If you want read the Priority-Array of Analog Output 101\n"
+        "in Device 123, you could send either of the following\n"
+        "commands:\n"
+        "%s 123 analog-output 101 priority-array\n"
+        "%s 123 1 101 87\n",
         filename, filename);
 }
 
@@ -255,7 +254,7 @@ int main(int argc, char *argv[])
     unsigned object_type = 0;
     unsigned object_property = 0;
     unsigned int target_args = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -329,7 +328,8 @@ int main(int argc, char *argv[])
         return 0;
     }
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - not greater than %u\n",
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -370,7 +370,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
     /* Internationalized programs must call setlocale()
      * to initiate a specific language operation.
      * This can be done by calling setlocale() as follows.
@@ -413,10 +413,10 @@ int main(int argc, char *argv[])
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
-                Request_Invoke_ID =
-                    Send_Read_Property_Request(Target_Device_Object_Instance,
-                        Target_Object_Type, Target_Object_Instance,
-                        Target_Object_Property, Target_Object_Index);
+                Request_Invoke_ID = Send_Read_Property_Request(
+                    Target_Device_Object_Instance, Target_Object_Type,
+                    Target_Object_Instance, Target_Object_Property,
+                    Target_Object_Index);
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
