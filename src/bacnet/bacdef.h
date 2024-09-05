@@ -25,7 +25,7 @@
          va_list args;
          va_start(args, format);
          printf("%s:%d(): ", __FILE__, __LINE__);
-         vprintf(format "\r\n", args);
+         vprintf(format, args);
          va_end(args);
        }
 #      define PRINT __PRINT
