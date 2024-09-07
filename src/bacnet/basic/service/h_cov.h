@@ -28,7 +28,7 @@ void handler_cov_subscribe(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data);
 BACNET_STACK_EXPORT
-bool handler_cov_fsm(void);
+bool handler_cov_fsm(bool);
 BACNET_STACK_EXPORT
 void handler_cov_task(void);
 BACNET_STACK_EXPORT
