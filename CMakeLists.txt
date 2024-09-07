@@ -9,7 +9,6 @@ project(
 # options
 #
 # <INSERT_CMAKE_INSTALL_PREFIX_HERE>
-#set(CMAKE_INSTALL_PREFIX "/opt/poky/rzn1/sysroots/x86_64-pokysdk-linux/usr")
 
 add_compile_options(-DDEBUG_PRINT)
 option(
@@ -93,11 +92,12 @@ endif()
 
 set(BACNET_PROTOCOL_REVISION 24)
 set(BUILD_SHARED_LIBS 1)
-set(BACDL_ALL ON)
-set(BACDL_ARCNET ON)
+# set(BACDL_ALL ON)
+# set(BACDL_ARCNET ON)
 set(BACDL_BIP ON)
 set(BACDL_BIP6 ON)
-set(BACDL_ETHERNET ON)
+set(BACDL_MSTP ON)
+# set(BACDL_ETHERNET ON)
 if(APPLE)
   set(BACDL_MSTP OFF)
   set(BACDL_ARCNET OFF)
@@ -669,6 +669,7 @@ target_compile_definitions(
   #  $<$<NOT:$<BOOL:${BAC_ROUTING}>>:BAC_ROUTING>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
+  BACDL_MULTIPLE=1
   PRINT_ENABLED=1)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
