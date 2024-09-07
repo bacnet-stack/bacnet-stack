@@ -111,7 +111,6 @@ float Analog_Value_COV_Increment(uint32_t instance);
 BACNET_STACK_EXPORT
 void Analog_Value_COV_Increment_Set(uint32_t instance, float value);
 
-<<<<<<< HEAD
 BACNET_STACK_EXPORT
 BACNET_CHARACTER_STRING *Analog_Value_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -234,6 +233,8 @@ void Analog_Value_Cleanup(void);
 BACNET_STACK_EXPORT
 void Analog_Value_Init(void);
 
+BACNET_STACK_EXPORT
+bool Analog_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

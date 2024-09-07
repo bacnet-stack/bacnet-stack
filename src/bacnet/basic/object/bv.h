@@ -68,7 +68,7 @@ const char *Binary_Value_Name_ASCII(uint32_t object_instance);
 BACNET_STACK_EXPORT
 BACNET_CHARACTER_STRING *Binary_Value_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Binary_Value_Description_Set(uint32_t instance, char *new_name);
+bool Binary_Value_Description_Set(uint32_t instance, const char *new_name);
 BACNET_STACK_EXPORT
 BACNET_RELIABILITY Binary_Value_Reliability(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -93,6 +93,9 @@ BACNET_STACK_EXPORT
 BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Binary_Value_Present_Value_Set(uint32_t instance, BACNET_BINARY_PV value);
+BACNET_STACK_EXPORT
+bool Binary_Value_Present_Value_Backup_Set(
+    uint32_t object_instance, BACNET_BINARY_PV value);
 BACNET_STACK_EXPORT
 void Binary_Value_Write_Present_Value_Callback_Set(
     binary_value_write_present_value_callback cb);
@@ -190,6 +193,8 @@ bool Binary_Value_Notify_Type_Set(
 BACNET_STACK_EXPORT
 void Binary_Value_Intrinsic_Reporting(uint32_t object_instance);
 
+BACNET_STACK_EXPORT
+bool Binary_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

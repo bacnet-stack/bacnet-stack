@@ -371,8 +371,7 @@ bool Integer_Value_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status = characterstring_init_ansi(&pObject->Name, new_name);
     }
 
     return status;
@@ -390,39 +389,10 @@ const char *Integer_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        //name = pObject->Object_Name;
     }
 
     return name;
-}
-
-/**
- * For a given object instance-number, return the description.
- *
- * Note: the object name must be unique within this device.
- *
- * @param  object_instance - object-instance number of the object
- * @param  description - description pointer
- *
- * @return  true/false
- */
-bool Integer_Value_Description(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *description)
-{
-    bool status = false;
-    struct integer_object *pObject;
-
-    pObject = Integer_Value_Object(object_instance);
-    if (pObject) {
-        if (pObject->Description) {
-            status =
-                characterstring_init_ansi(description, pObject->Description);
-        } else {
-            status = characterstring_init_ansi(description, "");
-        }
-    }
-
-    return status;
 }
 
 /**
@@ -439,8 +409,7 @@ bool Integer_Value_Description_Set(
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Description = new_name;
+        status = characterstring_init_ansi(&pObject->Description, new_name);
     }
 
     return status;
@@ -454,8 +423,8 @@ bool Integer_Value_Description_Set(
 char *Integer_Value_Description_ANSI(uint32_t object_instance)
 {
     char *name = NULL;
+#if 0
     struct integer_object *pObject;
-
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
         if (pObject->Description == NULL) {
@@ -464,6 +433,7 @@ char *Integer_Value_Description_ANSI(uint32_t object_instance)
             name = (char *)pObject->Description;
         }
     }
+#endif
 
     return name;
 }

@@ -249,7 +249,7 @@ bool CharacterString_Value_Present_Value(
  */
 
 bool CharacterString_Value_Present_Value_Set(
-    uint32_t object_instance, const BACNET_CHARACTER_STRING *object_name)
+    uint32_t object_instance, const BACNET_CHARACTER_STRING *present_value)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */

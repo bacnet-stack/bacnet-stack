@@ -543,7 +543,7 @@ const char *Multistate_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        //name = pObject->Object_Name;
     }
 
     return name;

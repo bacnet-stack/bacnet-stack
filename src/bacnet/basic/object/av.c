@@ -366,11 +366,10 @@ bool Analog_Value_Name_Set(uint32_t object_instance, const char *new_name)
 const char *Analog_Value_Name_ASCII(uint32_t object_instance)
 {
     const char *name = NULL;
-    struct analog_value_descr *pObject;
+    struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
-    pObject = Analog_Value_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        //name = pObject->Object_Name;
     }
 
     return name;
@@ -800,13 +799,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_UNITS:
             apdu_len =
                 encode_application_enumerated(&apdu[0], CurrentAV->Units);
-            break;
-        case PROP_DESCRIPTION:
-            characterstring_init_ansi(
-                &char_string,
-                Analog_Value_Description(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_COV_INCREMENT:
             apdu_len =

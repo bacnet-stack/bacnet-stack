@@ -41,32 +41,18 @@ struct object_data {
     bool Present_Value_Backup : 1;
     bool Polarity : 1;
     bool Write_Enabled : 1;
-<<<<<<< HEAD
-    unsigned Event_State:3;
-=======
     unsigned Event_State : 3;
->>>>>>> upstream/master
     uint8_t Reliability;
     BACNET_CHARACTER_STRING Object_Name;
     const char *Active_Text;
     const char *Inactive_Text;
-<<<<<<< HEAD
     BACNET_CHARACTER_STRING Description;
-#if (BINARY_INPUT_INTRINSIC_REPORTING)
-    uint32_t Time_Delay;
-    uint32_t Notification_Class;
-    unsigned Event_Enable:3;
-    unsigned Event_Detection_Enable:1;
-    unsigned Notify_Type:1;
-=======
-    const char *Description;
 #if defined(INTRINSIC_REPORTING) && (BINARY_INPUT_INTRINSIC_REPORTING)
     uint32_t Time_Delay;
     uint32_t Notification_Class;
     unsigned Event_Enable : 3;
     unsigned Event_Detection_Enable : 1;
     unsigned Notify_Type : 1;
->>>>>>> upstream/master
     ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
     BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
     /* time to generate event notification */
@@ -98,18 +84,6 @@ static const int Properties_Required[] = {
     -1
 };
 
-<<<<<<< HEAD
-static const int Properties_Optional[] = { PROP_RELIABILITY,
-    PROP_DESCRIPTION, PROP_ACTIVE_TEXT, PROP_INACTIVE_TEXT,
-#if (BINARY_INPUT_INTRINSIC_REPORTING)
-    PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS,
-    PROP_ALARM_VALUE,
-    PROP_EVENT_ENABLE, PROP_ACKED_TRANSITIONS,
-    PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS,
-    PROP_EVENT_DETECTION_ENABLE,
-#endif
-  -1 };
-=======
 static const int Properties_Optional[] = {
     PROP_RELIABILITY,
     PROP_DESCRIPTION,
@@ -127,7 +101,6 @@ static const int Properties_Optional[] = {
 #endif
     -1
 };
->>>>>>> upstream/master
 
 static const int Properties_Proprietary[] = { -1 };
 /* clang-format on */
@@ -653,12 +626,12 @@ bool Binary_Input_Object_Name(
             *object_name = pObject->Object_Name;
             status = true;
         } else {
-            char text_string[32] = "";
+            char text[32] = "";
 
             snprintf(
                 text, sizeof(text), "BINARY INPUT %lu",
                 (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, text_string);
+            status = characterstring_init_ansi(object_name, text);
         }
     }
 
@@ -696,7 +669,7 @@ const char *Binary_Input_Name_ASCII(uint32_t object_instance)
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        // name = pObject->Object_Name;
     }
 
     return name;
@@ -1868,6 +1841,8 @@ int Binary_Input_Alarm_Summary(
     } else {
         return -1; /* end of list  */
     }
+
+    return 0;
 }
 
 /**
