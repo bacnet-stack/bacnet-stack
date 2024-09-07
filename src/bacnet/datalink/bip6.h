@@ -54,7 +54,7 @@ uint16_t bip6_receive(
 
 /* functions that are custom per port */
 BACNET_STACK_EXPORT
-void bip6_set_interface(char *ifname);
+int bip6_set_interface(char *ifname);
 
 BACNET_STACK_EXPORT
 bool bip6_address_match_self(const BACNET_IP6_ADDRESS *addr);
