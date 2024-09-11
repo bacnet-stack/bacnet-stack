@@ -113,7 +113,7 @@ typedef void (
     *object_cov_clear_function) (
     uint32_t object_instance);
 
-/** Intrinsic Reporting funcionality.
+/** Intrinsic Reporting functionality.
  * @ingroup ObjHelpers
  * @param [in] Object instance.
  */
