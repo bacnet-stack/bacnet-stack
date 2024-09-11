@@ -209,7 +209,7 @@ BACNET_STACK_EXPORT
 bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(
     uint32_t object_instance, uint16_t value);
 
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+#if defined(BACDL_BIP6)
 BACNET_STACK_EXPORT
 bool Network_Port_BBMD_IP6_Accept_FD_Registrations(uint32_t object_instance);
 BACNET_STACK_EXPORT

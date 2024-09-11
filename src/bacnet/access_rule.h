@@ -32,7 +32,7 @@ typedef struct {
     BACNET_ACCESS_RULE_TIME_RANGE_SPECIFIER time_range_specifier;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE time_range;
     BACNET_ACCESS_RULE_LOCATION_SPECIFIER location_specifier;
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE location;
+    BACNET_DEVICE_OBJECT_REFERENCE location;
     bool enable;
 } BACNET_ACCESS_RULE;
 
@@ -45,11 +45,23 @@ int bacapp_encode_access_rule(uint8_t *apdu, const BACNET_ACCESS_RULE *rule);
 BACNET_STACK_EXPORT
 int bacapp_encode_context_access_rule(
     uint8_t *apdu, uint8_t tag_number, const BACNET_ACCESS_RULE *rule);
+BACNET_STACK_DEPRECATED("Use bacnet_access_rule_decode() instead")
 BACNET_STACK_EXPORT
 int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *rule);
+BACNET_STACK_DEPRECATED("Use bacnet_access_rule_context_decode() instead")
 BACNET_STACK_EXPORT
 int bacapp_decode_context_access_rule(
     const uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *rule);
+
+BACNET_STACK_EXPORT
+int bacnet_access_rule_decode(
+    const uint8_t *apdu, size_t apdu_size, BACNET_ACCESS_RULE *data);
+BACNET_STACK_EXPORT
+int bacnet_access_rule_context_decode(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    uint8_t tag_number,
+    BACNET_ACCESS_RULE *data);
 
 #ifdef __cplusplus
 }

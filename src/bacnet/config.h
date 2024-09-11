@@ -21,17 +21,66 @@
 /* Note: these defines can be defined in your makefile or project
    or here or not defined and defaults will be used */
 
-/* declare a single physical layer using your compiler define.
-   see datalink.h for possible defines. */
-#if !(                                                                         \
-    defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || defined(BACDL_MSTP) || \
-    defined(BACDL_BIP) || defined(BACDL_BIP6) || defined(BACDL_TEST) ||        \
-    defined(BACDL_ALL) || defined(BACDL_NONE) || defined(BACDL_CUSTOM))
+/* Declare a physical layers using your compiler define. See
+   datalink.h for possible defines. */
+
+/* For backward compatibility for old BACDL_ALL */
+#if defined(BACDL_ALL)
+#define BACDL_ETHERNET
+#define BACDL_ARCNET
+#define BACDL_MSTP
+#define BACDL_BIP
+#define BACDL_BIP6
+#endif
+
+#if defined(BACDL_ETHERNET)
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_ARCNET)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_MSTP)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_BIP)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_BIP6)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_CUSTOM)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#endif
+
+#if defined(BACDL_SOME_DATALINK_ENABLED) && defined(BACDL_NONE)
+#error "BACDL_NONE is not compatible with other BACDL_ defines"
+#elif !defined(BACDL_SOME_DATALINK_ENABLED) && !defined(BACDL_NONE) && \
+    !defined(BACDL_TEST)
+/* If none of the datalink is enabled let's default to BIP. */
 #define BACDL_BIP
 #endif
 
 /* optional configuration for BACnet/IP datalink layer */
-#if (defined(BACDL_BIP) || defined(BACDL_ALL))
+#if (defined(BACDL_BIP))
 #if !defined(BBMD_ENABLED)
 #define BBMD_ENABLED 1
 #endif
@@ -74,35 +123,24 @@
 /* #define MAX_APDU 1476 */
 #if defined(BACDL_BIP)
 #define MAX_APDU 1476
-/* #define MAX_APDU 128 enable this IP for testing
-   readrange so you get the More Follows flag set */
+/* Enable this IP for testing readrange so you get the More Follows flag set */
+/* #define MAX_APDU 128 */
 #elif defined(BACDL_BIP6)
 #define MAX_APDU 1476
-#elif defined(BACDL_ETHERNET)
-#if defined(BACNET_SECURITY)
-#define MAX_APDU 1420
-#else
-#define MAX_APDU 1476
-#endif
-#elif defined(BACDL_ARCNET)
-#if defined(BACNET_SECURITY)
-#define MAX_APDU 412
-#else
-#define MAX_APDU 480
-#endif
-#elif defined(BACDL_MSTP)
-#if defined(BACNET_SECURITY)
-#define MAX_APDU 412
-#else
+#elif defined(BACDL_MSTP) && !defined(BACNET_SECURITY)
 /* note: MS/TP extended frames can be up to 1476 bytes */
 #define MAX_APDU 1476
-#endif
-#else
-#if defined(BACNET_SECURITY)
+#elif defined(BACDL_ETHERNET) && !defined(BACNET_SECURITY)
+#define MAX_APDU 1476
+#elif defined(BACDL_ETHERNET) && defined(BACNET_SECURITY)
+#define MAX_APDU 1420
+#elif !defined(BACNET_SECURITY)
+#define MAX_APDU 480
+#elif defined(BACDL_MSTP) && defined(BACNET_SECURITY)
+/* TODO: Is this really 412 or should it be 480? */
 #define MAX_APDU 412
 #else
-#define MAX_APDU 480
-#endif
+#define MAX_APDU 412
 #endif
 #endif
 
