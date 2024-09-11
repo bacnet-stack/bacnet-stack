@@ -22,6 +22,10 @@ The git repositories are hosted at the following sites:
 
 ## [1.4.0] - 2024-09-05
 
+### Security
+
+* Secured BACnetAccessRule encoding and decoding and added unit testing.
+
 ### Added
 
 * Added pre-commit clang-format 17 format check in pipeline. Formatted
@@ -42,6 +46,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the datalink abstraction to enable selecting multiple datalinks
+  using BACDL_MULTIPLE and one or more other BACDL defines. (#717)
 * Moved west manifest, zephyr folder, and ports/zephyr folders to
   another repository https://github.com/bacnet-stack/bacnet-stack-zephyr
   so that the rapid pace of Zephyr OS development changes will have
@@ -64,6 +70,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the order of operations in SubscribeCOV so the dest_index gets written
+  to the correct slot instead of an initial MAX_COV_SUBSCRIPTIONS-1. (#761)
+* Fixed some spelling typos in comments. (#762)
 * Fixed COV detection in the basic Binary Output object example. (#751)
 
 ## [1.3.8] - 2024-08-26
