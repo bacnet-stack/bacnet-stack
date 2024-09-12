@@ -288,13 +288,13 @@ static int cov_encode_subscription(
  *  Invoked by a request to read the Device object's
  * PROP_ACTIVE_COV_SUBSCRIPTIONS. Loops through the list of COV Subscriptions,
  * and, for each valid one, adds its description to the APDU.
- *  @note This function needs some work to better handle buffer overruns.
  *  @param apdu [out] Buffer in which the APDU contents are built.
  *  @param max_apdu [in] Max length of the APDU buffer.
  *  @return How many bytes were encoded in the buffer, or -2 if the response
  *          would not fit within the buffer.
  */
-/* Maximume length for an encoded COV subscription  - 27 bytes for BACNET IP6*/
+/* Maximume length for an encoded COV subscription  - 27 bytes for BACNET IP6
+ * 31 bytes for IPv4 (longest MAC) and lets round it up to the machine word alignment */
 #define MAX_COV_SUB_SIZE (32)
 int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
 {
