@@ -228,6 +228,8 @@ uint32_t RS485_Get_Port_Baud_Rate(struct mstp_port_struct_t *mstp_port)
     if (!poSharedData) {
         return 0;
     }
+
+    fprintf(stderr, "Get Port Baud Rate %d\n", poSharedData->RS485_Baud); 
     switch (poSharedData->RS485_Baud) {
         case B0:
             baud = 0;
@@ -354,7 +356,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
             break;
         case 38400:
             RS485_Baud = B38400;
-            RS485_Baud = false;
+         //   RS485_Baud = false;
             fprintf(stderr, "Set_baud_rate 38400 RS485_SpecBaud %d\n", RS485_SpecBaud);
             break;
         case 57600:
@@ -404,6 +406,7 @@ void RS485_Send_Frame(
         poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
     }
     if (!poSharedData) {
+        fprintf(stderr, "Send Frame RS485_Handle 0 \n");
         baud = RS485_Get_Baud_Rate();
         /* sleeping for turnaround time is necessary to give other devices
            time to change from sending to receiving state. */
@@ -430,7 +433,9 @@ void RS485_Send_Frame(
             mstp_port->SilenceTimerReset((void *)mstp_port);
         }
     } else {
+        fprintf(stderr, "Send Frame RS485_Handle 1 \n");
         baud = RS485_Get_Port_Baud_Rate(mstp_port);
+        fprintf(stderr, "Send Frame RS485_Handle 1 baud %d\n", baud);
         /* sleeping for turnaround time is necessary to give other devices
            time to change from sending to receiving state. */
         usleep(turnaround_time / baud);
