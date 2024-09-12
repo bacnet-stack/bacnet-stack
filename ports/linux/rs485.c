@@ -351,6 +351,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
             break;
         case 38400:
             RS485_Baud = B38400;
+            RS485_Baud = false;
             fprintf(stderr, "Set_baud_rate 38400 RS485_SpecBaud %d\n", RS485_SpecBaud);
             break;
         case 57600:
