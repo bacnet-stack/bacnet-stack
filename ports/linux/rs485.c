@@ -187,6 +187,8 @@ uint32_t RS485_Get_Baud_Rate(void)
             baud = 19200;
             break;
         case B38400:
+
+            fprintf(stderr, "Get_baud_rate RS485_SpecBaud %d\n", RS485_SpecBaud);
             if (!RS485_SpecBaud) {
                 /* Linux asks for custom divisor
                    only when baud is set on 38400 */
@@ -288,7 +290,7 @@ uint32_t RS485_Get_Port_Baud_Rate(struct mstp_port_struct_t *mstp_port)
             baud = 9600;
             break;
     }
-
+    fprintf(stderr, "Get_port_baud_rate %d\n", baud);
     return baud;
 }
 
@@ -303,6 +305,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
     bool valid = true;
 
     RS485_SpecBaud = false;
+    fprintf(stderr,"set baud rate baud %d\n", baud);
     switch (baud) {
         case 0:
             RS485_Baud = B0;
@@ -599,6 +602,7 @@ void RS485_Initialize(void)
     /* activate the settings for the port after flushing I/O */
     tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
     if (RS485_SpecBaud) {
+        fprintf(stderr, "Special Buaud Rate %d\n", RS485_SpecBaud);
         /* 76800, custom divisor must be set */
         newserial.flags |= ASYNC_SPD_CUST;
         newserial.custom_divisor = round(((float)newserial.baud_base) / 76800);
