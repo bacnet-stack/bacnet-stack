@@ -1449,7 +1449,11 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
-            apdu_len = handler_cov_encode_subscriptions(&apdu[0], apdu_max);
+            if ((apdu_len = handler_cov_encode_subscriptions(&apdu[0], apdu_max)) < 0) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                apdu_len = BACNET_STATUS_ABORT;
+            }
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
