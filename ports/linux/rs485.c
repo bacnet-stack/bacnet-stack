@@ -190,8 +190,10 @@ uint32_t RS485_Get_Baud_Rate(void)
             if (!RS485_SpecBaud) {
                 /* Linux asks for custom divisor
                    only when baud is set on 38400 */
+                fprintf(stderr, "Get_baud_rate 38400 RS485_SpecBaud %d\n", RS485_SpecBaud);
                 baud = 38400;
             } else {
+                fprintf(stderr, "Get_baud_rate 76800 RS485_SpecBaud %d\n", RS485_SpecBaud);
                 baud = 76800;
             }
             break;
@@ -349,6 +351,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
             break;
         case 38400:
             RS485_Baud = B38400;
+            fprintf(stderr, "Set_baud_rate 38400 RS485_SpecBaud %d\n", RS485_SpecBaud);
             break;
         case 57600:
             RS485_Baud = B57600;
@@ -356,6 +359,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
         case 76800:
             RS485_Baud = B38400;
             RS485_SpecBaud = true;
+            fprintf(stderr, "Set_baud_rate 76800 RS485_SpecBaud %d\n", RS485_SpecBaud);
             break;
         case 115200:
             RS485_Baud = B115200;
@@ -546,6 +550,8 @@ void RS485_Initialize(void)
     struct termios newtio;
     struct serial_struct newserial;
     float baud_error = 0.0;
+
+    fprintf(stderr, "RS485 Interface RS485_SpecBaud %d\n", RS485_SpecBaud);
 
 #if PRINT_ENABLED
     fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
