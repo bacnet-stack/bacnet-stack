@@ -608,7 +608,7 @@ void RS485_Initialize(void)
         }
         /* if all goes well, set new divisor */
         ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
-    } else if(!RS485_SpecBaud && RS485_Baud == B38400) {
+    } else if(RS485_Baud == B38400) {
 
         /* restting 38400 baud */
         newserial.flags &= ~ASYNC_SPD_CUST;
