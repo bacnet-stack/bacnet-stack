@@ -187,15 +187,11 @@ uint32_t RS485_Get_Baud_Rate(void)
             baud = 19200;
             break;
         case B38400:
-
-          //  fprintf(stderr, "Get_baud_rate RS485_SpecBaud %d\n", RS485_SpecBaud);
             if (!RS485_SpecBaud) {
                 /* Linux asks for custom divisor
                    only when baud is set on 38400 */
-               // fprintf(stderr, "Get_baud_rate 38400 RS485_SpecBaud %d\n", RS485_SpecBaud);
                 baud = 38400;
             } else {
-              //  fprintf(stderr, "Get_baud_rate 76800 RS485_SpecBaud %d\n", RS485_SpecBaud);
                 baud = 76800;
             }
             break;
@@ -228,7 +224,6 @@ uint32_t RS485_Get_Port_Baud_Rate(struct mstp_port_struct_t *mstp_port)
     if (!poSharedData) {
         return 0;
     }
-
     switch (poSharedData->RS485_Baud) {
         case B0:
             baud = 0;
@@ -291,7 +286,7 @@ uint32_t RS485_Get_Port_Baud_Rate(struct mstp_port_struct_t *mstp_port)
             baud = 9600;
             break;
     }
-    fprintf(stderr, "Get_port_baud_rate %d\n", baud);
+
     return baud;
 }
 
@@ -306,7 +301,6 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
     bool valid = true;
 
     RS485_SpecBaud = false;
-    fprintf(stderr,"set baud rate baud %d\n", baud);
     switch (baud) {
         case 0:
             RS485_Baud = B0;
@@ -355,8 +349,6 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
             break;
         case 38400:
             RS485_Baud = B38400;
-         //   RS485_Baud = false;
-            fprintf(stderr, "Set_baud_rate 38400 RS485_SpecBaud %d\n", RS485_SpecBaud);
             break;
         case 57600:
             RS485_Baud = B57600;
@@ -364,7 +356,6 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
         case 76800:
             RS485_Baud = B38400;
             RS485_SpecBaud = true;
-            fprintf(stderr, "Set_baud_rate 76800 RS485_SpecBaud %d\n", RS485_SpecBaud);
             break;
         case 115200:
             RS485_Baud = B115200;
@@ -432,7 +423,6 @@ void RS485_Send_Frame(
         }
     } else {
         baud = RS485_Get_Port_Baud_Rate(mstp_port);
-
         /* sleeping for turnaround time is necessary to give other devices
            time to change from sending to receiving state. */
         usleep(turnaround_time / baud);
@@ -557,10 +547,6 @@ void RS485_Initialize(void)
     struct serial_struct newserial;
     float baud_error = 0.0;
 
-    fprintf(stderr, "RS485 Interface RS485_Baud %d\n", RS485_Baud);
-    fprintf(stderr,"INIT old serial flags %d\n", RS485_oldserial.flags);
-    fprintf(stderr,"INIT old serial custom_divisor %d\n", RS485_oldserial.custom_divisor);
-    fprintf(stderr,"INIT old serial baud_base %d\n", RS485_oldserial.baud_base);
 #if PRINT_ENABLED
     fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
 #endif
@@ -603,20 +589,12 @@ void RS485_Initialize(void)
     newtio.c_oflag = 0;
     /* no processing */
     newtio.c_lflag = 0;
-    fprintf(stderr, "FLAG newtio c_cflag %d\n", newtio.c_cflag);
-    fprintf(stderr, "FLAG standard newtio newserial.flags %d\n", newserial.flags);
-    fprintf(stderr, "FLAG standard newtio newserial.custom_divisor %d\n", newserial.custom_divisor);
-    fprintf(stderr, "FLAG standard newtio newserial.baud_base %d\n", newserial.baud_base);
     /* activate the settings for the port after flushing I/O */
     tcsetattr(RS485_Handle, TCSAFLUSH, &newtio);
     if (RS485_SpecBaud) {
-        fprintf(stderr, "Special Buaud Rate %d\n", RS485_SpecBaud);
         /* 76800, custom divisor must be set */
-        newserial.flags |= ASYNC_SPD_CUST; // upset this flag for 38400 baud
+        newserial.flags |= ASYNC_SPD_CUST;
         newserial.custom_divisor = round(((float)newserial.baud_base) / 76800);
-        fprintf(stderr, "FLAG special newtio newserial.flags %d\n", newserial.flags);
-        fprintf(stderr, "FLAG special newtio newserial.custom_divisor %d\n", newserial.custom_divisor);
-
         /* we must check that we calculated some sane value;
            small baud bases yield bad custom divisor values */
         baud_error = fabs(1 -
@@ -630,19 +608,14 @@ void RS485_Initialize(void)
         }
         /* if all goes well, set new divisor */
         ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
-
     } else if(!RS485_SpecBaud && RS485_Baud == B38400) {
-        fprintf(stderr, "Special Buaud Rate %d\n", RS485_SpecBaud);
-        /* 76800, custom divisor must be set */
-        newserial.flags &= ~ASYNC_SPD_CUST; // upset this flag for 38400 baud
+
+        /* restting 38400 baud */
+        newserial.flags &= ~ASYNC_SPD_CUST;
         newserial.custom_divisor = 0;
-        fprintf(stderr, "FLAG special newtio newserial.flags %d\n", newserial.flags);
-        fprintf(stderr, "FLAG special newtio newserial.custom_divisor %d\n", newserial.custom_divisor);
 
         ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
     }
-
-
 #if PRINT_ENABLED
     fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Get_Baud_Rate());
     fflush(stdout);
