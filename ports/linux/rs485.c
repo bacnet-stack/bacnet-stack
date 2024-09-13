@@ -606,16 +606,17 @@ void RS485_Initialize(void)
                 newserial.custom_divisor, newserial.baud_base);
             exit(EXIT_FAILURE);
         }
-        /* if all goes well, set new divisor */
-        ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
+
     } else if(RS485_Baud == B38400) {
 
         /* restting 38400 baud */
         newserial.flags &= ~ASYNC_SPD_CUST;
         newserial.custom_divisor = 0;
 
-        ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
     }
+
+    ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
+
 #if PRINT_ENABLED
     fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Get_Baud_Rate());
     fflush(stdout);
