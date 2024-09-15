@@ -496,7 +496,10 @@ int main(int argc, char *argv[])
             }
         }
     }
-    if (tag_value_arg != 0) {
+    if (!Read_Access_Data) {
+        print_usage(filename);
+        return 1;
+    } else if (tag_value_arg != 0) {
         fprintf(stderr, "Error: not enough object property triples.\n");
         return 1;
     }
