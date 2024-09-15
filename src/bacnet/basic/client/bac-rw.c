@@ -211,15 +211,29 @@ static void bacnet_read_property_ack_process(
     BACNET_ARRAY_INDEX array_index = 0;
 
     if (rp_data) {
+        value = &Target_Decoded_Property_Value;
+        /* check for property error */
         if (rp_data->error_code != ERROR_CODE_SUCCESS) {
             if (bacnet_read_write_value_callback) {
                 bacnet_read_write_value_callback(device_id, rp_data, NULL);
             }
+            return;
+        }
+        /* check for empty list */
+        if (rp_data->application_data_len == 0) {
+            bacapp_value_list_init(value, 1);
+            value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
+            rp_data->error_class = ERROR_CLASS_SERVICES;
+            rp_data->error_code = ERROR_CODE_SUCCESS;
+            if (bacnet_read_write_value_callback) {
+                bacnet_read_write_value_callback(device_id, rp_data, NULL);
+            }
+            return;
         }
         apdu = rp_data->application_data;
         apdu_len = rp_data->application_data_len;
         while (apdu_len) {
-            value = &Target_Decoded_Property_Value;
+            bacapp_value_list_init(value, 1);
             len = bacapp_decode_known_property(
                 apdu, (unsigned)apdu_len, value, rp_data->object_type,
                 rp_data->object_property);
@@ -251,7 +265,11 @@ static void bacnet_read_property_ack_process(
                 }
             } else {
                 rp_data->error_class = ERROR_CLASS_SERVICES;
-                rp_data->error_code = ERROR_CODE_SUCCESS;
+                if (len < 0) {
+                    rp_data->error_code = ERROR_CODE_OTHER;
+                } else {
+                    rp_data->error_code = ERROR_CODE_SUCCESS;
+                }
                 if (bacnet_read_write_value_callback) {
                     bacnet_read_write_value_callback(device_id, rp_data, NULL);
                 }
