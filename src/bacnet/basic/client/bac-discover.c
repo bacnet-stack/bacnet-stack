@@ -708,8 +708,9 @@ static void Device_Error_Handler(
                     }
                     device_data->Discovery_State =
                         BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_RESPONSE;
-                } else if ((rp_data->error_code ==
-                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED) &&
+                } else if (
+                    (rp_data->error_code ==
+                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED) &&
                     (rp_data->object_property == PROP_ALL)) {
                     /* fallback to ReadProperty required properties */
                     /* FIXME: fill a property-list with properties
