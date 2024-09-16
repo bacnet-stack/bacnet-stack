@@ -677,16 +677,20 @@ static void bacnet_device_object_property_add(
 /**
  * @brief Handle the error from a ReadProperty or ReadPropertyMultiple
  * @param device_id - device instance number where data originated
- * @param error_code - BACnet Error code
+ * @param rp_data - ReadProperty data structure
+ * @param device_data - Pointer to the device data structure
  */
 static void Device_Error_Handler(
     uint32_t device_id,
-    BACNET_ERROR_CODE error_code,
+    BACNET_READ_PROPERTY_DATA *rp_data,
     BACNET_DEVICE_DATA *device_data)
 {
+    bool status = false;
+
     if (device_data) {
         debug_printf(
-            "%u - %s\n", device_id, bactext_error_code_name((int)error_code));
+            "%u - %s\n", device_id,
+            bactext_error_code_name((int)rp_data->error_code));
         switch (device_data->Discovery_State) {
             case BACNET_DISCOVER_STATE_OBJECT_LIST_REQUEST:
                 /* resend request */
@@ -697,12 +701,37 @@ static void Device_Error_Handler(
                     BACNET_DISCOVER_STATE_OBJECT_LIST_RESPONSE;
                 break;
             case BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_REQUEST:
-                /* resend request */
-                if (device_data->Object_List_Index != 0) {
-                    device_data->Object_List_Index--;
+                if (rp_data->error_code == ERROR_CODE_TIMEOUT) {
+                    /* resend request */
+                    if (device_data->Object_List_Index != 0) {
+                        device_data->Object_List_Index--;
+                    }
+                    device_data->Discovery_State =
+                        BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_RESPONSE;
+                } else if ((rp_data->error_code ==
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED) &&
+                    (rp_data->object_property == PROP_ALL)) {
+                    /* fallback to ReadProperty required properties */
+                    /* FIXME: fill a property-list with properties
+                       and use FSM to ReadProperty of each.
+                       For now, read the object-name property */
+                    status = bacnet_read_property_queue(
+                        device_id, rp_data->object_type,
+                        rp_data->object_instance, PROP_OBJECT_NAME,
+                        BACNET_ARRAY_ALL);
+                    if (status) {
+                        device_data->Discovery_State =
+                            BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_REQUEST;
+                    } else {
+                        /* skip */
+                        device_data->Discovery_State =
+                            BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_RESPONSE;
+                    }
+                } else {
+                    /* skip */
+                    device_data->Discovery_State =
+                        BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_RESPONSE;
                 }
-                device_data->Discovery_State =
-                    BACNET_DISCOVER_STATE_OBJECT_GET_PROPERTY_RESPONSE;
                 break;
             default:
                 break;
@@ -733,7 +762,7 @@ static void bacnet_read_property_reply(
         return;
     }
     if (rp_data->error_code != ERROR_CODE_SUCCESS) {
-        Device_Error_Handler(device_id, rp_data->error_code, device_data);
+        Device_Error_Handler(device_id, rp_data, device_data);
     } else if (value) {
         bacnet_device_object_property_add(
             device_id, rp_data, value, device_data);
