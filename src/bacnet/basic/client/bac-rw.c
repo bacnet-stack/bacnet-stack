@@ -226,7 +226,7 @@ static void bacnet_read_property_ack_process(
             rp_data->error_class = ERROR_CLASS_SERVICES;
             rp_data->error_code = ERROR_CODE_SUCCESS;
             if (bacnet_read_write_value_callback) {
-                bacnet_read_write_value_callback(device_id, rp_data, NULL);
+                bacnet_read_write_value_callback(device_id, rp_data, value);
             }
             return;
         }
