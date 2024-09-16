@@ -689,6 +689,20 @@ void rpm_ack_object_property_process(
         apdu_len -= len;
         apdu += len;
         while (apdu_len) {
+            if (bacnet_is_closing_tag_number(apdu, apdu_len, 1, &len)) {
+                /*  end of list-of-results [1] SEQUENCE OF SEQUENCE */
+                apdu_len -= len;
+                if (apdu_len > 0) {
+                    /* malformed */
+                    rp_data->error_class = ERROR_CLASS_SERVICES;
+                    rp_data->error_code = ERROR_CODE_INVALID_TAG;
+                    if (callback) {
+                        callback(device_id, rp_data);
+                    }
+                    return;
+                }
+                break;
+            }
             len = rpm_ack_decode_object_property(
                 apdu, apdu_len, &rp_data->object_property,
                 &rp_data->array_index);
@@ -790,19 +804,6 @@ void rpm_ack_object_property_process(
                     callback(device_id, rp_data);
                 }
             }
-        }
-        /*  list-of-results [1] SEQUENCE OF SEQUENCE */
-        if (bacnet_is_closing_tag_number(apdu, apdu_len, 1, &len)) {
-            apdu_len -= len;
-            apdu += len;
-        } else {
-            /* malformed */
-            rp_data->error_class = ERROR_CLASS_SERVICES;
-            rp_data->error_code = ERROR_CODE_INVALID_TAG;
-            if (callback) {
-                callback(device_id, rp_data);
-            }
-            return;
         }
     }
 }
