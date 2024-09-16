@@ -3278,6 +3278,9 @@ int bacapp_snprintf_value(
                     str, str_len, &value->type.Shed_Level);
                 break;
 #endif
+            case BACNET_APPLICATION_TAG_EMPTYLIST:
+                ret_val = bacapp_snprintf(str, str_len, "{}");
+                break;
             default:
                 ret_val = bacapp_snprintf(
                     str, str_len, "UnknownType(tag=%d)", value->tag);
