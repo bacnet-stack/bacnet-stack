@@ -588,6 +588,29 @@ bool characterstring_ansi_same(
 }
 
 /**
+ * Returns number of UTF8 code points in a character string.
+ *
+ * @param dest  Pointer to the string to count the UTF8 code points.
+ *
+ * @return Length of the character string in utf8 codepoints
+ */
+size_t characterstring_utf8_length(const BACNET_CHARACTER_STRING *str)
+{
+    size_t count = 0;
+    int i = 0;
+
+    while ((i < MAX_CHARACTER_STRING_BYTES) && (str->value[i] != '\0')) {
+        if ((str->value[i] & 0xc0) != 0x80) {
+            count++;
+        }
+
+        i++;
+    }
+
+    return count;
+}
+
+/**
  * Append some characters to the end of the characterstring
  *
  * @param char_string  Pointer to the BACnet string to which
