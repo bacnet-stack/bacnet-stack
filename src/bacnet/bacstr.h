@@ -162,6 +162,9 @@ extern "C" {
     size_t characterstring_length(
         BACNET_CHARACTER_STRING * char_string);
     BACNET_STACK_EXPORT
+    size_t characterstring_utf8_length(
+        const BACNET_CHARACTER_STRING *str);
+    BACNET_STACK_EXPORT
     uint8_t characterstring_encoding(
         BACNET_CHARACTER_STRING * char_string);
     BACNET_STACK_EXPORT
