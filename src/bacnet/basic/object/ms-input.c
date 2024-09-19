@@ -568,14 +568,12 @@ bool Multistate_Input_Reliability_Set(
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        if (value <= RELIABILITY_PROPRIETARY_MAX) {
-            fault = Multistate_Input_Object_Fault(pObject);
-            pObject->Reliability = value;
-            if (fault != Multistate_Input_Object_Fault(pObject)) {
-                pObject->Change_Of_Value = true;
-            }
-            status = true;
+        fault = Multistate_Input_Object_Fault(pObject);
+        pObject->Reliability = value;
+        if (fault != Multistate_Input_Object_Fault(pObject)) {
+            pObject->Change_Of_Value = true;
         }
+        status = true;
     }
 
     return status;
