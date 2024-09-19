@@ -24,7 +24,13 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 
-static char My_Password[32] = "filister";
+/* The byte length of a UTF-8 character can vary.
+ * In UTF-8, the number of bytes used to represent a character can range from 1 to 4 bytes.
+ * Commonly used characters in the ASCII set are represented by 1 byte,xi
+ * while other Unicode characters may require 2, 3, or 4 bytes.
+ * Let's add space for the null '\0' termination byte.
+ * */
+static char My_Password[20*4+1] = "filister";
 
 /** Sets (non-volatile hold) the password to be used for DCC requests.
  * @param new_password [in] The new DCC password, of up to 31 characters.
