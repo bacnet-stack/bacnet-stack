@@ -30,7 +30,7 @@
  * while other Unicode characters may require 2, 3, or 4 bytes.
  * Let's add space for the null '\0' termination byte.
  * */
-static char My_Password[20*4+1] = "filister";
+static char My_Password[20 * 4 + 1] = "filister";
 
 /** Sets (non-volatile hold) the password to be used for DCC requests.
  * @param new_password [in] The new DCC password, of up to 31 characters.
