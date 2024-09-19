@@ -159,8 +159,7 @@ BACNET_ERROR_CODE abort_convert_to_error_code(BACNET_ABORT_REASON abort_code)
             error_code = ERROR_CODE_ABORT_APDU_TOO_LONG;
             break;
         default:
-            if ((abort_code >= ABORT_REASON_PROPRIETARY_FIRST) &&
-                (abort_code <= ABORT_REASON_PROPRIETARY_LAST)) {
+            if (abort_code >= ABORT_REASON_PROPRIETARY_FIRST) {
                 error_code = ERROR_CODE_ABORT_PROPRIETARY;
             }
             break;

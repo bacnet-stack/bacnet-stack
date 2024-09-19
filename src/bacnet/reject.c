@@ -142,8 +142,7 @@ BACNET_ERROR_CODE reject_convert_to_error_code(BACNET_REJECT_REASON reject_code)
             error_code = ERROR_CODE_INVALID_DATA_ENCODING;
             break;
         default:
-            if ((reject_code >= REJECT_REASON_PROPRIETARY_FIRST) &&
-                (reject_code <= REJECT_REASON_PROPRIETARY_LAST)) {
+            if (reject_code >= REJECT_REASON_PROPRIETARY_FIRST) {
                 error_code = ERROR_CODE_REJECT_PROPRIETARY;
             }
             break;
