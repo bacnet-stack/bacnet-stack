@@ -962,7 +962,7 @@ int bacapp_encode_context_data_value(
 BACNET_APPLICATION_TAG
 bacapp_context_tag_type(BACNET_PROPERTY_ID property, uint8_t tag_number)
 {
-    BACNET_APPLICATION_TAG tag = MAX_BACNET_APPLICATION_TAG;
+    int tag = MAX_BACNET_APPLICATION_TAG;
 
     (void)tag_number;
     tag = bacapp_known_property_tag(MAX_BACNET_OBJECT_TYPE, property);
@@ -970,7 +970,7 @@ bacapp_context_tag_type(BACNET_PROPERTY_ID property, uint8_t tag_number)
         tag = MAX_BACNET_APPLICATION_TAG;
     }
 
-    return tag;
+    return (BACNET_APPLICATION_TAG)tag;
 }
 
 /**
@@ -1634,7 +1634,7 @@ int bacapp_decode_known_property(
     BACNET_PROPERTY_ID property)
 {
     int apdu_len = 0;
-    BACNET_APPLICATION_TAG tag;
+    int tag;
 
     if (bacnet_is_closing_tag(apdu, apdu_size)) {
         if (value) {

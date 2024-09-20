@@ -26,7 +26,7 @@
 /* me */
 #include "bacnet/basic/object/netport.h"
 
-#if defined(BACDL_BIP6) || defined(BACDL_ALL)
+#if defined(BACDL_BIP6)
 #include "bacnet/datalink/bvlc6.h"
 #endif
 
@@ -139,17 +139,14 @@ static const int BIP_Port_Properties_Optional[] = {
     PROP_IP_DEFAULT_GATEWAY,
     PROP_IP_DNS_SERVER,
     PROP_IP_DHCP_ENABLE,
-#if (defined(BACDL_ALL) || defined(BACDL_BIP)) && \
-    (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
-#if (BBMD_ENABLED)
+#if defined(BACDL_BIP) && (BBMD_ENABLED)
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
     PROP_BBMD_FOREIGN_DEVICE_TABLE,
 #endif
-#if (BBMD_CLIENT_ENABLED)
+#if defined(BACDL_BIP) && (BBMD_CLIENT_ENABLED)
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
-#endif
 #endif
     -1
 };
@@ -168,17 +165,14 @@ static const int BIP6_Port_Properties_Optional[] = {
     PROP_IPV6_DHCP_LEASE_TIME_REMAINING,
     PROP_IPV6_DHCP_SERVER,
     PROP_IPV6_ZONE_INDEX,
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6)) && \
-    (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
-#if (BBMD_ENABLED)
+#if defined(BACDL_BIP6) && (BBMD_ENABLED)
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
     PROP_BBMD_FOREIGN_DEVICE_TABLE,
 #endif
-#if (BBMD_CLIENT_ENABLED)
+#if defined(BACDL_BIP6) && (BBMD_CLIENT_ENABLED)
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
-#endif
 #endif
     -1
 };
@@ -1654,8 +1648,7 @@ bool Network_Port_BBMD_FD_Table_Set(uint32_t object_instance, void *fdt_head)
     return status;
 }
 
-#if (defined(BACDL_BIP) || defined(BACDL_ALL)) && \
-    (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
+#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
 /**
  * For a given object instance-number, gets the ip-address and port
  * Note: depends on Network_Type being set for this object
@@ -1875,7 +1868,7 @@ bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(
 }
 
 /* IPv6 BBMD related getters and setters */
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+#if defined(BACDL_BIP6)
 
 /**
  * For a given object instance-number, returns the BBMD-Accept-FD-Registrations
@@ -2034,7 +2027,7 @@ bool Network_Port_BBMD_IP6_FD_Table_Set(
     return status;
 }
 
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6)) && (BBMD_CLIENT_ENABLED)
+#if defined(BACDL_BIP6) && (BBMD_CLIENT_ENABLED)
 /**
  * For a given object instance-number, gets the ip-address and port
  * Note: depends on Network_Type being set for this object
@@ -2852,7 +2845,7 @@ static bool Network_Port_FD_BBMD_Address_Write(
         return status;
     }
     switch (Network_Port_Type(object_instance)) {
-#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+#if defined(BACDL_BIP)
         case PORT_TYPE_BIP:
             if (Network_Port_BIP_Mode(object_instance) !=
                 BACNET_IP_MODE_FOREIGN) {
@@ -2876,7 +2869,7 @@ static bool Network_Port_FD_BBMD_Address_Write(
             }
             break;
 #endif
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+#if defined(BACDL_BIP6)
         case PORT_TYPE_BIP6:
             if (Network_Port_BIP6_Mode(object_instance) !=
                 BACNET_IP_MODE_FOREIGN) {
@@ -2936,7 +2929,7 @@ static bool Network_Port_FD_Subscription_Lifetime_Write(
     }
     lifetime = (uint16_t)value;
     switch (Network_Port_Type(object_instance)) {
-#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+#if defined(BACDL_BIP)
         case PORT_TYPE_BIP:
             if (Network_Port_BIP_Mode(object_instance) ==
                 BACNET_IP_MODE_FOREIGN) {
@@ -2952,7 +2945,7 @@ static bool Network_Port_FD_Subscription_Lifetime_Write(
             }
             break;
 #endif
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+#if defined(BACDL_BIP6)
         case PORT_TYPE_BIP6:
             if (Network_Port_BIP6_Mode(object_instance) ==
                 BACNET_IP_MODE_FOREIGN) {
@@ -3076,11 +3069,10 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_OCTET_STRING octet_string;
     BACNET_CHARACTER_STRING char_string;
-#if (defined(BACDL_ALL) || defined(BACDL_BIP)) && \
-    (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
+#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
     BACNET_IP_ADDRESS ip_address;
 #endif
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6)) && (BBMD_CLIENT_ENABLED)
+#if defined(BACDL_BIP6) && (BBMD_CLIENT_ENABLED)
     BACNET_IP6_ADDRESS ip6_address;
 #endif
     uint8_t *apdu = NULL;
@@ -3238,7 +3230,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
-#if (defined(BACDL_BIP) || defined(BACDL_BIP6) || defined(BACDL_ALL)) && \
+#if (defined(BACDL_BIP) || defined(BACDL_BIP6)) && \
     (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
 #if (BBMD_ENABLED)
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
@@ -3249,14 +3241,14 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
             switch (network_type) {
-#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+#if defined(BACDL_BIP)
                 case PORT_TYPE_BIP:
                     apdu_len = bvlc_broadcast_distribution_table_encode(
                         &apdu[0], rpdata->application_data_len,
                         Network_Port_BBMD_BD_Table(rpdata->object_instance));
                     break;
 #endif
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+#if defined(BACDL_BIP6)
                 case PORT_TYPE_BIP6:
                     apdu_len = bvlc6_broadcast_distribution_table_encode(
                         &apdu[0], rpdata->application_data_len,
@@ -3273,14 +3265,14 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
             switch (network_type) {
-#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+#if defined(BACDL_BIP)
                 case PORT_TYPE_BIP:
                     apdu_len = bvlc_foreign_device_table_encode(
                         &apdu[0], rpdata->application_data_len,
                         Network_Port_BBMD_FD_Table(rpdata->object_instance));
                     break;
 #endif
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+#if defined(BACDL_BIP6)
                 case PORT_TYPE_BIP6:
                     apdu_len = bvlc6_foreign_device_table_encode(
                         &apdu[0], rpdata->application_data_len,
@@ -3299,8 +3291,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
             switch (network_type) {
-#if (defined(BACDL_BIP) || defined(BACDL_ALL)) && \
-    (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
+#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
                 case PORT_TYPE_BIP:
                     Network_Port_Remote_BBMD_IP_Address_And_Port(
                         rpdata->object_instance, &ip_address);
@@ -3308,7 +3299,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                         &apdu[0], apdu_size, &ip_address);
                     break;
 #endif
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+#if defined(BACDL_BIP6)
                 case PORT_TYPE_BIP6:
                     Network_Port_Remote_BBMD_IP6_Address_And_Port(
                         rpdata->object_instance, &ip6_address);
@@ -3325,7 +3316,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
             switch (network_type) {
-#if (defined(BACDL_ALL) || defined(BACDL_BIP))
+#if defined(BACDL_BIP)
                 case PORT_TYPE_BIP:
                     apdu_len = encode_application_unsigned(
                         &apdu[0],
@@ -3333,7 +3324,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                             rpdata->object_instance));
                     break;
 #endif
-#if (defined(BACDL_ALL) || defined(BACDL_BIP6))
+#if defined(BACDL_BIP6)
                 case PORT_TYPE_BIP6:
                     apdu_len = encode_application_unsigned(
                         &apdu[0],

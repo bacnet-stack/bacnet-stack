@@ -46,33 +46,37 @@ option(
 
 option(
   BACDL_ETHERNET
-  "compile with ethernet support"
+  "compile with ethernet datalink support"
   OFF)
 
 option(
   BACDL_MSTP
-  "compile with mstp support"
+  "compile with mstp datalink support"
   OFF)
 
 option(
   BACDL_ARCNET
-  "compile with arcnet support"
+  "compile with arcnet datalink support"
   OFF)
 
 option(
   BACDL_BIP
-  "compile with ip support"
+  "compile with ip datalink support"
   ON)
 
 option(
   BACDL_BIP6
-  "compile with ipv6 support"
+  "compile with ipv6 datalink support"
   OFF)
 
-option(
-  BACDL_NONE
-  "compile without datalink"
-  OFF)
+if(NOT (BACDL_ETHERNET OR
+        BACDL_MSTP OR
+        BACDL_ARCNET OR
+        BACDL_BIP OR
+        BACDL_BIP6 OR
+        BACDL_CUSTOM))
+  add_definitions(-DBACDL_NONE)
+endif()
 
 set(BACNET_PROTOCOL_REVISION 19)
 
@@ -669,6 +673,11 @@ elseif(APPLE)
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
     ports/bsd/bip-init.c
+    $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
+    $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/dlmstp.c>
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
     ports/bsd/stdbool.h)
@@ -962,9 +971,9 @@ message(STATUS "BACNET: CMAKE_CXX_COMPILER_VERSION:.....\"${CMAKE_CXX_COMPILER_V
 message(STATUS "BACNET: CMAKE_BUILD_TYPE:...............\"${CMAKE_BUILD_TYPE}\"")
 message(STATUS "BACNET: CMAKE_INSTALL_PREFIX:...........\"${CMAKE_INSTALL_PREFIX}\"")
 message(STATUS "BACNET: BACNET_PROTOCOL_REVISION:.......\"${BACNET_PROTOCOL_REVISION}\"")
+message(STATUS "BACNET: Selected datalinks:")
 message(STATUS "BACNET: BACDL_BIP6:.....................\"${BACDL_BIP6}\"")
 message(STATUS "BACNET: BACDL_BIP:......................\"${BACDL_BIP}\"")
 message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")
-message(STATUS "BACNET: BACDL_NONE:.....................\"${BACDL_NONE}\"")

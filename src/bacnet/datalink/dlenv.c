@@ -551,9 +551,15 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  */
 void dlenv_init(void)
 {
+#if defined(BACDL_BIP)
+    BACNET_IP_ADDRESS addr;
+#endif
+#if defined(BACDL_BIP6)
+    BACNET_IP6_ADDRESS addr6;
+#endif
     char *pEnv = NULL;
 
-#if defined(BACDL_ALL)
+#if defined(BACDL_MULTIPLE)
     pEnv = getenv("BACNET_DATALINK");
     if (pEnv) {
         datalink_set(pEnv);
@@ -562,7 +568,6 @@ void dlenv_init(void)
     }
 #endif
 #if defined(BACDL_BIP6)
-    BACNET_IP6_ADDRESS addr;
     pEnv = getenv("BACNET_BIP6_DEBUG");
     if (pEnv) {
         bip6_debug_enable();
@@ -571,14 +576,14 @@ void dlenv_init(void)
     pEnv = getenv("BACNET_BIP6_BROADCAST");
     if (pEnv) {
         bvlc6_address_set(
-            &addr, (uint16_t)strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0, 0,
+            &addr6, (uint16_t)strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0, 0,
             BIP6_MULTICAST_GROUP_ID);
-        bip6_set_broadcast_addr(&addr);
+        bip6_set_broadcast_addr(&addr6);
     } else {
         bvlc6_address_set(
-            &addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0, 0, 0, 0, 0,
+            &addr6, BIP6_MULTICAST_SITE_LOCAL, 0, 0, 0, 0, 0, 0,
             BIP6_MULTICAST_GROUP_ID);
-        bip6_set_broadcast_addr(&addr);
+        bip6_set_broadcast_addr(&addr6);
     }
     pEnv = getenv("BACNET_BIP6_PORT");
     if (pEnv) {
@@ -588,7 +593,6 @@ void dlenv_init(void)
     }
 #endif
 #if defined(BACDL_BIP)
-    BACNET_IP_ADDRESS addr;
     pEnv = getenv("BACNET_IP_DEBUG");
     if (pEnv) {
         bip_debug_enable();

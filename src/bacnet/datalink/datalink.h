@@ -14,6 +14,25 @@
 
 #if defined(BACDL_ETHERNET)
 #include "bacnet/datalink/ethernet.h"
+#endif
+#if defined(BACDL_ARCNET)
+#include "bacnet/datalink/arcnet.h"
+#endif
+#if defined(BACDL_MSTP)
+#include "bacnet/datalink/dlmstp.h"
+#endif
+#if defined(BACDL_BIP)
+#include "bacnet/datalink/bip.h"
+#include "bacnet/datalink/bvlc.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
+#endif
+#if defined(BACDL_BIP6)
+#include "bacnet/datalink/bip6.h"
+#include "bacnet/datalink/bvlc6.h"
+#include "bacnet/basic/bbmd6/h_bbmd6.h"
+#endif
+
+#if defined(BACDL_ETHERNET) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU ETHERNET_MPDU_MAX
 
 #define datalink_init ethernet_init
@@ -24,8 +43,7 @@
 #define datalink_get_my_address ethernet_get_my_address
 #define datalink_maintenance_timer(s)
 
-#elif defined(BACDL_ARCNET)
-#include "bacnet/datalink/arcnet.h"
+#elif defined(BACDL_ARCNET) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU ARCNET_MPDU_MAX
 
 #define datalink_init arcnet_init
@@ -36,8 +54,7 @@
 #define datalink_get_my_address arcnet_get_my_address
 #define datalink_maintenance_timer(s)
 
-#elif defined(BACDL_MSTP)
-#include "bacnet/datalink/dlmstp.h"
+#elif defined(BACDL_MSTP) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU DLMSTP_MPDU_MAX
 
 #define datalink_init dlmstp_init
@@ -48,10 +65,7 @@
 #define datalink_get_my_address dlmstp_get_my_address
 #define datalink_maintenance_timer(s)
 
-#elif defined(BACDL_BIP)
-#include "bacnet/datalink/bip.h"
-#include "bacnet/datalink/bvlc.h"
-#include "bacnet/basic/bbmd/h_bbmd.h"
+#elif defined(BACDL_BIP) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU BIP_MPDU_MAX
 
 #define datalink_init bip_init
@@ -74,10 +88,7 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #endif
 #define datalink_maintenance_timer(s) bvlc_maintenance_timer(s)
 
-#elif defined(BACDL_BIP6)
-#include "bacnet/datalink/bip6.h"
-#include "bacnet/datalink/bvlc6.h"
-#include "bacnet/basic/bbmd6/h_bbmd6.h"
+#elif defined(BACDL_BIP6) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU BIP6_MPDU_MAX
 
 #define datalink_init bip6_init
@@ -88,7 +99,7 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #define datalink_get_my_address bip6_get_my_address
 #define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
 
-#elif defined(BACDL_ALL) || defined(BACDL_NONE) || defined(BACDL_CUSTOM)
+#elif !defined(BACDL_TEST) /* Multiple, none or custom datalink */
 #include "bacnet/npdu.h"
 
 #define MAX_HEADER (8)

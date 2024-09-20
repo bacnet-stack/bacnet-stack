@@ -13,7 +13,22 @@
 
 #if defined(BACDL_ETHERNET)
 #include "bacnet/datalink/ethernet.h"
+#endif
+#if defined(BACDL_ARCNET)
+#include "bacnet/datalink/arcnet.h"
+#endif
+#if defined(BACDL_MSTP)
+#include "bacnet/datalink/dlmstp.h"
+#endif
+#if defined(BACDL_BIP)
+#include "bacnet/datalink/bip.h"
+#include "bvlc-arduino.h"
+#endif
+#if defined(BACDL_BIP6)
+#error currently not implemented for Arduino
+#endif
 
+#if defined(BACDL_ETHERNET) && !defined(BACDL_MULTIPLE)
 #define datalink_init ethernet_init
 #define datalink_send_pdu ethernet_send_pdu
 #define datalink_receive ethernet_receive
@@ -21,9 +36,7 @@
 #define datalink_get_broadcast_address ethernet_get_broadcast_address
 #define datalink_get_my_address ethernet_get_my_address
 
-#elif defined(BACDL_ARCNET)
-#include "bacnet/datalink/arcnet.h"
-
+#elif defined(BACDL_ARCNET) && !defined(BACDL_MULTIPLE)
 #define datalink_init arcnet_init
 #define datalink_send_pdu arcnet_send_pdu
 #define datalink_receive arcnet_receive
@@ -31,9 +44,7 @@
 #define datalink_get_broadcast_address arcnet_get_broadcast_address
 #define datalink_get_my_address arcnet_get_my_address
 
-#elif defined(BACDL_MSTP)
-#include "bacnet/datalink/dlmstp.h"
-
+#elif defined(BACDL_MSTP) && !defined(BACDL_MULTIPLE)
 #define datalink_init dlmstp_init
 #define datalink_send_pdu dlmstp_send_pdu
 #define datalink_receive dlmstp_receive
@@ -41,9 +52,7 @@
 #define datalink_get_broadcast_address dlmstp_get_broadcast_address
 #define datalink_get_my_address dlmstp_get_my_address
 
-#elif defined(BACDL_BIP)
-#include "bacnet/datalink/bip.h"
-#include "bvlc-arduino.h"
+#elif defined(BACDL_BIP) && !defined(BACDL_MULTIPLE)
 
 #define datalink_init bip_init
 // #if defined(BBMD_ENABLED) && BBMD_ENABLED
@@ -62,7 +71,7 @@ extern void routed_get_my_address(BACNET_ADDRESS *my_address);
 #define datalink_get_my_address bip_get_my_address
 #endif
 
-#else /* Ie, BACDL_ALL */
+#else /* Ie, BACDL_MULTIPLE */
 #include "bacnet/npdu.h"
 
 #define MAX_HEADER (8)
