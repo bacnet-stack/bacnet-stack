@@ -3342,12 +3342,9 @@ int bacapp_snprintf_value(
                     str, str_len, &value->type.Shed_Level);
                 break;
 #endif
-#if defined(BACAPP_ACCESS_RULE)
-            case BACNET_APPLICATION_TAG_ACCESS_RULE:
-                ret_val = bacapp_snprintf_access_rule(
-                    str, str_len, &value->type.Access_Rule);
+            case BACNET_APPLICATION_TAG_EMPTYLIST:
+                ret_val = bacapp_snprintf(str, str_len, "{}");
                 break;
-#endif
             default:
                 ret_val = bacapp_snprintf(
                     str, str_len, "UnknownType(tag=%d)", value->tag);
@@ -3998,7 +3995,7 @@ void bacapp_value_list_init(BACNET_APPLICATION_DATA_VALUE *value, size_t count)
     if (value && count) {
         for (i = 0; i < count; i++) {
             value->tag = BACNET_APPLICATION_TAG_NULL;
-            value->context_specific = 0;
+            value->context_specific = false;
             value->context_tag = 0;
             if ((i + 1) < count) {
                 value->next = value + 1;
