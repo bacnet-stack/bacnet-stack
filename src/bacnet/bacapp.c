@@ -3343,7 +3343,7 @@ int bacapp_snprintf_value(
                     str, str_len, &value->type.Shed_Level);
                 break;
 #endif
-#if defined(BACAPP_SHED_LEVEL)
+#if defined(BACAPP_ACCESS_RULE)
             case BACNET_APPLICATION_TAG_ACCESS_RULE:
                 ret_val = bacapp_snprintf_access_rule(
                     str, str_len, &value->type.Access_Rule);
