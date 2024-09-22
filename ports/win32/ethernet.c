@@ -178,7 +178,7 @@ bool ethernet_init(char *if_name)
     int i;
     char msg[400];
     int devnum;
-    char *device;
+    char *device = NULL;
 
     if (ethernet_valid()) {
         ethernet_cleanup();
