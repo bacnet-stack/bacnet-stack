@@ -178,56 +178,55 @@ int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *data)
 }
 
 /**
- * @brief Parse a string into a BACnet Shed Level value
- * @param value [out] The BACnet Shed Level value
+ * @brief Parse a string into a BACnetAccessRule value
+ * @param value [out] The BACnetAccessRule value
  * @param argv [in] The string to parse
  * @return True on success, else False
  */
-bool bacnet_shed_level_from_ascii(BACNET_ACCESS_RULE *value, const char *argv)
+bool bacnet_access_rule_from_ascii(BACNET_ACCESS_RULE *value, const char *argv)
 {
     bool status = false;
-    int count;
-    unsigned percent, level;
-    float amount;
-    const char *percentage;
-    const char *decimal_point;
 
-    if (!status) {
-        percentage = strchr(argv, '%');
-        if (percentage) {
-            count = sscanf(argv, "%u", &percent);
-            if (count == 1) {
-                value->type = BACNET_SHED_TYPE_PERCENT;
-                value->value.percent = percent;
-                status = true;
-            }
-        }
-    }
-    if (!status) {
-        decimal_point = strchr(argv, '.');
-        if (decimal_point) {
-            count = sscanf(argv, "%f", &amount);
-            if (count == 1) {
-                value->type = BACNET_SHED_TYPE_AMOUNT;
-                value->value.amount = amount;
-                status = true;
-            }
-        }
-    }
-    if (!status) {
-        count = sscanf(argv, "%u", &level);
-        if (count == 1) {
-            value->type = BACNET_SHED_TYPE_LEVEL;
-            value->value.level = level;
-            status = true;
-        }
-    }
+    (void)value;
+    (void)argv;
 
     return status;
 }
 
-bool bacnet_shed_level_same(
+/**
+ * @brief Compare two BACnetAccessRule values
+ * @param value1 [in] The first BACnetAccessRule value
+ * @param value2 [in] The second BACnetAccessRule value
+ * @return True if the values are the same, else False
+ */
+bool bacnet_access_rule_same(
     const BACNET_ACCESS_RULE *value1, const BACNET_ACCESS_RULE *value2)
 {
-    return false;
+    bool status;
+
+    if (value1->time_range_specifier != value2->time_range_specifier) {
+        return false;
+    }
+    if (value1->time_range_specifier == TIME_RANGE_SPECIFIER_SPECIFIED) {
+        status = bacnet_device_object_property_reference_same(
+            &value1->time_range, &value2->time_range);
+        if (!status) {
+            return false;
+        }
+    }
+    if (value1->location_specifier != value2->location_specifier) {
+        return false;
+    }
+    if (value1->location_specifier == LOCATION_SPECIFIER_SPECIFIED) {
+        status = bacnet_device_object_reference_same(
+            &value1->location, &value2->location);
+        if (!status) {
+            return false;
+        }
+    }
+    if (value1->enable != value2->enable) {
+        return false;
+    }
+
+    return true;
 }
