@@ -17,6 +17,7 @@
 #include <wchar.h>
 #include <wctype.h>
 #endif
+#include "bacnet/access_rule.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"

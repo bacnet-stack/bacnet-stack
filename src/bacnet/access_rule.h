@@ -13,7 +13,6 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bacapp.h"
 #include "bacnet/bacdevobjpropref.h"
 
 typedef enum {
@@ -28,7 +27,7 @@ typedef enum {
     LOCATION_SPECIFIER_MAX = 2
 } BACNET_ACCESS_RULE_LOCATION_SPECIFIER;
 
-typedef struct {
+typedef struct BACnetAccessRule {
     BACNET_ACCESS_RULE_TIME_RANGE_SPECIFIER time_range_specifier;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE time_range;
     BACNET_ACCESS_RULE_LOCATION_SPECIFIER location_specifier;
