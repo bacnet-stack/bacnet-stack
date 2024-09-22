@@ -507,7 +507,7 @@ int bacapp_encode_application_data(
             case BACNET_APPLICATION_TAG_ACCESS_RULE:
                 /* BACnetAccessRule */
                 apdu_len =
-                    bacapp_encode_access_rule(apdu, &value->type.Shed_Level);
+                    bacapp_encode_access_rule(apdu, &value->type.Access_Rule);
                 break;
 #endif
             default:
@@ -1940,51 +1940,6 @@ static int bacapp_snprintf_shed_level(
 }
 #endif
 
-#if defined(BACAPP_ACCESS_RULE)
-/**
- * @brief Print a value to a string for EPICS
- * @param str - destination string, or NULL for length only
- * @param str_len - length of the destination string, or 0 for length only
- * @param value - value to be printed
- * @return number of characters written to the string
- */
-static int bacapp_snprintf_access_rule(
-    char *str, size_t str_len, const BACNET_ACCESS_RULE *value);
-{
-    int slen;
-    int ret_val = 0;
-
-    slen = bacapp_snprintf(str, str_len, "{");
-    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    /*  specified (0), always (1) */
-    if (value->time_range_specifier == TIME_RANGE_SPECIFIER_SPECIFIED) {
-        slen = bacapp_snprintf(str, str_len, "specified, ");
-        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-        slen = bacapp_snprintf_device_object_property_reference(
-            str, str_len, &value->time_range);
-        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    } else {
-        slen = bacapp_snprintf(str, str_len, "always, ");
-        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    }
-    /* specified (0), all (1) */
-    if (value->location_specifier == LOCATION_SPECIFIER_SPECIFIED) {
-        slen = bacapp_snprintf(str, str_len, "specified, ");
-        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-        slen = bacapp_snprintf_device_object_reference(
-            str, str_len, &value->location);
-        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    } else {
-        slen = bacapp_snprintf(str, str_len, "all");
-        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-    }
-    slen = bacapp_snprintf(str, str_len, "}");
-    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-
-    return ret_val;
-}
-#endif
-
 /**
  * @brief Print a value to a string for EPICS
  * @param str - destination string, or NULL for length only
@@ -2557,6 +2512,51 @@ static int bacapp_snprintf_object_property_reference(
     }
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     ret_val += bacapp_snprintf(str, str_len, "}");
+
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_ACCESS_RULE)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to be printed
+ * @return number of characters written to the string
+ */
+static int bacapp_snprintf_access_rule(
+    char *str, size_t str_len, const BACNET_ACCESS_RULE *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    /*  specified (0), always (1) */
+    if (value->time_range_specifier == TIME_RANGE_SPECIFIER_SPECIFIED) {
+        slen = bacapp_snprintf(str, str_len, "specified, ");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = bacapp_snprintf_device_object_property_reference(
+            str, str_len, &value->time_range);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    } else {
+        slen = bacapp_snprintf(str, str_len, "always, ");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
+    /* specified (0), all (1) */
+    if (value->location_specifier == LOCATION_SPECIFIER_SPECIFIED) {
+        slen = bacapp_snprintf(str, str_len, "specified, ");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+        slen = bacapp_snprintf_device_object_reference(
+            str, str_len, &value->location);
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    } else {
+        slen = bacapp_snprintf(str, str_len, "all");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
     return ret_val;
 }
@@ -3342,6 +3342,12 @@ int bacapp_snprintf_value(
                     str, str_len, &value->type.Shed_Level);
                 break;
 #endif
+#if defined(BACAPP_SHED_LEVEL)
+            case BACNET_APPLICATION_TAG_ACCESS_RULE:
+                ret_val = bacapp_snprintf_access_rule(
+                    str, str_len, &value->type.Access_Rule);
+                break;
+#endif
             case BACNET_APPLICATION_TAG_EMPTYLIST:
                 ret_val = bacapp_snprintf(str, str_len, "{}");
                 break;
@@ -3958,7 +3964,7 @@ bool bacapp_parse_application_data(
 #if defined(BACAPP_ACCESS_RULE)
             case BACNET_APPLICATION_TAG_ACCESS_RULE:
                 /* BACnetAccessRule - not implemented */
-                bacnet_access_rule_from_ascii(&value->type.Shed_Level, argv);
+                bacnet_access_rule_from_ascii(&value->type.Access_Rule, argv);
                 break;
 #endif
             default:
