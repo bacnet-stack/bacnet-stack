@@ -694,7 +694,6 @@ elseif(APPLE)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
-    ports/bsd/bip-init.c
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
     $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
