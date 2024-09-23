@@ -799,7 +799,7 @@ if(BACNET_STACK_BUILD_APPS)
     )
   endif(BACNET_BUILD_BACDISCOVER_APP)
 
-  if(BACDL_BIP OR BACDL_BIP6)
+  if(BACDL_BIP)
     add_executable(readbdt apps/readbdt/main.c)
     target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
 
@@ -861,7 +861,7 @@ if(BACNET_STACK_BUILD_APPS)
     endif()
   endif()
 
-  if(BACDL_BIP6)
+  if(BACDL_BIP AND BACDL_BIP6)
     add_executable(router-ipv6 apps/router-ipv6/main.c)
     target_link_libraries(router-ipv6 PRIVATE ${PROJECT_NAME})
   endif()
