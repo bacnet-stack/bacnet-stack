@@ -78,6 +78,11 @@ if(NOT (BACDL_ETHERNET OR
   add_definitions(-DBACDL_NONE)
 endif()
 
+option(
+  UCI
+  "build with uci"
+  OFF)
+
 set(BACNET_PROTOCOL_REVISION 19)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -185,6 +190,21 @@ endif()
 #
 
 find_package(Threads)
+
+if(UCI)
+  FIND_PATH(uci_include_dir uci.h)
+  FIND_LIBRARY(uci_lib NAMES uci)
+  if (uci_include_dir AND uci_lib)
+    message(STATUS "BACNET: BAC_UCI Include:................\"${uci_include_dir}\"")
+    message(STATUS "BACNET: BAC_UCI Lib:....................\"${uci_lib}\"")
+    include_directories(${uci_include_dir})
+    link_libraries(${uci_lib})
+    add_compile_definitions(BAC_UCI)
+  else()
+    message(WARNING "BACNET: BAC_UCI Lib:....................\"not found\"")
+    set(UCI OFF)
+  endif()
+endif()
 
 add_library(${PROJECT_NAME}
   src/bacnet/abort.c
@@ -578,7 +598,9 @@ add_library(${PROJECT_NAME}
   src/bacnet/wp.c
   src/bacnet/wp.h
   src/bacnet/wpm.c
-  src/bacnet/wpm.h)
+  src/bacnet/wpm.h
+  $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.c>
+  $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.h>)
 target_sources(
   ${PROJECT_NAME}
   PRIVATE
