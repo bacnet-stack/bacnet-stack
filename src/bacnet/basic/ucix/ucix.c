@@ -107,36 +107,43 @@ const char *ucix_get_option(
     return value;
 }
 
-int ucix_get_list(char *value[254], struct uci_context *ctx, const char *p, const char *s, const char *o)
+int ucix_get_list(
+    char *value[254],
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *o)
 {
-	struct uci_element *e = NULL;
-	int n;
-	if(ucix_get_ptr(ctx, p, s, o, NULL))
-		return 0;
-	if (!(ptr.flags & UCI_LOOKUP_COMPLETE))
-		return 0;
-	e = ptr.last;
-	switch (e->type)
-	{
-	case UCI_TYPE_OPTION:
-		switch(ptr.o->type) {
-			case UCI_TYPE_LIST:
-				n = 0;
-                uci_foreach_element(&ptr.o->v.list, e) {
-                      value[n] = e->name;
-                      n++;
-                }
-				break;
-			default:
-			    n = 0;
-				break;
-		}
-		break;
-	default:
-		return 0;
-	}
+    struct uci_element *e = NULL;
+    int n;
+    if (ucix_get_ptr(ctx, p, s, o, NULL)) {
+        return 0;
+    }
+    if (!(ptr.flags & UCI_LOOKUP_COMPLETE)) {
+        return 0;
+    }
+    e = ptr.last;
+    switch (e->type) {
+        case UCI_TYPE_OPTION:
+            switch (ptr.o->type) {
+                case UCI_TYPE_LIST:
+                    n = 0;
+                    uci_foreach_element(&ptr.o->v.list, e)
+                    {
+                        value[n] = e->name;
+                        n++;
+                    }
+                    break;
+                default:
+                    n = 0;
+                    break;
+            }
+            break;
+        default:
+            return 0;
+    }
 
-	return n;
+    return n;
 }
 
 int ucix_get_option_int(
@@ -177,7 +184,13 @@ void ucix_add_option(
     uci_set(ctx, &ptr);
 }
 
-void ucix_set_list(struct uci_context *ctx, const char *p, const char *s, const char *o, char value[254][64], int l)
+void ucix_set_list(
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *o,
+    char value[254][64],
+    int l)
 {
     int i;
     ucix_get_ptr(ctx, p, s, o, NULL);
