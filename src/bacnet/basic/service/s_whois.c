@@ -26,7 +26,6 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/datalink/datalink.h"
 
 /** @file s_whois.c  Send a Who-Is request. */
 
