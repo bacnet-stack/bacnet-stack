@@ -2149,15 +2149,14 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
                     .state = { .binaryValue = pObject->Present_Value }
                 };
 #else
-            {
-                BACNET_PROPERTY_STATE ns = {
-                    0,
-                };
-                ns.tag = PROP_STATE_BINARY_VALUE;
-                ns.state.binaryValue = pObject->Present_Value;
+            { BACNET_PROPERTY_STATE ns = {
+                  0,
+              };
+            ns.tag = PROP_STATE_BINARY_VALUE;
+            ns.state.binaryValue = pObject->Present_Value;
 
-                event_data.notificationParams.changeOfState.newState = ns;
-            }
+            event_data.notificationParams.changeOfState.newState = ns;
+        }
 #endif
             /* Status_Flags of the referenced object. */
             bitstring_init(
