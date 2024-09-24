@@ -666,7 +666,7 @@ target_compile_definitions(
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
   BACDL_MULTIPLE=1
-  CSTANDARD=-c17
+  CSTANDARD=-std=c17
   PRINT_ENABLED=1)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
