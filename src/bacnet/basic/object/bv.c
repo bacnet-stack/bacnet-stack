@@ -245,7 +245,7 @@ static BACNET_POLARITY Binary_Polarity(bool value)
  * @param binary_value BACNET_POLARITY enumeration
  * @return boolean value
  */
-static bool Binary_Polarity_Boolean(BACNET_POLARITY polarity)
+bool Binary_Polarity_Boolean(BACNET_POLARITY polarity)
 {
     bool boolean_value = false;
 
