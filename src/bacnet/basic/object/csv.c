@@ -211,12 +211,12 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 
         strncpy(
             CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name,
-            sizeof(CSV_Descr[i].Name)-1);
+            sizeof(CSV_Descr[i].Name) - 1);
 
         strncpy(
             CSV_Descr[i].Description,
             pInit_data->Object_Init_Values[i].Description,
-            sizeof(CSV_Descr[i].Description)-1);
+            sizeof(CSV_Descr[i].Description) - 1);
     }
 
     CSV_Max_Index = (int)pInit_data->length;
@@ -507,7 +507,7 @@ bool CharacterString_Value_Name_Set(
         /* FIXME: check to see if there is a matching name */
         if (new_name) {
             strncpy(
-                CSV_Descr[index].Name, new_name, sizeof(CSV_Descr[index].Name));
+                CSV_Descr[index].Name, new_name, sizeof(CSV_Descr[index].Name) - 1);
         }
     } else {
         memset(&CSV_Descr[index].Name, 0, sizeof(CSV_Descr[index].Name));
