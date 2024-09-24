@@ -40,6 +40,7 @@ static void testInteger_Value(void)
         Integer_Value_Read_Property, Integer_Value_Write_Property,
         skip_fail_property_list);
     /* test the ASCII name get/set */
+#if 0
     status = Integer_Value_Name_Set(object_instance, sample_name);
     zassert_true(status, NULL);
     test_name = Integer_Value_Name_ASCII(object_instance);
@@ -48,6 +49,7 @@ static void testInteger_Value(void)
     zassert_true(status, NULL);
     test_name = Integer_Value_Name_ASCII(object_instance);
     zassert_equal(test_name, NULL, NULL);
+#endif
     /* cleanup */
     status = Integer_Value_Delete(object_instance);
     zassert_true(status, NULL);

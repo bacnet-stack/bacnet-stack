@@ -554,12 +554,12 @@ int bacnet_tag_decode(const uint8_t *apdu, uint32_t apdu_size, BACNET_TAG *tag)
             len_value_type = apdu[0] & 0x07;
         }
         if (IS_CONTEXT_SPECIFIC(apdu[0])) {
-            context_tag = true;
-
             if (IS_OPENING_TAG(apdu[0])) {
                 opening_tag = true;
             } else if (IS_CLOSING_TAG(apdu[0])) {
                 closing_tag = true;
+            } else {
+                context_tag = true;
             }
         } else {
             application_tag = true;
