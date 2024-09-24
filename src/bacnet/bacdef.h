@@ -240,7 +240,7 @@ typedef struct BACnet_Object_List_Init_s {
     ((((bacnet_object_type) & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) | \
      ((bacnet_object_instance) & BACNET_MAX_INSTANCE))
 #define BACNET_INSTANCE(bacnet_object_id_num) \
-    ((bacnet_object_id_num) &.BACNET_MAX_INSTANCE)
+    ((bacnet_object_id_num) & BACNET_MAX_INSTANCE)
 #define BACNET_TYPE(bacnet_object_id_num) \
     (((bacnet_object_id_num) >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT)
 
