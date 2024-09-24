@@ -423,8 +423,8 @@ bool bip6_init(char *ifname)
         status = bip6_set_interface("eth0");
     }
 
-    if(status != 0)
-      return false;
+    if (status != 0)
+        return false;
 
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0U);

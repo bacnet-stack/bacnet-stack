@@ -3606,7 +3606,7 @@ bool Network_Port_Read_Range(
     /* return value */
     bool status = false;
 
-    (void) pInfo;
+    (void)pInfo;
 
     switch (pRequest->object_property) {
         /* required properties */

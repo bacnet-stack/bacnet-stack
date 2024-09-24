@@ -277,21 +277,26 @@ static int cov_encode_subscription(
  *          would not fit within the buffer.
  */
 /* Maximume length for an encoded COV subscription  - 27 bytes for BACNET IP6
- * 31 bytes for IPv4 (longest MAC) and lets round it up to the machine word alignment */
+ * 31 bytes for IPv4 (longest MAC) and lets round it up to the machine word
+ * alignment */
 #define MAX_COV_SUB_SIZE (32)
 int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
 {
 
     if (apdu) {
-        uint8_t cov_sub[MAX_COV_SUB_SIZE] = { 0, };
+        uint8_t cov_sub[MAX_COV_SUB_SIZE] = {
+            0,
+        };
         unsigned index = 0;
         int apdu_len = 0;
 
         for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
             if (COV_Subscriptions[index].flag.valid) {
-                /* Lets encode a COV subscription into an intermediate buffer that can hold it */
-                int len = cov_encode_subscription(&cov_sub[0],
-                    max_apdu - apdu_len, &COV_Subscriptions[index]);
+                /* Lets encode a COV subscription into an intermediate buffer
+                 * that can hold it */
+                int len = cov_encode_subscription(
+                    &cov_sub[0], max_apdu - apdu_len,
+                    &COV_Subscriptions[index]);
 
                 if ((apdu_len + len) > max_apdu) {
                     return -2;
@@ -619,7 +624,7 @@ bool handler_cov_fsm(const bool reset)
         COV_STATE_SEND
     } cov_task_state = COV_STATE_IDLE;
 
-    if(reset) {
+    if (reset) {
       index = 0;
       cov_task_state = COV_STATE_IDLE;
     }

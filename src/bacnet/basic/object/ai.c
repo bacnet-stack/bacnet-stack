@@ -106,49 +106,70 @@ static struct analog_input_descr *Analog_Input_Object_Index(int index)
  */
 bool Analog_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 {
-  unsigned i;
+    unsigned i;
 
-  if (!pInit_data) {
-    return false;
-  }
-
-  for (i = 0; i < pInit_data->length; i++) {
-    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-      if(Analog_Input_Create(pInit_data->Object_Init_Values[i].Object_Instance) < BACNET_MAX_INSTANCE) {
-        struct analog_input_descr *pObject = Analog_Input_Object(pInit_data->Object_Init_Values[i].Object_Instance);
-
-        if(pObject == NULL) {
-          PRINT("Object instance %u not found right after its creation", pInit_data->Object_Init_Values[i].Object_Instance);
-          return false;
-        }
-
-        if (!characterstring_init_ansi(&pObject->Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-          PRINT("Fail to set Object name to \"%.128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-          return false;
-        }
-
-        if (!characterstring_init_ansi(&pObject->Description, pInit_data->Object_Init_Values[i].Description)) {
-          PRINT("Fail to set Object description to \"%.128s\"", pInit_data->Object_Init_Values[i].Description);
-          return false;
-        }
-
-        if (pInit_data->Object_Init_Values[i].Units < UNITS_PROPRIETARY_RANGE_MAX2) {
-          pObject->Units = pInit_data->Object_Init_Values[i].Units;
-        } else {
-          PRINT("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
-          return false;
-        }
-      } else {
-        PRINT("Unable to create object of instance %u", pInit_data->Object_Init_Values[i].Object_Instance);
+    if (!pInit_data) {
         return false;
-      }
-    } else {
-      PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
-      return false;
     }
-  }
 
-  return true;
+    for (i = 0; i < pInit_data->length; i++) {
+        if (pInit_data->Object_Init_Values[i].Object_Instance <
+            BACNET_MAX_INSTANCE) {
+            if (Analog_Input_Create(
+                    pInit_data->Object_Init_Values[i].Object_Instance) <
+                BACNET_MAX_INSTANCE) {
+                struct analog_input_descr *pObject = Analog_Input_Object(
+                    pInit_data->Object_Init_Values[i].Object_Instance);
+
+                if (pObject == NULL) {
+                    PRINT(
+                        "Object instance %u not found right after its creation",
+                        pInit_data->Object_Init_Values[i].Object_Instance);
+                    return false;
+                }
+
+                if (!characterstring_init_ansi(
+                        &pObject->Object_Name,
+                        pInit_data->Object_Init_Values[i].Object_Name)) {
+                    PRINT(
+                        "Fail to set Object name to \"%.128s\"",
+                        pInit_data->Object_Init_Values[i].Object_Name);
+                    return false;
+                }
+
+                if (!characterstring_init_ansi(
+                        &pObject->Description,
+                        pInit_data->Object_Init_Values[i].Description)) {
+                    PRINT(
+                        "Fail to set Object description to \"%.128s\"",
+                        pInit_data->Object_Init_Values[i].Description);
+                    return false;
+                }
+
+                if (pInit_data->Object_Init_Values[i].Units <
+                    UNITS_PROPRIETARY_RANGE_MAX2) {
+                    pObject->Units = pInit_data->Object_Init_Values[i].Units;
+                } else {
+                    PRINT(
+                        "unit %u is out of range",
+                        pInit_data->Object_Init_Values[i].Units);
+                    return false;
+                }
+            } else {
+                PRINT(
+                    "Unable to create object of instance %u",
+                    pInit_data->Object_Init_Values[i].Object_Instance);
+                return false;
+            }
+        } else {
+            PRINT(
+                "Object instance %u is too big",
+                pInit_data->Object_Init_Values[i].Object_Instance);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -279,9 +300,11 @@ void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
  * @param  value - floating point analog value
  * @return  true if values are within range and present-value is set.
  */
-bool Analog_Input_Present_Value_Backup_Set(uint32_t object_instance, float value)
+bool Analog_Input_Present_Value_Backup_Set(
+    uint32_t object_instance, float value)
 {
-    struct analog_input_descr * const pObject = Analog_Input_Object(object_instance);
+    struct analog_input_descr *const pObject =
+        Analog_Input_Object(object_instance);
     bool status = false;
 
     if (pObject) {
@@ -338,8 +361,7 @@ bool Analog_Input_Name_Set(uint32_t object_instance, const char *new_name)
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
     if (pObject) {
-        status =
-            characterstring_init_ansi(&pObject->Object_Name, new_name);
+        status = characterstring_init_ansi(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -417,8 +439,7 @@ bool Analog_Input_Description_Set(
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
     if (pObject) {
-        status =
-            characterstring_init_ansi(&pObject->Description, new_name);
+        status = characterstring_init_ansi(&pObject->Description, new_name);
     }
 
     return status;
@@ -642,8 +663,9 @@ void Analog_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Changed = true;
-            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
-            if((pObject->Out_Of_Service = value)) {
+            /* Lets backup Present_Value when going Out_Of_Service  or restore
+             * when going out of Out_Of_Service */
+            if ((pObject->Out_Of_Service = value)) {
                 pObject->Present_Value_Backup = pObject->Present_Value;
             } else {
                 pObject->Present_Value = pObject->Present_Value_Backup;
@@ -694,7 +716,8 @@ bool Analog_Input_Time_Delay_Set(uint32_t object_instance, uint32_t time_delay)
 }
 
 /**
- * For a given object instance-number, returns the notification_class property value
+ * For a given object instance-number, returns the notification_class property
+ * value
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -713,14 +736,16 @@ uint32_t Analog_Input_Notification_Class(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the notification_class property value
+ * For a given object instance-number, sets the notification_class property
+ * value
  *
  * @param object_instance - object-instance number of the object
  * @param notification_class - notification_class property value
  *
  * @return true if the notification_class property value was set
  */
-bool Analog_Input_Notification_Class_Set(uint32_t object_instance, uint32_t notification_class)
+bool Analog_Input_Notification_Class_Set(
+    uint32_t object_instance, uint32_t notification_class)
 {
     bool status = false;
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
@@ -866,7 +891,7 @@ BACNET_LIMIT_ENABLE Analog_Input_Limit_Enable(uint32_t object_instance)
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
     if (pObject) {
-        limit_enable = (BACNET_LIMIT_ENABLE) pObject->Limit_Enable;
+        limit_enable = (BACNET_LIMIT_ENABLE)pObject->Limit_Enable;
     }
 
     return limit_enable;
@@ -880,16 +905,18 @@ BACNET_LIMIT_ENABLE Analog_Input_Limit_Enable(uint32_t object_instance)
  *
  * @return true if the limit_enable property value was set
  */
-bool Analog_Input_Limit_Enable_Set(uint32_t object_instance, BACNET_LIMIT_ENABLE limit_enable)
+bool Analog_Input_Limit_Enable_Set(
+    uint32_t object_instance, BACNET_LIMIT_ENABLE limit_enable)
 {
     bool status = false;
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
     if (pObject) {
-      if(!(limit_enable & ~(EVENT_LOW_LIMIT_ENABLE | EVENT_HIGH_LIMIT_ENABLE))) {
-        pObject->Limit_Enable = limit_enable;
-        status = true;
-      }
+        if (!(limit_enable &
+              ~(EVENT_LOW_LIMIT_ENABLE | EVENT_HIGH_LIMIT_ENABLE))) {
+            pObject->Limit_Enable = limit_enable;
+            status = true;
+        }
     }
 
     return status;
@@ -908,7 +935,7 @@ BACNET_EVENT_ENABLE Analog_Input_Event_Enable(uint32_t object_instance)
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
     if (pObject) {
-        event_enable = (BACNET_EVENT_ENABLE) pObject->Event_Enable;
+        event_enable = (BACNET_EVENT_ENABLE)pObject->Event_Enable;
     }
 
     return event_enable;
@@ -922,16 +949,19 @@ BACNET_EVENT_ENABLE Analog_Input_Event_Enable(uint32_t object_instance)
  *
  * @return true if the event_enable property value was set
  */
-bool Analog_Input_Event_Enable_Set(uint32_t object_instance, BACNET_EVENT_ENABLE event_enable)
+bool Analog_Input_Event_Enable_Set(
+    uint32_t object_instance, BACNET_EVENT_ENABLE event_enable)
 {
     bool status = false;
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
     if (pObject) {
-      if(!(event_enable & ~(EVENT_ENABLE_TO_OFFNORMAL | EVENT_ENABLE_TO_FAULT | EVENT_ENABLE_TO_NORMAL))) {
-        pObject->Event_Enable = event_enable;
-        status = true;
-      }
+        if (!(event_enable &
+              ~(EVENT_ENABLE_TO_OFFNORMAL | EVENT_ENABLE_TO_FAULT |
+                EVENT_ENABLE_TO_NORMAL))) {
+            pObject->Event_Enable = event_enable;
+            status = true;
+        }
     }
 
     return status;
@@ -964,16 +994,17 @@ BACNET_NOTIFY_TYPE Analog_Input_Notify_Type(uint32_t object_instance)
  *
  * @return true if the notify_type property value was set
  */
-bool Analog_Input_Notify_Type_Set(uint32_t object_instance, BACNET_NOTIFY_TYPE notify_type)
+bool Analog_Input_Notify_Type_Set(
+    uint32_t object_instance, BACNET_NOTIFY_TYPE notify_type)
 {
     bool status = false;
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
     if (pObject) {
-      if((notify_type == NOTIFY_EVENT) || (notify_type == NOTIFY_ALARM)) {
-        pObject->Notify_Type = notify_type;
-        status = true;
-      }
+        if ((notify_type == NOTIFY_EVENT) || (notify_type == NOTIFY_ALARM)) {
+            pObject->Notify_Type = notify_type;
+            status = true;
+        }
     }
 
     return status;
@@ -1002,7 +1033,7 @@ static int Analog_Input_Event_Time_Stamps_Encode(
             apdu_len += len;
             if (apdu) {
                 apdu += len;
-    }
+            }
             len = encode_application_date(
                 apdu, &pObject->Event_Time_Stamps[index].date);
             apdu_len += len;
@@ -1064,8 +1095,8 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Analog_Input_Object_Name(rpdata->object_instance, &char_string);
-                apdu_len =
-                    encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(&apdu[0], Object_Type);
@@ -1104,7 +1135,8 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], pObject->Units);
             break;
         case PROP_DESCRIPTION:
-            characterstring_copy(&char_string,
+            characterstring_copy(
+                &char_string,
                 Analog_Input_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -1140,7 +1172,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(
                 &bit_string, 1,
                 (pObject->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) ? true
-                                                                    : false);
+                                                                  : false);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_ENABLE:
@@ -1155,7 +1187,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(
                 &bit_string, TRANSITION_TO_NORMAL,
                 (pObject->Event_Enable & EVENT_ENABLE_TO_NORMAL) ? true
-                                                                   : false);
+                                                                 : false);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_ACKED_TRANSITIONS:
@@ -1181,8 +1213,8 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Analog_Input_Event_Time_Stamps_Encode,
                 MAX_BACNET_EVENT_TRANSITION, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
-                        rpdata->error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
             } else if (apdu_len == BACNET_STATUS_ERROR) {
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
                 rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -1380,11 +1412,11 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (property_lists_member(
                     Properties_Required, Properties_Optional,
                     Properties_Proprietary, wp_data->object_property)) {
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             }
             break;
     }

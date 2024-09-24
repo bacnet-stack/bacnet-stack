@@ -109,49 +109,70 @@ static struct analog_value_descr *Analog_Value_Object_Index(int index)
  */
 bool Analog_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 {
-  unsigned i;
+    unsigned i;
 
-  if (!pInit_data) {
-    return false;
-  }
-
-  for (i = 0; i < pInit_data->length; i++) {
-    if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-      if(Analog_Value_Create(pInit_data->Object_Init_Values[i].Object_Instance) < BACNET_MAX_INSTANCE) {
-        struct analog_value_descr *pObject = Analog_Value_Object(pInit_data->Object_Init_Values[i].Object_Instance);
-
-        if(pObject == NULL) {
-          PRINT("Object instance %u not found right after its creation", pInit_data->Object_Init_Values[i].Object_Instance);
-          return false;
-        }
-
-        if (!characterstring_init_ansi(&pObject->Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-          PRINT("Fail to set Object name to \"%.128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-          return false;
-        }
-
-        if (!characterstring_init_ansi(&pObject->Description, pInit_data->Object_Init_Values[i].Description)) {
-          PRINT("Fail to set Object description to \"%.128s\"", pInit_data->Object_Init_Values[i].Description);
-          return false;
-        }
-
-        if (pInit_data->Object_Init_Values[i].Units < UNITS_PROPRIETARY_RANGE_MAX2) {
-          pObject->Units = pInit_data->Object_Init_Values[i].Units;
-        } else {
-          PRINT("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
-          return false;
-        }
-      } else {
-        PRINT("Unable to create object of instance %u", pInit_data->Object_Init_Values[i].Object_Instance);
+    if (!pInit_data) {
         return false;
-      }
-    } else {
-      PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
-      return false;
     }
-  }
 
-  return true;
+    for (i = 0; i < pInit_data->length; i++) {
+        if (pInit_data->Object_Init_Values[i].Object_Instance <
+            BACNET_MAX_INSTANCE) {
+            if (Analog_Value_Create(
+                    pInit_data->Object_Init_Values[i].Object_Instance) <
+                BACNET_MAX_INSTANCE) {
+                struct analog_value_descr *pObject = Analog_Value_Object(
+                    pInit_data->Object_Init_Values[i].Object_Instance);
+
+                if (pObject == NULL) {
+                    PRINT(
+                        "Object instance %u not found right after its creation",
+                        pInit_data->Object_Init_Values[i].Object_Instance);
+                    return false;
+                }
+
+                if (!characterstring_init_ansi(
+                        &pObject->Object_Name,
+                        pInit_data->Object_Init_Values[i].Object_Name)) {
+                    PRINT(
+                        "Fail to set Object name to \"%.128s\"",
+                        pInit_data->Object_Init_Values[i].Object_Name);
+                    return false;
+                }
+
+                if (!characterstring_init_ansi(
+                        &pObject->Description,
+                        pInit_data->Object_Init_Values[i].Description)) {
+                    PRINT(
+                        "Fail to set Object description to \"%.128s\"",
+                        pInit_data->Object_Init_Values[i].Description);
+                    return false;
+                }
+
+                if (pInit_data->Object_Init_Values[i].Units <
+                    UNITS_PROPRIETARY_RANGE_MAX2) {
+                    pObject->Units = pInit_data->Object_Init_Values[i].Units;
+                } else {
+                    PRINT(
+                        "unit %u is out of range",
+                        pInit_data->Object_Init_Values[i].Units);
+                    return false;
+                }
+            } else {
+                PRINT(
+                    "Unable to create object of instance %u",
+                    pInit_data->Object_Init_Values[i].Object_Instance);
+                return false;
+            }
+        } else {
+            PRINT(
+                "Object instance %u is too big",
+                pInit_data->Object_Init_Values[i].Object_Instance);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -291,9 +312,11 @@ bool Analog_Value_Present_Value_Set(
  * @param  value - floating point analog value
  * @return  true if values are within range and present-value is set.
  */
-bool Analog_Value_Present_Value_Backup_Set(uint32_t object_instance, float value)
+bool Analog_Value_Present_Value_Backup_Set(
+    uint32_t object_instance, float value)
 {
-    struct analog_value_descr * const pObject = Analog_Value_Object(object_instance);
+    struct analog_value_descr *const pObject =
+        Analog_Value_Object(object_instance);
     bool status = false;
 
     if (pObject) {
@@ -351,8 +374,7 @@ bool Analog_Value_Name_Set(uint32_t object_instance, const char *new_name)
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
-        status =
-            characterstring_init_ansi(&pObject->Object_Name, new_name);
+        status = characterstring_init_ansi(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -425,8 +447,7 @@ bool Analog_Value_Description_Set(
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
-        status =
-            characterstring_init_ansi(&pObject->Description, new_name);
+        status = characterstring_init_ansi(&pObject->Description, new_name);
     }
 
     return status;
@@ -650,8 +671,9 @@ void Analog_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Changed = true;
-            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
-            if((pObject->Out_Of_Service = value)) {
+            /* Lets backup Present_Value when going Out_Of_Service  or restore
+             * when going out of Out_Of_Service */
+            if ((pObject->Out_Of_Service = value)) {
                 pObject->Present_Value_Backup = pObject->Present_Value;
             } else {
                 pObject->Present_Value = pObject->Present_Value_Backup;
@@ -758,7 +780,8 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_DESCRIPTION:
-            characterstring_copy(&char_string,
+            characterstring_copy(
+                &char_string,
                 Analog_Value_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -959,13 +982,14 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 } else if (CurrentAV->Out_Of_Service == true) {
-                    if (Analog_Value_Present_Value_Set(wp_data->object_instance,
-                                value.type.Real, wp_data->priority)) {
+                    if (Analog_Value_Present_Value_Set(
+                            wp_data->object_instance, value.type.Real,
+                            wp_data->priority)) {
                         status = true;
                     } else if (wp_data->priority == 6) {
-                        /* Command priority 6 is reserved for use by Minimum On/Off
-                           algorithm and may not be used for other purposes in any
-                           object. */
+                        /* Command priority 6 is reserved for use by Minimum
+                           On/Off algorithm and may not be used for other
+                           purposes in any object. */
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                     } else {
@@ -1505,7 +1529,8 @@ bool Analog_Value_Time_Delay_Set(uint32_t object_instance, uint32_t time_delay)
 }
 
 /**
- * For a given object instance-number, returns the notification_class property value
+ * For a given object instance-number, returns the notification_class property
+ * value
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -1524,14 +1549,16 @@ uint32_t Analog_Value_Notification_Class(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the notification_class property value
+ * For a given object instance-number, sets the notification_class property
+ * value
  *
  * @param object_instance - object-instance number of the object
  * @param notification_class - notification_class property value
  *
  * @return true if the notification_class property value was set
  */
-bool Analog_Value_Notification_Class_Set(uint32_t object_instance, uint32_t notification_class)
+bool Analog_Value_Notification_Class_Set(
+    uint32_t object_instance, uint32_t notification_class)
 {
     bool status = false;
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
@@ -1677,7 +1704,7 @@ uint32_t Analog_Value_Limit_Enable(uint32_t object_instance)
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
-        limit_enable = (BACNET_LIMIT_ENABLE) pObject->Limit_Enable;
+        limit_enable = (BACNET_LIMIT_ENABLE)pObject->Limit_Enable;
     }
 
     return limit_enable;
@@ -1691,13 +1718,15 @@ uint32_t Analog_Value_Limit_Enable(uint32_t object_instance)
  *
  * @return true if the limit_enable property value was set
  */
-bool Analog_Value_Limit_Enable_Set(uint32_t object_instance, BACNET_LIMIT_ENABLE limit_enable)
+bool Analog_Value_Limit_Enable_Set(
+    uint32_t object_instance, BACNET_LIMIT_ENABLE limit_enable)
 {
     bool status = false;
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
-        if(!(limit_enable & ~(EVENT_LOW_LIMIT_ENABLE | EVENT_HIGH_LIMIT_ENABLE))) {
+        if (!(limit_enable &
+              ~(EVENT_LOW_LIMIT_ENABLE | EVENT_HIGH_LIMIT_ENABLE))) {
             pObject->Limit_Enable = limit_enable;
             status = true;
         }
@@ -1733,16 +1762,19 @@ uint32_t Analog_Value_Event_Enable(uint32_t object_instance)
  *
  * @return true if the event_enable property value was set
  */
-bool Analog_Value_Event_Enable_Set(uint32_t object_instance, uint32_t event_enable)
+bool Analog_Value_Event_Enable_Set(
+    uint32_t object_instance, uint32_t event_enable)
 {
     bool status = false;
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
-      if(!(event_enable & ~(EVENT_ENABLE_TO_OFFNORMAL | EVENT_ENABLE_TO_FAULT | EVENT_ENABLE_TO_NORMAL))) {
-        pObject->Event_Enable = event_enable;
-        status = true;
-      }
+        if (!(event_enable &
+              ~(EVENT_ENABLE_TO_OFFNORMAL | EVENT_ENABLE_TO_FAULT |
+                EVENT_ENABLE_TO_NORMAL))) {
+            pObject->Event_Enable = event_enable;
+            status = true;
+        }
     }
 
     return status;
@@ -1775,16 +1807,17 @@ BACNET_NOTIFY_TYPE Analog_Value_Notify_Type(uint32_t object_instance)
  *
  * @return true if the notify_type property value was set
  */
-bool Analog_Value_Notify_Type_Set(uint32_t object_instance, BACNET_NOTIFY_TYPE notify_type)
+bool Analog_Value_Notify_Type_Set(
+    uint32_t object_instance, BACNET_NOTIFY_TYPE notify_type)
 {
     bool status = false;
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
-      if((notify_type == NOTIFY_EVENT) || (notify_type == NOTIFY_ALARM)) {
-        pObject->Notify_Type = notify_type;
-        status = true;
-      }
+        if ((notify_type == NOTIFY_EVENT) || (notify_type == NOTIFY_ALARM)) {
+            pObject->Notify_Type = notify_type;
+            status = true;
+        }
     }
 
     return status;

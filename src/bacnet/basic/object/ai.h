@@ -103,7 +103,8 @@ BACNET_STACK_EXPORT
 bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
-bool Analog_Input_Present_Value_Backup_Set(uint32_t object_instance, float value);
+bool Analog_Input_Present_Value_Backup_Set(
+    uint32_t object_instance, float value);
 
 BACNET_STACK_EXPORT
 float Analog_Input_Present_Value(uint32_t object_instance);
@@ -141,15 +142,14 @@ BACNET_STACK_EXPORT
 uint32_t Analog_Input_Time_Delay(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-bool Analog_Input_Time_Delay_Set(
-            uint32_t object_instance,
-            uint32_t time_delay);
+bool Analog_Input_Time_Delay_Set(uint32_t object_instance, uint32_t time_delay);
 
 BACNET_STACK_EXPORT
 uint32_t Analog_Input_Notification_Class(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-bool Analog_Input_Notification_Class_Set(uint32_t object_instance, uint32_t notification_class);
+bool Analog_Input_Notification_Class_Set(
+    uint32_t object_instance, uint32_t notification_class);
 
 BACNET_STACK_EXPORT
 float Analog_Input_High_Limit(uint32_t object_instance);
@@ -173,19 +173,22 @@ BACNET_STACK_EXPORT
 BACNET_LIMIT_ENABLE Analog_Input_Limit_Enable(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-bool Analog_Input_Limit_Enable_Set(uint32_t object_instance, BACNET_LIMIT_ENABLE limit_enable);
+bool Analog_Input_Limit_Enable_Set(
+    uint32_t object_instance, BACNET_LIMIT_ENABLE limit_enable);
 
 BACNET_STACK_EXPORT
 BACNET_EVENT_ENABLE Analog_Input_Event_Enable(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-bool Analog_Input_Event_Enable_Set(uint32_t object_instance, BACNET_EVENT_ENABLE event_enable);
+bool Analog_Input_Event_Enable_Set(
+    uint32_t object_instance, BACNET_EVENT_ENABLE event_enable);
 
 BACNET_STACK_EXPORT
 BACNET_NOTIFY_TYPE Analog_Input_Notify_Type(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-bool Analog_Input_Notify_Type_Set(uint32_t object_instance, BACNET_NOTIFY_TYPE notify_type);
+bool Analog_Input_Notify_Type_Set(
+    uint32_t object_instance, BACNET_NOTIFY_TYPE notify_type);
 
 BACNET_STACK_EXPORT
 int Analog_Input_Event_Information(

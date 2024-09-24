@@ -581,12 +581,10 @@ void RS485_Initialize(void)
             exit(EXIT_FAILURE);
         }
 
-    } else if(RS485_Baud == B38400) {
-
+    } else if (RS485_Baud == B38400) {
         /* restting 38400 baud */
         newserial.flags &= ~ASYNC_SPD_CUST;
         newserial.custom_divisor = 0;
-
     }
 
     ioctl(RS485_Handle, TIOCSSERIAL, &newserial);

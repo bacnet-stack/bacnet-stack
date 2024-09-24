@@ -1107,7 +1107,7 @@ uint16_t bvlc6_get_last_result(void)
  */
 void bvlc6_set_last_result(const uint16_t result_code)
 {
-  BVLC6_Result_Code = result_code;
+    BVLC6_Result_Code = result_code;
 }
 
 /** Returns the current BVLL Function Code we are processing.

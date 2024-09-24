@@ -24,7 +24,7 @@ extern "C" {
 
 /* max "length" of recipient_list */
 #if !defined(NC_MAX_RECIPIENTS)
-#  define NC_MAX_RECIPIENTS 10
+#define NC_MAX_RECIPIENTS 10
 #endif
 
 #if defined(INTRINSIC_REPORTING)
