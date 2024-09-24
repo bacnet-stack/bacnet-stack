@@ -2179,12 +2179,22 @@ void Binary_Input_Intrinsic_Reporting(uint32_t object_instance)
 
         /* Event Values */
         if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
+#if (__STDC__) && (__STDC_VERSION__ >= 199901L)
             /* Value that exceeded a limit. */
             event_data.notificationParams.changeOfState.newState =
                 (BACNET_PROPERTY_STATE) {
                     .tag = PROP_STATE_BINARY_VALUE,
                     .state = { .binaryValue = pObject->Present_Value }
                 };
+#else
+            {
+                BACNET_PROPERTY_STATE ns = {0, };
+                ns.tag = PROP_STATE_BINARY_VALUE;
+                ns.state.binaryValue = pObject->Present_Value;
+
+                event_data.notificationParams.changeOfState.newState.tag = ns;
+            }
+#endif
             /* Status_Flags of the referenced object. */
             bitstring_init(
                 &event_data.notificationParams.changeOfState.statusFlags);
