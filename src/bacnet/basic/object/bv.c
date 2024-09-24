@@ -659,7 +659,6 @@ bool Binary_Value_Name_Set(uint32_t object_instance, const char *new_name)
     return status;
 }
 
-#if 0
 /**
  * @brief Return the object name C string
  * @param object_instance [in] BACnet object instance number
@@ -672,12 +671,13 @@ const char *Binary_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = pObject->Object_Name.value;
     }
 
     return name;
 }
 
+#if 0
 /**
  * @brief For a given object instance-number, returns the polarity property.
  * @param  object_instance - object-instance number of the object
