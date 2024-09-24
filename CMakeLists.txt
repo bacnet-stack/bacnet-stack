@@ -2,15 +2,13 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.4.0
+  VERSION 1.3.8
   LANGUAGES C)
 
 #
 # options
 #
-# <INSERT_CMAKE_INSTALL_PREFIX_HERE>
 
-add_compile_options(-DDEBUG_PRINT)
 option(
   BACNET_STACK_BUILD_APPS
   "build apps"
@@ -19,7 +17,7 @@ option(
 option(
   BAC_ROUTING
   "enable bac routing"
-  OFF)
+  ON)
 
 option(
   BACNET_PROPERTY_LISTS
@@ -34,11 +32,6 @@ option(
 option(
   BACNET_BUILD_PIFACE_APP
   "compile the piface app"
-  OFF)
-
-option(
-  BACDL_ALL
-  "compile with all datalink support"
   OFF)
 
 option(
@@ -59,7 +52,7 @@ option(
 option(
   BACDL_MSTP
   "compile with mstp datalink support"
-  ON)
+  OFF)
 
 option(
   BACDL_ARCNET
@@ -74,13 +67,7 @@ option(
 option(
   BACDL_BIP6
   "compile with ipv6 datalink support"
-  ON)
-
-option(
-  UCI
-  "build with uci"
   OFF)
-
 
 if(NOT (BACDL_ETHERNET OR
         BACDL_MSTP OR
@@ -91,33 +78,12 @@ if(NOT (BACDL_ETHERNET OR
   add_definitions(-DBACDL_NONE)
 endif()
 
-set(BACNET_PROTOCOL_REVISION 24)
-set(BUILD_SHARED_LIBS 1)
-# set(BACDL_ALL ON)
-# set(BACDL_ARCNET ON)
-set(BACDL_BIP ON)
-set(BACDL_BIP6 ON)
-set(BACDL_MSTP ON)
-# set(BACDL_ETHERNET ON)
-if(APPLE)
-  set(BACDL_MSTP OFF)
-  set(BACDL_ARCNET OFF)
-  set(BACDL_ETHERNET OFF)
-  set(BACDL_BIP6 OFF)
-  set(BACDL_ALL OFF)
-elseif(WIN32)
-  set(BACDL_ETHERNET OFF)
-  set(BACDL_BIP6 OFF)
-  set(BACDL_ALL OFF)
-else()
-  set(BACDL_MSTP ON)
-endif()
+option(
+  UCI
+  "build with uci"
+  OFF)
 
-set(BAC_ROUTING OFF)
-set(BACNET_STACK_BUILD_APPS OFF)
-#set(BACNET_VENDOR_NAME "@Schneider Electric@" CACHE STRINGi "Vendor ID")
-# set(OPT2 "Default" CACHE STRING "Helpstring")
-# set(CMAKE_INSTALL_PREFIX "/usr/")
+set(BACNET_PROTOCOL_REVISION 19)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -649,32 +615,10 @@ if(BUILD_SHARED_LIBS)
     PROPERTIES
       C_VISIBILITY_PRESET hidden)
 endif()
-
-if(APPLE)
-  unset(BACDL_MSTP)
-endif()
-
 target_compile_definitions(
   ${PROJECT_NAME}
   PUBLIC
   BACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
-  BACNET_VENDOR_NAME="Schneider Electric"
-  BBMD_ENABLED=0
-  BBMD_CLIENT_ENABLED=1
-  INTRINSIC_REPORTING=1
-  BINARY_INPUT_INTRINSIC_REPORTING=1
-  BINARY_VALUE_INTRINSIC_REPORTING=1
-  MAX_ANALOG_VALUES=32
-  MAX_ANALOG_INPUTS=128
-  MAX_BINARY_VALUES=200
-  MAX_BINARY_INPUTS=16
-  MAX_CHARACTERSTRING_VALUES=16
-  MAX_INTEGER_VALUES=12
-  MAX_MULTISTATE_VALUES=32
-  MULTISTATE_NUMBER_OF_STATES=64
-  MAX_NOTIFICATION_CLASSES=10
-  MAX_CHARACTER_STRING_BYTES=384
-  # NC_MAX_RECIPIENTS=4
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
   $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
   $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
@@ -684,14 +628,9 @@ target_compile_definitions(
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
   $<$<BOOL:${BACNET_PROPERTY_ARRAY_LISTS}>:BACNET_PROPERTY_ARRAY_LISTS=1>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
-  # $<$<BOOL:${BACDL_ALL}>:BACDL_ALL>
-  #  $<$<NOT:$<BOOL:${BAC_ROUTING}>>:BAC_ROUTING>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
-  BACDL_MULTIPLE=1
-  CSTANDARD=-std=c17
   PRINT_ENABLED=1)
-
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
 add_library(
@@ -721,8 +660,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
-    #$<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
-    #$<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
+    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     ports/linux/mstimer-init.c)
 
@@ -892,8 +831,6 @@ if(BACNET_STACK_BUILD_APPS)
     )
   endif(BACNET_BUILD_BACPOLL_APP)
 
-  if(NOT BACDL_ETHERNET)
-    if(BAC_ROUTING)
   if(BACNET_BUILD_BACDISCOVER_APP)
     add_executable(bacdiscover
       apps/server-discover/main.c
@@ -912,8 +849,7 @@ if(BACNET_STACK_BUILD_APPS)
 
     add_executable(readfdt apps/readfdt/main.c)
     target_link_libraries(readfdt PRIVATE ${PROJECT_NAME})
-    endif()
-  endif(BAC_ROUTING)
+  endif()
 
   add_executable(readfile apps/readfile/main.c)
   target_link_libraries(readfile PRIVATE ${PROJECT_NAME})
@@ -1023,7 +959,6 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
 endif()
-endif(BACNET_STACK_BUILD_APPS)
 
 #
 # install
@@ -1086,5 +1021,3 @@ message(STATUS "BACNET: BACDL_BIP:......................\"${BACDL_BIP}\"")
 message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")
-message(STATUS "BACNET: BACDL_NONE:.....................\"${BACDL_NONE}\"")
-message(STATUS "BACNET: BAC_ROUTING:....................\"${BAC_ROUTING}\"")
