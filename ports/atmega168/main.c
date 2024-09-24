@@ -151,20 +151,20 @@ static void output_io_write(void)
 {
     BACNET_BINARY_PV value;
 
-    if (mstimer_elapsed(&Task_Timer)) {
+    if (mstimer_expired(&Task_Timer)) {
         mstimer_reset(&Task_Timer);
         value = Binary_Value_Present_Value(0);
         if (value == BINARY_ACTIVE) {
-            Binary_Value_Present_Value_Set(0, BINARY_INACTIVE, 0);
+            value = BINARY_INACTIVE;
         } else {
-            Binary_Value_Present_Value_Set(0, BINARY_ACTIVE, 0);
+            value = BINARY_ACTIVE;
         }
-    }
-    value = Binary_Value_Present_Value(0);
-    if (value == BINARY_ACTIVE) {
-        led_set(true);
-    } else {
-        led_set(false);
+        Binary_Value_Present_Value_Set(0, value, 0);
+        if (value == BINARY_ACTIVE) {
+            led_set(true);
+        } else {
+            led_set(false);
+        }
     }
 }
 
