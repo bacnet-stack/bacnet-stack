@@ -27,10 +27,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #ifdef __APPLE__
-static void __PRINT(const char *format, ...)
+#define __PRINT(...)
 #else
 static inline void __PRINT(const char *format, ...)
-#endif
 {
     va_list args;
     va_start(args, format);
@@ -38,6 +37,7 @@ static inline void __PRINT(const char *format, ...)
     vprintf(format, args);
     va_end(args);
 }
+#endif
 #define PRINT __PRINT
 #endif
 #else
