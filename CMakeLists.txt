@@ -149,6 +149,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   add_compile_options(-Wno-missing-declarations)
   add_compile_options(-Wno-unused-but-set-variable)
   add_compile_options(-Wno-write-strings)
+  add_compile_options(-Wno--language-extension-token)
 elseif(MSVC)
   add_compile_options(/Wall)
 
