@@ -601,14 +601,12 @@ bool Multistate_Value_Reliability_Set(
 
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
-        if (value <= RELIABILITY_PROPRIETARY_MAX) {
-            fault = Multistate_Value_Object_Fault(pObject);
-            pObject->Reliability = value;
-            if (fault != Multistate_Value_Object_Fault(pObject)) {
-                pObject->Change_Of_Value = true;
-            }
-            status = true;
+        fault = Multistate_Value_Object_Fault(pObject);
+        pObject->Reliability = value;
+        if (fault != Multistate_Value_Object_Fault(pObject)) {
+            pObject->Change_Of_Value = true;
         }
+        status = true;
     }
 
     return status;
