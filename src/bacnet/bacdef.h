@@ -27,7 +27,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #ifdef __APPLE__
-#define __PRINT(...)
+#define __PRINT(format, ...)
 #else
 static inline void __PRINT(const char *format, ...)
 {
