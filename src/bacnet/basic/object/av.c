@@ -369,7 +369,7 @@ const char *Analog_Value_Name_ASCII(uint32_t object_instance)
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
 
     if (pObject) {
-        //name = pObject->Object_Name;
+        name = pObject->Object_Name.value;
     }
 
     return name;
