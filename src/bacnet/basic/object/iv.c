@@ -411,7 +411,7 @@ const char *Integer_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-       name = pObject->Object_Name.value;
+       name = pObject->Name.value;
     }
 
     return name;
