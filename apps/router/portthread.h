@@ -27,9 +27,12 @@
 
 #define DEBUG_LEVEL 3
 #ifdef DEBUG_LEVEL
+#if defined(PRINT)
+#undef PRINT
 #define PRINT(debug_level, ...)     \
     if (debug_level <= DEBUG_LEVEL) \
     fprintf(stderr, __VA_ARGS__)
+#endif
 #else
 #define PRINT(...)
 #endif
