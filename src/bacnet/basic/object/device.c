@@ -746,11 +746,7 @@ uint32_t Device_Index_To_Instance(unsigned index)
  */
 uint32_t Device_Object_Instance_Number(void)
 {
-#ifdef BAC_ROUTING
-    return Routed_Device_Object_Instance_Number();
-#else
     return Object_Instance_Number;
-#endif
 }
 
 bool Device_Set_Object_Instance_Number(uint32_t object_id)
