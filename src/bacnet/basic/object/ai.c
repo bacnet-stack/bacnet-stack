@@ -357,7 +357,7 @@ const char *Analog_Input_Name_ASCII(uint32_t object_instance)
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;.value
+        name = pObject->Object_Name.value
     }
 
     return name;
