@@ -26,8 +26,10 @@ static void testInteger_Value(void)
     unsigned count = 0;
     uint32_t object_instance = BACNET_MAX_INSTANCE, test_object_instance = 0;
     const int skip_fail_property_list[] = { -1 };
+#if 0
     const char *test_name = NULL;
     char *sample_name = "sample";
+#endif
 
     Integer_Value_Init();
     object_instance = Integer_Value_Create(object_instance);
