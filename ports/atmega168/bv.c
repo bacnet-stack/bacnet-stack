@@ -194,15 +194,6 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     /* NOTE: this Binary value has no priority array */
                     Present_Value[object_index] =
                         (BACNET_BINARY_PV)value.type.Enumerated;
-                    /* Note: you could set the physical output here if we
-                       are the highest priority.
-                       However, if Out of Service is TRUE, then don't set the
-                       physical output. */
-                    if (Present_Value[0] == BINARY_ACTIVE) {
-                        /* GPIO - turn ON */
-                    } else {
-                        /* GPIO - turn OFF */
-                    }
                     status = true;
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;

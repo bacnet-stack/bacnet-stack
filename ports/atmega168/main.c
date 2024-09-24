@@ -17,8 +17,9 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/av.h"
+#include "device.h"
+#include "av.h"
+#include "bv.h"
 
 /* From the WhoIs hander - performed by the DLMSTP module */
 extern bool Send_I_Am_Flag;
@@ -89,11 +90,27 @@ static void task_milliseconds(void)
 
 static uint8_t Address_Switch;
 
+/**
+ * Read the MAC address from the DIP switch.
+ */
 static void input_switch_read(void)
 {
     uint8_t value;
     static uint8_t old_value = 0;
 
+    /*
+       MS/TP MAC Address DIP Switch 0-127
+
+       Port  Address
+       ------ -------
+       PC0       1
+       PC1       2
+       PC2       4
+       PC3       8
+       PB0      16
+       PB1      32
+       PB2      64
+    */
     value = BITMASK_CHECK(PINC, 0x0F);
     value |= (BITMASK_CHECK(PINB, 0x07) << 4);
     if (value != old_value) {
@@ -101,45 +118,86 @@ static void input_switch_read(void)
     } else {
         if (old_value != Address_Switch) {
             Address_Switch = old_value;
-#if defined(BACDL_MSTP)
             dlmstp_set_mac_address(Address_Switch);
-#endif
-            Device_Set_Object_Instance_Number(86000 + Address_Switch);
+            /* optional: set the Device Instance offset using MAC,
+               or we could store Device ID in EEPROM */
+            Device_Set_Object_Instance_Number(260000 + Address_Switch);
             Send_I_Am_Flag = true;
         }
     }
 }
 
+/**
+ * Configure the RS485 transceiveer board LED
+ */
+static void led_init(void)
+{
+    /* Configure the LED pin as an output */
+    BIT_CLEAR(PORTB, PB5);
+    BIT_SET(DDRB, PB5);
+    /* Turn off the LED */
+    BIT_CLEAR(PORTB, PB5);
+}
 
-/** Static receive buffer, initialized with zeros by the C Library Startup Code. */
+/**
+ * Control the RS485 transceiveer board LED
+ */
+static void led_set(bool state)
+{
+    if (state) {
+        BIT_SET(PORTB, PB5);
+    } else {
+        BIT_CLEAR(PORTB, PB5);
+    }
+}
 
-static uint8_t PDUBuffer[MAX_MPDU + 16 /* Add a little safety margin to the buffer,
-                                        * so that in the rare case, the message
-                                        * would be filled up to MAX_MPDU and some
-                                        * decoding functions would overrun, these
-                                        * decoding functions will just end up in
-                                        * a safe field of static zeros. */];
+/**
+ * Write to outputs from the Present_Value of the Binary Value.
+ */
+static void output_io_write(void)
+{
+    BACNET_BINARY_PV value;
 
-/** Main */
+    value = Binary_Value_Present_Value(0);
+    if (value == BINARY_ACTIVE) {
+        led_set(true);
+    } else {
+        led_set(false);
+    }
+}
 
+/**
+ * Static receive buffer,
+ * initialized with zeros by the C Library Startup Code.
+ * Note: Added a little safety margin to the buffer,
+ * so that in the rare case, the message would be filled
+ * up to MAX_MPDU and some decoding functions would overrun,
+ * these decoding functions will just end up in a safe field
+ * of static zeros. */
+static uint8_t PDUBuffer[MAX_MPDU + 16];
+
+/**
+ * Main function
+ * @return 0, should never reach this
+ */
 int main(void)
 {
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src; /* source address */
 
     init();
-#if defined(BACDL_MSTP)
+    led_init();
     RS485_Set_Baud_Rate(38400);
     dlmstp_set_max_master(127);
     dlmstp_set_max_info_frames(1);
-#endif
-    datalink_init(NULL);
+    dlmstp_init(NULL);
     for (;;) {
         input_switch_read();
         task_milliseconds();
+        output_io_write();
         /* other tasks */
         /* BACnet handling */
-        pdu_len = datalink_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);
+        pdu_len = dlmstp_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);
         if (pdu_len) {
             npdu_handler(&src, &PDUBuffer[0], pdu_len);
         }

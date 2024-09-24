@@ -39,6 +39,9 @@ extern "C" {
     void Binary_Value_Init(
         void);
 
+    BACNET_BINARY_PV Binary_Value_Present_Value(
+        uint32_t object_instance);
+
     int Binary_Value_Encode_Property_APDU(
         uint8_t * apdu,
         uint32_t object_instance,
