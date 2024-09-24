@@ -150,49 +150,70 @@ uint32_t Integer_Value_Index_To_Instance(unsigned index)
  */
 bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 {
-  unsigned i;
+    unsigned i;
 
-  if (!pInit_data) {
-    return false;
-  }
+    if (!pInit_data) {
+        return false;
+    }
 
-  for (i = 0; i < pInit_data->length; i++) {
-      if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-          if(Integer_Value_Create(pInit_data->Object_Init_Values[i].Object_Instance) < BACNET_MAX_INSTANCE) {
-              struct integer_object *pObject = Integer_Value_Object(pInit_data->Object_Init_Values[i].Object_Instance);
+    for (i = 0; i < pInit_data->length; i++) {
+        if (pInit_data->Object_Init_Values[i].Object_Instance <
+            BACNET_MAX_INSTANCE) {
+            if (Integer_Value_Create(
+                    pInit_data->Object_Init_Values[i].Object_Instance) <
+                BACNET_MAX_INSTANCE) {
+                struct integer_object *pObject = Integer_Value_Object(
+                    pInit_data->Object_Init_Values[i].Object_Instance);
 
-              if(pObject == NULL) {
-                  PRINT("Object instance %u not found right after its creation", pInit_data->Object_Init_Values[i].Object_Instance);
-                  return false;
-              }
+                if (pObject == NULL) {
+                    PRINT(
+                        "Object instance %u not found right after its creation",
+                        pInit_data->Object_Init_Values[i].Object_Instance);
+                    return false;
+                }
 
-              if (!characterstring_init_ansi(&pObject->Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-                  PRINT("Fail to set Object name to \"%.128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-                  return false;
-              }
+                if (!characterstring_init_ansi(
+                        &pObject->Name,
+                        pInit_data->Object_Init_Values[i].Object_Name)) {
+                    PRINT(
+                        "Fail to set Object name to \"%.128s\"",
+                        pInit_data->Object_Init_Values[i].Object_Name);
+                    return false;
+                }
 
-              if (!characterstring_init_ansi(&pObject->Description, pInit_data->Object_Init_Values[i].Description)) {
-                  PRINT("Fail to set Object description to \"%.128s\"", pInit_data->Object_Init_Values[i].Description);
-                  return false;
-              }
+                if (!characterstring_init_ansi(
+                        &pObject->Description,
+                        pInit_data->Object_Init_Values[i].Description)) {
+                    PRINT(
+                        "Fail to set Object description to \"%.128s\"",
+                        pInit_data->Object_Init_Values[i].Description);
+                    return false;
+                }
 
-              if (pInit_data->Object_Init_Values[i].Units < UNITS_PROPRIETARY_RANGE_MAX2) {
-                  pObject->Units = pInit_data->Object_Init_Values[i].Units;
-              } else {
-                  PRINT("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
-                  return false;
-              }
-          } else {
-              PRINT("Unable to create object of instance %u", pInit_data->Object_Init_Values[i].Object_Instance);
-              return false;
-          }
-      } else {
-          PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
-          return false;
-      }
-  }
+                if (pInit_data->Object_Init_Values[i].Units <
+                    UNITS_PROPRIETARY_RANGE_MAX2) {
+                    pObject->Units = pInit_data->Object_Init_Values[i].Units;
+                } else {
+                    PRINT(
+                        "unit %u is out of range",
+                        pInit_data->Object_Init_Values[i].Units);
+                    return false;
+                }
+            } else {
+                PRINT(
+                    "Unable to create object of instance %u",
+                    pInit_data->Object_Init_Values[i].Object_Instance);
+                return false;
+            }
+        } else {
+            PRINT(
+                "Object instance %u is too big",
+                pInit_data->Object_Init_Values[i].Object_Instance);
+            return false;
+        }
+    }
 
-   return true;
+    return true;
 }
 
 /**
@@ -267,7 +288,7 @@ bool Integer_Value_Present_Value_Set(
     bool status = false;
     struct integer_object *pObject = Integer_Value_Object(object_instance);
 
-    (void) priority;
+    (void)priority;
 
     if (pObject) {
         Integer_Value_COV_Detect(pObject, value);
@@ -290,9 +311,10 @@ bool Integer_Value_Present_Value_Backup_Set(
     uint32_t object_instance, int32_t value, uint8_t priority)
 {
     bool status = false;
-    struct integer_object * const pObject = Integer_Value_Object(object_instance);
+    struct integer_object *const pObject =
+        Integer_Value_Object(object_instance);
 
-    (void) priority;
+    (void)priority;
 
     if (pObject) {
         pObject->Present_Value_Backup = value;
@@ -389,7 +411,7 @@ const char *Integer_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        //name = pObject->Object_Name;
+        // name = pObject->Object_Name;
     }
 
     return name;
@@ -512,8 +534,9 @@ void Integer_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
-            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
-            if((pObject->Out_Of_Service = value)) {
+            /* Lets backup Present_Value when going Out_Of_Service  or restore
+             * when going out of Out_Of_Service */
+            if ((pObject->Out_Of_Service = value)) {
                 pObject->Present_Value_Backup = pObject->Present_Value;
             } else {
                 pObject->Present_Value = pObject->Present_Value_Backup;
@@ -652,10 +675,12 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
-            if (Integer_Value_Out_Of_Service(wp_data->object_instance) == true) {
+            if (Integer_Value_Out_Of_Service(wp_data->object_instance) ==
+                true) {
                 if (status) {
-                    Integer_Value_Present_Value_Set(wp_data->object_instance,
-                            value.type.Signed_Int, wp_data->priority);
+                    Integer_Value_Present_Value_Set(
+                        wp_data->object_instance, value.type.Signed_Int,
+                        wp_data->priority);
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -884,4 +909,3 @@ void Integer_Value_Init(void)
         Object_List = Keylist_Create();
     }
 }
-

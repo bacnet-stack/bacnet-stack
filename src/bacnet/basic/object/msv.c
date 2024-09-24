@@ -367,7 +367,8 @@ bool Multistate_Value_Present_Value_Backup_Set(
 {
     bool status = false;
     unsigned max_states = 0;
-    struct object_data * const pObject = Multistate_Value_Object(object_instance);
+    struct object_data *const pObject =
+        Multistate_Value_Object(object_instance);
     if (pObject) {
         max_states = state_name_count(pObject->State_Text);
         if ((value >= 1) && (value <= max_states)) {
@@ -465,8 +466,9 @@ void Multistate_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Change_Of_Value = true;
-            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
-            if((pObject->Out_Of_Service = value)) {
+            /* Lets backup Present_Value when going Out_Of_Service  or restore
+             * when going out of Out_Of_Service */
+            if ((pObject->Out_Of_Service = value)) {
                 pObject->Present_Value_Backup = pObject->Present_Value;
                 pObject->Write_Enabled = true;
             } else {
@@ -524,8 +526,7 @@ bool Multistate_Value_Name_Set(uint32_t object_instance, const char *new_name)
     struct object_data *pObject = Multistate_Value_Object(object_instance);
 
     if (pObject && new_name) {
-        status =
-            characterstring_init_ansi(&pObject->Object_Name, new_name);
+        status = characterstring_init_ansi(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -543,7 +544,7 @@ const char *Multistate_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = Multistate_Value_Object(object_instance);
     if (pObject) {
-        //name = pObject->Object_Name;
+        // name = pObject->Object_Name;
     }
 
     return name;
@@ -657,8 +658,7 @@ bool Multistate_Value_Description_Set(
     struct object_data *pObject = Multistate_Value_Object(object_instance);
 
     if (pObject) {
-        status =
-            characterstring_init_ansi(&pObject->Description, new_name);
+        status = characterstring_init_ansi(&pObject->Description, new_name);
     }
 
     return status;
@@ -812,7 +812,8 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_DESCRIPTION:
-            characterstring_copy(&char_string,
+            characterstring_copy(
+                &char_string,
                 Multistate_Value_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -870,11 +871,12 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (Multistate_Value_Out_Of_Service(wp_data->object_instance) == true) {
+            if (Multistate_Value_Out_Of_Service(wp_data->object_instance) ==
+                true) {
                 if (status) {
                     status = Multistate_Value_Present_Value_Write(
-                            wp_data->object_instance, value.type.Enumerated,
-                            &wp_data->error_class, &wp_data->error_code);
+                        wp_data->object_instance, value.type.Enumerated,
+                        &wp_data->error_class, &wp_data->error_code);
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1025,26 +1027,41 @@ bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
 
     for (i = 0; i < pInit_data->length; i++) {
-        if(Multistate_Value_Create(pInit_data->Object_Init_Values[i].Object_Instance) < BACNET_MAX_INSTANCE) {
-            struct object_data *pObject = Multistate_Value_Object(pInit_data->Object_Init_Values[i].Object_Instance);
+        if (Multistate_Value_Create(
+                pInit_data->Object_Init_Values[i].Object_Instance) <
+            BACNET_MAX_INSTANCE) {
+            struct object_data *pObject = Multistate_Value_Object(
+                pInit_data->Object_Init_Values[i].Object_Instance);
 
-            if(pObject == NULL) {
-                PRINT("Object instance %u not found right after its creation", pInit_data->Object_Init_Values[i].Object_Instance);
+            if (pObject == NULL) {
+                PRINT(
+                    "Object instance %u not found right after its creation",
+                    pInit_data->Object_Init_Values[i].Object_Instance);
                 return false;
             }
 
-            if (!characterstring_init_ansi(&pObject->Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-                PRINT("Fail to set Object name to \"%.128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+            if (!characterstring_init_ansi(
+                    &pObject->Object_Name,
+                    pInit_data->Object_Init_Values[i].Object_Name)) {
+                PRINT(
+                    "Fail to set Object name to \"%.128s\"",
+                    pInit_data->Object_Init_Values[i].Object_Name);
                 return false;
             }
 
-            if (!characterstring_init_ansi(&pObject->Description, pInit_data->Object_Init_Values[i].Description)) {
-                PRINT("Fail to set Object description to \"%.128s\"", pInit_data->Object_Init_Values[i].Description);
+            if (!characterstring_init_ansi(
+                    &pObject->Description,
+                    pInit_data->Object_Init_Values[i].Description)) {
+                PRINT(
+                    "Fail to set Object description to \"%.128s\"",
+                    pInit_data->Object_Init_Values[i].Description);
                 return false;
             }
 
         } else {
-            PRINT("Unable to create object of instance %u", pInit_data->Object_Init_Values[i].Object_Instance);
+            PRINT(
+                "Unable to create object of instance %u",
+                pInit_data->Object_Init_Values[i].Object_Instance);
             return false;
         }
     }

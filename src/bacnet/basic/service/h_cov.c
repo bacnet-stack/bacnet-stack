@@ -282,7 +282,6 @@ static int cov_encode_subscription(
 #define MAX_COV_SUB_SIZE (32)
 int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
 {
-
     if (apdu) {
         uint8_t cov_sub[MAX_COV_SUB_SIZE] = {
             0,
@@ -625,8 +624,8 @@ bool handler_cov_fsm(const bool reset)
     } cov_task_state = COV_STATE_IDLE;
 
     if (reset) {
-      index = 0;
-      cov_task_state = COV_STATE_IDLE;
+        index = 0;
+        cov_task_state = COV_STATE_IDLE;
     }
 
     switch (cov_task_state) {

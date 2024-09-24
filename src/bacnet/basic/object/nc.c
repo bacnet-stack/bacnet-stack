@@ -241,24 +241,24 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_bitstring(&apdu[apdu_len], &bit_string);
             break;
 
-        case PROP_RECIPIENT_LIST:
-            {
-              /* get the size of all entry of Recipient_List */
-              int apdu_test_len = apdu_len;
+        case PROP_RECIPIENT_LIST: {
+            /* get the size of all entry of Recipient_List */
+            int apdu_test_len = apdu_len;
 
-              for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
+            for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *Destination;
                 BACNET_RECIPIENT *Recipient;
                 Destination = &CurrentNotify->Recipient_List[idx];
                 Recipient = &Destination->Recipient;
                 if (!bacnet_recipient_device_wildcard(Recipient)) {
-                  apdu_test_len += bacnet_destination_encode(NULL, Destination);
+                    apdu_test_len +=
+                        bacnet_destination_encode(NULL, Destination);
                 }
-              }
-              if (apdu_test_len > apdu_max) {
+            }
+            if (apdu_test_len > apdu_max) {
                 /* Abort response */
                 rpdata->error_code =
-                  ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                 apdu_len = BACNET_STATUS_ABORT;
                 break;
             }
@@ -270,12 +270,11 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Destination = &CurrentNotify->Recipient_List[idx];
                 Recipient = &Destination->Recipient;
                 if (!bacnet_recipient_device_wildcard(Recipient)) {
-                  apdu_len +=
-                    bacnet_destination_encode(&apdu[apdu_len], Destination);
+                    apdu_len +=
+                        bacnet_destination_encode(&apdu[apdu_len], Destination);
                 }
-              }
             }
-            break;
+        } break;
 
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;

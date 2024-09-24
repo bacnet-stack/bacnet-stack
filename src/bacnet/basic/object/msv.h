@@ -70,7 +70,8 @@ void Multistate_Value_Write_Present_Value_Callback_Set(
     multistate_value_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
-bool Multistate_Value_Present_Value_Backup_Set(uint32_t object_instance, uint32_t value);
+bool Multistate_Value_Present_Value_Backup_Set(
+    uint32_t object_instance, uint32_t value);
 BACNET_STACK_EXPORT
 bool Multistate_Value_Change_Of_Value(uint32_t instance);
 BACNET_STACK_EXPORT
@@ -121,8 +122,8 @@ void Multistate_Value_Cleanup(void);
 BACNET_STACK_EXPORT
 void Multistate_Value_Init(void);
 
-    BACNET_STACK_EXPORT
-    bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
+BACNET_STACK_EXPORT
+bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 
 #ifdef __cplusplus
 }
