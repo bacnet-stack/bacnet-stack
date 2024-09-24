@@ -211,12 +211,12 @@ bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 
         strncpy(
             CSV_Descr[i].Name, pInit_data->Object_Init_Values[i].Object_Name,
-            sizeof(CSV_Descr[i].Name));
+            sizeof(CSV_Descr[i].Name)-1);
 
         strncpy(
             CSV_Descr[i].Description,
             pInit_data->Object_Init_Values[i].Description,
-            sizeof(CSV_Descr[i].Description));
+            sizeof(CSV_Descr[i].Description)-1);
     }
 
     CSV_Max_Index = (int)pInit_data->length;
