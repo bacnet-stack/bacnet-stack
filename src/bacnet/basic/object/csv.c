@@ -507,7 +507,8 @@ bool CharacterString_Value_Name_Set(
         /* FIXME: check to see if there is a matching name */
         if (new_name) {
             strncpy(
-                CSV_Descr[index].Name, new_name, sizeof(CSV_Descr[index].Name) - 1);
+                CSV_Descr[index].Name, new_name,
+                sizeof(CSV_Descr[index].Name) - 1);
         }
     } else {
         memset(&CSV_Descr[index].Name, 0, sizeof(CSV_Descr[index].Name));
