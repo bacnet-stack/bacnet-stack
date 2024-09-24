@@ -159,7 +159,7 @@ static bool FindIndex(OS_Keylist list, KEY key, int *pIndex)
  * @param list  Pointer to the list
  * @param key  Key to be inserted
  * @param data  Pointer to the data hold by the key.
- *              This pointer needs to be poiting to static memory
+ *              This pointer needs to be pointing to static memory
  *              as it will be stored in the list and later used
  *              by retrieving the key again.
  * @return Index of the key, or -1 if not found.

@@ -663,7 +663,7 @@ void rpm_ack_object_property_process(
     read_property_ack_process callback)
 {
     int len = 0;
-    uint16_t application_data_len;
+    int application_data_len;
     uint32_t error_value = 0; /* decoded error value */
 
     if (!apdu) {
@@ -674,21 +674,45 @@ void rpm_ack_object_property_process(
     }
     while (apdu_len) {
         /*  object-identifier [0] BACnetObjectIdentifier */
-        /*      list-of-results [1] SEQUENCE OF SEQUENCE */
+        /*  list-of-results [1] SEQUENCE OF SEQUENCE */
         len = rpm_ack_decode_object_id(
             apdu, apdu_len, &rp_data->object_type, &rp_data->object_instance);
         if (len <= 0) {
             /* malformed */
+            rp_data->error_class = ERROR_CLASS_SERVICES;
+            rp_data->error_code = ERROR_CODE_INVALID_TAG;
+            if (callback) {
+                callback(device_id, rp_data);
+            }
             return;
         }
         apdu_len -= len;
         apdu += len;
         while (apdu_len) {
+            if (bacnet_is_closing_tag_number(apdu, apdu_len, 1, &len)) {
+                /*  end of list-of-results [1] SEQUENCE OF SEQUENCE */
+                apdu_len -= len;
+                if (apdu_len > 0) {
+                    /* malformed */
+                    rp_data->error_class = ERROR_CLASS_SERVICES;
+                    rp_data->error_code = ERROR_CODE_INVALID_TAG;
+                    if (callback) {
+                        callback(device_id, rp_data);
+                    }
+                    return;
+                }
+                break;
+            }
             len = rpm_ack_decode_object_property(
                 apdu, apdu_len, &rp_data->object_property,
                 &rp_data->array_index);
             if (len <= 0) {
                 /* malformed */
+                rp_data->error_class = ERROR_CLASS_SERVICES;
+                rp_data->error_code = ERROR_CODE_INVALID_TAG;
+                if (callback) {
+                    callback(device_id, rp_data);
+                }
                 return;
             }
             apdu_len -= len;
@@ -696,20 +720,33 @@ void rpm_ack_object_property_process(
             if (bacnet_is_opening_tag_number(apdu, apdu_len, 4, &len)) {
                 application_data_len =
                     bacnet_enclosed_data_length(apdu, apdu_len);
+                if (application_data_len < 0) {
+                    /* malformed */
+                    rp_data->error_class = ERROR_CLASS_SERVICES;
+                    rp_data->error_code = ERROR_CODE_INVALID_TAG;
+                    if (callback) {
+                        callback(device_id, rp_data);
+                    }
+                    return;
+                }
                 /* propertyValue */
                 apdu_len -= len;
                 apdu += len;
-                if (application_data_len) {
-                    rp_data->application_data_len = application_data_len;
-                    rp_data->application_data = apdu;
-                    apdu_len -= application_data_len;
-                    apdu += application_data_len;
-                }
+                /* fill the RP application data */
+                rp_data->application_data_len = application_data_len;
+                rp_data->application_data = apdu;
+                apdu_len -= application_data_len;
+                apdu += application_data_len;
                 if (bacnet_is_closing_tag_number(apdu, apdu_len, 4, &len)) {
                     apdu_len -= len;
                     apdu += len;
                 } else {
                     /* malformed */
+                    rp_data->error_class = ERROR_CLASS_SERVICES;
+                    rp_data->error_code = ERROR_CODE_INVALID_TAG;
+                    if (callback) {
+                        callback(device_id, rp_data);
+                    }
                     return;
                 }
                 rp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -729,6 +766,11 @@ void rpm_ack_object_property_process(
                     apdu += len;
                 } else {
                     /* malformed */
+                    rp_data->error_class = ERROR_CLASS_SERVICES;
+                    rp_data->error_code = ERROR_CODE_INVALID_TAG;
+                    if (callback) {
+                        callback(device_id, rp_data);
+                    }
                     return;
                 }
                 len = bacnet_enumerated_application_decode(
@@ -739,6 +781,11 @@ void rpm_ack_object_property_process(
                     apdu += len;
                 } else {
                     /* malformed */
+                    rp_data->error_class = ERROR_CLASS_SERVICES;
+                    rp_data->error_code = ERROR_CODE_INVALID_TAG;
+                    if (callback) {
+                        callback(device_id, rp_data);
+                    }
                     return;
                 }
                 if (bacnet_is_closing_tag_number(apdu, apdu_len, 5, &len)) {
@@ -746,17 +793,17 @@ void rpm_ack_object_property_process(
                     apdu += len;
                 } else {
                     /* malformed */
+                    rp_data->error_class = ERROR_CLASS_SERVICES;
+                    rp_data->error_code = ERROR_CODE_INVALID_TAG;
+                    if (callback) {
+                        callback(device_id, rp_data);
+                    }
                     return;
                 }
                 if (callback) {
                     callback(device_id, rp_data);
                 }
             }
-        }
-        len = rpm_decode_object_end(apdu, apdu_len);
-        if (len) {
-            apdu_len -= len;
-            apdu += len;
         }
     }
 }

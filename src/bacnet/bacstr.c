@@ -345,7 +345,7 @@ bool bitstring_init_ascii(BACNET_BIT_STRING *bit_string, const char *ascii)
 
 #define CHARACTER_STRING_CAPACITY (MAX_CHARACTER_STRING_BYTES - 1)
 /**
- * Initialize a BACnet characater string.
+ * Initialize a BACnet character string.
  * Returns false if the string exceeds capacity.
  * Initialize by using value=NULL
  *
@@ -419,7 +419,7 @@ size_t characterstring_strnlen(const char *str, size_t maxlen)
 }
 
 /**
- * Initialize a BACnet characater string.
+ * Initialize a BACnet character string.
  * Returns false if the string exceeds capacity.
  * Initialize by using value=NULL
  *
@@ -438,7 +438,7 @@ bool characterstring_init_ansi_safe(
 }
 
 /**
- * Initialize a BACnet characater string.
+ * Initialize a BACnet character string.
  * Returns false if the string exceeds capacity.
  * Initialize by using value=NULL
  *
@@ -585,6 +585,29 @@ bool characterstring_ansi_same(
     }
 
     return same_status;
+}
+
+/**
+ * Returns number of UTF8 code points in a character string.
+ *
+ * @param dest  Pointer to the string to count the UTF8 code points.
+ *
+ * @return Length of the character string in utf8 codepoints
+ */
+size_t characterstring_utf8_length(const BACNET_CHARACTER_STRING *str)
+{
+    size_t count = 0;
+    int i = 0;
+
+    while ((i < MAX_CHARACTER_STRING_BYTES) && (str->value[i] != '\0')) {
+        if ((str->value[i] & 0xc0) != 0x80) {
+            count++;
+        }
+
+        i++;
+    }
+
+    return count;
 }
 
 /**

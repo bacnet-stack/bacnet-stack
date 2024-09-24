@@ -647,6 +647,25 @@ static int openSerialPort(const char *const bsdPath)
     int fileDescriptor = -1;
     int handshake;
     struct termios options;
+#if defined(__APPLE__) || defined(__darwin__)
+
+    /* The IOSSIOSPEED ioctl can be used to set arbitrary baud rates other than
+     * those specified by POSIX. The driver for the underlying serial hardware
+     * ultimately determines which baud rates can be used. This ioctl sets both
+     * the input and output speed. */
+
+    speed_t speed = RS485_Get_Baud_Rate();
+
+    /* Set the receive latency in microseconds. Serial drivers use this value to
+       determine how often to dequeue characters received by the hardware. Most
+       applications don't need to set this value: if an app reads lines of
+       characters, the app can't do anything until the line termination
+       character has been received anyway. The most common applications which
+       are sensitive to read latency are MIDI and IrDA applications. */
+
+    unsigned long mics = 1UL;
+
+#endif
 
     /* Open the serial port read/write, with no controlling terminal, and don't
        wait for a connection. The O_NONBLOCK flag also causes subsequent I/O on
@@ -726,7 +745,6 @@ static int openSerialPort(const char *const bsdPath)
      * ultimately determines which baud rates can be used. This ioctl sets both
      * the input and output speed. */
 
-    speed_t speed = RS485_Get_Baud_Rate();
     if (ioctl(fileDescriptor, IOSSIOSPEED, &speed) == -1) {
         printf("Error calling ioctl(..., IOSSIOSPEED, ...) %s - %s(%d).\n",
             bsdPath, strerror(errno), errno);
@@ -785,7 +803,6 @@ static int openSerialPort(const char *const bsdPath)
     printf("Handshake lines currently set to %d\n", handshake);
 
 #if defined(__APPLE__) || defined(__darwin__)
-    unsigned long mics = 1UL;
 
     /* Set the receive latency in microseconds. Serial drivers use this value to
        determine how often to dequeue characters received by the hardware. Most
