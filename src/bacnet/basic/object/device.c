@@ -924,7 +924,6 @@ bool Device_Set_Serial_Number(const char *serial_number, size_t length)
     return status;
 }
 
-
 const char *Device_Firmware_Revision(void)
 {
     return BACnet_Version;
@@ -1518,7 +1517,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
-            if ((apdu_len = handler_cov_encode_subscriptions(&apdu[0], apdu_max)) < 0) {
+            if ((apdu_len = handler_cov_encode_subscriptions(
+                     &apdu[0], apdu_max)) < 0) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                 apdu_len = BACNET_STATUS_ABORT;

@@ -71,8 +71,7 @@ bool Binary_Input_Present_Value_Set(
 
 BACNET_STACK_EXPORT
 bool Binary_Input_Present_Value_Backup_Set(
-    uint32_t object_instance,
-    BACNET_BINARY_PV value);
+    uint32_t object_instance, BACNET_BINARY_PV value);
 
 BACNET_STACK_EXPORT
 BACNET_CHARACTER_STRING *Binary_Input_Description(uint32_t object_instance);

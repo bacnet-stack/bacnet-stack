@@ -331,8 +331,9 @@ void Binary_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
-            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
-            if((pObject->Out_Of_Service = value)) {
+            /* Lets backup Present_Value when going Out_Of_Service  or restore
+             * when going out of Out_Of_Service */
+            if ((pObject->Out_Of_Service = value)) {
                 pObject->Present_Value_Backup = pObject->Present_Value;
                 pObject->Write_Enabled = true;
             } else {
@@ -539,7 +540,7 @@ bool Binary_Value_Present_Value_Backup_Set(
     uint32_t object_instance, BACNET_BINARY_PV value)
 {
     bool status = false;
-    struct object_data * const pObject = Binary_Value_Object(object_instance);
+    struct object_data *const pObject = Binary_Value_Object(object_instance);
     if (pObject) {
         if (value <= MAX_BINARY_PV) {
             if (pObject->Polarity != POLARITY_NORMAL) {
@@ -630,8 +631,9 @@ bool Binary_Value_Object_Name(
         } else {
             char text_string[32] = "";
 
-            snprintf(text_string, sizeof(text_string), "BINARY VALUE %u",
-                    object_instance);
+            snprintf(
+                text_string, sizeof(text_string), "BINARY VALUE %u",
+                object_instance);
             status = characterstring_init_ansi(object_name, text_string);
         }
     }
@@ -651,8 +653,7 @@ bool Binary_Value_Name_Set(uint32_t object_instance, const char *new_name)
     struct object_data *pObject = Binary_Value_Object(object_instance);
 
     if (pObject) {
-        status =
-            characterstring_init_ansi(&pObject->Object_Name, new_name);
+        status = characterstring_init_ansi(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -746,8 +747,7 @@ bool Binary_Value_Description_Set(
     struct object_data *pObject = Binary_Value_Object(object_instance);
 
     if (pObject) {
-        status =
-            characterstring_init_ansi(&pObject->Description, new_name);
+        status = characterstring_init_ansi(&pObject->Description, new_name);
     }
 
     return status;
@@ -972,7 +972,8 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], Binary_Value_Reliability(rpdata->object_instance));
             break;
         case PROP_DESCRIPTION:
-            characterstring_copy(&char_string,
+            characterstring_copy(
+                &char_string,
                 Binary_Value_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -2230,35 +2231,52 @@ bool Binary_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
     }
 
     for (i = 0; i < pInit_data->length; i++) {
-        if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-            if(Binary_Value_Create(pInit_data->Object_Init_Values[i].Object_Instance) < BACNET_MAX_INSTANCE) {
-                struct object_data *pObject = Binary_Value_Object(pInit_data->Object_Init_Values[i].Object_Instance);
+        if (pInit_data->Object_Init_Values[i].Object_Instance <
+            BACNET_MAX_INSTANCE) {
+            if (Binary_Value_Create(
+                    pInit_data->Object_Init_Values[i].Object_Instance) <
+                BACNET_MAX_INSTANCE) {
+                struct object_data *pObject = Binary_Value_Object(
+                    pInit_data->Object_Init_Values[i].Object_Instance);
 
-                if(pObject == NULL) {
-                    PRINT("Object instance %u not found right after its creation", pInit_data->Object_Init_Values[i].Object_Instance);
+                if (pObject == NULL) {
+                    PRINT(
+                        "Object instance %u not found right after its creation",
+                        pInit_data->Object_Init_Values[i].Object_Instance);
                     return false;
                 }
 
-                if (!characterstring_init_ansi(&pObject->Object_Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-                    PRINT("Fail to set Object name to \"%.128s\"", pInit_data->Object_Init_Values[i].Object_Name);
+                if (!characterstring_init_ansi(
+                        &pObject->Object_Name,
+                        pInit_data->Object_Init_Values[i].Object_Name)) {
+                    PRINT(
+                        "Fail to set Object name to \"%.128s\"",
+                        pInit_data->Object_Init_Values[i].Object_Name);
                     return false;
                 }
 
-                if (!characterstring_init_ansi(&pObject->Description, pInit_data->Object_Init_Values[i].Description)) {
-                    PRINT("Fail to set Object description to \"%.128s\"", pInit_data->Object_Init_Values[i].Description);
+                if (!characterstring_init_ansi(
+                        &pObject->Description,
+                        pInit_data->Object_Init_Values[i].Description)) {
+                    PRINT(
+                        "Fail to set Object description to \"%.128s\"",
+                        pInit_data->Object_Init_Values[i].Description);
                     return false;
                 }
 
             } else {
-                PRINT("Unable to create object of instance %u", pInit_data->Object_Init_Values[i].Object_Instance);
+                PRINT(
+                    "Unable to create object of instance %u",
+                    pInit_data->Object_Init_Values[i].Object_Instance);
                 return false;
             }
         } else {
-            PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
+            PRINT(
+                "Object instance %u is too big",
+                pInit_data->Object_Init_Values[i].Object_Instance);
             return false;
         }
     }
 
     return true;
 }
-
