@@ -26,7 +26,11 @@
 #else
 #include <stdarg.h>
 #include <stdio.h>
+#ifdef __APPLE__
+static void __PRINT(const char *format, ...)
+#else
 static inline void __PRINT(const char *format, ...)
+#endif
 {
     va_list args;
     va_start(args, format);
