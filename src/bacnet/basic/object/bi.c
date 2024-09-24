@@ -1859,8 +1859,6 @@ int Binary_Input_Alarm_Summary(
     } else {
         return -1; /* end of list  */
     }
-
-    return 0;
 }
 
 /**
