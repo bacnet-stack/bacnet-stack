@@ -2188,11 +2188,13 @@ void Binary_Input_Intrinsic_Reporting(uint32_t object_instance)
                 };
 #else
             {
-                BACNET_PROPERTY_STATE ns = {0, };
+                BACNET_PROPERTY_STATE ns = {
+                    0,
+                };
                 ns.tag = PROP_STATE_BINARY_VALUE;
                 ns.state.binaryValue = pObject->Present_Value;
 
-                event_data.notificationParams.changeOfState.newState.tag = ns;
+                event_data.notificationParams.changeOfState.newState = ns;
             }
 #endif
             /* Status_Flags of the referenced object. */
