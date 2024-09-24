@@ -34,9 +34,7 @@
 
 #if defined(BACDL_ETHERNET) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU ETHERNET_MPDU_MAX
-#endif
 
-#if !defined(BACDL_ALL) && !defined(BACDL_MULTIPLE)
 #define datalink_init ethernet_init
 #define datalink_send_pdu ethernet_send_pdu
 #define datalink_receive ethernet_receive
@@ -44,13 +42,10 @@
 #define datalink_get_broadcast_address ethernet_get_broadcast_address
 #define datalink_get_my_address ethernet_get_my_address
 #define datalink_maintenance_timer(s)
-#endif
 
 #elif defined(BACDL_ARCNET) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU ARCNET_MPDU_MAX
-#endif
 
-#if !defined(BACDL_ALL) && !defined(BACDL_MULTIPLE)
 #define datalink_init arcnet_init
 #define datalink_send_pdu arcnet_send_pdu
 #define datalink_receive arcnet_receive
@@ -58,13 +53,10 @@
 #define datalink_get_broadcast_address arcnet_get_broadcast_address
 #define datalink_get_my_address arcnet_get_my_address
 #define datalink_maintenance_timer(s)
-#endif
 
-#if defined(BACDL_MSTP) && !defined(BACDL_MULTIPLE)
+#elif defined(BACDL_MSTP) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU DLMSTP_MPDU_MAX
-#endif
 
-#if !defined(BACDL_ALL) && !defined(BACDL_MULTIPLE)
 #define datalink_init dlmstp_init
 #define datalink_send_pdu dlmstp_send_pdu
 #define datalink_receive dlmstp_receive
@@ -72,20 +64,15 @@
 #define datalink_get_broadcast_address dlmstp_get_broadcast_address
 #define datalink_get_my_address dlmstp_get_my_address
 #define datalink_maintenance_timer(s)
-#endif
 
-#if defined(BACDL_BIP) && !defined(BACDL_MULTIPLE)
+#elif defined(BACDL_BIP) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU BIP_MPDU_MAX
-#endif
 
-#if !defined(BACDL_ALL) && !defined(BACDL_MULTIPLE)
 #define datalink_init bip_init
 #define datalink_send_pdu bip_send_pdu
 #define datalink_receive bip_receive
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
-#endif
-
 #ifdef BAC_ROUTING
 #ifdef __cplusplus
 extern "C" {
@@ -95,18 +82,15 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #ifdef __cplusplus
 }
 #endif
+#define datalink_get_my_address routed_get_my_address
 #else
-#if !defined(BACDL_ALL) && !defined(BACDL_MULTIPLE) && defined(BACDL_BIP)
 #define datalink_get_my_address bip_get_my_address
+#endif
 #define datalink_maintenance_timer(s) bvlc_maintenance_timer(s)
-#endif
-#endif
 
-#if defined(BACDL_BIP6) && !defined(BACDL_MULTIPLE)
+#elif defined(BACDL_BIP6) && !defined(BACDL_MULTIPLE)
 #define MAX_MPDU BIP6_MPDU_MAX
-#endif
 
-#if !defined(BACDL_ALL) && !defined(BACDL_MULTIPLE)
 #define datalink_init bip6_init
 #define datalink_send_pdu bip6_send_pdu
 #define datalink_receive bip6_receive
@@ -114,9 +98,8 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #define datalink_get_broadcast_address bip6_get_broadcast_address
 #define datalink_get_my_address bip6_get_my_address
 #define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
-#endif
 
-#if !defined(BACDL_TEST) /* Multiple, none or custom datalink */
+#elif !defined(BACDL_TEST) /* Multiple, none or custom datalink */
 #include "bacnet/npdu.h"
 
 #define MAX_HEADER (8)
@@ -161,7 +144,7 @@ void datalink_maintenance_timer(uint16_t seconds);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
+#endif
 /** @defgroup DataLink The BACnet Network (DataLink) Layer
  * <b>6 THE NETWORK LAYER </b><br>
  * The purpose of the BACnet network layer is to provide the means by which
