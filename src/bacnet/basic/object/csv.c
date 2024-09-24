@@ -38,13 +38,12 @@ static const int Properties_Required[] = {
     PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
 };
 
-static const int Properties_Optional[] = { 
+static const int Properties_Optional[] = {
 #if (CHARACTERSTRING_INTRINSIC_REPORTING)
     PROP_EVENT_STATE,
 #endif
-    PROP_OUT_OF_SERVICE,
-    PROP_DESCRIPTION,
-    -1 };
+    PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 
