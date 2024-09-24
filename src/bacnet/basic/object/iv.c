@@ -445,17 +445,16 @@ bool Integer_Value_Description_Set(
 char *Integer_Value_Description_ANSI(uint32_t object_instance)
 {
     char *name = NULL;
-#if 0
+
     struct integer_object *pObject;
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
         if (pObject->Description == NULL) {
             name = "";
         } else {
-            name = (char *)pObject->Description;
+            name = (char *)pObject->Description.value;
         }
     }
-#endif
 
     return name;
 }
