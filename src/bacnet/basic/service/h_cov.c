@@ -393,9 +393,9 @@ static bool cov_list_subscribe(
             *error_code = ERROR_CODE_NO_SPACE_TO_ADD_LIST_ELEMENT;
             found = false;
         } else {
-            COV_Subscriptions[index].dest_index = addr_add_ret;
             index = first_invalid_index;
             found = true;
+            COV_Subscriptions[index].dest_index = addr_add_ret;
             COV_Subscriptions[index].flag.valid = true;
             COV_Subscriptions[index].monitoredObjectIdentifier.type =
                 cov_data->monitoredObjectIdentifier.type;

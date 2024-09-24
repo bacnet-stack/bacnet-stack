@@ -20,6 +20,61 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
+## [1.4.0] - 2024-09-05
+
+### Security
+
+* Secured BACnetAccessRule encoding and decoding and added unit testing.
+
+### Added
+
+* Added pre-commit clang-format 17 format check in pipeline. Formatted
+  entire code base except external/ folders. (#755)
+* Added RP and RPM error code indications in callbacks in bac-rw.c
+  module handling. (#756)
+* Added editorconfig, a widely used and supported file in profession IDEs.
+  The configuration file indicates how files should be formatted. (#753)
+* Added pre-commit configuration which can automatically check some basic
+  code formatting rules everytime someone makes commit. This can also be
+  used in the pipeline during a pull-request for automated checking.
+  pre-commit can also be used in a local workspace or within an IDE.
+  pre-commit makes it easy to select clang-format version so everyone is
+  using same one.
+* Added basic object-name get for ASCII names to enable free if they were
+  dynamically created. Added unit testing to validate the basic object
+  ASCII object-name API. (#754)
+
+### Changed
+
+* Changed the datalink abstraction to enable selecting multiple datalinks
+  using BACDL_MULTIPLE and one or more other BACDL defines. (#717)
+* Moved west manifest, zephyr folder, and ports/zephyr folders to
+  another repository https://github.com/bacnet-stack/bacnet-stack-zephyr
+  so that the rapid pace of Zephyr OS development changes will have
+  a less impact on the development of the BACnet Stack library. (#757)
+* Removed static scope on character array used for object-name since the array
+  gets copied into characterstring array and static is not needed. (#754)
+* Changed clang-format rules to always align const to left side,
+  and insertbraces to avoid having to use clang-tidy. (#753)
+* Moved external files, such as driver libraries, to external/ folders.
+  It is lot easier to work with automatic formatters if we have external
+  files in different folder. For some tools we can just exclude
+  external folder all together. (#744)
+* Changed most of the functions use of pointer parameters to const.
+  Used clang-tidy and sonarlint to help find places where const could be
+  easily applied. (#714)
+* Changed bacapp_snprintf_value() to be const correct. After that
+  we got a warning that the 4th function call argument is an uninitialized
+  value [core.CallAndMessage] in bacapp_snprintf_weeklyschedule().
+  Fixed the warning by setting array_index to zero. (#714)
+
+### Fixed
+
+* Fixed the order of operations in SubscribeCOV so the dest_index gets written
+  to the correct slot instead of an initial MAX_COV_SUBSCRIPTIONS-1. (#761)
+* Fixed some spelling typos in comments. (#762)
+* Fixed COV detection in the basic Binary Output object example. (#751)
+
 ## [1.3.8] - 2024-08-26
 
 ### Security
