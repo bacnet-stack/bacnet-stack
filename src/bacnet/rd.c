@@ -51,7 +51,8 @@ int reinitialize_device_encode(
     }
     /* password [1] CharacterString (SIZE (1..20)) OPTIONAL */
     if (password) {
-        if ((password->length >= 1) && (password->length <= 20)) {
+        if ((password->length >= 1) &&
+            (password->length <= 20)) {
             len = encode_context_character_string(apdu, 1, password);
             apdu_len += len;
         }

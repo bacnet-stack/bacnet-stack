@@ -97,8 +97,8 @@ void routed_get_my_address(BACNET_ADDRESS *my_address);
 #endif
 #else
 #if !defined(BACDL_ALL) && !defined(BACDL_MULTIPLE) && defined(BACDL_BIP)
-#  define datalink_get_my_address bip_get_my_address
-#  define datalink_maintenance_timer(s) bvlc_maintenance_timer(s)
+#define datalink_get_my_address bip_get_my_address
+#define datalink_maintenance_timer(s) bvlc_maintenance_timer(s)
 #endif
 #endif
 

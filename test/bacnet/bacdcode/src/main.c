@@ -80,7 +80,7 @@ static void test_bacnet_tag_codec(
         zassert_equal(tag_len, test_len, NULL);
         zassert_equal(tag_len_value_type, len_value_type, NULL);
     } else if (opening) {
-        //zassert_false(tag.context, NULL);
+        /* zassert_false(tag.context, NULL); */
         zassert_false(tag.application, NULL);
         zassert_false(tag.closing, NULL);
         zassert_true(tag.opening, NULL);
@@ -89,7 +89,7 @@ static void test_bacnet_tag_codec(
         zassert_true(status, NULL);
         zassert_equal(tag_len, test_len, NULL);
     } else if (closing) {
-        //zassert_false(tag.context, NULL);
+        /* zassert_false(tag.context, NULL); */
         zassert_false(tag.application, NULL);
         zassert_true(tag.closing, NULL);
         zassert_false(tag.opening, NULL);
