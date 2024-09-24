@@ -449,11 +449,7 @@ char *Integer_Value_Description_ANSI(uint32_t object_instance)
     struct integer_object *pObject;
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        if (pObject->Description == NULL) {
-            name = "";
-        } else {
-            name = (char *)pObject->Description.value;
-        }
+        name = (char *)pObject->Description.value;
     }
 
     return name;
