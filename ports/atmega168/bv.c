@@ -16,8 +16,9 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/config.h" /* the custom stuff */
+#include "bacnet/rp.h"
 #include "bacnet/wp.h"
-#include "bacnet/basic/object/bv.h"
+#include "bv.h"
 
 #ifndef MAX_BINARY_VALUES
 #define MAX_BINARY_VALUES 10
@@ -70,6 +71,16 @@ BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
     }
 
     return value;
+}
+
+void Binary_Value_Present_Value_Set(uint32_t object_instance,
+    BACNET_BINARY_PV value,
+    uint8_t priority)
+{
+    (void)priority;
+    if (object_instance < MAX_BINARY_VALUES) {
+        Present_Value[object_instance] = value;
+    }
 }
 
 /* note: the object name must be unique within this device */

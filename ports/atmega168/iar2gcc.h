@@ -8,10 +8,6 @@
 #ifndef IAR2GCC_H
 #define IAR2GCC_H
 
-#if !defined(F_CPU)
-#define F_CPU (7372800)
-#endif
-
 /* IAR */
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
 #include <inavr.h>

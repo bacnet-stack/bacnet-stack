@@ -18,10 +18,25 @@
 /* This file has been customized for use with ATMEGA168 */
 #include "hardware.h"
 #include "rs485.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /* baud rate */
 static uint32_t RS485_Baud = 9600;
+/* amount of silence on the wire */
+static struct mstimer Silence_Timer;
+
+/* Public access to the Silence Timer */
+unsigned long Timer_Silence(void)
+{
+    return mstimer_elapsed(&Silence_Timer);
+}
+
+/* Public reset of the Silence Timer */
+void Timer_Silence_Reset(void)
+{
+    mstimer_set(&Silence_Timer, 0);
+}
+
 
 /****************************************************************************
  * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
@@ -86,7 +101,6 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
             BIT_SET(UCSR0A, U2X0);
             /* configure baud rate */
             UBRR0 = (F_CPU / (8UL * RS485_Baud)) - 1;
-            /* FIXME: store the baud rate */
             break;
         default:
             valid = false;
@@ -144,8 +158,7 @@ void RS485_Turnaround_Delay(void)
  * @param buffer - data to send
  * @param nbytes - number of bytes of data
  */
-void RS485_Send_Data(const uint8_t *buffer,
-    uint16_t nbytes)
+void RS485_Send_Data(const uint8_t *buffer, uint16_t nbytes)
 {
     while (nbytes) {
         while (!BIT_CHECK(UCSR0A, UDRE0)) {

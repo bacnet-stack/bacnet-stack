@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/bacerror.h"
+#include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
 #ifndef MAX_BINARY_VALUES
@@ -41,19 +42,15 @@ extern "C" {
 
     BACNET_BINARY_PV Binary_Value_Present_Value(
         uint32_t object_instance);
-
-    int Binary_Value_Encode_Property_APDU(
-        uint8_t * apdu,
+    void Binary_Value_Present_Value_Set(
         uint32_t object_instance,
-        BACNET_PROPERTY_ID property,
-        uint32_t array_index,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_BINARY_PV value,
+        uint8_t priority);
 
+    int Binary_Value_Read_Property(
+        BACNET_READ_PROPERTY_DATA *rpdata);
     bool Binary_Value_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef __cplusplus
 }

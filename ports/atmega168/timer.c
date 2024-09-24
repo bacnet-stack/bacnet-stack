@@ -7,7 +7,7 @@
  *********************************************************************/
 #include <stdint.h>
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /* This module is a 1 millisecond timer */
 
@@ -19,13 +19,11 @@
 #error Timer Prescaler value is too small
 #endif
 #define TIMER_COUNT (0xFF - TIMER_TICKS)
-/* Global variable millisecond timer - used by main.c for timers task */
-volatile uint8_t Timer_Milliseconds = 0;
-/* MS/TP Silence Timer */
-static volatile uint16_t SilenceTime;
+/* millisecond time counter  */
+static volatile unsigned long Millisecond_Counter;
 
 /* Configure the Timer */
-void Timer_Initialize(void)
+void mstimer_init(void)
 {
     /* Normal Operation */
     TCCR1A = 0;
@@ -60,28 +58,16 @@ ISR(TIMER0_OVF_vect)
     TCNT0 = TIMER_COUNT;
     /* Overflow Flag is automatically cleared */
     /* Update the global timer */
-    if (Timer_Milliseconds < 0xFF)
-        Timer_Milliseconds++;
-    if (SilenceTime < 0xFFFF)
-        SilenceTime++;
+    Millisecond_Counter++;
 }
 
-/* Public access to the Silence Timer */
-uint16_t Timer_Silence(void)
+unsigned long mstimer_now(void)
 {
-    uint16_t timer;
+    unsigned long milliseconds;
 
     BIT_CLEAR(TIMSK0, TOIE0);
-    timer = SilenceTime;
+    milliseconds = Millisecond_Counter;
     BIT_SET(TIMSK0, TOIE0);
 
-    return timer;
-}
-
-/* Public reset of the Silence Timer */
-void Timer_Silence_Reset(void)
-{
-    BIT_CLEAR(TIMSK0, TOIE0);
-    SilenceTime = 0;
-    BIT_SET(TIMSK0, TOIE0);
+    return milliseconds;
 }

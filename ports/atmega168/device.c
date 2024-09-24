@@ -20,9 +20,9 @@
 #include "stack.h"
 /* objects */
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/basic/object/av.h"
-#include "bacnet/basic/object/bv.h"
+#include "device.h"
+#include "av.h"
+#include "bv.h"
 #include "bacnet/wp.h"
 
 /* note: you really only need to define variables for
@@ -33,16 +33,9 @@ static uint32_t Object_Instance_Number = 260001;
 static char Object_Name[20] = "My Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
-void Device_Init(object_functions_t *object_table)
+void Device_Init(void)
 {
-    (void)object_table;
-    /* Reinitialize_State = BACNET_REINIT_IDLE; */
-    /* dcc_set_status_duration(COMMUNICATION_ENABLE, 0); */
-    /* FIXME: Get the data from the eeprom */
-    /* I2C_Read_Block(EEPROM_DEVICE_ADDRESS,
-       (char *)&Object_Instance_Number,
-       sizeof(Object_Instance_Number),
-       EEPROM_BACNET_ID_ADDR); */
+    /* nothing to do */
 }
 
 /* methods to manipulate the data */

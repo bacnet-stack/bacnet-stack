@@ -132,9 +132,7 @@ extern "C" {
         BACNET_ERROR_CODE * error_code);
 
     bool Device_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code);
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     bool DeviceGetRRInfo(
         uint32_t Object,        /* Which particular object - obviously not important for device object */

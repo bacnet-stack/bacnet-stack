@@ -9,12 +9,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "timer.h"
 #include "rs485.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/npdu.h"
 #include "bacnet/dcc.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/iam.h"
 #include "device.h"
@@ -25,6 +25,8 @@
 extern bool Send_I_Am_Flag;
 /* local version override */
 const char *BACnet_Version = "1.0";
+/* main loop task timer */
+static struct mstimer Task_Timer;
 
 /* For porting to IAR, see:
    http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
@@ -35,7 +37,19 @@ bool dcc_communication_enabled(void)
     return true;
 }
 
-static void init(void)
+/**
+ * Configure the RS485 transceiveer board LED
+ */
+static void led_init(void)
+{
+    /* Configure the LED pin as an output */
+    BIT_CLEAR(PORTB, PB5);
+    BIT_SET(DDRB, PB5);
+    /* Turn off the LED */
+    BIT_CLEAR(PORTB, PB5);
+}
+
+static void hardware_init(void)
 {
     /* Initialize the Clock Prescaler for ATmega48/88/168 */
     /* The default CLKPSx bits are factory set to 0011 */
@@ -72,20 +86,11 @@ static void init(void)
 
     /* Configure Specialized Hardware */
     RS485_Initialize();
-
-    /* Configure Timer0 for millisecond timer */
-    Timer_Initialize();
+    mstimer_init();
+    led_init();
 
     /* Enable global interrupts */
     __enable_interrupt();
-}
-
-static void task_milliseconds(void)
-{
-    while (Timer_Milliseconds) {
-        Timer_Milliseconds--;
-        /* add other millisecond timer tasks here */
-    }
 }
 
 static uint8_t Address_Switch;
@@ -128,18 +133,6 @@ static void input_switch_read(void)
 }
 
 /**
- * Configure the RS485 transceiveer board LED
- */
-static void led_init(void)
-{
-    /* Configure the LED pin as an output */
-    BIT_CLEAR(PORTB, PB5);
-    BIT_SET(DDRB, PB5);
-    /* Turn off the LED */
-    BIT_CLEAR(PORTB, PB5);
-}
-
-/**
  * Control the RS485 transceiveer board LED
  */
 static void led_set(bool state)
@@ -158,6 +151,15 @@ static void output_io_write(void)
 {
     BACNET_BINARY_PV value;
 
+    if (mstimer_elapsed(&Task_Timer)) {
+        mstimer_reset(&Task_Timer);
+        value = Binary_Value_Present_Value(0);
+        if (value == BINARY_ACTIVE) {
+            Binary_Value_Present_Value_Set(0, BINARY_INACTIVE, 0);
+        } else {
+            Binary_Value_Present_Value_Set(0, BINARY_ACTIVE, 0);
+        }
+    }
     value = Binary_Value_Present_Value(0);
     if (value == BINARY_ACTIVE) {
         led_set(true);
@@ -185,15 +187,14 @@ int main(void)
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src; /* source address */
 
-    init();
-    led_init();
-    RS485_Set_Baud_Rate(38400);
+    hardware_init();
+    RS485_Set_Baud_Rate(38400UL);
     dlmstp_set_max_master(127);
     dlmstp_set_max_info_frames(1);
     dlmstp_init(NULL);
+    mstimer_set(&Task_Timer, 1000);
     for (;;) {
         input_switch_read();
-        task_milliseconds();
         output_io_write();
         /* other tasks */
         /* BACnet handling */

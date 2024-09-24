@@ -3,8 +3,8 @@
 ###############################################################################
 
 ## General Flags
-MCU = atmega328
-AVRDUDE_MCU = m328
+MCU = atmega328p
+AVRDUDE_MCU = m328p
 TARGET = bacnet
 ## Tools
 CC = avr-gcc
@@ -21,12 +21,16 @@ LINT = splint
 # # one of the valid "-c PROGRAMMER-ID" values
 # # described in the avrdude info page.
 # #
-AVRDUDE_PROGRAMMERID = avrispmkII
+AVRDUDE_PROGRAMMERID = arduino
 #
 # # port--serial or parallel port to which your
 # # hardware programmer is attached
 # #
-AVRDUDE_PORT = /dev/ttyUSB0
+ifeq ($(OS),Windows_NT)
+	AVRDUDE_PORT = COM21
+else
+	AVRDUDE_PORT = /dev/ttyUSB0
+endif
 
 # Source locations
 BACNET_SRC = ../../src
@@ -52,6 +56,7 @@ BASICSRC = $(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
 	$(BACNET_BASIC)/sys/bigend.c \
 	$(BACNET_BASIC)/sys/debug.c \
+	$(BACNET_BASIC)/sys/mstimer.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/h_noserv.c
 
@@ -118,6 +123,9 @@ CFLAGS = $(COMMON)
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
+# fix warnings about 'array subscript 0 is outside array bounds' new in GCC 12
+CFLAGS += --param=min-pagesize=0
+CFLAGS += -DF_CPU=16000000UL
 # silence some warnings
 CFLAGS += -Wno-switch
 

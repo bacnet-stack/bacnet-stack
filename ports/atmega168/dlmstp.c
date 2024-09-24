@@ -22,13 +22,11 @@
 #include "bacnet/basic/tsm/tsm.h"
 /* port specific */
 #include "rs485.h"
-
 /* This file has been customized for use with small microprocessors */
 /* Assumptions:
     Only one MS/TP datalink layer
 */
 #include "hardware.h"
-#include "timer.h"
 
 /* The state of the Receive State Machine */
 static MSTP_RECEIVE_STATE Receive_State;
