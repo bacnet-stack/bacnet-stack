@@ -35,22 +35,24 @@ The Arduino Uno R3 platform for this example uses the following peripherals:
 | SCK/PB5     | D13         | LED-L ANODE (+)| BV 0 (output)   |
 | MISO/PB4    | D12         |                | BV 2 (output)   |
 | MOSI/PB3    | D11         |                | BV 1 (output)   |
-| SS/PB2      | D10         | DIPSW-7        | MS/TP MAC-7     |
-| OC1/PB1     | D9          | DIPSW-6        | MS/TP MAC-6     |
-| ICP/PB0     | D8          | DIPSW-5        | MS/TP MAC-5     |
+| SS/PB2      | D10         | DIPSW-7        | MS/TP MAC + 64  |
+| OC1/PB1     | D9          | DIPSW-6        | MS/TP MAC + 32  |
+| ICP/PB0     | D8          | DIPSW-5        | MS/TP MAC + 16  |
 |             |             |                |                 |
-| AIN1/PD7    | D7          | DIPSW-4        | MS/TP MAC-4     |
-| AIN0/PD6    | D6          | DIPSW-3        | MS/TP MAC-3     |
-| T1/PD5      | D5          | DIPSW-2        | MS/TP MAC       |
-| T0/PD4      | D4          | DIPSW-1        | MS/TP MAC       |
+| AIN1/PD7    | D7          | DIPSW-4        | MS/TP MAC + 8   |
+| AIN0/PD6    | D6          | DIPSW-3        | MS/TP MAC + 4   |
+| T1/PD5      | D5          | DIPSW-2        | MS/TP MAC + 2   |
+| T0/PD4      | D4          | DIPSW-1        | MS/TP MAC + 1   |
 | INT1/PD3    | D3          |                | BV 3 (input)    |
 | INT0/PD2    | D2          | CE DE /RE RTS  | RS485           |
 | TXD/PD1     | D1/Tx**     | TXD            | RS485           |
 | RXD/PD0     | D0/Rx**     | RXD            | RS485           |
 
-* ADC4/PC4: A4 and SDA are shared I/O
-* ADC5/PC5: A5 and SCL are shared I/O
-** shared with Uno R3 USB Tx/Rx. DFR0259 has switch to disable.
+\* ADC4/PC4: A4 and SDA are shared I/O
+
+\* ADC5/PC5: A5 and SCL are shared I/O
+
+\** shared with Uno R3 USB Tx/Rx. DFR0259 switch ON to disable.
 
 ### Building this Project
 
@@ -73,6 +75,14 @@ To add the build and debug tools to MinGW64 environment:
     pacman --noconfirm -S mingw-w64-x86_64-avr-libc
     pacman --noconfirm -S mingw-w64-x86_64-binutils-avr
     pacman --noconfirm -S mingw-w64-x86_64-avrdude
+
+The build sequence is usually:
+
+    make clean all
+
+The Makefile includes a recipe to use avrdude to program the Uno R3 via USB
+
+    make install
 
 #### GCC and CStack Usage
 
