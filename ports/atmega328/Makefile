@@ -124,7 +124,10 @@ CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
 # fix warnings about 'array subscript 0 is outside array bounds' new in GCC 12
+GCCVERSIONGTEQ12 := $(shell expr `avr-gcc -dumpversion | cut -f1 -d.` \>= 12)
+ifeq "$(GCCVERSIONGTEQ4)" "1"
 CFLAGS += --param=min-pagesize=0
+endif
 CFLAGS += -DF_CPU=16000000UL
 # silence some warnings
 CFLAGS += -Wno-switch
