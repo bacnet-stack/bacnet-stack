@@ -111,7 +111,7 @@ set(BACDL_MSTP ON)
 #  set(BACDL_ALL OFF)
 #else()
 #  set(BACDL_MSTP ON)
-endif()
+#endif()
 
 set(BAC_ROUTING OFF)
 set(BACNET_STACK_BUILD_APPS OFF)
