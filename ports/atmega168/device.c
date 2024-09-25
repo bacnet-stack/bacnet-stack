@@ -20,9 +20,9 @@
 #include "stack.h"
 /* objects */
 #include "bacnet/basic/services.h"
-#include "device.h"
-#include "av.h"
-#include "bv.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bv.h"
 #include "bacnet/wp.h"
 
 /* note: you really only need to define variables for
@@ -30,13 +30,8 @@
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number = 260001;
-static char Object_Name[20] = "My Device";
+static char Object_Name[20] = "Uno R3 Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
-
-void Device_Init(void)
-{
-    /* nothing to do */
-}
 
 /* methods to manipulate the data */
 uint32_t Device_Object_Instance_Number(void)

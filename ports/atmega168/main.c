@@ -17,14 +17,14 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/iam.h"
-#include "device.h"
-#include "av.h"
-#include "bv.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bv.h"
 
 /* From the WhoIs hander - performed by the DLMSTP module */
 extern bool Send_I_Am_Flag;
-/* local version override */
-const char *BACnet_Version = "1.0";
+/* MS/TP MAC Address */
+static uint8_t Address_Switch;
 /* main loop task timer */
 static struct mstimer Task_Timer;
 
@@ -93,8 +93,6 @@ static void hardware_init(void)
     __enable_interrupt();
 }
 
-static uint8_t Address_Switch;
-
 /**
  * Read the MAC address from the DIP switch.
  */
@@ -159,7 +157,7 @@ static void output_io_write(void)
         } else {
             value = BINARY_ACTIVE;
         }
-        Binary_Value_Present_Value_Set(0, value, 0);
+        Binary_Value_Present_Value_Set(0, value);
         if (value == BINARY_ACTIVE) {
             led_set(true);
         } else {
