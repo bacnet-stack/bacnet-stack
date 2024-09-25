@@ -20,15 +20,17 @@
 #endif
 
 static float Present_Value[MAX_ANALOG_VALUES];
-static const char *Object_Name[MAX_ANALOG_VALUES] = { "AV-0", "AV-1", "AV-2",
-                                                      "AV-3", "AV-4", "AV-5",
-                                                      "AV-6", "AV-7", "AV-8",
-                                                      "AV-9" };
+/* clang-format off */
+static const char *Object_Name[MAX_ANALOG_VALUES] = {
+    "AV-0", "AV-1", "AV-2", "AV-3", "AV-4",
+    "AV-5", "AV-6", "AV-7", "AV-8", "AV-9"
+};
 static uint16_t Engineering_Units[MAX_ANALOG_VALUES] = {
     UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS,
     UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS,
     UNITS_NO_UNITS, UNITS_NO_UNITS
 };
+/* clang-format on */
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */

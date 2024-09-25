@@ -21,11 +21,13 @@
 #define MAX_BINARY_VALUES 10
 #endif
 
-#if (MAX_BINARY_VALUES > 10)
-#error Modify the Binary_Value_Name to handle multiple digits
-#endif
-
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_VALUES];
+/* clang-format off */
+static const char *Object_Name[MAX_BINARY_VALUES] = {
+    "BV-0", "BV-1", "BV-2", "BV-3", "BV-4",
+    "BV-5", "BV-6", "BV-7", "BV-8", "BV-9"
+};
+/* clang-format on */
 
 /* we simply have 0-n object instances. */
 bool Binary_Value_Valid_Instance(uint32_t object_instance)
@@ -84,17 +86,37 @@ bool Binary_Value_Present_Value_Set(
     return status;
 }
 
-/* note: the object name must be unique within this device */
-char *Binary_Value_Name(uint32_t object_instance)
+/**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Binary_Value_Name_Set(uint32_t object_instance, const char *value)
 {
-    static char text_string[5] = "BV-0"; /* okay for single thread */
-
     if (object_instance < MAX_BINARY_VALUES) {
-        text_string[3] = '0' + (uint8_t)object_instance;
-        return text_string;
+        Object_Name[object_instance] = value;
     }
 
-    return NULL;
+    return true;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Binary_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *object_name = "BV-X";
+
+    if (object_instance < MAX_BINARY_VALUES) {
+        object_name = Object_Name[object_instance];
+    }
+
+    return object_name;
 }
 
 /* return apdu len, or -1 on error */
@@ -117,7 +139,7 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
             characterstring_init_ansi(
-                &char_string, Binary_Value_Name(rpdata->object_instance));
+                &char_string, Binary_Value_Name_ASCII(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
