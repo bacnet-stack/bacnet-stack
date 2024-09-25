@@ -13,7 +13,6 @@ OBJCOPY = avr-objcopy
 OBJDUMP = avr-objdump
 SIZE = avr-size
 AVRDUDE = avrdude
-LINT = splint
 
 # programmer id--check the avrdude for complete list
 # # of available opts.  These should include stk500,
@@ -183,9 +182,6 @@ $(LIBRARY): $(COREOBJ) Makefile
 size: ${TARGET_ELF}
 	@echo
 	@${SIZE} ${TARGET_ELF}
-
-lint:
-	$(LINT) $(BFLAGS) $(CSRC)
 
 install: $(TARGET_ELF)
 	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID)			\
