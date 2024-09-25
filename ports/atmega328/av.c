@@ -20,10 +20,10 @@
 #endif
 
 static float Present_Value[MAX_ANALOG_VALUES];
-static const char *Object_Name[MAX_ANALOG_VALUES] = {
-    "AV-0", "AV-1", "AV-2", "AV-3", "AV-4",
-    "AV-5", "AV-6", "AV-7", "AV-8", "AV-9"
-};
+static const char *Object_Name[MAX_ANALOG_VALUES] = { "AV-0", "AV-1", "AV-2",
+                                                      "AV-3", "AV-4", "AV-5",
+                                                      "AV-6", "AV-7", "AV-8",
+                                                      "AV-9" };
 static uint16_t Engineering_Units[MAX_ANALOG_VALUES] = {
     UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS,
     UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS,
@@ -109,8 +109,8 @@ float Analog_Value_Present_Value(uint32_t object_instance)
     return value;
 }
 
-bool Analog_Value_Present_Value_Set(uint32_t object_instance, float value,
-    uint8_t priority)
+bool Analog_Value_Present_Value_Set(
+    uint32_t object_instance, float value, uint8_t priority)
 {
     (void)priority;
     if (object_instance < MAX_ANALOG_VALUES) {
@@ -141,7 +141,6 @@ bool Analog_Value_Units_Set(uint32_t instance, uint16_t unit)
     return false;
 }
 
-
 /* return apdu len, or -1 on error */
 int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
@@ -168,8 +167,7 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PRESENT_VALUE:
             apdu_len = encode_application_real(
-                &apdu[0], Analog_Value_Present_Value(
-                rpdata->object_instance));
+                &apdu[0], Analog_Value_Present_Value(rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -187,8 +185,8 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(&apdu[0], false);
             break;
         case PROP_UNITS:
-            apdu_len = encode_application_enumerated(&apdu[0],
-                Analog_Value_Units(rpdata->object_instance));
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Analog_Value_Units(rpdata->object_instance));
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;

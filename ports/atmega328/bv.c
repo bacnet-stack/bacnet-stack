@@ -4,7 +4,7 @@
  * @date 2007
  * @copyright SPDX-License-Identifier: MIT
  *
-*/
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>

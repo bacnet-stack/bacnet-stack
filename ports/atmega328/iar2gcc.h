@@ -22,8 +22,7 @@
 #endif
 
 /* inline function */
-static inline void _delay_us(
-    uint8_t microseconds)
+static inline void _delay_us(uint8_t microseconds)
 {
     do {
         __delay_cycles(F_CPU / 1000000UL);
@@ -74,7 +73,7 @@ static inline void _delay_us(
 #endif
 
 /* adjust some definitions to common versions */
-#if defined (__CROSSWORKS_AVR)
+#if defined(__CROSSWORKS_AVR)
 #if (__TARGET_PROCESSOR == ATmega644P)
 #define PRR PRR0
 #define UBRR0 UBRR0W
@@ -255,10 +254,10 @@ typedef struct {
 /* Interrupts */
 #if defined(__ICCAVR__)
 #define PRAGMA(x) _Pragma(#x)
-#define ISR(vec) \
+#define ISR(vec)                                                         \
     /* function prototype for use with "require protoptypes" option.  */ \
-    PRAGMA( vector=vec ) __interrupt void handler_##vec(void); \
-    PRAGMA( vector=vec ) __interrupt void handler_##vec(void)
+    PRAGMA(vector = vec) __interrupt void handler_##vec(void);           \
+    PRAGMA(vector = vec) __interrupt void handler_##vec(void)
 #elif defined(__GNUC__)
 #include <avr/interrupt.h>
 #endif
