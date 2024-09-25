@@ -30,8 +30,9 @@
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number = 260001;
-static char Object_Name[20] = "Uno R3 Device";
+static char Object_Name[20] = "AVR Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
+static const char * Model_Name = "ATmega328 Uno R3 Device";
 
 /* methods to manipulate the data */
 uint32_t Device_Object_Instance_Number(void)
@@ -197,7 +198,7 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], Device_Vendor_Identifier());
             break;
         case PROP_MODEL_NAME:
-            characterstring_init_ansi(&char_string, "GNU Demo");
+            characterstring_init_ansi(&char_string, Model_Name);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;

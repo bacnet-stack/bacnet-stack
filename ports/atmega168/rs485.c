@@ -26,17 +26,16 @@ static uint32_t RS485_Baud = 9600;
 static struct mstimer Silence_Timer;
 
 /* Public access to the Silence Timer */
-unsigned long Timer_Silence(void)
+unsigned long RS485_Timer_Silence(void)
 {
     return mstimer_elapsed(&Silence_Timer);
 }
 
 /* Public reset of the Silence Timer */
-void Timer_Silence_Reset(void)
+void RS485_Timer_Silence_Reset(void)
 {
     mstimer_set(&Silence_Timer, 0);
 }
-
 
 /****************************************************************************
  * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
@@ -177,7 +176,7 @@ void RS485_Send_Data(const uint8_t *buffer, uint16_t nbytes)
     /* Clear the Transmit Complete flag by writing a one to it. */
     BIT_SET(UCSR0A, TXC0);
     /* per MSTP spec, sort of */
-    Timer_Silence_Reset();
+    RS485_Timer_Silence_Reset();
 }
 
 /****************************************************************************

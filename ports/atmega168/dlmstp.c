@@ -287,10 +287,10 @@ static void MSTP_Receive_Frame_FSM(void)
              */
             if (RS485_ReceiveError()) {
                 /* EatAnError */
-                Timer_Silence_Reset();
+                RS485_Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
             } else if (RS485_DataAvailable(&DataRegister)) {
-                Timer_Silence_Reset();
+                RS485_Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
                 if (DataRegister == 0x55) {
                     /* Preamble1 */
@@ -302,19 +302,19 @@ static void MSTP_Receive_Frame_FSM(void)
         case MSTP_RECEIVE_STATE_PREAMBLE:
             /* In the PREAMBLE state, the node waits for the
                second octet of the preamble. */
-            if (Timer_Silence() > Tframe_abort) {
+            if (RS485_Timer_Silence() > Tframe_abort) {
                 /* Timeout */
                 /* a correct preamble has not been received */
                 /* wait for the start of a frame. */
                 Receive_State = MSTP_RECEIVE_STATE_IDLE;
             } else if (RS485_ReceiveError()) {
                 /* Error */
-                Timer_Silence_Reset();
+                RS485_Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
                 /* wait for the start of a frame. */
                 Receive_State = MSTP_RECEIVE_STATE_IDLE;
             } else if (RS485_DataAvailable(&DataRegister)) {
-                Timer_Silence_Reset();
+                RS485_Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
                 if (DataRegister == 0xFF) {
                     /* Preamble2 */
@@ -336,7 +336,7 @@ static void MSTP_Receive_Frame_FSM(void)
         case MSTP_RECEIVE_STATE_HEADER:
             /* In the HEADER state, the node waits for the fixed message header.
              */
-            if (Timer_Silence() > Tframe_abort) {
+            if (RS485_Timer_Silence() > Tframe_abort) {
                 /* Timeout */
                 /* indicate that an error has occurred during the reception of a
                  * frame */
@@ -345,7 +345,7 @@ static void MSTP_Receive_Frame_FSM(void)
                 Receive_State = MSTP_RECEIVE_STATE_IDLE;
             } else if (RS485_ReceiveError()) {
                 /* Error */
-                Timer_Silence_Reset();
+                RS485_Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
                 /* indicate that an error has occurred during the reception of a
                  * frame */
@@ -353,7 +353,7 @@ static void MSTP_Receive_Frame_FSM(void)
                 /* wait for the start of a frame. */
                 Receive_State = MSTP_RECEIVE_STATE_IDLE;
             } else if (RS485_DataAvailable(&DataRegister)) {
-                Timer_Silence_Reset();
+                RS485_Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
                 if (Index == 0) {
                     /* FrameType */
@@ -438,7 +438,7 @@ static void MSTP_Receive_Frame_FSM(void)
         case MSTP_RECEIVE_STATE_DATA:
             /* In the DATA state, the node waits for the data portion of a
              * frame. */
-            if (Timer_Silence() > Tframe_abort) {
+            if (RS485_Timer_Silence() > Tframe_abort) {
                 /* Timeout */
                 /* indicate that an error has occurred during the reception of a
                  * frame */
@@ -447,7 +447,7 @@ static void MSTP_Receive_Frame_FSM(void)
                 Receive_State = MSTP_RECEIVE_STATE_IDLE;
             } else if (RS485_ReceiveError()) {
                 /* Error */
-                Timer_Silence_Reset();
+                RS485_Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
                 /* indicate that an error has occurred during
                    the reception of a frame */
@@ -455,7 +455,7 @@ static void MSTP_Receive_Frame_FSM(void)
                 /* wait for the start of the next frame. */
                 Receive_State = MSTP_RECEIVE_STATE_IDLE;
             } else if (RS485_DataAvailable(&DataRegister)) {
-                Timer_Silence_Reset();
+                RS485_Timer_Silence_Reset();
                 INCREMENT_AND_LIMIT_UINT8(EventCount);
                 if (Index < DataLength) {
                     /* DataOctet */
@@ -548,7 +548,7 @@ static bool MSTP_Master_Node_FSM(void)
             break;
         case MSTP_MASTER_STATE_IDLE:
             /* In the IDLE state, the node waits for a frame. */
-            if (Timer_Silence() >= Tno_token) {
+            if (RS485_Timer_Silence() >= Tno_token) {
                 /* LostToken */
                 /* assume that the token has been lost */
                 EventCount = 0; /* Addendum 135-2004d-8 */
@@ -645,7 +645,7 @@ static bool MSTP_Master_Node_FSM(void)
         case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
             /* In the WAIT_FOR_REPLY state, the node waits for  */
             /* a reply from another node. */
-            if (Timer_Silence() >= Treply_timeout) {
+            if (RS485_Timer_Silence() >= Treply_timeout) {
                 /* ReplyTimeout */
                 /* assume that the request has failed */
                 FrameCount = Nmax_info_frames;
@@ -793,7 +793,7 @@ static bool MSTP_Master_Node_FSM(void)
             /* The PASS_TOKEN state listens for a successor to begin using */
             /* the token that this node has just attempted to pass. */
         case MSTP_MASTER_STATE_PASS_TOKEN:
-            if (Timer_Silence() <= Tusage_timeout) {
+            if (RS485_Timer_Silence() <= Tusage_timeout) {
                 if (EventCount > Nmin_octets) {
                     /* SawTokenUser */
                     /* Assume that a frame has been sent by the new token user.
@@ -838,7 +838,7 @@ static bool MSTP_Master_Node_FSM(void)
             /* whether or not this node may create a token. */
         case MSTP_MASTER_STATE_NO_TOKEN:
             my_timeout = Tno_token + (Tslot * This_Station);
-            if (Timer_Silence() < my_timeout) {
+            if (RS485_Timer_Silence() < my_timeout) {
                 if (EventCount > Nmin_octets) {
                     /* SawFrame */
                     /* Some other node exists at a lower address.  */
@@ -849,7 +849,7 @@ static bool MSTP_Master_Node_FSM(void)
                 }
             } else {
                 ns_timeout = Tno_token + (Tslot * (This_Station + 1));
-                if (Timer_Silence() < ns_timeout) {
+                if (RS485_Timer_Silence() < ns_timeout) {
                     /* GenerateToken */
                     /* Assume that this node is the lowest numerical address  */
                     /* on the network and is empowered to create a token.  */
@@ -896,7 +896,7 @@ static bool MSTP_Master_Node_FSM(void)
                     transition_now = true;
                 }
                 MSTP_Flag.ReceivedValidFrame = false;
-            } else if ((Timer_Silence() > Tusage_timeout) ||
+            } else if ((RS485_Timer_Silence() > Tusage_timeout) ||
                 (MSTP_Flag.ReceivedInvalidFrame == true)) {
                 if (MSTP_Flag.SoleMaster == true) {
                     /* SoleMaster */

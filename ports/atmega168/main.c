@@ -28,9 +28,6 @@ static uint8_t Address_Switch;
 /* main loop task timer */
 static struct mstimer Task_Timer;
 
-/* For porting to IAR, see:
-   http://www.avrfreaks.net/wiki/index.php/Documentation:AVR_GCC/IarToAvrgcc*/
-
 /* dummy function - so we can use default demo handlers */
 bool dcc_communication_enabled(void)
 {
@@ -47,6 +44,54 @@ static void led_init(void)
     BIT_SET(DDRB, PB5);
     /* Turn off the LED */
     BIT_CLEAR(PORTB, PB5);
+}
+
+/**
+ * Initialize the DIP switch for the MAC address
+ *
+ * MS/TP MAC Address DIP Switch 0-127
+ *
+ *      Port  Address
+ *      ------ -------
+ *      PC0       1
+ *      PC1       2
+ *      PC2       4
+ *      PC3       8
+ *      PB0      16
+ *      PB1      32
+ *      PB2      64
+ */
+static void input_switch_init(void)
+{
+    /* Configure the DIP switch pins as inputs */
+    BIT_CLEAR(DDRC, DDC0);
+    BIT_CLEAR(DDRC, DDC1);
+    BIT_CLEAR(DDRC, DDC2);
+    BIT_CLEAR(DDRC, DDC3);
+    BIT_CLEAR(DDRB, DDB0);
+    BIT_CLEAR(DDRB, DDB1);
+    BIT_CLEAR(DDRB, DDB2);
+    /* activate the internal pull up resistors */
+    BIT_SET(PORTC, PORTC0);
+    BIT_SET(PORTC, PORTC1);
+    BIT_SET(PORTC, PORTC2);
+    BIT_SET(PORTC, PORTC3);
+    BIT_SET(PORTB, PORTB0);
+    BIT_SET(PORTB, PORTB1);
+    BIT_SET(PORTB, PORTB2);
+}
+
+/**
+ * Read the MAC address from the DIP switch.
+ */
+static uint8_t input_swtich_value(void)
+{
+    uint8_t value;
+
+    value = BITMASK_CHECK(PINC, 0x0F);
+    value |= (BITMASK_CHECK(PINB, 0x07) << 4);
+
+    return value;
 }
 
 static void hardware_init(void)
@@ -88,6 +133,7 @@ static void hardware_init(void)
     RS485_Initialize();
     mstimer_init();
     led_init();
+    input_switch_init();
 
     /* Enable global interrupts */
     __enable_interrupt();
@@ -101,22 +147,9 @@ static void input_switch_read(void)
     uint8_t value;
     static uint8_t old_value = 0;
 
-    /*
-       MS/TP MAC Address DIP Switch 0-127
-
-       Port  Address
-       ------ -------
-       PC0       1
-       PC1       2
-       PC2       4
-       PC3       8
-       PB0      16
-       PB1      32
-       PB2      64
-    */
-    value = BITMASK_CHECK(PINC, 0x0F);
-    value |= (BITMASK_CHECK(PINB, 0x07) << 4);
+    value = input_swtich_value();
     if (value != old_value) {
+        /* simplistic two-cycle debounce */
         old_value = value;
     } else {
         if (old_value != Address_Switch) {

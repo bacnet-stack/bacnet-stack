@@ -72,6 +72,7 @@ void handler_read_property(uint8_t *service_request,
     int ack_len = 0;
     int property_len = 0;
     int pdu_len = 0;
+    int ack_end_len = 0;
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
@@ -95,12 +96,13 @@ void handler_read_property(uint8_t *service_request,
             service_data->invoke_id, ABORT_REASON_OTHER, true);
         goto RP_ABORT;
     }
-    /* most cases will be error */
+    /* default case will be error */
     ack_len = rp_ack_encode_apdu_init(
         &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
+    ack_end_len = rp_ack_encode_apdu_object_property_end(NULL);
     data.application_data = &Handler_Transmit_Buffer[pdu_len + ack_len];
     data.application_data_len = sizeof(Handler_Transmit_Buffer) -
-        (pdu_len + ack_len);
+        (pdu_len + ack_len + ack_end_len);
     data.error_class = ERROR_CLASS_OBJECT;
     data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
     property_len = Encode_Property_APDU(&data);

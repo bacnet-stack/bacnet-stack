@@ -14,9 +14,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    unsigned long Timer_Silence(void);
+    unsigned long RS485_Timer_Silence(void);
 
-    void Timer_Silence_Reset(void);
+    void RS485_Timer_Silence_Reset(void);
 
     void RS485_Initialize(
         void);
