@@ -37,7 +37,7 @@ bool dcc_communication_enabled(void)
 }
 
 /**
- * Configure the RS485 transceiveer board LED
+ * Configure the RS485 transceiver board LED
  */
 static void led_init(void)
 {
@@ -46,6 +46,76 @@ static void led_init(void)
     BIT_SET(DDRB, PB5);
     /* Turn off the LED */
     BIT_CLEAR(PORTB, PB5);
+}
+
+/**
+ * Configure some Arduino digital pins as outputs
+ */
+static void digital_output_init(void)
+{
+    /* Configure the D11 pin as an output */
+    BIT_CLEAR(PORTB, PB3);
+    BIT_SET(DDRB, PB3);
+    /* Turn off the D11 */
+    BIT_CLEAR(PORTB, PB3);
+
+    /* Configure the D12 pin as an output */
+    BIT_CLEAR(PORTB, PB4);
+    BIT_SET(DDRB, PB4);
+    /* Turn off the D12 */
+    BIT_CLEAR(PORTB, PB4);
+}
+
+/**
+ * Control the Arduino board digital outputs
+ */
+static void digital_output_set(uint8_t index, bool state)
+{
+    switch (index) {
+        case 11:
+            if (state) {
+                BIT_SET(PORTB, PB3);
+            } else {
+                BIT_CLEAR(PORTB, PB3);
+            }
+            break;
+        case 12:
+            if (state) {
+                BIT_SET(PORTB, PB4);
+            } else {
+                BIT_CLEAR(PORTB, PB4);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * Configure some Arduino digital pins as inputs
+ */
+static void digital_input_init(void)
+{
+    /* Configure the D3 pin as an input */
+    BIT_CLEAR(DDRD, DDD3);
+}
+
+/**
+ * Read the MAC address from the DIP switch.
+ */
+static bool digital_input_value(uint8_t index)
+{
+    bool value = false;
+
+    switch (index) {
+        case 3:
+            value = BIT_CHECK(PIND, PIND3);
+            break;
+        default:
+            break;
+    }
+
+    return value;
 }
 
 /**
@@ -136,6 +206,8 @@ static void hardware_init(void)
     mstimer_init();
     led_init();
     input_switch_init();
+    digital_output_init();
+    digital_input_init();
     adc_init();
 
     /* Enable global interrupts */
@@ -179,12 +251,13 @@ static void led_set(bool state)
 }
 
 /**
- * @brief process the outputs
+ * @brief process the outputs once per second
  */
 static void binary_value_process(void)
 {
     BACNET_BINARY_PV value;
 
+    /* LED toggling */
     value = Binary_Value_Present_Value(0);
     if (value == BINARY_ACTIVE) {
         value = BINARY_INACTIVE;
@@ -192,6 +265,21 @@ static void binary_value_process(void)
         value = BINARY_ACTIVE;
     }
     Binary_Value_Present_Value_Set(0, value);
+}
+
+/**
+ * @brief read the Arduino Digital inputs
+ */
+static void digital_input_read(void)
+{
+    BACNET_BINARY_PV value;
+
+    if (digital_input_value(3)) {
+        value = BINARY_ACTIVE;
+    } else {
+        value = BINARY_INACTIVE;
+    }
+    Binary_Value_Present_Value_Set(3, value);
 }
 
 /**
@@ -206,6 +294,18 @@ static void binary_value_write(void)
         led_set(true);
     } else {
         led_set(false);
+    }
+    value = Binary_Value_Present_Value(1);
+    if (value == BINARY_ACTIVE) {
+        digital_output_set(11, true);
+    } else {
+        digital_output_set(11, false);
+    }
+    value = Binary_Value_Present_Value(2);
+    if (value == BINARY_ACTIVE) {
+        digital_output_set(12, true);
+    } else {
+        digital_output_set(12, false);
     }
 }
 
@@ -309,6 +409,7 @@ int main(void)
         /* input */
         input_switch_read();
         analog_values_read();
+        digital_input_read();
         /* process */
         if (mstimer_expired(&Task_Timer)) {
             mstimer_reset(&Task_Timer);

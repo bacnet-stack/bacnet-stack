@@ -10,46 +10,47 @@ The Arduino Uno R3 platform for this example uses the following peripherals:
 
 ### Arduino Uno V3 Pin Mapping
 
-| ATmega328p  | Arduino     | RS485 DFR0259
-|:------------|:------------|:------------
-| NC          | NC          |
-| +5V         | IOREF       |
-| RESET       | RESET       | RST BUTTON
-| +3V3        | +3V3        |
-| +5V         | +5V         | +5V
-| GND         | GND         | GND
-| GND         | GND         | GND
-| VIN         | VIN         |
-|             |             |
-| ADC0/PC0    | A0          | Analog Value 0
-| ADC1/PC1    | A1          | Analog Value 0
-| ADC2/PC2    | A2          | Analog Value 0
-| ADC3/PC3    | A3          | Analog Value 0
-| ADC4/PC4    | A4*         |
-| ADC5/PC5    | A5*         |
-|             |             |
-| ADC5/PC5    | SCL*        | I2C
-| ADC4/PC4    | SDA*        | I2C
-| AVDD        | AREF        |
-| GND         | GND         |
-| SCK/PB5     | D13         | LED-L ANODE (+) (DFR0259)
-| MISO/PB4    | D12         |
-| MOSI/PB3    | D11         |
-| SS/PB2      | D10         | DIPSW-7 MS/TP MAC
-| OC1/PB1     | D9          | DIPSW-6 MS/TP MAC
-| ICP/PB0     | D8          | DIPSW-5 MS/TP MAC
-|             |             |
-| AIN1/PD7    | D7          | DIPSW-4 MS/TP MAC
-| AIN0/PD6    | D6          | DIPSW-3 MS/TP MAC
-| T1/PD5      | D5          | DIPSW-2 MS/TP MAC
-| T0/PD4      | D4          | DIPSW-1 MS/TP MAC
-| INT1/PD3    | D3          |
-| INT0/PD2    | D2          | CE (DFR0259)
-| TXD/PD1     | D1/Tx       | TXD (DFR0259)
-| RXD/PD0     | D0/Rx       | RXD (DFR0259)
+| ATmega328p  | Arduino     | RS485 DFR0259  | BACnet Object   |
+|:------------|:------------|:---------------|:----------------|
+| NC          | NC          |                |                 |
+| +5V         | IOREF       |                |                 |
+| RESET       | RESET       | RST BUTTON     |                 |
+| +3V3        | +3V3        |                |                 |
+| +5V         | +5V         | +5V            |                 |
+| GND         | GND         | GND            |                 |
+| GND         | GND         | GND            |                 |
+| VIN         | VIN         |                |                 |
+|             |             |                |                 |
+| ADC0/PC0    | A0          |                | AV 0 Millivolts |
+| ADC1/PC1    | A1          |                | AV 1 Millivolts |
+| ADC2/PC2    | A2          |                | AV 2 Millivolts |
+| ADC3/PC3    | A3          |                | AV 3 Millivolts |
+| ADC4/PC4    | A4*         |                |                 |
+| ADC5/PC5    | A5*         |                |                 |
+|             |             |                |                 |
+| ADC5/PC5    | SCL*        | I2C            |                 |
+| ADC4/PC4    | SDA*        | I2C            |                 |
+| AVDD        | AREF        |                |                 |
+| GND         | GND         |                |                 |
+| SCK/PB5     | D13         | LED-L ANODE (+)| BV 0 (output)   |
+| MISO/PB4    | D12         |                | BV 2 (output)   |
+| MOSI/PB3    | D11         |                | BV 1 (output)   |
+| SS/PB2      | D10         | DIPSW-7        | MS/TP MAC-7     |
+| OC1/PB1     | D9          | DIPSW-6        | MS/TP MAC-6     |
+| ICP/PB0     | D8          | DIPSW-5        | MS/TP MAC-5     |
+|             |             |                |                 |
+| AIN1/PD7    | D7          | DIPSW-4        | MS/TP MAC-4     |
+| AIN0/PD6    | D6          | DIPSW-3        | MS/TP MAC-3     |
+| T1/PD5      | D5          | DIPSW-2        | MS/TP MAC       |
+| T0/PD4      | D4          | DIPSW-1        | MS/TP MAC       |
+| INT1/PD3    | D3          |                | BV 3 (input)    |
+| INT0/PD2    | D2          | CE DE /RE RTS  | RS485           |
+| TXD/PD1     | D1/Tx**     | TXD            | RS485           |
+| RXD/PD0     | D0/Rx**     | RXD            | RS485           |
 
 * ADC4/PC4: A4 and SDA are shared I/O
 * ADC5/PC5: A5 and SCL are shared I/O
+** shared with Uno R3 USB Tx/Rx. DFR0259 has switch to disable.
 
 ### Building this Project
 
@@ -87,7 +88,7 @@ Keep this in mind when developing.
 ##### Shield option
 
 The DFR0259 shield for RS485 was used, but any RS485 circuit could be
-attached to the Arduino Uno R3 using the same pins for Tx, Rx, CE/RE/DE/RTS.
+attached to the Arduino Uno R3 using the same pins for Tx, Rx, CE RE/DE RTS.
 
 A 7-position DIP switch was connected to GPIO for the MS/TP MAC address,
 but the value could also be stored in EEPROM.
