@@ -1,24 +1,29 @@
-/**************************************************************************
- *
- * Copyright (C) 2007 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @brief This module manages the common IAR and GCC compiler differences
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #ifndef IAR2GCC_H
 #define IAR2GCC_H
 
+#if !defined(F_CPU)
+#error You must define F_CPU - clock frequency!
+#endif
 /* IAR */
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
 #include <inavr.h>
 #include <ioavr.h>
+#include <intrinsics.h>
+#include <stdint.h>
 /* BitValue is used alot in GCC examples */
 #ifndef _BV
 #define _BV(bit_num) (1 << (bit_num))
 #endif
 
 /* inline function */
-static inline void _delay_us(uint8_t microseconds)
+static inline void _delay_us(
+    uint8_t microseconds)
 {
     do {
         __delay_cycles(F_CPU / 1000000UL);
@@ -35,6 +40,24 @@ static inline void _delay_us(uint8_t microseconds)
 #define DDA6 DDRA6
 #define DDA7 DDRA7
 
+#define DDB0 DDRB0
+#define DDB1 DDRB1
+#define DDB2 DDRB2
+#define DDB3 DDRB3
+#define DDB4 DDRB4
+#define DDB5 DDRB5
+#define DDB6 DDRB6
+#define DDB7 DDRB7
+
+#define DDC0 DDRC0
+#define DDC1 DDRC1
+#define DDC2 DDRC2
+#define DDC3 DDRC3
+#define DDC4 DDRC4
+#define DDC5 DDRC5
+#define DDC6 DDRC6
+#define DDC7 DDRC7
+
 #define DDD0 DDRD0
 #define DDD1 DDRD1
 #define DDD2 DDRD2
@@ -44,7 +67,56 @@ static inline void _delay_us(uint8_t microseconds)
 #define DDD6 DDRD6
 #define DDD7 DDRD7
 #endif
+#endif
 
+#if defined(__GNUC__)
+#include <util/delay.h>
+#endif
+
+/* adjust some definitions to common versions */
+#if defined (__CROSSWORKS_AVR)
+#if (__TARGET_PROCESSOR == ATmega644P)
+#define PRR PRR0
+#define UBRR0 UBRR0W
+#define UBRR1 UBRR1W
+
+#define PA0 PORTA0
+#define PA1 PORTA1
+#define PA2 PORTA2
+#define PA3 PORTA3
+#define PA4 PORTA4
+#define PA5 PORTA5
+#define PA6 PORTA6
+#define PA7 PORTA7
+
+#define PB0 PORTB0
+#define PB1 PORTB1
+#define PB2 PORTB2
+#define PB3 PORTB3
+#define PB4 PORTB4
+#define PB5 PORTB5
+#define PB6 PORTB6
+#define PB7 PORTB7
+
+#define PC0 PORTC0
+#define PC1 PORTC1
+#define PC2 PORTC2
+#define PC3 PORTC3
+#define PC4 PORTC4
+#define PC5 PORTC5
+#define PC6 PORTC6
+#define PC7 PORTC7
+
+#define PD0 PORTD0
+#define PD1 PORTD1
+#define PD2 PORTD2
+#define PD3 PORTD3
+#define PD4 PORTD4
+#define PD5 PORTD5
+#define PD6 PORTD6
+#define PD7 PORTD7
+
+#endif
 #endif
 
 /* Input/Output Registers */
@@ -183,17 +255,18 @@ typedef struct {
 /* Interrupts */
 #if defined(__ICCAVR__)
 #define PRAGMA(x) _Pragma(#x)
-#define ISR(vec) PRAGMA(vector = vec) __interrupt void handler_##vec(void)
-#endif
-#if defined(__GNUC__)
+#define ISR(vec) \
+    /* function prototype for use with "require protoptypes" option.  */ \
+    PRAGMA( vector=vec ) __interrupt void handler_##vec(void); \
+    PRAGMA( vector=vec ) __interrupt void handler_##vec(void)
+#elif defined(__GNUC__)
 #include <avr/interrupt.h>
 #endif
 
 /* Flash */
 #if defined(__ICCAVR__)
 #define FLASH_DECLARE(x) __flash x
-#endif
-#if defined(__GNUC__)
+#elif defined(__GNUC__)
 #define FLASH_DECLARE(x) x __attribute__((__progmem__))
 #endif
 

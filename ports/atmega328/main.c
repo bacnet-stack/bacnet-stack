@@ -1,15 +1,15 @@
-/**************************************************************************
- *
- * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
-
+/**
+ * @brief This module manages the main C code for the BACnet demo
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
+#include "adc.h"
 #include "rs485.h"
+#include "stack.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/npdu.h"
 #include "bacnet/dcc.h"
@@ -27,6 +27,8 @@ extern bool Send_I_Am_Flag;
 static uint8_t Address_Switch;
 /* main loop task timer */
 static struct mstimer Task_Timer;
+/* uptime */
+static float Uptime_Seconds;
 
 /* dummy function - so we can use default demo handlers */
 bool dcc_communication_enabled(void)
@@ -64,18 +66,18 @@ static void led_init(void)
 static void input_switch_init(void)
 {
     /* Configure the DIP switch pins as inputs */
-    BIT_CLEAR(DDRC, DDC0);
-    BIT_CLEAR(DDRC, DDC1);
-    BIT_CLEAR(DDRC, DDC2);
-    BIT_CLEAR(DDRC, DDC3);
+    BIT_CLEAR(DDRD, DDD4);
+    BIT_CLEAR(DDRD, DDD5);
+    BIT_CLEAR(DDRD, DDD6);
+    BIT_CLEAR(DDRD, DDD7);
     BIT_CLEAR(DDRB, DDB0);
     BIT_CLEAR(DDRB, DDB1);
     BIT_CLEAR(DDRB, DDB2);
     /* activate the internal pull up resistors */
-    BIT_SET(PORTC, PORTC0);
-    BIT_SET(PORTC, PORTC1);
-    BIT_SET(PORTC, PORTC2);
-    BIT_SET(PORTC, PORTC3);
+    BIT_SET(PORTD, PORTD0);
+    BIT_SET(PORTD, PORTD1);
+    BIT_SET(PORTD, PORTD2);
+    BIT_SET(PORTD, PORTD3);
     BIT_SET(PORTB, PORTB0);
     BIT_SET(PORTB, PORTB1);
     BIT_SET(PORTB, PORTB2);
@@ -88,7 +90,7 @@ static uint8_t input_swtich_value(void)
 {
     uint8_t value;
 
-    value = BITMASK_CHECK(PINC, 0x0F);
+    value = BITMASK_CHECK(PIND, 0xF0) >> 4;
     value |= (BITMASK_CHECK(PINB, 0x07) << 4);
 
     return value;
@@ -134,6 +136,7 @@ static void hardware_init(void)
     mstimer_init();
     led_init();
     input_switch_init();
+    adc_init();
 
     /* Enable global interrupts */
     __enable_interrupt();
@@ -176,27 +179,100 @@ static void led_set(bool state)
 }
 
 /**
- * Write to outputs from the Present_Value of the Binary Value.
+ * @brief process the outputs
  */
-static void output_io_write(void)
+static void binary_value_process(void)
 {
     BACNET_BINARY_PV value;
 
-    if (mstimer_expired(&Task_Timer)) {
-        mstimer_reset(&Task_Timer);
-        value = Binary_Value_Present_Value(0);
-        if (value == BINARY_ACTIVE) {
-            value = BINARY_INACTIVE;
-        } else {
-            value = BINARY_ACTIVE;
-        }
-        Binary_Value_Present_Value_Set(0, value);
-        if (value == BINARY_ACTIVE) {
-            led_set(true);
-        } else {
-            led_set(false);
-        }
+    value = Binary_Value_Present_Value(0);
+    if (value == BINARY_ACTIVE) {
+        value = BINARY_INACTIVE;
+    } else {
+        value = BINARY_ACTIVE;
     }
+    Binary_Value_Present_Value_Set(0, value);
+}
+
+/**
+ * Write to outputs from the Present_Value of the Binary Value.
+ */
+static void binary_value_write(void)
+{
+    BACNET_BINARY_PV value;
+
+    value = Binary_Value_Present_Value(0);
+    if (value == BINARY_ACTIVE) {
+        led_set(true);
+    } else {
+        led_set(false);
+    }
+}
+
+/**
+ * Read ADC and update the Present_Value of the Analog Value.
+ */
+static void analog_values_read(void)
+{
+    static unsigned process_counter = 0;
+    float value;
+
+    switch (process_counter) {
+        case 0:
+            /* initializing */
+            adc_enable(0);
+            Analog_Value_Name_Set(0, "ADC0");
+            Analog_Value_Units_Set(0, UNITS_MILLIVOLTS);
+            adc_enable(1);
+            Analog_Value_Name_Set(1, "ADC1");
+            Analog_Value_Units_Set(1, UNITS_MILLIVOLTS);
+            adc_enable(2);
+            Analog_Value_Name_Set(2, "ADC2");
+            Analog_Value_Units_Set(2, UNITS_MILLIVOLTS);
+            adc_enable(3);
+            Analog_Value_Name_Set(3, "ADC3");
+            Analog_Value_Units_Set(3, UNITS_MILLIVOLTS);
+            Analog_Value_Name_Set(4, "CStack Size");
+            Analog_Value_Units_Set(4, UNITS_PERCENT);
+            Analog_Value_Name_Set(5, "CStack Unused");
+            Analog_Value_Units_Set(5, UNITS_PERCENT);
+            break;
+        case 1:
+            value = adc_millivolts(0);
+            Analog_Value_Present_Value_Set(0, value, 0);
+            process_counter++;
+            break;
+        case 2:
+            value = adc_millivolts(1);
+            Analog_Value_Present_Value_Set(1, value, 0);
+            process_counter++;
+            break;
+        case 3:
+            value = adc_millivolts(2);
+            Analog_Value_Present_Value_Set(2, value, 0);
+            process_counter++;
+            break;
+        case 4:
+            value = adc_millivolts(3);
+            Analog_Value_Present_Value_Set(3, value, 0);
+            process_counter++;
+            break;
+        case 5:
+            value = stack_size();
+            Analog_Value_Present_Value_Set(4, value, 0);
+            process_counter++;
+            break;
+        case 6:
+            value = stack_unused();
+            Analog_Value_Present_Value_Set(5, value, 0);
+            process_counter++;
+            break;
+        default:
+            process_counter = 1;
+            break;
+    }
+    value = process_counter;
+    Analog_Value_Present_Value_Set(9, value, 0);
 }
 
 /**
@@ -223,11 +299,25 @@ int main(void)
     dlmstp_set_max_master(127);
     dlmstp_set_max_info_frames(1);
     dlmstp_init(NULL);
+    Analog_Value_Name_Set(6, "Uptime Seconds");
+    Analog_Value_Units_Set(6, UNITS_SECONDS);
+    Analog_Value_Name_Set(7, "MCU Frequency");
+    Analog_Value_Units_Set(7, UNITS_HERTZ);
+    Analog_Value_Present_Value_Set(7, F_CPU, 0);
     mstimer_set(&Task_Timer, 1000);
     for (;;) {
+        /* input */
         input_switch_read();
-        output_io_write();
-        /* other tasks */
+        analog_values_read();
+        /* process */
+        if (mstimer_expired(&Task_Timer)) {
+            mstimer_reset(&Task_Timer);
+            Uptime_Seconds += 1.0;
+            Analog_Value_Present_Value_Set(6, Uptime_Seconds, 0);
+            binary_value_process();
+        }
+        /* output */
+        binary_value_write();
         /* BACnet handling */
         pdu_len = dlmstp_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);
         if (pdu_len) {

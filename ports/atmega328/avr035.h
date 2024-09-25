@@ -1,7 +1,12 @@
+/**
+ * @brief This module manages effective C bit manipulation for AVR
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
+ * @note From AVR035: Efficient C Coding for AVR
+ */
 #ifndef AVR035_H
 #define AVR035_H
-
-/* from AVR035: Efficient C Coding for AVR */
 
 /* a=register, b=bit number to act upon */
 #define BIT_SET(a, b) ((a) |= (1 << (b)))

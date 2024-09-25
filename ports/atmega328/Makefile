@@ -38,6 +38,7 @@ BACNET_BASIC = $(BACNET_CORE)/basic
 
 # local files for this project
 CSRC = main.c \
+	adc.c \
 	timer.c \
 	stack.c \
 	rs485.c \

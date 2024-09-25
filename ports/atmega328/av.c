@@ -1,13 +1,9 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
-
-/* Analog Value Objects - customize for your use */
-
+/**
+ * @brief This module manages the BACnet Analog Value objects
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
@@ -23,11 +19,16 @@
 #define MAX_ANALOG_VALUES 10
 #endif
 
-#if (MAX_ANALOG_VALUES > 10)
-#error Modify the Analog_Value_Name to handle multiple digits
-#endif
-
-float AV_Present_Value[MAX_ANALOG_VALUES];
+static float Present_Value[MAX_ANALOG_VALUES];
+static const char *Object_Name[MAX_ANALOG_VALUES] = {
+    "AV-0", "AV-1", "AV-2", "AV-3", "AV-4",
+    "AV-5", "AV-6", "AV-7", "AV-8", "AV-9"
+};
+static uint16_t Engineering_Units[MAX_ANALOG_VALUES] = {
+    UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS,
+    UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS, UNITS_NO_UNITS,
+    UNITS_NO_UNITS, UNITS_NO_UNITS
+};
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
@@ -64,15 +65,82 @@ unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
     return object_instance;
 }
 
-/* note: the object name must be unique within this device */
-char *Analog_Value_Name(uint32_t object_instance)
+/**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Analog_Value_Name_Set(uint32_t object_instance, const char *value)
 {
-    static char text_string[5] = "AV-"; /* okay for single thread */
+    if (object_instance < MAX_ANALOG_VALUES) {
+        Object_Name[object_instance] = value;
+    }
 
-    text_string[3] = '0' + (uint8_t)object_instance;
-
-    return text_string;
+    return true;
 }
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Analog_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *object_name = "AV-X";
+
+    if (object_instance < MAX_ANALOG_VALUES) {
+        object_name = Object_Name[object_instance];
+    }
+
+    return object_name;
+}
+
+float Analog_Value_Present_Value(uint32_t object_instance)
+{
+    float value = 0.0;
+
+    if (object_instance < MAX_ANALOG_VALUES) {
+        value = Present_Value[object_instance];
+    }
+
+    return value;
+}
+
+bool Analog_Value_Present_Value_Set(uint32_t object_instance, float value,
+    uint8_t priority)
+{
+    (void)priority;
+    if (object_instance < MAX_ANALOG_VALUES) {
+        Present_Value[object_instance] = value;
+    }
+
+    return true;
+}
+
+uint16_t Analog_Value_Units(uint32_t instance)
+{
+    uint16_t units = UNITS_NO_UNITS;
+
+    if (instance < MAX_ANALOG_VALUES) {
+        units = Engineering_Units[instance];
+    }
+
+    return units;
+}
+
+bool Analog_Value_Units_Set(uint32_t instance, uint16_t unit)
+{
+    if (instance < MAX_ANALOG_VALUES) {
+        Engineering_Units[instance] = unit;
+        return true;
+    }
+
+    return false;
+}
+
 
 /* return apdu len, or -1 on error */
 int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
@@ -80,7 +148,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    unsigned object_index;
     uint8_t *apdu;
 
     apdu = rpdata->application_data;
@@ -91,7 +158,7 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             characterstring_init_ansi(
-                &char_string, Analog_Value_Name(rpdata->object_instance));
+                &char_string, Analog_Value_Name_ASCII(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -100,10 +167,9 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], OBJECT_ANALOG_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            object_index =
-                Analog_Value_Instance_To_Index(rpdata->object_instance);
             apdu_len = encode_application_real(
-                &apdu[0], AV_Present_Value[object_index]);
+                &apdu[0], Analog_Value_Present_Value(
+                rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -121,7 +187,8 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(&apdu[0], false);
             break;
         case PROP_UNITS:
-            apdu_len = encode_application_enumerated(&apdu[0], UNITS_PERCENT);
+            apdu_len = encode_application_enumerated(&apdu[0],
+                Analog_Value_Units(rpdata->object_instance));
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -143,7 +210,6 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
@@ -172,10 +238,18 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             if (value.tag == BACNET_APPLICATION_TAG_REAL) {
-                object_index =
-                    Analog_Value_Instance_To_Index(wp_data->object_instance);
-                AV_Present_Value[object_index] = value.type.Real;
-                status = true;
+                status = Analog_Value_Present_Value_Set(
+                    wp_data->object_instance, value.type.Real,
+                    wp_data->priority);
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_UNITS:
+            if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
+                status = Analog_Value_Units_Set(
+                    wp_data->object_instance, value.type.Enumerated);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;

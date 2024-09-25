@@ -1,5 +1,5 @@
 /**
- * @brief This module is a 1 millisecond timer
+ * @brief This module handles the 1 millisecond timer for the mstimer library
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2007
  * @copyright SPDX-License-Identifier: MIT

@@ -1,14 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
-
-/* The module handles sending data out the RS-485 port */
-/* and handles receiving data from the RS-485 port. */
-/* Customize this file for your specific hardware */
+/**
+ * @brief The module handles sending data out the RS-485 port
+ * and handles receiving data from the RS-485 port.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>

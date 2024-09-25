@@ -21,10 +21,10 @@ The Arduino Uno R3 platform for this example uses the following peripherals:
 | GND         | GND         | GND
 | VIN         | VIN         |
 |             |             |
-| ADC0/PC0    | A0          | DIPSW-1 MS/TP MAC
-| ADC1/PC1    | A1          | DIPSW-2 MS/TP MAC
-| ADC2/PC2    | A2          | DIPSW-3 MS/TP MAC
-| ADC3/PC3    | A3          | DIPSW-4 MS/TP MAC
+| ADC0/PC0    | A0          | Analog Value 0
+| ADC1/PC1    | A1          | Analog Value 0
+| ADC2/PC2    | A2          | Analog Value 0
+| ADC3/PC3    | A3          | Analog Value 0
 | ADC4/PC4    | A4*         |
 | ADC5/PC5    | A5*         |
 |             |             |
@@ -39,10 +39,10 @@ The Arduino Uno R3 platform for this example uses the following peripherals:
 | OC1/PB1     | D9          | DIPSW-6 MS/TP MAC
 | ICP/PB0     | D8          | DIPSW-5 MS/TP MAC
 |             |             |
-| AIN1/PD7    | D7          |
-| AIN0/PD6    | D6          |
-| T1/PD5      | D5          | PWM+
-| T0/PD4      | D4          | PWM+
+| AIN1/PD7    | D7          | DIPSW-4 MS/TP MAC
+| AIN0/PD6    | D6          | DIPSW-3 MS/TP MAC
+| T1/PD5      | D5          | DIPSW-2 MS/TP MAC
+| T0/PD4      | D4          | DIPSW-1 MS/TP MAC
 | INT1/PD3    | D3          |
 | INT0/PD2    | D2          | CE (DFR0259)
 | TXD/PD1     | D1/Tx       | TXD (DFR0259)

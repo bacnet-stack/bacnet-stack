@@ -1,10 +1,9 @@
-/**************************************************************************
- *
- * Copyright (C) 2004 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @brief The module handles API for the RS-485 port
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #ifndef RS485_H
 #define RS485_H
 

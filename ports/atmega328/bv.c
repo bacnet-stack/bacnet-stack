@@ -1,13 +1,10 @@
-/**************************************************************************
+/**
+ * @brief This module manages the BACnet Binary Value objects
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: MIT
  *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
-
-/* Binary Value Objects - customize for your use */
-
+*/
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
