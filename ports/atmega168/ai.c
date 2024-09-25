@@ -29,8 +29,9 @@ float Present_Value[MAX_ANALOG_INPUTS];
 /* given instance exists */
 bool Analog_Input_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ANALOG_INPUTS)
+    if (object_instance < MAX_ANALOG_INPUTS) {
         return true;
+    }
 
     return false;
 }
@@ -67,7 +68,8 @@ char *Analog_Input_Name(uint32_t object_instance)
 
 /* return apdu length, or -1 on error */
 /* assumption - object has already exists */
-int Analog_Input_Encode_Property_APDU(uint8_t *apdu,
+int Analog_Input_Encode_Property_APDU(
+    uint8_t *apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     uint32_t array_index,

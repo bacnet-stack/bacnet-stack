@@ -34,8 +34,9 @@ float AV_Present_Value[MAX_ANALOG_VALUES];
 /* given instance exists */
 bool Analog_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ANALOG_VALUES)
+    if (object_instance < MAX_ANALOG_VALUES) {
         return true;
+    }
 
     return false;
 }

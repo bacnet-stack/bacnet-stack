@@ -33,8 +33,9 @@ static BACNET_BINARY_PV Present_Value[MAX_BINARY_VALUES];
 /* we simply have 0-n object instances. */
 bool Binary_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_BINARY_VALUES)
+    if (object_instance < MAX_BINARY_VALUES) {
         return true;
+    }
 
     return false;
 }
@@ -56,8 +57,9 @@ unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_VALUES;
 
-    if (object_instance < MAX_BINARY_VALUES)
+    if (object_instance < MAX_BINARY_VALUES) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -73,8 +75,8 @@ BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
     return value;
 }
 
-bool Binary_Value_Present_Value_Set(uint32_t object_instance,
-    BACNET_BINARY_PV value)
+bool Binary_Value_Present_Value_Set(
+    uint32_t object_instance, BACNET_BINARY_PV value)
 {
     bool status = false;
     if (object_instance < MAX_BINARY_VALUES) {

@@ -62,7 +62,8 @@ static int Encode_Property_APDU(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
-void handler_read_property(uint8_t *service_request,
+void handler_read_property(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -84,16 +85,17 @@ void handler_read_property(uint8_t *service_request,
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
         goto RP_ABORT;
     }
     len = rp_decode_service_request(service_request, service_len, &data);
     if (len < 0) {
         /* bad decoding - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_OTHER, true);
         goto RP_ABORT;
     }
     /* default case will be error */
@@ -101,8 +103,8 @@ void handler_read_property(uint8_t *service_request,
         &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
     ack_end_len = rp_ack_encode_apdu_object_property_end(NULL);
     data.application_data = &Handler_Transmit_Buffer[pdu_len + ack_len];
-    data.application_data_len = sizeof(Handler_Transmit_Buffer) -
-        (pdu_len + ack_len + ack_end_len);
+    data.application_data_len =
+        sizeof(Handler_Transmit_Buffer) - (pdu_len + ack_len + ack_end_len);
     data.error_class = ERROR_CLASS_OBJECT;
     data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
     property_len = Encode_Property_APDU(&data);
@@ -113,13 +115,13 @@ void handler_read_property(uint8_t *service_request,
     } else if (property_len == BACNET_STATUS_ABORT) {
         /* BACnet APDU too small to fit data,
            so proper response is Abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id,
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
     } else {
-        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
-            data.error_class, data.error_code);
+        len = bacerror_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            SERVICE_CONFIRMED_READ_PROPERTY, data.error_class, data.error_code);
     }
 RP_ABORT:
     pdu_len += len;

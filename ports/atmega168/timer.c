@@ -39,30 +39,30 @@ void mstimer_init(void)
 {
     /* Normal Operation */
     TCCR1A = 0;
-    /* CSn2 CSn1 CSn0 Description
-       ---- ---- ---- -----------
-       0    0    0  No Clock Source
-       0    0    1  No prescaling
-       0    1    0  CLKio/8
-       0    1    1  CLKio/64
-       1    0    0  CLKio/256
-       1    0    1  CLKio/1024
-       1    1    0  Falling Edge of T0 (external)
-       1    1    1  Rising Edge of T0 (external)
-     */
-    #if (TIMER0_PRESCALER == 1)
-        TCCR0B = _BV(CS00);
-    #elif (TIMER0_PRESCALER == 8)
-        TCCR0B = _BV(CS01);
-    #elif (TIMER0_PRESCALER == 64)
-        TCCR0B = _BV(CS01) | _BV(CS00);
-    #elif (TIMER0_PRESCALER == 256)
-        TCCR0B = _BV(CS02);
-    #elif (TIMER0_PRESCALER == 1024)
-        TCCR0B = _BV(CS02) | _BV(CS00);
-    #else
-    #error Timer0 Prescale: Invalid Value
-    #endif
+/* CSn2 CSn1 CSn0 Description
+   ---- ---- ---- -----------
+   0    0    0  No Clock Source
+   0    0    1  No prescaling
+   0    1    0  CLKio/8
+   0    1    1  CLKio/64
+   1    0    0  CLKio/256
+   1    0    1  CLKio/1024
+   1    1    0  Falling Edge of T0 (external)
+   1    1    1  Rising Edge of T0 (external)
+ */
+#if (TIMER0_PRESCALER == 1)
+    TCCR0B = _BV(CS00);
+#elif (TIMER0_PRESCALER == 8)
+    TCCR0B = _BV(CS01);
+#elif (TIMER0_PRESCALER == 64)
+    TCCR0B = _BV(CS01) | _BV(CS00);
+#elif (TIMER0_PRESCALER == 256)
+    TCCR0B = _BV(CS02);
+#elif (TIMER0_PRESCALER == 1024)
+    TCCR0B = _BV(CS02) | _BV(CS00);
+#else
+#error Timer0 Prescale: Invalid Value
+#endif
     /* Clear any TOV1 Flag set when the timer overflowed */
     BIT_CLEAR(TIFR0, TOV0);
     /* Initial value */
