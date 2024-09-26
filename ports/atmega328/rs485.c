@@ -74,6 +74,36 @@ uint32_t RS485_Get_Baud_Rate(void)
     return RS485_Baud;
 }
 
+/**
+* @brief Converts kili-baud to baud
+* @param baud_k - baud rate in approximate kilobaud
+* @return: baud rate in bps
+*/
+uint32_t RS485_Baud_Rate_From_Kilo(uint8_t baud_k)
+{
+    uint32_t baud = 0;
+
+    if (baud_k == 255) {
+        baud = 38400;
+    } else if (baud_k >= 115) {
+        baud = 115200;
+    } else if (baud_k >= 76) {
+        baud = 76800;
+    } else if (baud_k >= 57) {
+        baud = 57600;
+    } else if (baud_k >= 38) {
+        baud = 38400;
+    } else if (baud_k >= 19) {
+        baud = 19200;
+    } else if (baud_k >= 9) {
+        baud = 9600;
+    } else {
+        baud = 38400;
+    }
+
+    return baud;
+}
+
 /****************************************************************************
  * DESCRIPTION: Sets the baud rate for the chip USART
  * RETURN:      true if valid baud rate

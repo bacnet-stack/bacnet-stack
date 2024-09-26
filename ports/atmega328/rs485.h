@@ -31,6 +31,7 @@ bool RS485_DataAvailable(uint8_t *data);
 void RS485_Turnaround_Delay(void);
 uint32_t RS485_Get_Baud_Rate(void);
 bool RS485_Set_Baud_Rate(uint32_t baud);
+uint32_t RS485_Baud_Rate_From_Kilo(uint8_t baud_k);
 
 void RS485_LED_Timers(void);
 

@@ -45,6 +45,8 @@ CSRC = main.c \
 	dlmstp.c \
 	apdu.c \
 	h_rp.c \
+	eeprom.c \
+	nvdata.c \
 	device.c \
 	av.c \
 	bv.c \

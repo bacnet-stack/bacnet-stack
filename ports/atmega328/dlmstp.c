@@ -1,5 +1,5 @@
 /**
- * @brief This module manages the BACnet Device object
+ * @brief This module manages the BACnet MS/TP datalink layer
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2007
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0

@@ -28,9 +28,26 @@
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number = 260001;
-static char Object_Name[20] = "AVR Device";
+static char Object_Name[30] = "AVR Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static const char *Model_Name = "ATmega328 Uno R3 Device";
+
+bool Device_Object_Name_ANSI_Init(const char *object_name)
+{
+    bool status = false; /* return value */
+
+    if (object_name) {
+        status = true;
+        strncpy(Object_Name, object_name, sizeof(Object_Name));
+    }
+
+    return status;
+}
+
+char *Device_Object_Name_ANSI(void)
+{
+    return Object_Name;
+}
 
 /* methods to manipulate the data */
 uint32_t Device_Object_Instance_Number(void)
@@ -392,7 +409,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
                 encoding =
                     characterstring_encoding(&value.type.Character_String);
-                if (encoding == CHARACTER_ANSI_X34) {
+                if (encoding == CHARACTER_UTF8) {
                     if (characterstring_ansi_copy(
                             &Object_Name[0], sizeof(Object_Name),
                             &value.type.Character_String)) {

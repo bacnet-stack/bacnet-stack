@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include "hardware.h"
 #include "adc.h"
+#include "nvdata.h"
 #include "rs485.h"
 #include "stack.h"
 #include "bacnet/datalink/datalink.h"
@@ -23,8 +24,6 @@
 
 /* From the WhoIs hander - performed by the DLMSTP module */
 extern bool Send_I_Am_Flag;
-/* MS/TP MAC Address */
-static uint8_t Address_Switch;
 /* main loop task timer */
 static struct mstimer Task_Timer;
 /* uptime */
@@ -118,54 +117,6 @@ static bool digital_input_value(uint8_t index)
     return value;
 }
 
-/**
- * Initialize the DIP switch for the MAC address
- *
- * MS/TP MAC Address DIP Switch 0-127
- *
- *      Port  Address
- *      ------ -------
- *      PC0       1
- *      PC1       2
- *      PC2       4
- *      PC3       8
- *      PB0      16
- *      PB1      32
- *      PB2      64
- */
-static void input_switch_init(void)
-{
-    /* Configure the DIP switch pins as inputs */
-    BIT_CLEAR(DDRD, DDD4);
-    BIT_CLEAR(DDRD, DDD5);
-    BIT_CLEAR(DDRD, DDD6);
-    BIT_CLEAR(DDRD, DDD7);
-    BIT_CLEAR(DDRB, DDB0);
-    BIT_CLEAR(DDRB, DDB1);
-    BIT_CLEAR(DDRB, DDB2);
-    /* activate the internal pull up resistors */
-    BIT_SET(PORTD, PORTD0);
-    BIT_SET(PORTD, PORTD1);
-    BIT_SET(PORTD, PORTD2);
-    BIT_SET(PORTD, PORTD3);
-    BIT_SET(PORTB, PORTB0);
-    BIT_SET(PORTB, PORTB1);
-    BIT_SET(PORTB, PORTB2);
-}
-
-/**
- * Read the MAC address from the DIP switch.
- */
-static uint8_t input_swtich_value(void)
-{
-    uint8_t value;
-
-    value = BITMASK_CHECK(PIND, 0xF0) >> 4;
-    value |= (BITMASK_CHECK(PINB, 0x07) << 4);
-
-    return value;
-}
-
 static void hardware_init(void)
 {
     /* Initialize the Clock Prescaler for ATmega48/88/168 */
@@ -205,37 +156,12 @@ static void hardware_init(void)
     RS485_Initialize();
     mstimer_init();
     led_init();
-    input_switch_init();
     digital_output_init();
     digital_input_init();
     adc_init();
 
     /* Enable global interrupts */
     __enable_interrupt();
-}
-
-/**
- * Read the MAC address from the DIP switch.
- */
-static void input_switch_read(void)
-{
-    uint8_t value;
-    static uint8_t old_value = 0;
-
-    value = input_swtich_value();
-    if (value != old_value) {
-        /* simplistic two-cycle debounce */
-        old_value = value;
-    } else {
-        if (old_value != Address_Switch) {
-            Address_Switch = old_value;
-            dlmstp_set_mac_address(Address_Switch);
-            /* optional: set the Device Instance offset using MAC,
-               or we could store Device ID in EEPROM */
-            Device_Set_Object_Instance_Number(260000 + Address_Switch);
-            Send_I_Am_Flag = true;
-        }
-    }
 }
 
 /**
@@ -376,6 +302,65 @@ static void analog_values_read(void)
 }
 
 /**
+ * Initialize the device's non-volatile data
+ */
+static void device_nvdata_init(void)
+{
+    uint8_t value8;
+    uint16_t value16;
+    uint32_t value32;
+    uint8_t encoding;
+    uint8_t name_len;
+    char name[NV_EEPROM_NAME_SIZE + 1] = "";
+    const char *default_name = "AVR Device";
+    const char *default_description = "Uno R3 device with ATmega328";
+    const char *default_location = "Location Unknown";
+
+    value16 = nvdata_unsigned16(NV_EEPROM_TYPE_0);
+    if (value16 != NV_EEPROM_TYPE_ID) {
+        /* set to defaults */
+        nvdata_unsigned16_set(NV_EEPROM_TYPE_0, NV_EEPROM_TYPE_ID);
+        nvdata_unsigned8_set(NV_EEPROM_VERSION, NV_EEPROM_VERSION_ID);
+        nvdata_unsigned8_set(NV_EEPROM_MSTP_MAC, 123);
+        nvdata_unsigned8_set(NV_EEPROM_MSTP_BAUD_K, 38);
+        nvdata_unsigned8_set(NV_EEPROM_MSTP_MAX_MASTER, 127);
+        nvdata_unsigned24_set(NV_EEPROM_DEVICE_0, 260123);
+        nvdata_name_set(
+            NV_EEPROM_DEVICE_NAME, CHARACTER_ANSI_X34, default_name,
+            strlen(default_name));
+        nvdata_name_set(
+            NV_EEPROM_DEVICE_DESCRIPTION, CHARACTER_ANSI_X34,
+            default_description, strlen(default_description));
+        nvdata_name_set(
+            NV_EEPROM_DEVICE_LOCATION, CHARACTER_ANSI_X34, default_location,
+            strlen(default_location));
+    }
+    value8 = nvdata_unsigned8(NV_EEPROM_MSTP_MAC);
+    dlmstp_set_mac_address(value8);
+    value8 = nvdata_unsigned8(NV_EEPROM_MSTP_BAUD_K);
+    value32 = RS485_Baud_Rate_From_Kilo(value8);
+    RS485_Set_Baud_Rate(value32);
+    value8 = nvdata_unsigned8(NV_EEPROM_MSTP_MAX_MASTER);
+    if (value8 > 127) {
+        value8 = 127;
+    }
+    dlmstp_set_max_master(value8);
+    dlmstp_set_max_info_frames(1);
+    value32 = nvdata_unsigned24(NV_EEPROM_DEVICE_0);
+    Device_Set_Object_Instance_Number(value32);
+    name_len =
+        nvdata_name(NV_EEPROM_DEVICE_NAME, &encoding, name, sizeof(name) - 1);
+    if (name_len) {
+        Device_Object_Name_ANSI_Init(name);
+    } else {
+        Device_Object_Name_ANSI_Init(default_name);
+    }
+    name_len = nvdata_name(
+        NV_EEPROM_DEVICE_DESCRIPTION, &encoding, name, sizeof(name) - 1);
+    Send_I_Am_Flag = true;
+}
+
+/**
  * Static receive buffer,
  * initialized with zeros by the C Library Startup Code.
  * Note: Added a little safety margin to the buffer,
@@ -395,9 +380,7 @@ int main(void)
     BACNET_ADDRESS src; /* source address */
 
     hardware_init();
-    RS485_Set_Baud_Rate(38400UL);
-    dlmstp_set_max_master(127);
-    dlmstp_set_max_info_frames(1);
+    device_nvdata_init();
     dlmstp_init(NULL);
     Analog_Value_Name_Set(6, "Uptime Seconds");
     Analog_Value_Units_Set(6, UNITS_SECONDS);
@@ -407,7 +390,6 @@ int main(void)
     mstimer_set(&Task_Timer, 1000);
     for (;;) {
         /* input */
-        input_switch_read();
         analog_values_read();
         digital_input_read();
         /* process */
