@@ -422,20 +422,6 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
-        case (BACNET_PROPERTY_ID)9600:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                if (value.type.Unsigned_Int > 115200) {
-                    RS485_Set_Baud_Rate(value.type.Unsigned_Int);
-                    status = true;
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
-            break;
         case PROP_NUMBER_OF_APDU_RETRIES:
         case PROP_APDU_TIMEOUT:
         case PROP_VENDOR_IDENTIFIER:

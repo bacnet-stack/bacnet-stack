@@ -7,8 +7,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "stack.h"
 #include "adc.h"
+#include "nvdata.h"
+#include "rs485.h"
+#include "stack.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
@@ -18,55 +20,184 @@
 #include "bacnet/basic/object/av.h"
 
 /* functions to get the present value when requested */
-typedef float (*object_present_value_callback)(void);
+typedef float (*object_present_value_read_callback)(void);
+/* functions to get the present value when requested */
+typedef bool (*object_present_value_write_callback)(float value);
 
+/**
+ * @brief Return the present value for the ADC0 object.
+ * @return The present value.
+ */
 static float adc0_value(void)
 {
     return (float)adc_millivolts(0);
 }
 
+/**
+ * @brief Return the present value for the ADC1 object.
+ * @return The present value.
+ */
 static float adc1_value(void)
 {
     return (float)adc_millivolts(1);
 }
 
+/**
+ * @brief Return the present value for the ADC2 object.
+ * @return The present value.
+ */
 static float adc2_value(void)
 {
     return (float)adc_millivolts(2);
 }
 
+/**
+ * @brief Return the present value for the ADC3 object.
+ * @return The present value.
+ */
 static float adc3_value(void)
 {
     return (float)adc_millivolts(3);
 }
 
+/**
+ * @brief Return the present value for the stack size object.
+ * @return The present value.
+ */
 static float stack_size_value(void)
 {
     return (float)stack_size();
 }
 
+/**
+ * @brief Return the present value for the stack unused object.
+ * @return The present value.
+ */
 static float stack_unused_value(void)
 {
     return (float)stack_unused();
+}
+
+/**
+ * @brief Return the present value for the MS/TP baud rate object.
+ * @return The present value.
+ */
+static float mstp_baud(void)
+{
+    uint8_t kbaud;
+    float value;
+
+    kbaud = nvdata_unsigned8(NV_EEPROM_MSTP_BAUD_K);
+    value = (float)RS485_Baud_Rate_From_Kilo(kbaud);
+
+    return value;
+}
+
+/**
+ * @brief Set the present value for the MS/TP baud rate object.
+ * @param value - The new value.
+ * @return true if the value was in range and written.
+ */
+static bool mstp_baud_write(float value)
+{
+    bool status = false;
+    uint8_t kbaud;
+    int32_t baud;
+
+    baud = (int32_t)value;
+    if ((baud >= 9600L) && (baud <= 1152000L)) {
+        kbaud = (uint8_t)(baud / 1000UL);
+        nvdata_unsigned8_set(NV_EEPROM_MSTP_BAUD_K, kbaud);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the present value for the MS/TP MAC address object.
+ * @return The present value.
+ */
+static float mstp_mac(void)
+{
+    return (float)nvdata_unsigned8(NV_EEPROM_MSTP_MAC);
+}
+
+/**
+ * @brief Set the present value for the MS/TP address object.
+ * @param value - The new value.
+ * @return true if the value was in range and written.
+ */
+static bool mstp_mac_write(float value)
+{
+    bool status = false;
+    uint8_t mac = 0;
+    int32_t value32;
+
+    value32 = (int32_t)value;
+    if ((value32 >= 0L) && (value32 <= 127L)) {
+        mac = (uint8_t)value32;
+        nvdata_unsigned8_set(NV_EEPROM_MSTP_MAC, mac);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the present value for the MS/TP max manager object.
+ * @return The present value.
+ */
+static float mstp_manager(void)
+{
+    return (float)nvdata_unsigned8(NV_EEPROM_MSTP_MAX_MASTER);
+}
+
+/**
+ * @brief Set the present value for the MS/TP max manager object.
+ * @param value - The new value.
+ * @return true if the value was in range and written.
+ */
+static bool mstp_manager_write(float value)
+{
+    bool status = false;
+    uint8_t manager = 0;
+    int32_t value32;
+
+    value32 = (int32_t)value;
+    if ((value32 >= 0) && (value32 <= 127)) {
+        manager = (uint8_t)value32;
+        nvdata_unsigned8_set(NV_EEPROM_MSTP_MAX_MASTER, manager);
+        status = true;
+    }
+
+    return status;
 }
 
 struct object_data {
     const uint8_t object_id;
     const char *object_name;
     uint16_t units;
-    object_present_value_callback callback;
+    object_present_value_read_callback read_callback;
+    object_present_value_write_callback write_callback;
     float present_value;
 };
 /* clang-format off */
 static struct object_data Object_List[] = {
-    { 0, "ADC0", UNITS_MILLIVOLTS, adc0_value, 0.0f },
-    { 1, "ADC1", UNITS_MILLIVOLTS, adc1_value, 0.0f },
-    { 2, "ADC2", UNITS_MILLIVOLTS, adc2_value, 0.0f },
-    { 3, "ADC3", UNITS_MILLIVOLTS, adc3_value, 0.0f },
-    { 96, "MCU Frequency", UNITS_HERTZ, NULL, (float)F_CPU },
-    { 97, "CStack Size", UNITS_PERCENT, stack_size_value, 0.0f },
-    { 98, "CStack Unused", UNITS_PERCENT, stack_unused_value, 0.0f },
-    { 99, "Uptime Seconds", UNITS_SECONDS, NULL, 0.0f }
+    { 0, "ADC0", UNITS_MILLIVOLTS, adc0_value, NULL, 0.0f },
+    { 1, "ADC1", UNITS_MILLIVOLTS, adc1_value, NULL, 0.0f },
+    { 2, "ADC2", UNITS_MILLIVOLTS, adc2_value, NULL, 0.0f },
+    { 3, "ADC3", UNITS_MILLIVOLTS, adc3_value, NULL, 0.0f },
+    { 93, "MS/TP Baud", UNITS_BITS_PER_SECOND,
+      mstp_baud, mstp_baud_write, 0.0f },
+    { 94, "MS/TP MAC", UNITS_NO_UNITS,
+      mstp_mac, mstp_mac_write, 0.0f },
+    { 95, "MS/TP Max Manager", UNITS_NO_UNITS,
+      mstp_manager, mstp_manager_write, 0.0f },
+    { 96, "MCU Frequency", UNITS_HERTZ, NULL, NULL, (float)F_CPU },
+    { 97, "CStack Size", UNITS_NO_UNITS, stack_size_value, NULL, 0.0f },
+    { 98, "CStack Unused", UNITS_NO_UNITS, stack_unused_value, NULL, 0.0f },
+    { 99, "Uptime", UNITS_HOURS, NULL, NULL, 0.0f }
 };
 /* clang-format on */
 
@@ -200,8 +331,8 @@ float Analog_Value_Present_Value(uint32_t object_instance)
 
     object = Object_List_Element(object_instance);
     if (object) {
-        if (object->callback) {
-            value = object->callback();
+        if (object->read_callback) {
+            value = object->read_callback();
         } else {
             value = object->present_value;
         }
@@ -219,16 +350,21 @@ float Analog_Value_Present_Value(uint32_t object_instance)
 bool Analog_Value_Present_Value_Set(
     uint32_t object_instance, float value, uint8_t priority)
 {
-    (void)priority;
+    bool status = false;
     struct object_data *object;
 
+    (void)priority;
     object = Object_List_Element(object_instance);
     if (object) {
-        object->present_value = value;
-        return true;
+        if (object->write_callback) {
+            status = object->write_callback(value);
+        } else {
+            object->present_value = value;
+            status = true;
+        }
     }
 
-    return false;
+    return status;
 }
 
 /**
@@ -379,6 +515,10 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 status = Analog_Value_Present_Value_Set(
                     wp_data->object_instance, value.type.Real,
                     wp_data->priority);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;

@@ -37,7 +37,7 @@ static struct object_data Object_List[] = {
     { 7, "D10", &PORTB, &PINB, &DDRB, PB2 },
     { 8, "D11", &PORTB, &PINB, &DDRB, PB3 },
     { 9, "D12", &PORTB, &PINB, &DDRB, PB4 },
-    { 99, "LED", &PORTB, &PINB, &DDRB, PB4 }
+    { 99, "LED", &PORTB, &PINB, &DDRB, PB5 }
 };
 /* clang-format on */
 

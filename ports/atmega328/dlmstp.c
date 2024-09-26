@@ -1082,11 +1082,6 @@ void dlmstp_set_mac_address(uint8_t mac_address)
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
         This_Station = mac_address;
-        /* FIXME: implement your data storage */
-        /* I2C_Write_Byte(
-           EEPROM_DEVICE_ADDRESS,
-           mac_address,
-           EEPROM_MSTP_MAC_ADDR); */
         if (mac_address > Nmax_master) {
             dlmstp_set_max_master(mac_address);
         }
@@ -1111,11 +1106,6 @@ void dlmstp_set_max_info_frames(uint8_t max_info_frames)
 {
     if (max_info_frames >= 1) {
         Nmax_info_frames = max_info_frames;
-        /* FIXME: implement your data storage */
-        /* I2C_Write_Byte(
-           EEPROM_DEVICE_ADDRESS,
-           (uint8_t)max_info_frames,
-           EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
     }
 
     return;
@@ -1136,11 +1126,6 @@ void dlmstp_set_max_master(uint8_t max_master)
     if (max_master <= 127) {
         if (This_Station <= max_master) {
             Nmax_master = max_master;
-            /* FIXME: implement your data storage */
-            /* I2C_Write_Byte(
-               EEPROM_DEVICE_ADDRESS,
-               max_master,
-               EEPROM_MSTP_MAX_MASTER_ADDR); */
         }
     }
 

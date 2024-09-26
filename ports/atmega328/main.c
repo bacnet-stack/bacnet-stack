@@ -27,7 +27,7 @@ extern bool Send_I_Am_Flag;
 /* main loop task timer */
 static struct mstimer Task_Timer;
 /* uptime */
-static float Uptime_Seconds;
+static uint32_t Uptime_Seconds;
 
 /* dummy function - so we can use default demo handlers */
 bool dcc_communication_enabled(void)
@@ -85,6 +85,7 @@ static void hardware_init(void)
 static void one_second_task(void)
 {
     BACNET_BINARY_PV value;
+    float hours;
 
     /* LED toggling */
     value = Binary_Value_Present_Value(99);
@@ -95,8 +96,9 @@ static void one_second_task(void)
     }
     Binary_Value_Present_Value_Set(99, value);
     /* uptime */
-    Uptime_Seconds += 1.0;
-    Analog_Value_Present_Value_Set(99, Uptime_Seconds, 0);
+    Uptime_Seconds += 1;
+    hours = (float)Uptime_Seconds / 3600.0f;
+    Analog_Value_Present_Value_Set(99, hours, 0);
 }
 
 /**
