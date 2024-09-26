@@ -75,10 +75,10 @@ uint32_t RS485_Get_Baud_Rate(void)
 }
 
 /**
-* @brief Converts kili-baud to baud
-* @param baud_k - baud rate in approximate kilobaud
-* @return: baud rate in bps
-*/
+ * @brief Converts kili-baud to baud
+ * @param baud_k - baud rate in approximate kilobaud
+ * @return: baud rate in bps
+ */
 uint32_t RS485_Baud_Rate_From_Kilo(uint8_t baud_k)
 {
     uint32_t baud = 0;
