@@ -10,6 +10,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacnet/bacdef.h"
+#include "bacnet/bacerror.h"
+#include "bacnet/bacstr.h"
 #include "eeprom.h"
 
 /*=============== EEPROM ================*/
@@ -75,8 +77,16 @@ int nvdata_unsigned8_set(uint32_t ee_address, uint8_t byte_value);
 bool nvdata_name_isvalid(uint8_t encoding, uint8_t length, const char *str);
 bool nvdata_name_set(
     uint16_t offset, uint8_t encoding, const char *str, uint8_t length);
-uint8_t nvdata_name(
-    uint16_t offset, uint8_t *encoding, char *value, uint8_t value_size);
+
+bool nvdata_name_write(
+    uint32_t offset,
+    BACNET_CHARACTER_STRING *char_string,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code);
+void nvdata_name(
+    uint32_t offset,
+    BACNET_CHARACTER_STRING *char_string,
+    const char *default_string);
 
 uint32_t nvdata_get(uint32_t ee_address, uint8_t *buffer, uint32_t nbytes);
 uint32_t nvdata_set(uint32_t ee_address, uint8_t *buffer, uint32_t nbytes);

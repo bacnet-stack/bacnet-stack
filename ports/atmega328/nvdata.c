@@ -173,6 +173,14 @@ bool nvdata_name_isvalid(uint8_t encoding, uint8_t length, const char *str)
     return valid;
 }
 
+/**
+ * @brief Write a name to the EEPROM
+ * @param offset - starting memory address
+ * @param encoding - BACnet CharacterString encoding
+ * @param str - string to write
+ * @param length - number of bytes to write
+ * @return true if successful
+ */
 bool nvdata_name_set(
     uint16_t offset, uint8_t encoding, const char *str, uint8_t length)
 {
@@ -195,39 +203,74 @@ bool nvdata_name_set(
 }
 
 /**
+ * @brief Save the BACnet CharacterString to non-volatile memory at offset
+ * @param offset - starting memory address
+ * @param char_string - BACnet CharacterString value
+ * @param error_class - BACnet error class
+ * @param error_code - BACnet error code
+ * @return true if name is a valid set of characters, valid length, and
+ *   valid character set encoding.
+ *   error_code and error_class are filled if false.
+ */
+bool nvdata_name_write(
+    uint32_t offset,
+    BACNET_CHARACTER_STRING *char_string,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    size_t length;
+    uint8_t encoding;
+    const char *str;
+
+    length = characterstring_length(char_string);
+    if (length <= NV_EEPROM_NAME_SIZE) {
+        encoding = characterstring_encoding(char_string);
+        if (encoding < MAX_CHARACTER_STRING_ENCODING) {
+            str = characterstring_value(char_string);
+            status = nvdata_name_set(offset, encoding, str, length);
+            if (!status) {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+        }
+    } else {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+    }
+
+    return status;
+}
+
+/**
  * @brief Read a name from the EEPROM
  * @param offset - starting memory address
- * @param encoding - character encoding
- * @param value - place to store the name
- * @param value_size - size of the name buffer
- * @return actual length of the name
+ * @param char_string - BACnet CharacterString value
+ * @param default_string - default string to use if not valid
  */
-uint8_t nvdata_name(
-    uint16_t offset, uint8_t *encoding_out, char *value, uint8_t value_size)
+void nvdata_name(
+    uint32_t offset,
+    BACNET_CHARACTER_STRING *char_string,
+    const char *default_string)
 {
-    uint8_t length = 0, encoding = 0;
+    uint8_t encoding = 0;
+    uint8_t length = 0;
     char name[NV_EEPROM_NAME_SIZE + 1] = "";
 
     eeprom_bytes_read(NV_EEPROM_NAME_ENCODING(offset), &encoding, 1);
     eeprom_bytes_read(NV_EEPROM_NAME_LENGTH(offset), &length, 1);
-    if (length > value_size) {
-        length = value_size;
-    }
-    if (length > NV_EEPROM_NAME_SIZE) {
-        length = NV_EEPROM_NAME_SIZE;
-    }
     eeprom_bytes_read(
-        NV_EEPROM_NAME_STRING(offset), (uint8_t *)name, NV_EEPROM_NAME_SIZE);
+        NV_EEPROM_NAME_STRING(offset), (uint8_t *)&name, NV_EEPROM_NAME_SIZE);
     if (nvdata_name_isvalid(encoding, length, name)) {
-        memmove(value, name, length);
-        if (encoding_out) {
-            *encoding_out = encoding;
-        }
-    } else {
-        length = 0;
+        characterstring_init(char_string, encoding, &name[0], length);
+    } else if (default_string) {
+        (void)nvdata_name_set(
+            offset, CHARACTER_UTF8, default_string, strlen(default_string));
+        characterstring_init_ansi(char_string, default_string);
     }
-
-    return length;
 }
 
 /**

@@ -174,6 +174,34 @@ static bool mstp_manager_write(float value)
     return status;
 }
 
+/**
+ * @brief Return the present value for the Device ID object.
+ * @return The present value.
+ */
+static float device_id(void)
+{
+    return (float)nvdata_unsigned24(NV_EEPROM_DEVICE_0);
+}
+
+/**
+ * @brief Set the present value for the Device ID object.
+ * @param value - The new value.
+ * @return true if the value was in range and written.
+ */
+static bool device_id_write(float value)
+{
+    bool status = false;
+    int32_t value32;
+
+    value32 = (int32_t)value;
+    if ((value32 >= 0) && (value32 <= BACNET_MAX_INSTANCE)) {
+        nvdata_unsigned24_set(NV_EEPROM_DEVICE_0, value32);
+        status = true;
+    }
+
+    return status;
+}
+
 struct object_data {
     const uint8_t object_id;
     const char *object_name;
@@ -184,16 +212,21 @@ struct object_data {
 };
 /* clang-format off */
 static struct object_data Object_List[] = {
+    /* device ADC inputs */
     { 0, "ADC0", UNITS_MILLIVOLTS, adc0_value, NULL, 0.0f },
     { 1, "ADC1", UNITS_MILLIVOLTS, adc1_value, NULL, 0.0f },
     { 2, "ADC2", UNITS_MILLIVOLTS, adc2_value, NULL, 0.0f },
     { 3, "ADC3", UNITS_MILLIVOLTS, adc3_value, NULL, 0.0f },
+    /* device configuration */
+    { 92, "Device ID", UNITS_NO_UNITS,
+      device_id, device_id_write, 0.0f },
     { 93, "MS/TP Baud", UNITS_BITS_PER_SECOND,
       mstp_baud, mstp_baud_write, 0.0f },
     { 94, "MS/TP MAC", UNITS_NO_UNITS,
       mstp_mac, mstp_mac_write, 0.0f },
     { 95, "MS/TP Max Manager", UNITS_NO_UNITS,
       mstp_manager, mstp_manager_write, 0.0f },
+    /* device status */
     { 96, "MCU Frequency", UNITS_HERTZ, NULL, NULL, (float)F_CPU },
     { 97, "CStack Size", UNITS_NO_UNITS, stack_size_value, NULL, 0.0f },
     { 98, "CStack Unused", UNITS_NO_UNITS, stack_unused_value, NULL, 0.0f },

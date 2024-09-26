@@ -6,6 +6,7 @@
  */
 #include <stdbool.h>
 #include <stdint.h>
+/* stack */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacstr.h"
@@ -13,8 +14,10 @@
 #include "bacnet/apdu.h"
 #include "bacnet/dcc.h"
 #include "bacnet/datalink/dlmstp.h"
-#include "rs485.h"
 #include "bacnet/version.h"
+/* platform */
+#include "rs485.h"
+#include "nvdata.h"
 /* objects */
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/object/device.h"
@@ -27,26 +30,8 @@
    The properties that are constant can be hard coded
    into the read-property encoding. */
 static uint32_t Object_Instance_Number = 260001;
-static char Object_Name[30] = "AVR Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static const char *Model_Name = "ATmega328 Uno R3 Device";
-
-bool Device_Object_Name_ANSI_Init(const char *object_name)
-{
-    bool status = false; /* return value */
-
-    if (object_name) {
-        status = true;
-        strncpy(Object_Name, object_name, sizeof(Object_Name));
-    }
-
-    return status;
-}
-
-char *Device_Object_Name_ANSI(void)
-{
-    return Object_Name;
-}
 
 /* methods to manipulate the data */
 uint32_t Device_Object_Instance_Number(void)
@@ -193,7 +178,18 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string, Object_Name);
+            nvdata_name(NV_EEPROM_DEVICE_NAME, &char_string, "BACnet Device");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_DESCRIPTION:
+            nvdata_name(
+                NV_EEPROM_DEVICE_DESCRIPTION, &char_string, "Description");
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_LOCATION:
+            nvdata_name(NV_EEPROM_DEVICE_LOCATION, &char_string, "Location");
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -327,6 +323,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
+    size_t name_length;
 
     if (!Device_Valid_Object_Instance_Number(wp_data->object_instance)) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
@@ -351,83 +348,65 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
-        case PROP_OBJECT_IDENTIFIER:
-            if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
-                if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(
-                        value.type.Object_Id.instance))) {
-                    /* we could send an I-Am broadcast to let the world know */
-                    status = true;
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
-            break;
-        case PROP_MAX_INFO_FRAMES:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                if (value.type.Unsigned_Int <= 255) {
-                    dlmstp_set_max_info_frames(value.type.Unsigned_Int);
-                    status = true;
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
-            break;
-        case PROP_MAX_MASTER:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                if ((value.type.Unsigned_Int > 0) &&
-                    (value.type.Unsigned_Int <= 127)) {
-                    dlmstp_set_max_master(value.type.Unsigned_Int);
-                    status = true;
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
-            break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                uint8_t encoding;
-
-                encoding =
-                    characterstring_encoding(&value.type.Character_String);
-                if (encoding == CHARACTER_UTF8) {
-                    if (characterstring_ansi_copy(
-                            &Object_Name[0], sizeof(Object_Name),
-                            &value.type.Character_String)) {
-                        status = true;
-                    } else {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code =
-                            ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                    }
-                } else {
+                name_length =
+                    characterstring_length(&value.type.Character_String);
+                if (name_length == 0) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code =
-                        ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    status = nvdata_name_write(
+                        NV_EEPROM_DEVICE_NAME, &value.type.Character_String,
+                        &wp_data->error_class, &wp_data->error_code);
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
+        case PROP_DESCRIPTION:
+            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                name_length =
+                    characterstring_length(&value.type.Character_String);
+                if (name_length == 0) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    status = nvdata_name_write(
+                        NV_EEPROM_DEVICE_DESCRIPTION,
+                        &value.type.Character_String, &wp_data->error_class,
+                        &wp_data->error_code);
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_LOCATION:
+            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+                name_length =
+                    characterstring_length(&value.type.Character_String);
+                if (name_length == 0) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    status = nvdata_name_write(
+                        NV_EEPROM_DEVICE_LOCATION, &value.type.Character_String,
+                        &wp_data->error_class, &wp_data->error_code);
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_OBJECT_IDENTIFIER:
+        case PROP_MAX_INFO_FRAMES:
+        case PROP_MAX_MASTER:
         case PROP_NUMBER_OF_APDU_RETRIES:
         case PROP_APDU_TIMEOUT:
         case PROP_VENDOR_IDENTIFIER:
         case PROP_SYSTEM_STATUS:
-        case PROP_LOCATION:
-        case PROP_DESCRIPTION:
         case PROP_MODEL_NAME:
         case PROP_VENDOR_NAME:
         case PROP_FIRMWARE_REVISION:
@@ -446,6 +425,7 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_DEVICE_ADDRESS_BINDING:
         case PROP_DATABASE_REVISION:
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+        case 9600:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;

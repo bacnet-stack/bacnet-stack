@@ -109,10 +109,9 @@ static void device_nvdata_init(void)
     uint8_t value8;
     uint16_t value16;
     uint32_t value32;
-    uint8_t encoding;
-    uint8_t name_len;
-    char name[NV_EEPROM_NAME_SIZE + 1] = "";
     const char *default_name = "AVR Device";
+    const char *default_description = "Description";
+    const char *default_location = "Location";
 
     value16 = nvdata_unsigned16(NV_EEPROM_TYPE_0);
     if (value16 != NV_EEPROM_TYPE_ID) {
@@ -124,8 +123,14 @@ static void device_nvdata_init(void)
         nvdata_unsigned8_set(NV_EEPROM_MSTP_MAX_MASTER, 127);
         nvdata_unsigned24_set(NV_EEPROM_DEVICE_0, 260123);
         nvdata_name_set(
-            NV_EEPROM_DEVICE_NAME, CHARACTER_ANSI_X34, default_name,
+            NV_EEPROM_DEVICE_NAME, CHARACTER_UTF8, default_name,
             strlen(default_name));
+        nvdata_name_set(
+            NV_EEPROM_DEVICE_DESCRIPTION, CHARACTER_UTF8, default_description,
+            strlen(default_description));
+        nvdata_name_set(
+            NV_EEPROM_DEVICE_LOCATION, CHARACTER_UTF8, default_location,
+            strlen(default_location));
     }
     value8 = nvdata_unsigned8(NV_EEPROM_MSTP_MAC);
     dlmstp_set_mac_address(value8);
@@ -138,15 +143,6 @@ static void device_nvdata_init(void)
     }
     dlmstp_set_max_master(value8);
     dlmstp_set_max_info_frames(1);
-    value32 = nvdata_unsigned24(NV_EEPROM_DEVICE_0);
-    Device_Set_Object_Instance_Number(value32);
-    name_len =
-        nvdata_name(NV_EEPROM_DEVICE_NAME, &encoding, name, sizeof(name) - 1);
-    if (name_len) {
-        Device_Object_Name_ANSI_Init(name);
-    } else {
-        Device_Object_Name_ANSI_Init(default_name);
-    }
     Send_I_Am_Flag = true;
 }
 
