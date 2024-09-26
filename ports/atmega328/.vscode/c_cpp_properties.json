@@ -22,7 +22,31 @@
                 // Will ensure F_CPU is set correctly
                 "-Os" // Will avoid optimization warnings re: _delay
             ]
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../../src",
+                "/usr/lib/avr/include"
+            ],
+            "defines": [
+                "__GNUC__",
+                "__AVR_ATmega328P__"
+            ],
+            "compilerPath": "/usr/bin/avr-gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "${default}",
+            "compilerArgs": [
+                "-mmcu=atmega328p",
+                // Will ensure MCU defines are set correctly
+                "-DF_CPU=16000000UL",
+                // Will ensure F_CPU is set correctly
+                "-Os" // Will avoid optimization warnings re: _delay
+            ]
         }
+
     ],
     "version": 4
 }

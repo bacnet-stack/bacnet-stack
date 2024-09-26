@@ -15,7 +15,6 @@
 #include "bacnet/datalink/dlmstp.h"
 #include "rs485.h"
 #include "bacnet/version.h"
-#include "stack.h"
 /* objects */
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/object/device.h"
@@ -305,12 +304,6 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case (BACNET_PROPERTY_ID)9600:
             apdu_len =
                 encode_application_unsigned(&apdu[0], RS485_Get_Baud_Rate());
-            break;
-        case (BACNET_PROPERTY_ID)512:
-            apdu_len = encode_application_unsigned(&apdu[0], stack_size());
-            break;
-        case (BACNET_PROPERTY_ID)513:
-            apdu_len = encode_application_unsigned(&apdu[0], stack_unused());
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;

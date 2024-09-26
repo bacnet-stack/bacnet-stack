@@ -35,88 +35,6 @@ bool dcc_communication_enabled(void)
     return true;
 }
 
-/**
- * Configure the RS485 transceiver board LED
- */
-static void led_init(void)
-{
-    /* Configure the LED pin as an output */
-    BIT_CLEAR(PORTB, PB5);
-    BIT_SET(DDRB, PB5);
-    /* Turn off the LED */
-    BIT_CLEAR(PORTB, PB5);
-}
-
-/**
- * Configure some Arduino digital pins as outputs
- */
-static void digital_output_init(void)
-{
-    /* Configure the D11 pin as an output */
-    BIT_CLEAR(PORTB, PB3);
-    BIT_SET(DDRB, PB3);
-    /* Turn off the D11 */
-    BIT_CLEAR(PORTB, PB3);
-
-    /* Configure the D12 pin as an output */
-    BIT_CLEAR(PORTB, PB4);
-    BIT_SET(DDRB, PB4);
-    /* Turn off the D12 */
-    BIT_CLEAR(PORTB, PB4);
-}
-
-/**
- * Control the Arduino board digital outputs
- */
-static void digital_output_set(uint8_t index, bool state)
-{
-    switch (index) {
-        case 11:
-            if (state) {
-                BIT_SET(PORTB, PB3);
-            } else {
-                BIT_CLEAR(PORTB, PB3);
-            }
-            break;
-        case 12:
-            if (state) {
-                BIT_SET(PORTB, PB4);
-            } else {
-                BIT_CLEAR(PORTB, PB4);
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-/**
- * Configure some Arduino digital pins as inputs
- */
-static void digital_input_init(void)
-{
-    /* Configure the D3 pin as an input */
-    BIT_CLEAR(DDRD, DDD3);
-}
-
-/**
- * Read the MAC address from the DIP switch.
- */
-static bool digital_input_value(uint8_t index)
-{
-    bool value = false;
-
-    switch (index) {
-        case 3:
-            value = BIT_CHECK(PIND, PIND3);
-            break;
-        default:
-            break;
-    }
-
-    return value;
-}
-
 static void hardware_init(void)
 {
     /* Initialize the Clock Prescaler for ATmega48/88/168 */
@@ -155,9 +73,6 @@ static void hardware_init(void)
     /* Configure Specialized Hardware */
     RS485_Initialize();
     mstimer_init();
-    led_init();
-    digital_output_init();
-    digital_input_init();
     adc_init();
 
     /* Enable global interrupts */
@@ -165,140 +80,23 @@ static void hardware_init(void)
 }
 
 /**
- * Control the RS485 transceiveer board LED
+ * @brief process some values once per second
  */
-static void led_set(bool state)
-{
-    if (state) {
-        BIT_SET(PORTB, PB5);
-    } else {
-        BIT_CLEAR(PORTB, PB5);
-    }
-}
-
-/**
- * @brief process the outputs once per second
- */
-static void binary_value_process(void)
+static void one_second_task(void)
 {
     BACNET_BINARY_PV value;
 
     /* LED toggling */
-    value = Binary_Value_Present_Value(0);
+    value = Binary_Value_Present_Value(99);
     if (value == BINARY_ACTIVE) {
         value = BINARY_INACTIVE;
     } else {
         value = BINARY_ACTIVE;
     }
-    Binary_Value_Present_Value_Set(0, value);
-}
-
-/**
- * @brief read the Arduino Digital inputs
- */
-static void digital_input_read(void)
-{
-    BACNET_BINARY_PV value;
-
-    if (digital_input_value(3)) {
-        value = BINARY_ACTIVE;
-    } else {
-        value = BINARY_INACTIVE;
-    }
-    Binary_Value_Present_Value_Set(3, value);
-}
-
-/**
- * Write to outputs from the Present_Value of the Binary Value.
- */
-static void binary_value_write(void)
-{
-    BACNET_BINARY_PV value;
-
-    value = Binary_Value_Present_Value(0);
-    if (value == BINARY_ACTIVE) {
-        led_set(true);
-    } else {
-        led_set(false);
-    }
-    value = Binary_Value_Present_Value(1);
-    if (value == BINARY_ACTIVE) {
-        digital_output_set(11, true);
-    } else {
-        digital_output_set(11, false);
-    }
-    value = Binary_Value_Present_Value(2);
-    if (value == BINARY_ACTIVE) {
-        digital_output_set(12, true);
-    } else {
-        digital_output_set(12, false);
-    }
-}
-
-/**
- * Read ADC and update the Present_Value of the Analog Value.
- */
-static void analog_values_read(void)
-{
-    static unsigned process_counter = 0;
-    float value;
-
-    switch (process_counter) {
-        case 0:
-            /* initializing */
-            adc_enable(0);
-            Analog_Value_Name_Set(0, "ADC0");
-            Analog_Value_Units_Set(0, UNITS_MILLIVOLTS);
-            adc_enable(1);
-            Analog_Value_Name_Set(1, "ADC1");
-            Analog_Value_Units_Set(1, UNITS_MILLIVOLTS);
-            adc_enable(2);
-            Analog_Value_Name_Set(2, "ADC2");
-            Analog_Value_Units_Set(2, UNITS_MILLIVOLTS);
-            adc_enable(3);
-            Analog_Value_Name_Set(3, "ADC3");
-            Analog_Value_Units_Set(3, UNITS_MILLIVOLTS);
-            Analog_Value_Name_Set(4, "CStack Size");
-            Analog_Value_Units_Set(4, UNITS_PERCENT);
-            Analog_Value_Name_Set(5, "CStack Unused");
-            Analog_Value_Units_Set(5, UNITS_PERCENT);
-            break;
-        case 1:
-            value = adc_millivolts(0);
-            Analog_Value_Present_Value_Set(0, value, 0);
-            process_counter++;
-            break;
-        case 2:
-            value = adc_millivolts(1);
-            Analog_Value_Present_Value_Set(1, value, 0);
-            process_counter++;
-            break;
-        case 3:
-            value = adc_millivolts(2);
-            Analog_Value_Present_Value_Set(2, value, 0);
-            process_counter++;
-            break;
-        case 4:
-            value = adc_millivolts(3);
-            Analog_Value_Present_Value_Set(3, value, 0);
-            process_counter++;
-            break;
-        case 5:
-            value = stack_size();
-            Analog_Value_Present_Value_Set(4, value, 0);
-            process_counter++;
-            break;
-        case 6:
-            value = stack_unused();
-            Analog_Value_Present_Value_Set(5, value, 0);
-            process_counter++;
-            break;
-        default:
-            process_counter = 1;
-            break;
-    }
-    value = process_counter;
-    Analog_Value_Present_Value_Set(9, value, 0);
+    Binary_Value_Present_Value_Set(99, value);
+    /* uptime */
+    Uptime_Seconds += 1.0;
+    Analog_Value_Present_Value_Set(99, Uptime_Seconds, 0);
 }
 
 /**
@@ -313,8 +111,6 @@ static void device_nvdata_init(void)
     uint8_t name_len;
     char name[NV_EEPROM_NAME_SIZE + 1] = "";
     const char *default_name = "AVR Device";
-    const char *default_description = "Uno R3 device with ATmega328";
-    const char *default_location = "Location Unknown";
 
     value16 = nvdata_unsigned16(NV_EEPROM_TYPE_0);
     if (value16 != NV_EEPROM_TYPE_ID) {
@@ -328,12 +124,6 @@ static void device_nvdata_init(void)
         nvdata_name_set(
             NV_EEPROM_DEVICE_NAME, CHARACTER_ANSI_X34, default_name,
             strlen(default_name));
-        nvdata_name_set(
-            NV_EEPROM_DEVICE_DESCRIPTION, CHARACTER_ANSI_X34,
-            default_description, strlen(default_description));
-        nvdata_name_set(
-            NV_EEPROM_DEVICE_LOCATION, CHARACTER_ANSI_X34, default_location,
-            strlen(default_location));
     }
     value8 = nvdata_unsigned8(NV_EEPROM_MSTP_MAC);
     dlmstp_set_mac_address(value8);
@@ -355,8 +145,6 @@ static void device_nvdata_init(void)
     } else {
         Device_Object_Name_ANSI_Init(default_name);
     }
-    name_len = nvdata_name(
-        NV_EEPROM_DEVICE_DESCRIPTION, &encoding, name, sizeof(name) - 1);
     Send_I_Am_Flag = true;
 }
 
@@ -380,27 +168,17 @@ int main(void)
     BACNET_ADDRESS src; /* source address */
 
     hardware_init();
+    Analog_Value_Init();
+    Binary_Value_Init();
     device_nvdata_init();
     dlmstp_init(NULL);
-    Analog_Value_Name_Set(6, "Uptime Seconds");
-    Analog_Value_Units_Set(6, UNITS_SECONDS);
-    Analog_Value_Name_Set(7, "MCU Frequency");
-    Analog_Value_Units_Set(7, UNITS_HERTZ);
-    Analog_Value_Present_Value_Set(7, F_CPU, 0);
     mstimer_set(&Task_Timer, 1000);
     for (;;) {
-        /* input */
-        analog_values_read();
-        digital_input_read();
         /* process */
         if (mstimer_expired(&Task_Timer)) {
             mstimer_reset(&Task_Timer);
-            Uptime_Seconds += 1.0;
-            Analog_Value_Present_Value_Set(6, Uptime_Seconds, 0);
-            binary_value_process();
+            one_second_task();
         }
-        /* output */
-        binary_value_write();
         /* BACnet handling */
         pdu_len = dlmstp_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);
         if (pdu_len) {

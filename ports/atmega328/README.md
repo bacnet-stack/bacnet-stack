@@ -32,18 +32,18 @@ The Arduino Uno R3 platform for this example uses the following peripherals:
 | ADC4/PC4    | SDA*        | I2C            |                 |
 | AVDD        | AREF        |                |                 |
 | GND         | GND         |                |                 |
-| SCK/PB5     | D13         | LED-L ANODE (+)| BV 0 (output)   |
-| MISO/PB4    | D12         |                | BV 2 (output)   |
-| MOSI/PB3    | D11         |                | BV 1 (output)   |
-| SS/PB2      | D10         | DIPSW-7        | MS/TP MAC + 64  |
-| OC1/PB1     | D9          | DIPSW-6        | MS/TP MAC + 32  |
-| ICP/PB0     | D8          | DIPSW-5        | MS/TP MAC + 16  |
+| SCK/PB5     | D13         | LED-L ANODE (+)| BV 99 (output)  |
+| MISO/PB4    | D12         |                | BV 9 (output)   |
+| MOSI/PB3    | D11         |                | BV 8 (output)   |
+| SS/PB2      | D10         |                | BV 7 (output)   |
+| OC1/PB1     | D9          |                | BV 6 (output)   |
+| ICP/PB0     | D8          |                | BV 5 (output)   |
 |             |             |                |                 |
-| AIN1/PD7    | D7          | DIPSW-4        | MS/TP MAC + 8   |
-| AIN0/PD6    | D6          | DIPSW-3        | MS/TP MAC + 4   |
-| T1/PD5      | D5          | DIPSW-2        | MS/TP MAC + 2   |
-| T0/PD4      | D4          | DIPSW-1        | MS/TP MAC + 1   |
-| INT1/PD3    | D3          |                | BV 3 (input)    |
+| AIN1/PD7    | D7          |                | BV 4 (input)    |
+| AIN0/PD6    | D6          |                | BV 3 (input)    |
+| T1/PD5      | D5          |                | BV 2 (input)    |
+| T0/PD4      | D4          |                | BV 1 (input)    |
+| INT1/PD3    | D3          |                | BV 0 (input)    |
 | INT0/PD2    | D2          | CE DE /RE RTS  | RS485           |
 | TXD/PD1     | D1/Tx**     | TXD            | RS485           |
 | RXD/PD0     | D0/Rx**     | RXD            | RS485           |
@@ -63,7 +63,7 @@ avrdude can be used to program the Arduino Uno R3 board via USB.
 
 The GNU Makefile is used in the continuous integration pipeline to validate
 the build is not broken.  The Makefile is called from an Ubuntu image
-container after installing the necesary tools:
+container after installing the necessary tools:
 
     sudo apt-get update -qq
     sudo apt-get install -qq build-essential

@@ -17,90 +17,128 @@
 #include "bacnet/wp.h"
 #include "bacnet/basic/object/bv.h"
 
-#ifndef MAX_BINARY_VALUES
-#define MAX_BINARY_VALUES 10
-#endif
-
-static BACNET_BINARY_PV Present_Value[MAX_BINARY_VALUES];
+struct object_data {
+    const uint8_t object_id;
+    const char *object_name;
+    volatile uint8_t *port;
+    volatile uint8_t *pin;
+    volatile uint8_t *ddr;
+    const uint8_t bit;
+};
 /* clang-format off */
-static const char *Object_Name[MAX_BINARY_VALUES] = {
-    "BV-0", "BV-1", "BV-2", "BV-3", "BV-4",
-    "BV-5", "BV-6", "BV-7", "BV-8", "BV-9"
+static struct object_data Object_List[] = {
+    { 0, "D3", NULL, &PIND, &DDRD, PD3 },
+    { 1, "D4", NULL, &PIND, &DDRD, PD4 },
+    { 2, "D5", NULL, &PIND, &DDRD, PD5 },
+    { 3, "D6", NULL, &PIND, &DDRD, PD6 },
+    { 4, "D7", NULL, &PIND, &DDRD, PD7 },
+    { 5, "D8", &PORTB, &PINB, &DDRB, PB0 },
+    { 6, "D9", &PORTB, &PINB, &DDRB, PB1 },
+    { 7, "D10", &PORTB, &PINB, &DDRB, PB2 },
+    { 8, "D11", &PORTB, &PINB, &DDRB, PB3 },
+    { 9, "D12", &PORTB, &PINB, &DDRB, PB4 },
+    { 99, "LED", &PORTB, &PINB, &DDRB, PB4 }
 };
 /* clang-format on */
 
-/* we simply have 0-n object instances. */
+/* number of objects */
+static const unsigned Objects_Max =
+    sizeof(Object_List) / sizeof(Object_List[0]);
+
+/**
+ * @brief Return the object or NULL if not found.
+ * @param  object_instance - object-instance number of the object
+ * @return  object if the instance is found, and NULL if not
+ */
+static struct object_data *Object_List_Element(uint32_t object_instance)
+{
+    unsigned index;
+    uint32_t object_id;
+
+    for (index = 0; index < Objects_Max; index++) {
+        object_id = Object_List[index].object_id;
+        if (object_id == object_instance) {
+            return &Object_List[index];
+        }
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Determines if a given Analog Value instance is valid
+ * @param  object_instance - object-instance number of the object
+ * @return  true if the instance is valid, and false if not
+ */
 bool Binary_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_BINARY_VALUES) {
+    if (Object_List_Element(object_instance)) {
         return true;
     }
 
     return false;
 }
 
-/* we simply have 0-n object instances. */
+/**
+ * @brief Determines the number of objects
+ * @return  Number of objects
+ */
 unsigned Binary_Value_Count(void)
 {
-    return MAX_BINARY_VALUES;
-}
-
-/* we simply have 0-n object instances. */
-uint32_t Binary_Value_Index_To_Instance(unsigned index)
-{
-    return index;
-}
-
-/* we simply have 0-n object instances.  */
-unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
-{
-    unsigned index = MAX_BINARY_VALUES;
-
-    if (object_instance < MAX_BINARY_VALUES) {
-        index = object_instance;
-    }
-
-    return index;
-}
-
-BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
-{
-    BACNET_BINARY_PV value = BINARY_INACTIVE;
-
-    if (object_instance < MAX_BINARY_VALUES) {
-        value = Present_Value[object_instance];
-    }
-
-    return value;
-}
-
-bool Binary_Value_Present_Value_Set(
-    uint32_t object_instance, BACNET_BINARY_PV value)
-{
-    bool status = false;
-    if (object_instance < MAX_BINARY_VALUES) {
-        Present_Value[object_instance] = value;
-        status = true;
-    }
-
-    return status;
+    return Objects_Max;
 }
 
 /**
- * For a given object instance-number, sets the object-name
- *
+ * @brief Determines the object instance-number for a given 0..N index
+ * @param  index - 0..N value
+ * @return  object instance-number for the given index
+ */
+uint32_t Binary_Value_Index_To_Instance(unsigned index)
+{
+    uint32_t object_instance = UINT32_MAX;
+
+    if (index < Objects_Max) {
+        object_instance = Object_List[index].object_id;
+    }
+
+    return object_instance;
+}
+
+/**
+ * @brief For a given object instance-number, determines a 0..N index
+ * @param  object_instance - object-instance number of the object
+ * @return  index for the given instance-number, or N if not valid.
+ */
+unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
+{
+    unsigned index = 0;
+
+    for (index = 0; index < Objects_Max; index++) {
+        if (Object_List[index].object_id == object_instance) {
+            break;
+        }
+    }
+
+    return index;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object-name
  * @param  object_instance - object-instance number of the object
  * @param  new_name - holds the object-name to be set
- *
  * @return  true if object-name was set
  */
 bool Binary_Value_Name_Set(uint32_t object_instance, const char *value)
 {
-    if (object_instance < MAX_BINARY_VALUES) {
-        Object_Name[object_instance] = value;
+    struct object_data *object;
+
+    object = Object_List_Element(object_instance);
+    if (object) {
+        object->object_name = value;
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 /**
@@ -111,15 +149,70 @@ bool Binary_Value_Name_Set(uint32_t object_instance, const char *value)
 const char *Binary_Value_Name_ASCII(uint32_t object_instance)
 {
     const char *object_name = "BV-X";
+    struct object_data *object;
 
-    if (object_instance < MAX_BINARY_VALUES) {
-        object_name = Object_Name[object_instance];
+    object = Object_List_Element(object_instance);
+    if (object) {
+        object_name = object->object_name;
     }
 
     return object_name;
 }
 
-/* return apdu len, or -1 on error */
+/**
+ * @brief For a given object instance-number, determines the present-value
+ * @param  object_instance - object-instance number of the object
+ * @return  present-value of the object
+ */
+BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
+{
+    BACNET_BINARY_PV value = BINARY_INACTIVE;
+    struct object_data *object;
+
+    object = Object_List_Element(object_instance);
+    if (object) {
+        if (BIT_CHECK(*object->pin, object->bit)) {
+            value = BINARY_ACTIVE;
+        }
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the present-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - value to set
+ * @return true if value is within range and present-value is set.
+ */
+bool Binary_Value_Present_Value_Set(
+    uint32_t object_instance, BACNET_BINARY_PV value)
+{
+    struct object_data *object;
+
+    object = Object_List_Element(object_instance);
+    if (object) {
+        if (object->port) {
+            if (value == BINARY_ACTIVE) {
+                BIT_SET(*object->port, object->bit);
+            } else {
+                BIT_CLEAR(*object->port, object->bit);
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * @brief ReadProperty handler for this object. For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ * @param  rpdata - BACNET_READ_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ * @return number of APDU bytes in the response, or
+ * BACNET_STATUS_ERROR on error.
+ */
 int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
@@ -192,7 +285,6 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
@@ -223,12 +315,13 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                 if ((value.type.Enumerated == BINARY_ACTIVE) ||
                     (value.type.Enumerated == BINARY_INACTIVE)) {
-                    object_index = Binary_Value_Instance_To_Index(
-                        wp_data->object_instance);
-                    /* NOTE: this Binary value has no priority array */
-                    Present_Value[object_index] =
-                        (BACNET_BINARY_PV)value.type.Enumerated;
-                    status = true;
+                    status = Binary_Value_Present_Value_Set(
+                        wp_data->object_instance,
+                        (BACNET_BINARY_PV)value.type.Enumerated);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    }
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -239,18 +332,6 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-#if 0
-            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-                object_index =
-                    Binary_Value_Instance_To_Index(wp_data->object_instance);
-                Binary_Value_Out_Of_Service[object_index] = value.type.Boolean;
-                status = true;
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            }
-            break;
-#endif
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_NAME:
         case PROP_OBJECT_TYPE:
@@ -267,4 +348,25 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
+}
+
+/**
+ * Configure some digital pins as inputs or outputs
+ */
+void Binary_Value_Init(void)
+{
+    unsigned index = 0;
+
+    for (index = 0; index < Objects_Max; index++) {
+        if (Object_List[index].port) {
+            /* Configure the pin as an output */
+            BIT_CLEAR(*Object_List[index].port, Object_List[index].bit);
+            BIT_SET(*Object_List[index].ddr, Object_List[index].bit);
+            /* Turn off the pin */
+            BIT_CLEAR(*Object_List[index].port, Object_List[index].bit);
+        } else {
+            /* Configure the pin as an input */
+            BIT_CLEAR(*Object_List[index].ddr, Object_List[index].bit);
+        }
+    }
 }
