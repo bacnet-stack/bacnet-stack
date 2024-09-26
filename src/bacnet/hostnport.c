@@ -704,7 +704,7 @@ bool bacnet_bdt_entry_from_ascii(BACNET_BDT_ENTRY *value, const char *argv)
             p = 0xBAC0U;
         }
         name = argv;
-        if (name && isalnum(name[0])) {
+        if (name && isalnum((unsigned char)name[0])) {
             value->bbmd_address.host_ip_address = false;
             value->bbmd_address.host_name = true;
             characterstring_init(&value->bbmd_address.host.name,
