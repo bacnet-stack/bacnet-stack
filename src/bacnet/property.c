@@ -294,7 +294,7 @@ static const int Access_Zone_Properties_Optional[] = {
     PROP_TAGS,
     PROP_PROFILE_LOCATION,
     PROP_PROFILE_NAME,
-    -1 - 1
+    -1
 };
 
 static const int Accumulator_Properties_Required[] = {
@@ -348,7 +348,7 @@ static const int Accumulator_Properties_Optional[] = {
     PROP_TAGS,
     PROP_PROFILE_LOCATION,
     PROP_PROFILE_NAME,
-    -1 - 1
+    -1
 };
 
 static const int Alert_Enrollment_Properties_Required[] = {
