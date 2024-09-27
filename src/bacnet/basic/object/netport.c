@@ -93,6 +93,7 @@ struct mstp_port {
 struct object_data {
     uint32_t Instance_Number;
     const char *Object_Name;
+    const char *Description;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service : 1;
     bool Changes_Pending : 1;
@@ -115,6 +116,7 @@ static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Network_Port_Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,       PROP_STATUS_FLAGS,
     PROP_RELIABILITY,       PROP_OUT_OF_SERVICE,
@@ -124,13 +126,20 @@ static const int Network_Port_Properties_Required[] = {
     PROP_LINK_SPEED,        -1
 };
 
-static const int Ethernet_Port_Properties_Optional[] = { PROP_MAC_ADDRESS, -1 };
+static const int Ethernet_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION, PROP_MAC_ADDRESS, -1
+};
 
-static const int MSTP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
-                                                     PROP_MAX_MASTER,
-                                                     PROP_MAX_INFO_FRAMES, -1 };
+static const int MSTP_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION, PROP_MAC_ADDRESS, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
+    -1
+};
 
 static const int BIP_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
     PROP_BACNET_IP_MODE,
     PROP_IP_ADDRESS,
@@ -152,6 +161,8 @@ static const int BIP_Port_Properties_Optional[] = {
 };
 
 static const int BIP6_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
     PROP_BACNET_IPV6_MODE,
     PROP_IPV6_ADDRESS,
@@ -337,6 +348,47 @@ const char *Network_Port_Object_Name_ASCII(uint32_t object_instance)
     }
 
     return NULL;
+}
+
+/**
+ * @brief For a given object instance-number, returns the ASCII description
+ * @param  object_instance - object-instance number of the object
+ * @return ASCII C string object name, or NULL if not found or not set.
+ */
+const char *Network_Port_Description(uint32_t instance)
+{
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = Network_Port_Instance_To_Index(instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        return Object_List[index].Description;
+    }
+
+    return NULL;
+}
+
+/**
+ * For a given object instance-number, sets the object-name
+ * Note that the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be written
+ *         Expecting a pointer to a static ANSI C string for zero copy.
+ *
+ * @return  true if object-name was set
+ */
+bool Network_Port_Description_Set(uint32_t instance, const char *new_name)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    bool status = false;
+
+    index = Network_Port_Instance_To_Index(instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Description = new_name;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -3164,6 +3216,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_NETWORK_NUMBER_QUALITY:
             apdu_len = encode_application_enumerated(
                 &apdu[0], Network_Port_Quality(rpdata->object_instance));
+            break;
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string,
+                Network_Port_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_MAC_ADDRESS:
             Network_Port_MAC_Address(rpdata->object_instance, &octet_string);

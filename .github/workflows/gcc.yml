@@ -209,7 +209,7 @@ jobs:
     - name: ports-avr
       run: |
         avr-gcc --version
-        make LEGACY=true atmega168
+        make LEGACY=true atmega328
         make LEGACY=true bdk-atxx4-mstp
         make LEGACY=true xplained
 
