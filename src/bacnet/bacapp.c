@@ -1964,6 +1964,7 @@ static int bacapp_snprintf_property_identifier(
     return ret_val;
 }
 
+#if defined(BACAPP_NULL)
 /**
  * @brief Print an null value to a string for EPICS
  * @param str - destination string, or NULL for length only
@@ -1974,6 +1975,7 @@ static int bacapp_snprintf_null(char *str, size_t str_len)
 {
     return bacapp_snprintf(str, str_len, "Null");
 }
+#endif
 
 #if defined(BACAPP_BOOLEAN)
 /**
