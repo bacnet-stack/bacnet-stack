@@ -137,15 +137,71 @@ bool Access_Rights_Object_Name(
     return status;
 }
 
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int Negative_Access_Rules_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    BACNET_ACCESS_RULE *rule;
+    uint32_t count;
+
+    if (object_instance < MAX_ACCESS_RIGHTSS) {
+        count = ar_descr[object_instance].negative_access_rules_count;
+        if (index < count) {
+            rule = &ar_descr[object_instance].negative_access_rules[index];
+            apdu_len = bacapp_encode_access_rule(&apdu[0], rule);
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int Positive_Access_Rules_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    BACNET_ACCESS_RULE *rule;
+    uint32_t count;
+
+    if (object_instance < MAX_ACCESS_RIGHTSS) {
+        count = ar_descr[object_instance].positive_access_rules_count;
+        if (index < count) {
+            rule = &ar_descr[object_instance].positive_access_rules[index];
+            apdu_len = bacapp_encode_access_rule(&apdu[0], rule);
+        }
+    }
+
+    return apdu_len;
+}
+
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int len = 0;
     int apdu_len = 0; /* return value */
+    int apdu_size = 0;
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index = 0;
-    unsigned i = 0;
+    BACNET_UNSIGNED_INTEGER count;
     uint8_t *apdu = NULL;
     bool is_array = false;
 
@@ -154,6 +210,7 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
     apdu = rpdata->application_data;
+    apdu_size = rpdata->application_data_len;
     object_index = Access_Rights_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -190,73 +247,29 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], ar_descr[object_index].enable);
             break;
         case PROP_NEGATIVE_ACCESS_RULES:
-            if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(
-                    &apdu[0],
-                    ar_descr[object_index].negative_access_rules_count);
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 0;
-                     i < ar_descr[object_index].negative_access_rules_count;
-                     i++) {
-                    len = bacapp_encode_access_rule(
-                        &apdu[0],
-                        &ar_descr[object_index].negative_access_rules[i]);
-                    if (apdu_len + len < MAX_APDU) {
-                        apdu_len += len;
-                    } else {
-                        rpdata->error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        apdu_len = BACNET_STATUS_ABORT;
-                        break;
-                    }
-                }
-            } else {
-                if (rpdata->array_index <=
-                    ar_descr[object_index].negative_access_rules_count) {
-                    apdu_len = bacapp_encode_access_rule(
-                        &apdu[0],
-                        &ar_descr[object_index]
-                             .negative_access_rules[rpdata->array_index - 1]);
-                } else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
+            count = ar_descr[object_index].negative_access_rules_count;
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Negative_Access_Rules_Encode, count, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
             break;
         case PROP_POSITIVE_ACCESS_RULES:
-            if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(
-                    &apdu[0],
-                    ar_descr[object_index].positive_access_rules_count);
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 0;
-                     i < ar_descr[object_index].positive_access_rules_count;
-                     i++) {
-                    len = bacapp_encode_access_rule(
-                        &apdu[0],
-                        &ar_descr[object_index].positive_access_rules[i]);
-                    if (apdu_len + len < MAX_APDU) {
-                        apdu_len += len;
-                    } else {
-                        rpdata->error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        apdu_len = BACNET_STATUS_ABORT;
-                        break;
-                    }
-                }
-            } else {
-                if (rpdata->array_index <=
-                    ar_descr[object_index].positive_access_rules_count) {
-                    apdu_len = bacapp_encode_access_rule(
-                        &apdu[0],
-                        &ar_descr[object_index]
-                             .positive_access_rules[rpdata->array_index - 1]);
-                } else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
+            count = ar_descr[object_index].positive_access_rules_count;
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Positive_Access_Rules_Encode, count, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
             break;
         default:
