@@ -98,19 +98,31 @@ typedef struct BACnet_RPM_Service_Data_t {
 } BACNET_RPM_SERVICE_DATA;
 static BACNET_RPM_SERVICE_DATA Read_Property_Multiple_Data;
 
+typedef struct bacnet_list {
+    OS_Keylist list;
+    /* used for discovering object data */
+    uint32_t size;
+    int32_t index;
+} BACNET_LIST;
+
 /* We get the length of the object list,
    and then get the objects one at a time */
 static uint32_t Object_List_Length = 0;
 static int32_t Object_List_Index = 0;
 /* object that we are currently printing */
-static OS_Keylist Object_List;
+static BACNET_LIST Object_List;
 
 /* When we need to process an Object's properties one at a time,
  * then we build and use this list */
-#define MAX_PROPS 128 /* Supersized so it always is big enough. */
-static uint32_t Property_List_Length = 0;
-static uint32_t Property_List_Index = 0;
-static int32_t Property_List[MAX_PROPS + 2];
+static OS_Keylist Property_List;
+
+/* When we need to process an Object's properties one at a time,
+ * then we build and use this list */
+// #define MAX_PROPS 128 /* Supersized so it always is big enough. */
+// static uint32_t Property_List_Length = 0;
+// static uint32_t Property_List_Index = 0;
+// static int32_t Property_List[MAX_PROPS + 2];
+/* object that we are currently printing */
 
 struct property_value_list_t {
     int32_t property_id;
@@ -162,6 +174,21 @@ static bool Optional_Properties = false;
 #if !defined(PRINT_ERRORS)
 #define PRINT_ERRORS 1
 #endif
+
+void Object_List_Add(uint16 object_type, uint32 object_instance)
+{
+    KEY object_list_element;
+    BACNET_OBJECT_DATA *data;
+
+    if (Object_List.list == NULL) {
+        Object_List.list = Keylist_Create();
+        Object_List.size = 0;
+        Object_List.index = 0;
+    }
+    object_list_element = KEY_ENCODE(object_type, object_instance);
+    data = calloc(1, sizeof(BACNET_OBJECT_DATA));
+    Keylist_Data_Add(Object_List.list, object_list_element, data);
+}
 
 static void MyErrorHandler(
     BACNET_ADDRESS *src,
@@ -456,6 +483,7 @@ static void PrintReadPropertyData(
 {
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
+    struct bacnet_object_data_t *property_list;
     bool print_brace = false;
     KEY object_list_element;
 
@@ -569,12 +597,9 @@ static void PrintReadPropertyData(
                     }
                     /* Store the object list so we can interrogate
                        each object. */
-                    object_list_element = KEY_ENCODE(
+                    Object_List_Add(
                         value->type.Object_Id.type,
                         value->type.Object_Id.instance);
-                    /* We don't have anything to put in the data pointer
-                     * yet, so just leave it null.  The key is Key here. */
-                    Keylist_Data_Add(Object_List, object_list_element, NULL);
                 } else if (
                     rpm_property->propertyIdentifier == PROP_STATE_TEXT) {
                     /* Make sure it fits within 31 chars for original VTS3
@@ -1319,6 +1344,37 @@ static void StartNextObject(
     rpm_property->propertyArrayIndex = BACNET_ARRAY_ALL;
 }
 
+/**
+ * @brief free all the key list objects and properties
+ */
+static void cleanup_lists(void)
+{
+    BACNET_LIST *pObject, *pProperty, *pList;
+
+    if (Object_List.list) {
+        do {
+            pObject = Keylist_Data_Pop(Object_List.list);
+            if (pObject) {
+                pProperty = pObject->list;
+                do {
+                    pProperty = Keylist_Data_Pop(pObject->list);
+                    if (pProperty) {
+                        pList = pProperty->list;
+                        /* the list data is encoded in the key, therefore,
+                           the list element doesn't have any data */
+                        Keylist_Delete(pList->list);
+                        free(pProperty);
+                    }
+                } while (pProperty);
+                Keylist_Delete(pProperty->list);
+                free(pObject);
+            }
+        } while (pObject);
+        Keylist_Delete(Object_List.list);
+        Object_List.list = NULL;
+    }
+}
+
 /** Main function of the bacepics program.
  *
  * @see Device_Set_Object_Instance_Number, Keylist_Create, address_init,
@@ -1354,6 +1410,7 @@ int main(int argc, char *argv[])
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Object_List = Keylist_Create();
+    atexit(cleanup_lists);
 #if defined(BACDL_BIP)
     /* For BACnet/IP, we might have set a different port for "me", so
      * (eg) we could talk to a BACnet/IP device on our same interface.
