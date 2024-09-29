@@ -22,6 +22,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
     BIG_ENDIAN=0
+    BACNET_PROPERTY_ARRAY_LISTS=1
     CONFIG_ZTEST=1
     )
 
@@ -52,6 +53,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/property.c
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c

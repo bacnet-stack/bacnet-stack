@@ -13,6 +13,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/property.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
 /* me! */
@@ -146,6 +147,7 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     unsigned object_index = 0;
     unsigned i = 0;
     uint8_t *apdu = NULL;
+    bool is_array = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -264,9 +266,9 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (rpdata->object_property != PROP_NEGATIVE_ACCESS_RULES) &&
-        (rpdata->object_property != PROP_POSITIVE_ACCESS_RULES) &&
+    is_array = property_list_bacnet_array_member(
+        rpdata->object_type, rpdata->object_property);
+    if ((apdu_len >= 0) && (!is_array) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -280,6 +282,7 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Access_Rights_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
+    bool is_array = false;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     unsigned object_index = 0;
@@ -295,9 +298,9 @@ bool Access_Rights_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_NEGATIVE_ACCESS_RULES) &&
-        (wp_data->object_property != PROP_POSITIVE_ACCESS_RULES) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    is_array = property_list_bacnet_array_member(
+        wp_data->object_type, wp_data->object_property);
+    if (is_array && (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
@@ -312,20 +315,16 @@ bool Access_Rights_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     value.type.Unsigned_Int;
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_RELIABILITY:
-        case PROP_ENABLE:
-        case PROP_NEGATIVE_ACCESS_RULES:
-        case PROP_POSITIVE_ACCESS_RULES:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
