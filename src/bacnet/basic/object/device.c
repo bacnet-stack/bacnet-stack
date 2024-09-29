@@ -2417,7 +2417,6 @@ void Routing_Device_Init(uint32_t first_object_instance)
 {
     struct object_functions *pDevObject = NULL;
     Device_Router_Mode = true;
-    
 
     /* Initialize with our preset strings */
     Add_Routed_Device(first_object_instance, &My_Object_Name, Description);
