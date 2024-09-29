@@ -23,8 +23,8 @@ static bool Access_Rights_Initialized = false;
 static ACCESS_RIGHTS_DESCR ar_descr[MAX_ACCESS_RIGHTSS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-/* clang-format off */
 static const int Properties_Required[] = {
+    /* unordered list of required properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -40,7 +40,6 @@ static const int Properties_Required[] = {
 static const int Properties_Optional[] = { -1 };
 
 static const int Properties_Proprietary[] = { -1 };
-/* clang-format on */
 
 void Access_Rights_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
