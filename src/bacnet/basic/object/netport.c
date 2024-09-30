@@ -68,6 +68,8 @@ struct bacnet_ipv6_port {
     uint8_t IP_DNS_Server[BIP_DNS_MAX][IPV6_ADDR_SIZE];
     uint8_t IP_Multicast_Address[IPV6_ADDR_SIZE];
     uint8_t IP_DHCP_Server[IPV6_ADDR_SIZE];
+    uint32_t IP_DHCP_Lease_Time;
+    uint32_t IP_DHCP_Lease_Time_Start;
     uint16_t Port;
     BACNET_IP_MODE Mode;
     bool Auto_Addressing_Enable;
@@ -2666,6 +2668,84 @@ bool Network_Port_IPv6_DHCP_Server_Set(
 }
 
 /**
+ * For a given object instance-number, gets the IPv6_DHCP_Lease_Time.
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP6 for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return IPv6_DHCP_Lease_Time
+ */
+uint32_t Network_Port_IPv6_DHCP_Lease_Time(
+    uint32_t object_instance)
+{
+    const unsigned index = Network_Port_Instance_To_Index(object_instance);
+    uint32_t value = 0;
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            value = Object_List[index].Network.IPv6.IP_DHCP_Lease_Time;
+        }
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the IPv6 DHCP  lease-time
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - 32 bit IPv6 DHCP Lease Time
+ *
+ * @return  true if ipv6-dhcp-lease-time was set
+ */
+bool Network_Port_IPv6_DHCP_Lease_Time_Set(
+    uint32_t object_instance, const uint32_t value)
+{
+    bool status = false;
+    unsigned index = Network_Port_Instance_To_Index(object_instance);
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            struct timeval tv = { .tv_sec = 0, .tv_usec = 0 };
+
+            Object_List[index].Network.IPv6.IP_DHCP_Lease_Time = value;
+            if (gettimeofday(&tv, NULL) != 0) {
+                Object_List[index].Network.IPv6.IP_DHCP_Lease_Time_Start = 0;
+            } else {
+                Object_List[index].Network.IPv6.IP_DHCP_Lease_Time_Start = tv.tv_sec;
+            }
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the start IPv6_DHCP_Lease_Time in seconds from the epoch.
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP6 for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return IPv6_DHCP_Lease_Time
+ */
+uint32_t Network_Port_IPv6_DHCP_Lease_Time_Start(
+    uint32_t object_instance)
+{
+    const unsigned index = Network_Port_Instance_To_Index(object_instance);
+    uint32_t value = 0;
+
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            value = Object_List[index].Network.IPv6.IP_DHCP_Lease_Time_Start;
+        }
+    }
+
+    return value;
+}
+
+/**
  * For a given object instance-number, gets the BACnet/IP UDP Port number
  * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
  *
@@ -3394,10 +3474,25 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance));
             break;
         case PROP_IPV6_DHCP_LEASE_TIME:
-            apdu_len = encode_application_unsigned(&apdu[0], 0);
+            apdu_len = encode_application_unsigned(&apdu[0],
+                    Network_Port_IPv6_DHCP_Lease_Time(rpdata->object_instance));
             break;
         case PROP_IPV6_DHCP_LEASE_TIME_REMAINING:
-            apdu_len = encode_application_unsigned(&apdu[0], 0);
+            if(Network_Port_Instance_To_Index(rpdata->object_instance) < BACNET_NETWORK_PORTS_MAX) {
+                uint32_t start_time = Network_Port_IPv6_DHCP_Lease_Time_Start(rpdata->object_instance);
+                uint32_t lease_time = Network_Port_IPv6_DHCP_Lease_Time(rpdata->object_instance);
+                struct timeval tv = { .tv_sec = 0, .tv_usec = 0 };
+
+                if (gettimeofday(&tv, NULL) == 0) {
+                    uint32_t remaining = 0;
+
+                    if(tv.tv_sec < (start_time + lease_time)) {
+                        remaining = start_time + lease_time - tv.tv_sec;
+                    }
+
+                    apdu_len = encode_application_unsigned(&apdu[0], remaining);
+                }
+            }
             break;
         case PROP_IPV6_DHCP_SERVER:
             Network_Port_IPv6_DHCP_Server(

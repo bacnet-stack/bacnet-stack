@@ -171,6 +171,11 @@ BACNET_STACK_EXPORT
 uint16_t Network_Port_BIP_Port(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_BIP_Port_Set(uint32_t object_instance, uint16_t value);
+BACNET_STACK_EXPORT
+uint32_t Network_Port_IPv6_DHCP_Lease_Time(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Network_Port_IPv6_DHCP_Lease_Time_Set(
+    uint32_t object_instance, const uint32_t value);
 
 BACNET_STACK_EXPORT
 BACNET_IP_MODE Network_Port_BIP_Mode(uint32_t object_instance);
