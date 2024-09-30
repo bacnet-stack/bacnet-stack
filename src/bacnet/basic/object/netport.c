@@ -35,6 +35,9 @@
 #include <sys/time.h>
 #else
 #include <winsock.h>
+
+/* defined in ports/win32/datetime-init.c */
+int gettimeofday(struct timeval *tp, void *tzp);
 #endif
 
 #ifndef BBMD_ENABLED
