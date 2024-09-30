@@ -24,10 +24,24 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
-* Secured BACnetAccessRule encoding and decoding and added unit testing.
+  * Secured BACnetAccessRule encoding and decoding and added unit testing.
+    Fixed BACnetAccessRule application integration into Access Rights object.
+    Improved unit testing and code coverage. (#790)
+  * Secured Active-COV-Subscriptions property encoding. (#763)
 
 ### Added
 
+* Added some optional properties into the object property lists up to
+  protocol-revision 22. (#789)
+* Added serial-number property to basic device object example. (#789)
+* Added optional description property to basic network port object
+  example. (#788)
+* Added ucix_get_list and ucix_set_list function (#780)
+* Added uci include and lib for cmake (#779)
+* Added BACnet Ethernet support for MacOS X via pcap library. (#775)
+* Added local tool aptfile to use with apt based development
+  installation. (#772)
+* Added MS/TP support for MacOS X. (#764)
 * Added pre-commit clang-format 17 format check in pipeline. Formatted
   entire code base except external/ folders. (#755)
 * Added RP and RPM error code indications in callbacks in bac-rw.c
@@ -46,6 +60,14 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed ATmega168 example for ATmega328 on Arduino Uno R3 with DFR0259
+  RS485 shield. Added ADC interface from BDK port and mapped to some AV
+  objects. Removed MS/TP MAC address DIP switch GPIO and moved MS/TP
+  configuration to AV objects. Added AV units property. Added some
+  Uno R3 Digital Inputs and outputs mapped to some BV. Added AVR EEPROM
+  from BDK port and mapped some non-volatile data
+  including MAC address and max manager and baud rate,
+  device ID and names and description and location. (#784)
 * Changed the datalink abstraction to enable selecting multiple datalinks
   using BACDL_MULTIPLE and one or more other BACDL defines. (#717)
 * Moved west manifest, zephyr folder, and ports/zephyr folders to
@@ -70,6 +92,20 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed a warning emitted from arm-none-eabi-gcc in hostnport.c (#785)
+* Fixed duplicated C file in CMakeLists.txt (#781)
+* Fixed cmake dependencies to build readbdt, readfdt and router-ipv6
+  if BACDL_BIP=OFF. (#777)
+* Fixed compiler warning in ports/bsd/rs485.c module. (#771)
+* Fixed UTF-8 passwords for DeviceCommunicationControl to hold up to
+  20 UTF-8 characters. (#767)
+* Fixed "types-limits" compiler warnings. (#766)
+* Fixed variable data type for boolean in RPM structure. Fixed RPM error
+  handling to use callback. Fixed bacrpm app example when not enough
+  command line parameters are used. Fixed empty-list EPICS printing.
+  Fixed RPM-Ack processing for end of list-of-results. Added minimal
+  handling for segmentation-not-supported during RPM of object
+  properties. (#765)
 * Fixed the order of operations in SubscribeCOV so the dest_index gets written
   to the correct slot instead of an initial MAX_COV_SUBSCRIPTIONS-1. (#761)
 * Fixed some spelling typos in comments. (#762)
