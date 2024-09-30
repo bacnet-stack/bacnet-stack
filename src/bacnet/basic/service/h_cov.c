@@ -271,34 +271,46 @@ static int cov_encode_subscription(
  *  Invoked by a request to read the Device object's
  * PROP_ACTIVE_COV_SUBSCRIPTIONS. Loops through the list of COV Subscriptions,
  * and, for each valid one, adds its description to the APDU.
- *  @note This function needs some work to better handle buffer overruns.
  *  @param apdu [out] Buffer in which the APDU contents are built.
  *  @param max_apdu [in] Max length of the APDU buffer.
  *  @return How many bytes were encoded in the buffer, or -2 if the response
  *          would not fit within the buffer.
  */
+/* Maximume length for an encoded COV subscription  - 27 bytes for BACNET IP6
+ * 31 bytes for IPv4 (longest MAC) and lets round it up to the machine word
+ * alignment */
+#define MAX_COV_SUB_SIZE (32)
 int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
 {
-    int len = 0;
-    int apdu_len = 0;
-    unsigned index = 0;
-
     if (apdu) {
+        uint8_t cov_sub[MAX_COV_SUB_SIZE] = {
+            0,
+        };
+        unsigned index = 0;
+        int apdu_len = 0;
+
         for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
             if (COV_Subscriptions[index].flag.valid) {
-                len = cov_encode_subscription(
-                    &apdu[apdu_len], max_apdu - apdu_len,
+                /* Lets encode a COV subscription into an intermediate buffer
+                 * that can hold it */
+                int len = cov_encode_subscription(
+                    &cov_sub[0], max_apdu - apdu_len,
                     &COV_Subscriptions[index]);
-                apdu_len += len;
-                /* TODO: too late here to notice that we overran the buffer */
-                if (apdu_len > max_apdu) {
+
+                if ((apdu_len + len) > max_apdu) {
                     return -2;
                 }
+
+                /* Lets copy if and only if it fits in the buffer */
+                memcpy(&apdu[apdu_len], cov_sub, len);
+                apdu_len += len;
             }
         }
+
+        return apdu_len;
     }
 
-    return apdu_len;
+    return 0;
 }
 
 /** Handler to initialize the COV list, clearing and disabling each entry.

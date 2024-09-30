@@ -8,9 +8,11 @@
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+#include "bacnet/bacstr.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/dcc.h"
+/** @file dcc.c  Enable/Disable Device Communication Control (DCC) */
 
 /* note: the disable and time are not expected to survive
    over a power cycle or reinitialization. */
@@ -267,7 +269,6 @@ int dcc_decode_service_request(
     uint32_t len_value_type = 0;
     BACNET_UNSIGNED_INTEGER decoded_unsigned = 0;
     uint32_t decoded_enum = 0;
-    uint32_t password_length = 0;
 
     if (apdu && apdu_len_max) {
         /* Tag 0: timeDuration, in minutes --optional-- */
@@ -321,7 +322,9 @@ int dcc_decode_service_request(
                         &apdu[apdu_len], apdu_len_max - apdu_len,
                         len_value_type, password);
                     if (len > 0) {
-                        password_length = len_value_type - 1;
+                        size_t password_length =
+                            characterstring_utf8_length(password);
+                        /* UTF-8 code points can be up to 4 bytes long */
                         if ((password_length >= 1) && (password_length <= 20)) {
                             apdu_len += len;
                         } else {

@@ -954,7 +954,7 @@ int bacapp_encode_context_data_value(
 BACNET_APPLICATION_TAG
 bacapp_context_tag_type(BACNET_PROPERTY_ID property, uint8_t tag_number)
 {
-    BACNET_APPLICATION_TAG tag = MAX_BACNET_APPLICATION_TAG;
+    int tag = MAX_BACNET_APPLICATION_TAG;
 
     (void)tag_number;
     tag = bacapp_known_property_tag(MAX_BACNET_OBJECT_TYPE, property);
@@ -962,7 +962,7 @@ bacapp_context_tag_type(BACNET_PROPERTY_ID property, uint8_t tag_number)
         tag = MAX_BACNET_APPLICATION_TAG;
     }
 
-    return tag;
+    return (BACNET_APPLICATION_TAG)tag;
 }
 
 /**
@@ -1615,7 +1615,7 @@ int bacapp_decode_known_property(
     BACNET_PROPERTY_ID property)
 {
     int apdu_len = 0;
-    BACNET_APPLICATION_TAG tag;
+    int tag;
 
     if (bacnet_is_closing_tag(apdu, apdu_size)) {
         if (value) {
@@ -1944,6 +1944,7 @@ static int bacapp_snprintf_property_identifier(
     return ret_val;
 }
 
+#if defined(BACAPP_NULL)
 /**
  * @brief Print an null value to a string for EPICS
  * @param str - destination string, or NULL for length only
@@ -1954,6 +1955,7 @@ static int bacapp_snprintf_null(char *str, size_t str_len)
 {
     return bacapp_snprintf(str, str_len, "Null");
 }
+#endif
 
 #if defined(BACAPP_BOOLEAN)
 /**
@@ -3278,6 +3280,9 @@ int bacapp_snprintf_value(
                     str, str_len, &value->type.Shed_Level);
                 break;
 #endif
+            case BACNET_APPLICATION_TAG_EMPTYLIST:
+                ret_val = bacapp_snprintf(str, str_len, "{}");
+                break;
             default:
                 ret_val = bacapp_snprintf(
                     str, str_len, "UnknownType(tag=%d)", value->tag);
@@ -3922,7 +3927,7 @@ void bacapp_value_list_init(BACNET_APPLICATION_DATA_VALUE *value, size_t count)
     if (value && count) {
         for (i = 0; i < count; i++) {
             value->tag = BACNET_APPLICATION_TAG_NULL;
-            value->context_specific = 0;
+            value->context_specific = false;
             value->context_tag = 0;
             if ((i + 1) < count) {
                 value->next = value + 1;

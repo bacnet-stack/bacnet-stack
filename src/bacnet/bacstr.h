@@ -118,6 +118,8 @@ const char *characterstring_value(const BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_EXPORT
 size_t characterstring_length(const BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_EXPORT
+size_t characterstring_utf8_length(const BACNET_CHARACTER_STRING *str);
+BACNET_STACK_EXPORT
 uint8_t characterstring_encoding(const BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_EXPORT
 size_t characterstring_capacity(const BACNET_CHARACTER_STRING *char_string);

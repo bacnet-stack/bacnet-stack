@@ -103,18 +103,19 @@ int rpm_ack_decode_service_request(
                 decoded_len++;
                 apdu_len--;
                 apdu++;
-                /* note: if this is an array, there will be
-                   more than one element to decode */
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
-
-                /* Special case for an empty array - we decode it as null */
                 if (apdu_len && decode_is_closing_tag_number(apdu, 4)) {
-                    bacapp_value_list_init(value, 1);
+                    /* Special case for an empty array or list */
+                    if (value) {
+                        bacapp_value_list_init(value, 1);
+                        value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
+                    }
                     decoded_len++;
                     apdu_len--;
                     apdu++;
                 } else {
+                    /* one or more (array or list) elements to decode */
                     while (value && (apdu_len > 0)) {
                         len = bacapp_decode_known_property(
                             apdu, (unsigned)apdu_len, value,

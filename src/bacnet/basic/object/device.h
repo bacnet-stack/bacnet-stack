@@ -346,6 +346,11 @@ const char *Device_Location(void);
 BACNET_STACK_EXPORT
 bool Device_Set_Location(const char *name, size_t length);
 
+BACNET_STACK_EXPORT
+const char *Device_Serial_Number(void);
+BACNET_STACK_EXPORT
+bool Device_Serial_Number_Set(const char *name, size_t length);
+
 /* some stack-centric constant values - no set methods */
 BACNET_STACK_EXPORT
 uint8_t Device_Protocol_Version(void);
