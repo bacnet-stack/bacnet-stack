@@ -70,35 +70,6 @@ int bacapp_encode_access_rule(uint8_t *apdu, const BACNET_ACCESS_RULE *rule)
 }
 
 /**
- * @brief Encode the BACnetAccessRule as Context Tagged
- * @param apdu  Pointer to the buffer for encoding, or NULL for length
- * @param tag_number  Tag number
- * @param rule  Pointer to the data to be encoded
- * @return number of bytes encoded
- */
-int bacapp_encode_context_access_rule(
-    uint8_t *apdu, uint8_t tag_number, const BACNET_ACCESS_RULE *rule)
-{
-    int len;
-    int apdu_len = 0;
-
-    len = encode_opening_tag(apdu, tag_number);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = bacapp_encode_access_rule(apdu, rule);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = encode_closing_tag(apdu, tag_number);
-    apdu_len += len;
-
-    return apdu_len;
-}
-
-/**
  * @brief Decode the BACnetAccessRule
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  The size of the buffer for decoding.
@@ -207,52 +178,55 @@ int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *data)
 }
 
 /**
- * @brief Decode the BACnetAccessRule as Context Tagged
- * @param apdu  Pointer to the buffer for decoding.
- * @param apdu_size The size of the buffer for decoding.
- * @param tag_number  Tag number
- * @param data  Pointer to the data to be stored
- * @return number of bytes decoded or BACNET_STATUS_ERROR on error
+ * @brief Parse a string into a BACnetAccessRule value
+ * @param value [out] The BACnetAccessRule value
+ * @param argv [in] The string to parse
+ * @return True on success, else False
  */
-int bacnet_access_rule_context_decode(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_ACCESS_RULE *data)
+bool bacnet_access_rule_from_ascii(BACNET_ACCESS_RULE *value, const char *argv)
 {
-    int len = 0;
-    int apdu_len = 0;
+    bool status = false;
 
-    if (!bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
-    }
-    apdu_len += len;
-    len =
-        bacnet_access_rule_decode(&apdu[apdu_len], apdu_size - apdu_len, data);
-    if (len <= 0) {
-        return BACNET_STATUS_ERROR;
-    }
-    apdu_len += len;
-    if (!bacnet_is_closing_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
-    }
-    apdu_len += len;
+    (void)value;
+    (void)argv;
 
-    return apdu_len;
+    return status;
 }
 
 /**
- * @brief Decode the BACnetAccessRule as Context Tagged
- * @param apdu  Pointer to the buffer for decoding.
- * @param tag_number  Tag number
- * @param data  Pointer to the data to be stored
- * @return number of bytes decoded or BACNET_STATUS_ERROR on error
- * @deprecated Use bacnet_access_rule_context_decode() instead
+ * @brief Compare two BACnetAccessRule values
+ * @param value1 [in] The first BACnetAccessRule value
+ * @param value2 [in] The second BACnetAccessRule value
+ * @return True if the values are the same, else False
  */
-int bacapp_decode_context_access_rule(
-    const uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *data)
+bool bacnet_access_rule_same(
+    const BACNET_ACCESS_RULE *value1, const BACNET_ACCESS_RULE *value2)
 {
-    return bacnet_access_rule_context_decode(apdu, MAX_APDU, tag_number, data);
+    bool status;
+
+    if (value1->time_range_specifier != value2->time_range_specifier) {
+        return false;
+    }
+    if (value1->time_range_specifier == TIME_RANGE_SPECIFIER_SPECIFIED) {
+        status = bacnet_device_object_property_reference_same(
+            &value1->time_range, &value2->time_range);
+        if (!status) {
+            return false;
+        }
+    }
+    if (value1->location_specifier != value2->location_specifier) {
+        return false;
+    }
+    if (value1->location_specifier == LOCATION_SPECIFIER_SPECIFIED) {
+        status = bacnet_device_object_reference_same(
+            &value1->location, &value2->location);
+        if (!status) {
+            return false;
+        }
+    }
+    if (value1->enable != value2->enable) {
+        return false;
+    }
+
+    return true;
 }

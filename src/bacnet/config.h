@@ -203,6 +203,7 @@
     defined(BACAPP_ACTION_COMMAND) || \
     defined(BACAPP_SCALE) || \
     defined(BACAPP_SHED_LEVEL) || \
+    defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
@@ -249,6 +250,7 @@
 #define BACAPP_ACTION_COMMAND
 #define BACAPP_SCALE
 #define BACAPP_SHED_LEVEL
+#define BACAPP_ACCESS_RULE
 #endif
 
 /* clang-format off */
@@ -270,7 +272,8 @@
     defined(BACAPP_FDT_ENTRY) || \
     defined(BACAPP_ACTION_COMMAND) || \
     defined(BACAPP_SCALE) || \
-    defined(BACAPP_SHED_LEVEL)
+    defined(BACAPP_SHED_LEVEL) || \
+    defined(BACAPP_ACCESS_RULE)
 #define BACAPP_COMPLEX_TYPES
 #endif
 /* clang-format on */

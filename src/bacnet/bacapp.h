@@ -15,6 +15,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/access_rule.h"
 #include "bacnet/bacaction.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/bacint.h"
@@ -159,6 +160,9 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined(BACAPP_SHED_LEVEL)
         BACNET_SHED_LEVEL Shed_Level;
+#endif
+#if defined(BACAPP_ACCESS_RULE)
+        BACNET_ACCESS_RULE Access_Rule;
 #endif
     } type;
     /* simple linked list if needed */
