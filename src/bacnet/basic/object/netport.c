@@ -2706,7 +2706,11 @@ bool Network_Port_IPv6_DHCP_Lease_Time_Set(
 
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+#if (__STDC__) && (__STDC_VERSION__ >= 199901L)
             struct timeval tv = { .tv_sec = 0, .tv_usec = 0 };
+#else
+            struct timeval tv = { 0, 0 };
+#endif
 
             Object_List[index].Network.IPv6.IP_DHCP_Lease_Time = value;
             if (gettimeofday(&tv, NULL) != 0) {
