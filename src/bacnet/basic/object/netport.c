@@ -34,7 +34,7 @@
 #if !defined(_MSC_VER)
 #include <sys/time.h>
 #else
-#include <time.h>
+#include <winsock.h>
 #endif
 
 #ifndef BBMD_ENABLED
