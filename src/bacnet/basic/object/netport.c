@@ -33,6 +33,8 @@
 
 #if !defined(_MSC_VER)
 #include <sys/time.h>
+#else
+#include <time.h>
 #endif
 
 #ifndef BBMD_ENABLED
