@@ -31,7 +31,9 @@
 #include "bacnet/datalink/bvlc6.h"
 #endif
 
+#if !defined(_MSC_VER)
 #include <sys/time.h>
+#endif
 
 #ifndef BBMD_ENABLED
 #define BBMD_ENABLED 1
