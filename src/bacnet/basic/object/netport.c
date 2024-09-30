@@ -3491,7 +3491,11 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance);
                 uint32_t lease_time =
                     Network_Port_IPv6_DHCP_Lease_Time(rpdata->object_instance);
+#if (__STDC__) && (__STDC_VERSION__ >= 199901L)
                 struct timeval tv = { .tv_sec = 0, .tv_usec = 0 };
+#else
+                struct timeval tv = { 0, 0 };
+#endif
 
                 if (gettimeofday(&tv, NULL) == 0) {
                     uint32_t remaining = 0;
