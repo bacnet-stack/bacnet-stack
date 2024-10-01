@@ -1,4 +1,4 @@
-SLOC	Directory	SLOC-by-Language (Sorted)
+SLOC    Directory   SLOC-by-Language (Sorted)
 118011  ports           ansic=101988,asm=10755,cpp=4651,xml=463,sh=154
 78632   src_bacnet      ansic=78632
 28295   test            ansic=27663,cpp=598,xml=34

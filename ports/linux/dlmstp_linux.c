@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stdbool.h>
@@ -57,8 +40,9 @@
         if (x < 0xFFFF)               \
             x++;                      \
     }
-uint32_t Timer_Silence(void *poPort)
+static uint32_t Timer_Silence(void *poPort)
 {
+    int32_t res;
     struct timeval now, tmp_diff;
     SHARED_MSTP_DATA *poSharedData;
     struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *)poPort;
@@ -70,8 +54,6 @@ uint32_t Timer_Silence(void *poPort)
         return -1;
     }
 
-    int32_t res;
-
     gettimeofday(&now, NULL);
     timersub(&poSharedData->start, &now, &tmp_diff);
     res = ((tmp_diff.tv_sec) * 1000 + (tmp_diff.tv_usec) / 1000);
@@ -79,7 +61,7 @@ uint32_t Timer_Silence(void *poPort)
     return (res >= 0 ? res : -res);
 }
 
-void Timer_Silence_Reset(void *poPort)
+static void Timer_Silence_Reset(void *poPort)
 {
     SHARED_MSTP_DATA *poSharedData;
     struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *)poPort;
@@ -94,7 +76,7 @@ void Timer_Silence_Reset(void *poPort)
     gettimeofday(&poSharedData->start, NULL);
 }
 
-void get_abstime(struct timespec *abstime, unsigned long milliseconds)
+static void get_abstime(struct timespec *abstime, unsigned long milliseconds)
 {
     struct timeval now, offset, result;
 
@@ -213,7 +195,7 @@ uint16_t dlmstp_receive(
     return pdu_len;
 }
 
-void *dlmstp_receive_fsm_task(void *pArg)
+static void *dlmstp_receive_fsm_task(void *pArg)
 {
     bool received_frame;
     SHARED_MSTP_DATA *poSharedData;
@@ -248,7 +230,7 @@ void *dlmstp_receive_fsm_task(void *pArg)
     return NULL;
 }
 
-void *dlmstp_master_fsm_task(void *pArg)
+static void *dlmstp_master_fsm_task(void *pArg)
 {
     uint32_t silence = 0;
     bool run_master = false;
@@ -276,16 +258,19 @@ void *dlmstp_master_fsm_task(void *pArg)
             silence = mstp_port->SilenceTimer(NULL);
             switch (mstp_port->master_state) {
                 case MSTP_MASTER_STATE_IDLE:
-                    if (silence >= Tno_token)
+                    if (silence >= Tno_token) {
                         run_master = true;
+                    }
                     break;
                 case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-                    if (silence >= mstp_port->Treply_timeout)
+                    if (silence >= mstp_port->Treply_timeout) {
                         run_master = true;
+                    }
                     break;
                 case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-                    if (silence >= mstp_port->Tusage_timeout)
+                    if (silence >= mstp_port->Tusage_timeout) {
                         run_master = true;
+                    }
                     break;
                 default:
                     run_master = true;
@@ -342,8 +327,9 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
     if (!poSharedData->Receive_Packet.ready) {
         /* bounds check - maybe this should send an abort? */
         pdu_len = mstp_port->DataLength;
-        if (pdu_len > sizeof(poSharedData->Receive_Packet.pdu))
+        if (pdu_len > sizeof(poSharedData->Receive_Packet.pdu)) {
             pdu_len = sizeof(poSharedData->Receive_Packet.pdu);
+        }
         memmove(
             (void *)&poSharedData->Receive_Packet.pdu[0],
             (void *)&mstp_port->InputBuffer[0], pdu_len);
@@ -397,16 +383,18 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
  * @param nbytes - number of bytes of data to send
  */
 void MSTP_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, uint8_t *buffer, uint16_t nbytes)
+    struct mstp_port_struct_t *mstp_port,
+    const uint8_t *buffer,
+    uint16_t nbytes)
 {
     RS485_Send_Frame(mstp_port, buffer, nbytes);
 }
 
-bool dlmstp_compare_data_expecting_reply(
-    uint8_t *request_pdu,
+static bool dlmstp_compare_data_expecting_reply(
+    const uint8_t *request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,
-    uint8_t *reply_pdu,
+    const uint8_t *reply_pdu,
     uint16_t reply_pdu_len,
     uint8_t dest_address)
 {
@@ -425,8 +413,9 @@ bool dlmstp_compare_data_expecting_reply(
     struct DER_compare_t reply;
 
     /* unused parameters */
-    request_pdu_len = request_pdu_len;
-    reply_pdu_len = reply_pdu_len;
+    (void)request_pdu_len;
+    (void)reply_pdu_len;
+
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
@@ -595,8 +584,9 @@ void dlmstp_set_mac_address(void *poPort, uint8_t mac_address)
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
         mstp_port->This_Station = mac_address;
-        if (mac_address > mstp_port->Nmax_master)
+        if (mac_address > mstp_port->Nmax_master) {
             dlmstp_set_max_master(mstp_port, mac_address);
+        }
     }
 
     return;
@@ -780,6 +770,7 @@ bool dlmstp_init(void *poPort, char *ifname)
     unsigned long hThread = 0;
     int rv = 0;
     SHARED_MSTP_DATA *poSharedData;
+    struct termios newtio;
     struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *)poPort;
     if (!mstp_port) {
         return false;
@@ -808,7 +799,6 @@ bool dlmstp_init(void *poPort, char *ifname)
         exit(1);
     }
 
-    struct termios newtio;
     printf("RS485: Initializing %s", poSharedData->RS485_Port_Name);
     /*
        Open device for reading and writing.
@@ -873,6 +863,11 @@ bool dlmstp_init(void *poPort, char *ifname)
     if (rv != 0) {
         fprintf(stderr, "Failed to start Master Node FSM task\n");
     }
+
+    /* You can try also this for thread. This here so we ignore
+     * -Wunused-function compiler warning
+     */
+    dlmstp_receive_fsm_task(NULL);
 
     return true;
 }

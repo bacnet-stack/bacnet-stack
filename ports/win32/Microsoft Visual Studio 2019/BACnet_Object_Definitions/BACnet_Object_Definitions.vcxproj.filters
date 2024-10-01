@@ -84,6 +84,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\structured_view.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\osv.c">
       <Filter>Source Files</Filter>
     </ClCompile>

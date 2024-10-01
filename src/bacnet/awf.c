@@ -1,44 +1,16 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet AtomicWriteFile service structures, codecs, and handlers.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/awf.h"
-
-/** @file awf.c  Atomic Write File */
 
 /**
  * @brief Encode the AtomicWriteFile service request
@@ -62,7 +34,8 @@
  * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded
  */
-int awf_service_encode_apdu(uint8_t *apdu, BACNET_ATOMIC_WRITE_FILE_DATA *data)
+int awf_service_encode_apdu(
+    uint8_t *apdu, const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -138,7 +111,7 @@ int awf_service_encode_apdu(uint8_t *apdu, BACNET_ATOMIC_WRITE_FILE_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 int atomicwritefile_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_ATOMIC_WRITE_FILE_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -160,7 +133,7 @@ int atomicwritefile_service_request_encode(
  * @return number of bytes encoded
  */
 int awf_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_ATOMIC_WRITE_FILE_DATA *data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -208,7 +181,9 @@ int awf_encode_apdu(
  * @return number of bytes decoded or BACNET_STATUS_ERROR on error.
  */
 int awf_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_ATOMIC_WRITE_FILE_DATA *data)
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     /* return value */
     int apdu_len = 0;
@@ -327,7 +302,8 @@ int awf_decode_service_request(
  *  or NULL for length
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
-int awf_decode_apdu(uint8_t *apdu,
+int awf_decode_apdu(
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_ATOMIC_WRITE_FILE_DATA *data)
@@ -374,7 +350,7 @@ int awf_decode_apdu(uint8_t *apdu,
  * @return number of bytes encoded
  */
 int awf_ack_service_encode_apdu(
-    uint8_t *apdu, BACNET_ATOMIC_WRITE_FILE_DATA *data)
+    uint8_t *apdu, const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -402,7 +378,7 @@ int awf_ack_service_encode_apdu(
  * @return number of bytes encoded
  */
 int awf_ack_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_ATOMIC_WRITE_FILE_DATA *data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -438,7 +414,9 @@ int awf_ack_encode_apdu(
  * @return number of bytes encoded or BACNET_STATUS_ERROR on error.
  */
 int awf_ack_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_ATOMIC_WRITE_FILE_DATA *data)
+    const uint8_t *apdu,
+    unsigned apdu_size,
+    BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     int len = 0, apdu_len = 0;
     int32_t signed_integer;
@@ -491,7 +469,8 @@ int awf_ack_decode_service_request(
  *  or NULL for length
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
-int awf_ack_decode_apdu(uint8_t *apdu,
+int awf_ack_decode_apdu(
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_ATOMIC_WRITE_FILE_DATA *data)

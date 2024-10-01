@@ -1,29 +1,11 @@
-/**************************************************************************
- *
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet BVLC message, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet BVLC message, and displays
+ * the reply, for a Read-Foreign-Device-Table message to a peer BBMD.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -42,6 +24,8 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/bvlc.h"
+#include "bacnet/datalink/bip.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
 /* some demo stuff needed */
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/filename.h"
@@ -68,8 +52,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -114,16 +98,17 @@ int main(int argc, char *argv[])
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("Send a Read-Foreign-Device-Table message to a BBMD.\r\n"
-               "\r\n"
-               "IP:\r\n"
-               "IP address of the BBMD in dotted decimal notation\r\n"
-               "[port]\r\n"
-               "optional BACnet/IP port number (default=47808=0xBAC0)\r\n"
-               "\r\n"
-               "To send a Read-Foreign-Device-Table message to a BBMD\r\n"
-               "at 192.168.0.1 using port 47808:\r\n"
-               "%s 192.168.0.1 47808\r\n",
+        printf(
+            "Send a Read-Foreign-Device-Table message to a BBMD.\r\n"
+            "\r\n"
+            "IP:\r\n"
+            "IP address of the BBMD in dotted decimal notation\r\n"
+            "[port]\r\n"
+            "optional BACnet/IP port number (default=47808=0xBAC0)\r\n"
+            "\r\n"
+            "To send a Read-Foreign-Device-Table message to a BBMD\r\n"
+            "at 192.168.0.1 using port 47808:\r\n"
+            "%s 192.168.0.1 47808\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }

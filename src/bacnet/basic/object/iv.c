@@ -1,36 +1,11 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2014
- * @brief Integer Value objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Integer Value object is an object with a present-value that
+ * @brief The Integer Value object is an object with a present-value that
  * uses an INTEGER data type.
- *
- * @section LICENSE
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -45,7 +20,7 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
-#include "bacnet/config.h" /* the custom stuff */
+#include "bacnet/proplist.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 /* me! */
@@ -59,7 +34,6 @@
 static OS_Keylist Object_List = NULL;
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_INTEGER_VALUE;
-
 
 struct integer_object {
     bool Out_Of_Service : 1;
@@ -76,13 +50,16 @@ struct integer_object {
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_UNITS, -1 };
+                                                         PROP_OBJECT_NAME,
+                                                         PROP_OBJECT_TYPE,
+                                                         PROP_PRESENT_VALUE,
+                                                         PROP_STATUS_FLAGS,
+                                                         PROP_UNITS,
+                                                         -1 };
 
-static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE,
-    PROP_DESCRIPTION,
-    PROP_COV_INCREMENT,
-    -1 };
+static const int Integer_Value_Properties_Optional[] = {
+    PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, PROP_COV_INCREMENT, -1
+};
 
 static const int Integer_Value_Properties_Proprietary[] = { -1 };
 
@@ -173,49 +150,70 @@ uint32_t Integer_Value_Index_To_Instance(unsigned index)
  */
 bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 {
-  unsigned i;
+    unsigned i;
 
-  if (!pInit_data) {
-    return false;
-  }
+    if (!pInit_data) {
+        return false;
+    }
 
-  for (i = 0; i < pInit_data->length; i++) {
-      if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
-          if(Integer_Value_Create(pInit_data->Object_Init_Values[i].Object_Instance) < BACNET_MAX_INSTANCE) {
-              struct integer_object *pObject = Integer_Value_Object(pInit_data->Object_Init_Values[i].Object_Instance);
+    for (i = 0; i < pInit_data->length; i++) {
+        if (pInit_data->Object_Init_Values[i].Object_Instance <
+            BACNET_MAX_INSTANCE) {
+            if (Integer_Value_Create(
+                    pInit_data->Object_Init_Values[i].Object_Instance) <
+                BACNET_MAX_INSTANCE) {
+                struct integer_object *pObject = Integer_Value_Object(
+                    pInit_data->Object_Init_Values[i].Object_Instance);
 
-              if(pObject == NULL) {
-                  PRINT("Object instance %u not found right after its creation", pInit_data->Object_Init_Values[i].Object_Instance);
-                  return false;
-              }
+                if (pObject == NULL) {
+                    PRINT(
+                        "Object instance %u not found right after its creation",
+                        pInit_data->Object_Init_Values[i].Object_Instance);
+                    return false;
+                }
 
-              if (!characterstring_init_ansi(&pObject->Name, pInit_data->Object_Init_Values[i].Object_Name)) {
-                  PRINT("Fail to set Object name to \"%.128s\"", pInit_data->Object_Init_Values[i].Object_Name);
-                  return false;
-              }
+                if (!characterstring_init_ansi(
+                        &pObject->Name,
+                        pInit_data->Object_Init_Values[i].Object_Name)) {
+                    PRINT(
+                        "Fail to set Object name to \"%.128s\"",
+                        pInit_data->Object_Init_Values[i].Object_Name);
+                    return false;
+                }
 
-              if (!characterstring_init_ansi(&pObject->Description, pInit_data->Object_Init_Values[i].Description)) {
-                  PRINT("Fail to set Object description to \"%.128s\"", pInit_data->Object_Init_Values[i].Description);
-                  return false;
-              }
+                if (!characterstring_init_ansi(
+                        &pObject->Description,
+                        pInit_data->Object_Init_Values[i].Description)) {
+                    PRINT(
+                        "Fail to set Object description to \"%.128s\"",
+                        pInit_data->Object_Init_Values[i].Description);
+                    return false;
+                }
 
-              if (pInit_data->Object_Init_Values[i].Units < UNITS_PROPRIETARY_RANGE_MAX2) {
-                  pObject->Units = pInit_data->Object_Init_Values[i].Units;
-              } else {
-                  PRINT("unit %u is out of range", pInit_data->Object_Init_Values[i].Units);
-                  return false;
-              }
-          } else {
-              PRINT("Unable to create object of instance %u", pInit_data->Object_Init_Values[i].Object_Instance);
-              return false;
-          }
-      } else {
-          PRINT("Object instance %u is too big", pInit_data->Object_Init_Values[i].Object_Instance);
-          return false;
-      }
-  }
+                if (pInit_data->Object_Init_Values[i].Units <
+                    UNITS_PROPRIETARY_RANGE_MAX2) {
+                    pObject->Units = pInit_data->Object_Init_Values[i].Units;
+                } else {
+                    PRINT(
+                        "unit %u is out of range",
+                        pInit_data->Object_Init_Values[i].Units);
+                    return false;
+                }
+            } else {
+                PRINT(
+                    "Unable to create object of instance %u",
+                    pInit_data->Object_Init_Values[i].Object_Instance);
+                return false;
+            }
+        } else {
+            PRINT(
+                "Object instance %u is too big",
+                pInit_data->Object_Init_Values[i].Object_Instance);
+            return false;
+        }
+    }
 
-   return true;
+    return true;
 }
 
 /**
@@ -267,7 +265,7 @@ Integer_Value_COV_Detect(struct integer_object *pObject, int32_t value)
     if (pObject) {
         int32_t prior_value = pObject->Prior_Value;
         uint32_t cov_increment = pObject->COV_Increment;
-        uint32_t cov_delta = (uint32_t) abs(prior_value - value);
+        uint32_t cov_delta = (uint32_t)abs(prior_value - value);
 
         if (cov_delta >= cov_increment) {
             pObject->Changed = true;
@@ -290,7 +288,7 @@ bool Integer_Value_Present_Value_Set(
     bool status = false;
     struct integer_object *pObject = Integer_Value_Object(object_instance);
 
-    (void) priority;
+    (void)priority;
 
     if (pObject) {
         Integer_Value_COV_Detect(pObject, value);
@@ -313,9 +311,10 @@ bool Integer_Value_Present_Value_Backup_Set(
     uint32_t object_instance, int32_t value, uint8_t priority)
 {
     bool status = false;
-    struct integer_object * const pObject = Integer_Value_Object(object_instance);
+    struct integer_object *const pObject =
+        Integer_Value_Object(object_instance);
 
-    (void) priority;
+    (void)priority;
 
     if (pObject) {
         pObject->Present_Value_Backup = value;
@@ -379,6 +378,81 @@ bool Integer_Value_Description(
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object-name
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ * @return  true if object-name was set
+ */
+bool Integer_Value_Name_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct integer_object *pObject;
+
+    pObject = Integer_Value_Object(object_instance);
+    if (pObject) {
+        status = characterstring_init_ansi(&pObject->Name, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Integer_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct integer_object *pObject;
+
+    pObject = Integer_Value_Object(object_instance);
+    if (pObject) {
+        name = pObject->Name.value;
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ * @return  true if object-name was set
+ */
+bool Integer_Value_Description_Set(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false; /* return value */
+    struct integer_object *pObject;
+
+    pObject = Integer_Value_Object(object_instance);
+    if (pObject) {
+        status = characterstring_init_ansi(&pObject->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+char *Integer_Value_Description_ANSI(uint32_t object_instance)
+{
+    char *name = NULL;
+
+    struct integer_object *pObject;
+    pObject = Integer_Value_Object(object_instance);
+    if (pObject) {
+        name = (char *)pObject->Description.value;
+    }
+
+    return name;
 }
 
 /**
@@ -455,8 +529,9 @@ void Integer_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
-            /* Lets backup Present_Value when going Out_Of_Service  or restore when going out of Out_Of_Service */
-            if((pObject->Out_Of_Service = value)) {
+            /* Lets backup Present_Value when going Out_Of_Service  or restore
+             * when going out of Out_Of_Service */
+            if ((pObject->Out_Of_Service = value)) {
                 pObject->Present_Value_Backup = pObject->Present_Value;
             } else {
                 pObject->Present_Value = pObject->Present_Value_Backup;
@@ -503,6 +578,9 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     encode_application_character_string(&apdu[0], &char_string);
             }
             break;
+        case PROP_OBJECT_TYPE:
+            apdu_len = encode_application_enumerated(&apdu[0], Object_Type);
+            break;
         case PROP_DESCRIPTION:
             if (Integer_Value_Description(
                     rpdata->object_instance, &char_string)) {
@@ -510,10 +588,6 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     encode_application_character_string(&apdu[0], &char_string);
             }
 
-            break;
-        case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], Object_Type);
             break;
         case PROP_PRESENT_VALUE:
             integer_value =
@@ -538,8 +612,8 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], units);
             break;
         case PROP_COV_INCREMENT:
-            apdu_len =
-                encode_application_unsigned(&apdu[0], Integer_Value_COV_Increment(rpdata->object_instance));
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Integer_Value_COV_Increment(rpdata->object_instance));
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -596,10 +670,12 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
-            if (Integer_Value_Out_Of_Service(wp_data->object_instance) == true) {
+            if (Integer_Value_Out_Of_Service(wp_data->object_instance) ==
+                true) {
                 if (status) {
-                    Integer_Value_Present_Value_Set(wp_data->object_instance,
-                            value.type.Signed_Int, wp_data->priority);
+                    Integer_Value_Present_Value_Set(
+                        wp_data->object_instance, value.type.Signed_Int,
+                        wp_data->priority);
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -623,18 +699,18 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_UNITS:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Integer_Value_Properties_Required,
+                    Integer_Value_Properties_Optional,
+                    Integer_Value_Properties_Proprietary,
+                    wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -709,8 +785,9 @@ bool Integer_Value_Encode_Value_List(
         const bool fault = false;
         const bool overridden = false;
 
-        status = cov_value_list_encode_signed_int(value_list, present_value,
-            in_alarm, fault, overridden, out_of_service);
+        status = cov_value_list_encode_signed_int(
+            value_list, present_value, in_alarm, fault, overridden,
+            out_of_service);
     }
 
     return status;
@@ -765,7 +842,7 @@ uint32_t Integer_Value_Create(uint32_t object_instance)
             characterstring_init_ansi(&pObject->Description, "");
             pObject->COV_Increment = 1;
             pObject->Present_Value = 0;
-            pObject->Prior_Value   = 0;
+            pObject->Prior_Value = 0;
             pObject->Units = UNITS_PERCENT;
             pObject->Out_Of_Service = false;
             pObject->Changed = false;
@@ -787,7 +864,8 @@ uint32_t Integer_Value_Create(uint32_t object_instance)
 bool Integer_Value_Delete(uint32_t object_instance)
 {
     bool status = false;
-    struct integer_object *pObject = Keylist_Data_Delete(Object_List, object_instance);
+    struct integer_object *pObject =
+        Keylist_Data_Delete(Object_List, object_instance);
 
     if (pObject) {
         free(pObject);
@@ -826,4 +904,3 @@ void Integer_Value_Init(void)
         Object_List = Keylist_Create();
     }
 }
-

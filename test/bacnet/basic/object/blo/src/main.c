@@ -36,6 +36,8 @@ static void testBinaryLightingOutput(void)
     uint32_t test_instance = 0;
     bool status = false;
     unsigned index;
+    const char *test_name = NULL;
+    char *sample_name = "sample";
 
     Binary_Lighting_Output_Init();
     test_instance = Binary_Lighting_Output_Create(instance);
@@ -129,6 +131,15 @@ static void testBinaryLightingOutput(void)
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     status = Binary_Lighting_Output_Write_Property(&wpdata);
     zassert_false(status, NULL);
+    /* test the ASCII name get/set */
+    status = Binary_Lighting_Output_Name_Set(instance, sample_name);
+    zassert_true(status, NULL);
+    test_name = Binary_Lighting_Output_Name_ASCII(instance);
+    zassert_equal(test_name, sample_name, NULL);
+    status = Binary_Lighting_Output_Name_Set(instance, NULL);
+    zassert_true(status, NULL);
+    test_name = Binary_Lighting_Output_Name_ASCII(instance);
+    zassert_equal(test_name, NULL, NULL);
     /* check the delete function */
     status = Binary_Lighting_Output_Delete(instance);
     zassert_true(status, NULL);
@@ -175,7 +186,6 @@ static void testBinaryLightingOutputBlink(void)
     BACNET_BINARY_LIGHTING_PV pv, test_pv, expect_pv;
     unsigned test_priority;
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     Binary_Lighting_Output_Init();
     Binary_Lighting_Output_Create(object_instance);

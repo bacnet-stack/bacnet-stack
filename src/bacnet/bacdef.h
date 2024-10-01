@@ -3,39 +3,51 @@
  * @brief Core BACnet defines and enumerations and structures
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2004
- * @copyright 2004 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACDEF_H
-#define BACDEF_H
+#ifndef BACNET_DEFINES_H
+#define BACNET_DEFINES_H
 
 #include <stddef.h>
 #include <stdint.h>
+#include <limits.h>
 /* config is always first to allow developers to override */
 #include "bacnet/config.h"
 
 #if !defined(PRINT)
-#  ifdef DEBUG_PRINT
-#    if (__STDC_VERSION__  >= 199901L) || defined(_MSC_VER)
-#      define PRINT(...) do {printf("%s:%d::%s(): ", __FILE__, __LINE__, __func__); printf(__VA_ARGS__); printf("\r\n");} while(0)
-#    else
-#      include <stdarg.h>
-#      include <stdio.h>
-       static inline void __PRINT(const char *format, ...) {
-         va_list args;
-         va_start(args, format);
-         printf("%s:%d(): ", __FILE__, __LINE__);
-         vprintf(format "\r\n", args);
-         va_end(args);
-       }
-#      define PRINT __PRINT
-#    endif
-#  else
-#    include <stdarg.h>
-     static inline void __PRINT(const char *format, ...) { (void) format; }
-#    define PRINT __PRINT
-#  endif
+#ifdef DEBUG_PRINT
+#if (__STDC_VERSION__ >= 199901L) || defined(_MSC_VER)
+#define PRINT(...)                                             \
+    do {                                                       \
+        printf("%s:%d::%s(): ", __FILE__, __LINE__, __func__); \
+        printf(__VA_ARGS__);                                   \
+        printf("\r\n");                                        \
+    } while (0)
+#else
+#include <stdarg.h>
+#include <stdio.h>
+#ifdef __APPLE__
+#define __PRINT printf
+#else
+static inline void __PRINT(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    printf("%s:%d(): ", __FILE__, __LINE__);
+    vprintf(format, args);
+    va_end(args);
+}
+#endif
+#define PRINT __PRINT
+#endif
+#else
+#include <stdarg.h>
+static inline void __PRINT(const char *format, ...)
+{
+    (void)format;
+}
+#define PRINT __PRINT
+#endif
 #endif
 
 /* BACnet Stack core enumerations */
@@ -133,7 +145,7 @@
 #elif (BACNET_PROTOCOL_REVISION == 24)
 /* Addendum 135-2020ca, 135-2020cc, 135-2020bv */
 #define MAX_ASHRAE_OBJECT_TYPE 65
-#define MAX_BACNET_SERVICES_SUPPORTED 47
+#define MAX_BACNET_SERVICES_SUPPORTED 49
 #else
 #error MAX_ASHRAE_OBJECT_TYPE and MAX_BACNET_SERVICES_SUPPORTED not defined!
 #endif
@@ -211,9 +223,11 @@ typedef struct BACnet_Object_Id {
 
 /* This Struct is for initialisation info coming from Elixir */
 typedef struct BACnet_Object_Init_s {
-    /* Instance works as an index to the object within the type, the type number is not included in this value. */
+    /* Instance works as an index to the object within the type, the type number
+     * is not included in this value. */
     uint32_t Object_Instance;
-    char Object_Name[MAX_CHARACTER_STRING_BYTES]; /* the init values are always gonna be english ascii */
+    char Object_Name[MAX_CHARACTER_STRING_BYTES]; /* the init values are always
+                                                     gonna be english ascii */
     char Description[MAX_CHARACTER_STRING_BYTES];
     uint16_t Units;
 } BACNET_OBJECT_INIT_T;
@@ -226,11 +240,11 @@ typedef struct BACnet_Object_List_Init_s {
 #define MAX_NPDU (1 + 1 + 2 + 1 + MAX_MAC_LEN + 2 + 1 + MAX_MAC_LEN + 1 + 1 + 2)
 #define MAX_PDU (MAX_APDU + MAX_NPDU)
 
-#define BACNET_ID_VALUE(bacnet_object_instance, bacnet_object_type)       \
-    ((((bacnet_object_type)&BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) | \
-        ((bacnet_object_instance)&BACNET_MAX_INSTANCE))
+#define BACNET_ID_VALUE(bacnet_object_instance, bacnet_object_type)         \
+    ((((bacnet_object_type) & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) | \
+     ((bacnet_object_instance) & BACNET_MAX_INSTANCE))
 #define BACNET_INSTANCE(bacnet_object_id_num) \
-    ((bacnet_object_id_num)&BACNET_MAX_INSTANCE)
+    ((bacnet_object_id_num) & BACNET_MAX_INSTANCE)
 #define BACNET_TYPE(bacnet_object_id_num) \
     (((bacnet_object_id_num) >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT)
 

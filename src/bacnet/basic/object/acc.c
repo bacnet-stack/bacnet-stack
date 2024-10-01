@@ -1,11 +1,9 @@
 /**
  * @file
  * @brief BACnet accumulator Objects used to represent meter registers
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2017
- * @copyright 2017 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -29,9 +27,16 @@ static struct object_data Object_List[MAX_ACCUMULATORS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_SCALE, PROP_UNITS,
-    PROP_MAX_PRES_VALUE, -1 };
+                                           PROP_OBJECT_NAME,
+                                           PROP_OBJECT_TYPE,
+                                           PROP_PRESENT_VALUE,
+                                           PROP_STATUS_FLAGS,
+                                           PROP_EVENT_STATE,
+                                           PROP_OUT_OF_SERVICE,
+                                           PROP_SCALE,
+                                           PROP_UNITS,
+                                           PROP_MAX_PRES_VALUE,
+                                           -1 };
 
 static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
@@ -136,12 +141,13 @@ unsigned Accumulator_Instance_To_Index(uint32_t object_instance)
 bool Accumulator_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32]; /* okay for single thread */
+    char text[32];
     bool status = false;
 
     if (object_instance < MAX_ACCUMULATORS) {
-        snprintf(text, sizeof(text),
-            "ACCUMULATOR-%lu", (unsigned long)object_instance);
+        snprintf(
+            text, sizeof(text), "ACCUMULATOR-%lu",
+            (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
 
@@ -316,7 +322,8 @@ int Accumulator_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_SCALE:
             /* context tagged choice: [0]=REAL, [1]=INTEGER */
-            apdu_len = encode_context_signed(&apdu[apdu_len], 1,
+            apdu_len = encode_context_signed(
+                &apdu[apdu_len], 1,
                 Accumulator_Scale_Integer(rpdata->object_instance));
             break;
         case PROP_MAX_PRES_VALUE:

@@ -1,37 +1,12 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2015 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**
+ * @file
+ * @brief BACnet/IPv6 virtual link control module encode and decode
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @defgroup DLBIP6 BACnet/IPv6 DataLink Network Layer
+ * @ingroup DataLink
+ */
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <stdio.h>
@@ -78,7 +53,10 @@ int bvlc6_encode_header(
  * @return number of bytes decoded
  */
 int bvlc6_decode_header(
-    uint8_t *pdu, uint16_t pdu_len, uint8_t *message_type, uint16_t *length)
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    uint8_t *message_type,
+    uint16_t *length)
 {
     int bytes_consumed = 0;
 
@@ -149,7 +127,7 @@ int bvlc6_encode_result(
  * @return number of bytes decoded
  */
 int bvlc6_decode_result(
-    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac, uint16_t *result_code)
+    const uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac, uint16_t *result_code)
 {
     int bytes_consumed = 0;
 
@@ -187,11 +165,12 @@ int bvlc6_decode_result(
  * Destination-Virtual-Address: 3-octets
  * BACnet NPDU:                 Variable length
  */
-int bvlc6_encode_original_unicast(uint8_t *pdu,
+int bvlc6_encode_original_unicast(
+    uint8_t *pdu,
     uint16_t pdu_size,
     uint32_t vmac_src,
     uint32_t vmac_dst,
-    uint8_t *npdu,
+    const uint8_t *npdu,
     uint16_t npdu_len)
 {
     int bytes_encoded = 0;
@@ -230,7 +209,8 @@ int bvlc6_encode_original_unicast(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_original_unicast(uint8_t *pdu,
+int bvlc6_decode_original_unicast(
+    const uint8_t *pdu,
     uint16_t pdu_len,
     uint32_t *vmac_src,
     uint32_t *vmac_dst,
@@ -283,10 +263,11 @@ int bvlc6_decode_original_unicast(uint8_t *pdu,
  * Source-Virtual-Address:      3-octets
  * BACnet NPDU:                 Variable length
  */
-int bvlc6_encode_original_broadcast(uint8_t *pdu,
+int bvlc6_encode_original_broadcast(
+    uint8_t *pdu,
     uint16_t pdu_size,
     uint32_t vmac,
-    uint8_t *npdu,
+    const uint8_t *npdu,
     uint16_t npdu_len)
 {
     int bytes_encoded = 0;
@@ -322,7 +303,8 @@ int bvlc6_encode_original_broadcast(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_original_broadcast(uint8_t *pdu,
+int bvlc6_decode_original_broadcast(
+    const uint8_t *pdu,
     uint16_t pdu_len,
     uint32_t *vmac,
     uint8_t *npdu,
@@ -401,7 +383,10 @@ int bvlc6_encode_address_resolution(
  * @return number of bytes decoded
  */
 int bvlc6_decode_address_resolution(
-    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src, uint32_t *vmac_target)
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    uint32_t *vmac_src,
+    uint32_t *vmac_target)
 {
     int bytes_consumed = 0;
 
@@ -432,7 +417,7 @@ int bvlc6_decode_address_resolution(
  * @return number of bytes encoded
  */
 int bvlc6_encode_address(
-    uint8_t *pdu, uint16_t pdu_size, BACNET_IP6_ADDRESS *bip6_address)
+    uint8_t *pdu, uint16_t pdu_size, const BACNET_IP6_ADDRESS *bip6_address)
 {
     int bytes_encoded = 0;
     uint16_t length = BIP6_ADDRESS_MAX;
@@ -458,7 +443,7 @@ int bvlc6_encode_address(
  * @return number of bytes decoded
  */
 int bvlc6_decode_address(
-    uint8_t *pdu, uint16_t pdu_len, BACNET_IP6_ADDRESS *bip6_address)
+    const uint8_t *pdu, uint16_t pdu_len, BACNET_IP6_ADDRESS *bip6_address)
 {
     int bytes_consumed = 0;
     uint16_t length = BIP6_ADDRESS_MAX;
@@ -487,7 +472,7 @@ int bvlc6_decode_address(
  *
  * @return true if the address was copied
  */
-bool bvlc6_address_copy(BACNET_IP6_ADDRESS *dst, BACNET_IP6_ADDRESS *src)
+bool bvlc6_address_copy(BACNET_IP6_ADDRESS *dst, const BACNET_IP6_ADDRESS *src)
 {
     bool status = false;
     unsigned int i = 0;
@@ -515,7 +500,8 @@ bool bvlc6_address_copy(BACNET_IP6_ADDRESS *dst, BACNET_IP6_ADDRESS *src)
  *
  * @return true if the addresses are different
  */
-bool bvlc6_address_different(BACNET_IP6_ADDRESS *dst, BACNET_IP6_ADDRESS *src)
+bool bvlc6_address_different(
+    const BACNET_IP6_ADDRESS *dst, const BACNET_IP6_ADDRESS *src)
 {
     bool status = false;
     unsigned int i = 0;
@@ -553,7 +539,8 @@ bool bvlc6_address_different(BACNET_IP6_ADDRESS *dst, BACNET_IP6_ADDRESS *src)
  *
  * @return true if the address is set
  */
-bool bvlc6_address_set(BACNET_IP6_ADDRESS *addr,
+bool bvlc6_address_set(
+    BACNET_IP6_ADDRESS *addr,
     uint16_t addr0,
     uint16_t addr1,
     uint16_t addr2,
@@ -599,7 +586,8 @@ bool bvlc6_address_set(BACNET_IP6_ADDRESS *addr,
  *
  * @return true if the address is set
  */
-bool bvlc6_address_get(BACNET_IP6_ADDRESS *addr,
+bool bvlc6_address_get(
+    const BACNET_IP6_ADDRESS *addr,
     uint16_t *addr0,
     uint16_t *addr1,
     uint16_t *addr2,
@@ -642,6 +630,31 @@ bool bvlc6_address_get(BACNET_IP6_ADDRESS *addr,
     return status;
 }
 
+/**
+ * @brief Shift the buffer pointer and decrease the size after an snprintf
+ * @param len - number of bytes (excluding terminating NULL byte) from snprintf
+ * @param buf - pointer to the buffer pointer
+ * @param buf_size - pointer to the buffer size
+ * @return number of bytes (excluding terminating NULL byte) from snprintf
+ */
+static int snprintf_shift(int len, char **buf, size_t *buf_size)
+{
+    if (buf) {
+        if (*buf) {
+            *buf += len;
+        }
+    }
+    if (buf_size) {
+        if ((*buf_size) >= len) {
+            *buf_size -= len;
+        } else {
+            *buf_size = 0;
+        }
+    }
+
+    return len;
+}
+
 /** Convert IPv6 Address from ASCII
  *
  * IPv6 addresses are represented as eight groups, separated by colons,
@@ -671,7 +684,8 @@ bool bvlc6_address_get(BACNET_IP6_ADDRESS *addr,
  *  input, excluding the trailing null.
  * @note buf and buf_size may be null and zero to return only the size
  */
-int bvlc6_address_to_ascii(BACNET_IP6_ADDRESS *addr, char *buf, size_t buf_size)
+int bvlc6_address_to_ascii(
+    const BACNET_IP6_ADDRESS *addr, char *buf, size_t buf_size)
 {
     uint16_t a;
     unsigned int i;
@@ -690,41 +704,17 @@ int bvlc6_address_to_ascii(BACNET_IP6_ADDRESS *addr, char *buf, size_t buf_size)
         if ((a == 0) && (f >= 0)) {
             if (f++ == 0) {
                 len = snprintf(buf, buf_size, "::");
-                if (buf) {
-                    buf += len;
-                }
-                if (len > buf_size) {
-                    buf_size = 0;
-                } else {
-                    buf_size -= len;
-                }
-                n += len;
+                n += snprintf_shift(len, &buf, &buf_size);
             }
         } else {
             if (f > 0) {
                 f = -1;
             } else if (i > 0) {
                 len = snprintf(buf, buf_size, ":");
-                if (buf) {
-                    buf += len;
-                }
-                if (len > buf_size) {
-                    buf_size = 0;
-                } else {
-                    buf_size -= len;
-                }
-                n += len;
+                n += snprintf_shift(len, &buf, &buf_size);
             }
             len = snprintf(buf, buf_size, "%x", a);
-            if (buf) {
-                buf += len;
-            }
-            if (len > buf_size) {
-                buf_size = 0;
-            } else {
-                buf_size -= len;
-            }
-            n += len;
+            n += snprintf_shift(len, &buf, &buf_size);
         }
     }
 
@@ -859,7 +849,7 @@ bool bvlc6_vmac_address_set(BACNET_ADDRESS *addr, uint32_t device_id)
  *
  * @return true if the address is set
  */
-bool bvlc6_vmac_address_get(BACNET_ADDRESS *addr, uint32_t *device_id)
+bool bvlc6_vmac_address_get(const BACNET_ADDRESS *addr, uint32_t *device_id)
 {
     bool status = false;
 
@@ -894,11 +884,12 @@ bool bvlc6_vmac_address_get(BACNET_ADDRESS *addr, uint32_t *device_id)
  * Target-Virtual-Address:          3-octets
  * Original-Source-B/IPv6-Address  18-octets
  */
-int bvlc6_encode_forwarded_address_resolution(uint8_t *pdu,
+int bvlc6_encode_forwarded_address_resolution(
+    uint8_t *pdu,
     uint16_t pdu_size,
     uint32_t vmac_src,
     uint32_t vmac_target,
-    BACNET_IP6_ADDRESS *bip6_address)
+    const BACNET_IP6_ADDRESS *bip6_address)
 {
     int bytes_encoded = 0;
     uint16_t length = 0x001C;
@@ -932,7 +923,8 @@ int bvlc6_encode_forwarded_address_resolution(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_forwarded_address_resolution(uint8_t *pdu,
+int bvlc6_decode_forwarded_address_resolution(
+    const uint8_t *pdu,
     uint16_t pdu_len,
     uint32_t *vmac_src,
     uint32_t *vmac_target,
@@ -969,7 +961,8 @@ int bvlc6_decode_forwarded_address_resolution(uint8_t *pdu,
  *
  * @return number of bytes encoded
  */
-static int bvlc6_encode_address_ack(uint8_t message_type,
+static int bvlc6_encode_address_ack(
+    uint8_t message_type,
     uint8_t *pdu,
     uint16_t pdu_size,
     uint32_t vmac_src,
@@ -1030,7 +1023,10 @@ int bvlc6_encode_address_resolution_ack(
  * @return number of bytes decoded
  */
 int bvlc6_decode_address_resolution_ack(
-    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src, uint32_t *vmac_dst)
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    uint32_t *vmac_src,
+    uint32_t *vmac_dst)
 {
     int bytes_consumed = 0;
     const uint16_t length = 6;
@@ -1093,7 +1089,7 @@ int bvlc6_encode_virtual_address_resolution(
  * @return number of bytes decoded
  */
 int bvlc6_decode_virtual_address_resolution(
-    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src)
+    const uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src)
 {
     int bytes_consumed = 0;
 
@@ -1127,8 +1123,9 @@ int bvlc6_decode_virtual_address_resolution(
 int bvlc6_encode_virtual_address_resolution_ack(
     uint8_t *pdu, uint16_t pdu_size, uint32_t vmac_src, uint32_t vmac_dst)
 {
-    return bvlc6_encode_address_ack(BVLC6_VIRTUAL_ADDRESS_RESOLUTION_ACK, pdu,
-        pdu_size, vmac_src, vmac_dst);
+    return bvlc6_encode_address_ack(
+        BVLC6_VIRTUAL_ADDRESS_RESOLUTION_ACK, pdu, pdu_size, vmac_src,
+        vmac_dst);
 }
 
 /** Decode the BVLC Virtual-Address-Resolution-Ack message
@@ -1141,7 +1138,10 @@ int bvlc6_encode_virtual_address_resolution_ack(
  * @return number of bytes decoded
  */
 int bvlc6_decode_virtual_address_resolution_ack(
-    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src, uint32_t *vmac_dst)
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    uint32_t *vmac_src,
+    uint32_t *vmac_dst)
 {
     return bvlc6_decode_address_resolution_ack(
         pdu, pdu_len, vmac_src, vmac_dst);
@@ -1170,11 +1170,12 @@ int bvlc6_decode_virtual_address_resolution_ack(
  * Original-Source-B-IPv6-Address:      18-octets
  * BACnet NPDU from Originating Device:  N-octets (N=L-25)
  */
-int bvlc6_encode_forwarded_npdu(uint8_t *pdu,
+int bvlc6_encode_forwarded_npdu(
+    uint8_t *pdu,
     uint16_t pdu_size,
     uint32_t vmac_src,
-    BACNET_IP6_ADDRESS *bip6_address,
-    uint8_t *npdu,
+    const BACNET_IP6_ADDRESS *bip6_address,
+    const uint8_t *npdu,
     uint16_t npdu_len)
 {
     int bytes_encoded = 0;
@@ -1216,7 +1217,8 @@ int bvlc6_encode_forwarded_npdu(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_forwarded_npdu(uint8_t *pdu,
+int bvlc6_decode_forwarded_npdu(
+    const uint8_t *pdu,
     uint16_t pdu_len,
     uint32_t *vmac_src,
     BACNET_IP6_ADDRESS *bip6_address,
@@ -1305,7 +1307,10 @@ int bvlc6_encode_register_foreign_device(
  * @return number of bytes decoded
  */
 int bvlc6_decode_register_foreign_device(
-    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src, uint16_t *ttl_seconds)
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    uint32_t *vmac_src,
+    uint16_t *ttl_seconds)
 {
     int bytes_consumed = 0;
     const uint16_t length = 5;
@@ -1345,10 +1350,11 @@ int bvlc6_decode_register_foreign_device(
  * FDT Entry:                  18-octets  The FDT entry is the B/IPv6 address
  *                                        of the foreign device to be deleted.
  */
-int bvlc6_encode_delete_foreign_device(uint8_t *pdu,
+int bvlc6_encode_delete_foreign_device(
+    uint8_t *pdu,
     uint16_t pdu_size,
     uint32_t vmac_src,
-    BACNET_IP6_ADDRESS *bip6_address)
+    const BACNET_IP6_ADDRESS *bip6_address)
 {
     int bytes_encoded = 0;
     const uint16_t length = 0x0019;
@@ -1382,7 +1388,8 @@ int bvlc6_encode_delete_foreign_device(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_delete_foreign_device(uint8_t *pdu,
+int bvlc6_decode_delete_foreign_device(
+    const uint8_t *pdu,
     uint16_t pdu_len,
     uint32_t *vmac_src,
     BACNET_IP6_ADDRESS *bip6_address)
@@ -1425,7 +1432,7 @@ int bvlc6_decode_delete_foreign_device(uint8_t *pdu,
  * Security Wrapper:            Variable length
  */
 int bvlc6_encode_secure_bvll(
-    uint8_t *pdu, uint16_t pdu_size, uint8_t *sbuf, uint16_t sbuf_len)
+    uint8_t *pdu, uint16_t pdu_size, const uint8_t *sbuf, uint16_t sbuf_len)
 {
     int bytes_encoded = 0;
     uint16_t length = 4;
@@ -1458,7 +1465,8 @@ int bvlc6_encode_secure_bvll(
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_secure_bvll(uint8_t *pdu,
+int bvlc6_decode_secure_bvll(
+    const uint8_t *pdu,
     uint16_t pdu_len,
     uint8_t *sbuf,
     uint16_t sbuf_size,
@@ -1488,9 +1496,9 @@ int bvlc6_decode_secure_bvll(uint8_t *pdu,
  *
  * This message provides a mechanism whereby a foreign device
  * shall cause a BBMD to distribute a Forwarded-NPDU
- * BVLC to the local multicast domain, to all BBMD�s configured
- * in the BBMD�s BDT, and to all foreign devices in the
- * BBMD�s FDT.
+ * BVLC to the local multicast domain, to all BBMD's configured
+ * in the BBMD's BDT, and to all foreign devices in the
+ * BBMD's FDT.
  *
  * @param pdu - buffer to store the encoding
  * @param pdu_size - size of the buffer to store encoding
@@ -1506,10 +1514,11 @@ int bvlc6_decode_secure_bvll(uint8_t *pdu,
  * Original-Source-Virtual-Address:      3-octets
  * BACnet NPDU from Originating Device:  Variable length
  */
-int bvlc6_encode_distribute_broadcast_to_network(uint8_t *pdu,
+int bvlc6_encode_distribute_broadcast_to_network(
+    uint8_t *pdu,
     uint16_t pdu_size,
     uint32_t vmac,
-    uint8_t *npdu,
+    const uint8_t *npdu,
     uint16_t npdu_len)
 {
     int bytes_encoded = 0;
@@ -1545,7 +1554,8 @@ int bvlc6_encode_distribute_broadcast_to_network(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_distribute_broadcast_to_network(uint8_t *pdu,
+int bvlc6_decode_distribute_broadcast_to_network(
+    const uint8_t *pdu,
     uint16_t pdu_len,
     uint32_t *vmac,
     uint8_t *npdu,
@@ -1583,7 +1593,7 @@ int bvlc6_decode_distribute_broadcast_to_network(uint8_t *pdu,
  * @return length of the APDU buffer
  */
 int bvlc6_foreign_device_bbmd_host_address_encode(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_IP6_ADDRESS *ip6_address)
+    uint8_t *apdu, uint16_t apdu_size, const BACNET_IP6_ADDRESS *ip6_address)
 {
     BACNET_HOST_N_PORT address = { 0 };
     int apdu_len = 0;
@@ -1602,9 +1612,7 @@ int bvlc6_foreign_device_bbmd_host_address_encode(
 }
 
 /**
- * @brief Encode the Broadcast-Distribution-Table for Network Port object
- *
- *    BACnetLIST of BACnetBDTEntry
+ * @brief Encode one Broadcast-Distribution-Table entry for Network Port object
  *
  *    BACnetBDTEntry ::= SEQUENCE {
  *       bbmd-address [0] BACnetHostNPort,
@@ -1615,59 +1623,165 @@ int bvlc6_foreign_device_bbmd_host_address_encode(
  *                   }
  *               port [1] Unsigned16
  *           }
- *        broadcast-mask [1] OCTET STRING -- shall be present if BACnet/IP, and absent for BACnet/IPv6
+ *        broadcast-mask [1] OCTET STRING -- shall be present if BACnet/IP, and
+ * absent for BACnet/IPv6
  *    }
+ *
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param bdt_head - one BACnetBDTEntry
+ * @return length of the APDU buffer
+ */
+int bvlc6_broadcast_distribution_table_entry_encode(
+    uint8_t *apdu,
+    const BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry)
+{
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_OCTET_STRING octet_string;
+
+    if (bdt_entry) {
+        /* bbmd-address [0] BACnetHostNPort - opening */
+        len = encode_opening_tag(apdu, 0);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /*  host [0] BACnetHostAddress - opening */
+        len = encode_opening_tag(apdu, 0);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* CHOICE - ip-address [1] OCTET STRING */
+        octetstring_init(
+            &octet_string, &bdt_entry->bip6_address.address[0],
+            IP6_ADDRESS_MAX);
+        len = encode_context_octet_string(apdu, 1, &octet_string);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /*  host [0] BACnetHostAddress - closing */
+        len = encode_closing_tag(apdu, 0);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* port [1] Unsigned16 */
+        len = encode_context_unsigned(apdu, 1, bdt_entry->bip6_address.port);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* bbmd-address [0] BACnetHostNPort - closing */
+        len = encode_closing_tag(apdu, 0);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the Broadcast-Distribution-Table for Network Port object
+ *
+ *    BACnetLIST of BACnetBDTEntry
  *
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer size
  * @param bdt_head - head of the BDT linked list
  * @return length of the APDU buffer
  */
-int bvlc6_broadcast_distribution_table_encode(uint8_t *apdu,
-    uint16_t apdu_size,
-    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
+int bvlc6_broadcast_distribution_table_list_encode(
+    uint8_t *apdu, BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
 {
     int len = 0;
     int apdu_len = 0;
-    int entry_size = 0;
-    BACNET_OCTET_STRING octet_string;
     BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry;
 
     bdt_entry = bdt_head;
     while (bdt_entry) {
         if (bdt_entry->valid) {
-            /* bbmd-address [0] BACnetHostNPort - opening */
-            len = encode_opening_tag(&apdu[apdu_len], 0);
+            len = bvlc6_broadcast_distribution_table_entry_encode(
+                apdu, bdt_entry);
             apdu_len += len;
-            /*  host [0] BACnetHostAddress - opening */
-            len = encode_opening_tag(&apdu[apdu_len], 0);
-            apdu_len += len;
-            /* CHOICE - ip-address [1] OCTET STRING */
-            octetstring_init(&octet_string, &bdt_entry->bip6_address.address[0],
-                IP6_ADDRESS_MAX);
-            len =
-                encode_context_octet_string(&apdu[apdu_len], 1, &octet_string);
-            apdu_len += len;
-            /*  host [0] BACnetHostAddress - closing */
-            len = encode_closing_tag(&apdu[apdu_len], 0);
-            apdu_len += len;
-            /* port [1] Unsigned16 */
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 1, bdt_entry->bip6_address.port);
-            apdu_len += len;
-            /* bbmd-address [0] BACnetHostNPort - closing */
-            len = encode_closing_tag(&apdu[apdu_len], 0);
-            apdu_len += len;
-        }
-        if (!entry_size) {
-            entry_size = apdu_len;
+            if (apdu) {
+                apdu += len;
+            }
+        } else {
+            len = 0;
         }
         /* next entry */
         bdt_entry = bdt_entry->next;
-        if ((apdu_len + entry_size) > apdu_size) {
-            /* check for available space */
-            break;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the Broadcast-Distribution-Table for Network Port object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param bdt_head - head of the BDT linked list
+ * @return length of the APDU buffer, or BACNET_STATUS_ERROR on error
+ */
+int bvlc6_broadcast_distribution_table_encode(
+    uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
+{
+    int len = 0;
+
+    len = bvlc6_broadcast_distribution_table_list_encode(NULL, bdt_head);
+    if (len <= apdu_size) {
+        len = bvlc6_broadcast_distribution_table_list_encode(apdu, bdt_head);
+    } else {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
+}
+
+/**
+ * @brief Encode the Foreign_Device-Table for Network Port object
+ *
+ *    BACnetFDTEntry ::= SEQUENCE {
+ *        bacnetip-address [0] OCTET STRING, -- the 6-octet B/IP or 18-octet
+ * B/IPv6 address of the registrant time-to-live [1] Unsigned16, -- time to live
+ * in seconds remaining-time-to-live [2] Unsigned16 -- remaining time in seconds
+ *    }
+ *
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param fdt_head - head of the BDT linked list
+ * @return length of the APDU buffer
+ */
+int bvlc6_foreign_device_table_entry_encode(
+    uint8_t *apdu, const BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
+{
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_OCTET_STRING octet_string = { 0 };
+
+    if (fdt_entry) {
+        /* bacnetip-address [0] OCTET STRING */
+        len = bvlc6_encode_address(
+            octetstring_value(&octet_string),
+            octetstring_capacity(&octet_string), &fdt_entry->bip6_address);
+        octetstring_truncate(&octet_string, len);
+        len = encode_context_octet_string(apdu, 0, &octet_string);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
         }
+        /* time-to-live [1] Unsigned16 */
+        len = encode_context_unsigned(apdu, 1, fdt_entry->ttl_seconds);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* remaining-time-to-live [2] Unsigned16 */
+        len =
+            encode_context_unsigned(apdu, 2, fdt_entry->ttl_seconds_remaining);
+        apdu_len += len;
     }
 
     return apdu_len;
@@ -1678,57 +1792,53 @@ int bvlc6_broadcast_distribution_table_encode(uint8_t *apdu,
  *
  *    BACnetLIST of BACnetFDTEntry
  *
- *    BACnetFDTEntry ::= SEQUENCE {
- *        bacnetip-address [0] OCTET STRING, -- the 6-octet B/IP or 18-octet B/IPv6 address of the registrant
- *        time-to-live [1] Unsigned16, -- time to live in seconds
- *        remaining-time-to-live [2] Unsigned16 -- remaining time in seconds
- *    }
- *
- * @param apdu - the APDU buffer
- * @param apdu_size - the APDU buffer size
+ * @param apdu - the APDU buffer, or NULL for length
  * @param fdt_head - head of the BDT linked list
  * @return length of the APDU buffer
  */
-int bvlc6_foreign_device_table_encode(uint8_t *apdu,
-    uint16_t apdu_size,
-    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head)
+int bvlc6_foreign_device_table_list_encode(
+    uint8_t *apdu, BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head)
 {
     int len = 0;
     int apdu_len = 0;
-    int entry_size = 0;
-    BACNET_OCTET_STRING octet_string = { 0 };
     BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry;
 
     fdt_entry = fdt_head;
     while (fdt_entry) {
         if (fdt_entry->valid) {
-            /* bacnetip-address [0] OCTET STRING */
-            len = bvlc6_encode_address(octetstring_value(&octet_string),
-                octetstring_capacity(&octet_string), &fdt_entry->bip6_address);
-            octetstring_truncate(&octet_string, len);
-            len =
-                encode_context_octet_string(&apdu[apdu_len], 0, &octet_string);
+            len = bvlc6_foreign_device_table_entry_encode(apdu, fdt_entry);
             apdu_len += len;
-            /* time-to-live [1] Unsigned16 */
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 1, fdt_entry->ttl_seconds);
-            apdu_len += len;
-            /* remaining-time-to-live [2] Unsigned16 */
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 2, fdt_entry->ttl_seconds_remaining);
-            apdu_len += len;
-        }
-        if (!entry_size) {
-            entry_size = apdu_len;
+            if (apdu) {
+                apdu += len;
+            }
         }
         /* next entry */
         fdt_entry = fdt_entry->next;
-        if ((apdu_len + entry_size) > apdu_size) {
-            /* check for available space */
-            break;
-        }
     }
 
     return apdu_len;
 }
 
+/**
+ * @brief Encode the Foreign_Device-Table for Network Port object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param fdt_head - head of the BDT linked list
+ * @return length of the APDU buffer
+ */
+int bvlc6_foreign_device_table_encode(
+    uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head)
+{
+    int len = 0;
+
+    len = bvlc6_foreign_device_table_list_encode(NULL, fdt_head);
+    if (len <= apdu_size) {
+        len = bvlc6_foreign_device_table_list_encode(apdu, fdt_head);
+    } else {
+        len = BACNET_STATUS_ERROR;
+    }
+
+    return len;
+}

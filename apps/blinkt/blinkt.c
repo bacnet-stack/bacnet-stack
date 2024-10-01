@@ -52,8 +52,9 @@ void blinkt_clear(void)
  */
 void blinkt_set_pixel(uint8_t led, uint8_t r, uint8_t g, uint8_t b)
 {
-    if (led >= BLINKT_NUM_LEDS)
+    if (led >= BLINKT_NUM_LEDS) {
         return;
+    }
 
     Blinkt_LED[led] = blinkt_rgbb(r, g, b, Blinkt_LED[led] & 0x1F);
 }
@@ -65,8 +66,9 @@ void blinkt_set_pixel(uint8_t led, uint8_t r, uint8_t g, uint8_t b)
  */
 void blinkt_set_pixel_brightness(uint8_t led, uint8_t brightness)
 {
-    if (led >= BLINKT_NUM_LEDS)
+    if (led >= BLINKT_NUM_LEDS) {
         return;
+    }
 
     Blinkt_LED[led] = (Blinkt_LED[led] & 0xFFFFFF00) | (brightness & 0x1F);
 }
@@ -78,8 +80,9 @@ void blinkt_set_pixel_brightness(uint8_t led, uint8_t brightness)
  */
 void blinkt_set_pixel_uint32(uint8_t led, uint32_t color)
 {
-    if (led >= BLINKT_NUM_LEDS)
+    if (led >= BLINKT_NUM_LEDS) {
         return;
+    }
 
     Blinkt_LED[led] = color;
 }
@@ -206,8 +209,9 @@ void blinkt_test_task(void)
     }
     blinkt_show();
     test_y += 1;
-    if (test_y > 254)
+    if (test_y > 254) {
         test_column++;
+    }
     test_column %= 3;
     test_y %= 255;
 }

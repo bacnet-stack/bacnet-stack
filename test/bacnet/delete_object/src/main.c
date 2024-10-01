@@ -41,7 +41,6 @@ static void test_DeleteObject(void)
 #endif
 {
     BACNET_DELETE_OBJECT_DATA data = { 0 };
-    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
 
     test_DeleteObjectCodec(&data);
     data.object_instance = BACNET_MAX_INSTANCE;

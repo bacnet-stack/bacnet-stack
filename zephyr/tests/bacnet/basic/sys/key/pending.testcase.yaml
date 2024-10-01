@@ -1,6 +1,0 @@
-tests:
-  bacnet.basic.sys.key.unit:
-    tags: bacnet
-    type: unit
-  bacnet.basic.sys.key:
-    tags: bacnet

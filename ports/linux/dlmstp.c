@@ -3,24 +3,7 @@
  * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
  * Updated by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stdbool.h>
@@ -135,7 +118,7 @@ static int timespec_subtract(
  *
  * @param ts - The time to which to add to.
  * @param ns - The number of nanoseconds to add.  Allowed range
- *		is -NS_PER_S..NS_PER_S (i.e., plus minus one second).
+ *      is -NS_PER_S..NS_PER_S (i.e., plus minus one second).
  */
 static void timespec_add_ns(struct timespec *ts, long ns)
 {
@@ -284,16 +267,19 @@ static void *dlmstp_master_fsm_task(void *pArg)
             silence = MSTP_Port.SilenceTimer(&MSTP_Port);
             switch (MSTP_Port.master_state) {
                 case MSTP_MASTER_STATE_IDLE:
-                    if (silence >= Tno_token)
+                    if (silence >= Tno_token) {
                         run_master = true;
+                    }
                     break;
                 case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-                    if (silence >= Treply_timeout)
+                    if (silence >= Treply_timeout) {
                         run_master = true;
+                    }
                     break;
                 case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-                    if (silence >= Tusage_timeout)
+                    if (silence >= Tusage_timeout) {
                         run_master = true;
+                    }
                     break;
                 default:
                     run_master = true;
@@ -307,8 +293,9 @@ static void *dlmstp_master_fsm_task(void *pArg)
                     /* do nothing while immediate transitioning */
                     run_loop = MSTP_Master_Node_FSM(&MSTP_Port);
                     pthread_mutex_lock(&Thread_Mutex);
-                    if (!run_thread)
+                    if (!run_thread) {
                         run_loop = false;
+                    }
                     pthread_mutex_unlock(&Thread_Mutex);
                 }
             } else if (MSTP_Port.This_Station < 255) {
@@ -415,16 +402,18 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
  * @param nbytes - number of bytes of data to send
  */
 void MSTP_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, uint8_t *buffer, uint16_t nbytes)
+    struct mstp_port_struct_t *mstp_port,
+    const uint8_t *buffer,
+    uint16_t nbytes)
 {
     RS485_Send_Frame(mstp_port, buffer, nbytes);
 }
 
 static bool dlmstp_compare_data_expecting_reply(
-    uint8_t *request_pdu,
+    const uint8_t *request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,
-    uint8_t *reply_pdu,
+    const uint8_t *reply_pdu,
     uint16_t reply_pdu_len,
     uint8_t dest_address)
 {
@@ -443,8 +432,9 @@ static bool dlmstp_compare_data_expecting_reply(
     struct DER_compare_t reply;
 
     /* unused parameters */
-    request_pdu_len = request_pdu_len;
-    reply_pdu_len = reply_pdu_len;
+    (void)request_pdu_len;
+    (void)reply_pdu_len;
+
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
@@ -592,8 +582,9 @@ void dlmstp_set_mac_address(uint8_t mac_address)
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
         MSTP_Port.This_Station = mac_address;
-        if (mac_address > MSTP_Port.Nmax_master)
+        if (mac_address > MSTP_Port.Nmax_master) {
             dlmstp_set_max_master(mac_address);
+        }
     }
 
     return;

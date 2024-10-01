@@ -1,13 +1,11 @@
 /**
  * @file
  * @brief Unit test for BACnetSpecialEvent. This test also indirectly tests
- *  BACnetCalendarEntry
+ *  BACnetCalendarEntry, BACnetDailySchedule, and BACnetTimeValue.
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @date Aug 2023
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -38,50 +36,28 @@ static void test_BACnetSpecialEvent_CalendarRef(void)
     int len, apdu_len, null_len;
     uint8_t apdu[MAX_APDU] = { 0 };
 
-    BACNET_SPECIAL_EVENT in = {
-        .periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE,
-        .period = {
-            .calendarReference = {
-                .instance = 5,
-                .type = OBJECT_CALENDAR,
-            }
-        },
-        .timeValues = {
-            .TV_Count = 2,
-            .Time_Values = {
-                {
-                    .Time = {
-                        .hour = 12,
-                        .min = 30,
-                        .sec = 15,
-                        .hundredths = 5
-                    },
-                    .Value = {
-                        .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                        .type = {
-                            .Unsigned_Int = 15,
-                        },
-                    }
-                },
-                {
-                    .Time = {
-                        .hour = 16,
-                        .min = 1,
-                        .sec = 2,
-                        .hundredths = 3
-                    },
-                    .Value = {
-                        .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                        .type = {
-                            .Unsigned_Int = 0,
-                        },
-                    }
-                },
-            }
-        },
-        .priority = 5,
-    };
+    BACNET_SPECIAL_EVENT in = { 0 };
     BACNET_SPECIAL_EVENT out = { 0 };
+
+    in.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
+    in.period.calendarReference.instance = 5;
+    in.period.calendarReference.type = OBJECT_CALENDAR;
+    in.timeValues.TV_Count = 2;
+    in.timeValues.Time_Values[0].Time.hour = 12;
+    in.timeValues.Time_Values[0].Time.min = 30;
+    in.timeValues.Time_Values[0].Time.sec = 15;
+    in.timeValues.Time_Values[0].Time.hundredths = 5;
+    in.timeValues.Time_Values[0].Value.tag =
+        BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    in.timeValues.Time_Values[0].Value.type.Unsigned_Int = 15;
+    in.timeValues.Time_Values[1].Time.hour = 16;
+    in.timeValues.Time_Values[1].Time.min = 1;
+    in.timeValues.Time_Values[1].Time.sec = 2;
+    in.timeValues.Time_Values[1].Time.hundredths = 3;
+    in.timeValues.Time_Values[1].Value.tag =
+        BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    in.timeValues.Time_Values[1].Value.type.Unsigned_Int = 0;
+    in.priority = 5;
 
     len = bacnet_special_event_encode(apdu, &in);
     null_len = bacnet_special_event_encode(NULL, &in);
@@ -154,28 +130,17 @@ static void test_BACnetSpecialEvent_Date(void)
     int len, apdu_len, null_len;
     uint8_t apdu[MAX_APDU] = { 0 };
 
-    BACNET_SPECIAL_EVENT in = {
-        .periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
-        .period = {
-            .calendarEntry = {
-                .tag = BACNET_CALENDAR_DATE,
-                .type = {
-                    .Date = {
-                        .year = 2155,
-                        .month = 10,
-                        .day = 0xff,
-                        .wday = 0xff,
-                    }
-                }
-            }
-        },
-        .timeValues = {
-            .TV_Count = 0,
-            .Time_Values = { 0 }
-        },
-        .priority = 16,
-    };
+    BACNET_SPECIAL_EVENT in = { 0 };
     BACNET_SPECIAL_EVENT out = { 0 };
+
+    in.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+    in.period.calendarEntry.tag = BACNET_CALENDAR_DATE;
+    in.period.calendarEntry.type.Date.year = 2155;
+    in.period.calendarEntry.type.Date.month = 10;
+    in.period.calendarEntry.type.Date.day = 0xff;
+    in.period.calendarEntry.type.Date.wday = 0xff;
+    in.timeValues.TV_Count = 0;
+    in.priority = 16;
 
     len = bacnet_special_event_encode(apdu, &in);
     null_len = bacnet_special_event_encode(NULL, &in);
@@ -214,37 +179,21 @@ static void test_BACnetSpecialEvent_DateRange(void)
 {
     int len, apdu_len, null_len;
     uint8_t apdu[MAX_APDU] = { 0 };
-
-    BACNET_SPECIAL_EVENT in = {
-        .periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
-        .period = {
-            .calendarEntry = {
-                .tag = BACNET_CALENDAR_DATE_RANGE,
-                .type = {
-                    .DateRange = {
-                        .startdate = {
-                            .day = 1,
-                            .month = 12,
-                            .year = 2155,
-                            .wday = 0xff,
-                        },
-                        .enddate = {
-                            .day = 31,
-                            .month = 12,
-                            .year = 2155,
-                            .wday = 0xff,
-                        },
-                    }
-                }
-            }
-        },
-        .timeValues = {
-            .TV_Count = 0,
-            .Time_Values = { 0 }
-        },
-        .priority = 0,
-    };
+    BACNET_SPECIAL_EVENT in = { 0 };
     BACNET_SPECIAL_EVENT out = { 0 };
+
+    in.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+    in.period.calendarEntry.tag = BACNET_CALENDAR_DATE_RANGE;
+    in.period.calendarEntry.type.DateRange.startdate.year = 2155;
+    in.period.calendarEntry.type.DateRange.startdate.month = 12;
+    in.period.calendarEntry.type.DateRange.startdate.day = 1;
+    in.period.calendarEntry.type.DateRange.startdate.wday = 0xff;
+    in.period.calendarEntry.type.DateRange.enddate.year = 2155;
+    in.period.calendarEntry.type.DateRange.enddate.month = 12;
+    in.period.calendarEntry.type.DateRange.enddate.day = 31;
+    in.period.calendarEntry.type.DateRange.enddate.wday = 0xff;
+    in.timeValues.TV_Count = 0;
+    in.priority = 0;
 
     len = bacnet_special_event_encode(apdu, &in);
     null_len = bacnet_special_event_encode(NULL, &in);
@@ -298,28 +247,16 @@ static void test_BACnetSpecialEvent_WeekNDate(void)
 {
     int len, apdu_len, null_len;
     uint8_t apdu[MAX_APDU] = { 0 };
-
-    BACNET_SPECIAL_EVENT in = {
-        .periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
-        .period = {
-            .calendarEntry = {
-                .tag = BACNET_CALENDAR_WEEK_N_DAY,
-                .type = {
-                    .WeekNDay = {
-                        .month = 0xff,
-                        .dayofweek = 1, /* mondays */
-                        .weekofmonth = 0xff,
-                    }
-                }
-            }
-        },
-        .timeValues = {
-            .TV_Count = 0,
-            .Time_Values = { 0 }
-        },
-        .priority = 16,
-    };
+    BACNET_SPECIAL_EVENT in = { 0 };
     BACNET_SPECIAL_EVENT out = { 0 };
+
+    in.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+    in.period.calendarEntry.tag = BACNET_CALENDAR_WEEK_N_DAY;
+    in.period.calendarEntry.type.WeekNDay.month = 0xff;
+    in.period.calendarEntry.type.WeekNDay.dayofweek = 1; /* mondays */
+    in.period.calendarEntry.type.WeekNDay.weekofmonth = 0xff;
+    in.timeValues.TV_Count = 0;
+    in.priority = 16;
 
     len = bacnet_special_event_encode(apdu, &in);
     null_len = bacnet_special_event_encode(NULL, &in);
@@ -352,7 +289,7 @@ ZTEST(BACnetSpecialEvent_tests, test_BACnetSpecialEvent_DecodeRealAPDU)
 static void test_BACnetSpecialEvent_DecodeRealAPDU(void)
 #endif
 {
-    int len, apdu_len;
+    int apdu_len;
     BACNET_SPECIAL_EVENT out = { 0 };
     uint8_t sample[18] = {
         0x0e, 0x0c, 0xff, 0x0a, 0x1c, 0xff, 0x0f, 0x2e, 0xb4,
