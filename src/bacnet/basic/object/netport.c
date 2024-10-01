@@ -831,7 +831,7 @@ bool Network_Port_MAC_Address_Set(
 }
 
 /**
- * For a given object instance-number, gets the BACnet Network Number.
+ * For a given object instance-number, gets the APDU length.
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -851,7 +851,7 @@ uint16_t Network_Port_APDU_Length(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the BACnet Network Number
+ * For a given object instance-number, sets the APDU length
  *
  * @param  object_instance - object-instance number of the object
  * @param  value - APDU length 0..65535
@@ -1125,9 +1125,9 @@ bool Network_Port_IP_Address(
  *
  * @param  object_instance - object-instance number of the object
  * @param  a - ip-address first octet
- * @param  b - ip-address first octet
- * @param  c - ip-address first octet
- * @param  d - ip-address first octet
+ * @param  b - ip-address second octet
+ * @param  c - ip-address third octet
+ * @param  d - ip-address fourth octet
  *
  * @return  true if ip-address was set
  */
@@ -1144,6 +1144,7 @@ bool Network_Port_IP_Address_Set(
             Object_List[index].Network.IPv4.IP_Address[1] = b;
             Object_List[index].Network.IPv4.IP_Address[2] = c;
             Object_List[index].Network.IPv4.IP_Address[3] = d;
+            status = true;
         }
     }
 
@@ -1270,9 +1271,9 @@ bool Network_Port_IP_Gateway(
  *
  * @param  object_instance - object-instance number of the object
  * @param  a - ip-address first octet
- * @param  b - ip-address first octet
- * @param  c - ip-address first octet
- * @param  d - ip-address first octet
+ * @param  b - ip-address second octet
+ * @param  c - ip-address third octet
+ * @param  d - ip-address fourth octet
  *
  * @return  true if ip-address was set
  */
@@ -1289,6 +1290,7 @@ bool Network_Port_IP_Gateway_Set(
             Object_List[index].Network.IPv4.IP_Gateway[1] = b;
             Object_List[index].Network.IPv4.IP_Gateway[2] = c;
             Object_List[index].Network.IPv4.IP_Gateway[3] = d;
+            status = true;
         }
     }
 
@@ -1343,7 +1345,7 @@ bool Network_Port_IP_DHCP_Enable_Set(uint32_t object_instance, bool value)
 }
 
 /**
- * For a given object instance-number, loads the subnet-mask-address into
+ * For a given object instance-number and dns_index, loads the ip-address into
  * an octet string.
  * Note: depends on Network_Type being set for this object
  *
@@ -1411,9 +1413,9 @@ static int Network_Port_IP_DNS_Server_Encode(
  * @param  object_instance - object-instance number of the object
  * @param  index - 0=primary, 1=secondary, 3=tertierary
  * @param  a - ip-address first octet
- * @param  b - ip-address first octet
- * @param  c - ip-address first octet
- * @param  d - ip-address first octet
+ * @param  b - ip-address second octet
+ * @param  c - ip-address third octet
+ * @param  d - ip-address fourth octet
  *
  * @return  true if ip-address was set
  */
@@ -1436,6 +1438,7 @@ bool Network_Port_IP_DNS_Server_Set(
                 Object_List[index].Network.IPv4.IP_DNS_Server[dns_index][1] = b;
                 Object_List[index].Network.IPv4.IP_DNS_Server[dns_index][2] = c;
                 Object_List[index].Network.IPv4.IP_DNS_Server[dns_index][3] = d;
+                status = true;
             }
         }
     }
@@ -3744,7 +3747,7 @@ void Network_Port_Changes_Activate(void)
 }
 
 /**
- * @brief Activate any of the changes pending for all network port objects
+ * @brief Discard any of the changes pending for all network port objects
  */
 void Network_Port_Changes_Discard(void)
 {
