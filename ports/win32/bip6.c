@@ -393,9 +393,9 @@ int bip6_send_mpdu(
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
 int bip6_send_pdu(
-    const BACNET_ADDRESS *dest,
-    const BACNET_NPDU_DATA *npdu_data,
-    const uint8_t *pdu,
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
     unsigned pdu_len)
 {
     return bvlc6_send_pdu(dest, npdu_data, pdu, pdu_len);
