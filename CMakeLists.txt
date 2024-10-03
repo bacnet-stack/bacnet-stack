@@ -876,6 +876,8 @@ if(BACNET_STACK_BUILD_APPS)
     else()
       add_executable(
         router
+        ports/linux/dlmstp_linux.c
+        ports/linux/dlmstp_linux.h
         apps/router/ipmodule.c
         apps/router/ipmodule.h
         apps/router/main.c
