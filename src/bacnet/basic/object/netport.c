@@ -43,6 +43,9 @@ struct bacnet_ipv4_port {
     uint16_t Port;
     BACNET_IP_MODE Mode;
     bool IP_DHCP_Enable;
+    bool IP_DHCP_Enable_Capable;
+    /* Shall be present if, and only if, Network_Type is IPV4
+       and the port can be configured by DHCP.*/
     uint32_t IP_DHCP_Lease_Seconds;
     uint32_t IP_DHCP_Lease_Seconds_Remaining;
     uint8_t IP_DHCP_Server[4];
@@ -1337,6 +1340,49 @@ bool Network_Port_IP_DHCP_Enable_Set(uint32_t object_instance, bool value)
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             Object_List[index].Network.IPv4.IP_DHCP_Enable = value;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the IP_DHCP_Enable_Capable flag
+ * @param  object_instance - object-instance number of the object
+ * @return  IP_DHCP_Enable_Capable flag value
+ */
+bool Network_Port_IP_DHCP_Enable_Capable(uint32_t object_instance)
+{
+    bool flag = false;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            flag = Object_List[index].Network.IPv4.IP_DHCP_Enable_Capable;
+        }
+    }
+
+    return flag;
+}
+
+/**
+ * For a given object instance-number, sets the IP_DHCP_Enable_Capable flag
+ * @param object_instance - object-instance number of the object
+ * @param value - boolean IP_DHCP_Enable_Capable flag
+ * @return true if the IP_DHCP_Enable_Capable flag was set
+ */
+bool Network_Port_IP_DHCP_Enable_Capable_Set(
+    uint32_t object_instance, bool value)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            Object_List[index].Network.IPv4.IP_DHCP_Enable_Capable = value;
             status = true;
         }
     }
@@ -3275,8 +3321,15 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
         case PROP_IP_DHCP_ENABLE:
-            apdu_len = encode_application_boolean(
-                &apdu[0], Network_Port_IP_DHCP_Enable(rpdata->object_instance));
+            if (Network_Port_IP_DHCP_Enable_Capable(rpdata->object_instance)) {
+                apdu_len = encode_application_boolean(
+                    &apdu[0],
+                    Network_Port_IP_DHCP_Enable(rpdata->object_instance));
+            } else {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+                apdu_len = BACNET_STATUS_ERROR;
+            }
             break;
         case PROP_IP_DNS_SERVER:
             apdu_len = bacnet_array_encode(
