@@ -42,10 +42,9 @@ struct bacnet_ipv4_port {
     uint8_t IP_DNS_Server[BIP_DNS_MAX][4];
     uint16_t Port;
     BACNET_IP_MODE Mode;
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
     bool IP_DHCP_Enable;
-    bool IP_DHCP_Enable_Capable;
-    /* Shall be present if, and only if, Network_Type is IPV4
-       and the port can be configured by DHCP.*/
+#endif
     uint32_t IP_DHCP_Lease_Seconds;
     uint32_t IP_DHCP_Lease_Seconds_Remaining;
     uint8_t IP_DHCP_Server[4];
@@ -150,7 +149,9 @@ static const int BIP_Port_Properties_Optional[] = {
     PROP_IP_SUBNET_MASK,
     PROP_IP_DEFAULT_GATEWAY,
     PROP_IP_DNS_SERVER,
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
     PROP_IP_DHCP_ENABLE,
+#endif
 #if defined(BACDL_BIP) && (BBMD_ENABLED)
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
@@ -1300,6 +1301,7 @@ bool Network_Port_IP_Gateway_Set(
     return status;
 }
 
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
 /**
  * For a given object instance-number, returns the IP_DHCP_Enable
  * property value
@@ -1322,7 +1324,9 @@ bool Network_Port_IP_DHCP_Enable(uint32_t object_instance)
 
     return dhcp_enable;
 }
+endif
 
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
 /**
  * For a given object instance-number, sets the IP_DHCP_Enable property value
  *
@@ -1346,49 +1350,7 @@ bool Network_Port_IP_DHCP_Enable_Set(uint32_t object_instance, bool value)
 
     return status;
 }
-
-/**
- * For a given object instance-number, returns the IP_DHCP_Enable_Capable flag
- * @param  object_instance - object-instance number of the object
- * @return  IP_DHCP_Enable_Capable flag value
- */
-bool Network_Port_IP_DHCP_Enable_Capable(uint32_t object_instance)
-{
-    bool flag = false;
-    unsigned index = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            flag = Object_List[index].Network.IPv4.IP_DHCP_Enable_Capable;
-        }
-    }
-
-    return flag;
-}
-
-/**
- * For a given object instance-number, sets the IP_DHCP_Enable_Capable flag
- * @param object_instance - object-instance number of the object
- * @param value - boolean IP_DHCP_Enable_Capable flag
- * @return true if the IP_DHCP_Enable_Capable flag was set
- */
-bool Network_Port_IP_DHCP_Enable_Capable_Set(
-    uint32_t object_instance, bool value)
-{
-    bool status = false;
-    unsigned index = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            Object_List[index].Network.IPv4.IP_DHCP_Enable_Capable = value;
-            status = true;
-        }
-    }
-
-    return status;
-}
+#endif
 
 /**
  * For a given object instance-number and dns_index, loads the ip-address into
@@ -3320,17 +3282,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             Network_Port_IP_Gateway(rpdata->object_instance, &octet_string);
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
         case PROP_IP_DHCP_ENABLE:
-            if (Network_Port_IP_DHCP_Enable_Capable(rpdata->object_instance)) {
-                apdu_len = encode_application_boolean(
-                    &apdu[0],
-                    Network_Port_IP_DHCP_Enable(rpdata->object_instance));
-            } else {
-                rpdata->error_class = ERROR_CLASS_PROPERTY;
-                rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-                apdu_len = BACNET_STATUS_ERROR;
-            }
+            apdu_len = encode_application_boolean(
+                &apdu[0],
+                Network_Port_IP_DHCP_Enable(rpdata->object_instance));
             break;
+#endif
         case PROP_IP_DNS_SERVER:
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
