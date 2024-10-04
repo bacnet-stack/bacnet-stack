@@ -22,15 +22,15 @@ jobs:
         gcc --version
         make clean
         make LEGACY=true CSTANDARD="-std=gnu89" all
-    - name: Build Demo Apps GNU99
+    - name: LEGACY=true Build Demo Apps GNU99
       run: |
         make clean
-        make CSTANDARD="-std=gnu99" all
+        make LEGACY=true CSTANDARD="-std=gnu99" all
     - name: LEGACY=true Build Demo Apps GNU11
       run: |
         make clean
         make LEGACY=true CSTANDARD="-std=gnu11" all
-    - name: Build Demo Apps GNU17
+    - name: LEGACY=true Build Demo Apps GNU17
       run: |
         make clean
         make LEGACY=true CSTANDARD="-std=gnu17" all
