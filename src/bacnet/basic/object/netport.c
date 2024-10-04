@@ -3285,8 +3285,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
         case PROP_IP_DHCP_ENABLE:
             apdu_len = encode_application_boolean(
-                &apdu[0],
-                Network_Port_IP_DHCP_Enable(rpdata->object_instance));
+                &apdu[0], Network_Port_IP_DHCP_Enable(rpdata->object_instance));
             break;
 #endif
         case PROP_IP_DNS_SERVER:
