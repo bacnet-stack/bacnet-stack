@@ -1324,7 +1324,7 @@ bool Network_Port_IP_DHCP_Enable(uint32_t object_instance)
 
     return dhcp_enable;
 }
-endif
+#endif
 
 #if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
 /**
