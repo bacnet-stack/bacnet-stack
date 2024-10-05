@@ -42,7 +42,9 @@ struct bacnet_ipv4_port {
     uint8_t IP_DNS_Server[BIP_DNS_MAX][4];
     uint16_t Port;
     BACNET_IP_MODE Mode;
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
     bool IP_DHCP_Enable;
+#endif
     uint32_t IP_DHCP_Lease_Seconds;
     uint32_t IP_DHCP_Lease_Seconds_Remaining;
     uint8_t IP_DHCP_Server[4];
@@ -138,10 +140,10 @@ static const int BIP_Port_Properties_Optional[] = {
     PROP_IP_SUBNET_MASK,
     PROP_IP_DEFAULT_GATEWAY,
     PROP_IP_DNS_SERVER,
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
     PROP_IP_DHCP_ENABLE,
-#if (defined(BACDL_ALL) || defined(BACDL_BIP)) && \
-    (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
-#if (BBMD_ENABLED)
+#endif
+#if defined(BACDL_BIP) && (BBMD_ENABLED)
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
     PROP_BBMD_FOREIGN_DEVICE_TABLE,
@@ -1250,6 +1252,7 @@ bool Network_Port_IP_Gateway_Set(
     return status;
 }
 
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
 /**
  * For a given object instance-number, returns the IP_DHCP_Enable
  * property value
@@ -1272,7 +1275,9 @@ bool Network_Port_IP_DHCP_Enable(uint32_t object_instance)
 
     return dhcp_enable;
 }
+#endif
 
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
 /**
  * For a given object instance-number, sets the IP_DHCP_Enable property value
  *
@@ -1296,6 +1301,7 @@ bool Network_Port_IP_DHCP_Enable_Set(uint32_t object_instance, bool value)
 
     return status;
 }
+#endif
 
 /**
  * For a given object instance-number and dns_index, loads the ip-address into
@@ -3221,10 +3227,12 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             Network_Port_IP_Gateway(rpdata->object_instance, &octet_string);
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
+#if defined(BACDL_BIP) && (BACNET_NETWORK_PORT_IP_DHCP_ENABLED)
         case PROP_IP_DHCP_ENABLE:
             apdu_len = encode_application_boolean(
                 &apdu[0], Network_Port_IP_DHCP_Enable(rpdata->object_instance));
             break;
+#endif
         case PROP_IP_DNS_SERVER:
             apdu_len = bacnet_array_encode(
                 rpdata->object_instance, rpdata->array_index,
