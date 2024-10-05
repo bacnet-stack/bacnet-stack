@@ -20,7 +20,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.4.0] - 2024-09-05
+## [1.4.0] - 2024-10-05
 
 ### Security
 
