@@ -673,8 +673,8 @@ elseif(WIN32)
 
   target_link_libraries(${PROJECT_NAME} PRIVATE
     winmm
-    $<$<BOOL:${BACDL_BIP}>:ws2_32>
-    $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
+    $<$<BOOL:${BACDL_BIP} OR BOOL:${BACDL_BIP6}>:ws2_32>
+    $<$<BOOL:${BACDL_BIP} OR BOOL:${BACDL_BIP6}>:iphlpapi>)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
@@ -683,10 +683,38 @@ elseif(WIN32)
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
-    $<$<BOOL:${BACDL_ETHERNET}>:ports/win32/ethernet.c>
     ports/win32/mstimer-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>)
+
+  if(BACDL_ETHERNET)
+    include(ExternalProject)
+    set(PCAP_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/npcap/Lib/x64)
+    set(PCAP_LIB_WPCAP ${PCAP_LIB_DIR}/wpcap.lib)
+    set(PCAP_LIB_PACKET ${PCAP_LIB_DIR}/Packet.lib)
+    set(PCAP_INCLUDE ${CMAKE_CURRENT_BINARY_DIR}/npcap/Include)
+    message(STATUS "BACNET: npcap Include:..................\"${PCAP_INCLUDE}\"")
+    message(STATUS "BACNET: npcap Lib wpcap:................\"${PCAP_LIB_WPCAP}\"")
+    message(STATUS "BACNET: npcap Lib Packet:...............\"${PCAP_LIB_PACKET}\"")
+    ExternalProject_Add(npcap
+      URL https://npcap.com/dist/npcap-sdk-1.13.zip
+      URL_HASH SHA1=8d5bb6f3adb813374402344a8d2a12b9cb725197
+      DOWNLOAD_EXTRACT_TIMESTAMP true
+      SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/npcap
+      BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/npcap/Lib/x64
+      UPDATE_COMMAND    ""
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND     ""
+      INSTALL_COMMAND   ""
+      TEST_COMMAND      ""
+      BUILD_BYPRODUCTS ${PCAP_LIB_WPCAP}
+      BUILD_BYPRODUCTS ${PCAP_LIB_PACKET})
+    include_directories(${PCAP_INCLUDE})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${PCAP_LIB_WPCAP})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${PCAP_LIB_PACKET})
+    target_sources(${PROJECT_NAME} PRIVATE
+      ports/win32/ethernet.c)
+  endif()
 elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
@@ -774,8 +802,12 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(error apps/error/main.c)
   target_link_libraries(error PRIVATE ${PROJECT_NAME})
 
-  # add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
-  # target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
+  add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
+  target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
+  target_compile_options(gateway PRIVATE
+    # Unreachable code because we have endless loop.
+    $<$<C_COMPILER_ID:MSVC>:/wd4702>
+  )
 
   add_executable(getevent apps/getevent/main.c)
   target_link_libraries(getevent PRIVATE ${PROJECT_NAME})
@@ -876,6 +908,8 @@ if(BACNET_STACK_BUILD_APPS)
     else()
       add_executable(
         router
+        ports/linux/dlmstp_linux.c
+        ports/linux/dlmstp_linux.h
         apps/router/ipmodule.c
         apps/router/ipmodule.h
         apps/router/main.c
@@ -905,8 +939,20 @@ if(BACNET_STACK_BUILD_APPS)
   endif()
 
   if(BACDL_BIP AND BACDL_BIP6)
-    add_executable(router-ipv6 apps/router-ipv6/main.c)
-    target_link_libraries(router-ipv6 PRIVATE ${PROJECT_NAME})
+    add_executable(
+      router-ipv6
+      apps/router-ipv6/router-ipv6.h
+      apps/router-ipv6/main.c)
+    target_link_libraries(
+      router-ipv6
+      PRIVATE ${PROJECT_NAME})
+    target_compile_options(router-ipv6 PRIVATE
+      # These make this example not totally C90 compatible but it is ok.
+
+      -Wno-declaration-after-statement
+      -Wno-overlength-strings
+      -Wno-variadic-macros
+    )
   endif()
 
   add_executable(scov apps/scov/main.c)
