@@ -60,6 +60,11 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed  BACnet Ethernet and IPv6 on win32 by switching from
+  WinPcap to npcap.  Included npcap SDK in cmake and libs for
+  IPv6 in cmake. (#774)
+* Changed pipeline gcc.yml to reduce known warnings from legacy
+  API by adding LEGACY flag to make bip-apps with GNU99. (#795)
 * Changed ATmega168 example for ATmega328 on Arduino Uno R3 with DFR0259
   RS485 shield. Added ADC interface from BDK port and mapped to some AV
   objects. Removed MS/TP MAC address DIP switch GPIO and moved MS/TP
@@ -92,6 +97,11 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed IP_DHCP_Enable property being present in Network Port object
+  by adding compiler define. (#796)
+* Fixed app/router in cmake recipe. (#794)
+* Fixed mismatched comments in netport.c module. (#792)
+* Fixed app/server when compiled with BAC_ROUTING. (#783)
 * Fixed a warning emitted from arm-none-eabi-gcc in hostnport.c (#785)
 * Fixed duplicated C file in CMakeLists.txt (#781)
 * Fixed cmake dependencies to build readbdt, readfdt and router-ipv6
