@@ -10,7 +10,7 @@ project(
 #
 # <INSERT_CMAKE_INSTALL_PREFIX_HERE>
 
-add_compile_options(-DDEBUG_PRINT)
+# add_compile_options(-DDEBUG_PRINT)
 option(
   BACNET_STACK_BUILD_APPS
   "build apps"

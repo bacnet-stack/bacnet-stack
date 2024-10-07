@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
-#define PRINT_ENABLED 1
+#define PRINT_ENABLED 0
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
