@@ -941,7 +941,6 @@ if(BACNET_STACK_BUILD_APPS)
   if(BACDL_BIP AND BACDL_BIP6)
     add_executable(
       router-ipv6
-      apps/router-ipv6/router-ipv6.h
       apps/router-ipv6/main.c)
     target_link_libraries(
       router-ipv6
