@@ -904,7 +904,6 @@ if(BACNET_STACK_BUILD_APPS)
     find_library(LIBCONFIG_LIBRARIES NAMES config)
     if(NOT LIBCONFIG_LIBRARIES)
       message(WARNING "BACNET: Will not build apps/router as libconfig not found")
-      return()
     else()
       add_executable(
         router
