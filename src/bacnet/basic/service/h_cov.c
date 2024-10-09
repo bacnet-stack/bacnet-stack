@@ -280,7 +280,7 @@ static int cov_encode_subscription(
  * 31 bytes for IPv4 (longest MAC) plus 3 extra bytes for the maximum length
  * of PID (5 bytes) and lets round it up to the 64bit machine word
  * alignment */
-#define MAX_COV_SUB_SIZE (48)
+#define MAX_COV_SUB_SIZE (40)
 int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
 {
     if (apdu) {
