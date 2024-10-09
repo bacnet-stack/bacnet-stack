@@ -5,6 +5,8 @@ project(
   VERSION 1.4.0
   LANGUAGES C)
 
+add_compile_definitions(PRINT_ENABLED=0)
+
 #
 # options
 #
