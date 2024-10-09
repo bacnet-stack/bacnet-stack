@@ -276,8 +276,8 @@ static int cov_encode_subscription(
  *  @return How many bytes were encoded in the buffer, or -2 if the response
  *          would not fit within the buffer.
  */
-/* Maximume length for an encoded COV subscription  - 27 bytes for BACNET IP6
- * 31 bytes for IPv4 (longest MAC) plus 3 extra bytes for the maximum length
+/* Maximume length for an encoded COV subscription  - 31 bytes for BACNET IP6
+ * 35 bytes for IPv4 (longest MAC) with the maximum length
  * of PID (5 bytes) and lets round it up to the 64bit machine word
  * alignment */
 #define MAX_COV_SUB_SIZE (40)
