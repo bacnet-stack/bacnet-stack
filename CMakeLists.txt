@@ -5,7 +5,7 @@ project(
   VERSION 1.4.0
   LANGUAGES C)
 
-add_compile_definitions(PRINT_ENABLED=0)
+#add_compile_definitions(PRINT_ENABLED=0)
 message(STATUS "Minimal optimization, debug info included")
 add_compile_definitions(DEBUG_ENABLED=0)
 
@@ -683,7 +683,7 @@ target_compile_definitions(
   PRIVATE
   BACDL_MULTIPLE=1
   CSTANDARD=-std=c17
-  PRINT_ENABLED=1)
+  PRINT_ENABLED=0)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
