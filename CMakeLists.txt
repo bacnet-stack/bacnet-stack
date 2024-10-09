@@ -5,7 +5,6 @@ project(
   VERSION 1.4.0
   LANGUAGES C)
 
-#add_compile_definitions(PRINT_ENABLED=0)
 message(STATUS "Minimal optimization, debug info included")
 add_compile_definitions(DEBUG_ENABLED=0)
 
