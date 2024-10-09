@@ -24,10 +24,11 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
-  * Secured BACnetAccessRule encoding and decoding and added unit testing.
-    Fixed BACnetAccessRule application integration into Access Rights object.
-    Improved unit testing and code coverage. (#790)
-  * Secured Active-COV-Subscriptions property encoding. (#763)
+* Secured BACnetAccessRule encoding and decoding and added unit testing.
+  Fixed BACnetAccessRule application integration into Access Rights object.
+  Improved unit testing and code coverage. (#790)
+* Secured Active-COV-Subscriptions property encoding. (#763)
+* Secured COV handling after refactor to using local buffer. (#802)
 
 ### Added
 
@@ -97,6 +98,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed app router-ipv6 cmake (#800)
+* Fixed app router cmake (#799)
 * Fixed IP_DHCP_Enable property being present in Network Port object
   by adding compiler define. (#796)
 * Fixed app/router in cmake recipe. (#794)
