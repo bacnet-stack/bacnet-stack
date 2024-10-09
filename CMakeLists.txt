@@ -5,12 +5,15 @@ project(
   VERSION 1.4.0
   LANGUAGES C)
 
+message(STATUS "Minimal optimization, debug info included")
+add_compile_definitions(DEBUG_ENABLED=0)
+
 #
 # options
 #
 # <INSERT_CMAKE_INSTALL_PREFIX_HERE>
 
-add_compile_options(-DDEBUG_PRINT)
+# add_compile_options(-DDEBUG_PRINT)
 option(
   BACNET_STACK_BUILD_APPS
   "build apps"
@@ -122,18 +125,6 @@ set(BACNET_STACK_BUILD_APPS OFF)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
-
-# Build types
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-    message(STATUS "Maximum optimization for speed")
-elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
-    message(STATUS "Maximum optimization for speed, debug info included")
-elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
-    message(STATUS "Maximum optimization for size")
-else ()
-    message(STATUS "Minimal optimization, debug info included")
-    add_compile_definitions(DEBUG_ENABLED=1)
-endif ()
 
 option(
   BACNET_STACK_DEPRECATED_DISABLE
@@ -691,7 +682,7 @@ target_compile_definitions(
   PRIVATE
   BACDL_MULTIPLE=1
   CSTANDARD=-std=c17
-  PRINT_ENABLED=1)
+  PRINT_ENABLED=0)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
