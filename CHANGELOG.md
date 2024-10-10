@@ -98,6 +98,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed MS/TP FSM TS filter that was removed for zero-config
+  permiscuous feature. (#803)
 * Fixed app router-ipv6 cmake (#800)
 * Fixed app router cmake (#799)
 * Fixed IP_DHCP_Enable property being present in Network Port object
