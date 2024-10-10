@@ -623,6 +623,23 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         (mstp_port->This_Station + 1) % (mstp_port->Nmax_master + 1);
     next_next_station =
         (mstp_port->Next_Station + 1) % (mstp_port->Nmax_master + 1);
+    /* The zero config receive state machine does not
+       filter DestinationAddress for This_Station or Broadcast.
+       Check before running FSM: */
+    if (mstp_port->ReceivedValidFrame == true) {
+        if ((mstp_port->master_state == MSTP_MASTER_STATE_INITIALIZE) &&
+            (mstp_port->ZeroConfigEnabled)) {
+            /* zero config initialization processes all frames */
+        } else {
+            if ((mstp_port->DestinationAddress == mstp_port->This_Station) ||
+                (mstp_port->DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
+                /* process as-is */
+            } else {
+                /* ignore the frame */
+                mstp_port->ReceivedValidFrame = false;
+            }
+        }
+    }
     switch (mstp_port->master_state) {
         case MSTP_MASTER_STATE_INITIALIZE:
             if (mstp_port->ZeroConfigEnabled) {
@@ -683,77 +700,75 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                         mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
                     }
                     mstp_port->ReceivedValidFrame = false;
-                } else {
-                    /* destined for me! */
-                    switch (mstp_port->FrameType) {
-                        case FRAME_TYPE_TOKEN:
-                            /* ReceivedToken */
-                            /* tokens cannot be broadcast */
-                            if (mstp_port->DestinationAddress ==
-                                MSTP_BROADCAST_ADDRESS) {
-                                break;
-                            }
-                            mstp_port->ReceivedValidFrame = false;
-                            mstp_port->FrameCount = 0;
-                            mstp_port->SoleMaster = false;
-                            mstp_port->master_state =
-                                MSTP_MASTER_STATE_USE_TOKEN;
-                            transition_now = true;
+                    break;
+                }
+                /* destined for me! */
+                switch (mstp_port->FrameType) {
+                    case FRAME_TYPE_TOKEN:
+                        /* ReceivedToken */
+                        /* tokens cannot be broadcast */
+                        if (mstp_port->DestinationAddress ==
+                            MSTP_BROADCAST_ADDRESS) {
                             break;
-                        case FRAME_TYPE_POLL_FOR_MASTER:
-                            /* ReceivedPFM */
-                            /* DestinationAddress is equal to TS */
-                            if (mstp_port->DestinationAddress ==
-                                mstp_port->This_Station) {
-                                MSTP_Create_And_Send_Frame(
-                                    mstp_port,
-                                    FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
-                                    mstp_port->SourceAddress,
-                                    mstp_port->This_Station, NULL, 0);
-                            }
-                            break;
-                        case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
-                        case FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY:
-                            if ((mstp_port->DestinationAddress ==
-                                 MSTP_BROADCAST_ADDRESS) &&
-                                (npdu_confirmed_service(
-                                    mstp_port->InputBuffer,
-                                    mstp_port->DataLength))) {
-                                /* BTL test: verifies that the IUT will quietly
-                                   discard any Confirmed-Request-PDU, whose
-                                   destination address is a multicast or
-                                   broadcast address, received from the
-                                   network layer. */
-                            } else {
-                                /* indicate successful reception to the higher
-                                 * layers */
-                                (void)MSTP_Put_Receive(mstp_port);
-                            }
-                            break;
-                        case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                        case FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY:
-                            if (mstp_port->DestinationAddress ==
-                                MSTP_BROADCAST_ADDRESS) {
-                                /* broadcast DER just remains IDLE */
-                            } else {
-                                /* indicate successful reception to the higher
-                                 * layers  */
-                                (void)MSTP_Put_Receive(mstp_port);
-                                mstp_port->master_state =
-                                    MSTP_MASTER_STATE_ANSWER_DATA_REQUEST;
-                            }
-                            break;
-                        case FRAME_TYPE_TEST_REQUEST:
+                        }
+                        mstp_port->ReceivedValidFrame = false;
+                        mstp_port->FrameCount = 0;
+                        mstp_port->SoleMaster = false;
+                        mstp_port->master_state = MSTP_MASTER_STATE_USE_TOKEN;
+                        transition_now = true;
+                        break;
+                    case FRAME_TYPE_POLL_FOR_MASTER:
+                        /* ReceivedPFM */
+                        /* DestinationAddress is equal to TS */
+                        if (mstp_port->DestinationAddress ==
+                            mstp_port->This_Station) {
                             MSTP_Create_And_Send_Frame(
-                                mstp_port, FRAME_TYPE_TEST_RESPONSE,
+                                mstp_port, FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
                                 mstp_port->SourceAddress,
-                                mstp_port->This_Station, mstp_port->InputBuffer,
-                                mstp_port->DataLength);
-                            break;
-                        case FRAME_TYPE_TEST_RESPONSE:
-                        default:
-                            break;
-                    }
+                                mstp_port->This_Station, NULL, 0);
+                        }
+                        break;
+                    case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+                    case FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY:
+                        if ((mstp_port->DestinationAddress ==
+                             MSTP_BROADCAST_ADDRESS) &&
+                            (npdu_confirmed_service(
+                                mstp_port->InputBuffer,
+                                mstp_port->DataLength))) {
+                            /* BTL test: verifies that the IUT will
+                            quietly discard any Confirmed-Request-PDU,
+                            whose destination address is a multicast or
+                            broadcast address, received from the
+                            network layer. */
+                        } else {
+                            /* ForUs */
+                            /* indicate successful reception
+                                to the higher layers */
+                            (void)MSTP_Put_Receive(mstp_port);
+                        }
+                        break;
+                    case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
+                    case FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY:
+                        if (mstp_port->DestinationAddress ==
+                            MSTP_BROADCAST_ADDRESS) {
+                            /* broadcast DER just remains IDLE */
+                        } else {
+                            /* indicate successful reception to the higher
+                             * layers  */
+                            (void)MSTP_Put_Receive(mstp_port);
+                            mstp_port->master_state =
+                                MSTP_MASTER_STATE_ANSWER_DATA_REQUEST;
+                        }
+                        break;
+                    case FRAME_TYPE_TEST_REQUEST:
+                        MSTP_Create_And_Send_Frame(
+                            mstp_port, FRAME_TYPE_TEST_RESPONSE,
+                            mstp_port->SourceAddress, mstp_port->This_Station,
+                            mstp_port->InputBuffer, mstp_port->DataLength);
+                        break;
+                    case FRAME_TYPE_TEST_RESPONSE:
+                    default:
+                        break;
                 }
                 /* For DATA_EXPECTING_REPLY, we will keep the Rx Frame for
                    reference, and the flag will be cleared in the next state */
