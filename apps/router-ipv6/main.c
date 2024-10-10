@@ -1135,7 +1135,7 @@ static void control_c_hooks(void)
  * @note This is a proxy function to satisfy the BACnet Stack IPv6 port layer
  * requirements since this application omits a Device object.
  */
-uint32_t Device_Object_Instance_Number(void)
+static uint32_t Device_Object_Instance_Number(void)
 {
     return Device_Instance_Number;
 }
