@@ -530,7 +530,7 @@ static void cov_lifetime_expiration_handler(
     unsigned index, uint32_t elapsed_seconds, uint32_t lifetime_seconds)
 {
 
-    fprintf(stderr, "cov_lifetime_expiration_handler\n");
+    fprintf(stderr, "cov_lifetime_expiration_handler index=%u elapsed_seconds=%u lifetime_seconds=%u\n", index, elapsed_seconds, lifetime_seconds);
     if (index < MAX_COV_SUBCRIPTIONS) {
         /* handle lifetime expiration */
         if (lifetime_seconds >= elapsed_seconds) {
