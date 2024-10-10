@@ -635,6 +635,13 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 (mstp_port->DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
                 /* process as-is */
             } else {
+                if ((mstp_port->ZeroConfigEnabled) &&
+                    (mstp_port->SourceAddress == mstp_port->This_Station)) {
+                    /* DuplicateNode */
+                    mstp_port->Zero_Config_State =
+                        MSTP_ZERO_CONFIG_STATE_INIT;
+                    mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
+                }
                 /* ignore the frame */
                 mstp_port->ReceivedValidFrame = false;
             }
@@ -691,17 +698,6 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
                     mstp_port->DataLength, mstp_port->FrameCount,
                     mstp_port->SilenceTimer((void *)mstp_port),
                     mstptext_frame_type((unsigned)mstp_port->FrameType));
-                if (mstp_port->SourceAddress == mstp_port->This_Station) {
-                    /* DuplicateNode */
-                    if (mstp_port->ZeroConfigEnabled) {
-                        /* we are a zero config node - start over */
-                        mstp_port->Zero_Config_State =
-                            MSTP_ZERO_CONFIG_STATE_INIT;
-                        mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
-                    }
-                    mstp_port->ReceivedValidFrame = false;
-                    break;
-                }
                 /* destined for me! */
                 switch (mstp_port->FrameType) {
                     case FRAME_TYPE_TOKEN:
