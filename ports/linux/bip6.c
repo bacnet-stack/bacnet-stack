@@ -69,7 +69,7 @@ static void debug_print_ipv6(const char *str, const struct in6_addr *addr)
 }
 
 /**
- * @brief Enabled debug printing of BACnet/IPv4
+ * @brief Enabled debug printing of BACnet/IPv6
  */
 void bip6_debug_enable(void)
 {
