@@ -98,7 +98,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
-* Fixed MS/TP FSM TS filter that was removed for zero-config
+* Fixed bsd/bip6.c:35:16: error: variadic macros are a C99 feature (#805)
+* Fixed MS/TP FSM TS (this station) filter that was removed for zero-config
   permiscuous feature. (#803)
 * Fixed app router-ipv6 cmake (#800)
 * Fixed app router cmake (#799)
