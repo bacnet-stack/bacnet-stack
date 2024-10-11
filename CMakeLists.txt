@@ -945,14 +945,8 @@ if(BACNET_STACK_BUILD_APPS)
       apps/router-ipv6/main.c)
     target_link_libraries(
       router-ipv6
-      PRIVATE ${PROJECT_NAME})
-    target_compile_options(router-ipv6 PRIVATE
-      # These make this example not totally C90 compatible but it is ok.
-
-      -Wno-declaration-after-statement
-      -Wno-overlength-strings
-      -Wno-variadic-macros
-    )
+      PRIVATE ${PROJECT_NAME}
+      "-zmuldefs")
   endif()
 
   add_executable(scov apps/scov/main.c)
