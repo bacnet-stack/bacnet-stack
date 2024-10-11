@@ -67,7 +67,7 @@ option(
 option(
   BACDL_BIP6
   "compile with ipv6 datalink support"
-  OFF)
+  ON)
 
 if(NOT (BACDL_ETHERNET OR
         BACDL_MSTP OR
