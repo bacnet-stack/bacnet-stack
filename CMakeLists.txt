@@ -945,11 +945,8 @@ if(BACNET_STACK_BUILD_APPS)
       router-ipv6
       PRIVATE ${PROJECT_NAME})
     target_compile_options(router-ipv6 PRIVATE
-      # These make this example not totally C90 compatible but it is ok.
-
-      -Wno-declaration-after-statement
-      -Wno-overlength-strings
-      -Wno-variadic-macros
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
     )
   endif()
 
