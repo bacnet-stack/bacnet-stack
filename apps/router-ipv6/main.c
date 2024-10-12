@@ -26,6 +26,7 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 /* port agnostic file */
 #include "bacport.h"
@@ -39,7 +40,6 @@
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
-static uint32_t Device_Instance_Number = BACNET_MAX_INSTANCE;
 
 /**
  * 6.6.1 Routing Tables
@@ -1130,17 +1130,6 @@ static void control_c_hooks(void)
 #endif
 
 /**
- * @brief Get the Device object instance number
- * @return The Device object instance number
- * @note This is a proxy function to satisfy the BACnet Stack IPv6 port layer
- * requirements since this application omits a Device object.
- */
-uint32_t Device_Object_Instance_Number(void)
-{
-    return Device_Instance_Number;
-}
-
-/**
  * Main function of simple router demo.
  *
  * @param argc [in] Arg count.
@@ -1158,7 +1147,7 @@ int main(int argc, char *argv[])
     printf("BACnet Simple IP to IPv6 Router Demo\n");
     printf("BACnet Stack Version %s\n", BACnet_Version);
     if (argc > 1) {
-        Device_Instance_Number = strtol(argv[1], NULL, 0);
+        Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
     }
     datalink_init();
     atexit(cleanup);
