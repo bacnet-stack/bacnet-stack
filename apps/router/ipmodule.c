@@ -22,7 +22,9 @@ uint8_t test_packet[] = { 0x81, 0x0a, 0x00, 0x16, /* BVLC header */
                           0x00, 0x02, 0x19, 0x55 }; /* APDU */
 #endif
 
-void *dl_ip_thread(void *pArgs)
+/* BUG with optimize Os */
+/* *** bit out of range 0 - FD_SETSIZE on fd_set ***: terminated */
+void __attribute__((optimize("O2"))) * dl_ip_thread(void *pArgs)
 {
     MSGBOX_ID msgboxid;
     BACMSG msg_storage, *bacmsg = NULL;
