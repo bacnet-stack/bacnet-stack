@@ -98,6 +98,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Linux MSTP turnaround delay implementation. (#809)
+* Fixed app/router compiled with optimize Os when the program exits with
+  bit out of range 0 - FD_SETSIZE on fd_set. Solution disables optimize
+  for size by static set optimize 2 for GCC. Fixes (#793) (#808)
+* Fixed app/router-ipv6 duplicate symbol by using Device_Object_Instance_Number
+  from device-client.c module. Fixes (#778). (#806) (#807)
 * Fixed bsd/bip6.c:35:16: error: variadic macros are a C99 feature (#805)
 * Fixed MS/TP FSM TS (this station) filter that was removed for zero-config
   permiscuous feature. (#803)
