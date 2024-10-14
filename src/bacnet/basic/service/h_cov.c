@@ -358,6 +358,8 @@ static bool cov_list_subscribe(
     /* unable to subscribe - resources? */
     /* unable to cancel subscription - other? */
     fprintf(stderr, "cov_list_subscribe\n");
+    fprintf(stderr, "cov_data->lifetime = %u\n", cov_data->lifetime);
+
     /* existing? - match Object ID and Process ID and address */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         if (COV_Subscriptions[index].flag.valid) {
@@ -440,7 +442,8 @@ static bool cov_list_subscribe(
             found = true;
         }
     }
-
+    fprintf(stderr, "COV_Subscriptions[index].lifetime = %u\n", COV_Subscriptions[index].lifetime);
+    fprintf(stderr, "found = %d\n", found);
     return found;
 }
 
