@@ -855,6 +855,7 @@ void handler_cov_subscribe(
         }
 #endif
         fprintf(stderr, "handler_cov_subscribe len=%d\n", len);
+        fprintf(stderr, "handler_cov_subscribe cov_data.lifetime=%u\n", cov_data.lifetime);
         fprintf(stderr,"handler_cov_subscribe cov_data.error_class=%d\n", cov_data.error_class);
         fprintf(stderr, "handler_cov_subscribe cov_data.error_code=%d\n", cov_data.error_code);
 
