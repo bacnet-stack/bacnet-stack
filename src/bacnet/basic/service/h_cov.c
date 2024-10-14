@@ -851,6 +851,10 @@ void handler_cov_subscribe(
             fprintf(stderr, "SubscribeCOV: Unable to decode Request!\n");
         }
 #endif
+        fprintf(stderr, "handler_cov_subscribe len=%d\n", len);
+        fprintf(stderr,"handler_cov_subscribe cov_data.error_class=%d\n", cov_data.error_class);
+        fprintf(stderr, "handler_cov_subscribe cov_data.error_code=%d\n", cov_data.error_code);
+
         if (len < 0) {
             error = true;
         } else {
@@ -874,7 +878,7 @@ void handler_cov_subscribe(
             }
         }
     }
-
+    fprintf(stderr, "handler_cov_subscribe error=%d\n", error);
     /* Error? */
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
