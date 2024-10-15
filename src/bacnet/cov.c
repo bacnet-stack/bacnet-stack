@@ -524,6 +524,7 @@ int cov_subscribe_decode_service_request(
         }
     }
     fprintf(stderr, "cov_subscribe_decode_service_request len %d\n", len);
+    fprintf(stderr, "cov_subscribe_decode_service_request &decoded_value %p\n", (void *)&decoded_value);
     if ((unsigned)len < apdu_size) {
         /* lifetime [3] Unsigned OPTIONAL */
         value_len = bacnet_unsigned_context_decode(
@@ -544,6 +545,7 @@ int cov_subscribe_decode_service_request(
             data->lifetime = 0;
         }
     }
+    fprintf(stderr, "cov_subscribe_decode_service_request value_len %d\n", value_len);
     fprintf(stderr, "cov_subscribe_decode_service_request data.lifetime=%u\n", data->lifetime);
     return len;
 }
