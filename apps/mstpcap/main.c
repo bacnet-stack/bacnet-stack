@@ -972,7 +972,8 @@ static void print_help(const char *filename)
         filename);
 }
 
-/* initialize some of the variables in the MS/TP Receive structure */
+/* initialize some of the variables in the MS/TP Receive structure
+   after each packet write  */
 static void mstp_structure_init(struct mstp_port_struct_t *mstp_port)
 {
     if (mstp_port) {
@@ -983,9 +984,11 @@ static void mstp_structure_init(struct mstp_port_struct_t *mstp_port)
         mstp_port->HeaderCRCActual = 0;
         mstp_port->Index = 0;
         mstp_port->EventCount = 0;
+        mstp_port->DataRegister = 0xFF;
         mstp_port->ReceivedInvalidFrame = false;
         mstp_port->ReceivedValidFrame = false;
         mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+        mstp_port->SilenceTimerReset(NULL);
     }
 }
 
@@ -1003,7 +1006,7 @@ int main(int argc, char *argv[])
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    MSTP_Port.This_Station = 127;
+    MSTP_Port.This_Station = MSTP_BROADCAST_ADDRESS;
     MSTP_Port.Nmax_info_frames = 1;
     MSTP_Port.Nmax_master = 127;
     MSTP_Port.SilenceTimer = Timer_Silence;

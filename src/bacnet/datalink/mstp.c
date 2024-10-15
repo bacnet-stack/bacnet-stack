@@ -274,6 +274,17 @@ void MSTP_Create_And_Send_Frame(
     /* FIXME: be sure to reset SilenceTimer() after each octet is sent! */
 }
 
+static bool MSTP_Frame_For_Us(struct mstp_port_struct_t *mstp_port)
+{
+    if ((mstp_port->DestinationAddress == mstp_port->This_Station) ||
+        (mstp_port->DestinationAddress == MSTP_BROADCAST_ADDRESS) ||
+        (mstp_port->This_Station == MSTP_BROADCAST_ADDRESS)) {
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * @brief Finite State Machine for receiving an MSTP frame
  * @param mstp_port MSTP port context data
@@ -429,12 +440,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     } else {
                         if (mstp_port->DataLength == 0) {
                             /* NoData */
-                            if ((mstp_port->DestinationAddress ==
-                                 mstp_port->This_Station) ||
-                                (mstp_port->DestinationAddress ==
-                                 MSTP_BROADCAST_ADDRESS) ||
-                                (mstp_port->This_Station ==
-                                 MSTP_BROADCAST_ADDRESS)) {
+                            if (MSTP_Frame_For_Us(mstp_port)) {
                                 printf_receive_data(
                                     "%s",
                                     mstptext_frame_type(
@@ -442,17 +448,14 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                                 /* indicate that a frame with no data has been
                                  * received */
                                 mstp_port->ReceivedValidFrame = true;
+                            } else {
+                                /* NotForUs */
+                                mstp_port->ReceivedInvalidFrame = true;
                             }
                             /* wait for the start of the next frame. */
                             mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
                         } else {
-                            /* receive the data portion of the frame. */
-                            if ((mstp_port->DestinationAddress ==
-                                 mstp_port->This_Station) ||
-                                (mstp_port->DestinationAddress ==
-                                 MSTP_BROADCAST_ADDRESS) ||
-                                (mstp_port->This_Station ==
-                                 MSTP_BROADCAST_ADDRESS)) {
+                            if (MSTP_Frame_For_Us(mstp_port)) {
                                 if (mstp_port->DataLength <=
                                     mstp_port->InputBufferSize) {
                                     /* Data */
@@ -467,7 +470,7 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                                         MSTP_RECEIVE_STATE_SKIP_DATA;
                                 }
                             } else {
-                                /* NotForUs */
+                                /* DataNotForUs */
                                 mstp_port->receive_state =
                                     MSTP_RECEIVE_STATE_SKIP_DATA;
                             }
@@ -560,18 +563,28 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                             &mstp_port->InputBuffer[mstp_port->Index + 1],
                             mstp_port->InputBufferSize, mstp_port->InputBuffer,
                             mstp_port->Index + 1);
-                        if (mstp_port->DataLength > 0) {
+                        if ((mstp_port->DataLength > 0) &&
+                            (mstp_port->receive_state ==
+                             MSTP_RECEIVE_STATE_DATA)) {
+                            /* GoodCRC */
                             mstp_port->ReceivedValidFrame = true;
                         } else {
+                            /* Done */
                             mstp_port->ReceivedInvalidFrame = true;
                         }
                     } else {
                         /* STATE DATA CRC - no need for new state */
                         if (mstp_port->DataCRC == 0xF0B8) {
-                            /* indicate the complete reception of a
-                               valid frame */
-                            mstp_port->ReceivedValidFrame = true;
+                            if (mstp_port->receive_state ==
+                                MSTP_RECEIVE_STATE_DATA) {
+                                /* GoodCRC */
+                                mstp_port->ReceivedValidFrame = true;
+                            } else {
+                                /* Done */
+                                mstp_port->ReceivedInvalidFrame = true;
+                            }
                         } else {
+                            /* BadCRC */
                             mstp_port->ReceivedInvalidFrame = true;
                             printf_receive_error(
                                 "MSTP: Rx Data: BadCRC [%02X]\n",
@@ -623,28 +636,16 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
         (mstp_port->This_Station + 1) % (mstp_port->Nmax_master + 1);
     next_next_station =
         (mstp_port->Next_Station + 1) % (mstp_port->Nmax_master + 1);
-    /* The zero config receive state machine does not
-       filter DestinationAddress for This_Station or Broadcast.
-       Check before running FSM: */
-    if (mstp_port->ReceivedValidFrame == true) {
-        if ((mstp_port->master_state == MSTP_MASTER_STATE_INITIALIZE) &&
-            (mstp_port->ZeroConfigEnabled)) {
-            /* zero config initialization processes all frames */
-        } else {
-            if ((mstp_port->DestinationAddress == mstp_port->This_Station) ||
-                (mstp_port->DestinationAddress == MSTP_BROADCAST_ADDRESS)) {
-                /* process as-is */
-            } else {
-                if ((mstp_port->ZeroConfigEnabled) &&
-                    (mstp_port->SourceAddress == mstp_port->This_Station)) {
-                    /* DuplicateNode */
-                    mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
-                    mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
-                }
-                /* ignore the frame */
-                mstp_port->ReceivedValidFrame = false;
-            }
-        }
+    /* The zero config checks before running FSM */
+    if ((mstp_port->ZeroConfigEnabled) &&
+        (mstp_port->master_state != MSTP_MASTER_STATE_INITIALIZE) &&
+        (mstp_port->ReceivedValidFrame == true) &&
+        (mstp_port->SourceAddress == mstp_port->This_Station)) {
+        /* DuplicateNode */
+        mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
+        mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
+        /* ignore the frame */
+        mstp_port->ReceivedValidFrame = false;
     }
     switch (mstp_port->master_state) {
         case MSTP_MASTER_STATE_INITIALIZE:
