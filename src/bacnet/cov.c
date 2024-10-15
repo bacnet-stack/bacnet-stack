@@ -529,12 +529,17 @@ int cov_subscribe_decode_service_request(
         /* lifetime [3] Unsigned OPTIONAL */
         value_len = bacnet_unsigned_context_decode(
             &apdu[len], apdu_size - len, 3, &decoded_value);
+        fprintf(stderr, "cov_subscribe_decode_service_request value_len %d\n", value_len);
+        fprintf(stderr, "cov_subscribe_decode_service_request &decoded_value 2 %p\n", (void *)&decoded_value);
         if (value_len > 0) {
             if (data) {
                 data->lifetime = decoded_value;
+                fprintf(stderr, "cov_subscribe_decode_service_request data.lifetime=%u\n", data->lifetime);
             }
             len += value_len;
+            fprintf(stderr, "cov_subscribe_decode_service_request len 2 %d\n", len);
         } else {
+            fprintf(stderr, "cov_subscribe_decode_service_request else\n");
             if (data) {
                 data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             }
@@ -543,10 +548,11 @@ int cov_subscribe_decode_service_request(
     } else {
         if (data) {
             data->lifetime = 0;
+            printf("cov_subscribe_decode_service_request data.lifetime 0\n");
         }
     }
-    fprintf(stderr, "cov_subscribe_decode_service_request value_len %d\n", value_len);
-    fprintf(stderr, "cov_subscribe_decode_service_request data.lifetime=%u\n", data->lifetime);
+    fprintf(stderr, "cov_subscribe_decode_service_request 2 value_len %d\n", value_len);
+    fprintf(stderr, "cov_subscribe_decode_service_request 2 data.lifetime=%u\n", data->lifetime);
     return len;
 }
 
