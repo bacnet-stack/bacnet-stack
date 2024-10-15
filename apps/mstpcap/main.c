@@ -1003,7 +1003,7 @@ int main(int argc, char *argv[])
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    MSTP_Port.This_Station = 127;
+    MSTP_Port.This_Station = MSTP_BROADCAST_ADDRESS;
     MSTP_Port.Nmax_info_frames = 1;
     MSTP_Port.Nmax_master = 127;
     MSTP_Port.SilenceTimer = Timer_Silence;
