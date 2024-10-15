@@ -347,32 +347,6 @@ int host_n_port_context_decode(
     return len;
 }
 
-int host_n_port_context_decode(uint8_t *apdu,
-    uint8_t tag_number,
-    BACNET_HOST_N_PORT *address)
-{
-    int len = 0;
-    int section_len;
-    const uint16_t apdu_len_max = MAX_APDU;
-    BACNET_ERROR_CODE error_code;
-
-    if (decode_is_opening_tag_number(&apdu[0], tag_number)) {
-        len++;
-
-        section_len = host_n_port_decode(&apdu[len], apdu_len_max,
-            &error_code, address);
-        if (section_len > 0) {
-            len += section_len;
-            if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
-                len++;
-            } else {
-                return -1;
-            }
-        }
-    }
-    return len;
-}
-
 /**
  * @brief Copy the BACnetHostNPort complex data from src to dst
  * @param dst - destination structure

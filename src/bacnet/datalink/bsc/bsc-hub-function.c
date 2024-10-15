@@ -84,7 +84,7 @@ static BSC_SOCKET_CTX_FUNCS bsc_hub_function_ctx_funcs = {
 
 static BSC_HUB_FUNCTION *hub_function_alloc(void)
 {
-    int i, j;
+    int i;
     for (i = 0; i < BSC_CONF_HUB_FUNCTIONS_NUM; i++) {
         if (!bsc_hub_function[i].used) {
             bsc_hub_function[i].used = true;

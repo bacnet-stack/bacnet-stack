@@ -680,7 +680,6 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
 {
     pthread_t thread_id;
     struct lws_context_creation_info info = { 0 };
-    int ret;
     BSC_WEBSOCKET_CONTEXT *ctx;
     pthread_attr_t attr;
     int r;

@@ -1,48 +1,26 @@
 /**
- * Copyright (c) 2022 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- *
  * @file
  * @author Mikhail Antropov
  * @date 2022
  * @brief Helper Network port objects to implement secure connect attributes
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @copyright SPDX-License-Identifier: MIT
  */
 
 #ifndef SC_NETPORT_H
 #define SC_NETPORT_H
-
 #include <stdbool.h>
 #include <stdint.h>
-#include <bacnet/basic/sys/keylist.h>
-#include <bacnet/bacnet_stack_exports.h>
-#include <bacnet/bacapp.h>
-#include <bacnet/bacdef.h>
-#include <bacnet/bacenum.h>
-#include <bacnet/apdu.h>
-#include <bacnet/datetime.h>
-#include <bacnet/hostnport.h>
-#include <bacnet/datalink/bsc/bsc-conf.h>
-#include <bacnet/datalink/bsc/bvlc-sc.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacapp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/apdu.h"
+#include "bacnet/datetime.h"
+#include "bacnet/hostnport.h"
+#include "bacnet/datalink/bsc/bsc-conf.h"
+#include "bacnet/datalink/bsc/bvlc-sc.h"
 
 /* BACnet file instance numbers */
 #ifndef BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE
@@ -681,7 +659,7 @@ void Network_Port_SC_Pending_Params_Discard(
     uint32_t object_instance);
 
 int Network_Port_SC_snprintf_value(
-    char *str, size_t str_len, BACNET_OBJECT_PROPERTY_VALUE *object_value);
+    char *str, size_t str_len, const BACNET_OBJECT_PROPERTY_VALUE *object_value);
 
 #ifdef __cplusplus
 }

@@ -60,8 +60,6 @@
 #define SC_WAIT_CONNECT_MIN 5
 #define SC_WAIT_CONNECT_MAX 300
 
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-
 static int string_splite(
     const char *str, char separator, int *indexes, int length);
 static bool string_subsstr(
@@ -1867,7 +1865,7 @@ int bacapp_decode_SCHubFunctionConnection(uint8_t *apdu,
     }
     apdu_len += len;
 
-    if ((len = host_n_port_context_decode(&apdu[apdu_len], 3, &hp)) == -1) {
+    if ((len = host_n_port_context_decode(apdu, apdu_len, &value->Error, 3, &hp)) == -1) {
         return -1;
     }
     host_n_port_to_data(&hp, &value->Peer_Address);
@@ -2020,7 +2018,7 @@ int bacapp_decode_SCFailedConnectionRequest(uint8_t *apdu,
     }
     apdu_len += len;
 
-    if ((len = host_n_port_context_decode(&apdu[apdu_len], 1, &hp)) == -1) {
+    if ((len = host_n_port_context_decode(apdu, apdu_len, &value->Error, 1, &hp)) == -1) {
         return -1;
     }
     host_n_port_to_data(&hp, &value->Peer_Address);
@@ -2374,7 +2372,7 @@ int bacapp_decode_SCDirectConnection(uint8_t *apdu,
     }
     apdu_len += len;
 
-    if ((len = host_n_port_context_decode(&apdu[apdu_len], 4, &hp)) == -1) {
+    if ((len = host_n_port_context_decode(apdu, apdu_len, &value->Error, 4, &hp)) == -1) {
         return -1;
     }
     host_n_port_to_data(&hp, &value->Peer_Address);
@@ -2561,7 +2559,7 @@ static int bacapp_snprintf_uuid(char *str, size_t str_len, BACNET_UUID *uuid)
     ret_val += slen;
 
 int Network_Port_SC_snprintf_value(
-    char *str, size_t str_len, BACNET_OBJECT_PROPERTY_VALUE *object_value)
+    char *str, size_t str_len, const BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
     BACNET_APPLICATION_DATA_VALUE *value = object_value->value;
     BACNET_PROPERTY_ID property = object_value->object_property;
