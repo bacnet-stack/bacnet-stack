@@ -136,10 +136,7 @@ list(APPEND testdirs
   bacnet/datalink/bsc-datalink
   )
 
-# ports tests
-if(ZEPHYR_BASE)
-  message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "Added ports specific tests for linux")
 
   list(APPEND testdirs
