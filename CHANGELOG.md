@@ -93,11 +93,16 @@ The git repositories are hosted at the following sites:
   easily applied. (#714)
 * Changed bacapp_snprintf_value() to be const correct. After that
   we got a warning that the 4th function call argument is an uninitialized
-  value [core.CallAndMessage] in bacapp_snprintf_weeklyschedule().
-  Fixed the warning by setting array_index to zero. (#714)
+  value in bacapp_snprintf_weeklyschedule(). Fixed the warning by setting
+  array_index to zero. (#714)
 
 ### Fixed
 
+* Fixed mstpcap utility by setting This-Station to the MS/TP promiscuous
+  mode address 255. Fixed MS/TP receive filter for valid data frames which
+  was missing. Fixed MS/TP zero-config duplicate node detection. Reset
+  silence during MS/TP capture after writing packet to prevent endless
+  packets when stream is interrupted. (#812)
 * Fixed the Linux MSTP turnaround delay implementation. (#809)
 * Fixed app/router compiled with optimize Os when the program exits with
   bit out of range 0 - FD_SETSIZE on fd_set. Solution disables optimize
