@@ -1,39 +1,11 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
- Updated by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+ * Updated by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 /** @file linux/rs485.c  Provides Linux-specific functions for RS-485 serial. */
 
 /* The module handles sending data out the RS-485 port */
@@ -217,7 +189,7 @@ uint32_t RS485_Get_Baud_Rate(void)
  * ALGORITHM:   none
  * NOTES:       none
  *****************************************************************************/
-uint32_t RS485_Get_Port_Baud_Rate(volatile struct mstp_port_struct_t *mstp_port)
+uint32_t RS485_Get_Port_Baud_Rate(struct mstp_port_struct_t *mstp_port)
 {
     uint32_t baud = 0;
     SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
@@ -382,15 +354,15 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
  * NOTES:       none
  *****************************************************************************/
 void RS485_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port, /* port specific data */
-    uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
+    struct mstp_port_struct_t *mstp_port, /* port specific data */
+    const uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 { /* number of bytes of data (up to 501) */
-    uint32_t turnaround_time = Tturnaround * 1000;
+    uint32_t turnaround_time_usec = Tturnaround * 1000000UL;
     uint32_t baud;
     ssize_t written = 0;
     int greska;
-    SHARED_MSTP_DATA *poSharedData = NULL;
+    const SHARED_MSTP_DATA *poSharedData = NULL;
 
     if (mstp_port) {
         poSharedData = (SHARED_MSTP_DATA *)mstp_port->UserData;
@@ -399,7 +371,7 @@ void RS485_Send_Frame(
         baud = RS485_Get_Baud_Rate();
         /* sleeping for turnaround time is necessary to give other devices
            time to change from sending to receiving state. */
-        usleep(turnaround_time / baud);
+        usleep(turnaround_time_usec / baud);
         /*
            On  success,  the  number of bytes written are returned (zero
            indicates nothing was written).  On error, -1  is  returned,  and
@@ -425,7 +397,7 @@ void RS485_Send_Frame(
         baud = RS485_Get_Port_Baud_Rate(mstp_port);
         /* sleeping for turnaround time is necessary to give other devices
            time to change from sending to receiving state. */
-        usleep(turnaround_time / baud);
+        usleep(turnaround_time_usec / baud);
         /*
            On  success,  the  number of bytes written are returned (zero
            indicates nothing was written).  On error, -1  is  returned,  and
@@ -458,7 +430,7 @@ void RS485_Send_Frame(
  * ALGORITHM:   none
  * NOTES:       none
  *****************************************************************************/
-void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
+void RS485_Check_UART_Data(struct mstp_port_struct_t *mstp_port)
 {
     fd_set input;
     struct timeval waiter;
@@ -547,7 +519,9 @@ void RS485_Initialize(void)
     struct serial_struct newserial;
     float baud_error = 0.0;
 
-    printf("RS485: Initializing %s", RS485_Port_Name);
+#if PRINT_ENABLED
+    fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
+#endif
     /*
        Open device for reading and writing.
        Blocking mode - more CPU effecient
@@ -595,19 +569,24 @@ void RS485_Initialize(void)
         newserial.custom_divisor = round(((float)newserial.baud_base) / 76800);
         /* we must check that we calculated some sane value;
            small baud bases yield bad custom divisor values */
-        baud_error = fabs(1 -
+        baud_error = fabs(
+            1 -
             ((float)newserial.baud_base) / ((float)newserial.custom_divisor) /
                 76800);
         if ((newserial.custom_divisor == 0) || (baud_error > 0.02)) {
             /* bad divisor */
-            fprintf(stderr, "bad custom divisor %d, base baud %d\n",
+            fprintf(
+                stderr, "RS485 bad custom divisor %d, base baud %d\n",
                 newserial.custom_divisor, newserial.baud_base);
             exit(EXIT_FAILURE);
         }
         /* if all goes well, set new divisor */
         ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
     }
-    printf(" at Baud Rate %u", RS485_Get_Baud_Rate());
+#if PRINT_ENABLED
+    fprintf(stdout, "RS485 Baud Rate %u\n", RS485_Get_Baud_Rate());
+    fflush(stdout);
+#endif
     /* destructor */
     atexit(RS485_Cleanup);
     /* flush any data waiting */
@@ -615,7 +594,6 @@ void RS485_Initialize(void)
     tcflush(RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
     FIFO_Init(&Rx_FIFO, Rx_Buffer, sizeof(Rx_Buffer));
-    printf("=success!\n");
 }
 
 /* Print in a format for Wireshark ExtCap */
@@ -632,7 +610,7 @@ void RS485_Print_Ports(void)
     bool valid_port = false;
     struct serial_struct serinfo;
 
-    /* Scan through /sys/class/tty - 
+    /* Scan through /sys/class/tty -
        it contains all tty-devices in the system */
     n = scandir(sysdir, &namelist, NULL, NULL);
     if (n < 0) {
@@ -641,19 +619,22 @@ void RS485_Print_Ports(void)
         while (n--) {
             if (strcmp(namelist[n]->d_name, "..") &&
                 strcmp(namelist[n]->d_name, ".")) {
-                snprintf(device_dir, sizeof(device_dir), "%s%s/device", sysdir,
+                snprintf(
+                    device_dir, sizeof(device_dir), "%s%s/device", sysdir,
                     namelist[n]->d_name);
                 /* Stat the devicedir and handle it if it is a symlink */
                 if (lstat(device_dir, &st) == 0 && S_ISLNK(st.st_mode)) {
                     memset(buffer, 0, sizeof(buffer));
-                    snprintf(device_dir, sizeof(device_dir),
-                        "%s%s/device/driver", sysdir, namelist[n]->d_name);
+                    snprintf(
+                        device_dir, sizeof(device_dir), "%s%s/device/driver",
+                        sysdir, namelist[n]->d_name);
                     if (readlink(device_dir, buffer, sizeof(buffer)) > 0) {
                         valid_port = false;
                         driver_name = basename(buffer);
                         if (strcmp(driver_name, "serial8250") == 0) {
                             /* serial8250-devices must be probed */
-                            snprintf(device_dir, sizeof(device_dir), "/dev/%s",
+                            snprintf(
+                                device_dir, sizeof(device_dir), "/dev/%s",
                                 namelist[n]->d_name);
                             fd = open(
                                 device_dir, O_RDWR | O_NONBLOCK | O_NOCTTY);
@@ -673,8 +654,9 @@ void RS485_Print_Ports(void)
                         }
                         if (valid_port) {
                             /* print full absolute file path */
-                            printf("interface {value=/dev/%s}"
-                                   "{display=MS/TP Capture on /dev/%s}\n",
+                            printf(
+                                "interface {value=/dev/%s}"
+                                "{display=MS/TP Capture on /dev/%s}\n",
                                 namelist[n]->d_name, namelist[n]->d_name);
                         }
                     }
@@ -690,7 +672,7 @@ void RS485_Print_Ports(void)
 #include <string.h>
 int main(int argc, char *argv[])
 {
-    volatile struct mstp_port_struct_t mstp_port = { 0 };
+    struct mstp_port_struct_t mstp_port = { 0 };
     uint8_t token_buf[8] = { 0x55, 0xFF, 0x00, 0x7E, 0x07, 0x00, 0x00, 0xFD };
     uint8_t pfm_buf[8] = { 0x55, 0xFF, 0x01, 0x67, 0x07, 0x00, 0x00, 0x3E };
     long baud = 38400;

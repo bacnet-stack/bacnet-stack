@@ -12,7 +12,17 @@ BACNET_DEFINES ?=
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
 DEBUGGING ?=
-WARNINGS ?= -Wall -Wmissing-prototypes
+# enable all relevant warnings that find bugs
+WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
+# don't warn about conversion, sign, compares, long long and attributes
+# since they are common in embedded
+WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+WARNING_ALL += -Wno-long-long -Wno-attributes
+# don't warn about implicit fallthrough since it's common in network protocols
+WARNING_ALL += -Wno-implicit-fallthrough
+#WARNING_ALL += -Werror
+WARNINGS ?= $(WARNING_ALL)
 # dead code removal
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
@@ -24,12 +34,16 @@ INCLUDES = -I$(BACNET_SRC_DIR)
 CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
 CFLAGS += -ffunction-sections -fdata-sections
 
+APPS_ENVIRONMENT_SRC = \
+	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c
+
 PORT_ARCNET_SRC = \
 	$(BACNET_PORT_DIR)/arcnet.c
 
 PORT_MSTP_SRC = \
 	$(BACNET_PORT_DIR)/rs485.c \
 	$(BACNET_PORT_DIR)/dlmstp.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/cobs.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/mstp.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/mstptext.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c
@@ -80,19 +94,19 @@ PORT_NONE_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
-BACNET_PORT_SRC = ${PORT_BIP_SRC}
+BACNET_PORT_SRC = ${PORT_BIP_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
 ifeq (${BACDL_DEFINE},-DBACDL_BIP6=1)
-BACNET_PORT_SRC = ${PORT_BIP6_SRC}
+BACNET_PORT_SRC = ${PORT_BIP6_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
 ifeq (${BACDL_DEFINE},-DBACDL_MSTP=1)
-BACNET_PORT_SRC = ${PORT_MSTP_SRC}
+BACNET_PORT_SRC = ${PORT_MSTP_SRC}  ${APPS_ENVIRONMENT_SRC}
 endif
 ifeq (${BACDL_DEFINE},-DBACDL_ARCNET=1)
-BACNET_PORT_SRC = ${PORT_ARCNET_SRC}
+BACNET_PORT_SRC = ${PORT_ARCNET_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
 ifeq (${BACDL_DEFINE},-DBACDL_ETHERNET=1)
-BACNET_PORT_SRC = ${PORT_ETHERNET_SRC}
+BACNET_PORT_SRC = ${PORT_ETHERNET_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
 ifeq (${BACDL_DEFINE},-DBACDL_NONE=1)
 BACNET_PORT_SRC = ${PORT_NONE_SRC}
@@ -103,12 +117,17 @@ endif
 ifeq (${BACDL_DEFINE},-DBACDL_ALL=1)
 BACNET_PORT_SRC = ${PORT_ALL_SRC}
 endif
+ifeq (${BACDL},bip-mstp)
+BACNET_PORT_SRC = ${PORT_BIP_SRC} ${PORT_MSTP_SRC}
+endif
+ifeq (${BACDL},bip-bip6)
+BACNET_PORT_SRC = ${PORT_BIP_SRC} ${PORT_BIP6_SRC}
+endif
 ifneq (${BACDL_DEFINE},)
 CFLAGS += ${BACDL_DEFINE}
 endif
 
 BACNET_PORT_SRC += \
-	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c \
 	$(BACNET_PORT_DIR)/mstimer-init.c \
 	$(BACNET_PORT_DIR)/datetime-init.c
 

@@ -1,33 +1,17 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief A basic GetAlarmSummary-Request service handler
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
@@ -37,8 +21,6 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
-
-/** @file h_alarm_sum.c  Handles Get Alarm Summary request. */
 
 static get_alarm_summary_function Get_Alarm_Summary[MAX_BACNET_OBJECT_TYPE];
 
@@ -50,7 +32,8 @@ void handler_get_alarm_summary_set(
     }
 }
 
-void handler_get_alarm_summary(uint8_t *service_request,
+void handler_get_alarm_summary(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -76,9 +59,9 @@ void handler_get_alarm_summary(uint8_t *service_request,
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
-        apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        apdu_len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
         fprintf(stderr, "GetAlarmSummary: Segmented message. Sending Abort!\n");
 #endif
@@ -118,17 +101,18 @@ GET_ALARM_SUMMARY_ERROR:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
-            apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
+            apdu_len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
             fprintf(
                 stderr, "GetAlarmSummary: Reply too big to fit into APDU!\n");
 #endif
         } else {
-            apdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_GET_ALARM_SUMMARY,
-                ERROR_CLASS_PROPERTY, ERROR_CODE_OTHER);
+            apdu_len = bacerror_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                SERVICE_CONFIRMED_GET_ALARM_SUMMARY, ERROR_CLASS_PROPERTY,
+                ERROR_CODE_OTHER);
 #if PRINT_ENABLED
             fprintf(stderr, "GetAlarmSummary: Sending Error!\n");
 #endif
@@ -144,7 +128,7 @@ GET_ALARM_SUMMARY_ABORT:
         /*fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno)); */
     }
 #else
-    bytes_sent = bytes_sent;
+    (void)bytes_sent;
 #endif
 
     return;

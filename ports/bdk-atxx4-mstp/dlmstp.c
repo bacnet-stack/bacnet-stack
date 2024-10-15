@@ -1,52 +1,26 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2010 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+ *
+ * Copyright (C) 2010 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
 #include "bacnet/datalink/crc.h"
-#include "rs485.h"
 #include "bacnet/npdu.h"
-#include "bacnet/bits.h"
-#include "bacnet/bytes.h"
 #include "bacnet/bacaddr.h"
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/basic/sys/mstimer.h"
+/* port specific */
+#include "rs485.h"
 
 /* This file has been customized for use with small microprocessors */
 /* Assumptions:
@@ -222,10 +196,10 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
     }
 }
 
-static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
+static bool dlmstp_compare_data_expecting_reply(const uint8_t *request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,
-    uint8_t *reply_pdu,
+    const uint8_t *reply_pdu,
     uint16_t reply_pdu_len,
     uint8_t dest_address)
 {
@@ -246,8 +220,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = npdu_decode(
-        &request_pdu[0], NULL, &request.address, &request.npdu_data);
+    offset = bacnet_npdu_decode(request_pdu, request_pdu_len, NULL,
+        &request.address, &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -264,7 +238,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the reply data */
     reply.address.mac[0] = dest_address;
     reply.address.mac_len = 1;
-    offset = npdu_decode(&reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
+    offset = bacnet_npdu_decode(
+        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
@@ -339,8 +314,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
 static void MSTP_Send_Frame(
     uint8_t frame_type, /* type of frame to send - see defines */
     uint8_t destination, /* destination address */
-    uint8_t source, /* source address */
-    uint8_t *data, /* any data to be sent - may be null */
+    uint8_t source,      /* source address */
+    const uint8_t *data, /* any data to be sent - may be null */
     uint16_t data_len)
 { /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF; /* used to calculate the crc value */
@@ -782,7 +757,7 @@ static bool MSTP_Master_Node_FSM(void)
                     frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
                 }
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
-                    (uint8_t *)&pkt->buffer[0], pkt->length);
+                    &pkt->buffer[0], pkt->length);
                 FrameCount++;
                 switch (frame_type) {
                     case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
@@ -1136,7 +1111,7 @@ static bool MSTP_Master_Node_FSM(void)
                     frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
                 }
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
-                    (uint8_t *)&pkt->buffer[0], pkt->length);
+                    &pkt->buffer[0], pkt->length);
                 Master_State = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
                 MSTP_Flag.ReceivedValidFrame = false;
@@ -1220,7 +1195,7 @@ static void MSTP_Slave_Node_FSM(void)
                     frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
                 }
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
-                    (uint8_t *)&pkt->buffer[0], pkt->length);
+                    &pkt->buffer[0], pkt->length);
                 (void)Ringbuf_Pop(&PDU_Queue, NULL);
             }
             /* clear our flag we were holding for comparison */
@@ -1308,7 +1283,10 @@ uint16_t dlmstp_receive(BACNET_ADDRESS *src, /* source address */
     }
     /* if there is a packet that needs processed, do it now. */
     if (MSTP_Flag.ReceivePacketPending) {
-        MSTP_Flag.ReceivePacketPending = false;
+        if (This_Station <= 127) {
+            /* master nodes clear immediately */
+            MSTP_Flag.ReceivePacketPending = false;
+        }
         pdu_len = DataLength;
         src->mac_len = 1;
         src->mac[0] = SourceAddress;

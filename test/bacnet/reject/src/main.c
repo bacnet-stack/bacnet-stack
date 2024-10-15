@@ -20,19 +20,22 @@
  * @brief Test
  */
 /* decode the whole APDU - mainly used for unit testing */
-static int reject_decode_apdu(uint8_t *apdu,
+static int reject_decode_apdu(
+    const uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t *reject_reason)
 {
     int len = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
     if (apdu_len) {
-        if (apdu[0] != PDU_TYPE_REJECT)
+        if (apdu[0] != PDU_TYPE_REJECT) {
             return -1;
+        }
         if (apdu_len > 1) {
             len = reject_decode_service_request(
                 &apdu[1], apdu_len - 1, invoke_id, reject_reason);
@@ -42,7 +45,11 @@ static int reject_decode_apdu(uint8_t *apdu,
     return len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(reject_tests, testRejectEncodeDecode)
+#else
 static void testRejectEncodeDecode(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -92,7 +99,11 @@ static void testRejectEncodeDecode(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(reject_tests, testRejectErrorCode)
+#else
 static void testRejectErrorCode(void)
+#endif
 {
     int i;
     BACNET_ERROR_CODE error_code;
@@ -104,8 +115,8 @@ static void testRejectErrorCode(void)
         error_code = reject_convert_to_error_code(reject_reason);
         test_reject_reason = reject_convert_error_code(error_code);
         if (test_reject_reason != reject_reason) {
-            printf("Reject: result=%u reject-code=%u\n",
-                test_reject_reason,
+            printf(
+                "Reject: result=%u reject-code=%u\n", test_reject_reason,
                 reject_reason);
         }
         zassert_equal(test_reject_reason, reject_reason, NULL);
@@ -115,13 +126,15 @@ static void testRejectErrorCode(void)
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(reject_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(reject_tests,
-     ztest_unit_test(testRejectEncodeDecode),
-     ztest_unit_test(testRejectErrorCode)
-     );
+    ztest_test_suite(
+        reject_tests, ztest_unit_test(testRejectEncodeDecode),
+        ztest_unit_test(testRejectErrorCode));
 
     ztest_run_test_suite(reject_tests);
 }
+#endif

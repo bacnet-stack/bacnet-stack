@@ -56,3 +56,55 @@ The NUCLEO-F429ZI platform includes the following peripherals:
 | CN10-12  | PF15        | D2          | CE (DFR0259)
 | CN10-14  | PG14        | D1          | TXD
 | CN10-16  | PG9         | D0          | RXD
+
+### Building this Project
+
+#### IAR EWARM Project
+
+There is an IAR EWARM project bacnet.ewp that can be used to build the project.
+
+#### GNU Makefile
+
+There is a GNU Makefile that uses arm-none-eabi-gcc to build the project.
+It also includes recipes for openocd or stlink, and gdb or ddd for debugging.
+
+This is used in the continuous integration pipeline to validate the build
+is not broken.  The Makefile is called from an Ubuntu image container
+after installing the necesary tools:
+
+    sudo apt-get update -qq
+    sudo apt-get install -qq build-essential
+    sudo apt-get install -qq gcc-arm-none-eabi
+    sudo apt-get install -qq libnewlib-arm-none-eabi
+
+For debugging, install these tools:
+
+    sudo apt-get update -qq
+    sudo apt-get install -qq openocd gdb-multiarch
+
+##### Shield option
+
+If, instead of the DFR0259 shield for RS485, the build is intended for the
+linksprite shield, `make SHIELD=linksprite` can be used.
+
+#### CMake & Visual Studio Code
+
+There is a CMakeLists.txt file that enables building the project with the
+tools that CMake can find.  It is useful under Visual Studio Code editor
+with the CMake Tools extension for quickly configuring the build environment,
+choosing a cross-compiler, and building.
+
+For Visual Studio Code debugging, add the Cortex-Debug extension, and configure
+its settings for the specific OS and path of the tools.  For Windows using
+MinGW64:
+
+    "cortex-debug.armToolchainPath.windows": "C:/msys64/mingw64/bin",
+    "cortex-debug.gdbPath.windows": "C:/msys64/mingw64/bin/gdb-multiarch.exe",
+    "cortex-debug.objdumpPath.windows": "C:/msys64/mingw64/bin/objdump.exe",
+    "cortex-debug.openocdPath.windows": "C:/msys64/mingw64/bin/openocd.exe",
+
+To add the build and debug tools to MinGW64 environment:
+
+    pacman --noconfirm -S mingw-w64-x86_64-arm-none-eabi-gcc
+    pacman --noconfirm -S mingw-w64-x86_64-openocd
+    pacman --noconfirm -S mingw-w64-x86_64-gdb-multiarch

@@ -1,56 +1,37 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool demo for BACnet stack */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet service to the network:
+ *  DeviceCommunicationControl message
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
 #include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 #include "bacnet/dcc.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/sys/filename.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/datalink/datalink.h"
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -65,7 +46,8 @@ static char *Communication_Password = NULL;
 
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
@@ -73,7 +55,8 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
-    printf("BACnet Error: %s: %s\n", bactext_error_class_name(error_class),
+    printf(
+        "BACnet Error: %s: %s\n", bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
     Error_Detected = true;
 }
@@ -89,8 +72,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -122,7 +105,8 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* handle the ack coming back */
     apdu_set_confirmed_simple_ack_handler(
@@ -135,13 +119,13 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s device-instance state [timeout [password]]\n", filename);
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf(
         "Send BACnet DeviceCommunicationControl service to device.\n"
@@ -158,7 +142,7 @@ static void print_help(char *filename)
         "If you want disable Device Communications in Device 123\n"
         "for 60 minutes with password 'filister', use the following command:\n"
         "%s 123 1 60 filister\n",
-        (unsigned long)(BACNET_MAX_INSTANCE - 1), filename);
+        (unsigned long)BACNET_MAX_INSTANCE, filename);
 }
 
 int main(int argc, char *argv[])
@@ -174,7 +158,7 @@ int main(int argc, char *argv[])
     uint8_t invoke_id = 0;
     bool found = false;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -208,8 +192,9 @@ int main(int argc, char *argv[])
     if (argc > 4) {
         Communication_Password = argv[4];
     }
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -245,6 +230,7 @@ int main(int argc, char *argv[])
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         if (Error_Detected) {
             break;

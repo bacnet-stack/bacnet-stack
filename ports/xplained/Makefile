@@ -6,17 +6,34 @@
 MCU = atxmega256a3bu
 TARGET = bacnet
 ## Tools
-#Set the toolchain command names (only the ones needed are defined)
-PREFIX ?= "C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-"
+# Choose a BACnet Ports Directory for the example applications target OS
+ifeq (${PREFIX},)
+	ifeq ($(OS),Windows_NT)
+		PREFIX := "C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-"
+	else
+		UNAME_S := $(shell uname -s)
+		ifeq ($(UNAME_S),Linux)
+			PREFIX := avr-
+		endif
+		ifeq ($(UNAME_S),Darwin)
+			PREFIX := avr-
+		endif
+	endif
+endif
 
+#Set the toolchain command names (only the ones needed are defined)
 CC = $(PREFIX)gcc
 OBJCOPY = $(PREFIX)objcopy
 OBJDUMP = $(PREFIX)objdump
 AR = $(PREFIX)ar
+AS = $(PREFIX)as
+LD = $(PREFIX)ld
+NM = $(PREFIX)nm
+STRIP = $(PREFIX)strip
 SIZE = $(PREFIX)size
 
 # Source locations
-SDK_DIR = ASF
+SDK_DIR = external/ASF
 BACNET_DIR = ../../src
 BACNET_CORE = $(BACNET_DIR)/bacnet
 BACNET_BASIC = $(BACNET_CORE)/basic
@@ -25,27 +42,31 @@ BACNET_BASIC = $(BACNET_CORE)/basic
 CSRC = main.c \
 	adc-hdw.c \
 	ai.c \
-	mstimer-init.c \
+	bacnet.c \
+	bname.c \
 	device.c \
-	dlmstp.c \
+	led.c \
+	mstimer-init.c \
 	netport.c \
-	stack.c \
 	rs485.c \
-	led.c
+	stack.c
 
 # common demo files needed
 BASICSRC = $(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/sys/bigend.c \
+	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/fifo.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/sys/mstimer.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
 	$(BACNET_BASIC)/service/h_apdu.c \
+	$(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/h_rd.c \
 	$(BACNET_BASIC)/service/h_rp.c \
 	$(BACNET_BASIC)/service/h_rpm.c \
 	$(BACNET_BASIC)/service/h_whois.c \
 	$(BACNET_BASIC)/service/h_whohas.c \
+	$(BACNET_BASIC)/service/h_wp.c \
 	$(BACNET_BASIC)/service/s_cov.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
@@ -56,19 +77,26 @@ BASICSRC = $(BACNET_BASIC)/tsm/tsm.c \
 
 # core BACnet stack files
 CORESRC =  \
-	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/bacaction.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacdest.c \
 	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
 	$(BACNET_CORE)/datetime.c \
+	$(BACNET_CORE)/datalink/cobs.c \
+	$(BACNET_CORE)/datalink/crc.c \
+	$(BACNET_CORE)/datalink/dlmstp.c \
+	$(BACNET_CORE)/datalink/mstp.c \
+	$(BACNET_CORE)/datalink/mstptext.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
+	$(BACNET_CORE)/indtext.c \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/hostnport.c \
 	$(BACNET_CORE)/npdu.c \
@@ -91,7 +119,6 @@ SDK_CSRC = \
 	$(SDK_DIR)/xmega/drivers/adc/adc.c \
 	$(SDK_DIR)/xmega/drivers/adc/xmega_aau/adc_aau.c \
 	$(SDK_DIR)/xmega/drivers/rtc32/rtc32.c \
-	$(SDK_DIR)/xmega/drivers/tc/tc.c \
 	$(SDK_DIR)/common/drivers/nvm/xmega/xmega_nvm.c \
 	$(SDK_DIR)/common/services/serial/usart_serial.c \
 	$(SDK_DIR)/common/utils/stdio/read.c \
@@ -103,8 +130,8 @@ SDK_CSRC = \
 	$(SDK_DIR)/xmega/services/timeout/timeout.c
 
 SDK_ASRC = \
-	$(SDK_DIR)/xmega/drivers/cpu/ccp.s \
-	$(SDK_DIR)/xmega/drivers/nvm/nvm_asm.s
+	$(SDK_DIR)/xmega/drivers/cpu/ccp.S \
+	$(SDK_DIR)/xmega/drivers/nvm/nvm_asm.S
 
 ## Include Directories
 SDK_INCLUDES = -I$(SDK_DIR)/xmega/drivers/rtc32
@@ -134,14 +161,14 @@ SDK_INCLUDES += -I$(SDK_DIR)/common/services/serial
 SDK_INCLUDES += -I$(SDK_DIR)/common/utils/stdio/stdio_serial
 SDK_INCLUDES += -I$(SDK_DIR)/xmega/services/timeout
 
-INCLUDES = -I. -I./config -I$(BACNET_DIR) $(SDK_INCLUDES)
+INCLUDES = -I. -I./external/config -I$(BACNET_DIR) $(SDK_INCLUDES)
 
 # Source to Object conversion
 COBJ = $(CSRC:.c=.o)
 BASICOBJ = $(BASICSRC:.c=.o)
 COREOBJ = $(CORESRC:.c=.o)
 SDK_COBJ = $(SDK_CSRC:.c=.o)
-SDK_AOBJ = $(SDK_ASRC:.s=.o)
+SDK_AOBJ = $(SDK_ASRC:.S=.o)
 
 LIBRARY = lib$(TARGET).a
 
@@ -158,6 +185,11 @@ BFLAGS += -DMSTP_PDU_PACKET_COUNT=2
 BFLAGS += -DMAX_ADDRESS_CACHE=32
 BFLAGS += -DMAX_ANALOG_INPUTS=8
 BFLAGS += -DBACNET_PROTOCOL_REVISION=9
+BFLAGS += -DBACAPP_MINIMAL
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BFLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 CFLAGS = $(SDK_FLAGS)
 # dead code removal
@@ -168,15 +200,17 @@ CFLAGS += -fsigned-char -std=gnu99
 CFLAGS += -fno-strict-aliasing
 CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wmissing-prototypes
-CFLAGS += -Werror-implicit-function-declaration
 CFLAGS += -Wpointer-arith
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
 CFLAGS += -DIOPORT_XMEGA_COMPAT
 # silence some warnings
 CFLAGS += -Wno-switch
+CFLAGS += -std=gnu99
 
 ## Assembly specific flags
-AFLAGS = -Wa,-gdwarf2
+AFLAGS = $(SDK_FLAGS)
+AFLAGS += $(SDK_INCLUDES)
+AFLAGS += -Wa,-gdwarf2
 
 ## Linker flags
 LDFLAGS = $(SDK_FLAGS)
@@ -219,8 +253,8 @@ $(LIBRARY): $(COREOBJ) Makefile
 .c.o:
 	$(CC) -c $(INCLUDES) $(CFLAGS) $*.c -o $@
 
-.s.o:
-	$(CC) -c $(AFLAGS) $*.s -o $@
+.S.o:
+	$(CC) -c $(AFLAGS) $*.S -o $@
 
 size: ${TARGET_ELF}
 	@echo

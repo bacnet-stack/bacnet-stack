@@ -1,38 +1,18 @@
-/**************************************************************************
- *
- * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* Access Door Objects - customize for your use */
-
+/**
+ * @file
+ * @brief A basic BACnet Access Door Objects implementation.
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
 #include "access_door.h"
 #include "bacnet/basic/services.h"
@@ -43,14 +23,25 @@ static ACCESS_DOOR_DESCR ad_descr[MAX_ACCESS_DOORS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE, PROP_RELIABILITY, PROP_OUT_OF_SERVICE,
-    PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT, PROP_DOOR_PULSE_TIME,
-    PROP_DOOR_EXTENDED_PULSE_TIME, PROP_DOOR_OPEN_TOO_LONG_TIME, -1 };
+                                           PROP_OBJECT_NAME,
+                                           PROP_OBJECT_TYPE,
+                                           PROP_PRESENT_VALUE,
+                                           PROP_STATUS_FLAGS,
+                                           PROP_EVENT_STATE,
+                                           PROP_RELIABILITY,
+                                           PROP_OUT_OF_SERVICE,
+                                           PROP_PRIORITY_ARRAY,
+                                           PROP_RELINQUISH_DEFAULT,
+                                           PROP_DOOR_PULSE_TIME,
+                                           PROP_DOOR_EXTENDED_PULSE_TIME,
+                                           PROP_DOOR_OPEN_TOO_LONG_TIME,
+                                           -1 };
 
-static const int Properties_Optional[] = { PROP_DOOR_STATUS, PROP_LOCK_STATUS,
-    PROP_SECURED_STATUS, PROP_DOOR_UNLOCK_DELAY_TIME, PROP_DOOR_ALARM_STATE,
-    -1 };
+static const int Properties_Optional[] = {
+    PROP_DOOR_STATUS,      PROP_LOCK_STATUS,
+    PROP_SECURED_STATUS,   PROP_DOOR_UNLOCK_DELAY_TIME,
+    PROP_DOOR_ALARM_STATE, -1
+};
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -243,16 +234,47 @@ BACNET_DOOR_VALUE Access_Door_Relinquish_Default(uint32_t object_instance)
     return status;
 }
 
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+static int Access_Door_Priority_Array_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    unsigned object_index = 0;
+
+    object_index = Access_Door_Instance_To_Index(object_instance);
+    if (object_index < MAX_ACCESS_DOORS) {
+        if (ad_descr[object_index].value_active[array_index]) {
+            apdu_len = encode_application_null(apdu);
+        } else {
+            apdu_len = encode_application_enumerated(
+                apdu, ad_descr[object_index].priority_array[array_index]);
+        }
+    }
+
+    return apdu_len;
+}
+
 /* note: the object name must be unique within this device */
 bool Access_Door_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
 
     if (object_instance < MAX_ACCESS_DOORS) {
-        sprintf(text_string, "ACCESS DOOR %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(
+            text, sizeof(text), "ACCESS DOOR %lu",
+            (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;
@@ -284,20 +306,20 @@ void Access_Door_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int len = 0;
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index = 0;
-    unsigned i = 0;
     bool state = false;
     uint8_t *apdu = NULL;
+    int apdu_size = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
+    apdu_size = rpdata->application_data_len;
     object_index = Access_Door_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -339,50 +361,21 @@ int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_PRIORITY_ARRAY:
-            /* Array element zero is the number of elements in the array */
-            if (rpdata->array_index == 0) {
-                apdu_len =
-                    encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
-                /* if no index was specified, then try to encode the entire list
-                 */
-                /* into one packet. */
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-                    /* FIXME: check if we have room before adding it to APDU */
-                    if (ad_descr[object_index].value_active[i]) {
-                        len = encode_application_null(&apdu[apdu_len]);
-                    } else {
-                        len = encode_application_enumerated(&apdu[apdu_len],
-                            ad_descr[object_index].priority_array[i]);
-                    }
-                    /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU) {
-                        apdu_len += len;
-                    } else {
-                        rpdata->error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        apdu_len = BACNET_STATUS_ABORT;
-                        break;
-                    }
-                }
-            } else {
-                if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (ad_descr[object_index].value_active[i]) {
-                        apdu_len = encode_application_null(&apdu[0]);
-                    } else {
-                        apdu_len =
-                            encode_application_enumerated(&apdu[apdu_len],
-                                ad_descr[object_index].priority_array[i]);
-                    }
-                } else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Access_Door_Priority_Array_Encode, BACNET_MAX_PRIORITY, apdu,
+                apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
             break;
         case PROP_RELINQUISH_DEFAULT:
-            apdu_len = encode_application_enumerated(&apdu[0],
+            apdu_len = encode_application_enumerated(
+                &apdu[0],
                 Access_Door_Relinquish_Default(rpdata->object_instance));
             break;
         case PROP_DOOR_STATUS:
@@ -468,7 +461,8 @@ bool Access_Door_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
-                status = Access_Door_Present_Value_Set(wp_data->object_instance,
+                status = Access_Door_Present_Value_Set(
+                    wp_data->object_instance,
                     (BACNET_DOOR_VALUE)value.type.Enumerated,
                     wp_data->priority);
                 if (wp_data->priority == 6) {

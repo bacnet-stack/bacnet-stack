@@ -20,12 +20,16 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacfile_tests, test_BACnet_File_Object)
+#else
 static void test_BACnet_File_Object(void)
+#endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = {0};
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int *required_property = NULL;
     const uint32_t instance = 1;
 
@@ -42,15 +46,18 @@ static void test_BACnet_File_Object(void)
         rpdata.object_property = *required_property;
         len = bacfile_read_property(&rpdata);
         if (len < 0) {
-            printf("property %u: failed to read!\n",
+            printf(
+                "property %u: failed to read!\n",
                 (unsigned)rpdata.object_property);
         }
         zassert_true(len >= 0, NULL);
         if (len >= 0) {
-            test_len = bacapp_decode_known_property(rpdata.application_data,
-                len, &value, rpdata.object_type, rpdata.object_property);
+            test_len = bacapp_decode_known_property(
+                rpdata.application_data, len, &value, rpdata.object_type,
+                rpdata.object_property);
             if (len != test_len) {
-                printf("property %u: failed to decode!\n",
+                printf(
+                    "property %u: failed to decode!\n",
                     (unsigned)rpdata.object_property);
             }
             zassert_equal(len, test_len, NULL);
@@ -64,12 +71,13 @@ static void test_BACnet_File_Object(void)
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacfile_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(bacfile_tests,
-     ztest_unit_test(test_BACnet_File_Object)
-     );
+    ztest_test_suite(bacfile_tests, ztest_unit_test(test_BACnet_File_Object));
 
     ztest_run_test_suite(bacfile_tests);
 }
+#endif

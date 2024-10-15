@@ -1,60 +1,23 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2015 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief Virtual MAC (VMAC) for BACnet/IPv6 neighbors
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bacnet/config.h"
 #include "bacnet/bacdef.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/keylist.h"
 /* me! */
 #include "bacnet/basic/bbmd6/vmac.h"
 
 /* enable debugging */
 static bool VMAC_Debug = false;
-#if PRINT_ENABLED
-#include <stdarg.h>
-#include <stdio.h>
-#define PRINTF(...)                   \
-    if (VMAC_Debug) {                 \
-        fprintf(stderr, __VA_ARGS__); \
-        fflush(stderr);               \
-    }
-#else
-#define PRINTF(...)
-#endif
 
 /**
  * @brief Enable debugging if print is enabled
@@ -89,7 +52,7 @@ unsigned int VMAC_Count(void)
  *
  * @return true if the device ID and MAC are added
  */
-bool VMAC_Add(uint32_t device_id, struct vmac_data *src)
+bool VMAC_Add(uint32_t device_id, const struct vmac_data *src)
 {
     bool status = false;
     struct vmac_data *pVMAC = NULL;
@@ -112,7 +75,10 @@ bool VMAC_Add(uint32_t device_id, struct vmac_data *src)
             index = Keylist_Data_Add(VMAC_List, device_id, pVMAC);
             if (index >= 0) {
                 status = true;
-                PRINTF("VMAC %u added.\n", (unsigned int)device_id);
+                if (VMAC_Debug) {
+                    debug_fprintf(
+                        stderr, "VMAC %u added.\n", (unsigned int)device_id);
+                }
             }
         }
     }
@@ -160,7 +126,8 @@ struct vmac_data *VMAC_Find_By_Key(uint32_t device_id)
  *
  * @return true if the addresses are different
  */
-bool VMAC_Different(struct vmac_data *vmac1, struct vmac_data *vmac2)
+bool VMAC_Different(
+    const struct vmac_data *vmac1, const struct vmac_data *vmac2)
 {
     bool status = false;
     unsigned int i = 0;
@@ -191,7 +158,7 @@ bool VMAC_Different(struct vmac_data *vmac1, struct vmac_data *vmac2)
  *
  * @return true if the addresses are the same
  */
-bool VMAC_Match(struct vmac_data *vmac1, struct vmac_data *vmac2)
+bool VMAC_Match(const struct vmac_data *vmac1, const struct vmac_data *vmac2)
 {
     bool status = false;
     unsigned int i = 0;
@@ -224,7 +191,7 @@ bool VMAC_Match(struct vmac_data *vmac1, struct vmac_data *vmac2)
  *
  * @return true if the VMAC address was found
  */
-bool VMAC_Find_By_Data(struct vmac_data *vmac, uint32_t *device_id)
+bool VMAC_Find_By_Data(const struct vmac_data *vmac, uint32_t *device_id)
 {
     bool status = false;
     struct vmac_data *list_vmac;
@@ -237,10 +204,7 @@ bool VMAC_Find_By_Data(struct vmac_data *vmac, uint32_t *device_id)
         list_vmac = Keylist_Data_Index(VMAC_List, index);
         if (list_vmac) {
             if (VMAC_Match(vmac, list_vmac)) {
-                if (device_id) {
-                    *device_id = Keylist_Key(VMAC_List, index);
-                }
-                status = true;
+                status = Keylist_Index_Key(VMAC_List, index, device_id);
                 break;
             }
         }
@@ -256,21 +220,26 @@ bool VMAC_Find_By_Data(struct vmac_data *vmac, uint32_t *device_id)
 void VMAC_Cleanup(void)
 {
     struct vmac_data *pVMAC;
-    uint32_t device_id;
     const int index = 0;
     unsigned i = 0;
 
     if (VMAC_List) {
         do {
-            device_id = Keylist_Key(VMAC_List, index);
+            uint32_t device_id;
+            if (VMAC_Debug) {
+                Keylist_Index_Key(VMAC_List, index, &device_id);
+            }
             pVMAC = Keylist_Data_Delete_By_Index(VMAC_List, index);
             if (pVMAC) {
-                PRINTF("VMAC List: %lu [", (unsigned long)device_id);
-                /* print the MAC */
-                for (i = 0; i < pVMAC->mac_len; i++) {
-                    PRINTF("%02X", pVMAC->mac[i]);
+                if (VMAC_Debug) {
+                    debug_fprintf(
+                        stderr, "VMAC List: %lu [", (unsigned long)device_id);
+                    /* print the MAC */
+                    for (i = 0; i < pVMAC->mac_len; i++) {
+                        debug_fprintf(stderr, "%02X", pVMAC->mac[i]);
+                    }
+                    debug_fprintf(stderr, "]\n");
                 }
-                PRINTF("]\n");
                 free(pVMAC);
             }
         } while (pVMAC);
@@ -287,6 +256,6 @@ void VMAC_Init(void)
     VMAC_List = Keylist_Create();
     if (VMAC_List) {
         atexit(VMAC_Cleanup);
-        PRINTF("VMAC List initialized.\n");
+        debug_fprintf(stderr, "VMAC List initialized.\n");
     }
 }

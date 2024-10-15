@@ -1,55 +1,38 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet TimeSynchronization service
+ *  message with the local or arbitrary time and date to sync another device
+ *  on the network.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
-#include "bacnet/basic/binding/address.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacaddr.h"
 #include "bacnet/bactext.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/datetime.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/timesync.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -67,8 +50,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -99,44 +82,48 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s [--dnet][--dadr][--mac]\n", filename);
     printf("       [--date][--time]\n");
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet TimeSynchronization request.\n");
     printf("\n");
     printf("--date year/month/day[:weekday]\n"
-        "Date formatted 2021/12/31 or 2021/12/31:1\n"
-        "where day is 1..31,\n"
-        "where month is 1=January..12=December,\n"
-        "where weekday is 1=Monday..7=Sunday\n");
+           "Date formatted 2021/12/31 or 2021/12/31:1\n"
+           "where day is 1..31,\n"
+           "where month is 1=January..12=December,\n"
+           "where weekday is 1=Monday..7=Sunday\n");
     printf("\n");
     printf("--time hours:minutes:seconds.hundredths\n"
-        "Time formatted 23:59:59.99 or 23:59:59 or 23:59\n");
+           "Time formatted 23:59:59.99 or 23:59:59 or 23:59\n");
+    printf("\n");
+    printf("--utc\n"
+           "Send BACnet UTCTimeSynchronization request.\n");
     printf("\n");
     printf("--mac A\n"
-        "BACnet mac address."
-        "Valid ranges are from 0 to 255\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "BACnet mac address."
+           "Valid ranges are from 0 to 255\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("--dnet N\n"
-        "BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n");
+           "BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
     printf("\n");
     printf("--dadr A\n"
-        "BACnet mac address on the destination BACnet network number.\n"
-        "Valid ranges are from 0 to 255\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "BACnet mac address on the destination BACnet network number.\n"
+           "Valid ranges are from 0 to 255\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf("Examples:\n"
+    printf(
+        "Examples:\n"
         "Send a TimeSynchronization request to DNET 123:\n"
         "%s --dnet 123\n",
         filename);
@@ -144,8 +131,9 @@ static void print_help(char *filename)
         "Send a TimeSynchronization request to MAC 10.0.0.1 DNET 123 DADR 5:\n"
         "%s --mac 10.0.0.1 --dnet 123 --dadr 5\n",
         filename);
-    printf("Send a TimeSynchronization request to MAC 10.1.2.3:47808:\n"
-           "%s --mac 10.1.2.3:47808\n",
+    printf(
+        "Send a TimeSynchronization request to MAC 10.1.2.3:47808:\n"
+        "%s --mac 10.1.2.3:47808\n",
         filename);
 }
 
@@ -156,8 +144,14 @@ int main(int argc, char *argv[])
     const unsigned timeout = 100; /* milliseconds */
     BACNET_DATE bdate;
     BACNET_TIME btime;
+    BACNET_DATE_TIME utc_time;
+    BACNET_DATE_TIME local_time;
     bool override_date = false;
     bool override_time = false;
+    bool use_utc = false;
+    int16_t utc_offset_minutes = 0;
+    int8_t dst_adjust_minutes = 0;
+    bool dst_active = 0;
     struct mstimer apdu_timer;
     long dnet = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
@@ -165,7 +159,7 @@ int main(int argc, char *argv[])
     BACNET_ADDRESS dest = { 0 };
     bool global_broadcast = true;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     /* decode any command line parameters */
     filename = filename_remove_path(argv[0]);
@@ -220,6 +214,9 @@ int main(int argc, char *argv[])
                 }
             }
         }
+        if (strcmp(argv[argi], "--utc") == 0) {
+            use_utc = true;
+        }
     }
     if (global_broadcast) {
         datalink_get_broadcast_address(&dest);
@@ -260,9 +257,21 @@ int main(int argc, char *argv[])
     atexit(datalink_cleanup);
     mstimer_init();
     /* send the request */
-    datetime_local(override_date ? NULL : &bdate, override_time ? NULL : &btime,
-        NULL, NULL);
-    Send_TimeSync_Remote(&dest, &bdate, &btime);
+    datetime_local(
+        override_date ? NULL : &bdate, override_time ? NULL : &btime,
+        &utc_offset_minutes, &dst_active);
+    if (use_utc) {
+        /* convert to UTC */
+        if (dst_active) {
+            dst_adjust_minutes = -60;
+        }
+        datetime_set(&local_time, &bdate, &btime);
+        datetime_local_to_utc(
+            &utc_time, &local_time, utc_offset_minutes, dst_adjust_minutes);
+        Send_TimeSyncUTC_Remote(&dest, &utc_time.date, &utc_time.time);
+    } else {
+        Send_TimeSync_Remote(&dest, &bdate, &btime);
+    }
     mstimer_set(&apdu_timer, apdu_timeout());
     /* loop forever - not necessary for time sync, but we can watch */
     for (;;) {

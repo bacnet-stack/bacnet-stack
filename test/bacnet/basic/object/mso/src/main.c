@@ -1,15 +1,15 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
+/**
+ * @file
+ * @brief Unit test for object
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date April 2024
+ * @section LICENSE
  *
  * SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/mso.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -19,60 +19,44 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(mso_tests, testMultistateOutput)
+#else
 static void testMultistateOutput(void)
+#endif
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0, test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = {0};
-    const int *required_property = NULL;
-    const uint32_t instance = 1;
+    bool status = false;
+    unsigned count = 0;
+    uint32_t object_instance = BACNET_MAX_INSTANCE, test_object_instance = 0;
+    const int skip_fail_property_list[] = { PROP_PRIORITY_ARRAY, -1 };
 
     Multistate_Output_Init();
-    Multistate_Output_Create(1);
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_MULTI_STATE_OUTPUT;
-    rpdata.object_instance = instance;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-
-    Multistate_Output_Property_Lists(&required_property, NULL, NULL);
-    while ((*required_property) >= 0) {
-        rpdata.object_property = *required_property;
-        len = Multistate_Output_Read_Property(&rpdata);
-        if (len < 0) {
-            printf("property %u: failed to read!\n",
-                (unsigned)rpdata.object_property);
-        }
-        zassert_true(len >= 0, NULL);
-        if (len >= 0) {
-            test_len = bacapp_decode_known_property(rpdata.application_data,
-                len, &value, rpdata.object_type, rpdata.object_property);
-            if (len != test_len) {
-                printf("property %u: failed to decode!\n",
-                    (unsigned)rpdata.object_property);
-            }
-            if (rpdata.object_property == PROP_PRIORITY_ARRAY) {
-                /* FIXME: known fail to decode */
-                len = test_len;
-            }
-            zassert_equal(len, test_len, NULL);
-        }
-        required_property++;
-    }
-
-    return;
+    object_instance = Multistate_Output_Create(object_instance);
+    count = Multistate_Output_Count();
+    zassert_true(count == 1, NULL);
+    test_object_instance = Multistate_Output_Index_To_Instance(0);
+    zassert_equal(object_instance, test_object_instance, NULL);
+    bacnet_object_properties_read_write_test(
+        OBJECT_MULTI_STATE_OUTPUT, object_instance,
+        Multistate_Output_Property_Lists, Multistate_Output_Read_Property,
+        Multistate_Output_Write_Property, skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance, Multistate_Output_Name_Set,
+        Multistate_Output_Name_ASCII);
+    status = Multistate_Output_Delete(object_instance);
+    zassert_true(status, NULL);
 }
 /**
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(mso_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(mso_tests,
-     ztest_unit_test(testMultistateOutput)
-     );
+    ztest_test_suite(mso_tests, ztest_unit_test(testMultistateOutput));
 
     ztest_run_test_suite(mso_tests);
 }
+#endif

@@ -1,0 +1,75 @@
+name: Raspberry Pi
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+      tags:
+        description: 'Test scenario tags'
+        required: false
+        type: boolean
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true
+  
+jobs:
+  log-the-inputs:
+    runs-on: raspios/base:latest
+    steps:
+      - run: |
+          echo "Log level: $LEVEL"
+          echo "Tags: $TAGS"
+          echo "Environment: $ENVIRONMENT"
+        env:
+          LEVEL: ${{ inputs.logLevel }}
+          TAGS: ${{ inputs.tags }}
+          ENVIRONMENT: ${{ inputs.environment }}  
+  
+  raspi-bip-apps:
+    runs-on: raspios/base:latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Demo Apps
+      run: |
+        gcc --version
+        make clean
+        make all
+
+  piface:
+    runs-on: raspios/base:latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+    - name: Build Demo Apps
+      run: |
+        gcc --version
+        cd apps/piface && ./configure && cd ../../
+        make piface
+
+  blinkt:
+    runs-on: raspios/base:latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libpigpio-dev libpigpiod-if-dev pigpiod
+    - name: Build Demo Apps
+      run: |
+        gcc --version
+        make blinkt

@@ -3,30 +3,7 @@
  * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
  * @date 2011
  * @brief GetAlarmSummary service encoding and decoding
- *
- * @section LICENSE
- *
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  * @section DESCRIPTION
  *
  * The GetAlarmSummary service is used by a client BACnet-user
@@ -87,9 +64,10 @@ int get_alarm_summary_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
  *
  * @return number of bytes encoded, or BACNET_STATUS_ERROR if an error.
  */
-int get_alarm_summary_ack_encode_apdu_data(uint8_t *apdu,
+int get_alarm_summary_ack_encode_apdu_data(
+    uint8_t *apdu,
     size_t max_apdu,
-    BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data)
+    const BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -97,8 +75,8 @@ int get_alarm_summary_ack_encode_apdu_data(uint8_t *apdu,
         apdu_len = BACNET_STATUS_ERROR;
     } else if (max_apdu >= 10) {
         /* tag 0 - Object Identifier */
-        apdu_len += encode_application_object_id(&apdu[apdu_len],
-            get_alarm_data->objectIdentifier.type,
+        apdu_len += encode_application_object_id(
+            &apdu[apdu_len], get_alarm_data->objectIdentifier.type,
             get_alarm_data->objectIdentifier.instance);
         /* tag 1 - Alarm State */
         apdu_len += encode_application_enumerated(
@@ -121,7 +99,8 @@ int get_alarm_summary_ack_encode_apdu_data(uint8_t *apdu,
  *
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error.
  */
-int get_alarm_summary_ack_decode_apdu_data(uint8_t *apdu,
+int get_alarm_summary_ack_decode_apdu_data(
+    const uint8_t *apdu,
     size_t max_apdu,
     BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data)
 {

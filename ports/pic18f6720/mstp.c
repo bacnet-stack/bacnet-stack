@@ -1,38 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2003 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2003 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 /* This clause describes a Master-Slave/Token-Passing (MS/TP) data link  */
 /* protocol, which provides the same services to the network layer as  */
 /* ISO 8802-2 Logical Link Control. It uses services provided by the  */
@@ -49,15 +21,17 @@
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/mstp.h"
-#include "bacnet/bytes.h"
-#include "bacnet/bits.h"
-#include "crc.h"
 #include "bacnet/bacaddr.h"
-#include "rs485.h"
 #if PRINT_ENABLED
 #include "bacnet/datalink/mstptext.h"
 #endif
+/* port specific */
+#include "crc.h"
+#include "rs485.h"
 
 /* debug print statements */
 #if PRINT_ENABLED
@@ -144,7 +118,7 @@
             x++;                     \
     }
 
-bool MSTP_Line_Active(volatile struct mstp_port_struct_t *mstp_port)
+bool MSTP_Line_Active(const volatile struct mstp_port_struct_t *mstp_port)
 {
     return (mstp_port->EventCount > Nmin_octets);
 }
@@ -154,7 +128,7 @@ unsigned MSTP_Create_Frame(uint8_t *buffer, /* where frame is loaded */
     uint8_t frame_type, /* type of frame to send - see defines */
     uint8_t destination, /* destination address */
     uint8_t source, /* source address */
-    uint8_t *data, /* any data to be sent - may be null */
+    const uint8_t *data, /* any data to be sent - may be null */
     unsigned data_len)
 { /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF; /* used to calculate the crc value */
@@ -207,7 +181,7 @@ void MSTP_Create_And_Send_Frame(
     uint8_t frame_type, /* type of frame to send - see defines */
     uint8_t destination, /* destination address */
     uint8_t source, /* source address */
-    uint8_t *data, /* any data to be sent - may be null */
+    const uint8_t *data, /* any data to be sent - may be null */
     unsigned data_len)
 { /* number of bytes of data (up to 501) */
     uint8_t buffer[DLMSTP_MPDU_MAX] = { 0 }; /* buffer for sending */
@@ -567,8 +541,8 @@ static bool mstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = npdu_decode(
-        &request_pdu[0], NULL, &request.address, &request.npdu_data);
+    offset = bacnet_npdu_decode(request_pdu, request_pdu_len, NULL,
+        &request.address, &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
         return false;
     }
@@ -585,7 +559,8 @@ static bool mstp_compare_data_expecting_reply(uint8_t *request_pdu,
     /* decode the reply data */
     reply.address.mac[0] = dest_address;
     reply.address.mac_len = 1;
-    offset = npdu_decode(&reply_pdu[0], &reply.address, NULL, &reply.npdu_data);
+    offset = bacnet_npdu_decode(
+        reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
@@ -753,9 +728,9 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                             break;
                         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                             if ((mstp_port->DestinationAddress ==
-                                MSTP_BROADCAST_ADDRESS) &&
+                                    MSTP_BROADCAST_ADDRESS) &&
                                 (npdu_confirmed_service(mstp_port->InputBuffer,
-                                mstp_port->DataLength))) {
+                                    mstp_port->DataLength))) {
                                 /* BTL test: verifies that the IUT will quietly
                                    discard any Confirmed-Request-PDU, whose
                                    destination address is a multicast or

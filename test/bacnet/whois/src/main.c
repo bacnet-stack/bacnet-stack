@@ -21,7 +21,10 @@
  * @brief Test
  */
 static int whois_decode_apdu(
-    uint8_t *apdu, unsigned apdu_len, int32_t *pLow_limit, int32_t *pHigh_limit)
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    int32_t *pLow_limit,
+    int32_t *pHigh_limit)
 {
     int len = 0;
 
@@ -45,7 +48,11 @@ static int whois_decode_apdu(
     return len;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(whois_tests, testWhoIs)
+#else
 static void testWhoIs(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -103,12 +110,13 @@ static void testWhoIs(void)
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(whois_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(whois_tests,
-     ztest_unit_test(testWhoIs)
-     );
+    ztest_test_suite(whois_tests, ztest_unit_test(testWhoIs));
 
     ztest_run_test_suite(whois_tests);
 }
+#endif

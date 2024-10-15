@@ -1,36 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2012 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+ *
+ * Copyright (C) 2012 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include "bacnet/bacdef.h"
@@ -93,7 +67,7 @@ uint32_t bip_stats_drop(void)
  * @param addr - network IPv4 address
  * @return true if the address is set
  */
-bool bip_set_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_addr(const BACNET_IP_ADDRESS *addr)
 {
     return bvlc_address_copy(&BIP_Address, addr);
 }
@@ -113,7 +87,7 @@ bool bip_get_addr(BACNET_IP_ADDRESS *addr)
  * @param network IPv4 broadcast address
  * @return true if the broadcast address is retrieved
  */
-bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
 {
     return bvlc_address_copy(&BIP_Broadcast_Address, addr);
 }
@@ -163,7 +137,7 @@ uint16_t bip_get_port(void)
  * @param address - IPv4 address from LwIP
  * @param mac - IP address from BACnet/IP
  */
-static void bip_mac_to_addr(ip4_addr_t *address, uint8_t *mac)
+static void bip_mac_to_addr(ip4_addr_t *address, const uint8_t *mac)
 {
     if (mac && address) {
         address->addr = ((u32_t)((((uint32_t)mac[0]) << 24) & 0xff000000));
@@ -179,9 +153,8 @@ static void bip_mac_to_addr(ip4_addr_t *address, uint8_t *mac)
  * @param address - IPv4 address from LwIP
  * @param port - IPv4 UDP port number
  */
-static int bip_decode_bip_address(BACNET_IP_ADDRESS *baddr,
-    ip_addr_t *address,
-    uint16_t *port)
+static int bip_decode_bip_address(
+    const BACNET_IP_ADDRESS *baddr, ip_addr_t *address, uint16_t *port)
 {
     int len = 0;
 
@@ -216,9 +189,8 @@ static void bip_addr_to_mac(uint8_t *mac, const ip4_addr_t *address)
  * @param address - IPv4 address from LwIP
  * @param port - IPv4 UDP port number
  */
-static int bip_encode_bip_address(BACNET_IP_ADDRESS *baddr,
-    const ip_addr_t *address,
-    uint16_t port)
+static int bip_encode_bip_address(
+    BACNET_IP_ADDRESS *baddr, const ip_addr_t *address, uint16_t port)
 {
     int len = 0;
 
@@ -236,13 +208,12 @@ static int bip_encode_bip_address(BACNET_IP_ADDRESS *baddr,
 /** Function to send a packet out the BACnet/IP socket (Annex J).
  * @ingroup DLBIP
  *
- * @param dest [in] Destination address
- * @param port [in] UDP port number
+ * @param dest [in] Destination address and port
  * @param mtu_len [in] PBUF packet
  * @return number of bytes sent, or 0 on failure.
  */
 int bip_send_mpdu(
-    BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     struct pbuf *pkt = NULL;
     /* addr and port in host format */
@@ -276,7 +247,8 @@ int bip_send_mpdu(
  *
  * @return number of bytes sent
  */
-int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+int bip_send_pdu(
+    BACNET_ADDRESS *dest, /* destination address */
     BACNET_NPDU_DATA *npdu_data, /* network information */
     uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len)
@@ -292,7 +264,8 @@ int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
  * @param addr [in] UDP source address
  * @param port [in] UDP port number
  */
-void bip_server_callback(void *arg,
+void bip_server_callback(
+    void *arg,
     struct udp_pcb *upcb,
     struct pbuf *pkt,
     const ip_addr_t *addr,
@@ -302,7 +275,7 @@ void bip_server_callback(void *arg,
     uint16_t npdu_offset = 0;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     BACNET_IP_ADDRESS saddr;
-    uint8_t *npdu = (uint8_t *) pkt->payload;
+    uint8_t *npdu = (uint8_t *)pkt->payload;
     uint16_t npdu_len = pkt->tot_len;
 
     bip_encode_bip_address(&saddr, addr, port);
@@ -318,6 +291,10 @@ void bip_server_callback(void *arg,
     pbuf_free(pkt);
 }
 
+/**
+ * @brief Get the BACnet/IP unicast address in full BACnet address format
+ * @param my_address - pointer to the #BACNET_ADDRESS to fill
+ */
 void bip_get_my_address(BACNET_ADDRESS *my_address)
 {
     int i = 0;
@@ -337,8 +314,12 @@ void bip_get_my_address(BACNET_ADDRESS *my_address)
     return;
 }
 
+/**
+ * @brief Get the BACnet/IP broadcast address in full BACnet address format
+ * @param dest - pointer to the #BACNET_ADDRESS to fill
+ */
 void bip_get_broadcast_address(BACNET_ADDRESS *dest)
-{ /* destination address */
+{
     int i = 0; /* counter */
 
     if (dest) {

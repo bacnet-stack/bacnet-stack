@@ -23,8 +23,11 @@ bool arcnet_init(char *interface_name)
     return ztest_get_return_value();
 }
 
-int arcnet_send_pdu(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
-                    uint8_t *pdu, unsigned pdu_len)
+int arcnet_send_pdu(
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len)
 {
     ztest_check_expected_value(dest);
     ztest_check_expected_value(npdu_data);
@@ -32,8 +35,8 @@ int arcnet_send_pdu(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
     return ztest_get_return_value();
 }
 
-uint16_t arcnet_receive(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu,
-                        unsigned timeout)
+uint16_t arcnet_receive(
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout)
 {
     ztest_check_expected_value(src);
     ztest_check_expected_value(timeout);

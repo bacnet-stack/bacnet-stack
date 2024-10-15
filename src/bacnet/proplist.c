@@ -1,41 +1,15 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2012 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief Property_List property encode decode helper
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/rpm.h"
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
@@ -86,6 +60,33 @@ bool property_list_member(const int *pList, int object_property)
 }
 
 /**
+ * @brief Determine if the object property is a member of any of the lists
+ * @param pRequired - array of type 'int' that is a list of BACnet properties
+ * @param pOptional - array of type 'int' that is a list of BACnet properties
+ * @param pProprietary - array of type 'int' that is a list of BACnet properties
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of any of these lists
+ */
+bool property_lists_member(
+    const int *pRequired,
+    const int *pOptional,
+    const int *pProprietary,
+    int object_property)
+{
+    bool found = false;
+
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
  * ReadProperty handler for this property.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -95,7 +96,8 @@ bool property_list_member(const int *pList, int object_property)
  * @return number of APDU bytes in the response, or
  * BACNET_STATUS_ERROR on error.
  */
-int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
+int property_list_encode(
+    BACNET_READ_PROPERTY_DATA *rpdata,
     const int *pListRequired,
     const int *pListOptional,
     const int *pListProprietary)

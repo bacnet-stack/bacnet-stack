@@ -19,14 +19,18 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(filename_tests, testFilename)
+#else
 static void testFilename(void)
+#endif
 {
-    char *data1 = "c:\\Joshua\\run";
-    char *data2 = "/home/Anna/run";
-    char *data3 = "c:\\Program Files\\Christopher\\run.exe";
-    char *data4 = "//Mary/data/run";
-    char *data5 = "bin\\run";
-    char *filename = NULL;
+    const char *data1 = "c:\\Joshua\\run";
+    const char *data2 = "/home/Anna/run";
+    const char *data3 = "c:\\Program Files\\Christopher\\run.exe";
+    const char *data4 = "//Mary/data/run";
+    const char *data5 = "bin\\run";
+    const char *filename = NULL;
 
     filename = filename_remove_path(data1);
     zassert_equal(strcmp("run", filename), 0, NULL);
@@ -45,12 +49,13 @@ static void testFilename(void)
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(filename_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(filename_tests,
-     ztest_unit_test(testFilename)
-     );
+    ztest_test_suite(filename_tests, ztest_unit_test(testFilename));
 
     ztest_run_test_suite(filename_tests);
 }
+#endif

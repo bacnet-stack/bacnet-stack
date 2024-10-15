@@ -1,55 +1,40 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that uses BACnet AtomicReadFile service messages
+ * to read a file object contents from another device, and save it locally.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
 #include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
+#endif
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -65,14 +50,16 @@ static bool End_Of_File_Detected = false;
 static bool Error_Detected = false;
 static uint8_t Request_Invoke_ID = 0;
 
-static void Atomic_Read_File_Error_Handler(BACNET_ADDRESS *src,
+static void Atomic_Read_File_Error_Handler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\n",
+        printf(
+            "BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -91,18 +78,20 @@ static void MyAbortHandler(
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
+        printf(
+            "BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
 
-static void AtomicReadFileAckHandler(uint8_t *service_request,
+static void AtomicReadFileAckHandler(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
@@ -143,7 +132,8 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
                         octets_written =
                             fwrite(octet_buffer, 1, octet_count, pFile);
                         if (octets_written != octet_count) {
-                            fprintf(stderr,
+                            fprintf(
+                                stderr,
                                 "Unable to write data to file \"%s\".\n",
                                 Local_File_Name);
                         } else {
@@ -155,7 +145,8 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
                         }
                         fflush(pFile);
                     } else {
-                        fprintf(stderr, "Unable to seek to %d!\n",
+                        fprintf(
+                            stderr, "Unable to seek to %d!\n",
                             data.type.stream.fileStartPosition);
                     }
                 }
@@ -169,7 +160,8 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
             fprintf(stderr, "Decode error! %d bytes decoded.\n", len);
         }
     } else {
-        fprintf(stderr, "Address & Invoke ID mismatch! Invoke ID=%d\n",
+        fprintf(
+            stderr, "Address & Invoke ID mismatch! Invoke ID=%d\n",
             Request_Invoke_ID);
     }
 }
@@ -220,32 +212,34 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s device-instance file-instance local-name\n", filename);
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
-    printf(
-        "Read a file from a BACnet device and save it locally.\n");
+    printf("Read a file from a BACnet device and save it locally.\n");
     printf("\n");
-    printf("device-instance:\n"
+    printf(
+        "device-instance:\n"
         "BACnet Device Object Instance number that you are trying to\n"
         "communicate to.  This number will be used to try and bind with\n"
         "the device using Who-Is and I-Am services.  For example, if you were\n"
         "reading from Device Object 123, the device-instance would be 123.\n");
     printf("\n");
-    printf("file-instance:\n"
+    printf(
+        "file-instance:\n"
         "This is the file object instance number that you are reading from.\n"
         "For example, if you were reading from File 2, \n"
         "the file-instance would be 2.\n");
     printf("\n");
     printf("local-name:\n"
-        "The name of the file that will be stored locally.\n");
+           "The name of the file that will be stored locally.\n");
     printf("\n");
-    printf("Example:\n"
+    printf(
+        "Example:\n"
         "If you want read File 2 from Device 123 and save it to temp.txt,\n"
         "use the following command:\n"
         "%s 123 2 temp.txt\n",
@@ -266,7 +260,7 @@ int main(int argc, char *argv[])
     bool found = false;
     uint16_t my_max_apdu = 0;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     /* print help if requested */
     filename = filename_remove_path(argv[0]);
@@ -294,14 +288,16 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     Target_File_Object_Instance = strtol(argv[2], NULL, 0);
     Local_File_Name = argv[3];
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-    if (Target_File_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "file-instance=%u - it must be less than %u\n",
-            Target_File_Object_Instance, BACNET_MAX_INSTANCE + 1);
+    if (Target_File_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(
+            stderr, "file-instance=%u - not greater than %u\n",
+            Target_File_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     /* setup my info */
@@ -335,6 +331,7 @@ int main(int argc, char *argv[])
         /* at least one second has passed */
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
@@ -370,10 +367,10 @@ int main(int argc, char *argv[])
                 /* the ACK will increment the start position if OK */
                 /* we'll read the file in chunks
                    less than max_apdu to keep unsegmented */
-                invoke_id =
-                    Send_Atomic_Read_File_Stream(Target_Device_Object_Instance,
-                        Target_File_Object_Instance, Target_File_Start_Position,
-                        Target_File_Requested_Octet_Count);
+                invoke_id = Send_Atomic_Read_File_Stream(
+                    Target_Device_Object_Instance, Target_File_Object_Instance,
+                    Target_File_Start_Position,
+                    Target_File_Requested_Octet_Count);
                 Request_Invoke_ID = invoke_id;
             } else if (tsm_invoke_id_failed(invoke_id)) {
                 fprintf(stderr, "\rError: TSM Timeout!\n");

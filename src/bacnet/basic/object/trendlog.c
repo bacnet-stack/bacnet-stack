@@ -1,46 +1,32 @@
-/**************************************************************************
- *
- * Copyright (C) 2009 Peter Mc Shane
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
+/**
+ * @file
+ * @author Peter Mc Shane <petermcs@users.sourceforge.net>
+ * @date 2009
+ * @brief A basic Trend Log object implementation.
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h> /* for memmove */
+#include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
+#include "bacnet/bacdevobjpropref.h"
 #include "bacnet/apdu.h"
+#include "bacnet/datetime.h"
 #include "bacnet/wp.h" /* write property handling */
 #include "bacnet/version.h"
 #include "bacnet/basic/object/device.h" /* me */
 #include "bacnet/basic/services.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
-#include "bacnet/bacdevobjpropref.h"
 #include "bacnet/basic/object/trendlog.h"
 #include "bacnet/datetime.h"
+#include "bacnet/datalink/datalink.h"
+#if defined(BACFILE)
+#include "bacnet/basic/object/bacfile.h" /* object list dependency */
+#endif
 
 /* number of demo objects */
 #ifndef MAX_TREND_LOGS
@@ -52,14 +38,22 @@ static TL_LOG_INFO LogInfo[MAX_TREND_LOGS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Trend_Log_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_ENABLE, PROP_STOP_WHEN_FULL,
-    PROP_BUFFER_SIZE, PROP_LOG_BUFFER, PROP_RECORD_COUNT,
-    PROP_TOTAL_RECORD_COUNT, PROP_EVENT_STATE, PROP_LOGGING_TYPE,
-    PROP_STATUS_FLAGS, -1 };
+                                                     PROP_OBJECT_NAME,
+                                                     PROP_OBJECT_TYPE,
+                                                     PROP_ENABLE,
+                                                     PROP_STOP_WHEN_FULL,
+                                                     PROP_BUFFER_SIZE,
+                                                     PROP_LOG_BUFFER,
+                                                     PROP_RECORD_COUNT,
+                                                     PROP_TOTAL_RECORD_COUNT,
+                                                     PROP_EVENT_STATE,
+                                                     PROP_LOGGING_TYPE,
+                                                     PROP_STATUS_FLAGS,
+                                                     -1 };
 
-static const int Trend_Log_Properties_Optional[] = { PROP_DESCRIPTION,
-    PROP_START_TIME, PROP_STOP_TIME, PROP_LOG_DEVICE_OBJECT_PROPERTY,
-    PROP_LOG_INTERVAL,
+static const int Trend_Log_Properties_Optional[] = {
+    PROP_DESCRIPTION, PROP_START_TIME, PROP_STOP_TIME,
+    PROP_LOG_DEVICE_OBJECT_PROPERTY, PROP_LOG_INTERVAL,
 
     /* Required if COV logging supported
         PROP_COV_RESUBSCRIPTION_INTERVAL,
@@ -75,7 +69,8 @@ static const int Trend_Log_Properties_Optional[] = { PROP_DESCRIPTION,
         PROP_NOTIFY_TYPE,
         PROP_EVENT_TIME_STAMPS, */
 
-    PROP_ALIGN_INTERVALS, PROP_INTERVAL_OFFSET, PROP_TRIGGER, -1 };
+    PROP_ALIGN_INTERVALS, PROP_INTERVAL_OFFSET, PROP_TRIGGER, -1
+};
 
 static const int Trend_Log_Properties_Proprietary[] = { -1 };
 
@@ -245,12 +240,14 @@ void Trend_Log_Init(void)
 bool Trend_Log_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
 
     if (object_instance < MAX_TREND_LOGS) {
-        sprintf(text_string, "Trend Log %u", object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(
+            text, sizeof(text), "Trend Log %lu",
+            (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;
@@ -583,9 +580,9 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             start_date = value.type.Date;
             /* Then decode the time part */
-            len =
-                bacapp_decode_application_data(wp_data->application_data + len,
-                    wp_data->application_data_len - len, &value);
+            len = bacapp_decode_application_data(
+                wp_data->application_data + len,
+                wp_data->application_data_len - len, &value);
 
             if (len) {
                 status = write_property_type_valid(
@@ -634,9 +631,9 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             stop_date = value.type.Date;
             /* Then decode the time part */
-            len =
-                bacapp_decode_application_data(wp_data->application_data + len,
-                    wp_data->application_data_len - len, &value);
+            len = bacapp_decode_application_data(
+                wp_data->application_data + len,
+                wp_data->application_data_len - len, &value);
 
             if (len) {
                 status = write_property_type_valid(
@@ -677,21 +674,18 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
-            len = bacapp_decode_device_obj_property_ref(
-                wp_data->application_data, &TempSource);
-            if ((len < 0) ||
-                (len > wp_data->application_data_len)) /* Hmm, that didn't go */
-            /* as planned... */
-            {
+            len = bacnet_device_object_property_reference_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &TempSource);
+            if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_OTHER;
                 break;
             }
-
             /* We only support references to objects in ourself for now */
             if ((TempSource.deviceIdentifier.type == OBJECT_DEVICE) &&
                 (TempSource.deviceIdentifier.instance !=
-                    Device_Object_Instance_Number())) {
+                 Device_Object_Instance_Number())) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code =
                     ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
@@ -699,7 +693,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
 
             /* Quick comparison if structures are packed ... */
-            if (memcmp(&TempSource, &CurrentLog->Source,
+            if (memcmp(
+                    &TempSource, &CurrentLog->Source,
                     sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE)) != 0) {
                 /* Clear buffer if property being logged is changed */
                 CurrentLog->ulRecordCount = 0;
@@ -883,7 +878,8 @@ bool TL_Is_Enabled(int iLog)
     if (CurrentLog->bEnable == false) {
         /* Not enabled so time is irrelevant */
         bStatus = false;
-    } else if ((CurrentLog->ucTimeFlags == 0) &&
+    } else if (
+        (CurrentLog->ucTimeFlags == 0) &&
         (CurrentLog->tStopTime < CurrentLog->tStartTime)) {
         /* Start time was after stop time as per 12.25.6 and 12.25.7 */
         bStatus = false;
@@ -927,7 +923,7 @@ bool TL_Is_Enabled(int iLog)
  * Convert a BACnet time into a local time in seconds since the local epoch  *
  *****************************************************************************/
 
-bacnet_time_t TL_BAC_Time_To_Local(BACNET_DATE_TIME *bdatetime)
+bacnet_time_t TL_BAC_Time_To_Local(const BACNET_DATE_TIME *bdatetime)
 {
     return datetime_seconds_since_epoch(bdatetime);
 }
@@ -1461,12 +1457,13 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
              * have limited to 32 bits maximum as allowed by the standard
              */
             bitstring_init(&TempBits);
-            bitstring_set_bits_used(&TempBits,
-                (pSource->Datum.Bits.ucLen >> 4) & 0x0F,
+            bitstring_set_bits_used(
+                &TempBits, (pSource->Datum.Bits.ucLen >> 4) & 0x0F,
                 pSource->Datum.Bits.ucLen & 0x0F);
             for (ucCount = pSource->Datum.Bits.ucLen >> 4; ucCount > 0;
                  ucCount--) {
-                bitstring_set_octet(&TempBits, ucCount - 1,
+                bitstring_set_octet(
+                    &TempBits, ucCount - 1,
                     pSource->Datum.Bits.ucStore[ucCount - 1]);
             }
 
@@ -1513,9 +1510,10 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
     return (iLen);
 }
 
-static int local_read_property(uint8_t *value,
+static int local_read_property(
+    uint8_t *value,
     uint8_t *status,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Source,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Source,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
@@ -1716,12 +1714,13 @@ void trend_log_timer(uint16_t uSeconds)
                      * CurrentLog->ulLogInterval)) { */
                     if ((tNow % CurrentLog->ulLogInterval) ==
                         (CurrentLog->ulIntervalOffset %
-                            CurrentLog->ulLogInterval)) {
+                         CurrentLog->ulLogInterval)) {
                         /* Record value if time synchronised trigger condition
                          * is met and at least one period has elapsed.
                          */
                         TL_fetch_property(iCount);
-                    } else if ((tNow - CurrentLog->tLastDataTime) >
+                    } else if (
+                        (tNow - CurrentLog->tLastDataTime) >
                         CurrentLog->ulLogInterval) {
                         /* Also record value if we have waited more than a
                          * period since the last reading. This ensures we take a
@@ -1730,8 +1729,9 @@ void trend_log_timer(uint16_t uSeconds)
                          */
                         TL_fetch_property(iCount);
                     }
-                } else if (((tNow - CurrentLog->tLastDataTime) >=
-                               CurrentLog->ulLogInterval) ||
+                } else if (
+                    ((tNow - CurrentLog->tLastDataTime) >=
+                     CurrentLog->ulLogInterval) ||
                     (CurrentLog->bTrigger == true)) {
                     /* If not aligned take a reading when we have either waited
                      * long enough or a trigger is set.

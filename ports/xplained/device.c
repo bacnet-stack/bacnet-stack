@@ -1,27 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2015 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief BACnet device object handling for the Xplained board
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -241,11 +224,12 @@ uint32_t Device_Index_To_Instance(unsigned index)
 
 static char *Device_Name_Default(void)
 {
-    static char text_string[32]; /* okay for single thread */
+    static char text[32]; /* okay for single thread */
 
-    sprintf(text_string, "DEVICE-%lu", Object_Instance_Number);
+    snprintf(text, sizeof(text), "DEVICE-%lu",
+        (unsigned long)Object_Instance_Number);
 
-    return text_string;
+    return text;
 }
 
 bool Device_Object_Name(
@@ -509,7 +493,40 @@ bool Device_Object_List_Identifier(
     return status;
 }
 
-bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
+/**
+ * @brief Encode a BACnetARRAY property element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index requested:
+ *    0 to N for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+int Device_Object_List_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t instance;
+    bool found;
+
+    if (object_instance == Device_Object_Instance_Number()) {
+        /* single element is zero based, add 1 for BACnetARRAY which is one
+         * based */
+        array_index++;
+        found =
+            Device_Object_List_Identifier(array_index, &object_type, &instance);
+        if (found) {
+            apdu_len =
+                encode_application_object_id(apdu, object_type, instance);
+        }
+    }
+
+    return apdu_len;
+}
+
+bool Device_Valid_Object_Name(const BACNET_CHARACTER_STRING *object_name1,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {
@@ -577,21 +594,20 @@ bool Device_Object_Name_Copy(BACNET_OBJECT_TYPE object_type,
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    int len = 0; /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
     uint32_t i = 0;
-    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
-    uint32_t instance = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
     struct my_object_functions *pObject = NULL;
+    int apdu_max;
 
     if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
+    apdu_max = rpdata->application_data_len;
     switch ((int)rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -684,47 +700,16 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
-            /* Array element zero is the number of objects in the list */
-            if (rpdata->array_index == 0)
-                apdu_len = encode_application_unsigned(&apdu[0], count);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet.  Note that more than likely you will have */
-            /* to return an error if the number of encoded objects exceeds */
-            /* your maximum APDU size. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 1; i <= count; i++) {
-                    if (Device_Object_List_Identifier(
-                            i, &object_type, &instance)) {
-                        len = encode_application_object_id(
-                            &apdu[apdu_len], object_type, instance);
-                        apdu_len += len;
-                        /* assume next one is the same size as this one */
-                        /* can we all fit into the APDU? */
-                        if ((apdu_len + len) >= MAX_APDU) {
-                            /* Abort response */
-                            rpdata->error_code =
-                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                            apdu_len = BACNET_STATUS_ABORT;
-                            break;
-                        }
-                    } else {
-                        /* error: internal error? */
-                        rpdata->error_class = ERROR_CLASS_SERVICES;
-                        rpdata->error_code = ERROR_CODE_OTHER;
-                        apdu_len = BACNET_STATUS_ERROR;
-                        break;
-                    }
-                }
-            } else {
-                if (Device_Object_List_Identifier(
-                        rpdata->array_index, &object_type, &instance))
-                    apdu_len = encode_application_object_id(
-                        &apdu[0], object_type, instance);
-                else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index,
+                Device_Object_List_Element_Encode,
+                count, apdu, apdu_max);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
             }
             break;
         case PROP_MAX_APDU_LENGTH_ACCEPTED:

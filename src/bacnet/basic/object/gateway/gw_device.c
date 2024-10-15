@@ -1,50 +1,31 @@
-/**************************************************************************
- *
- * Copyright (C) 2005,2010 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/** @file gw_device.c  Functions that extend the Device object to support
- * routing. */
-
+/**
+ * @file
+ * @brief Functions that extend the Device object to support routing.
+ * @author Tom Brennan <tbrennan3@users.sourceforge.net>
+ * @author Peter Mc Shane <petermcs@users.sourceforge.net>
+ * @author Piotr Grudzinski <bacpack@users.sourceforge.net>
+ * @date October 2010
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h> /* for memmove */
+#include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/datetime.h"
 #include "bacnet/apdu.h"
 #include "bacnet/wp.h" /* write property handling */
 #include "bacnet/rp.h" /* read property handling */
+#include "bacnet/reject.h"
 #include "bacnet/version.h"
-#include "bacnet/basic/object/device.h" /* me */
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
-#include "bacnet/reject.h"
 /* include the objects */
+#include "bacnet/basic/object/device.h" /* me */
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/basic/object/av.h"
@@ -62,9 +43,7 @@
 /* os specific includes */
 #include "bacnet/basic/sys/mstimer.h"
 
-/* local forward and external prototypes */
-extern int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
-extern bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
+/* forward prototypes */
 int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
 bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
@@ -109,8 +88,9 @@ uint16_t iCurrent_Device_Idx = 0;
  * @return The index of this instance in the Devices[] array, or UINT16_MAX if
  *         there isn't enough room to add this Device.
  */
-uint16_t Add_Routed_Device(uint32_t Object_Instance,
-    BACNET_CHARACTER_STRING *sObject_Name,
+uint16_t Add_Routed_Device(
+    uint32_t Object_Instance,
+    const BACNET_CHARACTER_STRING *sObject_Name,
     const char *sDescription)
 {
     int i = Num_Managed_Devices;
@@ -121,8 +101,9 @@ uint16_t Add_Routed_Device(uint32_t Object_Instance,
         pDev->bacObj.mObject_Type = OBJECT_DEVICE;
         pDev->bacObj.Object_Instance_Number = Object_Instance;
         if (sObject_Name != NULL) {
-            Routed_Device_Set_Object_Name(sObject_Name->encoding,
-                sObject_Name->value, sObject_Name->length);
+            Routed_Device_Set_Object_Name(
+                sObject_Name->encoding, sObject_Name->value,
+                sObject_Name->length);
         } else {
             Routed_Device_Set_Object_Name(
                 CHARACTER_UTF8, "No Name", strlen("No Name"));
@@ -186,12 +167,13 @@ BACNET_ADDRESS *Get_Routed_Device_Address(int idx)
  * devices with routing.
  *
  * @param my_address [out] Points to the currently active Device Object's
- * 							BACnet address.
+ *                         BACnet address.
  */
 void routed_get_my_address(BACNET_ADDRESS *my_address)
 {
     if (my_address) {
-        memcpy(my_address, &Devices[iCurrent_Device_Idx].bacDevAddr,
+        memcpy(
+            my_address, &Devices[iCurrent_Device_Idx].bacDevAddr,
             sizeof(BACNET_ADDRESS));
     }
 }
@@ -213,7 +195,7 @@ void routed_get_my_address(BACNET_ADDRESS *my_address)
  *         meaning MAC broadcast, so it's an automatic match).
  *         Else False if no match or invalid idx is given.
  */
-bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
+bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, const uint8_t *dadr)
 {
     bool result = false;
     DEVICE_OBJECT_DATA *pDev;
@@ -248,13 +230,13 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
  * functions.
  *
  * @param dest [in] The BACNET_ADDRESS of the message's destination.
- * 		   If the Length of the mac_adress[] field is 0, then this is a
+ *         If the Length of the mac_adress[] field is 0, then this is a
  * MAC broadcast.  Otherwise, size is determined by the DLL type (eg, 6 for BIP
  * and 2 for MSTP).
  * @param DNET_list [in] List of our reachable downstream BACnet Network
  * numbers. Normally just one valid entry; terminated with a -1 value.
  * @param cursor [in,out] The concept of the cursor is that it is a starting
- * 		   "hint" for the search; on return, it is updated to provide
+ *         "hint" for the search; on return, it is updated to provide
  * the cursor value to use with a subsequent GetNext call, or it equals -1 if
  * there are no further matches. Set it to 0 on entry to access the main,
  * gateway Device entry, or to start looping through the routed devices.
@@ -262,11 +244,12 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
  *         calling function should not alter or interpret it.
  *
  * @return True if the MAC addresses match (or if BACNET_BROADCAST_NETWORK and
- * 		   the dest->len is 0, meaning MAC bcast, so it's an automatic
+ *         the dest->len is 0, meaning MAC bcast, so it's an automatic
  * match). Else False if no match or invalid idx is given; the cursor will be
  * returned as -1 in these cases.
  */
-bool Routed_Device_GetNext(BACNET_ADDRESS *dest, int *DNET_list, int *cursor)
+bool Routed_Device_GetNext(
+    const BACNET_ADDRESS *dest, const int *DNET_list, int *cursor)
 {
     int dnet = DNET_list[0]; /* Get the DNET of our virtual network */
     int idx = *cursor;
@@ -328,15 +311,15 @@ bool Routed_Device_GetNext(BACNET_ADDRESS *dest, int *DNET_list, int *cursor)
  *  or local or else broadcast.
  *
  * @param dest_net [in] The BACnet network number of a message's destination.
- * 		   Success if it is our virtual network number, or 0 (local for
+ *         Success if it is our virtual network number, or 0 (local for
  * the gateway, or 0xFFFF for a broadcast network number.
  * @param DNET_list [in] List of our reachable downstream BACnet Network
  * numbers. Normally just one valid entry; terminated with a -1 value.
  * @return True if matches our virtual network, or is for the local network
- * 			Device (the gateway), or is BACNET_BROADCAST_NETWORK,
+ *          Device (the gateway), or is BACNET_BROADCAST_NETWORK,
  * which is an automatic match. Else False if not a reachable network.
  */
-bool Routed_Device_Is_Valid_Network(uint16_t dest_net, int *DNET_list)
+bool Routed_Device_Is_Valid_Network(uint16_t dest_net, const int *DNET_list)
 {
     int dnet = DNET_list[0]; /* Get the DNET of our virtual network */
     bool bSuccess = false;
@@ -361,7 +344,7 @@ bool Routed_Device_Is_Valid_Network(uint16_t dest_net, int *DNET_list)
 
 uint32_t Routed_Device_Index_To_Instance(unsigned index)
 {
-    index = index;
+    (void)index;
     return Devices[iCurrent_Device_Idx].bacObj.Object_Instance_Number;
 }
 
@@ -610,7 +593,8 @@ void Routed_Device_Inc_Database_Revision(void)
  *          just 1 if no apdu_buff was supplied and service is not supported,
  *          else 0 if service is approved for the current device.
  */
-int Routed_Device_Service_Approval(BACNET_SERVICES_SUPPORTED service,
+int Routed_Device_Service_Approval(
+    BACNET_SERVICES_SUPPORTED service,
     int service_argument,
     uint8_t *apdu_buff,
     uint8_t invoke_id)
@@ -623,7 +607,8 @@ int Routed_Device_Service_Approval(BACNET_SERVICES_SUPPORTED service,
             /* If not the gateway device, we don't support RD */
             if (iCurrent_Device_Idx > 0) {
                 if (apdu_buff != NULL) {
-                    len = reject_encode_apdu(apdu_buff, invoke_id,
+                    len = reject_encode_apdu(
+                        apdu_buff, invoke_id,
                         REJECT_REASON_UNRECOGNIZED_SERVICE);
                 } else {
                     len = 1; /* Non-zero return */
@@ -634,7 +619,8 @@ int Routed_Device_Service_Approval(BACNET_SERVICES_SUPPORTED service,
             /* If not the gateway device, we don't support DCC */
             if (iCurrent_Device_Idx > 0) {
                 if (apdu_buff != NULL) {
-                    len = reject_encode_apdu(apdu_buff, invoke_id,
+                    len = reject_encode_apdu(
+                        apdu_buff, invoke_id,
                         REJECT_REASON_UNRECOGNIZED_SERVICE);
                 } else {
                     len = 1; /* Non-zero return */

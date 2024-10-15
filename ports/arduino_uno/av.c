@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 
@@ -46,8 +29,9 @@ float AV_Present_Value[MAX_ANALOG_VALUES];
 /* given instance exists */
 bool Analog_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ANALOG_VALUES)
+    if (object_instance < MAX_ANALOG_VALUES) {
         return true;
+    }
 
     return false;
 }
@@ -86,7 +70,8 @@ char *Analog_Value_Name(uint32_t object_instance)
 }
 
 /* return apdu len, or -1 on error */
-int Analog_Value_Encode_Property_APDU(uint8_t *apdu,
+int Analog_Value_Encode_Property_APDU(
+    uint8_t *apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     uint32_t array_index,
@@ -153,7 +138,8 @@ int Analog_Value_Encode_Property_APDU(uint8_t *apdu,
 }
 
 /* returns true if successful */
-bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data,
+bool Analog_Value_Write_Property(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {

@@ -19,7 +19,11 @@
 /**
  * @brief Test
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(memcopy_tests, test_memcopy)
+#else
 static void test_memcopy(void)
+#endif
 {
     char *data1 = "Joshua";
     char *data2 = "Anna";
@@ -40,12 +44,13 @@ static void test_memcopy(void)
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(memcopy_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(memcopy_tests,
-     ztest_unit_test(test_memcopy)
-     );
+    ztest_test_suite(memcopy_tests, ztest_unit_test(test_memcopy));
 
     ztest_run_test_suite(memcopy_tests);
 }
+#endif

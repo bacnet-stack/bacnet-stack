@@ -19,117 +19,196 @@
 /**
  * @brief Test
  */
-void testPropStates(void)
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacpropstates_tests, testPropStates)
+#else
+static void testPropStates(void)
+#endif
 {
-    BACNET_PROPERTY_STATE inData;
-    BACNET_PROPERTY_STATE outData;
-    uint8_t appMsg[MAX_APDU];
-    int inLen;
-    int outLen;
+    BACNET_PROPERTY_STATE data = { 0 };
+    BACNET_PROPERTY_STATE test_data = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int apdu_len = 0;
+    int test_len = 0;
 
-    inData.tag = BOOLEAN_VALUE;
-    inData.state.booleanValue = true;
+    /*************************************************/
+    data.tag = PROP_STATE_BOOLEAN_VALUE;
+    data.state.booleanValue = true;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(
+        test_len, apdu_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(data.state.booleanValue, test_data.state.booleanValue, NULL);
 
-    inLen = bacapp_encode_property_state(appMsg, &inData);
+    /*************************************************/
+    data.tag = PROP_STATE_BINARY_VALUE;
+    data.state.binaryValue = BINARY_ACTIVE;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(data.state.binaryValue, test_data.state.binaryValue, NULL);
 
-    memset(&outData, 0, sizeof(outData));
+    /*************************************************/
+    data.tag = PROP_STATE_EVENT_TYPE;
+    data.state.eventType = EVENT_BUFFER_READY;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(data.state.eventType, test_data.state.eventType, NULL);
 
-    outLen = bacapp_decode_property_state(appMsg, &outData);
+    /*************************************************/
+    data.tag = PROP_STATE_POLARITY;
+    data.state.polarity = POLARITY_REVERSE;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(data.state.polarity, test_data.state.polarity, NULL);
 
-    zassert_equal(outLen, inLen, NULL);
-    zassert_equal(inData.tag, outData.tag, NULL);
-    zassert_equal(inData.state.booleanValue, outData.state.booleanValue, NULL);
+    /*************************************************/
+    data.tag = PROP_STATE_PROGRAM_CHANGE;
+    data.state.programChange = PROGRAM_REQUEST_RESTART;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(
+        data.state.programChange, test_data.state.programChange, NULL);
 
-    /****************
-    *****************
-    ****************/
-    inData.tag = BINARY_VALUE;
-    inData.state.binaryValue = BINARY_ACTIVE;
+    /*************************************************/
+    data.tag = PROP_STATE_PROGRAM_STATE;
+    data.state.programState = PROGRAM_STATE_HALTED;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(data.state.programState, test_data.state.programState, NULL);
 
-    inLen = bacapp_encode_property_state(appMsg, &inData);
+    /*************************************************/
+    data.tag = PROP_STATE_REASON_FOR_HALT;
+    data.state.programError = PROGRAM_ERROR_LOAD_FAILED;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(data.state.programError, test_data.state.programError, NULL);
 
-    memset(&outData, 0, sizeof(outData));
+    /*************************************************/
+    data.tag = PROP_STATE_RELIABILITY;
+    data.state.reliability = RELIABILITY_COMMUNICATION_FAILURE;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(data.state.reliability, test_data.state.reliability, NULL);
 
-    outLen = bacapp_decode_property_state(appMsg, &outData);
+    /*************************************************/
+    data.tag = PROP_STATE_EVENT_STATE;
+    data.state.state = EVENT_STATE_FAULT;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(data.state.state, test_data.state.state, NULL);
 
-    zassert_equal(outLen, inLen, NULL);
-    zassert_equal(inData.tag, outData.tag, NULL);
-    zassert_equal(inData.state.binaryValue, outData.state.binaryValue, NULL);
+    /*************************************************/
+    data.tag = PROP_STATE_SYSTEM_STATUS;
+    data.state.systemStatus = STATUS_OPERATIONAL_READ_ONLY;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(data.state.systemStatus, test_data.state.systemStatus, NULL);
 
-    /****************
-    *****************
-    ****************/
-    inData.tag = EVENT_TYPE;
-    inData.state.eventType = EVENT_BUFFER_READY;
+    /*************************************************/
+    data.tag = PROP_STATE_UNITS;
+    data.state.units = UNITS_BARS;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(data.state.units, test_data.state.units, NULL);
 
-    inLen = bacapp_encode_property_state(appMsg, &inData);
+    /*************************************************/
+    data.tag = PROP_STATE_UNSIGNED_VALUE;
+    data.state.unsignedValue = 0xdeadbeef;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(
+        data.state.unsignedValue, test_data.state.unsignedValue, NULL);
 
-    memset(&outData, 0, sizeof(outData));
+    /*************************************************/
+    data.tag = PROP_STATE_LIFE_SAFETY_MODE;
+    data.state.lifeSafetyMode = LIFE_SAFETY_MODE_ON;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(
+        data.state.lifeSafetyMode, test_data.state.lifeSafetyMode, NULL);
 
-    outLen = bacapp_decode_property_state(appMsg, &outData);
+    /*************************************************/
+    data.tag = PROP_STATE_LIFE_SAFETY_STATE;
+    data.state.lifeSafetyState = LIFE_SAFETY_STATE_ABNORMAL;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(
+        data.state.lifeSafetyState, test_data.state.lifeSafetyState, NULL);
 
-    zassert_equal(outLen, inLen, NULL);
-    zassert_equal(inData.tag, outData.tag, NULL);
-    zassert_equal(inData.state.eventType, outData.state.eventType, NULL);
+    /*************************************************/
+    data.tag = PROP_STATE_RESTART_REASON;
+    data.state.restartReason = RESTART_REASON_COLDSTART;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(
+        data.state.restartReason, test_data.state.restartReason, NULL);
 
-    /****************
-    *****************
-    ****************/
-    inData.tag = POLARITY;
-    inData.state.polarity = POLARITY_REVERSE;
-
-    inLen = bacapp_encode_property_state(appMsg, &inData);
-
-    memset(&outData, 0, sizeof(outData));
-
-    outLen = bacapp_decode_property_state(appMsg, &outData);
-
-    zassert_equal(outLen, inLen, NULL);
-    zassert_equal(inData.tag, outData.tag, NULL);
-    zassert_equal(inData.state.polarity, outData.state.polarity, NULL);
-
-    /****************
-    *****************
-    ****************/
-    inData.tag = PROGRAM_CHANGE;
-    inData.state.programChange = PROGRAM_REQUEST_RESTART;
-
-    inLen = bacapp_encode_property_state(appMsg, &inData);
-
-    memset(&outData, 0, sizeof(outData));
-
-    outLen = bacapp_decode_property_state(appMsg, &outData);
-
-    zassert_equal(outLen, inLen, NULL);
-    zassert_equal(inData.tag, outData.tag, NULL);
-    zassert_equal(inData.state.programChange, outData.state.programChange, NULL);
-
-    /****************
-    *****************
-    ****************/
-    inData.tag = UNSIGNED_VALUE;
-    inData.state.unsignedValue = 0xdeadbeef;
-
-    inLen = bacapp_encode_property_state(appMsg, &inData);
-
-    memset(&outData, 0, sizeof(outData));
-
-    outLen = bacapp_decode_property_state(appMsg, &outData);
-
-    zassert_equal(outLen, inLen, NULL);
-    zassert_equal(inData.tag, outData.tag, NULL);
-    zassert_equal(inData.state.unsignedValue, outData.state.unsignedValue, NULL);
+    /*************************************************/
+    data.tag = PROP_STATE_DOOR_ALARM_STATE;
+    data.state.doorAlarmState = DOOR_ALARM_STATE_ALARM;
+    apdu_len = bacapp_encode_property_state(apdu, &data);
+    memset(&test_data, 0, sizeof(test_data));
+    test_len = bacapp_decode_property_state(apdu, &test_data);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_equal(data.tag, test_data.tag, NULL);
+    zassert_equal(
+        data.state.doorAlarmState, test_data.state.doorAlarmState, NULL);
 }
 /**
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(bacpropstates_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(bacpropstates_tests,
-     ztest_unit_test(testPropStates)
-     );
+    ztest_test_suite(bacpropstates_tests, ztest_unit_test(testPropStates));
 
     ztest_run_test_suite(bacpropstates_tests);
 }
+#endif

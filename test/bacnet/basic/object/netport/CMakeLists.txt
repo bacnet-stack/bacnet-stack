@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 get_filename_component(basename ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 project(test_${basename}
-	VERSION 1.0.0
-	LANGUAGES C)
+    VERSION 1.0.0
+    LANGUAGES C)
 
 
 string(REGEX REPLACE
@@ -38,9 +38,10 @@ add_compile_definitions(
 	)
 
 include_directories(
-	${SRC_DIR}
-	${TST_DIR}/ztest/include
-	)
+    ${SRC_DIR}
+    ${TST_DIR}/bacnet/basic/object/test
+    ${TST_DIR}/ztest/include
+    )
 
 if(ZEPHYR_BASE)
   message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
@@ -101,32 +102,38 @@ elseif(WIN32)
     ${PORTS_DIR}/win32/datetime-init.c
     # File(s) under test
 	${SRC_DIR}/bacnet/basic/object/bacfile.c
-	${SRC_DIR}/bacnet/basic/object/netport.c
+    ${SRC_DIR}/bacnet/basic/object/netport.c
 	${SRC_DIR}/bacnet/basic/object/sc_netport.c
     # Support files and stubs (pathname alphabetical)
+    ${SRC_DIR}/bacnet/access_rule.c
+    ${SRC_DIR}/bacnet/bacaction.c
+    ${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/arf.c
-	${SRC_DIR}/bacnet/bacapp.c
-	${SRC_DIR}/bacnet/bacdcode.c
-	${SRC_DIR}/bacnet/bacdevobjpropref.c
-	${SRC_DIR}/bacnet/bacerror.c
-	${SRC_DIR}/bacnet/bacint.c
-	${SRC_DIR}/bacnet/bacreal.c
-	${SRC_DIR}/bacnet/bacstr.c
-	${SRC_DIR}/bacnet/bactext.c
-	${SRC_DIR}/bacnet/basic/sys/bigend.c
-	${SRC_DIR}/bacnet/datalink/bvlc.c
-	${SRC_DIR}/bacnet/datetime.c
-	${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/bacapp.c
+    ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdest.c
+    ${SRC_DIR}/bacnet/bacdevobjpropref.c
+    ${SRC_DIR}/bacnet/bacerror.c
+    ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/bacreal.c
+    ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/basic/sys/bigend.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/basic/sys/days.c
 	${SRC_DIR}/bacnet/basic/sys/keylist.c
-	${SRC_DIR}/bacnet/indtext.c
-	${SRC_DIR}/bacnet/hostnport.c
-	${SRC_DIR}/bacnet/lighting.c
-	${SRC_DIR}/bacnet/proplist.c
-	${SRC_DIR}/bacnet/timestamp.c
-	${SRC_DIR}/bacnet/wp.c
-	${SRC_DIR}/bacnet/weeklyschedule.c
-	${SRC_DIR}/bacnet/bactimevalue.c
-	${SRC_DIR}/bacnet/dailyschedule.c
+    ${SRC_DIR}/bacnet/indtext.c
+    ${SRC_DIR}/bacnet/hostnport.c
+    ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/timestamp.c
+    ${SRC_DIR}/bacnet/wp.c
+    ${SRC_DIR}/bacnet/weeklyschedule.c
+    ${SRC_DIR}/bacnet/bactimevalue.c
+    ${SRC_DIR}/bacnet/dailyschedule.c
+    ${SRC_DIR}/bacnet/calendar_entry.c
+    ${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
 	${SRC_DIR}/bacnet/basic/sys/debug.c

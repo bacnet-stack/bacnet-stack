@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2020 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**
+ * @file
+ * @brief BBMD (BACnet Broadcast Management Device) for BACnet/IPv4
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2020
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdio.h> /* for standard i/o, like printing */
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
@@ -77,11 +50,12 @@ static bool BVLC_NAT_Handling = false;
 static BACNET_IP_ADDRESS Remote_BBMD;
 /** if we are a foreign device, store the Time-To-Live Seconds here */
 static uint16_t Remote_BBMD_TTL_Seconds;
-#if BBMD_ENABLED
+#if BBMD_ENABLED || BBMD_CLIENT_ENABLED
 /* local buffer & length for sending */
 static uint8_t BVLC_Buffer[BIP_MPDU_MAX];
 static uint16_t BVLC_Buffer_Len;
-/* Broadcast Distribution Table */
+#endif
+#if BBMD_ENABLED /* Broadcast Distribution Table */
 #ifndef MAX_BBMD_ENTRIES
 #define MAX_BBMD_ENTRIES 128
 #endif
@@ -119,7 +93,8 @@ static void debug_print_bip(const char *str, const BACNET_IP_ADDRESS *addr)
 {
 #if PRINT_ENABLED
     if (BVLC_Debug) {
-        printf("BVLC: %s %u.%u.%u.%u:%u\n", str, (unsigned)addr->address[0],
+        printf(
+            "BVLC: %s %u.%u.%u.%u:%u\n", str, (unsigned)addr->address[0],
             (unsigned)addr->address[1], (unsigned)addr->address[2],
             (unsigned)addr->address[3], (unsigned)addr->port);
     }
@@ -213,7 +188,8 @@ void bvlc_bdt_backup_local(void)
     }
 
     fseek(bdt_file_ptr, 0, SEEK_SET);
-    fwrite(BBMD_Table, sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY),
+    fwrite(
+        BBMD_Table, sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY),
         MAX_BBMD_ENTRIES, bdt_file_ptr);
     fflush(bdt_file_ptr);
 }
@@ -238,12 +214,14 @@ void bvlc_bdt_restore_local(void)
         BBMD_Table_tmp[MAX_BBMD_ENTRIES];
         size_t entries = 0;
 
-        entries = fread(BBMD_Table_tmp,
+        entries = fread(
+            BBMD_Table_tmp,
             sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY),
             MAX_BBMD_ENTRIES, bdt_file_ptr);
         if (entries == MAX_BBMD_ENTRIES) {
             /* success reading the BDT table. */
-            memcpy(BBMD_Table, BBMD_Table_tmp,
+            memcpy(
+                BBMD_Table, BBMD_Table_tmp,
                 sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY) *
                     MAX_BBMD_ENTRIES);
         }
@@ -267,6 +245,8 @@ void bvlc_maintenance_timer(uint16_t seconds)
 {
 #if BBMD_ENABLED
     bvlc_foreign_device_table_maintenance_timer(&FD_Table[0], seconds);
+#else
+    (void)seconds;
 #endif
 }
 
@@ -277,7 +257,7 @@ void bvlc_maintenance_timer(uint16_t seconds)
  *
  * @return true if the IP from sin match me
  */
-static bool bbmd_address_match_self(BACNET_IP_ADDRESS *addr)
+static bool bbmd_address_match_self(const BACNET_IP_ADDRESS *addr)
 {
     BACNET_IP_ADDRESS my_addr = { 0 };
     bool status = false;
@@ -298,7 +278,7 @@ static bool bbmd_address_match_self(BACNET_IP_ADDRESS *addr)
  *
  * @return True if BDT member is found and has a unicast mask
  */
-static bool bbmd_bdt_member_mask_is_unicast(BACNET_IP_ADDRESS *addr)
+static bool bbmd_bdt_member_mask_is_unicast(const BACNET_IP_ADDRESS *addr)
 {
     bool unicast = false;
     BACNET_IP_ADDRESS my_addr = { 0 };
@@ -336,7 +316,7 @@ static bool bbmd_bdt_member_mask_is_unicast(BACNET_IP_ADDRESS *addr)
  * @return number of bytes encoded in the Forwarded NPDU
  */
 static uint16_t bbmd_forward_npdu(
-    BACNET_IP_ADDRESS *bip_src, uint8_t *npdu, uint16_t npdu_length)
+    const BACNET_IP_ADDRESS *bip_src, const uint8_t *npdu, uint16_t npdu_length)
 {
     BACNET_IP_ADDRESS broadcast_address = { 0 };
     uint8_t mtu[BIP_MPDU_MAX] = { 0 };
@@ -362,8 +342,9 @@ static uint16_t bbmd_forward_npdu(
  * @param original - was the message an original (not forwarded)
  * @return number of bytes encoded in the Forwarded NPDU
  */
-static uint16_t bbmd_bdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
-    uint8_t *npdu,
+static uint16_t bbmd_bdt_forward_npdu(
+    const BACNET_IP_ADDRESS *bip_src,
+    const uint8_t *npdu,
     uint16_t npdu_length,
     bool original)
 {
@@ -383,8 +364,9 @@ static uint16_t bbmd_bdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
      * or the NAT handling is disabled, leave the source address as is.
      */
     if (BVLC_NAT_Handling && original) {
-        mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(&mtu[0],
-            (uint16_t)sizeof(mtu), &BVLC_Global_Address, npdu, npdu_length);
+        mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(
+            &mtu[0], (uint16_t)sizeof(mtu), &BVLC_Global_Address, npdu,
+            npdu_length);
     } else {
         mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(
             &mtu[0], (uint16_t)sizeof(mtu), bip_src, npdu, npdu_length);
@@ -427,8 +409,9 @@ static uint16_t bbmd_bdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
  * @param original - was the message an original (not forwarded)
  * @return number of bytes encoded in the Forwarded NPDU
  */
-static uint16_t bbmd_fdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
-    uint8_t *npdu,
+static uint16_t bbmd_fdt_forward_npdu(
+    const BACNET_IP_ADDRESS *bip_src,
+    const uint8_t *npdu,
     uint16_t npdu_length,
     bool original)
 {
@@ -448,8 +431,9 @@ static uint16_t bbmd_fdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
      * or the NAT handling is disabled, leave the source address as is.
      */
     if (BVLC_NAT_Handling && original) {
-        mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(&mtu[0],
-            (uint16_t)sizeof(mtu), &BVLC_Global_Address, npdu, npdu_length);
+        mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(
+            &mtu[0], (uint16_t)sizeof(mtu), &BVLC_Global_Address, npdu,
+            npdu_length);
     } else {
         mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(
             &mtu[0], (uint16_t)sizeof(mtu), bip_src, npdu, npdu_length);
@@ -492,7 +476,7 @@ static uint16_t bbmd_fdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
  * @param original - was the message an original (not forwarded)
  */
 static void bbmd_read_bdt_ack_handler(
-    BACNET_IP_ADDRESS *addr, uint8_t *npdu, uint16_t npdu_length)
+    const BACNET_IP_ADDRESS *addr, const uint8_t *npdu, uint16_t npdu_length)
 {
 #if PRINT_ENABLED
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
@@ -500,14 +484,16 @@ static void bbmd_read_bdt_ack_handler(
     unsigned count = 1;
     int len = 0;
 
-    printf("BBMD: %u.%u.%u.%u:%u\n", (unsigned)addr->address[0],
+    printf(
+        "BBMD: %u.%u.%u.%u:%u\n", (unsigned)addr->address[0],
         (unsigned)addr->address[1], (unsigned)addr->address[2],
         (unsigned)addr->address[3], (unsigned)addr->port);
     while (npdu_length >= BACNET_IP_BDT_ENTRY_SIZE) {
         len = bvlc_decode_broadcast_distribution_table_entry(
             &npdu[offset], npdu_length, &bdt_entry);
         if (len > 0) {
-            printf("BDT-%03u: %u.%u.%u.%u:%u %u.%u.%u.%u\n", count,
+            printf(
+                "BDT-%03u: %u.%u.%u.%u:%u %u.%u.%u.%u\n", count,
                 (unsigned)bdt_entry.dest_address.address[0],
                 (unsigned)bdt_entry.dest_address.address[1],
                 (unsigned)bdt_entry.dest_address.address[2],
@@ -540,7 +526,7 @@ static void bbmd_read_bdt_ack_handler(
  * @param original - was the message an original (not forwarded)
  */
 static void bbmd_read_fdt_ack_handler(
-    BACNET_IP_ADDRESS *addr, uint8_t *npdu, uint16_t npdu_length)
+    const BACNET_IP_ADDRESS *addr, const uint8_t *npdu, uint16_t npdu_length)
 {
 #if PRINT_ENABLED
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = { 0 };
@@ -548,14 +534,16 @@ static void bbmd_read_fdt_ack_handler(
     unsigned count = 1;
     int len = 0;
 
-    printf("BBMD: %u.%u.%u.%u:%u\n", (unsigned)addr->address[0],
+    printf(
+        "BBMD: %u.%u.%u.%u:%u\n", (unsigned)addr->address[0],
         (unsigned)addr->address[1], (unsigned)addr->address[2],
         (unsigned)addr->address[3], (unsigned)addr->port);
     while (npdu_length >= BACNET_IP_FDT_ENTRY_SIZE) {
         len = bvlc_decode_foreign_device_table_entry(
             &npdu[offset], npdu_length, &fdt_entry);
         if (len > 0) {
-            printf("FDT-%03u: %u.%u.%u.%u:%u %us %us\n", count,
+            printf(
+                "FDT-%03u: %u.%u.%u.%u:%u %us %us\n", count,
                 (unsigned)fdt_entry.dest_address.address[0],
                 (unsigned)fdt_entry.dest_address.address[1],
                 (unsigned)fdt_entry.dest_address.address[2],
@@ -590,9 +578,10 @@ static void bbmd_read_fdt_ack_handler(
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bvlc_send_pdu(BACNET_ADDRESS *dest,
-    BACNET_NPDU_DATA *npdu_data,
-    uint8_t *pdu,
+int bvlc_send_pdu(
+    const BACNET_ADDRESS *dest,
+    const BACNET_NPDU_DATA *npdu_data,
+    const uint8_t *pdu,
     unsigned pdu_len)
 {
     BACNET_IP_ADDRESS bvlc_dest = { 0 };
@@ -661,7 +650,8 @@ int bvlc_send_pdu(BACNET_ADDRESS *dest,
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-static int bvlc_send_result(BACNET_IP_ADDRESS *dest_addr, uint16_t result_code)
+static int
+bvlc_send_result(const BACNET_IP_ADDRESS *dest_addr, uint16_t result_code)
 {
     uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
@@ -682,7 +672,8 @@ static int bvlc_send_result(BACNET_IP_ADDRESS *dest_addr, uint16_t result_code)
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_bbmd_disabled_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len)
@@ -735,14 +726,14 @@ int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
                 if (function_len) {
                     if (bbmd_address_match_self(&fwd_address)) {
                         /* ignore forwards from my IPv4 address */
-                        debug_print_string("Forwarded-NPDU is me!");
+                        debug_print_string("Dropped Forwarded-NPDU from me!");
                         break;
                     }
                     bvlc_ip_address_to_bacnet_local(src, &fwd_address);
                     offset = header_len + function_len - npdu_len;
                     debug_print_npdu("Forwarded-NPDU", offset, npdu_len);
                 } else {
-                    debug_print_string("Forwarded-NPDU: Unable to decode!");
+                    debug_print_string("Dropped Forwarded-NPDU: Malformed!");
                 }
                 break;
             case BVLC_REGISTER_FOREIGN_DEVICE:
@@ -771,7 +762,8 @@ int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
                 debug_print_bip("Received Original-Unicast-NPDU", addr);
                 if (bbmd_address_match_self(addr)) {
                     /* ignore messages from my IPv4 address */
-                    debug_print_string("Original-Unicast-NPDU is me!");
+                    debug_print_string(
+                        "Dropped Original-Unicast-NPDU from me!");
                     break;
                 }
                 function_len = bvlc_decode_original_unicast(
@@ -782,14 +774,15 @@ int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
                     debug_print_npdu("Original-Unicast-NPDU", offset, npdu_len);
                 } else {
                     debug_print_string(
-                        "Original-Unicast-NPDU: Unable to decode!");
+                        "Dropped Original-Unicast-NPDU: Malformed!");
                 }
                 break;
             case BVLC_ORIGINAL_BROADCAST_NPDU:
                 debug_print_bip("Received Original-Broadcast-NPDU", addr);
                 if (bbmd_address_match_self(addr)) {
                     /* ignore messages from my IPv4 address */
-                    debug_print_string("Original-Broadcast-NPDU is me!");
+                    debug_print_string(
+                        "Dropped Original-Broadcast-NPDU from me!");
                     break;
                 }
                 function_len = bvlc_decode_original_broadcast(
@@ -804,15 +797,15 @@ int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
                     npdu = &mtu[offset];
                     if (npdu_confirmed_service(npdu, npdu_len)) {
                         offset = 0;
-                        debug_print_string("Original-Broadcast-NPDU: "
-                                           "Confirmed Service! Discard!");
+                        debug_print_string("Dropped Original-Broadcast-NPDU: "
+                                           "Confirmed Service!");
                     } else {
                         debug_print_npdu(
                             "Original-Broadcast-NPDU", offset, npdu_len);
                     }
                 } else {
                     debug_print_string(
-                        "Original-Broadcast-NPDU: Unable to decode!");
+                        "Dropped Original-Broadcast-NPDU: Malformed!");
                 }
                 break;
             case BVLC_SECURE_BVLL:
@@ -841,7 +834,8 @@ int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_bbmd_enabled_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len)
@@ -942,7 +936,7 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
             if (function_len) {
                 if (bbmd_address_match_self(&fwd_address)) {
                     /* ignore forwards from my IPv4 address */
-                    debug_print_string("Forwarded-NPDU is me!");
+                    debug_print_string("Dropped Forwarded-NPDU from me!");
                     break;
                 }
                 if (bbmd_bdt_member_mask_is_unicast(addr)) {
@@ -959,7 +953,8 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                     the BBMD's FDT. */
                 offset = header_len + function_len - npdu_len;
                 npdu = &mtu[offset];
-                (void)bbmd_fdt_forward_npdu(&fwd_address, npdu, npdu_len, false);
+                (void)bbmd_fdt_forward_npdu(
+                    &fwd_address, npdu, npdu_len, false);
                 /* prepare the message for me! */
                 bvlc_ip_address_to_bacnet_local(src, &fwd_address);
                 debug_print_npdu("Forwarded-NPDU", offset, npdu_len);
@@ -1077,7 +1072,7 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
             debug_print_bip("Received Original-Unicast-NPDU", addr);
             if (bbmd_address_match_self(addr)) {
                 /* ignore messages from my IPv4 address */
-                debug_print_string("Original-Unicast-NPDU is me!");
+                debug_print_string("Dropped Original-Unicast-NPDU from me!");
                 break;
             }
             function_len =
@@ -1089,14 +1084,14 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                 debug_print_npdu("Original-Unicast-NPDU", offset, npdu_len);
             } else {
                 debug_print_string(
-                    "Original-Broadcast-NPDU: Unable to decode!");
+                    "Dropped Original-Broadcast-NPDU: Malformed!");
             }
             break;
         case BVLC_ORIGINAL_BROADCAST_NPDU:
             debug_print_bip("Received Original-Broadcast-NPDU", addr);
             if (bbmd_address_match_self(addr)) {
                 /* ignore messages from my IPv4 address */
-                debug_print_string("Original-Broadcast-NPDU is me!");
+                debug_print_string("Dropped Original-Broadcast-NPDU from me!");
                 break;
             }
             function_len = bvlc_decode_original_broadcast(
@@ -1125,8 +1120,8 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                    network layer. */
                 if (npdu_confirmed_service(npdu, npdu_len)) {
                     offset = 0;
-                    debug_print_string("Original-Broadcast-NPDU: "
-                                       "Confirmed Service! Discard!");
+                    debug_print_string("Dropped Original-Broadcast-NPDU: "
+                                       "Confirmed Service!");
                 } else {
                     (void)bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
                     (void)bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
@@ -1135,7 +1130,7 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                 }
             } else {
                 debug_print_string(
-                    "Original-Broadcast-NPDU: Unable to decode!");
+                    "Dropped Original-Broadcast-NPDU: Malformed!");
             }
             break;
         case BVLC_SECURE_BVLL:
@@ -1164,7 +1159,8 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-int bvlc_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *npdu,
     uint16_t npdu_len)
@@ -1178,7 +1174,8 @@ int bvlc_handler(BACNET_IP_ADDRESS *addr,
 #endif
 }
 
-int bvlc_broadcast_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_broadcast_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *npdu,
     uint16_t npdu_len)
@@ -1188,12 +1185,14 @@ int bvlc_broadcast_handler(BACNET_IP_ADDRESS *addr,
     uint16_t message_length = 0;
     int header_len = 0;
 
+    debug_print_bip("Received Broadcast", addr);
     header_len =
         bvlc_decode_header(npdu, npdu_len, &message_type, &message_length);
     if (header_len == 4) {
         switch (message_type) {
             case BVLC_ORIGINAL_UNICAST_NPDU:
                 /* drop unicast when sent as a broadcast */
+                debug_print_bip("Dropped BVLC (Original Unicast)", addr);
                 break;
             default:
                 offset = bvlc_handler(addr, src, npdu, npdu_len);
@@ -1212,7 +1211,8 @@ int bvlc_broadcast_handler(BACNET_IP_ADDRESS *addr,
  *         0 if no registration request is sent, or
  *         -1 if registration fails.
  */
-int bvlc_register_with_bbmd(BACNET_IP_ADDRESS *bbmd_addr, uint16_t ttl_seconds)
+int bvlc_register_with_bbmd(
+    const BACNET_IP_ADDRESS *bbmd_addr, uint16_t ttl_seconds)
 {
     /* Store the BBMD address and port so that we won't broadcast locally. */
     /* We are a foreign device! */
@@ -1252,7 +1252,7 @@ uint16_t bvlc_remote_bbmd_lifetime(void)
  * @param bbmd_addr - IPv4 address of BBMD with which to read
  * @return Positive number (of bytes sent) on success
  */
-int bvlc_bbmd_read_bdt(BACNET_IP_ADDRESS *bbmd_addr)
+int bvlc_bbmd_read_bdt(const BACNET_IP_ADDRESS *bbmd_addr)
 {
     BVLC_Buffer_Len = bvlc_encode_read_broadcast_distribution_table(
         &BVLC_Buffer[0], sizeof(BVLC_Buffer));
@@ -1265,7 +1265,8 @@ int bvlc_bbmd_read_bdt(BACNET_IP_ADDRESS *bbmd_addr)
  * @param bbmd_addr - IPv4 address of BBMD with which to read
  * @return Positive number (of bytes sent) on success
  */
-int bvlc_bbmd_write_bdt(BACNET_IP_ADDRESS *bbmd_addr,
+int bvlc_bbmd_write_bdt(
+    const BACNET_IP_ADDRESS *bbmd_addr,
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list)
 {
     BVLC_Buffer_Len = bvlc_encode_write_broadcast_distribution_table(
@@ -1279,7 +1280,7 @@ int bvlc_bbmd_write_bdt(BACNET_IP_ADDRESS *bbmd_addr,
  * @param bbmd_addr - IPv4 address of BBMD with which to read
  * @return Positive number (of bytes sent) on success
  */
-int bvlc_bbmd_read_fdt(BACNET_IP_ADDRESS *bbmd_addr)
+int bvlc_bbmd_read_fdt(const BACNET_IP_ADDRESS *bbmd_addr)
 {
     BVLC_Buffer_Len = bvlc_encode_read_foreign_device_table(
         &BVLC_Buffer[0], sizeof(BVLC_Buffer));

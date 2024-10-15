@@ -19,7 +19,8 @@
 /**
  * @brief decode the whole APDU - mainly used for unit testing
  */
-static int abort_decode_apdu(uint8_t *apdu,
+static int abort_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t *abort_reason,
@@ -27,16 +28,19 @@ static int abort_decode_apdu(uint8_t *apdu,
 {
     int len = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
     if (apdu_len > 0) {
-        if ((apdu[0] & 0xF0) != PDU_TYPE_ABORT)
+        if ((apdu[0] & 0xF0) != PDU_TYPE_ABORT) {
             return -1;
-        if (apdu[0] & 1)
+        }
+        if (apdu[0] & 1) {
             *server = true;
-        else
+        } else {
             *server = false;
+        }
         if (apdu_len > 1) {
             len = abort_decode_service_request(
                 &apdu[1], apdu_len - 1, invoke_id, abort_reason);
@@ -49,8 +53,7 @@ static int abort_decode_apdu(uint8_t *apdu,
 /**
  * @brief Test Abort ADPU
  */
-static void testAbortAPDU(
-    uint8_t invoke_id, uint8_t abort_reason, bool server)
+static void testAbortAPDU(uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -75,7 +78,11 @@ static void testAbortAPDU(
 /**
  * @brief Test encode/decode API for strings
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(abort_tests, testAbortEncodeDecode)
+#else
 static void testAbortEncodeDecode(void)
+#endif
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -125,7 +132,11 @@ static void testAbortEncodeDecode(void)
 /**
  * @brief Test Abort Error
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(abort_tests, testAbortError)
+#else
 static void testAbortError(void)
+#endif
 {
     int i;
     BACNET_ERROR_CODE error_code;
@@ -137,8 +148,8 @@ static void testAbortError(void)
         error_code = abort_convert_to_error_code(abort_code);
         test_abort_code = abort_convert_error_code(error_code);
         if (test_abort_code != abort_code) {
-            printf("Abort: result=%u abort-code=%u\n",
-                test_abort_code,
+            printf(
+                "Abort: result=%u abort-code=%u\n", test_abort_code,
                 abort_code);
         }
         zassert_equal(test_abort_code, abort_code, NULL);
@@ -148,13 +159,15 @@ static void testAbortError(void)
  * @}
  */
 
-
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(abort_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
-    ztest_test_suite(abort_tests,
-     ztest_unit_test(testAbortEncodeDecode),
-     ztest_unit_test(testAbortError)
-     );
+    ztest_test_suite(
+        abort_tests, ztest_unit_test(testAbortEncodeDecode),
+        ztest_unit_test(testAbortError));
 
     ztest_run_test_suite(abort_tests);
 }
+#endif

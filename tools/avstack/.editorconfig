@@ -1,0 +1,7 @@
+# External folder so ignore everything.
+[*]
+charset = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+indent_style = unset
+end_of_line = unset

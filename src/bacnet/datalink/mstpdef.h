@@ -1,38 +1,25 @@
-/**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
-#ifndef MSTPDEF_H
-#define MSTPDEF_H
+/**
+ * @file
+ * @brief Defines for the BACnet MS/TP finite state machines
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLMSTP BACnet MS/TP DataLink
+ * @ingroup DataLink
+ */
+#ifndef BACNET_MSTPDEF_H
+#define BACNET_MSTPDEF_H
 
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 
 /*  The value 255 is used to denote broadcast when used as a */
 /* destination address but is not allowed as a value for a station. */
 /* Station addresses for master nodes can be 0-127.  */
-/* Station addresses for slave nodes can be 127-254.  */
+/* Station addresses for slave nodes can be 0-254.  */
 #define MSTP_BROADCAST_ADDRESS 255
 
 /* MS/TP Frame Type */
@@ -52,15 +39,23 @@
 /* These frames are available to vendors as proprietary (non-BACnet) frames. */
 /* The first two octets of the Data field shall specify the unique vendor */
 /* identification code, most significant octet first, for the type of */
-/* vendor-proprietary frame to be conveyed. The length of the data portion */
-/* of a Proprietary frame shall be in the range of 2 to 501 octets. */
+/* vendor-proprietary frame to be conveyed.  */
 #define FRAME_TYPE_PROPRIETARY_MIN 128
 #define FRAME_TYPE_PROPRIETARY_MAX 255
 /* The initial CRC16 checksum value */
 #define CRC16_INITIAL_VALUE (0xFFFF)
 #define CRC32K_INITIAL_VALUE (0xFFFFFFFF)
 #define CRC32K_RESIDUE (0x0843323B)
+/* frame specific data */
 #define MSTP_PREAMBLE_X55 (0x55)
+/* The length of the data portion of a Test_Request, Test_Response,
+   BACnet Data Expecting Reply, or BACnet Data Not Expecting Reply frame
+   may range from 0 to 501 octets.
+   The length of the data portion of a proprietary frame shall
+   be in the range of 2 to 501 octets.*/
+#define MSTP_FRAME_NPDU_MAX 501
+/* COBS-encoded frames data parameter length is between
+   502 and 1497 octets, inclusive */
 #define MSTP_EXTENDED_FRAME_NPDU_MAX 1497
 
 /* receive FSM states */
@@ -85,6 +80,16 @@ typedef enum {
     MSTP_MASTER_STATE_ANSWER_DATA_REQUEST = 8
 } MSTP_MASTER_STATE;
 
+/* MSTP zero config FSM states */
+typedef enum MSTP_Zero_Config_State {
+    MSTP_ZERO_CONFIG_STATE_INIT = 0,
+    MSTP_ZERO_CONFIG_STATE_IDLE = 1,
+    MSTP_ZERO_CONFIG_STATE_LURK = 2,
+    MSTP_ZERO_CONFIG_STATE_CLAIM = 3,
+    MSTP_ZERO_CONFIG_STATE_CONFIRM = 4,
+    MSTP_ZERO_CONFIG_STATE_USE = 5
+} MSTP_ZERO_CONFIG_STATE;
+
 /* The time without a DataAvailable or ReceiveError event before declaration */
 /* of loss of token: 500 milliseconds. */
 #define Tno_token 500
@@ -98,12 +103,28 @@ typedef enum {
 /* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
 /* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
 /* 40 bits is 4 octets including a start and stop bit with each octet */
-#define Tturnaround  (40UL)
+#define Tturnaround (40UL)
 /* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
 
 /* The number of tokens received or used before a Poll For Master cycle */
 /* is executed: 50. */
 #define Npoll 50
+
+/* The minimum number of polls received before a zero-config address */
+/* is claimed: 8. */
+#define Nmin_poll 8
+
+/* The first zero-config address: 64 */
+#define Nmin_poll_station 64
+
+/* The last zero-config address: 127 */
+#define Nmax_poll_station 127
+
+/* The number of zero-config station poll slots: 64 */
+#define Nmax_poll_slot 64
+
+/* The last master node address: 127 */
+#define Nmax_master_station 127
 
 /* The number of retries on sending Token: 1. */
 #define Nretry_token 1
@@ -126,6 +147,15 @@ typedef enum {
 /* 15 milliseconds. */
 #define Tusage_delay 15
 
+/* The minimum number of DataAvailable or ReceiveError events that must be */
+/* seen by a receiving node in order to declare the line "active": 4. */
+#define Nmin_octets 4
+
+#define DEFAULT_Tframe_abort 95
+#define DEFAULT_Treply_delay 245
+#define DEFAULT_Treply_timeout 250
+#define DEFAULT_Tusage_timeout 35
+
 #define DEFAULT_MAX_INFO_FRAMES 1
 #define DEFAULT_MAX_MASTER 127
 #define DEFAULT_MAC_ADDRESS 127
@@ -133,7 +163,6 @@ typedef enum {
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
 
 #ifdef __cplusplus
 }
