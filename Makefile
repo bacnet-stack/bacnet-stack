@@ -52,8 +52,6 @@ bip:
 bip-client:
 	$(MAKE) BACDL=bip BBMD=client -s -C apps all
 
-# note: requires additional libraries to be installed
-# see .github/workflows/gcc.yml
 .PHONY: bsc
 bsc:
 	$(MAKE) BACDL=bsc -s -C apps all

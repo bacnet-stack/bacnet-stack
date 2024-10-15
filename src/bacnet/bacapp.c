@@ -1315,6 +1315,7 @@ int bacapp_known_property_tag(
         case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
             return -1;
 #endif /* BACDL_BSC */
+
         default:
             return -1;
     }

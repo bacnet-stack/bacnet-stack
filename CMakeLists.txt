@@ -133,7 +133,6 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleCla
   # embedded
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
   add_compile_options(-Wno-sign-compare)
-  add_compile_options(-Wno-variadic-macros)
 
   if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
     # Just noise from clang
@@ -217,6 +216,8 @@ if(BACDL_BSC)
   find_package(libwebsockets CONFIG REQUIRED)
   find_package(PkgConfig)
   pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
+  #libwebsocket need C99 with variadic-macros
+  add_compile_options(-Wno-variadic-macros)
   find_package(OpenSSL)
 endif()
 
@@ -688,7 +689,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNET: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   target_link_libraries(${PROJECT_NAME} PUBLIC m)
-  add_compile_definitions(BACNET_PORT=linux)
+
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
     ports/linux/datetime-init.c
@@ -710,7 +711,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 elseif(WIN32)
   message(STATUS "BACNET: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
-  add_compile_definitions(BACNET_PORT=win32)
+
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
 
   target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -801,7 +802,7 @@ elseif(APPLE)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
-  add_compile_definitions(BACNET_PORT=bsd)
+
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
     $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
@@ -1048,13 +1049,13 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
-if(BACDL_BSC)
-  #add_executable(sc-node apps/sc-node/main.c)
-  #target_link_libraries(sc-node PRIVATE ${PROJECT_NAME})
+  if(BACDL_BSC)
+    #add_executable(sc-node apps/sc-node/main.c)
+    #target_link_libraries(sc-node PRIVATE ${PROJECT_NAME})
 
-  add_executable(sc-hub apps/sc-hub/main.c)
-  target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})
-endif()
+    add_executable(sc-hub apps/sc-hub/main.c)
+    target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})
+  endif()
 endif()
 
 #

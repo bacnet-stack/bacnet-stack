@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -113,7 +112,6 @@ const char *bacfile_pathname(uint32_t object_instance)
     struct object_data *pObject;
     const char *pathname = NULL;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pathname = pObject->Pathname;
@@ -131,7 +129,6 @@ void bacfile_pathname_set(uint32_t object_instance, const char *pathname)
 {
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Pathname) {
@@ -154,7 +151,6 @@ uint32_t bacfile_pathname_instance(const char *pathname)
     int index = 0;
     KEY key = BACNET_MAX_INSTANCE;
 
-    assert(Object_List);
     count = Keylist_Count(Object_List);
     while (count) {
         pObject = Keylist_Data_Index(Object_List, index);
@@ -186,7 +182,6 @@ bool bacfile_object_name(
     struct object_data *pObject;
     char name_text[32];
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Object_Name) {
@@ -215,7 +210,6 @@ bool bacfile_object_name_set(uint32_t object_instance, char *new_name)
     bool status = false; /* return value */
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = true;
@@ -252,7 +246,6 @@ bool bacfile_valid_instance(uint32_t object_instance)
 {
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         return true;
@@ -342,8 +335,8 @@ bacfile_read(uint32_t object_instance, uint8_t *buffer, uint32_t buffer_size)
  * @param  buffer_size - in bytes
  * @return  file size in bytes
  */
-uint32_t bacfile_write(uint32_t object_instance, const uint8_t *buffer,
-    uint32_t buffer_size)
+uint32_t bacfile_write(
+    uint32_t object_instance, const uint8_t *buffer, uint32_t buffer_size)
 {
     const char *pFilename = NULL;
     FILE *pFile = NULL;
@@ -403,7 +396,6 @@ bool bacfile_file_size_set(
     bool status = false;
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->File_Access_Stream) {
@@ -425,7 +417,6 @@ const char *bacfile_file_type(uint32_t object_instance)
     struct object_data *pObject;
     const char *mime_type = "application/octet-stream";
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->File_Type) {
@@ -445,7 +436,6 @@ void bacfile_file_type_set(uint32_t object_instance, const char *mime_type)
 {
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->File_Type) {
@@ -475,7 +465,6 @@ bool bacfile_archive(uint32_t object_instance)
     bool status = false;
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = pObject->Archive;
@@ -500,7 +489,6 @@ bool bacfile_archive_set(uint32_t object_instance, bool archive)
     bool status = false;
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pObject->Archive = archive;
@@ -520,7 +508,6 @@ bool bacfile_read_only(uint32_t object_instance)
     bool status = false;
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = pObject->Read_Only;
@@ -540,7 +527,6 @@ bool bacfile_read_only_set(uint32_t object_instance, bool read_only)
     bool status = false;
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pObject->Read_Only = read_only;
@@ -560,7 +546,6 @@ bacfile_modification_date(uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
 {
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         datetime_copy(bdatetime, &pObject->Modification_Date);
@@ -577,7 +562,6 @@ bool bacfile_file_access_stream(uint32_t object_instance)
     bool status = false;
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = pObject->File_Access_Stream;
@@ -597,7 +581,6 @@ bool bacfile_file_access_stream_set(uint32_t object_instance, bool access)
     bool status = false;
     struct object_data *pObject;
 
-    assert(Object_List);
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pObject->File_Access_Stream = access;
@@ -1066,7 +1049,6 @@ bool bacfile_delete(uint32_t object_instance)
     bool status = false;
     struct object_data *pObject = NULL;
 
-    assert(Object_List);
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
         free(pObject);

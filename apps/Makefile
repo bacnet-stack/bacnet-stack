@@ -110,7 +110,7 @@ endif
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
-SYSTEM_LIB = -lc,-lgcc,-lrt,-lm
+SYSTEM_LIB=-lc,-lgcc,-lrt,-lm
 ifeq (${BACDL},bsc)
 # note: install libwebsocket libssl libcrypto and lcap to build for BACnet/SC
 SYSTEM_LIB += /usr/local/lib/libwebsockets.a -lssl -lcrypto -lcap
@@ -120,14 +120,11 @@ ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
-<<<<<<< HEAD
 ifeq (${BACDL},bsc)
 # note: install libwebsocket libcrypto and libssl to build for BACnet/SC
 SYSTEM_LIB += /usr/local/lib/libwebsockets.a /usr/local/opt/openssl@3/lib/libcrypto.a /usr/local/opt/openssl@3/lib/libssl.a
 endif
-=======
 CSTANDARD = -std=c99
->>>>>>> master
 endif
 ifeq (${BACNET_PORT},win32)
 # winget install --id=MSYS2.MSYS2  -e
@@ -473,10 +470,7 @@ fuzz-afl: $(BACNET_LIB_TARGET)
 .PHONY: writepropm
 writepropm: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
-<<<<<<< HEAD
 
 .PHONY: sc-hub
 sc-hub: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
-=======
->>>>>>> master

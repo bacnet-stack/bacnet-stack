@@ -118,11 +118,9 @@ struct object_data {
         struct bsc_port BSC;
     } Network;
 };
-
 #ifndef BACNET_NETWORK_PORTS_MAX
 #define BACNET_NETWORK_PORTS_MAX 1
 #endif
-
 static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -137,22 +135,26 @@ static const int Network_Port_Properties_Required[] = {
     PROP_LINK_SPEED,        -1
 };
 
-static const int Ethernet_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
-    PROP_NETWORK_NUMBER_QUALITY, PROP_APDU_LENGTH,
+static const int Ethernet_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_DESCRIPTION, PROP_MAC_ADDRESS, -1
-};
-
-static const int MSTP_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
-    PROP_NETWORK_NUMBER_QUALITY, PROP_APDU_LENGTH,
-    /* unordered list of optional properties */
-    PROP_DESCRIPTION, PROP_MAC_ADDRESS, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
+    PROP_NETWORK_NUMBER, PROP_NETWORK_NUMBER_QUALITY,
+    PROP_APDU_LENGTH, PROP_DESCRIPTION, PROP_MAC_ADDRESS,
     -1
 };
 
-static const int BIP_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
-    PROP_NETWORK_NUMBER_QUALITY, PROP_APDU_LENGTH,
+static const int MSTP_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
+    PROP_NETWORK_NUMBER, PROP_NETWORK_NUMBER_QUALITY,
+    PROP_APDU_LENGTH, PROP_DESCRIPTION,
+    PROP_MAC_ADDRESS, PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES, -1
+};
+
+static const int BIP_Port_Properties_Optional[] = {
+    /* unordered list of optional properties */
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_APDU_LENGTH,
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
     PROP_BACNET_IP_MODE,
@@ -176,9 +178,11 @@ static const int BIP_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     -1
 };
 
-static const int BIP6_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
-    PROP_NETWORK_NUMBER_QUALITY, PROP_APDU_LENGTH,
+static const int BIP6_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_APDU_LENGTH,
     PROP_DESCRIPTION,
     PROP_MAC_ADDRESS,
     PROP_BACNET_IPV6_MODE,
@@ -205,16 +209,29 @@ static const int BIP6_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     -1
 };
 
-static const int BSC_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
-    PROP_NETWORK_NUMBER_QUALITY, PROP_APDU_LENGTH, PROP_MAC_ADDRESS,
-    PROP_BACNET_IP_MODE, PROP_IP_ADDRESS, PROP_BACNET_IP_UDP_PORT,
-    PROP_IP_SUBNET_MASK, PROP_IP_DEFAULT_GATEWAY, PROP_IP_DNS_SERVER,
-    PROP_MAX_BVLC_LENGTH_ACCEPTED, PROP_MAX_NPDU_LENGTH_ACCEPTED,
-    PROP_SC_PRIMARY_HUB_URI, PROP_SC_FAILOVER_HUB_URI,
-    PROP_SC_MINIMUM_RECONNECT_TIME, PROP_SC_MAXIMUM_RECONNECT_TIME,
-    PROP_SC_CONNECT_WAIT_TIMEOUT, PROP_SC_DISCONNECT_WAIT_TIMEOUT,
-    PROP_SC_HEARTBEAT_TIMEOUT, PROP_SC_HUB_CONNECTOR_STATE,
-    PROP_OPERATIONAL_CERTIFICATE_FILE, PROP_ISSUER_CERTIFICATE_FILES,
+static const int BSC_Port_Properties_Optional[] = {
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_APDU_LENGTH,
+    PROP_MAC_ADDRESS,
+    PROP_BACNET_IP_MODE,
+    PROP_IP_ADDRESS,
+    PROP_BACNET_IP_UDP_PORT,
+    PROP_IP_SUBNET_MASK,
+    PROP_IP_DEFAULT_GATEWAY,
+    PROP_IP_DNS_SERVER,
+    PROP_MAX_BVLC_LENGTH_ACCEPTED,
+    PROP_MAX_NPDU_LENGTH_ACCEPTED,
+    PROP_SC_PRIMARY_HUB_URI,
+    PROP_SC_FAILOVER_HUB_URI,
+    PROP_SC_MINIMUM_RECONNECT_TIME,
+    PROP_SC_MAXIMUM_RECONNECT_TIME,
+    PROP_SC_CONNECT_WAIT_TIMEOUT,
+    PROP_SC_DISCONNECT_WAIT_TIMEOUT,
+    PROP_SC_HEARTBEAT_TIMEOUT,
+    PROP_SC_HUB_CONNECTOR_STATE,
+    PROP_OPERATIONAL_CERTIFICATE_FILE,
+    PROP_ISSUER_CERTIFICATE_FILES,
     PROP_CERTIFICATE_SIGNING_REQUEST_FILE,
 /*SC optional*/
 #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
@@ -222,21 +239,23 @@ static const int BSC_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
     PROP_SC_PRIMARY_HUB_CONNECTION_STATUS,
-    PROP_SC_FAILOVER_HUB_CONNECTION_STATUS, PROP_SC_HUB_FUNCTION_ENABLE,
-    PROP_SC_HUB_FUNCTION_ACCEPT_URIS, PROP_SC_HUB_FUNCTION_BINDING,
+    PROP_SC_FAILOVER_HUB_CONNECTION_STATUS,
+    PROP_SC_HUB_FUNCTION_ENABLE,
+    PROP_SC_HUB_FUNCTION_ACCEPT_URIS,
+    PROP_SC_HUB_FUNCTION_BINDING,
     PROP_SC_HUB_FUNCTION_CONNECTION_STATUS,
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
     PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE,
-    PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE, PROP_SC_DIRECT_CONNECT_ACCEPT_URIS,
-    PROP_SC_DIRECT_CONNECT_BINDING, PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
+    PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE,
+    PROP_SC_DIRECT_CONNECT_ACCEPT_URIS,
+    PROP_SC_DIRECT_CONNECT_BINDING,
+    PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
     PROP_SC_FAILED_CONNECTION_REQUESTS,
     -1 };
 
-static const int Network_Port_Properties_Proprietary[] = {
-    -1
-};
+static const int Network_Port_Properties_Proprietary[] = { -1 };
 
 unsigned Network_Port_Object_Number(void)
 {
@@ -469,14 +488,13 @@ bool Network_Port_Description_Set(uint32_t instance, const char *new_name)
 bool Network_Port_Valid_Instance(uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
-    bool status = false;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        status = true;
+        return true;
     }
 
-    return status;
+    return false;
 }
 
 /**
@@ -500,13 +518,11 @@ unsigned Network_Port_Count(void)
  */
 uint32_t Network_Port_Index_To_Instance(unsigned index)
 {
-    uint32_t instance = BACNET_MAX_INSTANCE;
-
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        instance = Object_List[index].Instance_Number;
+        return Object_List[index].Instance_Number;
     }
 
-    return instance;
+    return BACNET_MAX_INSTANCE;
 }
 
 /**
@@ -698,7 +714,6 @@ bool Network_Port_Type_Set(uint32_t object_instance, uint8_t value)
         }
 #endif
         Object_List[index].Network_Type = value;
-
         status = true;
     }
 
@@ -797,93 +812,6 @@ bool Network_Port_Quality_Set(
  *
  * @param  object_instance - object-instance number of the object
  * @param  mac_address - holds the mac-address retrieved
- *
- * @return  true if mac-address was retrieved
- */
-bool Network_Port_MAC_Address(
-    uint32_t object_instance, BACNET_OCTET_STRING *mac_address)
-{
-    unsigned index = 0; /* offset from instance lookup */
-    bool status = false;
-    uint8_t *mac = NULL;
-    uint8_t ip_mac[4 + 2] = { 0 };
-    size_t mac_len = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        switch (Object_List[index].Network_Type) {
-            case PORT_TYPE_ETHERNET:
-                mac = &Object_List[index].Network.Ethernet.MAC_Address[0];
-                mac_len =
-                    sizeof(Object_List[index].Network.Ethernet.MAC_Address);
-                break;
-            case PORT_TYPE_MSTP:
-                mac = &Object_List[index].Network.MSTP.MAC_Address;
-                mac_len = sizeof(Object_List[index].Network.MSTP.MAC_Address);
-                break;
-            case PORT_TYPE_BIP:
-                memcpy(
-                    &ip_mac[0], &Object_List[index].Network.IPv4.IP_Address, 4);
-                /* convert port from host-byte-order to network-byte-order */
-                encode_unsigned16(
-                    &ip_mac[4], Object_List[index].Network.IPv4.Port);
-                mac = &ip_mac[0];
-                mac_len = sizeof(ip_mac);
-                break;
-            case PORT_TYPE_BIP6:
-                mac = &Object_List[index].Network.IPv6.MAC_Address[0];
-                mac_len = sizeof(Object_List[index].Network.IPv6.MAC_Address);
-                break;
-            case PORT_TYPE_BSC:
-                mac = &Object_List[index].Network.BSC.MAC_Address[0];
-                mac_len = sizeof(Object_List[index].Network.BSC.MAC_Address);
-                break;
-            default:
-                break;
-        }
-        status = octetstring_init(mac_address, mac, mac_len);
-    }
-
-    return status;
-}
-
-uint8_t *Network_Port_MAC_Address_pointer(uint32_t object_instance)
-{
-    unsigned index = 0; /* offset from instance lookup */
-    uint8_t *mac = NULL;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        switch (Object_List[index].Network_Type) {
-            case PORT_TYPE_ETHERNET:
-                mac = &Object_List[index].Network.Ethernet.MAC_Address[0];
-                break;
-            case PORT_TYPE_MSTP:
-                mac = &Object_List[index].Network.MSTP.MAC_Address;
-                break;
-            case PORT_TYPE_BIP:
-                break;
-            case PORT_TYPE_BIP6:
-                mac = &Object_List[index].Network.IPv6.MAC_Address[0];
-                break;
-            case PORT_TYPE_BSC:
-                mac = &Object_List[index].Network.BSC.MAC_Address[0];
-                break;
-            default:
-                break;
-        }
-    }
-
-    return mac;
-}
-
-/**
- * For a given object instance-number, loads the mac-address into
- * a buffer and returns the length of the mac-address.
- * Note: depends on Network_Type being set for this object
- *
- * @param  object_instance - object-instance number of the object
- * @param  mac_address - holds the mac-address retrieved
  * @param  mac_size - size of the mac-address buffer
  *
  * @return the length of the mac-address retrieved, or zero if not found
@@ -934,6 +862,60 @@ uint8_t Network_Port_MAC_Address_Value(
     }
 
     return mac_len;
+}
+
+/**
+ * For a given object instance-number, loads the mac-address into
+ * an octet string.
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  mac_address - holds the mac-address retrieved
+ *
+ * @return  true if mac-address was retrieved
+ */
+bool Network_Port_MAC_Address(
+    uint32_t object_instance, BACNET_OCTET_STRING *mac_address)
+{
+    uint8_t mac_len = 0;
+
+    if (mac_address) {
+        mac_len = Network_Port_MAC_Address_Value(
+            object_instance, mac_address->value, sizeof(mac_address->value));
+        mac_address->length = mac_len;
+    }
+
+    return mac_len > 0;
+}
+
+uint8_t *Network_Port_MAC_Address_pointer(uint32_t object_instance)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    uint8_t *mac = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        switch (Object_List[index].Network_Type) {
+            case PORT_TYPE_ETHERNET:
+                mac = &Object_List[index].Network.Ethernet.MAC_Address[0];
+                break;
+            case PORT_TYPE_MSTP:
+                mac = &Object_List[index].Network.MSTP.MAC_Address;
+                break;
+            case PORT_TYPE_BIP:
+                break;
+            case PORT_TYPE_BIP6:
+                mac = &Object_List[index].Network.IPv6.MAC_Address[0];
+                break;
+            case PORT_TYPE_BSC:
+                mac = &Object_List[index].Network.BSC.MAC_Address[0];
+                break;
+            default:
+                break;
+        }
+    }
+
+    return mac;
 }
 
 /**

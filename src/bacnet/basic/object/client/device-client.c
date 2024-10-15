@@ -32,7 +32,6 @@
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
-#include "bacnet/basic/object/trendlog.h"
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
@@ -138,13 +137,23 @@ static object_functions_t Object_Table[] = {
       NULL /* Create */,
       NULL /* Delete */,
       NULL /* Timer */ },
-#endif
 #if defined(BACDL_BSC)
-    { OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
-        bacfile_valid_instance, bacfile_object_name, bacfile_read_property,
-        bacfile_write_property, BACfile_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
-        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+    { OBJECT_FILE,
+        bacfile_init,
+        bacfile_count,
+        bacfile_index_to_instance,
+        bacfile_valid_instance,
+        bacfile_object_name,
+        bacfile_read_property,
+        bacfile_write_property,
+        BACfile_Property_Lists,
+        NULL /* ReadRangeInfo */,
+        NULL /* Iterator */,
+        NULL /* Value_Lists */,
+        NULL /* COV */,
+        NULL /* COV Clear */,
+        NULL /* Intrinsic Reporting */ },
+#endif
 #endif
     { MAX_BACNET_OBJECT_TYPE,
       NULL /* Init */,
@@ -348,90 +357,11 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 break;
             case BACNET_REINIT_WARMSTART:
                 dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-                for (i = 0; i < Network_Port_Count(); i++) {
-                    Network_Port_Pending_Params_Apply(
-                        Network_Port_Index_To_Instance(i));
-                }
-                /* note: you probably want to restart *after* the
-                   simple ack has been sent from the return handler
-                   so just set a flag from here */
-                Reinitialize_State = rd_data->state;
-                status = true;
-                break;
-            case BACNET_REINIT_STARTBACKUP:
-            case BACNET_REINIT_ENDBACKUP:
-            case BACNET_REINIT_STARTRESTORE:
-            case BACNET_REINIT_ENDRESTORE:
-            case BACNET_REINIT_ABORTRESTORE:
-                if (dcc_communication_disabled()) {
-                    rd_data->error_class = ERROR_CLASS_SERVICES;
-                    rd_data->error_code = ERROR_CODE_COMMUNICATION_DISABLED;
-                } else {
-                    rd_data->error_class = ERROR_CLASS_SERVICES;
-                    rd_data->error_code =
-                        ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
-                }
-                break;
-            case BACNET_REINIT_ACTIVATE_CHANGES:
-                for (i = 0; i < Network_Port_Count(); i++) {
-                    Network_Port_Pending_Params_Apply(
-                        Network_Port_Index_To_Instance(i));
-                }
-                Reinitialize_State = rd_data->state;
-                status = true;
-                break;
-            default:
-                rd_data->error_class = ERROR_CLASS_SERVICES;
-                rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-                break;
-        }
-    } else {
-        rd_data->error_class = ERROR_CLASS_SECURITY;
-        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
-    }
-
-    return status;
-}
-
-BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void)
-{
-    return Reinitialize_State;
-}
-
-static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
-static const char *Reinit_Password = "filister";
-
-/** Commands a Device re-initialization, to a given state.
- * The request's password must match for the operation to succeed.
- * This implementation provides a framework, but doesn't
- * actually *DO* anything.
- * @note You could use a mix of states and passwords to multiple outcomes.
- * @note You probably want to restart *after* the simple ack has been sent
- *       from the return handler, so just set a local flag here.
- * @ingroup ObjIntf
- *
- * @param rd_data [in,out] The information from the RD request.
- *                         On failure, the error class and code will be set.
- * @return True if succeeds (password is correct), else False.
- */
-bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
-{
-    bool status = false;
-
-    /* Note: you could use a mix of state and password to multiple things */
-    if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
-        switch (rd_data->state) {
-            case BACNET_REINIT_COLDSTART:
-                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-                /* note: you probably want to restart *after* the
-                   simple ack has been sent from the return handler
-                   so just set a flag from here */
-                Reinitialize_State = rd_data->state;
-                status = true;
-                break;
-            case BACNET_REINIT_WARMSTART:
-                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
                 /* note: restart *after* the simple ack has been sent */
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Pending_Params_Apply(
+                        Network_Port_Index_To_Instance(i));
+                }
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
@@ -451,6 +381,10 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 break;
             case BACNET_REINIT_ACTIVATE_CHANGES:
                 /* note: activate changes *after* the simple ack is sent */
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Pending_Params_Apply(
+                        Network_Port_Index_To_Instance(i));
+                }
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;

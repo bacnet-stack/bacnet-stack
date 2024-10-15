@@ -725,6 +725,7 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 }
                 break;
             case BACNET_REINIT_ACTIVATE_CHANGES:
+                /* note: activate changes *after* the simple ack is sent */
                 for (i = 0; i < Network_Port_Count(); i++) {
                     Network_Port_Pending_Params_Apply(
                         Network_Port_Index_To_Instance(i));

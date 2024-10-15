@@ -385,8 +385,9 @@ void dlenv_network_port_init(void)
     Network_Port_IP_Address_Set(
         instance, addr.address[0], addr.address[1], addr.address[2],
         addr.address[3]);
-    Network_Port_IP_Address_Set(instance, addr.address[0], addr.address[1],
-        addr.address[2], addr.address[3]);
+    Network_Port_IP_Address_Set(
+        instance, addr.address[0], addr.address[1], addr.address[2],
+        addr.address[3]);
     Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
     Network_Port_Link_Speed_Set(instance, 0.0);
 #if BBMD_ENABLED

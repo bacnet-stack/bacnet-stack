@@ -6,7 +6,6 @@ BACNET_LIB_DIR ?= $(realpath .)
 BACNET_LIB_TARGET ?= $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 BACNET_SRC_DIR ?= $(realpath ../../src)
 BACNET_PORT_DIR ?= $(realpath ../../ports/linux)
-BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 BACNET_DEFINES ?=
 
 #build for release (default) or debug

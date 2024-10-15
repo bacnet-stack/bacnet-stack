@@ -172,13 +172,14 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
-    - name: Build Ethernet Demos
+        sudo apt-get install -qq libcap-dev
+    - name: Build Ethernet Demo Apps
       run: |
         gcc --version
         make clean
         make LEGACY=true ethernet
 
-  ports-arm:
+  ports-arm-makefile:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -257,3 +258,9 @@ jobs:
         export LD=i686-w64-mingw32-ld
         i686-w64-mingw32-gcc --version
         make win32
+    - name: Build Win32 Demo IP to IPv6 Router
+      run: make LEGACY=true BUILD=win32 router-ipv6
+    - name: Build Win32 Demo IP to MS/TP Router
+      run: make LEGACY=true BUILD=win32 router-mstp
+    - name: Build Win32 Demo Gateway
+      run: make LEGACY=true BUILD=win32 gateway

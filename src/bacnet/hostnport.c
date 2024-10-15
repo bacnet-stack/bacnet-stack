@@ -344,7 +344,7 @@ int host_n_port_context_decode(
     }
     apdu_len += len;
 
-    return len;
+    return apdu_len;
 }
 
 /**

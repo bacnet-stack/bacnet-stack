@@ -35,8 +35,8 @@ jobs:
     - uses: actions/checkout@v4
     - name: Create SPLint Workspace
       run: |
-        sudo apt-get update -qq
-        sudo apt-get install -qq splint
+        sudo apt-get update --quiet --assume-yes
+        sudo apt-get install --quiet --assume-yes splint
     - name: Static Defect Analysis using SPLint
       run: make splint
 
@@ -90,8 +90,6 @@ jobs:
         sudo apt-get install -qq lcov
         sudo apt-get install -qq libssl-dev
         sudo apt-get install -qq libcap-dev
-        git clone https://libwebsockets.org/repo/libwebsockets
-        bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
-        sudo bash -c 'cd libwebsockets;cd build;make install'
+        sudo apt-get install -qq libwebsockets-dev
     - name: Run Unit Test with Code Coverage
       run: make test

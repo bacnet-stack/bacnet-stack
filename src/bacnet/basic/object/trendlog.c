@@ -22,7 +22,6 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/trendlog.h"
-#include "bacnet/datetime.h"
 #include "bacnet/datalink/datalink.h"
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h" /* object list dependency */

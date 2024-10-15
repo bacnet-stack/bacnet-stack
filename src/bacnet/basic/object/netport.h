@@ -14,7 +14,6 @@
 /* BACnet Stack API */
 #include "bacnet/apdu.h"
 #include "bacnet/readrange.h"
-#include "bacnet/readrange.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
@@ -22,8 +21,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    unsigned Network_Port_Object_Number(void);
+BACNET_STACK_EXPORT
+unsigned Network_Port_Object_Number(void);
 
 BACNET_STACK_EXPORT
 void Network_Port_Property_Lists(
@@ -366,19 +365,14 @@ void Network_Port_Init(void);
 BACNET_STACK_EXPORT
 int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 
-    /* handling for write property service */
-    BACNET_STACK_EXPORT
-    bool Network_Port_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
+/* handling for write property service */
+BACNET_STACK_EXPORT
+bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
-    void Network_Port_Pending_Params_Apply(
-        uint32_t object_instance);
-    void Network_Port_Pending_Params_Discard(
-        uint32_t object_instance);
+void Network_Port_Pending_Params_Apply(uint32_t object_instance);
+void Network_Port_Pending_Params_Discard(uint32_t object_instance);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 #endif
-
-
