@@ -637,14 +637,13 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
     next_next_station =
         (mstp_port->Next_Station + 1) % (mstp_port->Nmax_master + 1);
     /* The zero config checks before running FSM */
-    if (mstp_port->ReceivedInvalidFrame == true) {
-        if ((mstp_port->ZeroConfigEnabled) &&
-            (mstp_port->master_state != MSTP_MASTER_STATE_INITIALIZE) &&
-            (mstp_port->SourceAddress == mstp_port->This_Station)) {
-            /* DuplicateNode */
-            mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
-            mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
-        }
+    if ((mstp_port->ZeroConfigEnabled) &&
+        (mstp_port->master_state != MSTP_MASTER_STATE_INITIALIZE) &&
+        (mstp_port->ReceivedValidFrame == true) &&
+        (mstp_port->SourceAddress == mstp_port->This_Station)) {
+        /* DuplicateNode */
+        mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
+        mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
         /* ignore the frame */
         mstp_port->ReceivedValidFrame = false;
     }
