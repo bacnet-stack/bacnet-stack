@@ -529,6 +529,10 @@ int cov_subscribe_decode_service_request(
         /* lifetime [3] Unsigned OPTIONAL */
         value_len = bacnet_unsigned_context_decode(
             &apdu[len], apdu_size - len, 3, &decoded_value);
+
+        int test_value = bacnet_character_string_context_decode(
+            &apdu[len], apdu_size - len, 3, &decoded_value);
+        fprintf(stderr, "cov_subscribe_decode_service_request test_value %d\n", test_value);
         fprintf(stderr, "cov_subscribe_decode_service_request value_len %d\n", value_len);
         fprintf(stderr, "cov_subscribe_decode_service_request &decoded_value 2 %p\n", (void *)&decoded_value);
         if (value_len > 0) {
