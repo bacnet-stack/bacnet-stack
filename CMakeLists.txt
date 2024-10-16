@@ -73,7 +73,7 @@ option(
   BACDL_BSC
   "compile with secure-connect support"
   OFF)
-  
+
 if(NOT (BACDL_ETHERNET OR
         BACDL_MSTP OR
         BACDL_ARCNET OR

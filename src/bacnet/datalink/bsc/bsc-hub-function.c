@@ -33,17 +33,19 @@
 static BSC_SOCKET *hub_function_find_connection_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg);
 
-static BSC_SOCKET *hub_function_find_connection_for_uuid(
-    BACNET_SC_UUID *uuid, void *user_arg);
+static BSC_SOCKET *
+hub_function_find_connection_for_uuid(BACNET_SC_UUID *uuid, void *user_arg);
 
-static void hub_function_failed_request(BSC_SOCKET_CTX *ctx,
+static void hub_function_failed_request(
+    BSC_SOCKET_CTX *ctx,
     BSC_SOCKET *c,
     BACNET_SC_VMAC_ADDRESS *vmac,
     BACNET_SC_UUID *uuid,
     BACNET_ERROR_CODE error,
     const char *error_desc);
 
-static void hub_function_socket_event(BSC_SOCKET *c,
+static void hub_function_socket_event(
+    BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
@@ -107,14 +109,16 @@ static BSC_SOCKET *hub_function_find_connection_for_vmac(
 
     bws_dispatch_lock();
     f = (BSC_HUB_FUNCTION *)user_arg;
-    DEBUG_PRINTF("hubf = %p local_vmac = %s\n", f,
+    DEBUG_PRINTF(
+        "hubf = %p local_vmac = %s\n", f,
         bsc_vmac_to_string(&f->cfg.local_vmac));
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
-        DEBUG_PRINTF("hubf = %p, sock %p, state = %d, vmac = %s\n", f,
-            &f->sock[i], f->sock[i].state,
-            bsc_vmac_to_string(&f->sock[i].vmac));
+        DEBUG_PRINTF(
+            "hubf = %p, sock %p, state = %d, vmac = %s\n", f, &f->sock[i],
+            f->sock[i].state, bsc_vmac_to_string(&f->sock[i].vmac));
         if (f->sock[i].state != BSC_SOCK_STATE_IDLE &&
-            !memcmp(&vmac->address[0], &f->sock[i].vmac.address[0],
+            !memcmp(
+                &vmac->address[0], &f->sock[i].vmac.address[0],
                 sizeof(vmac->address))) {
             bws_dispatch_unlock();
             return &f->sock[i];
@@ -124,8 +128,8 @@ static BSC_SOCKET *hub_function_find_connection_for_vmac(
     return NULL;
 }
 
-static BSC_SOCKET *hub_function_find_connection_for_uuid(
-    BACNET_SC_UUID *uuid, void *user_arg)
+static BSC_SOCKET *
+hub_function_find_connection_for_uuid(BACNET_SC_UUID *uuid, void *user_arg)
 {
     int i;
     BSC_HUB_FUNCTION *f;
@@ -133,9 +137,9 @@ static BSC_SOCKET *hub_function_find_connection_for_uuid(
     bws_dispatch_lock();
     f = (BSC_HUB_FUNCTION *)user_arg;
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
-        DEBUG_PRINTF("hubf = %p, sock %p, state = %d, uuid = %s\n", f,
-            &f->sock[i], f->sock[i].state,
-            bsc_uuid_to_string(&f->sock[i].uuid));
+        DEBUG_PRINTF(
+            "hubf = %p, sock %p, state = %d, uuid = %s\n", f, &f->sock[i],
+            f->sock[i].state, bsc_uuid_to_string(&f->sock[i].uuid));
         if (f->sock[i].state != BSC_SOCK_STATE_IDLE &&
             !memcmp(
                 &uuid->uuid[0], &f->sock[i].uuid.uuid[0], sizeof(uuid->uuid))) {
@@ -148,7 +152,8 @@ static BSC_SOCKET *hub_function_find_connection_for_uuid(
     return NULL;
 }
 
-static void hub_function_update_status(BSC_HUB_FUNCTION *f,
+static void hub_function_update_status(
+    BSC_HUB_FUNCTION *f,
     BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BACNET_ERROR_CODE disconnect_reason,
@@ -161,13 +166,15 @@ static void hub_function_update_status(BSC_HUB_FUNCTION *f,
 
         if (s) {
             memcpy(s->Peer_VMAC, &c->vmac.address[0], BVLC_SC_VMAC_SIZE);
-            memcpy(&s->Peer_UUID.uuid.uuid128[0], &c->uuid.uuid[0],
+            memcpy(
+                &s->Peer_UUID.uuid.uuid128[0], &c->uuid.uuid[0],
                 BVLC_SC_UUID_SIZE);
             if (!bsc_socket_get_peer_addr(c, &s->Peer_Address)) {
                 memset(&s->Peer_Address, 0, sizeof(s->Peer_Address));
             }
             if (disconnect_reason_desc) {
-                bsc_copy_str(s->Error_Details, disconnect_reason_desc,
+                bsc_copy_str(
+                    s->Error_Details, disconnect_reason_desc,
                     sizeof(s->Error_Details));
             } else {
                 s->Error_Details[0] = 0;
@@ -176,7 +183,8 @@ static void hub_function_update_status(BSC_HUB_FUNCTION *f,
             if (ev == BSC_SOCKET_EVENT_CONNECTED) {
                 s->State = BACNET_CONNECTED;
                 bsc_set_timestamp(&s->Connect_Timestamp);
-                memset(&s->Disconnect_Timestamp, 0xff,
+                memset(
+                    &s->Disconnect_Timestamp, 0xff,
                     sizeof(s->Disconnect_Timestamp));
             } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
                 bsc_set_timestamp(&s->Disconnect_Timestamp);
@@ -192,7 +200,8 @@ static void hub_function_update_status(BSC_HUB_FUNCTION *f,
     }
 }
 
-static void hub_function_failed_request(BSC_SOCKET_CTX *ctx,
+static void hub_function_failed_request(
+    BSC_SOCKET_CTX *ctx,
     BSC_SOCKET *c,
     BACNET_SC_VMAC_ADDRESS *vmac,
     BACNET_SC_UUID *uuid,
@@ -214,7 +223,8 @@ static void hub_function_failed_request(BSC_SOCKET_CTX *ctx,
     bws_dispatch_unlock();
 }
 
-static void hub_function_socket_event(BSC_SOCKET *c,
+static void hub_function_socket_event(
+    BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
@@ -229,8 +239,9 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     BSC_HUB_FUNCTION *f;
     uint16_t len;
 
-    DEBUG_PRINTF("hub_function_socket_event() >>> c = %p, ev = %d, reason = "
-                 "%d, desc = %p, pdu = %p, pdu_len = %d, decoded_pdu = %p\n",
+    DEBUG_PRINTF(
+        "hub_function_socket_event() >>> c = %p, ev = %d, reason = "
+        "%d, desc = %p, pdu = %p, pdu_len = %d, decoded_pdu = %p\n",
         c, ev, reason, reason_desc, pdu, pdu_len, decoded_pdu);
 
     bws_dispatch_lock();
@@ -249,10 +260,11 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
                         if (&f->sock[i] != c &&
                             f->sock[i].state == BSC_SOCK_STATE_CONNECTED) {
-                            /* change origin address if presented or add origin */
+                            /* change origin address if presented or add origin
+                             */
                             /* address into pdu by extending of it's header */
-                            len = (uint16_t)bvlc_sc_set_orig(&p_pdu,
-                                                             len, &c->vmac);
+                            len = (uint16_t)bvlc_sc_set_orig(
+                                &p_pdu, len, &c->vmac);
                             ret = bsc_send(&f->sock[i], p_pdu, len);
                             (void)ret;
 #if DEBUG_ENABLED == 1
@@ -275,8 +287,9 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                 dst = hub_function_find_connection_for_vmac(
                     decoded_pdu->hdr.dest, (void *)f);
                 if (!dst) {
-                    DEBUG_PRINTF("can not find socket, hub dropped pdu of size "
-                                 "%d for dest vmac %s\n",
+                    DEBUG_PRINTF(
+                        "can not find socket, hub dropped pdu of size "
+                        "%d for dest vmac %s\n",
                         pdu_len, bsc_vmac_to_string(decoded_pdu->hdr.dest));
                 } else {
                     bvlc_sc_remove_dest_set_orig(pdu, pdu_len, &c->vmac);
@@ -295,7 +308,8 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
         hub_function_update_status(f, c, ev, reason, reason_desc);
         if (reason == ERROR_CODE_NODE_DUPLICATE_VMAC) {
-            f->event_func(BSC_HUBF_EVENT_ERROR_DUPLICATED_VMAC,
+            f->event_func(
+                BSC_HUBF_EVENT_ERROR_DUPLICATED_VMAC,
                 (BSC_HUB_FUNCTION_HANDLE)f, f->user_arg);
         }
     } else if (ev == BSC_SOCKET_EVENT_CONNECTED) {
@@ -323,7 +337,8 @@ static void hub_function_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
     bws_dispatch_unlock();
 }
 
-BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
+BSC_SC_RET bsc_hub_function_start(
+    uint8_t *ca_cert_chain,
     size_t ca_cert_chain_size,
     uint8_t *cert_chain,
     size_t cert_chain_size,
@@ -370,13 +385,15 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
     f->user_arg = user_arg;
     f->event_func = event_func;
 
-    bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &f->cfg,
-        BSC_WEBSOCKET_HUB_PROTOCOL, port, iface, ca_cert_chain,
-        ca_cert_chain_size, cert_chain, cert_chain_size, key, key_size,
-        local_uuid, local_vmac, max_local_bvlc_len, max_local_npdu_len,
-        connect_timeout_s, heartbeat_timeout_s, disconnect_timeout_s);
+    bsc_init_ctx_cfg(
+        BSC_SOCKET_CTX_ACCEPTOR, &f->cfg, BSC_WEBSOCKET_HUB_PROTOCOL, port,
+        iface, ca_cert_chain, ca_cert_chain_size, cert_chain, cert_chain_size,
+        key, key_size, local_uuid, local_vmac, max_local_bvlc_len,
+        max_local_npdu_len, connect_timeout_s, heartbeat_timeout_s,
+        disconnect_timeout_s);
 
-    ret = bsc_init_ctx(&f->ctx, &f->cfg, &bsc_hub_function_ctx_funcs, f->sock,
+    ret = bsc_init_ctx(
+        &f->ctx, &f->cfg, &bsc_hub_function_ctx_funcs, f->sock,
         sizeof(f->sock) / sizeof(BSC_SOCKET), f);
 
     if (ret == BSC_SC_SUCCESS) {

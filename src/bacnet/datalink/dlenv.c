@@ -532,50 +532,54 @@ static void bacnet_secure_connect_network_port_init(
     Network_Port_SC_Maximum_Reconnect_Time_Set(
         instance, SC_NETPORT_RECONNECT_TIME);
 
-    if(filename_ca_1_cert == NULL) {
+    if (filename_ca_1_cert == NULL) {
         fprintf(stderr, "BACNET_SC_ISSUER_1_CERTIFICATE_FILE must be set\n");
         return;
     }
     bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
-    bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE,
-        filename_ca_1_cert);
-    Network_Port_Issuer_Certificate_File_Set(instance, 0,
-        BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
+    bacfile_pathname_set(
+        BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE, filename_ca_1_cert);
+    Network_Port_Issuer_Certificate_File_Set(
+        instance, 0, BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
 
-    if(filename_ca_2_cert) {
+    if (filename_ca_2_cert) {
         bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
-        bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE,
-            filename_ca_2_cert);
-        Network_Port_Issuer_Certificate_File_Set(instance, 1,
-            BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
+        bacfile_pathname_set(
+            BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE, filename_ca_2_cert);
+        Network_Port_Issuer_Certificate_File_Set(
+            instance, 1, BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
     }
 
-    if(filename_cert == NULL) {
+    if (filename_cert == NULL) {
         fprintf(stderr, "BACNET_SC_OPERATIONAL_CERTIFICATE_FILE must be set\n");
         return;
     }
     bacfile_create(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
-    bacfile_pathname_set(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
-        filename_cert);
-    Network_Port_Operational_Certificate_File_Set(instance,
-        BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
+    bacfile_pathname_set(
+        BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE, filename_cert);
+    Network_Port_Operational_Certificate_File_Set(
+        instance, BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
 
-    if(filename_key == NULL) {
-        fprintf(stderr,
+    if (filename_key == NULL) {
+        fprintf(
+            stderr,
             "BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE must be set\n");
         return;
     }
     bacfile_create(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
-    bacfile_pathname_set(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE,
-        filename_key);
-    Network_Port_Certificate_Key_File_Set(instance,
-        BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
+    bacfile_pathname_set(
+        BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE, filename_key);
+    Network_Port_Certificate_Key_File_Set(
+        instance, BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
 
     if ((primary_hub_uri == NULL) && (failover_hub_uri == NULL) &&
         (direct_binding == NULL) && (hub_binding == NULL)) {
-        fprintf(stderr, "At least must be set:\n"
+        fprintf(
+            stderr,
+            "At least must be set:\n"
             "BACNET_SC_HUB_FUNCTION_BINDING for HUB or\n"
-            "BACNET_SC_PRIMARY_HUB_URI and BACNET_SC_FAILOVER_HUB_URI for node or\n"
+            "BACNET_SC_PRIMARY_HUB_URI and BACNET_SC_FAILOVER_HUB_URI for node "
+            "or\n"
             "BACNET_SC_DIRECT_CONNECT_BINDING for direct connect.\n");
         return;
     }
@@ -584,8 +588,8 @@ static void bacnet_secure_connect_network_port_init(
     Network_Port_SC_Failover_Hub_URI_Set(instance, failover_hub_uri);
 
     Network_Port_SC_Direct_Connect_Binding_Set(instance, direct_binding);
-    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,
-        direct_binding != NULL);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Set(
+        instance, direct_binding != NULL);
 
     c = direct_connect_initiate ? direct_connect_initiate[0] : '0';
     if ((c != '0') && (c != 'n') && (c != 'n')) {
@@ -594,8 +598,8 @@ static void bacnet_secure_connect_network_port_init(
         Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, false);
     }
 
-    Network_Port_SC_Direct_Connect_Accept_URIs_Set(instance,
-        direct_connect_accept_urls);
+    Network_Port_SC_Direct_Connect_Accept_URIs_Set(
+        instance, direct_connect_accept_urls);
 
     /* HUB parameters */
     Network_Port_SC_Hub_Function_Binding_Set(instance, hub_binding);
@@ -606,19 +610,20 @@ static void bacnet_secure_connect_network_port_init(
     Network_Port_Changes_Pending_Set(instance, false);
 }
 
-
 static bool dlenv_hub_connection_status_check(void)
 {
     uint32_t instance = Network_Port_Index_To_Instance(0);
     BACNET_SC_HUB_CONNECTION_STATUS *status;
 
     status = Network_Port_SC_Primary_Hub_Connection_Status(instance);
-    if (status && status->State == BACNET_CONNECTED)
+    if (status && status->State == BACNET_CONNECTED) {
         return true;
+    }
 
     status = Network_Port_SC_Failover_Hub_Connection_Status(instance);
-    if (status && status->State == BACNET_CONNECTED)
+    if (status && status->State == BACNET_CONNECTED) {
         return true;
+    }
 
     return false;
 }
@@ -631,8 +636,8 @@ void dlenv_network_port_init(void)
     /* if a user has configured BACnet/SC port with primary hub URI,     */
     /* wait for a establishin of a connection to BACnet/SC hub at first  */
     /* to reduce possibility of packet losses.                           */
-    if(Network_Port_SC_Primary_Hub_URI_char(1)) {
-        while(!dlenv_hub_connection_status_check()) {
+    if (Network_Port_SC_Primary_Hub_URI_char(1)) {
+        while (!dlenv_hub_connection_status_check()) {
             bsc_wait(1);
             bsc_maintenance_timer(1);
         }
@@ -872,11 +877,11 @@ void dlenv_init(void)
     hub_binding = getenv("BACNET_SC_HUB_FUNCTION_BINDING");
     direct_connect_initiate = getenv("BACNET_SC_DIRECT_CONNECT_INITIATE");
     direct_connect_accept_urls = getenv("BACNET_SC_DIRECT_CONNECT_ACCEPT_URLS");
-    bacnet_secure_connect_network_port_init(primary_hub_uri, failover_hub_uri,
-        filename_ca_1_cert, filename_ca_2_cert, filename_cert, filename_key,
-        direct_binding, hub_binding, direct_connect_initiate,
-        direct_connect_accept_urls);
-    if(!bsc_cert_files_check()) {
+    bacnet_secure_connect_network_port_init(
+        primary_hub_uri, failover_hub_uri, filename_ca_1_cert,
+        filename_ca_2_cert, filename_cert, filename_key, direct_binding,
+        hub_binding, direct_connect_initiate, direct_connect_accept_urls);
+    if (!bsc_cert_files_check()) {
         exit(1);
     }
 #endif

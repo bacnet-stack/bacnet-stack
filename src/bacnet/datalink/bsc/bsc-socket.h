@@ -34,7 +34,10 @@
 #define BSC_RX_BUFFER_SIZE BSC_CONF_SOCK_RX_BUFFER_SIZE
 #define BSC_TX_BUFFER_SIZE BSC_CONF_SOCK_TX_BUFFER_SIZE
 
-#define BSC_SOCKET_CTX_NUM (BSC_CONF_NODES_NUM*(BSC_CONF_HUB_CONNECTORS_NUM + 2*BSC_CONF_NODE_SWITCHES_NUM + BSC_CONF_HUB_FUNCTIONS_NUM))
+#define BSC_SOCKET_CTX_NUM                                           \
+    (BSC_CONF_NODES_NUM *                                            \
+     (BSC_CONF_HUB_CONNECTORS_NUM + 2 * BSC_CONF_NODE_SWITCHES_NUM + \
+      BSC_CONF_HUB_FUNCTIONS_NUM))
 
 struct BSC_Socket;
 typedef struct BSC_Socket BSC_SOCKET;
@@ -49,9 +52,9 @@ struct BSC_ContextCFG;
 typedef struct BSC_ContextCFG BSC_CONTEXT_CFG;
 
 typedef enum {
-   BSC_SOCKET_CTX_INITIATOR = 1,
-   BSC_SOCKET_CTX_ACCEPTOR = 2
-}  BSC_SOCKET_CTX_TYPE;
+    BSC_SOCKET_CTX_INITIATOR = 1,
+    BSC_SOCKET_CTX_ACCEPTOR = 2
+} BSC_SOCKET_CTX_TYPE;
 
 typedef enum {
     BSC_SOCKET_EVENT_CONNECTED = 0,
@@ -65,10 +68,10 @@ typedef enum {
 } BSC_CTX_EVENT;
 
 typedef enum {
-  BSC_CTX_STATE_IDLE = 0,
-  BSC_CTX_STATE_INITIALIZING = 1,
-  BSC_CTX_STATE_INITIALIZED = 2,
-  BSC_CTX_STATE_DEINITIALIZING = 3
+    BSC_CTX_STATE_IDLE = 0,
+    BSC_CTX_STATE_INITIALIZING = 1,
+    BSC_CTX_STATE_INITIALIZED = 2,
+    BSC_CTX_STATE_DEINITIALIZING = 3
 } BSC_CTX_STATE;
 
 typedef enum {
@@ -91,10 +94,11 @@ struct BSC_Socket {
     struct mstimer heartbeat;
     BACNET_SC_VMAC_ADDRESS vmac; /* VMAC address of the requesting node. */
     BACNET_SC_UUID uuid;
-    
+
     /* Regarding max_bvlc_len and max_npdu_len: */
     /* These are the datalink limits and are passed up the stack to let */
-    /* the application layer know one of the several numbers that go into computing */
+    /* the application layer know one of the several numbers that go into
+     * computing */
     /* how big an NPDU/APDU can be. */
 
     uint16_t max_bvlc_len; /* remote peer max bvlc len */
@@ -108,12 +112,11 @@ struct BSC_Socket {
     size_t tx_buf_size;
 };
 
-struct BSC_ContextCFG
-{
+struct BSC_ContextCFG {
     BSC_SOCKET_CTX_TYPE type;
     BSC_WEBSOCKET_PROTOCOL proto;
     uint16_t port;
-    char* iface;
+    char *iface;
     uint8_t *ca_cert_chain;
     size_t ca_cert_chain_size;
     uint8_t *cert_chain;
@@ -131,48 +134,53 @@ struct BSC_ContextCFG
     unsigned long disconnect_timeout_s;
 
     /* According 12.56.Y10 SC_Heartbeat_Timeout */
-    /* (http://www.bacnet.org/Addenda/Add-135-2020cc.pdf) the recommended default */
+    /* (http://www.bacnet.org/Addenda/Add-135-2020cc.pdf) the recommended
+     * default */
     /* value is 300 seconds. */
     unsigned long heartbeat_timeout_s;
 };
 
 struct BSC_SocketContextFuncs {
-
-    BSC_SOCKET* (*find_connection_for_vmac)(BACNET_SC_VMAC_ADDRESS *vmac,
-                                            void* user_arg);
-    BSC_SOCKET* (*find_connection_for_uuid)(BACNET_SC_UUID *uuid,
-                                            void* user_arg);
+    BSC_SOCKET *(*find_connection_for_vmac)(
+        BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg);
+    BSC_SOCKET *(*find_connection_for_uuid)(
+        BACNET_SC_UUID *uuid, void *user_arg);
     /* We always reserve BSC_PRE bytes before BVLC message header */
     /* to avoid copying of packet payload during manipulation with */
     /* origin and dest addresses (e.g. adding them to received PDU) */
     /* That's why pdu pointer has always reserved BSC_PRE bytes behind */
     /* The params disconnect_reason and disconnect_reason_desc are meanfull */
-    /* only for disconnect events, e.g. when ev ==  BSC_SOCKET_EVENT_DISCONNECTED */
+    /* only for disconnect events, e.g. when ev == BSC_SOCKET_EVENT_DISCONNECTED
+     */
 
-    void (*socket_event)(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
-                         BACNET_ERROR_CODE disconnect_reason,
-                         const char* disconnect_reason_desc,
-                         uint8_t *pdu, uint16_t pdu_len,
-                         BVLC_SC_DECODED_MESSAGE *decoded_pdu);
+    void (*socket_event)(
+        BSC_SOCKET *c,
+        BSC_SOCKET_EVENT ev,
+        BACNET_ERROR_CODE disconnect_reason,
+        const char *disconnect_reason_desc,
+        uint8_t *pdu,
+        uint16_t pdu_len,
+        BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
     void (*context_event)(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
-    void (*failed_request)(BSC_SOCKET_CTX *ctx, BSC_SOCKET*c,
-                           BACNET_SC_VMAC_ADDRESS *vmac,
-                           BACNET_SC_UUID *uuid,
-                           BACNET_ERROR_CODE error,
-                           const char* error_desc);
+    void (*failed_request)(
+        BSC_SOCKET_CTX *ctx,
+        BSC_SOCKET *c,
+        BACNET_SC_VMAC_ADDRESS *vmac,
+        BACNET_SC_UUID *uuid,
+        BACNET_ERROR_CODE error,
+        const char *error_desc);
 };
-
 
 struct BSC_SocketContext {
     BSC_CTX_STATE state;
     BSC_WEBSOCKET_SRV_HANDLE sh;
     BSC_SOCKET *sock;
-    size_t  sock_num;
-    BSC_SOCKET_CTX_FUNCS* funcs;
+    size_t sock_num;
+    BSC_SOCKET_CTX_FUNCS *funcs;
     BSC_CONTEXT_CFG *cfg;
     bool deinit_in_progress;
-    void* user_arg;
+    void *user_arg;
 };
 
 /* max_local_bvlc_len - The maximum BVLC message size int bytes that can be */
@@ -181,38 +189,40 @@ struct BSC_SocketContext {
 /*                      handled by BSC/SC datalink. */
 
 BACNET_STACK_EXPORT
-void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
-                      BSC_CONTEXT_CFG* cfg,
-                      BSC_WEBSOCKET_PROTOCOL proto,
-                      uint16_t port,
-                      char* iface,
-                      uint8_t *ca_cert_chain,
-                      size_t ca_cert_chain_size,
-                      uint8_t *cert_chain,
-                      size_t cert_chain_size,
-                      uint8_t *key,
-                      size_t key_size,
-                      BACNET_SC_UUID *local_uuid,
-                      BACNET_SC_VMAC_ADDRESS *local_vmac,
-                      uint16_t max_local_bvlc_len,
-                      uint16_t max_local_ndpu_len,
-                      unsigned int connect_timeout_s,
-                      unsigned int heartbeat_timeout_s,
-                      unsigned int disconnect_timeout_s);
+void bsc_init_ctx_cfg(
+    BSC_SOCKET_CTX_TYPE type,
+    BSC_CONTEXT_CFG *cfg,
+    BSC_WEBSOCKET_PROTOCOL proto,
+    uint16_t port,
+    char *iface,
+    uint8_t *ca_cert_chain,
+    size_t ca_cert_chain_size,
+    uint8_t *cert_chain,
+    size_t cert_chain_size,
+    uint8_t *key,
+    size_t key_size,
+    BACNET_SC_UUID *local_uuid,
+    BACNET_SC_VMAC_ADDRESS *local_vmac,
+    uint16_t max_local_bvlc_len,
+    uint16_t max_local_ndpu_len,
+    unsigned int connect_timeout_s,
+    unsigned int heartbeat_timeout_s,
+    unsigned int disconnect_timeout_s);
 
 BACNET_STACK_EXPORT
-BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
-                        BSC_CONTEXT_CFG* cfg,
-                        BSC_SOCKET_CTX_FUNCS* funcs,
-                        BSC_SOCKET* sockets,
-                        size_t sockets_num,
-                        void* user_arg);
+BSC_SC_RET bsc_init_ctx(
+    BSC_SOCKET_CTX *ctx,
+    BSC_CONTEXT_CFG *cfg,
+    BSC_SOCKET_CTX_FUNCS *funcs,
+    BSC_SOCKET *sockets,
+    size_t sockets_num,
+    void *user_arg);
 
 BACNET_STACK_EXPORT
 void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
 
 /**
- * @brief  bsc_connect() function starts connect operation for a 
+ * @brief  bsc_connect() function starts connect operation for a
  *         specified BACNet socket. The function call be called only
  *         for initiator context otherwise BSC_SC_INVALID_OPERATION
  *         error is returned. As a result if bsc_connect() was
@@ -243,10 +253,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
  */
 
 BACNET_STACK_EXPORT
-BSC_SC_RET bsc_connect(
-    BSC_SOCKET_CTX *ctx,
-    BSC_SOCKET *c,
-    char *url);
+BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url);
 
 BACNET_STACK_EXPORT
 void bsc_disconnect(BSC_SOCKET *c);
@@ -300,7 +307,7 @@ BACNET_STACK_EXPORT
 bool bsc_socket_get_peer_addr(BSC_SOCKET *c, BACNET_HOST_N_PORT_DATA *data);
 
 BACNET_STACK_EXPORT
-uint8_t* bsc_socket_get_global_buf(void);
+uint8_t *bsc_socket_get_global_buf(void);
 
 BACNET_STACK_EXPORT
 size_t bsc_socket_get_global_buf_size(void);

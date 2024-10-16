@@ -78,8 +78,7 @@ BACNET_STACK_EXPORT
 bool Network_Port_MAC_Address(
     uint32_t object_instance, BACNET_OCTET_STRING *mac_address);
 BACNET_STACK_EXPORT
-uint8_t *Network_Port_MAC_Address_pointer(
-    uint32_t object_instance);
+uint8_t *Network_Port_MAC_Address_pointer(uint32_t object_instance);
 uint8_t Network_Port_MAC_Address_Value(
     uint32_t object_instance, uint8_t *mac_address, size_t mac_size);
 BACNET_STACK_EXPORT

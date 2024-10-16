@@ -31,9 +31,9 @@ BSC_MUTEX *bsc_mutex_init(void)
     }
 
     ret->mutex = CreateMutex(
-        NULL,              // default security attributes
-        FALSE,             // initially not owned
-        NULL);             // unnamed mutex
+        NULL, // default security attributes
+        FALSE, // initially not owned
+        NULL); // unnamed mutex
     if (ret->mutex == NULL) {
         printf("CreateMutex error: %d\n", GetLastError());
         free(ret);
@@ -81,12 +81,14 @@ void bsc_global_mutex_lock_dbg(char *file, int line)
     }
 
     file = filename_without_full_path(file);
-    printf("bsc_global_mutex_lock() call from %s:%d op=try_lock lock_cnt = %ld "
-           "tid = %d\n",
+    printf(
+        "bsc_global_mutex_lock() call from %s:%d op=try_lock lock_cnt = %ld "
+        "tid = %d\n",
         file, line, bsc_lock_cnt, GetCurrentThreadId());
     WaitForSingleObject(bsc_global_mutex, INFINITE);
-    printf("bsc_global_mutex_lock() call from %s:%d op=lock lock_cnt = %ld tid "
-           "= %d\n",
+    printf(
+        "bsc_global_mutex_lock() call from %s:%d op=lock lock_cnt = %ld tid "
+        "= %d\n",
         file, line, bsc_lock_cnt, GetCurrentThreadId());
     bsc_lock_cnt++;
 }
@@ -95,9 +97,10 @@ void bsc_global_mutex_unlock_dbg(char *file, int line)
 {
     file = filename_without_full_path(file);
     bsc_lock_cnt--;
-    printf("bsc_global_mutex_unlock() call from %s:%d op=unlock lock_cnt = %ld "
-           " tid = %p\n",
-        file, line, bsc_lock_cnt, (void*)pthread_self());
+    printf(
+        "bsc_global_mutex_unlock() call from %s:%d op=unlock lock_cnt = %ld "
+        " tid = %p\n",
+        file, line, bsc_lock_cnt, (void *)pthread_self());
     ReleaseMutex(bsc_global_mutex);
 }
 #else
@@ -116,7 +119,7 @@ void bsc_global_mutex_unlock(void)
 }
 #endif
 
-void* bsc_mutex_native(BSC_MUTEX *mutex)
+void *bsc_mutex_native(BSC_MUTEX *mutex)
 {
     return (void *)mutex->mutex;
 }

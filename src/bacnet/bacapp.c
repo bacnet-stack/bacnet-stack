@@ -3371,14 +3371,13 @@ int bacapp_snprintf_value(
                     property == PROP_SC_HUB_FUNCTION_CONNECTION_STATUS ||
                     property == PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS ||
                     property == PROP_SC_PRIMARY_HUB_CONNECTION_STATUS ||
-                    property == PROP_SC_FAILOVER_HUB_CONNECTION_STATUS)
-                {
+                    property == PROP_SC_FAILOVER_HUB_CONNECTION_STATUS) {
                     ret_val = Network_Port_SC_snprintf_value(
                         str, str_len, object_value);
                 } else
 #endif /* BACDL_BSC */
-                ret_val = bacapp_snprintf(
-                    str, str_len, "UnknownType(tag=%d)", value->tag);
+                    ret_val = bacapp_snprintf(
+                        str, str_len, "UnknownType(tag=%d)", value->tag);
                 break;
         }
     }

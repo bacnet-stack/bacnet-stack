@@ -24,15 +24,15 @@ typedef enum {
 } TEST_STAGE;
 static TEST_STAGE test_stage = STAGE_NONE;
 
-#define TIMEOUT_CHILD   400
-#define TIMEOUT_MIN     200
-#define TIMEOUT_MAX     600
-#define TIMEOUT_SLEEP   2
-#define WAITTIME_MIN    (TIMEOUT_SLEEP * 1000 - 20)
-#define WAITTIME_MAX    (TIMEOUT_SLEEP * 1000 + 20)
+#define TIMEOUT_CHILD 400
+#define TIMEOUT_MIN 200
+#define TIMEOUT_MAX 600
+#define TIMEOUT_SLEEP 2
+#define WAITTIME_MIN (TIMEOUT_SLEEP * 1000 - 20)
+#define WAITTIME_MAX (TIMEOUT_SLEEP * 1000 + 20)
 #define MULTIPLE_WAIT_THREADS_NUM 50
 
-DWORD WINAPI child_func( LPVOID lpParam )
+DWORD WINAPI child_func(LPVOID lpParam)
 {
     BSC_EVENT *event = (BSC_EVENT *)lpParam;
     zassert_not_null(event, NULL);
@@ -79,12 +79,11 @@ static void test_bsc_event1(void)
 
     // run child and wait when child running
     thread = CreateThread(
-                     NULL,       // default security attributes
-                     0,          // default stack size
-                     (LPTHREAD_START_ROUTINE) child_func,
-                     event,
-                     0,          // default creation flags
-                     &threadID); // receive thread identifier
+        NULL, // default security attributes
+        0, // default stack size
+        (LPTHREAD_START_ROUTINE)child_func, event,
+        0, // default creation flags
+        &threadID); // receive thread identifier
     zassert_not_null(thread, NULL);
 
     test_stage = STAGE_WAIT_1;
@@ -112,7 +111,7 @@ static void test_bsc_event1(void)
     bsc_event_deinit(event);
 }
 
-DWORD WINAPI thread_func( LPVOID lpParam )
+DWORD WINAPI thread_func(LPVOID lpParam)
 {
     BSC_EVENT *event = (BSC_EVENT *)lpParam;
     zassert_not_null(event, NULL);
@@ -130,24 +129,22 @@ static void test_bsc_event2(void)
     event = bsc_event_init();
     zassert_not_null(event, NULL);
 
-    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+    for (i = 0; i < MULTIPLE_WAIT_THREADS_NUM; i++) {
         thread[i] = CreateThread(
-                         NULL,       // default security attributes
-                         0,          // default stack size
-                         (LPTHREAD_START_ROUTINE) thread_func,
-                         event,
-                         0,          // default creation flags
-                         &tid[i]); // receive thread identifier
+            NULL, // default security attributes
+            0, // default stack size
+            (LPTHREAD_START_ROUTINE)thread_func, event,
+            0, // default creation flags
+            &tid[i]); // receive thread identifier
         zassert_not_null(thread[i], NULL);
-
     }
 
     bsc_wait(1);
     bsc_event_signal(event);
 
-    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
-       WaitForSingleObject(thread[i], INFINITE);
-       CloseHandle(thread[i]);
+    for (i = 0; i < MULTIPLE_WAIT_THREADS_NUM; i++) {
+        WaitForSingleObject(thread[i], INFINITE);
+        CloseHandle(thread[i]);
     }
 
     bsc_event_deinit(event);

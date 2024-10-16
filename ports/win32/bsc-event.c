@@ -42,7 +42,8 @@ BSC_EVENT *bsc_event_init(void)
         return NULL;
     }
 
-    ret->mutex = CreateMutex(NULL, // default security attributes
+    ret->mutex = CreateMutex(
+        NULL, // default security attributes
         FALSE, // initially not owned
         NULL); // unnamed mutex
 
@@ -51,7 +52,8 @@ BSC_EVENT *bsc_event_init(void)
         return NULL;
     }
 
-    ret->event = CreateEvent(NULL, // default security attributes
+    ret->event = CreateEvent(
+        NULL, // default security attributes
         TRUE, // manual-reset event
         FALSE, // initial state is nonsignaled
         NULL // unnamed event
@@ -124,7 +126,8 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
         ReleaseMutex(ev->mutex);
         SetEvent(ev->event);
     }
-    DEBUG_PRINTF("bsc_event_timedwait() <<< ret = %d\n",
+    DEBUG_PRINTF(
+        "bsc_event_timedwait() <<< ret = %d\n",
         ret == WAIT_OBJECT_0 ? true : false);
     return ret == WAIT_OBJECT_0 ? true : false;
 }

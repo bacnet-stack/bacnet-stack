@@ -39,7 +39,7 @@ typedef struct BSC_Event BSC_EVENT;
  *         returns NULL.
  */
 
-BSC_EVENT* bsc_event_init(void);
+BSC_EVENT *bsc_event_init(void);
 
 /**
  * @brief  bsc_event_deinit() deinitialize auto-reset

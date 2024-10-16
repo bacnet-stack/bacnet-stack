@@ -138,21 +138,11 @@ static object_functions_t Object_Table[] = {
       NULL /* Delete */,
       NULL /* Timer */ },
 #if defined(BACDL_BSC)
-    { OBJECT_FILE,
-        bacfile_init,
-        bacfile_count,
-        bacfile_index_to_instance,
-        bacfile_valid_instance,
-        bacfile_object_name,
-        bacfile_read_property,
-        bacfile_write_property,
-        BACfile_Property_Lists,
-        NULL /* ReadRangeInfo */,
-        NULL /* Iterator */,
-        NULL /* Value_Lists */,
-        NULL /* COV */,
-        NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */ },
+    { OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
+      bacfile_valid_instance, bacfile_object_name, bacfile_read_property,
+      bacfile_write_property, BACfile_Property_Lists, NULL /* ReadRangeInfo */,
+      NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
+      NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
 #endif
 #endif
     { MAX_BACNET_OBJECT_TYPE,
@@ -1260,7 +1250,8 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * @param [out] The value list
  * @return True if the object instance supports this feature and value changed.
  */
-bool Device_Encode_Value_List(BACNET_OBJECT_TYPE object_type,
+bool Device_Encode_Value_List(
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE *value_list)
 {

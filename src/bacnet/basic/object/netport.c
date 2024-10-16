@@ -138,15 +138,15 @@ static const int Network_Port_Properties_Required[] = {
 static const int Ethernet_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
     PROP_NETWORK_NUMBER, PROP_NETWORK_NUMBER_QUALITY,
-    PROP_APDU_LENGTH, PROP_DESCRIPTION, PROP_MAC_ADDRESS,
-    -1
+    PROP_APDU_LENGTH,    PROP_DESCRIPTION,
+    PROP_MAC_ADDRESS,    -1
 };
 
 static const int MSTP_Port_Properties_Optional[] = {
     /* unordered list of optional properties */
-    PROP_NETWORK_NUMBER, PROP_NETWORK_NUMBER_QUALITY,
-    PROP_APDU_LENGTH, PROP_DESCRIPTION,
-    PROP_MAC_ADDRESS, PROP_MAX_MASTER,
+    PROP_NETWORK_NUMBER,  PROP_NETWORK_NUMBER_QUALITY,
+    PROP_APDU_LENGTH,     PROP_DESCRIPTION,
+    PROP_MAC_ADDRESS,     PROP_MAX_MASTER,
     PROP_MAX_INFO_FRAMES, -1
 };
 
@@ -253,7 +253,8 @@ static const int BSC_Port_Properties_Optional[] = {
     PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
     PROP_SC_FAILED_CONNECTION_REQUESTS,
-    -1 };
+    -1
+};
 
 static const int Network_Port_Properties_Proprietary[] = { -1 };
 
@@ -3294,27 +3295,27 @@ BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
         apdu_len = BACNET_STATUS_ERROR;                                     \
     }
 
-#define ENCODE_KEYLIST(getter, encode, size_f, type)                         \
-    {                                                                        \
-        if (rpdata->array_index == BACNET_ARRAY_ALL) {                       \
-            uint16_t size = (size_f)(rpdata->object_instance);               \
-            unsigned index;                                                  \
-            int len;                                                         \
-            for (index = 0; index < (size); index++) {                       \
-                type *var = (getter)(rpdata->object_instance, index);        \
-                len = (encode)(&apdu[apdu_len], var);                        \
-                if ((len < 0) || (apdu_len + len > apdu_size)) {             \
-                    apdu_len = len;                                          \
-                    break;                                                   \
-                }                                                            \
-                apdu_len += len;                                             \
-            }                                                                \
-        } else {                                                             \
-            /* index was specified, but out of range */                      \
-            rpdata->error_class = ERROR_CLASS_PROPERTY;                      \
-            rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;        \
-            apdu_len = BACNET_STATUS_ERROR;                                  \
-        }                                                                    \
+#define ENCODE_KEYLIST(getter, encode, size_f, type)                  \
+    {                                                                 \
+        if (rpdata->array_index == BACNET_ARRAY_ALL) {                \
+            uint16_t size = (size_f)(rpdata->object_instance);        \
+            unsigned index;                                           \
+            int len;                                                  \
+            for (index = 0; index < (size); index++) {                \
+                type *var = (getter)(rpdata->object_instance, index); \
+                len = (encode)(&apdu[apdu_len], var);                 \
+                if ((len < 0) || (apdu_len + len > apdu_size)) {      \
+                    apdu_len = len;                                   \
+                    break;                                            \
+                }                                                     \
+                apdu_len += len;                                      \
+            }                                                         \
+        } else {                                                      \
+            /* index was specified, but out of range */               \
+            rpdata->error_class = ERROR_CLASS_PROPERTY;               \
+            rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY; \
+            apdu_len = BACNET_STATUS_ERROR;                           \
+        }                                                             \
     }
 
 /**
@@ -3708,11 +3709,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #ifdef BACDL_BSC
         case PROP_MAX_BVLC_LENGTH_ACCEPTED:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_Max_BVLC_Length_Accepted(rpdata->object_instance));
             break;
         case PROP_MAX_NPDU_LENGTH_ACCEPTED:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_Max_NPDU_Length_Accepted(rpdata->object_instance));
             break;
         case PROP_SC_PRIMARY_HUB_URI:
@@ -3728,34 +3731,41 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SC_MINIMUM_RECONNECT_TIME:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_SC_Minimum_Reconnect_Time(
                     rpdata->object_instance));
             break;
         case PROP_SC_MAXIMUM_RECONNECT_TIME:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_SC_Maximum_Reconnect_Time(
                     rpdata->object_instance));
             break;
         case PROP_SC_CONNECT_WAIT_TIMEOUT:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_SC_Connect_Wait_Timeout(rpdata->object_instance));
             break;
         case PROP_SC_DISCONNECT_WAIT_TIMEOUT:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_SC_Disconnect_Wait_Timeout(
                     rpdata->object_instance));
             break;
         case PROP_SC_HEARTBEAT_TIMEOUT:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_SC_Heartbeat_Timeout(rpdata->object_instance));
             break;
         case PROP_SC_HUB_CONNECTOR_STATE:
-            apdu_len = encode_application_enumerated(&apdu[0],
+            apdu_len = encode_application_enumerated(
+                &apdu[0],
                 Network_Port_SC_Hub_Connector_State(rpdata->object_instance));
             break;
         case PROP_OPERATIONAL_CERTIFICATE_FILE:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_Operational_Certificate_File(
                     rpdata->object_instance));
             break;
@@ -3771,14 +3781,16 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 int len;
                 unsigned index;
                 for (index = 0; index < BACNET_ISSUER_CERT_FILE_MAX; index++) {
-                    len = encode_application_unsigned(&apdu[apdu_len],
+                    len = encode_application_unsigned(
+                        &apdu[apdu_len],
                         Network_Port_Issuer_Certificate_File(
                             rpdata->object_instance, index));
                     apdu_len += len;
                 }
             } else if (rpdata->array_index <= BACNET_ISSUER_CERT_FILE_MAX) {
                 /* index was specified; encode a single array element */
-                apdu_len = encode_application_unsigned(&apdu[0],
+                apdu_len = encode_application_unsigned(
+                    &apdu[0],
                     Network_Port_Issuer_Certificate_File(
                         rpdata->object_instance, rpdata->array_index - 1));
             } else {
@@ -3789,35 +3801,40 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_CERTIFICATE_SIGNING_REQUEST_FILE:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_Certificate_Signing_Request_File(
                     rpdata->object_instance));
             break;
             /* SC optionals */
 #if BACNET_SECURE_CONNECT_ROUTING_TABLE
         case PROP_ROUTING_TABLE:
-            ENCODE_KEYLIST(Network_Port_Routing_Table_Get,
-                bacapp_encode_RouterEntry, Network_Port_Routing_Table_Count,
-                BACNET_ROUTER_ENTRY);
+            ENCODE_KEYLIST(
+                Network_Port_Routing_Table_Get, bacapp_encode_RouterEntry,
+                Network_Port_Routing_Table_Count, BACNET_ROUTER_ENTRY);
             break;
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
         case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
-            apdu_len = bacapp_encode_SCHubConnection(&apdu[0],
+            apdu_len = bacapp_encode_SCHubConnection(
+                &apdu[0],
                 Network_Port_SC_Primary_Hub_Connection_Status(
                     rpdata->object_instance));
             break;
         case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
-            apdu_len = bacapp_encode_SCHubConnection(&apdu[0],
+            apdu_len = bacapp_encode_SCHubConnection(
+                &apdu[0],
                 Network_Port_SC_Failover_Hub_Connection_Status(
                     rpdata->object_instance));
             break;
         case PROP_SC_HUB_FUNCTION_ENABLE:
-            apdu_len = encode_application_boolean(&apdu[0],
+            apdu_len = encode_application_boolean(
+                &apdu[0],
                 Network_Port_SC_Hub_Function_Enable(rpdata->object_instance));
             break;
         case PROP_SC_HUB_FUNCTION_ACCEPT_URIS:
-            ENCODE_STRING_ARRAY(Network_Port_SC_Hub_Function_Accept_URI,
+            ENCODE_STRING_ARRAY(
+                Network_Port_SC_Hub_Function_Accept_URI,
                 encode_application_character_string, BACNET_SC_HUB_URI_MAX,
                 &char_string);
             break;
@@ -3837,17 +3854,20 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
         case PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE:
-            apdu_len = encode_application_boolean(&apdu[0],
+            apdu_len = encode_application_boolean(
+                &apdu[0],
                 Network_Port_SC_Direct_Connect_Initiate_Enable(
                     rpdata->object_instance));
             break;
         case PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE:
-            apdu_len = encode_application_boolean(&apdu[0],
+            apdu_len = encode_application_boolean(
+                &apdu[0],
                 Network_Port_SC_Direct_Connect_Accept_Enable(
                     rpdata->object_instance));
             break;
         case PROP_SC_DIRECT_CONNECT_ACCEPT_URIS:
-            ENCODE_STRING_ARRAY(Network_Port_SC_Direct_Connect_Accept_URI,
+            ENCODE_STRING_ARRAY(
+                Network_Port_SC_Direct_Connect_Accept_URI,
                 encode_application_character_string, BACNET_SC_HUB_URI_MAX,
                 &char_string);
             break;
@@ -3866,7 +3886,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
-            ENCODE_KEYLIST(Network_Port_SC_Failed_Connection_Requests_Get,
+            ENCODE_KEYLIST(
+                Network_Port_SC_Failed_Connection_Requests_Get,
                 bacapp_encode_SCFailedConnectionRequest,
                 Network_Port_SC_Failed_Connection_Requests_Count,
                 BACNET_SC_FAILED_CONNECTION_REQUEST);
@@ -3908,16 +3929,17 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         }                                                                    \
     }
 
-#define DECODE_ARRAY_STRING(setter, size, len)                                \
-    status = write_property_empty_string_valid(wp_data, &value, (len)) &&     \
-        wp_data->array_index <= (size);                                       \
-    if (status) {                                                             \
-        status = (setter)(wp_data->object_instance, wp_data->array_index - 1, \
-            characterstring_value(&value.type.Character_String));             \
-    }                                                                         \
-    if (!status) {                                                            \
-        wp_data->error_class = ERROR_CLASS_PROPERTY;                          \
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;                  \
+#define DECODE_ARRAY_STRING(setter, size, len)                             \
+    status = write_property_empty_string_valid(wp_data, &value, (len)) &&  \
+        wp_data->array_index <= (size);                                    \
+    if (status) {                                                          \
+        status =                                                           \
+            (setter)(wp_data->object_instance, wp_data->array_index - 1,   \
+                     characterstring_value(&value.type.Character_String)); \
+    }                                                                      \
+    if (!status) {                                                         \
+        wp_data->error_class = ERROR_CLASS_PROPERTY;                       \
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;               \
     }
 
 /**
@@ -4040,31 +4062,38 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 #ifdef BACDL_BSC
         case PROP_MAX_BVLC_LENGTH_ACCEPTED:
-            DECODE_UNSIGNED(Network_Port_Max_BVLC_Length_Accepted_Dirty_Set,
+            DECODE_UNSIGNED(
+                Network_Port_Max_BVLC_Length_Accepted_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_MAX_NPDU_LENGTH_ACCEPTED:
-            DECODE_UNSIGNED(Network_Port_Max_NPDU_Length_Accepted_Dirty_Set,
+            DECODE_UNSIGNED(
+                Network_Port_Max_NPDU_Length_Accepted_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_SC_MINIMUM_RECONNECT_TIME:
-            DECODE_UNSIGNED(Network_Port_SC_Minimum_Reconnect_Time_Dirty_Set,
+            DECODE_UNSIGNED(
+                Network_Port_SC_Minimum_Reconnect_Time_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_SC_MAXIMUM_RECONNECT_TIME:
-            DECODE_UNSIGNED(Network_Port_SC_Maximum_Reconnect_Time_Dirty_Set,
+            DECODE_UNSIGNED(
+                Network_Port_SC_Maximum_Reconnect_Time_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_SC_CONNECT_WAIT_TIMEOUT:
-            DECODE_UNSIGNED(Network_Port_SC_Connect_Wait_Timeout_Dirty_Set,
+            DECODE_UNSIGNED(
+                Network_Port_SC_Connect_Wait_Timeout_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_SC_DISCONNECT_WAIT_TIMEOUT:
-            DECODE_UNSIGNED(Network_Port_SC_Disconnect_Wait_Timeout_Dirty_Set,
+            DECODE_UNSIGNED(
+                Network_Port_SC_Disconnect_Wait_Timeout_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_SC_HEARTBEAT_TIMEOUT:
-            DECODE_UNSIGNED(Network_Port_SC_Heartbeat_Timeout_Dirty_Set,
+            DECODE_UNSIGNED(
+                Network_Port_SC_Heartbeat_Timeout_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
             /* SC optionals */
@@ -4342,16 +4371,16 @@ void Network_Port_Init(void)
 #ifdef BACDL_BSC
         Object_List[index].Network_Type = PORT_TYPE_BSC;
         sc = &Object_List[index].Network.BSC.Parameters;
-    #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
+#ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
         sc->Routing_Table = Keylist_Create();
-    #endif
+#endif
         sc->SC_Failed_Connection_Requests_Count = 0;
-    #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
+#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
         sc->SC_Hub_Function_Connection_Status_Count = 0;
-  #endif
-  #if BSC_CONF_HUB_CONNECTORS_NUM!=0
+#endif
+#if BSC_CONF_HUB_CONNECTORS_NUM != 0
         sc->SC_Direct_Connect_Connection_Status_Count = 0;
-  #endif
+#endif
         (void)sc;
 #endif /* BACDL_BSC */
     }

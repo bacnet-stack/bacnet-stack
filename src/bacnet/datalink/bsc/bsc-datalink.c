@@ -55,14 +55,16 @@ typedef enum {
 } BSC_DATALINK_STATE;
 
 static FIFO_BUFFER bsc_fifo = { 0 };
-static uint8_t bsc_fifo_buf[BSC_NEXT_POWER_OF_TWO(BSC_CONF_DATALINK_RX_BUFFER_SIZE)];
+static uint8_t
+    bsc_fifo_buf[BSC_NEXT_POWER_OF_TWO(BSC_CONF_DATALINK_RX_BUFFER_SIZE)];
 static BSC_NODE *bsc_node = NULL;
 static BSC_NODE_CONF bsc_conf;
 static BSC_DATALINK_STATE bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
 static BSC_EVENT *bsc_event = NULL;
 static BSC_EVENT *bsc_data_event = NULL;
 
-static void bsc_node_event(BSC_NODE *node,
+static void bsc_node_event(
+    BSC_NODE *node,
     BSC_NODE_EVENT ev,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
@@ -132,8 +134,9 @@ bool bsc_init(char *ifname)
         return false;
     }
 
-    DEBUG_PRINTF("bsc_init() BACNET/SC datalink configured to use input fifo "
-                 "of size %d\n",
+    DEBUG_PRINTF(
+        "bsc_init() BACNET/SC datalink configured to use input fifo "
+        "of size %d\n",
         sizeof(bsc_fifo_buf));
     FIFO_Init(&bsc_fifo, bsc_fifo_buf, sizeof(bsc_fifo_buf));
 
@@ -180,7 +183,7 @@ void bsc_cleanup(void)
             bsc_event_wait(bsc_event);
             bws_dispatch_lock();
         }
-        if(bsc_datalink_state != BSC_DATALINK_STATE_STOPPING) {
+        if (bsc_datalink_state != BSC_DATALINK_STATE_STOPPING) {
             bsc_datalink_state = BSC_DATALINK_STATE_STOPPING;
             bsc_event_signal(bsc_data_event);
             bsc_node_stop(bsc_node);
@@ -199,7 +202,8 @@ void bsc_cleanup(void)
     DEBUG_PRINTF("bsc_cleanup() <<<\n");
 }
 
-int bsc_send_pdu(BACNET_ADDRESS *dest,
+int bsc_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
@@ -227,8 +231,9 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
             return len;
         }
 
-        len = bvlc_sc_encode_encapsulated_npdu(buf, sizeof(buf),
-            bsc_get_next_message_id(), NULL, &dest_vmac, pdu, pdu_len);
+        len = bvlc_sc_encode_encapsulated_npdu(
+            buf, sizeof(buf), bsc_get_next_message_id(), NULL, &dest_vmac, pdu,
+            pdu_len);
 
         ret = bsc_node_send(bsc_node, buf, len);
         len = pdu_len;
@@ -285,25 +290,29 @@ uint16_t bsc_receive(
                 FIFO_Pull(&bsc_fifo, buf, npdu_len);
                 if (!bvlc_sc_decode_message(
                         buf, npdu_len, &dm, &error, &class, &err_desc)) {
-                    PRINTF("bsc_receive() pdu of size %d is dropped because "
-                           "of err = %d, class %d, desc = %s\n",
+                    PRINTF(
+                        "bsc_receive() pdu of size %d is dropped because "
+                        "of err = %d, class %d, desc = %s\n",
                         npdu_len, error, class, err_desc);
                     bsc_remove_packet(npdu_len);
                 } else {
                     if (dm.hdr.origin &&
                         max_pdu >= dm.payload.encapsulated_npdu.npdu_len) {
                         src->mac_len = BVLC_SC_VMAC_SIZE;
-                        memcpy(&src->mac[0], &dm.hdr.origin->address[0],
+                        memcpy(
+                            &src->mac[0], &dm.hdr.origin->address[0],
                             BVLC_SC_VMAC_SIZE);
-                        memcpy(pdu, dm.payload.encapsulated_npdu.npdu,
+                        memcpy(
+                            pdu, dm.payload.encapsulated_npdu.npdu,
                             dm.payload.encapsulated_npdu.npdu_len);
                         pdu_len = dm.payload.encapsulated_npdu.npdu_len;
                     }
 #if DEBUG_ENABLED == 1
                     else {
-                        PRINTF("bsc_receive() pdu of size %d is dropped "
-                               "because origin addr is absent or output "
-                               "buf of size %d is to small\n",
+                        PRINTF(
+                            "bsc_receive() pdu of size %d is dropped "
+                            "because origin addr is absent or output "
+                            "buf of size %d is to small\n",
                             npdu_len, max_pdu);
                     }
 #endif
@@ -339,7 +348,8 @@ void bsc_get_my_address(BACNET_ADDRESS *my_address)
     bws_dispatch_lock();
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         my_address->mac_len = BVLC_SC_VMAC_SIZE;
-        memcpy(&my_address->mac[0], &bsc_conf.local_vmac->address[0],
+        memcpy(
+            &my_address->mac[0], &bsc_conf.local_vmac->address[0],
             BVLC_SC_VMAC_SIZE);
     }
     bws_dispatch_unlock();
@@ -358,8 +368,8 @@ bool bsc_direct_connection_established(
     return ret;
 }
 
-BSC_SC_RET bsc_connect_direct(
-    BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
+BSC_SC_RET
+bsc_connect_direct(BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
     BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
     DEBUG_PRINTF(
@@ -401,15 +411,15 @@ static void bsc_update_hub_connector_status(void)
     instance = Network_Port_Index_To_Instance(0);
     status = bsc_node_hub_connector_status(bsc_node, true);
     if (status) {
-        Network_Port_SC_Primary_Hub_Connection_Status_Set(instance,
-            status->State, &status->Connect_Timestamp,
+        Network_Port_SC_Primary_Hub_Connection_Status_Set(
+            instance, status->State, &status->Connect_Timestamp,
             &status->Disconnect_Timestamp, status->Error,
             status->Error_Details[0] ? status->Error_Details : NULL);
     }
     status = bsc_node_hub_connector_status(bsc_node, false);
     if (status) {
-        Network_Port_SC_Failover_Hub_Connection_Status_Set(instance,
-            status->State, &status->Connect_Timestamp,
+        Network_Port_SC_Failover_Hub_Connection_Status_Set(
+            instance, status->State, &status->Connect_Timestamp,
             &status->Disconnect_Timestamp, status->Error,
             status->Error_Details[0] ? status->Error_Details : NULL);
     }
@@ -427,10 +437,11 @@ static void bsc_update_hub_function_status(void)
     if (s) {
         Network_Port_SC_Hub_Function_Connection_Status_Delete_All(instance);
         for (i = 0; i < cnt; i++) {
-            if (memcmp(&uninitialized.address[0], &s[i].Peer_VMAC[0],
+            if (memcmp(
+                    &uninitialized.address[0], &s[i].Peer_VMAC[0],
                     BVLC_SC_VMAC_SIZE) != 0) {
-                Network_Port_SC_Hub_Function_Connection_Status_Add(instance,
-                    s[i].State, &s[i].Connect_Timestamp,
+                Network_Port_SC_Hub_Function_Connection_Status_Add(
+                    instance, s[i].State, &s[i].Connect_Timestamp,
                     &s[i].Disconnect_Timestamp, &s[i].Peer_Address,
                     s[i].Peer_VMAC, s[i].Peer_UUID.uuid.uuid128, s[i].Error,
                     s[i].Error_Details[0] == 0 ? NULL : s[i].Error_Details);
@@ -447,10 +458,11 @@ static void bsc_add_direct_status_to_netport(
     BACNET_SC_VMAC_ADDRESS uninitialized = { 0 };
 
     for (i = 0; i < cnt; i++) {
-        if (memcmp(&uninitialized.address[0], &s[i].Peer_VMAC[0],
+        if (memcmp(
+                &uninitialized.address[0], &s[i].Peer_VMAC[0],
                 BVLC_SC_VMAC_SIZE) != 0) {
-            Network_Port_SC_Direct_Connect_Connection_Status_Add(instance,
-                s[i].URI[0] == 0 ? NULL : s[i].URI, s[i].State,
+            Network_Port_SC_Direct_Connect_Connection_Status_Add(
+                instance, s[i].URI[0] == 0 ? NULL : s[i].URI, s[i].State,
                 &s[i].Connect_Timestamp, &s[i].Disconnect_Timestamp,
                 &s[i].Peer_Address, s[i].Peer_VMAC, s[i].Peer_UUID.uuid.uuid128,
                 s[i].Error,
@@ -486,9 +498,9 @@ static void bsc_update_failed_requests(void)
         Network_Port_SC_Failed_Connection_Requests_Delete_All(instance);
         for (i = 0; i < cnt; i++) {
             if (r[i].Peer_Address.host[0] != 0) {
-                Network_Port_SC_Failed_Connection_Requests_Add(instance,
-                    &r[i].Timestamp, &r[i].Peer_Address, r[i].Peer_VMAC,
-                    r[i].Peer_UUID.uuid.uuid128, r[i].Error,
+                Network_Port_SC_Failed_Connection_Requests_Add(
+                    instance, &r[i].Timestamp, &r[i].Peer_Address,
+                    r[i].Peer_VMAC, r[i].Peer_UUID.uuid.uuid128, r[i].Error,
                     r[i].Error_Details);
             }
         }

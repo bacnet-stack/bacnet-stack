@@ -50,7 +50,8 @@ void bsc_copy_uuid(BACNET_SC_UUID *dst, BACNET_SC_UUID *src)
 char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
 {
     static char buf[128];
-    sprintf(buf, "%02x%02x%02x%02x%02x%02x", vmac->address[0], vmac->address[1],
+    sprintf(
+        buf, "%02x%02x%02x%02x%02x%02x", vmac->address[0], vmac->address[1],
         vmac->address[2], vmac->address[3], vmac->address[4], vmac->address[5]);
     return buf;
 }
@@ -58,7 +59,8 @@ char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
 char *bsc_uuid_to_string(BACNET_SC_UUID *uuid)
 {
     static char buf[128];
-    sprintf(buf,
+    sprintf(
+        buf,
         "%02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x",
         uuid->uuid[0], uuid->uuid[1], uuid->uuid[2], uuid->uuid[3],
         uuid->uuid[4], uuid->uuid[5], uuid->uuid[6], uuid->uuid[7],
@@ -111,12 +113,14 @@ static bool bsc_node_load_cert_bacfile(
     uint32_t file_length;
 
     *psize = bacfile_file_size(file_instance) + ZERO_BYTE;
-    if (*psize == 0)
+    if (*psize == 0) {
         return false;
+    }
 
     *pbuf = calloc(1, *psize);
-    if (*pbuf == NULL)
+    if (*pbuf == NULL) {
         return false;
+    }
 
     file_length = bacfile_read(file_instance, *pbuf, *psize - ZERO_BYTE);
 #ifdef CONFIG_MBEDTLS
@@ -141,7 +145,8 @@ bool bsc_node_conf_fill_from_netport(
     bsc_conf->key = NULL;
 
     file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
-    if (!bsc_node_load_cert_bacfile(file_instance, &bsc_conf->ca_cert_chain,
+    if (!bsc_node_load_cert_bacfile(
+            file_instance, &bsc_conf->ca_cert_chain,
             &bsc_conf->ca_cert_chain_size)) {
         bsc_node_conf_cleanup(bsc_conf);
         return false;

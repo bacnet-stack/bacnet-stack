@@ -169,7 +169,7 @@ typedef struct BACnet_Application_Data_Value {
 #if defined(BACAPP_ACCESS_RULE)
         BACNET_ACCESS_RULE Access_Rule;
 #endif
-#if defined (BACDL_BSC)
+#if defined(BACDL_BSC)
         BACNET_CUSTOM_VALUE Custom_Value;
 #endif
     } type;
