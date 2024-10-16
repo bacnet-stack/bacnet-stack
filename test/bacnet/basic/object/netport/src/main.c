@@ -434,7 +434,6 @@ static void test_network_port_sc_status_encode_decode(void)
     BACNET_OBJECT_PROPERTY_VALUE object_value;
     BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
     uint8_t apdu[MAX_APDU];
-    uint16_t apdu_len_max;
     int len, len2;
     char str[512];
 
