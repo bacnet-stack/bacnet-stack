@@ -33,6 +33,7 @@
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
+#include "bacnet/channel_value.h"
 #include "bacnet/basic/sys/platform.h"
 
 #if defined(BACAPP_SCALE)
@@ -509,6 +510,13 @@ int bacapp_encode_application_data(
                 /* BACnetAccessRule */
                 apdu_len =
                     bacapp_encode_access_rule(apdu, &value->type.Access_Rule);
+                break;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+            case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
+                /* BACnetChannelValue */
+                apdu_len = bacnet_channel_value_type_encode(
+                    apdu, &value->type.Channel_Value);
                 break;
 #endif
             default:
@@ -1221,6 +1229,9 @@ int bacapp_known_property_tag(
                 (object_type == OBJECT_DATETIME_VALUE)) {
                 /* Properties using BACnetDateTime */
                 return BACNET_APPLICATION_TAG_DATETIME;
+            } else if (object_type == OBJECT_CHANNEL) {
+                /* Properties using BACnetChannelValue */
+                return BACNET_APPLICATION_TAG_CHANNEL_VALUE;
             }
             /* note: primitive application tagged present-values return '-1' */
             return -1;
@@ -1606,6 +1617,13 @@ int bacapp_decode_application_tag_value(
             /* BACnetAccessRule */
             apdu_len = bacnet_access_rule_decode(
                 apdu, apdu_size, &value->type.Access_Rule);
+            break;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+        case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
+            /* BACnetChannelValue */
+            apdu_len = bacnet_channel_value_decode(
+                apdu, apdu_size, &value->type.Channel_Value);
             break;
 #endif
         default:
@@ -2565,6 +2583,115 @@ static int bacapp_snprintf_access_rule(
 }
 #endif
 
+#if defined(BACAPP_COLOR_COMMAND)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to be printed
+ * @return number of characters written to the string
+ */
+static int bacapp_snprintf_color_command(
+    char *str, size_t str_len, const BACNET_COLOR_COMMAND *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    slen = bacapp_snprintf(str, str_len, "{");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, "(");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(
+        str, str_len, "%s", bactext_color_operation_name(value->operation));
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    slen = bacapp_snprintf(str, str_len, ")");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    /* FIXME: add the Color Command optional values */
+
+    slen = bacapp_snprintf(str, str_len, "}");
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    return ret_val;
+}
+#endif
+
+#if defined(BACAPP_CHANNEL_VALUE)
+/**
+ * @brief Print a value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to be printed
+ * @return number of characters written to the string
+ */
+static int bacapp_snprintf_channel_value(
+    char *str, size_t str_len, const BACNET_CHANNEL_VALUE *value)
+{
+    int ret_val = 0;
+
+    switch (value->tag) {
+        case BACNET_APPLICATION_TAG_NULL:
+            ret_val = bacapp_snprintf_null(str, str_len);
+            break;
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+#if defined(CHANNEL_BOOLEAN)
+            ret_val =
+                bacapp_snprintf_boolean(str, str_len, value->type.Boolean);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+#if defined(CHANNEL_UNSIGNED)
+            ret_val = bacapp_snprintf_unsigned_integer(
+                str, str_len, value->type.Unsigned_Int);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+#if defined(CHANNEL_SIGNED)
+            ret_val = bacapp_snprintf_signed_integer(
+                str, str_len, value->type.Signed_Int);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_REAL:
+#if defined(CHANNEL_REAL)
+            ret_val = bacapp_snprintf_real(str, str_len, value->type.Real);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_DOUBLE:
+#if defined(CHANNEL_DOUBLE)
+            ret_val = bacapp_snprintf_double(str, str_len, value->type.Double);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+#if defined(CHANNEL_ENUMERATED)
+            ret_val = bacapp_snprintf_enumerated(
+                str, str_len, OBJECT_COMMAND, PROP_ACTION,
+                value->type.Enumerated);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
+#if defined(CHANNEL_LIGHTING_COMMAND)
+            ret_val = lighting_command_to_ascii(
+                &value->type.Lighting_Command, str, str_len);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+#if defined(CHANNEL_COLOR_COMMAND)
+            ret_val = bacapp_snprintf_color_command(
+                str, str_len, &value->type.Color_Command);
+#endif
+            break;
+        case BACNET_APPLICATION_TAG_XY_COLOR:
+#if defined(CHANNEL_XY_COLOR)
+            ret_val = xy_color_to_ascii(&value->type.XY_Color, str, str_len);
+#endif
+            break;
+        default:
+            break;
+    }
+
+    return ret_val;
+}
+#endif
+
 #if defined(BACAPP_WEEKLY_SCHEDULE)
 /**
  * @brief Print a weekly schedule value to a string for EPICS
@@ -3235,16 +3362,8 @@ int bacapp_snprintf_value(
 #if defined(BACAPP_COLOR_COMMAND)
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
-                slen = bacapp_snprintf(str, str_len, "(");
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                slen = bacapp_snprintf(
-                    str, str_len, "%s",
-                    bactext_color_operation_name(
-                        value->type.Color_Command.operation));
-                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-                /* FIXME: add the Lighting Command optional values */
-                slen = bacapp_snprintf(str, str_len, ")");
-                ret_val += slen;
+                ret_val = bacapp_snprintf_color_command(
+                    str, str_len, &value->type.Color_Command);
                 break;
 #endif
 #if defined(BACAPP_WEEKLY_SCHEDULE)
@@ -3349,6 +3468,12 @@ int bacapp_snprintf_value(
             case BACNET_APPLICATION_TAG_ACCESS_RULE:
                 ret_val = bacapp_snprintf_access_rule(
                     str, str_len, &value->type.Access_Rule);
+                break;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+            case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
+                ret_val = bacapp_snprintf_channel_value(
+                    str, str_len, &value->type.Channel_Value);
                 break;
 #endif
             case BACNET_APPLICATION_TAG_EMPTYLIST:
@@ -3966,8 +4091,12 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_ACCESS_RULE)
             case BACNET_APPLICATION_TAG_ACCESS_RULE:
-                /* BACnetAccessRule - not implemented */
                 bacnet_access_rule_from_ascii(&value->type.Access_Rule, argv);
+                break;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+            case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
+                bacnet_channel_value_from_ascii(&value->type.Access_Rule, argv);
                 break;
 #endif
             default:
@@ -4526,6 +4655,13 @@ bool bacapp_same_value(
             case BACNET_APPLICATION_TAG_ACCESS_RULE:
                 status = bacnet_access_rule_same(
                     &value->type.Access_Rule, &test_value->type.Access_Rule);
+                break;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+            case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
+                status = bacnet_channel_value_same(
+                    &value->type.Channel_Value,
+                    &test_value->type.Channel_Value);
                 break;
 #endif
             case BACNET_APPLICATION_TAG_EMPTYLIST:

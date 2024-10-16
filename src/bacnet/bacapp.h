@@ -28,6 +28,7 @@
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
+#include "bacnet/channel_value.h"
 
 #ifndef BACAPP_PRINT_ENABLED
 #if PRINT_ENABLED
@@ -163,6 +164,9 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined(BACAPP_ACCESS_RULE)
         BACNET_ACCESS_RULE Access_Rule;
+#endif
+#if defined(BACAPP_CHANNEL_VALUE)
+        BACNET_CHANNEL_VALUE Channel_Value;
 #endif
     } type;
     /* simple linked list if needed */

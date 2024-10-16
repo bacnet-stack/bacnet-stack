@@ -646,104 +646,7 @@ bool Channel_Value_Copy(
 int Channel_Value_Encode(
     uint8_t *apdu, int apdu_max, const BACNET_CHANNEL_VALUE *value)
 {
-    int apdu_len = BACNET_STATUS_ERROR;
-
-    (void)apdu_max;
-    if (!value) {
-        return BACNET_STATUS_ERROR;
-    }
-    switch (value->tag) {
-        case BACNET_APPLICATION_TAG_NULL:
-            apdu_len = encode_application_null(apdu);
-            break;
-#if defined(CHANNEL_BOOLEAN)
-        case BACNET_APPLICATION_TAG_BOOLEAN:
-            apdu_len = encode_application_boolean(apdu, value->type.Boolean);
-            break;
-#endif
-#if defined(CHANNEL_UNSIGNED)
-        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-            apdu_len =
-                encode_application_unsigned(apdu, value->type.Unsigned_Int);
-            break;
-#endif
-#if defined(CHANNEL_SIGNED)
-        case BACNET_APPLICATION_TAG_SIGNED_INT:
-            apdu_len = encode_application_signed(apdu, value->type.Signed_Int);
-            break;
-#endif
-#if defined(CHANNEL_REAL)
-        case BACNET_APPLICATION_TAG_REAL:
-            apdu_len = encode_application_real(apdu, value->type.Real);
-            break;
-#endif
-#if defined(CHANNEL_DOUBLE)
-        case BACNET_APPLICATION_TAG_DOUBLE:
-            apdu_len = encode_application_double(apdu, value->type.Double);
-            break;
-#endif
-#if defined(CHANNEL_OCTET_STRING)
-        case BACNET_APPLICATION_TAG_OCTET_STRING:
-            apdu_len = encode_application_octet_string(
-                apdu, &value->type.Octet_String);
-            break;
-#endif
-#if defined(CHANNEL_CHARACTER_STRING)
-        case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-            apdu_len = encode_application_character_string(
-                apdu, &value->type.Character_String);
-            break;
-#endif
-#if defined(CHANNEL_BIT_STRING)
-        case BACNET_APPLICATION_TAG_BIT_STRING:
-            apdu_len =
-                encode_application_bitstring(apdu, &value->type.Bit_String);
-            break;
-#endif
-#if defined(CHANNEL_ENUMERATED)
-        case BACNET_APPLICATION_TAG_ENUMERATED:
-            apdu_len =
-                encode_application_enumerated(apdu, value->type.Enumerated);
-            break;
-#endif
-#if defined(CHANNEL_DATE)
-        case BACNET_APPLICATION_TAG_DATE:
-            apdu_len = encode_application_date(apdu, &value->type.Date);
-            break;
-#endif
-#if defined(CHANNEL_TIME)
-        case BACNET_APPLICATION_TAG_TIME:
-            apdu_len = encode_application_time(apdu, &value->type.Time);
-            break;
-#endif
-#if defined(CHANNEL_OBJECT_ID)
-        case BACNET_APPLICATION_TAG_OBJECT_ID:
-            apdu_len = encode_application_object_id(
-                apdu, (int)value->type.Object_Id.type,
-                value->type.Object_Id.instance);
-            break;
-#endif
-#if defined(CHANNEL_LIGHTING_COMMAND)
-        case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
-            apdu_len =
-                lighting_command_encode(apdu, &value->type.Lighting_Command);
-            break;
-#endif
-#if defined(CHANNEL_COLOR_COMMAND)
-        case BACNET_APPLICATION_TAG_COLOR_COMMAND:
-            apdu_len = color_command_encode(apdu, &value->type.Color_Command);
-            break;
-#endif
-#if defined(CHANNEL_XY_COLOR)
-        case BACNET_APPLICATION_TAG_XY_COLOR:
-            apdu_len = xy_color_encode(apdu, &value->type.XY_Color);
-            break;
-#endif
-        default:
-            break;
-    }
-
-    return apdu_len;
+    return bacnet_channel_value_encode(apdu, apdu_max, value);
 }
 
 /**
@@ -1276,7 +1179,8 @@ bool Channel_Present_Value_Set(
         if ((wp_data->priority > 0) &&
             (wp_data->priority <= BACNET_MAX_PRIORITY)) {
             if (wp_data->priority != 6 /* reserved */) {
-                status = Channel_Value_Copy(&pObject->Present_Value, value);
+                bacnet_channel_value_copy(
+                    &pObject->Present_Value, &value->type.Channel_Value);
                 (void)status;
                 status =
                     Channel_Write_Members(pObject, value, wp_data->priority);
@@ -1452,7 +1356,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PRESENT_VALUE:
             cvalue = Channel_Present_Value(rpdata->object_instance);
-            apdu_len = Channel_Value_Encode(apdu, MAX_APDU, cvalue);
+            apdu_len = Channel_Value_Encode(apdu, apdu_size, cvalue);
             if (apdu_len == BACNET_STATUS_ERROR) {
                 apdu_len = encode_application_null(apdu);
             }
@@ -1546,10 +1450,10 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int element_len = 0;
     uint32_t count = 0;
 
-    /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
-    /* FIXME: len < application_data_len: more data? */
+    /* decode the first value of the request */
+    len = bacapp_decode_known_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property);
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1566,7 +1470,11 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = Channel_Present_Value_Set(wp_data, &value);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHANNEL_VALUE);
+            if (status) {
+                status = Channel_Present_Value_Set(wp_data, &value);
+            }
             break;
         case PROP_OUT_OF_SERVICE:
             status = write_property_type_valid(
@@ -1653,18 +1561,16 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_LAST_PRIORITY:
-        case PROP_WRITE_STATUS:
-        case PROP_STATUS_FLAGS:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (property_lists_member(
+                    Channel_Properties_Required, Channel_Properties_Optional,
+                    Channel_Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
