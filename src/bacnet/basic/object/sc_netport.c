@@ -1563,7 +1563,7 @@ bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
     params->SC_Failed_Connection_Requests_Count += 1;
 
     entry->Timestamp = *ts;
-    // host_n_port_to_data(peer_address, &entry->Peer_Address);
+    /* host_n_port_to_data(peer_address, &entry->Peer_Address); */
     memcpy(&entry->Peer_Address, peer_address, sizeof(entry->Peer_Address));
     memcpy(entry->Peer_VMAC, peer_VMAC, sizeof(entry->Peer_VMAC));
     memcpy(entry->Peer_UUID.uuid.uuid128, peer_UUID,
@@ -1865,7 +1865,7 @@ int bacapp_decode_SCHubFunctionConnection(uint8_t *apdu,
     }
     apdu_len += len;
 
-    if ((len = host_n_port_context_decode(apdu, apdu_len, &value->Error, 3, &hp)) == -1) {
+    if ((len = host_n_port_context_decode(apdu, apdu_len, 3, &value->Error, &hp)) == -1) {
         return -1;
     }
     host_n_port_to_data(&hp, &value->Peer_Address);
@@ -2018,7 +2018,7 @@ int bacapp_decode_SCFailedConnectionRequest(uint8_t *apdu,
     }
     apdu_len += len;
 
-    if ((len = host_n_port_context_decode(apdu, apdu_len, &value->Error, 1, &hp)) == -1) {
+    if ((len = host_n_port_context_decode(apdu, apdu_len, 1, &value->Error, &hp)) == -1) {
         return -1;
     }
     host_n_port_to_data(&hp, &value->Peer_Address);
@@ -2372,7 +2372,7 @@ int bacapp_decode_SCDirectConnection(uint8_t *apdu,
     }
     apdu_len += len;
 
-    if ((len = host_n_port_context_decode(apdu, apdu_len, &value->Error, 4, &hp)) == -1) {
+    if ((len = host_n_port_context_decode(apdu, apdu_len, 4, &value->Error, &hp)) == -1) {
         return -1;
     }
     host_n_port_to_data(&hp, &value->Peer_Address);
@@ -2563,7 +2563,7 @@ int Network_Port_SC_snprintf_value(
 {
     BACNET_APPLICATION_DATA_VALUE *value = object_value->value;
     BACNET_PROPERTY_ID property = object_value->object_property;
-    // BACNET_OBJECT_TYPE object_type = object_value->object_type;
+    /* BACNET_OBJECT_TYPE object_type = object_value->object_type; */
     BACNET_ARRAY_INDEX array_index = object_value->array_index;
     BACNET_APPLICATION_DATA_VALUE result;
 

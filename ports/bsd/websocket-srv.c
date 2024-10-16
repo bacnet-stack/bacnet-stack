@@ -11,6 +11,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 
+#define _GNU_SOURCE
 #include <libwebsockets.h>
 #include <string.h>
 #include <stdio.h>
@@ -684,12 +685,13 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     pthread_attr_t attr;
     int r;
     struct lws_protocols protos[] = {
-        { (proto == BSC_WEBSOCKET_HUB_PROTOCOL)
-                ? BSC_WEBSOCKET_HUB_PROTOCOL_STR
-                : BSC_WEBSOCKET_DIRECT_PROTOCOL_STR,
+        { BSC_WEBSOCKET_HUB_PROTOCOL_STR,
             bws_srv_websocket_event, 0, 0, 0, NULL, 0 },
         LWS_PROTOCOL_LIST_TERM
     };
+    protos->name = (proto == BSC_WEBSOCKET_HUB_PROTOCOL)
+                ? BSC_WEBSOCKET_HUB_PROTOCOL_STR
+                : BSC_WEBSOCKET_DIRECT_PROTOCOL_STR;
 
     DEBUG_PRINTF("bws_srv_start() >>> proto = %d port = %d "
                  "dispatch_func_user_param = %p\n",

@@ -19,6 +19,7 @@
 #include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/basic/object/sc_netport.h"
 /*#include "bacnet/basic/object/netport.h" */
+#include "bacnet/basic/sys/keylist.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -99,8 +100,6 @@ typedef struct BACnetSCAttributes_T {
 
 
 BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance);
-void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance);
-void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance);
 
 #ifdef __cplusplus
 }

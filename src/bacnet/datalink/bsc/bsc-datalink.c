@@ -489,7 +489,7 @@ static void bsc_update_failed_requests(void)
                 Network_Port_SC_Failed_Connection_Requests_Add(instance,
                     &r[i].Timestamp, &r[i].Peer_Address, r[i].Peer_VMAC,
                     r[i].Peer_UUID.uuid.uuid128, r[i].Error,
-                    &r[i].Error_Details[0] != 0 ? r[i].Error_Details : NULL);
+                    r[i].Error_Details);
             }
         }
     }
