@@ -146,7 +146,7 @@ bool bsc_direct_connection_established(
 
 /**
  * @brief Function starts process of establishing of a
- *        direct BACNet/SC connection to node indentified by
+ *        direct BACNet/SC connection to node identified by
  *        either urls or dest parameter. User should note that
  *        if dest parameter is used, local node tries to resolve
  *        it (e.g.to get URIs related to dest vmac from all existent

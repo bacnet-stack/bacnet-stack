@@ -226,7 +226,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
  *         specified BACNet socket. The function call be called only
  *         for initiator context otherwise BSC_SC_INVALID_OPERATION
  *         error is returned. As a result if bsc_connect() was
- *         succeded for given param c, that leads to emitting of
+ *         succeeded for given param c, that leads to emitting of
  *         BSC_SOCKET_EVENT_CONNECTED or BSC_SOCKET_EVENT_DISCONNECTED
  *         events depending on the result of connect operation.
  *         If connect operation is failed, BSC_SOCKET_EVENT_DISCONNECTED
@@ -234,7 +234,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
  *         happened using disconnect_reason and disconnect_reason_desc
  *         parameters in callback function.
  *         If connect operation succeeded, BSC_SOCKET_EVENT_CONNECTED
- *         event is emited.
+ *         event is emitted.
  *
  * @param ctx - socket context.
  * @param c - BACNet socket descriptor .

@@ -26,12 +26,12 @@ typedef struct BSC_Event BSC_EVENT;
  *         released which was blocked on bsc_event_wait() or
  *         bsc_event_timed_wait() calls. When writing the code user
  *         must always remember the following statements:
- *         1. It is guranteed that all currently waiting threads will be
+ *         1. It is guaranteed that all currently waiting threads will be
  *            unblocked by the call of bsc_event_signal().
  *         2. If user has called bsc_event_wait() or bsc_event_timedwait()
  *            from thread N after the call of bsc_event_signal() but
  *            when the state of the corresponed event object is still
- *            signalled, it is not guranteed that thread N will be
+ *            signalled, it is not guaranteed that thread N will be
  *            unblocked. Thread N may be stay blocked or may unblock
  *            depending on multitasking context of the OS.
  *

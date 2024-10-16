@@ -99,7 +99,7 @@
 
 /* 2 bytes is a prefix containing BVLC message length.
    BSC_CONF_TX_PRE - some reserved bytes before actual payload.
-   Some libs like libwebsocket requires some bytes to be reserverd
+   Some libs like libwebsocket requires some bytes to be reserved
    before actual payload for sending, so BSC_CONF_TX_PRE is used for
    that purpose (it allows to avoid copying of payload and
    buffer reallocation)
