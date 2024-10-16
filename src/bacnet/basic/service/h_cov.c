@@ -849,18 +849,16 @@ void handler_cov_subscribe(
     } else {
         len = cov_subscribe_decode_service_request(
             service_request, service_len, &cov_data);
+        fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
         if (len <= 0) {
             fprintf(stderr, "SubscribeCOV: Unable to decode Request!\n");
         }
 #endif
-        fprintf(stderr, "handler_cov_subscribe len=%d\n", len);
-        fprintf(stderr, "handler_cov_subscribe cov_data.lifetime=%u\n", cov_data.lifetime);
-        fprintf(stderr,"handler_cov_subscribe cov_data.error_class=%d\n", cov_data.error_class);
-        fprintf(stderr, "handler_cov_subscribe cov_data.error_code=%d\n", cov_data.error_code);
 
         if (len < 0) {
             error = true;
+            fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
         } else {
             cov_data.error_class = ERROR_CLASS_OBJECT;
             cov_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -870,12 +868,14 @@ void handler_cov_subscribe(
                 apdu_len = encode_simple_ack(
                     &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_SUBSCRIBE_COV);
+                fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
                 fprintf(stderr, "SubscribeCOV: Sending Simple Ack!\n");
 #endif
             } else {
                 len = BACNET_STATUS_ERROR;
                 error = true;
+                fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
                 fprintf(stderr, "SubscribeCOV: Sending Error!\n");
 #endif
@@ -885,10 +885,12 @@ void handler_cov_subscribe(
     fprintf(stderr, "handler_cov_subscribe error=%d\n", error);
     /* Error? */
     if (error) {
+        fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
         if (len == BACNET_STATUS_ABORT) {
             apdu_len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 abort_convert_error_code(cov_data.error_code), true);
+            fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
             fprintf(stderr, "SubscribeCOV: Sending Abort!\n");
 #endif
@@ -897,6 +899,7 @@ void handler_cov_subscribe(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_SUBSCRIBE_COV, cov_data.error_class,
                 cov_data.error_code);
+            fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
             fprintf(stderr, "SubscribeCOV: Sending Error!\n");
 #endif
@@ -904,6 +907,7 @@ void handler_cov_subscribe(
             apdu_len = reject_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 reject_convert_error_code(cov_data.error_code));
+            fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
             fprintf(stderr, "SubscribeCOV: Sending Reject!\n");
 #endif
@@ -912,6 +916,7 @@ void handler_cov_subscribe(
     pdu_len = npdu_len + apdu_len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
     if (bytes_sent <= 0) {
 #if PRINT_ENABLED
         fprintf(
@@ -919,6 +924,6 @@ void handler_cov_subscribe(
             strerror(errno));
 #endif
     }
-
+    fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
     return;
 }
