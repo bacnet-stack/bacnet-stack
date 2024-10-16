@@ -3951,7 +3951,7 @@ static void test_BROADCAST(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     const char *err_desc = NULL;
-    BACNET_SC_UUID uuid = { 0x34 };
+    BACNET_SC_UUID uuid = {{ 0x34 }};
 
     memset(&dest.address, 0xFF, sizeof(dest.address));
     memset(&orig.address, 0x12, sizeof(orig.address));
