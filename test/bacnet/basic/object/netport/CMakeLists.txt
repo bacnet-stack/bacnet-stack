@@ -63,9 +63,13 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	${SRC_DIR}/bacnet/basic/object/netport.c
 	${SRC_DIR}/bacnet/basic/object/sc_netport.c
     # Support files and stubs (pathname alphabetical)
+	${SRC_DIR}/bacnet/access_rule.c
 	${SRC_DIR}/bacnet/arf.c
+	${SRC_DIR}/bacnet/bacaction.c
+	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
+	${SRC_DIR}/bacnet/bacdest.c
 	${SRC_DIR}/bacnet/bacdevobjpropref.c
 	${SRC_DIR}/bacnet/bacerror.c
 	${SRC_DIR}/bacnet/bacint.c
@@ -73,6 +77,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	${SRC_DIR}/bacnet/bacstr.c
 	${SRC_DIR}/bacnet/bactext.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
+	${SRC_DIR}/bacnet/calendar_entry.c
 	${SRC_DIR}/bacnet/datalink/bvlc.c
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/basic/sys/days.c
@@ -81,6 +86,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	${SRC_DIR}/bacnet/hostnport.c
 	${SRC_DIR}/bacnet/lighting.c
 	${SRC_DIR}/bacnet/proplist.c
+	${SRC_DIR}/bacnet/special_event.c
 	${SRC_DIR}/bacnet/timestamp.c
 	${SRC_DIR}/bacnet/wp.c
 	${SRC_DIR}/bacnet/weeklyschedule.c
@@ -92,6 +98,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/test/device_mock.c
 	./src/main.c
+	${TST_DIR}/bacnet/basic/object/test/property_test.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
     )
@@ -126,6 +133,7 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
+    ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
@@ -134,6 +142,7 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/lighting.c
     ${SRC_DIR}/bacnet/proplist.c
+	${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
@@ -147,6 +156,7 @@ elseif(WIN32)
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/test/device_mock.c
 	./src/main.c
+	${TST_DIR}/bacnet/basic/object/test/property_test.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
     )
@@ -160,9 +170,13 @@ elseif(APPLE)
 	${SRC_DIR}/bacnet/basic/object/netport.c
 	${SRC_DIR}/bacnet/basic/object/sc_netport.c
     # Support files and stubs (pathname alphabetical)
+	${SRC_DIR}/bacnet/access_rule.c
 	${SRC_DIR}/bacnet/arf.c
+	${SRC_DIR}/bacnet/bacaction.c
+	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
+	${SRC_DIR}/bacnet/bacdest.c
 	${SRC_DIR}/bacnet/bacdevobjpropref.c
 	${SRC_DIR}/bacnet/bacerror.c
 	${SRC_DIR}/bacnet/bacint.c
@@ -170,6 +184,7 @@ elseif(APPLE)
 	${SRC_DIR}/bacnet/bacstr.c
 	${SRC_DIR}/bacnet/bactext.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
+	${SRC_DIR}/bacnet/calendar_entry.c
 	${SRC_DIR}/bacnet/datalink/bvlc.c
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/basic/sys/days.c
@@ -178,6 +193,7 @@ elseif(APPLE)
 	${SRC_DIR}/bacnet/hostnport.c
 	${SRC_DIR}/bacnet/lighting.c
 	${SRC_DIR}/bacnet/proplist.c
+	${SRC_DIR}/bacnet/special_event.c
 	${SRC_DIR}/bacnet/timestamp.c
 	${SRC_DIR}/bacnet/wp.c
 	${SRC_DIR}/bacnet/weeklyschedule.c
@@ -189,6 +205,7 @@ elseif(APPLE)
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/test/device_mock.c
 	./src/main.c
+	${TST_DIR}/bacnet/basic/object/test/property_test.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
     )

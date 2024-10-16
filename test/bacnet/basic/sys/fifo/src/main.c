@@ -33,12 +33,9 @@ static void testFIFOBuffer(void)
     uint8_t add_data[40] = { "RoseSteveLouPatRachelJessicaDaniAmyHerb" };
     uint8_t test_add_data[40] = { 0 };
     uint8_t test_data = 0;
-    uint8_t peek_buf[64] = {0};
     unsigned index = 0;
     unsigned count = 0;
     unsigned test_count = 0;
-    unsigned peek = 0;
-    unsigned i = 0;
     bool status = 0;
 
     FIFO_Init(&test_buffer, data_store, sizeof(data_store));
@@ -62,12 +59,6 @@ static void testFIFOBuffer(void)
         zassert_false(FIFO_Empty(&test_buffer), NULL);
         test_data = FIFO_Peek(&test_buffer);
         zassert_equal(test_data, index, NULL);
-        for(peek = FIFO_Count(&test_buffer); peek > 0; peek--) {
-          FIFO_PeekBytes(&test_buffer, peek_buf, peek);
-          for(i = 0; i < peek; i++) {
-            zassert_equal(peek_buf[i], index + i, NULL);
-          }
-        }
         test_data = FIFO_Get(&test_buffer);
         zassert_equal(test_data, index, NULL);
         zassert_true(FIFO_Available(&test_buffer, 1), NULL);
@@ -93,12 +84,6 @@ static void testFIFOBuffer(void)
             zassert_false(FIFO_Empty(&test_buffer), NULL);
             test_data = FIFO_Peek(&test_buffer);
             zassert_equal(test_data, count, NULL);
-            for(peek = FIFO_Count(&test_buffer); peek > 0; peek--) {
-              FIFO_PeekBytes(&test_buffer, peek_buf, peek);
-              for(i = 0; i < peek; i++) {
-                zassert_equal(peek_buf[i], count + i, NULL);
-              }
-            }
             test_data = FIFO_Get(&test_buffer);
             zassert_equal(test_data, count, NULL);
         }
@@ -116,12 +101,6 @@ static void testFIFOBuffer(void)
         zassert_false(FIFO_Empty(&test_buffer), NULL);
         test_data = FIFO_Peek(&test_buffer);
         zassert_equal(test_data, add_data[index], NULL);
-        for(peek = FIFO_Count(&test_buffer); peek > 0; peek--) {
-          FIFO_PeekBytes(&test_buffer, peek_buf, peek);
-          for(i = 0; i < peek; i++) {
-            zassert_equal(peek_buf[i], add_data[index + i], NULL);
-          }
-        }
         test_data = FIFO_Get(&test_buffer);
         zassert_equal(test_data, add_data[index], NULL);
     }

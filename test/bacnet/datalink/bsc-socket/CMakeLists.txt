@@ -73,10 +73,14 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacaction.c
+    ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdest.c
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
@@ -85,6 +89,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/bactimevalue.c
+    ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/dcc.c
@@ -93,11 +98,13 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/lighting.c
     ${SRC_DIR}/bacnet/npdu.c
     ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     # Test and test library files
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ./src/main.c
+    ${TST_DIR}/bacnet/basic/object/test/property_test.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
@@ -133,10 +140,14 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacaction.c
+    ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdest.c
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
@@ -145,6 +156,7 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/bactimevalue.c
+    ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/dcc.c
@@ -153,11 +165,13 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/lighting.c
     ${SRC_DIR}/bacnet/npdu.c
     ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     # Test and test library files
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ./src/main.c
+    ${TST_DIR}/bacnet/basic/object/test/property_test.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
@@ -184,10 +198,14 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacaction.c
+    ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdest.c
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
     ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
@@ -196,6 +214,7 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/bactimevalue.c
+    ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/dcc.c
@@ -204,11 +223,13 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/lighting.c
     ${SRC_DIR}/bacnet/npdu.c
     ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/special_event.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     # Test and test library files
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ./src/main.c
+    ${TST_DIR}/bacnet/basic/object/test/property_test.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )

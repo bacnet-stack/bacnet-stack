@@ -1193,12 +1193,16 @@ static void signal_ctx_ev(ctx_ev_t *ev, BSC_CTX_EVENT c_ev)
 static BSC_SOCKET *simple_find_connection_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg)
 {
+    (void) vmac;
+    (void) user_arg;
     return NULL;
 }
 
 static BSC_SOCKET *simple_find_connection_for_uuid(
     BACNET_SC_UUID *uuid, void *user_arg)
 {
+    (void) uuid;
+    (void) user_arg;
     return NULL;
 }
 
@@ -1206,6 +1210,7 @@ static BSC_SOCKET *srv_find_connection_for_uuid(
     BACNET_SC_UUID *uuid, void *user_arg)
 {
     int i;
+    (void) user_arg;
 
     for (i = 0; i < sizeof(srv_socks) / sizeof(BSC_SOCKET); i++) {
         if (srv_socks[i].state != BSC_SOCK_STATE_IDLE &&
@@ -1221,6 +1226,7 @@ static BSC_SOCKET *srv_find_connection_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg)
 {
     int i;
+    (void) user_arg;
 
     debug_printf(
         "srv_find_connection_for_uuid() vmac = %s\n", bsc_vmac_to_string(vmac));
@@ -1247,6 +1253,9 @@ static void cli_simple_socket_event(BSC_SOCKET *c,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
+    (void) c;
+    (void) reason_desc;
+    (void) decoded_pdu;
     debug_printf("cli ev = %d, reason = %d, ev = %p\n", ev, reason, &cli_ev);
 
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
@@ -1264,6 +1273,9 @@ static void cli_simple_socket_event2(BSC_SOCKET *c,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
+    (void) c;
+    (void) reason_desc;
+    (void) decoded_pdu;
     debug_printf("cli2 ev = %d, reason = %d, ev = %p\n", ev, reason, &cli_ev2);
 
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
@@ -1281,6 +1293,8 @@ static void srv_simple_socket_event(BSC_SOCKET *c,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
+    (void) reason_desc;
+    (void) decoded_pdu;
     debug_printf("srv ev = %d, reason = %d, ev = %p\n", ev, reason, &srv_ev);
     srv_sock = c;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
@@ -1292,16 +1306,19 @@ static void srv_simple_socket_event(BSC_SOCKET *c,
 
 static void cli_simple_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
+    (void) ctx;
     signal_ctx_ev(&cli_ctx_ev, ev);
 }
 
 static void cli_simple_context_event2(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
+    (void) ctx;
     signal_ctx_ev(&cli_ctx_ev2, ev);
 }
 
 static void srv_simple_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
+    (void) ctx;
     signal_ctx_ev(&srv_ctx_ev, ev);
 }
 
@@ -1445,9 +1462,6 @@ static void test_duplicated_vmac_on_server(void)
     BSC_SOCKET_CTX cli_ctx;
     BSC_SOCKET_CTX cli_ctx2;
     char url[128];
-    uint8_t buf[2048];
-    uint8_t npdu[1200];
-    size_t len;
 
     init_sock_ev(&cli_ev);
     init_sock_ev(&cli_ev2);
@@ -1544,13 +1558,10 @@ static void test_duplicated_vmac_on_server2(void)
 {
     BSC_CONTEXT_CFG server_cfg;
     BSC_CONTEXT_CFG client_cfg;
-    BSC_CONTEXT_CFG client_cfg2;
     BACNET_SC_UUID server_uuid;
     BACNET_SC_VMAC_ADDRESS server_vmac;
     BACNET_SC_UUID client_uuid;
     BACNET_SC_VMAC_ADDRESS client_vmac;
-    BACNET_SC_UUID client_uuid2;
-    BACNET_SC_VMAC_ADDRESS client_vmac2;
     BSC_SC_RET ret;
     BSC_SOCKET_CTX_FUNCS srv_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, srv_simple_socket_event,
@@ -1559,16 +1570,10 @@ static void test_duplicated_vmac_on_server2(void)
     BSC_SOCKET_CTX_FUNCS cli_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, cli_simple_socket_event,
         cli_simple_context_event, NULL };
-    BSC_SOCKET_CTX_FUNCS cli_funcs2 = { simple_find_connection_for_vmac,
-        simple_find_connection_for_uuid, cli_simple_socket_event2,
-        cli_simple_context_event2, NULL };
     BSC_SOCKET_CTX srv_ctx;
     BSC_SOCKET_CTX cli_ctx;
     BSC_SOCKET_CTX cli_ctx2;
     char url[128];
-    uint8_t buf[2048];
-    uint8_t npdu[1200];
-    size_t len;
 
     init_sock_ev(&cli_ev);
     init_sock_ev(&srv_ev);
@@ -1659,9 +1664,6 @@ static void test_duplicated_uuid_on_server(void)
     BSC_SOCKET_CTX cli_ctx;
     BSC_SOCKET_CTX cli_ctx2;
     char url[128];
-    uint8_t buf[2048];
-    uint8_t npdu[1200];
-    size_t len;
 
     init_sock_ev(&cli_ev);
     init_sock_ev(&cli_ev2);
@@ -2043,7 +2045,6 @@ static void test_error_case1(void)
 
 void test_main(void)
 {
-    BSC_SC_RET ret;
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
     ztest_test_suite(socket_test_1, ztest_unit_test(test_simple));

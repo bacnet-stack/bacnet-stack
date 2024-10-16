@@ -1084,6 +1084,8 @@ static void cli_event(BSC_WEBSOCKET_HANDLE h,
 {
     test_ctx_t *ctx = (test_ctx_t *)user_param;
     BSC_WEBSOCKET_RET ret;
+    (void) ws_reason;
+    (void) ws_reason_desc;
 
     if (ev == BSC_WEBSOCKET_CONNECTED) {
         ctx->ev = BSC_WEBSOCKET_CONNECTED;
@@ -1114,6 +1116,8 @@ static void srv_event(BSC_WEBSOCKET_SRV_HANDLE sh,
 {
     test_ctx_t *ctx = (test_ctx_t *)user_param;
     BSC_WEBSOCKET_RET ret;
+    (void) ws_reason;
+    (void) ws_reason_desc;
 
     if (ev == BSC_WEBSOCKET_SERVER_STARTED) {
         ctx->ev = BSC_WEBSOCKET_SERVER_STARTED;

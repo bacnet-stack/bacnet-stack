@@ -1209,11 +1209,11 @@ static void signal_node_ev(node_ev_t *e,
     bsc_event_signal(e->e);
 }
 
-static void reset_node_ev(node_ev_t *ev)
+/*static void reset_node_ev(node_ev_t *ev)
 {
     ev->ev = -1;
     ev->node = NULL;
-}
+}*/
 
 static void node_event(BSC_NODE *node,
     BSC_NODE_EVENT ev,
@@ -1221,6 +1221,11 @@ static void node_event(BSC_NODE *node,
     uint8_t *pdu,
     uint16_t pdu_len)
 {
+    (void) node;
+    (void) ev;
+    (void) dest;
+    (void) pdu;
+    (void) pdu_len;
 }
 
 static void node_event2(BSC_NODE *node,
@@ -1273,7 +1278,6 @@ static void netport_object_init(uint32_t instance,
     const char *filename_ca_cert = "ca_cert.pem";
     const char *filename_cert = "cert.pem";
     const char *filename_key = "key.pem";
-    char str[10];
 
     Network_Port_Init();
     Network_Port_Object_Instance_Number_Set(0, instance);
@@ -1993,7 +1997,6 @@ static void test_sc_datalink_failed_requests(void)
     char secondary_url2[128];
     BSC_SC_RET ret;
     BSC_NODE *node2;
-    BSC_NODE *node3;
 
     BACNET_SC_FAILED_CONNECTION_REQUEST *r;
 

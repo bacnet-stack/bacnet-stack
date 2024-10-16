@@ -1169,7 +1169,7 @@ static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
     }
 }
 
-static void wait_for_direct_connection_established(node_ev_t *ev, BSC_NODE *node,
+/* static void wait_for_direct_connection_established(node_ev_t *ev, BSC_NODE *node,
     BACNET_SC_VMAC_ADDRESS *dest,
     char** urls, size_t urls_cnt)
 {
@@ -1181,7 +1181,7 @@ static void wait_for_direct_connection_established(node_ev_t *ev, BSC_NODE *node
             break;
         }
     }
-}
+}*/
 
 static void signal_node_ev(node_ev_t *e,
     BSC_NODE_EVENT ev,
@@ -1770,8 +1770,6 @@ static void test_node_local_hub_function(void)
     BSC_NODE *node3;
     char node_primary_url[128];
     char node_secondary_url[128];
-    char node_primary_url2[128];
-    char node_secondary_url2[128];
     uint8_t buf[256];
     int len;
     uint8_t npdu[128];
@@ -1779,8 +1777,6 @@ static void test_node_local_hub_function(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     const char *err_desc;
-    uint8_t optbuf[128];
-    int optlen;
     BACNET_SC_VMAC_ADDRESS broadcast;
 
     memset(&node_uuid, 0x1, sizeof(node_uuid));
@@ -2635,8 +2631,6 @@ static void test_node_direct_connection_unsupported(void)
     char node_secondary_url2[128];
     char node_primary_url3[128];
     char node_secondary_url3[128];
-    uint8_t buf[256];
-    int len;
     uint8_t npdu[128];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
@@ -2829,6 +2823,13 @@ static void node_switch_event(BSC_NODE_SWITCH_EVENT ev,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
+    (void) ev;
+    (void) h;
+    (void) user_arg;
+    (void) dest;
+    (void) pdu;
+    (void) pdu_len;
+    (void) decoded_pdu;
 }
 
 static void test_node_bad_cases(void)

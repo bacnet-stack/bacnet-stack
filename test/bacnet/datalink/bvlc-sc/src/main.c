@@ -505,15 +505,17 @@ static void test_5_options_data(uint8_t *pdu,
     int optlen;
     int len;
     bool ret;
-    int res;
     uint16_t vendor_id1;
-    uint16_t vendor_id2;
     uint8_t proprietary_option_type1;
-    uint8_t proprietary_option_type2;
     uint8_t proprietary_data1[17];
-    uint8_t proprietary_data2[1];
     int i;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
@@ -557,7 +559,6 @@ static void test_options_incorrect_more_bit_data(uint8_t *pdu,
     int optlen;
     int len = pdu_size;
     bool ret;
-    int res;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
     uint8_t proprietary_option_type1;
@@ -566,6 +567,12 @@ static void test_options_incorrect_more_bit_data(uint8_t *pdu,
     uint8_t proprietary_data2[5];
     int offs = 4;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
@@ -623,13 +630,17 @@ static void test_options_incorrect_data_bit_data(uint8_t *pdu,
     int optlen;
     int len = pdu_size;
     bool ret;
-    int res;
     uint16_t vendor_id1;
     uint8_t proprietary_option_type1;
     uint8_t proprietary_data1[17];
     int offs = 4;
     const char *err_desc = NULL;
-
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) payload;
+    (void) payload_len;
+    (void) dest;
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
 
@@ -679,9 +690,13 @@ static void test_1_option_dest_incorrect(uint8_t *pdu,
     int optlen;
     int len;
     bool ret;
-    int res;
     const char *err_desc = NULL;
-
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) payload;
+    (void) payload_len;
+    (void) dest;
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
 
@@ -1050,15 +1065,17 @@ static void test_5_options_dest(uint8_t *pdu,
     int optlen;
     int len = pdu_size;
     bool ret;
-    int res;
     uint16_t vendor_id1;
-    uint16_t vendor_id2;
     uint8_t proprietary_option_type1;
-    uint8_t proprietary_option_type2;
     uint8_t proprietary_data1[17];
-    uint8_t proprietary_data2[1];
     int i;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
@@ -1100,12 +1117,17 @@ static void test_options_incorrect_data_bit_dest(uint8_t *pdu,
     int optlen;
     int len = pdu_size;
     bool ret;
-    int res;
     uint16_t vendor_id1;
     uint8_t proprietary_option_type1;
     uint8_t proprietary_data1[17];
     int offs = 4;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
@@ -1153,7 +1175,6 @@ static void test_options_incorrect_more_bit_dest(uint8_t *pdu,
     int optlen;
     int len = pdu_size;
     bool ret;
-    int res;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
     uint8_t proprietary_option_type1;
@@ -1162,7 +1183,12 @@ static void test_options_incorrect_more_bit_dest(uint8_t *pdu,
     uint8_t proprietary_data2[5];
     int offs = 4;
     const char *err_desc = NULL;
-
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
 
@@ -2338,7 +2364,6 @@ static void test_ADDRESS_RESOLUTION(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x514a;
-    int res;
     BACNET_SC_VMAC_ADDRESS origin;
     BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
@@ -2650,7 +2675,6 @@ static void test_ADVERTISIMENT(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0xe2ad;
-    int res;
     BACNET_SC_VMAC_ADDRESS origin;
     BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
@@ -2859,7 +2883,6 @@ static void test_ADVERTISIMENT_SOLICITATION(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0xaf4a;
-    int res;
     BACNET_SC_VMAC_ADDRESS origin;
     BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
@@ -2985,8 +3008,6 @@ static void test_CONNECT_REQUEST(void)
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x41af;
     int res;
-    BACNET_SC_VMAC_ADDRESS origin;
-    BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
     uint16_t max_bvlc_len = 9997;
     uint16_t max_npdu_len = 3329;
@@ -3081,8 +3102,6 @@ static void test_CONNECT_ACCEPT(void)
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
     int res;
-    BACNET_SC_VMAC_ADDRESS origin;
-    BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
     uint16_t max_bvlc_len = 1027;
     uint16_t max_npdu_len = 22;
@@ -3176,7 +3195,6 @@ static void test_DISCONNECT_REQUEST(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
     const char *err_desc = NULL;
 
@@ -3217,7 +3235,6 @@ static void test_DISCONNECT_ACK(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
     const char *err_desc = NULL;
 
@@ -3258,7 +3275,6 @@ static void test_HEARTBEAT_REQUEST(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
     const char *err_desc = NULL;
 
@@ -3301,7 +3317,6 @@ static void test_HEARTBEAT_ACK(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
     const char *err_desc = NULL;
 
@@ -3536,7 +3551,6 @@ static void test_BAD_HEADER_OPTIONS(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
     uint16_t vendor_id1;
     uint8_t proprietary_option_type1;
@@ -3752,11 +3766,7 @@ static void test_BAD_ENCODE_PARAMS(void)
     int len;
     int optlen;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
-    bool ret;
     uint16_t vendor_id1;
     uint8_t proprietary_option_type1;
     uint8_t proprietary_data1[17];
@@ -3770,7 +3780,6 @@ static void test_BAD_ENCODE_PARAMS(void)
     BACNET_SC_UUID local_uuid;
     uint8_t data[34];
     uint8_t proprietary_function = 0xea;
-    const char *err_desc = NULL;
 
     memset(data, 0x66, sizeof(data));
     memset(&local_uuid, 0x22, sizeof(local_uuid));
@@ -3899,30 +3908,14 @@ static void test_BAD_ENCODE_PARAMS(void)
 static void test_BAD_DECODE_PARAMS(void)
 {
     uint8_t buf[256];
-    uint8_t optbuf[256];
     uint8_t npdu[256];
     uint16_t npdulen = 50;
     int len;
-    int optlen;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
-    uint16_t vendor_id1;
-    uint8_t proprietary_option_type1;
-    uint8_t proprietary_data1[17];
-    BACNET_SC_VMAC_ADDRESS origin;
-    BACNET_SC_VMAC_ADDRESS dest;
-    uint8_t error_header_marker = 0xcc;
-    uint16_t error_class = 0xaa;
-    uint16_t error_code = 0xdd;
-    char *error_details_string = "something bad has happend";
-    BACNET_SC_VMAC_ADDRESS local_vmac;
-    BACNET_SC_UUID local_uuid;
-    uint8_t data[34];
-    uint8_t proprietary_function = 0xea;
     const char *err_desc = NULL;
 
     memset(buf, 0, sizeof(buf));

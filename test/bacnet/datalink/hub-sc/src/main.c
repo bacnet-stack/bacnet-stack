@@ -1216,6 +1216,7 @@ static void hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
+    (void) decoded_pdu;
     debug_printf("hub_connector_event() ev = %d, h = %p, user_arg = %p, pdu = "
                  "%p, pdu_len = %d\n",
         ev, h, user_arg, pdu, pdu_len);
@@ -1418,7 +1419,6 @@ static void test_hub_connector_bad_primary_url(void)
     BSC_HUB_FUNCTION_HANDLE hubc_h;
     char primary_url[128];
     char secondary_url[128];
-    uint8_t buf[256];
 
     memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
     memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
@@ -1640,7 +1640,6 @@ static void test_hub_connector_reconnect(void)
     BSC_HUB_FUNCTION_HANDLE hubc_h;
     char primary_url[128];
     char secondary_url[128];
-    uint8_t buf[256];
 
     memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
     memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
@@ -2054,7 +2053,6 @@ void test_main(void)
 {
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
-    int i;
     ztest_test_suite(
         hub_test_1, ztest_unit_test(test_hub_connector_primary_url));
     ztest_test_suite(
