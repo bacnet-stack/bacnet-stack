@@ -18,17 +18,20 @@
 #include "bvlc-sc.h"
 
 #if !defined(BACDL_BSC)
+  #ifndef BSC_CONF_TX_PRE
   #define BSC_CONF_TX_PRE 0
+  #endif
 #else
-  /*#define bsd 1
-  #define linux 2
-  #define win32 3*/
 
   #if BACNET_PORT == bsd || BACNET_PORT == linux || BACNET_PORT == win32
      #include <libwebsockets.h>
-     #define BSC_CONF_TX_PRE LWS_PRE
+     #ifndef BSC_CONF_TX_PRE
+        #define BSC_CONF_TX_PRE LWS_PRE
+     #endif
   #else
-     #define BSC_CONF_TX_PRE 0
+     #ifndef BSC_CONF_TX_PRE
+        #define BSC_CONF_TX_PRE 0
+     #endif
    #endif
 #endif
 
