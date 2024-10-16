@@ -666,6 +666,9 @@ static void test_network_port_sc_status_encode_decode(void)
     return;
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST_SUITE(netport_tests, NULL, NULL, NULL, NULL, NULL);
+#else
 void test_main(void)
 {
     ztest_test_suite(netport_tests,

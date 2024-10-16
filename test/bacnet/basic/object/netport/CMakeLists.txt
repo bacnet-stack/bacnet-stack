@@ -43,6 +43,13 @@ include_directories(
     ${TST_DIR}/ztest/include
     )
 
+find_package(libwebsockets CONFIG REQUIRED)
+find_package(PkgConfig)
+pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
+#libwebsocket need C99 with variadic-macros
+add_compile_options(-Wno-variadic-macros)
+find_package(OpenSSL)
+  
 if(ZEPHYR_BASE)
   message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
