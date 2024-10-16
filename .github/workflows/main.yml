@@ -30,7 +30,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install Dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest' && matrix.project == 'root'
+      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
         # apps/router needs libconfig-dev.
