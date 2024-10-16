@@ -117,6 +117,7 @@ list(APPEND testdirs
   bacnet/whois
   bacnet/wp
   bacnet/wpm
+  bacnet/write_group
   )
 
 # bacnet/basic/*
