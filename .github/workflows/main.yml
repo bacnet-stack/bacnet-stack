@@ -35,6 +35,14 @@ jobs:
         sudo apt-get update
         # apps/router needs libconfig-dev.
         sudo apt-get install -y libconfig-dev
+        sudo apt-get install -y libcap-dev
+        sudo apt-get install -y libssl-dev
+        sudo apt-get install -y libwebsockets-dev
+  
+    - name: Install Dependencies (macOS)
+      if: matrix.os == 'macOS-latest'
+      run: |
+        brew install libwebsockets --cask
   
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
