@@ -19,7 +19,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Demo Apps GNU89
       run: |
         gcc --version
@@ -48,7 +51,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Demo Apps BBMD=none
       run: |
         gcc --version
@@ -65,7 +71,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Demo Apps BBMD=client
       run: |
         gcc --version
@@ -82,7 +91,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Gateway Demo
       run: |
         gcc --version
@@ -99,7 +111,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build BACnet/SC Hub Demo
       run: |
         gcc --version
@@ -116,7 +131,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev #Ubuntu 24
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Router Demo
       run: |
         gcc --version
@@ -133,7 +151,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Router IPv6 Demo
       run: |
         gcc --version
@@ -150,7 +171,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Router MSTP Demo
       run: |
         gcc --version
@@ -167,7 +191,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build BACnet/IPv6 Demo Apps
       run: |
         gcc --version
@@ -184,7 +211,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build MSTP Demo Apps
       run: |
         gcc --version
@@ -200,9 +230,11 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
-        sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Ethernet Demo Apps
       run: |
         gcc --version
