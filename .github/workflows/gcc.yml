@@ -17,6 +17,9 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libwebsockets-dev
     - name: Build Demo Apps GNU89
       run: |
         gcc --version
@@ -43,6 +46,9 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libwebsockets-dev
     - name: Build Demo Apps BBMD=none
       run: |
         gcc --version
@@ -57,6 +63,9 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libwebsockets-dev
     - name: Build Demo Apps BBMD=client
       run: |
         gcc --version
@@ -71,6 +80,9 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libwebsockets-dev
     - name: Build Gateway Demo
       run: |
         gcc --version
@@ -102,6 +114,9 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libwebsockets-dev
     - name: Build Router Demo
       run: |
         gcc --version
@@ -116,6 +131,9 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libwebsockets-dev
     - name: Build Router IPv6 Demo
       run: |
         gcc --version
@@ -130,6 +148,9 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libwebsockets-dev
     - name: Build Router MSTP Demo
       run: |
         gcc --version
@@ -144,6 +165,9 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libwebsockets-dev
     - name: Build BACnet/IPv6 Demo Apps
       run: |
         gcc --version
@@ -158,6 +182,9 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libwebsockets-dev
     - name: Build MSTP Demo Apps
       run: |
         gcc --version
@@ -173,6 +200,9 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libwebsockets-dev
     - name: Build Ethernet Demo Apps
       run: |
         gcc --version
