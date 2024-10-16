@@ -112,8 +112,8 @@ PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lgcc,-lrt,-lm
 ifeq (${BACDL},bsc)
-# note: install libwebsocket libssl libcrypto and lcap to build for BACnet/SC
-SYSTEM_LIB += /usr/local/lib/libwebsockets.a -lssl -lcrypto -lcap
+# note: install libwebsockets libssl libcrypto and lcap to build for BACnet/SC
+SYSTEM_LIB += -lwebsockets -lssl -lcrypto -lcap
 endif
 endif
 ifeq (${BACNET_PORT},bsd)
@@ -122,7 +122,7 @@ TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
 ifeq (${BACDL},bsc)
 # note: install libwebsocket libcrypto and libssl to build for BACnet/SC
-SYSTEM_LIB += /usr/local/lib/libwebsockets.a /usr/local/opt/openssl@3/lib/libcrypto.a /usr/local/opt/openssl@3/lib/libssl.a
+SYSTEM_LIB += -lwebsockets -lssl -lcrypto
 endif
 CSTANDARD = -std=c99
 endif

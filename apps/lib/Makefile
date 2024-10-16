@@ -6,6 +6,7 @@ BACNET_LIB_DIR ?= $(realpath .)
 BACNET_LIB_TARGET ?= $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 BACNET_SRC_DIR ?= $(realpath ../../src)
 BACNET_PORT_DIR ?= $(realpath ../../ports/linux)
+BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 BACNET_DEFINES ?=
 
 #build for release (default) or debug
@@ -111,7 +112,7 @@ ifeq (${BACDL_DEFINE},-DBACDL_NONE=1)
 BACNET_PORT_SRC = ${PORT_NONE_SRC}
 endif
 ifeq (${BACDL_DEFINE},-DBACDL_BSC=1)
-BACNET_PORT_SRC = ${PORT_BSC_SRC}
+BACNET_PORT_SRC = ${PORT_BSC_SRC} ${APPS_ENVIRONMENT_SRC}
 endif
 ifeq (${BACDL_DEFINE},-DBACDL_ALL=1)
 BACNET_PORT_SRC = ${PORT_ALL_SRC}

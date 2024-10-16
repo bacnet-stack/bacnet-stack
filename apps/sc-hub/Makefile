@@ -6,7 +6,8 @@ TARGET = bacschub
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
 	$(BACNET_OBJECT_DIR)/client/device-client.c \
-	$(BACNET_OBJECT_DIR)/netport.c
+	$(BACNET_OBJECT_DIR)/netport.c \
+	$(BACNET_OBJECT_DIR)/sc_netport.c
 
 CFLAGS += -DBACNET_SECURE_CONNECT_ROUTING_TABLE=1
 CFLAGS += -DBSC_CONF_HUB_FUNCTIONS_NUM=1
@@ -15,8 +16,7 @@ CFLAGS += -DBSC_CONF_HUB_CONNECTORS_NUM=1
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-# TRICK! Use .obj extension to be sure Make doesn't skip lib .o files
-OBJS := ${SRC:.c=.obj}
+OBJS += ${SRC:.c=.o}
 
 all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
@@ -28,8 +28,7 @@ ${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
 ${BACNET_LIB_TARGET}:
 	( cd ${BACNET_LIB_DIR} ; $(MAKE) clean ; $(MAKE) -s )
 
-# TRICK! overridden object files use .obj extension
-%.obj:%.c
+.c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
 
 .PHONY: depend
@@ -43,4 +42,3 @@ clean:
 
 .PHONY: include
 include: .depend
-
