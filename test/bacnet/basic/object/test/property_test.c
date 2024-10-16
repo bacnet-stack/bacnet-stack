@@ -8,6 +8,7 @@
  */
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
+#include <bacnet/property.h>
 #include <bacnet/rp.h>
 #include <bacnet/rpm.h>
 #include <bacnet/wp.h>
@@ -23,21 +24,35 @@
  * @return true if the property was written successfully, false if not
  */
 bool bacnet_object_property_write_test(
-    BACNET_WRITE_PROPERTY_DATA *wpdata,
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
     write_property_function write_property,
     const int *skip_fail_property_list)
 {
     bool status = false;
+    bool is_array;
 
     (void)skip_fail_property_list;
-    if (wpdata && write_property) {
-        status = write_property(wpdata);
+    if (wp_data && write_property) {
+        status = write_property(wp_data);
         if (!status) {
             /* verify WriteProperty property is known */
             zassert_not_equal(
-                wpdata->error_code, ERROR_CODE_UNKNOWN_PROPERTY,
+                wp_data->error_code, ERROR_CODE_UNKNOWN_PROPERTY,
                 "property '%s': WriteProperty Unknown!\n",
-                bactext_property_name(wpdata->object_property));
+                bactext_property_name(wp_data->object_property));
+        }
+        is_array = property_list_bacnet_array_member(
+            wp_data->object_type, wp_data->object_property);
+        if (!is_array) {
+            wp_data->array_index = 0;
+            status = write_property(wp_data);
+            zassert_equal(status, false, NULL);
+            zassert_equal(wp_data->error_class, ERROR_CLASS_PROPERTY, NULL);
+            zassert_equal(
+                wp_data->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY,
+                "property=%s error_code=%s",
+                bactext_property_name(wp_data->object_property),
+                bactext_error_code_name(wp_data->error_code));
         }
     }
 
@@ -86,6 +101,7 @@ int bacnet_object_property_read_test(
     int apdu_len = 0;
     int read_len = 0;
     uint8_t *apdu;
+    bool is_array;
     BACNET_ARRAY_INDEX array_index = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
@@ -141,6 +157,16 @@ int bacnet_object_property_read_test(
         zassert_not_equal(
             read_len, BACNET_STATUS_ERROR, "property '%s': failed to read!\n",
             bactext_property_name(rpdata->object_property));
+    }
+    is_array = property_list_bacnet_array_member(
+        rpdata->object_type, rpdata->object_property);
+    if (!is_array) {
+        rpdata->array_index = 0;
+        read_len = read_property(rpdata);
+        zassert_equal(read_len, BACNET_STATUS_ERROR, NULL);
+        zassert_equal(rpdata->error_class, ERROR_CLASS_PROPERTY, NULL);
+        zassert_equal(
+            rpdata->error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY, NULL);
     }
 
     return len;

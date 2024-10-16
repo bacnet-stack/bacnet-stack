@@ -19,6 +19,7 @@
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
+#include "bacnet/property.h"
 #include "bacnet/basic/sys/keylist.h"
 #if defined(CHANNEL_LIGHTING_COMMAND) || defined(CHANNEL_COLOR_COMMAND)
 #include "bacnet/lighting.h"
@@ -1335,6 +1336,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     int apdu_size = 0;
     uint8_t *apdu = NULL;
+    bool is_array;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -1422,8 +1424,9 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_CONTROL_GROUPS) &&
-        (rpdata->object_property != PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES) &&
+    is_array = property_list_bacnet_array_member(
+        rpdata->object_type, rpdata->object_property);
+    if ((apdu_len >= 0) && (!is_array) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -1449,7 +1452,16 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
     int element_len = 0;
     uint32_t count = 0;
+    bool is_array;
 
+    /*  only array properties can have array options */
+    is_array = property_list_bacnet_array_member(
+        wp_data->object_type, wp_data->object_property);
+    if (!is_array && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
     /* decode the first value of the request */
     len = bacapp_decode_known_property(
         wp_data->application_data, wp_data->application_data_len, &value,
@@ -1458,14 +1470,6 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    if ((wp_data->object_property != PROP_CONTROL_GROUPS) &&
-        (wp_data->object_property != PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
-        /*  only array properties can have array options */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {
