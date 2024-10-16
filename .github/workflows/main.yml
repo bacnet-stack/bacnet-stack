@@ -37,7 +37,10 @@ jobs:
         sudo apt-get install -y libconfig-dev
         sudo apt-get install -y libcap-dev
         sudo apt-get install -y libssl-dev
-        sudo apt-get install -y libwebsockets-dev
+        #sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
   
     - name: Install Dependencies (macOS)
       if: matrix.os == 'macOS-latest'
