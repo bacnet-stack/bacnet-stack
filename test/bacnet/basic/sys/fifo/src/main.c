@@ -23,7 +23,6 @@
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(fifo_tests, testFIFOBuffer)
 #else
-
 static void testFIFOBuffer(void)
 #endif
 {
