@@ -553,8 +553,6 @@ int cov_subscribe_decode_service_request(
             printf("cov_subscribe_decode_service_request data.lifetime 0\n");
         }
     }
-    fprintf(stderr, "cov_subscribe_decode_service_request 2 value_len %d\n", value_len);
-    fprintf(stderr, "cov_subscribe_decode_service_request 2 data.lifetime=%u\n", data->lifetime);
     return len;
 }
 

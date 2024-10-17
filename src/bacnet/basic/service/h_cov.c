@@ -832,6 +832,7 @@ void handler_cov_subscribe(
     bool error = false;
 
     fprintf(stderr, "handler_cov_subscribe\n");
+    fprintf(stderr, "service_len = %u\n", service_len);
     /* initialize a common abort code */
     cov_data.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
     /* encode the NPDU portion of the packet */
