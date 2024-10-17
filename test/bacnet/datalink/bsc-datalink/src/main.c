@@ -13,7 +13,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <zephyr/ztest.h>
-#include <bacnet/bacenum.h>
+#include <bacnet/bacdef.h>
+#include <bacnet/config.h>
 #include <bacnet/basic/object/bacfile.h>
 #include <bacnet/basic/object/netport.h>
 #include <bacnet/datalink/bsc/bvlc-sc.h>
@@ -22,7 +23,6 @@
 #include <bacnet/datalink/bsc/bsc-datalink.h>
 #include <bacnet/datalink/bsc/bsc-util.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
-#include <bacnet/bacdef.h>
 #include <unistd.h>
 
 unsigned char ca_key[] = {
@@ -1411,7 +1411,7 @@ static void test_sc_parameters(void)
     zassert_mem_equal(bsc_conf.key, server_key, sizeof(server_key), NULL);
     zassert_mem_equal(bsc_conf.local_uuid, &hubf_uuid, sizeof(hubf_uuid), NULL);
     zassert_mem_equal(bsc_conf.local_vmac, &hubf_vmac, sizeof(hubf_vmac), NULL);
-    zassert_equal(bsc_conf.max_local_bvlc_len, SC_NETPORT_BVLC_MAX, NULL);
+    zassert_equal(bsc_conf.max_local_bvlc_len, SC_NETPORT_BVLC_MAX, NULL); 
     zassert_equal(bsc_conf.max_local_npdu_len, SC_NETPORT_NPDU_MAX, NULL);
     zassert_equal(bsc_conf.connect_timeout_s, SC_NETPORT_CONNECT_TIMEOUT, NULL);
     zassert_equal(

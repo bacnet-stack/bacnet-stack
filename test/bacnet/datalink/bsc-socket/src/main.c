@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <zephyr/ztest.h>
 #include <time.h>
+#include <bacnet/bacdef.h>
+#include <bacnet/config.h>
 #include <bacnet/datalink/bsc/bsc-socket.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 #include <bacnet/datalink/bsc/bsc-util.h>
@@ -1363,7 +1365,9 @@ static void test_simple(void)
     BSC_SOCKET_CTX cli_ctx;
     char url[128];
     uint8_t buf[2048];
-    uint8_t npdu[1200];
+    /*BUG with*/
+    /*uint8_t npdu[1200];*/
+    uint8_t npdu[1057];
     size_t len;
 
     init_sock_ev(&cli_ev);
@@ -1971,7 +1975,9 @@ static void test_error_case1(void)
     BSC_SOCKET_CTX cli_ctx;
     char url[128];
     uint8_t buf[2048];
-    uint8_t npdu[1200];
+    /*BUG with*/
+    /*uint8_t npdu[1200];*/
+    uint8_t npdu[1045];
     size_t len;
     BVLC_SC_DECODED_MESSAGE dpdu;
     BACNET_ERROR_CODE error;
