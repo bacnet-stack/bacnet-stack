@@ -236,6 +236,40 @@ int bacnet_write_group_service_request_decode(
 }
 
 /**
+ * @brief Copy WriteGroup data to another WriteGroup data
+ * @param dest  Pointer to the destination data
+ * @param src  Pointer to the source data
+ * @return true if the values are copied
+ */
+bool bacnet_write_group_copy(
+    BACNET_WRITE_GROUP_DATA *dest, const BACNET_WRITE_GROUP_DATA *src)
+{
+    const BACNET_GROUP_CHANNEL_VALUE *value_src;
+    BACNET_GROUP_CHANNEL_VALUE *value_dest;
+
+    if (!dest || !src) {
+        return false;
+    }
+    dest->group_number = src->group_number;
+    dest->write_priority = src->write_priority;
+    dest->inhibit_delay = src->inhibit_delay;
+    if (src->change_list) {
+        value_src = src->change_list;
+        value_dest = dest->change_list;
+        while (value_src && value_dest) {
+            bacnet_group_channel_value_copy(value_dest, value_src);
+            value_src = value_src->next;
+            value_dest = value_dest->next;
+        }
+        if (value_src || value_dest) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
  * @brief Compare two WriteGroup service requests
  * @param data1  Pointer to the first data to compare
  * @param data2  Pointer to the second data to compare
@@ -260,14 +294,14 @@ bool bacnet_write_group_same(
         return true;
     }
 
-    return bacnet_write_group_channel_value_same(
+    return bacnet_group_change_list_same(
         data1->change_list, data2->change_list);
 }
 
 /**
  * @brief Compare two BACnetGroupChannelValue value lists
  */
-bool bacnet_write_group_channel_value_same(
+bool bacnet_group_change_list_same(
     const BACNET_GROUP_CHANNEL_VALUE *head1,
     const BACNET_GROUP_CHANNEL_VALUE *head2)
 {
@@ -439,11 +473,30 @@ int bacnet_group_channel_value_decode(
 }
 
 /**
+ * @brief Copy BACnetGroupChannelValue data to another BACnetGroupChannelValue
+ * data
+ * @param dest  Pointer to the destination data
+ * @param src  Pointer to the source data
+ * @return true if values are able to be copied
+ */
+bool bacnet_group_channel_value_copy(
+    BACNET_GROUP_CHANNEL_VALUE *dest, const BACNET_GROUP_CHANNEL_VALUE *src)
+{
+    if (!dest || !src) {
+        return false;
+    }
+    dest->channel = src->channel;
+    dest->overriding_priority = src->overriding_priority;
+
+    return bacnet_channel_value_copy(&dest->value, &src->value);
+}
+
+/**
  * @brief Convert an array of BACnetGroupChannelValue to linked list
  * @param array pointer to element zero of the array
  * @param size number of elements in the array
  */
-void bacnet_write_channel_value_link_array(
+void bacnet_group_channel_value_link_array(
     BACNET_GROUP_CHANNEL_VALUE *array, size_t size)
 {
     size_t i = 0;

@@ -83,7 +83,11 @@ int bacnet_write_group_service_request_decode(
     const uint8_t *apdu, size_t apdu_size, BACNET_WRITE_GROUP_DATA *data);
 
 BACNET_STACK_EXPORT
-bool bacnet_write_group_channel_value_same(
+bool bacnet_write_group_copy(
+    BACNET_WRITE_GROUP_DATA *dest, const BACNET_WRITE_GROUP_DATA *src);
+
+BACNET_STACK_EXPORT
+bool bacnet_group_change_list_same(
     const BACNET_GROUP_CHANNEL_VALUE *head1,
     const BACNET_GROUP_CHANNEL_VALUE *head2);
 
@@ -104,9 +108,11 @@ BACNET_STACK_EXPORT
 bool bacnet_group_channel_value_same(
     const BACNET_GROUP_CHANNEL_VALUE *value1,
     const BACNET_GROUP_CHANNEL_VALUE *value2);
-
 BACNET_STACK_EXPORT
-void bacnet_write_channel_value_link_array(
+bool bacnet_group_channel_value_copy(
+    BACNET_GROUP_CHANNEL_VALUE *dest, const BACNET_GROUP_CHANNEL_VALUE *src);
+BACNET_STACK_EXPORT
+void bacnet_group_channel_value_link_array(
     BACNET_GROUP_CHANNEL_VALUE *value, size_t size);
 
 #ifdef __cplusplus
