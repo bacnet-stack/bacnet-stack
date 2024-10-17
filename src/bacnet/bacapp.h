@@ -359,6 +359,10 @@ int bacapp_snprintf_value(
     const BACNET_OBJECT_PROPERTY_VALUE *object_value);
 
 BACNET_STACK_EXPORT
+bool bacapp_channel_value_copy(
+    BACNET_CHANNEL_VALUE *cvalue, const BACNET_APPLICATION_DATA_VALUE *value);
+
+BACNET_STACK_EXPORT
 bool bacapp_parse_application_data(
     BACNET_APPLICATION_TAG tag_number,
     char *argv,

@@ -4703,3 +4703,86 @@ int bacnet_array_encode(
 
     return apdu_len;
 }
+
+/**
+ * @brief Decode a BACnetARRAY property value and call a function for each
+ * element
+ * @param object_instance [in] BACnet network port object instance number
+ * @param array_index [in] array index to be decoded
+ *    0 for the array size
+ *    1 to n for individual array members
+ *    BACNET_ARRAY_ALL for the full array to be read.
+ * @param decode_function [in] function to decode one property array element and
+ * determine the length
+ * @param write_function [in] function to write one property array element with
+ * the encoded value
+ * @param array_size [in] number of elements in the array
+ * @param apdu [out] Buffer in which the APDU contents are built.
+ * @param max_apdu [in] Max length of the APDU buffer.
+ * @return BACNET_ERROR_CODE value
+ */
+BACNET_ERROR_CODE bacnet_array_write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_decode_function decode_function,
+    bacnet_array_property_element_write_function write_function,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    int len = 0;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    size_t apdu_len;
+    BACNET_ARRAY_INDEX index;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
+
+    if (array_index == 0) {
+        /* Array element zero is the number of objects in the list */
+        len = bacnet_unsigned_application_decode(
+            apdu, apdu_size, &unsigned_value);
+        if (len > 0) {
+            error_code =
+                write_function(object_instance, array_index, apdu, apdu_size);
+        } else if (len == 0) {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        } else {
+            error_code = ERROR_CODE_ABORT_OTHER;
+        }
+    } else if (array_index == BACNET_ARRAY_ALL) {
+        /* verify decoding of all elements */
+        apdu_len = 0;
+        for (index = 1; index <= array_size; index++) {
+            len = decode_function(
+                object_instance, &apdu[apdu_len], apdu_size - apdu_len);
+            if (len > 0) {
+                apdu_len += len;
+            } else {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                break;
+            }
+        }
+        if (error_code == ERROR_CODE_SUCCESS) {
+            /* write each element */
+            apdu_len = 0;
+            for (index = 1; index <= array_size; index++) {
+                len = decode_function(
+                    object_instance, &apdu[apdu_len], apdu_size - apdu_len);
+                error_code = write_function(
+                    object_instance, index, &apdu[apdu_len], len);
+                if (error_code != ERROR_CODE_SUCCESS) {
+                    break;
+                }
+                apdu_len += len;
+            }
+        }
+    } else if (array_index <= array_size) {
+        /* index was specified; write a single array element */
+        error_code =
+            write_function(object_instance, array_index, apdu, apdu_size);
+    } else {
+        /* array_index was specified out of range */
+        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    }
+
+    return apdu_len;
+}
