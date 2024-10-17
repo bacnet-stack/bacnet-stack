@@ -525,7 +525,7 @@ int cov_subscribe_decode_service_request(
     }
     fprintf(stderr, "cov_subscribe_decode_service_request len %d\n", len);
     fprintf(stderr, "cov_subscribe_decode_service_request &decoded_value %p\n", (void *)&decoded_value);
-
+    fprintf(stderr, "cov_subscribe_decode_service_request apdu_size %d\n", apdu_size);
     if ((unsigned)len < apdu_size) {
         /* lifetime [3] Unsigned OPTIONAL */
         value_len = bacnet_unsigned_context_decode(
