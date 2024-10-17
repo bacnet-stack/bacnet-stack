@@ -2692,6 +2692,146 @@ static int bacapp_snprintf_channel_value(
 }
 #endif
 
+#if defined(BACAPP_CHANNEL)
+/**
+ * @brief For a given application value, copy to the channel value
+ * @param  cvalue - BACNET_CHANNEL_VALUE value
+ * @param  value - BACNET_APPLICATION_DATA_VALUE value
+ * @return  true if values are able to be copied
+ */
+bool bacapp_channel_value_copy(
+    BACNET_CHANNEL_VALUE *cvalue, const BACNET_APPLICATION_DATA_VALUE *value)
+{
+    bool status = false;
+
+    if (!value || !cvalue) {
+        return false;
+    }
+    switch (value->tag) {
+#if defined(BACAPP_NULL)
+        case BACNET_APPLICATION_TAG_NULL:
+            cvalue->tag = value->tag;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_BOOLEAN) && defined(CHANNEL_BOOLEAN)
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            cvalue->tag = value->tag;
+            cvalue->type.Boolean = value->type.Boolean;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_UNSIGNED) && defined(CHANNEL_UNSIGNED)
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            cvalue->tag = value->tag;
+            cvalue->type.Unsigned_Int = value->type.Unsigned_Int;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_SIGNED) && defined(CHANNEL_SIGNED)
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            cvalue->tag = value->tag;
+            cvalue->type.Signed_Int = value->type.Signed_Int;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_REAL) && defined(CHANNEL_REAL)
+        case BACNET_APPLICATION_TAG_REAL:
+            cvalue->tag = value->tag;
+            cvalue->type.Real = value->type.Real;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_DOUBLE) && defined(CHANNEL_DOUBLE)
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            cvalue->tag = value->tag;
+            cvalue->type.Double = value->type.Double;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_OCTET_STRING) && defined(CHANNEL_OCTET_STRING)
+        case BACNET_APPLICATION_TAG_OCTET_STRING:
+            cvalue->tag = value->tag;
+            octetstring_copy(
+                &cvalue->type.Octet_String, &value->type.Octet_String);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_CHARACTER_STRING) && defined(CHANNEL_CHARACTER_STRING)
+        case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+            cvalue->tag = value->tag;
+            characterstring_copy(
+                &cvalue->type.Character_String, &value->type.Character_String);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_BIT_STRING) && defined(CHANNEL_BIT_STRING)
+        case BACNET_APPLICATION_TAG_BIT_STRING:
+            cvalue->tag = value->tag;
+            bitstring_copy(&cvalue->type.Bit_String, &value->type.Bit_String);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_ENUMERATED) && defined(CHANNEL_ENUMERATED)
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            cvalue->tag = value->tag;
+            cvalue->type.Enumerated = value->type.Enumerated;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_DATE) && defined(CHANNEL_DATE)
+        case BACNET_APPLICATION_TAG_DATE:
+            cvalue->tag = value->tag;
+            datetime_date_copy(&cvalue->type.Date, &value->type.Date);
+            apdu_len = encode_application_date(apdu, &value->type.Date);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_TIME) && defined(CHANNEL_TIME)
+        case BACNET_APPLICATION_TAG_TIME:
+            cvalue->tag = value->tag;
+            datetime_time_copy(&cvalue->type.Time, &value->type.Time);
+            break;
+#endif
+#if defined(BACAPP_OBJECT_ID) && defined(CHANNEL_OBJECT_ID)
+        case BACNET_APPLICATION_TAG_OBJECT_ID:
+            cvalue->tag = value->tag;
+            cvalue->type.Object_Id.type = value->type.Object_Id.type;
+            cvalue->type.Object_Id.instance = value->type.Object_Id.instance;
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_LIGHTING_COMMAND) && defined(CHANNEL_LIGHTING_COMMAND)
+        case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
+            cvalue->tag = value->tag;
+            lighting_command_copy(
+                &cvalue->type.Lighting_Command, &value->type.Lighting_Command);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_COLOR_COMMAND) && defined(CHANNEL_COLOR_COMMAND)
+        case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+            cvalue->tag = value->tag;
+            color_command_copy(
+                &cvalue->type.Color_Command, &value->type.Color_Command);
+            status = true;
+            break;
+#endif
+#if defined(BACAPP_COLOR_COMMAND) && defined(CHANNEL_XY_COLOR)
+        case BACNET_APPLICATION_TAG_XY_COLOR:
+            cvalue->tag = value->tag;
+            xy_color_copy(&cvalue->type.XY_Color, &value->type.XY_Color);
+            status = true;
+            break;
+#endif
+        default:
+            break;
+    }
+
+    return status;
+}
+#endif
+
 #if defined(BACAPP_WEEKLY_SCHEDULE)
 /**
  * @brief Print a weekly schedule value to a string for EPICS
@@ -4096,7 +4236,8 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_CHANNEL_VALUE)
             case BACNET_APPLICATION_TAG_CHANNEL_VALUE:
-                bacnet_channel_value_from_ascii(&value->type.Access_Rule, argv);
+                bacnet_channel_value_from_ascii(
+                    &value->type.Channel_Value, argv);
                 break;
 #endif
             default:
