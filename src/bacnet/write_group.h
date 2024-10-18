@@ -57,6 +57,23 @@ typedef struct BACnet_Write_Group_Data {
 } BACNET_WRITE_GROUP_DATA;
 
 /**
+ * @brief generic callback for WriteGroup-Request iterator
+ * @param data [in] The contents of the WriteGroup-Request message
+ * @param change_list_index [in] The index of the current value in the change
+ * list
+ * @param change_list [in] The current value in the change list
+ */
+typedef void (*BACnet_Write_Group_Callback)(
+    BACNET_WRITE_GROUP_DATA *data,
+    uint32_t change_list_index,
+    BACNET_GROUP_CHANNEL_VALUE *change_list);
+struct BACnet_Write_Group_Notification;
+typedef struct BACnet_Write_Group_Notification {
+    struct BACnet_Write_Group_Notification *next;
+    BACnet_Write_Group_Callback callback;
+} BACNET_WRITE_GROUP_NOTIFICATION;
+
+/**
  * @brief Process a WriteGroup-Request message, one value at a time
  * @param device_id [in] The device ID of the source of the message
  * @param data [in] The contents of the WriteGroup-Request message
@@ -81,6 +98,12 @@ size_t bacnet_write_group_service_request_encode(
 BACNET_STACK_EXPORT
 int bacnet_write_group_service_request_decode(
     const uint8_t *apdu, size_t apdu_size, BACNET_WRITE_GROUP_DATA *data);
+BACNET_STACK_EXPORT
+int bacnet_write_group_service_request_decode_iterate(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_WRITE_GROUP_DATA *data,
+    BACnet_Write_Group_Callback callback);
 
 BACNET_STACK_EXPORT
 bool bacnet_write_group_copy(

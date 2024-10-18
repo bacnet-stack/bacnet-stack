@@ -113,6 +113,153 @@ size_t bacnet_write_group_service_request_encode(
     return apdu_len;
 }
 
+static int write_group_service_group_number_decode(
+    const uint8_t *apdu, size_t apdu_size, BACNET_WRITE_GROUP_DATA *data)
+{
+    int len = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
+
+    /* group-number [0] Unsigned32 */
+    len = bacnet_unsigned_context_decode(apdu, apdu_size, 0, &unsigned_value);
+    if (len > 0) {
+        /* This parameter is an unsigned integer in the
+           range 1 – 4294967295 that represents the control
+           group to be affected by this request.
+           Control group zero shall never be used
+           and shall be reserved. WriteGroup service
+           requests containing a zero value for
+           'Group Number' shall be ignored.*/
+        if ((unsigned_value > 4294967295) || (unsigned_value < 1)) {
+            return BACNET_STATUS_ERROR;
+        }
+        if (data) {
+            data->group_number = (uint32_t)unsigned_value;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return len;
+}
+
+static int write_group_service_write_priority_decode(
+    const uint8_t *apdu, size_t apdu_size, BACNET_WRITE_GROUP_DATA *data)
+{
+    int len = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
+
+    /* write-priority [1] Unsigned (1..16) */
+    len = bacnet_unsigned_context_decode(apdu, apdu_size, 1, &unsigned_value);
+    if (len > 0) {
+        /* This parameter is an unsigned integer in the range 1..16
+           that represents the priority for writing that shall apply
+           to any channel value changes that result in writes to properties
+           of BACnet objects. */
+        if ((unsigned_value > BACNET_MAX_PRIORITY) ||
+            (unsigned_value < BACNET_MIN_PRIORITY)) {
+            return BACNET_STATUS_ERROR;
+        }
+        if (data) {
+            data->write_priority = (uint8_t)unsigned_value;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return len;
+}
+
+static int write_group_service_inhibit_delay_decode(
+    const uint8_t *apdu, size_t apdu_size, BACNET_WRITE_GROUP_DATA *data)
+{
+    int len = 0;
+    bool boolean_value = false;
+
+    /* inhibit-delay [3] BOOLEAN OPTIONAL */
+    len = bacnet_boolean_context_decode(apdu, apdu_size, 3, &boolean_value);
+    if (len > 0) {
+        if (data) {
+            if (boolean_value) {
+                data->inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_TRUE;
+            } else {
+                data->inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_FALSE;
+            }
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return len;
+}
+
+static int write_group_service_change_list_decode(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_WRITE_GROUP_DATA *data,
+    BACnet_Write_Group_Callback callback)
+{
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_GROUP_CHANNEL_VALUE change_value = { 0 };
+    uint32_t change_list_index = 0;
+    bool closed = false;
+
+    /* change-list [2] SEQUENCE OF BACnetGroupChannelValue */
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
+        apdu_len += len;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    while (apdu_len < apdu_size) {
+        if (bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
+            /*  end of change-list [2] SEQUENCE OF BACnetGroupChannelValue */
+            apdu_len += len;
+            closed = true;
+            break;
+        }
+        len = bacnet_group_channel_value_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, &change_value);
+        if (len <= 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+        if (callback) {
+            callback(data, change_list_index, &change_value);
+        }
+        change_list_index++;
+    }
+    if (!closed) {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief generic callback for WriteGroup-Request iterator
+ * @param data [in] The contents of the WriteGroup-Request message
+ * @param change_list_index [in] The index of the current value in the change
+ * list
+ * @param change_list [in] The current value in the change list
+ */
+void bacnet_write_group_service_change_list_value_set(
+    BACNET_WRITE_GROUP_DATA *data,
+    uint32_t change_list_index,
+    BACNET_GROUP_CHANNEL_VALUE *change_list)
+{
+    BACNET_GROUP_CHANNEL_VALUE *value = data->change_list;
+
+    while (value && change_list_index) {
+        value = value->next;
+        change_list_index--;
+    }
+    if (value) {
+        (void)bacnet_group_channel_value_copy(value, change_list);
+    }
+}
+
 /**
  * @brief Decode the WriteGroup service request
  *
@@ -132,104 +279,82 @@ size_t bacnet_write_group_service_request_encode(
 int bacnet_write_group_service_request_decode(
     const uint8_t *apdu, size_t apdu_size, BACNET_WRITE_GROUP_DATA *data)
 {
+    return bacnet_write_group_service_request_decode_iterate(
+        apdu, apdu_size, data,
+        bacnet_write_group_service_change_list_value_set);
+}
+
+/**
+ * @brief Decode the WriteGroup-Request and call the WriteGroup handler
+ *  function to process each change-list element of the request
+ *
+ * WriteGroup-Request ::= SEQUENCE {
+ *   group-number [0] Unsigned32,
+ *   write-priority [1] Unsigned (1..16),
+ *   change-list [2] SEQUENCE OF BACnetGroupChannelValue ::= SEQUENCE {
+ *       channel [0] Unsigned16,
+ *       overriding-priority [1] Unsigned (1..16) OPTIONAL,
+ *       value BACnetChannelValue
+ *   }
+ *   inhibit-delay [3] BOOLEAN OPTIONAL
+ * }
+ *
+ * @param apdu [in] Buffer of bytes received.
+ * @param apdu_size [in] Count of valid bytes in the buffer.
+ * @param callback [in] The function to call for each change-list element
+ * @return Bytes decoded or BACNET_STATUS_ERROR on error.
+ */
+int bacnet_write_group_service_request_decode_iterate(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_WRITE_GROUP_DATA *data,
+    BACnet_Write_Group_Callback callback)
+{
     int len = 0;
     int apdu_len = 0;
-    bool closed = false;
-    BACNET_GROUP_CHANNEL_VALUE *value = NULL; /* value in list */
-    BACNET_UNSIGNED_INTEGER unsigned_value;
-    bool boolean_value = false;
+    const uint8_t *change_list_apdu;
+    size_t change_list_apdu_size;
 
     /* group-number [0] Unsigned32 */
-    len = bacnet_unsigned_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 0, &unsigned_value);
-    if (len > 0) {
-        /* This parameter is an unsigned integer in the
-           range 1 – 4294967295 that represents the control
-           group to be affected by this request.
-           Control group zero shall never be used
-           and shall be reserved. WriteGroup service
-           requests containing a zero value for
-           'Group Number' shall be ignored.*/
-        if ((unsigned_value > 4294967295) || (unsigned_value < 1)) {
-            return BACNET_STATUS_ERROR;
-        }
-        if (data) {
-            data->group_number = (uint32_t)unsigned_value;
-        }
-        apdu_len += len;
-    } else {
+    len = write_group_service_group_number_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, data);
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
+    apdu_len += len;
     /* write-priority [1] Unsigned (1..16) */
-    len = bacnet_unsigned_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
-    if (len > 0) {
-        /* This parameter is an unsigned integer in the range 1..16
-           that represents the priority for writing that shall apply
-           to any channel value changes that result in writes to properties
-           of BACnet objects. */
-        if ((unsigned_value > BACNET_MAX_PRIORITY) ||
-            (unsigned_value < BACNET_MIN_PRIORITY)) {
-            return BACNET_STATUS_ERROR;
-        }
-        if (data) {
-            data->write_priority = (uint8_t)unsigned_value;
-        }
-        apdu_len += len;
-    } else {
+    len = write_group_service_write_priority_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, data);
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
+    apdu_len += len;
     /* change-list [2] SEQUENCE OF BACnetGroupChannelValue */
-    if (bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
-        apdu_len += len;
-    } else {
+    change_list_apdu = &apdu[apdu_len];
+    change_list_apdu_size = apdu_size - apdu_len;
+    len = write_group_service_change_list_decode(
+        change_list_apdu, change_list_apdu_size, data, NULL);
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
-    if (data) {
-        value = data->change_list;
-    }
-    while (apdu_len < apdu_size) {
-        if (bacnet_is_closing_tag_number(
-                &apdu[apdu_len], apdu_size - apdu_len, 2, &len)) {
-            /*  end of change-list [2] SEQUENCE OF BACnetGroupChannelValue */
-            apdu_len += len;
-            closed = true;
-            break;
-        }
-        len = bacnet_group_channel_value_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, value);
+    apdu_len += len;
+    if (apdu_len < apdu_size) {
+        /* inhibit-delay [3] BOOLEAN OPTIONAL */
+        len = write_group_service_inhibit_delay_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, data);
         if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
-        if (value) {
-            value = value->next;
-        }
-    }
-    if (!closed) {
-        return BACNET_STATUS_ERROR;
-    }
-    if (apdu_len < apdu_size) {
-        /* inhibit-delay [3] BOOLEAN OPTIONAL */
-        len = bacnet_boolean_context_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, 3, &boolean_value);
-        if (len > 0) {
-            if (data) {
-                if (boolean_value) {
-                    data->inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_TRUE;
-                } else {
-                    data->inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_FALSE;
-                }
-            }
-            apdu_len += len;
-        } else {
-            return BACNET_STATUS_ERROR;
-        }
     } else {
         if (data) {
             data->inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_NONE;
         }
+    }
+    len = write_group_service_change_list_decode(
+        change_list_apdu, change_list_apdu_size, data, callback);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
