@@ -681,7 +681,7 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (!bacfile_valid_instance(wp_data->object_instance)) {
         wp_data->error_class = ERROR_CLASS_OBJECT;

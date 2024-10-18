@@ -1113,7 +1113,7 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
