@@ -570,7 +570,7 @@ static void testBACnetApplicationData_Safe(void)
     BACNET_APPLICATION_DATA_VALUE input_value[13];
     uint32_t len_segment[13];
     uint32_t single_length_segment;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     for (i = 0; i < 13; i++) {
         input_value[i].tag = (BACNET_APPLICATION_TAG)i;

@@ -297,7 +297,7 @@ bool Access_Rights_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     bool is_array = false;
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     unsigned object_index = 0;
 
     /* decode the some of the request */
