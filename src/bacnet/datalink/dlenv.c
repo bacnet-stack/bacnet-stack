@@ -564,7 +564,19 @@ void dlenv_init(void)
     if (pEnv) {
         datalink_set(pEnv);
     } else {
-        datalink_set(NULL);
+#if defined(BACDL_BIP)
+        datalink_set("bip");
+#elif defined(BACDL_BIP6)
+        datalink_set("bip6");
+#elif defined(BACDL_MSTP)
+        datalink_set("mstp");
+#elif defined(BACDL_ETHERNET)
+        datalink_set("ethernet");
+#elif defined(BACDL_ARCNET)
+        datalink_set("arcnet");
+#elif
+        datalink_set("none");
+#endif
     }
 #endif
 #if defined(BACDL_BIP6)
