@@ -1427,7 +1427,9 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
                     status = List_Of_Object_Property_References_Set(
                         pObject, array_index - 1,
                         &value.type.Device_Object_Property_Reference);
-                    if (!status) {
+                    if (status) {
+                        error_code = ERROR_CODE_SUCCESS;
+                    } else {
                         error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     }
                 } else {
@@ -1503,7 +1505,9 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
                         control_group = (uint16_t)value.type.Unsigned_Int;
                         status = Control_Groups_Element_Set(
                             pObject, array_index, control_group);
-                        if (!status) {
+                        if (status) {
+                            error_code = ERROR_CODE_SUCCESS;
+                        } else {
                             error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                         }
                     } else {
@@ -1581,8 +1585,8 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 Channel_List_Of_Object_Property_References_Write,
                 CHANNEL_MEMBERS_MAX, wp_data->application_data,
                 wp_data->application_data_len);
-            if (wp_data->error_code != ERROR_CODE_SUCCESS) {
-                status = false;
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
             }
             break;
         case PROP_CHANNEL_NUMBER:
@@ -1605,8 +1609,8 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 Channel_Control_Groups_Length, Channel_Control_Groups_Write,
                 CONTROL_GROUPS_MAX, wp_data->application_data,
                 wp_data->application_data_len);
-            if (wp_data->error_code != ERROR_CODE_SUCCESS) {
-                status = false;
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
             }
             break;
         default:

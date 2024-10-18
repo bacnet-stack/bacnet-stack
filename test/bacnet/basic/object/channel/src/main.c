@@ -32,18 +32,74 @@ static void test_Channel_Property_Read_Write(void)
     const int skip_fail_property_list[] = { -1 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
 
     Channel_Init();
     Channel_Create(instance);
     status = Channel_Valid_Instance(instance);
     zassert_true(status, NULL);
+    status = Channel_Valid_Instance(instance - 1);
+    zassert_false(status, NULL);
     index = Channel_Instance_To_Index(instance);
     zassert_equal(index, 0, NULL);
     test_instance = Channel_Index_To_Instance(index);
     zassert_equal(instance, test_instance, NULL);
     count = Channel_Count();
     zassert_true(count > 0, NULL);
-    /* configure the instance property values */
+    /* configure the instance property values and test API for lists */
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = 0;
+    member.objectIdentifier.type = OBJECT_ANALOG_OUTPUT;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
+    status =
+        Channel_Reference_List_Member_Element_Set(instance, index, &member);
+    zassert_true(status, NULL);
+    status = Channel_Control_Groups_Element_Set(instance, 1, 1);
+    zassert_true(status, NULL);
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = 0;
+    member.objectIdentifier.type = OBJECT_BINARY_OUTPUT;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = 0;
+    member.objectIdentifier.type = OBJECT_MULTI_STATE_OUTPUT;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = 0;
+    member.objectIdentifier.type = OBJECT_LIGHTING_OUTPUT;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = 0;
+    member.objectIdentifier.type = OBJECT_COLOR;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = 0;
+    member.objectIdentifier.type = OBJECT_COLOR_TEMPERATURE;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_not_equal(index, 0, NULL);
     /* perform a general test for RP/WP */
     bacnet_object_properties_read_write_test(
         OBJECT_CHANNEL, instance, Channel_Property_Lists, Channel_Read_Property,
@@ -97,20 +153,50 @@ static void test_Channel_Property_Read_Write(void)
     wp_data.object_property = PROP_CONTROL_GROUPS;
     wp_data.array_index = 1;
     value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    /* min valid value */
     value.type.Unsigned_Int = 0;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Channel_Write_Property(&wp_data);
     zassert_true(status, NULL);
+    /* max valid value */
+    value.type.Unsigned_Int = UINT16_MAX;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    /* array size - read-only */
     wp_data.array_index = 0;
     status = Channel_Write_Property(&wp_data);
     zassert_false(status, NULL);
+    /* out-of-range value */
     wp_data.array_index = 1;
     value.type.Unsigned_Int = UINT16_MAX + 1;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Channel_Write_Property(&wp_data);
     zassert_false(status, NULL);
+    /* invalid data type for Array element */
+    wp_data.array_index = 1;
+    value.type.Real = 3.14159f;
+    value.tag = BACNET_APPLICATION_TAG_REAL;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    /* invalid data type for Array size */
+    wp_data.array_index = 0;
+    status = Channel_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    /* invalid array-index - probably */
+    wp_data.array_index = BACNET_ARRAY_ALL - 1;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = 0;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+
     /* cleanup */
     status = Channel_Delete(instance);
     zassert_true(status, NULL);

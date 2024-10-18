@@ -4784,5 +4784,5 @@ BACNET_ERROR_CODE bacnet_array_write(
         error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
     }
 
-    return apdu_len;
+    return error_code;
 }
