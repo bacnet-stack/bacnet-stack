@@ -26,17 +26,17 @@ typedef enum {
 } TEST_STAGE;
 static TEST_STAGE test_stage = STAGE_NONE;
 
-#define TIMEOUT_CHILD   400
-#define TIMEOUT_MIN     200
-#define TIMEOUT_MAX     600
-#define MSEC_PER_SEC    1000
-#define USEC_PER_MSEC   1000000
-#define TIMEOUT_SLEEP   2
-#define WAITTIME_MIN    (TIMEOUT_SLEEP * MSEC_PER_SEC - 20)
-#define WAITTIME_MAX    (TIMEOUT_SLEEP * MSEC_PER_SEC + 20)
+#define TIMEOUT_CHILD 400
+#define TIMEOUT_MIN 200
+#define TIMEOUT_MAX 600
+#define MSEC_PER_SEC 1000
+#define USEC_PER_MSEC 1000000
+#define TIMEOUT_SLEEP 2
+#define WAITTIME_MIN (TIMEOUT_SLEEP * MSEC_PER_SEC - 20)
+#define WAITTIME_MAX (TIMEOUT_SLEEP * MSEC_PER_SEC + 20)
 #define MULTIPLE_WAIT_THREADS_NUM 50
 
-static void *child_func(void* arg)
+static void *child_func(void *arg)
 {
     BSC_EVENT *event = (BSC_EVENT *)arg;
     zassert_not_null(event, NULL);
@@ -101,14 +101,14 @@ static void test_bsc_event1(void)
     bsc_wait(TIMEOUT_SLEEP);
     clock_gettime(CLOCK_REALTIME, &t2);
     timediff = (t2.tv_sec * MSEC_PER_SEC + t2.tv_nsec / USEC_PER_MSEC) -
-               (t1.tv_sec * MSEC_PER_SEC + t1.tv_nsec / USEC_PER_MSEC);
+        (t1.tv_sec * MSEC_PER_SEC + t1.tv_nsec / USEC_PER_MSEC);
     zassert_true((WAITTIME_MIN < timediff) && (timediff < WAITTIME_MAX), NULL);
 
     pthread_join(tid_child, NULL);
     bsc_event_deinit(event);
 }
 
-static void *thread_func(void* arg)
+static void *thread_func(void *arg)
 {
     BSC_EVENT *event = (BSC_EVENT *)arg;
     zassert_not_null(event, NULL);
@@ -125,7 +125,7 @@ static void test_bsc_event2(void)
     event = bsc_event_init();
     zassert_not_null(event, NULL);
 
-    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+    for (i = 0; i < MULTIPLE_WAIT_THREADS_NUM; i++) {
         zassert_equal(
             pthread_create(&tid[i], NULL, &thread_func, event), 0, NULL);
     }
@@ -133,8 +133,8 @@ static void test_bsc_event2(void)
     bsc_wait(1);
     bsc_event_signal(event);
 
-    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
-       pthread_join(tid[i], NULL);
+    for (i = 0; i < MULTIPLE_WAIT_THREADS_NUM; i++) {
+        pthread_join(tid[i], NULL);
     }
 
     bsc_event_deinit(event);

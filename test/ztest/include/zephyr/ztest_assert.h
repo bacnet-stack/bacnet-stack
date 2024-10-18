@@ -13,7 +13,7 @@
 #ifndef ZEPHYR_TESTSUITE_ZTEST_ASSERT_H_
 #define ZEPHYR_TESTSUITE_ZTEST_ASSERT_H_
 
-#include <zephyr/ztest.h>
+#include <zephyr/ztest_test.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,7 +24,6 @@ extern "C" {
 #endif
 
 const char *ztest_relative_filename(const char *file);
-void ztest_test_fail(void);
 #if CONFIG_ZTEST_ASSERT_VERBOSE == 0
 
 static inline bool z_zassert_(bool cond, const char *file, int line)
@@ -101,6 +100,7 @@ static inline bool z_zassert(bool cond,
 	bool _ret = z_zassert(cond, msg ? ("(" default_msg ")") : (default_msg), \
 			     __FILE__, __LINE__, __func__, \
 			     msg ? msg : "", ##__VA_ARGS__); \
+	(void)_ret; \
 } while (0)
 
 /**

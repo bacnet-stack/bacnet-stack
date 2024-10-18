@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 get_filename_component(basename ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 project(test_${basename}
-	VERSION 1.0.0
-	LANGUAGES C)
+    VERSION 1.0.0
+    LANGUAGES C)
 
 find_package(Threads)
 find_package(libwebsockets CONFIG REQUIRED)
@@ -31,21 +31,21 @@ string(REGEX REPLACE
 set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
-	BIG_ENDIAN=0
-	CONFIG_ZTEST=1
+    BIG_ENDIAN=0
+    CONFIG_ZTEST=1
   BACDL_BSC
-	BSC_CONF_CLIENT_CONNECTIONS_NUM=5
-	BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM=4
-	BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM=4
+    BSC_CONF_CLIENT_CONNECTIONS_NUM=5
+    BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM=4
+    BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM=4
   BSC_CONF_WSURL_MAX_LEN=128
   BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN=128
   BSC_CONF_WEBSOCKET_SERVERS_NUM=4
-	)
+    )
 
 include_directories(
-	${SRC_DIR}
-	${TST_DIR}/ztest/include
-	)
+    ${SRC_DIR}
+    ${TST_DIR}/ztest/include
+    )
 
 if(ZEPHYR_BASE)
   message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
@@ -105,4 +105,3 @@ elseif(APPLE)
                         ${LIB_WEBSOCKETS_LIBRARIES}
   )
 endif()
-

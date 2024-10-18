@@ -51,13 +51,14 @@
 #ifndef BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM
 #define BSC_SERVER_HUB_WEBSOCKETS_MAX_NUM 4
 #else
-#define BSC_SERVER_HUB_WEBSOCKETS_MAX_NUM BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM
+#define BSC_SERVER_HUB_WEBSOCKETS_MAX_NUM \
+    BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM
 #endif
 /** @} */
 
 /**
- * Initial size of websocket buffer used on receive. It can be increased dynamically
- * depending on received packet size.
+ * Initial size of websocket buffer used on receive. It can be increased
+ * dynamically depending on received packet size.
  * @{
  */
 
@@ -68,7 +69,6 @@
 #endif
 /** @} */
 
-
 /**
  * Maximum number of sockets supported for direct websocket server
  * @{
@@ -76,19 +76,21 @@
 #ifndef BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
 #define BSC_SERVER_DIRECT_WEBSOCKETS_MAX_NUM 4
 #else
-#define BSC_SERVER_DIRECT_WEBSOCKETS_MAX_NUM BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
+#define BSC_SERVER_DIRECT_WEBSOCKETS_MAX_NUM \
+    BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
 #endif
 
 #ifndef BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN
 #define BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN 128
 #else
-#define BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN
+#define BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN \
+    BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN
 #endif
 
 #define BSC_WSURL_MAX_LEN BSC_CONF_WSURL_MAX_LEN
 
 typedef int BSC_WEBSOCKET_HANDLE;
-typedef void* BSC_WEBSOCKET_SRV_HANDLE;
+typedef void *BSC_WEBSOCKET_SRV_HANDLE;
 #define BSC_WEBSOCKET_INVALID_HANDLE (-1)
 
 /* Websockets protocol defined in BACnet/SC \S AB.7.1. */
@@ -98,7 +100,7 @@ typedef void* BSC_WEBSOCKET_SRV_HANDLE;
 typedef enum {
     BSC_WEBSOCKET_HUB_PROTOCOL = 0,
     BSC_WEBSOCKET_DIRECT_PROTOCOL = 1,
-    BSC_WEBSOCKET_PROTOCOLS_AMOUNT = 2   /* must be always last */
+    BSC_WEBSOCKET_PROTOCOLS_AMOUNT = 2 /* must be always last */
 } BSC_WEBSOCKET_PROTOCOL;
 
 typedef enum {
@@ -117,27 +119,29 @@ typedef enum {
     BSC_WEBSOCKET_SERVER_STOPPED = 5
 } BSC_WEBSOCKET_EVENT;
 
-/* 
+/*
    values of ws_reason and ws_reason_desc parameters are actual
    only for BSC_WEBSOCKET_DISCONNECTED event.
 */
 
-typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
-                              BSC_WEBSOCKET_EVENT ev,
-                              BACNET_ERROR_CODE ws_reason,
-                              char* ws_reason_desc,
-                              uint8_t* buf,
-                              size_t bufsize,
-                              void* dispatch_func_user_param);
+typedef void (*BSC_WEBSOCKET_CLI_DISPATCH)(
+    BSC_WEBSOCKET_HANDLE h,
+    BSC_WEBSOCKET_EVENT ev,
+    BACNET_ERROR_CODE ws_reason,
+    char *ws_reason_desc,
+    uint8_t *buf,
+    size_t bufsize,
+    void *dispatch_func_user_param);
 
-typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_SRV_HANDLE sh,
-                              BSC_WEBSOCKET_HANDLE h,
-                              BSC_WEBSOCKET_EVENT ev,
-                              BACNET_ERROR_CODE ws_reason,
-                              char* ws_reason_desc,
-                              uint8_t* buf,
-                              size_t bufsize,
-                              void* dispatch_func_user_param);
+typedef void (*BSC_WEBSOCKET_SRV_DISPATCH)(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    BSC_WEBSOCKET_EVENT ev,
+    BACNET_ERROR_CODE ws_reason,
+    char *ws_reason_desc,
+    uint8_t *buf,
+    size_t bufsize,
+    void *dispatch_func_user_param);
 
 /**
  * @brief Asynchronous bws_cli_сonnect() function starts establishing
@@ -176,19 +180,19 @@ typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_SRV_HANDLE sh,
  *     BSC_WEBSOCKET_SUCCESS - connect operation was successfully started.
  */
 
-BSC_WEBSOCKET_RET bws_cli_connect
-   (BSC_WEBSOCKET_PROTOCOL proto,
-       char *url,
-       uint8_t *ca_cert,
-       size_t ca_cert_size,
-       uint8_t *cert,
-       size_t cert_size,
-       uint8_t *key,
-       size_t key_size,
-       size_t timeout_s,
-       BSC_WEBSOCKET_CLI_DISPATCH dispatch_func,
-       void* dispatch_func_user_param,
-       BSC_WEBSOCKET_HANDLE *out_handle);
+BSC_WEBSOCKET_RET bws_cli_connect(
+    BSC_WEBSOCKET_PROTOCOL proto,
+    char *url,
+    uint8_t *ca_cert,
+    size_t ca_cert_size,
+    uint8_t *cert,
+    size_t cert_size,
+    uint8_t *key,
+    size_t key_size,
+    size_t timeout_s,
+    BSC_WEBSOCKET_CLI_DISPATCH dispatch_func,
+    void *dispatch_func_user_param,
+    BSC_WEBSOCKET_HANDLE *out_handle);
 
 /**
  * @brief Asynchronous  bws_cli_disconnnect() function starts process of
@@ -249,8 +253,8 @@ void bws_cli_send(BSC_WEBSOCKET_HANDLE h);
  *     BSC_WEBSOCKET_SUCCESS - data is sent successfully.
  */
 
-BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
-                           uint8_t *payload, size_t payload_size);
+BSC_WEBSOCKET_RET bws_cli_dispatch_send(
+    BSC_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size);
 
 /**
  * @brief Asynchronous bws_srv_start() function triggers process of
@@ -298,19 +302,19 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
  */
 
 BSC_WEBSOCKET_RET bws_srv_start(
-                        BSC_WEBSOCKET_PROTOCOL proto,
-                        int port,
-                        char* iface,
-                        uint8_t *ca_cert,
-                        size_t ca_cert_size,
-                        uint8_t *cert,
-                        size_t cert_size,
-                        uint8_t *key,
-                        size_t key_size,
-                        size_t timeout_s,
-                        BSC_WEBSOCKET_SRV_DISPATCH dispatch_func,
-                        void* dispatch_func_user_param,
-                        BSC_WEBSOCKET_SRV_HANDLE* sh);
+    BSC_WEBSOCKET_PROTOCOL proto,
+    int port,
+    char *iface,
+    uint8_t *ca_cert,
+    size_t ca_cert_size,
+    uint8_t *cert,
+    size_t cert_size,
+    uint8_t *key,
+    size_t key_size,
+    size_t timeout_s,
+    BSC_WEBSOCKET_SRV_DISPATCH dispatch_func,
+    void *dispatch_func_user_param,
+    BSC_WEBSOCKET_SRV_HANDLE *sh);
 
 /**
  * @brief Asynchronous bws_srv_stop() function starts process of a shutdowns
@@ -321,10 +325,9 @@ BSC_WEBSOCKET_RET bws_srv_start(
  *
  * @return error code from BSC_WEBSOCKET_RET enum.
  *    The following error codes can be returned:
- *         BSC_WEBSOCKET_SUCCESS - the operation is started or server was already
- *            stopped before.
- *         BSC_WEBSOCKET_INVALID_OPERATION - if server was not started or
- *                server shutdown is already in progress.
+ *         BSC_WEBSOCKET_SUCCESS - the operation is started or server was
+ * already stopped before. BSC_WEBSOCKET_INVALID_OPERATION - if server was not
+ * started or server shutdown is already in progress.
  */
 
 BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_SRV_HANDLE sh);
@@ -394,9 +397,11 @@ void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h);
  *     BSC_WEBSOCKET_SUCCESS - data is sent successfully.
  */
 
-BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
-                                        BSC_WEBSOCKET_HANDLE h,
-                                        uint8_t *payload, size_t payload_size);
+BSC_WEBSOCKET_RET bws_srv_dispatch_send(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    uint8_t *payload,
+    size_t payload_size);
 
 /**
  * @brief bws_dispatch_lock() function acquires internal websocket
@@ -423,15 +428,16 @@ void bws_dispatch_unlock(void);
  * @param ip_str - buffer to store null terminated string of ip address.
  * @param ip_str_len - size of ip_str buffer
  * @param  port- pointer to store port of a remote node.
- * 
+ *
  * @return true if function succeeded otherwise returns false
  *         if peer's address information can't be retrieved from
  *         underlying websocket library.
  */
 
-bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
-                              BSC_WEBSOCKET_HANDLE h,
-                              uint8_t* ip_str,
-                              size_t ip_str_len,
-                              uint16_t* port);
+bool bws_srv_get_peer_ip_addr(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    uint8_t *ip_str,
+    size_t ip_str_len,
+    uint16_t *port);
 #endif

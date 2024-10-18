@@ -3,6 +3,8 @@
 
 # Launch the local BBMD
 ./bacserv 47808 BACServer-47808 &
+pids[47808]=$!
+sleep 1
 
 # spawn the servers
 export BACNET_BBMD_ADDRESS=${1}
@@ -14,7 +16,11 @@ do
     # note: is there a limit to the number of Foreign Device Registrations?
     export BACNET_IP_PORT=$port ; \
     ./bacserv $port BACServer-$port &
-    # note: give some BBMD servers time between registrations
-    # sleep 1
+    pids[${port}]=$!
 done
 
+read -p "Press key to quit"
+
+for pid in ${pids[*]}; do
+    wait $pid
+done

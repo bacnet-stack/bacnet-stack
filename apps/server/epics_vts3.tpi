@@ -36,19 +36,19 @@ BIBBs Supported:
 -- SCHED-A SCHED-I-B SCHED-E-B
 -- T-VMT-A T-VMT-I-B T-VMT-E-B
 -- T-ATR-A T-ATR-B
--- DM-DDB-A 
+-- DM-DDB-A
  DM-DDB-B
--- DM-DOB-A 
+-- DM-DOB-A
  DM-DOB-B
--- DM-DCC-A 
+-- DM-DCC-A
  DM-DCC-B
 -- DM-PT-A DM-PT-B
 -- DM-TM-A DM-TM-B
--- DM-TS-A 
+-- DM-TS-A
  DM-TS-B
--- DM-UTC-A 
+-- DM-UTC-A
  DM-UTC-B
--- DM-RD-A 
+-- DM-RD-A
  DM-RD-B
 -- DM-BR-A DM-BR-B
 -- DM-R-A DM-R-B
@@ -140,7 +140,7 @@ Data Link Layer Option:
 -- ISO 8802-3, 10BASET
 -- ISO 8802-3, Fiber
 -- ARCNET, coax star
--- ARCNET, coax bus     
+-- ARCNET, coax bus
 -- ARCNET, twisted pair star
 -- ARCNET, twisted pair bus
 -- ARCNET, fiber star
@@ -755,5 +755,3 @@ List of Objects in test device:
 }
 
 End of BACnet Protocol Implementation Conformance Statement
-
-

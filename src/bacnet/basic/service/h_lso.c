@@ -1,34 +1,18 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief A basic LifeSafetyOperation service handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
@@ -40,9 +24,8 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 
-/** @file h_lso.c  Handles BACnet Life Safey Operation messages. */
-
-void handler_lso(uint8_t *service_request,
+void handler_lso(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -63,9 +46,9 @@ void handler_lso(uint8_t *service_request,
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
         fprintf(stderr, "LSO: Segmented message.  Sending Abort!\n");
 #endif
@@ -74,13 +57,15 @@ void handler_lso(uint8_t *service_request,
 
     len = lso_decode_service_request(service_request, service_len, &data);
 #if PRINT_ENABLED
-    if (len <= 0)
+    if (len <= 0) {
         fprintf(stderr, "LSO: Unable to decode Request!\n");
+    }
 #endif
     if (len < 0) {
         /* bad decoding - send an abort */
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "LSO: Bad Encoding.  Sending Abort!\n");
 #endif
@@ -91,17 +76,20 @@ void handler_lso(uint8_t *service_request,
      ** Process Life Safety Operation Here
      */
 #if PRINT_ENABLED
-    fprintf(stderr,
+    fprintf(
+        stderr,
         "Life Safety Operation: Received operation %d from process id %lu "
         "for object %lu\n",
         data.operation, (unsigned long)data.processId,
         (unsigned long)data.targetObject.instance);
 #endif
 
-    len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-        service_data->invoke_id, SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION);
+    len = encode_simple_ack(
+        &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+        SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION);
 #if PRINT_ENABLED
-    fprintf(stderr,
+    fprintf(
+        stderr,
         "Life Safety Operation: "
         "Sending Simple Ack!\n");
 #endif
@@ -114,11 +102,13 @@ LSO_ABORT:
         datalink_send_pdu(
             src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
-        fprintf(stderr,
+    if (bytes_sent <= 0) {
+        fprintf(
+            stderr,
             "Life Safety Operation: "
             "Failed to send PDU (%s)!\n",
             strerror(errno));
+    }
 #endif
 
     return;

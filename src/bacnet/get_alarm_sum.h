@@ -1,34 +1,19 @@
-/**************************************************************************
-*
-* Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-
-#ifndef BACNET_GET_ALARM_SUM_H_
-#define BACNET_GET_ALARM_SUM_H_
+/**
+ * @file
+ * @brief BACnet GetAlarmSummary encode and decode functions
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_GET_ALARM_SUMMARY_H_
+#define BACNET_GET_ALARM_SUMMARY_H_
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/timestamp.h"
 
@@ -40,42 +25,34 @@ typedef struct BACnet_Get_Alarm_Summary_Data {
     struct BACnet_Get_Alarm_Summary_Data *next;
 } BACNET_GET_ALARM_SUMMARY_DATA;
 
-
 /* return 0 if no active alarm at this index
    return -1 if end of list
    return +1 if active alarm */
-typedef int (
-    *get_alarm_summary_function) (
-    unsigned index,
-    BACNET_GET_ALARM_SUMMARY_DATA * getalarm_data);
-
+typedef int (*get_alarm_summary_function)(
+    unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int get_alarm_summary_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id);
+BACNET_STACK_EXPORT
+int get_alarm_summary_encode_apdu(uint8_t *apdu, uint8_t invoke_id);
 
-    /* encode service */
-    BACNET_STACK_EXPORT
-    int get_alarm_summary_ack_encode_apdu_init(
-        uint8_t * apdu,
-        uint8_t invoke_id);
+/* encode service */
+BACNET_STACK_EXPORT
+int get_alarm_summary_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id);
 
-    BACNET_STACK_EXPORT
-    int get_alarm_summary_ack_encode_apdu_data(
-        uint8_t * apdu,
-        size_t max_apdu,
-        BACNET_GET_ALARM_SUMMARY_DATA * get_alarm_data);
+BACNET_STACK_EXPORT
+int get_alarm_summary_ack_encode_apdu_data(
+    uint8_t *apdu,
+    size_t max_apdu,
+    const BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data);
 
-    BACNET_STACK_EXPORT
-    int get_alarm_summary_ack_decode_apdu_data(
-        uint8_t * apdu,
-        size_t max_apdu,
-        BACNET_GET_ALARM_SUMMARY_DATA * get_alarm_data);
+BACNET_STACK_EXPORT
+int get_alarm_summary_ack_decode_apdu_data(
+    const uint8_t *apdu,
+    size_t max_apdu,
+    BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data);
 
 #ifdef __cplusplus
 }

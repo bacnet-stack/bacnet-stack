@@ -1,53 +1,66 @@
-/*####COPYRIGHTBEGIN####
--------------------------------------------
-Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
-
-This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-       as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
-
-      This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to:
-The Free Software Foundation, Inc.
-59 Temple Place - Suite 330
-Boston, MA  02111-1307, USA.
-
-As a special exception, if other files instantiate templates or
-use macros or inline functions from this file, or you compile
-this file and link it with other works to produce a work based
-on this file, this file does not by itself cause the resulting
-work to be covered by the GNU General Public License. However
-the source code for this file must still be made available in
-accordance with section (3) of the GNU General Public License.
-
-This exception does not invalidate any other reasons why a work
-based on this file might be covered by the GNU General Public
-License.
--------------------------------------------
-####COPYRIGHTEND####*/
-
+/**
+ * @file
+ * @brief BACnetDailySchedule complex data type encode and decode
+ * @author Ondřej Hruška <ondra@ondrovo.com>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date February 2024
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 #include "bacnet/dailyschedule.h"
 #include "bacnet/bactimevalue.h"
 
-int bacnet_dailyschedule_decode(
-    uint8_t *apdu, int max_apdu_len, BACNET_DAILY_SCHEDULE *day)
+/**
+ * @brief Encode a BACnetDailySchedule value to a buffer
+ * @param apdu [out] Buffer to encode to
+ * @param apdu_size [in] Size of the buffer
+ * @param tag_number [in] Tag number to use
+ * @param day [in] Value to encode
+ * @return Number of bytes encoded, or  BACNET_STATUS_ERROR if an error occurs
+ */
+int bacnet_dailyschedule_context_decode(
+    const uint8_t *apdu,
+    int apdu_size,
+    uint8_t tag_number,
+    BACNET_DAILY_SCHEDULE *day)
 {
     unsigned int tv_count = 0;
-    int retval = bacnet_time_values_context_decode(apdu, max_apdu_len, 0,
-        &day->Time_Values[0], MAX_DAY_SCHEDULE_VALUES, &tv_count);
+    int len = 0;
+
+    if (day == NULL) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (apdu == NULL) {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_time_values_context_decode(
+        apdu, apdu_size, tag_number, &day->Time_Values[0],
+        ARRAY_SIZE(day->Time_Values), &tv_count);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     day->TV_Count = (uint16_t)tv_count;
-    return retval;
+
+    return len;
 }
 
-int bacnet_dailyschedule_encode(uint8_t *apdu, BACNET_DAILY_SCHEDULE *day)
+/**
+ * @brief Encode a BACnetDailySchedule value to a buffer
+ * @param apdu [out] Buffer to encode to
+ * @param tag_number [in] Tag number to use
+ * @param day [in] Value to encode
+ * @return Number of bytes encoded, or BACNET_STATUS_ERROR if an error occurs
+ */
+int bacnet_dailyschedule_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DAILY_SCHEDULE *day)
 {
+    if (day == NULL) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (day->TV_Count > ARRAY_SIZE(day->Time_Values)) {
+        return BACNET_STATUS_ERROR;
+    }
+
     return bacnet_time_values_context_encode(
-        apdu, 0, &day->Time_Values[0], day->TV_Count);
+        apdu, tag_number, &day->Time_Values[0], day->TV_Count);
 }

@@ -95,6 +95,21 @@ int gettimeofday(struct timeval *tp, void *tzp)
 #endif
 
 /**
+ * @brief Set offset from the system clock.
+ * @param bdate BACnet Date structure to hold local time
+ * @param btime BACnet Time structure to hold local time
+ * @param utc - True for UTC sync, False for Local time
+ * @return True if time is set
+ */
+void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
+{
+    (void)bdate;
+    (void)btime;
+    (void)utc;
+    return;
+}
+
+/**
  * @brief Get the date, time, timezone, and UTC offset from system
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
  * @param local_time - the BACnet Date and Time structure to hold local time
@@ -103,7 +118,8 @@ int gettimeofday(struct timeval *tp, void *tzp)
  * @param true if DST is enabled and active
  * @return true if local time was retrieved
  */
-bool datetime_local(BACNET_DATE *bdate,
+bool datetime_local(
+    BACNET_DATE *bdate,
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active)
@@ -137,15 +153,17 @@ bool datetime_local(BACNET_DATE *bdate,
          *   int    tm_yday  Day of year [0,365].
          *   int    tm_isdst Daylight Savings flag.
          */
-        datetime_set_date(bdate, (uint16_t)tblock->tm_year + 1900,
+        datetime_set_date(
+            bdate, (uint16_t)tblock->tm_year + 1900,
             (uint8_t)tblock->tm_mon + 1, (uint8_t)tblock->tm_mday);
 #if !defined(_MSC_VER)
-        datetime_set_time(btime, (uint8_t)tblock->tm_hour,
-            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec,
-            (uint8_t)(tv.tv_usec / 10000));
+        datetime_set_time(
+            btime, (uint8_t)tblock->tm_hour, (uint8_t)tblock->tm_min,
+            (uint8_t)tblock->tm_sec, (uint8_t)(tv.tv_usec / 10000));
 #else
-        datetime_set_time(btime, (uint8_t)tblock->tm_hour,
-            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec, 0);
+        datetime_set_time(
+            btime, (uint8_t)tblock->tm_hour, (uint8_t)tblock->tm_min,
+            (uint8_t)tblock->tm_sec, 0);
 #endif
         if (dst_active) {
             /* The value of tm_isdst is:

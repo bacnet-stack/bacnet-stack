@@ -1,6 +1,0 @@
-tests:
-  bacnet.basic.object.acc:
-    tags: bacnet
-  bacnet.basic.object.acc.unit:
-    tags: bacnet
-    type: unit

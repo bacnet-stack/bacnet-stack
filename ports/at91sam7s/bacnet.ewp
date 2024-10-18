@@ -78,7 +78,7 @@
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
-                    <state>AT91SAM7S256	Atmel AT91SAM7S256</state>
+                    <state>AT91SAM7S256 Atmel AT91SAM7S256</state>
                 </option>
                 <option>
                     <name>GenLowLevelInterface</name>
@@ -138,7 +138,7 @@
                 </option>
                 <option>
                     <name>GFPUDeviceSlave</name>
-                    <state>AT91SAM7S256	Atmel AT91SAM7S256</state>
+                    <state>AT91SAM7S256 Atmel AT91SAM7S256</state>
                 </option>
                 <option>
                     <name>FPU2</name>
@@ -231,6 +231,7 @@
                     <state>PRINT_ENABLED=0</state>
                     <state>MAX_APDU=480</state>
                     <state>CRC_USE_TABLE</state>
+                    <state>BACAPP_MINIMAL</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -1126,6 +1127,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\bacdcode.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\bacdest.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\bacdevobjpropref.c</name>

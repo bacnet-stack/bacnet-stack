@@ -1,54 +1,30 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2008 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+ *
+ * Copyright (C) 2008 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-/* OS specific include*/
-#include "bacport.h"
+#/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/basic/sys/mstimer.h"
-/* local includes */
-#include "bacnet/bytes.h"
-#include "rs485.h"
+#include "bacnet/basic/sys/bytes.h"
 #include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstptext.h"
 #include "bacnet/bacint.h"
+/* OS specific include*/
+#include "bacport.h"
+/* local includes */
+#include "rs485.h"
 
 /** @file linux/mstpsnap.c  Example application testing BACnet MS/TP on Linux.
  */
@@ -59,7 +35,7 @@
 #endif
 
 /* local port data - shared with RS-485 */
-static volatile struct mstp_port_struct_t MSTP_Port;
+static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t RxBuffer[DLMSTP_MPDU_MAX];
 static uint8_t TxBuffer[DLMSTP_MPDU_MAX];
@@ -83,7 +59,7 @@ static void Timer_Silence_Reset(void *pArg)
 }
 
 /* functions used by the MS/TP state machine to put or get data */
-uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 {
     (void)mstp_port;
 
@@ -92,16 +68,30 @@ uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
-uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
     return 0;
 }
 
-uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+/**
+ * @brief Send an MSTP frame
+ * @param mstp_port - port specific data
+ * @param buffer - data to send
+ * @param nbytes - number of bytes of data to send
+ */
+void MSTP_Send_Frame(
+    struct mstp_port_struct_t *mstp_port,
+    const uint8_t *buffer,
+    uint16_t nbytes)
+{
+    (void)mstp_port;
+    (void)buffer;
+    (void)nbytes;
+}
+
+uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
@@ -148,8 +138,8 @@ static int network_init(const char *name, int protocol)
     return sockfd;
 }
 
-static void snap_received_packet(
-    volatile struct mstp_port_struct_t *mstp_port, int sockfd)
+static void
+snap_received_packet(const struct mstp_port_struct_t *mstp_port, int sockfd)
 {
     uint16_t mtu_len = 0; /* number of octets of packet saved in file */
     unsigned i = 0; /* counter */
@@ -225,7 +215,7 @@ void signal_init(void)
 /* simple test to packetize the data and print it */
 int main(int argc, char *argv[])
 {
-    volatile struct mstp_port_struct_t *mstp_port;
+    struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
     uint32_t packet_count = 0;
     int sockfd = -1;
@@ -275,7 +265,8 @@ int main(int argc, char *argv[])
     MSTP_Port.SilenceTimer = Timer_Silence;
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(mstp_port);
-    fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
+    fprintf(
+        stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long)RS485_Get_Baud_Rate());
     atexit(cleanup);
 #if defined(_WIN32)

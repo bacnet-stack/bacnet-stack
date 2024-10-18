@@ -1,37 +1,21 @@
-/*************************************************************************
- * Copyright (C) 2015 B Weitsch
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet service to the network -
+ * GetEventInformation message - and displays the reply.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Boris Weitsch <bow2@users.sourceforge.net>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
-/* core stuff needed */
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
@@ -70,14 +54,16 @@ static bool Recieved_Ack = false;
 static bool More_Events = false;
 static BACNET_OBJECT_ID LastReceivedObjectIdentifier;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\r\n",
+        printf(
+            "BACnet Error: %s: %s\r\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -90,18 +76,20 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\r\n",
+        printf(
+            "BACnet Abort: %s\r\n",
             bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\r\n",
+        printf(
+            "BACnet Reject: %s\r\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -117,7 +105,8 @@ static void MyRejectHandler(
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-static void My_Get_Event_Ack_Handler(uint8_t *service_request,
+static void My_Get_Event_Ack_Handler(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
@@ -131,14 +120,16 @@ static void My_Get_Event_Ack_Handler(uint8_t *service_request,
         data[i].next = &data[i + 1];
     }
 
-    printf("Recieved Ack. Saved invoke ID was %i, service returned %i\n",
+    printf(
+        "Recieved Ack. Saved invoke ID was %i, service returned %i\n",
         Request_Invoke_ID, service_data->invoke_id);
 
     if (service_data->invoke_id == Request_Invoke_ID) {
         len = getevent_ack_decode_service_request(
             service_request, service_len, &data[0], &More_Events);
-        printf("Decode of Ack returned length %i. MoreEvents flag was %i \n",
-            len, More_Events);
+        printf(
+            "Decode of Ack returned length %i. MoreEvents flag was %i \n", len,
+            More_Events);
         if (len > 0) {
             ge_ack_print_data(&(data[0]), Target_Device_Object_Instance);
             if (More_Events) {
@@ -176,15 +167,16 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static int print_help(char *exe_name)
+static int print_help(const char *exe_name)
 {
-    printf("Usage:\n"
-           "\n"
-           "%s device-instance [--help]\n"
-           "\n"
-           "  Send BACnet GetEventInformation service retruequest to given "
-           "device, and wait\n"
-           "  for responses.\n\n",
+    printf(
+        "Usage:\n"
+        "\n"
+        "%s device-instance [--help]\n"
+        "\n"
+        "  Send BACnet GetEventInformation service retruequest to given "
+        "device, and wait\n"
+        "  for responses.\n\n",
         exe_name);
     return 1;
 }
@@ -237,8 +229,8 @@ int main(int argc, char *argv[])
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
-
         if (Error_Detected) {
             break;
         }

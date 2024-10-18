@@ -40,8 +40,8 @@ Adding additional services is a matter of adding the encoding and decoding for
 the service into/from meaningful data, and I like to add unit testing, a demo
 handler and send function, as well as a demo command line example.
 
-For each service that you add to your project or makefile, you will need to 
-add a handler and possibly a sending function.  There are example handlers 
+For each service that you add to your project or makefile, you will need to
+add a handler and possibly a sending function.  There are example handlers
 and send functions for all the services that the stack supports:
 
     * demo/handler/h_alarm_ack.c - Alarm ACK service handler example
@@ -121,7 +121,7 @@ example object files in the BACnet stack include:
     * demo/object/lsp.c - life safety point object demo
     * demo/object/mso.c - multi-step output object demo
 
-The BACnet stack includes a number of core files that handle the service 
+The BACnet stack includes a number of core files that handle the service
 packets that come in from the datalink layer. The core files include:
 
     * apdu.c - handles dispatching the services to the proper handlers
@@ -134,11 +134,11 @@ packets that come in from the datalink layer. The core files include:
     * demo/handler/h_npdu.c - handles dispatching of the network message
             to the apdu dispatcher.
 
-The DataLink Layer controls orderly access to the physical medium. 
-The stack currently supports one datalink layer at a time, and uses a 
-macro defined in config.h or your makefile/project to choose the macro 
-functions defined in datalink.h. The following files are used for the 
-datalink handling in this BACnet stack, and may have to be developed for 
+The DataLink Layer controls orderly access to the physical medium.
+The stack currently supports one datalink layer at a time, and uses a
+macro defined in config.h or your makefile/project to choose the macro
+functions defined in datalink.h. The following files are used for the
+datalink handling in this BACnet stack, and may have to be developed for
 your particular hardware:
 
     * bip.c - BACnet/IP functionality - depends on bip_init.c in port/xx
@@ -149,15 +149,15 @@ your particular hardware:
     * arcnet.c - ARCNET datalink layer functionality, in port/xx
     * ethernet.c - BACnet Ethernet datalink layer functionality, in port/xx
 
-There are a dozen demonstration applications in the demo directory, 
-along with many demonstation objects and handlers. All the demos accept 
-command line options and have been tested under Win32 and Linux. 
-There is a makefile in the respective demo directory for Linux and 
-for Borland C++ compilers, and a master makefile at the root level 
+There are a dozen demonstration applications in the demo directory,
+along with many demonstation objects and handlers. All the demos accept
+command line options and have been tested under Win32 and Linux.
+There is a makefile in the respective demo directory for Linux and
+for Borland C++ compilers, and a master makefile at the root level
 (Makefile=Linux, makefile.b32=Borland).
 
-The simplest demonstration is to run demo/server/bacserv on one PC (or 
-virtual PC), and run the other client demonstration applications one 
-at time on another PC (or virtual PC). Monitor the network communcations 
-using Wireshark protocol analyzer, or test the BACnet server using 
+The simplest demonstration is to run demo/server/bacserv on one PC (or
+virtual PC), and run the other client demonstration applications one
+at time on another PC (or virtual PC). Monitor the network communcations
+using Wireshark protocol analyzer, or test the BACnet server using
 BACnet Visual Test Shell VTS3.

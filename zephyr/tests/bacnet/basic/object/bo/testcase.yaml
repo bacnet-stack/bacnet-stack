@@ -1,7 +1,0 @@
-tests:
-  bacnet.basic.object.bo:
-    tags: bacnet
-  bacnet.basic.object.bo.unit:
-    tags: bacnet
-    type: unit
-    skip: true # TODO: Remove once unit test builds/runs under Zephyr CI

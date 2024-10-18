@@ -1,39 +1,19 @@
 /**
  * @file
+ * @brief Header file for a basic BBMD for BVLC IPv4 handler
  * @author Steve Karg
  * @date February 2020
- * @brief Header file for a basic BBMD for BVLC IPv4 handler
- *
- * @section LICENSE
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BVLC_HANDLER_H
-#define BVLC_HANDLER_H
-
+#ifndef BACNET_BASIC_BVLC_HANDLER_H
+#define BACNET_BASIC_BVLC_HANDLER_H
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/bvlc.h"
 
 #ifdef __cplusplus
@@ -42,34 +22,38 @@ extern "C" {
 
 /* user application function prototypes */
 BACNET_STACK_EXPORT
-int bvlc_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *npdu,
     uint16_t npdu_len);
 
 BACNET_STACK_EXPORT
-int bvlc_broadcast_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_broadcast_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *npdu,
     uint16_t npdu_len);
 
 BACNET_STACK_EXPORT
-int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_bbmd_enabled_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len);
 
 BACNET_STACK_EXPORT
-int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
+int bvlc_bbmd_disabled_handler(
+    BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len);
 
-
 BACNET_STACK_EXPORT
-int bvlc_send_pdu(BACNET_ADDRESS *dest,
-    BACNET_NPDU_DATA *npdu_data,
-    uint8_t *pdu,
+int bvlc_send_pdu(
+    const BACNET_ADDRESS *dest,
+    const BACNET_NPDU_DATA *npdu_data,
+    const uint8_t *pdu,
     unsigned pdu_len);
 
 BACNET_STACK_EXPORT
@@ -96,24 +80,23 @@ void bvlc_debug_disable(void);
 
 /* send a Read BDT request */
 BACNET_STACK_EXPORT
-int bvlc_bbmd_read_bdt(BACNET_IP_ADDRESS *bbmd_addr);
+int bvlc_bbmd_read_bdt(const BACNET_IP_ADDRESS *bbmd_addr);
 BACNET_STACK_EXPORT
-int bvlc_bbmd_write_bdt(BACNET_IP_ADDRESS *bbmd_addr,
+int bvlc_bbmd_write_bdt(
+    const BACNET_IP_ADDRESS *bbmd_addr,
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
 /* send a Read FDT request */
 BACNET_STACK_EXPORT
-int bvlc_bbmd_read_fdt(BACNET_IP_ADDRESS *bbmd_addr);
+int bvlc_bbmd_read_fdt(const BACNET_IP_ADDRESS *bbmd_addr);
 
 /* registers with a bbmd as a foreign device */
 BACNET_STACK_EXPORT
 int bvlc_register_with_bbmd(
-    BACNET_IP_ADDRESS *address, uint16_t time_to_live_seconds);
+    const BACNET_IP_ADDRESS *address, uint16_t time_to_live_seconds);
 BACNET_STACK_EXPORT
-void bvlc_remote_bbmd_address(
-    BACNET_IP_ADDRESS *address);
+void bvlc_remote_bbmd_address(BACNET_IP_ADDRESS *address);
 BACNET_STACK_EXPORT
-uint16_t bvlc_remote_bbmd_lifetime(
-    void);
+uint16_t bvlc_remote_bbmd_lifetime(void);
 
 /* Local interface to manage BBMD.
  * The interface user needs to handle mutual exclusion if needed i.e.

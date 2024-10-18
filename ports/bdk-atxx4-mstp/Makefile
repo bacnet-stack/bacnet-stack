@@ -121,6 +121,7 @@ BASICSRC = $(BACNET_BASIC)/service/h_dcc.c \
 CORESRC =  \
 	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/bacaction.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
@@ -223,6 +224,10 @@ BFLAGS += -DBACAPP_ENUMERATED
 BFLAGS += -DBACAPP_CHARACTER_STRING
 BFLAGS += -DBACAPP_OCTET_STRING
 BFLAGS += -DWRITE_PROPERTY
+ifeq (${LEGACY},true)
+# disable deprecated function warnings for legacy builds
+BFLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
+endif
 
 ## Compile options for C files
 CFLAGS = $(COMMON)
@@ -397,7 +402,7 @@ showfuses:
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_READ_FUSES)
 
 bootloader:
-	make -C bootloader all
+	make -C external/bootloader all
 
 ## Clean target
 .PHONY: clean

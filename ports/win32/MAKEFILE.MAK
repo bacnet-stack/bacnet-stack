@@ -87,7 +87,7 @@ install: $(PRODUCT_EXE)
 $(PRODUCT_EXE) : $(OBJS)
 	@echo Running Linker for $(PRODUCT_EXE)
 	$(LINK)	-L$(C_LIB_DIR) -L$(BACNET_LIB_DIR) -m -c -s -v @&&|
-	  $(BORLAND_DIR)\lib\c0x32.obj $**
+		$(BORLAND_DIR)\lib\c0x32.obj $**
 	$<
 	$*.map
 	$(LIBS)

@@ -1,53 +1,25 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief API for Network Protocol Data Unit (NPDU) encode and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdbool.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bits.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-
-/** @file npdu.c  Encode/Decode NPDUs - Network Protocol Data Units */
 
 /** Copy the npdu_data structure information from src to dest.
  * @param dest [out] The 'to' structure
  * @param src   [in] The 'from' structure
  */
-void npdu_copy_data(BACNET_NPDU_DATA *dest, BACNET_NPDU_DATA *src)
+void npdu_copy_data(BACNET_NPDU_DATA *dest, const BACNET_NPDU_DATA *src)
 {
     if (dest && src) {
         dest->protocol_version = src->protocol_version;
@@ -107,100 +79,128 @@ ABORT.indication               Yes         Yes         Yes        No
  *  The Network Layer Protocol Control Information byte is described
  *  in section 6.2.2 of the BACnet standard.
  * @param npdu [out] Buffer which will hold the encoded NPDU header bytes.
- * 					 The size isn't given, but it must be at
- * least 2 bytes for the simplest case, and should always be at least 24 bytes
- * to accommodate the maximal case (all fields loaded).
+ *  The size isn't given, but it must be at least 2 bytes for the simplest
+ *  case, and should always be at least 24 bytes to accommodate the maximal
+ *  case (all fields loaded). If the buffer is NULL, the number of bytes
+ *  the buffer would have held is returned.
  * @param dest [in] The routing destination information if the message must
- *                   be routed to reach its destination.
- *                   If dest->net and dest->len are 0, there is no
- *                   routing destination information.
+ *  be routed to reach its destination. If dest->net and dest->len are 0,
+ *  there is no routing destination information.
  * @param src  [in] The routing source information if the message was routed
- *                   from another BACnet network.
- *                   If src->net and src->len are 0, there is no
- *                   routing source information.
- *                   This src describes the original source of the message when
- *                   it had to be routed to reach this BACnet Device.
+ *  from another BACnet network. If src->net and src->len are 0, there is no
+ *  routing source information. This src describes the original source of the
+ *  message when it had to be routed to reach this BACnet Device.
  * @param npdu_data [in] The structure which describes how the NCPI and other
- *                   NPDU bytes should be encoded.
- * @return On success, returns the number of bytes which were encoded into the
- * 		   NPDU section.
- *         If 0 or negative, there were problems with the data or encoding.
+ *  NPDU bytes should be encoded.
+ * @return On success, returns the number of bytes which were encoded into
+ *  the NPDU section, or 0 if there were problems with the data or encoding.
  */
-int npdu_encode_pdu(uint8_t *npdu,
+int npdu_encode_pdu(
+    uint8_t *npdu,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
-    BACNET_NPDU_DATA *npdu_data)
+    const BACNET_NPDU_DATA *npdu_data)
 {
     int len = 0; /* return value - number of octets loaded in this function */
     uint8_t i = 0; /* counter  */
 
-    if (npdu && npdu_data) {
+    if (npdu_data) {
         /* protocol version */
-        npdu[0] = npdu_data->protocol_version;
+        if (npdu) {
+            npdu[0] = npdu_data->protocol_version;
+        }
         /* initialize the control octet */
-        npdu[1] = 0;
-        /* Bit 7: 1 indicates that the NSDU conveys a network layer message. */
-        /*          Message Type field is present. */
-        /*        0 indicates that the NSDU contains a BACnet APDU. */
-        /*          Message Type field is absent. */
-        if (npdu_data->network_layer_message) {
-            npdu[1] |= BIT(7);
+        if (npdu) {
+            npdu[1] = 0;
+            /* Bit 7: 1 indicates that the NSDU conveys a network layer message.
+             */
+            /*          Message Type field is present. */
+            /*        0 indicates that the NSDU contains a BACnet APDU. */
+            /*          Message Type field is absent. */
+            if (npdu_data->network_layer_message) {
+                npdu[1] |= BIT(7);
+            }
+            /*Bit 6: Reserved. Shall be zero. */
+            /*Bit 5: Destination specifier where: */
+            /* 0 = DNET, DLEN, DADR, and Hop Count absent */
+            /* 1 = DNET, DLEN, and Hop Count present */
+            /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent */
+            /* DLEN > 0 specifies length of DADR field */
+            if (dest && dest->net) {
+                npdu[1] |= BIT(5);
+            }
+            /* Bit 4: Reserved. Shall be zero. */
+            /* Bit 3: Source specifier where: */
+            /* 0 =  SNET, SLEN, and SADR absent */
+            /* 1 =  SNET, SLEN, and SADR present */
+            /* SLEN = 0 Invalid */
+            /* SLEN > 0 specifies length of SADR field */
+            if (src && src->net && src->len) {
+                npdu[1] |= BIT(3);
+            }
+            /* Bit 2: The value of this bit corresponds to the */
+            /* data_expecting_reply parameter in the N-UNITDATA primitives. */
+            /* 1 indicates that a BACnet-Confirmed-Request-PDU, */
+            /* a segment of a BACnet-ComplexACK-PDU, */
+            /* or a network layer message expecting a reply is present. */
+            /* 0 indicates that other than a BACnet-Confirmed-Request-PDU, */
+            /* a segment of a BACnet-ComplexACK-PDU, */
+            /* or a network layer message expecting a reply is present. */
+            if (npdu_data->data_expecting_reply) {
+                npdu[1] |= BIT(2);
+            }
+            /* Bits 1,0: Network priority where: */
+            /* B'11' = Life Safety message */
+            /* B'10' = Critical Equipment message */
+            /* B'01' = Urgent message */
+            /* B'00' = Normal message */
+            npdu[1] |= (npdu_data->priority & 0x03);
         }
-        /*Bit 6: Reserved. Shall be zero. */
-        /*Bit 5: Destination specifier where: */
-        /* 0 = DNET, DLEN, DADR, and Hop Count absent */
-        /* 1 = DNET, DLEN, and Hop Count present */
-        /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent */
-        /* DLEN > 0 specifies length of DADR field */
-        if (dest && dest->net) {
-            npdu[1] |= BIT(5);
-        }
-        /* Bit 4: Reserved. Shall be zero. */
-        /* Bit 3: Source specifier where: */
-        /* 0 =  SNET, SLEN, and SADR absent */
-        /* 1 =  SNET, SLEN, and SADR present */
-        /* SLEN = 0 Invalid */
-        /* SLEN > 0 specifies length of SADR field */
-        if (src && src->net && src->len) {
-            npdu[1] |= BIT(3);
-        }
-        /* Bit 2: The value of this bit corresponds to the */
-        /* data_expecting_reply parameter in the N-UNITDATA primitives. */
-        /* 1 indicates that a BACnet-Confirmed-Request-PDU, */
-        /* a segment of a BACnet-ComplexACK-PDU, */
-        /* or a network layer message expecting a reply is present. */
-        /* 0 indicates that other than a BACnet-Confirmed-Request-PDU, */
-        /* a segment of a BACnet-ComplexACK-PDU, */
-        /* or a network layer message expecting a reply is present. */
-        if (npdu_data->data_expecting_reply) {
-            npdu[1] |= BIT(2);
-        }
-        /* Bits 1,0: Network priority where: */
-        /* B'11' = Life Safety message */
-        /* B'10' = Critical Equipment message */
-        /* B'01' = Urgent message */
-        /* B'00' = Normal message */
-        npdu[1] |= (npdu_data->priority & 0x03);
         len = 2;
         if (dest && dest->net) {
-            len += encode_unsigned16(&npdu[len], dest->net);
-            npdu[len++] = dest->len;
+            if (npdu) {
+                encode_unsigned16(&npdu[len], dest->net);
+            }
+            len += 2;
+            if (dest->len > MAX_MAC_LEN) {
+                dest->len = MAX_MAC_LEN;
+            }
+            if (npdu) {
+                npdu[len] = dest->len;
+            }
+            len++;
             /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent */
             /* DLEN > 0 specifies length of DADR field */
             if (dest->len) {
                 for (i = 0; i < dest->len; i++) {
-                    npdu[len++] = dest->adr[i];
+                    if (npdu) {
+                        npdu[len] = dest->adr[i];
+                    }
+                    len++;
                 }
             }
         }
-        if (src && src->net && src->len) { /* Only insert if valid */
-            len += encode_unsigned16(&npdu[len], src->net);
-            npdu[len++] = src->len;
+        if (src && src->net && src->len) {
+            /* Only insert if valid */
+            if (npdu) {
+                encode_unsigned16(&npdu[len], src->net);
+            }
+            len += 2;
+            if (src->len > MAX_MAC_LEN) {
+                src->len = MAX_MAC_LEN;
+            }
+            if (npdu) {
+                npdu[len] = src->len;
+            }
+            len++;
             /* SLEN = 0 denotes broadcast MAC SADR and SADR field is absent */
             /* SLEN > 0 specifies length of SADR field */
             if (src->len) {
                 for (i = 0; i < src->len; i++) {
-                    npdu[len++] = src->adr[i];
+                    if (npdu) {
+                        npdu[len] = src->adr[i];
+                    }
+                    len++;
                 }
             }
         }
@@ -208,21 +208,73 @@ int npdu_encode_pdu(uint8_t *npdu,
         /* destined for a remote network, i.e., if DNET is present. */
         /* This is a one-octet field that is initialized to a value of 0xff. */
         if (dest && dest->net) {
-            npdu[len] = npdu_data->hop_count;
+            if (npdu) {
+                npdu[len] = npdu_data->hop_count;
+            }
             len++;
         }
         if (npdu_data->network_layer_message) {
-            npdu[len] = npdu_data->network_message_type;
+            if (npdu) {
+                npdu[len] = npdu_data->network_message_type;
+            }
             len++;
             /* Message Type field contains a value in the range 0x80 - 0xFF, */
             /* then a Vendor ID field shall be present */
             if (npdu_data->network_message_type >= 0x80) {
-                len += encode_unsigned16(&npdu[len], npdu_data->vendor_id);
+                if (npdu) {
+                    encode_unsigned16(&npdu[len], npdu_data->vendor_id);
+                }
+                len += 2;
             }
         }
     }
 
     return len;
+}
+
+/**
+ * @brief Encode the NPDU portion of a message to be sent
+ *  based on the npdu_data and associated data.
+ *  If this is to be a Network Layer Control Message, there are probably
+ *  more bytes which will need to be encoded following the ones encoded here.
+ *  The Network Layer Protocol Control Information byte is described
+ *  in section 6.2.2 of the BACnet standard.
+ * @param pdu [out] Buffer which will hold the encoded NPDU header bytes.
+ *  If pdu is NULL, the number of bytes the buffer would have held
+ *  is returned.
+ * @param pdu_size Number of bytes in the buffer to hold the encoded data.
+ *  If the size is zero, the number of bytes the buffer would have held
+ *  is returned.
+ *  The size isn't given, but it must be at least 2 bytes for the simplest
+ *  case, and should always be at least 24 bytes to accommodate the maximal
+ *  case (all fields loaded). Can be NULL to determine length of buffer.
+ * @param dest [in] The routing destination information if the message must
+ *  be routed to reach its destination. If dest->net and dest->len are 0,
+ *  there is no routing destination information.
+ * @param src  [in] The routing source information if the message was routed
+ *  from another BACnet network. If src->net and src->len are 0, there is no
+ *  routing source information. This src describes the original source of the
+ *  message when it had to be routed to reach this BACnet Device.
+ * @param npdu_data [in] The structure which describes how the NCPI and other
+ *  NPDU bytes should be encoded.
+ * @return On success, returns the number of bytes which were encoded into
+ *  the NPDU section, or 0 if there were problems with the data or encoding.
+ */
+int bacnet_npdu_encode_pdu(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    BACNET_ADDRESS *dest,
+    BACNET_ADDRESS *src,
+    const BACNET_NPDU_DATA *npdu_data)
+{
+    int pdu_len = 0;
+
+    pdu_len = npdu_encode_pdu(NULL, dest, src, npdu_data);
+    if ((pdu != NULL) && (pdu_size > 0) && (pdu_len <= pdu_size)) {
+        pdu_len = npdu_encode_pdu(pdu, dest, src, npdu_data);
+    }
+
+    return pdu_len;
 }
 
 /* Configure the NPDU portion of the packet for an APDU */
@@ -264,13 +316,14 @@ is expected for the service being issued.
  * @see npdu_encode_npdu_network if you need to set a network layer msg.
  *
  * @param npdu_data [out] Returns a filled-out structure with information
- * 					 provided by the other arguments and
+ *                   provided by the other arguments and
  * good defaults.
  * @param data_expecting_reply [in] True if message should have a reply.
  * @param priority [in] One of the 4 priorities defined in section 6.2.2,
  *                      like B'11' = Life Safety message
  */
-void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
+void npdu_encode_npdu_data(
+    BACNET_NPDU_DATA *npdu_data,
     bool data_expecting_reply,
     BACNET_MESSAGE_PRIORITY priority)
 {
@@ -293,14 +346,15 @@ void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
  *           APDU instead of a Network Layer Message.
  *
  * @param npdu_data [out] Returns a filled-out structure with information
- * 					 provided by the other arguments and
+ *                   provided by the other arguments and
  * good defaults.
  * @param network_message_type [in] The type of Network Layer Message.
  * @param data_expecting_reply [in] True if message should have a reply.
  * @param priority [in] One of the 4 priorities defined in section 6.2.2,
  *                      like B'11' = Life Safety message
  */
-void npdu_encode_npdu_network(BACNET_NPDU_DATA *npdu_data,
+void npdu_encode_npdu_network(
+    BACNET_NPDU_DATA *npdu_data,
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     bool data_expecting_reply,
     BACNET_MESSAGE_PRIORITY priority)
@@ -339,7 +393,8 @@ void npdu_encode_npdu_network(BACNET_NPDU_DATA *npdu_data,
  * be more bytes left in the NPDU; if not a network msg, the APDU follows. If 0
  * or negative, there were problems with the data or arguments.
  */
-int npdu_decode(uint8_t *npdu,
+int npdu_decode(
+    const uint8_t *npdu,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data)
@@ -364,14 +419,15 @@ int npdu_decode(uint8_t *npdu,
  *                   This src describes the original source of the message when
  *                   it had to be routed to reach this BACnet Device.
  * @param npdu_data [out] Returns a filled-out structure with information
- * 					 decoded from the NCPI and other NPDU
+ *                   decoded from the NCPI and other NPDU
  * bytes.
  * @return On success, returns the number of bytes which were decoded from the
- * 		   NPDU section; if this is a  network layer message, there may
+ *         NPDU section; if this is a  network layer message, there may
  * be more bytes left in the NPDU; if not a network msg, the APDU follows. If 0
  * or negative, there were problems with the data or arguments.
  */
-int bacnet_npdu_decode(uint8_t *npdu,
+int bacnet_npdu_decode(
+    const uint8_t *npdu,
     uint16_t pdu_len,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
@@ -537,7 +593,7 @@ int bacnet_npdu_decode(uint8_t *npdu,
  * @param pdu_len [in] The size of the received message in the pdu[] buffer.
  * @return true if the PDU is a confirmed APDU
  */
-bool npdu_confirmed_service(uint8_t *pdu, uint16_t pdu_len)
+bool npdu_confirmed_service(const uint8_t *pdu, uint16_t pdu_len)
 {
     bool status = false;
     int apdu_offset = 0;

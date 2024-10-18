@@ -1,42 +1,17 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2006 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet DeviceCommunicationControl encode and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+#include "bacnet/bacstr.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/dcc.h"
-
 /** @file dcc.c  Enable/Disable Device Communication Control (DCC) */
 
 /* note: the disable and time are not expected to survive
@@ -160,22 +135,94 @@ bool dcc_set_status_duration(
 
 #if BACNET_SVC_DCC_A
 /**
- * Encode service
- *
+ * @brief Encode DeviceCommunicationControl service
  * @param apdu  Pointer to the APDU buffer used for encoding.
- * @param invoke_id  Invoke-Id
  * @param timeDuration  Optional time duration in minutes.
  * @param enable_disable  Enable/disable communication
  * @param password  Pointer to an optional password.
  *
  * @return Bytes encoded or zero on an error.
  */
-int dcc_encode_apdu(uint8_t *apdu,
-    uint8_t invoke_id,
-    uint16_t timeDuration, /* 0=optional */
+int dcc_apdu_encode(
+    uint8_t *apdu,
+    uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
-    BACNET_CHARACTER_STRING *password)
-{ /* NULL=optional */
+    const BACNET_CHARACTER_STRING *password)
+{
+    int len = 0; /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    /* optional timeDuration */
+    if (timeDuration) {
+        len = encode_context_unsigned(apdu, 0, timeDuration);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    /* enable disable */
+    len = encode_context_enumerated(apdu, 1, enable_disable);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* optional password */
+    if (password) {
+        if ((password->length >= 1) && (password->length <= 20)) {
+            len = encode_context_character_string(apdu, 2, password);
+            apdu_len += len;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the COVNotification service request
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param timeDuration  Optional time duration in minutes.
+ * @param enable_disable  Enable/disable communication
+ * @param password  Pointer to an optional password.
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t dcc_service_request_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    uint16_t timeDuration,
+    BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
+    const BACNET_CHARACTER_STRING *password)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = dcc_apdu_encode(NULL, timeDuration, enable_disable, password);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len =
+            dcc_apdu_encode(apdu, timeDuration, enable_disable, password);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * Encode service
+ *
+ * @param apdu  Pointer to the APDU buffer used for encoding.
+ * @param invoke_id  Invoke-Id
+ * @param timeDuration  Optional time duration in minutes, 0=optional
+ * @param enable_disable  Enable/disable communication
+ * @param password  Pointer to an optional password, NULL=optional
+ * @return Bytes encoded or zero on an error.
+ */
+int dcc_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    uint16_t timeDuration,
+    BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
+    const BACNET_CHARACTER_STRING *password)
+{
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -184,24 +231,14 @@ int dcc_encode_apdu(uint8_t *apdu,
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL;
-        apdu_len = 4;
-        /* optional timeDuration */
-        if (timeDuration) {
-            len = encode_context_unsigned(&apdu[apdu_len], 0, timeDuration);
-            apdu_len += len;
-        }
-        /* enable disable */
-        len = encode_context_enumerated(&apdu[apdu_len], 1, enable_disable);
-        apdu_len += len;
-        /* optional password */
-        if (password) {
-            if ((password->length >= 1) && (password->length <= 20)) {
-                len = encode_context_character_string(
-                    &apdu[apdu_len], 2, password);
-                apdu_len += len;
-            }
-        }
     }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = dcc_apdu_encode(apdu, timeDuration, enable_disable, password);
+    apdu_len += len;
 
     return apdu_len;
 }
@@ -219,7 +256,8 @@ int dcc_encode_apdu(uint8_t *apdu,
  *
  * @return Bytes decoded, or BACNET_STATUS_ABORT or BACNET_STATUS_REJECT
  */
-int dcc_decode_service_request(uint8_t *apdu,
+int dcc_decode_service_request(
+    const uint8_t *apdu,
     unsigned apdu_len_max,
     uint16_t *timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE *enable_disable,
@@ -231,7 +269,6 @@ int dcc_decode_service_request(uint8_t *apdu,
     uint32_t len_value_type = 0;
     BACNET_UNSIGNED_INTEGER decoded_unsigned = 0;
     uint32_t decoded_enum = 0;
-    uint32_t password_length = 0;
 
     if (apdu && apdu_len_max) {
         /* Tag 0: timeDuration, in minutes --optional-- */
@@ -275,15 +312,19 @@ int dcc_decode_service_request(uint8_t *apdu,
                    context tag number or result in an error */
                 return BACNET_STATUS_ABORT;
             }
-            len = bacnet_tag_number_and_value_decode(&apdu[apdu_len],
-                apdu_len_max - apdu_len, &tag_number, &len_value_type);
+            len = bacnet_tag_number_and_value_decode(
+                &apdu[apdu_len], apdu_len_max - apdu_len, &tag_number,
+                &len_value_type);
             if (len > 0) {
                 apdu_len += len;
                 if ((unsigned)apdu_len < apdu_len_max) {
-                    len = bacnet_character_string_decode(&apdu[apdu_len],
-                        apdu_len_max - apdu_len, len_value_type, password);
+                    len = bacnet_character_string_decode(
+                        &apdu[apdu_len], apdu_len_max - apdu_len,
+                        len_value_type, password);
                     if (len > 0) {
-                        password_length = len_value_type - 1;
+                        size_t password_length =
+                            characterstring_utf8_length(password);
+                        /* UTF-8 code points can be up to 4 bytes long */
                         if ((password_length >= 1) && (password_length <= 20)) {
                             apdu_len += len;
                         } else {

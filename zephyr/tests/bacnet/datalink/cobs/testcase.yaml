@@ -1,6 +1,0 @@
-tests:
-  bacnet.datalink.cobs.unit:
-    tags: bacnet
-    type: unit
-  bacnet.datalink.cobs:
-    tags: bacnet

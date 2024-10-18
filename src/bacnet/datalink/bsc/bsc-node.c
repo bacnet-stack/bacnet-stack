@@ -95,20 +95,22 @@ static void bsc_node_init_direct_status(BACNET_SC_DIRECT_CONNECTION_STATUS *s)
     for (j = 0; j < BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM; j++) {
         memset(&s[j], 0, sizeof(*s));
         memset(&s[j].Connect_Timestamp, 0xFF, sizeof(s[j].Connect_Timestamp));
-        memset(&s[j].Disconnect_Timestamp, 0xFF,
+        memset(
+            &s[j].Disconnect_Timestamp, 0xFF,
             sizeof(s[j].Disconnect_Timestamp));
     }
 }
 
-static void bsc_node_init_hub_status(
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *s)
+static void
+bsc_node_init_hub_status(BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *s)
 {
     int j;
 
     for (j = 0; j < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; j++) {
         memset(&s[j], 0, sizeof(*s));
         memset(&s[j].Connect_Timestamp, 0xFF, sizeof(s[j].Connect_Timestamp));
-        memset(&s[j].Disconnect_Timestamp, 0xFF,
+        memset(
+            &s[j].Disconnect_Timestamp, 0xFF,
             sizeof(s[j].Disconnect_Timestamp));
     }
 }
@@ -122,7 +124,7 @@ static BSC_NODE *bsc_alloc_node(void)
             memset(&bsc_node[i], 0, sizeof(bsc_node[i]));
             bsc_node[i].used = true;
             bsc_node[i].hub_status = (BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS
-                    *)&bsc_hub_status[i][0];
+                                          *)&bsc_hub_status[i][0];
             bsc_node[i].direct_status =
                 (BACNET_SC_DIRECT_CONNECTION_STATUS *)&bsc_direct_status[i][0];
 
@@ -141,7 +143,8 @@ static BSC_NODE *bsc_alloc_node(void)
             bsc_node[i].conf = &bsc_conf[i];
             bsc_node[i].resolution = &bsc_address_resolution[i][0];
             bsc_node[i].failed = &bsc_failed_request[i][0];
-            memset(bsc_node[i].resolution, 0,
+            memset(
+                bsc_node[i].resolution, 0,
                 sizeof(BSC_ADDRESS_RESOLUTION) *
                     BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
 
@@ -152,9 +155,11 @@ static BSC_NODE *bsc_alloc_node(void)
             if (!bsc_failed_request_initialized[i]) {
                 for (j = 0; j < BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM;
                      j++) {
-                    memset(&bsc_failed_request[i][j], 0,
+                    memset(
+                        &bsc_failed_request[i][j], 0,
                         sizeof(bsc_failed_request[i][j]));
-                    memset(&bsc_failed_request[i][j].Timestamp, 0xff,
+                    memset(
+                        &bsc_failed_request[i][j].Timestamp, 0xff,
                         sizeof(bsc_failed_request[i][j].Timestamp));
                 }
                 bsc_failed_request_initialized[i] = true;
@@ -174,14 +179,15 @@ static bool node_switch_enabled(BSC_NODE_CONF *conf)
     return false;
 }
 
-static BSC_ADDRESS_RESOLUTION *node_get_address_resolution(
-    BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
+static BSC_ADDRESS_RESOLUTION *
+node_get_address_resolution(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
     int i;
 
     for (i = 0; i < BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM; i++) {
         if (node->resolution[i].used &&
-            !memcmp(&vmac->address[0], &node->resolution[i].vmac.address[0],
+            !memcmp(
+                &vmac->address[0], &node->resolution[i].vmac.address[0],
                 BVLC_SC_VMAC_SIZE)) {
             return &node->resolution[i];
         }
@@ -195,8 +201,8 @@ static void node_free_address_resolution(BSC_ADDRESS_RESOLUTION *r)
     r->urls_num = false;
 }
 
-static BSC_ADDRESS_RESOLUTION *node_alloc_address_resolution(
-    BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
+static BSC_ADDRESS_RESOLUTION *
+node_alloc_address_resolution(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
     int i;
     unsigned long max = 0;
@@ -205,9 +211,11 @@ static BSC_ADDRESS_RESOLUTION *node_alloc_address_resolution(
     for (i = 0; i < BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM; i++) {
         if (!node->resolution[i].used) {
             node->resolution[i].used = true;
-            mstimer_set(&node->resolution[i].fresh_timer,
+            mstimer_set(
+                &node->resolution[i].fresh_timer,
                 node->conf->address_resolution_freshness_timeout_s * 1000);
-            memcpy(&node->resolution[i].vmac.address[0], &vmac->address[0],
+            memcpy(
+                &node->resolution[i].vmac.address[0], &vmac->address[0],
                 BVLC_SC_VMAC_SIZE);
             return &node->resolution[i];
         }
@@ -235,14 +243,16 @@ static void bsc_node_process_stop_event(BSC_NODE *node)
 {
     bool stopped = true;
 
-    DEBUG_PRINTF("bsc_node_process_stop_event() >>> node = %p, state = %d\n",
-        node, node->state);
+    DEBUG_PRINTF(
+        "bsc_node_process_stop_event() >>> node = %p, state = %d\n", node,
+        node->state);
 
     if (node->conf->hub_function_enabled) {
         if (node->hub_function &&
             !bsc_hub_function_stopped(node->hub_function)) {
-            DEBUG_PRINTF("bsc_node_process_stop_event() hub_function %p is not "
-                         "stopped\n",
+            DEBUG_PRINTF(
+                "bsc_node_process_stop_event() hub_function %p is not "
+                "stopped\n",
                 node->hub_function);
             stopped = false;
         }
@@ -282,8 +292,9 @@ static void bsc_node_process_start_event(BSC_NODE *node)
 {
     bool started = true;
 
-    DEBUG_PRINTF("bsc_node_process_start_event() >>> node = %p, state = %d\n",
-        node, node->state);
+    DEBUG_PRINTF(
+        "bsc_node_process_start_event() >>> node = %p, state = %d\n", node,
+        node->state);
     if (node->hub_function && node->conf->hub_function_enabled) {
         if (!bsc_hub_function_started(node->hub_function)) {
             started = false;
@@ -310,8 +321,9 @@ static void bsc_node_process_start_event(BSC_NODE *node)
 
 static void bsc_node_restart(BSC_NODE *node)
 {
-    DEBUG_PRINTF("bsc_node_restart() >>> node = %p hub_function %p "
-                 "hub_connector %p node_switch %p\n",
+    DEBUG_PRINTF(
+        "bsc_node_restart() >>> node = %p hub_function %p "
+        "hub_connector %p node_switch %p\n",
         node, node->hub_function, node->hub_connector, node->node_switch);
     node->state = BSC_NODE_STATE_RESTARTING;
     bsc_hub_connector_stop(node->hub_connector);
@@ -359,7 +371,8 @@ static void bsc_node_parse_urls(
     r->urls_num = j;
 }
 
-static void bsc_node_process_received(BSC_NODE *node,
+static void bsc_node_process_received(
+    BSC_NODE *node,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
@@ -373,8 +386,9 @@ static void bsc_node_process_received(BSC_NODE *node,
     BSC_ADDRESS_RESOLUTION *r;
 
     (void)ret;
-    DEBUG_PRINTF("bsc_node_process_received() >>> node = %p, pdu = %p, pdu_len "
-                 "= %d, decoded_pdu = %p\n",
+    DEBUG_PRINTF(
+        "bsc_node_process_received() >>> node = %p, pdu = %p, pdu_len "
+        "= %d, decoded_pdu = %p\n",
         node, pdu, pdu_len, decoded_pdu);
 
     for (i = 0; i < decoded_pdu->hdr.dest_options_num; i++) {
@@ -384,9 +398,9 @@ static void bsc_node_process_received(BSC_NODE *node,
             if (bvlc_sc_need_send_bvlc_result(decoded_pdu)) {
                 error_code = ERROR_CODE_HEADER_NOT_UNDERSTOOD;
                 error_class = ERROR_CLASS_COMMUNICATION;
-                bufsize = bvlc_sc_encode_result(buf, sizeof(buf),
-                    decoded_pdu->hdr.message_id, NULL, decoded_pdu->hdr.origin,
-                    decoded_pdu->hdr.bvlc_function, 1,
+                bufsize = bvlc_sc_encode_result(
+                    buf, sizeof(buf), decoded_pdu->hdr.message_id, NULL,
+                    decoded_pdu->hdr.origin, decoded_pdu->hdr.bvlc_function, 1,
                     &decoded_pdu->dest_options[i].packed_header_marker,
                     &error_class, &error_code,
                     (uint8_t *)ERROR_STR_OPTION_NOT_UNDERSTOOD);
@@ -394,8 +408,9 @@ static void bsc_node_process_received(BSC_NODE *node,
                     ret = bsc_node_send(node, buf, bufsize);
 #if DEBUG_ENABLED == 1
                     if (ret != BSC_SC_SUCCESS) {
-                        DEBUG_PRINTF("bsc_node_process_received() warning "
-                                     "bvlc-result pdu is not sent, error %d\n",
+                        DEBUG_PRINTF(
+                            "bsc_node_process_received() warning "
+                            "bvlc-result pdu is not sent, error %d\n",
                             ret);
                     }
 #endif
@@ -413,7 +428,8 @@ static void bsc_node_process_received(BSC_NODE *node,
         case BVLC_SC_RESULT: {
             if (decoded_pdu->payload.result.bvlc_function ==
                 BVLC_SC_ADDRESS_RESOLUTION) {
-                DEBUG_PRINTF("received a NAK for address resolution from %s\n",
+                DEBUG_PRINTF(
+                    "received a NAK for address resolution from %s\n",
                     bsc_vmac_to_string(decoded_pdu->hdr.origin));
                 r = node_get_address_resolution(node, decoded_pdu->hdr.origin);
                 if (r) {
@@ -426,8 +442,9 @@ static void bsc_node_process_received(BSC_NODE *node,
                         r->urls_num = 0;
                         mstimer_restart(&r->fresh_timer);
                     } else {
-                        DEBUG_PRINTF("can't allocate address resolution for "
-                                     "node with address %s\n",
+                        DEBUG_PRINTF(
+                            "can't allocate address resolution for "
+                            "node with address %s\n",
                             bsc_vmac_to_string(decoded_pdu->hdr.origin));
                     }
                 }
@@ -444,13 +461,15 @@ static void bsc_node_process_received(BSC_NODE *node,
             break;
         }
         case BVLC_SC_ADVERTISIMENT: {
-            node->conf->event_func(node, BSC_NODE_EVENT_RECEIVED_ADVERTISIMENT,
-                NULL, pdu, pdu_len);
+            node->conf->event_func(
+                node, BSC_NODE_EVENT_RECEIVED_ADVERTISIMENT, NULL, pdu,
+                pdu_len);
             break;
         }
         case BVLC_SC_ADVERTISIMENT_SOLICITATION: {
-            bufsize = bvlc_sc_encode_advertisiment(buf, sizeof(buf),
-                bsc_get_next_message_id(), NULL, decoded_pdu->hdr.origin,
+            bufsize = bvlc_sc_encode_advertisiment(
+                buf, sizeof(buf), bsc_get_next_message_id(), NULL,
+                decoded_pdu->hdr.origin,
                 bsc_hub_connector_state(node->hub_connector),
                 node_switch_enabled(node->conf)
                     ? BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_SUPPORTED
@@ -473,8 +492,8 @@ static void bsc_node_process_received(BSC_NODE *node,
             DEBUG_PRINTF(
                 "bsc_node_process_received() got BVLC_SC_ADDRESS_RESOLUTION\n");
             if (node_switch_enabled(node->conf)) {
-                bufsize = bvlc_sc_encode_address_resolution_ack(buf,
-                    sizeof(buf), decoded_pdu->hdr.message_id, NULL,
+                bufsize = bvlc_sc_encode_address_resolution_ack(
+                    buf, sizeof(buf), decoded_pdu->hdr.message_id, NULL,
                     decoded_pdu->hdr.origin,
                     (uint8_t *)node->conf->direct_connection_accept_uris,
                     node->conf->direct_connection_accept_uris_len);
@@ -490,22 +509,24 @@ static void bsc_node_process_received(BSC_NODE *node,
 #endif
                 }
             } else {
-                DEBUG_PRINTF("bsc_node_process_received() node switch is "
-                             "disabled, send error to node %s\n",
+                DEBUG_PRINTF(
+                    "bsc_node_process_received() node switch is "
+                    "disabled, send error to node %s\n",
                     bsc_vmac_to_string(decoded_pdu->hdr.origin));
                 error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 error_class = ERROR_CLASS_COMMUNICATION;
-                bufsize = bvlc_sc_encode_result(buf, sizeof(buf),
-                    decoded_pdu->hdr.message_id, NULL, decoded_pdu->hdr.origin,
-                    decoded_pdu->hdr.bvlc_function, 1, NULL, &error_class,
-                    &error_code,
+                bufsize = bvlc_sc_encode_result(
+                    buf, sizeof(buf), decoded_pdu->hdr.message_id, NULL,
+                    decoded_pdu->hdr.origin, decoded_pdu->hdr.bvlc_function, 1,
+                    NULL, &error_class, &error_code,
                     (uint8_t *)ERROR_STR_DIRECT_CONNECTIONS_NOT_SUPPORTED);
                 if (bufsize) {
                     ret = bsc_node_send(node, buf, bufsize);
 #if DEBUG_ENABLED == 1
                     if (ret != BSC_SC_SUCCESS) {
-                        DEBUG_PRINTF("bsc_node_process_received() warning "
-                                     "bvlc-result pdu is not sent, error %d\n",
+                        DEBUG_PRINTF(
+                            "bsc_node_process_received() warning "
+                            "bvlc-result pdu is not sent, error %d\n",
                             ret);
                     }
 #endif
@@ -522,8 +543,9 @@ static void bsc_node_process_received(BSC_NODE *node,
                     node, decoded_pdu->hdr.origin);
 #if DEBUG_ENABLED == 1
                 if (!r) {
-                    DEBUG_PRINTF("can't allocate address resolution for node "
-                                 "with address %s\n",
+                    DEBUG_PRINTF(
+                        "can't allocate address resolution for node "
+                        "with address %s\n",
                         bsc_vmac_to_string(decoded_pdu->hdr.origin));
                 }
 #endif
@@ -547,7 +569,8 @@ static void bsc_node_process_received(BSC_NODE *node,
     DEBUG_PRINTF("bsc_node_process_received() <<<\n");
 }
 
-static void bsc_hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
+static void bsc_hub_connector_event(
+    BSC_HUB_CONNECTOR_EVENT ev,
     BSC_HUB_CONNECTOR_HANDLE h,
     void *user_arg,
     uint8_t *pdu,
@@ -558,8 +581,9 @@ static void bsc_hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
 
     (void)h;
     bws_dispatch_lock();
-    DEBUG_PRINTF("bsc_hub_connector_event() >>> ev = %d, h = %p, node = %p\n",
-        ev, h, user_arg);
+    DEBUG_PRINTF(
+        "bsc_hub_connector_event() >>> ev = %d, h = %p, node = %p\n", ev, h,
+        user_arg);
     if (ev == BSC_HUBC_EVENT_STOPPED) {
         node->hub_connector = NULL;
         bsc_node_process_stop_event(node);
@@ -582,8 +606,9 @@ static void bsc_hub_function_event(
 
     (void)h;
     bws_dispatch_lock();
-    DEBUG_PRINTF("bsc_hub_function_event() >>> ev = %d, h = %p, node = %p\n",
-        ev, h, user_arg);
+    DEBUG_PRINTF(
+        "bsc_hub_function_event() >>> ev = %d, h = %p, node = %p\n", ev, h,
+        user_arg);
     if (ev == BSC_HUBF_EVENT_STARTED) {
         bsc_node_process_start_event(node);
     } else if (ev == BSC_HUBF_EVENT_STOPPED) {
@@ -599,7 +624,8 @@ static void bsc_hub_function_event(
     bws_dispatch_unlock();
 }
 
-static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
+static void bsc_node_switch_event(
+    BSC_NODE_SWITCH_EVENT ev,
     BSC_NODE_SWITCH_HANDLE h,
     void *user_arg,
     BACNET_SC_VMAC_ADDRESS *dest,
@@ -611,8 +637,9 @@ static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
 
     (void)h;
     bws_dispatch_lock();
-    DEBUG_PRINTF("bsc_node_switch_event() >>> ev = %d, h = %p, node = %p\n", ev,
-        h, user_arg);
+    DEBUG_PRINTF(
+        "bsc_node_switch_event() >>> ev = %d, h = %p, node = %p\n", ev, h,
+        user_arg);
     if (ev == BSC_NODE_SWITCH_EVENT_STARTED) {
         bsc_node_process_start_event(node);
     } else if (ev == BSC_NODE_SWITCH_EVENT_STOPPED) {
@@ -698,7 +725,8 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
     node->node_switch = NULL;
 
     if (node->state != BSC_NODE_STATE_RESTARTING) {
-        memset(node->resolution, 0,
+        memset(
+            node->resolution, 0,
             sizeof(BSC_ADDRESS_RESOLUTION) *
                 BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
     } else {
@@ -707,15 +735,16 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
     }
 
     if (node->conf->primaryURL) {
-        ret = bsc_hub_connector_start(node->conf->ca_cert_chain,
-            node->conf->ca_cert_chain_size, node->conf->cert_chain,
-            node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
-            node->conf->local_uuid, node->conf->local_vmac,
-            node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
-            node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
-            node->conf->disconnect_timeout_s, node->conf->primaryURL,
-            node->conf->failoverURL, node->conf->reconnnect_timeout_s,
-            bsc_hub_connector_event, node, &node->hub_connector);
+        ret = bsc_hub_connector_start(
+            node->conf->ca_cert_chain, node->conf->ca_cert_chain_size,
+            node->conf->cert_chain, node->conf->cert_chain_size,
+            node->conf->key, node->conf->key_size, node->conf->local_uuid,
+            node->conf->local_vmac, node->conf->max_local_bvlc_len,
+            node->conf->max_local_npdu_len, node->conf->connect_timeout_s,
+            node->conf->heartbeat_timeout_s, node->conf->disconnect_timeout_s,
+            node->conf->primaryURL, node->conf->failoverURL,
+            node->conf->reconnnect_timeout_s, bsc_hub_connector_event, node,
+            &node->hub_connector);
 
         if (ret != BSC_SC_SUCCESS) {
             node->state = BSC_NODE_STATE_IDLE;
@@ -726,15 +755,15 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
     }
 
     if (node->conf->hub_function_enabled) {
-        ret = bsc_hub_function_start(node->conf->ca_cert_chain,
-            node->conf->ca_cert_chain_size, node->conf->cert_chain,
-            node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
-            node->conf->hub_server_port, node->conf->hub_iface,
-            node->conf->local_uuid, node->conf->local_vmac,
-            node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
-            node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
-            node->conf->disconnect_timeout_s, bsc_hub_function_event, node,
-            &node->hub_function);
+        ret = bsc_hub_function_start(
+            node->conf->ca_cert_chain, node->conf->ca_cert_chain_size,
+            node->conf->cert_chain, node->conf->cert_chain_size,
+            node->conf->key, node->conf->key_size, node->conf->hub_server_port,
+            node->conf->hub_iface, node->conf->local_uuid,
+            node->conf->local_vmac, node->conf->max_local_bvlc_len,
+            node->conf->max_local_npdu_len, node->conf->connect_timeout_s,
+            node->conf->heartbeat_timeout_s, node->conf->disconnect_timeout_s,
+            bsc_hub_function_event, node, &node->hub_function);
         if (ret != BSC_SC_SUCCESS) {
             node->state = BSC_NODE_STATE_IDLE;
             bsc_hub_connector_stop(node->hub_connector);
@@ -745,9 +774,10 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
     }
 
     if (node_switch_enabled(node->conf)) {
-        ret = bsc_node_switch_start(node->conf->ca_cert_chain,
-            node->conf->ca_cert_chain_size, node->conf->cert_chain,
-            node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
+        ret = bsc_node_switch_start(
+            node->conf->ca_cert_chain, node->conf->ca_cert_chain_size,
+            node->conf->cert_chain, node->conf->cert_chain_size,
+            node->conf->key, node->conf->key_size,
             node->conf->direct_server_port, node->conf->direct_iface,
             node->conf->local_uuid, node->conf->local_vmac,
             node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
@@ -831,14 +861,15 @@ void bsc_node_stop(BSC_NODE *node)
     DEBUG_PRINTF("bsc_node_stop() <<<\n");
 }
 
-BSC_SC_RET bsc_node_hub_connector_send(
-    void *p_node, uint8_t *pdu, unsigned pdu_len)
+BSC_SC_RET
+bsc_node_hub_connector_send(void *p_node, uint8_t *pdu, unsigned pdu_len)
 {
     BSC_NODE *node = (BSC_NODE *)p_node;
     BSC_SC_RET ret;
 
-    DEBUG_PRINTF("bsc_node_hub_connector_send() >>> p_node = %p, pdu = %p, "
-                 "pdu_len = %d\n",
+    DEBUG_PRINTF(
+        "bsc_node_hub_connector_send() >>> p_node = %p, pdu = %p, "
+        "pdu_len = %d\n",
         p_node, pdu, pdu_len);
 
     if (!node) {
@@ -867,8 +898,9 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
     BSC_NODE *node = (BSC_NODE *)p_node;
     BSC_SC_RET ret;
 
-    DEBUG_PRINTF("bsc_node_send() >>> p_node = %p(%s), pdu = %p, "
-                 "pdu_len = %d\n",
+    DEBUG_PRINTF(
+        "bsc_node_send() >>> p_node = %p(%s), pdu = %p, "
+        "pdu_len = %d\n",
         p_node, p_node ? bsc_vmac_to_string(p_node->conf->local_vmac) : NULL,
         pdu, pdu_len);
 
@@ -897,8 +929,8 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
     return ret;
 }
 
-BSC_ADDRESS_RESOLUTION *bsc_node_get_address_resolution(
-    void *p_node, BACNET_SC_VMAC_ADDRESS *vmac)
+BSC_ADDRESS_RESOLUTION *
+bsc_node_get_address_resolution(void *p_node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
     int i;
     BSC_NODE *node = (BSC_NODE *)p_node;
@@ -910,7 +942,8 @@ BSC_ADDRESS_RESOLUTION *bsc_node_get_address_resolution(
     }
     for (i = 0; i < BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM; i++) {
         if (node->resolution[i].used &&
-            !memcmp(&vmac->address[0], &node->resolution[i].vmac.address[0],
+            !memcmp(
+                &vmac->address[0], &node->resolution[i].vmac.address[0],
                 BVLC_SC_VMAC_SIZE)) {
             if (!mstimer_expired(&node->resolution[i].fresh_timer)) {
                 bws_dispatch_unlock();
@@ -926,8 +959,8 @@ BSC_ADDRESS_RESOLUTION *bsc_node_get_address_resolution(
     return NULL;
 }
 
-BSC_SC_RET bsc_node_send_address_resolution(
-    void *p_node, BACNET_SC_VMAC_ADDRESS *dest)
+BSC_SC_RET
+bsc_node_send_address_resolution(void *p_node, BACNET_SC_VMAC_ADDRESS *dest)
 {
     BSC_NODE *node = (BSC_NODE *)p_node;
     uint8_t pdu[32];
@@ -947,8 +980,9 @@ BSC_SC_RET bsc_node_connect_direct(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
     BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
-    DEBUG_PRINTF("bsc_node_connect_direct() >>> node = %p, dest = %p, urls = "
-                 "%p, urls_cnt = %d\n",
+    DEBUG_PRINTF(
+        "bsc_node_connect_direct() >>> node = %p, dest = %p, urls = "
+        "%p, urls_cnt = %d\n",
         node, dest, urls, urls_cnt);
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
@@ -980,7 +1014,7 @@ bool bsc_node_direct_connection_established(
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
         (node->conf->direct_connect_initiate_enable ||
-            node->conf->direct_connect_accept_enable)) {
+         node->conf->direct_connect_accept_enable)) {
         ret =
             bsc_node_switch_connected(node->node_switch, dest, urls, urls_cnt);
     }
@@ -1000,8 +1034,8 @@ bsc_node_hub_connector_state(BSC_NODE *node)
     return ret;
 }
 
-BACNET_SC_HUB_CONNECTION_STATUS *bsc_node_hub_connector_status(
-    BSC_NODE *node, bool primary)
+BACNET_SC_HUB_CONNECTION_STATUS *
+bsc_node_hub_connector_status(BSC_NODE *node, bool primary)
 {
     BACNET_SC_HUB_CONNECTION_STATUS *ret = NULL;
     bws_dispatch_lock();
@@ -1012,8 +1046,8 @@ BACNET_SC_HUB_CONNECTION_STATUS *bsc_node_hub_connector_status(
     return ret;
 }
 
-BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_hub_function_status(
-    BSC_NODE *node, size_t *cnt)
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *
+bsc_node_hub_function_status(BSC_NODE *node, size_t *cnt)
 {
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *ret = NULL;
     bws_dispatch_lock();
@@ -1026,14 +1060,14 @@ BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_hub_function_status(
     return ret;
 }
 
-BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_direct_connection_status(
-    BSC_NODE *node, size_t *cnt)
+BACNET_SC_DIRECT_CONNECTION_STATUS *
+bsc_node_direct_connection_status(BSC_NODE *node, size_t *cnt)
 {
     BACNET_SC_DIRECT_CONNECTION_STATUS *ret = NULL;
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
         (node->conf->direct_connect_accept_enable ||
-            node->conf->direct_connect_initiate_enable)) {
+         node->conf->direct_connect_initiate_enable)) {
         *cnt = BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM;
         ret = node->direct_status;
     }
@@ -1070,7 +1104,8 @@ static void bsc_node_add_failed_request_info(
     }
 }
 
-void bsc_node_store_failed_request_info(BSC_NODE *node,
+void bsc_node_store_failed_request_info(
+    BSC_NODE *node,
     BACNET_HOST_N_PORT_DATA *peer,
     BACNET_SC_VMAC_ADDRESS *vmac,
     BACNET_SC_UUID *uuid,
@@ -1107,14 +1142,14 @@ void bsc_node_store_failed_request_info(BSC_NODE *node,
     bws_dispatch_unlock();
 }
 
-BACNET_SC_FAILED_CONNECTION_REQUEST *bsc_node_failed_requests_status(
-    BSC_NODE *node, size_t *cnt)
+BACNET_SC_FAILED_CONNECTION_REQUEST *
+bsc_node_failed_requests_status(BSC_NODE *node, size_t *cnt)
 {
     BACNET_SC_FAILED_CONNECTION_REQUEST *ret = NULL;
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
         (node->conf->direct_connect_accept_enable ||
-            node->conf->hub_function_enabled)) {
+         node->conf->hub_function_enabled)) {
         ret = node->failed;
         *cnt = BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM;
     }
@@ -1130,11 +1165,13 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
     BACNET_DATE_TIME timestamp;
 
     for (i = 0; i < BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM; i++) {
-        if (!datetime_is_valid(&node->direct_status[i].Connect_Timestamp.date,
+        if (!datetime_is_valid(
+                &node->direct_status[i].Connect_Timestamp.date,
                 &node->direct_status[i].Connect_Timestamp.time)) {
             return &node->direct_status[i];
         }
-        if (!memcmp(&node->direct_status[i].Peer_VMAC[0], &vmac->address[0],
+        if (!memcmp(
+                &node->direct_status[i].Peer_VMAC[0], &vmac->address[0],
                 BVLC_SC_VMAC_SIZE)) {
             return &node->direct_status[i];
         }
@@ -1145,13 +1182,16 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
 
     for (i = 0; i < BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM; i++) {
         if (node->direct_status[i].State != BACNET_CONNECTED &&
-            datetime_is_valid(&node->direct_status[i].Disconnect_Timestamp.date,
+            datetime_is_valid(
+                &node->direct_status[i].Disconnect_Timestamp.date,
                 &node->direct_status[i].Disconnect_Timestamp.time)) {
             if (index == -1 ||
-                (datetime_compare(&node->direct_status[i].Disconnect_Timestamp,
-                     &timestamp) < 0)) {
+                (datetime_compare(
+                     &node->direct_status[i].Disconnect_Timestamp, &timestamp) <
+                 0)) {
                 index = i;
-                memcpy(&timestamp, &node->direct_status[i].Disconnect_Timestamp,
+                memcpy(
+                    &timestamp, &node->direct_status[i].Disconnect_Timestamp,
                     sizeof(timestamp));
             }
         }
@@ -1164,7 +1204,8 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
     /* ok, all entries are already filled and all are in connected state,
        so re-use oldest entry which is in connected state */
 
-    memcpy(&timestamp, &node->direct_status[0].Connect_Timestamp,
+    memcpy(
+        &timestamp, &node->direct_status[0].Connect_Timestamp,
         sizeof(timestamp));
     index = 0;
 
@@ -1172,7 +1213,8 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
         if (datetime_compare(
                 &node->direct_status[i].Connect_Timestamp, &timestamp) < 0) {
             index = i;
-            memcpy(&timestamp, &node->direct_status[i].Connect_Timestamp,
+            memcpy(
+                &timestamp, &node->direct_status[i].Connect_Timestamp,
                 sizeof(timestamp));
         }
     }
@@ -1180,19 +1222,21 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
     return &node->direct_status[index];
 }
 
-BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_find_hub_status_for_vmac(
-    BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *
+bsc_node_find_hub_status_for_vmac(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
     int i;
     int index = -1;
     BACNET_DATE_TIME timestamp;
 
     for (i = 0; i < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; i++) {
-        if (!datetime_is_valid(&node->hub_status[i].Connect_Timestamp.date,
+        if (!datetime_is_valid(
+                &node->hub_status[i].Connect_Timestamp.date,
                 &node->hub_status[i].Connect_Timestamp.time)) {
             return &node->hub_status[i];
         }
-        if (!memcmp(&node->hub_status[i].Peer_VMAC[0], &vmac->address[0],
+        if (!memcmp(
+                &node->hub_status[i].Peer_VMAC[0], &vmac->address[0],
                 BVLC_SC_VMAC_SIZE)) {
             return &node->hub_status[i];
         }
@@ -1203,13 +1247,16 @@ BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_find_hub_status_for_vmac(
 
     for (i = 0; i < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; i++) {
         if (node->hub_status[i].State != BACNET_CONNECTED &&
-            datetime_is_valid(&node->hub_status[i].Disconnect_Timestamp.date,
+            datetime_is_valid(
+                &node->hub_status[i].Disconnect_Timestamp.date,
                 &node->hub_status[i].Disconnect_Timestamp.time)) {
             if (index == -1 ||
-                (datetime_compare(&node->hub_status[i].Disconnect_Timestamp,
-                     &timestamp) < 0)) {
+                (datetime_compare(
+                     &node->hub_status[i].Disconnect_Timestamp, &timestamp) <
+                 0)) {
                 index = i;
-                memcpy(&timestamp, &node->hub_status[i].Disconnect_Timestamp,
+                memcpy(
+                    &timestamp, &node->hub_status[i].Disconnect_Timestamp,
                     sizeof(timestamp));
             }
         }
@@ -1230,7 +1277,8 @@ BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_find_hub_status_for_vmac(
         if (datetime_compare(
                 &node->hub_status[i].Connect_Timestamp, &timestamp) < 0) {
             index = i;
-            memcpy(&timestamp, &node->hub_status[i].Connect_Timestamp,
+            memcpy(
+                &timestamp, &node->hub_status[i].Connect_Timestamp,
                 sizeof(timestamp));
         }
     }

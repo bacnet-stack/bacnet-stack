@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 get_filename_component(basename ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 project(test_${basename}
-	VERSION 1.0.0
-	LANGUAGES C)
+    VERSION 1.0.0
+    LANGUAGES C)
 
 
 string(REGEX REPLACE
@@ -21,24 +21,24 @@ string(REGEX REPLACE
 set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
-	BIG_ENDIAN=0
-	CONFIG_ZTEST=1
-	)
+    BIG_ENDIAN=0
+    CONFIG_ZTEST=1
+    )
 
 include_directories(
-	${SRC_DIR}
-	${TST_DIR}/ztest/include
-	)
+    ${SRC_DIR}
+    ${TST_DIR}/ztest/include
+    )
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
-	${SRC_DIR}/bacnet/basic/sys/color_rgb.c
+    ${SRC_DIR}/bacnet/basic/sys/color_rgb.c
     # Support files and stubs (pathname alphabetical)
     # Test and test library files
-	./src/main.c
-	${ZTST_DIR}/ztest_mock.c
-	${ZTST_DIR}/ztest.c
-	)
+    ./src/main.c
+    ${ZTST_DIR}/ztest_mock.c
+    ${ZTST_DIR}/ztest.c
+    )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-	m)
+    m)

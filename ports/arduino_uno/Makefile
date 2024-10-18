@@ -73,9 +73,7 @@ CORESRC =  \
 	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/bacerror.c \
-	$(BACNET_CORE)/bacapp.c \
-#	$(BACNET_CORE)/ethernet.c
-
+	$(BACNET_CORE)/bacapp.c
 
 ## Include Directories
 INCLUDES = -I. -I$(BACNET_INCLUDE)
@@ -192,9 +190,9 @@ lint:
 	$(LINT) $(BFLAGS) $(CSRC)
 
 install: $(TARGET_ELF)
-	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID)   \
-	 -p $(AVRDUDE_MCU) -P $(AVRDUDE_PORT) -e        \
-	 -U flash:w:$(TARGET).hex
+	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID)			\
+		-p $(AVRDUDE_MCU) -P $(AVRDUDE_PORT) -e		\
+		-U flash:w:$(TARGET).hex
 
 ## Clean target
 .PHONY: clean

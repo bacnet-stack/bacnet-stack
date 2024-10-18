@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2012 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+ *
+ * Copyright (C) 2012 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -41,13 +14,14 @@
 #include <errno.h>
 #include <time.h>
 #include <ctype.h>
-/* OS specific include*/
-#include "bacport.h"
-/* local includes */
-#include "bacnet/bytes.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/crc.h"
 #include "bacnet/version.h"
+/* OS specific include*/
+#include "bacport.h"
 
 #ifndef max
 #define max(a, b) (((a)(b)) ? (a) : (b))
@@ -153,7 +127,7 @@ static void Parse_Arguments(int argc, char *argv[])
     }
 }
 
-static void filename_create(char *filename)
+static void filename_create(char *filename, size_t filesize)
 {
     time_t my_time;
     struct tm *today;
@@ -161,7 +135,8 @@ static void filename_create(char *filename)
     if (filename) {
         my_time = time(NULL);
         today = localtime(&my_time);
-        sprintf(filename, "mstp_%04d%02d%02d%02d%02d%02d.cap",
+        snprintf(
+            filename, filesize, "mstp_%04d%02d%02d%02d%02d%02d.cap",
             1900 + today->tm_year, 1 + today->tm_mon, today->tm_mday,
             today->tm_hour, today->tm_min, today->tm_sec);
     }
@@ -191,7 +166,8 @@ static void write_global_header(const char *filename)
         fflush(pFile);
         fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
     } else {
-        fprintf(stderr, "mstpcap[header]: failed to open %s: %s\n", filename,
+        fprintf(
+            stderr, "mstpcap[header]: failed to open %s: %s\n", filename,
             strerror(errno));
     }
 }
@@ -215,14 +191,15 @@ static void write_received_packet(uint8_t *buffer, unsigned length)
         (void)fwrite(&orig_len, sizeof(orig_len), 1, pFile);
         (void)fwrite(buffer, length, 1, pFile);
     } else {
-        fprintf(stderr, "mstpcrc[packet]: failed to open %s: %s\n",
+        fprintf(
+            stderr, "mstpcrc[packet]: failed to open %s: %s\n",
             Capture_Filename, strerror(errno));
     }
 }
 
 static void Write_Pcap(uint8_t *buffer, unsigned length)
 {
-    filename_create(&Capture_Filename[0]);
+    filename_create(&Capture_Filename[0], sizeof(Capture_Filename));
     write_global_header(&Capture_Filename[0]);
     write_received_packet(buffer, length);
     if (pFile) {
@@ -235,7 +212,7 @@ static void Process_Text_File(void)
 {
     char *argi = NULL;
 
-    filename_create(&Capture_Filename[0]);
+    filename_create(&Capture_Filename[0], sizeof(Capture_Filename));
     write_global_header(&Capture_Filename[0]);
     while (fgets(Text_Buffer, sizeof(Text_Buffer), pText_File)) {
         CRC_Buffer_Len = 0;

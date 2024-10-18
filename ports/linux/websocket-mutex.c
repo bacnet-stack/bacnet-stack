@@ -19,24 +19,25 @@
 #include "websocket-mutex.h"
 
 static pthread_mutex_t websocket_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-static pthread_mutex_t websocket_dispatch_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+static pthread_mutex_t websocket_dispatch_mutex =
+    PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 void bsc_websocket_global_lock(void)
 {
-  pthread_mutex_lock(&websocket_mutex);
+    pthread_mutex_lock(&websocket_mutex);
 }
 
 void bsc_websocket_global_unlock(void)
 {
-  pthread_mutex_unlock(&websocket_mutex);
+    pthread_mutex_unlock(&websocket_mutex);
 }
 
 void bws_dispatch_lock(void)
 {
-  pthread_mutex_lock(&websocket_dispatch_mutex);
+    pthread_mutex_lock(&websocket_dispatch_mutex);
 }
 
 void bws_dispatch_unlock(void)
 {
-  pthread_mutex_unlock(&websocket_dispatch_mutex);
+    pthread_mutex_unlock(&websocket_dispatch_mutex);
 }

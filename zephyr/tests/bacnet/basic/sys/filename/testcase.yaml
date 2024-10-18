@@ -1,6 +1,0 @@
-tests:
-  bacnet.basic.sys.filename.unit:
-    tags: bacnet
-    type: unit
-  bacnet.basic.sys.filename:
-    tags: bacnet

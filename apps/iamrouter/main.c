@@ -1,50 +1,32 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet I-Am-Router-To-Network message
+ * for one or more networks.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 
 /* global variables used in this file */
@@ -64,8 +46,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -93,23 +75,24 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s DNET [DNET] [DNET] [...]\n", filename);
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
-    printf("Send BACnet I-Am-Router-To-Network message for \n"
-           "one or more networks.\n"
-           "\nDNET:\n"
-           "BACnet destination network number 0-65534\n"
-           "To send a I-Am-Router-To-Network message for DNET 86:\n"
-           "%s 86\n"
-           "To send a I-Am-Router-To-Network message for multiple DNETs\n"
-           "use the following command:\n"
-           "%s 86 42 24 14\n",
+    printf(
+        "Send BACnet I-Am-Router-To-Network message for \n"
+        "one or more networks.\n"
+        "\nDNET:\n"
+        "BACnet destination network number 0-65534\n"
+        "To send a I-Am-Router-To-Network message for DNET 86:\n"
+        "%s 86\n"
+        "To send a I-Am-Router-To-Network message for multiple DNETs\n"
+        "use the following command:\n"
+        "%s 86 42 24 14\n",
         filename, filename);
 }
 
@@ -117,7 +100,7 @@ int main(int argc, char *argv[])
 {
     unsigned arg_count = 0;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -154,7 +137,8 @@ int main(int argc, char *argv[])
             Target_Router_Networks[arg_count] = -1;
             /* invalid DNET? */
             if (Target_Router_Networks[arg_count - 1] >= 65535) {
-                fprintf(stderr, "DNET=%u - it must be less than %u\n",
+                fprintf(
+                    stderr, "DNET=%u - it must be less than %u\n",
                     Target_Router_Networks[arg_count - 1], 65535);
                 return 1;
             }

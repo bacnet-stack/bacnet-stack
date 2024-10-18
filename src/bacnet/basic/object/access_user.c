@@ -1,38 +1,18 @@
-/**************************************************************************
- *
- * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* Access User Objects - customize for your use */
-
+/**
+ * @file
+ * @brief A basic BACnet Access User Object implementation.
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
 #include "access_user.h"
 #include "bacnet/basic/services.h"
@@ -42,9 +22,11 @@ static bool Access_User_Initialized = false;
 static ACCESS_USER_DESCR au_descr[MAX_ACCESS_USERS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_GLOBAL_IDENTIFIER,
-    PROP_STATUS_FLAGS, PROP_RELIABILITY, PROP_USER_TYPE, PROP_CREDENTIALS, -1 };
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_GLOBAL_IDENTIFIER, PROP_STATUS_FLAGS, PROP_RELIABILITY,
+    PROP_USER_TYPE,         PROP_CREDENTIALS,  -1
+};
 
 static const int Properties_Optional[] = { -1 };
 
@@ -131,12 +113,14 @@ unsigned Access_User_Instance_To_Index(uint32_t object_instance)
 bool Access_User_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
 
     if (object_instance < MAX_ACCESS_USERS) {
-        sprintf(text_string, "ACCESS USER %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+        snprintf(
+            text, sizeof(text), "ACCESS USER %lu",
+            (unsigned long)object_instance);
+        status = characterstring_init_ansi(object_name, text);
     }
 
     return status;

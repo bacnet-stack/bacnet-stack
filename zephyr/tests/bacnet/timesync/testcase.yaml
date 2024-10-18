@@ -1,6 +1,0 @@
-tests:
-  bacnet.timesync:
-    tags: bacnet
-  bacnet.timesync.unit:
-    tags: bacnet
-    type: unit

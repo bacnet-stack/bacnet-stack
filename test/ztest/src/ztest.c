@@ -251,6 +251,7 @@ static void handle_signal(int sig)
 		PRINT(" at %s function\n", phase_str[phase]);
 		longjmp(test_fail, 1);
 	case TEST_PHASE_FRAMEWORK:
+	default:
 		PRINT("\n");
 		longjmp(stack_fail, 1);
 	}
@@ -421,7 +422,7 @@ void z_ztest_run_test_suite(const char *name, struct unit_test *suite)
 	test_status = (test_status || fail) ? 1 : 0;
 }
 
-void end_report(void)
+static void end_report(void)
 {
 	if (test_status) {
 		TC_END_REPORT(TC_FAIL);

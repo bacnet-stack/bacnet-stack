@@ -8,31 +8,15 @@
  *
  * Copyright (C) 2013 Daniel Blazevic <daniel.blazevic@gmail.com>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
@@ -56,7 +40,8 @@
  * @return invoke id of outgoing message, or 0 if device is not bound or no tsm
  * available
  */
-uint8_t Send_Write_Property_Multiple_Request(uint8_t *pdu,
+uint8_t Send_Write_Property_Multiple_Request(
+    uint8_t *pdu,
     size_t max_pdu,
     uint32_t device_id,
     BACNET_WRITE_ACCESS_DATA *write_access_data)
@@ -91,8 +76,10 @@ uint8_t Send_Write_Property_Multiple_Request(uint8_t *pdu,
         /* encode the APDU portion of the packet */
         len = wpm_encode_apdu(
             &pdu[pdu_len], max_pdu - pdu_len, invoke_id, write_access_data);
+        if (len <= 0) {
+            return 0;
+        }
         pdu_len += len;
-
         /* will it fit in the sender?
            note: if there is a bottleneck router in between
            us and the destination, we won't know unless
@@ -107,7 +94,8 @@ uint8_t Send_Write_Property_Multiple_Request(uint8_t *pdu,
                 datalink_send_pdu(&dest, &npdu_data, &pdu[0], pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0) {
-                fprintf(stderr,
+                fprintf(
+                    stderr,
                     "Failed to Send WritePropertyMultiple Request (%s)!\n",
                     strerror(errno));
             }
@@ -116,7 +104,8 @@ uint8_t Send_Write_Property_Multiple_Request(uint8_t *pdu,
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send WritePropertyMultiple Request "
                 "(exceeds destination maximum APDU)!\n");
 #endif

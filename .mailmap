@@ -1,0 +1,59 @@
+# Map some author/committer cryptic names to name and E-Mail addresses
+
+# sourceforge mappings
+root <root@users.sourceforge.net> <root@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Steve Karg <skarg@users.sourceforge.net> <skarg@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Tom Brennan <tbrennan3@users.sourceforge.net> <tbrennan3@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+John Minack <minack@users.sourceforge.net> <minack@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Peter Mc Shane <petermcs@users.sourceforge.net> <petermcs@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Edward Hague <bitstest@users.sourceforge.net> <ekh@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Edward Hague <bitstest@users.sourceforge.net> <bitstest@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Tom Pacheco <netp@users.sourceforge.net> <netp@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Mark Norton <s3rock@users.sourceforge.net> <s3rock@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+John Goulah <bigjohngoulah@users.sourceforge.net> <bigjohngoulah@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Andrew Chu akchu <akchu@users.sourceforge.net> <akchu@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Carl Neilson <cneilson@users.sourceforge.net> <cneilson@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Richard Bray <brayra@users.sourceforge.net> <brayra@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Duane L. King <kingdl802@users.sourceforge.net> <kingdl802@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Piotr Grudzinski <bacpack@users.sourceforge.net> <bacpack@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Rob Hoeye <rhoeye@users.sourceforge.net> <rhoeye@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Krzysztof Malorny <k001a@users.sourceforge.net> <k001a@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Paul Grinberg <gri6507@users.sourceforge.net> <gri6507@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Frédéric Chaxel <fchaxel@users.sourceforge.net> <fchaxel@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Miroslav Novotny <koby3101@users.sourceforge.net> <koby3101@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Boris Weitsch <bow2@users.sourceforge.net> <bow2@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+Vasyl Tkhir <vasyl-tkhir@users.sourceforge.net> <vasyl-tkhir@1e814d3a-8a88-4260-be86-c0dc25669c1e>
+
+# github mappings
+Greg Shue <greg.shue@outlook.com> <32416235+shuegr-personal@users.noreply.github.com>
+Greg Shue <greg.shue@outlook.com> <32416235+gregshue@users.noreply.github.com>
+Anthony DeLorenzo <anthony@crystalpeaksecurity.com> <108027248+anthony-crystalpeak@users.noreply.github.com>
+Nathan Zimmerman <83723367+jci-zimm@users.noreply.github.com>
+Maria <bakmaria@users.sourceforge.net> <99472506+bakmaria@users.noreply.github.com>
+Mikhail Antropov <michail.antropov@dsr-corporation.com> <103285038+Michail-Antropov@users.noreply.github.com>
+Alexander Wells <79699091+AlexanderWells-diamond@users.noreply.github.com>
+Alonso Cárdenas <11150989+alonsobsd@users.noreply.github.com>
+Anonymous Maarten <madebr@users.noreply.github.com>
+Chris Salisbury <20709243+ChrisSalisbury@users.noreply.github.com>
+Jefrin <83201502+jefrin-dev@users.noreply.github.com>
+Jonathan <74002342+jd-imi@users.noreply.github.com>
+Joshua Smith <3375071+josmithua@users.noreply.github.com>
+Mateusz Klatecki <47118568+MateuszKlatecki@users.noreply.github.com>
+Mikael <9700710+Machinegon@users.noreply.github.com>
+
+Nick Schaf <85998881+NickSchaf-jci@users.noreply.github.com>
+Sebastian Weyer <50481737+DocSepp@users.noreply.github.com>
+SpaceIm <30052553+SpaceIm@users.noreply.github.com>
+antocout <149781661+antocout@users.noreply.github.com>
+gducerf <59971684+gducerf@users.noreply.github.com>
+rcb-tcs <114009722+rcb-tcs@users.noreply.github.com>
+
+# other mappings
+Geert Linders <geert_l@outlook.com> <g.linders@ame.nu>
+Greg Shue <greg.shue@outlook.com> <gregory.shue@legrand.us>
+Steve Karg <skarg@users.sourceforge.net> <steve@kargs.net>
+Steve Karg <skarg@users.sourceforge.net> <steve@kargservice.com>
+Steve Karg <skarg@users.sourceforge.net> <steve.karg@legrand.us>
+Steve Karg <skarg@users.sourceforge.net> <allura@localhost>
+Edward Hague <bitstest@users.sourceforge.net> <edward@bac-test.com>
+Thomas Bracht Laumann Jespersen <t@laumann.xyz> <tj@omnio.net>

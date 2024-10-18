@@ -5,7 +5,7 @@
 # CC = gcc
 
 # Executable file name
-TARGET = bacroute
+TARGET = router-ipv6
 
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
@@ -13,49 +13,19 @@ TARGET_BIN = ${TARGET}$(TARGET_EXT)
 # BACNET_SRC_DIR is defined in common apps Makefile
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
-	$(BACNET_OBJECT_DIR)/netport.c \
-	$(BACNET_OBJECT_DIR)/client/device-client.c
-
-PORT_BIP6_SRC = \
-	$(BACNET_PORT_DIR)/bip6.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc6.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/h_bbmd6.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/vmac.c
-
-PORT_BIP_SRC = \
-	$(BACNET_PORT_DIR)/bip-init.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bbmd/h_bbmd.c
+	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
+	$(BACNET_OBJECT_DIR)/client/device-client.c \
+	$(BACNET_OBJECT_DIR)/netport.c
 
 # WARNINGS, DEBUGGING, OPTIMIZATION are defined in common apps Makefile
 # BACNET_DEFINES is defined in common apps Makefile
 # put all the flags together
 INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
-CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
-LFLAGS += -Wl,$(SYSTEM_LIB)
-ifneq (${BACNET_LIB},)
-LFLAGS += -Wl,$(BACNET_LIB)
-endif
-# GCC dead code removal
-CFLAGS += -ffunction-sections -fdata-sections
-LFLAGS += -Wl,--gc-sections
-
-BACNET_SRC = \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/binding/*.c) \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c) \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/sys/*.c) \
-	$(BACNET_SRC_DIR)/bacnet/basic/npdu/h_routed_npdu.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/tsm/tsm.c
-
-SRCS = ${SRC} ${BACNET_SRC} ${PORT_BIP6_SRC} ${PORT_BIP_SRC}
-
+SRCS = ${SRC}
 OBJS += ${SRCS:.c=.o}
 
 .PHONY: all
-all: Makefile ${TARGET_BIN}
+all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
 ${TARGET_BIN}: ${OBJS}
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@

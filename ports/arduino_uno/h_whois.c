@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
@@ -58,9 +41,9 @@ void sendIamUnicast(uint8_t *buffer, BACNET_ADDRESS *src)
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(&buffer[0], &dest, &my_address, &npdu_data);
     /* encode the APDU portion of the packet */
-    apdu_len =
-        iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
-            MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+    apdu_len = iam_encode_apdu(
+        &buffer[npdu_len], Device_Object_Instance_Number(), MAX_APDU,
+        SEGMENTATION_NONE, Device_Vendor_Identifier());
     /* send data */
     pdu_len = npdu_len + apdu_len;
     int bytes = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
@@ -81,7 +64,7 @@ void handler_who_is(
     } else if (len != -1) {
         /* is my device id within the limits? */
         target_device = Device_Object_Instance_Number();
-        if (((target_device >= low_limit) && (target_device <= high_limit)) {
+        if ((target_device >= low_limit) && (target_device <= high_limit)) {
             sendIamUnicast(&Handler_Transmit_Buffer[0], src);
         }
     }

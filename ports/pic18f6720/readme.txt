@@ -40,4 +40,3 @@ DATABANK   NAME=stackreg   START=0xC00          END=0xDFF          PROTECTED
 
 //STACK SIZE=0x100 RAM=gpr13
 STACK SIZE=0x200 RAM=stackreg
-

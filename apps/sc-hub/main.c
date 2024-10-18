@@ -32,7 +32,6 @@
 #include "bacnet/datalink/bsc/bsc-datalink.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
-
 /* (Doxygen note: The next two lines pull all the following Javadoc
  *  into the ServerDemo module.) */
 /** @addtogroup SCServerDemo */
@@ -90,22 +89,30 @@ static void print_usage(const char *filename)
 
 static void print_help(const char *filename)
 {
-    printf("Simulate a BACnet/SC HUB device\n"
+    printf(
+        "Simulate a BACnet/SC HUB device\n"
         "device-instance: BACnet Device Object Instance number that you are\n"
         "trying simulate.\n"
         "device-name: The Device name in ASCII for this device.\n"
         "\n");
     printf("Other parameters are passing over environment variables:\n"
-        "- BACNET_SC_ISSUER_1_CERTIFICATE_FILE: Filename of CA certificate\n"
-        "- BACNET_SC_OPERATIONAL_CERTIFICATE_FILE: Filename of device certificate\n"
-        "- BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE: Filename of device certificate key\n"
-        "- BACNET_SC_HUB_FUNCTION_BINDING: Local port or pair \"interface name:port number\"\n"
-        "For additional information see file bin/bsc-server.sh\n");
-    printf("\nExample:\n"
+           "- BACNET_SC_ISSUER_1_CERTIFICATE_FILE: Filename of CA certificate\n"
+           "- BACNET_SC_OPERATIONAL_CERTIFICATE_FILE: Filename of device "
+           "certificate\n"
+           "- BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE: Filename of "
+           "device certificate key\n"
+           "- BACNET_SC_HUB_FUNCTION_BINDING: Local port or pair \"interface "
+           "name:port number\"\n"
+           "For additional information see file bin/bsc-server.sh\n");
+    printf(
+        "\nExample:\n"
         "To simulate Device 111, use following command:\n"
-        "%s 111\n", filename);
-    printf("To simulate Device 111 named NoFred, use following command:\n"
-        "%s 111 NoFred\n", filename);
+        "%s 111\n",
+        filename);
+    printf(
+        "To simulate Device 111 named NoFred, use following command:\n"
+        "%s 111 NoFred\n",
+        filename);
 }
 
 /** Main function of server demo.
@@ -158,8 +165,9 @@ int main(int argc, char *argv[])
 
 #if defined(BAC_UCI)
     ctx = ucix_init("bacnet_dev");
-    if (!ctx)
+    if (!ctx) {
         fprintf(stderr, "Failed to load config file bacnet_dev\n");
+    }
     uciId = ucix_get_option_int(ctx, "bacnet_dev", "0", "Id", 0);
     if (uciId != 0) {
         Device_Set_Object_Instance_Number(uciId);
@@ -175,10 +183,11 @@ int main(int argc, char *argv[])
     ucix_cleanup(ctx);
 #endif /* defined(BAC_UCI) */
 
-    printf("BACnet SC Hub Demo\n"
-           "BACnet Stack Version %s\n"
-           "BACnet Device ID: %u\n"
-           "Max APDU: %d\n",
+    printf(
+        "BACnet SC Hub Demo\n"
+        "BACnet Stack Version %s\n"
+        "BACnet Device ID: %u\n"
+        "Max APDU: %d\n",
         BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
     /* load any static address bindings to show up
        in our device bindings list */
@@ -187,8 +196,9 @@ int main(int argc, char *argv[])
 #if defined(BAC_UCI)
     const char *uciname;
     ctx = ucix_init("bacnet_dev");
-    if (!ctx)
+    if (!ctx) {
         fprintf(stderr, "Failed to load config file bacnet_dev\n");
+    }
     uciname = ucix_get_option(ctx, "bacnet_dev", "0", "Name");
     if (uciname != 0) {
         Device_Object_Name_ANSI_Init(uciname);
@@ -201,7 +211,7 @@ int main(int argc, char *argv[])
     }
     ucix_cleanup(ctx);
 #endif /* defined(BAC_UCI) */
-    if (Device_Object_Name(Device_Object_Instance_Number(),&DeviceName)) {
+    if (Device_Object_Name(Device_Object_Instance_Number(), &DeviceName)) {
         printf("BACnet Device Name: %s\n", DeviceName.value);
     }
     dlenv_init();

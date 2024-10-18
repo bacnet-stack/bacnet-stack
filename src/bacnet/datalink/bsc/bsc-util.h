@@ -32,8 +32,8 @@ char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac);
 char *bsc_uuid_to_string(BACNET_SC_UUID *uuid);
 void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p);
 void bsc_generate_random_uuid(BACNET_SC_UUID *p);
-bool bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
-    BSC_NODE_EVENT_FUNC event_func);
+bool bsc_node_conf_fill_from_netport(
+    BSC_NODE_CONF *bsc_conf, BSC_NODE_EVENT_FUNC event_func);
 void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf);
 void bsc_copy_str(char *dst, const char *src, int dst_len);
 void bsc_set_timestamp(BACNET_DATE_TIME *timestamp);

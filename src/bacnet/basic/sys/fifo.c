@@ -1,40 +1,9 @@
 /**
  * @file
- * @author Steve Karg
- * @date 2004
  * @brief Generic interrupt safe FIFO library for deeply embedded system.
- *
- * @section LICENSE
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to:
- * The Free Software Foundation, Inc.
- * 59 Temple Place - Suite 330
- * Boston, MA  02111-1307
- * USA.
- *
- * As a special exception, if other files instantiate templates or
- * use macros or inline functions from this file, or you compile
- * this file and link it with other works to produce a work based
- * on this file, this file does not by itself cause the resulting
- * work to be covered by the GNU General Public License. However
- * the source code for this file must still be made available in
- * accordance with section (3) of the GNU General Public License.
- *
- * This exception does not invalidate any other reasons why a work
- * based on this file might be covered by the GNU General Public
- * License.
- *
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  * @section DESCRIPTION
  *
  * Generic interrupt safe FIFO library for deeply embedded system
@@ -173,30 +142,38 @@ uint8_t FIFO_Peek(FIFO_BUFFER const *b)
 }
 
 /**
- * Peeks some bytes from the front of the FIFO without removing it.
- * Use FIFO_Empty() or FIFO_Available() function to see if there is
- * data to retrieve otherwise buf will be filled by inconsistent data.
+ * Peeks ahead from the front of the FIFO without removing any data.
+ * Limit the number of bytes peeked to the number of bytes available.
  *
  * @param b - pointer to FIFO_BUFFER structure
  * @param buffer [out] - buffer to hold the peeked bytes
  * @param length [in] - number of bytes to peek from the FIFO
+ * @return number of bytes peeked
  */
-
-void FIFO_PeekBytes(FIFO_BUFFER const *b, uint8_t* buf, unsigned length)
+unsigned FIFO_Peek_Ahead(FIFO_BUFFER const *b, uint8_t *buffer, unsigned length)
 {
+    unsigned count = 0;
     unsigned index;
     unsigned tail;
     unsigned i;
 
     if (b) {
+        count = FIFO_Count(b);
+        if (count > length) {
+            /* adjust to limit the number of bytes peeked */
+            count = length;
+        }
         tail = b->tail;
-        for(i = 0; i < length; i++) {
+        for (i = 0; i < count; i++) {
             index = tail % b->buffer_len;
-            buf[i] = b->buffer[index];
+            buffer[i] = b->buffer[index];
             tail++;
         }
     }
+
+    return count;
 }
+
 /**
  * Gets a byte from the front of the FIFO, and removes it.
  * Use FIFO_Empty() or FIFO_Available() function to see if there is
@@ -295,7 +272,7 @@ bool FIFO_Put(FIFO_BUFFER *b, uint8_t data_byte)
  *
  * @return true if space available and added, false if not added
  */
-bool FIFO_Add(FIFO_BUFFER *b, uint8_t *buffer, unsigned count)
+bool FIFO_Add(FIFO_BUFFER *b, const uint8_t *buffer, unsigned count)
 {
     bool status = false; /* return value */
     unsigned index;

@@ -32,7 +32,8 @@ void bip6_get_my_address(BACNET_ADDRESS *my_address)
     ztest_copy_return_data(my_address, sizeof(BACNET_ADDRESS));
 }
 
-int bip6_send_pdu(BACNET_ADDRESS *dest,
+int bip6_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
@@ -57,13 +58,13 @@ void bip6_set_interface(char *ifname)
     ztest_check_expected_value(ifname);
 }
 
-bool bip6_address_match_self(BACNET_IP6_ADDRESS *addr)
+bool bip6_address_match_self(const BACNET_IP6_ADDRESS *addr)
 {
     ztest_check_expected_value(addr);
     return ztest_get_return_value();
 }
 
-bool bip6_set_addr(BACNET_IP6_ADDRESS *addr)
+bool bip6_set_addr(const BACNET_IP6_ADDRESS *addr)
 {
     ztest_check_expected_data(addr, sizeof(BACNET_IP6_ADDRESS));
     return ztest_get_return_value();
@@ -90,12 +91,13 @@ void bip6_get_broadcast_address(BACNET_ADDRESS *my_address)
     ztest_copy_return_data(my_address, sizeof(BACNET_ADDRESS));
 }
 
-bool bip6_set_broadcast_addr(BACNET_IP6_ADDRESS *addr)
+bool bip6_set_broadcast_addr(const BACNET_IP6_ADDRESS *addr)
 {
     return ztest_get_return_value();
 }
 
-int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip6_send_mpdu(
+    const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     ztest_check_expected_value(dest);
     ztest_check_expected_data(mtu, mtu_len);

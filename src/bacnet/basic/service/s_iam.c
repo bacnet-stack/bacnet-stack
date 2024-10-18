@@ -2,32 +2,16 @@
  *
  * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/dcc.h"
 #include "bacnet/npdu.h"
@@ -49,7 +33,8 @@
  * @param segmentation [in] #BACNET_SEGMENTATION enumeration
  * @param vendor_id [in] BACnet vendor ID 0-65535
  */
-void Send_I_Am_To_Network(BACNET_ADDRESS *target_address,
+void Send_I_Am_To_Network(
+    BACNET_ADDRESS *target_address,
     uint32_t device_id,
     unsigned int max_apdu,
     int segmentation,
@@ -69,8 +54,9 @@ void Send_I_Am_To_Network(BACNET_ADDRESS *target_address,
         &Handler_Transmit_Buffer[0], target_address, &my_address, &npdu_data);
     /* encode the APDU portion of the packet */
     /* encode the APDU portion of the packet */
-    len = iam_encode_apdu(&Handler_Transmit_Buffer[pdu_len], device_id,
-        max_apdu, segmentation, vendor_id);
+    len = iam_encode_apdu(
+        &Handler_Transmit_Buffer[pdu_len], device_id, max_apdu, segmentation,
+        vendor_id);
     pdu_len += len;
     bytes_sent = datalink_send_pdu(
         target_address, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
@@ -101,8 +87,9 @@ int iam_encode_pdu(
     pdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
 
     /* encode the APDU portion of the packet */
-    len = iam_encode_apdu(&buffer[pdu_len], Device_Object_Instance_Number(),
-        MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+    len = iam_encode_apdu(
+        &buffer[pdu_len], Device_Object_Instance_Number(), MAX_APDU,
+        SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len += len;
 
     return pdu_len;
@@ -153,8 +140,9 @@ void Send_I_Am(uint8_t *buffer)
  * @param npdu_data [out] The NPDU structure describing the message.
  * @return The length of the message in buffer[].
  */
-int iam_unicast_encode_pdu(uint8_t *buffer,
-    BACNET_ADDRESS *src,
+int iam_unicast_encode_pdu(
+    uint8_t *buffer,
+    const BACNET_ADDRESS *src,
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data)
 {
@@ -171,9 +159,9 @@ int iam_unicast_encode_pdu(uint8_t *buffer,
     npdu_encode_npdu_data(npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
     /* encode the APDU portion of the packet */
-    apdu_len =
-        iam_encode_apdu(&buffer[npdu_len], Device_Object_Instance_Number(),
-            MAX_APDU, SEGMENTATION_NONE, Device_Vendor_Identifier());
+    apdu_len = iam_encode_apdu(
+        &buffer[npdu_len], Device_Object_Instance_Number(), MAX_APDU,
+        SEGMENTATION_NONE, Device_Vendor_Identifier());
     pdu_len = npdu_len + apdu_len;
 
     return pdu_len;
@@ -190,7 +178,7 @@ int iam_unicast_encode_pdu(uint8_t *buffer,
  * @param buffer [in] The buffer to use for building and sending the message.
  * @param src [in] The source address information from service handler.
  */
-void Send_I_Am_Unicast(uint8_t *buffer, BACNET_ADDRESS *src)
+void Send_I_Am_Unicast(uint8_t *buffer, const BACNET_ADDRESS *src)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;

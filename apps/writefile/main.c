@@ -1,54 +1,36 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that uses BACnet AtomicWriteFile service
+ * to send a local file to a another device on the network.
+ * This tool sends the file in chunks to the target device.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
 #include "bacnet/awf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -64,7 +46,8 @@ static bool End_Of_File_Detected = false;
 static bool Error_Detected = false;
 static uint8_t Current_Invoke_ID = 0;
 
-static void Atomic_Write_File_Error_Handler(BACNET_ADDRESS *src,
+static void Atomic_Write_File_Error_Handler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
@@ -84,18 +67,20 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Current_Invoke_ID)) {
-        printf("BACnet Abort: %s\r\n",
+        printf(
+            "BACnet Abort: %s\r\n",
             bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Current_Invoke_ID)) {
-        printf("BACnet Reject: %s\r\n",
+        printf(
+            "BACnet Reject: %s\r\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -166,8 +151,9 @@ int main(int argc, char *argv[])
 
     if (argc < 4) {
         /* FIXME: what about access method - record or stream? */
-        printf("%s device-instance file-instance local-name [octet count] [pad "
-               "value]\r\n",
+        printf(
+            "%s device-instance file-instance local-name [octet count] [pad "
+            "value]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -175,14 +161,16 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     Target_File_Object_Instance = strtol(argv[2], NULL, 0);
     Local_File_Name = argv[3];
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-    if (Target_File_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "file-instance=%u - it must be less than %u\r\n",
-            Target_File_Object_Instance, BACNET_MAX_INSTANCE + 1);
+    if (Target_File_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(
+            stderr, "file-instance=%u - not greater than %u\r\n",
+            Target_File_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (argc > 4) {
@@ -223,6 +211,7 @@ int main(int argc, char *argv[])
         /* at least one second has passed */
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(current_seconds - last_seconds);
         }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
@@ -268,12 +257,14 @@ int main(int argc, char *argv[])
                 pFile = fopen(Local_File_Name, "rb");
                 if (pFile) {
                     (void)fseek(pFile, fileStartPosition, SEEK_SET);
-                    len = fread(octetstring_value(&fileData), 1,
-                        requestedOctetCount, pFile);
+                    len = fread(
+                        octetstring_value(&fileData), 1, requestedOctetCount,
+                        pFile);
                     if (len < requestedOctetCount) {
                         End_Of_File_Detected = true;
                         if (pad_byte) {
-                            memset(octetstring_value(&fileData) + len + 1,
+                            memset(
+                                octetstring_value(&fileData) + len + 1,
                                 (int)Target_File_Requested_Octet_Pad_Byte,
                                 requestedOctetCount - len);
                             len = requestedOctetCount;

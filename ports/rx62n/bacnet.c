@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stdint.h>
@@ -66,7 +49,8 @@ void bacnet_init(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* start the cyclic 1 second timer for DCC */
     mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
@@ -74,14 +58,17 @@ void bacnet_init(void)
     Send_I_Am(&Handler_Transmit_Buffer[0]);
 }
 
-/** Static receive buffer, initialized with zeros by the C Library Startup Code. */
+/** Static receive buffer, initialized with zeros by the C Library Startup Code.
+ */
 
-static uint8_t PDUBuffer[MAX_MPDU + 16 /* Add a little safety margin to the buffer,
-                                        * so that in the rare case, the message
-                                        * would be filled up to MAX_MPDU and some
-                                        * decoding functions would overrun, these
-                                        * decoding functions will just end up in
-                                        * a safe field of static zeros. */];
+static uint8_t PDUBuffer
+    [MAX_MPDU + 16 /* Add a little safety margin to the buffer,
+                    * so that in the rare case, the message
+                    * would be filled up to MAX_MPDU and some
+                    * decoding functions would overrun, these
+                    * decoding functions will just end up in
+                    * a safe field of static zeros. */
+];
 
 void bacnet_task(void)
 {

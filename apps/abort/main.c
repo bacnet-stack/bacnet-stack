@@ -1,39 +1,22 @@
-/**************************************************************************
- *
- * Copyright (C) 2016 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet service Abort message
+ * to the network
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/version.h"
@@ -63,8 +46,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     (void)src;
     (void)invoke_id;
@@ -91,42 +74,44 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s [abort-reason [invoke-id [server]]]\n", filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet Abort message to the network.\n");
     printf("--mac A\n"
-        "Optional destination BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional destination BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-    printf("--dnet N\n"
+    printf(
+        "--dnet N\n"
         "Optional destination BACnet network number N for directed requests.\n"
         "Valid range is from 0 to 65535 where 0 is the local connection\n"
         "and 65535 is network broadcast.\n");
     printf("\n");
     printf("--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network "
-        "number.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("abort-reason:\n"
-        "    number from 0 to 65535\n"
-        "invoke-id:\n"
-        "    number from 1 to 255\n"
-        "server:\n"
-        "    0=false, 1=true\n");
+           "    number from 0 to 65535\n"
+           "invoke-id:\n"
+           "    number from 1 to 255\n"
+           "server:\n"
+           "    0=false, 1=true\n");
     printf("\n");
-    printf("Example:\n"
+    printf(
+        "Example:\n"
         "%s 3 2 1\n",
         filename);
 }
@@ -140,7 +125,7 @@ int main(int argc, char *argv[])
     bool specific_address = false;
     int argi = 0;
     unsigned int target_args = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -231,7 +216,8 @@ int main(int argc, char *argv[])
     dlenv_init();
     atexit(datalink_cleanup);
     /* send the request */
-    Send_Abort_To_Network(&Handler_Transmit_Buffer[0], &dest, Target_Invoke_ID,
+    Send_Abort_To_Network(
+        &Handler_Transmit_Buffer[0], &dest, Target_Invoke_ID,
         Target_Abort_Reason, Target_Server);
 
     return 0;

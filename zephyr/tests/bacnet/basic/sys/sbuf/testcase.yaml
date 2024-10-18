@@ -1,6 +1,0 @@
-tests:
-  bacnet.basic.sys.sbuf.unit:
-    tags: bacnet
-    type: unit
-  bacnet.basic.sys.sbuf:
-    tags: bacnet
