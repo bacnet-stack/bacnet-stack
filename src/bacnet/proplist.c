@@ -434,6 +434,11 @@ bool property_list_bacnet_array_member(
         default:
             break;
     }
+    if ((object_property >= PROP_PROPRIETARY_RANGE_MIN) &&
+        (object_property <= PROP_PROPRIETARY_RANGE_MAX)) {
+        /* all proprietary properties could be a BACnetARRAY */
+        return true;
+    }
 
     return property_list_member(Properties_BACnetARRAY, object_property);
 }
@@ -526,6 +531,11 @@ bool property_list_bacnet_list_member(
             break;
         default:
             break;
+    }
+    if ((object_property >= PROP_PROPRIETARY_RANGE_MIN) &&
+        (object_property <= PROP_PROPRIETARY_RANGE_MAX)) {
+        /* all proprietary properties could be a BACnetLIST */
+        return true;
     }
 
     return property_list_member(Properties_BACnetLIST, object_property);
