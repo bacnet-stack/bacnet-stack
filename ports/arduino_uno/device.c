@@ -333,7 +333,7 @@ bool Device_Write_Property(
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (!Device_Valid_Object_Instance_Number(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;

@@ -2851,7 +2851,7 @@ static int bacapp_snprintf_weeklyschedule(
     int ret_val = 0;
     int wi, ti;
     BACNET_OBJECT_PROPERTY_VALUE dummyPropValue;
-    BACNET_APPLICATION_DATA_VALUE dummyDataValue;
+    BACNET_APPLICATION_DATA_VALUE dummyDataValue = { 0 };
 
     const char *weekdaynames[7] = { "Mon", "Tue", "Wed", "Thu",
                                     "Fri", "Sat", "Sun" };

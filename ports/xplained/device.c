@@ -767,7 +767,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value - false=error */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     uint8_t max_master = 0;
 
     /* decode the some of the request */

@@ -1536,9 +1536,7 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
-    int element_len = 0;
-    uint32_t count = 0;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     bool is_array;
 
     /*  only array properties can have array options */
