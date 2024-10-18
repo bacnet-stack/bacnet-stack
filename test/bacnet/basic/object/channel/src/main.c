@@ -30,6 +30,7 @@ static void test_Channel_Property_Read_Write(void)
     uint32_t test_instance = 0;
     bool status = false;
     const int skip_fail_property_list[] = { -1 };
+    BACNET_CHANNEL_VALUE channel_value = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
@@ -196,10 +197,48 @@ static void test_Channel_Property_Read_Write(void)
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Channel_Write_Property(&wp_data);
     zassert_false(status, NULL);
-
+    /* specific WriteProperty value */
+    wp_data.array_index = 1;
+    wp_data.priority = BACNET_MAX_PRIORITY;
+    wp_data.object_property = PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES;
+    value.tag = BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE;
+    value.type.Device_Object_Property_Reference.objectIdentifier.type =
+        OBJECT_ANALOG_OUTPUT;
+    value.type.Device_Object_Property_Reference.objectIdentifier.instance = 1;
+    value.type.Device_Object_Property_Reference.propertyIdentifier =
+        PROP_PRESENT_VALUE;
+    value.type.Device_Object_Property_Reference.arrayIndex = BACNET_ARRAY_ALL;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    wp_data.array_index = 0;
+    status = Channel_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    wp_data.array_index = BACNET_ARRAY_ALL - 1;
+    status = Channel_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    /* read-only property */
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_MAX_PRIORITY;
+    wp_data.object_property = PROP_OBJECT_TYPE;
+    value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+    value.type.Enumerated = OBJECT_ANALOG_INPUT;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+    zassert_false(status, NULL);
+    /* present-value API */
+    channel_value.tag = BACNET_APPLICATION_TAG_REAL;
+    channel_value.type.Real = 3.14159f;
+    status = Channel_Present_Value_Set(instance, 1, &channel_value);
+    zassert_true(status, NULL);
     /* cleanup */
     status = Channel_Delete(instance);
     zassert_true(status, NULL);
+    Channel_Cleanup();
 }
 /**
  * @}
