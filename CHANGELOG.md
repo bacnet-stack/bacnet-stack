@@ -98,6 +98,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed jquery.js used for syntax highlighting in PERL documentation. (#817)
+* Fixed EXC_BAD_ACCESS in datalink_set() strcasecmp(). (#816)
+* Fixed BACNET_APPLICATION_DATA_VALUE declarations to be initialized so
+  that the next pointer is NULL by default. (#814)
 * Fixed mstpcap utility by setting This-Station to the MS/TP promiscuous
   mode address 255. Fixed MS/TP receive filter for valid data frames which
   was missing. Fixed MS/TP zero-config duplicate node detection. Reset
