@@ -87,11 +87,12 @@ jobs:
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
+        sudo apt-get install -qq lcov
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
         git clone https://libwebsockets.org/repo/libwebsockets
-        bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
+        bash -c 'cd libwebsockets;git checkout v4.3-stable;mkdir build;cd build;cmake ..;make'
         sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Run Unit Test with Code Coverage
       run: make test
