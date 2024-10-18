@@ -105,7 +105,7 @@ int get_alarm_summary_ack_decode_apdu_data(
     BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (!apdu) {
         apdu_len = BACNET_STATUS_ERROR;
