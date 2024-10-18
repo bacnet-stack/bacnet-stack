@@ -299,7 +299,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     unsigned int object_index = 0;
     unsigned int priority = 0;
 #endif
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     int len = 0;
 
     /* decode the some of the request */

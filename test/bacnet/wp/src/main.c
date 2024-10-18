@@ -67,7 +67,7 @@ static void testWritePropertyTag(const BACNET_APPLICATION_DATA_VALUE *value)
 {
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     BACNET_WRITE_PROPERTY_DATA test_data = { 0 };
-    BACNET_APPLICATION_DATA_VALUE test_value;
+    BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
     uint8_t apdu[480] = { 0 };
     int len = 0;
     int null_len = 0;
@@ -181,7 +181,7 @@ ZTEST(wp_tests, testWriteProperty)
 static void testWriteProperty(void)
 #endif
 {
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     value.tag = BACNET_APPLICATION_TAG_NULL;
     testWritePropertyTag(&value);
