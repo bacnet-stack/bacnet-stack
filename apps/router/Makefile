@@ -24,7 +24,7 @@ SRCS = main.c \
 	${BACNET_PORT_DIR}/rs485.c \
 	${BACNET_PORT_DIR}/mstimer-init.c \
 	${BACNET_PORT_DIR}/bip-init.c \
-	${BACNET_PORT_DIR}/dlmstp_linux.c \
+	${BACNET_PORT_DIR}/dlmstp_port.c \
 	${BACNET_SOURCE_DIR}/basic/bbmd/h_bbmd.c \
 	${BACNET_SOURCE_DIR}/datalink/bvlc.c \
 	${BACNET_SOURCE_DIR}/basic/sys/fifo.c \

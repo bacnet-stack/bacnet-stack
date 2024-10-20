@@ -40,7 +40,7 @@
 #include <sys/select.h>
 #include <sys/time.h>
 
-#include "dlmstp_bsd.h"
+#include "dlmstp_port.h"
 
 #if defined(__APPLE__) || defined(__darwin__)
 #include <IOKit/serial/ioss.h>
@@ -118,7 +118,8 @@ static void closeSerialPort(int fileDescriptor);
 void RS485_Set_Interface(char *ifname)
 {
     /* note: expects a constant char, or char from the heap */
-    if (ifname) {
+    if (ifname && ifname != NULL) {
+        printf("### RS485_Set_Interface %s\n", ifname);
         RS485_Port_Name = ifname;
     }
 }

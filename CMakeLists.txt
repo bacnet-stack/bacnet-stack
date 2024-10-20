@@ -660,8 +660,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
-    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
-    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     ports/linux/mstimer-init.c)
 
@@ -907,8 +905,8 @@ if(BACNET_STACK_BUILD_APPS)
     else()
       add_executable(
         router
-        ports/linux/dlmstp_linux.c
-        ports/linux/dlmstp_linux.h
+        ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.c
+        ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.h
         apps/router/ipmodule.c
         apps/router/ipmodule.h
         apps/router/main.c

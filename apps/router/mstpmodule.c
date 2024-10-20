@@ -14,7 +14,7 @@
 #include <sys/ipc.h>
 #include "mstpmodule.h"
 #include "bacnet/bacint.h"
-#include "dlmstp_linux.h"
+#include "dlmstp_port.h"
 #include <termios.h>
 
 void *dl_mstp_thread(void *pArgs)
