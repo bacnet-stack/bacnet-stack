@@ -933,6 +933,7 @@ if(BACNET_STACK_BUILD_APPS)
         # These make this example not totally C90 compatible but it is ok.
 
         -Wno-variadic-macros
+        -O1
       )
     endif()
   endif()
