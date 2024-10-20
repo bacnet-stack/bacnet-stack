@@ -59,7 +59,6 @@ typedef struct shared_mstp_data {
     /*
        RT_SEM Receive_Packet_Flag;
      */
-    //sem_t Receive_Packet_Flag;
     dispatch_semaphore_t Receive_Packet_Flag;
     /* mechanism to wait for a frame in state machine */
     /*
@@ -92,7 +91,6 @@ typedef struct shared_mstp_data {
     FIFO_BUFFER Rx_FIFO;
     /* buffer size needs to be a power of 2 */
     uint8_t Rx_Buffer[4096];
-    //struct timeval start;
     struct timespec start;
     RING_BUFFER PDU_Queue;
 
