@@ -17,13 +17,6 @@
 #include "dlmstp_linux.h"
 #include <termios.h>
 
-#define MSTP_THREAD_PRINT_ENABLED
-#ifdef MSTP_THREAD_PRINT_ENABLED
-#define mstp_thread_debug(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define mstp_thread_debug(...)
-#endif
-
 void *dl_mstp_thread(void *pArgs)
 {
     ROUTER_PORT *port = (ROUTER_PORT *)pArgs;

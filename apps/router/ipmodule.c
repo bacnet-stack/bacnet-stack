@@ -260,7 +260,7 @@ int dl_ip_recv(
     struct timeval select_timeout;
     struct sockaddr_in sin = { 0 };
     socklen_t sin_len = sizeof(sin);
-
+    int ret;
     /* make sure the socket is open */
     if (data->socket < 0) {
         return 0;
@@ -284,7 +284,7 @@ int dl_ip_recv(
     sin.sin_addr.s_addr = 0x7E1D40A;
     sin.sin_port = 0xC0BA;
 #else
-    int ret = select(data->socket + 1, &read_fds, NULL, NULL, &select_timeout);
+    ret = select(data->socket + 1, &read_fds, NULL, NULL, &select_timeout);
     /* see if there is a packet for us */
     if (ret > 0) {
         received_bytes = recvfrom(

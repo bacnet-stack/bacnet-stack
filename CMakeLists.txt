@@ -927,11 +927,9 @@ if(BACNET_STACK_BUILD_APPS)
                 # needs libconfig
                 -lconfig)
 
-      target_compile_options(router PRIVATE
+        target_compile_options(router PRIVATE
         # These make this example not totally C90 compatible but it is ok.
 
-        -Wno-declaration-after-statement
-        -Wno-overlength-strings
         -Wno-variadic-macros
       )
     endif()
