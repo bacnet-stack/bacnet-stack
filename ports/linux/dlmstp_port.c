@@ -22,7 +22,7 @@
 #include "bacnet/basic/sys/ringbuf.h"
 #include "bacnet/basic/sys/debug.h"
 /* port specific */
-#include "dlmstp_linux.h"
+#include "dlmstp_port.h"
 #include "rs485.h"
 /* OS Specific include */
 #include "bacport.h"
