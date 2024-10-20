@@ -74,11 +74,6 @@ jobs:
         cmake_options="$cmake_options -DBACDL_BIP=ON"
         cmake_options="$cmake_options -DBACNET_PROTOCOL_REVISION=24"
 
-        if [[ "$RUNNER_OS" != "macOS" ]]; then
-          # Apple does not have port yet for this.
-          cmake_options="$cmake_options -DBACDL_MSTP=ON"
-        fi
-
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           # Apple nor Windows does not have port yet for this.
           cmake_options="$cmake_options -DBACDL_ARCNET=ON"
