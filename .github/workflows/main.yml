@@ -67,6 +67,7 @@ jobs:
 
         # TODO: Add BACDL_BIP6=ON when it builds withous errors.
         cmake_options="$cmake_options -DBACDL_BIP=ON"
+        cmake_options="$cmake_options -DBACDL_ETHERNET=ON"
         cmake_options="$cmake_options -DBACNET_PROTOCOL_REVISION=24"
 
         if [[ "$RUNNER_OS" != "macOS" ]]; then
@@ -77,10 +78,6 @@ jobs:
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           # Apple nor Windows does not have port yet for this.
           cmake_options="$cmake_options -DBACDL_ARCNET=ON"
-
-          # Currently Windows fails because of pcab.h not found.
-          # Apple does not have port yet for this.
-          cmake_options="$cmake_options -DBACDL_ETHERNET=ON"
         fi
 
         cmake $source_dir -DCMAKE_BUILD_TYPE=$BUILD_TYPE $cmake_options
