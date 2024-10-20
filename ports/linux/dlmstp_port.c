@@ -27,7 +27,7 @@
 /* OS Specific include */
 #include "bacport.h"
 
-/** @file linux/dlmstp.c  Provides Linux-specific DataLink functions for MS/TP.
+/** @file linux/dlmstp_port.c  Provides Linux-specific DataLink functions for MS/TP.
  */
 
 #define BACNET_PDU_CONTROL_BYTE_OFFSET 1
