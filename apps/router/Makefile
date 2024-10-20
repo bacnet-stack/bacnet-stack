@@ -15,6 +15,10 @@ ifeq (${BACNET_PORT},linux)
 TARGET_EXT =
 LIBS = -lpthread -lconfig -lm
 LFLAGS = $(LIBS)
+else ifeq (${BACNET_PORT},bsd)
+TARGET_EXT =
+LIBS = -lpthread -lconfig -lm
+LFLAGS = $(LIBS)
 endif
 
 SOURCE_DIR = ../../src
