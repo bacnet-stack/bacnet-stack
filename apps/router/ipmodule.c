@@ -24,7 +24,7 @@ uint8_t test_packet[] = { 0x81, 0x0a, 0x00, 0x16, /* BVLC header */
 
 /* BUG with optimize Os */
 /* *** bit out of range 0 - FD_SETSIZE on fd_set ***: terminated */
-void * dl_ip_thread(void *pArgs)
+void *dl_ip_thread(void *pArgs)
 {
     MSGBOX_ID msgboxid;
     BACMSG msg_storage, *bacmsg = NULL;
