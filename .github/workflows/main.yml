@@ -36,6 +36,11 @@ jobs:
         # apps/router needs libconfig-dev.
         sudo apt-get install -y libconfig-dev
   
+    - name: Install Dependencies (macOS)
+      if: matrix.os == 'macOS-latest' && matrix.project == 'root'
+      run: |
+        brew install libconfig
+  
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
       # We'll use this as our working directory for all subsequent commands
