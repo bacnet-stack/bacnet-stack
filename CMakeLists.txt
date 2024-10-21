@@ -938,6 +938,19 @@ if(BACNET_STACK_BUILD_APPS)
     endif()
   endif()
 
+  if(BACDL_BIP AND BACDL_MSTP)
+    add_executable(
+      router-mstp
+      apps/router-mstp/main.c)
+    target_link_libraries(
+      router-mstp
+      PRIVATE ${PROJECT_NAME})
+    target_compile_options(router-mstp PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
+  endif()
+
   if(BACDL_BIP AND BACDL_BIP6)
     add_executable(
       router-ipv6
