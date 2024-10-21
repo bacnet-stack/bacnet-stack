@@ -499,7 +499,7 @@ get_local_ifr_ioctl(const char *ifname, struct ifreq *ifr, int request)
  * @return 0 on success, else the error from the ioctl() call.
  */
 int bip_get_local_address_ioctl(
-    const char *ifname, struct in_addr *addr, int request)
+    const char *ifname, struct in_addr *addr, uint32_t request)
 {
     struct ifreq ifr = { 0 };
     struct sockaddr_in *tcpip_address;
