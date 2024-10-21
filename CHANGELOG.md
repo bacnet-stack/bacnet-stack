@@ -153,6 +153,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added BACDL_ETHERNET build in the pipeline for MacOS Linux and Windows. (#822)
+* Added apps/router to ports/bsd by sharing API with ports/linux. (#821)
+* Added missing router-mstp in cmake (#820)
 * Added shield option explanation to ports/stm32f4xx/README.md (#749)
 * Added API for intrinsic reporting properties in Binary Value and Binary
   Input objects (#742)
