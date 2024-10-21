@@ -1,5 +1,5 @@
 /**
- * @file port/bsd/dlmstp_bsd.h
+ * @file port/bsd/dlmstp_port.h
  * @brief Data structure definitions needed for the MS/TP Datalink Layer.
  * Function declarations needed for the MS/TP Datalink Layer.
  * @author Steve Karg <skarg@users.sourceforge.net>
@@ -13,7 +13,7 @@
 
 #include "bacnet/datalink/mstp.h"
 #include <sys/types.h>
-#include <semaphore.h>
+#include <dispatch/dispatch.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -59,7 +59,7 @@ typedef struct shared_mstp_data {
     /*
        RT_SEM Receive_Packet_Flag;
      */
-    sem_t Receive_Packet_Flag;
+    dispatch_semaphore_t Receive_Packet_Flag;
     /* mechanism to wait for a frame in state machine */
     /*
        RT_COND Received_Frame_Flag;
@@ -91,8 +91,7 @@ typedef struct shared_mstp_data {
     FIFO_BUFFER Rx_FIFO;
     /* buffer size needs to be a power of 2 */
     uint8_t Rx_Buffer[4096];
-    struct timeval start;
-
+    struct timespec start;
     RING_BUFFER PDU_Queue;
 
     struct mstp_pdu_packet PDU_Buffer[MSTP_PDU_PACKET_COUNT];

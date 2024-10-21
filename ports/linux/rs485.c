@@ -42,7 +42,7 @@
 #include <sys/select.h>
 #include <sys/time.h>
 
-#include "dlmstp_linux.h"
+#include "dlmstp_port.h"
 
 /* Posix serial programming reference:
 http://www.easysw.com/~mike/serial/serial.html */

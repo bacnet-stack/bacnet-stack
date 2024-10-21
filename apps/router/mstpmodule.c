@@ -14,15 +14,8 @@
 #include <sys/ipc.h>
 #include "mstpmodule.h"
 #include "bacnet/bacint.h"
-#include "dlmstp_linux.h"
+#include "dlmstp_port.h"
 #include <termios.h>
-
-#define MSTP_THREAD_PRINT_ENABLED
-#ifdef MSTP_THREAD_PRINT_ENABLED
-#define mstp_thread_debug(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define mstp_thread_debug(...)
-#endif
 
 void *dl_mstp_thread(void *pArgs)
 {
