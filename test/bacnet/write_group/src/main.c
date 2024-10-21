@@ -9,6 +9,8 @@
 #include <zephyr/ztest.h>
 #include <bacnet/write_group.h>
 
+#define WRITE_GROUP_CHANNEL_LIST_MAX 8
+
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -21,10 +23,7 @@ static void test_WriteGroup_Postive(BACNET_WRITE_GROUP_DATA *data)
     bool status;
     uint8_t apdu[480] = { 0 };
     BACNET_WRITE_GROUP_DATA test_data = { 0 };
-    BACNET_GROUP_CHANNEL_VALUE test_value = { 0 };
 
-    /* configure the test data structures */
-    test_data.change_list = &test_value;
     /* positive test */
     len =
         bacnet_write_group_service_request_encode(&apdu[0], sizeof(apdu), data);
@@ -69,11 +68,7 @@ static void test_WriteGroup_Negative(BACNET_WRITE_GROUP_DATA *data)
     int apdu_len = 0;
     uint8_t apdu[480] = { 0 };
     BACNET_WRITE_GROUP_DATA test_data = { 0 };
-    BACNET_GROUP_CHANNEL_VALUE test_value = { 0 };
 
-    /* configure the test data structures */
-    test_data.change_list = &test_value;
-    bacnet_group_channel_value_link_array(&test_value, 1);
     len =
         bacnet_write_group_service_request_encode(&apdu[0], sizeof(apdu), data);
     zassert_true(len > 0, NULL);
@@ -81,6 +76,65 @@ static void test_WriteGroup_Negative(BACNET_WRITE_GROUP_DATA *data)
     len = bacnet_write_group_service_request_decode(
         &apdu[0], apdu_len, &test_data);
     zassert_true(len < 0, NULL);
+}
+
+/**
+ * @brief callback for WriteGroup-Request iterator
+ * @param data [in] The contents of the WriteGroup-Request message
+ * @param change_list_index [in] The index of the current value in the change
+ * list
+ * @param change_list [in] The current value in the change list
+ */
+static void test_WriteGroup_Iterate_Value(
+    BACNET_WRITE_GROUP_DATA *data,
+    uint32_t change_list_index,
+    BACNET_GROUP_CHANNEL_VALUE *change_list)
+{
+    BACNET_GROUP_CHANNEL_VALUE *value = NULL;
+
+    value = bacnet_write_group_channel_value_element(data, change_list_index);
+    zassert_not_null(value, NULL);
+    zassert_true(bacnet_group_channel_value_same(value, change_list), NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(write_group_tests, test_WriteGroup_Iterate)
+#else
+static void test_WriteGroup_Iterate(void)
+#endif
+{
+    int len, test_len;
+    uint8_t apdu[480] = { 0 };
+    BACNET_WRITE_GROUP_DATA data = {
+        /* initial test values for sunny day use-case */
+        .group_number = 1,
+        .write_priority = BACNET_MIN_PRIORITY,
+        .change_list = { 0 },
+        .inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_NONE,
+        .next = NULL
+    };
+    BACNET_GROUP_CHANNEL_VALUE value[WRITE_GROUP_CHANNEL_LIST_MAX] = { 0 };
+    BACNET_GROUP_CHANNEL_VALUE *value_element = NULL;
+    unsigned index = 0;
+
+    /* link the array of change-list to our data */
+    bacnet_write_group_channel_value_link_array(
+        &data, value, ARRAY_SIZE(value));
+    /* note: array + head */
+    for (index = 0; index < ARRAY_SIZE(value) + 1; index++) {
+        value_element = bacnet_write_group_channel_value_element(&data, index);
+        zassert_not_null(value_element, NULL);
+        /* set some predictable values to be tested */
+        value_element->channel = index;
+        value_element->overriding_priority = index;
+        value_element->value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+        value_element->value.type.Unsigned_Int = index;
+    }
+    len = bacnet_write_group_service_request_encode(
+        &apdu[0], sizeof(apdu), &data);
+    zassert_true(len > 0, NULL);
+    test_len = bacnet_write_group_service_request_decode_iterate(
+        &apdu[0], len, &data, test_WriteGroup_Iterate_Value);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -91,25 +145,15 @@ static void test_WriteGroup(void)
 {
     int len = 0;
     uint8_t apdu[480] = { 0 };
-    BACNET_GROUP_CHANNEL_VALUE value = {
-        /* initial test values for sunny day use-case */
-        .channel = 0,
-        .overriding_priority = 0,
-        .value = { .tag = BACNET_APPLICATION_TAG_NULL },
-        .next = NULL
-    };
     BACNET_WRITE_GROUP_DATA data = {
         /* initial test values for sunny day use-case */
         .group_number = 1,
         .write_priority = BACNET_MIN_PRIORITY,
-        .change_list = NULL,
+        .change_list = { 0 },
         .inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_NONE,
         .next = NULL
     };
 
-    /* configure the data structures */
-    data.change_list = &value;
-    bacnet_group_channel_value_link_array(&value, 1);
     /* negative test */
     len =
         bacnet_write_group_service_request_encode(&apdu[0], sizeof(apdu), NULL);
@@ -142,27 +186,15 @@ static void test_WriteGroup_Same(void)
 #endif
 {
     bool status;
-    BACNET_GROUP_CHANNEL_VALUE value = {
-        /* initial test values for sunny day use-case */
-        .channel = 0,
-        .overriding_priority = 0,
-        .value = { .tag = BACNET_APPLICATION_TAG_NULL },
-        .next = NULL
-    };
     BACNET_WRITE_GROUP_DATA data = {
         /* initial test values for sunny day use-case */
         .group_number = 1,
         .write_priority = BACNET_MIN_PRIORITY,
-        .change_list = NULL,
+        .change_list = { 0 },
         .inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_NONE,
         .next = NULL
     };
     BACNET_WRITE_GROUP_DATA test_data = { 0 };
-    BACNET_GROUP_CHANNEL_VALUE test_value = { 0 };
-
-    /* configure the data structures */
-    data.change_list = &value;
-    test_data.change_list = &test_value;
 
     status = bacnet_write_group_same(&data, &test_data);
     zassert_false(status, NULL);
@@ -196,18 +228,18 @@ static void test_WriteGroup_Same(void)
     zassert_false(status, NULL);
 
     status = bacnet_write_group_copy(&test_data, &data);
-    test_data.change_list->channel = 1;
+    test_data.change_list.channel = 1;
     status = bacnet_write_group_same(&data, &test_data);
     zassert_false(status, NULL);
 
     status = bacnet_write_group_copy(&test_data, &data);
-    test_data.change_list->overriding_priority = 1;
+    test_data.change_list.overriding_priority = 1;
     status = bacnet_write_group_same(&data, &test_data);
     zassert_false(status, NULL);
 
     status = bacnet_write_group_copy(&test_data, &data);
-    test_data.change_list->value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
-    test_data.change_list->value.type.Boolean = true;
+    test_data.change_list.value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
+    test_data.change_list.value.type.Boolean = true;
     status = bacnet_write_group_same(&data, &test_data);
     zassert_false(status, NULL);
 }
@@ -219,7 +251,8 @@ void test_main(void)
 {
     ztest_test_suite(
         write_group_tests, ztest_unit_test(test_WriteGroup),
-        ztest_unit_test(test_WriteGroup_Same));
+        ztest_unit_test(test_WriteGroup_Same),
+        ztest_unit_test(test_WriteGroup_Iterate));
 
     ztest_run_test_suite(write_group_tests);
 }

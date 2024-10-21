@@ -96,13 +96,11 @@ void handler_write_group(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
     BACNET_WRITE_GROUP_DATA data = { 0 };
-    BACNET_GROUP_CHANNEL_VALUE change_list_element = { 0 };
     int len = 0;
 
     (void)src;
     debug_printf("Received WriteGroup-Request!\n");
 
-    data.change_list = &change_list_element;
     len = bacnet_write_group_service_request_decode_iterate(
         service_request, service_len, &data,
         handler_write_group_notification_callback);

@@ -15,6 +15,7 @@
 /* BACnet Stack API */
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
+#include "bacnet/write_group.h"
 #include "bacnet/basic/object/lo.h"
 #include "bacnet/channel_value.h"
 
@@ -47,6 +48,11 @@ BACNET_STACK_EXPORT
 int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+BACNET_STACK_EXPORT
+void Channel_Write_Group(
+    BACNET_WRITE_GROUP_DATA *data,
+    uint32_t change_list_index,
+    BACNET_GROUP_CHANNEL_VALUE *change_list);
 
 BACNET_STACK_EXPORT
 BACNET_CHANNEL_VALUE *Channel_Present_Value(uint32_t object_instance);

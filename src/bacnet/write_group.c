@@ -35,7 +35,6 @@ int bacnet_write_group_encode(
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
-    BACNET_GROUP_CHANNEL_VALUE *value = NULL; /* value in list */
     BACNET_UNSIGNED_INTEGER unsigned_value;
 
     if (!data) {
@@ -54,30 +53,22 @@ int bacnet_write_group_encode(
     if (apdu) {
         apdu += len;
     }
-    if (data->change_list) {
-        /* change-list [2] SEQUENCE OF BACnetGroupChannelValue */
-        len = encode_opening_tag(apdu, 2);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        /* the first value includes a pointer to the next value, etc */
-        value = data->change_list;
-        while (value != NULL) {
-            /* SEQUENCE OF BACnetGroupChannelValue */
-            len = bacnet_group_channel_value_encode(apdu, value);
-            apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
-            /* is there another one to encode? */
-            value = value->next;
-        }
-        len = encode_closing_tag(apdu, 2);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
+    /* change-list [2] SEQUENCE OF BACnetGroupChannelValue */
+    len = encode_opening_tag(apdu, 2);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* SEQUENCE OF BACnetGroupChannelValue */
+    len = bacnet_group_channel_value_encode(apdu, &data->change_list);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_closing_tag(apdu, 2);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
     }
     /* inhibit-delay [3] BOOLEAN OPTIONAL */
     if (data->inhibit_delay == WRITE_GROUP_INHIBIT_DELAY_TRUE) {
@@ -249,12 +240,9 @@ void bacnet_write_group_service_change_list_value_set(
     uint32_t change_list_index,
     BACNET_GROUP_CHANNEL_VALUE *change_list)
 {
-    BACNET_GROUP_CHANNEL_VALUE *value = data->change_list;
+    BACNET_GROUP_CHANNEL_VALUE *value;
 
-    while (value && change_list_index) {
-        value = value->next;
-        change_list_index--;
-    }
+    value = bacnet_write_group_channel_value_element(data, change_list_index);
     if (value) {
         (void)bacnet_group_channel_value_copy(value, change_list);
     }
@@ -378,17 +366,15 @@ bool bacnet_write_group_copy(
     dest->group_number = src->group_number;
     dest->write_priority = src->write_priority;
     dest->inhibit_delay = src->inhibit_delay;
-    if (src->change_list) {
-        value_src = src->change_list;
-        value_dest = dest->change_list;
-        while (value_src && value_dest) {
-            bacnet_group_channel_value_copy(value_dest, value_src);
-            value_src = value_src->next;
-            value_dest = value_dest->next;
-        }
-        if (value_src || value_dest) {
-            return false;
-        }
+    value_src = &src->change_list;
+    value_dest = &dest->change_list;
+    while (value_src && value_dest) {
+        bacnet_group_channel_value_copy(value_dest, value_src);
+        value_src = value_src->next;
+        value_dest = value_dest->next;
+    }
+    if (value_src || value_dest) {
+        return false;
     }
 
     return true;
@@ -415,12 +401,9 @@ bool bacnet_write_group_same(
     if (data1->inhibit_delay != data2->inhibit_delay) {
         return false;
     }
-    if (data1->change_list == data2->change_list) {
-        return true;
-    }
 
     return bacnet_group_change_list_same(
-        data1->change_list, data2->change_list);
+        &data1->change_list, &data2->change_list);
 }
 
 /**
@@ -617,19 +600,49 @@ bool bacnet_group_channel_value_copy(
 }
 
 /**
- * @brief Convert an array of BACnetGroupChannelValue to linked list
+ * @brief Add an array of BACnetGroupChannelValue to linked list
  * @param array pointer to element zero of the array
  * @param size number of elements in the array
  */
-void bacnet_group_channel_value_link_array(
-    BACNET_GROUP_CHANNEL_VALUE *array, size_t size)
+void bacnet_write_group_channel_value_link_array(
+    BACNET_WRITE_GROUP_DATA *data,
+    BACNET_GROUP_CHANNEL_VALUE *array,
+    size_t size)
 {
     size_t i = 0;
+    BACNET_GROUP_CHANNEL_VALUE *value;
 
-    for (i = 0; i < size; i++) {
-        if (i > 0) {
-            array[i - 1].next = &array[i];
-        }
-        array[i].next = NULL;
+    if (!data || !array || (size == 0)) {
+        return;
     }
+    value = &data->change_list;
+    for (i = 0; i < size; i++) {
+        value->next = &array[i];
+        value = value->next;
+    }
+}
+
+/**
+ * @brief Get an array element of BACnetGroupChannelValue from WriteGroup data
+ * @param data pointer to the WriteGroup data
+ * @param index element number to retrieve 0..N
+ */
+BACNET_GROUP_CHANNEL_VALUE *bacnet_write_group_channel_value_element(
+    BACNET_WRITE_GROUP_DATA *data, unsigned index)
+{
+    BACNET_GROUP_CHANNEL_VALUE *value;
+    unsigned i = 0;
+
+    if (!data) {
+        return NULL;
+    }
+    value = &data->change_list;
+    while (i < index) {
+        if (value) {
+            value = value->next;
+        }
+        i++;
+    }
+
+    return value;
 }

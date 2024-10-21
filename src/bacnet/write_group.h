@@ -51,7 +51,7 @@ typedef struct BACnet_Write_Group_Data {
     uint32_t group_number;
     uint8_t write_priority;
     /* simple linked list of values */
-    BACNET_GROUP_CHANNEL_VALUE *change_list;
+    BACNET_GROUP_CHANNEL_VALUE change_list;
     WRITE_GROUP_INHIBIT_DELAY inhibit_delay;
     struct BACnet_Write_Group_Data *next;
 } BACNET_WRITE_GROUP_DATA;
@@ -108,6 +108,14 @@ int bacnet_write_group_service_request_decode_iterate(
 BACNET_STACK_EXPORT
 bool bacnet_write_group_copy(
     BACNET_WRITE_GROUP_DATA *dest, const BACNET_WRITE_GROUP_DATA *src);
+BACNET_STACK_EXPORT
+void bacnet_write_group_channel_value_link_array(
+    BACNET_WRITE_GROUP_DATA *data,
+    BACNET_GROUP_CHANNEL_VALUE *value,
+    size_t size);
+BACNET_STACK_EXPORT
+BACNET_GROUP_CHANNEL_VALUE *bacnet_write_group_channel_value_element(
+    BACNET_WRITE_GROUP_DATA *data, unsigned index);
 
 BACNET_STACK_EXPORT
 bool bacnet_group_change_list_same(
@@ -134,9 +142,6 @@ bool bacnet_group_channel_value_same(
 BACNET_STACK_EXPORT
 bool bacnet_group_channel_value_copy(
     BACNET_GROUP_CHANNEL_VALUE *dest, const BACNET_GROUP_CHANNEL_VALUE *src);
-BACNET_STACK_EXPORT
-void bacnet_group_channel_value_link_array(
-    BACNET_GROUP_CHANNEL_VALUE *value, size_t size);
 
 #ifdef __cplusplus
 }
