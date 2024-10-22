@@ -8,7 +8,6 @@
  * @ingroup DataLink
  */
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -472,7 +471,6 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
  */
 void dlmstp_set_mac_address(uint8_t mac_address)
 {
-    fprintf(stderr, "dlmstp set mac address %u\n", mac_address);
     if (MSTP_Port) {
         MSTP_Port->This_Station = mac_address;
     }

@@ -83,7 +83,6 @@ static BACNET_ADDRESS *cov_address_get(unsigned index)
             cov_dest = &COV_Addresses[index].dest;
         }
     }
-    fprintf(stderr, "cov_address_get &COV_Addresses[%u] = %p\n", index, (void *)cov_dest);
 
     return cov_dest;
 }
@@ -197,7 +196,6 @@ static int cov_encode_subscription(
     BACNET_OCTET_STRING octet_string;
     BACNET_ADDRESS *dest = NULL;
 
-    fprintf(stderr, "cov_encode_subscription\n");
     (void)max_apdu;
     if (!cov_subscription) {
         return 0;
@@ -285,7 +283,6 @@ static int cov_encode_subscription(
 #define MAX_COV_SUB_SIZE (40)
 int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
 {
-    fprintf(stderr, "handler_cov_encode_subscriptions\n");
     if (apdu) {
         uint8_t cov_sub[MAX_COV_SUB_SIZE] = {
             0,
@@ -357,8 +354,6 @@ static bool cov_list_subscribe(
 
     /* unable to subscribe - resources? */
     /* unable to cancel subscription - other? */
-    fprintf(stderr, "cov_list_subscribe\n");
-    fprintf(stderr, "cov_data->lifetime = %u\n", cov_data->lifetime);
 
     /* existing? - match Object ID and Process ID and address */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
@@ -442,8 +437,7 @@ static bool cov_list_subscribe(
             found = true;
         }
     }
-    fprintf(stderr, "COV_Subscriptions[index].lifetime = %u\n", COV_Subscriptions[index].lifetime);
-    fprintf(stderr, "found = %d\n", found);
+
     return found;
 }
 
@@ -461,7 +455,6 @@ static bool cov_send_request(
     BACNET_COV_DATA cov_data;
     BACNET_ADDRESS *dest = NULL;
 
-    fprintf(stderr, "cov_send_request\n");
     if (!dcc_communication_enabled()) {
         return status;
     }
@@ -532,8 +525,6 @@ COV_FAILED:
 static void cov_lifetime_expiration_handler(
     unsigned index, uint32_t elapsed_seconds, uint32_t lifetime_seconds)
 {
-
-    fprintf(stderr, "cov_lifetime_expiration_handler index=%u elapsed_seconds=%u lifetime_seconds=%u\n", index, elapsed_seconds, lifetime_seconds);
     if (index < MAX_COV_SUBCRIPTIONS) {
         /* handle lifetime expiration */
         if (lifetime_seconds >= elapsed_seconds) {
@@ -765,7 +756,6 @@ static bool cov_subscribe(
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
     uint32_t object_instance = 0;
 
-    fprintf(stderr, "cov_subscribe\n");
     object_type = (BACNET_OBJECT_TYPE)cov_data->monitoredObjectIdentifier.type;
     object_instance = cov_data->monitoredObjectIdentifier.instance;
     status = Device_Valid_Object_Id(object_type, object_instance);
@@ -831,8 +821,6 @@ void handler_cov_subscribe(
     BACNET_ADDRESS my_address;
     bool error = false;
 
-    fprintf(stderr, "handler_cov_subscribe\n");
-    fprintf(stderr, "service_len = %u\n", service_len);
     /* initialize a common abort code */
     cov_data.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
     /* encode the NPDU portion of the packet */
@@ -850,16 +838,13 @@ void handler_cov_subscribe(
     } else {
         len = cov_subscribe_decode_service_request(
             service_request, service_len, &cov_data);
-        fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
         if (len <= 0) {
             fprintf(stderr, "SubscribeCOV: Unable to decode Request!\n");
         }
 #endif
-
         if (len < 0) {
             error = true;
-            fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
         } else {
             cov_data.error_class = ERROR_CLASS_OBJECT;
             cov_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -869,29 +854,25 @@ void handler_cov_subscribe(
                 apdu_len = encode_simple_ack(
                     &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_SUBSCRIBE_COV);
-                fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
                 fprintf(stderr, "SubscribeCOV: Sending Simple Ack!\n");
 #endif
             } else {
                 len = BACNET_STATUS_ERROR;
                 error = true;
-                fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
                 fprintf(stderr, "SubscribeCOV: Sending Error!\n");
 #endif
             }
         }
     }
-    fprintf(stderr, "handler_cov_subscribe error=%d\n", error);
+
     /* Error? */
     if (error) {
-        fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
         if (len == BACNET_STATUS_ABORT) {
             apdu_len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 abort_convert_error_code(cov_data.error_code), true);
-            fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
             fprintf(stderr, "SubscribeCOV: Sending Abort!\n");
 #endif
@@ -900,7 +881,6 @@ void handler_cov_subscribe(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_SUBSCRIBE_COV, cov_data.error_class,
                 cov_data.error_code);
-            fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
             fprintf(stderr, "SubscribeCOV: Sending Error!\n");
 #endif
@@ -908,7 +888,6 @@ void handler_cov_subscribe(
             apdu_len = reject_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 reject_convert_error_code(cov_data.error_code));
-            fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
 #if PRINT_ENABLED
             fprintf(stderr, "SubscribeCOV: Sending Reject!\n");
 #endif
@@ -917,7 +896,6 @@ void handler_cov_subscribe(
     pdu_len = npdu_len + apdu_len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-    fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
     if (bytes_sent <= 0) {
 #if PRINT_ENABLED
         fprintf(
@@ -925,6 +903,6 @@ void handler_cov_subscribe(
             strerror(errno));
 #endif
     }
-    fprintf(stderr,"[%s %d %s] test " , __FILE__, __LINE__, __func__ );
+
     return;
 }

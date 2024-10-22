@@ -6,7 +6,6 @@
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <string.h>
-#include <stdio.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -2700,7 +2699,6 @@ int bacnet_unsigned_decode(
                 len = 3;
                 break;
             case 4:
-                fprintf(stderr, "DECODE 32");
                 if (value) {
                     decode_unsigned32(&apdu[0], &unsigned32_value);
                     *value = unsigned32_value;
@@ -2709,7 +2707,6 @@ int bacnet_unsigned_decode(
                 break;
 #ifdef UINT64_MAX
             case 5:
-            fprintf(stderr, "DECODE 40");
                 if (value) {
                     decode_unsigned40(&apdu[0], &unsigned64_value);
                     *value = unsigned64_value;

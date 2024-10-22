@@ -731,7 +731,7 @@ bool Network_Port_MAC_Address(
     uint32_t object_instance, BACNET_OCTET_STRING *mac_address)
 {
     bool status = false;
-    fprintf(stderr, "## Network_Port_MAC_Address");
+
     if (mac_address) {
         uint8_t mac_tmp[4 + 2] = { 0 };
         uint8_t mac_len = Network_Port_MAC_Address_Value(object_instance, mac_tmp, sizeof(mac_tmp));
@@ -772,8 +772,6 @@ bool Network_Port_MAC_Address_Set(
                     sizeof(Object_List[index].Network.Ethernet.MAC_Address);
                 break;
             case PORT_TYPE_MSTP:
-                fprintf(stderr, "### Object_List[index].Network.MSTP.MAC_Address %d\n", Object_List[index].Network.MSTP.MAC_Address);
-                fprintf(stderr, "### *mac_src %d\n", *mac_src);
                 mac_dest = &Object_List[index].Network.MSTP.MAC_Address;
                 mac_size = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 break;
