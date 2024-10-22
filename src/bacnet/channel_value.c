@@ -9,6 +9,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
+#include <float.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -549,6 +551,8 @@ bool bacnet_channel_value_from_ascii(
     const char *lighting_command;
     const char *color_command;
     const char *xy_color;
+    const char *real_string;
+    const char *double_string;
 
     if (!value || !argv) {
         return false;
@@ -616,9 +620,28 @@ bool bacnet_channel_value_from_ascii(
         }
     }
     if (!status) {
-        decimal_point = strchr(argv, '.');
-        if (decimal_point) {
-            count = sscanf(argv, "%lf", &double_value);
+        real_string = strchr(argv, 'F');
+        if (!real_string) {
+            real_string = strchr(argv, 'f');
+        }
+        if (real_string) {
+            value->tag = BACNET_APPLICATION_TAG_REAL;
+            count = sscanf(argv + 1, "%f", &single_value);
+            if (count == 1) {
+#if defined(CHANNEL_REAL)
+                value->type.Real = single_value;
+#endif
+                status = true;
+            }
+        }
+    }
+    if (!status) {
+        double_string = strchr(argv, 'R');
+        if (!double_string) {
+            double_string = strchr(argv, 'r');
+        }
+        if (double_string) {
+            count = sscanf(argv + 1, "%lf", &double_value);
             if (count == 1) {
                 value->tag = BACNET_APPLICATION_TAG_DOUBLE;
 #if defined(CHANNEL_DOUBLE)
@@ -631,12 +654,20 @@ bool bacnet_channel_value_from_ascii(
     if (!status) {
         decimal_point = strchr(argv, '.');
         if (decimal_point) {
-            count = sscanf(argv, "%f", &single_value);
+            count = sscanf(argv, "%lf", &double_value);
             if (count == 1) {
-                value->tag = BACNET_APPLICATION_TAG_REAL;
+                if (isgreaterequal(double_value, -FLT_MAX) &&
+                    islessequal(double_value, FLT_MAX)) {
+                    value->tag = BACNET_APPLICATION_TAG_REAL;
 #if defined(CHANNEL_REAL)
-                value->type.Real = single_value;
+                    value->type.Real = (float)double_value;
 #endif
+                } else {
+                    value->tag = BACNET_APPLICATION_TAG_DOUBLE;
+#if defined(CHANNEL_DOUBLE)
+                    value->type.Double = double_value;
+#endif
+                }
                 status = true;
             }
         }

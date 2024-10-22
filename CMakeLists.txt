@@ -478,6 +478,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_wp.h
   src/bacnet/basic/service/s_wpm.c
   src/bacnet/basic/service/s_wpm.h
+  src/bacnet/basic/service/s_write_group.c
+  src/bacnet/basic/service/s_write_group.h
   src/bacnet/basic/services.h
   src/bacnet/basic/sys/bigend.c
   src/bacnet/basic/sys/bigend.h
@@ -1006,6 +1008,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(writefile apps/writefile/main.c)
   target_link_libraries(writefile PRIVATE ${PROJECT_NAME})
+
+  add_executable(writegroup apps/writegroup/main.c)
+  target_link_libraries(writegroup PRIVATE ${PROJECT_NAME})
 
   add_executable(writeprop apps/writeprop/main.c)
   target_link_libraries(writeprop PRIVATE ${PROJECT_NAME})
