@@ -773,7 +773,8 @@ bool Network_Port_MAC_Address_Set(
                     sizeof(Object_List[index].Network.Ethernet.MAC_Address);
                 break;
             case PORT_TYPE_MSTP:
-                fprintf(stderr, "### &Object_List[index].Network.MSTP.MAC_Address %d\n", &Object_List[index].Network.MSTP.MAC_Address);
+                fprintf(stderr, "### Object_List[index].Network.MSTP.MAC_Address %d\n", Object_List[index].Network.MSTP.MAC_Address);
+                fprintf(stderr, "### *mac_src %d\n", *mac_src);
                 mac_dest = &Object_List[index].Network.MSTP.MAC_Address;
                 mac_size = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 break;
