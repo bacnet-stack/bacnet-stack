@@ -731,7 +731,7 @@ bool Network_Port_MAC_Address(
     uint32_t object_instance, BACNET_OCTET_STRING *mac_address)
 {
     bool status = false;
-    fprintf("Network_Port_MAC_Address mac_address %d\n", mac_address);
+    fprintf(stderr, "Network_Port_MAC_Address mac_address %d\n", mac_address);
     if (mac_address) {
         uint8_t mac_tmp[4 + 2] = { 0 };
         uint8_t mac_len = Network_Port_MAC_Address_Value(
