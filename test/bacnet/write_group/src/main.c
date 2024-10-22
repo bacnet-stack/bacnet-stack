@@ -92,7 +92,7 @@ static void test_WriteGroup_Iterate_Value(
 {
     BACNET_GROUP_CHANNEL_VALUE *value = NULL;
 
-    value = bacnet_write_group_channel_value_element(data, change_list_index);
+    value = bacnet_write_group_change_list_element(data, change_list_index);
     zassert_not_null(value, NULL);
     zassert_true(bacnet_group_channel_value_same(value, change_list), NULL);
 }
@@ -114,15 +114,19 @@ static void test_WriteGroup_Iterate(void)
         .next = NULL
     };
     BACNET_GROUP_CHANNEL_VALUE value[WRITE_GROUP_CHANNEL_LIST_MAX] = { 0 };
+    BACNET_GROUP_CHANNEL_VALUE value_append = { 0 };
     BACNET_GROUP_CHANNEL_VALUE *value_element = NULL;
+    unsigned count = 0;
     unsigned index = 0;
+    bool status;
 
     /* link the array of change-list to our data */
-    bacnet_write_group_channel_value_link_array(
+    status = bacnet_write_group_change_list_array_link(
         &data, value, ARRAY_SIZE(value));
+    zassert_true(status, NULL);
     /* note: array + head */
     for (index = 0; index < ARRAY_SIZE(value) + 1; index++) {
-        value_element = bacnet_write_group_channel_value_element(&data, index);
+        value_element = bacnet_write_group_change_list_element(&data, index);
         zassert_not_null(value_element, NULL);
         /* set some predictable values to be tested */
         value_element->channel = index;
@@ -135,6 +139,35 @@ static void test_WriteGroup_Iterate(void)
     zassert_true(len > 0, NULL);
     test_len = bacnet_write_group_service_request_decode_iterate(
         &apdu[0], len, &data, test_WriteGroup_Iterate_Value);
+    count = bacnet_write_group_change_list_count(&data);
+    zassert_equal(count, WRITE_GROUP_CHANNEL_LIST_MAX + 1, NULL);
+    /* validate append API */
+    value_append.channel = count;
+    value_append.overriding_priority = count;
+    value_append.value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value_append.value.type.Unsigned_Int = count;
+    status = bacnet_write_group_change_list_append(&data, &value_append);
+    zassert_true(status, NULL);
+    count = bacnet_write_group_change_list_count(&data);
+    zassert_equal(count, WRITE_GROUP_CHANNEL_LIST_MAX + 2, NULL);
+    len = bacnet_write_group_service_request_encode(
+        &apdu[0], sizeof(apdu), &data);
+    zassert_true(len > 0, NULL);
+    test_len = bacnet_write_group_service_request_decode_iterate(
+        &apdu[0], len, &data, test_WriteGroup_Iterate_Value);
+    /* some negative testing for coverage */
+    count = bacnet_write_group_change_list_count(NULL);
+    zassert_equal(count, 0, NULL);
+    value_element = bacnet_write_group_change_list_element(NULL, 0);
+    zassert_true(value_element == NULL, NULL);
+    status = bacnet_write_group_change_list_array_link(NULL, NULL, 0);
+    zassert_false(status, NULL);
+    status = bacnet_write_group_change_list_append(NULL, NULL);
+    zassert_false(status, NULL);
+    status = bacnet_write_group_change_list_append(&data, NULL);
+    zassert_false(status, NULL);
+    status = bacnet_write_group_change_list_append(NULL, &value_append);
+    zassert_false(status, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)

@@ -242,7 +242,7 @@ void bacnet_write_group_service_change_list_value_set(
 {
     BACNET_GROUP_CHANNEL_VALUE *value;
 
-    value = bacnet_write_group_channel_value_element(data, change_list_index);
+    value = bacnet_write_group_change_list_element(data, change_list_index);
     if (value) {
         (void)bacnet_group_channel_value_copy(value, change_list);
     }
@@ -600,11 +600,61 @@ bool bacnet_group_channel_value_copy(
 }
 
 /**
+ * @brief Count the number of BACnetGroupChannelValue elements in change-list
+ * @param data pointer to the WriteGroup data
+ * @return number of elements in the list
+ */
+unsigned bacnet_write_group_change_list_count(BACNET_WRITE_GROUP_DATA *data)
+{
+    BACNET_GROUP_CHANNEL_VALUE *value;
+    unsigned count = 0;
+
+    if (!data) {
+        return 0;
+    }
+    value = &data->change_list;
+    while (value) {
+        count++;
+        value = value->next;
+    }
+
+    return count;
+}
+
+/**
+ * @brief Append a BACnetGroupChannelValue element to change-list
+ * @param data pointer to the WriteGroup data
+ * @param element pointer to an element to add to the list
+ * @param size number of elements in the array
+ * @return true if the element is added to the list
+ */
+bool bacnet_write_group_change_list_append(
+    BACNET_WRITE_GROUP_DATA *data, BACNET_GROUP_CHANNEL_VALUE *element)
+{
+    BACNET_GROUP_CHANNEL_VALUE *value;
+
+    if (!data || !element) {
+        return false;
+    }
+    value = &data->change_list;
+    while (value) {
+        if (!value->next) {
+            value->next = element;
+            return true;
+        }
+        value = value->next;
+    }
+
+    return false;
+}
+
+/**
  * @brief Add an array of BACnetGroupChannelValue to linked list
  * @param array pointer to element zero of the array
  * @param size number of elements in the array
+ * @return true if the array is added to the linked list
  */
-void bacnet_write_group_channel_value_link_array(
+bool bacnet_write_group_change_list_array_link(
     BACNET_WRITE_GROUP_DATA *data,
     BACNET_GROUP_CHANNEL_VALUE *array,
     size_t size)
@@ -613,13 +663,15 @@ void bacnet_write_group_channel_value_link_array(
     BACNET_GROUP_CHANNEL_VALUE *value;
 
     if (!data || !array || (size == 0)) {
-        return;
+        return false;
     }
     value = &data->change_list;
     for (i = 0; i < size; i++) {
         value->next = &array[i];
         value = value->next;
     }
+
+    return true;
 }
 
 /**
@@ -627,7 +679,7 @@ void bacnet_write_group_channel_value_link_array(
  * @param data pointer to the WriteGroup data
  * @param index element number to retrieve 0..N
  */
-BACNET_GROUP_CHANNEL_VALUE *bacnet_write_group_channel_value_element(
+BACNET_GROUP_CHANNEL_VALUE *bacnet_write_group_change_list_element(
     BACNET_WRITE_GROUP_DATA *data, unsigned index)
 {
     BACNET_GROUP_CHANNEL_VALUE *value;
