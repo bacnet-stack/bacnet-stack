@@ -339,6 +339,10 @@ bool property_list_common(BACNET_PROPERTY_ID property)
    but not required to be supported in every object */
 static const int Properties_BACnetARRAY[] = {
     /* unordered list of properties */
+    PROP_OBJECT_LIST,
+    PROP_STRUCTURED_OBJECT_LIST,
+    PROP_CONFIGURATION_FILES,
+    PROP_PROPERTY_LIST,
     PROP_AUTHENTICATION_FACTORS,
     PROP_ASSIGNED_ACCESS_RIGHTS,
     PROP_ACTION,
