@@ -25,11 +25,6 @@ option(
   ON)
 
 option(
-  BACNET_PROPERTY_ARRAY_LISTS
-  "enable property array lists"
-  ON)
-
-option(
   BACNET_BUILD_PIFACE_APP
   "compile the piface app"
   OFF)
@@ -626,7 +621,6 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
-  $<$<BOOL:${BACNET_PROPERTY_ARRAY_LISTS}>:BACNET_PROPERTY_ARRAY_LISTS=1>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
