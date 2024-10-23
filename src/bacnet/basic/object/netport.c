@@ -734,7 +734,8 @@ bool Network_Port_MAC_Address(
 
     if (mac_address) {
         uint8_t mac_tmp[4 + 2] = { 0 };
-        uint8_t mac_len = Network_Port_MAC_Address_Value(object_instance, mac_tmp, sizeof(mac_tmp));
+        uint8_t mac_len = Network_Port_MAC_Address_Value(
+            object_instance, mac_tmp, sizeof(mac_tmp));
 
         status = octetstring_init(mac_address, mac_tmp, mac_len);
         if (status) {
