@@ -697,8 +697,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
-    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
-    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-event.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-cli.c>
@@ -951,15 +949,16 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(reinit apps/reinit/main.c)
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
 
-  if(BACDL_MSTP AND NOT WIN32)
+  if(BACDL_BIP AND BACDL_MSTP AND EXISTS ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.c)
+    find_path(LIBCONFIG_INCLUDE_DIR libconfig.h)
     find_library(LIBCONFIG_LIBRARIES NAMES config)
     if(NOT LIBCONFIG_LIBRARIES)
       message(WARNING "BACNET: Will not build apps/router as libconfig not found")
     else()
       add_executable(
         router
-        ports/linux/dlmstp_linux.c
-        ports/linux/dlmstp_linux.h
+        ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.c
+        ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.h
         apps/router/ipmodule.c
         apps/router/ipmodule.h
         apps/router/main.c
@@ -972,20 +971,35 @@ if(BACNET_STACK_BUILD_APPS)
         apps/router/portthread.c
         apps/router/portthread.h)
 
+      target_include_directories(
+        router
+        PRIVATE ${PROJECT_NAME}
+        ${LIBCONFIG_INCLUDE_DIR})
       target_link_libraries(
         router
         PRIVATE ${PROJECT_NAME}
-                # needs libconfig
-                -lconfig)
+        ${LIBCONFIG_LIBRARIES})
 
-      target_compile_options(router PRIVATE
+        target_compile_options(router PRIVATE
         # These make this example not totally C90 compatible but it is ok.
 
-        -Wno-declaration-after-statement
-        -Wno-overlength-strings
         -Wno-variadic-macros
+        -O1
       )
     endif()
+  endif()
+
+  if(BACDL_BIP AND BACDL_MSTP)
+    add_executable(
+      router-mstp
+      apps/router-mstp/main.c)
+    target_link_libraries(
+      router-mstp
+      PRIVATE ${PROJECT_NAME})
+    target_compile_options(router-mstp PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
   endif()
 
   if(BACDL_BIP AND BACDL_BIP6)
