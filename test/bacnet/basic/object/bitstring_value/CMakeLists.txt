@@ -22,7 +22,6 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
     BIG_ENDIAN=0
     CONFIG_ZTEST=1
-    BACNET_PROPERTY_ARRAY_LISTS=1
     )
 
 include_directories(
