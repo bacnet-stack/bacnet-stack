@@ -1,29 +1,14 @@
-/**************************************************************************
- *
- * Copyright (C) 2006-2007 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the response */
+/**
+ * @file
+ * @brief command line tool that uses BACnet WriteProperty service
+ * message to write object property values to another device on
+ * the network and prints an acknowledgment or error response of
+ * this confirmed service request.  This is useful for testing
+ * the WriteProperty service.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006-2007
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -82,14 +67,16 @@ static BACNET_ADDRESS Target_Address;
 /* needed for return value of main application */
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\n",
+        printf(
+            "BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -108,19 +95,20 @@ static void MyAbortHandler(
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
+        printf(
+            "BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
 
-static void MyWritePropertySimpleAckHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id)
+static void
+MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
@@ -151,14 +139,15 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s device-instance object-type object-instance "
-           "property priority index tag value [tag value...]\n",
+    printf(
+        "Usage: %s device-instance object-type object-instance "
+        "property priority index tag value [tag value...]\n",
         filename);
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf(
         "device-instance:\n"
@@ -167,14 +156,13 @@ static void print_help(char *filename)
         "the device using Who-Is and I-Am services.  For example, if you were\n"
         "writing to Device Object 123, the device-instance would be 123.\n");
     printf("\n");
-    printf(
-        "object-type:\n"
-        "The object type is object that you are writing. It\n"
-        "can be defined either as the object-type name string\n"
-        "as defined in the BACnet specification, or as the\n"
-        "integer value of the enumeration BACNET_OBJECT_TYPE\n"
-        "in bacenum.h. For example if you were writing Analog\n"
-        "Output 2, the object-type would be analog-output or 1.\n");
+    printf("object-type:\n"
+           "The object type is object that you are writing. It\n"
+           "can be defined either as the object-type name string\n"
+           "as defined in the BACnet specification, or as the\n"
+           "integer value of the enumeration BACNET_OBJECT_TYPE\n"
+           "in bacenum.h. For example if you were writing Analog\n"
+           "Output 2, the object-type would be analog-output or 1.\n");
     printf("\n");
     printf(
         "object-instance:\n"
@@ -182,22 +170,20 @@ static void print_help(char *filename)
         "writing to.  For example, if you were writing to Analog Output 2, \n"
         "the object-instance would be 2.\n");
     printf("\n");
-    printf(
-        "property:\n"
-        "The property of the object that you are writing. It\n"
-        "can be defined either as the property name string as\n"
-        "defined in the BACnet specification, or as an integer\n"
-        "value of the enumeration BACNET_PROPERTY_ID in\n"
-        "bacenum.h. For example, if you were writing the Present\n"
-        "Value property, use present-value or 85 as the property.\n");
+    printf("property:\n"
+           "The property of the object that you are writing. It\n"
+           "can be defined either as the property name string as\n"
+           "defined in the BACnet specification, or as an integer\n"
+           "value of the enumeration BACNET_PROPERTY_ID in\n"
+           "bacenum.h. For example, if you were writing the Present\n"
+           "Value property, use present-value or 85 as the property.\n");
     printf("\n");
-    printf(
-        "priority:\n"
-        "This parameter is used for setting the priority of the\n"
-        "write. If Priority 0 is given, no priority is sent.  The BACnet \n"
-        "standard states that the value is written at the lowest \n"
-        "priority (16) if the object property supports priorities\n"
-        "when no priority is sent.\n");
+    printf("priority:\n"
+           "This parameter is used for setting the priority of the\n"
+           "write. If Priority 0 is given, no priority is sent.  The BACnet \n"
+           "standard states that the value is written at the lowest \n"
+           "priority (16) if the object property supports priorities\n"
+           "when no priority is sent.\n");
     printf("\n");
     printf(
         "index\n"
@@ -214,10 +200,9 @@ static void print_help(char *filename)
         "Context tags are created using two tags in a row.  The context tag\n"
         "is preceded by a C, and followed by the application tag.\n"
         "Ctag atag. C2 4 creates a context 2 tagged REAL.\n");
-    printf(
-        "Complex data use the property argument and a tag number -1 to\n"
-        "lookup the appropriate internal application tag for the value.\n"
-        "The complex data value argument varies in its construction.\n");
+    printf("Complex data use the property argument and a tag number -1 to\n"
+           "lookup the appropriate internal application tag for the value.\n"
+           "The complex data value argument varies in its construction.\n");
     printf("\n");
     printf(
         "value:\n"
@@ -254,7 +239,7 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     bool found = false;
-    char *value_string = NULL;
+    char *value_string;
     bool status = false;
     int args_remaining = 0, tag_value_arg = 0, i = 0;
     long property_tag;
@@ -298,8 +283,7 @@ int main(int argc, char *argv[])
     }
     Target_Object_Property = object_property;
     priority = strtol(argv[5], NULL, 0);
-    if ((priority < BACNET_MIN_PRIORITY) ||
-        (priority > BACNET_MAX_PRIORITY)) {
+    if ((priority < BACNET_MIN_PRIORITY) || (priority > BACNET_MAX_PRIORITY)) {
         priority = BACNET_NO_PRIORITY;
     }
     Target_Object_Property_Priority = priority;
@@ -308,22 +292,26 @@ int main(int argc, char *argv[])
         Target_Object_Property_Index = BACNET_ARRAY_ALL;
     }
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - not greater than %u\n",
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\n",
+        fprintf(
+            stderr, "object-type=%u - it must be less than %u\n",
             Target_Object_Type, MAX_BACNET_OBJECT_TYPE + 1);
         return 1;
     }
     if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - not greater than %u\n",
+        fprintf(
+            stderr, "object-instance=%u - not greater than %u\n",
             Target_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "property=%u - it must be less than %u\n",
+        fprintf(
+            stderr, "property=%u - it must be less than %u\n",
             Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
         return 1;
     }
@@ -355,7 +343,8 @@ int main(int argc, char *argv[])
             property_tag = bacapp_known_property_tag(
                 Target_Object_Type, Target_Object_Property);
         } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-            fprintf(stderr, "Error: tag=%ld - it must be less than %u\n",
+            fprintf(
+                stderr, "Error: tag=%ld - it must be less than %u\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
@@ -368,8 +357,8 @@ int main(int argc, char *argv[])
                 return 1;
             }
         } else {
-            fprintf(stderr,
-                "Error: parser for property %s is not implemented\n",
+            fprintf(
+                stderr, "Error: parser for property %s is not implemented\n",
                 bactext_property_name(Target_Object_Property));
             return 1;
         }
@@ -402,7 +391,8 @@ int main(int argc, char *argv[])
         }
     }
     if (args_remaining > 0) {
-        fprintf(stderr, "Error: Exceeded %d tag-value pairs.\n",
+        fprintf(
+            stderr, "Error: Exceeded %d tag-value pairs.\n",
             MAX_PROPERTY_VALUES);
         return 1;
     }

@@ -1,24 +1,12 @@
 /**
  * @file
- * @author Steve Karg
+ * @brief API for millisecond timer library
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2009
- * @brief Millisecond timer library header file.
- *
- * @section DESCRIPTION
- *
- * The mstimer library provides functions for setting, resetting and
- * restarting timers, and for checking if a timer has expired. An
- * application must "manually" check if its timers have expired; this
- * is not done automatically.
- *
- * A timer is declared as a \c struct \c mstimer and all access to the
- * timer is made by a pointer to the declared timer.
- *
- * Adapted from the Contiki operating system.
- * Original Authors: Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+ * @copyright SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef MSTIMER_H_
-#define MSTIMER_H_
+#ifndef BACNET_SYS_MSTIMER_H_
+#define BACNET_SYS_MSTIMER_H_
 
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -32,12 +20,12 @@
  * \hideinitializer
  */
 struct mstimer {
-  unsigned long start;
-  unsigned long interval;
+    unsigned long start;
+    unsigned long interval;
 };
 
 /* optional callback function form */
-typedef void (*mstimer_callback_function) (void);
+typedef void (*mstimer_callback_function)(void);
 /* optional callback data structure */
 struct mstimer_callback_data_t;
 struct mstimer_callback_data_t {
@@ -57,15 +45,15 @@ void mstimer_reset(struct mstimer *t);
 BACNET_STACK_EXPORT
 void mstimer_restart(struct mstimer *t);
 BACNET_STACK_EXPORT
-int mstimer_expired(struct mstimer *t);
+int mstimer_expired(const struct mstimer *t);
 BACNET_STACK_EXPORT
 void mstimer_expire(struct mstimer *t);
 BACNET_STACK_EXPORT
-unsigned long mstimer_remaining(struct mstimer *t);
+unsigned long mstimer_remaining(const struct mstimer *t);
 BACNET_STACK_EXPORT
-unsigned long mstimer_elapsed(struct mstimer *t);
+unsigned long mstimer_elapsed(const struct mstimer *t);
 BACNET_STACK_EXPORT
-unsigned long mstimer_interval(struct mstimer *t);
+unsigned long mstimer_interval(const struct mstimer *t);
 /* optional callback timer support for embedded systems */
 BACNET_STACK_EXPORT
 void mstimer_callback(

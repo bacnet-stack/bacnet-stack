@@ -1,8 +1,0 @@
-common:
-  tags: bacnet
-tests:
-  bacnet.datalink.bsc-datalink.unit:
-    type: unit
-    skip: true
-  bacnet.datalink.bsc-datalink:
-    tags: bacnet

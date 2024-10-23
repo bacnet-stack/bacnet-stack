@@ -30,16 +30,19 @@ static int ptransfer_decode_apdu(
     int len = 0;
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
         return -1;
+    }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     /* invoke id - filled in by net layer */
     *invoke_id = apdu[2];
-    if (apdu[3] != SERVICE_CONFIRMED_PRIVATE_TRANSFER)
+    if (apdu[3] != SERVICE_CONFIRMED_PRIVATE_TRANSFER) {
         return -1;
+    }
     offset = 4;
 
     if (apdu_len > offset) {
@@ -86,14 +89,17 @@ static int ptransfer_ack_decode_apdu(
     int len = 0;
     int offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_COMPLEX_ACK)
+    if (apdu[0] != PDU_TYPE_COMPLEX_ACK) {
         return -1;
+    }
     *invoke_id = apdu[1];
-    if (apdu[2] != SERVICE_CONFIRMED_PRIVATE_TRANSFER)
+    if (apdu[2] != SERVICE_CONFIRMED_PRIVATE_TRANSFER) {
         return -1;
+    }
     offset = 3;
     if (apdu_len > offset) {
         len = ptransfer_decode_service_request(
@@ -114,14 +120,17 @@ static int ptransfer_error_decode_apdu(
     int len = 0;
     int offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_ERROR)
+    if (apdu[0] != PDU_TYPE_ERROR) {
         return -1;
+    }
     *invoke_id = apdu[1];
-    if (apdu[2] != SERVICE_CONFIRMED_PRIVATE_TRANSFER)
+    if (apdu[2] != SERVICE_CONFIRMED_PRIVATE_TRANSFER) {
         return -1;
+    }
     offset = 3;
     if (apdu_len > offset) {
         len = ptransfer_error_decode_service_request(
@@ -148,8 +157,8 @@ static void test_Private_Transfer_Ack(void)
     uint8_t test_value[480] = { 0 };
     int private_data_len = 0;
     char private_data_chunk[33] = { "00112233445566778899AABBCCDDEEFF" };
-    BACNET_APPLICATION_DATA_VALUE data_value;
-    BACNET_APPLICATION_DATA_VALUE test_data_value;
+    BACNET_APPLICATION_DATA_VALUE data_value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE test_data_value = { 0 };
     bool status = false;
 
     private_data.vendorID = BACNET_VENDOR_ID;
@@ -204,8 +213,8 @@ static void test_Private_Transfer_Error(void)
     uint8_t test_value[480] = { 0 };
     int private_data_len = 0;
     char private_data_chunk[33] = { "00112233445566778899AABBCCDDEEFF" };
-    BACNET_APPLICATION_DATA_VALUE data_value;
-    BACNET_APPLICATION_DATA_VALUE test_data_value;
+    BACNET_APPLICATION_DATA_VALUE data_value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE test_data_value = { 0 };
     bool status = false;
 
     private_data.vendorID = BACNET_VENDOR_ID;
@@ -306,8 +315,8 @@ static void test_Unconfirmed_Private_Transfer_Request(void)
     int apdu_len = 0;
     int private_data_len = 0;
     char private_data_chunk[32] = { "I Love You, Patricia!" };
-    BACNET_APPLICATION_DATA_VALUE data_value;
-    BACNET_APPLICATION_DATA_VALUE test_data_value;
+    BACNET_APPLICATION_DATA_VALUE data_value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE test_data_value = { 0 };
     BACNET_PRIVATE_TRANSFER_DATA private_data;
     BACNET_PRIVATE_TRANSFER_DATA test_data;
     bool status = false;

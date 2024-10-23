@@ -28,16 +28,19 @@ static int abort_decode_apdu(
 {
     int len = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
     if (apdu_len > 0) {
-        if ((apdu[0] & 0xF0) != PDU_TYPE_ABORT)
+        if ((apdu[0] & 0xF0) != PDU_TYPE_ABORT) {
             return -1;
-        if (apdu[0] & 1)
+        }
+        if (apdu[0] & 1) {
             *server = true;
-        else
+        } else {
             *server = false;
+        }
         if (apdu_len > 1) {
             len = abort_decode_service_request(
                 &apdu[1], apdu_len - 1, invoke_id, abort_reason);

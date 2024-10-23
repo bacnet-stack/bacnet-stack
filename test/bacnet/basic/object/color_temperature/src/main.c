@@ -35,6 +35,8 @@ static void testColorTemperature(void)
     const uint32_t instance = 123;
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     bool status = false;
+    const char *test_name = NULL;
+    char *sample_name = "sample";
 
     Color_Temperature_Init();
     Color_Temperature_Create(instance);
@@ -114,12 +116,23 @@ static void testColorTemperature(void)
         }
         pOptional++;
     }
+    /* check for unsupported property - use ALL */
     rpdata.object_property = PROP_ALL;
     len = Color_Temperature_Read_Property(&rpdata);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     wpdata.object_property = PROP_ALL;
     status = Color_Temperature_Write_Property(&wpdata);
     zassert_false(status, NULL);
+    /* test the ASCII name get/set */
+    status = Color_Temperature_Name_Set(instance, sample_name);
+    zassert_true(status, NULL);
+    test_name = Color_Temperature_Name_ASCII(instance);
+    zassert_equal(test_name, sample_name, NULL);
+    status = Color_Temperature_Name_Set(instance, NULL);
+    zassert_true(status, NULL);
+    test_name = Color_Temperature_Name_ASCII(instance);
+    zassert_equal(test_name, NULL, NULL);
+    /* cleanup */
     status = Color_Temperature_Delete(instance);
     zassert_true(status, NULL);
 

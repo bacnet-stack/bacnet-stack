@@ -1,3 +1,6 @@
+*.su
+*.nm
+*.pyc
 *.log
 *.a
 *.o
@@ -68,6 +71,7 @@ CMakeLists.txt.user
 Obj/
 Release/
 
+/twister-out/*
 /test/build/
 /cmake-build-*
 /.idea

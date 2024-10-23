@@ -1,28 +1,12 @@
-/**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
-#ifndef PRIVATE_TRANSFER_H
-#define PRIVATE_TRANSFER_H
+/**
+ * @file
+ * @brief BACnet PrivateTransfer encode and decode helper functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_PRIVATE_TRANSFER_H
+#define BACNET_PRIVATE_TRANSFER_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -40,41 +24,40 @@ typedef struct BACnet_Private_Transfer_Data {
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int ptransfer_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_PRIVATE_TRANSFER_DATA * private_data);
-    BACNET_STACK_EXPORT
-    int uptransfer_encode_apdu(
-        uint8_t * apdu,
-        BACNET_PRIVATE_TRANSFER_DATA * private_data);
-    BACNET_STACK_EXPORT
-    int ptransfer_decode_service_request(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_PRIVATE_TRANSFER_DATA * private_data);
+BACNET_STACK_EXPORT
+int ptransfer_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    const BACNET_PRIVATE_TRANSFER_DATA *private_data);
+BACNET_STACK_EXPORT
+int uptransfer_encode_apdu(
+    uint8_t *apdu, const BACNET_PRIVATE_TRANSFER_DATA *private_data);
+BACNET_STACK_EXPORT
+int ptransfer_decode_service_request(
+    uint8_t *apdu,
+    unsigned apdu_len,
+    BACNET_PRIVATE_TRANSFER_DATA *private_data);
 
-    BACNET_STACK_EXPORT
-    int ptransfer_error_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_ERROR_CLASS error_class,
-        BACNET_ERROR_CODE error_code,
-        BACNET_PRIVATE_TRANSFER_DATA * private_data);
-    BACNET_STACK_EXPORT
-    int ptransfer_error_decode_service_request(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_ERROR_CLASS * error_class,
-        BACNET_ERROR_CODE * error_code,
-        BACNET_PRIVATE_TRANSFER_DATA * private_data);
+BACNET_STACK_EXPORT
+int ptransfer_error_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code,
+    const BACNET_PRIVATE_TRANSFER_DATA *private_data);
+BACNET_STACK_EXPORT
+int ptransfer_error_decode_service_request(
+    uint8_t *apdu,
+    unsigned apdu_len,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_PRIVATE_TRANSFER_DATA *private_data);
 
-    BACNET_STACK_EXPORT
-    int ptransfer_ack_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_PRIVATE_TRANSFER_DATA * private_data);
+BACNET_STACK_EXPORT
+int ptransfer_ack_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    const BACNET_PRIVATE_TRANSFER_DATA *private_data);
 /* ptransfer_ack_decode_service_request() is the same as
        ptransfer_decode_service_request */
 

@@ -19,7 +19,7 @@ bool bip_init(char *ifname)
     return ztest_get_return_value();
 }
 
-void bip_set_interface(char *ifname)
+void bip_set_interface(const char *ifname)
 {
     ztest_check_expected_value(ifname);
 }
@@ -56,7 +56,8 @@ int bip_send_pdu(
     return ztest_get_return_value();
 }
 
-int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip_send_mpdu(
+    const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     ztest_check_expected_value(dest);
     ztest_check_expected_data(mtu, mtu_len);
@@ -87,7 +88,7 @@ uint16_t bip_get_port(void)
     return ztest_get_return_value();
 }
 
-bool bip_set_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_addr(const BACNET_IP_ADDRESS *addr)
 {
     ztest_check_expected_data(addr, sizeof(BACNET_IP_ADDRESS));
     return ztest_get_return_value();
@@ -111,7 +112,7 @@ void bip_get_broadcast_address(BACNET_ADDRESS *dest)
     ztest_copy_return_data(dest, sizeof(BACNET_ADDRESS));
 }
 
-bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr)
+bool bip_set_broadcast_addr(const BACNET_IP_ADDRESS *addr)
 {
     return ztest_get_return_value();
 }

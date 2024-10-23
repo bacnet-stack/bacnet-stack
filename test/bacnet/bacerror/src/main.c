@@ -18,7 +18,7 @@
  */
 
 static int bacerror_decode_apdu(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_CONFIRMED_SERVICE *service,

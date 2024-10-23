@@ -41,7 +41,6 @@ static void test_CreateObject(void)
 #endif
 {
     BACNET_CREATE_OBJECT_DATA data = { 0 };
-    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
 
     test_CreateObjectCodec(&data);
     data.object_instance = BACNET_MAX_INSTANCE;
@@ -83,7 +82,6 @@ static void test_CreateObjectACK(void)
 #endif
 {
     BACNET_CREATE_OBJECT_DATA data = { 0 };
-    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
 
     test_CreateObjectAckCodec(&data);
     data.object_instance = BACNET_MAX_INSTANCE;

@@ -4,9 +4,7 @@
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_CALENDAR_ENTRY_H
 #define BACNET_CALENDAR_ENTRY_H
@@ -48,33 +46,34 @@ typedef struct BACnetCalendarEntry_T {
     struct BACnetCalendarEntry_T *next;
 } BACNET_CALENDAR_ENTRY;
 
-
 BACNET_STACK_EXPORT
-int bacnet_calendar_entry_encode(uint8_t *apdu, BACNET_CALENDAR_ENTRY *value);
+int bacnet_calendar_entry_encode(
+    uint8_t *apdu, const BACNET_CALENDAR_ENTRY *value);
 
 BACNET_STACK_EXPORT
 int bacnet_calendar_entry_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_CALENDAR_ENTRY *value);
+    uint8_t *apdu, uint8_t tag_number, const BACNET_CALENDAR_ENTRY *value);
 
 BACNET_STACK_EXPORT
 int bacnet_calendar_entry_decode(
-    uint8_t *apdu, uint32_t apdu_max_len, BACNET_CALENDAR_ENTRY *entry);
+    const uint8_t *apdu, uint32_t apdu_max_len, BACNET_CALENDAR_ENTRY *entry);
 
 BACNET_STACK_EXPORT
 int bacnet_calendar_entry_context_decode(
-    uint8_t *apdu, uint32_t apdu_max_len, uint8_t tag_number,
+    const uint8_t *apdu,
+    uint32_t apdu_max_len,
+    uint8_t tag_number,
     BACNET_CALENDAR_ENTRY *value);
 
 BACNET_STACK_EXPORT
-bool bacapp_date_in_calendar_entry(BACNET_DATE *date,
-    BACNET_CALENDAR_ENTRY *entry);
+bool bacapp_date_in_calendar_entry(
+    const BACNET_DATE *date, const BACNET_CALENDAR_ENTRY *entry);
 
 BACNET_STACK_EXPORT
 bool bacnet_calendar_entry_same(
-    BACNET_CALENDAR_ENTRY *value1, BACNET_CALENDAR_ENTRY *value2);
+    const BACNET_CALENDAR_ENTRY *value1, const BACNET_CALENDAR_ENTRY *value2);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 #endif
-

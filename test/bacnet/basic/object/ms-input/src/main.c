@@ -41,6 +41,9 @@ static void testMultistateInput(void)
         OBJECT_MULTI_STATE_INPUT, object_instance,
         Multistate_Input_Property_Lists, Multistate_Input_Read_Property,
         Multistate_Input_Write_Property, skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance, Multistate_Input_Name_Set,
+        Multistate_Input_Name_ASCII);
     status = Multistate_Input_Delete(object_instance);
     zassert_true(status, NULL);
 }

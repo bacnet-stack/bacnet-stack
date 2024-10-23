@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
@@ -92,9 +75,10 @@ void Send_WhoHas_Name(
         datalink_send_pdu(
             &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
+    if (bytes_sent <= 0) {
         fprintf(
             stderr, "Failed to Send Who-Has Request (%s)!\n", strerror(errno));
+    }
 #endif
 }
 
@@ -109,7 +93,8 @@ void Send_WhoHas_Name(
  * @param object_type [in] The BACNET_OBJECT_TYPE of the desired Object.
  * @param object_instance [in] The ID of the desired Object.
  */
-void Send_WhoHas_Object(int32_t low_limit,
+void Send_WhoHas_Object(
+    int32_t low_limit,
     int32_t high_limit,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance)
@@ -150,8 +135,9 @@ void Send_WhoHas_Object(int32_t low_limit,
         datalink_send_pdu(
             &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
+    if (bytes_sent <= 0) {
         fprintf(
             stderr, "Failed to Send Who-Has Request (%s)!\n", strerror(errno));
+    }
 #endif
 }

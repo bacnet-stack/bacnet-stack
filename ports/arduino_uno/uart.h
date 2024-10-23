@@ -17,9 +17,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 void uart_init(void);
-void uart_putchar(char c,
-    FILE * stream);
-char uart_getchar(FILE * stream);
+void uart_putchar(char c, FILE *stream);
+char uart_getchar(FILE *stream);
 
 #ifdef __cplusplus
 }

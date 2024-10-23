@@ -1,21 +1,15 @@
 /**
  * @file
- * @author Steve Karg
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date March 2024
- * @brief Example of a Life Safety Zone object type
- *
- * The Life Safety Zone object type defines a standardized object
+ * @brief A basic BACnet Life Safety Zone object type implementation.
+ * @details The Life Safety Zone object type defines a standardized object
  * whose properties represent the externally visible characteristics
  * associated with an arbitrary group of BACnet Life Safety Point
  * and Life Safety Zone objects in fire, life safety and security
  * applications. The condition of a Life Safety Zone object is
  * represented by a mode and a state.
- *
- * @copyright
- *
- * Copyright (C) 2024 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -54,11 +48,14 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_LIFE_SAFETY_ZONE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Life_Safety_Zone_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE, PROP_TRACKING_VALUE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE, PROP_RELIABILITY, PROP_OUT_OF_SERVICE, PROP_MODE,
-    PROP_ACCEPTED_MODES, PROP_SILENCED, PROP_OPERATION_EXPECTED,
-    PROP_ZONE_MEMBERS, PROP_MAINTENANCE_REQUIRED,  -1
+    PROP_OBJECT_IDENTIFIER,    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,          PROP_PRESENT_VALUE,
+    PROP_TRACKING_VALUE,       PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,          PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,       PROP_MODE,
+    PROP_ACCEPTED_MODES,       PROP_SILENCED,
+    PROP_OPERATION_EXPECTED,   PROP_ZONE_MEMBERS,
+    PROP_MAINTENANCE_REQUIRED, -1
 };
 
 static const int Life_Safety_Zone_Properties_Optional[] = { -1 };
@@ -153,8 +150,8 @@ unsigned Life_Safety_Zone_Instance_To_Index(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return  present-value of the object
  */
-BACNET_LIFE_SAFETY_STATE Life_Safety_Zone_Present_Value(
-    uint32_t object_instance)
+BACNET_LIFE_SAFETY_STATE
+Life_Safety_Zone_Present_Value(uint32_t object_instance)
 {
     BACNET_LIFE_SAFETY_STATE value = LIFE_SAFETY_STATE_QUIET;
     struct object_data *pObject;
@@ -211,13 +208,52 @@ bool Life_Safety_Zone_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "LIFE-SAFETY-ZONE-%u",
+            snprintf(
+                name_text, sizeof(name_text), "LIFE-SAFETY-ZONE-%u",
                 object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object-name
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ * @return  true if object-name was set
+ */
+bool Life_Safety_Zone_Name_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = true;
+        pObject->Object_Name = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Life_Safety_Zone_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -307,8 +343,8 @@ bool Life_Safety_Zone_Mode_Set(
  * @param  object_instance - object-instance number of the object
  * @return property value
  */
-BACNET_LIFE_SAFETY_OPERATION Life_Safety_Zone_Operation_Expected(
-    uint32_t object_instance)
+BACNET_LIFE_SAFETY_OPERATION
+Life_Safety_Zone_Operation_Expected(uint32_t object_instance)
 {
     BACNET_LIFE_SAFETY_OPERATION value = LIFE_SAFETY_OP_NONE;
     struct object_data *pObject;
@@ -475,7 +511,7 @@ static int Life_Safety_Zone_Members_Encode(
  */
 bool Life_Safety_Zone_Members_Add(
     uint32_t object_instance,
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *data)
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *data)
 {
     bool status = false;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *entry;
@@ -493,16 +529,14 @@ bool Life_Safety_Zone_Members_Add(
     status = Keylist_Data_Add(
         pObject->Zone_Members, Keylist_Count(pObject->Zone_Members), entry);
 
-
     return status;
 }
 
 /**
  * @brief Remove all members from the Zone Members list
  * @param object_instance - object-instance number of the object
-*/
-void Life_Safety_Zone_Members_Clear(
-    uint32_t object_instance)
+ */
+void Life_Safety_Zone_Members_Clear(uint32_t object_instance)
 {
     struct object_data *pObject;
 
@@ -517,11 +551,11 @@ void Life_Safety_Zone_Members_Clear(
  * @param wp_data - BACNET_WRITE_PROPERTY_DATA data, including
  * requested data and space for the reply, or error response.
  * @return true if the list was written
-*/
+ */
 static bool Life_Safety_Zone_Members_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     int len = 0, apdu_len = 0, apdu_size = 0;
-    uint8_t *apdu = NULL;
+    const uint8_t *apdu = NULL;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE data = { 0 };
 
     if (wp_data == NULL) {
@@ -567,13 +601,14 @@ bool Life_Safety_Zone_Maintenance_Required(uint32_t object_instance)
 }
 
 /**
- * @brief For a given object instance-number, sets the maintenance-required status
- * flag
+ * @brief For a given object instance-number, sets the maintenance-required
+ * status flag
  * @param object_instance - object-instance number of the object
  * @param value - boolean property value
  * @return true if the property flag was set
  */
-void Life_Safety_Zone_Maintenance_Required_Set(uint32_t object_instance, bool value)
+void Life_Safety_Zone_Maintenance_Required_Set(
+    uint32_t object_instance, bool value)
 {
     struct object_data *pObject;
 
@@ -718,7 +753,7 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -742,7 +777,8 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated <= MAX_LIFE_SAFETY_MODE) {
-                    Life_Safety_Zone_Mode_Set(wp_data->object_instance,
+                    Life_Safety_Zone_Mode_Set(
+                        wp_data->object_instance,
                         (BACNET_LIFE_SAFETY_MODE)value.type.Enumerated);
                 } else {
                     status = false;
@@ -756,7 +792,8 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated <= UINT16_MAX) {
-                    Life_Safety_Zone_Present_Value_Set(wp_data->object_instance,
+                    Life_Safety_Zone_Present_Value_Set(
+                        wp_data->object_instance,
                         (BACNET_LIFE_SAFETY_STATE)value.type.Enumerated);
                 } else {
                     status = false;
@@ -778,7 +815,8 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated <= UINT16_MAX) {
-                    Life_Safety_Zone_Silenced_Set(wp_data->object_instance,
+                    Life_Safety_Zone_Silenced_Set(
+                        wp_data->object_instance,
                         (BACNET_SILENCED_STATE)value.type.Enumerated);
                 } else {
                     status = false;
@@ -807,10 +845,10 @@ bool Life_Safety_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         default:
             if (property_lists_member(
-                Life_Safety_Zone_Properties_Required,
-                Life_Safety_Zone_Properties_Optional,
-                Life_Safety_Zone_Properties_Proprietary,
-                wp_data->object_property)) {
+                    Life_Safety_Zone_Properties_Required,
+                    Life_Safety_Zone_Properties_Optional,
+                    Life_Safety_Zone_Properties_Proprietary,
+                    wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
@@ -915,5 +953,7 @@ void Life_Safety_Zone_Cleanup(void)
  */
 void Life_Safety_Zone_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

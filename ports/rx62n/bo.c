@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 
@@ -54,25 +37,38 @@ static uint8_t Out_Of_Service[MAX_BINARY_OUTPUTS];
 static uint8_t Polarity[MAX_BINARY_OUTPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Output_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_POLARITY, PROP_PRIORITY_ARRAY,
-    PROP_RELINQUISH_DEFAULT, -1 };
+static const int Binary_Output_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,
+    PROP_POLARITY,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    -1
+};
 
 static const int Binary_Output_Properties_Optional[] = { PROP_ACTIVE_TEXT,
-    PROP_INACTIVE_TEXT, -1 };
+                                                         PROP_INACTIVE_TEXT,
+                                                         -1 };
 
 static const int Binary_Output_Properties_Proprietary[] = { -1 };
 
 void Binary_Output_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Binary_Output_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Binary_Output_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Binary_Output_Properties_Proprietary;
+    }
 
     return;
 }
@@ -80,8 +76,9 @@ void Binary_Output_Property_Lists(
 /* we simply have 0-n object instances. */
 bool Binary_Output_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_BINARY_OUTPUTS)
+    if (object_instance < MAX_BINARY_OUTPUTS) {
         return true;
+    }
 
     return false;
 }
@@ -103,8 +100,9 @@ unsigned Binary_Output_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_OUTPUTS;
 
-    if (object_instance < MAX_BINARY_OUTPUTS)
+    if (object_instance < MAX_BINARY_OUTPUTS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -152,8 +150,8 @@ bool Binary_Output_Present_Value_Set(
     return status;
 }
 
-static void Binary_Output_Polarity_Set(
-    uint32_t instance, BACNET_POLARITY polarity)
+static void
+Binary_Output_Polarity_Set(uint32_t instance, BACNET_POLARITY polarity)
 {
     if (instance < MAX_BINARY_OUTPUTS) {
         if (polarity < MAX_POLARITY) {
@@ -258,9 +256,10 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len =
                     encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
+            }
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
@@ -277,9 +276,9 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                             &apdu[apdu_len], present_value);
                     }
                     /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU)
+                    if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
@@ -344,7 +343,7 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     unsigned int priority = 0;
     BACNET_BINARY_PV level = BINARY_NULL;
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -365,8 +364,8 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 priority = wp_data->priority;
                 /* Command priority 6 is reserved for use by Minimum On/Off
@@ -392,8 +391,8 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_NULL);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_NULL);
                 if (status) {
                     level = BINARY_NULL;
                     priority = wp_data->priority;
@@ -417,19 +416,20 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Binary_Output_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_POLARITY:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
-                    Binary_Output_Polarity_Set(wp_data->object_instance,
+                    Binary_Output_Polarity_Set(
+                        wp_data->object_instance,
                         (BACNET_POLARITY)value.type.Enumerated);
                 } else {
                     status = false;

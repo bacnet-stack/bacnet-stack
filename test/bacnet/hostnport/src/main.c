@@ -63,7 +63,6 @@ static void test_HostNPort(void)
 #endif
 {
     BACNET_HOST_N_PORT data = { 0 };
-    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
 
     /* none */
     test_HostNPortCodec(&data);

@@ -1555,10 +1555,10 @@ static void test_hub_connector_url(bool primary)
     zassert_equal(bsc_hub_connector_stopped(hubc_h), false, 0);
     if (primary) {
         zassert_equal(
-            bsc_hub_connector_state(hubc_h), BACNET_CONNECTED_TO_PRIMARY, 0);
+            bsc_hub_connector_state(hubc_h), BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_PRIMARY, 0);
     } else {
         zassert_equal(
-            bsc_hub_connector_state(hubc_h), BACNET_CONNECTED_TO_FAILOVER, 0);
+            bsc_hub_connector_state(hubc_h), BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_FAILOVER, 0);
     }
 
     ret = bsc_hub_connector_start(ca_cert, sizeof(ca_cert), client_cert,

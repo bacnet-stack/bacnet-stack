@@ -6,25 +6,7 @@
  *
  * @section LICENSE
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,11 +17,13 @@
 
 #ifdef TEST_PACKET
 uint8_t test_packet[] = { 0x81, 0x0a, 0x00, 0x16, /* BVLC header */
-    0x01, 0x24, 0x00, 0x01, 0x01, 0x0b, 0xff, /* NPDU */
-    0x00, 0x03, 0x01, 0x0c, 0x0c, 0x00, 0x00, 0x00, 0x02, 0x19,
-    0x55 }; /* APDU */
+                          0x01, 0x24, 0x00, 0x01, 0x01, 0x0b, 0xff, /* NPDU */
+                          0x00, 0x03, 0x01, 0x0c, 0x0c, 0x00, 0x00,
+                          0x00, 0x02, 0x19, 0x55 }; /* APDU */
 #endif
 
+/* BUG with optimize Os */
+/* *** bit out of range 0 - FD_SETSIZE on fd_set ***: terminated */
 void *dl_ip_thread(void *pArgs)
 {
     MSGBOX_ID msgboxid;
@@ -164,14 +148,16 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
     /* setup socket options */
 
     socket_opt = 1;
-    status = setsockopt(ip_data->socket, SOL_SOCKET, SO_REUSEADDR, &socket_opt,
+    status = setsockopt(
+        ip_data->socket, SOL_SOCKET, SO_REUSEADDR, &socket_opt,
         sizeof(socket_opt));
     if (status < 0) {
         close(ip_data->socket);
         return false;
     }
 
-    status = setsockopt(ip_data->socket, SOL_SOCKET, SO_BROADCAST, &socket_opt,
+    status = setsockopt(
+        ip_data->socket, SOL_SOCKET, SO_BROADCAST, &socket_opt,
         sizeof(socket_opt));
     if (status < 0) {
         close(ip_data->socket);
@@ -180,8 +166,9 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
 
     /* Bind to device so we don't get routing loops between our
        different ports. */
-    status = setsockopt(ip_data->socket, SOL_SOCKET, SO_BINDTODEVICE,
-        port->iface, strlen(port->iface));
+    status = setsockopt(
+        ip_data->socket, SOL_SOCKET, SO_BINDTODEVICE, port->iface,
+        strlen(port->iface));
     if (status < 0) {
         close(ip_data->socket);
         return false;
@@ -194,7 +181,8 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = ip_data->port;
 
-    status = bind(ip_data->socket, (const struct sockaddr *)&sin,
+    status = bind(
+        ip_data->socket, (const struct sockaddr *)&sin,
         sizeof(struct sockaddr));
     if (status < 0) {
         close(ip_data->socket);
@@ -210,14 +198,18 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
     PRINT(INFO, "IP Address: %s\n", inet_ntoa(ip_data->local_addr));
     PRINT(
         INFO, "IP Broadcast Address: %s\n", inet_ntoa(ip_data->broadcast_addr));
-    PRINT(INFO, "UDP Port: 0x%04X [%hu]\n", (port->params.bip_params.port),
+    PRINT(
+        INFO, "UDP Port: 0x%04X [%hu]\n", (port->params.bip_params.port),
         (port->params.bip_params.port));
 
     return true;
 }
 
 int dl_ip_send(
-    IP_DATA *data, BACNET_ADDRESS *dest, uint8_t *pdu, unsigned pdu_len)
+    IP_DATA *data,
+    const BACNET_ADDRESS *dest,
+    const uint8_t *pdu,
+    unsigned pdu_len)
 {
     struct sockaddr_in bip_dest = { 0 };
     int buff_len = 0;
@@ -250,7 +242,8 @@ int dl_ip_send(
     buff_len += pdu_len;
 
     /* send the packet */
-    bytes_sent = sendto(data->socket, (char *)data->buff, buff_len, 0,
+    bytes_sent = sendto(
+        data->socket, (char *)data->buff, buff_len, 0,
         (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
 
     PRINT(DEBUG, "send to %s\n", inet_ntoa(bip_dest.sin_addr));
@@ -267,7 +260,7 @@ int dl_ip_recv(
     struct timeval select_timeout;
     struct sockaddr_in sin = { 0 };
     socklen_t sin_len = sizeof(sin);
-
+    int ret;
     /* make sure the socket is open */
     if (data->socket < 0) {
         return 0;
@@ -291,11 +284,12 @@ int dl_ip_recv(
     sin.sin_addr.s_addr = 0x7E1D40A;
     sin.sin_port = 0xC0BA;
 #else
-    int ret = select(data->socket + 1, &read_fds, NULL, NULL, &select_timeout);
+    ret = select(data->socket + 1, &read_fds, NULL, NULL, &select_timeout);
     /* see if there is a packet for us */
     if (ret > 0) {
-        received_bytes = recvfrom(data->socket, (char *)&data->buff[0],
-            data->max_buff, 0, (struct sockaddr *)&sin, &sin_len);
+        received_bytes = recvfrom(
+            data->socket, (char *)&data->buff[0], data->max_buff, 0,
+            (struct sockaddr *)&sin, &sin_len);
     } else {
         return 0;
     }
@@ -334,7 +328,8 @@ int dl_ip_recv(
                     (*msg_data)->pdu_len = buff_len;
                     (*msg_data)->pdu = (uint8_t *)malloc((*msg_data)->pdu_len);
                     /* fill up data message structure */
-                    memmove(&(*msg_data)->pdu[0], &data->buff[4],
+                    memmove(
+                        &(*msg_data)->pdu[0], &data->buff[4],
                         (*msg_data)->pdu_len);
                     memmove(&(*msg_data)->src, src, sizeof(BACNET_ADDRESS));
                 }
@@ -367,7 +362,8 @@ int dl_ip_recv(
                     (*msg_data)->pdu_len = buff_len;
                     (*msg_data)->pdu = (uint8_t *)malloc((*msg_data)->pdu_len);
                     /* fill up data message structure */
-                    memmove(&(*msg_data)->pdu[0], &data->buff[4 + 6],
+                    memmove(
+                        &(*msg_data)->pdu[0], &data->buff[4 + 6],
                         (*msg_data)->pdu_len);
                     memmove(&(*msg_data)->src, src, sizeof(BACNET_ADDRESS));
                 } else {

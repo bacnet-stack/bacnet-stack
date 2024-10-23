@@ -21,19 +21,21 @@
  */
 /* decode the whole APDU - mainly used for unit testing */
 static int reject_decode_apdu(
-    uint8_t *apdu,
+    const uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t *reject_reason)
 {
     int len = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
     if (apdu_len) {
-        if (apdu[0] != PDU_TYPE_REJECT)
+        if (apdu[0] != PDU_TYPE_REJECT) {
             return -1;
+        }
         if (apdu_len > 1) {
             len = reject_decode_service_request(
                 &apdu[1], apdu_len - 1, invoke_id, reject_reason);

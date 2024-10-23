@@ -378,7 +378,7 @@ static void bsc_process_socket_connected_state(
         else {
             DEBUG_PRINTF(
                 "bsc_process_socket_connected_state() no resources to "
-                "answer on hearbeat request "
+                "answer on heartbeat request "
                 "socket %p\n",
                 c);
         }
@@ -539,7 +539,7 @@ static void bsc_process_socket_state(
                 }
             }
 
-            /* every valid message restarts hearbeat timeout */
+            /* every valid message restarts heartbeat timeout */
             /* and only valid messages are processed */
             if (valid) {
                 if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
@@ -579,7 +579,7 @@ static void bsc_process_socket_state(
     } else if (c->state == BSC_SOCK_STATE_CONNECTED) {
         expired = mstimer_expired(&c->heartbeat);
         DEBUG_PRINTF(
-            "bsc_process_socket_state() hearbeat timeout expired = %d\n",
+            "bsc_process_socket_state() heartbeat timeout expired = %d\n",
             expired);
         if (expired) {
             DEBUG_PRINTF(

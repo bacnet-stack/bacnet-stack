@@ -116,16 +116,16 @@ BACnet Stack Release Steps
 Choose an option: "
         read a
         case $a in
-	        1) bacnet_tag ; menu ;;
-	        2) bacnet_create_work_tree ; menu ;;
-	        3) bacnet_build_apps ; menu ;;
-	        4) bacnet_zip_apps ; menu ;;
-	        5) bacnet_upload_apps ; menu ;;
-	        6) bacnet_zip_source ; menu ;;
-	        7) bacnet_upload_source ; menu ;;
-	        8) bacnet_settings ; menu ;;
-		0) exit 0 ;;
-		*) echo -e $red"Invalid option."$clear; WrongCommand;;
+            1) bacnet_tag ; menu ;;
+            2) bacnet_create_work_tree ; menu ;;
+            3) bacnet_build_apps ; menu ;;
+            4) bacnet_zip_apps ; menu ;;
+            5) bacnet_upload_apps ; menu ;;
+            6) bacnet_zip_source ; menu ;;
+            7) bacnet_upload_source ; menu ;;
+            8) bacnet_settings ; menu ;;
+        0) exit 0 ;;
+        *) echo -e $red"Invalid option."$clear; WrongCommand;;
         esac
 }
 

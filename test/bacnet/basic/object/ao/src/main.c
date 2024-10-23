@@ -28,7 +28,7 @@ static void testAnalogOutput(void)
     bool status = false;
     unsigned count = 0;
     uint32_t object_instance = BACNET_MAX_INSTANCE, test_object_instance = 0;
-    const int skip_fail_property_list[] = { PROP_PRIORITY_ARRAY, -1 };
+    const int skip_fail_property_list[] = { -1 };
 
     Analog_Output_Init();
     object_instance = Analog_Output_Create(object_instance);
@@ -40,6 +40,8 @@ static void testAnalogOutput(void)
         OBJECT_ANALOG_OUTPUT, object_instance, Analog_Output_Property_Lists,
         Analog_Output_Read_Property, Analog_Output_Write_Property,
         skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance, Analog_Output_Name_Set, Analog_Output_Name_ASCII);
     status = Analog_Output_Delete(object_instance);
     zassert_true(status, NULL);
 }

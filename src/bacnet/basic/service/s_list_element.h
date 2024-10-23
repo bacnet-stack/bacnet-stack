@@ -38,7 +38,8 @@ uint8_t Send_List_Element_Request_Data(
     uint32_t array_index);
 
 BACNET_STACK_EXPORT
-uint8_t Send_Add_List_Element_Request_Data(uint32_t device_id,
+uint8_t Send_Add_List_Element_Request_Data(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
@@ -46,7 +47,8 @@ uint8_t Send_Add_List_Element_Request_Data(uint32_t device_id,
     int application_data_len,
     uint32_t array_index);
 BACNET_STACK_EXPORT
-uint8_t Send_Add_List_Element_Request(uint32_t device_id,
+uint8_t Send_Add_List_Element_Request(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
@@ -54,7 +56,8 @@ uint8_t Send_Add_List_Element_Request(uint32_t device_id,
     uint32_t array_index);
 
 BACNET_STACK_EXPORT
-uint8_t Send_Remove_List_Element_Request_Data(uint32_t device_id,
+uint8_t Send_Remove_List_Element_Request_Data(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
@@ -62,7 +65,8 @@ uint8_t Send_Remove_List_Element_Request_Data(uint32_t device_id,
     int application_data_len,
     uint32_t array_index);
 BACNET_STACK_EXPORT
-uint8_t Send_Remove_List_Element_Request(uint32_t device_id,
+uint8_t Send_Remove_List_Element_Request(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,

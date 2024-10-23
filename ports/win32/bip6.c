@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2016 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2016 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h> /* for standard integer types uint8_t etc. */
@@ -317,7 +290,7 @@ void bip6_get_my_address(BACNET_ADDRESS *addr)
  *
  * @param addr - network IPv6 address
  */
-bool bip6_set_addr(BACNET_IP6_ADDRESS *addr)
+bool bip6_set_addr(const BACNET_IP6_ADDRESS *addr)
 {
     return bvlc6_address_copy(&BIP6_Addr, addr);
 }
@@ -339,7 +312,7 @@ bool bip6_get_addr(BACNET_IP6_ADDRESS *addr)
  *
  * @return true if the BACnet/IPv6 address matches our own address
  */
-bool bip6_address_match_self(BACNET_IP6_ADDRESS *addr)
+bool bip6_address_match_self(const BACNET_IP6_ADDRESS *addr)
 {
     return !bvlc6_address_different(addr, &BIP6_Addr);
 }
@@ -349,7 +322,7 @@ bool bip6_address_match_self(BACNET_IP6_ADDRESS *addr)
  *
  * @param addr - network IPv6 address
  */
-bool bip6_set_broadcast_addr(BACNET_IP6_ADDRESS *addr)
+bool bip6_set_broadcast_addr(const BACNET_IP6_ADDRESS *addr)
 {
     return bvlc6_address_copy(&BIP6_Broadcast_Addr, addr);
 }
@@ -375,7 +348,8 @@ bool bip6_get_broadcast_addr(BACNET_IP6_ADDRESS *addr)
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip6_send_mpdu(
+    const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     struct sockaddr_in6 bvlc_dest = { 0 };
     uint16_t addr16[8];
@@ -402,8 +376,8 @@ int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     debug_print_ipv6("Sending MPDU->", &bvlc_dest.sin6_addr);
     /* Send the packet */
     return sendto(
-        BIP6_Socket, (char *)mtu, mtu_len, 0, (struct sockaddr *)&bvlc_dest,
-        sizeof(bvlc_dest));
+        BIP6_Socket, (const char *)mtu, mtu_len, 0,
+        (const struct sockaddr *)&bvlc_dest, sizeof(bvlc_dest));
 }
 
 /**

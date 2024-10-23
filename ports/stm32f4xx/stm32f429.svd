@@ -10,7 +10,7 @@
     <fpuPresent>false</fpuPresent>
     <nvicPrioBits>4</nvicPrioBits>
     <vendorSystickConfig>false</vendorSystickConfig>
-  </cpu>  
+  </cpu>
   <addressUnitBits>8</addressUnitBits>
   <width>32</width>
   <size>0x20</size>

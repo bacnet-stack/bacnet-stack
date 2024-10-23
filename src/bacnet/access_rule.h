@@ -1,37 +1,18 @@
-/**************************************************************************
-*
-* Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-
-#ifndef ACCESS_RULE_H
-#define ACCESS_RULE_H
+/**
+ * @file
+ * @brief BACnetAccessRule service encode and decode
+ * @author Nikola Jelic <nikola.jelic@euroicc.com>
+ * @date 2015
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_ACCESS_RULE_H
+#define BACNET_ACCESS_RULE_H
 
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bacapp.h"
 #include "bacnet/bacdevobjpropref.h"
 
 typedef enum {
@@ -46,37 +27,33 @@ typedef enum {
     LOCATION_SPECIFIER_MAX = 2
 } BACNET_ACCESS_RULE_LOCATION_SPECIFIER;
 
-typedef struct {
+typedef struct BACnetAccessRule {
     BACNET_ACCESS_RULE_TIME_RANGE_SPECIFIER time_range_specifier;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE time_range;
     BACNET_ACCESS_RULE_LOCATION_SPECIFIER location_specifier;
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE location;
+    BACNET_DEVICE_OBJECT_REFERENCE location;
     bool enable;
 } BACNET_ACCESS_RULE;
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int bacapp_encode_access_rule(
-        uint8_t * apdu,
-        BACNET_ACCESS_RULE * rule);
-    BACNET_STACK_EXPORT
-    int bacapp_encode_context_access_rule(
-        uint8_t * apdu,
-        uint8_t tag_number,
-        BACNET_ACCESS_RULE * rule);
-    BACNET_STACK_EXPORT
-    int bacapp_decode_access_rule(
-        uint8_t * apdu,
-        BACNET_ACCESS_RULE * rule);
-    BACNET_STACK_EXPORT
-    int bacapp_decode_context_access_rule(
-        uint8_t * apdu,
-        uint8_t tag_number,
-        BACNET_ACCESS_RULE * rule);
+BACNET_STACK_EXPORT
+int bacapp_encode_access_rule(uint8_t *apdu, const BACNET_ACCESS_RULE *rule);
+BACNET_STACK_DEPRECATED("Use bacnet_access_rule_decode() instead")
+BACNET_STACK_EXPORT
+int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *rule);
+
+BACNET_STACK_EXPORT
+int bacnet_access_rule_decode(
+    const uint8_t *apdu, size_t apdu_size, BACNET_ACCESS_RULE *data);
+
+BACNET_STACK_EXPORT
+bool bacnet_access_rule_from_ascii(BACNET_ACCESS_RULE *value, const char *argv);
+BACNET_STACK_EXPORT
+bool bacnet_access_rule_same(
+    const BACNET_ACCESS_RULE *value1, const BACNET_ACCESS_RULE *value2);
 
 #ifdef __cplusplus
 }

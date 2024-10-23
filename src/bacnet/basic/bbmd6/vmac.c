@@ -1,36 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2015 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief Virtual MAC (VMAC) for BACnet/IPv6 neighbors
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -78,7 +52,7 @@ unsigned int VMAC_Count(void)
  *
  * @return true if the device ID and MAC are added
  */
-bool VMAC_Add(uint32_t device_id, struct vmac_data *src)
+bool VMAC_Add(uint32_t device_id, const struct vmac_data *src)
 {
     bool status = false;
     struct vmac_data *pVMAC = NULL;
@@ -152,7 +126,8 @@ struct vmac_data *VMAC_Find_By_Key(uint32_t device_id)
  *
  * @return true if the addresses are different
  */
-bool VMAC_Different(struct vmac_data *vmac1, struct vmac_data *vmac2)
+bool VMAC_Different(
+    const struct vmac_data *vmac1, const struct vmac_data *vmac2)
 {
     bool status = false;
     unsigned int i = 0;
@@ -183,7 +158,7 @@ bool VMAC_Different(struct vmac_data *vmac1, struct vmac_data *vmac2)
  *
  * @return true if the addresses are the same
  */
-bool VMAC_Match(struct vmac_data *vmac1, struct vmac_data *vmac2)
+bool VMAC_Match(const struct vmac_data *vmac1, const struct vmac_data *vmac2)
 {
     bool status = false;
     unsigned int i = 0;
@@ -216,7 +191,7 @@ bool VMAC_Match(struct vmac_data *vmac1, struct vmac_data *vmac2)
  *
  * @return true if the VMAC address was found
  */
-bool VMAC_Find_By_Data(struct vmac_data *vmac, uint32_t *device_id)
+bool VMAC_Find_By_Data(const struct vmac_data *vmac, uint32_t *device_id)
 {
     bool status = false;
     struct vmac_data *list_vmac;

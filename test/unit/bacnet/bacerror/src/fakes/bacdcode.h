@@ -29,7 +29,7 @@ DECLARE_FAKE_VALUE_FUNC(int, decode_tag_number, uint8_t *, uint8_t *);
 DECLARE_FAKE_VALUE_FUNC(int, bacnet_tag_number_decode, uint8_t *, uint32_t, uint8_t *);
 #endif
 DECLARE_FAKE_VALUE_FUNC(
-    int, decode_tag_number_and_value, uint8_t *, uint8_t *, uint32_t *);
+    int, decode_tag_number_and_value, const uint8_t *, uint8_t *, uint32_t *);
 #if 0
 DECLARE_FAKE_VALUE_FUNC(int, bacnet_tag_number_and_value_decode, uint8_t *, uint32_t, uint8_t *, uint32_t *);
 DECLARE_FAKE_VALUE_FUNC(bool, decode_is_opening_tag_number, uint8_t *, uint8_t);
@@ -100,7 +100,7 @@ DECLARE_FAKE_VALUE_FUNC(int, bacnet_enumerated_decode, uint8_t *, uint16_t, uint
 DECLARE_FAKE_VALUE_FUNC(int, bacnet_enumerated_context_decode, uint8_t *, uint16_t, uint8_t, uint32_t *);
 #endif
 DECLARE_FAKE_VALUE_FUNC(
-    int, decode_enumerated, uint8_t *, uint32_t, uint32_t *);
+    int, decode_enumerated, const uint8_t *, uint32_t, uint32_t *);
 #if 0
 DECLARE_FAKE_VALUE_FUNC(int, decode_context_enumerated, uint8_t *, uint8_t, uint32_t *);
 DECLARE_FAKE_VALUE_FUNC(int, encode_bacnet_enumerated, uint8_t *, uint32_t);

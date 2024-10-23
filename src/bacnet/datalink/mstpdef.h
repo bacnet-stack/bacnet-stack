@@ -1,28 +1,14 @@
-/**************************************************************************
- *
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *********************************************************************/
-#ifndef MSTPDEF_H
-#define MSTPDEF_H
+/**
+ * @file
+ * @brief Defines for the BACnet MS/TP finite state machines
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLMSTP BACnet MS/TP DataLink
+ * @ingroup DataLink
+ */
+#ifndef BACNET_MSTPDEF_H
+#define BACNET_MSTPDEF_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -63,12 +49,12 @@
 /* frame specific data */
 #define MSTP_PREAMBLE_X55 (0x55)
 /* The length of the data portion of a Test_Request, Test_Response,
-   BACnet Data Expecting Reply, or BACnet Data Not Expecting Reply frame 
-   may range from 0 to 501 octets. 
-   The length of the data portion of a proprietary frame shall 
+   BACnet Data Expecting Reply, or BACnet Data Not Expecting Reply frame
+   may range from 0 to 501 octets.
+   The length of the data portion of a proprietary frame shall
    be in the range of 2 to 501 octets.*/
 #define MSTP_FRAME_NPDU_MAX 501
-/* COBS-encoded frames data parameter length is between 
+/* COBS-encoded frames data parameter length is between
    502 and 1497 octets, inclusive */
 #define MSTP_EXTENDED_FRAME_NPDU_MAX 1497
 

@@ -190,9 +190,9 @@ lint:
 	$(LINT) $(BFLAGS) $(CSRC)
 
 install: $(TARGET_ELF)
-	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID)   \
-	 -p $(AVRDUDE_MCU) -P $(AVRDUDE_PORT) -e        \
-	 -U flash:w:$(TARGET).hex
+	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID)			\
+		-p $(AVRDUDE_MCU) -P $(AVRDUDE_PORT) -e		\
+		-U flash:w:$(TARGET).hex
 
 ## Clean target
 .PHONY: clean

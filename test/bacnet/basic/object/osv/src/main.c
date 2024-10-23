@@ -35,7 +35,7 @@ static void testOctetString_Value(void)
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_OCTETSTRING_VALUE;
-    rpdata.object_instance = 1;
+    rpdata.object_instance = instance;
     rpdata.array_index = BACNET_ARRAY_ALL;
 
     OctetString_Value_Property_Lists(&required_property, NULL, NULL);

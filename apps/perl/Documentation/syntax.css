@@ -39,37 +39,37 @@ ul {
 }
 .quotedString
 {
-	color: #0000FF;
+    color: #0000FF;
 }
 .comment
 {
-	color: #999999;
+    color: #999999;
 }
 .operator
 {
-	color: #00CCCC;
+    color: #00CCCC;
 }
 .builtinVariable
 {
-	color: #CCCC00;
+    color: #CCCC00;
 }
 .variableSpecifier
 {
-	color: #FF0000;
+    color: #FF0000;
 }
 .keyword
 {
-	color: #AA0033;
+    color: #AA0033;
 }
 .builtinFunction
 {
-	color: #AA00AA;
+    color: #AA00AA;
 }
 .identifier
 {
-	color: #009900;
+    color: #009900;
 }
 .number
 {
-	color: #9999FF;
+    color: #9999FF;
 }

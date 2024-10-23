@@ -1398,8 +1398,8 @@ static void datalink_wait_for_connection_to_hub(node_ev_t *ev)
         call_maintenance_timer(0, WAIT_EVENT_MS);
         st = Network_Port_SC_Hub_Connector_State(SC_DATALINK_INSTANCE);
 
-        if (st == BACNET_CONNECTED_TO_PRIMARY ||
-            st == BACNET_CONNECTED_TO_FAILOVER) {
+        if (st == BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_PRIMARY ||
+            st == BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_FAILOVER) {
             break;
         }
     }
@@ -1431,10 +1431,10 @@ static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
 
         st1 = bsc_node_hub_connector_status(node, true);
         st2 = bsc_node_hub_connector_status(node, false);
-        if (st1 && st1->State == BACNET_CONNECTED) {
+        if (st1 && st1->State == BACNET_SC_CONNECTION_STATE_CONNECTED) {
             break;
         }
-        if (st2 && st2->State == BACNET_CONNECTED) {
+        if (st2 && st2->State == BACNET_SC_CONNECTION_STATE_CONNECTED) {
             break;
         }
     }
@@ -1446,6 +1446,7 @@ static void wait_for_failed_request(node_ev_t *ev,
     BACNET_ERROR_CODE err)
 {
     BACNET_SC_FAILED_CONNECTION_REQUEST *r;
+    int j = 0;
     call_maintenance_timer(1, 0);
     while (1) {
         bsc_event_timedwait(ev->e, WAIT_EVENT_MS);
@@ -1464,6 +1465,8 @@ static void wait_for_failed_request(node_ev_t *ev,
                     return;
                 }
             }
+            j++;
+            if (j > 10) return;
         }
     }
 }
@@ -1867,7 +1870,7 @@ static void test_sc_datalink(void)
     conf2.key = CLIENT_KEY;
     conf2.key_size = sizeof(CLIENT_KEY);
     conf2.local_uuid = &uuid2;
-    conf2.local_vmac = &vmac2;
+    conf2.local_vmac = vmac2;
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -1896,7 +1899,7 @@ static void test_sc_datalink(void)
     conf3.key = client_key;
     conf3.key_size = sizeof(client_key);
     conf3.local_uuid = &uuid3;
-    conf3.local_vmac = &vmac3;
+    conf3.local_vmac = vmac3;
     conf3.max_local_bvlc_len = MAX_BVLC_LEN;
     conf3.max_local_npdu_len = MAX_NDPU_LEN;
     conf3.connect_timeout_s = BACNET_TIMEOUT;
@@ -2105,7 +2108,7 @@ static void test_sc_datalink_properties(void)
     conf2.key = CLIENT_KEY;
     conf2.key_size = sizeof(CLIENT_KEY);
     conf2.local_uuid = &uuid2;
-    conf2.local_vmac = &vmac2;
+    conf2.local_vmac = vmac2;
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -2134,7 +2137,7 @@ static void test_sc_datalink_properties(void)
     conf3.key = CLIENT_KEY;
     conf3.key_size = sizeof(CLIENT_KEY);
     conf3.local_uuid = &uuid3;
-    conf3.local_vmac = &vmac3;
+    conf3.local_vmac = vmac3;
     conf3.max_local_bvlc_len = MAX_BVLC_LEN;
     conf3.max_local_npdu_len = MAX_NDPU_LEN;
     conf3.connect_timeout_s = BACNET_TIMEOUT;
@@ -2157,7 +2160,7 @@ static void test_sc_datalink_properties(void)
     conf3.event_func = node_event3;
     conf4 = conf3;
     conf4.local_uuid = &uuid4;
-    conf4.local_vmac = &vmac4;
+    conf4.local_vmac = vmac4;
     conf4.event_func = node_event4;
 
     ret = bsc_node_init(&conf2, &node2);
@@ -2194,7 +2197,7 @@ static void test_sc_datalink_properties(void)
     sd = Network_Port_SC_Direct_Connect_Connection_Status_Get(
         Network_Port_Index_To_Instance(0), 0);
     zassert_equal(sd != NULL, true, NULL);
-    zassert_equal(sd->State == BACNET_CONNECTED, true, NULL);
+    zassert_equal(sd->State == BACNET_SC_CONNECTION_STATE_CONNECTED, true, NULL);
     zassert_equal(
         memcmp(sd->Peer_VMAC, &vmac2.address[0], BVLC_SC_VMAC_SIZE) == 0, true,
         NULL);
@@ -2202,7 +2205,7 @@ static void test_sc_datalink_properties(void)
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node2);
     sd = Network_Port_SC_Direct_Connect_Connection_Status_Get(
         Network_Port_Index_To_Instance(0), 1);
-    while (sd && sd->State == BACNET_CONNECTED) {
+    while (sd && sd->State == BACNET_SC_CONNECTION_STATE_CONNECTED) {
         wait_sec(1);
         sd = Network_Port_SC_Direct_Connect_Connection_Status_Get(
             Network_Port_Index_To_Instance(0), 1);
@@ -2215,7 +2218,7 @@ static void test_sc_datalink_properties(void)
     sd = Network_Port_SC_Direct_Connect_Connection_Status_Get(
         Network_Port_Index_To_Instance(0), 0);
     zassert_equal(sd != NULL, true, NULL);
-    zassert_equal(sd->State == BACNET_CONNECTED, true, NULL);
+    zassert_equal(sd->State == BACNET_SC_CONNECTION_STATE_CONNECTED, true, NULL);
     zassert_equal(
         memcmp(sd->Peer_VMAC, &vmac2.address[0], BVLC_SC_VMAC_SIZE) == 0, true,
         NULL);
@@ -2401,7 +2404,7 @@ static void test_sc_datalink_failed_requests(void)
     conf2.key = CLIENT_KEY;
     conf2.key_size = sizeof(CLIENT_KEY);
     conf2.local_uuid = &uuid2;
-    conf2.local_vmac = &vmac2;
+    conf2.local_vmac = vmac2;
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;

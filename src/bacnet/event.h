@@ -1,26 +1,11 @@
-/**************************************************************************
-*
-* Copyright (C) 2008 John Minack
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+/**
+ * @file
+ * @brief BACnet EventNotification encode and decode functions
+ * @author John Minack <minack@users.sourceforge.net>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #ifndef BACNET_EVENT_H_
 #define BACNET_EVENT_H_
 
@@ -49,17 +34,17 @@ typedef enum {
 ** Based on UnconfirmedEventNotification-Request
 */
 
-
-/** Enable decoding of complex-event-type property-values. If set to 0, the values are decoded and discarded. */
+/** Enable decoding of complex-event-type property-values. If set to 0, the
+ * values are decoded and discarded. */
 #ifndef BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS
 #define BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS 1
 #endif
 
-/** Max complex-event-type property-values to decode. Events with more values fail to decode. */
+/** Max complex-event-type property-values to decode. Events with more values
+ * fail to decode. */
 #ifndef BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS
 #define BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS 5
 #endif
-
 
 typedef struct BACnet_Event_Notification_Data {
     uint32_t processIdentifier;
@@ -69,7 +54,8 @@ typedef struct BACnet_Event_Notification_Data {
     uint32_t notificationClass;
     uint8_t priority;
     BACNET_EVENT_TYPE eventType;
-    BACNET_CHARACTER_STRING *messageText;       /* OPTIONAL - Set to NULL if not being used */
+    /* OPTIONAL - Set to NULL if not being used */
+    BACNET_CHARACTER_STRING *messageText;
     BACNET_NOTIFY_TYPE notifyType;
     bool ackRequired;
     BACNET_EVENT_STATE fromState;
@@ -106,8 +92,8 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_BIT_STRING statusFlags;
         } changeOfValue;
         /*
-          ** EVENT_COMMAND_FAILURE
-          */
+         ** EVENT_COMMAND_FAILURE
+         */
         struct {
             union {
                 BACNET_BINARY_PV binaryValue;
@@ -183,15 +169,16 @@ typedef struct BACnet_Event_Notification_Data {
         } accessEvent;
 #if (BACNET_DECODE_COMPLEX_EVENT_TYPE_PARAMETERS == 1)
         /*
-         * complex-event-type - a sequence of values, used for proprietary event types
+         * complex-event-type - a sequence of values, used for proprietary event
+         * types
          */
         struct {
-            BACNET_PROPERTY_VALUE values[BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS];
+            BACNET_PROPERTY_VALUE
+            values[BACNET_COMPLEX_EVENT_TYPE_MAX_PARAMETERS];
         } complexEventType;
 #endif
     } notificationParams;
 } BACNET_EVENT_NOTIFICATION_DATA;
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -202,60 +189,57 @@ extern "C" {
 ** Creates a Confirmed Event Notification APDU
 **
 ****************************************************/
-    BACNET_STACK_EXPORT
-    int cevent_notify_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_EVENT_NOTIFICATION_DATA * data);
+BACNET_STACK_EXPORT
+int cevent_notify_encode_apdu(
+    uint8_t *apdu,
+    uint8_t invoke_id,
+    const BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **
 ** Creates an Unconfirmed Event Notification APDU
 **
 ****************************************************/
-    BACNET_STACK_EXPORT
-    int uevent_notify_encode_apdu(
-        uint8_t * apdu,
-        BACNET_EVENT_NOTIFICATION_DATA * data);
+BACNET_STACK_EXPORT
+int uevent_notify_encode_apdu(
+    uint8_t *apdu, const BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **
 ** Encodes the service data part of Event Notification
 **
 ****************************************************/
-    BACNET_STACK_EXPORT
-    int event_notify_encode_service_request(
-        uint8_t * apdu,
-        BACNET_EVENT_NOTIFICATION_DATA * data);
+BACNET_STACK_EXPORT
+int event_notify_encode_service_request(
+    uint8_t *apdu, const BACNET_EVENT_NOTIFICATION_DATA *data);
 
-    BACNET_STACK_EXPORT
-    size_t event_notification_service_request_encode(
-        uint8_t *apdu, 
-        size_t apdu_size, 
-        BACNET_EVENT_NOTIFICATION_DATA *data);
+BACNET_STACK_EXPORT
+size_t event_notification_service_request_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    const BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **
 ** Decodes the service data part of Event Notification
 **
 ****************************************************/
-    BACNET_STACK_EXPORT
-    int event_notify_decode_service_request(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_EVENT_NOTIFICATION_DATA * data);
+BACNET_STACK_EXPORT
+int event_notify_decode_service_request(
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    BACNET_EVENT_NOTIFICATION_DATA *data);
 
 /***************************************************
 **
 ** Sends an Unconfirmed Event Notification to a dest
 **
 ****************************************************/
-    BACNET_STACK_EXPORT
-    int uevent_notify_send(
-        uint8_t * buffer,
-        BACNET_EVENT_NOTIFICATION_DATA * data,
-        BACNET_ADDRESS * dest);
-
+BACNET_STACK_EXPORT
+int uevent_notify_send(
+    uint8_t *buffer,
+    BACNET_EVENT_NOTIFICATION_DATA *data,
+    BACNET_ADDRESS *dest);
 
 #ifdef __cplusplus
 }
@@ -264,7 +248,8 @@ extern "C" {
  * These BIBBs prescribe the BACnet capabilities required to interoperably
  * perform the alarm and event management functions enumerated in 22.2.1.2
  * for the BACnet devices defined therein.
-          *//** @defgroup EVNOTFCN Alarm and Event-Notification (AE-N)
+ */
+/** @defgroup EVNOTFCN Alarm and Event-Notification (AE-N)
  * @ingroup ALMEVNT
  * 13.6 ConfirmedCOVNotification Service <br>
  * The ConfirmedCOVNotification service is used to notify subscribers about
@@ -281,7 +266,8 @@ extern "C" {
  * For unsubscribed notifications, the algorithm for determining when to issue
  * this service is a local matter and may be based on a change of value,
  * periodic updating, or some other criteria.
-          *//** @defgroup ALMACK  Alarm and Event-ACK (AE-ACK)
+ */
+/** @defgroup ALMACK  Alarm and Event-ACK (AE-ACK)
  * @ingroup ALMEVNT
  * 13.5 AcknowledgeAlarm Service <br>
  * In some systems a device may need to know that an operator has seen the alarm
@@ -290,6 +276,7 @@ extern "C" {
  * notification with 'AckRequired' = TRUE. Ensuring that the acknowledgment
  * actually comes from a person with appropriate authority is a local matter.
  * This service may be used in conjunction with either the
- * ConfirmedEventNotification service or the UnconfirmedEventNotification service.
+ * ConfirmedEventNotification service or the
+ * UnconfirmedEventNotificationservice.
  */
 #endif /* BACNET_EVENT_H_ */

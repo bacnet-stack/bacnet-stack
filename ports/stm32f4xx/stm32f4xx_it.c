@@ -1,11 +1,11 @@
 /**
   ******************************************************************************
-  * @file    IO_Toggle/stm32f4xx_it.c 
+  * @file    IO_Toggle/stm32f4xx_it.c
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    19-September-2011
   * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and 
+  *          This file provides template for all exceptions handler and
   *          peripherals interrupt service routine.
   ******************************************************************************
   * @attention
@@ -19,7 +19,7 @@
   *
   * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
   ******************************************************************************
-  */ 
+  */
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
@@ -31,7 +31,7 @@
 
 /** @addtogroup IO_Toggle
   * @{
-  */ 
+  */
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -151,6 +151,6 @@ void PendSV_Handler(void)
 
 /**
   * @}
-  */ 
+  */
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

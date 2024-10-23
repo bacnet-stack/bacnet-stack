@@ -3,11 +3,7 @@
  * @brief AddListElement and RemoveListElement service application handlers
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date December 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
@@ -47,7 +43,8 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_add_list_element(uint8_t *service_request,
+void handler_add_list_element(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -67,9 +64,9 @@ void handler_add_list_element(uint8_t *service_request,
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     debug_perror("AddListElement: Received Request!\n");
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
         debug_perror("AddListElement: Segmented message.  Sending Abort!\n");
         status = false;
     }
@@ -78,8 +75,9 @@ void handler_add_list_element(uint8_t *service_request,
         len = list_element_decode_service_request(
             service_request, service_len, &list_element);
         if (len > 0) {
-            debug_perror("AddListElement: type=%lu instance=%lu property=%lu "
-                         "index=%ld\n",
+            debug_perror(
+                "AddListElement: type=%lu instance=%lu property=%lu "
+                "index=%ld\n",
                 (unsigned long)list_element.object_type,
                 (unsigned long)list_element.object_instance,
                 (unsigned long)list_element.object_property,
@@ -89,20 +87,22 @@ void handler_add_list_element(uint8_t *service_request,
         }
         /* bad decoding or something we didn't understand - send an abort */
         if (len <= 0) {
-            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, ABORT_REASON_OTHER, true);
+            len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                ABORT_REASON_OTHER, true);
             debug_perror("AddListElement: Bad Encoding. Sending Abort!\n");
             status = false;
         }
         if (status) {
             if (Device_Add_List_Element(&list_element)) {
-                len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
+                len = encode_simple_ack(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_ADD_LIST_ELEMENT);
                 debug_perror("AddListElement: Sending Simple Ack!\n");
             } else {
-                len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, SERVICE_CONFIRMED_ADD_LIST_ELEMENT,
+                len = bacerror_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    SERVICE_CONFIRMED_ADD_LIST_ELEMENT,
                     list_element.error_class, list_element.error_code);
                 debug_perror("AddListElement: Sending Error!\n");
             }
@@ -137,7 +137,8 @@ void handler_add_list_element(uint8_t *service_request,
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *  decoded from the APDU header of this message.
  */
-void handler_remove_list_element(uint8_t *service_request,
+void handler_remove_list_element(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -157,9 +158,9 @@ void handler_remove_list_element(uint8_t *service_request,
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     debug_perror("RemoveListElement: Received Request!\n");
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
         debug_perror("RemoveListElement: Segmented message.  Sending Abort!\n");
         status = false;
     }
@@ -168,7 +169,8 @@ void handler_remove_list_element(uint8_t *service_request,
         len = list_element_decode_service_request(
             service_request, service_len, &list_element);
         if (len > 0) {
-            debug_perror("RemoveListElement: type=%lu instance=%lu "
+            debug_perror(
+                "RemoveListElement: type=%lu instance=%lu "
                 "property=%lu index=%ld\n",
                 (unsigned long)list_element.object_type,
                 (unsigned long)list_element.object_instance,
@@ -179,20 +181,21 @@ void handler_remove_list_element(uint8_t *service_request,
         }
         /* bad decoding or something we didn't understand - send an abort */
         if (len <= 0) {
-            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, ABORT_REASON_OTHER, true);
+            len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                ABORT_REASON_OTHER, true);
             debug_perror("RemoveListElement: Bad Encoding. Sending Abort!\n");
             status = false;
         }
         if (status) {
             if (Device_Remove_List_Element(&list_element)) {
-                len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
+                len = encode_simple_ack(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT);
                 debug_perror("RemoveListElement: Sending Simple Ack!\n");
             } else {
-                len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
+                len = bacerror_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT,
                     list_element.error_class, list_element.error_code);
                 debug_perror("RemoveListElement: Sending Error!\n");

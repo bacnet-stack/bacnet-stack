@@ -1,42 +1,15 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2008 John Minack
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief API for BACnetLifeSafetyOperation encoder and decoder
+ * @author John Minack <minack@users.sourceforge.net>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 #include "bacnet/lso.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/apdu.h"
-
-/** @file lso.c  BACnet Life Safety Operation encode/decode */
 
 /**
  * @brief Encode APDU for LifeSafetyOperation-Request
@@ -44,7 +17,7 @@
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int life_safety_operation_encode(uint8_t *apdu, BACNET_LSO_DATA *data)
+int life_safety_operation_encode(uint8_t *apdu, const BACNET_LSO_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -59,8 +32,7 @@ int life_safety_operation_encode(uint8_t *apdu, BACNET_LSO_DATA *data)
         apdu += len;
     }
     /* tag 1 - requestingSource */
-    len = encode_context_character_string(
-        apdu, 1, &data->requestingSrc);
+    len = encode_context_character_string(apdu, 1, &data->requestingSrc);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -73,8 +45,8 @@ int life_safety_operation_encode(uint8_t *apdu, BACNET_LSO_DATA *data)
     }
     /* Object ID */
     if (data->use_target) {
-        len = encode_context_object_id(apdu, 3,
-            data->targetObject.type, data->targetObject.instance);
+        len = encode_context_object_id(
+            apdu, 3, data->targetObject.type, data->targetObject.instance);
         apdu_len += len;
     }
 
@@ -87,7 +59,8 @@ int life_safety_operation_encode(uint8_t *apdu, BACNET_LSO_DATA *data)
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int lso_encode_apdu(uint8_t *apdu, uint8_t invoke_id, BACNET_LSO_DATA *data)
+int lso_encode_apdu(
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_LSO_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -121,7 +94,7 @@ int lso_encode_apdu(uint8_t *apdu, uint8_t invoke_id, BACNET_LSO_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t life_safety_operation_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_LSO_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_LSO_DATA *data)
 {
     size_t apdu_len = 0;
 
@@ -136,7 +109,7 @@ size_t life_safety_operation_request_encode(
 }
 
 int lso_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_LSO_DATA *data)
+    const uint8_t *apdu, unsigned apdu_len, BACNET_LSO_DATA *data)
 {
     int len = 0; /* return value */
     int section_length = 0; /* length returned from decoding */
@@ -169,8 +142,9 @@ int lso_decode_service_request(
          ** This is an optional parameter, so don't fail if it doesn't exist
          */
         if (decode_is_context_tag(&apdu[len], 3)) {
-            section_length = decode_context_object_id(&apdu[len], 3,
-                &data->targetObject.type, &data->targetObject.instance);
+            section_length = decode_context_object_id(
+                &apdu[len], 3, &data->targetObject.type,
+                &data->targetObject.instance);
             if (section_length == BACNET_STATUS_ERROR) {
                 return BACNET_STATUS_ERROR;
             }

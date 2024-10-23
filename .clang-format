@@ -8,7 +8,9 @@ AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AlignEscapedNewlines: Left
+AlignArrayOfStructures: None
 PointerAlignment: Right
+InsertBraces: true
 BreakBeforeBraces: Linux
 BreakBeforeBinaryOperators: None
 KeepEmptyLinesAtTheStartOfBlocks: false
@@ -17,4 +19,9 @@ IndentWidth: 4
 UseTab: Never
 SortIncludes: false
 ColumnLimit: 80
+# Const always to left side.
+QualifierAlignment: Left
+---
+Language: JavaScript
+DisableFormat: true
 ...

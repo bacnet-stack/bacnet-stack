@@ -25,5 +25,3 @@ Test BACnet/SC using the following steps:
         ./bacwi
         ./bacepics 1
         ./bacepics 123
-
-

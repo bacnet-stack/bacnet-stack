@@ -1,6 +1,0 @@
-# Feature configuration options for modules of BACnet-Stack
-
-# Copyright (c) 2023 Legrand North America, LLC.
-# SPDX-License-Identifier: MIT
-
-rsource "mongoose/Kconfig"

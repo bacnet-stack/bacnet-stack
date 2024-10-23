@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2008 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+ *
+ * Copyright (C) 2008 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -95,8 +68,7 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
-uint16_t MSTP_Get_Send(
-    struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
@@ -111,7 +83,7 @@ uint16_t MSTP_Get_Send(
  */
 void MSTP_Send_Frame(
     struct mstp_port_struct_t *mstp_port,
-    uint8_t * buffer,
+    const uint8_t *buffer,
     uint16_t nbytes)
 {
     (void)mstp_port;
@@ -119,8 +91,7 @@ void MSTP_Send_Frame(
     (void)nbytes;
 }
 
-uint16_t MSTP_Get_Reply(
-    struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 { /* milliseconds to wait for a packet */
     (void)mstp_port;
     (void)timeout;
@@ -167,8 +138,8 @@ static int network_init(const char *name, int protocol)
     return sockfd;
 }
 
-static void snap_received_packet(
-    struct mstp_port_struct_t *mstp_port, int sockfd)
+static void
+snap_received_packet(const struct mstp_port_struct_t *mstp_port, int sockfd)
 {
     uint16_t mtu_len = 0; /* number of octets of packet saved in file */
     unsigned i = 0; /* counter */
@@ -294,7 +265,8 @@ int main(int argc, char *argv[])
     MSTP_Port.SilenceTimer = Timer_Silence;
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(mstp_port);
-    fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
+    fprintf(
+        stdout, "mstpcap: Using %s for capture at %ld bps.\n",
         RS485_Interface(), (long)RS485_Get_Baud_Rate());
     atexit(cleanup);
 #if defined(_WIN32)

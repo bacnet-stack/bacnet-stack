@@ -56,6 +56,11 @@ static BACNET_IP6_ADDRESS Test_Sent_Message_Dest;
 uint16_t bip6_receive(
     BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu, unsigned timeout)
 {
+    (void)src;
+    (void)npdu;
+    (void)max_npdu;
+    (void)timeout;
+
     return 0;
 }
 
@@ -70,7 +75,8 @@ uint16_t bip6_receive(
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
+int bip6_send_mpdu(
+    const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
 {
     uint8_t message_type = 0;
     uint16_t message_length = 0;

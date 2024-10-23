@@ -12,7 +12,7 @@
 CFLAGS += -Dbacnet_stack_EXPORTS
 
 ifeq ($(STATIC),1)
-  CFLAGS += -DBACNET_STACK_STATIC_DEFINE
+	CFLAGS += -DBACNET_STACK_STATIC_DEFINE
 endif
 
 # These might be already defined in an previous Makefile

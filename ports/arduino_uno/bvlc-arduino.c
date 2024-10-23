@@ -54,12 +54,10 @@ static int bvlc_encode_bvlc_result(uint8_t *pdu, BACNET_BVLC_RESULT result_code)
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-static int bvlc_send_mpdu(uint8_t *dest_addr, /* the destination address */
-
-    uint16_t *dest_port, /* the destination port */
-
+static int bvlc_send_mpdu(
+    const uint8_t *dest_addr, /* the destination address */
+    const uint16_t *dest_port, /* the destination port */
     uint8_t *mtu, /* the data */
-
     uint16_t mtu_len)
 { /* amount of data to send  */
     /* assumes that the driver has already been initialized */
@@ -75,9 +73,9 @@ static int bvlc_send_mpdu(uint8_t *dest_addr, /* the destination address */
  * @param dest_addr - destination address
  * @param dest_port - destination port
  */
-static void bvlc_send_result(uint8_t *dest_addr,
-    uint16_t *dest_port, /* the destination address */
-
+static void bvlc_send_result(
+    const uint8_t *dest_addr,
+    const uint16_t *dest_port, /* the destination address */
     BACNET_BVLC_RESULT result_code)
 {
     uint8_t mtu[BIP_MPDU_MAX] = { 0 };

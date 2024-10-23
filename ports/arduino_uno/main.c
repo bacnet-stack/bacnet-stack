@@ -32,8 +32,8 @@
 extern bool Send_I_Am_Flag;
 /* local version override */
 const char *BACnet_Version = "1.0";
-static uint8_t Ethernet_MAC_Address[MAX_MAC_LEN] = { 0xDE, 0xAD, 0xBE, 0xEF,
-    0xFE, 0xED };
+static uint8_t Ethernet_MAC_Address[MAX_MAC_LEN] = { 0xDE, 0xAD, 0xBE,
+                                                     0xEF, 0xFE, 0xED };
 uint8_t ipAddress[] = { 192, 168, 0, 185 };
 uint8_t gateway[] = { 192, 168, 0, 1 };
 uint8_t netmask[] = { 255, 255, 255, 0 };
@@ -70,14 +70,17 @@ void setup()
 #endif
 }
 
-/** Static receive buffer, initialized with zeros by the C Library Startup Code. */
+/** Static receive buffer, initialized with zeros by the C Library Startup Code.
+ */
 
-static uint8_t PDUBuffer[MAX_MPDU + 16 /* Add a little safety margin to the buffer,
-                                        * so that in the rare case, the message
-                                        * would be filled up to MAX_MPDU and some
-                                        * decoding functions would overrun, these
-                                        * decoding functions will just end up in
-                                        * a safe field of static zeros. */];
+static uint8_t PDUBuffer
+    [MAX_MPDU + 16 /* Add a little safety margin to the buffer,
+                    * so that in the rare case, the message
+                    * would be filled up to MAX_MPDU and some
+                    * decoding functions would overrun, these
+                    * decoding functions will just end up in
+                    * a safe field of static zeros. */
+];
 
 /** Main */
 

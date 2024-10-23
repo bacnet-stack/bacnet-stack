@@ -13,7 +13,9 @@ TARGET_BIN = ${TARGET}$(TARGET_EXT)
 # BACNET_SRC_DIR is defined in common apps Makefile
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c
+	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
+	$(BACNET_OBJECT_DIR)/client/device-client.c \
+	$(BACNET_OBJECT_DIR)/netport.c
 
 # WARNINGS, DEBUGGING, OPTIMIZATION are defined in common apps Makefile
 # BACNET_DEFINES is defined in common apps Makefile

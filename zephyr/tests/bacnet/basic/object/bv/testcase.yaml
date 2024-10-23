@@ -1,6 +1,0 @@
-tests:
-  bacnet.basic.object.bv:
-    tags: bacnet
-  bacnet.basic.object.bv.unit:
-    tags: bacnet
-    type: unit

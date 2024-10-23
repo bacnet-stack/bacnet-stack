@@ -1,36 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2007 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**************************************************************************
+ *
+ * Copyright (C) 2007 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -60,7 +34,8 @@ bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
     return status;
 }
 
-uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
+uint16_t apdu_decode_confirmed_service_request(
+    uint8_t *apdu, /* APDU data */
 
     uint16_t apdu_len,
     BACNET_CONFIRMED_SERVICE_DATA *service_data,
@@ -89,7 +64,8 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
     return len;
 }
 
-void apdu_handler(BACNET_ADDRESS *src,
+void apdu_handler(
+    BACNET_ADDRESS *src,
     uint8_t *apdu, /* APDU data */
 
     uint16_t apdu_len)
@@ -113,18 +89,21 @@ void apdu_handler(BACNET_ADDRESS *src,
                     break;
                 }
                 if (service_choice == SERVICE_CONFIRMED_READ_PROPERTY) {
-                    handler_read_property(service_request, service_request_len,
-                        src, &service_data);
+                    handler_read_property(
+                        service_request, service_request_len, src,
+                        &service_data);
                 }
 #ifdef WRITE_PROPERTY
                 else if (service_choice == SERVICE_CONFIRMED_WRITE_PROPERTY) {
-                    handler_write_property(service_request, service_request_len,
-                        src, &service_data);
+                    handler_write_property(
+                        service_request, service_request_len, src,
+                        &service_data);
                 }
 #endif
                 else {
-                    handler_unrecognized_service(service_request,
-                        service_request_len, src, &service_data);
+                    handler_unrecognized_service(
+                        service_request, service_request_len, src,
+                        &service_data);
                 }
                 break;
             case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:

@@ -14,7 +14,7 @@ server side. Websocket layer which is built on the top of libwebsockets
 uses 1 service thread per websocket server instance and 1 service thread
 per 1 websocket client instance. As a result, libwebsocket must be built
 with LWS_MAX_SMP > 1, otherwise rarely crashes may ocure in the application
-which uses bacnet stack library. Recommented value for that define is 32.
+which uses bacnet stack library. Recommended value for that define is 32.
 You should note, that by default libwebsocket is built with LWS_MAX_SMP=1,
 so a packet manager like vcpkg and apt can have that lib built with
 LWS_MAX_SMP=1, which can lead to unstable work. It's better to build

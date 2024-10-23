@@ -18,7 +18,7 @@ static void test_ListElement(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_LIST_ELEMENT_DATA list_element = { 0 }, test_list_element = { 0 };
-    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
+    int apdu_len = 0, null_len = 0, test_len = 0;
     uint8_t application_data[MAX_APDU] = { 0 }, *test_application_data = NULL;
     int application_data_len = 0, test_application_data_len = 0;
     unsigned i = 0;
@@ -79,7 +79,7 @@ static void test_ListElementError(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_LIST_ELEMENT_DATA list_element = { 0 }, test_list_element = { 0 };
-    int len = 0, apdu_len = 0, null_len = 0, test_len = 0;
+    int apdu_len = 0, null_len = 0, test_len = 0;
 
     list_element.error_class = ERROR_CLASS_SERVICES;
     list_element.error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;

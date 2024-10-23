@@ -1,38 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2004 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307
- USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2004 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 /** @file win32/rs485.c  Provides Windows-specific functions for RS-485 */
 
 /* Suggested USB to RS485 devices:
@@ -165,8 +137,9 @@ void RS485_Print_Error(void)
 {
     LPVOID lpMsgBuf;
 
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL,
+        GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         (LPTSTR)&lpMsgBuf, 0, NULL);
     MessageBox(NULL, lpMsgBuf, "GetLastError", MB_OK | MB_ICONINFORMATION);
     LocalFree(lpMsgBuf);
@@ -217,7 +190,7 @@ static void RS485_Configure_Status(void)
     /* configure the COM port timeout values */
     ctNew.ReadIntervalTimeout = MAXDWORD;
     ctNew.ReadTotalTimeoutMultiplier = MAXDWORD;
-    ctNew.ReadTotalTimeoutConstant = 1000;
+    ctNew.ReadTotalTimeoutConstant = 1;
     ctNew.WriteTotalTimeoutMultiplier = 0;
     ctNew.WriteTotalTimeoutConstant = 0;
     if (!SetCommTimeouts(RS485_Handle, &ctNew)) {
@@ -265,8 +238,8 @@ static void RS485_Cleanup(void)
  *****************************************************************************/
 void RS485_Initialize(void)
 {
-    RS485_Handle = CreateFile(RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0,
-        0, OPEN_EXISTING,
+    RS485_Handle = CreateFile(
+        RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING,
         /*FILE_FLAG_OVERLAPPED */ 0, 0);
     if (RS485_Handle == INVALID_HANDLE_VALUE) {
         fprintf(stderr, "RS485 unable to open %s\n", RS485_Port_Name);
@@ -425,7 +398,7 @@ bool RS485_Set_Baud_Rate(uint32_t baud)
 /* Transmits a Frame on the wire */
 void RS485_Send_Frame(
     struct mstp_port_struct_t *mstp_port, /* port specific data */
-    uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
+    const uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 { /* number of bytes of data (up to 501) */
     DWORD dwWritten = 0;
@@ -435,12 +408,13 @@ void RS485_Send_Frame(
         uint8_t turnaround_time;
         baud = RS485_Get_Baud_Rate();
         /* wait about 40 bit times since reception */
-        if (baud == 9600)
+        if (baud == 9600) {
             turnaround_time = 4;
-        else if (baud == 19200)
+        } else if (baud == 19200) {
             turnaround_time = 2;
-        else
+        } else {
             turnaround_time = 2;
+        }
         while (mstp_port->SilenceTimer(NULL) < turnaround_time) {
             /* do nothing - wait for timer to increment */
         };
@@ -493,8 +467,9 @@ void RS485_Print_Ports(void)
     for (i = 1; i < 256; i++) {
         if (RS485_Interface_Valid(i)) {
             /* note: format for Wireshark ExtCap */
-            printf("interface {value=COM%u}"
-                   "{display=BACnet MS/TP on COM%u}\n",
+            printf(
+                "interface {value=COM%u}"
+                "{display=BACnet MS/TP on COM%u}\n",
                 i, i);
         }
     }

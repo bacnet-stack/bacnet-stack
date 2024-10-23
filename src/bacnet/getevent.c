@@ -1,36 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2009 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet GetEventNotification encode and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2009
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -38,24 +12,22 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/getevent.h"
 
-/** @file getevent.c  Encode/Decode GetEvent services */
-
 /**
  * @brief Encode APDU for GetEvent-Request service
  * @param apdu Pointer to a buffer, or NULL for length
  * @param lastReceivedObjectIdentifier  Object identifier
  * @return Bytes encoded.
  */
-int getevent_apdu_encode(uint8_t *apdu,
-    BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
+int getevent_apdu_encode(
+    uint8_t *apdu, const BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
 {
     int len = 0;
     int apdu_len = 0;
 
     /* encode optional parameter */
     if (lastReceivedObjectIdentifier) {
-        len = encode_context_object_id(apdu, 0,
-            lastReceivedObjectIdentifier->type,
+        len = encode_context_object_id(
+            apdu, 0, lastReceivedObjectIdentifier->type,
             lastReceivedObjectIdentifier->instance);
         apdu_len += len;
     }
@@ -71,8 +43,7 @@ int getevent_apdu_encode(uint8_t *apdu,
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t getevent_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, 
-    BACNET_OBJECT_ID *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_OBJECT_ID *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -93,10 +64,10 @@ size_t getevent_service_request_encode(
  * @param lastReceivedObjectIdentifier  Object identifier
  *
  * @return Bytes encoded.
+ * @deprecated Use getevent_apdu_encode() instead
  */
-int getevent_encode_apdu(uint8_t *apdu,
-    uint8_t invoke_id,
-    BACNET_OBJECT_ID *data)
+int getevent_encode_apdu(
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_OBJECT_ID *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -126,7 +97,8 @@ int getevent_encode_apdu(uint8_t *apdu,
  *
  * @return Bytes encoded.
  */
-int getevent_decode_service_request(uint8_t *apdu,
+int getevent_decode_service_request(
+    const uint8_t *apdu,
     unsigned apdu_len,
     BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
 {
@@ -139,8 +111,8 @@ int getevent_decode_service_request(uint8_t *apdu,
             return -1;
         }
         if (len < apdu_len) {
-            len += decode_object_id(&apdu[len],
-                &lastReceivedObjectIdentifier->type,
+            len += decode_object_id(
+                &apdu[len], &lastReceivedObjectIdentifier->type,
                 &lastReceivedObjectIdentifier->instance);
         }
     }
@@ -166,7 +138,8 @@ int getevent_ack_encode_apdu_init(
     return apdu_len;
 }
 
-int getevent_ack_encode_apdu_data(uint8_t *apdu,
+int getevent_ack_encode_apdu_data(
+    uint8_t *apdu,
     size_t max_apdu,
     BACNET_GET_EVENT_INFORMATION_DATA *get_event_data)
 {
@@ -179,8 +152,8 @@ int getevent_ack_encode_apdu_data(uint8_t *apdu,
         event_data = get_event_data;
         while (event_data) {
             /* Tag 0: objectIdentifier */
-            apdu_len += encode_context_object_id(&apdu[apdu_len], 0,
-                event_data->objectIdentifier.type,
+            apdu_len += encode_context_object_id(
+                &apdu[apdu_len], 0, event_data->objectIdentifier.type,
                 event_data->objectIdentifier.instance);
             /* Tag 1: eventState */
             apdu_len += encode_context_enumerated(
@@ -229,7 +202,8 @@ int getevent_ack_encode_apdu_end(
     return apdu_len;
 }
 
-int getevent_ack_decode_service_request(uint8_t *apdu,
+int getevent_ack_decode_service_request(
+    const uint8_t *apdu,
     int apdu_len, /* total length of the apdu */
     BACNET_GET_EVENT_INFORMATION_DATA *get_event_data,
     bool *moreEvents)
@@ -254,8 +228,8 @@ int getevent_ack_decode_service_request(uint8_t *apdu,
             if (decode_is_context_tag(&apdu[len], 0)) {
                 len += decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value);
-                len += decode_object_id(&apdu[len],
-                    &event_data->objectIdentifier.type,
+                len += decode_object_id(
+                    &apdu[len], &event_data->objectIdentifier.type,
                     &event_data->objectIdentifier.instance);
             } else {
                 return -1;
@@ -277,7 +251,8 @@ int getevent_ack_decode_service_request(uint8_t *apdu,
             if (decode_is_context_tag(&apdu[len], 2)) {
                 len += decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value);
-                len += decode_bitstring(&apdu[len], len_value,
+                len += decode_bitstring(
+                    &apdu[len], len_value,
                     &event_data->acknowledgedTransitions);
             } else {
                 return -1;

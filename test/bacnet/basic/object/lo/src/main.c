@@ -38,6 +38,8 @@ static void testLightingOutput(void)
     bool status = false;
     unsigned index;
     uint16_t milliseconds = 10;
+    const char *test_name = NULL;
+    char *sample_name = "sample";
 
     Lighting_Output_Init();
     Lighting_Output_Create(instance);
@@ -131,6 +133,15 @@ static void testLightingOutput(void)
     zassert_false(status, NULL);
     /* check the dimming/ramping/stepping engine*/
     Lighting_Output_Timer(instance, milliseconds);
+    /* test the ASCII name get/set */
+    status = Lighting_Output_Name_Set(instance, sample_name);
+    zassert_true(status, NULL);
+    test_name = Lighting_Output_Name_ASCII(instance);
+    zassert_equal(test_name, sample_name, NULL);
+    status = Lighting_Output_Name_Set(instance, NULL);
+    zassert_true(status, NULL);
+    test_name = Lighting_Output_Name_ASCII(instance);
+    zassert_equal(test_name, NULL, NULL);
     /* check the delete function */
     status = Lighting_Output_Delete(instance);
     zassert_true(status, NULL);

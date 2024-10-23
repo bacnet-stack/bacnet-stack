@@ -1,29 +1,11 @@
-/**************************************************************************
- *
- * Copyright (C) 2016 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet UnconfirmedEventNotification
+ * to the network
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -67,39 +49,40 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s pid object-type object-instance \n"
-           "    event-object-type event-object-instance \n"
-           "    sequence-number notification-class priority event-type\n"
-           "    [reference-bit-string status-flags message notify-type\n"
-           "     ack-required from-state to-state]\n"
-           "    [new-state status-flags message notify-type\n"
-           "     ack-required from-state to-state]\n",
+    printf(
+        "Usage: %s pid object-type object-instance \n"
+        "    event-object-type event-object-instance \n"
+        "    sequence-number notification-class priority event-type\n"
+        "    [reference-bit-string status-flags message notify-type\n"
+        "     ack-required from-state to-state]\n"
+        "    [new-state status-flags message notify-type\n"
+        "     ack-required from-state to-state]\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet UnconfirmedEventNotification message for a device.\n");
     printf("--mac A\n"
-        "Optional BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     printf("--dnet N\n"
-        "Optional BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n");
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
     printf("\n");
     printf("--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+           "Optional BACnet mac address on the destination BACnet network\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
     (void)filename;
 }
@@ -117,7 +100,7 @@ int main(int argc, char *argv[])
     bool specific_address = false;
     int argi = 0;
     unsigned int target_args = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -314,8 +297,8 @@ int main(int argc, char *argv[])
                 } else if (event_data.eventType == EVENT_COMMAND_FAILURE) {
                 } else if (event_data.eventType == EVENT_FLOATING_LIMIT) {
                 } else if (event_data.eventType == EVENT_OUT_OF_RANGE) {
-                } else if (event_data.eventType ==
-                    EVENT_CHANGE_OF_LIFE_SAFETY) {
+                } else if (
+                    event_data.eventType == EVENT_CHANGE_OF_LIFE_SAFETY) {
                 } else if (event_data.eventType == EVENT_EXTENDED) {
                 } else if (event_data.eventType == EVENT_BUFFER_READY) {
                 } else if (event_data.eventType == EVENT_UNSIGNED_RANGE) {

@@ -1430,10 +1430,10 @@ static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
 
         st1 = bsc_node_hub_connector_status(node, true);
         st2 = bsc_node_hub_connector_status(node, false);
-        if (st1 && st1->State == BACNET_CONNECTED) {
+        if (st1 && st1->State == BACNET_SC_CONNECTION_STATE_CONNECTED) {
             break;
         }
-        if (st2 && st2->State == BACNET_CONNECTED) {
+        if (st2 && st2->State == BACNET_SC_CONNECTION_STATE_CONNECTED) {
             break;
         }
     }
@@ -1553,7 +1553,7 @@ static void test_node_start_stop(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    conf.local_vmac = node_vmac;
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -1666,7 +1666,7 @@ static void test_node_duplicated_vmac(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    conf.local_vmac = node_vmac;
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -1695,7 +1695,7 @@ static void test_node_duplicated_vmac(void)
     conf2.key = node_key;
     conf2.key_size = sizeof(node_key);
     conf2.local_uuid = &node_uuid2;
-    conf2.local_vmac = &node_vmac2;
+    conf2.local_vmac = node_vmac2;
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -1847,7 +1847,7 @@ static void test_node_send(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    conf.local_vmac = node_vmac;
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -1876,7 +1876,7 @@ static void test_node_send(void)
     conf2.key = NODE_KEY;
     conf2.key_size = sizeof(NODE_KEY);
     conf2.local_uuid = &node_uuid2;
-    conf2.local_vmac = &node_vmac2;
+    conf2.local_vmac = node_vmac2;
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -1900,7 +1900,7 @@ static void test_node_send(void)
     conf3 = conf2;
     conf3.event_func = node_event3;
     conf3.local_uuid = &node_uuid3;
-    conf3.local_vmac = &node_vmac3;
+    conf3.local_vmac = node_vmac3;
 
     init_node_ev(&node_ev);
     init_node_ev(&node_ev2);
@@ -2006,7 +2006,7 @@ static void test_node_send(void)
     zassert_equal(ret, true, NULL);
     zassert_equal(message.hdr.bvlc_function, BVLC_SC_ADVERTISIMENT, NULL);
     zassert_equal(message.payload.advertisiment.support,
-        BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_UNSUPPORTED, NULL);
+        BVLC_SC_DIRECT_CONNECTION_ACCEPT_UNSUPPORTED, NULL);
 
     bsc_node_stop(node);
     zassert_equal(
@@ -2078,7 +2078,7 @@ static void test_node_local_hub_function(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    conf.local_vmac = node_vmac;
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -2107,7 +2107,7 @@ static void test_node_local_hub_function(void)
     conf2.key = NODE_KEY;
     conf2.key_size = sizeof(NODE_KEY);
     conf2.local_uuid = &node_uuid2;
-    conf2.local_vmac = &node_vmac2;
+    conf2.local_vmac = node_vmac2;
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -2131,7 +2131,7 @@ static void test_node_local_hub_function(void)
     conf3 = conf2;
     conf3.event_func = node_event3;
     conf3.local_uuid = &node_uuid3;
-    conf3.local_vmac = &node_vmac3;
+    conf3.local_vmac = node_vmac3;
 
     init_node_ev(&node_ev);
     init_node_ev(&node_ev2);
@@ -2284,7 +2284,7 @@ static void test_node_direct_connection(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    conf.local_vmac = node_vmac;
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -2316,7 +2316,7 @@ static void test_node_direct_connection(void)
     conf2.key = node_key;
     conf2.key_size = sizeof(node_key);
     conf2.local_uuid = &node_uuid2;
-    conf2.local_vmac = &node_vmac2;
+    conf2.local_vmac = node_vmac2;
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -2345,7 +2345,7 @@ static void test_node_direct_connection(void)
     conf3.key = NODE_KEY;
     conf3.key_size = sizeof(NODE_KEY);
     conf3.local_uuid = &node_uuid3;
-    conf3.local_vmac = &node_vmac3;
+    conf3.local_vmac = node_vmac3;
     conf3.max_local_bvlc_len = MAX_BVLC_LEN;
     conf3.max_local_npdu_len = MAX_NDPU_LEN;
     conf3.connect_timeout_s = BACNET_TIMEOUT;
@@ -2938,7 +2938,7 @@ static void test_node_direct_connection_unsupported(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    conf.local_vmac = node_vmac;
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -2970,7 +2970,7 @@ static void test_node_direct_connection_unsupported(void)
     conf2.key = NODE_KEY;
     conf2.key_size = sizeof(NODE_KEY);
     conf2.local_uuid = &node_uuid2;
-    conf2.local_vmac = &node_vmac2;
+    conf2.local_vmac = node_vmac2;
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -2999,7 +2999,7 @@ static void test_node_direct_connection_unsupported(void)
     conf3.key = NODE_KEY;
     conf3.key_size = sizeof(NODE_KEY);
     conf3.local_uuid = &node_uuid3;
-    conf3.local_vmac = &node_vmac3;
+    conf3.local_vmac = node_vmac3;
     conf3.max_local_bvlc_len = MAX_BVLC_LEN;
     conf3.max_local_npdu_len = MAX_NDPU_LEN;
     conf3.connect_timeout_s = BACNET_TIMEOUT;
@@ -3130,7 +3130,7 @@ static void test_node_bad_cases(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    conf.local_vmac = node_vmac;
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -3231,7 +3231,7 @@ static void test_node_bad_cases(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    conf.local_vmac = node_vmac;
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;

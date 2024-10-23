@@ -100,7 +100,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/secure_connect.c
     # Test and test library files
     ./src/main.c
-    ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
@@ -165,7 +165,7 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/secure_connect.c
     # Test and test library files
     ./src/main.c
-    ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
@@ -231,7 +231,9 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -244,6 +246,7 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/bactimevalue.c
+    ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/dcc.c
@@ -255,9 +258,10 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/secure_connect.c
+    ${SRC_DIR}/bacnet/special_event.c
     # Test and test library files
     ./src/main.c
-    ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
@@ -265,4 +269,3 @@ elseif(APPLE)
                         ${LIBWEBSOCKETS_LIBRARIES}
   )
 endif()
-

@@ -1,26 +1,10 @@
 /**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+ *
+ * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ *********************************************************************/
 #ifndef DATALINK_H
 #define DATALINK_H
 
@@ -29,7 +13,22 @@
 
 #if defined(BACDL_ETHERNET)
 #include "bacnet/datalink/ethernet.h"
+#endif
+#if defined(BACDL_ARCNET)
+#include "bacnet/datalink/arcnet.h"
+#endif
+#if defined(BACDL_MSTP)
+#include "bacnet/datalink/dlmstp.h"
+#endif
+#if defined(BACDL_BIP)
+#include "bacnet/datalink/bip.h"
+#include "bvlc-arduino.h"
+#endif
+#if defined(BACDL_BIP6)
+#error currently not implemented for Arduino
+#endif
 
+#if defined(BACDL_ETHERNET) && !defined(BACDL_MULTIPLE)
 #define datalink_init ethernet_init
 #define datalink_send_pdu ethernet_send_pdu
 #define datalink_receive ethernet_receive
@@ -37,9 +36,7 @@
 #define datalink_get_broadcast_address ethernet_get_broadcast_address
 #define datalink_get_my_address ethernet_get_my_address
 
-#elif defined(BACDL_ARCNET)
-#include "bacnet/datalink/arcnet.h"
-
+#elif defined(BACDL_ARCNET) && !defined(BACDL_MULTIPLE)
 #define datalink_init arcnet_init
 #define datalink_send_pdu arcnet_send_pdu
 #define datalink_receive arcnet_receive
@@ -47,9 +44,7 @@
 #define datalink_get_broadcast_address arcnet_get_broadcast_address
 #define datalink_get_my_address arcnet_get_my_address
 
-#elif defined(BACDL_MSTP)
-#include "bacnet/datalink/dlmstp.h"
-
+#elif defined(BACDL_MSTP) && !defined(BACDL_MULTIPLE)
 #define datalink_init dlmstp_init
 #define datalink_send_pdu dlmstp_send_pdu
 #define datalink_receive dlmstp_receive
@@ -57,50 +52,47 @@
 #define datalink_get_broadcast_address dlmstp_get_broadcast_address
 #define datalink_get_my_address dlmstp_get_my_address
 
-#elif defined(BACDL_BIP)
-#include "bacnet/datalink/bip.h"
-#include "bvlc-arduino.h"
+#elif defined(BACDL_BIP) && !defined(BACDL_MULTIPLE)
 
 #define datalink_init bip_init
-//#if defined(BBMD_ENABLED) && BBMD_ENABLED
-//#define datalink_send_pdu bvlc_send_pdu
-//#define datalink_receive bvlc_receive
-//#else
+// #if defined(BBMD_ENABLED) && BBMD_ENABLED
+// #define datalink_send_pdu bvlc_send_pdu
+// #define datalink_receive bvlc_receive
+// #else
 #define datalink_send_pdu bip_send_pdu
 #define datalink_receive bip_receive
-//#endif
+// #endif
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #ifdef BAC_ROUTING
-extern void routed_get_my_address(BACNET_ADDRESS * my_address);
+extern void routed_get_my_address(BACNET_ADDRESS *my_address);
 #define datalink_get_my_address routed_get_my_address
 #else
 #define datalink_get_my_address bip_get_my_address
 #endif
 
-#else /* Ie, BACDL_ALL */
+#else /* Ie, BACDL_MULTIPLE */
 #include "bacnet/npdu.h"
 
 #define MAX_HEADER (8)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define MAX_MPDU (MAX_HEADER + MAX_PDU)
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    int datalink_send_pdu(BACNET_ADDRESS * dest,
-        BACNET_NPDU_DATA * npdu_data,
-        uint8_t * pdu,
-        unsigned pdu_len);
-    extern uint16_t datalink_receive(BACNET_ADDRESS * src,
-        uint8_t * pdu,
-        uint16_t max_pdu,
-        unsigned timeout);
-    extern void datalink_cleanup(void);
-    extern void datalink_get_broadcast_address(BACNET_ADDRESS * dest);
-    extern void datalink_get_my_address(BACNET_ADDRESS * my_address);
-    extern void datalink_set_interface(char *ifname);
-    extern void datalink_set(char *datalink_string);
+int datalink_send_pdu(
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len);
+extern uint16_t datalink_receive(
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout);
+extern void datalink_cleanup(void);
+extern void datalink_get_broadcast_address(BACNET_ADDRESS *dest);
+extern void datalink_get_my_address(BACNET_ADDRESS *my_address);
+extern void datalink_set_interface(char *ifname);
+extern void datalink_set(char *datalink_string);
 
 #ifdef __cplusplus
 }
@@ -127,7 +119,8 @@ extern "C" {
  *                     chosen at runtime from among these choices.
  * - Clause 10 POINT-TO-POINT (PTP) and Clause 11 EIA/CEA-709.1 ("LonTalk") LAN
  *   are not currently supported by this project.
-                                              *//** @defgroup DLTemplates DataLink Template Functions
+ */
+/** @defgroup DLTemplates DataLink Template Functions
  * @ingroup DataLink
  * Most of the functions in this group are function templates which are assigned
  * to a specific DataLink network layer implementation either at compile time or

@@ -40,6 +40,8 @@ static void testAnalogInput(void)
         OBJECT_ANALOG_INPUT, object_instance, Analog_Input_Property_Lists,
         Analog_Input_Read_Property, Analog_Input_Write_Property,
         skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance, Analog_Input_Name_Set, Analog_Input_Name_ASCII);
     status = Analog_Input_Delete(object_instance);
     zassert_true(status, NULL);
 }
