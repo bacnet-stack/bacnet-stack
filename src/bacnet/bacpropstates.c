@@ -1,43 +1,16 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2008 John Minack
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet property state encode and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author John Minack <minack@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/bacpropstates.h"
-
-/** @file bacpropstates.c  Encode/Decode BACnet Application Property States */
 
 /**
  * @brief Decodes BACnetPropertyState from bytes into a data structure
@@ -71,7 +44,7 @@
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacapp_property_state_decode(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_PROPERTY_STATE *value)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_PROPERTY_STATE *value)
 {
     BACNET_TAG tag = { 0 };
     uint32_t enum_value = 0;
@@ -99,8 +72,9 @@ int bacapp_property_state_decode(
             apdu_len++;
         }
     } else if (tag.number == PROP_STATE_INTEGER_VALUE) {
-        len = bacnet_signed_decode(&apdu[apdu_len], apdu_size - apdu_len,
-            tag.len_value_type, &integer_value);
+        len = bacnet_signed_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
+            &integer_value);
         if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
@@ -109,8 +83,9 @@ int bacapp_property_state_decode(
             value->state.integerValue = integer_value;
         }
     } else {
-        len = bacnet_enumerated_decode(&apdu[apdu_len], apdu_size - apdu_len,
-            tag.len_value_type, &enum_value);
+        len = bacnet_enumerated_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
+            &enum_value);
         if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
@@ -325,13 +300,14 @@ int bacapp_property_state_decode(
     return apdu_len;
 }
 
-int bacapp_decode_property_state(uint8_t *apdu, BACNET_PROPERTY_STATE *value)
+int bacapp_decode_property_state(
+    const uint8_t *apdu, BACNET_PROPERTY_STATE *value)
 {
     return bacapp_property_state_decode(apdu, MAX_APDU, value);
 }
 
 int bacapp_decode_context_property_state(
-    uint8_t *apdu, uint8_t tag_number, BACNET_PROPERTY_STATE *value)
+    const uint8_t *apdu, uint8_t tag_number, BACNET_PROPERTY_STATE *value)
 {
     int len = 0;
     int section_length;
@@ -362,7 +338,8 @@ int bacapp_decode_context_property_state(
  * @param value  Pointer to the value used for encoding
  * @return number of bytes encoded, or zero if unable to encode
  */
-int bacapp_encode_property_state(uint8_t *apdu, BACNET_PROPERTY_STATE *value)
+int bacapp_encode_property_state(
+    uint8_t *apdu, const BACNET_PROPERTY_STATE *value)
 {
     int len = 0; /* length of each encoding */
 

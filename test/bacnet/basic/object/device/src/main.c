@@ -42,7 +42,6 @@ static void test_Device_Data_Sharing(void)
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_DEVICE;
     rpdata.object_instance = Device_Index_To_Instance(0);
-    ;
     Device_Property_Lists(&pRequired, &pOptional, &pProprietary);
     while ((*pRequired) != -1) {
         rpdata.object_property = *pRequired;
@@ -227,7 +226,6 @@ static void testDevice(void)
 
     return;
 }
-
 /**
  * @}
  */

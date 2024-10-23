@@ -1,19 +1,7 @@
 /*
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
- *
  *   Copyright (C) 2008 John Crispin <blogic@openwrt.org>
+ *
+ *   SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 #include <stdbool.h>
@@ -27,7 +15,8 @@
 
 static struct uci_ptr ptr;
 
-static inline int ucix_get_ptr(struct uci_context *ctx,
+static __inline__ int ucix_get_ptr(
+    struct uci_context *ctx,
     const char *p,
     const char *s,
     const char *o,
@@ -93,8 +82,9 @@ const char *ucix_get_option(
     if (ucix_get_ptr(ctx, p, s, o, NULL)) {
         return NULL;
     }
-    if (!(ptr.flags & UCI_LOOKUP_COMPLETE))
+    if (!(ptr.flags & UCI_LOOKUP_COMPLETE)) {
         return NULL;
+    }
     e = ptr.last;
     switch (e->type) {
         case UCI_TYPE_SECTION:
@@ -117,7 +107,47 @@ const char *ucix_get_option(
     return value;
 }
 
-int ucix_get_option_int(struct uci_context *ctx,
+int ucix_get_list(
+    char *value[254],
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *o)
+{
+    struct uci_element *e = NULL;
+    int n;
+    if (ucix_get_ptr(ctx, p, s, o, NULL)) {
+        return 0;
+    }
+    if (!(ptr.flags & UCI_LOOKUP_COMPLETE)) {
+        return 0;
+    }
+    e = ptr.last;
+    switch (e->type) {
+        case UCI_TYPE_OPTION:
+            switch (ptr.o->type) {
+                case UCI_TYPE_LIST:
+                    n = 0;
+                    uci_foreach_element(&ptr.o->v.list, e)
+                    {
+                        value[n] = e->name;
+                        n++;
+                    }
+                    break;
+                default:
+                    n = 0;
+                    break;
+            }
+            break;
+        default:
+            return 0;
+    }
+
+    return n;
+}
+
+int ucix_get_option_int(
+    struct uci_context *ctx,
     const char *p,
     const char *s,
     const char *o,
@@ -141,7 +171,8 @@ void ucix_add_section(
     uci_set(ctx, &ptr);
 }
 
-void ucix_add_option(struct uci_context *ctx,
+void ucix_add_option(
+    struct uci_context *ctx,
     const char *p,
     const char *s,
     const char *o,
@@ -151,6 +182,29 @@ void ucix_add_option(struct uci_context *ctx,
         return;
     }
     uci_set(ctx, &ptr);
+}
+
+void ucix_set_list(
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *o,
+    char value[254][64],
+    int l)
+{
+    int i;
+    ucix_get_ptr(ctx, p, s, o, NULL);
+    uci_delete(ctx, &ptr);
+    uci_save(ctx, NULL);
+    for (i = 0; i < l; i++) {
+        if (value[i]) {
+            ucix_get_ptr(ctx, p, s, o, value[i]);
+            uci_add_list(ctx, &ptr);
+        } else {
+            ucix_get_ptr(ctx, p, s, o, NULL);
+            uci_add_list(ctx, &ptr);
+        }
+    }
 }
 
 void ucix_add_option_int(
@@ -177,7 +231,8 @@ void ucix_revert(
     }
 }
 
-void ucix_for_each_section_type(struct uci_context *ctx,
+void ucix_for_each_section_type(
+    struct uci_context *ctx,
     const char *p,
     const char *t,
     void (*cb)(const char *, void *),
@@ -187,8 +242,9 @@ void ucix_for_each_section_type(struct uci_context *ctx,
     if (ucix_get_ptr(ctx, p, NULL, NULL, NULL)) {
         return;
     }
-    uci_foreach_element(&ptr.p->sections,
-        e) if (!strcmp(t, uci_to_section(e)->type)) cb(e->name, priv);
+    uci_foreach_element(
+        &ptr.p->sections, e) if (!strcmp(t, uci_to_section(e)->type))
+        cb(e->name, priv);
 }
 
 int ucix_commit(struct uci_context *ctx, const char *p)

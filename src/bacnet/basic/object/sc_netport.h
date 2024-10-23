@@ -428,9 +428,6 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Local_UUID_Set(
     uint32_t object_instance, BACNET_UUID *value);
 
-void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance);
-void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 
@@ -44,8 +27,9 @@ static BACNET_BINARY_PV Present_Value[MAX_BINARY_VALUES];
 /* we simply have 0-n object instances. */
 bool Binary_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_BINARY_VALUES)
+    if (object_instance < MAX_BINARY_VALUES) {
         return true;
+    }
 
     return false;
 }
@@ -67,8 +51,9 @@ unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_VALUES;
 
-    if (object_instance < MAX_BINARY_VALUES)
+    if (object_instance < MAX_BINARY_VALUES) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -98,7 +83,8 @@ char *Binary_Value_Name(uint32_t object_instance)
 }
 
 /* return apdu len, or -1 on error */
-int Binary_Value_Encode_Property_APDU(uint8_t *apdu,
+int Binary_Value_Encode_Property_APDU(
+    uint8_t *apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     uint32_t array_index,
@@ -170,14 +156,15 @@ int Binary_Value_Encode_Property_APDU(uint8_t *apdu,
 }
 
 /* returns true if successful */
-bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data,
+bool Binary_Value_Write_Property(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false; /* return value */
     unsigned int object_index = 0;
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (!Binary_Value_Valid_Instance(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;

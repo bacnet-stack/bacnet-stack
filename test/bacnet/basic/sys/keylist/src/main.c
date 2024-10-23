@@ -291,8 +291,9 @@ static void testKeyListLarge(void)
     const unsigned num_keys = 1024 * 16;
 
     list = Keylist_Create();
-    if (!list)
+    if (!list) {
         return;
+    }
 
     for (key = 0; key < num_keys; key++) {
         data_list[key] = 42 + key;

@@ -116,6 +116,8 @@ static inline void test_time_ms(void)
 	uint32_t spend_cycle = k_cycle_get_32() - tc_start_time;
 
 	tc_spend_time = k_cyc_to_ms_ceil32(spend_cycle);
+#else
+	tc_spend_time = 0;
 #endif
 }
 

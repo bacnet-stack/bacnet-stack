@@ -2660,9 +2660,9 @@ static void test_ADVERTISIMENT(void)
     BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
     BACNET_SC_HUB_CONNECTOR_STATE hub_status =
-        BACNET_CONNECTED_TO_PRIMARY;
+        BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_PRIMARY;
     BVLC_SC_DIRECT_CONNECTION_SUPPORT support =
-        BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_SUPPORTED;
+        BVLC_SC_DIRECT_CONNECTION_ACCEPT_SUPPORTED;
     uint16_t max_bvlc_len = 567;
     uint16_t max_npdu_len = 1323;
     const char *err_desc = NULL;

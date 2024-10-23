@@ -279,7 +279,7 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
  *                        server specified by proto param.
  * @param dispatch_func_user_param - parameter which is passed into
  *                        dispatch_func call.
- * @pararm sh - pointer to receive websocket server handle
+ * @param sh - pointer to receive websocket server handle
  *
  * @return error code from BSC_WEBSOCKET_RET enum.
  *  The following error codes can be returned:
@@ -316,7 +316,7 @@ BSC_WEBSOCKET_RET bws_srv_start(
  * of a websocket server specified by proto param.
  * opened websocket connections are closed.
  *
- * @pararm sh - websocket server handle
+ * @param sh - websocket server handle
  *
  * @return error code from BSC_WEBSOCKET_RET enum.
  *    The following error codes can be returned:
@@ -334,7 +334,7 @@ BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_SRV_HANDLE sh);
  * by proto parameter. When the process completes, dispatch_func() with event
  * BSC_WEBSOCKET_DISCONNECTED is called.
  *
- * @pararm sh - websocket server handle.
+ * @param sh - websocket server handle.
  * @param h - websocket handle.
  *
  */
@@ -350,7 +350,7 @@ void bws_srv_disconnect(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h);
  * event BSC_WEBSOCKET_SENDABLE and data can be sent from dispatch_func()
  * call using bws_srv_dispatch_send() call.
  *
- * @pararm sh - websocket server handle.
+ * @param sh - websocket server handle.
  * @param h - websocket handle.
  *
  */
@@ -363,7 +363,7 @@ void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h);
  *        In as case if data was not sent for some reasons thic could result
  *        dispatch_func() call with event  BSC_WEBSOCKET_DISCONNECTED
  *
- * @pararm sh - websocket server handle.
+ * @param sh - websocket server handle.
  * @param h - websocket handle.
  * @param payload - pointer to a data to send. It is assumed that
  *                  BSC_CONF_TX_PRE bytes are available before payload.
@@ -430,7 +430,7 @@ extern void bws_dispatch_unlock_dbg(char *f, int line);
  * @brief bws_srv_get_peer_ip_addr() gets ipv4 or ipv6 address as ANSI string
  *        and port of remote peer.
  *
- * @pararm sh - websocket server handle.
+ * @param sh - websocket server handle.
  * @param h - websocket handle.
  * @param ip_str - buffer to store null terminated string of ip address.
  * @param ip_str_len - size of ip_str buffer

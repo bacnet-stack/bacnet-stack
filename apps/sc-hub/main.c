@@ -32,7 +32,6 @@
 #include "bacnet/datalink/bsc/bsc-datalink.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
-
 /* (Doxygen note: The next two lines pull all the following Javadoc
  *  into the ServerDemo module.) */
 /** @addtogroup SCServerDemo */

@@ -2140,7 +2140,7 @@ void bvlc_sc_remove_dest_set_orig(
  * @param pdu_len - length of a buffer which holds BACNet/SC PDU.
  * @param orig- origination vmac.
  * @return new pdu length if function succeeded and ppdu points to beginning of
- *         changed pdu, otherwise returns old pdu_len and ppdu is not channged.
+ *         changed pdu, otherwise returns old pdu_len and ppdu is not changed.
  */
 
 size_t

@@ -1176,7 +1176,7 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
     }
 
     /* ok, all entries are already filled and all are in connected state,
-       so re-use oldest entry which is in connected state */
+       so reuse oldest entry which is in connected state */
 
     memcpy(&timestamp, &node->direct_status[0].Connect_Timestamp,
         sizeof(timestamp));
@@ -1234,7 +1234,7 @@ BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_find_hub_status_for_vmac(
     }
 
     /* ok, all entries are already filled and all are in connected state,
-       so re-use oldest entry which is in connected state */
+       so reuse oldest entry which is in connected state */
 
     memcpy(
         &timestamp, &node->hub_status[0].Connect_Timestamp, sizeof(timestamp));

@@ -1,9 +1,9 @@
 ## Port of BACnet/IP to LwIP 2.x
 
 This LwIP BACnet/IP port uses a Makefile designed to be used from
-the continuous integration pipeline. The container is configured with 
+the continuous integration pipeline. The container is configured with
 Ubuntu Linux and uses APT to install liblwip-dev library and header files.
-This build method ensures that the code is valid for the particular LwIP 
+This build method ensures that the code is valid for the particular LwIP
 library that is released with Ubuntu.
 
 ## Integration Hints

@@ -42,7 +42,7 @@ static void test_color_rgb_xy_gamma_unit(
     float y_coordinate,
     uint8_t brightness)
 {
-    float test_x_coordinate = 0.0, test_y_coordinate = 0.0;
+    float test_x_coordinate = 0.0f, test_y_coordinate = 0.0f;
     uint8_t test_brightness = 0;
     uint8_t test_red = 0, test_green = 0, test_blue = 0;
 
@@ -55,10 +55,10 @@ static void test_color_rgb_xy_gamma_unit(
         brightness);
     zassert_true(
         is_float_equal(x_coordinate, test_x_coordinate), "(x=%.3f,test_x=%.3f)",
-        x_coordinate, test_x_coordinate);
+        (double)x_coordinate, (double)test_x_coordinate);
     zassert_true(
         is_float_equal(y_coordinate, test_y_coordinate), "(y=%.3f,test_y=%.3f)",
-        y_coordinate, test_y_coordinate);
+        (double)y_coordinate, (double)test_y_coordinate);
     zassert_equal(
         brightness, test_brightness, "b=%u, test_b=%u", brightness,
         test_brightness);
@@ -75,7 +75,7 @@ static void test_color_rgb_xy_unit(
     float y_coordinate,
     uint8_t brightness)
 {
-    float test_x_coordinate = 0.0, test_y_coordinate = 0.0;
+    float test_x_coordinate = 0.0f, test_y_coordinate = 0.0f;
     uint8_t test_brightness = 0;
     uint8_t test_red = 0, test_green = 0, test_blue = 0;
 
@@ -87,10 +87,10 @@ static void test_color_rgb_xy_unit(
         brightness);
     zassert_true(
         is_float_equal(x_coordinate, test_x_coordinate), "(x=%.3f,test_x=%.3f)",
-        x_coordinate, test_x_coordinate);
+        (double)x_coordinate, (double)test_x_coordinate);
     zassert_true(
         is_float_equal(y_coordinate, test_y_coordinate), "(y=%.3f,test_y=%.3f)",
-        y_coordinate, test_y_coordinate);
+        (double)y_coordinate, (double)test_y_coordinate);
     zassert_equal(
         brightness, test_brightness, "b=%u, test_b=%u", brightness,
         test_brightness);
@@ -109,31 +109,31 @@ static void test_color_rgb_xy(void)
 
     /* functions without gamma correction */
     color_rgb_from_ascii(&red, &green, &blue, "black");
-    test_color_rgb_xy_unit(red, green, blue, 0.0, 0.0, 0);
+    test_color_rgb_xy_unit(red, green, blue, 0.0f, 0.0f, 0);
     color_rgb_from_ascii(&red, &green, &blue, "white");
-    test_color_rgb_xy_unit(red, green, blue, 0.313, 0.329, 255);
+    test_color_rgb_xy_unit(red, green, blue, 0.313f, 0.329f, 255);
     color_rgb_from_ascii(&red, &green, &blue, "blue");
-    test_color_rgb_xy_unit(red, green, blue, 0.157, 0.017, 5);
+    test_color_rgb_xy_unit(red, green, blue, 0.157f, 0.017f, 5);
     color_rgb_from_ascii(&red, &green, &blue, "green");
-    test_color_rgb_xy_unit(red, green, blue, 0.115, 0.826, 95);
+    test_color_rgb_xy_unit(red, green, blue, 0.115f, 0.826f, 95);
     color_rgb_from_ascii(&red, &green, &blue, "red");
-    test_color_rgb_xy_unit(red, green, blue, 0.735, 0.265, 59);
+    test_color_rgb_xy_unit(red, green, blue, 0.735f, 0.265f, 59);
     color_rgb_from_ascii(&red, &green, &blue, "maroon");
-    test_color_rgb_xy_unit(red, green, blue, 0.735, 0.265, 29);
+    test_color_rgb_xy_unit(red, green, blue, 0.735f, 0.265f, 29);
 
     /* functions with gamma correction */
     color_rgb_from_ascii(&red, &green, &blue, "black");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.0, 0.0, 0);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.0f, 0.0f, 0);
     color_rgb_from_ascii(&red, &green, &blue, "white");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.313, 0.329, 255);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.313f, 0.329f, 255);
     color_rgb_from_ascii(&red, &green, &blue, "blue");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.157, 0.017, 5);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.157f, 0.017f, 5);
     color_rgb_from_ascii(&red, &green, &blue, "green");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.115, 0.826, 40);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.115f, 0.826f, 40);
     color_rgb_from_ascii(&red, &green, &blue, "red");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.735, 0.265, 59);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.735f, 0.265f, 59);
     color_rgb_from_ascii(&red, &green, &blue, "maroon");
-    test_color_rgb_xy_gamma_unit(red, green, blue, 0.735, 0.265, 12);
+    test_color_rgb_xy_gamma_unit(red, green, blue, 0.735f, 0.265f, 12);
 }
 
 /**
@@ -151,9 +151,6 @@ static void test_color_rgb_ascii(void)
     uint8_t red, green, blue;
     uint8_t test_red, test_green, test_blue;
     unsigned test_index;
-    //float x_coordinate;
-    //float y_coordinate;
-    //float brightness;
 
     for (unsigned i = 0; i < count; i++) {
         name = color_rgb_from_index(i, &red, &green, &blue);

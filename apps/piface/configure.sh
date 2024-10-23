@@ -17,4 +17,3 @@ fi
 
 make -C libmcp23s17
 make -C libpifacedigital
-

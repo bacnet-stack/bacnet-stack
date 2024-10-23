@@ -3,8 +3,7 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2013
  * @brief Store properties from other BACnet devices
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
 #include <stdbool.h>
@@ -109,9 +108,10 @@ static void bacnet_data_object_init(void)
     }
 }
 
-static void bacnet_data_object_store(int index,
-    BACNET_READ_PROPERTY_DATA *rp_data,
-    BACNET_APPLICATION_DATA_VALUE *value)
+static void bacnet_data_object_store(
+    int index,
+    const BACNET_READ_PROPERTY_DATA *rp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value)
 {
     BACNET_DATA_OBJECT *object = NULL;
 
@@ -150,7 +150,8 @@ static void bacnet_data_object_store(int index,
  * @param value [in] pointer to the BACNET_APPLICATION_DATA_VALUE structure
  *  which is packed with the decoded value from the ReadProperty request.
  */
-void bacnet_data_value_save(uint32_t device_instance,
+void bacnet_data_value_save(
+    uint32_t device_instance,
     BACNET_READ_PROPERTY_DATA *rp_data,
     BACNET_APPLICATION_DATA_VALUE *value)
 {
@@ -173,8 +174,9 @@ void bacnet_data_value_save(uint32_t device_instance,
             case OBJECT_MULTI_STATE_INPUT:
             case OBJECT_MULTI_STATE_OUTPUT:
             case OBJECT_MULTI_STATE_VALUE:
-                index = bacnet_data_object_index_find(device_instance,
-                    rp_data->object_type, rp_data->object_instance);
+                index = bacnet_data_object_index_find(
+                    device_instance, rp_data->object_type,
+                    rp_data->object_instance);
                 if (index != BACNET_STATUS_ERROR) {
                     bacnet_data_object_store(index, rp_data, value);
                 }
@@ -190,13 +192,13 @@ void bacnet_data_value_save(uint32_t device_instance,
  * @brief Handles the BACnet Data Analog Value processing
  * @param object - BACnet object structure data pointer
  */
-static void bacnet_data_object_process(BACNET_DATA_OBJECT *object)
+static void bacnet_data_object_process(const BACNET_DATA_OBJECT *object)
 {
     if (object && (object->Device_ID < BACNET_MAX_INSTANCE) &&
         (object->Object_ID < BACNET_MAX_INSTANCE)) {
-        bacnet_read_property_queue(object->Device_ID,
-            (BACNET_OBJECT_TYPE)object->Object_Type, object->Object_ID,
-            PROP_PRESENT_VALUE, BACNET_ARRAY_ALL);
+        bacnet_read_property_queue(
+            object->Device_ID, (BACNET_OBJECT_TYPE)object->Object_Type,
+            object->Object_ID, PROP_PRESENT_VALUE, BACNET_ARRAY_ALL);
     }
 }
 
@@ -207,7 +209,8 @@ static void bacnet_data_object_process(BACNET_DATA_OBJECT *object)
  * @param object_instance - Instance # of the object to be read.
  * @return true if added or existing, false if not added or existing
  */
-bool bacnet_data_object_add(uint32_t device_id,
+bool bacnet_data_object_add(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance)
 {
@@ -259,7 +262,8 @@ bool bacnet_data_object_add(uint32_t device_id,
  * @param float_value [out] property value stored if available
  * @return true if found and value loaded
  */
-bool bacnet_data_analog_present_value(uint32_t device_id,
+bool bacnet_data_analog_present_value(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     float *float_value)
@@ -292,7 +296,8 @@ bool bacnet_data_analog_present_value(uint32_t device_id,
  * @param bool_value [out] property value stored if available
  * @return true if found and value loaded
  */
-bool bacnet_data_binary_present_value(uint32_t device_id,
+bool bacnet_data_binary_present_value(
+    uint32_t device_id,
     uint16_t object_type,
     uint32_t object_instance,
     bool *bool_value)
@@ -330,7 +335,8 @@ bool bacnet_data_binary_present_value(uint32_t device_id,
  * @param bool_value [out] property value stored if available
  * @return true if found and value loaded
  */
-bool bacnet_data_multistate_present_value(uint32_t device_id,
+bool bacnet_data_multistate_present_value(
+    uint32_t device_id,
     uint16_t object_type,
     uint32_t object_instance,
     uint32_t *unsigned_value)
