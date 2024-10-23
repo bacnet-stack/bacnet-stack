@@ -521,18 +521,17 @@ static void PrintReadPropertyArray(
     }
     bacapp_print_value(stdout, object_value);
     if ((Walked_List_Index < Walked_List_Length) || (value->next != NULL)) {
-		columns = Walked_List_Columns;
-		if (Walked_List_Columns == 0) {
-			if ((rpm_property->propertyIdentifier == PROP_OBJECT_LIST) ||
-				(rpm_property->propertyIdentifier == PROP_PRIORITY_ARRAY)) {
-				/* traditional behavior - 3 columns for object-list */
-				columns = 3;
-			}
-		}
+        columns = Walked_List_Columns;
+        if (Walked_List_Columns == 0) {
+            if ((rpm_property->propertyIdentifier == PROP_OBJECT_LIST) ||
+                (rpm_property->propertyIdentifier == PROP_PRIORITY_ARRAY)) {
+                /* traditional behavior - 3 columns for object-list */
+                columns = 3;
+            }
+        }
         /* There are more. */
         fprintf(stdout, ", ");
-        if ((columns == 0) ||
-            (!(Walked_List_Index % columns))) {
+        if ((columns == 0) || (!(Walked_List_Index % columns))) {
             /* newline and indent for the next value */
             fprintf(stdout, "\n        ");
         }
