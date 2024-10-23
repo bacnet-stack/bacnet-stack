@@ -159,6 +159,7 @@ static void Structured_View_Update(void)
  */
 static void Init_Service_Handlers(void)
 {
+    BACNET_WRITE_GROUP_NOTIFICATION write_group = { 0 };
     BACNET_CREATE_OBJECT_DATA object_data = { 0 };
     unsigned int i = 0;
 
@@ -220,7 +221,8 @@ static void Init_Service_Handlers(void)
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_WRITE_GROUP, handler_write_group);
     /* add WriteGroup iterator to the Channel objects */
-    handler_write_group_notification_add(Channel_Write_Group);
+    write_group.callback = Channel_Write_Group;
+    handler_write_group_notification_add(&write_group);
 #if defined(INTRINSIC_REPORTING)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, handler_alarm_ack);
