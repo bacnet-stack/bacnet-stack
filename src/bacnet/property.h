@@ -36,12 +36,6 @@ BACNET_PROPERTY_ID property_list_special_property(
 BACNET_STACK_EXPORT
 unsigned property_list_special_count(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID special_property);
-
-BACNET_STACK_EXPORT
-const int *property_list_bacnet_array(void);
-BACNET_STACK_EXPORT
-bool property_list_bacnet_array_member(
-    BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property);
 BACNET_STACK_EXPORT
 bool property_list_writable_member(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property);

@@ -147,6 +147,7 @@ static BACNET_APPLICATION_DATA_VALUE *object_property_value(int32_t property_id)
  */
 static uint32_t Walked_List_Length = 0;
 static uint32_t Walked_List_Index = 0;
+static uint32_t Walked_List_Columns = 0;
 /* TODO: Probably should have done this as additional EPICS_STATES */
 static bool Using_Walked_List = false;
 /* When requesting RP for BACNET_ARRAY_ALL of what we know can be a long
@@ -439,6 +440,106 @@ static bool PrettyPrintPropertyValue(
     return status;
 }
 
+static void PrintReadPropertyArray(
+    BACNET_PROPERTY_REFERENCE *rpm_property,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    BACNET_OBJECT_PROPERTY_VALUE *object_value)
+{
+    KEY object_list_element;
+    uint32_t columns;
+
+    /* These are all arrays, so they open and close with braces */
+    if (Using_Walked_List) {
+        if ((rpm_property->propertyArrayIndex == 0) &&
+            (value->tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
+            /* Grab the value of the Object List length - don't
+             * print it! */
+            Walked_List_Length = value->type.Unsigned_Int;
+            if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
+                Object_List_Length = value->type.Unsigned_Int;
+            }
+            return;
+        } else {
+            assert(
+                Walked_List_Index ==
+                (uint32_t)rpm_property->propertyArrayIndex);
+        }
+    } else {
+        Walked_List_Index++;
+        /* If we got the whole Object List array in one RP call,
+         * keep the Index and List_Length in sync as we cycle
+         * through. */
+        if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
+            Object_List_Length = ++Object_List_Index;
+        }
+    }
+    if (Walked_List_Index == 1) {
+        /* If the array is empty, make it VTS3-friendly */
+        if (value->tag == BACNET_APPLICATION_TAG_EMPTYLIST) {
+            fprintf(stdout, "?\n        ");
+            return;
+        }
+
+        /* Open this Array of Objects for the first entry (unless
+         * opening brace has already printed, since this is an array
+         * of values[] ) */
+        if (value->next == NULL) {
+            fprintf(stdout, "{ \n        ");
+        } else {
+            fprintf(stdout, "\n        ");
+        }
+    }
+
+    if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
+        if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
+            return;
+        }
+        /* Store the object list so we can interrogate
+           each object. */
+        object_list_element = KEY_ENCODE(
+            value->type.Object_Id.type, value->type.Object_Id.instance);
+        /* We don't have anything to put in the data pointer
+         * yet, so just leave it null.  The key is Key here. */
+        Keylist_Data_Add(Object_List, object_list_element, NULL);
+    } else if (rpm_property->propertyIdentifier == PROP_STATE_TEXT) {
+        /* Make sure it fits within 31 chars for original VTS3
+         * limitation. If longer, take first 15 dash, and last 15
+         * chars. */
+        if (value->type.Character_String.length > 31) {
+            int iLast15idx = value->type.Character_String.length - 15;
+            value->type.Character_String.value[15] = '-';
+            memmove(
+                &value->type.Character_String.value[16],
+                &value->type.Character_String.value[iLast15idx], 15);
+            value->type.Character_String.value[31] = 0;
+            value->type.Character_String.length = 31;
+        }
+    } else if (rpm_property->propertyIdentifier == PROP_SUBORDINATE_LIST) {
+        if (value->tag != BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE) {
+            return;
+        }
+    }
+    bacapp_print_value(stdout, object_value);
+    if ((Walked_List_Index < Walked_List_Length) || (value->next != NULL)) {
+        columns = Walked_List_Columns;
+        if (Walked_List_Columns == 0) {
+            if ((rpm_property->propertyIdentifier == PROP_OBJECT_LIST) ||
+                (rpm_property->propertyIdentifier == PROP_PRIORITY_ARRAY)) {
+                /* traditional behavior - 3 columns for object-list */
+                columns = 3;
+            }
+        }
+        /* There are more. */
+        fprintf(stdout, ", ");
+        if ((columns == 0) || (!(Walked_List_Index % columns))) {
+            /* newline and indent for the next value */
+            fprintf(stdout, "\n        ");
+        }
+    } else {
+        fprintf(stdout, " } \n");
+    }
+}
+
 /** Print out the value(s) for one Property.
  * This function may be called repeatedly for one property if we are walking
  * through a list (Using_Walked_List is True) to show just one value of the
@@ -457,7 +558,6 @@ static void PrintReadPropertyData(
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
     bool print_brace = false;
-    KEY object_list_element;
 
     if (rpm_property == NULL) {
         fprintf(stdout, "    -- Null Property data \n");
@@ -488,8 +588,7 @@ static void PrintReadPropertyData(
                      * print anything for them.  To achieve this, swap
                      * out the Property for a non-existent Property
                      * and catch that below.  */
-                    rpm_property->propertyIdentifier =
-                        PROP_PROTOCOL_CONFORMANCE_CLASS;
+                    rpm_property->propertyIdentifier = MAX_BACNET_PROPERTY_ID;
                     break;
                 }
                 if (object_type == OBJECT_DATETIME_VALUE) {
@@ -503,7 +602,6 @@ static void PrintReadPropertyData(
                 break;
         }
     }
-
     if (!Using_Walked_List) {
         Walked_List_Index = Walked_List_Length = 0; /* In case we need this. */
     }
@@ -512,169 +610,70 @@ static void PrintReadPropertyData(
         object_value.object_property = rpm_property->propertyIdentifier;
         object_value.array_index = rpm_property->propertyArrayIndex;
         object_value.value = value;
-        switch (rpm_property->propertyIdentifier) {
-                /* These are all arrays, so they open and close with braces */
-            case PROP_OBJECT_LIST:
-            case PROP_STATE_TEXT:
-            case PROP_STRUCTURED_OBJECT_LIST:
-            case PROP_SUBORDINATE_ANNOTATIONS:
-            case PROP_SUBORDINATE_LIST:
-                if (Using_Walked_List) {
-                    if ((rpm_property->propertyArrayIndex == 0) &&
-                        (value->tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
-                        /* Grab the value of the Object List length - don't
-                         * print it! */
-                        Walked_List_Length = value->type.Unsigned_Int;
-                        if (rpm_property->propertyIdentifier ==
-                            PROP_OBJECT_LIST) {
-                            Object_List_Length = value->type.Unsigned_Int;
-                        }
-                        break;
-                    } else {
-                        assert(
-                            Walked_List_Index ==
-                            (uint32_t)rpm_property->propertyArrayIndex);
-                    }
-                } else {
-                    Walked_List_Index++;
-                    /* If we got the whole Object List array in one RP call,
-                     * keep the Index and List_Length in sync as we cycle
-                     * through. */
-                    if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
-                        Object_List_Length = ++Object_List_Index;
-                    }
-                }
-                if (Walked_List_Index == 1) {
-                    /* If the array is empty (nothing for this first entry),
-                     * Make it VTS3-friendly and don't show "Null" as a value.
-                     */
-                    if (value->tag == BACNET_APPLICATION_TAG_NULL) {
-                        fprintf(stdout, "?\n        ");
-                        break;
-                    }
-
-                    /* Open this Array of Objects for the first entry (unless
-                     * opening brace has already printed, since this is an array
-                     * of values[] ) */
-                    if (value->next == NULL) {
-                        fprintf(stdout, "{ \n        ");
-                    } else {
-                        fprintf(stdout, "\n        ");
-                    }
-                }
-
-                if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
-                    if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        break;
-                    }
-                    /* Store the object list so we can interrogate
-                       each object. */
-                    object_list_element = KEY_ENCODE(
-                        value->type.Object_Id.type,
-                        value->type.Object_Id.instance);
-                    /* We don't have anything to put in the data pointer
-                     * yet, so just leave it null.  The key is Key here. */
-                    Keylist_Data_Add(Object_List, object_list_element, NULL);
-                } else if (
-                    rpm_property->propertyIdentifier == PROP_STATE_TEXT) {
-                    /* Make sure it fits within 31 chars for original VTS3
-                     * limitation. If longer, take first 15 dash, and last 15
-                     * chars. */
-                    if (value->type.Character_String.length > 31) {
-                        int iLast15idx =
-                            value->type.Character_String.length - 15;
-                        value->type.Character_String.value[15] = '-';
-                        memmove(
-                            &value->type.Character_String.value[16],
-                            &value->type.Character_String.value[iLast15idx],
-                            15);
-                        value->type.Character_String.value[31] = 0;
-                        value->type.Character_String.length = 31;
-                    }
-                } else if (
-                    rpm_property->propertyIdentifier == PROP_SUBORDINATE_LIST) {
-                    if (value->tag !=
-                        BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE) {
-                        break;
-                    }
-                }
-                bacapp_print_value(stdout, &object_value);
-                if ((Walked_List_Index < Walked_List_Length) ||
-                    (value->next != NULL)) {
-                    /* There are more. */
-                    fprintf(stdout, ", ");
-                    if (!(Walked_List_Index % 3)) {
-                        fprintf(stdout, "\n        ");
-                    }
-                } else {
-                    fprintf(stdout, " } \n");
-                }
-                break;
-
-            case PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED:
-            case PROP_PROTOCOL_SERVICES_SUPPORTED:
+        if (property_list_bacnet_array_member(
+                object_type, rpm_property->propertyIdentifier)) {
+            PrintReadPropertyArray(rpm_property, value, &object_value);
+        } else if (
+            (rpm_property->propertyIdentifier ==
+             PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) ||
+            (rpm_property->propertyIdentifier ==
+             PROP_PROTOCOL_SERVICES_SUPPORTED)) {
+            PrettyPrintPropertyValue(stdout, &object_value);
+        } else if (rpm_property->propertyIdentifier == MAX_BACNET_PROPERTY_ID) {
+            /* Our special non-existent case; do nothing further here. */
+        } else {
+            /* First, if this is a date type, it needs a different format
+             * for VTS, so pretty print it. */
+            if (ShowValues &&
+                (object_value.value->tag == BACNET_APPLICATION_TAG_DATE)) {
+                /* This would be PROP_LOCAL_DATE, or OBJECT_DATETIME_VALUE,
+                 * or OBJECT_DATE_VALUE                     */
                 PrettyPrintPropertyValue(stdout, &object_value);
-                break;
-
-                /* Our special non-existent case; do nothing further here. */
-            case PROP_PROTOCOL_CONFORMANCE_CLASS:
-                break;
-
-            default:
-                /* First, if this is a date type, it needs a different format
-                 * for VTS, so pretty print it. */
-                if (ShowValues &&
-                    (object_value.value->tag == BACNET_APPLICATION_TAG_DATE)) {
-                    /* This would be PROP_LOCAL_DATE, or OBJECT_DATETIME_VALUE,
-                     * or OBJECT_DATE_VALUE                     */
-                    PrettyPrintPropertyValue(stdout, &object_value);
-                } else {
-                    /* Some properties are presented just as '?' in an EPICS;
-                     * screen these out here, unless ShowValues is true.  */
-                    switch (rpm_property->propertyIdentifier) {
-                        case PROP_DEVICE_ADDRESS_BINDING:
-                            /* Make it VTS3-friendly and don't show "Null"
-                             * as a value. */
-                            if (value->tag == BACNET_APPLICATION_TAG_NULL) {
-                                fprintf(stdout, "?");
-                                break;
-                            }
-                            BACNET_STACK_FALLTHROUGH();
-                        case PROP_DAYLIGHT_SAVINGS_STATUS:
-                        case PROP_LOCAL_TIME:
-                        case PROP_LOCAL_DATE: /* Only if !ShowValues */
-                        case PROP_PRESENT_VALUE:
-                        case PROP_PRIORITY_ARRAY:
-                        case PROP_RELIABILITY:
-                        case PROP_UTC_OFFSET:
-                        case PROP_DATABASE_REVISION:
-                            if (!ShowValues) {
-                                fprintf(stdout, "?");
-                                break;
-                            }
-                            BACNET_STACK_FALLTHROUGH();
-                        default:
-                            bacapp_print_value(stdout, &object_value);
+            } else {
+                /* Some properties are presented just as '?' in an EPICS;
+                 * screen these out here, unless ShowValues is true.  */
+                switch (rpm_property->propertyIdentifier) {
+                    case PROP_DEVICE_ADDRESS_BINDING:
+                        /* Make it VTS3-friendly and don't show "Null"
+                         * as a value. */
+                        if (value->tag == BACNET_APPLICATION_TAG_NULL) {
+                            fprintf(stdout, "?");
                             break;
-                    }
+                        }
+                        BACNET_STACK_FALLTHROUGH();
+                    case PROP_DAYLIGHT_SAVINGS_STATUS:
+                    case PROP_LOCAL_TIME:
+                    case PROP_LOCAL_DATE: /* Only if !ShowValues */
+                    case PROP_PRESENT_VALUE:
+                    case PROP_PRIORITY_ARRAY:
+                    case PROP_RELIABILITY:
+                    case PROP_UTC_OFFSET:
+                    case PROP_DATABASE_REVISION:
+                        if (!ShowValues) {
+                            fprintf(stdout, "?");
+                            break;
+                        }
+                        BACNET_STACK_FALLTHROUGH();
+                    default:
+                        bacapp_print_value(stdout, &object_value);
+                        break;
                 }
-                if (value->next != NULL) {
-                    /* there's more! */
-                    fprintf(stdout, ",");
-                } else {
-                    if (print_brace) {
-                        /* Closing brace for this multi-valued array */
-                        fprintf(stdout, " }");
-                    }
-                    if (property_list_writable_member(
-                            object_type, rpm_property->propertyIdentifier)) {
-                        fprintf(stdout, " Writable");
-                    }
-                    fprintf(stdout, "\n");
+            }
+            if (value->next != NULL) {
+                /* there's more! */
+                fprintf(stdout, ",");
+            } else {
+                if (print_brace) {
+                    /* Closing brace for this multi-valued array */
+                    fprintf(stdout, " }");
                 }
-                break;
+                if (property_list_writable_member(
+                        object_type, rpm_property->propertyIdentifier)) {
+                    fprintf(stdout, " Writable");
+                }
+                fprintf(stdout, "\n");
+            }
         }
-
         old_value = value;
         value = value->next; /* next or NULL */
         free(old_value);
@@ -924,6 +923,7 @@ static void print_help(const char *filename)
            "I-Am services.\n");
     printf("\n");
     printf("-v: show values instead of '?' \n");
+    printf("-c: columns break for BACnetARRAY. Default is 0=always\n");
     printf("-d: show only device object properties\n");
     printf("-p: Use sport for \"my\" port.  0xBAC0 is default.\n");
     printf("    Allows you to communicate with a localhost target.\n");
@@ -933,8 +933,8 @@ static void print_help(const char *filename)
     printf("-n: specify target's DNET if not local BACnet network  \n");
     printf("    or on routed Virtual Network \n");
     printf("\n");
-    printf("You can redirect the output to a .tpi file for VTS use,\n");
-    printf("e.g., bacepics 2701876 > epics-2701876.tpi \n");
+    printf("To generate output directly to a .tpi file for VTS:\n");
+    printf("$ bacepics 4194302 > epics-4194302.tpi \n");
 }
 
 static int CheckCommandLineArgs(int argc, char *argv[])
@@ -974,6 +974,12 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                     break;
                 case 'v':
                     ShowValues = true;
+                    break;
+                case 'c':
+                    /* Number of columns before a break for BACnetARRAY props */
+                    if (++i < argc) {
+                        Walked_List_Columns = strtol(argv[i], NULL, 0);
+                    }
                     break;
                 case 'd':
                     ShowDeviceObjectOnly = true;
