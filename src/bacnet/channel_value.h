@@ -133,6 +133,13 @@ bool bacnet_channel_value_same(
 BACNET_STACK_EXPORT
 void bacnet_channel_value_link_array(BACNET_CHANNEL_VALUE *array, size_t size);
 
+BACNET_STACK_EXPORT
+int bacnet_channel_value_coerce_data_encode(
+    uint8_t *apdu,
+    size_t apdu_size,
+    const BACNET_CHANNEL_VALUE *value,
+    BACNET_APPLICATION_TAG tag);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

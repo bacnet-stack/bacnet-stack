@@ -97,15 +97,6 @@ bool Channel_Control_Groups_Element_Set(
     uint32_t object_instance, int32_t array_index, uint16_t value);
 
 BACNET_STACK_EXPORT
-int Channel_Value_Encode(
-    uint8_t *apdu, int apdu_max, const BACNET_CHANNEL_VALUE *value);
-BACNET_STACK_EXPORT
-int Channel_Coerce_Data_Encode(
-    uint8_t *apdu,
-    size_t apdu_size,
-    const BACNET_CHANNEL_VALUE *value,
-    BACNET_APPLICATION_TAG tag);
-BACNET_STACK_EXPORT
 bool Channel_Write_Member_Value(
     BACNET_WRITE_PROPERTY_DATA *wp_data, const BACNET_CHANNEL_VALUE *value);
 
