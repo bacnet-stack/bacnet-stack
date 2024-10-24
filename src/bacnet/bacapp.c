@@ -3987,6 +3987,112 @@ bacnet_shed_level_from_ascii(BACNET_SHED_LEVEL *value, const char *argv)
 }
 #endif
 
+#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
+/**
+ * @brief Parse a string into a BACnetDeviceObjectPropertyReference value
+ * @param value [out] The BACnetObjectPropertyReference value
+ * @param argv [in] The string to parse
+ * @return true on success, else false
+ */
+static bool device_object_property_reference_from_ascii(
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value, const char *argv)
+{
+    bool status = false;
+    unsigned long object_type, object_instance;
+    unsigned long property_id;
+    long array_index;
+    unsigned long device_type, device_instance;
+    int count;
+
+    if (!value || !argv) {
+        return false;
+    }
+    /* analog-output:4194303,present-value,-1,device:4194303 */
+    count = sscanf(
+        argv, "%4lu:%7lu,%lu,%ld,%4lu:%7lu", &object_type, &object_instance,
+        &property_id, &array_index, &device_type, &device_instance);
+    if (count == 6) {
+        value->objectIdentifier.type = object_type;
+        value->objectIdentifier.instance = object_instance;
+        value->propertyIdentifier = property_id;
+        value->arrayIndex = array_index;
+        value->deviceIdentifier.type = device_type;
+        value->deviceIdentifier.instance = device_instance;
+        status = true;
+    }
+
+    return status;
+}
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
+/**
+ * @brief Parse a string into a BACnetDeviceObjectReference value
+ * @param value [out] The BACnetObjectPropertyReference value
+ * @param argv [in] The string to parse
+ * @return true on success, else false
+ */
+static bool device_object_reference_from_ascii(
+    BACNET_DEVICE_OBJECT_REFERENCE *value, const char *argv)
+{
+    bool status = false;
+    unsigned long object_type, object_instance;
+    unsigned long device_type, device_instance;
+    int count;
+
+    if (!value || !argv) {
+        return false;
+    }
+    /* analog-output:4194303,device:4194303 */
+    count = sscanf(
+        argv, "%4lu:%7lu,%4lu:%7lu", &object_type, &object_instance,
+        &device_type, &device_instance);
+    if (count == 4) {
+        value->objectIdentifier.type = object_type;
+        value->objectIdentifier.instance = object_instance;
+        value->deviceIdentifier.type = device_type;
+        value->deviceIdentifier.instance = device_instance;
+        status = true;
+    }
+
+    return status;
+}
+#endif
+
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
+/**
+ * @brief Parse a string into a BACnetObjectPropertyReference value
+ * @param value [out] The BACnetObjectPropertyReference value
+ * @param argv [in] The string to parse
+ * @return true on success, else false
+ */
+static bool object_property_reference_from_ascii(
+    BACNET_OBJECT_PROPERTY_REFERENCE *value, const char *argv)
+{
+    bool status = false;
+    unsigned long object_type, object_instance;
+    unsigned long property_id;
+    long array_index;
+    int count;
+
+    if (!value || !argv) {
+        return false;
+    }
+    /* analog-output:4194303,present-value,-1,device:4194303 */
+    count = sscanf(
+        argv, "%4lu:%7lu,%lu,%ld", &object_type, &object_instance, &property_id,
+        &array_index);
+    if (count == 4) {
+        value->object_identifier.type = object_type;
+        value->object_identifier.instance = object_instance;
+        value->property_identifier = property_id;
+        value->property_array_index = array_index;
+        status = true;
+    }
+
+    return status;
+}
+#endif
+
 /* used to load the app data struct with the proper data
    converted from a command line argument.
    "argv" is not const to allow using strtok internally. It MAY be modified. */
@@ -4193,6 +4299,24 @@ bool bacapp_parse_application_data(
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 status =
                     host_n_port_from_ascii(&value->type.Host_Address, argv);
+                break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
+                status = device_object_property_reference_from_ascii(
+                    &value->type.Device_Object_Property_Reference, argv);
+                break;
+#endif
+#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
+                status = device_object_reference_from_ascii(
+                    &value->type.Device_Object_Reference, argv);
+                break;
+#endif
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
+            case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
+                status = object_property_reference_from_ascii(
+                    &value->type.Object_Property_Reference, argv);
                 break;
 #endif
 #if defined(BACAPP_DESTINATION)
