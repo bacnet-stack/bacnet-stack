@@ -636,9 +636,9 @@ bool bacnet_channel_value_from_ascii(
         }
     }
     if (!status) {
-        double_string = strchr(argv, 'R');
+        double_string = strchr(argv, 'D');
         if (!double_string) {
-            double_string = strchr(argv, 'r');
+            double_string = strchr(argv, 'd');
         }
         if (double_string) {
             count = sscanf(argv + 1, "%lf", &double_value);
