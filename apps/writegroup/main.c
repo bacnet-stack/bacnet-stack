@@ -127,14 +127,25 @@ static void cleanup(void)
         BACNET_GROUP_CHANNEL_VALUE *value;
         value =
             bacnet_write_group_change_list_element(&Write_Group_Data, count);
-        free(value);
+        if (count == 0) {
+            /* index=0 change-value is static head, not dynamic */
+            value->next = NULL;
+        } else {
+            free(value);
+        }
         count--;
     }
 }
 
+/**
+ * @brief Send a WriteGroup-Request to the network
+ * @param argc [in] The number of command line arguments
+ * @param argv [in] The command line arguments
+ * @return 0 on success, 1 on failure
+ */
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS dest = { 0 };
+    BACNET_ADDRESS dest = { 0 /*broadcast*/ };
     BACNET_WRITE_GROUP_DATA *data;
     BACNET_GROUP_CHANNEL_VALUE *value;
     int argi = 0;
