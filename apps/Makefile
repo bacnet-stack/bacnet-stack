@@ -206,7 +206,7 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
 	server-client add-list-element remove-list-element create-object \
-	delete-object server-discover apdu
+	delete-object server-discover apdu writegroup
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -457,4 +457,8 @@ fuzz-afl: $(BACNET_LIB_TARGET)
 
 .PHONY: writepropm
 writepropm: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: writegroup
+writegroup: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
