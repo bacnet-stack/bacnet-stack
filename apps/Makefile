@@ -178,7 +178,6 @@ BACNET_DEFINES += -DBACFILE
 BACNET_DEFINES += -DINTRINSIC_REPORTING
 BACNET_DEFINES += -DBACNET_TIME_MASTER
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
-BACNET_DEFINES += -DBACNET_PROPERTY_ARRAY_LISTS=1
 BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=24
 
 # put all the flags together
@@ -207,7 +206,7 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
 	server-client add-list-element remove-list-element create-object \
-	delete-object server-discover apdu
+	delete-object server-discover apdu writegroup
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -458,4 +457,8 @@ fuzz-afl: $(BACNET_LIB_TARGET)
 
 .PHONY: writepropm
 writepropm: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: writegroup
+writegroup: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@

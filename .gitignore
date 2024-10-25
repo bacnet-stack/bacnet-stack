@@ -66,10 +66,16 @@ BACnet_BDT_table
 address_cache
 **/build/*
 **/_build/*
-CMakeLists.txt.user
 **/out/*
 Obj/
 Release/
+
+# cmake artifacts
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
 
 /twister-out/*
 /test/build/

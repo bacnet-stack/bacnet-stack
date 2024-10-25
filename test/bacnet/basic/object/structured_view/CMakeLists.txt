@@ -23,7 +23,6 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
     BIG_ENDIAN=0
     CONFIG_ZTEST=1
-    BACNET_PROPERTY_ARRAY_LISTS=1
     )
 
 include_directories(
@@ -62,6 +61,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
