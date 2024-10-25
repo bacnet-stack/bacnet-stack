@@ -20,7 +20,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.4.0] - 2024-10-05
+## [1.4.0] - 2024-10-25
 
 ### Security
 
@@ -32,6 +32,11 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added WriteGroup service and Channel object interfaces (#829)
+* Added common property test for BACnetARRAY (#828)
+* Added code to parse BACnetAccessRule from ASCII command line. (#827)
+* Added a common BACnetARRAY write property iterator function. (#826)
+* Added cmake build artificats to gitignore
 * Added some optional properties into the object property lists up to
   protocol-revision 22. (#789)
 * Added serial-number property to basic device object example. (#789)
@@ -61,6 +66,7 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed apps/epics by enabling BACnetARRAY checking. (#823)
 * Changed  BACnet Ethernet and IPv6 on win32 by switching from
   WinPcap to npcap.  Included npcap SDK in cmake and libs for
   IPv6 in cmake. (#774)
@@ -98,6 +104,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed BACnetLightingCommand decode options by setting them. (#830)
 * Fixed jquery.js used for syntax highlighting in PERL documentation. (#817)
 * Fixed EXC_BAD_ACCESS in datalink_set() strcasecmp(). (#816)
 * Fixed BACNET_APPLICATION_DATA_VALUE declarations to be initialized so
