@@ -4015,6 +4015,11 @@ static bool device_object_property_reference_from_ascii(
         value->objectIdentifier.type = object_type;
         value->objectIdentifier.instance = object_instance;
         value->propertyIdentifier = property_id;
+        if (array_index < 0) {
+            value->arrayIndex = BACNET_ARRAY_ALL;
+        } else {
+            value->arrayIndex = array_index;
+        }
         value->arrayIndex = array_index;
         value->deviceIdentifier.type = device_type;
         value->deviceIdentifier.instance = device_instance;
