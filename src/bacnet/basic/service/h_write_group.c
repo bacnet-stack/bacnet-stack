@@ -26,6 +26,22 @@
 static BACNET_WRITE_GROUP_NOTIFICATION Write_Group_Notification_Head;
 
 /**
+ * @brief Print the contents of a WriteGroup-Request
+ * @param data [in] The decoded WriteGroup-Request message
+ */
+void handler_write_group_print_data(BACNET_WRITE_GROUP_DATA *data)
+{
+    if (!data) {
+        return;
+    }
+    debug_printf(
+        "WriteGroup:group-number=%lu\r\n", (unsigned long)data->group_number);
+    debug_printf(
+        "WriteGroup:write-priority=%lu\r\n",
+        (unsigned long)data->write_priority);
+}
+
+/**
  * @brief generic callback for WriteGroup-Request iterator
  * @param data [in] The contents of the WriteGroup-Request message
  * @param change_list_index [in] The index of the current value in the change
@@ -39,6 +55,7 @@ static void handler_write_group_notification_callback(
 {
     BACNET_WRITE_GROUP_NOTIFICATION *head;
 
+    handler_write_group_print_data(data);
     head = &Write_Group_Notification_Head;
     do {
         if (head->callback) {
@@ -68,22 +85,6 @@ void handler_write_group_notification_add(BACNET_WRITE_GROUP_NOTIFICATION *cb)
         }
         head = head->next;
     } while (head);
-}
-
-/**
- * @brief Print the contents of a WriteGroup-Request
- * @param data [in] The decoded WriteGroup-Request message
- */
-void handler_write_group_print_data(BACNET_WRITE_GROUP_DATA *data)
-{
-    if (!data) {
-        return;
-    }
-    debug_printf(
-        "WriteGroup:group-number=%lu\r\n", (unsigned long)data->group_number);
-    debug_printf(
-        "WriteGroup:write-priority=%lu\r\n",
-        (unsigned long)data->write_priority);
 }
 
 /**

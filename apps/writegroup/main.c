@@ -177,14 +177,14 @@ int main(int argc, char *argv[])
             argi++;
             value->overriding_priority = strtol(argv[argi], NULL, 0);
             argi++;
-            if (bacnet_channel_value_from_ascii(&value->value, argv[argi])) {
-                printf(
-                    "WriteGroup-Request added channel %u "
-                    "with priority %u value=%s\n",
-                    value->channel, value->overriding_priority, argv[argi]);
-            } else {
+            if (!bacnet_channel_value_from_ascii(&value->value, argv[argi])) {
                 value->value.tag = BACNET_APPLICATION_TAG_NULL;
             }
+            printf(
+                "WriteGroup-Request added channel %u "
+                "with priority %u value=%s tag=%s\n",
+                value->channel, value->overriding_priority, argv[argi],
+                bactext_application_tag_name(value->value.tag));
             value = value->next;
         }
     }

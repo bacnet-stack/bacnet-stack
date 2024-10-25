@@ -20,6 +20,8 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
 #include "bacnet/property.h"
+#include "bacnet/bactext.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/keylist.h"
 #if defined(CHANNEL_LIGHTING_COMMAND) || defined(CHANNEL_COLOR_COMMAND)
 #include "bacnet/lighting.h"
@@ -682,6 +684,7 @@ bool Channel_Write_Member_Value(
  */
 static bool Channel_Write_Members(
     struct object_data *pObject,
+    uint32_t object_instance,
     const BACNET_CHANNEL_VALUE *value,
     uint8_t priority)
 {
@@ -692,6 +695,10 @@ static bool Channel_Write_Members(
 
     if (pObject && value) {
         pObject->Write_Status = BACNET_WRITE_STATUS_IN_PROGRESS;
+        debug_printf(
+            "channel[%lu].Channel_Write_Members\n",
+            (unsigned long)object_instance);
+
         for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
             pMember = &pObject->Members[m];
             /* NOTE: our implementation is for internal objects only */
@@ -706,16 +713,37 @@ static bool Channel_Write_Members(
                 wp_data.object_instance = pMember->objectIdentifier.instance;
                 wp_data.object_property = pMember->propertyIdentifier;
                 wp_data.array_index = pMember->arrayIndex;
+                wp_data.error_class = ERROR_CLASS_PROPERTY;
+                wp_data.error_code = ERROR_CODE_SUCCESS;
                 wp_data.priority = priority;
                 wp_data.application_data_len = sizeof(wp_data.application_data);
                 status = Channel_Write_Member_Value(&wp_data, value);
                 if (status) {
+                    debug_printf(
+                        "channel[%lu].Channel_Write_Member[%u] coerced\n",
+                        (unsigned long)object_instance, m);
                     if (Write_Property_Internal_Callback) {
                         status = Write_Property_Internal_Callback(&wp_data);
+                        if (status) {
+                            wp_data.error_code = ERROR_CODE_SUCCESS;
+                        }
+                        debug_printf(
+                            "channel[%lu].Channel_Write_Member[%u] "
+                            "%s\n",
+                            (unsigned long)object_instance, m,
+                            bactext_error_code_name(wp_data.error_code));
                     }
                 } else {
+                    debug_printf(
+                        "channel[%lu].Channel_Write_Member[%u] "
+                        "coercion failed!\n",
+                        (unsigned long)object_instance, m);
                     pObject->Write_Status = BACNET_WRITE_STATUS_FAILED;
                 }
+            } else {
+                debug_printf(
+                    "channel[%lu].Channel_Write_Member[%u] invalid!\n",
+                    (unsigned long)object_instance, m);
             }
         }
         if (pObject->Write_Status == BACNET_WRITE_STATUS_IN_PROGRESS) {
@@ -746,7 +774,8 @@ bool Channel_Present_Value_Set(
     if (pObject) {
         if ((priority > 0) && (priority <= BACNET_MAX_PRIORITY)) {
             bacnet_channel_value_copy(&pObject->Present_Value, value);
-            status = Channel_Write_Members(pObject, value, priority);
+            status = Channel_Write_Members(
+                pObject, object_instance, value, priority);
         }
     }
 
@@ -773,8 +802,9 @@ static bool Channel_Present_Value_Write(
             (wp_data->priority <= BACNET_MAX_PRIORITY)) {
             if (wp_data->priority != 6 /* reserved */) {
                 bacnet_channel_value_copy(&pObject->Present_Value, value);
-                status =
-                    Channel_Write_Members(pObject, value, wp_data->priority);
+                status = Channel_Write_Members(
+                    pObject, wp_data->object_instance, value,
+                    wp_data->priority);
                 status = true;
             } else {
                 /* Command priority 6 is reserved for use by Minimum On/Off
@@ -1299,7 +1329,9 @@ void Channel_Write_Group(
 {
     struct object_data *pObject;
     unsigned count, g, priority;
+    uint32_t instance;
     int index;
+    bool status = false;
 
     if (!data || !change_list) {
         return;
@@ -1315,6 +1347,7 @@ void Channel_Write_Group(
         if (!pObject) {
             continue;
         }
+        instance = Channel_Index_To_Instance(index);
         for (g = 0; g < CONTROL_GROUPS_MAX; g++) {
             if (pObject->Control_Groups[g] == 0) {
                 continue;
@@ -1330,9 +1363,15 @@ void Channel_Write_Group(
                    implementation does not support the execution-delay
                    property */
                 (void)Channel_Write_Members(
-                    pObject, &change_list->value, priority);
+                    pObject, instance, &change_list->value, priority);
+                status = true;
             }
         }
+    }
+    if (!status) {
+        debug_printf(
+            "Channel Objects: group_number=%u, channel=%u not found\n",
+            data->group_number, change_list->channel);
     }
 }
 
