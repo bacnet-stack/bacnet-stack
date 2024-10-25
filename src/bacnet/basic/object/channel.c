@@ -776,6 +776,9 @@ bool Channel_Present_Value_Set(
             bacnet_channel_value_copy(&pObject->Present_Value, value);
             status = Channel_Write_Members(
                 pObject, object_instance, value, priority);
+            if (status) {
+                pObject->Last_Priority = priority;
+            }
         }
     }
 
@@ -805,6 +808,14 @@ static bool Channel_Present_Value_Write(
                 status = Channel_Write_Members(
                     pObject, wp_data->object_instance, value,
                     wp_data->priority);
+                if (status) {
+                    pObject->Last_Priority = wp_data->priority;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_SUCCESS;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
                 status = true;
             } else {
                 /* Command priority 6 is reserved for use by Minimum On/Off
@@ -1331,7 +1342,7 @@ void Channel_Write_Group(
     unsigned count, g, priority;
     uint32_t instance;
     int index;
-    bool status = false;
+    bool status = false, found = false;
 
     if (!data || !change_list) {
         return;
@@ -1362,13 +1373,16 @@ void Channel_Write_Group(
                 /* note: inhibit delay is ignored because this
                    implementation does not support the execution-delay
                    property */
-                (void)Channel_Write_Members(
+                status = Channel_Write_Members(
                     pObject, instance, &change_list->value, priority);
-                status = true;
+                if (status) {
+                    pObject->Last_Priority = priority;
+                }
+                found = true;
             }
         }
     }
-    if (!status) {
+    if (!found) {
         debug_printf(
             "Channel Objects: group_number=%u, channel=%u not found\n",
             data->group_number, change_list->channel);
