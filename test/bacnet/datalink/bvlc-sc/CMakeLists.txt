@@ -41,6 +41,8 @@ add_executable(${PROJECT_NAME}
 	${ZTST_DIR}/ztest.c
 	)
 
-target_compile_options(${PROJECT_NAME} PRIVATE
-    -Wno-language-extension-token
-    )
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        -Wno-language-extension-token
+        )
+endif()
