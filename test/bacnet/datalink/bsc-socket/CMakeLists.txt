@@ -69,7 +69,9 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -136,7 +138,9 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
