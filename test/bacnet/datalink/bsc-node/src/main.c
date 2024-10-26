@@ -3089,6 +3089,13 @@ static void node_switch_event(BSC_NODE_SWITCH_EVENT ev,
     size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
+    (void) ev;
+    (void) h;
+    (void) user_arg;
+    (void) dest;
+    (void) pdu;
+    (void) pdu_len;
+    (void) decoded_pdu;
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -3289,7 +3296,7 @@ ZTEST_SUITE(node_test_7, NULL, suite_setup, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    setbuf(stdout, NULL);
+    // setbuf(stdout, NULL);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
     ztest_test_suite(node_test_1, ztest_unit_test(test_node_start_stop));
