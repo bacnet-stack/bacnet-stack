@@ -104,7 +104,10 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     )
   target_link_libraries(${PROJECT_NAME}
                         ${LIBWEBSOCKETS_LIBRARIES}
-  )
+    )
+  target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wno-language-extension-token
+    )
 elseif(WIN32)
   message(STATUS "BACNet/SC socket test: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
@@ -260,5 +263,8 @@ elseif(APPLE)
     )
   target_link_libraries(${PROJECT_NAME}
                         ${LIBWEBSOCKETS_LIBRARIES}
-  )
+    )
+  target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wno-language-extension-token
+    )
 endif()
