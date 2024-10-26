@@ -374,6 +374,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_dcc.h
   src/bacnet/basic/service/h_delete_object.c
   src/bacnet/basic/service/h_delete_object.h
+  src/bacnet/basic/service/h_device.c
+  src/bacnet/basic/service/h_device.h
   src/bacnet/basic/service/h_gas_a.c
   src/bacnet/basic/service/h_gas_a.h
   src/bacnet/basic/service/h_get_alarm_sum.c
@@ -775,58 +777,31 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 if(BACNET_STACK_BUILD_APPS)
   message(STATUS "BACNET: compiling also apps")
 
-  add_executable(abort
-    apps/abort/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(abort apps/abort/main.c)
   target_link_libraries(abort PRIVATE ${PROJECT_NAME})
 
-  add_executable(ack-alarm
-    apps/ack-alarm/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(ack-alarm apps/ack-alarm/main.c)
   target_link_libraries(ack-alarm PRIVATE ${PROJECT_NAME})
 
-  add_executable(add-list-element
-    apps/add-list-element/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(add-list-element apps/add-list-element/main.c)
   target_link_libraries(add-list-element PRIVATE ${PROJECT_NAME})
 
-  add_executable(apdu
-    apps/apdu/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(apdu apps/apdu/main.c)
   target_link_libraries(apdu PRIVATE ${PROJECT_NAME})
 
-  add_executable(create-object
-    apps/create-object/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(create-object apps/create-object/main.c)
   target_link_libraries(create-object PRIVATE ${PROJECT_NAME})
 
-  add_executable(dcc
-    apps/dcc/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(dcc apps/dcc/main.c)
   target_link_libraries(dcc PRIVATE ${PROJECT_NAME})
 
-  add_executable(delete-object
-    apps/delete-object/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(delete-object apps/delete-object/main.c)
   target_link_libraries(delete-object PRIVATE ${PROJECT_NAME})
 
-  add_executable(epics
-    apps/epics/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(epics apps/epics/main.c)
   target_link_libraries(epics PRIVATE ${PROJECT_NAME})
 
-  add_executable(error
-    apps/error/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(error apps/error/main.c)
   target_link_libraries(error PRIVATE ${PROJECT_NAME})
 
   add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
@@ -836,28 +811,16 @@ if(BACNET_STACK_BUILD_APPS)
     $<$<C_COMPILER_ID:MSVC>:/wd4702>
   )
 
-  add_executable(getevent
-    apps/getevent/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(getevent apps/getevent/main.c)
   target_link_libraries(getevent PRIVATE ${PROJECT_NAME})
 
-  add_executable(iam
-    apps/iam/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(iam apps/iam/main.c)
   target_link_libraries(iam PRIVATE ${PROJECT_NAME})
 
-  add_executable(iamrouter
-      apps/iamrouter/main.c
-      src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(iamrouter apps/iamrouter/main.c)
   target_link_libraries(iamrouter PRIVATE ${PROJECT_NAME})
 
-  add_executable(initrouter
-    apps/initrouter/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(initrouter apps/initrouter/main.c)
   target_link_libraries(initrouter PRIVATE ${PROJECT_NAME})
 
   if(BACDL_MSTP)
@@ -921,40 +884,22 @@ if(BACNET_STACK_BUILD_APPS)
     target_link_libraries(readfdt PRIVATE ${PROJECT_NAME})
   endif()
 
-  add_executable(readfile
-    apps/readfile/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(readfile apps/readfile/main.c)
   target_link_libraries(readfile PRIVATE ${PROJECT_NAME})
 
-  add_executable(readprop
-    apps/readprop/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(readprop apps/readprop/main.c)
   target_link_libraries(readprop PRIVATE ${PROJECT_NAME})
 
-  add_executable(readpropm
-    apps/readpropm/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(readpropm apps/readpropm/main.c)
   target_link_libraries(readpropm PRIVATE ${PROJECT_NAME})
 
-  add_executable(readrange
-    apps/readrange/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(readrange apps/readrange/main.c)
   target_link_libraries(readrange PRIVATE ${PROJECT_NAME})
 
-  add_executable(remove-list-element
-    apps/remove-list-element/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(remove-list-element apps/remove-list-element/main.c)
   target_link_libraries(remove-list-element PRIVATE ${PROJECT_NAME})
 
-  add_executable(reinit
-    apps/reinit/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(reinit apps/reinit/main.c)
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
 
   if(BACDL_BIP AND BACDL_MSTP AND EXISTS ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.c)
@@ -1023,88 +968,47 @@ if(BACNET_STACK_BUILD_APPS)
     )
   endif()
 
-  add_executable(scov
-    apps/scov/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(scov apps/scov/main.c)
   target_link_libraries(scov PRIVATE ${PROJECT_NAME})
 
-  add_executable(server
-      apps/server/main.c
-      src/bacnet/basic/object/device.c
-      src/bacnet/basic/object/device.h
-
-  )
+  add_executable(server apps/server/main.c)
   target_link_libraries(server PRIVATE ${PROJECT_NAME})
   target_compile_options(server PRIVATE
     # Unreachable code because we have endless loop.
     $<$<C_COMPILER_ID:MSVC>:/wd4702>
   )
 
-  add_executable(timesync
-    apps/timesync/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(timesync apps/timesync/main.c)
   target_link_libraries(timesync PRIVATE ${PROJECT_NAME})
 
-  add_executable(ucov
-    apps/ucov/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(ucov apps/ucov/main.c)
   target_link_libraries(ucov PRIVATE ${PROJECT_NAME})
 
-  add_executable(event
-    apps/event/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(event apps/event/main.c)
   target_link_libraries(event PRIVATE ${PROJECT_NAME})
 
-  add_executable(uevent
-    apps/uevent/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(uevent apps/uevent/main.c)
   target_link_libraries(uevent PRIVATE ${PROJECT_NAME})
 
-  add_executable(uptransfer
-    apps/uptransfer/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(uptransfer apps/uptransfer/main.c)
   target_link_libraries(uptransfer PRIVATE ${PROJECT_NAME})
 
-  add_executable(whohas
-    apps/whohas/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(whohas apps/whohas/main.c)
   target_link_libraries(whohas PRIVATE ${PROJECT_NAME})
 
-  add_executable(whois
-    apps/whois/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(whois apps/whois/main.c)
   target_link_libraries(whois PRIVATE ${PROJECT_NAME})
 
-  add_executable(whoisrouter
-    apps/whoisrouter/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(whoisrouter apps/whoisrouter/main.c)
   target_link_libraries(whoisrouter PRIVATE ${PROJECT_NAME})
 
-  add_executable(whatisnetnum
-    apps/whatisnetnum/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(whatisnetnum apps/whatisnetnum/main.c)
   target_link_libraries(whatisnetnum PRIVATE ${PROJECT_NAME})
 
-  add_executable(netnumis
-    apps/netnumis/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(netnumis apps/netnumis/main.c)
   target_link_libraries(netnumis PRIVATE ${PROJECT_NAME})
 
-  add_executable(writefile
-    src/bacnet/basic/object/client/device-client.c
-    apps/writefile/main.c
-  )
+  add_executable(writefile apps/writefile/main.c)
   target_link_libraries(writefile PRIVATE ${PROJECT_NAME})
 
   add_executable(writegroup apps/writegroup/main.c)
@@ -1113,10 +1017,7 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(writeprop apps/writeprop/main.c)
   target_link_libraries(writeprop PRIVATE ${PROJECT_NAME})
 
-  add_executable(writepropm
-    apps/writepropm/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
 endif()
 
