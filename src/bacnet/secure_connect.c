@@ -1743,7 +1743,7 @@ int bacapp_snprintf_SCDirectConnection(
     } else {
         str_size = 0;
     }
-    slen = snprintf(str, str_size - str_len, "}");
+    slen = snprintf(str, str_size, "}");
     str_len += slen;
 
     return str_len;
@@ -1782,7 +1782,7 @@ int bacapp_snprintf_SCHubConnection(
     } else {
         str_size = 0;
     }
-    slen = snprintf(str, str_len, ", ");
+    slen = snprintf(str, str_size, ", ");
     str_len += slen;
     if (str) {
         str += slen;
@@ -1802,7 +1802,7 @@ int bacapp_snprintf_SCHubConnection(
     } else {
         str_size = 0;
     }
-    slen = snprintf(str, str_len, ", ");
+    slen = snprintf(str, str_size, ", ");
     str_len += slen;
     if (str) {
         str += slen;
