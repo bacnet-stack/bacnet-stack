@@ -175,6 +175,9 @@ elseif(MSVC)
 
   # Might be slower if builded with /Qspectre
   add_compile_options(/wd5045)
+
+  # format string expected in argument 3 is not a string literal. secure_connect.c:1414
+  add_compile_options(/wd4774)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
