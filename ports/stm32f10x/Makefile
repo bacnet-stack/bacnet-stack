@@ -9,9 +9,9 @@ BACNET_CORE := $(BACNET_SRC)/bacnet
 BACNET_BASIC := $(BACNET_CORE)/basic
 BACNET_INCLUDE := $(BACNET_SRC)
 PLATFORM_DIR = .
-LIBRARY_STM32 = ./drivers/src
-LIBRARY_STM32_INCLUDES = ./drivers/inc
-LIBRARY_CMSIS = ./CMSIS
+LIBRARY_STM32 = ./external/drivers/src
+LIBRARY_STM32_INCLUDES = ./external/drivers/inc
+LIBRARY_CMSIS = ./external/CMSIS
 
 CSTACK_TOOL := $(BACNET_DIR)/tools/avstack/avstack.pl
 MEMAP_TOOL := $(BACNET_DIR)/tools/memap/memap.py
@@ -231,7 +231,7 @@ ram-usage:
 	@$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
 	@echo "=ADDRESS= ==SIZE== = ==VARIABLE NAME=="
 	@tail $(TARGET).nm
-	
+
 .PHONY: cstack
 cstack:
 	@$(CSTACK_TOOL) $(COBJ) 2> /dev/null 1> $(TARGET).su

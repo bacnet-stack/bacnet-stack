@@ -239,7 +239,7 @@ Calendar_Date_List_Get(uint32_t object_instance, uint8_t index)
  * @return  true if the entity is add successfully.
  */
 bool Calendar_Date_List_Add(
-    uint32_t object_instance, BACNET_CALENDAR_ENTRY *value)
+    uint32_t object_instance, const BACNET_CALENDAR_ENTRY *value)
 {
     bool st = false;
     BACNET_CALENDAR_ENTRY *entry;
@@ -403,18 +403,36 @@ bool Calendar_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Calendar_Name_Set(uint32_t object_instance, char *new_name)
+bool Calendar_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Object_Name = new_name;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Calendar_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -424,15 +442,15 @@ bool Calendar_Name_Set(uint32_t object_instance, char *new_name)
  *
  * @return description text or NULL if not found
  */
-char *Calendar_Description(uint32_t object_instance)
+const char *Calendar_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -449,7 +467,7 @@ char *Calendar_Description(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Calendar_Description_Set(uint32_t object_instance, char *new_name)
+bool Calendar_Description_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;

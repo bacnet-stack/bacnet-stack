@@ -44,7 +44,7 @@
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacapp_property_state_decode(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_PROPERTY_STATE *value)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_PROPERTY_STATE *value)
 {
     BACNET_TAG tag = { 0 };
     uint32_t enum_value = 0;
@@ -72,8 +72,9 @@ int bacapp_property_state_decode(
             apdu_len++;
         }
     } else if (tag.number == PROP_STATE_INTEGER_VALUE) {
-        len = bacnet_signed_decode(&apdu[apdu_len], apdu_size - apdu_len,
-            tag.len_value_type, &integer_value);
+        len = bacnet_signed_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
+            &integer_value);
         if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
@@ -82,8 +83,9 @@ int bacapp_property_state_decode(
             value->state.integerValue = integer_value;
         }
     } else {
-        len = bacnet_enumerated_decode(&apdu[apdu_len], apdu_size - apdu_len,
-            tag.len_value_type, &enum_value);
+        len = bacnet_enumerated_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, tag.len_value_type,
+            &enum_value);
         if (len <= 0) {
             return BACNET_STATUS_ERROR;
         }
@@ -298,13 +300,14 @@ int bacapp_property_state_decode(
     return apdu_len;
 }
 
-int bacapp_decode_property_state(uint8_t *apdu, BACNET_PROPERTY_STATE *value)
+int bacapp_decode_property_state(
+    const uint8_t *apdu, BACNET_PROPERTY_STATE *value)
 {
     return bacapp_property_state_decode(apdu, MAX_APDU, value);
 }
 
 int bacapp_decode_context_property_state(
-    uint8_t *apdu, uint8_t tag_number, BACNET_PROPERTY_STATE *value)
+    const uint8_t *apdu, uint8_t tag_number, BACNET_PROPERTY_STATE *value)
 {
     int len = 0;
     int section_length;
@@ -335,7 +338,8 @@ int bacapp_decode_context_property_state(
  * @param value  Pointer to the value used for encoding
  * @return number of bytes encoded, or zero if unable to encode
  */
-int bacapp_encode_property_state(uint8_t *apdu, BACNET_PROPERTY_STATE *value)
+int bacapp_encode_property_state(
+    uint8_t *apdu, const BACNET_PROPERTY_STATE *value)
 {
     int len = 0; /* length of each encoding */
 

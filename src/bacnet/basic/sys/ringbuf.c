@@ -150,7 +150,8 @@ volatile void *Ringbuf_Peek(RING_BUFFER const *b)
  * @param  data_element - find the next element from this one
  * @return pointer to the data, or NULL if nothing in the list
  */
-volatile void *Ringbuf_Peek_Next(RING_BUFFER const *b, uint8_t *data_element)
+volatile void *
+Ringbuf_Peek_Next(RING_BUFFER const *b, const uint8_t *data_element)
 {
     unsigned index; /* list index */
     volatile uint8_t *this_element;
@@ -211,7 +212,7 @@ bool Ringbuf_Pop(RING_BUFFER *b, uint8_t *data_element)
  * @return true if data was copied, false if list is empty
  */
 bool Ringbuf_Pop_Element(
-    RING_BUFFER *b, uint8_t *this_element, uint8_t *data_element)
+    RING_BUFFER *b, const uint8_t *this_element, uint8_t *data_element)
 {
     bool status = false; /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
@@ -262,7 +263,7 @@ bool Ringbuf_Pop_Element(
  * @param  data_element - one element that is copied to the ring buffer
  * @return true on successful add, false if not added
  */
-bool Ringbuf_Put(RING_BUFFER *b, uint8_t *data_element)
+bool Ringbuf_Put(RING_BUFFER *b, const uint8_t *data_element)
 {
     bool status = false; /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
@@ -296,7 +297,7 @@ bool Ringbuf_Put(RING_BUFFER *b, uint8_t *data_element)
  * @param  data_element - one element to copy to the front of the ring
  * @return true on successful add, false if not added
  */
-bool Ringbuf_Put_Front(RING_BUFFER *b, uint8_t *data_element)
+bool Ringbuf_Put_Front(RING_BUFFER *b, const uint8_t *data_element)
 {
     bool status = false; /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
@@ -351,7 +352,7 @@ volatile void *Ringbuf_Data_Peek(RING_BUFFER *b)
  * @return true if the buffer has space and the data element points to the
  *              same memory previously peeked.
  */
-bool Ringbuf_Data_Put(RING_BUFFER *b, volatile uint8_t *data_element)
+bool Ringbuf_Data_Put(RING_BUFFER *b, const volatile uint8_t *data_element)
 {
     bool status = false;
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
@@ -397,7 +398,8 @@ static bool isPowerOfTwo(unsigned int x)
  *
  * @return  true if ring buffer was initialized
  */
-bool Ringbuf_Init(RING_BUFFER *b,
+bool Ringbuf_Init(
+    RING_BUFFER *b,
     volatile uint8_t *buffer,
     unsigned element_size,
     unsigned element_count)

@@ -40,6 +40,8 @@ static void test_object_structured_view(void)
     bacnet_object_properties_read_write_test(
         OBJECT_STRUCTURED_VIEW, instance, Structured_View_Property_Lists,
         Structured_View_Read_Property, NULL, skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        instance, Structured_View_Name_Set, Structured_View_Name_ASCII);
 }
 /**
  * @}
@@ -51,7 +53,7 @@ ZTEST_SUITE(tests_object_structured_view, NULL, NULL, NULL, NULL, NULL);
 void test_main(void)
 {
     ztest_test_suite(
-        tests_object_structured_view, 
+        tests_object_structured_view,
         ztest_unit_test(test_object_structured_view));
 
     ztest_run_test_suite(tests_object_structured_view);

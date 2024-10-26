@@ -56,8 +56,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -85,25 +85,27 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s [device-instance-min device-instance-min] "
-           "<object-type object-instance | object-name> [--help]\r\n",
+    printf(
+        "Usage: %s [device-instance-min device-instance-min] "
+        "<object-type object-instance | object-name> [--help]\r\n",
         filename);
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     print_usage(filename);
-    printf("Send BACnet WhoHas request to devices, \r\n"
-           "and wait %u milliseconds (BACNET_APDU_TIMEOUT) for responses.\r\n"
-           "The device-instance-min or max can be 0 to %d.\r\n"
-           "\r\n"
-           "Use either:\r\n"
-           "The object-type can be 0 to %d, or a string e.g. analog-output.\r\n"
-           "The object-instance can be 0 to %d.\r\n"
-           "or:\r\n"
-           "The object-name can be any string of characters.\r\n",
+    printf(
+        "Send BACnet WhoHas request to devices, \r\n"
+        "and wait %u milliseconds (BACNET_APDU_TIMEOUT) for responses.\r\n"
+        "The device-instance-min or max can be 0 to %d.\r\n"
+        "\r\n"
+        "Use either:\r\n"
+        "The object-type can be 0 to %d, or a string e.g. analog-output.\r\n"
+        "The object-instance can be 0 to %d.\r\n"
+        "or:\r\n"
+        "The object-name can be any string of characters.\r\n",
         BACNET_MAX_INSTANCE, (unsigned)apdu_timeout(), BACNET_MAX_OBJECT,
         BACNET_MAX_INSTANCE);
 }
@@ -180,23 +182,27 @@ int main(int argc, char *argv[])
         }
     } else {
         if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-            fprintf(stderr, "object-instance=%u - not greater than %u\r\n",
+            fprintf(
+                stderr, "object-instance=%u - not greater than %u\r\n",
                 Target_Object_Instance, BACNET_MAX_INSTANCE);
             return 1;
         }
         if (Target_Object_Type > BACNET_MAX_OBJECT) {
-            fprintf(stderr, "object-type=%u - not greater than %u\r\n",
+            fprintf(
+                stderr, "object-type=%u - not greater than %u\r\n",
                 Target_Object_Type, BACNET_MAX_OBJECT);
             return 1;
         }
     }
     if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance-min=%u - not greater than %u\r\n",
+        fprintf(
+            stderr, "object-instance-min=%u - not greater than %u\r\n",
             Target_Object_Instance_Min, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Instance_Max > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance-max=%u - not greater than %u\r\n",
+        fprintf(
+            stderr, "object-instance-max=%u - not greater than %u\r\n",
             Target_Object_Instance_Max, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -210,12 +216,13 @@ int main(int argc, char *argv[])
     timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
     if (by_name) {
-        Send_WhoHas_Name(Target_Object_Instance_Min, Target_Object_Instance_Max,
+        Send_WhoHas_Name(
+            Target_Object_Instance_Min, Target_Object_Instance_Max,
             Target_Object_Name);
     } else {
-        Send_WhoHas_Object(Target_Object_Instance_Min,
-            Target_Object_Instance_Max, Target_Object_Type,
-            Target_Object_Instance);
+        Send_WhoHas_Object(
+            Target_Object_Instance_Min, Target_Object_Instance_Max,
+            Target_Object_Type, Target_Object_Instance);
     }
     /* loop forever */
     for (;;) {

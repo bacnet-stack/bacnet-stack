@@ -21,17 +21,16 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    void handler_get_alarm_summary_set(
-        BACNET_OBJECT_TYPE object_type,
-        get_alarm_summary_function pFunction);
+BACNET_STACK_EXPORT
+void handler_get_alarm_summary_set(
+    BACNET_OBJECT_TYPE object_type, get_alarm_summary_function pFunction);
 
-    BACNET_STACK_EXPORT
-    void handler_get_alarm_summary(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data);
+BACNET_STACK_EXPORT
+void handler_get_alarm_summary(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 #ifdef __cplusplus
 }

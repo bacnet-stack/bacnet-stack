@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <locale.h>
 #endif
 #include <errno.h>
@@ -38,6 +38,8 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/bip.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacepics.h"
 
@@ -115,10 +117,12 @@ struct property_value_list_t {
     BACNET_APPLICATION_DATA_VALUE *value;
 };
 static struct property_value_list_t Property_Value_List[] = {
-    { PROP_VENDOR_NAME, NULL }, { PROP_MODEL_NAME, NULL },
+    { PROP_VENDOR_NAME, NULL },
+    { PROP_MODEL_NAME, NULL },
     { PROP_MAX_APDU_LENGTH_ACCEPTED, NULL },
     { PROP_PROTOCOL_SERVICES_SUPPORTED, NULL },
-    { PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, NULL }, { PROP_DESCRIPTION, NULL },
+    { PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, NULL },
+    { PROP_DESCRIPTION, NULL },
     { -1, NULL }
 };
 
@@ -159,7 +163,8 @@ static bool Optional_Properties = false;
 #define PRINT_ERRORS 1
 #endif
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
@@ -168,7 +173,8 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
         (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
         if (ShowValues) {
-            fprintf(stderr, "-- BACnet Error: %s: %s\n",
+            fprintf(
+                stderr, "-- BACnet Error: %s: %s\n",
                 bactext_error_class_name(error_class),
                 bactext_error_code_name(error_code));
         }
@@ -188,7 +194,8 @@ static void MyAbortHandler(
 #if PRINT_ERRORS
         /* It is normal for this to fail, so don't print. */
         if ((myState != GET_ALL_RESPONSE) && !IsLongArray && ShowValues) {
-            fprintf(stderr, "-- BACnet Abort: %s \n",
+            fprintf(
+                stderr, "-- BACnet Abort: %s \n",
                 bactext_abort_reason_name(abort_reason));
         }
 #endif
@@ -203,14 +210,15 @@ static void MyAbortHandler(
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
         if (ShowValues) {
-            fprintf(stderr, "BACnet Reject: %s\n",
+            fprintf(
+                stderr, "BACnet Reject: %s\n",
                 bactext_reject_reason_name(reject_reason));
         }
 #endif
@@ -225,7 +233,8 @@ static void MyRejectHandler(
     }
 }
 
-static void MyReadPropertyAckHandler(uint8_t *service_request,
+static void MyReadPropertyAckHandler(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
@@ -241,7 +250,8 @@ static void MyReadPropertyAckHandler(uint8_t *service_request,
                 service_request, service_len, rp_data);
         }
         if (len > 0) {
-            memmove(&Read_Property_Multiple_Data.service_data, service_data,
+            memmove(
+                &Read_Property_Multiple_Data.service_data, service_data,
                 sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
             Read_Property_Multiple_Data.rpm_data = rp_data;
             Read_Property_Multiple_Data.new_data = true;
@@ -254,7 +264,8 @@ static void MyReadPropertyAckHandler(uint8_t *service_request,
     }
 }
 
-static void MyReadPropertyMultipleAckHandler(uint8_t *service_request,
+static void MyReadPropertyMultipleAckHandler(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
@@ -270,7 +281,8 @@ static void MyReadPropertyMultipleAckHandler(uint8_t *service_request,
                 service_request, service_len, rpm_data);
         }
         if (len > 0) {
-            memmove(&Read_Property_Multiple_Data.service_data, service_data,
+            memmove(
+                &Read_Property_Multiple_Data.service_data, service_data,
                 sizeof(BACNET_CONFIRMED_SERVICE_ACK_DATA));
             Read_Property_Multiple_Data.rpm_data = rpm_data;
             Read_Property_Multiple_Data.new_data = true;
@@ -287,11 +299,14 @@ static void MyReadPropertyMultipleAckHandler(uint8_t *service_request,
 
 static void Init_Service_Handlers(void)
 {
-    Device_Init(NULL);
-
 #if BAC_ROUTING
     uint32_t Object_Instance;
     BACNET_CHARACTER_STRING name_string;
+#endif
+
+    Device_Init(NULL);
+
+#if BAC_ROUTING
     /* Put this client Device into the Routing table (first entry) */
     Object_Instance = Device_Object_Instance_Number();
     Device_Object_Name(Object_Instance, &name_string);
@@ -318,96 +333,6 @@ static void Init_Service_Handlers(void)
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
-}
-
-/** Determine if this is a writable property, and, if so,
- * note that in the EPICS output.
- * This function may need a lot of customization for different implementations.
- *
- * @param object_type [in] The BACnet Object type of this object.
- * @note  object_instance [in] The ID number for this object.
- * @param rpm_property [in] Points to structure holding the Property,
- *                          Value, and Error information.
- */
-static void CheckIsWritableProperty(BACNET_OBJECT_TYPE object_type,
-    /* uint32_t object_instance, */
-    BACNET_PROPERTY_REFERENCE *rpm_property)
-{
-    bool bIsWritable = false;
-    if ((object_type == OBJECT_ANALOG_OUTPUT) ||
-        (object_type == OBJECT_BINARY_OUTPUT) ||
-        (object_type == OBJECT_COMMAND) ||
-        (object_type == OBJECT_MULTI_STATE_OUTPUT) ||
-        (object_type == OBJECT_ACCESS_DOOR)) {
-        if (rpm_property->propertyIdentifier == PROP_PRESENT_VALUE) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_AVERAGING) {
-        if ((rpm_property->propertyIdentifier == PROP_ATTEMPTED_SAMPLES) ||
-            (rpm_property->propertyIdentifier == PROP_WINDOW_INTERVAL) ||
-            (rpm_property->propertyIdentifier == PROP_WINDOW_SAMPLES)) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_FILE) {
-        if (rpm_property->propertyIdentifier == PROP_ARCHIVE) {
-            bIsWritable = true;
-        }
-    } else if ((object_type == OBJECT_LIFE_SAFETY_POINT) ||
-        (object_type == OBJECT_LIFE_SAFETY_ZONE)) {
-        if (rpm_property->propertyIdentifier == PROP_MODE) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_PROGRAM) {
-        if (rpm_property->propertyIdentifier == PROP_PROGRAM_CHANGE) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_PULSE_CONVERTER) {
-        if (rpm_property->propertyIdentifier == PROP_ADJUST_VALUE) {
-            bIsWritable = true;
-        }
-    } else if ((object_type == OBJECT_TRENDLOG) ||
-        (object_type == OBJECT_EVENT_LOG) ||
-        (object_type == OBJECT_TREND_LOG_MULTIPLE)) {
-        if ((rpm_property->propertyIdentifier == PROP_ENABLE) ||
-            (rpm_property->propertyIdentifier == PROP_RECORD_COUNT)) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_LOAD_CONTROL) {
-        if ((rpm_property->propertyIdentifier == PROP_REQUESTED_SHED_LEVEL) ||
-            (rpm_property->propertyIdentifier == PROP_START_TIME) ||
-            (rpm_property->propertyIdentifier == PROP_SHED_DURATION) ||
-            (rpm_property->propertyIdentifier == PROP_DUTY_WINDOW) ||
-            (rpm_property->propertyIdentifier == PROP_SHED_LEVELS)) {
-            bIsWritable = true;
-        }
-    } else if ((object_type == OBJECT_ACCESS_ZONE) ||
-        (object_type == OBJECT_ACCESS_USER) ||
-        (object_type == OBJECT_ACCESS_RIGHTS) ||
-        (object_type == OBJECT_ACCESS_CREDENTIAL)) {
-        if (rpm_property->propertyIdentifier == PROP_GLOBAL_IDENTIFIER) {
-            bIsWritable = true;
-        }
-    } else if (object_type == OBJECT_NETWORK_SECURITY) {
-        if ((rpm_property->propertyIdentifier ==
-                PROP_BASE_DEVICE_SECURITY_POLICY) ||
-            (rpm_property->propertyIdentifier ==
-                PROP_NETWORK_ACCESS_SECURITY_POLICIES) ||
-            (rpm_property->propertyIdentifier == PROP_SECURITY_TIME_WINDOW) ||
-            (rpm_property->propertyIdentifier == PROP_PACKET_REORDER_TIME) ||
-            (rpm_property->propertyIdentifier == PROP_LAST_KEY_SERVER) ||
-            (rpm_property->propertyIdentifier == PROP_SECURITY_PDU_TIMEOUT) ||
-            (rpm_property->propertyIdentifier == PROP_DO_NOT_HIDE)) {
-            bIsWritable = true;
-        }
-    }
-    /* Add more checking here, eg for Time_Synchronization_Recipients,
-     * Manual_Slave_Address_Binding, Object_Property_Reference,
-     * Life Safety Tracking_Value, Reliability, Mode,
-     * or Present_Value when Out_Of_Service is TRUE.
-     */
-    if (bIsWritable) {
-        fprintf(stdout, " Writable");
-    }
 }
 
 static const char *protocol_services_supported_text(size_t bit_index)
@@ -457,11 +382,12 @@ static bool PrettyPrintPropertyValue(
     property = object_value->object_property;
     if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING) &&
         ((property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) ||
-            (property == PROP_PROTOCOL_SERVICES_SUPPORTED))) {
+         (property == PROP_PROTOCOL_SERVICES_SUPPORTED))) {
         len = bitstring_bits_used(&value->type.Bit_String);
         fprintf(stream, "( \n        ");
         for (i = 0; i < len; i++) {
-            fprintf(stream, "%s",
+            fprintf(
+                stream, "%s",
                 bitstring_bit(&value->type.Bit_String, (uint8_t)i) ? "T" : "F");
             if (i < len - 1) {
                 fprintf(stream, ",");
@@ -480,7 +406,8 @@ static bool PrettyPrintPropertyValue(
                                 stream, " %s,", bactext_object_type_name(j));
                         } else {
                             /* PROP_PROTOCOL_SERVICES_SUPPORTED */
-                            fprintf(stream, " %s,",
+                            fprintf(
+                                stream, " %s,",
                                 protocol_services_supported_text(j));
                         }
                     } else { /* not supported */
@@ -497,7 +424,8 @@ static bool PrettyPrintPropertyValue(
          * clearer, international form. */
         strncpy(short_month, bactext_month_name(value->type.Date.month), 3);
         short_month[3] = 0;
-        fprintf(stream, "(%u-%3s-%u, %u)", (unsigned)value->type.Date.day,
+        fprintf(
+            stream, "(%u-%3s-%u, %u)", (unsigned)value->type.Date.day,
             short_month, (unsigned)value->type.Date.year,
             (unsigned)value->type.Date.wday);
     } else if (value != NULL) {
@@ -521,7 +449,8 @@ static bool PrettyPrintPropertyValue(
  * @param rpm_property [in] Points to structure holding the Property,
  *                          Value, and Error information.
  */
-static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
+static void PrintReadPropertyData(
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_REFERENCE *rpm_property)
 {
@@ -537,7 +466,8 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
     value = rpm_property->value;
     if (value == NULL) {
         /* Then we print the error information */
-        fprintf(stdout, "?  -- BACnet Error: %s: %s\n",
+        fprintf(
+            stdout, "?  -- BACnet Error: %s: %s\n",
             bactext_error_class_name((int)rpm_property->error.error_class),
             bactext_error_code_name((int)rpm_property->error.error_code));
         return;
@@ -601,7 +531,8 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                         }
                         break;
                     } else {
-                        assert(Walked_List_Index ==
+                        assert(
+                            Walked_List_Index ==
                             (uint32_t)rpm_property->propertyArrayIndex);
                     }
                 } else {
@@ -638,13 +569,14 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                     }
                     /* Store the object list so we can interrogate
                        each object. */
-                    object_list_element = KEY_ENCODE(value->type.Object_Id.type,
+                    object_list_element = KEY_ENCODE(
+                        value->type.Object_Id.type,
                         value->type.Object_Id.instance);
                     /* We don't have anything to put in the data pointer
                      * yet, so just leave it null.  The key is Key here. */
                     Keylist_Data_Add(Object_List, object_list_element, NULL);
-                } else if (rpm_property->propertyIdentifier ==
-                    PROP_STATE_TEXT) {
+                } else if (
+                    rpm_property->propertyIdentifier == PROP_STATE_TEXT) {
                     /* Make sure it fits within 31 chars for original VTS3
                      * limitation. If longer, take first 15 dash, and last 15
                      * chars. */
@@ -652,15 +584,16 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                         int iLast15idx =
                             value->type.Character_String.length - 15;
                         value->type.Character_String.value[15] = '-';
-                        memmove(&value->type.Character_String.value[16],
+                        memmove(
+                            &value->type.Character_String.value[16],
                             &value->type.Character_String.value[iLast15idx],
                             15);
                         value->type.Character_String.value[31] = 0;
                         value->type.Character_String.length = 31;
                     }
-                } else if (rpm_property->propertyIdentifier ==
-                    PROP_SUBORDINATE_LIST) {
-                    if (value->tag != 
+                } else if (
+                    rpm_property->propertyIdentifier == PROP_SUBORDINATE_LIST) {
+                    if (value->tag !=
                         BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE) {
                         break;
                     }
@@ -733,8 +666,10 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                         /* Closing brace for this multi-valued array */
                         fprintf(stdout, " }");
                     }
-                    CheckIsWritableProperty(object_type, /* object_instance, */
-                        rpm_property);
+                    if (property_list_writable_member(
+                            object_type, rpm_property->propertyIdentifier)) {
+                        fprintf(stdout, " Writable");
+                    }
                     fprintf(stdout, "\n");
                 }
                 break;
@@ -792,8 +727,8 @@ static void BuildPropRequest(BACNET_READ_ACCESS_DATA *rpm_object)
  * @return The invokeID of the message sent, or 0 if reached the end
  *         of the property list.
  */
-static uint8_t Read_Properties(
-    uint32_t device_instance, BACNET_OBJECT_ID *pMyObject)
+static uint8_t
+Read_Properties(uint32_t device_instance, const BACNET_OBJECT_ID *pMyObject)
 {
     uint8_t invoke_id = 0;
     struct special_property_list_t PropertyListStruct;
@@ -858,8 +793,9 @@ static uint8_t Read_Properties(
                     break;
             }
         }
-        invoke_id = Send_Read_Property_Request(device_instance, pMyObject->type,
-            pMyObject->instance, prop, array_index);
+        invoke_id = Send_Read_Property_Request(
+            device_instance, pMyObject->type, pMyObject->instance, prop,
+            array_index);
     }
 
     return invoke_id;
@@ -871,13 +807,13 @@ static uint8_t Read_Properties(
  *  If the present state is GET_HEADING_RESPONSE, store the results
  *  in globals for later use.
  * @param rpm_data [in] The list of RPM data received.
- * @param myState [in] The current state.
+ * @param state [in] The current state.
  * @return The next state of the EPICS state machine, normally NEXT_OBJECT
  *         if the RPM got good data, or GET_PROPERTY_REQUEST if we have to
  *         singly process the list of Properties.
  */
-static EPICS_STATES ProcessRPMData(
-    BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES myState)
+static EPICS_STATES
+ProcessRPMData(BACNET_READ_ACCESS_DATA *rpm_data, EPICS_STATES state)
 {
     BACNET_READ_ACCESS_DATA *old_rpm_data;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -885,7 +821,7 @@ static EPICS_STATES ProcessRPMData(
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
     bool bSuccess = true;
-    EPICS_STATES nextState = myState; /* assume no change */
+    EPICS_STATES nextState = state; /* assume no change */
     /* Some flags to keep the output "pretty" -
      * wait and put these object lists at the end */
     bool bHasObjectList = false;
@@ -897,7 +833,7 @@ static EPICS_STATES ProcessRPMData(
         while (rpm_property) {
             /* For the GET_LIST_OF_ALL_RESPONSE case,
              * just keep what property this was */
-            if (myState == GET_LIST_OF_ALL_RESPONSE) {
+            if (state == GET_LIST_OF_ALL_RESPONSE) {
                 switch (rpm_property->propertyIdentifier) {
                     case PROP_OBJECT_LIST:
                         bHasObjectList = true; /* Will append below */
@@ -919,7 +855,7 @@ static EPICS_STATES ProcessRPMData(
                     value = value->next;
                     free(old_value);
                 }
-            } else if (myState == GET_HEADING_RESPONSE) {
+            } else if (state == GET_HEADING_RESPONSE) {
                 Property_Value_List[i++].value = rpm_property->value;
                 /* copy this pointer.
                  * On error, the pointer will be null
@@ -928,8 +864,9 @@ static EPICS_STATES ProcessRPMData(
                 fprintf(stdout, "    ");
                 Print_Property_Identifier(rpm_property->propertyIdentifier);
                 fprintf(stdout, ": ");
-                PrintReadPropertyData(rpm_data->object_type,
-                    rpm_data->object_instance, rpm_property);
+                PrintReadPropertyData(
+                    rpm_data->object_type, rpm_data->object_instance,
+                    rpm_property);
             }
             old_rpm_property = rpm_property;
             rpm_property = rpm_property->next;
@@ -941,10 +878,10 @@ static EPICS_STATES ProcessRPMData(
     }
 
     /* Now determine the next state */
-    if (myState == GET_HEADING_RESPONSE) {
+    if (state == GET_HEADING_RESPONSE) {
         nextState = PRINT_HEADING;
         /* press ahead with or without the data */
-    } else if (bSuccess && (myState == GET_ALL_RESPONSE)) {
+    } else if (bSuccess && (state == GET_ALL_RESPONSE)) {
         nextState = NEXT_OBJECT;
     } else if (bSuccess) { /* and GET_LIST_OF_ALL_RESPONSE */
         /* Now append the properties we waited on. */
@@ -967,15 +904,16 @@ static EPICS_STATES ProcessRPMData(
     return nextState;
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s [-v] [-d] [-p sport] [-t target_mac [-n dnet]]"
-           " device-instance\n",
+    printf(
+        "Usage: %s [-v] [-d] [-p sport] [-t target_mac [-n dnet]]"
+        " device-instance\n",
         filename);
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     (void)filename;
     printf("Generates Full EPICS file, including Object and Property List\n");
@@ -1004,7 +942,7 @@ static int CheckCommandLineArgs(int argc, char *argv[])
     int i;
     bool bFoundTarget = false;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -1067,9 +1005,9 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                         int count;
                         /* loop counter */
                         unsigned j;
-                        count =
-                            sscanf(argv[i], "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
-                                &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+                        count = sscanf(
+                            argv[i], "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
+                            &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                         if (count == 6) { /* success */
                             Target_Address.mac_len = count;
                             for (j = 0; j < 6; j++) {
@@ -1094,8 +1032,8 @@ static int CheckCommandLineArgs(int argc, char *argv[])
             /* decode the Target Device Instance parameter */
             Target_Device_Object_Instance = strtol(anArg, NULL, 0);
             if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-                fprintf(stdout,
-                    "Error: device-instance=%u - not greater than %u\n",
+                fprintf(
+                    stdout, "Error: device-instance=%u - not greater than %u\n",
                     Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                 print_usage(filename);
                 exit(0);
@@ -1128,7 +1066,8 @@ static void PrintHeading(void)
     value = object_property_value(PROP_VENDOR_NAME);
     if ((value != NULL) &&
         (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
-        printf("Vendor Name: \"%s\"\n",
+        printf(
+            "Vendor Name: \"%s\"\n",
             characterstring_value(&value->type.Character_String));
     } else {
         printf("Vendor Name: \"your vendor name here\"\n");
@@ -1138,9 +1077,11 @@ static void PrintHeading(void)
     /* Best we can do with Product Name and Model Number is use the same text */
     if ((value != NULL) &&
         (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
-        printf("Product Name: \"%s\"\n",
+        printf(
+            "Product Name: \"%s\"\n",
             characterstring_value(&value->type.Character_String));
-        printf("Product Model Number: \"%s\"\n",
+        printf(
+            "Product Model Number: \"%s\"\n",
             characterstring_value(&value->type.Character_String));
     } else {
         printf("Product Name: \"your product name here\"\n");
@@ -1150,7 +1091,8 @@ static void PrintHeading(void)
     value = object_property_value(PROP_DESCRIPTION);
     if ((value != NULL) &&
         (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
-        printf("Product Description: \"%s\"\n\n",
+        printf(
+            "Product Description: \"%s\"\n\n",
             characterstring_value(&value->type.Character_String));
     } else {
         printf("Product Description: "
@@ -1176,8 +1118,9 @@ static void PrintHeading(void)
     printf("-- DM-UTC-B\n");
 #ifdef BAC_ROUTING
     /* Next line only for the gateway (ie, if not addressing a subNet) */
-    if (Target_Address.net == 0)
+    if (Target_Address.net == 0) {
         printf("-- NM-RC-B\n");
+    }
 #endif
     printf("}\n\n");
     printf("BACnet Standard Application Services Supported:\n");
@@ -1423,7 +1366,7 @@ int main(int argc, char *argv[])
     address_init();
     Init_Service_Handlers();
     dlenv_init();
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
     /* Internationalized programs must call setlocale()
      * to initiate a specific language operation.
      * This can be done by calling setlocale() as follows.
@@ -1454,8 +1397,8 @@ int main(int argc, char *argv[])
             if (Target_Address.net > 0) {
                 /* We specified a DNET; call Who-Is to find the full
                  * routed path to this Device */
-                Send_WhoIs_Remote(&Target_Address,
-                    Target_Device_Object_Instance,
+                Send_WhoIs_Remote(
+                    &Target_Address, Target_Device_Object_Instance,
                     Target_Device_Object_Instance);
 
             } else {
@@ -1501,7 +1444,8 @@ int main(int argc, char *argv[])
                     /* increment timer - exit if timed out */
                     elapsed_seconds += (current_seconds - last_seconds);
                     if (elapsed_seconds > timeout_seconds) {
-                        fprintf(stderr,
+                        fprintf(
+                            stderr,
                             "\rError: Unable to bind to %u"
                             " after waiting %ld seconds.\n",
                             Target_Device_Object_Instance,
@@ -1575,7 +1519,7 @@ int main(int argc, char *argv[])
 
                 if ((Read_Property_Multiple_Data.new_data) &&
                     (Request_Invoke_ID ==
-                        Read_Property_Multiple_Data.service_data.invoke_id)) {
+                     Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
                     myState = ProcessRPMData(
                         Read_Property_Multiple_Data.rpm_data, myState);
@@ -1599,7 +1543,8 @@ int main(int argc, char *argv[])
                             /* Was it because the Device can't do RPM? */
                             Has_RPM = false;
                             myState = GET_PROPERTY_REQUEST;
-                        } else if (Last_Error_Code ==
+                        } else if (
+                            Last_Error_Code ==
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED) {
                             myState = GET_PROPERTY_REQUEST;
                             StartNextObject(rpm_object, &myObject);
@@ -1670,7 +1615,7 @@ int main(int argc, char *argv[])
 
                 if ((Read_Property_Multiple_Data.new_data) &&
                     (Request_Invoke_ID ==
-                        Read_Property_Multiple_Data.service_data.invoke_id)) {
+                     Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
                     PrintReadPropertyData(
                         Read_Property_Multiple_Data.rpm_data->object_type,
@@ -1767,10 +1712,12 @@ int main(int argc, char *argv[])
                 do {
                     Object_List_Index++;
                     if (Object_List_Index < Keylist_Count(Object_List)) {
-                        if (Keylist_Index_Key(Object_List, Object_List_Index, &nextKey)) {
+                        if (Keylist_Index_Key(
+                                Object_List, Object_List_Index, &nextKey)) {
                             myObject.type = KEY_DECODE_TYPE(nextKey);
                             myObject.instance = KEY_DECODE_ID(nextKey);
-                            /* Don't re-list the Device Object among its objects */
+                            /* Don't re-list the Device Object among its objects
+                             */
                             if (myObject.type == OBJECT_DEVICE) {
                                 continue;
                             }
@@ -1815,7 +1762,8 @@ int main(int argc, char *argv[])
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
-                fprintf(stderr, "\rError: APDU Timeout! (%lds)\n",
+                fprintf(
+                    stderr, "\rError: APDU Timeout! (%lds)\n",
                     (long int)elapsed_seconds);
                 break;
             }

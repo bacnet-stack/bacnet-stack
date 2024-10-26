@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet Unconfirmed Change-of-Value 
+ * @brief command line tool that sends a BACnet Unconfirmed Change-of-Value
  * Notification to the network
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2006
@@ -47,65 +47,71 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Sends a BACnet Unconfirmed Change-of-Value Notification\n"
-        "to the network.\n");
+           "to the network.\n");
     printf("\n");
-    printf("Usage: %s pid device-id object-type object-instance "
-        "time property tag value [priority] [index]\n", filename);
+    printf(
+        "Usage: %s pid device-id object-type object-instance "
+        "time property tag value [priority] [index]\n",
+        filename);
     printf("\n");
     printf("pid:\n"
-        "Process Identifier for this broadcast.\n");
+           "Process Identifier for this broadcast.\n");
     printf("\n");
     printf("device-id:\n"
-        "The Initiating BACnet Device Object Instance number.\n");
+           "The Initiating BACnet Device Object Instance number.\n");
     printf("\n");
     printf("object-type:\n"
-        "The object type is object that you are reading. It\n"
-        "can be defined either as the object-type name string\n"
-        "as defined in the BACnet specification, or as the\n"
-        "integer value of the enumeration BACNET_OBJECT_TYPE\n"
-        "in bacenum.h. For example if you were reading Analog\n"
-        "Output 2, the object-type would be analog-output or 1.\n");
+           "The object type is object that you are reading. It\n"
+           "can be defined either as the object-type name string\n"
+           "as defined in the BACnet specification, or as the\n"
+           "integer value of the enumeration BACNET_OBJECT_TYPE\n"
+           "in bacenum.h. For example if you were reading Analog\n"
+           "Output 2, the object-type would be analog-output or 1.\n");
     printf("\n");
     printf("object-instance:\n"
-        "The monitored object instance number.\n");
+           "The monitored object instance number.\n");
     printf("\n");
     printf("time:\n"
-        "The subscription time remaining is conveyed in seconds.\n");
+           "The subscription time remaining is conveyed in seconds.\n");
     printf("\n");
     printf("property:\n"
-        "The property of the object that you are reading. It\n"
-        "can be defined either as the property name string as\n"
-        "defined in the BACnet specification, or as an integer\n"
-        "value of the enumeration BACNET_PROPERTY_ID in\n"
-        "bacenum.h. For example, if you were reading the Present\n"
-        "Value property, use present-value or 85 as the property.\n");
+           "The property of the object that you are reading. It\n"
+           "can be defined either as the property name string as\n"
+           "defined in the BACnet specification, or as an integer\n"
+           "value of the enumeration BACNET_PROPERTY_ID in\n"
+           "bacenum.h. For example, if you were reading the Present\n"
+           "Value property, use present-value or 85 as the property.\n");
     printf("\n");
-    printf("tag:\n"
+    printf(
+        "tag:\n"
         "Tag is the integer value of the enumeration BACNET_APPLICATION_TAG \n"
         "in bacenum.h.  It is the data type of the value that you are\n"
         "monitoring.  For example, if you were monitoring a REAL value,\n"
         "you would use a tag of 4.\n");
     printf("\n");
-    printf("value:\n"
+    printf(
+        "value:\n"
         "The value is an ASCII representation of some type of data that you\n"
         "are monitoring.  It is encoded using the tag information provided.\n"
         "For example, if you were writing a REAL value of 100.0,\n"
         "you would use 100.0 as the value.\n");
     printf("\n");
     printf("[priority]:\n"
-        "This optional parameter is used for reporting the priority of the\n"
-        "value. If no priority is given, none is sent, and the BACnet \n"
-        "standard requires that the value is reported at the lowest \n"
-        "priority (16) if the object property supports priorities.\n");
+           "This optional parameter is used for reporting the priority of the\n"
+           "value. If no priority is given, none is sent, and the BACnet \n"
+           "standard requires that the value is reported at the lowest \n"
+           "priority (16) if the object property supports priorities.\n");
     printf("\n");
-    printf("[index]\n"
+    printf(
+        "[index]\n"
         "This optional integer parameter is the index number of an array.\n"
         "If the property is an array, individual elements can be reported.\n");
     printf("\n");
-    printf("Example:\n"
+    printf(
+        "Example:\n"
         "If you want generate an unconfirmed COV,\n"
         "you could send one of the following command:\n"
         "%s 1 2 analog-value 4 5 present-value 4 100.0\n"
@@ -162,29 +168,32 @@ int main(int argc, char *argv[])
     }
 
     if (cov_data.initiatingDeviceIdentifier > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - not greater than %u\n",
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\n",
             cov_data.initiatingDeviceIdentifier, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.type >= MAX_BACNET_OBJECT_TYPE) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\n",
+        fprintf(
+            stderr, "object-type=%u - it must be less than %u\n",
             cov_data.monitoredObjectIdentifier.type, MAX_BACNET_OBJECT_TYPE);
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - not greater than %u\n",
-            cov_data.monitoredObjectIdentifier.instance,
-            BACNET_MAX_INSTANCE);
+        fprintf(
+            stderr, "object-instance=%u - not greater than %u\n",
+            cov_data.monitoredObjectIdentifier.instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (cov_data.listOfValues->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "property-identifier=%u - not greater than %u\n",
-            cov_data.listOfValues->propertyIdentifier,
-            MAX_BACNET_PROPERTY_ID);
+        fprintf(
+            stderr, "property-identifier=%u - not greater than %u\n",
+            cov_data.listOfValues->propertyIdentifier, MAX_BACNET_PROPERTY_ID);
         return 1;
     }
     if (tag >= MAX_BACNET_APPLICATION_TAG) {
-        fprintf(stderr, "tag=%u - it must be less than %u\n", tag,
+        fprintf(
+            stderr, "tag=%u - it must be less than %u\n", tag,
             MAX_BACNET_APPLICATION_TAG);
         return 1;
     }
@@ -200,8 +209,9 @@ int main(int argc, char *argv[])
     Init_Service_Handlers();
     dlenv_init();
     atexit(datalink_cleanup);
-    Send_UCOV_Notify(&Handler_Transmit_Buffer[0],
-        sizeof(Handler_Transmit_Buffer), &cov_data);
+    Send_UCOV_Notify(
+        &Handler_Transmit_Buffer[0], sizeof(Handler_Transmit_Buffer),
+        &cov_data);
 
     return 0;
 }

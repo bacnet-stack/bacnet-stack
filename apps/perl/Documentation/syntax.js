@@ -6,7 +6,7 @@ function emulateHTMLModel()
 
 // This function is used to generate a html string for the text properties/methods
 // It replaces '\n' with "<BR"> as well as fixes consecutive white spaces
-// It also repalaces some special characters	
+// It also repalaces some special characters
 function convertTextToHTML(s) {
     s = s.replace(/\&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<BR>").replace(/\t/g, "    "); //tachyon
     while (/\s\s/.test(s))
@@ -17,7 +17,7 @@ function convertTextToHTML(s) {
 
 HTMLElement.prototype.__defineSetter__("innerText", function (sText) {
     this.innerHTML = convertTextToHTML(sText);
-    return sText;		
+    return sText;
 });
 
 var tmpGet;
@@ -29,7 +29,7 @@ HTMLElement.prototype.__defineGetter__("innerText", tmpGet = function () {
 
 }
 
-if (moz) 
+if (moz)
 emulateHTMLModel();
 
 
@@ -45,7 +45,7 @@ RE[0]  = new RegExp(re);
 // comment
 re  = /\#.*?([\r\n]+|$)/; //tachyon
 RE[1]  = new RegExp(re);
- 
+
 // operator
 re = /xor|\.\.\.|and|not|\|\|\=|cmp|\>\>\=|\<\<\=|\<\=\>|\&\&\=|or|\=\>|\!\~|\^\=|\&\=|\|\=|\.\=|x\=|\%\=|\/\=|\*\=|\-\=|\+\=|\=\~|\*\*|\-\-|\.\.|\|\||\&\&|\+\+|\-\>|ne|eq|\!\=|\=\=|ge|le|gt|lt|\>\=|\<\=|\>\>|\<\<|\,|\=|\:|\?|\^|\||x|\%|\/|\*|\<|\&|\\|\~|\!|\>|\.|\-|\+ /;
 RE[2]  = new RegExp(re);
@@ -86,46 +86,46 @@ var classes  = new Array("quotedString", "comment", "operator", "builtinVariable
  */
 function HighlightCode(object)
 {
-	codeText = object.innerText; //HTML.replace(/<.*?>/g, "");
-	object.innerHTML = '';
-	var left;
-	var match;
- 	var right;
-	while (codeText.length > 0)
-	{
-		var mode = -1 ;
-		var index = 999999999;
-		for (var i = 0; i < RE.length; i++)
-		{
-			if ((codeText.match(RE[i])) && (RegExp.leftContext.length < index))
-			{
-				left  = RegExp.leftContext;
-				match = RegExp.lastMatch;
-				right = RegExp.rightContext;
-				index = RegExp.leftContext.length;
- 				mode  = i;
-			}
-		}
-		if (mode == -1)
-		{
-			object.appendChild(document.createTextNode(codeText)); //.replace(/\r\n/g, "\r")));
-			codeText = '';
-		}
-		else
-		{
-			// append the plain text to the <code> block
-			object.appendChild(document.createTextNode(left)); //.replace(/\r\n/g, "\r")));
+    codeText = object.innerText; //HTML.replace(/<.*?>/g, "");
+    object.innerHTML = '';
+    var left;
+    var match;
+    var right;
+    while (codeText.length > 0)
+    {
+        var mode = -1 ;
+        var index = 999999999;
+        for (var i = 0; i < RE.length; i++)
+        {
+            if ((codeText.match(RE[i])) && (RegExp.leftContext.length < index))
+            {
+                left  = RegExp.leftContext;
+                match = RegExp.lastMatch;
+                right = RegExp.rightContext;
+                index = RegExp.leftContext.length;
+                mode  = i;
+            }
+        }
+        if (mode == -1)
+        {
+            object.appendChild(document.createTextNode(codeText)); //.replace(/\r\n/g, "\r")));
+            codeText = '';
+        }
+        else
+        {
+            // append the plain text to the <code> block
+            object.appendChild(document.createTextNode(left)); //.replace(/\r\n/g, "\r")));
 
-			// create a new <span> with the current code
-			var span = document.createElement("span");
-			span.setAttribute("className", classes[mode]); // ie
-			span.setAttribute("class", classes[mode]); //mozilla
-			span.appendChild(document.createTextNode(match));
-			object.appendChild(span);	
+            // create a new <span> with the current code
+            var span = document.createElement("span");
+            span.setAttribute("className", classes[mode]); // ie
+            span.setAttribute("class", classes[mode]); //mozilla
+            span.appendChild(document.createTextNode(match));
+            object.appendChild(span);
 
-			codeText  = right;
-		}
-	}
+            codeText  = right;
+        }
+    }
 }
 
 // little bit of JQuery to highlight code in all pre elements
@@ -134,4 +134,3 @@ $(document).ready(function(){
         HighlightCode(this);
      });
 });
-

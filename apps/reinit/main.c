@@ -44,7 +44,8 @@ static char *Reinitialize_Password = NULL;
 
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
@@ -52,7 +53,8 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
-    printf("BACnet Error: %s: %s\r\n", bactext_error_class_name(error_class),
+    printf(
+        "BACnet Error: %s: %s\r\n", bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
     Error_Detected = true;
 }
@@ -68,8 +70,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -78,8 +80,8 @@ static void MyRejectHandler(
     Error_Detected = true;
 }
 
-static void MyReinitializeDeviceSimpleAckHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id)
+static void
+MyReinitializeDeviceSimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     (void)src;
     (void)invoke_id;
@@ -101,7 +103,8 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the ack coming back */
-    apdu_set_confirmed_simple_ack_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
+    apdu_set_confirmed_simple_ack_handler(
+        SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
         MyReinitializeDeviceSimpleAckHandler);
     /* handle any errors coming back */
     apdu_set_error_handler(
@@ -125,20 +128,21 @@ int main(int argc, char *argv[])
 
     if (argc < 3) {
         /* note: priority 16 and 0 should produce the same end results... */
-        printf("Usage: %s device-instance state [password]\r\n"
-               "Send BACnet ReinitializeDevice service to device.\r\n"
-               "\r\n"
-               "The device-instance can be 0 to %d.\r\n"
-               "Possible state values:\r\n"
-               "  0=coldstart\r\n"
-               "  1=warmstart\r\n"
-               "  2=startbackup\r\n"
-               "  3=endbackup\r\n"
-               "  4=startrestore\r\n"
-               "  5=endrestore\r\n"
-               "  6=abortrestore\r\n"
-               "The optional password is a character string of 1 to 20 "
-               "characters.\r\n",
+        printf(
+            "Usage: %s device-instance state [password]\r\n"
+            "Send BACnet ReinitializeDevice service to device.\r\n"
+            "\r\n"
+            "The device-instance can be 0 to %d.\r\n"
+            "Possible state values:\r\n"
+            "  0=coldstart\r\n"
+            "  1=warmstart\r\n"
+            "  2=startbackup\r\n"
+            "  3=endbackup\r\n"
+            "  4=startrestore\r\n"
+            "  5=endrestore\r\n"
+            "  6=abortrestore\r\n"
+            "The optional password is a character string of 1 to 20 "
+            "characters.\r\n",
             filename_remove_path(argv[0]), BACNET_MAX_INSTANCE - 1);
         return 0;
     }
@@ -151,7 +155,8 @@ int main(int argc, char *argv[])
     }
 
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - not greater than %u\r\n",
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }

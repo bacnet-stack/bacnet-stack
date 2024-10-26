@@ -3,7 +3,7 @@
  * @brief BACnetDailySchedule complex data type encode and decode
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date February 2024 
+ * @date February 2024
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
@@ -18,7 +18,8 @@
  * @param day [in] Value to encode
  * @return Number of bytes encoded, or  BACNET_STATUS_ERROR if an error occurs
  */
-int bacnet_dailyschedule_context_decode(uint8_t *apdu,
+int bacnet_dailyschedule_context_decode(
+    const uint8_t *apdu,
     int apdu_size,
     uint8_t tag_number,
     BACNET_DAILY_SCHEDULE *day)
@@ -32,9 +33,9 @@ int bacnet_dailyschedule_context_decode(uint8_t *apdu,
     if (apdu == NULL) {
         return BACNET_STATUS_ERROR;
     }
-    len = bacnet_time_values_context_decode(apdu, apdu_size,
-        tag_number, &day->Time_Values[0], ARRAY_SIZE(day->Time_Values), 
-        &tv_count);
+    len = bacnet_time_values_context_decode(
+        apdu, apdu_size, tag_number, &day->Time_Values[0],
+        ARRAY_SIZE(day->Time_Values), &tv_count);
     if (len < 0) {
         return BACNET_STATUS_ERROR;
     }
@@ -51,7 +52,7 @@ int bacnet_dailyschedule_context_decode(uint8_t *apdu,
  * @return Number of bytes encoded, or BACNET_STATUS_ERROR if an error occurs
  */
 int bacnet_dailyschedule_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DAILY_SCHEDULE *day)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DAILY_SCHEDULE *day)
 {
     if (day == NULL) {
         return BACNET_STATUS_ERROR;

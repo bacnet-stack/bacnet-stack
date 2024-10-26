@@ -36,8 +36,8 @@
  * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded, or zero if unable to encode
  */
-size_t writeproperty_apdu_encode(
-    uint8_t *apdu, BACNET_WRITE_PROPERTY_DATA *data)
+size_t
+writeproperty_apdu_encode(uint8_t *apdu, const BACNET_WRITE_PROPERTY_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
     size_t len = 0; /* total length of the apdu, return value */
@@ -100,7 +100,7 @@ size_t writeproperty_apdu_encode(
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t writeproperty_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_WRITE_PROPERTY_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_WRITE_PROPERTY_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -136,7 +136,7 @@ size_t writeproperty_service_request_encode(
  * @return Bytes encoded
  */
 int wp_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA *wpdata)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0; /* total length of the apdu, return value */
@@ -184,7 +184,7 @@ int wp_encode_apdu(
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR
  */
 int wp_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_WRITE_PROPERTY_DATA *wpdata)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int len = 0;
     int apdu_len = 0;
@@ -303,8 +303,9 @@ int wp_decode_service_request(
  * @param expected_tag - the tag that is expected for this property value
  * @return true if the expected tag matches the value tag
  */
-bool write_property_type_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+bool write_property_type_valid(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     uint8_t expected_tag)
 {
     /* assume success */
@@ -329,8 +330,9 @@ bool write_property_type_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
  * @param len_max - max length accepted for a character string, or 0=unchecked
  * @return true if the character string value is valid
  */
-bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+bool write_property_string_valid(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     size_t len_max)
 {
     bool valid = false;
@@ -350,9 +352,10 @@ bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else if ((len_max > 0) &&
+            } else if (
+                (len_max > 0) &&
                 (characterstring_length(&value->type.Character_String) >
-                    len_max)) {
+                 len_max)) {
                 if (wp_data) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
@@ -386,8 +389,9 @@ bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
  * @param len_max - max length accepted for a character string, or 0=unchecked
  * @return true if the character string value is valid
  */
-bool write_property_empty_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+bool write_property_empty_string_valid(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     size_t len_max)
 {
     bool valid = false;
@@ -397,7 +401,7 @@ bool write_property_empty_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
             CHARACTER_ANSI_X34) {
             if ((len_max > 0) &&
                 (characterstring_length(&value->type.Character_String) >
-                    len_max)) {
+                 len_max)) {
                 if (wp_data) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;

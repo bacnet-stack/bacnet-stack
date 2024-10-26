@@ -201,13 +201,13 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
 
 target_compile_options(${EXECUTABLE} PRIVATE
     -Wall -Wextra -pedantic
-    -Wfloat-equal -Wconversion -Wredundant-decls 
+    -Wfloat-equal -Wconversion -Wredundant-decls
     -Wswitch-default
     # don't warn about conversion, sign, compares, long long and attributes
     # since they are common in embedded
-    -Wno-sign-conversion 
+    -Wno-sign-conversion
     -Wno-conversion
-    -Wno-sign-compare 
+    -Wno-sign-compare
     -Wno-long-long
     -Wno-attributes
     # don't warn about implicit fallthrough since it is common in network protocols
@@ -260,7 +260,7 @@ add_custom_target(symbols
 )
 
 # calculate the worst case CSTACK memory usage by size and place into a file
-add_custom_target(cstack 
+add_custom_target(cstack
     DEPENDS ${EXECUTABLE}
     COMMENT "Print CSTACK memory depth by size"
     COMMAND ${CMAKE_CSTACK} ${EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR} 1> ${PROJECT_NAME}.su
@@ -270,7 +270,7 @@ add_custom_target(cstack
 )
 
 # Print file and library sizes
-add_custom_target(memmap 
+add_custom_target(memmap
     DEPENDS ${PROJECT_NAME}.map
     COMMENT "Print file and library memory usage by size"
     COMMAND ${CMAKE_MEMAP} -t GCC_ARM ${PROJECT_NAME}.map

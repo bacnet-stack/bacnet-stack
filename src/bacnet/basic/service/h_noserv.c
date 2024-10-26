@@ -33,7 +33,8 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_unrecognized_service(uint8_t *service_request,
+void handler_unrecognized_service(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -53,8 +54,9 @@ void handler_unrecognized_service(uint8_t *service_request,
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     /* encode the APDU portion of the packet */
-    len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-        service_data->invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
+    len = reject_encode_apdu(
+        &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+        REJECT_REASON_UNRECOGNIZED_SERVICE);
     pdu_len += len;
     /* send the data */
     bytes_sent = datalink_send_pdu(

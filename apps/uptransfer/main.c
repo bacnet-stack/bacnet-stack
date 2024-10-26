@@ -57,14 +57,16 @@ static uint8_t Request_Invoke_ID = 0;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\n",
+        printf(
+            "BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -77,18 +79,19 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\n",
-            bactext_abort_reason_name((int)abort_reason));
+        printf(
+            "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
+        printf(
+            "BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -109,7 +112,8 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the data coming back from requests */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
         handler_unconfirmed_private_transfer);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
@@ -117,52 +121,54 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s <device-instance|broadcast|dnet=> vendor-id"
+    printf(
+        "Usage: %s <device-instance|broadcast|dnet=> vendor-id"
         " service-number tag value [tag value...]\n",
         filename);
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Send BACnet UnconfirmedPrivateTransfer message to the network.\n");
     printf("device-instance:\n"
-        "BACnet Device Object Instance number that you are\n"
-        "trying to communicate to.  This number will be used\n"
-        "to try and bind with the device using Who-Is and\n"
-        "I-Am services.  For example, if you were transferring to\n"
-        "Device Object 123, the device-instance would be 123.\n"
-        "For Global Broadcast, use the word 'broadcast'.\n"
-        "For Local Broadcast to a particular DNET n, use 'dnet=n'.\n");
+           "BACnet Device Object Instance number that you are\n"
+           "trying to communicate to.  This number will be used\n"
+           "to try and bind with the device using Who-Is and\n"
+           "I-Am services.  For example, if you were transferring to\n"
+           "Device Object 123, the device-instance would be 123.\n"
+           "For Global Broadcast, use the word 'broadcast'.\n"
+           "For Local Broadcast to a particular DNET n, use 'dnet=n'.\n");
     printf("\n");
     printf("vendor_id:\n"
-        "the unique vendor identification code for the type of\n"
-        "vendor proprietary service to be performed.\n");
+           "the unique vendor identification code for the type of\n"
+           "vendor proprietary service to be performed.\n");
     printf("\n");
     printf("service-number (Unsigned32):\n"
-        "the desired proprietary service to be performed.\n");
+           "the desired proprietary service to be performed.\n");
     printf("\n");
     printf("tag:\n"
-        "Tag is the integer value of the enumeration \n"
-        "BACNET_APPLICATION_TAG in bacenum.h.\n"
-        "It is the data type of the value that you are sending.\n"
-        "For example, if you were transfering a REAL value, you would\n"
-        "use a tag of 4.\n"
-        "Context tags are created using two tags in a row.\n"
-        "The context tag is preceded by a C.  Ctag tag.\n"
-        "C2 4 creates a context 2 tagged REAL.\n");
+           "Tag is the integer value of the enumeration \n"
+           "BACNET_APPLICATION_TAG in bacenum.h.\n"
+           "It is the data type of the value that you are sending.\n"
+           "For example, if you were transfering a REAL value, you would\n"
+           "use a tag of 4.\n"
+           "Context tags are created using two tags in a row.\n"
+           "The context tag is preceded by a C.  Ctag tag.\n"
+           "C2 4 creates a context 2 tagged REAL.\n");
     printf("\n");
     printf("value:\n"
-        "The value is an ASCII representation of some type of data\n"
-        "that you are transfering.\n"
-        "It is encoded using the tag information provided.\n"
-        "For example, if you were transferring a REAL value of 100.0,\n"
-        "you would use 100.0 as the value.\n"
-        "If you were transferring an object identifier for Device 123,\n"
-        "you would use 8:123 as the value.\n");
+           "The value is an ASCII representation of some type of data\n"
+           "that you are transfering.\n"
+           "It is encoded using the tag information provided.\n"
+           "For example, if you were transferring a REAL value of 100.0,\n"
+           "you would use 100.0 as the value.\n"
+           "If you were transferring an object identifier for Device 123,\n"
+           "you would use 8:123 as the value.\n");
     printf("\n");
-    printf("Example:\n"
+    printf(
+        "Example:\n"
         "If you want to transfer a REAL value of 1.1 to service 23 of \n"
         "vendor 260 in Device 99, you could send the following command:\n"
         "%s 99 260 23 4 1.1\n",
@@ -181,7 +187,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     time_t delta_seconds = 0;
     bool found = false;
-    char *filename = NULL;
+    const char *filename = NULL;
     char *value_string = NULL;
     bool status = false;
     int args_remaining = 0, tag_value_arg = 0, i = 0;
@@ -213,7 +219,8 @@ int main(int argc, char *argv[])
     Target_Service_Number = strtol(argv[3], NULL, 0);
     if ((!Target_Broadcast) &&
         (Target_Device_Object_Instance > BACNET_MAX_INSTANCE)) {
-        fprintf(stderr, "device-instance=%u - not greater than %u\n",
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -241,7 +248,8 @@ int main(int argc, char *argv[])
         /* printf("tag[%d]=%u value[%d]=%s\n",
            i, property_tag, i, value_string); */
         if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-            fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
+            fprintf(
+                stderr, "Error: tag=%u - it must be less than %u\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
@@ -262,7 +270,8 @@ int main(int argc, char *argv[])
         }
     }
     if (args_remaining > 0) {
-        fprintf(stderr, "Error: Exceeded %d tag-value pairs.\n",
+        fprintf(
+            stderr, "Error: Exceeded %d tag-value pairs.\n",
             MAX_PROPERTY_VALUES);
         return 1;
     }
@@ -320,7 +329,8 @@ int main(int argc, char *argv[])
                 Send_UnconfirmedPrivateTransfer(&Target_Address, &private_data);
                 printf("Sent PrivateTransfer.");
                 if (timeout_seconds) {
-                    printf(" Waiting %u seconds.\n",
+                    printf(
+                        " Waiting %u seconds.\n",
                         (unsigned)(timeout_seconds - elapsed_seconds));
                 } else {
                     printf("\n");

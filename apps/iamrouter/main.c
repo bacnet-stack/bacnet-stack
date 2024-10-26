@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief command line tool that sends a BACnet I-Am-Router-To-Network message 
+ * @brief command line tool that sends a BACnet I-Am-Router-To-Network message
  * for one or more networks.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2008
@@ -46,8 +46,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -75,23 +75,24 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
     printf("Usage: %s DNET [DNET] [DNET] [...]\n", filename);
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
-    printf("Send BACnet I-Am-Router-To-Network message for \n"
-           "one or more networks.\n"
-           "\nDNET:\n"
-           "BACnet destination network number 0-65534\n"
-           "To send a I-Am-Router-To-Network message for DNET 86:\n"
-           "%s 86\n"
-           "To send a I-Am-Router-To-Network message for multiple DNETs\n"
-           "use the following command:\n"
-           "%s 86 42 24 14\n",
+    printf(
+        "Send BACnet I-Am-Router-To-Network message for \n"
+        "one or more networks.\n"
+        "\nDNET:\n"
+        "BACnet destination network number 0-65534\n"
+        "To send a I-Am-Router-To-Network message for DNET 86:\n"
+        "%s 86\n"
+        "To send a I-Am-Router-To-Network message for multiple DNETs\n"
+        "use the following command:\n"
+        "%s 86 42 24 14\n",
         filename, filename);
 }
 
@@ -99,7 +100,7 @@ int main(int argc, char *argv[])
 {
     unsigned arg_count = 0;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -136,7 +137,8 @@ int main(int argc, char *argv[])
             Target_Router_Networks[arg_count] = -1;
             /* invalid DNET? */
             if (Target_Router_Networks[arg_count - 1] >= 65535) {
-                fprintf(stderr, "DNET=%u - it must be less than %u\n",
+                fprintf(
+                    stderr, "DNET=%u - it must be less than %u\n",
                     Target_Router_Networks[arg_count - 1], 65535);
                 return 1;
             }

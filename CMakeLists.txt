@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.3.7
+  VERSION 1.3.8
   LANGUAGES C)
 
 #
@@ -39,39 +39,48 @@ option(
   "compile the bacpoll app"
   ON)
 
-  option(
-    BACNET_BUILD_BACDISCOVER_APP
-    "compile the bacdiscover app"
-    ON)
+option(
+  BACNET_BUILD_BACDISCOVER_APP
+  "compile the bacdiscover app"
+  ON)
 
 option(
   BACDL_ETHERNET
-  "compile with ethernet support"
+  "compile with ethernet datalink support"
   OFF)
 
 option(
   BACDL_MSTP
-  "compile with mstp support"
+  "compile with mstp datalink support"
   OFF)
 
 option(
   BACDL_ARCNET
-  "compile with arcnet support"
+  "compile with arcnet datalink support"
   OFF)
 
 option(
   BACDL_BIP
-  "compile with ip support"
+  "compile with ip datalink support"
   ON)
 
 option(
   BACDL_BIP6
-  "compile with ipv6 support"
+  "compile with ipv6 datalink support"
   OFF)
 
+if(NOT (BACDL_ETHERNET OR
+        BACDL_MSTP OR
+        BACDL_ARCNET OR
+        BACDL_BIP OR
+        BACDL_BIP6 OR
+        BACDL_CUSTOM))
+  add_definitions(-DBACDL_NONE)
+endif()
+
 option(
-  BACDL_NONE
-  "compile without datalink"
+  UCI
+  "build with uci"
   OFF)
 
 set(BACNET_PROTOCOL_REVISION 19)
@@ -101,17 +110,75 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
+set(CMAKE_C_STANDARD 90)
+
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic)
+  # Add more warnings
   add_compile_options(-Wfloat-equal -Wconversion)
-  add_compile_options(-Wredundant-decls -Wswitch-default)
-  # don't warn about conversion, sign, compares, long long and attributes
-  # since they are common in embedded
+  add_compile_options(-Wfloat-conversion -Wdouble-promotion)
+  add_compile_options(-Wredundant-decls -Wmissing-declarations)
+  add_compile_options(-Wswitch-default)
+  add_compile_options(-Wunused-variable)
+  add_compile_options(-Wcast-qual)
+  add_compile_options(-Wwrite-strings)
+
+  # Don't warn about conversion, sign, compares since they are common in
+  # embedded
   add_compile_options(-Wno-sign-conversion -Wno-conversion)
-  add_compile_options(-Wno-sign-compare -Wno-long-long)
-  add_compile_options(-Wno-attributes)
-  # don't warn about implicit fallthrough since it's common in network protocols
-  add_compile_options(-Wno-implicit-fallthrough)
+  add_compile_options(-Wno-sign-compare)
+
+  if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+    # Just noise from clang
+    add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+
+    # Clang does not like _Bool which is not C90. We could fix this at some
+    # point.
+    add_compile_options(-Wno-c99-extensions)
+  endif()
+
+  if (APPLE)
+    # Apple defines UINT64_MAX with ULL suffix. This is not C90 compliant.
+    add_compile_options(-Wno-long-long)
+  endif()
+
+  # Should be fixed in a future.
+  add_compile_options(-Wno-cast-qual)
+  add_compile_options(-Wno-double-promotion)
+  add_compile_options(-Wno-float-conversion)
+  add_compile_options(-Wno-missing-declarations)
+  add_compile_options(-Wno-unused-but-set-variable)
+  add_compile_options(-Wno-write-strings)
+elseif(MSVC)
+  add_compile_options(/Wall)
+
+  # Potentially uninitialized local variable. Definetly fix these. There might
+  # be false positives but it is better to fix them also.
+  add_compile_options(/wd4701)
+
+  # Function is unsafe (strtok, sscanf, fopen, strerror).
+  add_compile_options(/wd4996)
+
+  # Handle all enums values in switch.
+  add_compile_options(/wd4061)
+
+  # Possible loss of data.
+  add_compile_options(/wd4242 /wd4244 /wd4267)
+
+  # Signed/unsigned mismatch.
+  add_compile_options(/wd4018 /wd4388 /wd4389)
+
+  # Not defined as a preprocessor macro.
+  add_compile_options(/wd4668)
+
+  # Function not inlined.
+  add_compile_options(/wd4710)
+
+  # Compiler adds padding to structures.
+  add_compile_options(/wd4820)
+
+  # Might be slower if builded with /Qspectre
+  add_compile_options(/wd5045)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -123,6 +190,21 @@ endif()
 #
 
 find_package(Threads)
+
+if(UCI)
+  FIND_PATH(uci_include_dir uci.h)
+  FIND_LIBRARY(uci_lib NAMES uci)
+  if (uci_include_dir AND uci_lib)
+    message(STATUS "BACNET: BAC_UCI Include:................\"${uci_include_dir}\"")
+    message(STATUS "BACNET: BAC_UCI Lib:....................\"${uci_lib}\"")
+    include_directories(${uci_include_dir})
+    link_libraries(${uci_lib})
+    add_compile_definitions(BAC_UCI)
+  else()
+    message(WARNING "BACNET: BAC_UCI Lib:....................\"not found\"")
+    set(UCI OFF)
+  endif()
+endif()
 
 add_library(${PROJECT_NAME}
   src/bacnet/abort.c
@@ -516,7 +598,9 @@ add_library(${PROJECT_NAME}
   src/bacnet/wp.c
   src/bacnet/wp.h
   src/bacnet/wpm.c
-  src/bacnet/wpm.h)
+  src/bacnet/wpm.h
+  $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.c>
+  $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.h>)
 target_sources(
   ${PROJECT_NAME}
   PRIVATE
@@ -589,12 +673,8 @@ elseif(WIN32)
 
   target_link_libraries(${PROJECT_NAME} PRIVATE
     winmm
-    $<$<BOOL:${BACDL_BIP}>:ws2_32>
-    $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
-
-  if(MSVC)
-    add_definitions("/W3 /D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4018 /wd4267")
-  endif()
+    $<$<BOOL:${BACDL_BIP} OR BOOL:${BACDL_BIP6}>:ws2_32>
+    $<$<BOOL:${BACDL_BIP} OR BOOL:${BACDL_BIP6}>:iphlpapi>)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
@@ -603,10 +683,38 @@ elseif(WIN32)
     ports/win32/datetime-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
-    $<$<BOOL:${BACDL_ETHERNET}>:ports/win32/ethernet.c>
     ports/win32/mstimer-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>)
+
+  if(BACDL_ETHERNET)
+    include(ExternalProject)
+    set(PCAP_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/npcap/Lib/x64)
+    set(PCAP_LIB_WPCAP ${PCAP_LIB_DIR}/wpcap.lib)
+    set(PCAP_LIB_PACKET ${PCAP_LIB_DIR}/Packet.lib)
+    set(PCAP_INCLUDE ${CMAKE_CURRENT_BINARY_DIR}/npcap/Include)
+    message(STATUS "BACNET: npcap Include:..................\"${PCAP_INCLUDE}\"")
+    message(STATUS "BACNET: npcap Lib wpcap:................\"${PCAP_LIB_WPCAP}\"")
+    message(STATUS "BACNET: npcap Lib Packet:...............\"${PCAP_LIB_PACKET}\"")
+    ExternalProject_Add(npcap
+      URL https://npcap.com/dist/npcap-sdk-1.13.zip
+      URL_HASH SHA1=8d5bb6f3adb813374402344a8d2a12b9cb725197
+      DOWNLOAD_EXTRACT_TIMESTAMP true
+      SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/npcap
+      BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/npcap/Lib/x64
+      UPDATE_COMMAND    ""
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND     ""
+      INSTALL_COMMAND   ""
+      TEST_COMMAND      ""
+      BUILD_BYPRODUCTS ${PCAP_LIB_WPCAP}
+      BUILD_BYPRODUCTS ${PCAP_LIB_PACKET})
+    include_directories(${PCAP_INCLUDE})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${PCAP_LIB_WPCAP})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${PCAP_LIB_PACKET})
+    target_sources(${PROJECT_NAME} PRIVATE
+      ports/win32/ethernet.c)
+  endif()
 elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
@@ -614,10 +722,36 @@ elseif(APPLE)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
-    ports/bsd/bip-init.c
+    $<$<BOOL:${BACDL_BIP}>:ports/bsd/bip-init.c>
+    $<$<BOOL:${BACDL_BIP6}>:ports/bsd/bip6.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/rs485.h>
+    $<$<BOOL:${BACDL_MSTP}>:ports/bsd/dlmstp.c>
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
     ports/bsd/stdbool.h)
+
+  if(BACDL_ETHERNET)
+    FIND_PATH(PCAP_INCLUDE pcap.h)
+    if(NOT PCAP_INCLUDE)
+      message(WARNING "BACNET: pcap.h header file not found")
+    else()
+      message(STATUS "BACNET: pcap Include:...................\"${PCAP_INCLUDE}\"")
+    endif()
+    FIND_LIBRARY(PCAP_LIBRARIES NAMES pcap)
+    if(NOT PCAP_LIBRARIES)
+      message(WARNING "BACNET: libpcap not found")
+    else()
+      message(STATUS "BACNET: pcap Lib:.......................\"${PCAP_LIBRARIES}\"")
+    endif()
+    if(PCAP_INCLUDE AND PCAP_LIBRARIES)
+      include_directories(${PCAP_INCLUDE})
+      link_libraries(${PCAP_LIBRARIES})
+      target_sources(${PROJECT_NAME} PRIVATE
+        ports/bsd/ethernet.c
+      )
+    endif()
+  endif()
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
   message(STATUS "BACNET: building for FreeBSD")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
@@ -641,82 +775,86 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 if(BACNET_STACK_BUILD_APPS)
   message(STATUS "BACNET: compiling also apps")
 
-  add_executable(abort 
+  add_executable(abort
     apps/abort/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(abort PRIVATE ${PROJECT_NAME})
 
-  add_executable(ack-alarm 
+  add_executable(ack-alarm
     apps/ack-alarm/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(ack-alarm PRIVATE ${PROJECT_NAME})
 
-  add_executable(add-list-element 
+  add_executable(add-list-element
     apps/add-list-element/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(add-list-element PRIVATE ${PROJECT_NAME})
 
-  add_executable(apdu 
+  add_executable(apdu
     apps/apdu/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(apdu PRIVATE ${PROJECT_NAME})
 
-  add_executable(create-object 
+  add_executable(create-object
     apps/create-object/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(create-object PRIVATE ${PROJECT_NAME})
 
-  add_executable(dcc 
+  add_executable(dcc
     apps/dcc/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(dcc PRIVATE ${PROJECT_NAME})
 
-  add_executable(delete-object 
+  add_executable(delete-object
     apps/delete-object/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(delete-object PRIVATE ${PROJECT_NAME})
 
-  add_executable(epics 
+  add_executable(epics
     apps/epics/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(epics PRIVATE ${PROJECT_NAME})
 
-  add_executable(error 
+  add_executable(error
     apps/error/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(error PRIVATE ${PROJECT_NAME})
 
-  # add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
-  # target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
+  add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
+  target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
+  target_compile_options(gateway PRIVATE
+    # Unreachable code because we have endless loop.
+    $<$<C_COMPILER_ID:MSVC>:/wd4702>
+  )
 
-  add_executable(getevent 
+  add_executable(getevent
     apps/getevent/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(getevent PRIVATE ${PROJECT_NAME})
 
-  add_executable(iam 
+  add_executable(iam
     apps/iam/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(iam PRIVATE ${PROJECT_NAME})
 
-  add_executable(iamrouter 
+  add_executable(iamrouter
       apps/iamrouter/main.c
       src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(iamrouter PRIVATE ${PROJECT_NAME})
 
-  add_executable(initrouter 
+  add_executable(initrouter
     apps/initrouter/main.c
     src/bacnet/basic/object/client/device-client.c
   )
@@ -725,9 +863,24 @@ if(BACNET_STACK_BUILD_APPS)
   if(BACDL_MSTP)
     add_executable(mstpcap apps/mstpcap/main.c)
     target_link_libraries(mstpcap PRIVATE ${PROJECT_NAME})
+    target_compile_options(mstpcap PRIVATE
+      # NOTE: Might be that this example currently doesn't work on Windows because
+      # of the following warning:
+
+      # 'strncasecmp': macro redefinition
+      $<$<C_COMPILER_ID:MSVC>:/wd4005>
+      # 'gettimeofday' undefined; assuming extern returning int
+      $<$<C_COMPILER_ID:MSVC>:/wd4013>
+    )
 
     add_executable(mstpcrc apps/mstpcrc/main.c)
     target_link_libraries(mstpcrc PRIVATE ${PROJECT_NAME})
+    target_compile_options(mstpcrc PRIVATE
+      # NOTE: Might be that this example currently doesn't work on Windows because
+      # of the following warning:
+      # 'gettimeofday' undefined; assuming extern returning int
+      $<$<C_COMPILER_ID:MSVC>:/wd4013>
+    )
   endif()
 
   if(BACNET_BUILD_PIFACE_APP)
@@ -742,6 +895,10 @@ if(BACNET_STACK_BUILD_APPS)
       src/bacnet/basic/client/bac-data.c
       src/bacnet/basic/client/bac-rw.c)
     target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacpoll PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
   endif(BACNET_BUILD_BACPOLL_APP)
 
   if(BACNET_BUILD_BACDISCOVER_APP)
@@ -749,10 +906,14 @@ if(BACNET_STACK_BUILD_APPS)
       apps/server-discover/main.c
       src/bacnet/basic/client/bac-discover.c
       src/bacnet/basic/client/bac-rw.c)
-  target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+    target_link_libraries(bacdiscover PRIVATE ${PROJECT_NAME})
+    target_compile_options(bacdiscover PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
   endif(BACNET_BUILD_BACDISCOVER_APP)
 
-  if(BACDL_BIP OR BACDL_BIP6)
+  if(BACDL_BIP)
     add_executable(readbdt apps/readbdt/main.c)
     target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
 
@@ -760,159 +921,186 @@ if(BACNET_STACK_BUILD_APPS)
     target_link_libraries(readfdt PRIVATE ${PROJECT_NAME})
   endif()
 
-  add_executable(readfile 
+  add_executable(readfile
     apps/readfile/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(readfile PRIVATE ${PROJECT_NAME})
 
-  add_executable(readprop 
+  add_executable(readprop
     apps/readprop/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(readprop PRIVATE ${PROJECT_NAME})
 
-  add_executable(readpropm 
+  add_executable(readpropm
     apps/readpropm/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(readpropm PRIVATE ${PROJECT_NAME})
 
-  add_executable(readrange 
+  add_executable(readrange
     apps/readrange/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(readrange PRIVATE ${PROJECT_NAME})
 
-  add_executable(remove-list-element 
+  add_executable(remove-list-element
     apps/remove-list-element/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(remove-list-element PRIVATE ${PROJECT_NAME})
 
-  add_executable(reinit 
+  add_executable(reinit
     apps/reinit/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
 
-  if(BACDL_MSTP)
+  if(BACDL_MSTP AND NOT WIN32)
+    find_library(LIBCONFIG_LIBRARIES NAMES config)
+    if(NOT LIBCONFIG_LIBRARIES)
+      message(WARNING "BACNET: Will not build apps/router as libconfig not found")
+    else()
+      add_executable(
+        router
+        ports/linux/dlmstp_linux.c
+        ports/linux/dlmstp_linux.h
+        apps/router/ipmodule.c
+        apps/router/ipmodule.h
+        apps/router/main.c
+        apps/router/msgqueue.c
+        apps/router/msgqueue.h
+        apps/router/mstpmodule.c
+        apps/router/mstpmodule.h
+        apps/router/network_layer.c
+        apps/router/network_layer.h
+        apps/router/portthread.c
+        apps/router/portthread.h)
+
+      target_link_libraries(
+        router
+        PRIVATE ${PROJECT_NAME}
+                # needs libconfig
+                -lconfig)
+
+      target_compile_options(router PRIVATE
+        # These make this example not totally C90 compatible but it is ok.
+
+        -Wno-declaration-after-statement
+        -Wno-overlength-strings
+        -Wno-variadic-macros
+      )
+    endif()
+  endif()
+
+  if(BACDL_BIP AND BACDL_BIP6)
     add_executable(
-      router
-      apps/router/ipmodule.c
-      apps/router/ipmodule.h
-      apps/router/main.c
-      apps/router/msgqueue.c
-      apps/router/msgqueue.h
-      apps/router/mstpmodule.c
-      apps/router/mstpmodule.h
-      apps/router/network_layer.c
-      apps/router/network_layer.h
-      apps/router/portthread.c
-      apps/router/portthread.h)
-
+      router-ipv6
+      apps/router-ipv6/main.c)
     target_link_libraries(
-      router
-      PRIVATE ${PROJECT_NAME}
-              # needs libconfig
-              -lconfig)
-  endif()
+      router-ipv6
+      PRIVATE ${PROJECT_NAME})
+    target_compile_options(router-ipv6 PRIVATE
+      # These make this example not totally C90 compatible but it is ok.
 
-  if(BACDL_BIP6)
-    add_executable(router-ipv6 
-      apps/router-ipv6/main.c
-      src/bacnet/basic/object/client/device-client.c
+      -Wno-declaration-after-statement
+      -Wno-overlength-strings
+      -Wno-variadic-macros
     )
-    target_link_libraries(router-ipv6 PRIVATE ${PROJECT_NAME})
   endif()
 
-  add_executable(scov 
+  add_executable(scov
     apps/scov/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(scov PRIVATE ${PROJECT_NAME})
 
-  add_executable(server 
+  add_executable(server
       apps/server/main.c
       src/bacnet/basic/object/device.c
       src/bacnet/basic/object/device.h
-  
+
   )
   target_link_libraries(server PRIVATE ${PROJECT_NAME})
+  target_compile_options(server PRIVATE
+    # Unreachable code because we have endless loop.
+    $<$<C_COMPILER_ID:MSVC>:/wd4702>
+  )
 
-  add_executable(timesync 
+  add_executable(timesync
     apps/timesync/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(timesync PRIVATE ${PROJECT_NAME})
 
-  add_executable(ucov 
+  add_executable(ucov
     apps/ucov/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(ucov PRIVATE ${PROJECT_NAME})
 
-  add_executable(event 
+  add_executable(event
     apps/event/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(event PRIVATE ${PROJECT_NAME})
 
-  add_executable(uevent 
+  add_executable(uevent
     apps/uevent/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(uevent PRIVATE ${PROJECT_NAME})
 
-  add_executable(uptransfer 
+  add_executable(uptransfer
     apps/uptransfer/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(uptransfer PRIVATE ${PROJECT_NAME})
 
-  add_executable(whohas 
+  add_executable(whohas
     apps/whohas/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(whohas PRIVATE ${PROJECT_NAME})
 
-  add_executable(whois 
+  add_executable(whois
     apps/whois/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(whois PRIVATE ${PROJECT_NAME})
 
-  add_executable(whoisrouter 
+  add_executable(whoisrouter
     apps/whoisrouter/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(whoisrouter PRIVATE ${PROJECT_NAME})
 
-  add_executable(whatisnetnum 
+  add_executable(whatisnetnum
     apps/whatisnetnum/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(whatisnetnum PRIVATE ${PROJECT_NAME})
 
-  add_executable(netnumis 
+  add_executable(netnumis
     apps/netnumis/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(netnumis PRIVATE ${PROJECT_NAME})
 
-  add_executable(writefile 
+  add_executable(writefile
     src/bacnet/basic/object/client/device-client.c
     apps/writefile/main.c
   )
   target_link_libraries(writefile PRIVATE ${PROJECT_NAME})
 
-  add_executable(writeprop 
+  add_executable(writeprop
     apps/writeprop/main.c
     src/bacnet/basic/object/client/device-client.c
   )
   target_link_libraries(writeprop PRIVATE ${PROJECT_NAME})
 
-  add_executable(writepropm 
+  add_executable(writepropm
     apps/writepropm/main.c
     src/bacnet/basic/object/client/device-client.c
   )
@@ -974,9 +1162,9 @@ message(STATUS "BACNET: CMAKE_CXX_COMPILER_VERSION:.....\"${CMAKE_CXX_COMPILER_V
 message(STATUS "BACNET: CMAKE_BUILD_TYPE:...............\"${CMAKE_BUILD_TYPE}\"")
 message(STATUS "BACNET: CMAKE_INSTALL_PREFIX:...........\"${CMAKE_INSTALL_PREFIX}\"")
 message(STATUS "BACNET: BACNET_PROTOCOL_REVISION:.......\"${BACNET_PROTOCOL_REVISION}\"")
+message(STATUS "BACNET: Selected datalinks:")
 message(STATUS "BACNET: BACDL_BIP6:.....................\"${BACDL_BIP6}\"")
 message(STATUS "BACNET: BACDL_BIP:......................\"${BACDL_BIP}\"")
 message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")
-message(STATUS "BACNET: BACDL_NONE:.....................\"${BACDL_NONE}\"")

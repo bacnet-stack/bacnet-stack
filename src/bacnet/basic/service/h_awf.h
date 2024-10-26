@@ -21,9 +21,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-void handler_atomic_write_file(uint8_t* service_request, uint16_t service_len,
-                               BACNET_ADDRESS* src,
-                               BACNET_CONFIRMED_SERVICE_DATA* service_data);
+void handler_atomic_write_file(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data);
 
 #ifdef __cplusplus
 }

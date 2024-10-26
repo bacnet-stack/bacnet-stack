@@ -31,14 +31,89 @@ static void test_Device_Data_Sharing(void)
     Device_Init(NULL);
     count = Device_Count();
     zassert_true(count > 0, NULL);
-    Device_Object_Name_ANSI_Init("My Device");
-    Device_Set_Object_Instance_Number(object_instance);
-    test_object_instance = Device_Index_To_Instance(0);
-    zassert_equal(object_instance, test_object_instance, NULL);
-    bacnet_object_properties_read_write_test(
-        OBJECT_DEVICE, object_instance, Device_Property_Lists,
-        Device_Read_Property, Device_Write_Property,
-        skip_fail_property_list);
+    rpdata.application_data = &apdu[0];
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.object_type = OBJECT_DEVICE;
+    rpdata.object_instance = Device_Index_To_Instance(0);
+    Device_Property_Lists(&pRequired, &pOptional, &pProprietary);
+    while ((*pRequired) != -1) {
+        rpdata.object_property = *pRequired;
+        rpdata.array_index = BACNET_ARRAY_ALL;
+        len = Device_Read_Property(&rpdata);
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
+            "property '%s': failed to ReadProperty!\n",
+            bactext_property_name(rpdata.object_property));
+        if (len > 0) {
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
+            if ((rpdata.object_property == PROP_PRIORITY_ARRAY) ||
+                (rpdata.object_property == PROP_OBJECT_LIST)) {
+                /* FIXME: known fail to decode */
+                len = test_len;
+            }
+            zassert_equal(
+                test_len, len, "property '%s': failed to decode!\n",
+                bactext_property_name(rpdata.object_property));
+            /* check WriteProperty properties */
+            wpdata.object_type = rpdata.object_type;
+            wpdata.object_instance = rpdata.object_instance;
+            wpdata.object_property = rpdata.object_property;
+            wpdata.array_index = rpdata.array_index;
+            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
+            wpdata.application_data_len = len;
+            wpdata.error_code = ERROR_CODE_SUCCESS;
+            status = Device_Write_Property(&wpdata);
+            if (!status) {
+                /* verify WriteProperty property is known */
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
+                    "property '%s': WriteProperty Unknown!\n",
+                    bactext_property_name(rpdata.object_property));
+            }
+        }
+        pRequired++;
+    }
+    while ((*pOptional) != -1) {
+        rpdata.object_property = *pOptional;
+        rpdata.array_index = BACNET_ARRAY_ALL;
+        len = Device_Read_Property(&rpdata);
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
+            "property '%s': failed to ReadProperty!\n",
+            bactext_property_name(rpdata.object_property));
+        if (len > 0) {
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
+            if (len != test_len) {
+                printf(
+                    "property '%s': failed to decode!\n",
+                    bactext_property_name(rpdata.object_property));
+            }
+            zassert_equal(
+                test_len, len, "property '%s': failed to decode!\n",
+                bactext_property_name(rpdata.object_property));
+            /* check WriteProperty properties */
+            wpdata.object_type = rpdata.object_type;
+            wpdata.object_instance = rpdata.object_instance;
+            wpdata.object_property = rpdata.object_property;
+            wpdata.array_index = rpdata.array_index;
+            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
+            wpdata.application_data_len = len;
+            wpdata.error_code = ERROR_CODE_SUCCESS;
+            status = Device_Write_Property(&wpdata);
+            if (!status) {
+                /* verify WriteProperty property is known */
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
+                    "property '%s': WriteProperty Unknown!\n",
+                    bactext_property_name(rpdata.object_property));
+            }
+        }
+        pOptional++;
+    }
 }
 
 /**

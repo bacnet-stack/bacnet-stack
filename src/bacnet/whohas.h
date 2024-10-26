@@ -49,22 +49,23 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data);
+int whohas_encode_apdu(uint8_t *apdu, const BACNET_WHO_HAS_DATA *data);
 
 BACNET_STACK_EXPORT
-int bacnet_who_has_request_encode(uint8_t *apdu, BACNET_WHO_HAS_DATA *data);
+int bacnet_who_has_request_encode(
+    uint8_t *apdu, const BACNET_WHO_HAS_DATA *data);
 BACNET_STACK_EXPORT
 size_t bacnet_who_has_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_WHO_HAS_DATA *data);
+    uint8_t *apdu, size_t apdu_size, const BACNET_WHO_HAS_DATA *data);
 
 BACNET_STACK_EXPORT
 int whohas_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_WHO_HAS_DATA *data);
+    const uint8_t *apdu, unsigned apdu_size, BACNET_WHO_HAS_DATA *data);
 
 /* defined in unit test */
 BACNET_STACK_EXPORT
 int whohas_decode_apdu(
-    uint8_t *apdu, unsigned apdu_size, BACNET_WHO_HAS_DATA *data);
+    const uint8_t *apdu, unsigned apdu_size, BACNET_WHO_HAS_DATA *data);
 
 #ifdef __cplusplus
 }

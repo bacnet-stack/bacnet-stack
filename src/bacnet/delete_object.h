@@ -42,19 +42,18 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 int delete_object_encode_service_request(
-    uint8_t *apdu, BACNET_DELETE_OBJECT_DATA *data);
+    uint8_t *apdu, const BACNET_DELETE_OBJECT_DATA *data);
 
 BACNET_STACK_EXPORT
 int delete_object_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_DELETE_OBJECT_DATA *data);
+    uint8_t *apdu, size_t apdu_size, const BACNET_DELETE_OBJECT_DATA *data);
 
 BACNET_STACK_EXPORT
 int delete_object_decode_service_request(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_DELETE_OBJECT_DATA *data);
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_DELETE_OBJECT_DATA *data);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
 #endif
-

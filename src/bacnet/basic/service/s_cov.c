@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
@@ -53,11 +36,12 @@
  * @param cov_data [in]  The COV update information to be encoded.
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int ucov_notify_encode_pdu(uint8_t *buffer,
+int ucov_notify_encode_pdu(
+    uint8_t *buffer,
     unsigned buffer_len,
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
-    BACNET_COV_DATA *cov_data)
+    const BACNET_COV_DATA *cov_data)
 {
     int len = 0;
     int pdu_len = 0;
@@ -91,7 +75,7 @@ int ucov_notify_encode_pdu(uint8_t *buffer,
  * @return Size of the message sent (bytes), or a negative value on error.
  */
 int Send_UCOV_Notify(
-    uint8_t *buffer, unsigned buffer_len, BACNET_COV_DATA *cov_data)
+    uint8_t *buffer, unsigned buffer_len, const BACNET_COV_DATA *cov_data)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
@@ -114,7 +98,7 @@ int Send_UCOV_Notify(
  *         no slot is available from the tsm for sending.
  */
 uint8_t Send_COV_Subscribe(
-    uint32_t device_id, BACNET_SUBSCRIBE_COV_DATA *cov_data)
+    uint32_t device_id, const BACNET_SUBSCRIBE_COV_DATA *cov_data)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -149,7 +133,8 @@ uint8_t Send_COV_Subscribe(
                 sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id, cov_data);
         } else {
             /* subscribe to object */
-            len = cov_subscribe_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            len = cov_subscribe_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len],
                 sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id, cov_data);
         }
         pdu_len += len;
@@ -159,13 +144,15 @@ uint8_t Send_COV_Subscribe(
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
 #if PRINT_ENABLED
-                fprintf(stderr, "Failed to Send SubscribeCOV Request (%s)!\n",
+                fprintf(
+                    stderr, "Failed to Send SubscribeCOV Request (%s)!\n",
                     strerror(errno));
 #endif
             }
@@ -173,7 +160,8 @@ uint8_t Send_COV_Subscribe(
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "Failed to Send SubscribeCOV Request "
                 "(exceeds destination maximum APDU)!\n");
 #endif

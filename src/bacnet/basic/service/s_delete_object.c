@@ -95,19 +95,22 @@ uint8_t Send_Delete_Object_Request(
             len = delete_object_encode_service_request(
                 &Handler_Transmit_Buffer[pdu_len], &data);
             pdu_len += len;
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                debug_perror("%s service: Failed to Send %i/%i (%s)!\n",
+                debug_perror(
+                    "%s service: Failed to Send %i/%i (%s)!\n",
                     bactext_confirmed_service_name(service), bytes_sent,
                     pdu_len, strerror(errno));
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            debug_perror("%s service: Failed to Send "
+            debug_perror(
+                "%s service: Failed to Send "
                 "(exceeds destination maximum APDU)!\n",
                 bactext_confirmed_service_name(service));
         }

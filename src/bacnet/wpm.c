@@ -38,7 +38,7 @@
  * @return Count of decoded bytes.
  */
 int wpm_decode_object_id(
-    uint8_t *apdu, uint16_t apdu_len, BACNET_WRITE_PROPERTY_DATA *wp_data)
+    const uint8_t *apdu, uint16_t apdu_len, BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
@@ -99,7 +99,7 @@ int wpm_decode_object_id(
  * @return Bytes decoded
  */
 int wpm_decode_object_property(
-    uint8_t *apdu, uint16_t apdu_len, BACNET_WRITE_PROPERTY_DATA *wp_data)
+    const uint8_t *apdu, uint16_t apdu_len, BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
@@ -188,7 +188,7 @@ int wpm_decode_object_property(
     return len;
 }
 
-/** 
+/**
  * @brief Init the APDU for encoding.
  * @param apdu [in] The APDU buffer, or NULL for length
  * @param invoke_id [in] The ID of the saervice invoked.
@@ -206,7 +206,7 @@ int wpm_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
     return 4;
 }
 
-/** 
+/**
  * @brief Decode the very begin of an object in the APDU.
  * @param apdu [in] The APDU buffer, or NULL for length
  * @param object_type [in] The object type to decode.
@@ -231,7 +231,7 @@ int wpm_encode_apdu_object_begin(
     return apdu_len;
 }
 
-/** 
+/**
  * @brief Encode the very end of an object in the APDU.
  * @param apdu [in] The APDU buffer, or NULL for length
  * @return number of bytes encoded
@@ -241,14 +241,14 @@ int wpm_encode_apdu_object_end(uint8_t *apdu)
     return encode_closing_tag(apdu, 1);
 }
 
-/** 
+/**
  * @brief Encode the object property into the APDU.
  * @param apdu [in] The APDU buffer, or NULL for length
  * @param wpdata [in] Pointer to the property data.
  * @return number of bytes encoded
  */
 int wpm_encode_apdu_object_property(
-    uint8_t *apdu, BACNET_WRITE_PROPERTY_DATA *wpdata)
+    uint8_t *apdu, const BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;
@@ -300,15 +300,15 @@ int wpm_encode_apdu_object_property(
  * @brief Encode APDU for WritePropertyMultiple-Request
  *
  *  WritePropertyMultiple-Request ::= SEQUENCE {
- * 
+ *
  *  }
  *
  * @param apdu  Pointer to the buffer, or NULL for length
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int write_property_multiple_request_encode(uint8_t *apdu, 
-    BACNET_WRITE_ACCESS_DATA *data)
+int write_property_multiple_request_encode(
+    uint8_t *apdu, BACNET_WRITE_ACCESS_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -318,8 +318,8 @@ int write_property_multiple_request_encode(uint8_t *apdu,
 
     wpm_object = data;
     while (wpm_object) {
-        len = wpm_encode_apdu_object_begin(apdu,
-            wpm_object->object_type, wpm_object->object_instance);
+        len = wpm_encode_apdu_object_begin(
+            apdu, wpm_object->object_type, wpm_object->object_instance);
         apdu_len += len;
         if (apdu) {
             apdu += len;
@@ -330,10 +330,9 @@ int write_property_multiple_request_encode(uint8_t *apdu,
             wpdata.array_index = wpm_property->propertyArrayIndex;
             wpdata.priority = wpm_property->priority;
             /* check length for fitting */
-            wpdata.application_data_len = bacapp_encode_data(
-                NULL, &wpm_property->value);
-            if (wpdata.application_data_len > 
-                sizeof(wpdata.application_data)) {
+            wpdata.application_data_len =
+                bacapp_encode_data(NULL, &wpm_property->value);
+            if (wpdata.application_data_len > sizeof(wpdata.application_data)) {
                 /* too big for buffer */
                 return 0;
             }
@@ -362,7 +361,7 @@ int write_property_multiple_request_encode(uint8_t *apdu,
  * @param apdu  Pointer to the buffer for encoding into
  * @param apdu_size number of bytes available in the buffer
  * @param data  Pointer to the service data used for encoding values
- * @return number of bytes encoded, or zero if unable to encode or 
+ * @return number of bytes encoded, or zero if unable to encode or
  *  too big for buffer
  */
 size_t write_property_multiple_request_service_encode(
@@ -381,16 +380,17 @@ size_t write_property_multiple_request_service_encode(
     return apdu_len;
 }
 
-/** 
+/**
  * @brief Encode the WritePropertyMultiple-Request into the APDU.
  * @param apdu [in] The APDU buffer
  * @param apdu_size [in] Maximum space in the buffer.
  * @param invoke_id [in] Invoked service ID.
  * @param data [in] BACnetWriteAccessData
- * @return number of bytes encoded, or zero if unable to encode or 
+ * @return number of bytes encoded, or zero if unable to encode or
  *  too big for buffer
  */
-int wpm_encode_apdu(uint8_t *apdu,
+int wpm_encode_apdu(
+    uint8_t *apdu,
     size_t apdu_size,
     uint8_t invoke_id,
     BACNET_WRITE_ACCESS_DATA *data)
@@ -409,7 +409,7 @@ int wpm_encode_apdu(uint8_t *apdu,
         apdu += len;
     }
     len = write_property_multiple_request_service_encode(
-        apdu, apdu_size-apdu_len, data);
+        apdu, apdu_size - apdu_len, data);
     if (len > 0) {
         /* too big for buffer */
         apdu_len += len;
@@ -449,7 +449,7 @@ int wpm_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
  * @return Bytes encoded.
  */
 int wpm_error_ack_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA *wp_data)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     int len = 0;
 
@@ -493,10 +493,12 @@ int wpm_error_ack_encode_apdu(
  * @return Count of decoded bytes.
  */
 int wpm_error_ack_decode_apdu(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_WRITE_PROPERTY_DATA *wp_data)
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     int len = 0, apdu_len = 0;
-    uint8_t *apdu_offset = NULL;
+    const uint8_t *apdu_offset = NULL;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     BACNET_OBJECT_PROPERTY_REFERENCE value;
@@ -618,10 +620,9 @@ int wpm_error_ack_decode_apdu(
  * @brief Convert an array of BACnetWriteAccessData to linked list
  * @param array pointer to element zero of the array
  * @param size number of elements in the array
-*/
+ */
 void wpm_write_access_data_link_array(
-    BACNET_WRITE_ACCESS_DATA *array,
-    size_t size)
+    BACNET_WRITE_ACCESS_DATA *array, size_t size)
 {
     size_t i = 0;
 

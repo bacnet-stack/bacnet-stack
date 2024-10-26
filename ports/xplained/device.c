@@ -226,7 +226,7 @@ static char *Device_Name_Default(void)
 {
     static char text[32]; /* okay for single thread */
 
-    snprintf(text, sizeof(text), "DEVICE-%lu", 
+    snprintf(text, sizeof(text), "DEVICE-%lu",
         (unsigned long)Object_Instance_Number);
 
     return text;
@@ -526,7 +526,7 @@ int Device_Object_List_Element_Encode(
     return apdu_len;
 }
 
-bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
+bool Device_Valid_Object_Name(const BACNET_CHARACTER_STRING *object_name1,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {

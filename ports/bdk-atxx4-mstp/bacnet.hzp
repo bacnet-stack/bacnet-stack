@@ -1,7 +1,7 @@
 <!DOCTYPE CrossStudio_Project_File>
 <solution Name="bacnet" version="2">
   <project Name="bacnet">
-    <configuration Name="Common" Platform="AVR" Target="ATmega644P" avr_architecture="V2E" avr_debug_interface="JTAG" avr_flash_size="128K" build_use_hardware_multiplier="Yes" c_preprocessor_definitions="BACDL_MSTP;MAX_APDU=128;MAX_TSM_TRANSACTIONS=0;MAX_ADDRESS_CACHE=0;MAX_CHARACTER_STRING_BYTES=64;MAX_OCTET_STRING_BYTES=64;BACAPP_BOOLEAN;BACAPP_REAL;BACAPP_OBJECT_ID;BACAPP_UNSIGNED;BACAPP_ENUMERATED;BACAPP_CHARACTER_STRING;BACAPP_OCTET_STRING;WRITE_PROPERTY" c_user_include_directories="$(ProjectDir);$(ProjectDir)/crossworks;$(ProjectDir)/../../include;$(ProjectDir)/../../src" linker_call_stack_size="1024" linker_memory_map_file="$(PackagesDir)/targets/avr/ATmega644P.xml" project_directory="" project_type="Executable"/>
+    <configuration Name="Common" Platform="AVR" Target="ATmega644P" avr_architecture="V2E" avr_debug_interface="JTAG" avr_flash_size="128K" build_use_hardware_multiplier="Yes" c_preprocessor_definitions="BACDL_MSTP;MAX_APDU=128;MAX_TSM_TRANSACTIONS=0;MAX_CHARACTER_STRING_BYTES=64;MAX_OCTET_STRING_BYTES=64;BACAPP_BOOLEAN;BACAPP_REAL;BACAPP_OBJECT_ID;BACAPP_UNSIGNED;BACAPP_ENUMERATED;BACAPP_CHARACTER_STRING;BACAPP_OCTET_STRING;WRITE_PROPERTY" c_user_include_directories="$(ProjectDir);$(ProjectDir)/external/crossworks;$(ProjectDir)/../../include;$(ProjectDir)/../../src" linker_call_stack_size="1024" linker_memory_map_file="$(PackagesDir)/targets/avr/ATmega644P.xml" project_directory="" project_type="Executable"/>
     <folder Name="Source Files">
       <configuration Name="Common" filter="c;h;s;asm;inc;s90"/>
       <file file_name="adc.c">

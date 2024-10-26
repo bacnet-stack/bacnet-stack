@@ -71,7 +71,11 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
     /* BACnetActionCommand */
     BACNET_APPLICATION_TAG_ACTION_COMMAND,
     /* BACnetScale */
-    BACNET_APPLICATION_TAG_SCALE
+    BACNET_APPLICATION_TAG_SCALE,
+    /* BACnetShedLevel */
+    BACNET_APPLICATION_TAG_SHED_LEVEL,
+    /* BACnetAccessRule */
+    BACNET_APPLICATION_TAG_ACCESS_RULE
 };
 
 /**
@@ -858,7 +862,7 @@ static void testBACnetApplicationDataLength(void)
  * @brief Test
  */
 static bool
-verifyBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *value)
+verifyBACnetApplicationDataValue(const BACNET_APPLICATION_DATA_VALUE *value)
 {
     uint8_t apdu[480] = { 0 };
     int apdu_len = 0;
@@ -915,7 +919,7 @@ verifyBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *value)
  * @brief Test
  */
 static void verifyBACnetComplexDataValue(
-    BACNET_APPLICATION_DATA_VALUE *value,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     BACNET_OBJECT_TYPE object_type,
     BACNET_PROPERTY_ID prop)
 {
@@ -1247,10 +1251,8 @@ static void test_bacapp_data(void)
         /* 1. test encoding matches for NULL and APDU buffer */
         BACNET_APPLICATION_TAG tag = tag_list[i];
         value.tag = tag;
-        null_len =
-            bacapp_encode_application_data(NULL, &value);
-        apdu_len =
-            bacapp_encode_application_data(apdu, &value);
+        null_len = bacapp_encode_application_data(NULL, &value);
+        apdu_len = bacapp_encode_application_data(apdu, &value);
         if (apdu_len != null_len) {
             printf(
                 "bacapp: NULL len=%d != APDU len=%d for tag=%s", null_len,
@@ -1262,8 +1264,7 @@ static void test_bacapp_data(void)
         test_len = 0;
         len = encode_opening_tag(apdu, 3);
         apdu_len += len;
-        len = bacapp_encode_application_data(
-            &apdu[apdu_len], &value);
+        len = bacapp_encode_application_data(&apdu[apdu_len], &value);
         test_len += len;
         apdu_len += len;
         len = encode_closing_tag(&apdu[apdu_len], 3);

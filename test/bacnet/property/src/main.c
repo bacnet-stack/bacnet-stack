@@ -8,6 +8,7 @@
  */
 #include <zephyr/ztest.h>
 #include <bacnet/property.h>
+#include <bacnet/bactext.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -20,7 +21,7 @@
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(property_tests, testPropList)
 #else
-void testPropList(void)
+static void testPropList(void)
 #endif
 {
     unsigned i = 0, j = 0;
@@ -49,7 +50,9 @@ void testPropList(void)
                 object_name++;
             }
         }
-        zassert_equal(object_type, 1, NULL);
+        zassert_equal(
+            object_type, 1, "%s: duplicate object type property",
+            bactext_object_type_name((BACNET_OBJECT_TYPE)i));
         zassert_equal(object_id, 1, NULL);
         zassert_equal(object_name, 1, NULL);
         /* test member function */

@@ -85,7 +85,8 @@ static void piface_write_output(int index, BACNET_BINARY_LIGHTING_PV value)
  * @param  old_value - value prior to write
  * @param  value - value of the write
  */
-static void Binary_Lighting_Output_Write_Value_Handler(uint32_t object_instance,
+static void Binary_Lighting_Output_Write_Value_Handler(
+    uint32_t object_instance,
     BACNET_BINARY_LIGHTING_PV old_value,
     BACNET_BINARY_LIGHTING_PV value)
 {
@@ -93,7 +94,8 @@ static void Binary_Lighting_Output_Write_Value_Handler(uint32_t object_instance,
 
     index = Binary_Lighting_Output_Instance_To_Index(object_instance);
     if (index < PIFACE_OUTPUTS_MAX) {
-        printf("BLO-WRITE: OUTPUT[%u]=%d present=%d feedback=%d target=%d\n",
+        printf(
+            "BLO-WRITE: OUTPUT[%u]=%d present=%d feedback=%d target=%d\n",
             index, (int)value,
             (int)Binary_Lighting_Output_Present_Value(object_instance),
             (int)old_value,
@@ -115,12 +117,10 @@ static void Binary_Lighting_Output_Blink_Warn_Handler(uint32_t object_instance)
     if (index < PIFACE_OUTPUTS_MAX) {
         /* blink is just toggle on/off every one second */
         if (PiFace_Output_State[index]) {
-            printf("BLO-BLINK: OUTPUT[%u]=%d\n", index,
-                BINARY_LIGHTING_PV_OFF);
+            printf("BLO-BLINK: OUTPUT[%u]=%d\n", index, BINARY_LIGHTING_PV_OFF);
             piface_write_output(index, BINARY_LIGHTING_PV_OFF);
         } else {
-            printf(
-                "BLO-BLINK: OUTPUT[%u]=%d\n", index, BINARY_LIGHTING_PV_ON);
+            printf("BLO-BLINK: OUTPUT[%u]=%d\n", index, BINARY_LIGHTING_PV_ON);
             piface_write_output(index, BINARY_LIGHTING_PV_ON);
         }
     }
@@ -166,7 +166,8 @@ static void Init_Service_Handlers(void)
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* configure the cyclic timers */
     mstimer_set(&BACnet_Task_Timer, 1000UL);
@@ -262,13 +263,15 @@ static void piface_task(void)
                 present_value = Binary_Output_Present_Value(object_instance);
                 if (present_value == BINARY_INACTIVE) {
                     if (PiFace_Output_State[i]) {
-                        printf("BO-WRITE: OUTPUT[%u]=%d\n", i,
+                        printf(
+                            "BO-WRITE: OUTPUT[%u]=%d\n", i,
                             BINARY_LIGHTING_PV_OFF);
                         piface_write_output(i, BINARY_LIGHTING_PV_OFF);
                     }
                 } else {
                     if (!PiFace_Output_State[i]) {
-                        printf("BO-WRITE: OUTPUT[%u]=%d\n", i,
+                        printf(
+                            "BO-WRITE: OUTPUT[%u]=%d\n", i,
                             BINARY_LIGHTING_PV_OFF);
                         piface_write_output(i, BINARY_LIGHTING_PV_ON);
                     }
@@ -302,10 +305,11 @@ int main(int argc, char *argv[])
     if (argc > 1) {
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
     }
-    printf("BACnet Raspberry Pi PiFace Digital Demo\n"
-           "BACnet Stack Version %s\n"
-           "BACnet Device ID: %u\n"
-           "Max APDU: %d\n",
+    printf(
+        "BACnet Raspberry Pi PiFace Digital Demo\n"
+        "BACnet Stack Version %s\n"
+        "BACnet Device ID: %u\n"
+        "Max APDU: %d\n",
         BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
     /* load any static address bindings to show up
        in our device bindings list */

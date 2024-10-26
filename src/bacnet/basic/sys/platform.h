@@ -23,11 +23,11 @@
 #endif
 
 #ifndef isgreaterequal
-#define isgreaterequal(x, y) ((x) > (y) || !islessgreater((x),(y)))
+#define isgreaterequal(x, y) ((x) > (y) || !islessgreater((x), (y)))
 #endif
 
 #ifndef islessequal
-#define islessequal(x, y) ((x) < (y) || !islessgreater((x),(y)))
+#define islessequal(x, y) ((x) < (y) || !islessgreater((x), (y)))
 #endif
 
 #ifndef ARRAY_SIZE
@@ -52,21 +52,26 @@
 #ifndef strncasecmp
 #define strncasecmp _strnicmp
 #endif
+#ifndef __inline__
+#define __inline__ __inline
+#endif
 #if (_MSC_VER < 1900)
 #include <stdio.h>
 #include <stdarg.h>
 #define snprintf c99_snprintf
 #define vsnprintf c99_vsnprintf
 
-__inline int c99_vsnprintf(
-    char *outBuf, size_t size, const char *format, va_list ap)
+__inline int
+c99_vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
 {
     int count = -1;
 
-    if (size != 0)
+    if (size != 0) {
         count = _vsnprintf_s(outBuf, size, _TRUNCATE, format, ap);
-    if (count == -1)
+    }
+    if (count == -1) {
         count = _vscprintf(format, ap);
+    }
 
     return count;
 }
@@ -101,12 +106,6 @@ __inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
 #define BACNET_STACK_FALLTHROUGH() __attribute__((fallthrough))
 #else
 #define BACNET_STACK_FALLTHROUGH() /* fall through */
-#endif
-
-#if defined(_MSC_VER)
-/* Silence the warnings about unsafe versions of library functions */
-/* as we need to keep the code portable */
-#pragma warning(disable : 4996)
 #endif
 
 #endif

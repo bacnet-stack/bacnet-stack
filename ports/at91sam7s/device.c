@@ -1,13 +1,11 @@
-/**
- * @file
- * @author Steve Karg
- * @date 2007
- * @brief Base "class" for handling all BACnet objects belonging
- *  to a BACnet device, as well as Device-specific properties.
- * @copyright
- *  Copyright 2007 by Steve Karg <skarg@users.sourceforge.net>
- *  SPDX-License-Identifier: MIT
- */
+/**************************************************************************
+ *
+ * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ *********************************************************************/
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -126,12 +124,163 @@ static const int Device_Properties_Optional[] = { PROP_DESCRIPTION,
 
 static const int Device_Properties_Proprietary[] = { 9600, -1 };
 
-/**
- * @brief Get the list of required, optional, and proprietary properties.
- * @param pRequired [out] The list of required properties
- * @param pOptional [out] The list of optional properties
- * @param pProprietary [out] The list of proprietary properties
- */
+static struct my_object_functions *Device_Objects_Find_Functions(
+    BACNET_OBJECT_TYPE Object_Type)
+{
+    struct my_object_functions *pObject = NULL;
+
+    pObject = &Object_Table[0];
+    while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        /* handle each object type */
+        if (pObject->Object_Type == Object_Type) {
+            return (pObject);
+        }
+
+        pObject++;
+    }
+
+    return (NULL);
+}
+
+static int Read_Property_Common(
+    const struct my_object_functions *pObject,
+    BACNET_READ_PROPERTY_DATA *rpdata)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    BACNET_CHARACTER_STRING char_string;
+    uint8_t *apdu = NULL;
+#if (BACNET_PROTOCOL_REVISION >= 14)
+    struct special_property_list_t property_list;
+#endif
+
+    if ((rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    if (property_list_common(rpdata->object_property)) {
+        apdu_len = property_list_common_encode(rpdata, Object_Instance_Number);
+    } else if (rpdata->object_property == PROP_OBJECT_NAME) {
+        /*  only array properties can have array options */
+        if (rpdata->array_index != BACNET_ARRAY_ALL) {
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+            apdu_len = BACNET_STATUS_ERROR;
+        } else {
+            characterstring_init_ansi(&char_string, "");
+            if (pObject->Object_Name) {
+                (void)pObject->Object_Name(
+                    rpdata->object_instance, &char_string);
+            }
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+        }
+#if (BACNET_PROTOCOL_REVISION >= 14)
+    } else if (rpdata->object_property == PROP_PROPERTY_LIST) {
+        Device_Objects_Property_List(
+            rpdata->object_type, rpdata->object_instance, &property_list);
+        apdu_len = property_list_encode(rpdata, property_list.Required.pList,
+            property_list.Optional.pList, property_list.Proprietary.pList);
+#endif
+    } else if (pObject->Object_Read_Property) {
+        apdu_len = pObject->Object_Read_Property(rpdata);
+    }
+
+    return apdu_len;
+}
+
+/* Encodes the property APDU and returns the length,
+   or sets the error, and returns BACNET_STATUS_ERROR */
+int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    struct my_object_functions *pObject = NULL;
+
+    /* initialize the default return values */
+    pObject = Device_Objects_Find_Functions(rpdata->object_type);
+    if (pObject) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(rpdata->object_instance)) {
+            apdu_len = Read_Property_Common(pObject, rpdata);
+        } else {
+            rpdata->error_class = ERROR_CLASS_OBJECT;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
+    } else {
+        rpdata->error_class = ERROR_CLASS_OBJECT;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return apdu_len;
+}
+
+bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    bool status = false;
+    struct my_object_functions *pObject = NULL;
+
+    /* initialize the default return values */
+    pObject = Device_Objects_Find_Functions(wp_data->object_type);
+    if (pObject) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(wp_data->object_instance)) {
+            if (pObject->Object_Write_Property) {
+                status = pObject->Object_Write_Property(wp_data);
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_OBJECT;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/* for a given object type, returns the special property list */
+void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    struct special_property_list_t *pPropertyList)
+{
+    struct my_object_functions *pObject = NULL;
+
+    (void)object_instance;
+    pPropertyList->Required.pList = NULL;
+    pPropertyList->Optional.pList = NULL;
+    pPropertyList->Proprietary.pList = NULL;
+
+    /* If we can find an entry for the required object type
+     * and there is an Object_List_RPM fn ptr then call it
+     * to populate the pointers to the individual list counters.
+     */
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
+        pObject->Object_RPM_List(&pPropertyList->Required.pList,
+            &pPropertyList->Optional.pList, &pPropertyList->Proprietary.pList);
+    }
+
+    /* Fetch the counts if available otherwise zero them */
+    pPropertyList->Required.count = pPropertyList->Required.pList == NULL
+        ? 0
+        : property_list_count(pPropertyList->Required.pList);
+
+    pPropertyList->Optional.count = pPropertyList->Optional.pList == NULL
+        ? 0
+        : property_list_count(pPropertyList->Optional.pList);
+
+    pPropertyList->Proprietary.count = pPropertyList->Proprietary.pList == NULL
+        ? 0
+        : property_list_count(pPropertyList->Proprietary.pList);
+
+    return;
+}
+
 void Device_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
@@ -182,12 +331,7 @@ bool Device_Object_Name(
     return status;
 }
 
-/**
- * @brief Set the object name of the device object
- * @param object_name [in] The object name of the device object
- * @return True if the object name was set
- */
-bool Device_Set_Object_Name(BACNET_CHARACTER_STRING *object_name)
+bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false; /*return value */
 
@@ -308,6 +452,94 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(void)
  * @param rpdata [in,out] The data structure containing the ReadProperty-Request
  * @return the length of the apdu encoded or BACNET_STATUS_ERROR for error
  */
+int Device_Object_List_Element_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t instance;
+    bool found;
+
+    if (object_instance == Device_Object_Instance_Number()) {
+        /* single element is zero based, add 1 for BACnetARRAY which is one
+         * based */
+        array_index++;
+        found =
+            Device_Object_List_Identifier(array_index, &object_type, &instance);
+        if (found) {
+            apdu_len =
+                encode_application_object_id(apdu, object_type, instance);
+        }
+    }
+
+    return apdu_len;
+}
+
+bool Device_Valid_Object_Name(const BACNET_CHARACTER_STRING *object_name1,
+    BACNET_OBJECT_TYPE *object_type,
+    uint32_t *object_instance)
+{
+    bool found = false;
+    BACNET_OBJECT_TYPE type = OBJECT_NONE;
+    uint32_t instance;
+    uint32_t max_objects = 0, i = 0;
+    bool check_id = false;
+    BACNET_CHARACTER_STRING object_name2;
+    struct my_object_functions *pObject = NULL;
+
+    max_objects = Device_Object_List_Count();
+    for (i = 1; i <= max_objects; i++) {
+        check_id = Device_Object_List_Identifier(i, &type, &instance);
+        if (check_id) {
+            pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)type);
+            if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
+                (pObject->Object_Name(instance, &object_name2) &&
+                    characterstring_same(object_name1, &object_name2))) {
+                found = true;
+                if (object_type) {
+                    *object_type = type;
+                }
+                if (object_instance) {
+                    *object_instance = instance;
+                }
+                break;
+            }
+        }
+    }
+
+    return found;
+}
+
+bool Device_Valid_Object_Id(
+    BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+{
+    bool status = false; /* return value */
+    struct my_object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions((BACNET_OBJECT_TYPE)object_type);
+    if ((pObject != NULL) && (pObject->Object_Valid_Instance != NULL)) {
+        status = pObject->Object_Valid_Instance(object_instance);
+    }
+
+    return status;
+}
+
+bool Device_Object_Name_Copy(BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_CHARACTER_STRING *object_name)
+{
+    struct my_object_functions *pObject = NULL;
+    bool found = false;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_Name != NULL)) {
+        found = pObject->Object_Name(object_instance, object_name);
+    }
+
+    return found;
+}
+
+/* return the length of the apdu encoded or BACNET_STATUS_ERROR for error */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */

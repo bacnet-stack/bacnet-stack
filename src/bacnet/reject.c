@@ -96,7 +96,6 @@ bool reject_valid_error_code(BACNET_ERROR_CODE error_code)
     return status;
 }
 
-
 /**
  * @brief Convert a reject code to BACnet Error code
  * @param reject_code - code to be converted
@@ -142,8 +141,7 @@ BACNET_ERROR_CODE reject_convert_to_error_code(BACNET_REJECT_REASON reject_code)
             error_code = ERROR_CODE_INVALID_DATA_ENCODING;
             break;
         default:
-            if ((reject_code >= REJECT_REASON_PROPRIETARY_FIRST) &&
-                (reject_code <= REJECT_REASON_PROPRIETARY_LAST)) {
+            if (reject_code >= REJECT_REASON_PROPRIETARY_FIRST) {
                 error_code = ERROR_CODE_REJECT_PROPRIETARY;
             }
             break;
@@ -186,7 +184,8 @@ int reject_encode_apdu(uint8_t *apdu, uint8_t invoke_id, uint8_t reject_reason)
  *
  * @return Bytes encoded, typically 3.
  */
-int reject_decode_service_request(uint8_t *apdu,
+int reject_decode_service_request(
+    const uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t *reject_reason)

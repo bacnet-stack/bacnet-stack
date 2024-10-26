@@ -21,28 +21,22 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    void handler_cov_subscribe(
-        uint8_t * service_request,
-        uint16_t service_len,
-        BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data);
-    BACNET_STACK_EXPORT
-    bool handler_cov_fsm(
-        void);
-    BACNET_STACK_EXPORT
-    void handler_cov_task(
-        void);
-    BACNET_STACK_EXPORT
-    void handler_cov_timer_seconds(
-        uint32_t elapsed_seconds);
-    BACNET_STACK_EXPORT
-    void handler_cov_init(
-        void);
-    BACNET_STACK_EXPORT
-    int handler_cov_encode_subscriptions(
-        uint8_t * apdu,
-        int max_apdu);
+BACNET_STACK_EXPORT
+void handler_cov_subscribe(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data);
+BACNET_STACK_EXPORT
+bool handler_cov_fsm(void);
+BACNET_STACK_EXPORT
+void handler_cov_task(void);
+BACNET_STACK_EXPORT
+void handler_cov_timer_seconds(uint32_t elapsed_seconds);
+BACNET_STACK_EXPORT
+void handler_cov_init(void);
+BACNET_STACK_EXPORT
+int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu);
 
 #ifdef __cplusplus
 }

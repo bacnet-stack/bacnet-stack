@@ -45,8 +45,10 @@ static void testAlarmAck(void)
     data.eventStateAcked = EVENT_STATE_OFFNORMAL;
     memset(&test_data, 0, sizeof(test_data));
 
-    apdu_len = bacnet_acknowledge_alarm_info_request_encode(apdu, sizeof(apdu), &data);
-    null_len = bacnet_acknowledge_alarm_info_request_encode(NULL, apdu_len, &data);
+    apdu_len =
+        bacnet_acknowledge_alarm_info_request_encode(apdu, sizeof(apdu), &data);
+    null_len =
+        bacnet_acknowledge_alarm_info_request_encode(NULL, apdu_len, &data);
     zassert_equal(null_len, apdu_len, NULL);
     test_len = alarm_ack_decode_service_request(apdu, apdu_len, &test_data);
 
@@ -93,8 +95,10 @@ static void testAlarmAck(void)
     status = bacapp_timestamp_init_ascii(&data.eventTimeStamp, "2021/12/31");
     zassert_true(status, NULL);
     zassert_equal(data.eventTimeStamp.tag, TIME_STAMP_DATETIME, NULL);
-    apdu_len = bacnet_acknowledge_alarm_info_request_encode(apdu, sizeof(apdu), &data);
-    null_len = bacnet_acknowledge_alarm_info_request_encode(NULL, apdu_len, &data);
+    apdu_len =
+        bacnet_acknowledge_alarm_info_request_encode(apdu, sizeof(apdu), &data);
+    null_len =
+        bacnet_acknowledge_alarm_info_request_encode(NULL, apdu_len, &data);
     zassert_equal(null_len, apdu_len, NULL);
     test_len = alarm_ack_decode_service_request(apdu, apdu_len, &test_data);
     zassert_equal(
@@ -103,20 +107,25 @@ static void testAlarmAck(void)
     status = bacapp_timestamp_init_ascii(&data.eventTimeStamp, "1234");
     zassert_true(status, NULL);
     zassert_equal(data.eventTimeStamp.tag, TIME_STAMP_SEQUENCE, NULL);
-    apdu_len = bacnet_acknowledge_alarm_info_request_encode(apdu, sizeof(apdu), &data);
-    null_len = bacnet_acknowledge_alarm_info_request_encode(NULL, apdu_len, &data);
+    apdu_len =
+        bacnet_acknowledge_alarm_info_request_encode(apdu, sizeof(apdu), &data);
+    null_len =
+        bacnet_acknowledge_alarm_info_request_encode(NULL, apdu_len, &data);
     zassert_equal(null_len, apdu_len, NULL);
     test_len = alarm_ack_decode_service_request(apdu, apdu_len, &test_data);
     zassert_equal(
         apdu_len, test_len, "apdu_len=%d test_len=%d", apdu_len, test_len);
     while (--apdu_len) {
-        test_len = bacnet_acknowledge_alarm_info_request_encode(apdu, apdu_len, &data);
-        zassert_equal(test_len, 0, "apdu_len=%d test_len=%d", apdu_len, test_len);
+        test_len =
+            bacnet_acknowledge_alarm_info_request_encode(apdu, apdu_len, &data);
+        zassert_equal(
+            test_len, 0, "apdu_len=%d test_len=%d", apdu_len, test_len);
     }
     apdu_len = null_len;
     while (--apdu_len) {
         test_len = alarm_ack_decode_service_request(apdu, apdu_len, &data);
-        zassert_true(test_len < 0, "apdu_len=%d test_len=%d", apdu_len, test_len);
+        zassert_true(
+            test_len < 0, "apdu_len=%d test_len=%d", apdu_len, test_len);
     }
 }
 

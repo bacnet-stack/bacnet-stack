@@ -13,24 +13,23 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-    #ifndef BACNET_BIG_ENDIAN
-        /* GCC */
-        #ifdef __BYTE_ORDER__
-            #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-                #define BACNET_BIG_ENDIAN 1
-            #else
-                #define BACNET_BIG_ENDIAN 0
-            #endif
-        #endif
-    #endif
+#ifndef BACNET_BIG_ENDIAN
+/* GCC */
+#ifdef __BYTE_ORDER__
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#define BACNET_BIG_ENDIAN 1
+#else
+#define BACNET_BIG_ENDIAN 0
+#endif
+#endif
+#endif
 
-    #ifdef BACNET_BIG_ENDIAN
-        #define big_endian() BACNET_BIG_ENDIAN
-    #else
-    BACNET_STACK_EXPORT
-    int big_endian(
-        void);
-    #endif
+#ifdef BACNET_BIG_ENDIAN
+#define big_endian() BACNET_BIG_ENDIAN
+#else
+BACNET_STACK_EXPORT
+int big_endian(void);
+#endif
 
 #ifdef __cplusplus
 }

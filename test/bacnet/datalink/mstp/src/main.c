@@ -45,7 +45,9 @@ static uint8_t TxBuffer[MAX_MPDU];
  * @param nbytes number of bytes to send
  */
 void RS485_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, uint8_t *buffer, uint16_t nbytes)
+    struct mstp_port_struct_t *mstp_port,
+    const uint8_t *buffer,
+    uint16_t nbytes)
 {
     (void)mstp_port;
     (void)buffer;
@@ -61,7 +63,7 @@ static FIFO_BUFFER Test_Queue;
  * @param buffer pointer to the data
  * @param len number of bytes to load
  */
-static void Load_Input_Buffer(uint8_t *buffer, size_t len)
+static void Load_Input_Buffer(const uint8_t *buffer, size_t len)
 {
     static bool initialized = false; /* tracks our init */
     if (!initialized) {
@@ -103,7 +105,10 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
  * @return amount of PDU data
  */
 uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
-{ /* milliseconds to wait for a packet */
+{
+    (void)mstp_port;
+    (void)timeout;
+
     return 0;
 }
 
@@ -114,7 +119,10 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
  * @return amount of PDU data
  */
 uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
-{ /* milliseconds to wait for a packet */
+{
+    (void)mstp_port;
+    (void)timeout;
+
     return 0;
 }
 
@@ -148,7 +156,9 @@ static void Timer_Silence_Reset(void *pArg)
  * @param nbytes number of bytes to send
  */
 void MSTP_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, uint8_t *buffer, uint16_t nbytes)
+    struct mstp_port_struct_t *mstp_port,
+    const uint8_t *buffer,
+    uint16_t nbytes)
 {
     if (mstp_port && mstp_port->OutputBuffer && buffer && (nbytes > 0) &&
         (nbytes <= mstp_port->OutputBufferSize)) {
@@ -593,8 +603,6 @@ static void testMasterNodeFSM(void)
 static void testSlaveNodeFSM(void)
 {
     struct mstp_port_struct_t MSTP_Port = { 0 }; /* port data */
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
 
     MSTP_Port.InputBuffer = &RxBuffer[0];
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
@@ -677,8 +685,7 @@ static void testZeroConfigNode_Init(struct mstp_port_struct_t *mstp_port)
 static void
 testZeroConfigNode_No_Events_Timeout(struct mstp_port_struct_t *mstp_port)
 {
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
+    bool transition_now;
 
     SilenceTime = mstp_port->Zero_Config_Silence + 1;
     transition_now = MSTP_Master_Node_FSM(mstp_port);
@@ -690,8 +697,7 @@ testZeroConfigNode_No_Events_Timeout(struct mstp_port_struct_t *mstp_port)
 static void testZeroConfigNode_Test_Request_Unsupported(
     struct mstp_port_struct_t *mstp_port)
 {
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
+    bool transition_now;
 
     /* test case: remote node does not support Test-Request; timeout */
     SilenceTime = mstp_port->Treply_timeout + 1;
@@ -704,30 +710,9 @@ static void testZeroConfigNode_Test_Request_Unsupported(
 }
 
 static void
-testZeroConfigNode_Test_Request_Supported(struct mstp_port_struct_t *mstp_port)
-{
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
-
-    /* test case: remote node supports Test-Request */
-    SilenceTime = 0;
-
-    mstp_port->DestinationAddress = mstp_port->Zero_Config_Station;
-    mstp_port->SourceAddress = 0;
-    mstp_port->FrameType = FRAME_TYPE_TEST_RESPONSE;
-    transition_now = MSTP_Master_Node_FSM(mstp_port);
-    zassert_true(transition_now, NULL);
-    zassert_true(
-        mstp_port->Zero_Config_State == MSTP_ZERO_CONFIG_STATE_USE, NULL);
-    zassert_true(
-        mstp_port->This_Station == mstp_port->Zero_Config_Station, NULL);
-}
-
-static void
 testZeroConfigNode_Test_IDLE_InvalidFrame(struct mstp_port_struct_t *mstp_port)
 {
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
+    bool transition_now;
 
     /* test case: waiting for a invalid frame */
     SilenceTime = 0;
@@ -747,8 +732,7 @@ testZeroConfigNode_Test_IDLE_InvalidFrame(struct mstp_port_struct_t *mstp_port)
 static void testZeroConfigNode_Test_IDLE_ValidFrameTimeout(
     struct mstp_port_struct_t *mstp_port)
 {
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
+    bool transition_now;
 
     /* test case: get a valid frame, followed by timeout  */
     SilenceTime = 0;
@@ -775,8 +759,7 @@ static void testZeroConfigNode_Test_IDLE_ValidFrameTimeout(
 static void
 testZeroConfigNode_Test_IDLE_ValidFrame(struct mstp_port_struct_t *mstp_port)
 {
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
+    bool transition_now;
 
     /* test case: get a valid frame, followed by timeout  */
     SilenceTime = 0;
@@ -793,8 +776,7 @@ testZeroConfigNode_Test_IDLE_ValidFrame(struct mstp_port_struct_t *mstp_port)
 static void
 testZeroConfigNode_Test_LURK_AddressInUse(struct mstp_port_struct_t *mstp_port)
 {
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
+    bool transition_now;
     uint8_t src, dst;
 
     /* test case: src emits a token from each MAC in the zero-config range */
@@ -820,9 +802,8 @@ testZeroConfigNode_Test_LURK_AddressInUse(struct mstp_port_struct_t *mstp_port)
 static void testZeroConfigNode_Test_LURK_LearnMaxMaster(
     struct mstp_port_struct_t *mstp_port)
 {
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
-    uint8_t src, dst;
+    bool transition_now;
+    uint8_t dst;
 
     /* test case: src emits a token from each MAC in the zero-config range */
     SilenceTime = 0;
@@ -843,8 +824,7 @@ static void testZeroConfigNode_Test_LURK_LearnMaxMaster(
 static void
 testZeroConfigNode_Test_LURK_Claim(struct mstp_port_struct_t *mstp_port)
 {
-    bool transition_now, non_zero;
-    unsigned slots, silence, i;
+    bool transition_now;
     uint8_t src = 0, dst, count, count_max, count_claim;
 
     /* test case: src emits a PFM from each MAC in the zero-config range */
@@ -1123,23 +1103,27 @@ static void testZeroConfigNodeFSM(void)
     station = 0;
     test_station = Nmin_poll_station;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station, "station=%u next_station=%u",
-        station, next_station);
+    zassert_equal(
+        next_station, test_station, "station=%u next_station=%u", station,
+        next_station);
     station = Nmin_poll_station;
     test_station = Nmin_poll_station + 1;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station, "station=%u next_station=%u",
-        station, next_station);
+    zassert_equal(
+        next_station, test_station, "station=%u next_station=%u", station,
+        next_station);
     station = Nmax_poll_station - 1;
     test_station = Nmax_poll_station;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station,"station=%u next_station=%u",
-        station, next_station);
+    zassert_equal(
+        next_station, test_station, "station=%u next_station=%u", station,
+        next_station);
     station = Nmax_poll_station;
     test_station = Nmin_poll_station;
     next_station = MSTP_Zero_Config_Station_Increment(station);
-    zassert_equal(next_station, test_station, "station=%u next_station=%u",
-        station, next_station);
+    zassert_equal(
+        next_station, test_station, "station=%u next_station=%u", station,
+        next_station);
 }
 
 /**

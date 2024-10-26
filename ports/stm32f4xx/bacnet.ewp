@@ -78,7 +78,7 @@
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
-                    <state>STM32F429ZI	ST STM32F429ZI</state>
+                    <state>STM32F429ZI  ST STM32F429ZI</state>
                 </option>
                 <option>
                     <name>GenLowLevelInterface</name>
@@ -138,7 +138,7 @@
                 </option>
                 <option>
                     <name>GFPUDeviceSlave</name>
-                    <state>STM32F429ZI	ST STM32F429ZI</state>
+                    <state>STM32F429ZI  ST STM32F429ZI</state>
                 </option>
                 <option>
                     <name>FPU2</name>
@@ -353,9 +353,9 @@
                 <option>
                     <name>CCIncludePath2</name>
                     <state>$PROJ_DIR$</state>
-                    <state>$PROJ_DIR$\CMSIS</state>
-                    <state>$PROJ_DIR$\CMSIS\iar</state>
-                    <state>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\inc</state>
+                    <state>$PROJ_DIR$\external\CMSIS</state>
+                    <state>$PROJ_DIR$\external\CMSIS\iar</state>
+                    <state>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\inc</state>
                     <state>$PROJ_DIR$\..\..\src</state>
                 </option>
                 <option>
@@ -1293,40 +1293,40 @@
     <group>
         <name>STM32F4-STARTUP</name>
         <file>
-            <name>$PROJ_DIR$\CMSIS\iar\startup_stm32f4xx.s</name>
+            <name>$PROJ_DIR$\external\CMSIS\iar\startup_stm32f4xx.s</name>
         </file>
     </group>
     <group>
         <name>STM32F4XX_LIB</name>
         <file>
-            <name>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_adc.c</name>
+            <name>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\src\stm32f4xx_adc.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_flash.c</name>
+            <name>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\src\stm32f4xx_flash.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_gpio.c</name>
+            <name>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\src\stm32f4xx_gpio.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_i2c.c</name>
+            <name>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\src\stm32f4xx_i2c.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_iwdg.c</name>
+            <name>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\src\stm32f4xx_iwdg.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_misc.c</name>
+            <name>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\src\stm32f4xx_misc.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_pwr.c</name>
+            <name>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\src\stm32f4xx_pwr.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_rcc.c</name>
+            <name>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\src\stm32f4xx_rcc.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_tim.c</name>
+            <name>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\src\stm32f4xx_tim.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_usart.c</name>
+            <name>$PROJ_DIR$\external\STM32F4xx_StdPeriph_Driver\\src\stm32f4xx_usart.c</name>
         </file>
     </group>
     <file>

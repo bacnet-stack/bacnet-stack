@@ -57,6 +57,9 @@ static void test_network_port(void)
             OBJECT_NETWORK_PORT, object_instance, Network_Port_Property_Lists,
             Network_Port_Read_Property, Network_Port_Write_Property,
             known_fail_property_list);
+        bacnet_object_name_ascii_test(
+            object_instance, Network_Port_Name_Set,
+            Network_Port_Object_Name_ASCII);
         port++;
     }
 

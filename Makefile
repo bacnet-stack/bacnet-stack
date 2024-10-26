@@ -242,20 +242,20 @@ fuzz-afl:
 
 # Add "ports" to the build, if desired
 .PHONY: ports
-ports:	atmega168 bdk-atxx4-mstp at91sam7s stm32f10x stm32f4xx
+ports:	atmega328 bdk-atxx4-mstp at91sam7s stm32f10x stm32f4xx
 	@echo "Built the ARM7 and AVR ports"
 
 .PHONY: ports-clean
-ports-clean: atmega168-clean bdk-atxx4-mstp-clean at91sam7s-clean \
- stm32f10x-clean stm32f4xx-clean xplained-clean
+ports-clean: atmega328-clean bdk-atxx4-mstp-clean at91sam7s-clean \
+	stm32f10x-clean stm32f4xx-clean xplained-clean
 
-.PHONY: atmega168
-atmega168: ports/atmega168/Makefile
-	$(MAKE) -s -C ports/atmega168 clean all
+.PHONY: atmega328
+atmega328: ports/atmega328/Makefile
+	$(MAKE) -s -C ports/atmega328 clean all
 
-.PHONY: atmega168-clean
-atmega168-clean: ports/atmega168/Makefile
-	$(MAKE) -s -C ports/atmega168 clean
+.PHONY: atmega328-clean
+atmega328-clean: ports/atmega328/Makefile
+	$(MAKE) -s -C ports/atmega328 clean
 
 .PHONY: bdk-atxx4-mstp
 bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
@@ -450,3 +450,19 @@ test:
 .PHONY: retest
 retest:
 	$(MAKE) -s -j -C test retest
+
+# Zephyr unit testing with twister
+# expects zephyr to be installed in ../zephyr in Workspace
+# expects ZEPHYR_BASE to be set. E.g. source ../zephyr/zephyr-env.sh
+# see https://docs.zephyrproject.org/latest/getting_started/index.html
+TWISTER_RESULTS=../twister-out.unit_testing
+.PHONY: twister
+twister:
+ifndef ZEPHYR_BASE
+	$(error ZEPHYR_BASE is undefined)
+endif
+	$(ZEPHYR_BASE)/scripts/twister -O $(TWISTER_RESULTS) -p unit_testing -T zephyr/tests
+
+.PHONY: twister-clean
+twister-clean:
+	-rm -rf $(TWISTER_RESULTS)

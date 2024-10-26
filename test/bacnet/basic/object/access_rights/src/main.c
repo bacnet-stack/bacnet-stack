@@ -10,6 +10,7 @@
 
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/access_rights.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -25,28 +26,22 @@ ZTEST(access_rights_tests, testAccessRights)
 static void testAccessRights(void)
 #endif
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0, test_len = 0;
-    uint32_t decoded_instance = 0;
-    BACNET_OBJECT_TYPE decoded_type = 0;
-    BACNET_READ_PROPERTY_DATA rpdata;
+    bool status = false;
+    unsigned count = 0;
+    uint32_t object_instance = 0;
+    const int skip_fail_property_list[] = { -1 };
 
     Access_Rights_Init();
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_ACCESS_RIGHTS;
-    rpdata.object_instance = 1;
-    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-    len = Access_Rights_Read_Property(&rpdata);
-    zassert_not_equal(len, 0, NULL);
-    test_len = bacnet_object_id_application_decode(
-        apdu, len, &decoded_type, &decoded_instance);
-    zassert_not_equal(test_len, BACNET_STATUS_ERROR, NULL);
-    zassert_equal(decoded_type, rpdata.object_type, NULL);
-    zassert_equal(decoded_instance, rpdata.object_instance, NULL);
-
-    return;
+    count = Access_Rights_Count();
+    zassert_true(count > 0, NULL);
+    object_instance = Access_Rights_Index_To_Instance(0);
+    status = Access_Rights_Valid_Instance(object_instance);
+    zassert_true(status, NULL);
+    /* perform a general test for RP/WP */
+    bacnet_object_properties_read_write_test(
+        OBJECT_ACCESS_RIGHTS, object_instance, Access_Rights_Property_Lists,
+        Access_Rights_Read_Property, Access_Rights_Write_Property,
+        skip_fail_property_list);
 }
 /**
  * @}

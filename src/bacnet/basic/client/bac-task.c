@@ -100,7 +100,8 @@ void bacnet_task_init(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
     /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     bacnet_data_init();
     mstimer_set(&BACnet_Task_Timer, 1000);

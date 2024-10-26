@@ -18,8 +18,7 @@
 /* number of bytes needed for COBS encoded CRC */
 #define COBS_ENCODED_CRC_SIZE 5
 /* inclusive extra bytes needed for APDU */
-#define COBS_ENCODED_SIZE(a) ((a)+((a)/254)+1)
-
+#define COBS_ENCODED_SIZE(a) ((a) + ((a) / 254) + 1)
 
 /* The first COBS-encoded Frame Type value: 32. */
 #define Nmin_COBS_type 32
@@ -66,10 +65,7 @@ size_t cobs_encode(
 
 BACNET_STACK_EXPORT
 size_t cobs_frame_encode(
-    uint8_t *buffer,
-    size_t buffer_size,
-    const uint8_t *from,
-    size_t length);
+    uint8_t *buffer, size_t buffer_size, const uint8_t *from, size_t length);
 
 BACNET_STACK_EXPORT
 size_t cobs_decode(
@@ -81,21 +77,13 @@ size_t cobs_decode(
 
 BACNET_STACK_EXPORT
 size_t cobs_frame_decode(
-    uint8_t *buffer,
-    size_t buffer_size,
-    const uint8_t *from,
-    size_t length);
+    uint8_t *buffer, size_t buffer_size, const uint8_t *from, size_t length);
 
 BACNET_STACK_EXPORT
-uint32_t cobs_crc32k(
-    uint8_t dataValue,
-    uint32_t crc);
+uint32_t cobs_crc32k(uint8_t dataValue, uint32_t crc);
 
 BACNET_STACK_EXPORT
-size_t cobs_crc32k_encode(
-    uint8_t *buffer,
-    size_t buffer_size,
-    uint32_t crc);
+size_t cobs_crc32k_encode(uint8_t *buffer, size_t buffer_size, uint32_t crc);
 
 #ifdef __cplusplus
 }

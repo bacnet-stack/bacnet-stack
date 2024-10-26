@@ -159,8 +159,7 @@ BACNET_ERROR_CODE abort_convert_to_error_code(BACNET_ABORT_REASON abort_code)
             error_code = ERROR_CODE_ABORT_APDU_TOO_LONG;
             break;
         default:
-            if ((abort_code >= ABORT_REASON_PROPRIETARY_FIRST) &&
-                (abort_code <= ABORT_REASON_PROPRIETARY_LAST)) {
+            if (abort_code >= ABORT_REASON_PROPRIETARY_FIRST) {
                 error_code = ERROR_CODE_ABORT_PROPRIETARY;
             }
             break;
@@ -214,7 +213,10 @@ int abort_encode_apdu(
  * @return Total length of the apdu, typically 2 on success, zero otherwise.
  */
 int abort_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id, uint8_t *abort_reason)
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    uint8_t *invoke_id,
+    uint8_t *abort_reason)
 {
     int len = 0;
 

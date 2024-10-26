@@ -29,7 +29,8 @@
  * @param data application data to be encoded
  * @return number of bytes encoded
  */
-int bacnet_who_has_request_encode(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
+int bacnet_who_has_request_encode(
+    uint8_t *apdu, const BACNET_WHO_HAS_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -73,7 +74,7 @@ int bacnet_who_has_request_encode(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t bacnet_who_has_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_WHO_HAS_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_WHO_HAS_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -93,7 +94,7 @@ size_t bacnet_who_has_service_request_encode(
  * @param data  Pointer to the Who-Has application data.
  * @return Bytes encoded.
  */
-int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
+int whohas_encode_apdu(uint8_t *apdu, const BACNET_WHO_HAS_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -125,7 +126,7 @@ int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
  * @return number of bytes decoded, or BACNET_STATUS_ERROR on error
  */
 int whohas_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_WHO_HAS_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_WHO_HAS_DATA *data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;

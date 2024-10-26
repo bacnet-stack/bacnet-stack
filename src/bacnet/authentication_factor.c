@@ -16,7 +16,7 @@
  * @return number of bytes encoded, or zero if unable to encode
  */
 int bacapp_encode_authentication_factor(
-    uint8_t *apdu, BACNET_AUTHENTICATION_FACTOR *af)
+    uint8_t *apdu, const BACNET_AUTHENTICATION_FACTOR *af)
 {
     int len;
     int apdu_len = 0;
@@ -56,7 +56,7 @@ int bacapp_encode_authentication_factor(
  * @return number of bytes encoded, or zero if unable to encode
  */
 int bacapp_encode_context_authentication_factor(
-    uint8_t *apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR *af)
+    uint8_t *apdu, uint8_t tag, const BACNET_AUTHENTICATION_FACTOR *af)
 {
     int len;
     int apdu_len = 0;
@@ -84,7 +84,7 @@ int bacapp_encode_context_authentication_factor(
  * @return Bytes decoded or BACNET_STATUS_REJECT on error.
  */
 int bacapp_decode_authentication_factor(
-    uint8_t *apdu, BACNET_AUTHENTICATION_FACTOR *af)
+    const uint8_t *apdu, BACNET_AUTHENTICATION_FACTOR *af)
 {
     int len;
     int apdu_len = 0;
@@ -140,7 +140,7 @@ int bacapp_decode_authentication_factor(
  * @return Bytes decoded or BACNET_STATUS_REJECT on error.
  */
 int bacapp_decode_context_authentication_factor(
-    uint8_t *apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR *af)
+    const uint8_t *apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR *af)
 {
     int len = 0;
     int section_length;

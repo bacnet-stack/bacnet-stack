@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
@@ -56,29 +39,23 @@ static handler_timesync_callback Timesync_UTC_Callback;
 
 /**
  * @brief Configure a BACnet TimeSync request callback
-*/
-void handler_timesync_callback_set(
-    handler_timesync_callback cb)
+ */
+void handler_timesync_callback_set(handler_timesync_callback cb)
 {
     Timesync_Callback = cb;
 }
 
 /**
  * @brief Configure a BACnet TimeSync request callback
-*/
-void handler_timesync_utc_callback_set(
-    handler_timesync_callback cb)
+ */
+void handler_timesync_utc_callback_set(handler_timesync_callback cb)
 {
     Timesync_UTC_Callback = cb;
 }
 
 #if PRINT_ENABLED
-/**
- * @brief Show the date and time received in a TimeSync request
- * @param bdate [in] The date received
- * @param btime [in] The time received
- */
-static void show_bacnet_date_time(BACNET_DATE *bdate, BACNET_TIME *btime)
+static void
+show_bacnet_date_time(const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
     /* show the date received */
     fprintf(stderr, "%u", (unsigned)bdate->year);
@@ -301,7 +278,6 @@ uint32_t handler_timesync_interval_offset(void)
 }
 #endif
 
-
 #if defined(BACNET_TIME_MASTER)
 static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
 {
@@ -309,7 +285,8 @@ static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
 
     for (index = 0; index < MAX_TIME_SYNC_RECIPIENTS; index++) {
         if (Time_Sync_Recipients[index].tag == 1) {
-            Send_TimeSync_Remote(&Time_Sync_Recipients[index].type.address,
+            Send_TimeSync_Remote(
+                &Time_Sync_Recipients[index].type.address,
                 &current_date_time->date, &current_date_time->time);
         }
     }
@@ -428,8 +405,7 @@ void handler_timesync_init(void)
  *
  * @param cb - pointer to #handler_timesync_set_callback_t
  */
-void handler_timesync_set_callback_set(
-    handler_timesync_set_callback_t cb)
+void handler_timesync_set_callback_set(handler_timesync_set_callback_t cb)
 {
     handler_timesync_set_callback = cb;
 }

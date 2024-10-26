@@ -9,25 +9,7 @@
  *
  * @section LICENSE
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
@@ -59,27 +41,27 @@ ROUTER_PORT *head = NULL; /* pointer to list of router ports */
 
 int port_count;
 
-void print_help();
+void print_help(void);
 
-bool read_config(char *filepath);
+bool read_config(const char *filepath);
 
 bool parse_cmd(int argc, char *argv[]);
 
 void init_port_threads(ROUTER_PORT *port_list);
 
-bool init_router();
+bool init_router(void);
 
-void cleanup();
+void cleanup(void);
 
-void print_msg(BACMSG *msg);
+void print_msg(const BACMSG *msg);
 
 uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff);
 
-uint16_t get_next_free_dnet();
+uint16_t get_next_free_dnet(void);
 
-int kbhit();
+int kbhit(void);
 
-inline bool is_network_msg(BACMSG *msg);
+inline bool is_network_msg(const BACMSG *msg);
 
 int main(int argc, char *argv[])
 {
@@ -158,8 +140,8 @@ int main(int argc, char *argv[])
                         if (is_network_msg(bacmsg)) {
                             msg_data->ref_count = 1;
                             send_to_msgbox(msg_src, &msg_storage);
-                        } else if (msg_data->dest.net !=
-                            BACNET_BROADCAST_NETWORK) {
+                        } else if (
+                            msg_data->dest.net != BACNET_BROADCAST_NETWORK) {
                             msg_data->ref_count = 1;
                             port =
                                 find_dnet(msg_data->dest.net, &msg_data->dest);
@@ -199,7 +181,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void print_help()
+void print_help(void)
 {
     printf(
         "Usage: router <init_method> [init_parameters]\n"
@@ -219,7 +201,7 @@ void print_help()
         "-s, --stopbits <1|2>\n\tspecify MSTP port stopbits\n");
 }
 
-bool read_config(char *filepath)
+bool read_config(const char *filepath)
 {
     config_t cfg;
     config_setting_t *setting;
@@ -230,7 +212,8 @@ bool read_config(char *filepath)
 
     /* open configuration file */
     if (!config_read_file(&cfg, filepath)) {
-        PRINT(ERROR, "Config file error: %d - %s\n", config_error_line(&cfg),
+        PRINT(
+            ERROR, "Config file error: %d - %s\n", config_error_line(&cfg),
             config_error_text(&cfg));
         config_destroy(&cfg);
         return false;
@@ -279,13 +262,15 @@ bool read_config(char *filepath)
                     fd = socket(AF_INET, SOCK_DGRAM, 0);
                     if (fd) {
                         struct ifreq ifr;
-                        strncpy(ifr.ifr_name, current->iface,
+                        strncpy(
+                            ifr.ifr_name, current->iface,
                             sizeof(ifr.ifr_name) - 1);
                         result = ioctl(fd, SIOCGIFADDR, &ifr);
                         if (result != -1) {
                             close(fd);
                         } else {
-                            PRINT(ERROR,
+                            PRINT(
+                                ERROR,
                                 "Error: Invalid interface for BIP device\n");
                             return false;
                         }
@@ -322,7 +307,8 @@ bool read_config(char *filepath)
                     if (fd != -1) {
                         close(fd);
                     } else {
-                        PRINT(ERROR,
+                        PRINT(
+                            ERROR,
                             "Error: Invalid interface for MSTP device\n");
                         return false;
                     }
@@ -483,13 +469,15 @@ bool parse_cmd(int argc, char *argv[])
                     fd = socket(AF_INET, SOCK_DGRAM, 0);
                     if (fd) {
                         struct ifreq ifr;
-                        strncpy(ifr.ifr_name, current->iface,
+                        strncpy(
+                            ifr.ifr_name, current->iface,
                             sizeof(ifr.ifr_name) - 1);
                         result = ioctl(fd, SIOCGIFADDR, &ifr);
                         if (result != -1) {
                             close(fd);
                         } else {
-                            PRINT(ERROR,
+                            PRINT(
+                                ERROR,
                                 "Error: Invalid interface for BIP device \n");
                             return false;
                         }
@@ -538,7 +526,8 @@ bool parse_cmd(int argc, char *argv[])
                     if (fd != -1) {
                         close(fd);
                     } else {
-                        PRINT(ERROR,
+                        PRINT(
+                            ERROR,
                             "Error: Invalid interface for MSTP device\n");
                         return false;
                     }
@@ -667,7 +656,7 @@ void init_port_threads(ROUTER_PORT *port_list)
     }
 }
 
-bool init_router()
+bool init_router(void)
 {
     MSGBOX_ID msgboxid;
     ROUTER_PORT *port;
@@ -705,7 +694,7 @@ bool init_router()
     return true;
 }
 
-void cleanup()
+void cleanup(void)
 {
     ROUTER_PORT *port;
     BACMSG msg;
@@ -743,11 +732,11 @@ void cleanup()
     pthread_mutex_destroy(&msg_lock);
 }
 
-void print_msg(BACMSG *msg)
+void print_msg(const BACMSG *msg)
 {
     if (msg->type == DATA) {
         int i;
-        MSG_DATA *data = (MSG_DATA *)msg->data;
+        const MSG_DATA *data = (const MSG_DATA *)msg->data;
 
         if (data->pdu_len) {
             PRINT(DEBUG, "Message PDU: ");
@@ -773,8 +762,8 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
     memmove(data, msg->data, sizeof(MSG_DATA));
 
-    apdu_offset = bacnet_npdu_decode(data->pdu, data->pdu_len, &data->dest,
-        &addr, &npdu_data);
+    apdu_offset = bacnet_npdu_decode(
+        data->pdu, data->pdu_len, &data->dest, &addr, &npdu_data);
     apdu_len = data->pdu_len - apdu_offset;
 
     srcport = find_snet(msg->origin);
@@ -805,7 +794,8 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
         *buff = (uint8_t *)malloc(buff_len);
         memmove(*buff, npdu, npdu_len); /* copy newly formed NPDU */
-        memmove(*buff + npdu_len, &data->pdu[apdu_offset],
+        memmove(
+            *buff + npdu_len, &data->pdu[apdu_offset],
             apdu_len); /* copy APDU */
 
     } else {
@@ -819,7 +809,7 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     return buff_len;
 }
 
-int kbhit()
+int kbhit(void)
 {
     static const int STDIN = 0;
     static bool initialized = false;
@@ -839,17 +829,17 @@ int kbhit()
     return bytesWaiting;
 }
 
-bool is_network_msg(BACMSG *msg)
+bool is_network_msg(const BACMSG *msg)
 {
     uint8_t control_byte; /* NPDU control byte */
-    MSG_DATA *data = (MSG_DATA *)msg->data;
+    const MSG_DATA *data = (const MSG_DATA *)msg->data;
 
     control_byte = data->pdu[1];
 
     return control_byte & 0x80; /* check 7th bit */
 }
 
-uint16_t get_next_free_dnet()
+uint16_t get_next_free_dnet(void)
 {
     ROUTER_PORT *port = head;
     uint16_t i = 1;

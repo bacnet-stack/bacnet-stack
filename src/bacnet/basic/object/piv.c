@@ -27,8 +27,13 @@ static POSITIVEINTEGER_VALUE_DESCR PIV_Descr[MAX_POSITIVEINTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int PositiveInteger_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_UNITS, -1
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_UNITS,
+    -1
 };
 
 static const int PositiveInteger_Value_Properties_Optional[] = {
@@ -146,11 +151,12 @@ uint32_t PositiveInteger_Value_Present_Value(uint32_t object_instance)
 bool PositiveInteger_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
 
     if (object_instance < MAX_POSITIVEINTEGER_VALUES) {
-        snprintf(text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
+        snprintf(
+            text, sizeof(text), "POSITIVEINTEGER VALUE %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }
@@ -186,8 +192,9 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(&apdu[0],
-                OBJECT_POSITIVE_INTEGER_VALUE, rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_POSITIVE_INTEGER_VALUE,
+                rpdata->object_instance);
             break;
 
         case PROP_OBJECT_NAME:
@@ -203,7 +210,8 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_PRESENT_VALUE:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 PositiveInteger_Value_Present_Value(rpdata->object_instance));
             break;
 
@@ -212,7 +220,8 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+            bitstring_set_bit(
+                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
                 CurrentAV->Out_Of_Service);
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
@@ -222,7 +231,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_enumerated(&apdu[0], CurrentAV->Units);
             break;
-            /* 	BACnet Testing Observed Incident oi00109
+            /* BACnet Testing Observed Incident oi00109
                     Positive Integer Value / Units returned wrong datatype -
                missing break. Revealed by BACnet Test Client v1.8.16 (
                www.bac-test.com/bacnet-test-client-download ) BITS: BIT00031 BC

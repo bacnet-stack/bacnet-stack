@@ -23,7 +23,7 @@ PROP_TAG_DATA bacnet_object_device_property_tag_map[] = {
     { PROP_MODEL_NAME, BACNET_APPLICATION_TAG_CHARACTER_STRING },
     { PROP_FIRMWARE_REVISION, BACNET_APPLICATION_TAG_CHARACTER_STRING },
     { PROP_APPLICATION_SOFTWARE_VERSION,
-        BACNET_APPLICATION_TAG_CHARACTER_STRING },
+      BACNET_APPLICATION_TAG_CHARACTER_STRING },
     { PROP_PROTOCOL_VERSION, BACNET_APPLICATION_TAG_UNSIGNED_INT },
     { PROP_PROTOCOL_CONFORMANCE_CLASS, BACNET_APPLICATION_TAG_UNSIGNED_INT },
     { PROP_PROTOCOL_SERVICES_SUPPORTED, BACNET_APPLICATION_TAG_BIT_STRING },
@@ -45,7 +45,7 @@ PROP_TAG_DATA bacnet_object_device_property_tag_map[] = {
  * @return Value found or the default value.
  */
 signed bacprop_tag_by_index_default(
-    PROP_TAG_DATA *data_list, signed index, signed default_ret)
+    const PROP_TAG_DATA *data_list, signed index, signed default_ret)
 {
     signed pUnsigned = 0;
 

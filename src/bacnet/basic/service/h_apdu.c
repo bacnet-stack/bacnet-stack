@@ -34,19 +34,29 @@ static BACNET_SERVICES_SUPPORTED
         SERVICE_SUPPORTED_CONFIRMED_EVENT_NOTIFICATION,
         SERVICE_SUPPORTED_GET_ALARM_SUMMARY,
         SERVICE_SUPPORTED_GET_ENROLLMENT_SUMMARY,
-        SERVICE_SUPPORTED_SUBSCRIBE_COV, SERVICE_SUPPORTED_ATOMIC_READ_FILE,
-        SERVICE_SUPPORTED_ATOMIC_WRITE_FILE, SERVICE_SUPPORTED_ADD_LIST_ELEMENT,
-        SERVICE_SUPPORTED_REMOVE_LIST_ELEMENT, SERVICE_SUPPORTED_CREATE_OBJECT,
-        SERVICE_SUPPORTED_DELETE_OBJECT, SERVICE_SUPPORTED_READ_PROPERTY,
+        SERVICE_SUPPORTED_SUBSCRIBE_COV,
+        SERVICE_SUPPORTED_ATOMIC_READ_FILE,
+        SERVICE_SUPPORTED_ATOMIC_WRITE_FILE,
+        SERVICE_SUPPORTED_ADD_LIST_ELEMENT,
+        SERVICE_SUPPORTED_REMOVE_LIST_ELEMENT,
+        SERVICE_SUPPORTED_CREATE_OBJECT,
+        SERVICE_SUPPORTED_DELETE_OBJECT,
+        SERVICE_SUPPORTED_READ_PROPERTY,
         SERVICE_SUPPORTED_READ_PROP_CONDITIONAL,
-        SERVICE_SUPPORTED_READ_PROP_MULTIPLE, SERVICE_SUPPORTED_WRITE_PROPERTY,
+        SERVICE_SUPPORTED_READ_PROP_MULTIPLE,
+        SERVICE_SUPPORTED_WRITE_PROPERTY,
         SERVICE_SUPPORTED_WRITE_PROP_MULTIPLE,
         SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL,
-        SERVICE_SUPPORTED_PRIVATE_TRANSFER, SERVICE_SUPPORTED_TEXT_MESSAGE,
-        SERVICE_SUPPORTED_REINITIALIZE_DEVICE, SERVICE_SUPPORTED_VT_OPEN,
-        SERVICE_SUPPORTED_VT_CLOSE, SERVICE_SUPPORTED_VT_DATA,
-        SERVICE_SUPPORTED_AUTHENTICATE, SERVICE_SUPPORTED_REQUEST_KEY,
-        SERVICE_SUPPORTED_READ_RANGE, SERVICE_SUPPORTED_LIFE_SAFETY_OPERATION,
+        SERVICE_SUPPORTED_PRIVATE_TRANSFER,
+        SERVICE_SUPPORTED_TEXT_MESSAGE,
+        SERVICE_SUPPORTED_REINITIALIZE_DEVICE,
+        SERVICE_SUPPORTED_VT_OPEN,
+        SERVICE_SUPPORTED_VT_CLOSE,
+        SERVICE_SUPPORTED_VT_DATA,
+        SERVICE_SUPPORTED_AUTHENTICATE,
+        SERVICE_SUPPORTED_REQUEST_KEY,
+        SERVICE_SUPPORTED_READ_RANGE,
+        SERVICE_SUPPORTED_LIFE_SAFETY_OPERATION,
         SERVICE_SUPPORTED_SUBSCRIBE_COV_PROPERTY,
         SERVICE_SUPPORTED_GET_EVENT_INFORMATION,
         SERVICE_SUPPORTED_SUBSCRIBE_COV_PROPERTY_MULTIPLE,
@@ -76,12 +86,14 @@ void apdu_network_priority_set(uint8_t pri)
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
     unconfirmed_service_supported[MAX_BACNET_UNCONFIRMED_SERVICE] = {
-        SERVICE_SUPPORTED_I_AM, SERVICE_SUPPORTED_I_HAVE,
+        SERVICE_SUPPORTED_I_AM,
+        SERVICE_SUPPORTED_I_HAVE,
         SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION,
         SERVICE_SUPPORTED_UNCONFIRMED_EVENT_NOTIFICATION,
         SERVICE_SUPPORTED_UNCONFIRMED_PRIVATE_TRANSFER,
         SERVICE_SUPPORTED_UNCONFIRMED_TEXT_MESSAGE,
-        SERVICE_SUPPORTED_TIME_SYNCHRONIZATION, SERVICE_SUPPORTED_WHO_HAS,
+        SERVICE_SUPPORTED_TIME_SYNCHRONIZATION,
+        SERVICE_SUPPORTED_WHO_HAS,
         SERVICE_SUPPORTED_WHO_IS,
         SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION,
         SERVICE_SUPPORTED_WRITE_GROUP,
@@ -166,8 +178,9 @@ bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
                      */
                     int len = Routed_Device_Service_Approval(
                         confirmed_service_supported[i], 0, NULL, 0);
-                    if (len > 0)
+                    if (len > 0) {
                         break; /* Not supported - return false */
+                    }
 #endif
 
                     status = true;
@@ -245,8 +258,7 @@ static union {
  * @brief Determine if the BACnet service is a Simple Ack Service
  * @param service_choice [in] BACnet confirmed service choice
  */
-bool apdu_confirmed_simple_ack_service(
-    BACNET_CONFIRMED_SERVICE service_choice)
+bool apdu_confirmed_simple_ack_service(BACNET_CONFIRMED_SERVICE service_choice)
 {
     bool status = false;
 
@@ -412,7 +424,8 @@ void apdu_set_reject_handler(reject_function pFunction)
  * @return The length of the service data  and reflects the offset, where
  *         we are in PDU after the service had been decoded.
  */
-uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
+uint16_t apdu_decode_confirmed_service_request(
+    uint8_t *apdu, /* APDU data */
     uint16_t apdu_len,
     BACNET_CONFIRMED_SERVICE_DATA *service_data,
     uint8_t *service_choice,
@@ -439,7 +452,7 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
                 return 0;
             }
         }
-        if (apdu_len > MAX_APDU){
+        if (apdu_len > MAX_APDU) {
             return 0;
         } else if (apdu_len == (len + 1)) {
             /* no request data as seen with Inneasoft BACnet Explorer */

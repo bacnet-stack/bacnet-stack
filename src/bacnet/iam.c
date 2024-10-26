@@ -25,7 +25,8 @@
  *
  * @return Total length of the apdu, zero otherwise.
  */
-int iam_encode_apdu(uint8_t *apdu,
+int iam_encode_apdu(
+    uint8_t *apdu,
     uint32_t device_id,
     unsigned max_apdu,
     int segmentation,
@@ -57,14 +58,15 @@ int iam_encode_apdu(uint8_t *apdu,
  * @brief Decode the I-Am service.
  *
  * @param apdu  Receive buffer
- * @param pDevice_id  Pointer to the variable that shal ltake the device Id.
+ * @param pDevice_id  Pointer to the variable that shall take the device Id.
  * @param pMax_apdu  Pointer to a variable that shall take the decoded length.
  * @param pSegmentation  Pointer to a variable taking if segmentation is used.
  * @param pVendor_id  Pointer to a variable taking the vendor id.
  *
  * @return Total length of the apdu, zero otherwise.
  */
-int iam_decode_service_request(uint8_t *apdu,
+int iam_decode_service_request(
+    const uint8_t *apdu,
     uint32_t *pDevice_id,
     unsigned *pMax_apdu,
     int *pSegmentation,

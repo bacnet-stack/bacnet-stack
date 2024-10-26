@@ -23,10 +23,12 @@ static bool Access_Zone_Initialized = false;
 static ACCESS_ZONE_DESCR az_descr[MAX_ACCESS_ZONES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_GLOBAL_IDENTIFIER,
-    PROP_OCCUPANCY_STATE, PROP_STATUS_FLAGS, PROP_EVENT_STATE, PROP_RELIABILITY,
-    PROP_OUT_OF_SERVICE, PROP_ENTRY_POINTS, PROP_EXIT_POINTS, -1 };
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,     PROP_OBJECT_TYPE,
+    PROP_GLOBAL_IDENTIFIER, PROP_OCCUPANCY_STATE, PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,       PROP_RELIABILITY,     PROP_OUT_OF_SERVICE,
+    PROP_ENTRY_POINTS,      PROP_EXIT_POINTS,     -1
+};
 
 static const int Properties_Optional[] = { -1 };
 
@@ -116,11 +118,12 @@ unsigned Access_Zone_Instance_To_Index(uint32_t object_instance)
 bool Access_Zone_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text[32] = ""; /* okay for single thread */
+    char text[32] = "";
     bool status = false;
 
     if (object_instance < MAX_ACCESS_ZONES) {
-        snprintf(text, sizeof(text), "ACCESS ZONE %lu", 
+        snprintf(
+            text, sizeof(text), "ACCESS ZONE %lu",
             (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text);
     }

@@ -34,12 +34,14 @@ static char Object_Description[MAX_CHARACTERSTRING_VALUES][64];
 static bool Changed[MAX_CHARACTERSTRING_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    -1 };
+static const int Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
+};
 
 static const int Properties_Optional[] = { PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1 };
+                                           PROP_OUT_OF_SERVICE,
+                                           PROP_DESCRIPTION, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -76,9 +78,11 @@ void CharacterString_Value_Init(void)
 
     /* initialize all Present Values */
     for (i = 0; i < MAX_CHARACTERSTRING_VALUES; i++) {
-        snprintf(&Object_Name[i][0], sizeof(Object_Name[i]),
+        snprintf(
+            &Object_Name[i][0], sizeof(Object_Name[i]),
             "CHARACTER STRING VALUE %u", i + 1);
-        snprintf(&Object_Description[i][0], sizeof(Object_Description[i]),
+        snprintf(
+            &Object_Description[i][0], sizeof(Object_Description[i]),
             "A Character String Value Example");
         characterstring_init_ansi(&Present_Value[i], "");
         Changed[i] = false;
@@ -186,7 +190,7 @@ bool CharacterString_Value_Present_Value(
  * @return  true if values are within range and present-value is set.
  */
 bool CharacterString_Value_Present_Value_Set(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
+    uint32_t object_instance, const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
@@ -228,8 +232,8 @@ bool CharacterString_Value_Out_Of_Service(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @param  true/false
  */
-static void CharacterString_Value_Out_Of_Service_Set(
-    uint32_t object_instance, bool value)
+static void
+CharacterString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     unsigned index = 0;
 
@@ -294,8 +298,8 @@ bool CharacterString_Value_Encode_Value_List(
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < MAX_CHARACTERSTRING_VALUES) {
-        status = cov_value_list_encode_character_string(value_list,
-            &Present_Value[index], in_alarm, fault, overridden,
+        status = cov_value_list_encode_character_string(
+            value_list, &Present_Value[index], in_alarm, fault, overridden,
             Out_Of_Service[index]);
     }
 
@@ -332,7 +336,7 @@ static char *CharacterString_Value_Description(uint32_t object_instance)
  * @return True on success, false otherwise.
  */
 bool CharacterString_Value_Description_Set(
-    uint32_t object_instance, char *new_descr)
+    uint32_t object_instance, const char *new_descr)
 {
     unsigned index = 0; /* offset from instance lookup */
     size_t i = 0; /* loop counter */
@@ -349,7 +353,8 @@ bool CharacterString_Value_Description_Set(
                 }
             }
         } else {
-            memset(&Object_Description[index][0], 0,
+            memset(
+                &Object_Description[index][0], 0,
                 sizeof(Object_Description[index]));
         }
     }
@@ -390,7 +395,8 @@ bool CharacterString_Value_Object_Name(
  *
  * @return True on success, false otherwise.
  */
-bool CharacterString_Value_Name_Set(uint32_t object_instance, char *new_name)
+bool CharacterString_Value_Name_Set(
+    uint32_t object_instance, const char *new_name)
 {
     unsigned index = 0; /* offset from instance lookup */
     size_t i = 0; /* loop counter */
@@ -453,8 +459,9 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(&apdu[0],
-                OBJECT_CHARACTERSTRING_VALUE, rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_CHARACTERSTRING_VALUE,
+                rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
@@ -466,7 +473,8 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_DESCRIPTION:
-            if (characterstring_init_ansi(&char_string,
+            if (characterstring_init_ansi(
+                    &char_string,
                     CharacterString_Value_Description(
                         rpdata->object_instance))) {
                 apdu_len =

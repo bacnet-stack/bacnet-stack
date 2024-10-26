@@ -1,6 +1,0 @@
-tests:
-  bacnet.bacpropstates.unit:
-    tags: bacnet
-    type: unit
-  bacnet.bacpropstates:
-    tags: bacnet

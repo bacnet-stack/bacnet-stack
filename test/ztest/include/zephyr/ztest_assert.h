@@ -100,6 +100,7 @@ static inline bool z_zassert(bool cond,
 	bool _ret = z_zassert(cond, msg ? ("(" default_msg ")") : (default_msg), \
 			     __FILE__, __LINE__, __func__, \
 			     msg ? msg : "", ##__VA_ARGS__); \
+	(void)_ret; \
 } while (0)
 
 /**

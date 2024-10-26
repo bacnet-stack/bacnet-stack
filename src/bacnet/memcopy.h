@@ -16,16 +16,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    bool memcopylen(
-        size_t offset,
-        size_t max,
-        size_t len);
-    size_t memcopy(
-        void *dest,
-        void *src,
-        size_t offset,
-        size_t len,
-        size_t max);
+bool memcopylen(size_t offset, size_t max, size_t len);
+size_t
+memcopy(void *dest, const void *src, size_t offset, size_t len, size_t max);
 
 #ifdef __cplusplus
 }

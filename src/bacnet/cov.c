@@ -27,18 +27,17 @@ Unconfirmed COV Notification
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int cov_notify_encode_apdu(uint8_t *apdu, BACNET_COV_DATA *data)
+int cov_notify_encode_apdu(uint8_t *apdu, const BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
-    BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
+    const BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
 
     if (!data) {
         return 0;
     }
     /* tag 0 - subscriberProcessIdentifier */
-    len =
-        encode_context_unsigned(apdu, 0, data->subscriberProcessIdentifier);
+    len = encode_context_unsigned(apdu, 0, data->subscriberProcessIdentifier);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -51,8 +50,8 @@ int cov_notify_encode_apdu(uint8_t *apdu, BACNET_COV_DATA *data)
         apdu += len;
     }
     /* tag 2 - monitoredObjectIdentifier */
-    len = encode_context_object_id(apdu, 2,
-        data->monitoredObjectIdentifier.type,
+    len = encode_context_object_id(
+        apdu, 2, data->monitoredObjectIdentifier.type,
         data->monitoredObjectIdentifier.instance);
     apdu_len += len;
     if (apdu) {
@@ -95,7 +94,7 @@ int cov_notify_encode_apdu(uint8_t *apdu, BACNET_COV_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t cov_notify_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_COV_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_COV_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -119,10 +118,11 @@ size_t cov_notify_service_request_encode(
  *
  * @return bytes encoded or zero on error.
  */
-int ccov_notify_encode_apdu(uint8_t *apdu,
+int ccov_notify_encode_apdu(
+    uint8_t *apdu,
     unsigned apdu_size,
     uint8_t invoke_id,
-    BACNET_COV_DATA *data)
+    const BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* return value */
@@ -138,8 +138,7 @@ int ccov_notify_encode_apdu(uint8_t *apdu,
     if (apdu) {
         apdu += len;
     }
-    len = cov_notify_service_request_encode(
-        apdu, apdu_size - apdu_len, data);
+    len = cov_notify_service_request_encode(apdu, apdu_size - apdu_len, data);
     if (len > 0) {
         apdu_len += len;
     } else {
@@ -157,22 +156,21 @@ int ccov_notify_encode_apdu(uint8_t *apdu,
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 int ucov_notify_encode_apdu(
-    uint8_t *apdu, unsigned apdu_size, BACNET_COV_DATA *data)
+    uint8_t *apdu, unsigned apdu_size, const BACNET_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* return value */
 
     if (apdu && (apdu_size > 2)) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
-        apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; 
-    } 
+        apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION;
+    }
     len = 2;
     apdu_len += len;
     if (apdu) {
         apdu += len;
     }
-    len = cov_notify_service_request_encode(
-        apdu, apdu_size - apdu_len, data);
+    len = cov_notify_service_request_encode(apdu, apdu_size - apdu_len, data);
     if (len > 0) {
         apdu_len += len;
     } else {
@@ -201,7 +199,7 @@ int ucov_notify_encode_apdu(
  * @return Bytes decoded or BACNET_STATUS_ERROR on error.
  */
 int cov_notify_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_COV_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_COV_DATA *data)
 {
     int len = 0; /* return value */
     int value_len = 0, tag_len = 0;
@@ -291,7 +289,8 @@ int cov_notify_decode_service_request(
             /* this len function needs to start at the opening tag
                to match opening/closing tags like a stack.
                However, it returns the len between the tags. */
-            value_len = bacnet_enclosed_data_length(&apdu[len], apdu_size - len);
+            value_len =
+                bacnet_enclosed_data_length(&apdu[len], apdu_size - len);
             len += value_len;
             /* add the opening tag length to the totals */
             len += tag_len;
@@ -330,7 +329,8 @@ SubscribeCOV-Request ::= SEQUENCE {
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int cov_subscribe_apdu_encode(uint8_t *apdu, BACNET_SUBSCRIBE_COV_DATA *data)
+int cov_subscribe_apdu_encode(
+    uint8_t *apdu, const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -343,9 +343,9 @@ int cov_subscribe_apdu_encode(uint8_t *apdu, BACNET_SUBSCRIBE_COV_DATA *data)
     }
 
     /* tag 1 - monitoredObjectIdentifier */
-    len =
-        encode_context_object_id(apdu, 1, data->monitoredObjectIdentifier.type,
-            data->monitoredObjectIdentifier.instance);
+    len = encode_context_object_id(
+        apdu, 1, data->monitoredObjectIdentifier.type,
+        data->monitoredObjectIdentifier.instance);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -380,7 +380,7 @@ int cov_subscribe_apdu_encode(uint8_t *apdu, BACNET_SUBSCRIBE_COV_DATA *data)
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t cov_subscribe_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -403,10 +403,11 @@ size_t cov_subscribe_service_request_encode(
  * @param data  Pointer to the data to store the decoded values.
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
-int cov_subscribe_encode_apdu(uint8_t *apdu,
+int cov_subscribe_encode_apdu(
+    uint8_t *apdu,
     unsigned apdu_size,
     uint8_t invoke_id,
-    BACNET_SUBSCRIBE_COV_DATA *data)
+    const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -450,7 +451,7 @@ int cov_subscribe_encode_apdu(uint8_t *apdu,
  * @return Bytes decoded or Zero/BACNET_STATUS_ERROR on error.
  */
 int cov_subscribe_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* return value */
     int value_len = 0;
@@ -570,7 +571,7 @@ BACnetPropertyReference ::= SEQUENCE {
  * @return bytes encoded or zero on error.
  */
 int cov_subscribe_property_apdu_encode(
-    uint8_t *apdu, BACNET_SUBSCRIBE_COV_DATA *data)
+    uint8_t *apdu, const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -585,9 +586,9 @@ int cov_subscribe_property_apdu_encode(
         apdu += len;
     }
     /* tag 1 - monitoredObjectIdentifier */
-    len =
-        encode_context_object_id(apdu, 1, data->monitoredObjectIdentifier.type,
-            data->monitoredObjectIdentifier.instance);
+    len = encode_context_object_id(
+        apdu, 1, data->monitoredObjectIdentifier.type,
+        data->monitoredObjectIdentifier.instance);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -649,7 +650,7 @@ int cov_subscribe_property_apdu_encode(
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t cov_subscribe_property_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_SUBSCRIBE_COV_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -671,10 +672,11 @@ size_t cov_subscribe_property_service_request_encode(
  * @param data  Pointer to the data to encode.
  * @return number of bytes encoded, or zero on error.
  */
-int cov_subscribe_property_encode_apdu(uint8_t *apdu,
+int cov_subscribe_property_encode_apdu(
+    uint8_t *apdu,
     unsigned apdu_size,
     uint8_t invoke_id,
-    BACNET_SUBSCRIBE_COV_DATA *data)
+    const BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -714,7 +716,7 @@ int cov_subscribe_property_encode_apdu(uint8_t *apdu,
  * @return Bytes decoded or Zero/BACNET_STATUS_ERROR on error.
  */
 int cov_subscribe_property_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA *data)
+    const uint8_t *apdu, unsigned apdu_len, BACNET_SUBSCRIBE_COV_DATA *data)
 {
     int len = 0; /* return value */
     uint8_t tag_number = 0;
@@ -741,7 +743,8 @@ int cov_subscribe_property_decode_service_request(
         if (decode_is_context_tag(&apdu[len], 1)) {
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
-            len += decode_object_id(&apdu[len], &decoded_type,
+            len += decode_object_id(
+                &apdu[len], &decoded_type,
                 &data->monitoredObjectIdentifier.instance);
             data->monitoredObjectIdentifier.type = decoded_type;
         } else {
@@ -890,7 +893,8 @@ void cov_data_value_list_link(
  *
  * @return true if values were encoded
  */
-bool cov_value_list_encode_real(BACNET_PROPERTY_VALUE *value_list,
+bool cov_value_list_encode_real(
+    BACNET_PROPERTY_VALUE *value_list,
     float value,
     bool in_alarm,
     bool fault,
@@ -919,10 +923,12 @@ bool cov_value_list_encode_real(BACNET_PROPERTY_VALUE *value_list,
             &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, in_alarm);
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, fault);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OVERRIDDEN, overridden);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OUT_OF_SERVICE, out_of_service);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN,
+            overridden);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OUT_OF_SERVICE,
+            out_of_service);
         value_list->value.next = NULL;
         value_list->priority = BACNET_NO_PRIORITY;
         value_list->next = NULL;
@@ -943,7 +949,8 @@ bool cov_value_list_encode_real(BACNET_PROPERTY_VALUE *value_list,
  *
  * @return true if values were encoded
  */
-bool cov_value_list_encode_enumerated(BACNET_PROPERTY_VALUE *value_list,
+bool cov_value_list_encode_enumerated(
+    BACNET_PROPERTY_VALUE *value_list,
     uint32_t value,
     bool in_alarm,
     bool fault,
@@ -972,10 +979,12 @@ bool cov_value_list_encode_enumerated(BACNET_PROPERTY_VALUE *value_list,
             &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, in_alarm);
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, fault);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OVERRIDDEN, overridden);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OUT_OF_SERVICE, out_of_service);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN,
+            overridden);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OUT_OF_SERVICE,
+            out_of_service);
         value_list->value.next = NULL;
         value_list->priority = BACNET_NO_PRIORITY;
         value_list->next = NULL;
@@ -996,7 +1005,8 @@ bool cov_value_list_encode_enumerated(BACNET_PROPERTY_VALUE *value_list,
  *
  * @return true if values were encoded
  */
-bool cov_value_list_encode_unsigned(BACNET_PROPERTY_VALUE *value_list,
+bool cov_value_list_encode_unsigned(
+    BACNET_PROPERTY_VALUE *value_list,
     uint32_t value,
     bool in_alarm,
     bool fault,
@@ -1025,10 +1035,68 @@ bool cov_value_list_encode_unsigned(BACNET_PROPERTY_VALUE *value_list,
             &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, in_alarm);
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, fault);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OVERRIDDEN, overridden);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OUT_OF_SERVICE, out_of_service);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN,
+            overridden);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OUT_OF_SERVICE,
+            out_of_service);
+        value_list->value.next = NULL;
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list->next = NULL;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Encode the Value List for INT Present-Value and Status-Flags
+ * @param value_list - #BACNET_PROPERTY_VALUE with at least 2 entries
+ * @param value - INT present-value
+ * @param in_alarm - value of in-alarm status-flags
+ * @param fault - value of in-alarm status-flags
+ * @param overridden - value of overridden status-flags
+ * @param out_of_service - value of out-of-service status-flags
+ *
+ * @return true if values were encoded
+ */
+bool cov_value_list_encode_signed_int(
+    BACNET_PROPERTY_VALUE *value_list,
+    int32_t value,
+    bool in_alarm,
+    bool fault,
+    bool overridden,
+    bool out_of_service)
+{
+    bool status = false;
+
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_SIGNED_INT;
+        value_list->value.type.Signed_Int = value;
+        value_list->value.next = NULL;
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list = value_list->next;
+    }
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        bitstring_init(&value_list->value.type.Bit_String);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, in_alarm);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, fault);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN,
+            overridden);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OUT_OF_SERVICE,
+            out_of_service);
         value_list->value.next = NULL;
         value_list->priority = BACNET_NO_PRIORITY;
         value_list->next = NULL;
@@ -1051,8 +1119,9 @@ bool cov_value_list_encode_unsigned(BACNET_PROPERTY_VALUE *value_list,
  *
  * @return true if values were encoded
  */
-bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
-    BACNET_CHARACTER_STRING *value,
+bool cov_value_list_encode_character_string(
+    BACNET_PROPERTY_VALUE *value_list,
+    const BACNET_CHARACTER_STRING *value,
     bool in_alarm,
     bool fault,
     bool overridden,
@@ -1080,10 +1149,12 @@ bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
             &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, in_alarm);
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, fault);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OVERRIDDEN, overridden);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OUT_OF_SERVICE, out_of_service);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN,
+            overridden);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OUT_OF_SERVICE,
+            out_of_service);
         value_list->value.next = NULL;
         value_list->priority = BACNET_NO_PRIORITY;
         value_list->next = NULL;
@@ -1107,8 +1178,9 @@ bool cov_value_list_encode_character_string(BACNET_PROPERTY_VALUE *value_list,
  *
  * @return true if values were encoded
  */
-bool cov_value_list_encode_bit_string(BACNET_PROPERTY_VALUE *value_list,
-    BACNET_BIT_STRING *value,
+bool cov_value_list_encode_bit_string(
+    BACNET_PROPERTY_VALUE *value_list,
+    const BACNET_BIT_STRING *value,
     bool in_alarm,
     bool fault,
     bool overridden,
@@ -1136,10 +1208,12 @@ bool cov_value_list_encode_bit_string(BACNET_PROPERTY_VALUE *value_list,
             &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, in_alarm);
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, fault);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OVERRIDDEN, overridden);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OUT_OF_SERVICE, out_of_service);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN,
+            overridden);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OUT_OF_SERVICE,
+            out_of_service);
         value_list->value.next = NULL;
         value_list->priority = BACNET_NO_PRIORITY;
         value_list->next = NULL;

@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stddef.h>
@@ -64,7 +47,8 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_read_property(uint8_t *service_request,
+void handler_read_property(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -112,11 +96,34 @@ void handler_read_property(uint8_t *service_request,
             fprintf(stderr, "RP: Bad Encoding.\n");
 #endif
         } else {
-            rpdata.object_instance = handler_device_wildcard_instance_number(
-                rpdata.object_type, rpdata.object_instance);
-            apdu_len =
-                rp_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
-                    service_data->invoke_id, &rpdata);
+            /* When the object-type in the Object Identifier parameter
+               contains the value DEVICE and the instance in the 'Object
+               Identifier' parameter contains the value 4194303, the responding
+               BACnet-user shall treat the Object Identifier as if it correctly
+               matched the local Device object. This allows the device instance
+               of a device that does not generate I-Am messages to be
+               determined. */
+            if ((rpdata.object_type == OBJECT_DEVICE) &&
+                (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
+                rpdata.object_instance = Device_Object_Instance_Number();
+            }
+#if (BACNET_PROTOCOL_REVISION >= 17)
+            /* When the object-type in the Object Identifier parameter
+               contains the value NETWORK_PORT and the instance in the 'Object
+               Identifier' parameter contains the value 4194303, the responding
+               BACnet-user shall treat the Object Identifier as if it correctly
+               matched the local Network Port object representing the network
+               port through which the request was received. This allows the
+               network port instance of the network port that was used to
+               receive the request to be determined. */
+            if ((rpdata.object_type == OBJECT_NETWORK_PORT) &&
+                (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
+                rpdata.object_instance = Network_Port_Index_To_Instance(0);
+            }
+#endif
+            apdu_len = rp_ack_encode_apdu_init(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
+                &rpdata);
             /* configure our storage */
             rpdata.application_data =
                 &Handler_Transmit_Buffer[npdu_len + apdu_len];
@@ -164,22 +171,23 @@ void handler_read_property(uint8_t *service_request,
 
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
-            apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id,
+            apdu_len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 abort_convert_error_code(rpdata.error_code), true);
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Abort!\n");
 #endif
         } else if (len == BACNET_STATUS_ERROR) {
-            apdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
-                rpdata.error_class, rpdata.error_code);
+            apdu_len = bacerror_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
+                SERVICE_CONFIRMED_READ_PROPERTY, rpdata.error_class,
+                rpdata.error_code);
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Error!\n");
 #endif
         } else if (len == BACNET_STATUS_REJECT) {
-            apdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id,
+            apdu_len = reject_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 reject_convert_error_code(rpdata.error_code));
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Reject!\n");

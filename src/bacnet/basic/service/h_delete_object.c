@@ -43,7 +43,8 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *  decoded from the APDU header of this message.
  */
-void handler_delete_object(uint8_t *service_request,
+void handler_delete_object(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -63,9 +64,9 @@ void handler_delete_object(uint8_t *service_request,
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     debug_perror("DeleteObject: Received Request!\n");
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
         debug_perror("DeleteObject: Segmented message.  Sending Abort!\n");
         status = false;
     }
@@ -74,7 +75,8 @@ void handler_delete_object(uint8_t *service_request,
         len = delete_object_decode_service_request(
             service_request, service_len, &data);
         if (len > 0) {
-            debug_perror("DeleteObject: type=%lu instance=%lu\n",
+            debug_perror(
+                "DeleteObject: type=%lu instance=%lu\n",
                 (unsigned long)data.object_type,
                 (unsigned long)data.object_instance);
         } else {
@@ -82,22 +84,23 @@ void handler_delete_object(uint8_t *service_request,
         }
         /* bad decoding or something we didn't understand - send an abort */
         if (len <= 0) {
-            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, ABORT_REASON_OTHER, true);
+            len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                ABORT_REASON_OTHER, true);
             debug_perror("DeleteObject: Bad Encoding. Sending Abort!\n");
             status = false;
         }
         if (status) {
-            if (handler_device_object_delete(&data)) {
-                len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
+            if (Device_Delete_Object(&data)) {
+                len = encode_simple_ack(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_DELETE_OBJECT);
                 debug_perror("DeleteObject: Sending Simple Ack!\n");
             } else {
-                len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
-                    SERVICE_CONFIRMED_DELETE_OBJECT,
-                    data.error_class, data.error_code);
+                len = bacerror_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    SERVICE_CONFIRMED_DELETE_OBJECT, data.error_class,
+                    data.error_code);
                 debug_perror("DeleteObject: Sending Error!\n");
             }
         }

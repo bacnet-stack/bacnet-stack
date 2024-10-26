@@ -13,7 +13,7 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif				/* __cplusplus */
+#endif /* __cplusplus */
 
   void bacnet_init (void);
   void bacnet_task (void);
@@ -22,5 +22,5 @@ extern "C"
 
 #ifdef __cplusplus
 }
-#endif				/* __cplusplus */
+#endif /* __cplusplus */
 #endif

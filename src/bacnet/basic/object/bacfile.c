@@ -33,11 +33,11 @@
 #define FILE_RECORD_SIZE MAX_OCTET_STRING_BYTES
 #endif
 struct object_data {
-    char *Object_Name;
+    const char *Object_Name;
     char *Pathname;
     BACNET_DATE_TIME Modification_Date;
     char *File_Type;
-    bool File_Access_Stream:1;
+    bool File_Access_Stream : 1;
     bool Read_Only : 1;
     bool Archive : 1;
 };
@@ -47,9 +47,15 @@ static OS_Keylist Object_List;
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_FILE;
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int bacfile_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_FILE_TYPE, PROP_FILE_SIZE,
-    PROP_MODIFICATION_DATE, PROP_ARCHIVE, PROP_READ_ONLY,
-    PROP_FILE_ACCESS_METHOD, -1 };
+                                                   PROP_OBJECT_NAME,
+                                                   PROP_OBJECT_TYPE,
+                                                   PROP_FILE_TYPE,
+                                                   PROP_FILE_SIZE,
+                                                   PROP_MODIFICATION_DATE,
+                                                   PROP_ARCHIVE,
+                                                   PROP_READ_ONLY,
+                                                   PROP_FILE_ACCESS_METHOD,
+                                                   -1 };
 
 static const int bacfile_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
@@ -86,7 +92,8 @@ void BACfile_Property_Lists(
  * @param  s - string to duplicate
  * @return a pointer to a new string on success, or a null pointer
  */
-static char *bacfile_strdup(const char *s) {
+static char *bacfile_strdup(const char *s)
+{
     size_t size = strlen(s) + 1;
     char *p = malloc(size);
     if (p != NULL) {
@@ -137,8 +144,7 @@ void bacfile_pathname_set(uint32_t object_instance, const char *pathname)
  * @return object-instance number of the object,
  *  or #BACNET_MAX_INSTANCE if not found
  */
-uint32_t bacfile_pathname_instance(
-        const char *pathname)
+uint32_t bacfile_pathname_instance(const char *pathname)
 {
     struct object_data *pObject;
     int count = 0;
@@ -179,11 +185,10 @@ bool bacfile_object_name(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Object_Name) {
-            status = characterstring_init_ansi(object_name,
-                pObject->Object_Name);
+            status =
+                characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "FILE %u",
-                object_instance);
+            snprintf(name_text, sizeof(name_text), "FILE %u", object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -206,12 +211,30 @@ bool bacfile_object_name_set(uint32_t object_instance, char *new_name)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Object_Name = new_name;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *bacfile_name_ansi(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -281,8 +304,8 @@ static long fsize(FILE *pFile)
  * @param  buffer_size - in bytes
  * @return  file size in bytes
  */
-uint32_t bacfile_read(uint32_t object_instance, uint8_t *buffer,
-    uint32_t buffer_size)
+uint32_t
+bacfile_read(uint32_t object_instance, uint8_t *buffer, uint32_t buffer_size)
 {
     const char *pFilename = NULL;
     FILE *pFile = NULL;
@@ -312,8 +335,8 @@ uint32_t bacfile_read(uint32_t object_instance, uint8_t *buffer,
  * @param  buffer_size - in bytes
  * @return  file size in bytes
  */
-uint32_t bacfile_write(uint32_t object_instance, uint8_t *buffer,
-    uint32_t buffer_size)
+uint32_t bacfile_write(
+    uint32_t object_instance, const uint8_t *buffer, uint32_t buffer_size)
 {
     const char *pFilename = NULL;
     FILE *pFile = NULL;
@@ -368,8 +391,7 @@ BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
  * @return true if file size is writable
  */
 bool bacfile_file_size_set(
-    uint32_t object_instance,
-    BACNET_UNSIGNED_INTEGER file_size)
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER file_size)
 {
     bool status = false;
     struct object_data *pObject;
@@ -385,17 +407,15 @@ bool bacfile_file_size_set(
     return status;
 }
 
-
 /**
  * @brief Determines the file size property value
  * @param object_instance - object-instance number of the object
  * @return value of the file size property
  */
-const char * bacfile_file_type(
-    uint32_t object_instance)
+const char *bacfile_file_type(uint32_t object_instance)
 {
     struct object_data *pObject;
-    const char * mime_type = "application/octet-stream";
+    const char *mime_type = "application/octet-stream";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -412,9 +432,7 @@ const char * bacfile_file_type(
  * @param object_instance - object-instance number of the object
  * @param mime_type - value of the file type property
  */
-void bacfile_file_type_set(
-    uint32_t object_instance,
-    const char *mime_type)
+void bacfile_file_type_set(uint32_t object_instance, const char *mime_type)
 {
     struct object_data *pObject;
 
@@ -442,8 +460,7 @@ void bacfile_file_type_set(
  * @param  object_instance - object-instance number of the object
  * @return  true if the property is true
  */
-bool bacfile_archive(
-    uint32_t object_instance)
+bool bacfile_archive(uint32_t object_instance)
 {
     bool status = false;
     struct object_data *pObject;
@@ -467,8 +484,7 @@ bool bacfile_archive(
  * @param  object_instance - object-instance number of the object
  * @return  true if the property is true
  */
-bool bacfile_archive_set(
-    uint32_t object_instance, bool archive)
+bool bacfile_archive_set(uint32_t object_instance, bool archive)
 {
     bool status = false;
     struct object_data *pObject;
@@ -487,8 +503,7 @@ bool bacfile_archive_set(
  * @param  object_instance - object-instance number of the object
  * @return  true if the property is true
  */
-bool bacfile_read_only(
-    uint32_t object_instance)
+bool bacfile_read_only(uint32_t object_instance)
 {
     bool status = false;
     struct object_data *pObject;
@@ -507,9 +522,7 @@ bool bacfile_read_only(
  * @param archive - value of the file archive property
  * @return true if the file exists and read-only is writeable
  */
-bool bacfile_read_only_set(
-    uint32_t object_instance,
-    bool read_only)
+bool bacfile_read_only_set(uint32_t object_instance, bool read_only)
 {
     bool status = false;
     struct object_data *pObject;
@@ -524,12 +537,12 @@ bool bacfile_read_only_set(
 }
 
 /**
- * @brief For a given object instance-number, return the flag
+ * @brief
  * @param  object_instance - object-instance number of the object
- * @return  true if the property is true
+ * @param  bdatetime
  */
-void bacfile_modification_date(
-    uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
+static void
+bacfile_modification_date(uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
 {
     struct object_data *pObject;
 
@@ -544,8 +557,7 @@ void bacfile_modification_date(
  * @param  object_instance - object-instance number of the object
  * @return  true if the property is true
  */
-bool bacfile_file_access_stream(
-    uint32_t object_instance)
+bool bacfile_file_access_stream(uint32_t object_instance)
 {
     bool status = false;
     struct object_data *pObject;
@@ -564,9 +576,7 @@ bool bacfile_file_access_stream(
  * @param access - value of the property
  * @return true if the file exists and property is writeable
  */
-bool bacfile_file_access_stream_set(
-    uint32_t object_instance,
-    bool access)
+bool bacfile_file_access_stream_set(uint32_t object_instance, bool access)
 {
     bool status = false;
     struct object_data *pObject;
@@ -611,8 +621,7 @@ int bacfile_read_property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], Object_Type);
+            apdu_len = encode_application_enumerated(&apdu[0], Object_Type);
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
@@ -621,8 +630,8 @@ int bacfile_read_property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FILE_TYPE:
-            characterstring_init_ansi(&char_string,
-                bacfile_file_type(rpdata->object_instance));
+            characterstring_init_ansi(
+                &char_string, bacfile_file_type(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -635,20 +644,20 @@ int bacfile_read_property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = bacapp_encode_datetime(apdu, &bdatetime);
             break;
         case PROP_ARCHIVE:
-            apdu_len = encode_application_boolean(&apdu[0],
-                bacfile_archive(rpdata->object_instance));
+            apdu_len = encode_application_boolean(
+                &apdu[0], bacfile_archive(rpdata->object_instance));
             break;
         case PROP_READ_ONLY:
-            apdu_len = encode_application_boolean(&apdu[0],
-                bacfile_read_only(rpdata->object_instance));
+            apdu_len = encode_application_boolean(
+                &apdu[0], bacfile_read_only(rpdata->object_instance));
             break;
         case PROP_FILE_ACCESS_METHOD:
             if (bacfile_file_access_stream(rpdata->object_instance)) {
-                apdu_len = encode_application_enumerated(
-                    &apdu[0], FILE_STREAM_ACCESS);
+                apdu_len =
+                    encode_application_enumerated(&apdu[0], FILE_STREAM_ACCESS);
             } else {
-                apdu_len = encode_application_enumerated(
-                    &apdu[0], FILE_RECORD_ACCESS);
+                apdu_len =
+                    encode_application_enumerated(&apdu[0], FILE_RECORD_ACCESS);
             }
             break;
         default:
@@ -711,9 +720,8 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                status =
-                    bacfile_file_size_set(wp_data->object_instance,
-                    value.type.Unsigned_Int);
+                status = bacfile_file_size_set(
+                    wp_data->object_instance, value.type.Unsigned_Int);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -767,9 +775,9 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
         if (!npdu_data.network_layer_message &&
             npdu_data.data_expecting_reply &&
             ((apdu[0] & 0xF0) == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
-            len = apdu_decode_confirmed_service_request(&apdu[0], apdu_len,
-                &service_data, &service_choice, &service_request,
-                &service_request_len);
+            len = apdu_decode_confirmed_service_request(
+                &apdu[0], apdu_len, &service_data, &service_choice,
+                &service_request, &service_request_len);
             if ((len > 0) &&
                 (service_choice == SERVICE_CONFIRMED_ATOMIC_READ_FILE)) {
                 len = arf_decode_service_request(
@@ -800,7 +808,8 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
         pFile = fopen(pFilename, "rb");
         if (pFile) {
             (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
-            len = fread(octetstring_value(&data->fileData[0]), 1,
+            len = fread(
+                octetstring_value(&data->fileData[0]), 1,
                 data->type.stream.requestedOctetCount, pFile);
             if (len < data->type.stream.requestedOctetCount) {
                 data->endOfFile = true;
@@ -847,7 +856,8 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
                 (void)fseek(
                     pFile, data->type.stream.fileStartPosition, SEEK_SET);
             }
-            if (fwrite(octetstring_value(&data->fileData[0]),
+            if (fwrite(
+                    octetstring_value(&data->fileData[0]),
                     octetstring_length(&data->fileData[0]), 1, pFile) != 1) {
                 /* do something if it fails? */
             }
@@ -858,14 +868,14 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
     return found;
 }
 
-bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
+bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     const char *pFilename = NULL;
     bool found = false;
     FILE *pFile = NULL;
     uint32_t i = 0;
     char dummy_data[FILE_RECORD_SIZE];
-    char *pData = NULL;
+    const char *pData = NULL;
 
     pFilename = bacfile_pathname(data->object_instance);
     if (pFilename) {
@@ -894,7 +904,9 @@ bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
                 }
             }
             for (i = 0; i < data->type.record.returnedRecordCount; i++) {
-                if (fwrite(octetstring_value(&data->fileData[i]),
+                if (fwrite(
+                        octetstring_value(
+                            (BACNET_OCTET_STRING *)&data->fileData[i]),
                         octetstring_length(&data->fileData[i]), 1,
                         pFile) != 1) {
                     /* do something if it fails? */
@@ -908,7 +920,7 @@ bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
 }
 
 bool bacfile_read_ack_stream_data(
-    uint32_t instance, BACNET_ATOMIC_READ_FILE_DATA *data)
+    uint32_t instance, const BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     bool found = false;
     FILE *pFile = NULL;
@@ -920,10 +932,13 @@ bool bacfile_read_ack_stream_data(
         pFile = fopen(pFilename, "rb+");
         if (pFile) {
             (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
-            if (fwrite(octetstring_value(&data->fileData[0]),
+            if (fwrite(
+                    octetstring_value(
+                        (BACNET_OCTET_STRING *)&data->fileData[0]),
                     octetstring_length(&data->fileData[0]), 1, pFile) != 1) {
 #if PRINT_ENABLED
-                fprintf(stderr, "Failed to write to %s (%lu)!\n", pFilename,
+                fprintf(
+                    stderr, "Failed to write to %s (%lu)!\n", pFilename,
                     (unsigned long)instance);
 #endif
             }
@@ -935,7 +950,7 @@ bool bacfile_read_ack_stream_data(
 }
 
 bool bacfile_read_ack_record_data(
-    uint32_t instance, BACNET_ATOMIC_READ_FILE_DATA *data)
+    uint32_t instance, const BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     bool found = false;
     FILE *pFile = NULL;
@@ -959,11 +974,14 @@ bool bacfile_read_ack_record_data(
                 }
             }
             for (i = 0; i < data->type.record.RecordCount; i++) {
-                if (fwrite(octetstring_value(&data->fileData[i]),
+                if (fwrite(
+                        octetstring_value(
+                            (BACNET_OCTET_STRING *)&data->fileData[i]),
                         octetstring_length(&data->fileData[i]), 1,
                         pFile) != 1) {
 #if PRINT_ENABLED
-                    fprintf(stderr, "Failed to write to %s (%lu)!\n", pFilename,
+                    fprintf(
+                        stderr, "Failed to write to %s (%lu)!\n", pFilename,
                         (unsigned long)instance);
 #endif
                 }
@@ -974,7 +992,6 @@ bool bacfile_read_ack_record_data(
 
     return found;
 }
-
 
 /**
  * @brief Creates a File object
@@ -1003,8 +1020,8 @@ uint32_t bacfile_create(uint32_t object_instance)
             pObject->Object_Name = NULL;
             pObject->Pathname = NULL;
             /* April Fool's Day */
-            datetime_set_values(&pObject->Modification_Date,
-                2006, 4, 1, 7, 0, 3, 1);
+            datetime_set_values(
+                &pObject->Modification_Date, 2006, 4, 1, 7, 0, 3, 1);
             pObject->Read_Only = false;
             pObject->Archive = false;
             pObject->File_Access_Stream = true;

@@ -38,18 +38,18 @@ static const int Properties_Required[] = {
     PROP_OUT_OF_SERVICE, PROP_UNITS, -1
 };
 
-static const int Properties_Optional[] = { 
+static const int Properties_Optional[] = {
     PROP_DESCRIPTION, PROP_RELIABILITY,  PROP_COV_INCREMENT,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT,
     PROP_LOW_LIMIT, PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE,
     PROP_ACKED_TRANSITIONS, PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS,
 #endif
-    -1 
+    -1
 };
 
-static const int Properties_Proprietary[] = { 
-    -1 
+static const int Properties_Proprietary[] = {
+    -1
 };
 /* clang-format on */
 
@@ -233,7 +233,7 @@ void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
 bool Analog_Input_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";
+    char text_string[32] = "";
     bool status = false;
     struct analog_input_descr *pObject;
 
@@ -261,7 +261,7 @@ bool Analog_Input_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Analog_Input_Name_Set(uint32_t object_instance, char *new_name)
+bool Analog_Input_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false;
     struct analog_input_descr *pObject;
@@ -273,6 +273,24 @@ bool Analog_Input_Name_Set(uint32_t object_instance, char *new_name)
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Analog_Input_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -304,10 +322,10 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
  */
-char *Analog_Input_Description(uint32_t object_instance)
+const char *Analog_Input_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct analog_input_descr *pObject;
+    const char *name = NULL;
+    const struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
@@ -323,7 +341,8 @@ char *Analog_Input_Description(uint32_t object_instance)
  * @param  new_name - holds the description to be set
  * @return  true if object-name was set
  */
-bool Analog_Input_Description_Set(uint32_t object_instance, char *new_name)
+bool Analog_Input_Description_Set(
+    uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct analog_input_descr *pObject;
@@ -996,10 +1015,6 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     if (!CurrentAI) {
         return;
     }
-    /* check limits */
-    if (!CurrentAI->Limit_Enable) {
-        return; /* limits are not configured */
-    }
     if (CurrentAI->Ack_notify_data.bSendAckNotify) {
         /* clean bSendAckNotify flag */
         CurrentAI->Ack_notify_data.bSendAckNotify = false;
@@ -1030,10 +1045,11 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                      EVENT_HIGH_LIMIT_ENABLE) &&
                     ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ==
                      EVENT_ENABLE_TO_OFFNORMAL)) {
-                    if (!CurrentAI->Remaining_Time_Delay)
+                    if (!CurrentAI->Remaining_Time_Delay) {
                         CurrentAI->Event_State = EVENT_STATE_HIGH_LIMIT;
-                    else
+                    } else {
                         CurrentAI->Remaining_Time_Delay--;
+                    }
                     break;
                 }
                 /* A TO-OFFNORMAL event is generated under these conditions:
@@ -1048,10 +1064,11 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                      EVENT_LOW_LIMIT_ENABLE) &&
                     ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ==
                      EVENT_ENABLE_TO_OFFNORMAL)) {
-                    if (!CurrentAI->Remaining_Time_Delay)
+                    if (!CurrentAI->Remaining_Time_Delay) {
                         CurrentAI->Event_State = EVENT_STATE_LOW_LIMIT;
-                    else
+                    } else {
                         CurrentAI->Remaining_Time_Delay--;
+                    }
                     break;
                 }
                 /* value of the object is still in the same event state */
@@ -1066,16 +1083,23 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                    the HighLimitEnable flag must be set in the Limit_Enable
                    property, and (c) the TO-NORMAL flag must be set in the
                    Event_Enable property. */
-                if ((PresentVal <
-                     CurrentAI->High_Limit - CurrentAI->Deadband) &&
-                    ((CurrentAI->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) ==
-                     EVENT_HIGH_LIMIT_ENABLE) &&
-                    ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
-                     EVENT_ENABLE_TO_NORMAL)) {
-                    if (!CurrentAI->Remaining_Time_Delay)
+                if (((PresentVal <
+                      CurrentAI->High_Limit - CurrentAI->Deadband) &&
+                     ((CurrentAI->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) ==
+                      EVENT_HIGH_LIMIT_ENABLE) &&
+                     ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
+                      EVENT_ENABLE_TO_NORMAL)) ||
+                    /* 13.3.6 (c) If pCurrentState is HIGH_LIMIT, and the
+                     * HighLimitEnable flag of pLimitEnable is FALSE, then
+                     * indicate a transition to the NORMAL event state. */
+                    (!(CurrentAI->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE))) {
+                    if ((!CurrentAI->Remaining_Time_Delay) ||
+                        (!(CurrentAI->Limit_Enable &
+                           EVENT_HIGH_LIMIT_ENABLE))) {
                         CurrentAI->Event_State = EVENT_STATE_NORMAL;
-                    else
+                    } else {
                         CurrentAI->Remaining_Time_Delay--;
+                    }
                     break;
                 }
                 /* value of the object is still in the same event state */
@@ -1091,15 +1115,22 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                    set in the Limit_Enable property, and
                    (c) the TO-NORMAL flag must be set in the Event_Enable
                    property. */
-                if ((PresentVal > CurrentAI->Low_Limit + CurrentAI->Deadband) &&
-                    ((CurrentAI->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) ==
-                     EVENT_LOW_LIMIT_ENABLE) &&
-                    ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
-                     EVENT_ENABLE_TO_NORMAL)) {
-                    if (!CurrentAI->Remaining_Time_Delay)
+                if (((PresentVal >
+                      CurrentAI->Low_Limit + CurrentAI->Deadband) &&
+                     ((CurrentAI->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) ==
+                      EVENT_LOW_LIMIT_ENABLE) &&
+                     ((CurrentAI->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
+                      EVENT_ENABLE_TO_NORMAL)) ||
+                    /* 13.3.6 (f) If pCurrentState is LOW_LIMIT, and the
+                     * LowLimitEnable flag of pLimitEnable is FALSE, then
+                     * indicate a transition to the NORMAL event state. */
+                    (!(CurrentAI->Limit_Enable & EVENT_LOW_LIMIT_ENABLE))) {
+                    if ((!CurrentAI->Remaining_Time_Delay) ||
+                        (!(CurrentAI->Limit_Enable & EVENT_LOW_LIMIT_ENABLE))) {
                         CurrentAI->Event_State = EVENT_STATE_NORMAL;
-                    else
+                    } else {
                         CurrentAI->Remaining_Time_Delay--;
+                    }
                     break;
                 }
                 /* value of the object is still in the same event state */
@@ -1214,8 +1245,9 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         /* Notify Type */
         /* filled before */
         /* From State */
-        if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION)
+        if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
             event_data.fromState = FromState;
+        }
         /* To State */
         event_data.toState = CurrentAI->Event_State;
         /* Event Values */
@@ -1370,8 +1402,9 @@ int Analog_Input_Event_Information(
             pObject->Notification_Class, getevent_data->eventPriorities);
 
         return 1; /* active event */
-    } else
+    } else {
         return 0; /* no active event at this index */
+    }
 }
 
 /**
