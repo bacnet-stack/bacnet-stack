@@ -29,7 +29,7 @@ ZTEST(BACnet_Secure_Connect_Tests, test_BACnet_Secure_Connect)
 static void test_BACnet_Secure_Connect(void)
 #endif
 {
-    int apdu_len = 0, test_len = 0, null_len = 0, len = 0, diff = 0;
+    int apdu_len = 0, test_len = 0, null_len = 0, diff = 0;
     uint8_t apdu[MAX_APDU] = {0};
     BACNET_SC_HUB_CONNECTION_STATUS data = { 0 }, test_data;
 
