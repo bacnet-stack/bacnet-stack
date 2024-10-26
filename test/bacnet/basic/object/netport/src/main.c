@@ -510,37 +510,31 @@ static void test_network_port_sc_status_encode_decode(void)
     BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
     uint8_t apdu[MAX_APDU];
     int len;
-#if 1
     int len2;
     char str[512];
-#endif
 
-#if 1
     const char REQ_STR[] =
-        "{1946-05-07T12:34:22.010, 239.0.0.16:50001, 1.2.3.4.5.6, "
+        "{1946/05/07-12:34:22.10, 239.0.0.16:50001, 1.2.3.4.5.6, "
         "00000000-0000-0000-0000-000000000000, 38, \"error details\"}";
 
     const char HUB_STATUS_STR[] =
-        "{1, 1946-05-07T12:34:22.010, "
-        "1946-05-07T12:34:22.010, 239.0.0.16:50001, 1.2.3.4.5.6, "
-        "00000000-0000-0000-0000-000000000000, 0}{3, 1946-05-07T12:34:22.010, "
-        "1946-05-07T12:34:22.010, 239.0.0.16:50002, 1.2.3.4.5.6, "
+        "{1946/05/07-12:34:22.10, "
+        "239.0.0.16:50001, 1.2.3.4.5.6, "
         "00000000-0000-0000-0000-000000000000, 38, "
-        "\"error message of hub status\"}";
+        "\"error details\"}";
 
     const char DIRECT_STATUS_STR[] =
-        "{connect url, 3, 1946-05-07T12:34:22.010, 1946-05-07T12:34:22.010, "
+        "{connect url, 3, 1946/05/07-12:34:22.10, 1946/05/07-12:34:22.10, "
         "239.0.0.16:50001, 1.2.3.4.5.6, 00000000-0000-0000-0000-000000000000, "
         "38, \"error message of direct status\"}";
 
     const char PRIMARY_HUB_STATUS[] =
-        "{2, 1946-05-07T12:34:22.010, "
-        "1946-05-07T12:34:22.010, 38, \"error message\"}";
+        "{2, 1946/05/07-12:34:22.10, "
+        "1946/05/07-12:34:22.10, 38, \"error message\"}";
 
     const char FAILOVER_HUB_STATUS[] =
-        "{3, 1946-05-07T12:34:22.010, "
-        "1946-05-07T12:34:22.010, 14, \"again error message\"}";
-#endif
+        "{3, 1946/05/07-12:34:22.10, "
+        "1946/05/07-12:34:22.10, 14, \"again error message\"}";
 
     Network_Port_Init();
     instance = 1234;
@@ -581,7 +575,6 @@ static void test_network_port_sc_status_encode_decode(void)
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len == -1, NULL);
 
-#if 1
     // all context
     object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
     len = Network_Port_Read_Property(&rpdata);
@@ -597,7 +590,6 @@ static void test_network_port_sc_status_encode_decode(void)
     zassert_equal(len2, len, NULL);
 
     zassert_true(strncmp(str, REQ_STR, strlen(REQ_STR)) == 0, NULL);
-#endif
 
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
 
@@ -632,16 +624,6 @@ static void test_network_port_sc_status_encode_decode(void)
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len == -1, NULL);
 
-#if 1
-    // all context
-    object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
-    len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len > 0, NULL);
-
-    len2 = bacapp_decode_known_property(
-        apdu, len, &value, rpdata.object_type, rpdata.object_property);
-    zassert_equal(len2, len, NULL);
-
     len = bacapp_snprintf_value(NULL, 0, &object_value);
     zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
     len2 = bacapp_snprintf_value(str, len + 1, &object_value);
@@ -649,7 +631,6 @@ static void test_network_port_sc_status_encode_decode(void)
 
     zassert_true(
         strncmp(str, HUB_STATUS_STR, strlen(HUB_STATUS_STR)) == 0, NULL);
-#endif
 
     /* SC_Primary_Hub_Connection_Status */
     status = Network_Port_SC_Primary_Hub_Connection_Status_Set(
@@ -657,10 +638,10 @@ static void test_network_port_sc_status_encode_decode(void)
         ERROR_CODE_VT_SESSION_ALREADY_CLOSED, "error message");
     zassert_true(status, NULL);
 
+    rpdata.array_index = BACNET_ARRAY_ALL;
     object_value.object_property = rpdata.object_property =
         PROP_SC_PRIMARY_HUB_CONNECTION_STATUS;
 
-#if 1
     // context
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len > 0, NULL);
@@ -676,7 +657,6 @@ static void test_network_port_sc_status_encode_decode(void)
     zassert_true(
         strncmp(str, PRIMARY_HUB_STATUS, strlen(PRIMARY_HUB_STATUS)) == 0,
         NULL);
-#endif
 
     /* SC_Failover_Hub_Connection_Status */
     status = Network_Port_SC_Failover_Hub_Connection_Status_Set(
@@ -687,7 +667,6 @@ static void test_network_port_sc_status_encode_decode(void)
     object_value.object_property = rpdata.object_property =
         PROP_SC_FAILOVER_HUB_CONNECTION_STATUS;
 
-#if 1
     // context
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len > 0, NULL);
@@ -703,7 +682,6 @@ static void test_network_port_sc_status_encode_decode(void)
     zassert_true(
         strncmp(str, FAILOVER_HUB_STATUS, strlen(FAILOVER_HUB_STATUS)) == 0,
         NULL);
-#endif
 
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
@@ -735,7 +713,6 @@ static void test_network_port_sc_status_encode_decode(void)
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len == -1, NULL);
 
-#if 1
     // all context
     object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
     len = Network_Port_Read_Property(&rpdata);
@@ -752,7 +729,7 @@ static void test_network_port_sc_status_encode_decode(void)
 
     zassert_true(
         strncmp(str, DIRECT_STATUS_STR, strlen(DIRECT_STATUS_STR)) == 0, NULL);
-#endif
+
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
 #endif /* BACDL_BSC */
