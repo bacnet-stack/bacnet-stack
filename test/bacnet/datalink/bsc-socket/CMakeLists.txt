@@ -91,6 +91,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/npdu.c
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
@@ -154,6 +155,7 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/npdu.c
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
@@ -245,6 +247,7 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/npdu.c
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c

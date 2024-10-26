@@ -47,6 +47,9 @@ if(ZEPHYR_BASE)
   message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNet/SC hub function test: building for linux")
+  target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wno-language-extension-token
+    )
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   add_compile_definitions(BACNET_PORT=linux)
   find_package(libwebsockets CONFIG REQUIRED)
@@ -104,9 +107,12 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
-   target_link_libraries(${PROJECT_NAME}
-                         ${LIBWEBSOCKETS_LIBRARIES}
-  )
+  target_link_libraries(${PROJECT_NAME}
+    ${LIBWEBSOCKETS_LIBRARIES}
+    )
+  target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wno-language-extension-token
+    )
 elseif(WIN32)
   message(STATUS "BACNet/SC hub function test: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
@@ -266,6 +272,9 @@ elseif(APPLE)
     ${ZTST_DIR}/ztest.c
     )
   target_link_libraries(${PROJECT_NAME}
-                        ${LIBWEBSOCKETS_LIBRARIES}
-  )
+    ${LIBWEBSOCKETS_LIBRARIES}
+    )
+  target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wno-language-extension-token
+    )
 endif()

@@ -1453,6 +1453,7 @@ static void hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
     size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
+    (void) decoded_pdu;
     bws_dispatch_lock();
     debug_printf("hub_connector_event() ev = %p, ev->e = %p, ev->ev = %d, h = "
                  "%p, user_arg = %p, pdu = "
@@ -1619,10 +1620,10 @@ static void test_hub_connector_url(bool primary)
     zassert_equal(bsc_hub_connector_stopped(hubc_h), false, 0);
     if (primary) {
         zassert_equal(
-            bsc_hub_connector_state(hubc_h), BACNET_CONNECTED_TO_PRIMARY, 0);
+            bsc_hub_connector_state(hubc_h), BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_PRIMARY, 0); 
     } else {
         zassert_equal(
-            bsc_hub_connector_state(hubc_h), BACNET_CONNECTED_TO_FAILOVER, 0);
+            bsc_hub_connector_state(hubc_h), BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_FAILOVER, 0);
     }
     bsc_hub_connector_stop(hubc_h);
     zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);
