@@ -3220,7 +3220,7 @@ static void test_DISCONNECT_REQUEST(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
     ret = bvlc_sc_decode_message(buf, 3, &message, &error, &class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_OTHER, NULL);
+    zassert_equal(error, ERROR_CODE_DISCARD, NULL);
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
@@ -3264,7 +3264,7 @@ static void test_DISCONNECT_ACK(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
     ret = bvlc_sc_decode_message(buf, 3, &message, &error, &class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_OTHER, NULL);
+    zassert_equal(error, ERROR_CODE_DISCARD, NULL);
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
@@ -3308,7 +3308,7 @@ static void test_HEARTBEAT_REQUEST(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
     ret = bvlc_sc_decode_message(buf, 3, &message, &error, &class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_OTHER, NULL);
+    zassert_equal(error, ERROR_CODE_DISCARD, NULL);
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
@@ -3354,7 +3354,7 @@ static void test_HEARTBEAT_ACK(void)
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
     ret = bvlc_sc_decode_message(buf, 3, &message, &error, &class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_OTHER, NULL);
+    zassert_equal(error, ERROR_CODE_DISCARD, NULL);
     zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
     /* data options test */
     optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true);
