@@ -510,6 +510,12 @@ static void test_5_options_data(uint8_t *pdu,
     uint8_t proprietary_data1[17];
     size_t i;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
@@ -561,6 +567,12 @@ static void test_options_incorrect_more_bit_data(uint8_t *pdu,
     uint8_t proprietary_data2[5];
     size_t offs = 4;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
@@ -623,6 +635,12 @@ static void test_options_incorrect_data_bit_data(uint8_t *pdu,
     uint8_t proprietary_data1[17];
     size_t offs = 4;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
@@ -674,6 +692,12 @@ static void test_1_option_dest_incorrect(uint8_t *pdu,
     size_t len;
     bool ret;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
@@ -1048,6 +1072,12 @@ static void test_5_options_dest(uint8_t *pdu,
     uint8_t proprietary_data1[17];
     size_t i;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
@@ -1094,6 +1124,12 @@ static void test_options_incorrect_data_bit_dest(uint8_t *pdu,
     uint8_t proprietary_data1[17];
     int offs = 4;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);
@@ -1149,6 +1185,12 @@ static void test_options_incorrect_more_bit_dest(uint8_t *pdu,
     uint8_t proprietary_data2[5];
     size_t offs = 4;
     const char *err_desc = NULL;
+    (void) bvlc_function;
+    (void) message_id;
+    (void) origin;
+    (void) dest;
+    (void) payload;
+    (void) payload_len;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
     memcpy(buf, pdu, pdu_size);

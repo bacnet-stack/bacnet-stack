@@ -40,3 +40,7 @@ add_executable(${PROJECT_NAME}
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)
+
+target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wno-language-extension-token
+    )
