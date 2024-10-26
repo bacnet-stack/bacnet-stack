@@ -7,6 +7,8 @@
  */
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
 #include "bacnet/access_rule.h"
 #include "bacnet/bacdcode.h"
 
@@ -185,12 +187,66 @@ int bacapp_decode_access_rule(const uint8_t *apdu, BACNET_ACCESS_RULE *data)
  */
 bool bacnet_access_rule_from_ascii(BACNET_ACCESS_RULE *value, const char *argv)
 {
-    bool status = false;
+    int count = 0;
+    unsigned long device_instance1 = 0, instance1 = 0, property1 = 0;
+    unsigned long device_instance2 = 0, instance2 = 0;
+    unsigned int object_type1 = 0, object_type2 = 0;
 
-    (void)value;
-    (void)argv;
+    if (!value || !argv) {
+        return false;
+    }
+    /* BACnetDeviceObjectPropertyReference or OPTIONAL=ALWAYS */
+    /* BACnetDeviceObjectReference or OPTIONAL=ALL */
+    if (strcmp(argv, "always,all") == 0) {
+        value->time_range_specifier = TIME_RANGE_SPECIFIER_ALWAYS;
+        value->location_specifier = LOCATION_SPECIFIER_ALL;
+        return true;
+    }
+    count = sscanf(
+        argv, "%7lu:%4u:%7lu:%7lu,%7lu:%4u:%7lu", &device_instance1,
+        &object_type1, &instance1, &property1, &device_instance2, &object_type2,
+        &instance2);
+    if (count == 7) {
+        value->time_range_specifier = TIME_RANGE_SPECIFIER_SPECIFIED;
+        value->time_range.deviceIdentifier.type = OBJECT_DEVICE;
+        value->time_range.deviceIdentifier.instance = device_instance1;
+        value->time_range.objectIdentifier.type = object_type1;
+        value->time_range.objectIdentifier.instance = instance1;
+        value->time_range.propertyIdentifier = property1;
+        value->location_specifier = LOCATION_SPECIFIER_SPECIFIED;
+        value->location.deviceIdentifier.type = OBJECT_DEVICE;
+        value->location.deviceIdentifier.instance = instance1;
+        value->location.objectIdentifier.type = object_type2;
+        value->location.objectIdentifier.instance = instance2;
+        return true;
+    }
+    count = sscanf(
+        argv, "%7lu:%4u:%7lu:%7lu,all", &device_instance1, &object_type1,
+        &instance1, &property1);
+    if (count == 5) {
+        value->time_range_specifier = TIME_RANGE_SPECIFIER_SPECIFIED;
+        value->time_range.deviceIdentifier.type = OBJECT_DEVICE;
+        value->time_range.deviceIdentifier.instance = device_instance1;
+        value->time_range.objectIdentifier.type = object_type1;
+        value->time_range.objectIdentifier.instance = instance1;
+        value->time_range.propertyIdentifier = property1;
+        value->location_specifier = LOCATION_SPECIFIER_ALL;
+        return true;
+    }
+    count = sscanf(
+        argv, "always,%7lu:%4u:%7lu", &device_instance2, &object_type2,
+        &instance2);
+    if (count == 3) {
+        value->time_range_specifier = TIME_RANGE_SPECIFIER_ALWAYS;
+        value->location_specifier = LOCATION_SPECIFIER_SPECIFIED;
+        value->location.deviceIdentifier.type = OBJECT_DEVICE;
+        value->location.deviceIdentifier.instance = device_instance2;
+        value->location.objectIdentifier.type = object_type2;
+        value->location.objectIdentifier.instance = instance2;
+        return true;
+    }
 
-    return status;
+    return false;
 }
 
 /**

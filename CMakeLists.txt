@@ -25,11 +25,6 @@ option(
   ON)
 
 option(
-  BACNET_PROPERTY_ARRAY_LISTS
-  "enable property array lists"
-  ON)
-
-option(
   BACNET_BUILD_PIFACE_APP
   "compile the piface app"
   OFF)
@@ -67,7 +62,7 @@ option(
 option(
   BACDL_BIP6
   "compile with ipv6 datalink support"
-  OFF)
+  ON)
 
 if(NOT (BACDL_ETHERNET OR
         BACDL_MSTP OR
@@ -254,6 +249,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/bactext.h
   src/bacnet/bactimevalue.c
   src/bacnet/bactimevalue.h
+  src/bacnet/channel_value.c
+  src/bacnet/channel_value.h
   src/bacnet/dailyschedule.c
   src/bacnet/dailyschedule.h
   src/bacnet/weeklyschedule.c
@@ -423,6 +420,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_wp.h
   src/bacnet/basic/service/h_wpm.c
   src/bacnet/basic/service/h_wpm.h
+  src/bacnet/basic/service/h_write_group.c
+  src/bacnet/basic/service/h_write_group.h
   src/bacnet/basic/service/s_abort.c
   src/bacnet/basic/service/s_abort.h
   src/bacnet/basic/service/s_ack_alarm.c
@@ -479,6 +478,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_wp.h
   src/bacnet/basic/service/s_wpm.c
   src/bacnet/basic/service/s_wpm.h
+  src/bacnet/basic/service/s_write_group.c
+  src/bacnet/basic/service/s_write_group.h
   src/bacnet/basic/services.h
   src/bacnet/basic/sys/bigend.c
   src/bacnet/basic/sys/bigend.h
@@ -599,6 +600,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/wp.h
   src/bacnet/wpm.c
   src/bacnet/wpm.h
+  src/bacnet/write_group.c
+  src/bacnet/write_group.h
   $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.c>
   $<$<BOOL:${UCI}>:src/bacnet/basic/ucix/ucix.h>)
 target_sources(
@@ -626,7 +629,6 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
-  $<$<BOOL:${BACNET_PROPERTY_ARRAY_LISTS}>:BACNET_PROPERTY_ARRAY_LISTS=1>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
@@ -660,8 +662,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
-    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
-    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     ports/linux/mstimer-init.c)
 
@@ -957,15 +957,16 @@ if(BACNET_STACK_BUILD_APPS)
   )
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
 
-  if(BACDL_MSTP AND NOT WIN32)
+  if(BACDL_BIP AND BACDL_MSTP AND EXISTS ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.c)
+    find_path(LIBCONFIG_INCLUDE_DIR libconfig.h)
     find_library(LIBCONFIG_LIBRARIES NAMES config)
     if(NOT LIBCONFIG_LIBRARIES)
       message(WARNING "BACNET: Will not build apps/router as libconfig not found")
     else()
       add_executable(
         router
-        ports/linux/dlmstp_linux.c
-        ports/linux/dlmstp_linux.h
+        ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.c
+        ${BACNET_PORT_DIRECTORY_PATH}/dlmstp_port.h
         apps/router/ipmodule.c
         apps/router/ipmodule.h
         apps/router/main.c
@@ -978,20 +979,35 @@ if(BACNET_STACK_BUILD_APPS)
         apps/router/portthread.c
         apps/router/portthread.h)
 
+      target_include_directories(
+        router
+        PRIVATE ${PROJECT_NAME}
+        ${LIBCONFIG_INCLUDE_DIR})
       target_link_libraries(
         router
         PRIVATE ${PROJECT_NAME}
-                # needs libconfig
-                -lconfig)
+        ${LIBCONFIG_LIBRARIES})
 
-      target_compile_options(router PRIVATE
+        target_compile_options(router PRIVATE
         # These make this example not totally C90 compatible but it is ok.
 
-        -Wno-declaration-after-statement
-        -Wno-overlength-strings
         -Wno-variadic-macros
+        -O1
       )
     endif()
+  endif()
+
+  if(BACDL_BIP AND BACDL_MSTP)
+    add_executable(
+      router-mstp
+      apps/router-mstp/main.c)
+    target_link_libraries(
+      router-mstp
+      PRIVATE ${PROJECT_NAME})
+    target_compile_options(router-mstp PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
   endif()
 
   if(BACDL_BIP AND BACDL_BIP6)
@@ -1002,11 +1018,8 @@ if(BACNET_STACK_BUILD_APPS)
       router-ipv6
       PRIVATE ${PROJECT_NAME})
     target_compile_options(router-ipv6 PRIVATE
-      # These make this example not totally C90 compatible but it is ok.
-
-      -Wno-declaration-after-statement
-      -Wno-overlength-strings
-      -Wno-variadic-macros
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
     )
   endif()
 
@@ -1094,10 +1107,10 @@ if(BACNET_STACK_BUILD_APPS)
   )
   target_link_libraries(writefile PRIVATE ${PROJECT_NAME})
 
-  add_executable(writeprop
-    apps/writeprop/main.c
-    src/bacnet/basic/object/client/device-client.c
-  )
+  add_executable(writegroup apps/writegroup/main.c)
+  target_link_libraries(writegroup PRIVATE ${PROJECT_NAME})
+
+  add_executable(writeprop apps/writeprop/main.c)
   target_link_libraries(writeprop PRIVATE ${PROJECT_NAME})
 
   add_executable(writepropm

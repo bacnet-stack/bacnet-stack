@@ -19,10 +19,6 @@
 #define BACNET_PROPERTY_LISTS 0
 #endif
 
-#ifndef BACNET_PROPERTY_ARRAY_LISTS
-#define BACNET_PROPERTY_ARRAY_LISTS 0
-#endif
-
 #if BACNET_PROPERTY_LISTS
 /** @file property.c  List of Required and Optional object properties */
 /* note: the PROP_PROPERTY_LIST is NOT included in these lists, on purpose */
@@ -3191,98 +3187,6 @@ unsigned property_list_special_count(
     }
 
     return count;
-}
-#endif
-
-#if BACNET_PROPERTY_ARRAY_LISTS
-/* standard properties that are arrays
-   but not necessary supported in every object */
-
-static const int Properties_BACnetARRAY[] = {
-    /* unordered list of properties */
-    PROP_AUTHENTICATION_FACTORS,
-    PROP_ASSIGNED_ACCESS_RIGHTS,
-    PROP_PRIORITY_ARRAY,
-    PROP_VALUE_SOURCE_ARRAY,
-    PROP_COMMAND_TIME_ARRAY,
-    PROP_ALARM_VALUES,
-    PROP_FAULT_VALUES,
-    PROP_EVENT_TIME_STAMPS,
-    PROP_EVENT_MESSAGE_TEXTS,
-    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
-    PROP_SUPPORTED_FORMATS,
-    PROP_SUPPORTED_FORMAT_CLASSES,
-    PROP_SUBORDINATE_LIST,
-    PROP_SUBORDINATE_ANNOTATIONS,
-    PROP_SUBORDINATE_TAGS,
-    PROP_SUBORDINATE_NODE_TYPES,
-    PROP_SUBORDINATE_RELATIONSHIPS,
-    PROP_GROUP_MEMBERS,
-    PROP_GROUP_MEMBER_NAMES,
-    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
-    PROP_EXECUTION_DELAY,
-    PROP_CONTROL_GROUPS,
-    PROP_BIT_TEXT,
-    PROP_PORT_FILTER,
-    PROP_NOTIFICATION_CLASS,
-    PROP_STATE_CHANGE_VALUES,
-    PROP_LINK_SPEEDS,
-    PROP_IP_DNS_SERVER,
-    PROP_IPV6_DNS_SERVER,
-    PROP_FLOOR_TEXT,
-    PROP_CAR_DOOR_TEXT,
-    PROP_ASSIGNED_LANDING_CALLS,
-    PROP_MAKING_CAR_CALL,
-    PROP_REGISTERED_CAR_CALL,
-    PROP_CAR_DOOR_STATUS,
-    PROP_CAR_DOOR_COMMAND,
-    PROP_LANDING_DOOR_STATUS,
-    PROP_STAGES,
-    PROP_STAGE_NAMES,
-    PROP_TARGET_REFERENCES,
-    PROP_MONITORED_OBJECTS,
-    PROP_TAGS,
-    -1
-};
-
-/**
- * Function that returns the list of Required properties
- * of known standard objects.
- *
- * @param object_type - enumerated BACNET_OBJECT_TYPE
- * @return returns a pointer to a '-1' terminated array of
- * type 'int' that contain BACnet object properties for the given object
- * type.
- */
-const int *property_list_bacnet_array(void)
-{
-    return Properties_BACnetARRAY;
-}
-
-/**
- * @brief Determine if the object property is a BACnetARRAY property
- * @param object_type - object-type to be checked
- * @param object_property - object-property to be checked
- * @return true if the property is a BACnetARRAY property
- */
-bool property_list_bacnet_array_member(
-    BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property)
-{
-    switch (object_type) {
-        case OBJECT_GLOBAL_GROUP:
-            switch (object_property) {
-                case PROP_PRESENT_VALUE:
-                    /* special - the only present-value that is an array! */
-                    return true;
-                default:
-                    break;
-            }
-            break;
-        default:
-            break;
-    }
-
-    return property_list_member(Properties_BACnetARRAY, object_property);
 }
 #endif
 

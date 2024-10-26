@@ -55,6 +55,7 @@
 #include "bacnet/basic/service/h_whois.h"
 #include "bacnet/basic/service/h_wp.h"
 #include "bacnet/basic/service/h_wpm.h"
+#include "bacnet/basic/service/h_write_group.h"
 
 /* application layer service send helpers */
 #include "bacnet/basic/service/s_abort.h"
@@ -85,6 +86,7 @@
 #include "bacnet/basic/service/s_whois.h"
 #include "bacnet/basic/service/s_wp.h"
 #include "bacnet/basic/service/s_wpm.h"
+#include "bacnet/basic/service/s_write_group.h"
 
 /** @defgroup MISCHNDLR Miscellaneous Service Handlers
  * Various utilities and functions to support the service handlers

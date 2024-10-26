@@ -27,7 +27,7 @@ static void PrintReadRangeData(BACNET_READ_RANGE_DATA *data)
 #ifdef BACAPP_PRINT_ENABLED
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
 #endif
-    BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     int len = 0;
     uint8_t *application_data;
     int application_data_len;

@@ -116,7 +116,7 @@ void rp_ack_extract_data(BACNET_READ_PROPERTY_DATA *data)
     char ackString[MAX_ACK_STRING] = "";
     char *pAckString = &ackString[0];
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
-    BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     int len = 0;
     uint8_t *application_data;
     int application_data_len;
@@ -714,7 +714,7 @@ int BacnetWriteProperty(
         /* Handle the tag/value pair */
         uint8_t context_tag = 0;
         BACNET_APPLICATION_TAG property_tag;
-        BACNET_APPLICATION_DATA_VALUE propertyValue;
+        BACNET_APPLICATION_DATA_VALUE propertyValue = { 0 };
 
         if (toupper(tag[0]) == 'C') {
             context_tag = strtol(&tag[1], NULL, 0);

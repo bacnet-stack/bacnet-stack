@@ -40,7 +40,7 @@
 #include <sys/select.h>
 #include <sys/time.h>
 
-#include "dlmstp_bsd.h"
+#include "dlmstp_port.h"
 
 #if defined(__APPLE__) || defined(__darwin__)
 #include <IOKit/serial/ioss.h>
@@ -118,7 +118,8 @@ static void closeSerialPort(int fileDescriptor);
 void RS485_Set_Interface(char *ifname)
 {
     /* note: expects a constant char, or char from the heap */
-    if (ifname) {
+    if (ifname && ifname != NULL) {
+        printf("### RS485_Set_Interface %s\n", ifname);
         RS485_Port_Name = ifname;
     }
 }
@@ -399,7 +400,7 @@ void RS485_Send_Frame(
     const uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
 { /* number of bytes of data (up to 501) */
-    uint32_t turnaround_time = Tturnaround * 1000;
+    uint32_t turnaround_time_usec = Tturnaround * 1000000UL;
     uint32_t baud;
     ssize_t written = 0;
     int greska;
@@ -412,7 +413,7 @@ void RS485_Send_Frame(
         baud = RS485_Get_Baud_Rate();
         /* sleeping for turnaround time is necessary to give other devices
            time to change from sending to receiving state. */
-        usleep(turnaround_time / baud);
+        usleep(turnaround_time_usec / baud);
         /*
            On  success,  the  number of bytes written are returned (zero
            indicates nothing was written).  On error, -1  is  returned,  and
@@ -438,7 +439,7 @@ void RS485_Send_Frame(
         baud = RS485_Get_Port_Baud_Rate(mstp_port);
         /* sleeping for turnaround time is necessary to give other devices
            time to change from sending to receiving state. */
-        usleep(turnaround_time / baud);
+        usleep(turnaround_time_usec / baud);
         /*
            On  success,  the  number of bytes written are returned (zero
            indicates nothing was written).  On error, -1  is  returned,  and
