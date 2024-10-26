@@ -2285,7 +2285,7 @@ ZTEST_SUITE(hub_test_8, NULL, suite_setup, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    setbuf(stdout, NULL);
+    // setbuf(stdout, NULL);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
     ztest_test_suite(
