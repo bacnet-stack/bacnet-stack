@@ -52,6 +52,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/indtext.c
 	${SRC_DIR}/bacnet/lighting.c
 	${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
 	${SRC_DIR}/bacnet/timestamp.c
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
