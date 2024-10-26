@@ -47,9 +47,6 @@ if(ZEPHYR_BASE)
   message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNet/SC hub function test: building for linux")
-  target_compile_options(${PROJECT_NAME} PRIVATE
-    -Wno-language-extension-token
-    )
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   add_compile_definitions(BACNET_PORT=linux)
   find_package(libwebsockets CONFIG REQUIRED)
