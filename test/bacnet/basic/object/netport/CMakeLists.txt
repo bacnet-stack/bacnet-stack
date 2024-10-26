@@ -59,91 +59,34 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/access_rule.c
 	${SRC_DIR}/bacnet/arf.c
     ${SRC_DIR}/bacnet/bacaction.c
-	${SRC_DIR}/bacnet/bacaddr.c
-	${SRC_DIR}/bacnet/bacapp.c
-	${SRC_DIR}/bacnet/bacdcode.c
-	${SRC_DIR}/bacnet/bacdest.c
-	${SRC_DIR}/bacnet/bacdevobjpropref.c
-	${SRC_DIR}/bacnet/bacerror.c
-	${SRC_DIR}/bacnet/bacint.c
-	${SRC_DIR}/bacnet/bacreal.c
-	${SRC_DIR}/bacnet/bacstr.c
-	${SRC_DIR}/bacnet/bactext.c
-	${SRC_DIR}/bacnet/datetime.c
-	${SRC_DIR}/bacnet/indtext.c
-	${SRC_DIR}/bacnet/hostnport.c
-	${SRC_DIR}/bacnet/lighting.c
-	${SRC_DIR}/bacnet/proplist.c
-	${SRC_DIR}/bacnet/timestamp.c
-	${SRC_DIR}/bacnet/wp.c
-	${SRC_DIR}/bacnet/weeklyschedule.c
-	${SRC_DIR}/bacnet/bactimevalue.c
-	${SRC_DIR}/bacnet/dailyschedule.c
-	${SRC_DIR}/bacnet/calendar_entry.c
-	${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/bacaddr.c
+    ${SRC_DIR}/bacnet/bacapp.c
+    ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdest.c
+    ${SRC_DIR}/bacnet/bacdevobjpropref.c
+    ${SRC_DIR}/bacnet/bacerror.c
+    ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/bacreal.c
+    ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/basic/sys/bigend.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/indtext.c
+    ${SRC_DIR}/bacnet/hostnport.c
+    ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/property.c
+    ${SRC_DIR}/bacnet/timestamp.c
+    ${SRC_DIR}/bacnet/wp.c
+    ${SRC_DIR}/bacnet/weeklyschedule.c
+    ${SRC_DIR}/bacnet/bactimevalue.c
+    ${SRC_DIR}/bacnet/dailyschedule.c
+    ${SRC_DIR}/bacnet/calendar_entry.c
+    ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
 	${SRC_DIR}/bacnet/secure_connect.c
-	${SRC_DIR}/bacnet/basic/sys/bigend.c
-	${SRC_DIR}/bacnet/basic/sys/days.c
-	${SRC_DIR}/bacnet/basic/sys/debug.c
-	${SRC_DIR}/bacnet/basic/sys/keylist.c
-	${SRC_DIR}/bacnet/datalink/bvlc.c
-	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
-    # Test and test library files
-	${TST_DIR}/bacnet/basic/object/test/device_mock.c
-	${TST_DIR}/bacnet/basic/object/test/property_test.c
-	./src/main.c
-	${ZTST_DIR}/ztest_mock.c
-	${ZTST_DIR}/ztest.c
-    )
-elseif(WIN32)
-  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
-
-  target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
-
-  target_link_libraries(${PROJECT_NAME} PRIVATE
-    winmm
-    ws2_32>
-    iphlpapi>)
-
-  add_executable(${PROJECT_NAME}
-    ${PORTS_DIR}/win32/datetime-init.c
-    # File(s) under test
-	${SRC_DIR}/bacnet/basic/object/bacfile.c
-	${SRC_DIR}/bacnet/basic/object/netport.c
-	${SRC_DIR}/bacnet/basic/object/sc_netport.c
-    # Support files and stubs (pathname alphabetical)
-    ${SRC_DIR}/bacnet/access_rule.c
-	${SRC_DIR}/bacnet/arf.c
-    ${SRC_DIR}/bacnet/bacaction.c
-	${SRC_DIR}/bacnet/bacaddr.c
-	${SRC_DIR}/bacnet/bacapp.c
-	${SRC_DIR}/bacnet/bacdcode.c
-	${SRC_DIR}/bacnet/bacdest.c
-	${SRC_DIR}/bacnet/bacdevobjpropref.c
-	${SRC_DIR}/bacnet/bacerror.c
-	${SRC_DIR}/bacnet/bacint.c
-	${SRC_DIR}/bacnet/bacreal.c
-	${SRC_DIR}/bacnet/bacstr.c
-	${SRC_DIR}/bacnet/bactext.c
-	${SRC_DIR}/bacnet/datetime.c
-	${SRC_DIR}/bacnet/indtext.c
-	${SRC_DIR}/bacnet/hostnport.c
-	${SRC_DIR}/bacnet/lighting.c
-	${SRC_DIR}/bacnet/proplist.c
-	${SRC_DIR}/bacnet/timestamp.c
-	${SRC_DIR}/bacnet/wp.c
-	${SRC_DIR}/bacnet/weeklyschedule.c
-	${SRC_DIR}/bacnet/bactimevalue.c
-	${SRC_DIR}/bacnet/dailyschedule.c
-	${SRC_DIR}/bacnet/calendar_entry.c
-	${SRC_DIR}/bacnet/special_event.c
-	${SRC_DIR}/bacnet/secure_connect.c
-	${SRC_DIR}/bacnet/basic/sys/bigend.c
-	${SRC_DIR}/bacnet/basic/sys/days.c
-	${SRC_DIR}/bacnet/basic/sys/debug.c
-	${SRC_DIR}/bacnet/basic/sys/keylist.c
-	${SRC_DIR}/bacnet/datalink/bvlc.c
-	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/test/device_mock.c
 	${TST_DIR}/bacnet/basic/object/test/property_test.c
@@ -179,6 +122,7 @@ elseif(APPLE)
 	${SRC_DIR}/bacnet/hostnport.c
 	${SRC_DIR}/bacnet/lighting.c
 	${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/property.c
 	${SRC_DIR}/bacnet/timestamp.c
 	${SRC_DIR}/bacnet/wp.c
 	${SRC_DIR}/bacnet/weeklyschedule.c
@@ -186,6 +130,7 @@ elseif(APPLE)
 	${SRC_DIR}/bacnet/dailyschedule.c
 	${SRC_DIR}/bacnet/calendar_entry.c
 	${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
 	${SRC_DIR}/bacnet/secure_connect.c
 	${SRC_DIR}/bacnet/basic/sys/debug.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c

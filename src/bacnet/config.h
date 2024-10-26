@@ -233,6 +233,7 @@
     defined(BACAPP_SCALE) || \
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
+    defined(BACAPP_CHANNEL_VALUE) || \
     defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
@@ -281,6 +282,7 @@
 #define BACAPP_SCALE
 #define BACAPP_SHED_LEVEL
 #define BACAPP_ACCESS_RULE
+#define BACAPP_CHANNEL_VALUE
 #define BACAPP_SECURE_CONNECT
 #endif
 
@@ -305,7 +307,8 @@
     defined(BACAPP_ACTION_COMMAND) || \
     defined(BACAPP_SCALE) || \
     defined(BACAPP_SHED_LEVEL) || \
-    defined(BACAPP_ACCESS_RULE)
+    defined(BACAPP_ACCESS_RULE) || \
+    defined(BACAPP_CHANNEL_VALUE)
 #define BACAPP_COMPLEX_TYPES
 #endif
 /* clang-format on */

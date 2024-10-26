@@ -85,6 +85,7 @@ list(APPEND testdirs
   bacnet/bacreal
   bacnet/bacstr
   bacnet/bactimevalue
+  bacnet/channel_value
   bacnet/cov
   bacnet/create_object
   bacnet/datetime
@@ -112,11 +113,12 @@ list(APPEND testdirs
   bacnet/specialevent
   bacnet/timestamp
   bacnet/timesync
+  bacnet/weeklyschedule
   bacnet/whohas
   bacnet/whois
   bacnet/wp
   bacnet/wpm
-  bacnet/weeklyschedule
+  bacnet/write_group
   )
 
 # bacnet/basic/*
