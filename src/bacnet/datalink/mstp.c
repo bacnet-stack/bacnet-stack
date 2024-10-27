@@ -1389,7 +1389,12 @@ static void MSTP_Zero_Config_State_Init(struct mstp_port_struct_t *mstp_port)
         return;
     }
     mstp_port->Poll_Count = 0;
-    mstp_port->Zero_Config_Station = Nmin_poll_station;
+    /* initialize the zero config station address */
+    if ((mstp_port->Zero_Config_Preferred_Station < Nmin_poll_station) ||
+        (mstp_port->Zero_Config_Preferred_Station > Nmax_poll_station)) {
+        mstp_port->Zero_Config_Preferred_Station = Nmin_poll_station;
+    }
+    mstp_port->Zero_Config_Station = mstp_port->Zero_Config_Preferred_Station;
     mstp_port->Npoll_slot = 1 + (mstp_port->UUID[0] % Nmax_poll_slot);
     /* basic silence timeout is the dropped token time plus
         one Tslot after the last master node. Add one Tslot of
