@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 
@@ -77,8 +60,9 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
            (char *)&Object_Instance_Number,
            sizeof(Object_Instance_Number),
            EEPROM_BACNET_ID_ADDR); */
-    } else
+    } else {
         status = false;
+    }
 
     return status;
 }
@@ -86,7 +70,8 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
 bool Device_Valid_Object_Instance_Number(uint32_t object_id)
 {
     /* BACnet allows for a wildcard instance number */
-    return ((Object_Instance_Number == object_id) ||
+    return (
+        (Object_Instance_Number == object_id) ||
         (object_id == BACNET_MAX_INSTANCE));
 }
 
@@ -153,7 +138,8 @@ bool Device_Object_List_Identifier(
 }
 
 /* return the length of the apdu encoded or -1 for error */
-int Device_Encode_Property_APDU(uint8_t *apdu,
+int Device_Encode_Property_APDU(
+    uint8_t *apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     uint32_t array_index,
@@ -224,7 +210,8 @@ int Device_Encode_Property_APDU(uint8_t *apdu,
             bitstring_init(&bit_string);
             for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
                 /* automatic lookup based on handlers set */
-                bitstring_set_bit(&bit_string, (uint8_t)i,
+                bitstring_set_bit(
+                    &bit_string, (uint8_t)i,
                     apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
             }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
@@ -247,8 +234,9 @@ int Device_Encode_Property_APDU(uint8_t *apdu,
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
             /* Array element zero is the number of objects in the list */
-            if (array_index == 0)
+            if (array_index == 0) {
                 apdu_len = encode_application_unsigned(&apdu[0], count);
+            }
             /* if no index was specified, then try to encode the entire list */
             /* into one packet.  Note that more than likely you will have */
             /* to return an error if the number of encoded objects exceeds */
@@ -271,10 +259,10 @@ int Device_Encode_Property_APDU(uint8_t *apdu,
                 }
             } else {
                 if (Device_Object_List_Identifier(
-                        array_index, &object_type, &instance))
+                        array_index, &object_type, &instance)) {
                     apdu_len = encode_application_object_id(
                         &apdu[0], object_type, instance);
-                else {
+                } else {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                     apdu_len = BACNET_STATUS_ERROR;
@@ -338,13 +326,14 @@ int Device_Encode_Property_APDU(uint8_t *apdu,
     return apdu_len;
 }
 
-bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data,
+bool Device_Write_Property(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (!Device_Valid_Object_Instance_Number(wp_data->object_instance)) {
         *error_class = ERROR_CLASS_OBJECT;
@@ -416,8 +405,8 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data,
                 encoding =
                     characterstring_encoding(&value.type.Character_String);
                 if (encoding == CHARACTER_ANSI_X34) {
-                    if (characterstring_ansi_copy(&Object_Name[0],
-                            sizeof(Object_Name),
+                    if (characterstring_ansi_copy(
+                            &Object_Name[0], sizeof(Object_Name),
                             &value.type.Character_String)) {
                         status = true;
                     } else {

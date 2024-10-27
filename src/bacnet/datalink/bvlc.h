@@ -1,28 +1,14 @@
-/**************************************************************************
- *
- * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *********************************************************************/
-#ifndef BVLC_H
-#define BVLC_H
+/**
+ * @file
+ * @brief BACnet/IP virtual link control module encode and decode
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLBIP BACnet/IP DataLink Network Layer
+ * @ingroup DataLink
+ */
+#ifndef BACNET_BVLC_H
+#define BACNET_BVLC_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -163,366 +149,394 @@ typedef struct BACnet_IP_Foreign_Device_Table_Entry {
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
-    int bvlc_encode_address(
-        uint8_t *pdu, uint16_t pdu_size, const BACNET_IP_ADDRESS *ip_address);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_address(
-        uint8_t *pdu, uint16_t pdu_len, BACNET_IP_ADDRESS *ip_address);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_address_copy(BACNET_IP_ADDRESS *dst, const BACNET_IP_ADDRESS *src);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_address_different(
-        const BACNET_IP_ADDRESS *dst, const BACNET_IP_ADDRESS *src);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *dst, const char *addrstr);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_address_port_from_ascii(
-        BACNET_IP_ADDRESS *dst, const char *addrstr, const char *portstr);
-
-    BACNET_STACK_EXPORT
-    void bvlc_address_from_network(BACNET_IP_ADDRESS *dst, uint32_t addr);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_address_set(BACNET_IP_ADDRESS *addr,
-        uint8_t addr0,
-        uint8_t addr1,
-        uint8_t addr2,
-        uint8_t addr3);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_address_get(BACNET_IP_ADDRESS *addr,
-        uint8_t *addr0,
-        uint8_t *addr1,
-        uint8_t *addr2,
-        uint8_t *addr3);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_ip_address_to_bacnet_local(
-        BACNET_ADDRESS *addr, BACNET_IP_ADDRESS *ipaddr);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_ip_address_from_bacnet_local(
-        BACNET_IP_ADDRESS *ipaddr, BACNET_ADDRESS *addr);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_ip_address_to_bacnet_remote(
-        BACNET_ADDRESS *addr, uint16_t dnet, BACNET_IP_ADDRESS *ipaddr);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_ip_address_from_bacnet_remote(
-        BACNET_IP_ADDRESS *ipaddr, uint16_t *dnet, BACNET_ADDRESS *addr);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_broadcast_distribution_mask(uint8_t *pdu,
-        uint16_t pdu_size,
-        BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_broadcast_distribution_mask(uint8_t *pdu,
-        uint16_t pdu_len,
-        BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_broadcast_distribution_table_entry(uint8_t *pdu,
-        uint16_t pdu_size,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_broadcast_distribution_table_entry(uint8_t *pdu,
-        uint16_t pdu_len,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
-
-    BACNET_STACK_EXPORT
-    void bvlc_broadcast_distribution_table_link_array(
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list,
-        const size_t bdt_array_size);
-
-    BACNET_STACK_EXPORT
-    uint16_t bvlc_broadcast_distribution_table_count(
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
-
-    BACNET_STACK_EXPORT
-    uint16_t bvlc_broadcast_distribution_table_valid_count(
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
-
-    BACNET_STACK_EXPORT
-    void bvlc_broadcast_distribution_table_valid_clear(
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_broadcast_distribution_table_entry_different(
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *dst,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *src);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_broadcast_distribution_table_entry_copy(
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *dst,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *src);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_broadcast_distribution_mask_different(
-        BACNET_IP_BROADCAST_DISTRIBUTION_MASK *dst,
-        BACNET_IP_BROADCAST_DISTRIBUTION_MASK *src);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_broadcast_distribution_mask_copy(
-        BACNET_IP_BROADCAST_DISTRIBUTION_MASK *dst,
-        BACNET_IP_BROADCAST_DISTRIBUTION_MASK *src);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_broadcast_distribution_table_entry_append(
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_broadcast_distribution_table_entry_set(
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry,
-        BACNET_IP_ADDRESS *addr,
-        BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_broadcast_distribution_table_entry_forward_address(
-        BACNET_IP_ADDRESS *addr,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_address_mask(
-        BACNET_IP_ADDRESS *dst, const BACNET_IP_ADDRESS *src,
-        const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_broadcast_distribution_mask_from_host(
-        BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask, uint32_t broadcast_mask);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_broadcast_distribution_mask_to_host(
-        uint32_t *broadcast_mask, BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask);
-
-    BACNET_STACK_EXPORT
-    void bvlc_broadcast_distribution_mask_set(
-        BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask,
-        uint8_t addr0,
-        uint8_t addr1,
-        uint8_t addr2,
-        uint8_t addr3);
-
-    BACNET_STACK_EXPORT
-    void bvlc_broadcast_distribution_mask_get(
-        BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask,
-        uint8_t *addr0,
-        uint8_t *addr1,
-        uint8_t *addr2,
-        uint8_t *addr3);
-
-    BACNET_STACK_EXPORT
-    int bvlc_broadcast_distribution_table_decode(uint8_t *apdu,
-        uint16_t apdu_len,
-        BACNET_ERROR_CODE *error_code,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
-
-    BACNET_STACK_EXPORT
-    int bvlc_broadcast_distribution_table_encode(uint8_t *apdu,
-        uint16_t apdu_size,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_write_broadcast_distribution_table(uint8_t *pdu,
-        uint16_t pdu_size,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_write_broadcast_distribution_table(uint8_t *pdu,
-        uint16_t pdu_len,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_read_broadcast_distribution_table(
-        uint8_t *pdu, uint16_t pdu_size);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_read_broadcast_distribution_table_ack(uint8_t *pdu,
-        uint16_t pdu_size,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_read_broadcast_distribution_table_ack(uint8_t *pdu,
-        uint16_t pdu_len,
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_header(
-        uint8_t *pdu, uint16_t pdu_size, uint8_t message_type, uint16_t length);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_header(
-        uint8_t *pdu, uint16_t pdu_len, uint8_t *message_type, uint16_t *length);
-
-
-    BACNET_STACK_EXPORT
-    void bvlc_foreign_device_table_maintenance_timer(
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list, uint16_t seconds);
-
-    BACNET_STACK_EXPORT
-    uint16_t bvlc_foreign_device_table_valid_count(
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list);
-
-    BACNET_STACK_EXPORT
-    uint16_t bvlc_foreign_device_table_count(
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list);
-
-    BACNET_STACK_EXPORT
-    void bvlc_foreign_device_table_link_array(
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list, const size_t array_size);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_foreign_device_table_entry_different(
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *dst,
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *src);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_foreign_device_table_entry_copy(
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *dst,
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *src);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_foreign_device_table_entry_delete(
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
-        BACNET_IP_ADDRESS *ip_address);
-
-    BACNET_STACK_EXPORT
-    bool bvlc_foreign_device_table_entry_add(
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
-        BACNET_IP_ADDRESS *ip_address,
-        uint16_t ttl_seconds);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_foreign_device_table_entry(uint8_t *pdu,
-        uint16_t pdu_size,
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_foreign_device_table_entry(uint8_t *pdu,
-        uint16_t pdu_len,
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
-
-    BACNET_STACK_EXPORT
-    int bvlc_foreign_device_table_encode(uint8_t *apdu,
-        uint16_t apdu_size,
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_read_foreign_device_table(uint8_t *pdu, uint16_t pdu_size);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_read_foreign_device_table_ack(uint8_t *pdu,
-        uint16_t pdu_size,
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_read_foreign_device_table_ack(uint8_t *pdu,
-        uint16_t pdu_len,
-        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_result(uint8_t *pdu, uint16_t pdu_size, uint16_t result_code);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_result(uint8_t *pdu, uint16_t pdu_len, uint16_t *result_code);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_original_unicast(
-        uint8_t *pdu, uint16_t pdu_size, uint8_t *npdu, uint16_t npdu_len);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_original_unicast(uint8_t *pdu,
-        uint16_t pdu_len,
-        uint8_t *npdu,
-        uint16_t npdu_size,
-        uint16_t *npdu_len);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_original_broadcast(
-        uint8_t *pdu, uint16_t pdu_size, uint8_t *npdu, uint16_t npdu_len);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_original_broadcast(uint8_t *pdu,
-        uint16_t pdu_len,
-        uint8_t *npdu,
-        uint16_t npdu_size,
-        uint16_t *npdu_len);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_forwarded_npdu(uint8_t *pdu,
-        uint16_t pdu_size,
-        BACNET_IP_ADDRESS *address,
-        uint8_t *npdu,
-        uint16_t npdu_len);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_forwarded_npdu(uint8_t *pdu,
-        uint16_t pdu_len,
-        BACNET_IP_ADDRESS *address,
-        uint8_t *npdu,
-        uint16_t npdu_size,
-        uint16_t *npdu_len);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_register_foreign_device(
-        uint8_t *pdu, uint16_t pdu_size, uint16_t ttl_seconds);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_register_foreign_device(
-        uint8_t *pdu, uint16_t pdu_len, uint16_t *ttl_seconds);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_delete_foreign_device(
-        uint8_t *pdu, uint16_t pdu_size, BACNET_IP_ADDRESS *ip_address);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_delete_foreign_device(
-        uint8_t *pdu, uint16_t pdu_len, BACNET_IP_ADDRESS *ip_address);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_secure_bvll(
-        uint8_t *pdu, uint16_t pdu_size, uint8_t *sbuf, uint16_t sbuf_len);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_secure_bvll(uint8_t *pdu,
-        uint16_t pdu_len,
-        uint8_t *sbuf,
-        uint16_t sbuf_size,
-        uint16_t *sbuf_len);
-
-    BACNET_STACK_EXPORT
-    int bvlc_encode_distribute_broadcast_to_network(
-        uint8_t *pdu, uint16_t pdu_size, uint8_t *npdu, uint16_t npdu_len);
-
-    BACNET_STACK_EXPORT
-    int bvlc_decode_distribute_broadcast_to_network(uint8_t *pdu,
-        uint16_t pdu_len,
-        uint8_t *npdu,
-        uint16_t npdu_size,
-        uint16_t *npdu_len);
-
-    BACNET_STACK_EXPORT
-    const char *bvlc_result_code_name(uint16_t result_code);
-
-    BACNET_STACK_EXPORT
-    int bvlc_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
-        uint16_t apdu_size,
-        BACNET_IP_ADDRESS *ip_address);
-
-    BACNET_STACK_EXPORT
-    int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
-        uint16_t apdu_len,
-        BACNET_ERROR_CODE *error_code,
-        BACNET_IP_ADDRESS *ip_address);
+BACNET_STACK_EXPORT
+int bvlc_encode_address(
+    uint8_t *pdu, uint16_t pdu_size, const BACNET_IP_ADDRESS *ip_address);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_address(
+    const uint8_t *pdu, uint16_t pdu_len, BACNET_IP_ADDRESS *ip_address);
+
+BACNET_STACK_EXPORT
+bool bvlc_address_copy(BACNET_IP_ADDRESS *dst, const BACNET_IP_ADDRESS *src);
+
+BACNET_STACK_EXPORT
+bool bvlc_address_different(
+    const BACNET_IP_ADDRESS *dst, const BACNET_IP_ADDRESS *src);
+
+BACNET_STACK_EXPORT
+bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *dst, const char *addrstr);
+
+BACNET_STACK_EXPORT
+bool bvlc_address_port_from_ascii(
+    BACNET_IP_ADDRESS *dst, const char *addrstr, const char *portstr);
+
+BACNET_STACK_EXPORT
+void bvlc_address_from_network(BACNET_IP_ADDRESS *dst, uint32_t addr);
+
+BACNET_STACK_EXPORT
+bool bvlc_address_set(
+    BACNET_IP_ADDRESS *addr,
+    uint8_t addr0,
+    uint8_t addr1,
+    uint8_t addr2,
+    uint8_t addr3);
+
+BACNET_STACK_EXPORT
+bool bvlc_address_get(
+    const BACNET_IP_ADDRESS *addr,
+    uint8_t *addr0,
+    uint8_t *addr1,
+    uint8_t *addr2,
+    uint8_t *addr3);
+
+BACNET_STACK_EXPORT
+bool bvlc_ip_address_to_bacnet_local(
+    BACNET_ADDRESS *addr, const BACNET_IP_ADDRESS *ipaddr);
+
+BACNET_STACK_EXPORT
+bool bvlc_ip_address_from_bacnet_local(
+    BACNET_IP_ADDRESS *ipaddr, const BACNET_ADDRESS *addr);
+
+BACNET_STACK_EXPORT
+bool bvlc_ip_address_to_bacnet_remote(
+    BACNET_ADDRESS *addr, uint16_t dnet, const BACNET_IP_ADDRESS *ipaddr);
+
+BACNET_STACK_EXPORT
+bool bvlc_ip_address_from_bacnet_remote(
+    BACNET_IP_ADDRESS *ipaddr, uint16_t *dnet, const BACNET_ADDRESS *addr);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_broadcast_distribution_mask(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_broadcast_distribution_mask(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_broadcast_distribution_table_entry(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_broadcast_distribution_table_entry(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
+
+BACNET_STACK_EXPORT
+void bvlc_broadcast_distribution_table_link_array(
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list,
+    const size_t bdt_array_size);
+
+BACNET_STACK_EXPORT
+uint16_t bvlc_broadcast_distribution_table_count(
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
+
+BACNET_STACK_EXPORT
+uint16_t bvlc_broadcast_distribution_table_valid_count(
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
+
+BACNET_STACK_EXPORT
+void bvlc_broadcast_distribution_table_valid_clear(
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
+
+BACNET_STACK_EXPORT
+bool bvlc_broadcast_distribution_table_entry_different(
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *dst,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *src);
+
+BACNET_STACK_EXPORT
+bool bvlc_broadcast_distribution_table_entry_copy(
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *dst,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *src);
+
+BACNET_STACK_EXPORT
+bool bvlc_broadcast_distribution_mask_different(
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *dst,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *src);
+
+BACNET_STACK_EXPORT
+bool bvlc_broadcast_distribution_mask_copy(
+    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *dst,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *src);
+
+BACNET_STACK_EXPORT
+bool bvlc_broadcast_distribution_table_entry_append(
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
+
+BACNET_STACK_EXPORT
+bool bvlc_broadcast_distribution_table_entry_set(
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry,
+    const BACNET_IP_ADDRESS *addr,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask);
+
+BACNET_STACK_EXPORT
+bool bvlc_broadcast_distribution_table_entry_forward_address(
+    BACNET_IP_ADDRESS *addr,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
+
+BACNET_STACK_EXPORT
+bool bvlc_address_mask(
+    BACNET_IP_ADDRESS *dst,
+    const BACNET_IP_ADDRESS *src,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask);
+
+BACNET_STACK_EXPORT
+bool bvlc_broadcast_distribution_mask_from_host(
+    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask, uint32_t broadcast_mask);
+
+BACNET_STACK_EXPORT
+bool bvlc_broadcast_distribution_mask_to_host(
+    uint32_t *broadcast_mask,
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask);
+
+BACNET_STACK_EXPORT
+void bvlc_broadcast_distribution_mask_set(
+    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask,
+    uint8_t addr0,
+    uint8_t addr1,
+    uint8_t addr2,
+    uint8_t addr3);
+
+BACNET_STACK_EXPORT
+void bvlc_broadcast_distribution_mask_get(
+    const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask,
+    uint8_t *addr0,
+    uint8_t *addr1,
+    uint8_t *addr2,
+    uint8_t *addr3);
+
+BACNET_STACK_EXPORT
+int bvlc_broadcast_distribution_table_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_len,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+
+BACNET_STACK_EXPORT
+int bvlc_broadcast_distribution_table_encode(
+    uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_write_broadcast_distribution_table(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_write_broadcast_distribution_table(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_read_broadcast_distribution_table(
+    uint8_t *pdu, uint16_t pdu_size);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_read_broadcast_distribution_table_ack(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_read_broadcast_distribution_table_ack(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_header(
+    uint8_t *pdu, uint16_t pdu_size, uint8_t message_type, uint16_t length);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_header(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    uint8_t *message_type,
+    uint16_t *length);
+
+BACNET_STACK_EXPORT
+void bvlc_foreign_device_table_maintenance_timer(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list, uint16_t seconds);
+
+BACNET_STACK_EXPORT
+uint16_t bvlc_foreign_device_table_valid_count(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list);
+
+BACNET_STACK_EXPORT
+uint16_t
+bvlc_foreign_device_table_count(BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list);
+
+BACNET_STACK_EXPORT
+void bvlc_foreign_device_table_link_array(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list, const size_t array_size);
+
+BACNET_STACK_EXPORT
+bool bvlc_foreign_device_table_entry_different(
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *dst,
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *src);
+
+BACNET_STACK_EXPORT
+bool bvlc_foreign_device_table_entry_copy(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *dst,
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *src);
+
+BACNET_STACK_EXPORT
+bool bvlc_foreign_device_table_entry_delete(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
+    const BACNET_IP_ADDRESS *ip_address);
+
+BACNET_STACK_EXPORT
+bool bvlc_foreign_device_table_entry_add(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
+    const BACNET_IP_ADDRESS *ip_address,
+    uint16_t ttl_seconds);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_foreign_device_table_entry(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_foreign_device_table_entry(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
+
+BACNET_STACK_EXPORT
+int bvlc_foreign_device_table_encode(
+    uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_read_foreign_device_table(uint8_t *pdu, uint16_t pdu_size);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_read_foreign_device_table_ack(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_read_foreign_device_table_ack(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_result(uint8_t *pdu, uint16_t pdu_size, uint16_t result_code);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_result(
+    const uint8_t *pdu, uint16_t pdu_len, uint16_t *result_code);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_original_unicast(
+    uint8_t *pdu, uint16_t pdu_size, const uint8_t *npdu, uint16_t npdu_len);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_original_unicast(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    uint8_t *npdu,
+    uint16_t npdu_size,
+    uint16_t *npdu_len);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_original_broadcast(
+    uint8_t *pdu, uint16_t pdu_size, const uint8_t *npdu, uint16_t npdu_len);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_original_broadcast(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    uint8_t *npdu,
+    uint16_t npdu_size,
+    uint16_t *npdu_len);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_forwarded_npdu(
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    const BACNET_IP_ADDRESS *address,
+    const uint8_t *npdu,
+    uint16_t npdu_len);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_forwarded_npdu(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    BACNET_IP_ADDRESS *address,
+    uint8_t *npdu,
+    uint16_t npdu_size,
+    uint16_t *npdu_len);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_register_foreign_device(
+    uint8_t *pdu, uint16_t pdu_size, uint16_t ttl_seconds);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_register_foreign_device(
+    const uint8_t *pdu, uint16_t pdu_len, uint16_t *ttl_seconds);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_delete_foreign_device(
+    uint8_t *pdu, uint16_t pdu_size, const BACNET_IP_ADDRESS *ip_address);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_delete_foreign_device(
+    const uint8_t *pdu, uint16_t pdu_len, BACNET_IP_ADDRESS *ip_address);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_secure_bvll(
+    uint8_t *pdu, uint16_t pdu_size, const uint8_t *sbuf, uint16_t sbuf_len);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_secure_bvll(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    uint8_t *sbuf,
+    uint16_t sbuf_size,
+    uint16_t *sbuf_len);
+
+BACNET_STACK_EXPORT
+int bvlc_encode_distribute_broadcast_to_network(
+    uint8_t *pdu, uint16_t pdu_size, const uint8_t *npdu, uint16_t npdu_len);
+
+BACNET_STACK_EXPORT
+int bvlc_decode_distribute_broadcast_to_network(
+    const uint8_t *pdu,
+    uint16_t pdu_len,
+    uint8_t *npdu,
+    uint16_t npdu_size,
+    uint16_t *npdu_len);
+
+BACNET_STACK_EXPORT
+const char *bvlc_result_code_name(uint16_t result_code);
+
+BACNET_STACK_EXPORT
+int bvlc_foreign_device_bbmd_host_address_encode(
+    uint8_t *apdu, uint16_t apdu_size, const BACNET_IP_ADDRESS *ip_address);
+
+BACNET_STACK_EXPORT
+int bvlc_foreign_device_bbmd_host_address_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_len,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_IP_ADDRESS *ip_address);
 
 #ifdef __cplusplus
 }

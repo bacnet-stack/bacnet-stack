@@ -29,8 +29,8 @@ ZTEST(BACnet_Secure_Connect_Tests, test_BACnet_Secure_Connect)
 static void test_BACnet_Secure_Connect(void)
 #endif
 {
-    int apdu_len = 0, test_len = 0, null_len = 0, len = 0, diff = 0;
-    uint8_t apdu[MAX_APDU] = {0};
+    int apdu_len = 0, test_len = 0, null_len = 0, diff = 0;
+    uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_SC_HUB_CONNECTION_STATUS data = { 0 }, test_data;
 
     data.State = BACNET_SC_CONNECTION_STATE_CONNECTED;
@@ -46,9 +46,11 @@ static void test_BACnet_Secure_Connect(void)
     test_len = bacapp_decode_SCHubConnection(apdu, apdu_len, &test_data);
     zassert_true(test_len == apdu_len, NULL);
     zassert_true(test_data.State == data.State, NULL);
-    diff = datetime_compare(&test_data.Connect_Timestamp, &data.Connect_Timestamp);
+    diff =
+        datetime_compare(&test_data.Connect_Timestamp, &data.Connect_Timestamp);
     zassert_equal(diff, 0, NULL);
-    diff = datetime_compare(&test_data.Disconnect_Timestamp, &data.Disconnect_Timestamp);
+    diff = datetime_compare(
+        &test_data.Disconnect_Timestamp, &data.Disconnect_Timestamp);
     zassert_equal(diff, 0, NULL);
     zassert_true(test_data.Error == data.Error, NULL);
     diff = strcmp(test_data.Error_Details, data.Error_Details);
@@ -64,7 +66,8 @@ ZTEST_SUITE(BACnet_Secure_Connect_Tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(BACnet_Secure_Connect_Tests,
+    ztest_test_suite(
+        BACnet_Secure_Connect_Tests,
         ztest_unit_test(test_BACnet_Secure_Connect));
 
     ztest_run_test_suite(BACnet_Secure_Connect_Tests);

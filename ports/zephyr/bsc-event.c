@@ -90,7 +90,7 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
 
     while (!ev->v) {
         if (k_condvar_wait(&ev->cond, &ev->mutex, Z_TIMEOUT_MS(ms_timeout)) ==
-             -EAGAIN) {
+            -EAGAIN) {
             timedout = true;
             break;
         }

@@ -1,6 +1,0 @@
-tests:
-  bacnet.ihave:
-    tags: bacnet
-  bacnet.ihave.unit:
-    tags: bacnet
-    type: unit

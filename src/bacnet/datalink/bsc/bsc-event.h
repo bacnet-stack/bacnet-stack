@@ -31,7 +31,7 @@ typedef struct BSC_Event BSC_EVENT;
  *            unblocked by the call of bsc_event_signal().
  *         2. If user has called bsc_event_wait() or bsc_event_timedwait()
  *            from thread N after the call of bsc_event_signal() but
- *            when the state of the corresponed event object is still
+ *            when the state of the corresponded event object is still
  *            signalled, it is not guaranteed that thread N will be
  *            unblocked. Thread N may be stay blocked or may unblock
  *            depending on multitasking context of the OS.
@@ -40,7 +40,7 @@ typedef struct BSC_Event BSC_EVENT;
  *         returns NULL.
  */
 
-BSC_EVENT* bsc_event_init(void);
+BSC_EVENT *bsc_event_init(void);
 
 /**
  * @brief  bsc_event_deinit() deinitialize auto-reset
@@ -104,4 +104,3 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout);
 void bsc_event_signal(BSC_EVENT *ev);
 
 #endif
-

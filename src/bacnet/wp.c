@@ -1,36 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet WriteProperty service encoder and decoder
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
@@ -62,8 +36,8 @@
  * @param data  Pointer to the service data used for encoding values
  * @return number of bytes encoded, or zero if unable to encode
  */
-size_t writeproperty_apdu_encode(
-    uint8_t *apdu, BACNET_WRITE_PROPERTY_DATA *data)
+size_t
+writeproperty_apdu_encode(uint8_t *apdu, const BACNET_WRITE_PROPERTY_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
     size_t len = 0; /* total length of the apdu, return value */
@@ -126,7 +100,7 @@ size_t writeproperty_apdu_encode(
  * @return number of bytes encoded, or zero if unable to encode or too large
  */
 size_t writeproperty_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_WRITE_PROPERTY_DATA *data)
+    uint8_t *apdu, size_t apdu_size, const BACNET_WRITE_PROPERTY_DATA *data)
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
@@ -162,7 +136,7 @@ size_t writeproperty_service_request_encode(
  * @return Bytes encoded
  */
 int wp_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA *wpdata)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0; /* total length of the apdu, return value */
@@ -210,7 +184,7 @@ int wp_encode_apdu(
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR
  */
 int wp_decode_service_request(
-    uint8_t *apdu, unsigned apdu_size, BACNET_WRITE_PROPERTY_DATA *wpdata)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int len = 0;
     int apdu_len = 0;
@@ -271,8 +245,7 @@ int wp_decode_service_request(
         return BACNET_STATUS_ERROR;
     }
     /* determine the length of the data blob */
-    imax = bacapp_data_len(
-        &apdu[apdu_len], apdu_size - apdu_len, (BACNET_PROPERTY_ID)property);
+    imax = bacnet_enclosed_data_length(&apdu[apdu_len], apdu_size - apdu_len);
     if (imax == BACNET_STATUS_ERROR) {
         return BACNET_STATUS_ERROR;
     }
@@ -330,8 +303,9 @@ int wp_decode_service_request(
  * @param expected_tag - the tag that is expected for this property value
  * @return true if the expected tag matches the value tag
  */
-bool write_property_type_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+bool write_property_type_valid(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     uint8_t expected_tag)
 {
     /* assume success */
@@ -356,8 +330,9 @@ bool write_property_type_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
  * @param len_max - max length accepted for a character string, or 0=unchecked
  * @return true if the character string value is valid
  */
-bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+bool write_property_string_valid(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     size_t len_max)
 {
     bool valid = false;
@@ -377,9 +352,10 @@ bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else if ((len_max > 0) &&
+            } else if (
+                (len_max > 0) &&
                 (characterstring_length(&value->type.Character_String) >
-                    len_max)) {
+                 len_max)) {
                 if (wp_data) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
@@ -413,8 +389,9 @@ bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
  * @param len_max - max length accepted for a character string, or 0=unchecked
  * @return true if the character string value is valid
  */
-bool write_property_empty_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+bool write_property_empty_string_valid(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     size_t len_max)
 {
     bool valid = false;
@@ -424,7 +401,7 @@ bool write_property_empty_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
             CHARACTER_ANSI_X34) {
             if ((len_max > 0) &&
                 (characterstring_length(&value->type.Character_String) >
-                    len_max)) {
+                 len_max)) {
                 if (wp_data) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
@@ -449,7 +426,8 @@ bool write_property_empty_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
     return (valid);
 }
 
-void write_property_unsigned_decode(BACNET_WRITE_PROPERTY_DATA *wp_data,
+void write_property_unsigned_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
     BACNET_APPLICATION_DATA_VALUE *value,
     bacnet_property_unsigned_setter setter,
     BACNET_UNSIGNED_INTEGER maximum)

@@ -3,24 +3,7 @@
  * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
  * Updated by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 #include <stdbool.h>
@@ -53,29 +36,17 @@ uint16_t MSTP_Packets = 0;
 /* packet queues */
 static DLMSTP_PACKET Receive_Packet;
 /* mechanism to wait for a packet */
-/*
-static RT_COND Receive_Packet_Flag;
-static RT_MUTEX Receive_Packet_Mutex;
-*/
 static pthread_cond_t Receive_Packet_Flag;
 static pthread_mutex_t Receive_Packet_Mutex;
-/* mechanism to wait for a frame in state machine */
-/*
-static RT_COND Received_Frame_Flag;
-static RT_MUTEX Received_Frame_Mutex;
-*/
-
 static pthread_cond_t Received_Frame_Flag;
 static pthread_mutex_t Received_Frame_Mutex;
 static pthread_cond_t Master_Done_Flag;
 static pthread_mutex_t Master_Done_Mutex;
 static pthread_mutex_t Ring_Buffer_Mutex;
 static pthread_mutex_t Thread_Mutex;
-
 static pthread_t hThread;
 static bool run_thread;
 
-/*RT_TASK Receive_Task, Fsm_Task;*/
 /* local MS/TP port data - shared with RS-485 */
 static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
@@ -147,7 +118,7 @@ static int timespec_subtract(
  *
  * @param ts - The time to which to add to.
  * @param ns - The number of nanoseconds to add.  Allowed range
- *		is -NS_PER_S..NS_PER_S (i.e., plus minus one second).
+ *      is -NS_PER_S..NS_PER_S (i.e., plus minus one second).
  */
 static void timespec_add_ns(struct timespec *ts, long ns)
 {
@@ -184,7 +155,8 @@ static void get_abstime(struct timespec *abstime, unsigned long milliseconds)
 {
     clock_gettime(CLOCK_MONOTONIC, abstime);
     if (milliseconds > 1000) {
-        fprintf(stderr, "DLMSTP: limited timeout of %lums to 1000ms\n",
+        fprintf(
+            stderr, "DLMSTP: limited timeout of %lums to 1000ms\n",
             milliseconds);
         milliseconds = 1000;
     }
@@ -207,7 +179,8 @@ void dlmstp_cleanup(void)
 }
 
 /* returns number of bytes sent on success, zero on failure */
-int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+int dlmstp_send_pdu(
+    BACNET_ADDRESS *dest, /* destination address */
     BACNET_NPDU_DATA *npdu_data, /* network information */
     uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len)
@@ -238,7 +211,8 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     return bytes_sent;
 }
 
-uint16_t dlmstp_receive(BACNET_ADDRESS *src, /* source address */
+uint16_t dlmstp_receive(
+    BACNET_ADDRESS *src, /* source address */
     uint8_t *pdu, /* PDU data */
     uint16_t max_pdu, /* amount of space available in the PDU  */
     unsigned timeout)
@@ -257,7 +231,8 @@ uint16_t dlmstp_receive(BACNET_ADDRESS *src, /* source address */
         if (Receive_Packet.pdu_len) {
             MSTP_Packets++;
             if (src) {
-                memmove(src, &Receive_Packet.address,
+                memmove(
+                    src, &Receive_Packet.address,
                     sizeof(Receive_Packet.address));
             }
             if (pdu) {
@@ -292,16 +267,19 @@ static void *dlmstp_master_fsm_task(void *pArg)
             silence = MSTP_Port.SilenceTimer(&MSTP_Port);
             switch (MSTP_Port.master_state) {
                 case MSTP_MASTER_STATE_IDLE:
-                    if (silence >= Tno_token)
+                    if (silence >= Tno_token) {
                         run_master = true;
+                    }
                     break;
                 case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-                    if (silence >= Treply_timeout)
+                    if (silence >= Treply_timeout) {
                         run_master = true;
+                    }
                     break;
                 case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-                    if (silence >= Tusage_timeout)
+                    if (silence >= Tusage_timeout) {
                         run_master = true;
+                    }
                     break;
                 default:
                     run_master = true;
@@ -315,8 +293,9 @@ static void *dlmstp_master_fsm_task(void *pArg)
                     /* do nothing while immediate transitioning */
                     run_loop = MSTP_Master_Node_FSM(&MSTP_Port);
                     pthread_mutex_lock(&Thread_Mutex);
-                    if (!run_thread)
+                    if (!run_thread) {
                         run_loop = false;
+                    }
                     pthread_mutex_unlock(&Thread_Mutex);
                 }
             } else if (MSTP_Port.This_Station < 255) {
@@ -371,8 +350,9 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
         if (pdu_len == 0) {
             debug_printf("MS/TP: PDU Length is 0!\n");
         }
-        memmove((void *)&Receive_Packet.pdu[0],
-            (void *)&mstp_port->InputBuffer[0], pdu_len);
+        memmove(
+            (void *)&Receive_Packet.pdu[0], (void *)&mstp_port->InputBuffer[0],
+            pdu_len);
         dlmstp_fill_bacnet_address(
             &Receive_Packet.address, mstp_port->SourceAddress);
         Receive_Packet.pdu_len = mstp_port->DataLength;
@@ -405,10 +385,10 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
     }
     /* convert the PDU into the MSTP Frame */
-    pdu_len =
-        MSTP_Create_Frame(&mstp_port->OutputBuffer[0], /* <-- loading this */
-            mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
-            mstp_port->This_Station, (uint8_t *)&pkt->buffer[0], pkt->length);
+    pdu_len = MSTP_Create_Frame(
+        &mstp_port->OutputBuffer[0], /* <-- loading this */
+        mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
+        mstp_port->This_Station, (uint8_t *)&pkt->buffer[0], pkt->length);
     (void)Ringbuf_Pop(&PDU_Queue, NULL);
     pthread_mutex_unlock(&Ring_Buffer_Mutex);
 
@@ -423,16 +403,17 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
  */
 void MSTP_Send_Frame(
     struct mstp_port_struct_t *mstp_port,
-    uint8_t * buffer,
+    const uint8_t *buffer,
     uint16_t nbytes)
 {
     RS485_Send_Frame(mstp_port, buffer, nbytes);
 }
 
-static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
+static bool dlmstp_compare_data_expecting_reply(
+    const uint8_t *request_pdu,
     uint16_t request_pdu_len,
     uint8_t src_address,
-    uint8_t *reply_pdu,
+    const uint8_t *reply_pdu,
     uint16_t reply_pdu_len,
     uint8_t dest_address)
 {
@@ -451,28 +432,24 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     struct DER_compare_t reply;
 
     /* unused parameters */
-    request_pdu_len = request_pdu_len;
-    reply_pdu_len = reply_pdu_len;
+    (void)request_pdu_len;
+    (void)reply_pdu_len;
+
     /* decode the request data */
     request.address.mac[0] = src_address;
     request.address.mac_len = 1;
-    offset = bacnet_npdu_decode(request_pdu, request_pdu_len, NULL,
-        &request.address, &request.npdu_data);
+    offset = bacnet_npdu_decode(
+        request_pdu, request_pdu_len, NULL, &request.address,
+        &request.npdu_data);
     if (request.npdu_data.network_layer_message) {
-#if PRINT_ENABLED
-        fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "Request is Network message.\n");
-#endif
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "Request is Network message.\n");
         return false;
     }
     request.pdu_type = request_pdu[offset] & 0xF0;
     if (request.pdu_type != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
-#if PRINT_ENABLED
-        fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "Not Confirmed Request.\n");
-#endif
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "Not Confirmed Request.\n");
         return false;
     }
     request.invoke_id = request_pdu[offset + 2];
@@ -488,11 +465,8 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     offset = bacnet_npdu_decode(
         reply_pdu, reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
-#if PRINT_ENABLED
-        fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "Reply is Network message.\n");
-#endif
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "Reply is Network message.\n");
         return false;
     }
     /* reply could be a lot of things:
@@ -527,57 +501,40 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t *request_pdu,
     if ((reply.pdu_type == PDU_TYPE_REJECT) ||
         (reply.pdu_type == PDU_TYPE_ABORT)) {
         if (request.invoke_id != reply.invoke_id) {
-#if PRINT_ENABLED
-            fprintf(stderr,
-                "DLMSTP: DER Compare failed: "
-                "Invoke ID mismatch.\n");
-#endif
+            debug_printf("DLMSTP: DER Compare failed: "
+                         "Invoke ID mismatch.\n");
             return false;
         }
     } else {
         if (request.invoke_id != reply.invoke_id) {
-#if PRINT_ENABLED
-            fprintf(stderr,
-                "DLMSTP: DER Compare failed: "
-                "Invoke ID mismatch.\n");
-#endif
+            debug_printf("DLMSTP: DER Compare failed: "
+                         "Invoke ID mismatch.\n");
             return false;
         }
         if (request.service_choice != reply.service_choice) {
-#if PRINT_ENABLED
-            fprintf(stderr,
-                "DLMSTP: DER Compare failed: "
-                "Service choice mismatch.\n");
-#endif
+            debug_printf("DLMSTP: DER Compare failed: "
+                         "Service choice mismatch.\n");
             return false;
         }
     }
     if (request.npdu_data.protocol_version !=
         reply.npdu_data.protocol_version) {
-#if PRINT_ENABLED
-        fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "NPDU Protocol Version mismatch.\n");
-#endif
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "NPDU Protocol Version mismatch.\n");
         return false;
     }
 #if 0
     /* the NDPU priority doesn't get passed through the stack, and
        all outgoing messages have NORMAL priority */
     if (request.npdu_data.priority != reply.npdu_data.priority) {
-#if PRINT_ENABLED
-        fprintf(stderr,
+        debug_printf(
             "DLMSTP: DER Compare failed: " "NPDU Priority mismatch.\n");
-#endif
         return false;
     }
 #endif
     if (!bacnet_address_same(&request.address, &reply.address)) {
-#if PRINT_ENABLED
-        fprintf(stderr,
-            "DLMSTP: DER Compare failed: "
-            "BACnet Address mismatch.\n");
-#endif
+        debug_printf("DLMSTP: DER Compare failed: "
+                     "BACnet Address mismatch.\n");
         return false;
     }
 
@@ -598,9 +555,10 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     }
     pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
     /* is this the reply to the DER? */
-    matched = dlmstp_compare_data_expecting_reply(&mstp_port->InputBuffer[0],
-        mstp_port->DataLength, mstp_port->SourceAddress,
-        (uint8_t *)&pkt->buffer[0], pkt->length, pkt->destination_mac);
+    matched = dlmstp_compare_data_expecting_reply(
+        &mstp_port->InputBuffer[0], mstp_port->DataLength,
+        mstp_port->SourceAddress, (uint8_t *)&pkt->buffer[0], pkt->length,
+        pkt->destination_mac);
     if (!matched) {
         return 0;
     }
@@ -610,10 +568,10 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
     }
     /* convert the PDU into the MSTP Frame */
-    pdu_len =
-        MSTP_Create_Frame(&mstp_port->OutputBuffer[0], /* <-- loading this */
-            mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
-            mstp_port->This_Station, (uint8_t *)&pkt->buffer[0], pkt->length);
+    pdu_len = MSTP_Create_Frame(
+        &mstp_port->OutputBuffer[0], /* <-- loading this */
+        mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
+        mstp_port->This_Station, (uint8_t *)&pkt->buffer[0], pkt->length);
     (void)Ringbuf_Pop(&PDU_Queue, NULL);
 
     return pdu_len;
@@ -624,13 +582,9 @@ void dlmstp_set_mac_address(uint8_t mac_address)
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
         MSTP_Port.This_Station = mac_address;
-        /* FIXME: implement your data storage */
-        /* I2C_Write_Byte(
-           EEPROM_DEVICE_ADDRESS,
-           mac_address,
-           EEPROM_MSTP_MAC_ADDR); */
-        if (mac_address > MSTP_Port.Nmax_master)
+        if (mac_address > MSTP_Port.Nmax_master) {
             dlmstp_set_max_master(mac_address);
+        }
     }
 
     return;
@@ -652,11 +606,6 @@ void dlmstp_set_max_info_frames(uint8_t max_info_frames)
 {
     if (max_info_frames >= 1) {
         MSTP_Port.Nmax_info_frames = max_info_frames;
-        /* FIXME: implement your data storage */
-        /* I2C_Write_Byte(
-           EEPROM_DEVICE_ADDRESS,
-           (uint8_t)max_info_frames,
-           EEPROM_MSTP_MAX_INFO_FRAMES_ADDR); */
     }
 
     return;
@@ -677,11 +626,6 @@ void dlmstp_set_max_master(uint8_t max_master)
     if (max_master <= 127) {
         if (MSTP_Port.This_Station <= max_master) {
             MSTP_Port.Nmax_master = max_master;
-            /* FIXME: implement your data storage */
-            /* I2C_Write_Byte(
-               EEPROM_DEVICE_ADDRESS,
-               max_master,
-               EEPROM_MSTP_MAX_MASTER_ADDR); */
         }
     }
 
@@ -743,7 +687,8 @@ bool dlmstp_init(char *ifname)
 
     pthread_condattr_init(&attr);
     if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {
-        fprintf(stderr, "MS/TP Interface: %s\n failed to set MONOTONIC clock\n",
+        fprintf(
+            stderr, "MS/TP Interface: %s\n failed to set MONOTONIC clock\n",
             ifname);
         exit(1);
     }
@@ -752,30 +697,31 @@ bool dlmstp_init(char *ifname)
     pthread_mutex_init(&Thread_Mutex, NULL);
 
     /* initialize PDU queue */
-    Ringbuf_Init(&PDU_Queue, (uint8_t *)&PDU_Buffer,
-        sizeof(struct mstp_pdu_packet), MSTP_PDU_PACKET_COUNT);
+    Ringbuf_Init(
+        &PDU_Queue, (uint8_t *)&PDU_Buffer, sizeof(struct mstp_pdu_packet),
+        MSTP_PDU_PACKET_COUNT);
     /* initialize packet queue */
     Receive_Packet.ready = false;
     Receive_Packet.pdu_len = 0;
     rv = pthread_cond_init(&Receive_Packet_Flag, &attr);
     if (rv != 0) {
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "MS/TP Interface: %s\n cannot allocate PThread Condition.\n",
             ifname);
         exit(1);
     }
     rv = pthread_mutex_init(&Receive_Packet_Mutex, NULL);
     if (rv != 0) {
-        fprintf(stderr,
-            "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n", ifname);
+        fprintf(
+            stderr, "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n",
+            ifname);
         exit(1);
     }
     /* initialize hardware */
     if (ifname) {
         RS485_Set_Interface(ifname);
-#if PRINT_ENABLED
-        fprintf(stderr, "MS/TP Interface: %s\n", ifname);
-#endif
+        debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
     }
     RS485_Initialize();
     MSTP_Port.InputBuffer = &RxBuffer[0];
@@ -786,17 +732,12 @@ bool dlmstp_init(char *ifname)
     MSTP_Port.SilenceTimer = Timer_Silence;
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(&MSTP_Port);
-#if PRINT_ENABLED
-    fprintf(stderr, "MS/TP MAC: %02X\n", MSTP_Port.This_Station);
-    fprintf(stderr, "MS/TP Max_Master: %02X\n", MSTP_Port.Nmax_master);
-    fprintf(stderr, "MS/TP Max_Info_Frames: %u\n", MSTP_Port.Nmax_info_frames);
+    debug_fprintf(stderr, "MS/TP MAC: %02X\n", MSTP_Port.This_Station);
+    debug_fprintf(stderr, "MS/TP Max_Master: %02X\n", MSTP_Port.Nmax_master);
+    debug_fprintf(
+        stderr, "MS/TP Max_Info_Frames: %u\n", MSTP_Port.Nmax_info_frames);
     fflush(stderr);
-#endif
-    /* start the threads */
-    /*    rv = pthread_create(&hThread, NULL, dlmstp_receive_fsm_task, NULL); */
-    /*    if (rv != 0) {
-       fprintf(stderr, "Failed to start recive FSM task\n");
-       } */
+    /* start one thread */
     run_thread = true;
     rv = pthread_create(&hThread, NULL, dlmstp_master_fsm_task, NULL);
     if (rv != 0) {
@@ -809,7 +750,8 @@ bool dlmstp_init(char *ifname)
 #ifdef TEST_DLMSTP
 #include <stdio.h>
 
-void apdu_handler(BACNET_ADDRESS *src, /* source address */
+void apdu_handler(
+    BACNET_ADDRESS *src, /* source address */
     uint8_t *apdu, /* APDU data */
     uint16_t pdu_len)
 { /* for confirmed messages */
@@ -836,8 +778,9 @@ int main(int argc, char *argv[])
     /* forever task */
     for (;;) {
         pdu_len = dlmstp_receive(NULL, NULL, 0, UINT_MAX);
-        MSTP_Create_And_Send_Frame(&MSTP_Port, FRAME_TYPE_TEST_REQUEST,
-            MSTP_Port.SourceAddress, MSTP_Port.This_Station, NULL, 0);
+        MSTP_Create_And_Send_Frame(
+            &MSTP_Port, FRAME_TYPE_TEST_REQUEST, MSTP_Port.SourceAddress,
+            MSTP_Port.This_Station, NULL, 0);
     }
 
     return 0;

@@ -42,6 +42,8 @@ static void testBinary_Value(void)
         OBJECT_BINARY_VALUE, object_instance, Binary_Value_Property_Lists,
         Binary_Value_Read_Property, Binary_Value_Write_Property,
         skip_fail_property_list);
+    bacnet_object_name_ascii_test(
+        object_instance, Binary_Value_Name_Set, Binary_Value_Name_ASCII);
     status = Binary_Value_Delete(object_instance);
     zassert_true(status, NULL);
 }

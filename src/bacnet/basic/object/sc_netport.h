@@ -78,8 +78,8 @@ extern "C" {
 /* */
 
 BACNET_STACK_EXPORT
-BACNET_UNSIGNED_INTEGER Network_Port_Max_BVLC_Length_Accepted(
-    uint32_t object_instance);
+BACNET_UNSIGNED_INTEGER
+Network_Port_Max_BVLC_Length_Accepted(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_Max_BVLC_Length_Accepted_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
@@ -87,8 +87,8 @@ bool Network_Port_Max_BVLC_Length_Accepted_Dirty_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
-BACNET_UNSIGNED_INTEGER Network_Port_Max_NPDU_Length_Accepted(
-    uint32_t object_instance);
+BACNET_UNSIGNED_INTEGER
+Network_Port_Max_NPDU_Length_Accepted(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_Max_NPDU_Length_Accepted_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
@@ -116,8 +116,8 @@ bool Network_Port_SC_Failover_Hub_URI_Dirty_Set(
     uint32_t object_instance, const char *str);
 
 BACNET_STACK_EXPORT
-BACNET_UNSIGNED_INTEGER Network_Port_SC_Minimum_Reconnect_Time(
-    uint32_t object_instance);
+BACNET_UNSIGNED_INTEGER
+Network_Port_SC_Minimum_Reconnect_Time(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Minimum_Reconnect_Time_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
@@ -125,8 +125,8 @@ bool Network_Port_SC_Minimum_Reconnect_Time_Dirty_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
-BACNET_UNSIGNED_INTEGER Network_Port_SC_Maximum_Reconnect_Time(
-    uint32_t object_instance);
+BACNET_UNSIGNED_INTEGER
+Network_Port_SC_Maximum_Reconnect_Time(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Maximum_Reconnect_Time_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
@@ -134,8 +134,8 @@ bool Network_Port_SC_Maximum_Reconnect_Time_Dirty_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
-BACNET_UNSIGNED_INTEGER Network_Port_SC_Connect_Wait_Timeout(
-    uint32_t object_instance);
+BACNET_UNSIGNED_INTEGER
+Network_Port_SC_Connect_Wait_Timeout(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Connect_Wait_Timeout_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
@@ -143,8 +143,8 @@ bool Network_Port_SC_Connect_Wait_Timeout_Dirty_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
-BACNET_UNSIGNED_INTEGER Network_Port_SC_Disconnect_Wait_Timeout(
-    uint32_t object_instance);
+BACNET_UNSIGNED_INTEGER
+Network_Port_SC_Disconnect_Wait_Timeout(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Disconnect_Wait_Timeout_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
@@ -152,8 +152,8 @@ bool Network_Port_SC_Disconnect_Wait_Timeout_Dirty_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
-BACNET_UNSIGNED_INTEGER Network_Port_SC_Heartbeat_Timeout(
-    uint32_t object_instance);
+BACNET_UNSIGNED_INTEGER
+Network_Port_SC_Heartbeat_Timeout(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Heartbeat_Timeout_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
@@ -161,8 +161,8 @@ bool Network_Port_SC_Heartbeat_Timeout_Dirty_Set(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
-BACNET_SC_HUB_CONNECTOR_STATE Network_Port_SC_Hub_Connector_State(
-    uint32_t object_instance);
+BACNET_SC_HUB_CONNECTOR_STATE
+Network_Port_SC_Hub_Connector_State(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Hub_Connector_State_Set(
     uint32_t object_instance, BACNET_SC_HUB_CONNECTOR_STATE value);
@@ -174,8 +174,8 @@ bool Network_Port_Operational_Certificate_File_Set(
     uint32_t object_instance, uint32_t value);
 
 BACNET_STACK_EXPORT
-uint32_t Network_Port_Issuer_Certificate_File(
-    uint32_t object_instance, uint8_t index);
+uint32_t
+Network_Port_Issuer_Certificate_File(uint32_t object_instance, uint8_t index);
 BACNET_STACK_EXPORT
 bool Network_Port_Issuer_Certificate_File_Set(
     uint32_t object_instance, uint8_t index, uint32_t value);
@@ -184,8 +184,8 @@ int Network_Port_Issuer_Certificate_File_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu);
 
 BACNET_STACK_EXPORT
-uint32_t Network_Port_Certificate_Signing_Request_File(
-    uint32_t object_instance);
+uint32_t
+Network_Port_Certificate_Signing_Request_File(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_Certificate_Signing_Request_File_Set(
     uint32_t object_instance, uint32_t value);
@@ -194,10 +194,11 @@ BACNET_STACK_EXPORT
 BACNET_ROUTER_ENTRY *Network_Port_Routing_Table_Find(
     uint32_t object_instance, uint16_t Network_Number);
 BACNET_STACK_EXPORT
-BACNET_ROUTER_ENTRY *Network_Port_Routing_Table_Get(
-    uint32_t object_instance, uint8_t index);
+BACNET_ROUTER_ENTRY *
+Network_Port_Routing_Table_Get(uint32_t object_instance, uint8_t index);
 BACNET_STACK_EXPORT
-bool Network_Port_Routing_Table_Add(uint32_t object_instance,
+bool Network_Port_Routing_Table_Add(
+    uint32_t object_instance,
     uint16_t network_number,
     uint8_t *mac,
     uint8_t mac_len,
@@ -215,10 +216,11 @@ int Network_Port_Routing_Table_Encode(
     uint32_t object_instance, uint8_t *apdu, int max_apdu);
 
 BACNET_STACK_EXPORT
-BACNET_SC_HUB_CONNECTION_STATUS *Network_Port_SC_Primary_Hub_Connection_Status(
-    uint32_t object_instance);
+BACNET_SC_HUB_CONNECTION_STATUS *
+Network_Port_SC_Primary_Hub_Connection_Status(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Network_Port_SC_Primary_Hub_Connection_Status_Set(uint32_t object_instance,
+bool Network_Port_SC_Primary_Hub_Connection_Status_Set(
+    uint32_t object_instance,
     BACNET_SC_CONNECTION_STATE state,
     BACNET_DATE_TIME *connect_ts,
     BACNET_DATE_TIME *disconnect_ts,
@@ -226,8 +228,8 @@ bool Network_Port_SC_Primary_Hub_Connection_Status_Set(uint32_t object_instance,
     const char *error_details);
 
 BACNET_STACK_EXPORT
-BACNET_SC_HUB_CONNECTION_STATUS *Network_Port_SC_Failover_Hub_Connection_Status(
-    uint32_t object_instance);
+BACNET_SC_HUB_CONNECTION_STATUS *
+Network_Port_SC_Failover_Hub_Connection_Status(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Failover_Hub_Connection_Status_Set(
     uint32_t object_instance,
@@ -257,8 +259,8 @@ int Network_Port_SC_Hub_Function_Accept_URI_Encode(
 
 bool Network_Port_SC_Hub_Function_Accept_URI_Dirty_Set(
     uint32_t object_instance, uint8_t index, const char *str);
-const char *Network_Port_SC_Hub_Function_Accept_URIs_char(
-    uint32_t object_instance);
+const char *
+Network_Port_SC_Hub_Function_Accept_URIs_char(uint32_t object_instance);
 bool Network_Port_SC_Hub_Function_Accept_URIs_Set(
     uint32_t object_instance, const char *str);
 
@@ -400,7 +402,8 @@ BACNET_SC_FAILED_CONNECTION_REQUEST *
 Network_Port_SC_Failed_Connection_Requests_Get(
     uint32_t object_instance, uint8_t index);
 BACNET_STACK_EXPORT
-bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
+bool Network_Port_SC_Failed_Connection_Requests_Add(
+    uint32_t object_instance,
     BACNET_DATE_TIME *ts,
     BACNET_HOST_N_PORT_DATA *peer_address,
     uint8_t *peer_VMAC,
@@ -427,9 +430,6 @@ const BACNET_UUID *Network_Port_SC_Local_UUID(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Local_UUID_Set(
     uint32_t object_instance, BACNET_UUID *value);
-
-void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance);
-void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance);
 
 #ifdef __cplusplus
 }

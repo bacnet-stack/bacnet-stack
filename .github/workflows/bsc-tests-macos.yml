@@ -15,11 +15,8 @@ jobs:
     - uses: actions/checkout@v3
     - name: Create Build Environment
       run: |
-        brew uninstall openssl@3 --ignore-dependencies openssl@3
-        brew install openssl@3.0
-        git clone --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
-        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_MINIMAL_EXAMPLES=0 -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@3.0 -DLWS_MAX_SMP=32;make'
-        sudo bash -c 'cd libwebsockets;cd build;make install'
+        brew install openssl
+        brew install libwebsockets
     - name: Build and run bsc_event test
       run: |
         cd ./test/ports/bsd/bsc_event

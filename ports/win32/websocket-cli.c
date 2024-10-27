@@ -61,7 +61,8 @@ typedef struct {
 
 /* Some forward function declarations */
 
-static int bws_cli_websocket_event(struct lws *wsi,
+static int bws_cli_websocket_event(
+    struct lws *wsi,
     enum lws_callback_reasons reason,
     void *user,
     void *in,
@@ -76,13 +77,13 @@ static HANDLE bws_cli_mutex = NULL;
 
 static struct lws_protocols bws_cli_direct_protocol[] = {
     { BSC_WEBSOCKET_DIRECT_PROTOCOL_STR, bws_cli_websocket_event, 0, 0, 0, NULL,
-        0 },
+      0 },
     LWS_PROTOCOL_LIST_TERM
 };
 
 static struct lws_protocols bws_cli_hub_protocol[] = {
     { BSC_WEBSOCKET_HUB_PROTOCOL_STR, bws_cli_websocket_event, 0, 0, 0, NULL,
-        0 },
+      0 },
     LWS_PROTOCOL_LIST_TERM
 };
 
@@ -209,7 +210,8 @@ static void bws_set_disconnect_reason(BSC_WEBSOCKET_HANDLE h, uint16_t err_code)
     }
 }
 
-static int bws_cli_websocket_event(struct lws *wsi,
+static int bws_cli_websocket_event(
+    struct lws *wsi,
     enum lws_callback_reasons reason,
     void *user,
     void *in,
@@ -271,8 +273,9 @@ static int bws_cli_websocket_event(struct lws *wsi,
                    the WebSocket connection shall be closed with a
                    status code of 1003 -WEBSOCKET_DATA_NOT_ACCEPTED.
                 */
-                DEBUG_PRINTF("bws_cli_websocket_event() got non-binary frame, "
-                             "close connection for socket %d\n",
+                DEBUG_PRINTF(
+                    "bws_cli_websocket_event() got non-binary frame, "
+                    "close connection for socket %d\n",
                     h);
                 lws_close_reason(
                     wsi, LWS_CLOSE_STATUS_UNACCEPTABLE_OPCODE, NULL, 0);
@@ -284,16 +287,18 @@ static int bws_cli_websocket_event(struct lws *wsi,
                 bsc_mutex_unlock(&bws_cli_mutex);
             } else {
                 if (!bws_cli_conn[h].fragment_buffer) {
-                    DEBUG_PRINTF("bws_cli_websocket_event() alloc %d bytes for "
-                                 "socket %d\n",
+                    DEBUG_PRINTF(
+                        "bws_cli_websocket_event() alloc %d bytes for "
+                        "socket %d\n",
                         len, h);
                     bws_cli_conn[h].fragment_buffer = malloc(BSC_RX_BUFFER_LEN);
                     if (!bws_cli_conn[h].fragment_buffer) {
                         lws_close_reason(
                             wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
                         bsc_mutex_unlock(&bws_cli_mutex);
-                        DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = -1, "
-                                     "allocation of %d bytes failed\n",
+                        DEBUG_PRINTF(
+                            "bws_cli_websocket_event() <<< ret = -1, "
+                            "allocation of %d bytes failed\n",
                             len <= BSC_RX_BUFFER_LEN ? BSC_RX_BUFFER_LEN : len);
                         return -1;
                     }
@@ -307,26 +312,29 @@ static int bws_cli_websocket_event(struct lws *wsi,
                         "for socket %d to %d bytes\n",
                         bws_cli_conn[h].fragment_buffer_len, h,
                         bws_cli_conn[h].fragment_buffer_len + len);
-                    bws_cli_conn[h].fragment_buffer =
-                        realloc(bws_cli_conn[h].fragment_buffer,
-                            bws_cli_conn[h].fragment_buffer_len + len);
+                    bws_cli_conn[h].fragment_buffer = realloc(
+                        bws_cli_conn[h].fragment_buffer,
+                        bws_cli_conn[h].fragment_buffer_len + len);
                     if (!bws_cli_conn[h].fragment_buffer) {
                         lws_close_reason(
                             wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
                         bsc_mutex_unlock(&bws_cli_mutex);
-                        DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = -1, "
-                                     "re-allocation of %d bytes failed\n",
+                        DEBUG_PRINTF(
+                            "bws_cli_websocket_event() <<< ret = -1, "
+                            "re-allocation of %d bytes failed\n",
                             bws_cli_conn[h].fragment_buffer_len + len);
                         return -1;
                     }
                     bws_cli_conn[h].fragment_buffer_size =
                         bws_cli_conn[h].fragment_buffer_len + len;
                 }
-                DEBUG_PRINTF("bws_cli_websocket_event() got next %d bytes for "
-                             "socket %d\n",
+                DEBUG_PRINTF(
+                    "bws_cli_websocket_event() got next %d bytes for "
+                    "socket %d\n",
                     len, h);
-                memcpy(&bws_cli_conn[h].fragment_buffer[
-                           bws_cli_conn[h].fragment_buffer_len],
+                memcpy(
+                    &bws_cli_conn[h]
+                         .fragment_buffer[bws_cli_conn[h].fragment_buffer_len],
                     in, len);
                 bws_cli_conn[h].fragment_buffer_len += len;
 
@@ -336,7 +344,8 @@ static int bws_cli_websocket_event(struct lws *wsi,
                     dispatch_func = bws_cli_conn[h].dispatch_func;
                     user_param = bws_cli_conn[h].user_param;
                     bsc_mutex_unlock(&bws_cli_mutex);
-                    dispatch_func(h, BSC_WEBSOCKET_RECEIVED, 0, NULL,
+                    dispatch_func(
+                        h, BSC_WEBSOCKET_RECEIVED, 0, NULL,
                         &bws_cli_conn[h].fragment_buffer[0],
                         bws_cli_conn[h].fragment_buffer_len, user_param);
                     bsc_mutex_lock(&bws_cli_mutex);
@@ -362,9 +371,11 @@ static int bws_cli_websocket_event(struct lws *wsi,
                 return 0;
             }
 
-            DEBUG_PRINTF("bws_cli_websocket_event() can write, state = %d\n",
+            DEBUG_PRINTF(
+                "bws_cli_websocket_event() can write, state = %d\n",
                 bws_cli_conn[h].state);
-            DEBUG_PRINTF("bws_cli_websocket_event() ws = %d, cs = %d\n",
+            DEBUG_PRINTF(
+                "bws_cli_websocket_event() ws = %d, cs = %d\n",
                 bws_cli_conn[h].want_send_data, bws_cli_conn[h].can_send_data);
             if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED &&
                 bws_cli_conn[h].want_send_data) {
@@ -434,13 +445,13 @@ static int bws_cli_websocket_event(struct lws *wsi,
 static DWORD WINAPI bws_cli_worker(LPVOID arg)
 {
     BSC_WEBSOCKET_CONNECTION *conn = (BSC_WEBSOCKET_CONNECTION *)arg;
-    BSC_WEBSOCKET_HANDLE h = (BSC_WEBSOCKET_HANDLE) (conn - &bws_cli_conn[0]);
+    BSC_WEBSOCKET_HANDLE h = (BSC_WEBSOCKET_HANDLE)(conn - &bws_cli_conn[0]);
     BSC_WEBSOCKET_CLI_DISPATCH dispatch_func;
     void *user_param;
     char err_desc[BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN];
     uint16_t err_code;
 
-    srand((unsigned) GetCurrentThreadId());
+    srand((unsigned)GetCurrentThreadId());
 
     while (1) {
         DEBUG_PRINTF("bws_cli_worker() try mutex h = %d\n", h);
@@ -456,9 +467,9 @@ static DWORD WINAPI bws_cli_worker(LPVOID arg)
             DEBUG_PRINTF("bws_cli_worker() process disconnecting event\n");
             DEBUG_PRINTF("bws_cli_worker() destroy ctx %p\n", conn->ctx);
             /* TRICKY: Libwebsockets API is not designed to be used from
-                       multipe service threads, as a result lws_context_destroy()
-                       is not thread safe. More over, on different platforms the
-                       function behaves in different ways. Call of
+                       multipe service threads, as a result
+               lws_context_destroy() is not thread safe. More over, on different
+               platforms the function behaves in different ways. Call of
                        lws_context_destroy() leads to several calls of
                        bws_cli_websocket_event() callback (LWS_CALLBACK_CLOSED,
                        etc..). But under some OS (MacOSx) that callback is
@@ -484,7 +495,8 @@ static DWORD WINAPI bws_cli_worker(LPVOID arg)
             bws_cli_free_connection(h);
             bsc_mutex_unlock(&bws_cli_mutex);
             DEBUG_PRINTF("bws_cli_worker() unlock mutex\n");
-            dispatch_func(h, BSC_WEBSOCKET_DISCONNECTED, err_code,
+            dispatch_func(
+                h, BSC_WEBSOCKET_DISCONNECTED, err_code,
                 err_code != ERROR_CODE_SUCCESS ? err_desc : NULL, NULL, 0,
                 user_param);
             return 0;
@@ -498,7 +510,8 @@ static DWORD WINAPI bws_cli_worker(LPVOID arg)
     return 0;
 }
 
-BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
+BSC_WEBSOCKET_RET bws_cli_connect(
+    BSC_WEBSOCKET_PROTOCOL proto,
     char *url,
     uint8_t *ca_cert,
     size_t ca_cert_size,
@@ -546,8 +559,8 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     bsc_websocket_init_log();
     bsc_mutex_lock(&bws_cli_mutex);
 
-    if (lws_parse_uri(tmp_url, &prot, &addr, &port, &path) != 0 ||
-        port == -1 || !prot || !addr || !path) {
+    if (lws_parse_uri(tmp_url, &prot, &addr, &port, &path) != 0 || port == -1 ||
+        !prot || !addr || !path) {
         bsc_mutex_unlock(&bws_cli_mutex);
         DEBUG_PRINTF("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
         return BSC_WEBSOCKET_BAD_PARAM;
@@ -589,8 +602,8 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     info.client_ssl_key_mem_len = (unsigned int)key_size;
     info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
     info.options |= LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND;
-    info.timeout_secs = (unsigned int) timeout_s;
-    info.connect_timeout_secs = (unsigned int) timeout_s;
+    info.timeout_secs = (unsigned int)timeout_s;
+    info.connect_timeout_secs = (unsigned int)timeout_s;
 
     /* TRICKY: check comments related to lws_context_destroy() call */
 
@@ -637,7 +650,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     lws_client_connect_via_info(&cinfo);
     bsc_websocket_global_unlock();
 
-    thread = CreateThread(NULL, 0, &bws_cli_worker,  &bws_cli_conn[h], 0, NULL );
+    thread = CreateThread(NULL, 0, &bws_cli_worker, &bws_cli_conn[h], 0, NULL);
 
     if (thread == NULL) {
         /* TRICKY: Libwebsockets API is not designed to be used from
@@ -730,7 +743,8 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
 
     if ((bws_cli_conn[h].state != BSC_WEBSOCKET_STATE_CONNECTED) ||
         !bws_cli_conn[h].want_send_data || !bws_cli_conn[h].can_send_data) {
-        DEBUG_PRINTF("bws_cli_dispatch_send() state = %d, ws = %d, cs = %d\n",
+        DEBUG_PRINTF(
+            "bws_cli_dispatch_send() state = %d, ws = %d, cs = %d\n",
             bws_cli_conn[h].state, bws_cli_conn[h].want_send_data,
             bws_cli_conn[h].can_send_data);
         DEBUG_PRINTF("bws_cli_dispatch_send() <<< ret = "

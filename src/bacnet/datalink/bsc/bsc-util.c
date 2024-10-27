@@ -50,7 +50,8 @@ void bsc_copy_uuid(BACNET_SC_UUID *dst, BACNET_SC_UUID *src)
 char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
 {
     static char buf[128];
-    sprintf(buf, "%02x%02x%02x%02x%02x%02x", vmac->address[0], vmac->address[1],
+    sprintf(
+        buf, "%02x%02x%02x%02x%02x%02x", vmac->address[0], vmac->address[1],
         vmac->address[2], vmac->address[3], vmac->address[4], vmac->address[5]);
     return buf;
 }
@@ -58,7 +59,8 @@ char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
 char *bsc_uuid_to_string(BACNET_SC_UUID *uuid)
 {
     static char buf[128];
-    sprintf(buf,
+    sprintf(
+        buf,
         "%02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x",
         uuid->uuid[0], uuid->uuid[1], uuid->uuid[2], uuid->uuid[3],
         uuid->uuid[4], uuid->uuid[5], uuid->uuid[6], uuid->uuid[7],
@@ -82,8 +84,8 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
             p->address[i] = (p->address[i] & 0xF0) | 0x02;
         }
     }
-    debug_printf_hex(0, p->address, BVLC_SC_VMAC_SIZE,
-        "bsc_generate_random_vmac");
+    debug_printf_hex(
+        0, p->address, BVLC_SC_VMAC_SIZE, "bsc_generate_random_vmac");
 }
 
 void bsc_generate_random_uuid(BACNET_SC_UUID *p)
@@ -115,15 +117,17 @@ static bool bsc_node_load_cert_bacfile(
     uint8_t *buf;
 
     *psize = bacfile_file_size(file_instance) + ZERO_BYTE;
-    if (*psize == 0)
+    if (*psize == 0) {
         return false;
+    }
 
     buf = calloc(1, *psize);
-    if (buf == NULL)
+    if (buf == NULL) {
         return false;
+    }
 
     file_length =
-        bacfile_read(file_instance, buf, (uint32_t) (*psize - ZERO_BYTE));
+        bacfile_read(file_instance, buf, (uint32_t)(*psize - ZERO_BYTE));
 #ifdef CONFIG_MBEDTLS
     buf[*psize - 1] = 0;
 #endif
@@ -148,7 +152,8 @@ bool bsc_node_conf_fill_from_netport(
     bsc_conf->key = NULL;
 
     file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
-    if (!bsc_node_load_cert_bacfile(file_instance, &bsc_conf->ca_cert_chain,
+    if (!bsc_node_load_cert_bacfile(
+            file_instance, &bsc_conf->ca_cert_chain,
             &bsc_conf->ca_cert_chain_size)) {
         bsc_node_conf_cleanup(bsc_conf);
         return false;
@@ -170,20 +175,21 @@ bool bsc_node_conf_fill_from_netport(
     }
     bsc_conf->local_uuid =
         (BACNET_SC_UUID *)Network_Port_SC_Local_UUID(instance);
-    Network_Port_MAC_Address_Value(instance, bsc_conf->local_vmac.address,
+    Network_Port_MAC_Address_Value(
+        instance, bsc_conf->local_vmac.address,
         sizeof(bsc_conf->local_vmac.address));
     bsc_conf->max_local_bvlc_len =
-        (uint16_t) Network_Port_Max_BVLC_Length_Accepted(instance);
+        (uint16_t)Network_Port_Max_BVLC_Length_Accepted(instance);
     bsc_conf->max_local_npdu_len =
-        (uint16_t) Network_Port_Max_NPDU_Length_Accepted(instance);
+        (uint16_t)Network_Port_Max_NPDU_Length_Accepted(instance);
     bsc_conf->connect_timeout_s =
         (uint16_t)Network_Port_SC_Connect_Wait_Timeout(instance);
     bsc_conf->heartbeat_timeout_s =
-        (uint16_t) Network_Port_SC_Heartbeat_Timeout(instance);
+        (uint16_t)Network_Port_SC_Heartbeat_Timeout(instance);
     bsc_conf->disconnect_timeout_s =
-        (uint16_t) Network_Port_SC_Disconnect_Wait_Timeout(instance);
+        (uint16_t)Network_Port_SC_Disconnect_Wait_Timeout(instance);
     bsc_conf->reconnnect_timeout_s =
-        (uint16_t) Network_Port_SC_Maximum_Reconnect_Time(instance);
+        (uint16_t)Network_Port_SC_Maximum_Reconnect_Time(instance);
     bsc_conf->address_resolution_timeout_s = bsc_conf->connect_timeout_s;
     bsc_conf->address_resolution_freshness_timeout_s =
         bsc_conf->connect_timeout_s;

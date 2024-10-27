@@ -1,29 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-#ifndef NC_H
-#define NC_H
+/**
+ * @file
+ * @author Krzysztof Malorny <malornykrzysztof@gmail.com>
+ * @date 2011
+ * @brief API for a basic BACnet Notification Class object
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_BASIC_OBJECT_NOTIFICATION_CLASS_H
+#define BACNET_BASIC_OBJECT_NOTIFICATION_CLASS_H
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -50,7 +33,7 @@ typedef struct Notification_Class_info {
         Priority[MAX_BACNET_EVENT_TRANSITION]; /* BACnetARRAY[3] of Unsigned */
     uint8_t Ack_Required; /* BACnetEventTransitionBits */
     BACNET_DESTINATION
-        Recipient_List[NC_MAX_RECIPIENTS]; /* List of BACnetDestination */
+    Recipient_List[NC_MAX_RECIPIENTS]; /* List of BACnetDestination */
 } NOTIFICATION_CLASS_INFO;
 
 /* Indicates whether the transaction has been confirmed */

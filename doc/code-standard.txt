@@ -34,10 +34,10 @@ for C++ headers and converts them.
 
 Don't initialize variables in their declaration with non-constant
 values. Not all compilers support this. E.g. don't use
-	uint32_t i = somearray[2];
+    uint32_t i = somearray[2];
 use
-	uint32_t i;
-	i = somearray[2];
+    uint32_t i;
+    i = somearray[2];
 instead.
 
 Don't use zero-length arrays; not all compilers support them.  If an
@@ -76,43 +76,43 @@ unsigned integers.
 Don't use a label without a statement following it.  For example,
 something such as
 
-	if (...) {
+    if (...) {
 
-		...
+        ...
 
-	done:
-	}
+    done:
+    }
 
 will not work with all compilers - you have to do
 
-	if (...) {
+    if (...) {
 
-		...
+        ...
 
-	done:
-		;
-	}
+    done:
+        ;
+    }
 
 with some statements, even if it's a null statement, after the label.
 
 Don't use "bzero()", "bcopy()", or "bcmp()"; instead, use the ANSI C
 routines
 
-	"memset()" (with zero as the second argument, so that it sets
-	all the bytes to zero);
+    "memset()" (with zero as the second argument, so that it sets
+    all the bytes to zero);
 
-	"memcpy()" or "memmove()" (note that the first and second
-	arguments to "memcpy()" are in the reverse order to the
-	arguments to "bcopy()"; note also that "bcopy()" is typically
-	guaranteed to work on overlapping memory regions, while
-	"memcpy()" isn't, so if you may be copying from one region to a
-	region that overlaps it, use "memmove()", not "memcpy()" - but
-	"memcpy()" might be faster as a result of not guaranteeing
-	correct operation on overlapping memory regions);
+    "memcpy()" or "memmove()" (note that the first and second
+    arguments to "memcpy()" are in the reverse order to the
+    arguments to "bcopy()"; note also that "bcopy()" is typically
+    guaranteed to work on overlapping memory regions, while
+    "memcpy()" isn't, so if you may be copying from one region to a
+    region that overlaps it, use "memmove()", not "memcpy()" - but
+    "memcpy()" might be faster as a result of not guaranteeing
+    correct operation on overlapping memory regions);
 
-	and "memcmp()" (note that "memcmp()" returns 0, 1, or -1, doing
-	an ordered comparison, rather than just returning 0 for "equal"
-	and 1 for "not equal", as "bcmp()" does).
+    and "memcmp()" (note that "memcmp()" returns 0, 1, or -1, doing
+    an ordered comparison, rather than just returning 0 for "equal"
+    and 1 for "not equal", as "bcmp()" does).
 
 Not all platforms necessarily have "bzero()"/"bcopy()"/"bcmp()", and
 those that do might not declare them in the header file on which they're
@@ -166,25 +166,25 @@ file is to be created if it doesn't exist), and OR in the O_BINARY flag.
 That flag is not present on most, if not all, UNIX systems, so you must
 also do
 
-	#ifndef O_BINARY
-	#define O_BINARY	0
-	#endif
+    #ifndef O_BINARY
+    #define O_BINARY    0
+    #endif
 
 to properly define it for UNIX (it's not necessary on UNIX).
 
 Don't use forward declarations of static arrays without a specified size
 in a fashion such as this:
 
-	static const value_string foo_vals[];
+    static const value_string foo_vals[];
 
-		...
+        ...
 
-	static const value_string foo_vals[] = {
-		{ 0,		"Red" },
-		{ 1,		"Green" },
-		{ 2,		"Blue" },
-		{ 0,		NULL }
-	};
+    static const value_string foo_vals[] = {
+        { 0,        "Red" },
+        { 1,        "Green" },
+        { 2,        "Blue" },
+        { 0,        NULL }
+    };
 
 as some compilers will reject the first of those statements.  Instead,
 initialize the array at the point at which it's first declared, so that
@@ -194,11 +194,11 @@ Don't put declarations in the middle of a block; put them before all
 code.  Not all compilers support declarations in the middle of code,
 such as
 
-	int i;
+    int i;
 
-	i = foo();
+    i = foo();
 
-	int j;
+    int j;
 
 For #define names and enum member names, prefix the names with a tag so
 as to avoid collisions with other names - this might be more of an issue
@@ -207,20 +207,20 @@ OPTIONAL.
 
 Don't use "variadic macros", such as
 
-	#define DBG(format, args...)	fprintf(stderr, format, ## args)
+    #define DBG(format, args...)    fprintf(stderr, format, ## args)
 
 as not all C compilers support them.  Use macros that take a fixed
 number of arguments, such as
 
-	#define DBG0(format)		fprintf(stderr, format)
-	#define DBG1(format, arg1)	fprintf(stderr, format, arg1)
-	#define DBG2(format, arg1, arg2) fprintf(stderr, format, arg1, arg2)
+    #define DBG0(format)        fprintf(stderr, format)
+    #define DBG1(format, arg1)  fprintf(stderr, format, arg1)
+    #define DBG2(format, arg1, arg2) fprintf(stderr, format, arg1, arg2)
 
-		...
+        ...
 
 or something such as
 
-	#define DBG(args)		printf args
+    #define DBG(args)       printf args
 
 Instead of tmpnam(), use mkstemp(). tmpnam is insecure and should
 not be used any more. Note: mkstemp does not accept NULL as a parameter.

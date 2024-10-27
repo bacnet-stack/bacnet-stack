@@ -109,4 +109,3 @@ void bsc_websocket_init_log(void)
     }
     bsc_websocket_global_unlock();
 }
-

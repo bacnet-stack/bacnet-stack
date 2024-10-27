@@ -30,7 +30,7 @@ static void test_object_access_door(void)
     int test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
     /* for decode value data */
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int *pRequired = NULL;
     const int *pOptional = NULL;
     const int *pProprietary = NULL;

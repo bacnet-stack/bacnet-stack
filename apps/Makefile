@@ -111,10 +111,10 @@ endif
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
-SYSTEM_LIB = -lc,-lgcc,-lrt,-lm
+SYSTEM_LIB=-lc,-lgcc,-lrt,-lm
 ifeq (${BACDL},bsc)
-# note: install libwebsocket libssl libcrypto and lcap to build for BACnet/SC
-SYSTEM_LIB += /usr/local/lib/libwebsockets.a -lssl -lcrypto -lcap
+# note: install libwebsockets libssl libcrypto and lcap to build for BACnet/SC
+SYSTEM_LIB += -lwebsockets -lssl -lcrypto -lcap
 endif
 endif
 ifeq (${BACNET_PORT},bsd)
@@ -122,8 +122,8 @@ PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
 ifeq (${BACDL},bsc)
-# note: install libwebsocket libcrypto and libssl to build for BACnet/SC
-SYSTEM_LIB += /usr/local/lib/libwebsockets.a /usr/local/opt/openssl@3/lib/libcrypto.a /usr/local/opt/openssl@3/lib/libssl.a
+# note: install libwebsockets libssl and libcrypto to build for BACnet/SC
+SYSTEM_LIB += -lwebsockets -lssl -lcrypto
 endif
 CSTANDARD = -std=c99
 endif
@@ -157,13 +157,17 @@ CSTANDARD ?= -std=gnu89
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
 DEBUGGING ?=
-WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion -Wparentheses
-WARNING_ALL += -pedantic -Wunused-parameter -Wunused-variable -Wreturn-type
-WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
-WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
+# enable all relevant warnings that find bugs
+WARNING_ALL := -Wall -Wextra -pedantic
+WARNING_ALL += -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default
+WARNING_ALL += -Wunused-variable
+# don't warn about conversion, sign, compares, long long and attributes
+# since they are common in embedded
 WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
-WARNING_ALL += -Wno-long-long -Wno-implicit-fallthrough -Wno-attributes
-#WARNING_ALL += -Wredundant-decls
+WARNING_ALL += -Wno-long-long -Wno-attributes
+# don't warn about implicit fallthrough since it's common in network protocols
+WARNING_ALL += -Wno-implicit-fallthrough
 #WARNING_ALL += -Werror
 WARNINGS ?= $(WARNING_ALL)
 # dead code removal
@@ -214,7 +218,7 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm \
 	server-client add-list-element remove-list-element create-object \
-	delete-object server-discover apdu
+	delete-object server-discover apdu writegroup
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
@@ -230,6 +234,10 @@ endif
 endif
 
 ifeq (${BACNET_PORT},win32)
+	SUBDIRS += mstpcap mstpcrc
+endif
+
+ifeq (${BACNET_PORT},bsd)
 	SUBDIRS += mstpcap mstpcrc
 endif
 
@@ -461,6 +469,10 @@ fuzz-afl: $(BACNET_LIB_TARGET)
 
 .PHONY: writepropm
 writepropm: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: writegroup
+writegroup: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
 
 .PHONY: sc-hub

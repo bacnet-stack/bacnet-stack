@@ -1,35 +1,19 @@
-/*************************************************************************
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that uses BACnet ReadPropertyMultiple service
+ * message to read object property values from another device on
+ * the network and prints the values to the console.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h> /* for time */
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
 #include <locale.h>
 #endif
 #define PRINT_ENABLED 1
@@ -59,7 +43,6 @@
 #error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
 #endif
 
-
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
@@ -72,14 +55,16 @@ static BACNET_ADDRESS Target_Address;
 /* needed for return value of main application */
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\n",
+        printf(
+            "BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -98,13 +83,14 @@ static void MyAbortHandler(
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
+        printf(
+            "BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -121,7 +107,8 @@ static void MyRejectHandler(
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-static void My_Read_Property_Multiple_Ack_Handler(uint8_t *service_request,
+static void My_Read_Property_Multiple_Ack_Handler(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
@@ -184,7 +171,8 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the data coming back from confirmed requests */
-    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
+    apdu_set_confirmed_ack_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
         My_Read_Property_Multiple_Ack_Handler);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
@@ -215,7 +203,7 @@ static void cleanup(void)
 }
 
 static void target_address_add(
-    long dnet, BACNET_MAC_ADDRESS *mac, BACNET_MAC_ADDRESS *adr)
+    long dnet, const BACNET_MAC_ADDRESS *mac, const BACNET_MAC_ADDRESS *adr)
 {
     BACNET_ADDRESS dest = { 0 };
 
@@ -250,16 +238,17 @@ static void target_address_add(
     address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s device-instance object-type object-instance "
-           "property[index][,property[index]] [object-type ...]\n",
+    printf(
+        "Usage: %s device-instance object-type object-instance "
+        "property[index][,property[index]] [object-type ...]\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Read one or more properties from one or more objects\n"
            "in a BACnet device and print the value(s).\n");
@@ -314,29 +303,39 @@ static void print_help(char *filename)
            "be read.  If this parameter is missing and the property\n"
            "is an array, the entire array will be read.\n");
     printf("\n");
-    printf("Example:\n"
-           "If you want read the PRESENT_VALUE property and various\n"
-           "array elements of the PRIORITY_ARRAY in Device 123\n"
-           "Analog Output object 99, use one of the following commands:\n"
-           "%s 123 analog-output 99 85,87[0],87\n"
-           "%s 123 1 99 85,87[0],87\n", filename, filename);
-    printf("If you want read the PRESENT_VALUE property in objects\n"
-           "Analog Input 77 and Analog Input 78 in Device 123\n"
-           "use one of the following commands:\n"
-           "%s 123 analog-input 77 85 analog-input 78 85\n"
-           "%s 123 0 77 85 0 78 85\n", filename, filename);
-    printf("If you want read the ALL property in\n"
-           "Device object 123, you would use one of the following commands:\n"
-           "%s 123 device 123 8\n"
-           "%s 123 8 123 8\n", filename, filename);
-    printf("If you want read the OPTIONAL property in\n"
-           "Device object 123, you would use one of the following commands:\n"
-           "%s 123 device 123 80\n"
-           "%s 123 8 123 80\n", filename, filename);
-    printf("If you want read the REQUIRED property in\n"
-           "Device object 123, you would one of use the following commands:\n"
-           "%s 123 device 123 105\n"
-           "%s 123 8 123 105\n", filename, filename);
+    printf(
+        "Example:\n"
+        "If you want read the PRESENT_VALUE property and various\n"
+        "array elements of the PRIORITY_ARRAY in Device 123\n"
+        "Analog Output object 99, use one of the following commands:\n"
+        "%s 123 analog-output 99 85,87[0],87\n"
+        "%s 123 1 99 85,87[0],87\n",
+        filename, filename);
+    printf(
+        "If you want read the PRESENT_VALUE property in objects\n"
+        "Analog Input 77 and Analog Input 78 in Device 123\n"
+        "use one of the following commands:\n"
+        "%s 123 analog-input 77 85 analog-input 78 85\n"
+        "%s 123 0 77 85 0 78 85\n",
+        filename, filename);
+    printf(
+        "If you want read the ALL property in\n"
+        "Device object 123, you would use one of the following commands:\n"
+        "%s 123 device 123 8\n"
+        "%s 123 8 123 8\n",
+        filename, filename);
+    printf(
+        "If you want read the OPTIONAL property in\n"
+        "Device object 123, you would use one of the following commands:\n"
+        "%s 123 device 123 80\n"
+        "%s 123 8 123 80\n",
+        filename, filename);
+    printf(
+        "If you want read the REQUIRED property in\n"
+        "Device object 123, you would one of use the following commands:\n"
+        "%s 123 device 123 105\n"
+        "%s 123 8 123 105\n",
+        filename, filename);
 }
 
 int main(int argc, char *argv[])
@@ -366,7 +365,7 @@ int main(int argc, char *argv[])
     bool specific_address = false;
     unsigned int target_args = 0;
     bool status = false;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -407,8 +406,8 @@ int main(int argc, char *argv[])
             if (target_args == 0) {
                 Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
                 if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-                    fprintf(stderr,
-                        "device-instance=%u - not greater than %u\n",
+                    fprintf(
+                        stderr, "device-instance=%u - not greater than %u\n",
                         Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -429,13 +428,15 @@ int main(int argc, char *argv[])
                     status =
                         bactext_object_type_strtol(argv[argi], &object_type);
                     if (status == false) {
-                        fprintf(stderr, "Error: object-type=%s invalid\n",
+                        fprintf(
+                            stderr, "Error: object-type=%s invalid\n",
                             argv[argi]);
                         return 1;
                     }
                     rpm_object->object_type = object_type;
                     if (rpm_object->object_type >= MAX_BACNET_OBJECT_TYPE) {
-                        fprintf(stderr,
+                        fprintf(
+                            stderr,
                             "object-type=%u - it must be less than %u\n",
                             rpm_object->object_type, MAX_BACNET_OBJECT_TYPE);
                         return 1;
@@ -444,10 +445,10 @@ int main(int argc, char *argv[])
                 } else if (tag_value_arg == 1) {
                     rpm_object->object_instance = strtol(argv[argi], NULL, 0);
                     if (rpm_object->object_instance > BACNET_MAX_INSTANCE) {
-                        fprintf(stderr,
+                        fprintf(
+                            stderr,
                             "object-instance=%u - not greater than %u\n",
-                            rpm_object->object_instance,
-                            BACNET_MAX_INSTANCE);
+                            rpm_object->object_instance, BACNET_MAX_INSTANCE);
                         return 1;
                     }
                     tag_value_arg++;
@@ -457,13 +458,15 @@ int main(int argc, char *argv[])
                     property_token = strtok(argv[argi], ",");
                     /* add all the properties and optional index to our list */
                     while (rpm_property) {
-                        scan_count = sscanf(property_token, "%u[%u]",
-                            &property_id, &property_array_index);
+                        scan_count = sscanf(
+                            property_token, "%u[%u]", &property_id,
+                            &property_array_index);
                         if (scan_count > 0) {
                             rpm_property->propertyIdentifier = property_id;
                             if (rpm_property->propertyIdentifier >
                                 MAX_BACNET_PROPERTY_ID) {
-                                fprintf(stderr,
+                                fprintf(
+                                    stderr,
                                     "property=%u - it must be less than %u\n",
                                     rpm_property->propertyIdentifier,
                                     MAX_BACNET_PROPERTY_ID + 1);
@@ -493,7 +496,10 @@ int main(int argc, char *argv[])
             }
         }
     }
-    if (tag_value_arg != 0) {
+    if (!Read_Access_Data) {
+        print_usage(filename);
+        return 1;
+    } else if (tag_value_arg != 0) {
         fprintf(stderr, "Error: not enough object property triples.\n");
         return 1;
     }
@@ -505,7 +511,7 @@ int main(int argc, char *argv[])
     }
     Init_Service_Handlers();
     dlenv_init();
-#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
+#if (__STDC_VERSION__ >= 199901L) && defined(__STDC_ISO_10646__)
     /* Internationalized programs must call setlocale()
      * to initiate a specific language operation.
      * This can be done by calling setlocale() as follows.

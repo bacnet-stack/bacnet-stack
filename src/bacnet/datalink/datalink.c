@@ -1,51 +1,40 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2007 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-/** @file datalink.c  Optional run-time assignment of datalink transport */
+/**
+ * @file
+ * @brief Optional run-time assignment of BACnet datalink transport
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @defgroup DataLink DataLink Network Layer
+ * @ingroup DataLink
+ */
 #include "bacnet/datalink/datalink.h"
 
-#if defined(BACDL_ALL) || defined FOR_DOXYGEN
+#if defined(BACDL_MULTIPLE) || defined FOR_DOXYGEN
+#if defined(BACDL_ETHERNET)
 #include "bacnet/datalink/ethernet.h"
+#endif
+#if defined(BACDL_BIP)
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
+#endif
+#if defined(BACDL_BIP6)
 #include "bacnet/datalink/bip6.h"
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
+#endif
+#if defined(BACDL_ARCNET)
 #include "bacnet/datalink/arcnet.h"
+#endif
+#if defined(BACDL_MSTP)
 #include "bacnet/datalink/dlmstp.h"
+#endif
+#if defined(BACDL_BSC)
 #include "bacnet/datalink/bsc/bsc-datalink.h"
-#include <strings.h>                /* for strcasecmp() */
+#endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h> /* for strcasecmp() */
+#endif
 
 static enum {
     DATALINK_NONE = 0,
@@ -59,21 +48,39 @@ static enum {
 
 void datalink_set(char *datalink_string)
 {
-    if (strcasecmp("bip", datalink_string) == 0) {
-        Datalink_Transport = DATALINK_BIP;
-    } else if (strcasecmp("bip6", datalink_string) == 0) {
-        Datalink_Transport = DATALINK_BIP6;
-    } else if (strcasecmp("ethernet", datalink_string) == 0) {
-        Datalink_Transport = DATALINK_ETHERNET;
-    } else if (strcasecmp("arcnet", datalink_string) == 0) {
-        Datalink_Transport = DATALINK_ARCNET;
-    } else if (strcasecmp("mstp", datalink_string) == 0) {
-        Datalink_Transport = DATALINK_MSTP;
-    } else if (strcasecmp("bsc", datalink_string) == 0) {
-        Datalink_Transport = DATALINK_BSC;
-    } else if (strcasecmp("none", datalink_string) == 0) {
+    if (strcasecmp("none", datalink_string) == 0) {
         Datalink_Transport = DATALINK_NONE;
     }
+#if defined(BACDL_BIP)
+    else if (strcasecmp("bip", datalink_string) == 0) {
+        Datalink_Transport = DATALINK_BIP;
+    }
+#endif
+#if defined(BACDL_BIP6)
+    else if (strcasecmp("bip6", datalink_string) == 0) {
+        Datalink_Transport = DATALINK_BIP6;
+    }
+#endif
+#if defined(BACDL_ETHERNET)
+    else if (strcasecmp("ethernet", datalink_string) == 0) {
+        Datalink_Transport = DATALINK_ETHERNET;
+    }
+#endif
+#if defined(BACDL_ARCNET)
+    else if (strcasecmp("arcnet", datalink_string) == 0) {
+        Datalink_Transport = DATALINK_ARCNET;
+    }
+#endif
+#if defined(BACDL_MSTP)
+    else if (strcasecmp("mstp", datalink_string) == 0) {
+        Datalink_Transport = DATALINK_MSTP;
+    }
+#endif
+#if defined(BACDL_BSC)
+    else if (strcasecmp("bsc", datalink_string) == 0) {
+        Datalink_Transport = DATALINK_BSC;
+    }
+#endif
 }
 
 bool datalink_init(char *ifname)
@@ -84,24 +91,36 @@ bool datalink_init(char *ifname)
         case DATALINK_NONE:
             status = true;
             break;
+#if defined(BACDL_ARCNET)
         case DATALINK_ARCNET:
             status = arcnet_init(ifname);
             break;
+#endif
+#if defined(BACDL_ETHERNET)
         case DATALINK_ETHERNET:
             status = ethernet_init(ifname);
             break;
+#endif
+#if defined(BACDL_BIP)
         case DATALINK_BIP:
             status = bip_init(ifname);
             break;
+#endif
+#if defined(BACDL_BIP6)
         case DATALINK_BIP6:
             status = bip6_init(ifname);
             break;
+#endif
+#if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             status = dlmstp_init(ifname);
             break;
+#endif
+#if defined(BACDL_BSC)
         case DATALINK_BSC:
             status = bsc_init(ifname);
             break;
+#endif
         default:
             break;
     }
@@ -109,7 +128,8 @@ bool datalink_init(char *ifname)
     return status;
 }
 
-int datalink_send_pdu(BACNET_ADDRESS *dest,
+int datalink_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
@@ -120,25 +140,36 @@ int datalink_send_pdu(BACNET_ADDRESS *dest,
         case DATALINK_NONE:
             bytes = pdu_len;
             break;
+#if defined(BACDL_ARCNET)
         case DATALINK_ARCNET:
             bytes = arcnet_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
+#endif
+#if defined(BACDL_ETHERNET)
         case DATALINK_ETHERNET:
             bytes = ethernet_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
+#endif
+#if defined(BACDL_BIP)
         case DATALINK_BIP:
             bytes = bip_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
+#endif
+#if defined(BACDL_BIP6)
         case DATALINK_BIP6:
             bytes = bip6_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
+#endif
+#if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             bytes = dlmstp_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
+#endif
+#if defined(BACDL_BSC)
         case DATALINK_BSC:
-            bytes = bsc_send_pdu(
-                dest, npdu_data, pdu, pdu_len);
+            bytes = bsc_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
+#endif
         default:
             break;
     }
@@ -154,25 +185,36 @@ uint16_t datalink_receive(
     switch (Datalink_Transport) {
         case DATALINK_NONE:
             break;
+#if defined(BACDL_ARCNET)
         case DATALINK_ARCNET:
             bytes = arcnet_receive(src, pdu, max_pdu, timeout);
             break;
+#endif
+#if defined(BACDL_ETHERNET)
         case DATALINK_ETHERNET:
             bytes = ethernet_receive(src, pdu, max_pdu, timeout);
             break;
+#endif
+#if defined(BACDL_BIP)
         case DATALINK_BIP:
             bytes = bip_receive(src, pdu, max_pdu, timeout);
             break;
+#endif
+#if defined(BACDL_BIP6)
         case DATALINK_BIP6:
             bytes = bip6_receive(src, pdu, max_pdu, timeout);
             break;
+#endif
+#if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             bytes = dlmstp_receive(src, pdu, max_pdu, timeout);
             break;
+#endif
+#if defined(BACDL_BSC)
         case DATALINK_BSC:
-            bytes = bsc_receive(
-                src, pdu, max_pdu, timeout);
+            bytes = bsc_receive(src, pdu, max_pdu, timeout);
             break;
+#endif
         default:
             break;
     }
@@ -185,24 +227,36 @@ void datalink_cleanup(void)
     switch (Datalink_Transport) {
         case DATALINK_NONE:
             break;
+#if defined(BACDL_ARCNET)
         case DATALINK_ARCNET:
             arcnet_cleanup();
             break;
+#endif
+#if defined(BACDL_ETHERNET)
         case DATALINK_ETHERNET:
             ethernet_cleanup();
             break;
+#endif
+#if defined(BACDL_BIP)
         case DATALINK_BIP:
             bip_cleanup();
             break;
+#endif
+#if defined(BACDL_BIP6)
         case DATALINK_BIP6:
             bip6_cleanup();
             break;
+#endif
+#if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             dlmstp_cleanup();
             break;
+#endif
+#if defined(BACDL_BSC)
         case DATALINK_BSC:
             bsc_cleanup();
             break;
+#endif
         default:
             break;
     }
@@ -213,24 +267,36 @@ void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
     switch (Datalink_Transport) {
         case DATALINK_NONE:
             break;
+#if defined(BACDL_ARCNET)
         case DATALINK_ARCNET:
             arcnet_get_broadcast_address(dest);
             break;
+#endif
+#if defined(BACDL_ETHERNET)
         case DATALINK_ETHERNET:
             ethernet_get_broadcast_address(dest);
             break;
+#endif
+#if defined(BACDL_BIP)
         case DATALINK_BIP:
             bip_get_broadcast_address(dest);
             break;
+#endif
+#if defined(BACDL_BIP6)
         case DATALINK_BIP6:
             bip6_get_broadcast_address(dest);
             break;
+#endif
+#if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             dlmstp_get_broadcast_address(dest);
             break;
+#endif
+#if defined(BACDL_BSC)
         case DATALINK_BSC:
             bsc_get_broadcast_address(dest);
             break;
+#endif
         default:
             break;
     }
@@ -241,24 +307,36 @@ void datalink_get_my_address(BACNET_ADDRESS *my_address)
     switch (Datalink_Transport) {
         case DATALINK_NONE:
             break;
+#if defined(BACDL_ARCNET)
         case DATALINK_ARCNET:
             arcnet_get_my_address(my_address);
             break;
+#endif
+#if defined(BACDL_ETHERNET)
         case DATALINK_ETHERNET:
             ethernet_get_my_address(my_address);
             break;
+#endif
+#if defined(BACDL_BIP)
         case DATALINK_BIP:
             bip_get_my_address(my_address);
             break;
+#endif
+#if defined(BACDL_BIP6)
         case DATALINK_BIP6:
             bip6_get_my_address(my_address);
             break;
+#endif
+#if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             dlmstp_get_my_address(my_address);
             break;
+#endif
+#if defined(BACDL_BSC)
         case DATALINK_BSC:
             bsc_get_my_address(my_address);
             break;
+#endif
         default:
             break;
     }
@@ -270,24 +348,36 @@ void datalink_set_interface(char *ifname)
         case DATALINK_NONE:
             (void)ifname;
             break;
+#if defined(BACDL_ARCNET)
         case DATALINK_ARCNET:
             (void)ifname;
             break;
+#endif
+#if defined(BACDL_ETHERNET)
         case DATALINK_ETHERNET:
             (void)ifname;
             break;
+#endif
+#if defined(BACDL_BIP)
         case DATALINK_BIP:
             (void)ifname;
             break;
+#endif
+#if defined(BACDL_BIP6)
         case DATALINK_BIP6:
             (void)ifname;
             break;
+#endif
+#if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             (void)ifname;
             break;
+#endif
+#if defined(BACDL_BSC)
         case DATALINK_BSC:
             (void)ifname;
             break;
+#endif
         default:
             break;
     }
@@ -298,21 +388,33 @@ void datalink_maintenance_timer(uint16_t seconds)
     switch (Datalink_Transport) {
         case DATALINK_NONE:
             break;
+#if defined(BACDL_ARCNET)
         case DATALINK_ARCNET:
             break;
+#endif
+#if defined(BACDL_ETHERNET)
         case DATALINK_ETHERNET:
             break;
+#endif
+#if defined(BACDL_BIP)
         case DATALINK_BIP:
             bvlc_maintenance_timer(seconds);
             break;
+#endif
+#if defined(BACDL_BIP6)
         case DATALINK_BIP6:
             bvlc6_maintenance_timer(seconds);
             break;
+#endif
+#if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             break;
+#endif
+#if defined(BACDL_BSC)
         case DATALINK_BSC:
             bsc_maintenance_timer(seconds);
             break;
+#endif
         default:
             break;
     }
@@ -327,7 +429,8 @@ bool datalink_init(char *ifname)
     return true;
 }
 
-int datalink_send_pdu(BACNET_ADDRESS *dest,
+int datalink_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)

@@ -67,7 +67,7 @@ bool bsc_cert_files_check(void);
  * @brief Blocking thread-safe bsc_send_pdu() function
  *        sends pdu over BACNet/SC to node specified by
  *        destination address param.
-*
+ *
  * @param dest [in] BACNet/SC node's virtual MAC address as
  *                  defined in Clause AB.1.5.2.
  *                  Can be broadcast.
@@ -80,7 +80,8 @@ bool bsc_cert_files_check(void);
  */
 
 BACNET_STACK_EXPORT
-int bsc_send_pdu(BACNET_ADDRESS *dest,
+int bsc_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len);
@@ -100,10 +101,8 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
  */
 
 BACNET_STACK_EXPORT
-uint16_t bsc_receive(BACNET_ADDRESS *src,
-    uint8_t *pdu,
-    uint16_t max_pdu,
-    unsigned timeout_ms);
+uint16_t bsc_receive(
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout_ms);
 
 /**
  * @brief Function can be used to retrieve broadcast
@@ -113,7 +112,7 @@ uint16_t bsc_receive(BACNET_ADDRESS *src,
  */
 
 BACNET_STACK_EXPORT
-void bsc_get_broadcast_address(BACNET_ADDRESS * addr);
+void bsc_get_broadcast_address(BACNET_ADDRESS *addr);
 
 /**
  * @brief Function can be used to retrieve local
@@ -145,8 +144,7 @@ void bsc_get_my_address(BACNET_ADDRESS *my_address);
 
 BACNET_STACK_EXPORT
 bool bsc_direct_connection_established(
-    BACNET_SC_VMAC_ADDRESS *dest,
-    char** urls, size_t urls_cnt);
+    BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt);
 
 /**
  * @brief Function starts process of establishing of a
@@ -171,9 +169,8 @@ bool bsc_direct_connection_established(
  */
 
 BACNET_STACK_EXPORT
-BSC_SC_RET bsc_connect_direct(
-    BACNET_SC_VMAC_ADDRESS *dest,
-    char** urls, size_t urls_cnt);
+BSC_SC_RET
+bsc_connect_direct(BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt);
 
 BACNET_STACK_EXPORT
 void bsc_disconnect_direct(BACNET_SC_VMAC_ADDRESS *dest);

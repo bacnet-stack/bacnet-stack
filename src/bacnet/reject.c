@@ -1,44 +1,16 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet Reject message encode and decode helper functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/reject.h"
-
-/** @file reject.c  Encode/Decode Reject APDUs */
 
 /**
  * @brief Convert an error code BACnet Reject code
@@ -124,7 +96,6 @@ bool reject_valid_error_code(BACNET_ERROR_CODE error_code)
     return status;
 }
 
-
 /**
  * @brief Convert a reject code to BACnet Error code
  * @param reject_code - code to be converted
@@ -170,8 +141,7 @@ BACNET_ERROR_CODE reject_convert_to_error_code(BACNET_REJECT_REASON reject_code)
             error_code = ERROR_CODE_INVALID_DATA_ENCODING;
             break;
         default:
-            if ((reject_code >= REJECT_REASON_PROPRIETARY_FIRST) &&
-                (reject_code <= REJECT_REASON_PROPRIETARY_LAST)) {
+            if (reject_code >= REJECT_REASON_PROPRIETARY_FIRST) {
                 error_code = ERROR_CODE_REJECT_PROPRIETARY;
             }
             break;
@@ -214,7 +184,8 @@ int reject_encode_apdu(uint8_t *apdu, uint8_t invoke_id, uint8_t reject_reason)
  *
  * @return Bytes encoded, typically 3.
  */
-int reject_decode_service_request(uint8_t *apdu,
+int reject_decode_service_request(
+    const uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t *reject_reason)

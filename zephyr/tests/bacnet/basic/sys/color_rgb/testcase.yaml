@@ -1,7 +1,0 @@
-tests:
-  bacnet.basic.sys.color_rgb.unit:
-    tags: bacnet
-    type: unit
-    skip: true
-  bacnet.basic.sys.color_rgb:
-    tags: bacnet

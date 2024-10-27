@@ -70,7 +70,7 @@ static void host_n_port_to_data(
  * @param peer - the structure to hold the converted data
  */
 static void host_n_port_from_data(
-    BACNET_HOST_N_PORT_DATA *peer_data, BACNET_HOST_N_PORT *peer)
+    const BACNET_HOST_N_PORT_DATA *peer_data, BACNET_HOST_N_PORT *peer)
 {
     peer->host_ip_address = peer_data->type & BACNET_HOST_N_PORT_IP;
     peer->host_name = peer_data->type & BACNET_HOST_N_PORT_HOST;
@@ -100,7 +100,7 @@ static void host_n_port_from_data(
  * @return length of the encoded APDU buffer
  */
 int bacapp_encode_SCHubConnection(
-    uint8_t *apdu, BACNET_SC_HUB_CONNECTION_STATUS *value)
+    uint8_t *apdu, const BACNET_SC_HUB_CONNECTION_STATUS *value)
 {
     int apdu_len = 0, len = 0;
     BACNET_CHARACTER_STRING str;
@@ -155,7 +155,9 @@ int bacapp_encode_SCHubConnection(
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_SCHubConnection(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_SC_HUB_CONNECTION_STATUS *value)
+    const uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_SC_HUB_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
     int len;
@@ -252,7 +254,9 @@ int bacapp_decode_SCHubConnection(
  * @return length of the encoded APDU buffer
  */
 int bacapp_encode_context_SCHubConnection(
-    uint8_t *apdu, uint8_t tag_number, BACNET_SC_HUB_CONNECTION_STATUS *value)
+    uint8_t *apdu,
+    uint8_t tag_number,
+    const BACNET_SC_HUB_CONNECTION_STATUS *value)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0;
@@ -284,13 +288,12 @@ int bacapp_encode_context_SCHubConnection(
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_context_SCHubConnection(
-    uint8_t *apdu,
-    uint32_t apdu_size,
+    const uint8_t *apdu,
+    size_t apdu_size,
     uint8_t tag_number,
     BACNET_SC_HUB_CONNECTION_STATUS *value)
 {
     int apdu_len = 0, len = 0;
-    int tag_length;
 
     if (bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size, tag_number, &len)) {
@@ -334,7 +337,7 @@ int bacapp_decode_context_SCHubConnection(
  * @return length of the encoded APDU buffer
  */
 int bacapp_encode_SCHubFunctionConnection(
-    uint8_t *apdu, BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
+    uint8_t *apdu, const BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
 {
     int apdu_len = 0, len = 0;
     BACNET_CHARACTER_STRING str;
@@ -376,8 +379,7 @@ int bacapp_encode_SCHubFunctionConnection(
         }
         apdu_len += len;
         if (octetstring_init(
-                &octet,
-                value->Peer_UUID.uuid.uuid128,
+                &octet, value->Peer_UUID.uuid.uuid128,
                 sizeof(value->Peer_UUID.uuid.uuid128))) {
             len = encode_context_octet_string(apdu, 5, &octet);
         } else {
@@ -425,8 +427,8 @@ int bacapp_encode_SCHubFunctionConnection(
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_SCHubFunctionConnection(
-    uint8_t *apdu,
-    uint32_t apdu_size,
+    const uint8_t *apdu,
+    size_t apdu_size,
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
@@ -498,8 +500,7 @@ int bacapp_decode_SCHubFunctionConnection(
     if (value) {
         octetstring_copy_value(
             value->Peer_UUID.uuid.uuid128,
-            sizeof(value->Peer_UUID.uuid.uuid128),
-            &octet);
+            sizeof(value->Peer_UUID.uuid.uuid128), &octet);
     }
     /* error [6] Error OPTIONAL */
     /* error-details [7] CharacterString OPTIONAL */
@@ -548,7 +549,7 @@ int bacapp_decode_SCHubFunctionConnection(
 int bacapp_encode_context_SCHubFunctionConnection(
     uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
+    const BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0;
@@ -580,8 +581,8 @@ int bacapp_encode_context_SCHubFunctionConnection(
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_context_SCHubFunctionConnection(
-    uint8_t *apdu,
-    uint32_t apdu_size,
+    const uint8_t *apdu,
+    size_t apdu_size,
     uint8_t tag_number,
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
 {
@@ -627,7 +628,7 @@ int bacapp_decode_context_SCHubFunctionConnection(
  * @return length of the encoded APDU buffer
  */
 int bacapp_encode_SCFailedConnectionRequest(
-    uint8_t *apdu, BACNET_SC_FAILED_CONNECTION_REQUEST *value)
+    uint8_t *apdu, const BACNET_SC_FAILED_CONNECTION_REQUEST *value)
 {
     int apdu_len = 0, len = 0;
     BACNET_CHARACTER_STRING str;
@@ -657,8 +658,7 @@ int bacapp_encode_SCFailedConnectionRequest(
         }
         apdu_len += len;
         if (octetstring_init(
-                &octet,
-                value->Peer_UUID.uuid.uuid128,
+                &octet, value->Peer_UUID.uuid.uuid128,
                 sizeof(value->Peer_UUID.uuid.uuid128))) {
             len = encode_context_octet_string(apdu, 3, &octet);
         } else {
@@ -693,8 +693,8 @@ int bacapp_encode_SCFailedConnectionRequest(
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_SCFailedConnectionRequest(
-    uint8_t *apdu,
-    uint32_t apdu_size,
+    const uint8_t *apdu,
+    size_t apdu_size,
     BACNET_SC_FAILED_CONNECTION_REQUEST *value)
 {
     int apdu_len = 0;
@@ -745,8 +745,7 @@ int bacapp_decode_SCFailedConnectionRequest(
     if (value) {
         octetstring_copy_value(
             value->Peer_UUID.uuid.uuid128,
-            sizeof(value->Peer_UUID.uuid.uuid128),
-            &octet);
+            sizeof(value->Peer_UUID.uuid.uuid128), &octet);
     }
     if (apdu_size > apdu_len) {
         len = bacnet_enumerated_context_decode(
@@ -788,7 +787,7 @@ int bacapp_decode_SCFailedConnectionRequest(
 int bacapp_encode_context_SCFailedConnectionRequest(
     uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_SC_FAILED_CONNECTION_REQUEST *value)
+    const BACNET_SC_FAILED_CONNECTION_REQUEST *value)
 {
     int apdu_len = 0, len = 0;
 
@@ -819,8 +818,8 @@ int bacapp_encode_context_SCFailedConnectionRequest(
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_context_SCFailedConnectionRequest(
-    uint8_t *apdu,
-    uint32_t apdu_size,
+    const uint8_t *apdu,
+    size_t apdu_size,
     uint8_t tag_number,
     BACNET_SC_FAILED_CONNECTION_REQUEST *value)
 {
@@ -867,7 +866,7 @@ int bacapp_decode_context_SCFailedConnectionRequest(
  * @param address - IP address and port number
  * @return length of the encoded APDU buffer
  */
-int bacapp_encode_RouterEntry(uint8_t *apdu, BACNET_ROUTER_ENTRY *value)
+int bacapp_encode_RouterEntry(uint8_t *apdu, const BACNET_ROUTER_ENTRY *value)
 {
     int apdu_len = 0, len = 0;
     BACNET_OCTET_STRING octet;
@@ -913,7 +912,7 @@ int bacapp_encode_RouterEntry(uint8_t *apdu, BACNET_ROUTER_ENTRY *value)
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_RouterEntry(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_ROUTER_ENTRY *value)
+    const uint8_t *apdu, size_t apdu_size, BACNET_ROUTER_ENTRY *value)
 {
     int apdu_len = 0;
     int len;
@@ -985,7 +984,7 @@ int bacapp_decode_RouterEntry(
  * @return length of the encoded APDU buffer
  */
 int bacapp_encode_context_RouterEntry(
-    uint8_t *apdu, uint8_t tag_number, BACNET_ROUTER_ENTRY *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_ROUTER_ENTRY *value)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0;
@@ -1016,8 +1015,8 @@ int bacapp_encode_context_RouterEntry(
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_context_RouterEntry(
-    uint8_t *apdu,
-    uint32_t apdu_size,
+    const uint8_t *apdu,
+    size_t apdu_size,
     uint8_t tag_number,
     BACNET_ROUTER_ENTRY *value)
 {
@@ -1065,7 +1064,7 @@ int bacapp_decode_context_RouterEntry(
  * @return length of the encoded APDU buffer
  */
 int bacapp_encode_SCDirectConnection(
-    uint8_t *apdu, BACNET_SC_DIRECT_CONNECTION_STATUS *value)
+    uint8_t *apdu, const BACNET_SC_DIRECT_CONNECTION_STATUS *value)
 {
     int apdu_len = 0, len = 0;
     BACNET_CHARACTER_STRING str;
@@ -1116,8 +1115,7 @@ int bacapp_encode_SCDirectConnection(
             apdu += len;
         }
         if (octetstring_init(
-                &octet,
-                value->Peer_UUID.uuid.uuid128,
+                &octet, value->Peer_UUID.uuid.uuid128,
                 sizeof(value->Peer_UUID.uuid.uuid128))) {
             len = encode_context_octet_string(apdu, 6, &octet);
         } else {
@@ -1153,8 +1151,8 @@ int bacapp_encode_SCDirectConnection(
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_SCDirectConnection(
-    uint8_t *apdu,
-    uint32_t apdu_size,
+    const uint8_t *apdu,
+    size_t apdu_size,
     BACNET_SC_DIRECT_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
@@ -1240,8 +1238,7 @@ int bacapp_decode_SCDirectConnection(
     if (value) {
         octetstring_copy_value(
             value->Peer_UUID.uuid.uuid128,
-            sizeof(value->Peer_UUID.uuid.uuid128),
-            &octet);
+            sizeof(value->Peer_UUID.uuid.uuid128), &octet);
     }
     len = bacnet_enumerated_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 7, &ui32);
@@ -1282,7 +1279,7 @@ int bacapp_decode_SCDirectConnection(
 int bacapp_encode_context_SCDirectConnection(
     uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_SC_DIRECT_CONNECTION_STATUS *value)
+    const BACNET_SC_DIRECT_CONNECTION_STATUS *value)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0;
@@ -1312,8 +1309,8 @@ int bacapp_encode_context_SCDirectConnection(
  * @return number of bytes decoded of the APDU buffer, or -1 on error
  */
 int bacapp_decode_context_SCDirectConnection(
-    uint8_t *apdu,
-    uint32_t apdu_size,
+    const uint8_t *apdu,
+    size_t apdu_size,
     uint8_t tag_number,
     BACNET_SC_DIRECT_CONNECTION_STATUS *value)
 {
@@ -1347,21 +1344,16 @@ int bacapp_decode_context_SCDirectConnection(
  * @return number of bytes written to the string buffer
  */
 static int bacapp_snprintf_host_n_port(
-    char *str, size_t str_len, BACNET_HOST_N_PORT_DATA *host_port)
+    char *str, size_t str_len, const BACNET_HOST_N_PORT_DATA *host_port)
 {
     /* false positive cppcheck - snprintf allows null pointers */
     /* cppcheck-suppress nullPointer */
     /* cppcheck-suppress ctunullpointer */
     /* cppcheck-suppress nullPointerRedundantCheck */
     return snprintf(
-        str,
-        str_len,
-        "%u.%u.%u.%u:%u, ",
-        (uint8_t)host_port->host[0],
-        (uint8_t)host_port->host[1],
-        (uint8_t)host_port->host[2],
-        (uint8_t)host_port->host[3],
-        host_port->port);
+        str, str_len, "%u.%u.%u.%u:%u, ", (uint8_t)host_port->host[0],
+        (uint8_t)host_port->host[1], (uint8_t)host_port->host[2],
+        (uint8_t)host_port->host[3], host_port->port);
 }
 
 /**
@@ -1371,22 +1363,15 @@ static int bacapp_snprintf_host_n_port(
  * @param vmac - the VMAC
  * @return number of bytes written to the string buffer
  */
-static int bacapp_snprintf_vmac(char *str, size_t str_len, uint8_t *vmac)
+static int bacapp_snprintf_vmac(char *str, size_t str_len, const uint8_t *vmac)
 {
     /* false positive cppcheck - snprintf allows null pointers */
     /* cppcheck-suppress nullPointer */
     /* cppcheck-suppress ctunullpointer */
     /* cppcheck-suppress nullPointerRedundantCheck */
     return snprintf(
-        str,
-        str_len,
-        "%u.%u.%u.%u.%u.%u, ",
-        vmac[0],
-        vmac[1],
-        vmac[2],
-        vmac[3],
-        vmac[4],
-        vmac[5]);
+        str, str_len, "%u.%u.%u.%u.%u.%u, ", vmac[0], vmac[1], vmac[2], vmac[3],
+        vmac[4], vmac[5]);
 }
 
 /**
@@ -1396,10 +1381,9 @@ static int bacapp_snprintf_vmac(char *str, size_t str_len, uint8_t *vmac)
  * @param uuid - the UUID
  * @return number of bytes written to the string buffer
  */
-static int bacapp_snprintf_uuid(char *str, size_t str_len, BACNET_UUID *uuid)
+static int
+bacapp_snprintf_uuid(char *str, size_t str_len, const BACNET_UUID *uuid)
 {
-    struct guid *guid = &uuid->uuid.guid;
-    uint8_t *p = guid->clock_seq_and_node;
     char *uuid_format[2] = {
         "%8.8x-%4.4x-%4.4x-%2.2x%2.2x-%2.2x%2.2x%"
         "2.2x%2.2x%2.2x%2.2x, ",
@@ -1412,20 +1396,17 @@ static int bacapp_snprintf_uuid(char *str, size_t str_len, BACNET_UUID *uuid)
     /* cppcheck-suppress ctunullpointer */
     /* cppcheck-suppress nullPointerRedundantCheck */
     return snprintf(
-        str,
-        str_len,
-        uuid_format[sizeof(unsigned int) == 4 ? 0 : 1],
-        guid->time_low,
-        guid->time_mid,
-        guid->time_hi_and_version,
-        p[0],
-        p[1],
-        p[2],
-        p[3],
-        p[4],
-        p[5],
-        p[6],
-        p[7]);
+        str, str_len, uuid_format[sizeof(unsigned int) == 4 ? 0 : 1],
+        uuid->uuid.guid.time_low, uuid->uuid.guid.time_mid,
+        uuid->uuid.guid.time_hi_and_version,
+        uuid->uuid.guid.clock_seq_and_node[0],
+        uuid->uuid.guid.clock_seq_and_node[1],
+        uuid->uuid.guid.clock_seq_and_node[2],
+        uuid->uuid.guid.clock_seq_and_node[3],
+        uuid->uuid.guid.clock_seq_and_node[4],
+        uuid->uuid.guid.clock_seq_and_node[5],
+        uuid->uuid.guid.clock_seq_and_node[6],
+        uuid->uuid.guid.clock_seq_and_node[7]);
 }
 
 /**
@@ -1436,8 +1417,8 @@ static int bacapp_snprintf_uuid(char *str, size_t str_len, BACNET_UUID *uuid)
  * @param error_details - the error details
  * @return number of bytes written to the string buffer
  */
-static int
-snprintf_error_code(char *str, size_t str_len, int error, char *error_details)
+static int snprintf_error_code(
+    char *str, size_t str_len, int error, const char *error_details)
 {
     return error_details[0]
         ? snprintf(str, str_len, "%d, \"%s\"", error, error_details)
@@ -1452,7 +1433,7 @@ snprintf_error_code(char *str, size_t str_len, int error, char *error_details)
  * @return number of bytes written to the string buffer
  */
 int bacapp_snprintf_SCFailedConnectionRequest(
-    char *str, size_t str_size, BACNET_SC_FAILED_CONNECTION_REQUEST *req)
+    char *str, size_t str_size, const BACNET_SC_FAILED_CONNECTION_REQUEST *req)
 {
     int str_len = 0;
     int slen;
@@ -1541,7 +1522,9 @@ int bacapp_snprintf_SCFailedConnectionRequest(
  * @return number of bytes written to the string buffer
  */
 int bacapp_snprintf_SCHubFunctionConnection(
-    char *str, size_t str_size, BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *st)
+    char *str,
+    size_t str_size,
+    const BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *st)
 {
     int str_len = 0;
     int slen;
@@ -1650,7 +1633,7 @@ int bacapp_snprintf_SCHubFunctionConnection(
  * @return number of bytes written to the string buffer
  */
 int bacapp_snprintf_SCDirectConnection(
-    char *str, size_t str_size, BACNET_SC_DIRECT_CONNECTION_STATUS *st)
+    char *str, size_t str_size, const BACNET_SC_DIRECT_CONNECTION_STATUS *st)
 {
     int str_len = 0;
     int slen;
@@ -1746,7 +1729,7 @@ int bacapp_snprintf_SCDirectConnection(
     } else {
         str_size = 0;
     }
-    slen = snprintf(str, str_size - str_len, "}");
+    slen = snprintf(str, str_size, "}");
     str_len += slen;
 
     return str_len;
@@ -1760,7 +1743,7 @@ int bacapp_snprintf_SCDirectConnection(
  * @return number of bytes written to the string buffer
  */
 int bacapp_snprintf_SCHubConnection(
-    char *str, size_t str_size, BACNET_SC_HUB_CONNECTION_STATUS *st)
+    char *str, size_t str_size, const BACNET_SC_HUB_CONNECTION_STATUS *st)
 {
     int str_len = 0;
     int slen;
@@ -1785,7 +1768,7 @@ int bacapp_snprintf_SCHubConnection(
     } else {
         str_size = 0;
     }
-    slen = snprintf(str, str_len, ", ");
+    slen = snprintf(str, str_size, ", ");
     str_len += slen;
     if (str) {
         str += slen;
@@ -1805,7 +1788,7 @@ int bacapp_snprintf_SCHubConnection(
     } else {
         str_size = 0;
     }
-    slen = snprintf(str, str_len, ", ");
+    slen = snprintf(str, str_size, ", ");
     str_len += slen;
     if (str) {
         str += slen;

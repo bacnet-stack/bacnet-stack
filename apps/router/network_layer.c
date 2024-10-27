@@ -6,25 +6,7 @@
  *
  * @section LICENSE
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +14,8 @@
 #include "network_layer.h"
 #include "bacnet/bacint.h"
 
-uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
+uint16_t
+process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 {
     BACNET_NPDU_DATA npdu_data;
     ROUTER_PORT *srcport;
@@ -42,11 +25,13 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     int16_t buff_len = 0;
     int apdu_offset;
     int apdu_len;
+    int net_count;
+    int i;
 
     memmove(data, msg->data, sizeof(MSG_DATA));
 
-    apdu_offset = bacnet_npdu_decode(data->pdu, data->pdu_len, &data->dest,
-        NULL, &npdu_data);
+    apdu_offset = bacnet_npdu_decode(
+        data->pdu, data->pdu_len, &data->dest, NULL, &npdu_data);
     apdu_len = data->pdu_len - apdu_offset;
 
     srcport = find_snet(msg->origin);
@@ -85,12 +70,13 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
         case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK: {
             PRINT(INFO, "Recieved I-Am-Router-To-Network message\n");
-            int net_count = apdu_len / 2;
-            int i;
+            net_count = apdu_len / 2;
             for (i = 0; i < net_count; i++) {
-                decode_unsigned16(&data->pdu[apdu_offset + 2 * i],
+                decode_unsigned16(
+                    &data->pdu[apdu_offset + 2 * i],
                     &net); /* decode received NET values */
-                add_dnet(&srcport->route_info, net,
+                add_dnet(
+                    &srcport->route_info, net,
                     data->src); /* and update routing table */
             }
             break;
@@ -127,9 +113,11 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
                 int net_count = data->pdu[apdu_offset];
                 while (net_count--) {
                     int i = 1;
-                    decode_unsigned16(&data->pdu[apdu_offset + i],
+                    decode_unsigned16(
+                        &data->pdu[apdu_offset + i],
                         &net); /* decode received NET values */
-                    add_dnet(&srcport->route_info, net,
+                    add_dnet(
+                        &srcport->route_info, net,
                         data->src); /* and update routing table */
                     if (data->pdu[apdu_offset + i + 3] >
                         0) { /* find next NET value */
@@ -152,9 +140,11 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
                 int net_count = data->pdu[apdu_offset];
                 while (net_count--) {
                     int i = 1;
-                    decode_unsigned16(&data->pdu[apdu_offset + i],
+                    decode_unsigned16(
+                        &data->pdu[apdu_offset + i],
                         &net); /* decode received NET values */
-                    add_dnet(&srcport->route_info, net,
+                    add_dnet(
+                        &srcport->route_info, net,
                         data->src); /* and update routing table */
                     if (data->pdu[apdu_offset + i + 3] >
                         0) { /* find next NET value */
@@ -316,7 +306,8 @@ uint16_t create_network_message(
     return buff_len;
 }
 
-void send_network_message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
+void send_network_message(
+    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     MSG_DATA *data,
     uint8_t **buff,
     void *val)
@@ -351,7 +342,8 @@ void send_network_message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     }
 }
 
-void init_npdu(BACNET_NPDU_DATA *npdu_data,
+void init_npdu(
+    BACNET_NPDU_DATA *npdu_data,
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     bool data_expecting_reply)
 {

@@ -117,7 +117,7 @@ typedef struct BACnet_SC_VMAC_Address {
  * an installation, shall be persistently stored across device restarts, and
  * shall not change over the entire lifetime of a device.
  * If a device is replaced in an installation, the new device is not required
- * to re-use the UUID of the replaced device. For BACnet/SC, it is assumed
+ * to reuse the UUID of the replaced device. For BACnet/SC, it is assumed
  * that existing connections to the device being replaced are all terminated
  * before the new device comes into operation.
  * @{

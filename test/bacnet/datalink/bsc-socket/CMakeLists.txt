@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 get_filename_component(basename ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 project(test_${basename}
-	VERSION 1.0.0
-	LANGUAGES C)
+    VERSION 1.0.0
+    LANGUAGES C)
 
 string(REGEX REPLACE
     "/test/bacnet/[a-z0-9A-Z_/-]*$"
@@ -25,8 +25,8 @@ string(REGEX REPLACE
 set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
-	BIG_ENDIAN=0
-	CONFIG_ZTEST=1
+    BIG_ENDIAN=0
+    CONFIG_ZTEST=1
     BACDL_BSC
     BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM=4
     BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM=4
@@ -34,12 +34,12 @@ add_compile_definitions(
     BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN=128
     BSC_CONF_WEBSOCKET_SERVERS_NUM=4
     MAX_TSM_TRANSACTIONS=0
-	)
+    )
 
 include_directories(
-	${SRC_DIR}
-	${TST_DIR}/ztest/include
-	)
+    ${SRC_DIR}
+    ${TST_DIR}/ztest/include
+    )
 
 if(ZEPHYR_BASE)
   message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
@@ -69,7 +69,9 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -91,19 +93,23 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/npdu.c
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/wp.c
     # Test and test library files
-    ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
   target_link_libraries(${PROJECT_NAME}
                         ${LIBWEBSOCKETS_LIBRARIES}
-  )
+    )
+  target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wno-language-extension-token
+    )
 elseif(WIN32)
   message(STATUS "BACNet/SC socket test: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
@@ -132,7 +138,9 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -154,12 +162,13 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/npdu.c
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/wp.c
     # Test and test library files
-    ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
@@ -221,7 +230,9 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -243,18 +254,21 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/npdu.c
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/special_event.c
+    ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/wp.c
     # Test and test library files
-    ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
   target_link_libraries(${PROJECT_NAME}
                         ${LIBWEBSOCKETS_LIBRARIES}
-  )
+    )
+  target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wno-language-extension-token
+    )
 endif()
-

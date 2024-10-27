@@ -29,25 +29,25 @@ UNAME_S := $(shell uname -s)
 UNAME_S := $(patsubst BSD%,BSD,$(UNAME_S))
 endif
 
-# unlimited parallel makefile jobs can 
+# unlimited parallel makefile jobs can
 # overwhelm builders with limited resources
 # set job limits based on number of core processors
 ifeq (${JOBS},)
-  ifeq ($(UNAME_S),Windows)
-    JOBS = "-j %NUMBER_OF_PROCESSORS%"
-  endif
-  ifeq ($(UNAME_S),Linux)
-    JOBS = "-j $(shell nproc)"
-  endif
-  ifeq ($(UNAME_S),Darwin)
-    JOBS = "-j $(sysctl -n hw.ncpu)"
-  endif
-  ifeq ($(UNAME_S),BSD)
-    JOBS = "-j $(sysctl -n hw.ncpu)"
-  endif
-  ifeq ($(UNAME_S),MinGW)
-    JOBS = "-j"
-  endif
+	ifeq ($(UNAME_S),Windows)
+		JOBS = "-j %NUMBER_OF_PROCESSORS%"
+	endif
+	ifeq ($(UNAME_S),Linux)
+		JOBS = "-j $(shell nproc)"
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		JOBS = "-j $(sysctl -n hw.ncpu)"
+	endif
+	ifeq ($(UNAME_S),BSD)
+		JOBS = "-j $(sysctl -n hw.ncpu)"
+	endif
+	ifeq ($(UNAME_S),MinGW)
+		JOBS = "-j"
+	endif
 endif
 
 .PHONY: test
