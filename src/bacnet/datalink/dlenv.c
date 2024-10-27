@@ -773,6 +773,8 @@ void dlenv_init(void)
         datalink_set("ethernet");
 #elif defined(BACDL_ARCNET)
         datalink_set("arcnet");
+#elif defined(BACDL_BSC)
+        datalink_set("bsc");
 #else
         datalink_set("none");
 #endif
