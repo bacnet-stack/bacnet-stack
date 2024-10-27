@@ -388,8 +388,7 @@ static void node_switch_acceptor_socket_event(
             }
         } else if (ev == BSC_SOCKET_EVENT_CONNECTED) {
             node_switch_update_status(
-                ctx, false, false, NULL, c, ev, ERROR_CODE_DEFAULT,
-                NULL);
+                ctx, false, false, NULL, c, ev, ERROR_CODE_DEFAULT, NULL);
         }
     }
     bws_dispatch_unlock();

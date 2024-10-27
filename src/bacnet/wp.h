@@ -89,12 +89,12 @@ bool write_property_empty_string_valid(
     const BACNET_APPLICATION_DATA_VALUE *value,
     size_t len_max);
 
-    BACNET_STACK_EXPORT
-    void write_property_unsigned_decode(
-        BACNET_WRITE_PROPERTY_DATA *wp_data,
-        BACNET_APPLICATION_DATA_VALUE *value,
-        bacnet_property_unsigned_setter setter,
-        BACNET_UNSIGNED_INTEGER maximum);
+BACNET_STACK_EXPORT
+void write_property_unsigned_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    bacnet_property_unsigned_setter setter,
+    BACNET_UNSIGNED_INTEGER maximum);
 
 #ifdef __cplusplus
 }

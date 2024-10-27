@@ -40,7 +40,7 @@ typedef struct BSC_Event BSC_EVENT;
  *         returns NULL.
  */
 
-BSC_EVENT* bsc_event_init(void);
+BSC_EVENT *bsc_event_init(void);
 
 /**
  * @brief  bsc_event_deinit() deinitialize auto-reset
@@ -104,4 +104,3 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout);
 void bsc_event_signal(BSC_EVENT *ev);
 
 #endif
-

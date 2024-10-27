@@ -33,10 +33,10 @@
 #define BSC_RX_BUFFER_SIZE BSC_CONF_SOCK_RX_BUFFER_SIZE
 #define BSC_TX_BUFFER_SIZE BSC_CONF_SOCK_TX_BUFFER_SIZE
 
-#define BSC_SOCKET_CTX_NUM                                              \
-    (BSC_CONF_NODES_NUM *                                               \
-        (BSC_CONF_HUB_CONNECTORS_NUM + 2 * BSC_CONF_NODE_SWITCHES_NUM + \
-            BSC_CONF_HUB_FUNCTIONS_NUM))
+#define BSC_SOCKET_CTX_NUM                                           \
+    (BSC_CONF_NODES_NUM *                                            \
+     (BSC_CONF_HUB_CONNECTORS_NUM + 2 * BSC_CONF_NODE_SWITCHES_NUM + \
+      BSC_CONF_HUB_FUNCTIONS_NUM))
 
 struct BSC_Socket;
 typedef struct BSC_Socket BSC_SOCKET;
@@ -152,7 +152,8 @@ struct BSC_SocketContextFuncs {
     /* only for disconnect events, e.g. when ev == BSC_SOCKET_EVENT_DISCONNECTED
      */
 
-    void (*socket_event)(BSC_SOCKET *c,
+    void (*socket_event)(
+        BSC_SOCKET *c,
         BSC_SOCKET_EVENT ev,
         BACNET_ERROR_CODE disconnect_reason,
         const char *disconnect_reason_desc,
@@ -161,7 +162,8 @@ struct BSC_SocketContextFuncs {
         BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
     void (*context_event)(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
-    void (*failed_request)(BSC_SOCKET_CTX *ctx,
+    void (*failed_request)(
+        BSC_SOCKET_CTX *ctx,
         BSC_SOCKET *c,
         BACNET_SC_VMAC_ADDRESS *vmac,
         BACNET_SC_UUID *uuid,
@@ -186,7 +188,8 @@ struct BSC_SocketContext {
 /*                      handled by BSC/SC datalink. */
 
 BACNET_STACK_EXPORT
-void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
+void bsc_init_ctx_cfg(
+    BSC_SOCKET_CTX_TYPE type,
     BSC_CONTEXT_CFG *cfg,
     BSC_WEBSOCKET_PROTOCOL proto,
     uint16_t port,
@@ -206,7 +209,8 @@ void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
     unsigned int disconnect_timeout_s);
 
 BACNET_STACK_EXPORT
-BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
+BSC_SC_RET bsc_init_ctx(
+    BSC_SOCKET_CTX *ctx,
     BSC_CONTEXT_CFG *cfg,
     BSC_SOCKET_CTX_FUNCS *funcs,
     BSC_SOCKET *sockets,

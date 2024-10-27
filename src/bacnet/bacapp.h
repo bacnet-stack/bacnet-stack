@@ -169,7 +169,7 @@ typedef struct BACnet_Application_Data_Value {
 #if defined(BACAPP_CHANNEL_VALUE)
         BACNET_CHANNEL_VALUE Channel_Value;
 #endif
-#if defined (BACAPP_SECURE_CONNECT)
+#if defined(BACAPP_SECURE_CONNECT)
         BACNET_SC_FAILED_CONNECTION_REQUEST SC_Failed_Req;
         BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS SC_Hub_Function_Status;
         BACNET_SC_DIRECT_CONNECTION_STATUS SC_Direct_Status;

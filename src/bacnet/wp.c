@@ -426,7 +426,8 @@ bool write_property_empty_string_valid(
     return (valid);
 }
 
-void write_property_unsigned_decode(BACNET_WRITE_PROPERTY_DATA *wp_data,
+void write_property_unsigned_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
     BACNET_APPLICATION_DATA_VALUE *value,
     bacnet_property_unsigned_setter setter,
     BACNET_UNSIGNED_INTEGER maximum)

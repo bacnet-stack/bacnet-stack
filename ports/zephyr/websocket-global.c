@@ -19,20 +19,20 @@ static K_MUTEX_DEFINE(websocket_dispatch_mutex);
 
 void bsc_websocket_global_lock(void)
 {
-  k_mutex_lock(&websocket_mutex, K_FOREVER);
+    k_mutex_lock(&websocket_mutex, K_FOREVER);
 }
 
 void bsc_websocket_global_unlock(void)
 {
-  k_mutex_unlock(&websocket_mutex);
+    k_mutex_unlock(&websocket_mutex);
 }
 
 void bws_dispatch_lock(void)
 {
-  k_mutex_lock(&websocket_dispatch_mutex, K_FOREVER);
+    k_mutex_lock(&websocket_dispatch_mutex, K_FOREVER);
 }
 
 void bws_dispatch_unlock(void)
 {
-  k_mutex_unlock(&websocket_dispatch_mutex);
+    k_mutex_unlock(&websocket_dispatch_mutex);
 }

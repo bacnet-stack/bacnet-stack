@@ -167,8 +167,7 @@ int datalink_send_pdu(
 #endif
 #if defined(BACDL_BSC)
         case DATALINK_BSC:
-            bytes = bsc_send_pdu(
-                dest, npdu_data, pdu, pdu_len);
+            bytes = bsc_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
 #endif
         default:
@@ -213,8 +212,7 @@ uint16_t datalink_receive(
 #endif
 #if defined(BACDL_MSTP)
         case DATALINK_BSC:
-            bytes = bsc_receive(
-                src, pdu, max_pdu, timeout);
+            bytes = bsc_receive(src, pdu, max_pdu, timeout);
             break;
 #endif
         default:

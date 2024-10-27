@@ -261,14 +261,8 @@ static size_t bvlc_sc_add_option(
 
     /* ensure that user wants to add valid option */
     if (!bvlc_sc_validate_options_headers(
-            BACNET_USER_OPTION_VALIDATION,
-            sc_option,
-            sc_option_len,
-            &options_len,
-            NULL,
-            &error,
-            &class,
-            &err_desc)) {
+            BACNET_USER_OPTION_VALIDATION, sc_option, sc_option_len,
+            &options_len, NULL, &error, &class, &err_desc)) {
         return 0;
     }
 
@@ -296,13 +290,8 @@ static size_t bvlc_sc_add_option(
             /* some options are already presented in message.
                Validate them at first. */
             if (!bvlc_sc_validate_options_headers(
-                    BACNET_PDU_DEST_OPTION_VALIDATION,
-                    &in_pdu[offs],
-                    in_pdu_len - offs,
-                    &options_len,
-                    NULL,
-                    &error,
-                    &class,
+                    BACNET_PDU_DEST_OPTION_VALIDATION, &in_pdu[offs],
+                    in_pdu_len - offs, &options_len, NULL, &error, &class,
                     &err_desc)) {
                 return 0;
             }
@@ -318,14 +307,8 @@ static size_t bvlc_sc_add_option(
            Validate them at first. */
 
         if (!bvlc_sc_validate_options_headers(
-                vt,
-                &in_pdu[offs],
-                in_pdu_len - offs,
-                &options_len,
-                NULL,
-                &error,
-                &class,
-                &err_desc)) {
+                vt, &in_pdu[offs], in_pdu_len - offs, &options_len, NULL,
+                &error, &class, &err_desc)) {
             return 0;
         }
     }
@@ -776,8 +759,7 @@ size_t bvlc_sc_encode_result(
             return 0;
         }
         memcpy(
-            &pdu[offs],
-            utf8_details_string,
+            &pdu[offs], utf8_details_string,
             strlen((const char *)utf8_details_string));
         offs += strlen((const char *)utf8_details_string);
     }
@@ -833,12 +815,10 @@ static bool bvlc_sc_decode_result(
 
         payload->result.error_header_marker = packed_payload[2];
         memcpy(
-            &payload->result.error_class,
-            &packed_payload[3],
+            &payload->result.error_class, &packed_payload[3],
             sizeof(payload->result.error_class));
         memcpy(
-            &payload->result.error_code,
-            &packed_payload[5],
+            &payload->result.error_code, &packed_payload[5],
             sizeof(payload->result.error_code));
 
         if (packed_payload_len > 7) {
@@ -1136,12 +1116,10 @@ static bool bvlc_sc_decode_advertisiment(
     payload->advertisiment.hub_status = packed_payload[0];
     payload->advertisiment.support = packed_payload[1];
     memcpy(
-        &payload->advertisiment.max_bvlc_len,
-        &packed_payload[2],
+        &payload->advertisiment.max_bvlc_len, &packed_payload[2],
         sizeof(payload->advertisiment.max_bvlc_len));
     memcpy(
-        &payload->advertisiment.max_npdu_len,
-        &packed_payload[4],
+        &payload->advertisiment.max_npdu_len, &packed_payload[4],
         sizeof(payload->advertisiment.max_npdu_len));
     return true;
 }
@@ -1180,11 +1158,7 @@ size_t bvlc_sc_encode_advertisiment_solicitation(
     size_t offs;
 
     offs = bvlc_sc_encode_common(
-        pdu,
-        pdu_len,
-        BVLC_SC_ADVERTISIMENT_SOLICITATION,
-        message_id,
-        origin,
+        pdu, pdu_len, BVLC_SC_ADVERTISIMENT_SOLICITATION, message_id, origin,
         dest);
     return offs;
 }
@@ -1289,13 +1263,11 @@ static bool bvlc_sc_decode_connect_request(
     payload->connect_request.uuid = (BACNET_SC_UUID *)packed_payload;
     packed_payload += BVLC_SC_UUID_SIZE;
     memcpy(
-        &payload->connect_request.max_bvlc_len,
-        packed_payload,
+        &payload->connect_request.max_bvlc_len, packed_payload,
         sizeof(payload->connect_request.max_bvlc_len));
     packed_payload += sizeof(payload->connect_request.max_bvlc_len);
     memcpy(
-        &payload->connect_request.max_npdu_len,
-        packed_payload,
+        &payload->connect_request.max_npdu_len, packed_payload,
         sizeof(payload->connect_request.max_npdu_len));
     return true;
 }
@@ -1401,13 +1373,11 @@ static bool bvlc_sc_decode_connect_accept(
     payload->connect_accept.uuid = (BACNET_SC_UUID *)packed_payload;
     packed_payload += BVLC_SC_UUID_SIZE;
     memcpy(
-        &payload->connect_accept.max_bvlc_len,
-        packed_payload,
+        &payload->connect_accept.max_bvlc_len, packed_payload,
         sizeof(payload->connect_accept.max_bvlc_len));
     packed_payload += sizeof(payload->connect_accept.max_bvlc_len);
     memcpy(
-        &payload->connect_accept.max_npdu_len,
-        packed_payload,
+        &payload->connect_accept.max_npdu_len, packed_payload,
         sizeof(payload->connect_accept.max_npdu_len));
     return true;
 }
@@ -1625,8 +1595,7 @@ static bool bvlc_sc_decode_proprietary(
     }
 
     memcpy(
-        &payload->proprietary.vendor_id,
-        packed_payload,
+        &payload->proprietary.vendor_id, packed_payload,
         sizeof(payload->proprietary.vendor_id));
     packed_payload += sizeof(payload->proprietary.vendor_id);
     payload->proprietary.function = packed_payload[0];
@@ -1707,14 +1676,9 @@ static bool bvlc_sc_decode_hdr(
 
     if (message[1] & BVLC_SC_CONTROL_DEST_OPTIONS) {
         ret = bvlc_sc_validate_options_headers(
-            BACNET_PDU_DEST_OPTION_VALIDATION,
-            &message[offs],
-            message_len - offs,
-            &hdr_opt_len,
-            &hdr->dest_options_num,
-            error,
-            class,
-            err_desc);
+            BACNET_PDU_DEST_OPTION_VALIDATION, &message[offs],
+            message_len - offs, &hdr_opt_len, &hdr->dest_options_num, error,
+            class, err_desc);
 
         if (!ret) {
             return false;
@@ -1726,14 +1690,9 @@ static bool bvlc_sc_decode_hdr(
 
     if (message[1] & BVLC_SC_CONTROL_DATA_OPTIONS) {
         ret = bvlc_sc_validate_options_headers(
-            BACNET_PDU_DATA_OPTION_VALIDATION,
-            &message[offs],
-            message_len - offs,
-            &hdr_opt_len,
-            &hdr->data_options_num,
-            error,
-            class,
-            err_desc);
+            BACNET_PDU_DATA_OPTION_VALIDATION, &message[offs],
+            message_len - offs, &hdr_opt_len, &hdr->data_options_num, error,
+            class, err_desc);
         if (!ret) {
             return false;
         }
@@ -1760,17 +1719,14 @@ static bool bvlc_sc_decode_header_options(
 
     while (next_option) {
         bvlc_sc_decode_option_hdr(
-            options_list,
-            &option_array[i].type,
-            &option_array[i].must_understand,
-            &next_option);
+            options_list, &option_array[i].type,
+            &option_array[i].must_understand, &next_option);
 
         option_array[i].packed_header_marker = options_list[0];
 
         if (option_array[i].type == BVLC_SC_OPTION_TYPE_PROPRIETARY) {
             bvlc_sc_decode_proprietary_option(
-                options_list,
-                &option_array[i].specific.proprietary.vendor_id,
+                options_list, &option_array[i].specific.proprietary.vendor_id,
                 &option_array[i].specific.proprietary.option_type,
                 &option_array[i].specific.proprietary.data,
                 &option_array[i].specific.proprietary.data_len);
@@ -1875,12 +1831,8 @@ bool bvlc_sc_decode_message(
             bvlc_sc_decode_dest_options_if_exists(message);
 
             if (!bvlc_sc_decode_result(
-                    &message->payload,
-                    message->hdr.payload,
-                    message->hdr.payload_len,
-                    error,
-                    class,
-                    err_desc)) {
+                    &message->payload, message->hdr.payload,
+                    message->hdr.payload_len, error, class, err_desc)) {
                 return false;
             }
             break;
@@ -1970,12 +1922,8 @@ bool bvlc_sc_decode_message(
             bvlc_sc_decode_dest_options_if_exists(message);
 
             if (!bvlc_sc_decode_advertisiment(
-                    &message->payload,
-                    message->hdr.payload,
-                    message->hdr.payload_len,
-                    error,
-                    class,
-                    err_desc)) {
+                    &message->payload, message->hdr.payload,
+                    message->hdr.payload_len, error, class, err_desc)) {
                 return false;
             }
             break;
@@ -2048,22 +1996,14 @@ bool bvlc_sc_decode_message(
 
             if (message->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST) {
                 if (!bvlc_sc_decode_connect_request(
-                        &message->payload,
-                        message->hdr.payload,
-                        message->hdr.payload_len,
-                        error,
-                        class,
-                        err_desc)) {
+                        &message->payload, message->hdr.payload,
+                        message->hdr.payload_len, error, class, err_desc)) {
                     return false;
                 }
             } else if (message->hdr.bvlc_function == BVLC_SC_CONNECT_ACCEPT) {
                 if (!bvlc_sc_decode_connect_accept(
-                        &message->payload,
-                        message->hdr.payload,
-                        message->hdr.payload_len,
-                        error,
-                        class,
-                        err_desc)) {
+                        &message->payload, message->hdr.payload,
+                        message->hdr.payload_len, error, class, err_desc)) {
                     return false;
                 }
             }
@@ -2088,12 +2028,8 @@ bool bvlc_sc_decode_message(
             bvlc_sc_decode_dest_options_if_exists(message);
 
             if (!bvlc_sc_decode_proprietary(
-                    &message->payload,
-                    message->hdr.payload,
-                    message->hdr.payload_len,
-                    error,
-                    class,
-                    err_desc)) {
+                    &message->payload, message->hdr.payload,
+                    message->hdr.payload_len, error, class, err_desc)) {
                 return false;
             }
             break;

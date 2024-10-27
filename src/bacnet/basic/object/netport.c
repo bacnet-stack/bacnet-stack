@@ -201,16 +201,29 @@ static const int BIP6_Port_Properties_Optional[] = {
     -1
 };
 
-static const int BSC_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
-    PROP_NETWORK_NUMBER_QUALITY, PROP_APDU_LENGTH, PROP_MAC_ADDRESS,
-    PROP_BACNET_IP_MODE, PROP_IP_ADDRESS, PROP_BACNET_IP_UDP_PORT,
-    PROP_IP_SUBNET_MASK, PROP_IP_DEFAULT_GATEWAY, PROP_IP_DNS_SERVER,
-    PROP_MAX_BVLC_LENGTH_ACCEPTED, PROP_MAX_NPDU_LENGTH_ACCEPTED,
-    PROP_SC_PRIMARY_HUB_URI, PROP_SC_FAILOVER_HUB_URI,
-    PROP_SC_MINIMUM_RECONNECT_TIME, PROP_SC_MAXIMUM_RECONNECT_TIME,
-    PROP_SC_CONNECT_WAIT_TIMEOUT, PROP_SC_DISCONNECT_WAIT_TIMEOUT,
-    PROP_SC_HEARTBEAT_TIMEOUT, PROP_SC_HUB_CONNECTOR_STATE,
-    PROP_OPERATIONAL_CERTIFICATE_FILE, PROP_ISSUER_CERTIFICATE_FILES,
+static const int BSC_Port_Properties_Optional[] = {
+    PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY,
+    PROP_APDU_LENGTH,
+    PROP_MAC_ADDRESS,
+    PROP_BACNET_IP_MODE,
+    PROP_IP_ADDRESS,
+    PROP_BACNET_IP_UDP_PORT,
+    PROP_IP_SUBNET_MASK,
+    PROP_IP_DEFAULT_GATEWAY,
+    PROP_IP_DNS_SERVER,
+    PROP_MAX_BVLC_LENGTH_ACCEPTED,
+    PROP_MAX_NPDU_LENGTH_ACCEPTED,
+    PROP_SC_PRIMARY_HUB_URI,
+    PROP_SC_FAILOVER_HUB_URI,
+    PROP_SC_MINIMUM_RECONNECT_TIME,
+    PROP_SC_MAXIMUM_RECONNECT_TIME,
+    PROP_SC_CONNECT_WAIT_TIMEOUT,
+    PROP_SC_DISCONNECT_WAIT_TIMEOUT,
+    PROP_SC_HEARTBEAT_TIMEOUT,
+    PROP_SC_HUB_CONNECTOR_STATE,
+    PROP_OPERATIONAL_CERTIFICATE_FILE,
+    PROP_ISSUER_CERTIFICATE_FILES,
     PROP_CERTIFICATE_SIGNING_REQUEST_FILE,
 /*SC optional*/
 #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
@@ -218,16 +231,22 @@ static const int BSC_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
     PROP_SC_PRIMARY_HUB_CONNECTION_STATUS,
-    PROP_SC_FAILOVER_HUB_CONNECTION_STATUS, PROP_SC_HUB_FUNCTION_ENABLE,
-    PROP_SC_HUB_FUNCTION_ACCEPT_URIS, PROP_SC_HUB_FUNCTION_BINDING,
+    PROP_SC_FAILOVER_HUB_CONNECTION_STATUS,
+    PROP_SC_HUB_FUNCTION_ENABLE,
+    PROP_SC_HUB_FUNCTION_ACCEPT_URIS,
+    PROP_SC_HUB_FUNCTION_BINDING,
     PROP_SC_HUB_FUNCTION_CONNECTION_STATUS,
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
     PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE,
-    PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE, PROP_SC_DIRECT_CONNECT_ACCEPT_URIS,
-    PROP_SC_DIRECT_CONNECT_BINDING, PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
+    PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE,
+    PROP_SC_DIRECT_CONNECT_ACCEPT_URIS,
+    PROP_SC_DIRECT_CONNECT_BINDING,
+    PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
-    PROP_SC_FAILED_CONNECTION_REQUESTS, -1 };
+    PROP_SC_FAILED_CONNECTION_REQUESTS,
+    -1
+};
 
 static const int Network_Port_Properties_Proprietary[] = { -1 };
 
@@ -3586,11 +3605,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #ifdef BACDL_BSC
         case PROP_MAX_BVLC_LENGTH_ACCEPTED:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_Max_BVLC_Length_Accepted(rpdata->object_instance));
             break;
         case PROP_MAX_NPDU_LENGTH_ACCEPTED:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_Max_NPDU_Length_Accepted(rpdata->object_instance));
             break;
         case PROP_SC_PRIMARY_HUB_URI:
@@ -3606,40 +3627,47 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SC_MINIMUM_RECONNECT_TIME:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_SC_Minimum_Reconnect_Time(
                     rpdata->object_instance));
             break;
         case PROP_SC_MAXIMUM_RECONNECT_TIME:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_SC_Maximum_Reconnect_Time(
                     rpdata->object_instance));
             break;
         case PROP_SC_CONNECT_WAIT_TIMEOUT:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_SC_Connect_Wait_Timeout(rpdata->object_instance));
             break;
         case PROP_SC_DISCONNECT_WAIT_TIMEOUT:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_SC_Disconnect_Wait_Timeout(
                     rpdata->object_instance));
             break;
         case PROP_SC_HEARTBEAT_TIMEOUT:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_SC_Heartbeat_Timeout(rpdata->object_instance));
             break;
         case PROP_SC_HUB_CONNECTOR_STATE:
-            apdu_len = encode_application_enumerated(&apdu[0],
+            apdu_len = encode_application_enumerated(
+                &apdu[0],
                 Network_Port_SC_Hub_Connector_State(rpdata->object_instance));
             break;
         case PROP_OPERATIONAL_CERTIFICATE_FILE:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_Operational_Certificate_File(
                     rpdata->object_instance));
             break;
         case PROP_ISSUER_CERTIFICATE_FILES:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
                 Network_Port_Issuer_Certificate_File_Encode,
                 BACNET_ISSUER_CERT_FILE_MAX, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
@@ -3651,7 +3679,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_CERTIFICATE_SIGNING_REQUEST_FILE:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 Network_Port_Certificate_Signing_Request_File(
                     rpdata->object_instance));
             break;
@@ -3664,22 +3693,25 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
         case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
-            apdu_len = bacapp_encode_SCHubConnection(&apdu[0],
+            apdu_len = bacapp_encode_SCHubConnection(
+                &apdu[0],
                 Network_Port_SC_Primary_Hub_Connection_Status(
                     rpdata->object_instance));
             break;
         case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
-            apdu_len = bacapp_encode_SCHubConnection(&apdu[0],
+            apdu_len = bacapp_encode_SCHubConnection(
+                &apdu[0],
                 Network_Port_SC_Failover_Hub_Connection_Status(
                     rpdata->object_instance));
             break;
         case PROP_SC_HUB_FUNCTION_ENABLE:
-            apdu_len = encode_application_boolean(&apdu[0],
+            apdu_len = encode_application_boolean(
+                &apdu[0],
                 Network_Port_SC_Hub_Function_Enable(rpdata->object_instance));
             break;
         case PROP_SC_HUB_FUNCTION_ACCEPT_URIS:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
                 Network_Port_SC_Hub_Function_Accept_URI_Encode,
                 BACNET_SC_DIRECT_ACCEPT_URI_MAX, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {
@@ -3703,18 +3735,20 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
         case PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE:
-            apdu_len = encode_application_boolean(&apdu[0],
+            apdu_len = encode_application_boolean(
+                &apdu[0],
                 Network_Port_SC_Direct_Connect_Initiate_Enable(
                     rpdata->object_instance));
             break;
         case PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE:
-            apdu_len = encode_application_boolean(&apdu[0],
+            apdu_len = encode_application_boolean(
+                &apdu[0],
                 Network_Port_SC_Direct_Connect_Accept_Enable(
                     rpdata->object_instance));
             break;
         case PROP_SC_DIRECT_CONNECT_ACCEPT_URIS:
-            apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
                 Network_Port_SC_Direct_Connect_Accept_URI_Encode,
                 BACNET_SC_DIRECT_ACCEPT_URI_MAX, apdu, apdu_size);
             if (apdu_len == BACNET_STATUS_ABORT) {

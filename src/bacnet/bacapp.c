@@ -521,7 +521,7 @@ int bacapp_encode_application_data(
                     apdu, &value->type.Channel_Value);
                 break;
 #endif
-#if defined (BACAPP_SECURE_CONNECT)
+#if defined(BACAPP_SECURE_CONNECT)
             case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
                 apdu_len = bacapp_encode_SCFailedConnectionRequest(
                     apdu, &value->type.SC_Failed_Req);
@@ -715,8 +715,9 @@ int bacapp_data_decode(
 #if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
                 /* BACnetDeviceObjectPropertyReference */
-                len = bacnet_device_object_property_reference_decode(apdu,
-                    apdu_size, &value->type.Device_Object_Property_Reference);
+                len = bacnet_device_object_property_reference_decode(
+                    apdu, apdu_size,
+                    &value->type.Device_Object_Property_Reference);
                 break;
 #endif
 #if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
@@ -1083,8 +1084,9 @@ int bacapp_encode_context_data_value(
                     apdu, context_tag_number, &value->type.SC_Failed_Req);
                 break;
             case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
-                apdu_len = bacapp_encode_context_SCHubFunctionConnection(apdu,
-                    context_tag_number, &value->type.SC_Hub_Function_Status);
+                apdu_len = bacapp_encode_context_SCHubFunctionConnection(
+                    apdu, context_tag_number,
+                    &value->type.SC_Hub_Function_Status);
                 break;
             case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
                 apdu_len = bacapp_encode_context_SCDirectConnection(

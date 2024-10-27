@@ -143,7 +143,9 @@ int bacapp_decode_SCHubConnection(
     BACNET_SC_HUB_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_encode_context_SCHubConnection(
-    uint8_t *apdu, uint8_t tag_number, const BACNET_SC_HUB_CONNECTION_STATUS *value);
+    uint8_t *apdu,
+    uint8_t tag_number,
+    const BACNET_SC_HUB_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_decode_context_SCHubConnection(
     const uint8_t *apdu,
@@ -231,7 +233,9 @@ int bacapp_snprintf_SCFailedConnectionRequest(
     char *str, size_t str_len, const BACNET_SC_FAILED_CONNECTION_REQUEST *req);
 BACNET_STACK_EXPORT
 int bacapp_snprintf_SCHubFunctionConnection(
-    char *str, size_t str_len, const BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *st);
+    char *str,
+    size_t str_len,
+    const BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *st);
 BACNET_STACK_EXPORT
 int bacapp_snprintf_SCDirectConnection(
     char *str, size_t str_len, const BACNET_SC_DIRECT_CONNECTION_STATUS *st);

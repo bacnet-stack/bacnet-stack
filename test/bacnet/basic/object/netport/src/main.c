@@ -521,11 +521,10 @@ static void test_network_port_sc_status_encode_decode(void)
         "{1946/05/07-12:34:22.10, 239.0.0.16:50001, 1.2.3.4.5.6, "
         "00000000-0000-0000-0000-000000000000, 38, \"error details\"}";
 
-    const char HUB_STATUS_STR[] =
-        "{1946/05/07-12:34:22.10, "
-        "239.0.0.16:50001, 1.2.3.4.5.6, "
-        "00000000-0000-0000-0000-000000000000, 38, "
-        "\"error details\"}";
+    const char HUB_STATUS_STR[] = "{1946/05/07-12:34:22.10, "
+                                  "239.0.0.16:50001, 1.2.3.4.5.6, "
+                                  "00000000-0000-0000-0000-000000000000, 38, "
+                                  "\"error details\"}";
 
     const char DIRECT_STATUS_STR[] =
         "{connect url, 3, 1946/05/07-12:34:22.10, 1946/05/07-12:34:22.10, "
@@ -602,14 +601,15 @@ static void test_network_port_sc_status_encode_decode(void)
     zassert_equal(count, 0, NULL);
 
     status = Network_Port_SC_Hub_Function_Connection_Status_Add(
-        instance, BACNET_SC_CONNECTION_STATE_CONNECTED, &ts, &ts, &peer_address, peer_VMAC,
-        peer_UUID, ERROR_CODE_VT_SESSION_ALREADY_CLOSED, "hided error message");
+        instance, BACNET_SC_CONNECTION_STATE_CONNECTED, &ts, &ts, &peer_address,
+        peer_VMAC, peer_UUID, ERROR_CODE_VT_SESSION_ALREADY_CLOSED,
+        "hided error message");
     zassert_true(status, NULL);
 
     status = Network_Port_SC_Hub_Function_Connection_Status_Add(
-        instance, BACNET_SC_CONNECTION_STATE_FAILED_TO_CONNECT, &ts, &ts, &peer_address2, peer_VMAC,
-        peer_UUID, ERROR_CODE_VT_SESSION_ALREADY_CLOSED,
-        "error message of hub status");
+        instance, BACNET_SC_CONNECTION_STATE_FAILED_TO_CONNECT, &ts, &ts,
+        &peer_address2, peer_VMAC, peer_UUID,
+        ERROR_CODE_VT_SESSION_ALREADY_CLOSED, "error message of hub status");
     zassert_true(status, NULL);
 
     count = Network_Port_SC_Hub_Function_Connection_Status_Count(instance);
@@ -696,8 +696,8 @@ static void test_network_port_sc_status_encode_decode(void)
     zassert_equal(count, 0, NULL);
 
     status = Network_Port_SC_Direct_Connect_Connection_Status_Add(
-        instance, "connect url", BACNET_SC_CONNECTION_STATE_FAILED_TO_CONNECT, &ts, &ts,
-        &peer_address, peer_VMAC, peer_UUID,
+        instance, "connect url", BACNET_SC_CONNECTION_STATE_FAILED_TO_CONNECT,
+        &ts, &ts, &peer_address, peer_VMAC, peer_UUID,
         ERROR_CODE_VT_SESSION_ALREADY_CLOSED, "error message of direct status");
     zassert_true(status, NULL);
 

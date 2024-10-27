@@ -92,7 +92,6 @@ K_KERNEL_STACK_ARRAY_DEFINE(
 K_KERNEL_STACK_ARRAY_DEFINE(
     bws_direct_ctx_stack, BSC_CONF_WEBSOCKET_SERVERS_NUM, STACKSIZE);
 
-
 static BSC_WEBSOCKET_CONTEXT *bws_alloc_server_ctx(BSC_WEBSOCKET_PROTOCOL proto)
 {
     int i;
@@ -157,8 +156,9 @@ static bool bws_open_connect_number(BSC_WEBSOCKET_CONTEXT *ctx)
     int k = 0;
     int i;
     for (i = 0; i < bws_srv_get_max_sockets(ctx->proto); i++) {
-        if (ctx->conn[i].state != BSC_WEBSOCKET_STATE_IDLE)
+        if (ctx->conn[i].state != BSC_WEBSOCKET_STATE_IDLE) {
             k++;
+        }
     }
     return k;
 }
@@ -196,9 +196,14 @@ static const char *bws_srv_get_proto_str(BSC_WEBSOCKET_PROTOCOL proto)
     return NULL;
 }
 
-static void bws_call_dispatch_func(BSC_WEBSOCKET_CONTEXT *ctx,
-    BSC_WEBSOCKET_HANDLE h, BSC_WEBSOCKET_EVENT ev, BACNET_ERROR_CODE ws_reason,
-    char* ws_reason_desc, uint8_t* buf, size_t size)
+static void bws_call_dispatch_func(
+    BSC_WEBSOCKET_CONTEXT *ctx,
+    BSC_WEBSOCKET_HANDLE h,
+    BSC_WEBSOCKET_EVENT ev,
+    BACNET_ERROR_CODE ws_reason,
+    char *ws_reason_desc,
+    uint8_t *buf,
+    size_t size)
 {
     BSC_WEBSOCKET_SRV_DISPATCH dispatch_func;
     void *user_param;
@@ -206,8 +211,9 @@ static void bws_call_dispatch_func(BSC_WEBSOCKET_CONTEXT *ctx,
     dispatch_func = ctx->dispatch_func;
     user_param = ctx->user_param;
     k_mutex_unlock(&ctx->mutex);
-    dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h, ev, ws_reason,
-        ws_reason_desc, buf, size, user_param);
+    dispatch_func(
+        (BSC_WEBSOCKET_SRV_HANDLE)ctx, h, ev, ws_reason, ws_reason_desc, buf,
+        size, user_param);
     k_mutex_lock(&ctx->mutex, K_FOREVER);
 }
 
@@ -239,12 +245,12 @@ static BSC_WEBSOCKET_HANDLE bws_srv_alloc_connection(BSC_WEBSOCKET_CONTEXT *ctx)
     }
 
     LOG_INF("bws_srv_alloc_connection() <<< ret = "
-                 "BSC_WEBSOCKET_INVALID_HANDLE");
+            "BSC_WEBSOCKET_INVALID_HANDLE");
     return BSC_WEBSOCKET_INVALID_HANDLE;
 }
 
-static void bws_srv_free_connection(
-    BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h)
+static void
+bws_srv_free_connection(BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h)
 {
     LOG_INF("bws_srv_free_connection() >>> ctx = %p, h = %d", ctx, h);
 
@@ -257,8 +263,10 @@ static void bws_srv_free_connection(
     LOG_INF("bws_srv_free_connection() <<<");
 }
 
-static bool bws_find_connnection(const struct mg_connection *ws,
-    BSC_WEBSOCKET_CONTEXT **pctx, BSC_WEBSOCKET_HANDLE *h)
+static bool bws_find_connnection(
+    const struct mg_connection *ws,
+    BSC_WEBSOCKET_CONTEXT **pctx,
+    BSC_WEBSOCKET_HANDLE *h)
 {
     BSC_WEBSOCKET_CONTEXT *ctx;
     int i;
@@ -285,23 +293,23 @@ static void bws_srv_websocket_event(
     BSC_WEBSOCKET_HANDLE h = BSC_WEBSOCKET_INVALID_HANDLE;
     BSC_WEBSOCKET_CONTEXT *ctx = NULL;
 
-    if (!bws_find_connnection(ws, &ctx, &h) &&
-        (ev != MG_EV_ACCEPT) && (ev != MG_EV_ERROR) && (ev != MG_EV_POLL))
-    {
-        LOG_INF("bws_srv_websocket_event() >>> unknown ctx = %p, ev = %d",
-            ctx, ev);
+    if (!bws_find_connnection(ws, &ctx, &h) && (ev != MG_EV_ACCEPT) &&
+        (ev != MG_EV_ERROR) && (ev != MG_EV_POLL)) {
+        LOG_INF(
+            "bws_srv_websocket_event() >>> unknown ctx = %p, ev = %d", ctx, ev);
     }
 
     if (ctx) {
         k_mutex_lock(&ctx->mutex, K_FOREVER);
     }
 
-    //LOG_INF("bws_srv_websocket_event() >>> ws = %p, ctx = %p, ev = %d, proto = %d",
-    //        ws, ctx, ev, (ctx ? ctx->proto : -1));
+    // LOG_INF("bws_srv_websocket_event() >>> ws = %p, ctx = %p, ev = %d, proto
+    // = %d",
+    //         ws, ctx, ev, (ctx ? ctx->proto : -1));
 
     switch (ev) {
         case MG_EV_ERROR: {
-            LOG_ERR("bws_srv_websocket_event() error = %s", (char*) ev_data);
+            LOG_ERR("bws_srv_websocket_event() error = %s", (char *)ev_data);
             // todo dispatch error
 
             break;
@@ -314,18 +322,19 @@ static void bws_srv_websocket_event(
             ctx = bws_server_find(ws);
             if (!ctx) {
                 LOG_DBG("bws_srv_websocket_event() server matching error, "
-                             "dropping incoming connection");
+                        "dropping incoming connection");
                 ws->is_draining = 1;
                 break;
             }
 
             h = BSC_WEBSOCKET_INVALID_HANDLE;
             k_mutex_lock(&ctx->mutex, K_FOREVER);
-            if (ctx->state == BSC_WEBSOCKET_SERVER_STATE_RUN)
+            if (ctx->state == BSC_WEBSOCKET_SERVER_STATE_RUN) {
                 h = bws_srv_alloc_connection(ctx);
+            }
             if (h == BSC_WEBSOCKET_INVALID_HANDLE) {
                 LOG_DBG("bws_srv_websocket_event() no free sockets, "
-                             "dropping incoming connection");
+                        "dropping incoming connection");
                 ws->is_draining = 1;
                 break;
             }
@@ -336,28 +345,31 @@ static void bws_srv_websocket_event(
             ctx->conn[h].ws = ws;
             ctx->conn[h].state = BSC_WEBSOCKET_STATE_CONNECTING;
 
-            struct mg_tls_opts opts =
-                {.ca = ctx->ca_cert, .cert = ctx->cert, .certkey = ctx->key };
+            struct mg_tls_opts opts = { .ca = ctx->ca_cert,
+                                        .cert = ctx->cert,
+                                        .certkey = ctx->key };
             mg_tls_init(ws, &opts);
             break;
-            }
+        }
         case MG_EV_CLOSE: {
             LOG_INF("bws_srv_websocket_event() closed connection ctx %p", ctx);
             if (ctx) {
-                LOG_INF("proto %d state of socket %d is %d",
-                    ctx->proto, h, ctx->conn[h].state);
+                LOG_INF(
+                    "proto %d state of socket %d is %d", ctx->proto, h,
+                    ctx->conn[h].state);
                 bws_srv_free_connection(ctx, h);
                 bws_call_dispatch_func(
                     ctx, h, BSC_WEBSOCKET_DISCONNECTED, 0, NULL, NULL, 0);
             }
             break;
-            }
+        }
         case MG_EV_HTTP_MSG: {
-            struct mg_http_message *hm = (struct mg_http_message *) ev_data;
+            struct mg_http_message *hm = (struct mg_http_message *)ev_data;
             struct mg_str *wsproto =
                 mg_http_get_header(hm, "Sec-WebSocket-Protocol");
 
-            if (strncmp(bws_srv_get_proto_str(ctx->proto), wsproto->ptr,
+            if (strncmp(
+                    bws_srv_get_proto_str(ctx->proto), wsproto->ptr,
                     wsproto->len) != 0) {
                 mg_http_reply(ws, 426, "", "Unknown WS protocol");
                 ws->is_draining = 1;
@@ -374,25 +386,27 @@ static void bws_srv_websocket_event(
             bws_call_dispatch_func(
                 ctx, h, BSC_WEBSOCKET_CONNECTED, 0, NULL, NULL, 0);
             break;
-            }
+        }
         case MG_EV_WS_MSG: {
-            struct mg_ws_message *wm = (struct mg_ws_message *) ev_data;
-            LOG_DBG("bws_srv_websocket_event() ctx %p proto %d "
-                    "received %d bytes of data for websocket %d",
-                    ctx, ctx->proto, wm->data.len, h);
-            DUMP_BUFFER(0, (uint8_t*)wm->data.ptr, wm->data.len,
-                "Server receive");
-            bws_call_dispatch_func(ctx, h, BSC_WEBSOCKET_RECEIVED, 0, NULL,
-                (uint8_t*)wm->data.ptr, wm->data.len);
+            struct mg_ws_message *wm = (struct mg_ws_message *)ev_data;
+            LOG_DBG(
+                "bws_srv_websocket_event() ctx %p proto %d "
+                "received %d bytes of data for websocket %d",
+                ctx, ctx->proto, wm->data.len, h);
+            DUMP_BUFFER(
+                0, (uint8_t *)wm->data.ptr, wm->data.len, "Server receive");
+            bws_call_dispatch_func(
+                ctx, h, BSC_WEBSOCKET_RECEIVED, 0, NULL,
+                (uint8_t *)wm->data.ptr, wm->data.len);
             break;
-            }
+        }
         case MG_EV_WS_CTL: {
-            struct mg_ws_message *wm = (struct mg_ws_message *) ev_data;
+            struct mg_ws_message *wm = (struct mg_ws_message *)ev_data;
             if ((wm->flags & 0x0f) == WEBSOCKET_OP_CLOSE) {
                 LOG_DBG("bws_srv_websocket_event() ctx %p stopping", ctx);
             }
             break;
-            }
+        }
         default:
             break;
     }
@@ -401,7 +415,7 @@ static void bws_srv_websocket_event(
         k_mutex_unlock(&ctx->mutex);
     }
 
-    //LOG_DBG("bws_srv_websocket_event() <<<");
+    // LOG_DBG("bws_srv_websocket_event() <<<");
 }
 
 // p1 - pointer of BSC_WEBSOCKET_CONTEXT
@@ -443,13 +457,12 @@ static void bws_srv_worker(void *p1, void *p2, void *p3)
 
     // run loop
     while ((state == BSC_WEBSOCKET_SERVER_STATE_RUN) ||
-           (state == BSC_WEBSOCKET_SERVER_STATE_STOPPING) ) {
-
+           (state == BSC_WEBSOCKET_SERVER_STATE_STOPPING)) {
         mg_mgr_poll(&ctx->mgr, timeout);
 
         if ((state == BSC_WEBSOCKET_SERVER_STATE_STOPPING) &&
             (bws_open_connect_number(ctx) == 0)) {
-                 break;
+            break;
         }
 
         k_mutex_lock(&ctx->mutex, K_FOREVER);
@@ -458,13 +471,12 @@ static void bws_srv_worker(void *p1, void *p2, void *p3)
         for (h = 0; h < bws_srv_get_max_sockets(ctx->proto); h++) {
             if ((ctx->conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED) &&
                 (ctx->conn[h].want_send_data)) {
-
                 ctx->conn[h].want_send_data = false;
                 bws_call_dispatch_func(
                     ctx, h, BSC_WEBSOCKET_SENDABLE, 0, NULL, NULL, 0);
             }
             if (ctx->conn[h].want_close && ctx->conn[h].ws) {
-                 ctx->conn[h].ws->is_draining = 1;
+                ctx->conn[h].ws->is_draining = 1;
             }
         }
 
@@ -478,12 +490,13 @@ exit:
 
 static void search_iface_name_cb(struct net_if *iface, void *user_data)
 {
-    char **ud = (char**) user_data;
+    char **ud = (char **)user_data;
     uint32_t ip;
     LOG_DBG("Iface name: %s", iface->if_dev->dev->name);
     if (strcmp(ud[0], iface->if_dev->dev->name) == 0) {
         ip = ntohl(iface->config.ip.ipv4->gw.s_addr);
-        sprintf(ud[1], "%d.%d.%d.%d", ip & 0xff000000, ip & 0x00ff0000,
+        sprintf(
+            ud[1], "%d.%d.%d.%d", ip & 0xff000000, ip & 0x00ff0000,
             ip & 0x0000ff00, ip & 0x000000ff);
     }
 }
@@ -491,7 +504,7 @@ static void search_iface_name_cb(struct net_if *iface, void *user_data)
 static const char *iface_to_ipv4(char *iface)
 {
     static char str[80];
-    char *net_if_foreach_data[2] = {iface, str};
+    char *net_if_foreach_data[2] = { iface, str };
     if (!iface) {
         return "0.0.0.0";
     }
@@ -502,31 +515,32 @@ static const char *iface_to_ipv4(char *iface)
 }
 
 BSC_WEBSOCKET_RET bws_srv_start(
-                        BSC_WEBSOCKET_PROTOCOL proto,
-                        int port,
-                        char* iface,
-                        uint8_t *ca_cert,
-                        size_t ca_cert_size,
-                        uint8_t *cert,
-                        size_t cert_size,
-                        uint8_t *key,
-                        size_t key_size,
-                        size_t timeout_s,
-                        BSC_WEBSOCKET_SRV_DISPATCH dispatch_func,
-                        void* dispatch_func_user_param,
-                        BSC_WEBSOCKET_SRV_HANDLE* sh)
+    BSC_WEBSOCKET_PROTOCOL proto,
+    int port,
+    char *iface,
+    uint8_t *ca_cert,
+    size_t ca_cert_size,
+    uint8_t *cert,
+    size_t cert_size,
+    uint8_t *key,
+    size_t key_size,
+    size_t timeout_s,
+    BSC_WEBSOCKET_SRV_DISPATCH dispatch_func,
+    void *dispatch_func_user_param,
+    BSC_WEBSOCKET_SRV_HANDLE *sh)
 {
     BSC_WEBSOCKET_CONTEXT *ctx;
     k_tid_t thread_id;
 
-    LOG_DBG("bws_srv_start() >>> proto = %d port = %d "
-                 "dispatch_func_user_param = %p",
+    LOG_DBG(
+        "bws_srv_start() >>> proto = %d port = %d "
+        "dispatch_func_user_param = %p",
         proto, port, dispatch_func_user_param);
 
     if (proto != BSC_WEBSOCKET_HUB_PROTOCOL &&
         proto != BSC_WEBSOCKET_DIRECT_PROTOCOL) {
         LOG_DBG("bws_srv_start() <<< bad protocol, ret = "
-                     "BSC_WEBSOCKET_BAD_PARAM");
+                "BSC_WEBSOCKET_BAD_PARAM");
         return BSC_WEBSOCKET_BAD_PARAM;
     }
 
@@ -566,16 +580,15 @@ BSC_WEBSOCKET_RET bws_srv_start(
     // enums log level in mongoose and zephyr are similar
     mg_log_set((int)CONFIG_BACNETSTACK_LOG_LEVEL);
 
-    thread_id = k_thread_create(&ctx->worker_thr, ctx->stack, STACKSIZE,
-        bws_srv_worker, ctx, (void*)50, NULL, -1, K_USER | K_INHERIT_PERMS,
-        K_NO_WAIT);
+    thread_id = k_thread_create(
+        &ctx->worker_thr, ctx->stack, STACKSIZE, bws_srv_worker, ctx,
+        (void *)50, NULL, -1, K_USER | K_INHERIT_PERMS, K_NO_WAIT);
     ctx->thread_id = thread_id;
     k_mutex_unlock(&ctx->mutex);
 
     if (thread_id == 0) {
         bws_free_server_ctx(ctx);
-        LOG_DBG(
-            "bws_srv_start() <<< ret = BACNET_WEBSOCKET_NO_RESOURCES");
+        LOG_DBG("bws_srv_start() <<< ret = BACNET_WEBSOCKET_NO_RESOURCES");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
 
@@ -594,7 +607,7 @@ BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_SRV_HANDLE sh)
 
     if (!bws_validate_ctx_pointer(ctx)) {
         LOG_INF("bws_srv_stop() <<< bad websocket handle, ret = "
-                     "BSC_WEBSOCKET_BAD_PARAM");
+                "BSC_WEBSOCKET_BAD_PARAM");
         return BSC_WEBSOCKET_BAD_PARAM;
     }
 
@@ -669,21 +682,24 @@ void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h)
 }
 
 // call from bws_srv_worker
-BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
-                                        BSC_WEBSOCKET_HANDLE h,
-                                        uint8_t *payload, size_t payload_size)
+BSC_WEBSOCKET_RET bws_srv_dispatch_send(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    uint8_t *payload,
+    size_t payload_size)
 {
     int written;
     BSC_WEBSOCKET_RET ret;
     BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
 
-    LOG_INF("bws_srv_dispatch_send() >>> ctx = %p h = %d payload %p "
-                 "payload_size %d",
+    LOG_INF(
+        "bws_srv_dispatch_send() >>> ctx = %p h = %d payload %p "
+        "payload_size %d",
         ctx, h, payload, payload_size);
 
     if (!bws_validate_ctx_pointer(ctx)) {
         LOG_INF("bws_srv_dispatch_send() <<< bad websocket handle, ret = "
-                     "BSC_WEBSOCKET_BAD_PARAM");
+                "BSC_WEBSOCKET_BAD_PARAM");
         return BSC_WEBSOCKET_BAD_PARAM;
     }
 
@@ -700,7 +716,7 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
     if (ctx->state != BSC_WEBSOCKET_SERVER_STATE_RUN) {
         k_mutex_unlock(&ctx->mutex);
         LOG_INF("bws_srv_dispatch_send() <<< ret = "
-                     "BSC_WEBSOCKET_INVALID_OPERATION");
+                "BSC_WEBSOCKET_INVALID_OPERATION");
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
 
@@ -711,8 +727,8 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
     }
 
     DUMP_BUFFER(0, payload, payload_size, "Server send");
-    written = mg_ws_send(ctx->conn[h].ws, payload, payload_size,
-        WEBSOCKET_OP_BINARY);
+    written =
+        mg_ws_send(ctx->conn[h].ws, payload, payload_size, WEBSOCKET_OP_BINARY);
 
     LOG_INF("bws_srv_dispatch_send() %d bytes is sent", written);
 
@@ -731,22 +747,26 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
     return ret;
 }
 
-char *bws_ntoa(const struct mg_addr *addr, char *buf, size_t len) {
-  if (addr->is_ip6) {
-    uint16_t *p = (uint16_t *) addr->ip6;
-    mg_snprintf(buf, len, "%x:%x:%x:%x:%x:%x:%x:%x", mg_htons(p[0]),
-                mg_htons(p[1]), mg_htons(p[2]), mg_htons(p[3]), mg_htons(p[4]),
-                mg_htons(p[5]), mg_htons(p[6]), mg_htons(p[7]));
-  } else {
-    uint8_t p[4];
-    memcpy(p, &addr->ip, sizeof(p));
-    mg_snprintf(buf, len, "%d.%d.%d.%d", (int) p[0], (int) p[1], (int) p[2],
-                (int) p[3]);
-  }
-  return buf;
+char *bws_ntoa(const struct mg_addr *addr, char *buf, size_t len)
+{
+    if (addr->is_ip6) {
+        uint16_t *p = (uint16_t *)addr->ip6;
+        mg_snprintf(
+            buf, len, "%x:%x:%x:%x:%x:%x:%x:%x", mg_htons(p[0]), mg_htons(p[1]),
+            mg_htons(p[2]), mg_htons(p[3]), mg_htons(p[4]), mg_htons(p[5]),
+            mg_htons(p[6]), mg_htons(p[7]));
+    } else {
+        uint8_t p[4];
+        memcpy(p, &addr->ip, sizeof(p));
+        mg_snprintf(
+            buf, len, "%d.%d.%d.%d", (int)p[0], (int)p[1], (int)p[2],
+            (int)p[3]);
+    }
+    return buf;
 }
 
-bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
+bool bws_srv_get_peer_ip_addr(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,
     uint8_t *ip_str,
     size_t ip_str_len,

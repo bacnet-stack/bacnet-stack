@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 get_filename_component(basename ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 project(test_${basename}
-	VERSION 1.0.0
-	LANGUAGES C)
+    VERSION 1.0.0
+    LANGUAGES C)
 
 string(REGEX REPLACE
     "/test/bacnet/[a-zA-Z_/-]*$"
@@ -20,26 +20,26 @@ string(REGEX REPLACE
 set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
-	BIG_ENDIAN=0
-	CONFIG_ZTEST=1
-	BSC_CONF_TX_PRE=0
-	BACNET_STACK_STATIC_DEFINE
-	)
+    BIG_ENDIAN=0
+    CONFIG_ZTEST=1
+    BSC_CONF_TX_PRE=0
+    BACNET_STACK_STATIC_DEFINE
+    )
 
 include_directories(
-	${SRC_DIR}
-	${TST_DIR}/ztest/include
-	)
+    ${SRC_DIR}
+    ${TST_DIR}/ztest/include
+    )
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
-	${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
     # Support files and stubs (pathname alphabetical)
     # Test and test library files
-	./src/main.c
-	${ZTST_DIR}/ztest_mock.c
-	${ZTST_DIR}/ztest.c
-	)
+    ./src/main.c
+    ${ZTST_DIR}/ztest_mock.c
+    ${ZTST_DIR}/ztest.c
+    )
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
     target_compile_options(${PROJECT_NAME} PRIVATE
