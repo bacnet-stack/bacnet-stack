@@ -210,7 +210,7 @@ uint16_t datalink_receive(
             bytes = dlmstp_receive(src, pdu, max_pdu, timeout);
             break;
 #endif
-#if defined(BACDL_MSTP)
+#if defined(BACDL_BSC)
         case DATALINK_BSC:
             bytes = bsc_receive(src, pdu, max_pdu, timeout);
             break;
