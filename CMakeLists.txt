@@ -79,6 +79,11 @@ if(NOT (BACDL_ETHERNET OR
       add_definitions(-DBACDL_NONE)
 endif()
 
+option(
+  UCI
+  "build with uci"
+  OFF)
+
 set(BACNET_PROTOCOL_REVISION 19)
 
 if(NOT CMAKE_BUILD_TYPE)
