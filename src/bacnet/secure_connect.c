@@ -1346,14 +1346,14 @@ int bacapp_decode_context_SCDirectConnection(
 static int bacapp_snprintf_host_n_port(
     char *str, size_t str_len, const BACNET_HOST_N_PORT_DATA *host_port)
 {
-    /* false positive cppcheck - snprintf allows null pointers */
-    /* cppcheck-suppress nullPointer */
-    /* cppcheck-suppress ctunullpointer */
-    /* cppcheck-suppress nullPointerRedundantCheck */
-    return snprintf(
+    int len;
+
+    len = bacapp_snprintf(
         str, str_len, "%u.%u.%u.%u:%u, ", (uint8_t)host_port->host[0],
         (uint8_t)host_port->host[1], (uint8_t)host_port->host[2],
         (uint8_t)host_port->host[3], host_port->port);
+
+    return len;
 }
 
 /**
@@ -1365,11 +1365,7 @@ static int bacapp_snprintf_host_n_port(
  */
 static int bacapp_snprintf_vmac(char *str, size_t str_len, const uint8_t *vmac)
 {
-    /* false positive cppcheck - snprintf allows null pointers */
-    /* cppcheck-suppress nullPointer */
-    /* cppcheck-suppress ctunullpointer */
-    /* cppcheck-suppress nullPointerRedundantCheck */
-    return snprintf(
+    return bacapp_snprintf(
         str, str_len, "%u.%u.%u.%u.%u.%u, ", vmac[0], vmac[1], vmac[2], vmac[3],
         vmac[4], vmac[5]);
 }
@@ -1391,11 +1387,7 @@ bacapp_snprintf_uuid(char *str, size_t str_len, const BACNET_UUID *uuid)
         " "
     };
 
-    /* false positive cppcheck - snprintf allows null pointers */
-    /* cppcheck-suppress nullPointer */
-    /* cppcheck-suppress ctunullpointer */
-    /* cppcheck-suppress nullPointerRedundantCheck */
-    return snprintf(
+    return bacapp_snprintf(
         str, str_len, uuid_format[sizeof(unsigned int) == 4 ? 0 : 1],
         uuid->uuid.guid.time_low, uuid->uuid.guid.time_mid,
         uuid->uuid.guid.time_hi_and_version,
@@ -1421,8 +1413,8 @@ static int snprintf_error_code(
     char *str, size_t str_len, int error, const char *error_details)
 {
     return error_details[0]
-        ? snprintf(str, str_len, "%d, \"%s\"", error, error_details)
-        : snprintf(str, str_len, "%d", error);
+        ? bacapp_snprintf(str, str_len, "%d, \"%s\"", error, error_details)
+        : bacapp_snprintf(str, str_len, "%d", error);
 }
 
 /**
@@ -1438,77 +1430,21 @@ int bacapp_snprintf_SCFailedConnectionRequest(
     int str_len = 0;
     int slen;
 
-    slen = snprintf(str, str_size, "{");
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    slen = bacapp_snprintf(str, str_size, "{");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = datetime_to_ascii(&req->Timestamp, str, str_size);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, ", ");
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, ", ");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = bacapp_snprintf_host_n_port(str, str_size, &req->Peer_Address);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = bacapp_snprintf_vmac(str, str_size, req->Peer_VMAC);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = bacapp_snprintf_uuid(str, str_size, &req->Peer_UUID);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = snprintf_error_code(str, str_size, req->Error, req->Error_Details);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, "}");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, "}");
     str_len += slen;
 
     return str_len;
@@ -1529,97 +1465,25 @@ int bacapp_snprintf_SCHubFunctionConnection(
     int str_len = 0;
     int slen;
 
-    slen = snprintf(str, str_size, "{%d, ", st->State);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    slen = bacapp_snprintf(str, str_size, "{%d, ", st->State);
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = datetime_to_ascii(&st->Connect_Timestamp, str, str_size);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, ", ");
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, ", ");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = datetime_to_ascii(&st->Disconnect_Timestamp, str, str_size);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, ", ");
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, ", ");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = bacapp_snprintf_host_n_port(str, str_size, &st->Peer_Address);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = bacapp_snprintf_vmac(str, str_size, st->Peer_VMAC);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = bacapp_snprintf_uuid(str, str_size, &st->Peer_UUID);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = snprintf_error_code(str, str_size, st->Error, st->Error_Details);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, "}");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, "}");
     str_len += slen;
 
     return str_len;
@@ -1638,98 +1502,26 @@ int bacapp_snprintf_SCDirectConnection(
     int str_len = 0;
     int slen;
 
-    slen = snprintf(
+    slen = bacapp_snprintf(
         str, str_size, "{%s, %d, ", st->URI[0] ? st->URI : "NULL", st->State);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = datetime_to_ascii(&st->Connect_Timestamp, str, str_size);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, ", ");
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, ", ");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = datetime_to_ascii(&st->Disconnect_Timestamp, str, str_size);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, ", ");
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, ", ");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = bacapp_snprintf_host_n_port(str, str_size, &st->Peer_Address);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = bacapp_snprintf_vmac(str, str_size, st->Peer_VMAC);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = bacapp_snprintf_uuid(str, str_size, &st->Peer_UUID);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = snprintf_error_code(str, str_size, st->Error, st->Error_Details);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, "}");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, "}");
     str_len += slen;
 
     return str_len;
@@ -1748,67 +1540,19 @@ int bacapp_snprintf_SCHubConnection(
     int str_len = 0;
     int slen;
 
-    slen = snprintf(str, str_size, "{%d, ", st->State);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    slen = bacapp_snprintf(str, str_size, "{%d, ", st->State);
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = datetime_to_ascii(&st->Connect_Timestamp, str, str_size);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, ", ");
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, ", ");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = datetime_to_ascii(&st->Disconnect_Timestamp, str, str_size);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, ", ");
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, ", ");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
     slen = snprintf_error_code(str, str_size, st->Error, st->Error_Details);
-    str_len += slen;
-    if (str) {
-        str += slen;
-    }
-    if (str_size >= slen) {
-        str_size -= slen;
-    } else {
-        str_size = 0;
-    }
-    slen = snprintf(str, str_size, "}");
+    str_len += bacapp_snprintf_shift(slen, &str, &str_size);
+    slen = bacapp_snprintf(str, str_size, "}");
     str_len += slen;
 
     return str_len;
