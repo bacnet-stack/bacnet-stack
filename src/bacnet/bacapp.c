@@ -555,6 +555,7 @@ int bacapp_encode_application_data(
  * @param len_value_type  Count of bytes of given tag
  * @param value  Pointer to the application value structure,
  *               used to store the decoded value to.
+ * @note Decodes only the 13 primitive application data types!
  *
  * @return Number of octets consumed (could be zero).
  * Parameter value->tag set to MAX_BACNET_APPLICATION_TAG when
@@ -650,114 +651,6 @@ int bacapp_data_decode(
                     &value->type.Object_Id.type,
                     &value->type.Object_Id.instance);
             } break;
-#endif
-#if defined(BACAPP_TIMESTAMP)
-            case BACNET_APPLICATION_TAG_TIMESTAMP:
-                len = bacnet_timestamp_decode(
-                    apdu, apdu_size, &value->type.Time_Stamp);
-                break;
-#endif
-#if defined(BACAPP_DATETIME)
-            case BACNET_APPLICATION_TAG_DATETIME:
-                len = bacnet_datetime_decode(
-                    apdu, apdu_size, &value->type.Date_Time);
-                break;
-#endif
-#if defined(BACAPP_DATERANGE)
-            case BACNET_APPLICATION_TAG_DATERANGE:
-                len = bacnet_daterange_decode(
-                    apdu, apdu_size, &value->type.Date_Range);
-                break;
-#endif
-#if defined(BACAPP_LIGHTING_COMMAND)
-            case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
-                len = lighting_command_decode(
-                    apdu, apdu_size, &value->type.Lighting_Command);
-                break;
-#endif
-#if defined(BACAPP_XY_COLOR)
-            case BACNET_APPLICATION_TAG_XY_COLOR:
-                /* BACnetxyColor */
-                len = xy_color_decode(apdu, apdu_size, &value->type.XY_Color);
-                break;
-#endif
-#if defined(BACAPP_COLOR_COMMAND)
-            case BACNET_APPLICATION_TAG_COLOR_COMMAND:
-                /* BACnetColorCommand */
-                len = color_command_decode(
-                    apdu, apdu_size, NULL, &value->type.Color_Command);
-                break;
-#endif
-#if defined(BACAPP_WEEKLY_SCHEDULE)
-            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
-                len = bacnet_weeklyschedule_decode(
-                    apdu, apdu_size, &value->type.Weekly_Schedule);
-                break;
-#endif
-#if defined(BACAPP_CALENDAR_ENTRY)
-            case BACNET_APPLICATION_TAG_CALENDAR_ENTRY:
-                len = bacnet_calendar_entry_decode(
-                    apdu, apdu_size, &value->type.Calendar_Entry);
-                break;
-#endif
-#if defined(BACAPP_SPECIAL_EVENT)
-            case BACNET_APPLICATION_TAG_SPECIAL_EVENT:
-                len = bacnet_special_event_decode(
-                    apdu, apdu_size, &value->type.Special_Event);
-                break;
-#endif
-#if defined(BACAPP_HOST_N_PORT)
-            case BACNET_APPLICATION_TAG_HOST_N_PORT:
-                len = host_n_port_decode(
-                    apdu, apdu_size, NULL, &value->type.Host_Address);
-                break;
-#endif
-#if defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE)
-            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
-                /* BACnetDeviceObjectPropertyReference */
-                len = bacnet_device_object_property_reference_decode(
-                    apdu, apdu_size,
-                    &value->type.Device_Object_Property_Reference);
-                break;
-#endif
-#if defined(BACAPP_DEVICE_OBJECT_REFERENCE)
-            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
-                /* BACnetDeviceObjectReference */
-                len = bacnet_device_object_reference_decode(
-                    apdu, apdu_size, &value->type.Device_Object_Reference);
-                break;
-#endif
-#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
-            case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
-                /* BACnetObjectPropertyReference */
-                len = bacapp_decode_obj_property_ref(
-                    apdu, apdu_size, &value->type.Object_Property_Reference);
-                break;
-#endif
-#if defined(BACAPP_DESTINATION)
-            case BACNET_APPLICATION_TAG_DESTINATION:
-                /* BACnetDestination */
-                len = bacnet_destination_decode(
-                    apdu, apdu_size, &value->type.Destination);
-                break;
-#endif
-#if defined(BACAPP_SECURE_CONNECT)
-            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
-                len = bacapp_decode_SCFailedConnectionRequest(
-                    apdu, len_value_type, &value->type.SC_Failed_Req);
-                break;
-            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
-                len = bacapp_decode_SCHubFunctionConnection(
-                    apdu, len_value_type, &value->type.SC_Hub_Function_Status);
-                break;
-            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
-                len = bacapp_decode_SCDirectConnection(
-                    apdu, len_value_type, &value->type.SC_Direct_Status);
-                break;
-            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
-                len = bacapp_decode_SCHubConnection(
-                    apdu, len_value_type, &value->type.SC_Hub_Status);
-                break;
 #endif
             default:
                 break;
