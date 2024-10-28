@@ -64,9 +64,18 @@ option(
   "compile with ipv6 datalink support"
   ON)
 
+if(NOT (BACDL_ETHERNET OR
+        BACDL_MSTP OR
+        BACDL_ARCNET OR
+        BACDL_BIP OR
+        BACDL_BIP6 OR
+        BACDL_CUSTOM))
+  add_definitions(-DBACDL_NONE)
+endif()
+
 option(
-  BACDL_BSC
-  "compile with secure-connect support"
+  UCI
+  "build with uci"
   OFF)
 
 if(NOT (BACDL_ETHERNET OR
@@ -175,9 +184,6 @@ elseif(MSVC)
 
   # Might be slower if builded with /Qspectre
   add_compile_options(/wd5045)
-
-  # format string expected in argument 3 is not a string literal. secure_connect.c:1414
-  add_compile_options(/wd4774)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -189,15 +195,6 @@ endif()
 #
 
 find_package(Threads)
-
-if(BACDL_BSC)
-  find_package(libwebsockets CONFIG REQUIRED)
-  find_package(PkgConfig)
-  pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
-  #libwebsocket need C99 with variadic-macros
-  add_compile_options(-Wno-variadic-macros)
-  find_package(OpenSSL)
-endif()
 
 if(UCI)
   FIND_PATH(uci_include_dir uci.h)
@@ -730,11 +727,7 @@ elseif(WIN32)
     #  ports/win32/dlmstp-mm.c
     ports/win32/mstimer-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.c>
-    $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>
-    $<$<BOOL:${BACDL_BSC}>:ports/win32/bsc-event.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/win32/websocket-cli.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/win32/websocket-srv.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/win32/websocket-global.c>)
+    $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>)
 
   if(BACDL_ETHERNET)
     include(ExternalProject)
@@ -928,7 +921,7 @@ if(BACNET_STACK_BUILD_APPS)
     )
   endif(BACNET_BUILD_BACDISCOVER_APP)
 
-  if(BACDL_BIP AND (NOT BACDL_BSC))
+  if(BACDL_BIP)
     add_executable(readbdt apps/readbdt/main.c)
     target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
 

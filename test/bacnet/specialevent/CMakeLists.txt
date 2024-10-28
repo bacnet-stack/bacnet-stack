@@ -58,7 +58,6 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/weeklyschedule.c
     ${SRC_DIR}/bacnet/calendar_entry.c
     ${SRC_DIR}/bacnet/channel_value.c
-    ${SRC_DIR}/bacnet/secure_connect.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

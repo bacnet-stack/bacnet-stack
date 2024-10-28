@@ -31,6 +31,10 @@
 #include "bacnet/datalink/bvlc6.h"
 #endif
 
+#if defined(BACDL_BIP6)
+#include "bacnet/datalink/bvlc6.h"
+#endif
+
 #ifndef BBMD_ENABLED
 #define BBMD_ENABLED 1
 #endif
@@ -198,53 +202,6 @@ static const int BIP6_Port_Properties_Optional[] = {
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
 #endif
-    -1
-};
-
-static const int BSC_Port_Properties_Optional[] = {
-    PROP_NETWORK_NUMBER,
-    PROP_NETWORK_NUMBER_QUALITY,
-    PROP_APDU_LENGTH,
-    PROP_MAC_ADDRESS,
-    PROP_BACNET_IP_MODE,
-    PROP_IP_ADDRESS,
-    PROP_BACNET_IP_UDP_PORT,
-    PROP_IP_SUBNET_MASK,
-    PROP_IP_DEFAULT_GATEWAY,
-    PROP_IP_DNS_SERVER,
-    PROP_MAX_BVLC_LENGTH_ACCEPTED,
-    PROP_MAX_NPDU_LENGTH_ACCEPTED,
-    PROP_SC_PRIMARY_HUB_URI,
-    PROP_SC_FAILOVER_HUB_URI,
-    PROP_SC_MINIMUM_RECONNECT_TIME,
-    PROP_SC_MAXIMUM_RECONNECT_TIME,
-    PROP_SC_CONNECT_WAIT_TIMEOUT,
-    PROP_SC_DISCONNECT_WAIT_TIMEOUT,
-    PROP_SC_HEARTBEAT_TIMEOUT,
-    PROP_SC_HUB_CONNECTOR_STATE,
-    PROP_OPERATIONAL_CERTIFICATE_FILE,
-    PROP_ISSUER_CERTIFICATE_FILES,
-    PROP_CERTIFICATE_SIGNING_REQUEST_FILE,
-/*SC optional*/
-#ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
-    PROP_ROUTING_TABLE,
-#endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
-#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
-    PROP_SC_PRIMARY_HUB_CONNECTION_STATUS,
-    PROP_SC_FAILOVER_HUB_CONNECTION_STATUS,
-    PROP_SC_HUB_FUNCTION_ENABLE,
-    PROP_SC_HUB_FUNCTION_ACCEPT_URIS,
-    PROP_SC_HUB_FUNCTION_BINDING,
-    PROP_SC_HUB_FUNCTION_CONNECTION_STATUS,
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
-#if BSC_CONF_HUB_CONNECTORS_NUM != 0
-    PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE,
-    PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE,
-    PROP_SC_DIRECT_CONNECT_ACCEPT_URIS,
-    PROP_SC_DIRECT_CONNECT_BINDING,
-    PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
-    PROP_SC_FAILED_CONNECTION_REQUESTS,
     -1
 };
 
@@ -2982,6 +2939,60 @@ bool Network_Port_IPv6_Auto_Addressing_Enable_Set(
 }
 
 /**
+ * For a given object instance-number, returns the BACnet IPv6 Auto Addressing
+ * Enable property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return auto-Addressing-Enable property value
+ */
+bool Network_Port_IPv6_Auto_Addressing_Enable(uint32_t object_instance)
+{
+    bool flag = false;
+    unsigned index = 0;
+    struct bacnet_ipv6_port *ipv6 = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        ipv6 = &Object_List[index].Network.IPv6;
+        flag = ipv6->Auto_Addressing_Enable;
+    }
+
+    return flag;
+}
+
+/**
+ * For a given object instance-number, sets the BACnet/IP6 Auto Addressing
+ * Enable Note: depends on Network_Type being set to PORT_TYPE_BIP6 for this
+ * object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - BACnet/IP6 Audo Addressing Enable (default false)
+ *
+ * @return  true if values are within range and property is set.
+ */
+bool Network_Port_IPv6_Auto_Addressing_Enable_Set(
+    uint32_t object_instance, bool value)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            if (Object_List[index].Network.IPv6.Auto_Addressing_Enable !=
+                value) {
+                Object_List[index].Changes_Pending = true;
+            }
+            Object_List[index].Network.IPv6.Auto_Addressing_Enable = value;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, sets the gateway ip-address
  * Note: depends on Network_Type being set for this object
  *
@@ -3003,7 +3014,6 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
             snprintf(
                 &Object_List[index].Network.IPv6.Zone_Index[0], ZONE_INDEX_SIZE,
                 "%s", zone_index);
-            status = true;
         }
     }
 
