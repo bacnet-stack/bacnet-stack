@@ -1133,6 +1133,12 @@ static void MSTP_Slave_Node_FSM(void)
                     MSTP_Flag.ReceivePacketPending = true;
                 }
                 break;
+            case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
+                if (DestinationAddress == MSTP_BROADCAST_ADDRESS) {
+                    /* indicate successful reception to the higher layers  */
+                    MSTP_Flag.ReceivePacketPending = true;
+                }
+                break;
             case FRAME_TYPE_TEST_REQUEST:
                 MSTP_Send_Frame(FRAME_TYPE_TEST_RESPONSE, SourceAddress,
                     This_Station, &InputBuffer[0], DataLength);
@@ -1140,7 +1146,6 @@ static void MSTP_Slave_Node_FSM(void)
             case FRAME_TYPE_TOKEN:
             case FRAME_TYPE_POLL_FOR_MASTER:
             case FRAME_TYPE_TEST_RESPONSE:
-            case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
             default:
                 break;
         }
