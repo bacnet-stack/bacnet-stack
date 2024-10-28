@@ -142,11 +142,6 @@ int bacapp_decode_SCHubConnection(
     size_t apdu_size,
     BACNET_SC_HUB_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
-int bacapp_encode_context_SCHubConnection(
-    uint8_t *apdu,
-    uint8_t tag_number,
-    const BACNET_SC_HUB_CONNECTION_STATUS *value);
-BACNET_STACK_EXPORT
 int bacapp_decode_context_SCHubConnection(
     const uint8_t *apdu,
     size_t apdu_size,
@@ -162,11 +157,6 @@ int bacapp_decode_SCHubFunctionConnection(
     size_t apdu_size,
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
-int bacapp_encode_context_SCHubFunctionConnection(
-    uint8_t *apdu,
-    uint8_t tag_number,
-    const BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value);
-BACNET_STACK_EXPORT
 int bacapp_decode_context_SCHubFunctionConnection(
     const uint8_t *apdu,
     size_t apdu_size,
@@ -181,11 +171,6 @@ int bacapp_decode_SCFailedConnectionRequest(
     const uint8_t *apdu,
     size_t apdu_size,
     BACNET_SC_FAILED_CONNECTION_REQUEST *value);
-BACNET_STACK_EXPORT
-int bacapp_encode_context_SCFailedConnectionRequest(
-    uint8_t *apdu,
-    uint8_t tag_number,
-    const BACNET_SC_FAILED_CONNECTION_REQUEST *value);
 BACNET_STACK_EXPORT
 int bacapp_decode_context_SCFailedConnectionRequest(
     const uint8_t *apdu,
@@ -216,11 +201,6 @@ int bacapp_decode_SCDirectConnection(
     const uint8_t *apdu,
     size_t apdu_size,
     BACNET_SC_DIRECT_CONNECTION_STATUS *value);
-BACNET_STACK_EXPORT
-int bacapp_encode_context_SCDirectConnection(
-    uint8_t *apdu,
-    uint8_t tag_number,
-    const BACNET_SC_DIRECT_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_decode_context_SCDirectConnection(
     const uint8_t *apdu,

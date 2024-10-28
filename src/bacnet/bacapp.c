@@ -957,6 +957,10 @@ int bacapp_encode_context_data_value(
             case BACNET_APPLICATION_TAG_SCALE:
             case BACNET_APPLICATION_TAG_SHED_LEVEL:
             case BACNET_APPLICATION_TAG_ACCESS_RULE:
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
                 /* complex data is enclosed in open/close tags */
                 len = encode_opening_tag(apdu, context_tag_number);
                 apdu_len += len;
@@ -971,25 +975,6 @@ int bacapp_encode_context_data_value(
                 len = encode_closing_tag(apdu, context_tag_number);
                 apdu_len += len;
                 break;
-#if defined(BACAPP_SECURE_CONNECT)
-            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
-                apdu_len = bacapp_encode_context_SCFailedConnectionRequest(
-                    apdu, context_tag_number, &value->type.SC_Failed_Req);
-                break;
-            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
-                apdu_len = bacapp_encode_context_SCHubFunctionConnection(
-                    apdu, context_tag_number,
-                    &value->type.SC_Hub_Function_Status);
-                break;
-            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
-                apdu_len = bacapp_encode_context_SCDirectConnection(
-                    apdu, context_tag_number, &value->type.SC_Direct_Status);
-                break;
-            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
-                apdu_len = bacapp_encode_context_SCHubConnection(
-                    apdu, context_tag_number, &value->type.SC_Hub_Status);
-                break;
-#endif
             default:
                 (void)len;
                 break;

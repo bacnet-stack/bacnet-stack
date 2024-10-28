@@ -247,39 +247,6 @@ int bacapp_decode_SCHubConnection(
 }
 
 /**
- * @brief Encode a context tagged SCHubConnection complex data type
- * @param apdu - the APDU buffer, or NULL for length
- * @param tag_number - the tag number
- * @param value - the structure that holds the data to be encoded
- * @return length of the encoded APDU buffer
- */
-int bacapp_encode_context_SCHubConnection(
-    uint8_t *apdu,
-    uint8_t tag_number,
-    const BACNET_SC_HUB_CONNECTION_STATUS *value)
-{
-    int len = 0; /* length of each encoding */
-    int apdu_len = 0;
-
-    if (value) {
-        len = encode_opening_tag(apdu, tag_number);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = bacapp_encode_SCHubConnection(apdu, value);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = encode_closing_tag(apdu, tag_number);
-        apdu_len += len;
-    }
-
-    return apdu_len;
-}
-
-/**
  * @brief Decode a context tagged SCHubConnection complex data type
  * @param apdu - the APDU buffer
  * @param apdu_size - the length of the APDU buffer
@@ -541,38 +508,6 @@ int bacapp_decode_SCHubFunctionConnection(
 }
 
 /**
- * @brief Encode a context tagged SCHubFunctionConnection complex data type
- * @param apdu - the APDU buffer, or NULL for length
- * @param address - IP address and port number
- * @return length of the encoded APDU buffer
- */
-int bacapp_encode_context_SCHubFunctionConnection(
-    uint8_t *apdu,
-    uint8_t tag_number,
-    const BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
-{
-    int len = 0; /* length of each encoding */
-    int apdu_len = 0;
-
-    if (value) {
-        len = encode_opening_tag(apdu, tag_number);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = bacapp_encode_SCHubFunctionConnection(apdu, value);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = encode_closing_tag(apdu, tag_number);
-        apdu_len += len;
-    }
-
-    return apdu_len;
-}
-
-/**
  * @brief Decode a context tagged SCHubFunctionConnection complex data type
  * @param apdu - the APDU buffer
  * @param apdu_size - the length of the APDU buffer
@@ -773,37 +708,6 @@ int bacapp_decode_SCFailedConnectionRequest(
         } else {
             /* OPTIONAL - skip and do not increment apdu_len */
         }
-    }
-
-    return apdu_len;
-}
-
-/**
- * @brief Encode a context tagged SCFailedConnectionRequest complex data type
- * @param apdu - the APDU buffer, or NULL for length
- * @param address - IP address and port number
- * @return length of the encoded APDU buffer
- */
-int bacapp_encode_context_SCFailedConnectionRequest(
-    uint8_t *apdu,
-    uint8_t tag_number,
-    const BACNET_SC_FAILED_CONNECTION_REQUEST *value)
-{
-    int apdu_len = 0, len = 0;
-
-    if (value) {
-        len = encode_opening_tag(apdu, tag_number);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = bacapp_encode_SCFailedConnectionRequest(apdu, value);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = encode_closing_tag(apdu, tag_number);
-        apdu_len += len;
     }
 
     return apdu_len;
@@ -1266,38 +1170,6 @@ int bacapp_decode_SCDirectConnection(
             value->Error_Details, sizeof(value->Error_Details), &str);
     }
 
-    return apdu_len;
-}
-
-/**
- * @brief Encode a context tagged SCDirectConnection complex data type
- * @param apdu - the APDU buffer, or NULL for length
- * @param tag_number - the tag number
- * @param value - the structure holding the data
- * @return length of the encoded APDU buffer
- */
-int bacapp_encode_context_SCDirectConnection(
-    uint8_t *apdu,
-    uint8_t tag_number,
-    const BACNET_SC_DIRECT_CONNECTION_STATUS *value)
-{
-    int len = 0; /* length of each encoding */
-    int apdu_len = 0;
-
-    if (value) {
-        len = encode_opening_tag(apdu, tag_number);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = bacapp_encode_SCDirectConnection(apdu, value);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = encode_closing_tag(apdu, tag_number);
-        apdu_len += len;
-    }
     return apdu_len;
 }
 
