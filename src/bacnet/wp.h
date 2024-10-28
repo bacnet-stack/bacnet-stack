@@ -46,6 +46,9 @@ typedef struct BACnet_Write_Property_Data {
  */
 typedef bool (*write_property_function)(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
+typedef bool (*bacnet_property_unsigned_setter)(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -85,6 +88,13 @@ bool write_property_empty_string_valid(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     const BACNET_APPLICATION_DATA_VALUE *value,
     size_t len_max);
+
+BACNET_STACK_EXPORT
+void write_property_unsigned_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    bacnet_property_unsigned_setter setter,
+    BACNET_UNSIGNED_INTEGER maximum);
 
 #ifdef __cplusplus
 }

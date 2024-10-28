@@ -474,3 +474,7 @@ writepropm: $(BACNET_LIB_TARGET)
 .PHONY: writegroup
 writegroup: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@
+
+.PHONY: sc-hub
+sc-hub: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@

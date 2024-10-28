@@ -29,6 +29,9 @@
 #if defined(BACDL_MSTP)
 #include "bacnet/datalink/dlmstp.h"
 #endif
+#if defined(BACDL_BSC)
+#include "bacnet/datalink/bsc/bsc-datalink.h"
+#endif
 #ifdef HAVE_STRINGS_H
 #include <strings.h> /* for strcasecmp() */
 #endif
@@ -73,6 +76,11 @@ void datalink_set(char *datalink_string)
         Datalink_Transport = DATALINK_MSTP;
     }
 #endif
+#if defined(BACDL_BSC)
+    else if (strcasecmp("bsc", datalink_string) == 0) {
+        Datalink_Transport = DATALINK_BSC;
+    }
+#endif
 }
 
 bool datalink_init(char *ifname)
@@ -106,6 +114,11 @@ bool datalink_init(char *ifname)
 #if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             status = dlmstp_init(ifname);
+            break;
+#endif
+#if defined(BACDL_BSC)
+        case DATALINK_BSC:
+            status = bsc_init(ifname);
             break;
 #endif
         default:
@@ -152,6 +165,11 @@ int datalink_send_pdu(
             bytes = dlmstp_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
 #endif
+#if defined(BACDL_BSC)
+        case DATALINK_BSC:
+            bytes = bsc_send_pdu(dest, npdu_data, pdu, pdu_len);
+            break;
+#endif
         default:
             break;
     }
@@ -192,6 +210,11 @@ uint16_t datalink_receive(
             bytes = dlmstp_receive(src, pdu, max_pdu, timeout);
             break;
 #endif
+#if defined(BACDL_BSC)
+        case DATALINK_BSC:
+            bytes = bsc_receive(src, pdu, max_pdu, timeout);
+            break;
+#endif
         default:
             break;
     }
@@ -229,6 +252,11 @@ void datalink_cleanup(void)
             dlmstp_cleanup();
             break;
 #endif
+#if defined(BACDL_BSC)
+        case DATALINK_BSC:
+            bsc_cleanup();
+            break;
+#endif
         default:
             break;
     }
@@ -264,6 +292,11 @@ void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
             dlmstp_get_broadcast_address(dest);
             break;
 #endif
+#if defined(BACDL_BSC)
+        case DATALINK_BSC:
+            bsc_get_broadcast_address(dest);
+            break;
+#endif
         default:
             break;
     }
@@ -297,6 +330,11 @@ void datalink_get_my_address(BACNET_ADDRESS *my_address)
 #if defined(BACDL_MSTP)
         case DATALINK_MSTP:
             dlmstp_get_my_address(my_address);
+            break;
+#endif
+#if defined(BACDL_BSC)
+        case DATALINK_BSC:
+            bsc_get_my_address(my_address);
             break;
 #endif
         default:
@@ -335,6 +373,11 @@ void datalink_set_interface(char *ifname)
             (void)ifname;
             break;
 #endif
+#if defined(BACDL_BSC)
+        case DATALINK_BSC:
+            (void)ifname;
+            break;
+#endif
         default:
             break;
     }
@@ -365,6 +408,11 @@ void datalink_maintenance_timer(uint16_t seconds)
 #endif
 #if defined(BACDL_MSTP)
         case DATALINK_MSTP:
+            break;
+#endif
+#if defined(BACDL_BSC)
+        case DATALINK_BSC:
+            bsc_maintenance_timer(seconds);
             break;
 #endif
         default:

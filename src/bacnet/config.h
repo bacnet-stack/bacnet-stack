@@ -31,6 +31,7 @@
 #define BACDL_MSTP
 #define BACDL_BIP
 #define BACDL_BIP6
+#define BACDL_BSC
 #endif
 
 #if defined(BACDL_ETHERNET)
@@ -59,6 +60,13 @@
 #endif
 
 #if defined(BACDL_BIP6)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_BSC)
 #if defined(BACDL_SOME_DATALINK_ENABLED)
 #define BACDL_MULTIPLE 1
 #endif
@@ -141,6 +149,7 @@
 #define MAX_APDU 412
 #else
 #define MAX_APDU 412
+#endif
 #endif
 
 #if defined(BACDL_BSC)
@@ -225,6 +234,7 @@
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
@@ -273,6 +283,7 @@
 #define BACAPP_SHED_LEVEL
 #define BACAPP_ACCESS_RULE
 #define BACAPP_CHANNEL_VALUE
+#define BACAPP_SECURE_CONNECT
 #endif
 
 /* clang-format off */
@@ -290,6 +301,7 @@
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_BDT_ENTRY) || \
     defined(BACAPP_FDT_ENTRY) || \
     defined(BACAPP_ACTION_COMMAND) || \
