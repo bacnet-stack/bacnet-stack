@@ -374,18 +374,6 @@ bool Network_Port_Object_Name(
     return status;
 }
 
-const char *Network_Port_Object_Name_char(uint32_t object_instance)
-{
-    unsigned index = 0; /* offset from instance lookup */
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        return Object_List[index].Object_Name;
-    }
-
-    return NULL;
-}
-
 /**
  * For a given object instance-number, sets the object-name
  * Note that the object name must be unique within this device.
