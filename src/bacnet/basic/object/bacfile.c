@@ -33,9 +33,9 @@
 #define FILE_RECORD_SIZE MAX_OCTET_STRING_BYTES
 #endif
 struct object_data {
-    const char *Object_Name;
-    const char *Pathname;
-    const char *File_Type;
+    char *Object_Name;
+    char *Pathname;
+    char *File_Type;
     BACNET_DATE_TIME Modification_Date;
     bool File_Access_Stream : 1;
     bool Read_Only : 1;
