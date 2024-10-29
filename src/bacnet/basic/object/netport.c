@@ -104,6 +104,8 @@ struct object_data {
     BACNET_PORT_QUALITY Quality;
     uint16_t APDU_Length;
     float Link_Speed;
+    bacnet_network_port_activate_changes Activate_Changes;
+    bacnet_network_port_discard_changes Discard_Changes;
     union {
         struct bacnet_ipv4_port IPv4;
         struct bacnet_ipv6_port IPv6;
@@ -956,6 +958,9 @@ bool Network_Port_Changes_Pending_Set(uint32_t object_instance, bool value)
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Changes_Pending = value;
+        if (value == false) {
+            Network_Port_Changes_Pending_Discard(object_instance);
+        }
         status = true;
     }
 
@@ -972,7 +977,26 @@ void Network_Port_Changes_Pending_Activate(uint32_t object_instance)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        /* callback? something else? */
+        if (Object_List[index].Activate_Changes) {
+            Object_List[index].Activate_Changes(object_instance);
+        }
+    }
+}
+
+/**
+ * @brief For a given object instance-number, sets the callback function
+ * to activate any pending changes
+ */
+void Network_Port_Changes_Pending_Activate_Callback_Set(
+    uint32_t object_instance,
+    bacnet_network_port_activate_changes callback)
+
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Activate_Changes = callback;
     }
 }
 
@@ -986,7 +1010,26 @@ void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        /* callback? something else? */
+        if (Object_List[index].Discard_Changes) {
+            Object_List[index].Discard_Changes(object_instance);
+        }
+    }
+}
+
+/**
+ * @brief For a given object instance-number, sets the callback function
+ * to discard any pending changes
+ */
+void Network_Port_Changes_Pending_Discard_Callback_Set(
+    uint32_t object_instance,
+    bacnet_network_port_discard_changes callback)
+
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Discard_Changes = callback;
     }
 }
 
