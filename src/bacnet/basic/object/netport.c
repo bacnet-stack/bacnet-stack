@@ -2842,6 +2842,29 @@ bool Network_Port_IPv6_Zone_Index(
 }
 
 /**
+ * For a given object instance-number, returns the Zone index ASCII.
+ * The Zone index could be "eth0" or some other name.
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @return  Zone index ASCII string
+ */
+const char *Network_Port_IPv6_Zone_Index_ASCII(uint32_t object_instance)
+{
+    const char *p = NULL;
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            p = &Object_List[index].Network.IPv6.Zone_Index[0];
+        }
+    }
+
+    return p;
+}
+
+/**
  * For a given object instance-number, returns the BACnet IPv6 Auto Addressing
  * Enable property value
  *
@@ -2917,6 +2940,7 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
             snprintf(
                 &Object_List[index].Network.IPv6.Zone_Index[0], ZONE_INDEX_SIZE,
                 "%s", zone_index);
+            status = true;
         }
     }
 
@@ -3664,6 +3688,10 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
     }
+    if (!status && (wp_data->error_code == ERROR_CODE_OTHER)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+    }
 
     return status;
 }
@@ -3672,7 +3700,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * ReadRange service handler for the BACnet/IP BDT.
  *
  * @param  apdu - place to encode the data
- * @param  apdu - BACNET_READ_RANGE_DATA data
+ * @param  pRequest - BACNET_READ_RANGE_DATA data
  *
  * @return number of bytes encoded
  */

@@ -311,6 +311,8 @@ BACNET_STACK_EXPORT
 bool Network_Port_IPv6_Zone_Index(
     uint32_t object_instance, BACNET_CHARACTER_STRING *zone_index);
 BACNET_STACK_EXPORT
+const char *Network_Port_IPv6_Zone_Index_ASCII(uint32_t object_instance);
+BACNET_STACK_EXPORT
 bool Network_Port_IPv6_Gateway_Zone_Index_Set(
     uint32_t object_instance, char *zone_index);
 
