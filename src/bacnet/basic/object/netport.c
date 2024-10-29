@@ -4128,6 +4128,10 @@ void Network_Port_Init(void)
 #ifdef BACDL_BSC
         Object_List[index].Network_Type = PORT_TYPE_BSC;
         sc = &Object_List[index].Network.BSC.Parameters;
+        Object_List[index].Activate_Changes =
+            Network_Port_SC_Pending_Params_Apply;
+        Object_List[index].Discard_Changes =
+            Network_Port_SC_Pending_Params_Discard;
 #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
         sc->Routing_Table = Keylist_Create();
 #endif
