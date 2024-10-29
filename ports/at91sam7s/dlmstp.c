@@ -1134,8 +1134,14 @@ static void MSTP_Slave_Node_FSM(void)
                 }
                 break;
             case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
-                if (DestinationAddress == MSTP_BROADCAST_ADDRESS) {
-                    /* indicate successful reception to the higher layers  */
+                if ((DestinationAddress == MSTP_BROADCAST_ADDRESS) &&
+                    (npdu_confirmed_service(InputBuffer, DataLength))) {
+                    /* quietly discard any Confirmed-Request-PDU, whose
+                       destination address is a multicast or
+                       broadcast address, received from the
+                       network layer. */
+                } else {
+                    /* indicate successful reception to higher layer */
                     MSTP_Flag.ReceivePacketPending = true;
                 }
                 break;

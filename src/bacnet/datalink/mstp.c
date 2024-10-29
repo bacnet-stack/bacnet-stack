@@ -1256,8 +1256,17 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port)
                 break;
             case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
             case FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY:
-                if (mstp_port->DestinationAddress == MSTP_BROADCAST_ADDRESS) {
-                    /* indicate successful reception to the higher layers  */
+                if ((mstp_port->DestinationAddress == MSTP_BROADCAST_ADDRESS) &&
+                    (npdu_confirmed_service(
+                        mstp_port->InputBuffer, mstp_port->DataLength))) {
+                    /* quietly discard any Confirmed-Request-PDU,
+                       whose destination address is a multicast or
+                       broadcast address, received from the
+                       network layer. */
+                } else {
+                    /* ForUs */
+                    /* indicate successful reception
+                       to the higher layers */
                     (void)MSTP_Put_Receive(mstp_port);
                 }
                 break;
