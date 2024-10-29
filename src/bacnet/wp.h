@@ -46,6 +46,12 @@ typedef struct BACnet_Write_Property_Data {
  */
 typedef bool (*write_property_function)(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
+/**
+ * @brief API for setting a BACnet Unsigned Integer property value
+ * @param object_instance [in] Object instance number
+ * @param value [in] New value to set
+ * @return true if successful, else false
+ */
 typedef bool (*bacnet_property_unsigned_setter)(
     uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
 
@@ -90,7 +96,7 @@ bool write_property_empty_string_valid(
     size_t len_max);
 
 BACNET_STACK_EXPORT
-void write_property_unsigned_decode(
+bool write_property_unsigned_decode(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     BACNET_APPLICATION_DATA_VALUE *value,
     bacnet_property_unsigned_setter setter,

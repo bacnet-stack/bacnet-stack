@@ -426,7 +426,16 @@ bool write_property_empty_string_valid(
     return (valid);
 }
 
-void write_property_unsigned_decode(
+/**
+ * @brief Helper to decode a WriteProperty unsigned integer and set a property
+ * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data including any
+ *  error response.
+ * @param value - #BACNET_APPLICATION_DATA_VALUE data
+ * @param setter - function to set the property
+ * @param maximum - maximum value allowed for the property
+ * @return true if the value was decoded and set, else false
+ */
+bool write_property_unsigned_decode(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     BACNET_APPLICATION_DATA_VALUE *value,
     bacnet_property_unsigned_setter setter,
@@ -438,13 +447,19 @@ void write_property_unsigned_decode(
         if (value->type.Unsigned_Int <= maximum) {
             status =
                 (setter)(wp_data->object_instance, value->type.Unsigned_Int);
-            if (!status) {
+            if (status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_SUCCESS;
+            } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
         } else {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = false;
         }
     }
+
+    return status;
 }
