@@ -29,9 +29,6 @@
 #include "bacnet/basic/object/bacfile.h"
 #endif
 #if (BACNET_PROTOCOL_REVISION >= 17)
-#if (BACFILE)
-#include "bacnet/basic/object/bacfile.h"
-#endif
 #include "bacnet/basic/object/netport.h"
 #endif
 /* OS specific include*/
@@ -137,7 +134,7 @@ static object_functions_t Object_Table[] = {
       NULL /* Delete */,
       NULL /* Timer */ },
 #endif
-#if defined(BACDL_BSC)
+#if defined(BACFILE)
     { OBJECT_FILE,
       bacfile_init,
       bacfile_count,
