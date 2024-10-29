@@ -252,11 +252,6 @@ static const int BSC_Port_Properties_Optional[] = {
 
 static const int Network_Port_Properties_Proprietary[] = { -1 };
 
-unsigned Network_Port_Object_Number(void)
-{
-    return BACNET_NETWORK_PORTS_MAX;
-}
-
 /**
  * Returns the list of required, optional, and proprietary properties.
  * Used by ReadPropertyMultiple service.
