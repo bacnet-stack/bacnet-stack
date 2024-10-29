@@ -988,8 +988,7 @@ void Network_Port_Changes_Pending_Activate(uint32_t object_instance)
  * to activate any pending changes
  */
 void Network_Port_Changes_Pending_Activate_Callback_Set(
-    uint32_t object_instance,
-    bacnet_network_port_activate_changes callback)
+    uint32_t object_instance, bacnet_network_port_activate_changes callback)
 
 {
     unsigned index = 0;
@@ -1021,8 +1020,7 @@ void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
  * to discard any pending changes
  */
 void Network_Port_Changes_Pending_Discard_Callback_Set(
-    uint32_t object_instance,
-    bacnet_network_port_discard_changes callback)
+    uint32_t object_instance, bacnet_network_port_discard_changes callback)
 
 {
     unsigned index = 0;

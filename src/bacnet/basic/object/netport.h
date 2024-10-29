@@ -22,16 +22,14 @@
  * @param object_instance [in] Object instance number
  * @return true if successful, else false
  */
-typedef void (*bacnet_network_port_activate_changes)(
-    uint32_t object_instance);
+typedef void (*bacnet_network_port_activate_changes)(uint32_t object_instance);
 
 /**
  * @brief API for a network port object when changes need to be discarded
  * @param object_instance [in] Object instance number
  * @return true if successful, else false
  */
-typedef void (*bacnet_network_port_discard_changes)(
-    uint32_t object_instance);
+typedef void (*bacnet_network_port_discard_changes)(uint32_t object_instance);
 
 #ifdef __cplusplus
 extern "C" {
@@ -335,14 +333,12 @@ BACNET_STACK_EXPORT
 void Network_Port_Changes_Pending_Activate(uint32_t instance);
 BACNET_STACK_EXPORT
 void Network_Port_Changes_Pending_Activate_Callback_Set(
-    uint32_t instance,
-    bacnet_network_port_activate_changes callback);
+    uint32_t instance, bacnet_network_port_activate_changes callback);
 BACNET_STACK_EXPORT
 void Network_Port_Changes_Pending_Discard(uint32_t instance);
 BACNET_STACK_EXPORT
 void Network_Port_Changes_Pending_Discard_Callback_Set(
-    uint32_t instance,
-    bacnet_network_port_discard_changes callback);
+    uint32_t instance, bacnet_network_port_discard_changes callback);
 
 BACNET_STACK_EXPORT
 bool Network_Port_Valid_Instance(uint32_t object_instance);
