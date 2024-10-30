@@ -32,6 +32,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added missing MS/TP zero configuration preferred address API and usage. (#840)
 * Added unit testing for FIFO peek feature. (#839)
 * Added IPv6 Zone Index function to return ASCII. (#838)
 * Added network port callbacks for pending changes activate and discard. (#836)
