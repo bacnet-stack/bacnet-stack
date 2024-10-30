@@ -16,6 +16,11 @@
 #define PRINTF debug_aprintf
 #define PRINTF_ERR debug_perror
 
+/**
+ * @brief Map websocket return code to BACnet/SC return code
+ * @param ret - websocket return code
+ * @return BACnet/SC return code
+ */
 BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret)
 {
     switch (ret) {
@@ -31,16 +36,31 @@ BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret)
     }
 }
 
+/**
+ * @brief Copy BACnet Secure Connect VMAC address
+ * @param dst - destination VMAC address
+ * @param src - source VMAC address
+ */
 void bsc_copy_vmac(BACNET_SC_VMAC_ADDRESS *dst, BACNET_SC_VMAC_ADDRESS *src)
 {
     memcpy(dst->address, src->address, sizeof(src->address));
 }
 
+/**
+ * @brief Copy the BACnet Secure Connect UUID
+ * @param dst - destination UUID
+ * @param src - source UUID
+ */
 void bsc_copy_uuid(BACNET_SC_UUID *dst, BACNET_SC_UUID *src)
 {
     memcpy(dst->uuid, src->uuid, sizeof(src->uuid));
 }
 
+/**
+ * @brief Convert BACnet Secure Connect VMAC address to string
+ * @param vmac - VMAC address
+ * @return string representation of VMAC address
+ */
 char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
 {
     static char buf[128];
@@ -50,6 +70,11 @@ char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
     return buf;
 }
 
+/**
+ * @brief Convert BACnet Secure Connect UUID to string
+ * @param uuid - UUID
+ * @return string representation of UUID
+ */
 char *bsc_uuid_to_string(BACNET_SC_UUID *uuid)
 {
     static char buf[128];
@@ -63,6 +88,10 @@ char *bsc_uuid_to_string(BACNET_SC_UUID *uuid)
     return buf;
 }
 
+/**
+ * @brief Generate random BACnet Secure Connect VMAC address
+ * @param p - pointer to the VMAC address
+ */
 void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
 {
     int i;
@@ -82,6 +111,10 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
         0, p->address, BVLC_SC_VMAC_SIZE, "bsc_generate_random_vmac");
 }
 
+/**
+ * @brief Generate random BACnet Secure Connect UUID
+ * @param p - pointer to the UUID
+ */
 void bsc_generate_random_uuid(BACNET_SC_UUID *p)
 {
     int i;
@@ -104,6 +137,13 @@ void bsc_generate_random_uuid(BACNET_SC_UUID *p)
 #define ZERO_BYTE 0
 #endif
 
+/**
+ * @brief Load certificate from BACnet file object
+ * @param file_instance - file instance
+ * @param pbuf - pointer to the buffer
+ * @param psize - pointer to the size
+ * @return true if successful, else false
+ */
 static bool bsc_node_load_cert_bacfile(
     uint32_t file_instance, uint8_t **pbuf, size_t *psize)
 {
@@ -134,6 +174,12 @@ static bool bsc_node_load_cert_bacfile(
     return true;
 }
 
+/**
+ * @brief Fill BACnet/SC node configuration from network port object
+ * @param bsc_conf - pointer to the BACnet/SC node configuration
+ * @param event_func - event function
+ * @return true if successful, else false
+ */
 bool bsc_node_conf_fill_from_netport(
     BSC_NODE_CONF *bsc_conf, BSC_NODE_EVENT_FUNC event_func)
 {
@@ -216,6 +262,10 @@ bool bsc_node_conf_fill_from_netport(
     return true;
 }
 
+/**
+ * @brief Cleanup BACnet/SC node configuration
+ * @param bsc_conf - pointer to the BACnet/SC node configuration
+ */
 void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf)
 {
     bsc_conf->ca_cert_chain_size = 0;
@@ -232,6 +282,12 @@ void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf)
     }
 }
 
+/**
+ * @brief Copy string
+ * @param dst - destination string
+ * @param src - source string
+ * @param dst_len - destination string length
+ */
 void bsc_copy_str(char *dst, const char *src, size_t dst_len)
 {
     size_t len;
@@ -242,6 +298,10 @@ void bsc_copy_str(char *dst, const char *src, size_t dst_len)
     }
 }
 
+/**
+ * @brief Set timestamp
+ * @param timestamp - pointer to the timestamp
+ */
 void bsc_set_timestamp(BACNET_DATE_TIME *timestamp)
 {
     int16_t utc_offset_minutes;
@@ -250,6 +310,10 @@ void bsc_set_timestamp(BACNET_DATE_TIME *timestamp)
         &timestamp->date, &timestamp->time, &utc_offset_minutes, &dst_active);
 }
 
+/**
+ * @brief Check if BACnet/SC certificate files exist
+ * @return true if all files exist, else false
+ */
 bool bsc_cert_files_check(void)
 {
     uint32_t instance;

@@ -78,6 +78,10 @@ static BSC_SOCKET_CTX_FUNCS bsc_hub_function_ctx_funcs = {
     hub_function_context_event, hub_function_failed_request
 };
 
+/**
+ * @brief Allocate a hub function
+ * @return pointer to the hub function
+ */
 static BSC_HUB_FUNCTION *hub_function_alloc(void)
 {
     int i;
@@ -90,11 +94,21 @@ static BSC_HUB_FUNCTION *hub_function_alloc(void)
     return NULL;
 }
 
+/**
+ * @brief Free a hub function
+ * @param p - pointer to the hub function
+ */
 static void hub_function_free(BSC_HUB_FUNCTION *p)
 {
     p->used = false;
 }
 
+/**
+ * @brief find a hub function connection for a specific VMAC address
+ * @param vmac - pointer to the VMAC address
+ * @param user_arg - pointer to the user argument
+ * @return pointer to the socket, or NULL if not found
+ */
 static BSC_SOCKET *hub_function_find_connection_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg)
 {
@@ -122,6 +136,12 @@ static BSC_SOCKET *hub_function_find_connection_for_vmac(
     return NULL;
 }
 
+/**
+ * @brief find a hub function connection for a specific UUID
+ * @param uuid - pointer to the UUID
+ * @param user_arg - pointer to the user argument
+ * @return pointer to the socket, or NULL if not found
+ */
 static BSC_SOCKET *
 hub_function_find_connection_for_uuid(BACNET_SC_UUID *uuid, void *user_arg)
 {
@@ -146,6 +166,14 @@ hub_function_find_connection_for_uuid(BACNET_SC_UUID *uuid, void *user_arg)
     return NULL;
 }
 
+/**
+ * @brief update the status of the hub function
+ * @param f - pointer to the hub function
+ * @param c - pointer to the socket
+ * @param ev - event
+ * @param disconnect_reason - disconnect reason
+ * @param disconnect_reason_desc - disconnect reason description
+ */
 static void hub_function_update_status(
     BSC_HUB_FUNCTION *f,
     BSC_SOCKET *c,
@@ -195,6 +223,15 @@ static void hub_function_update_status(
     }
 }
 
+/**
+ * @brief Handle a hub function failed request
+ * @param ctx - pointer to the socket context
+ * @param c - pointer to the socket
+ * @param vmac - pointer to the VMAC address
+ * @param uuid - pointer to the UUID
+ * @param error - error code
+ * @param error_desc - pointer to the error description
+ */
 static void hub_function_failed_request(
     BSC_SOCKET_CTX *ctx,
     BSC_SOCKET *c,
@@ -218,6 +255,16 @@ static void hub_function_failed_request(
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Handle a hub function socket event
+ * @param c - pointer to the socket
+ * @param ev - event
+ * @param reason - disconnect reason
+ * @param reason_desc - disconnect reason description
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @param decoded_pdu - decoded PDU
+ */
 static void hub_function_socket_event(
     BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
@@ -314,6 +361,11 @@ static void hub_function_socket_event(
     DEBUG_PRINTF("hub_function_socket_event() <<<\n");
 }
 
+/**
+ * @brief Handle a hub function context event
+ * @param ctx - pointer to the socket context
+ * @param ev - event
+ */
 static void hub_function_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
     BSC_HUB_FUNCTION *f;
@@ -332,6 +384,28 @@ static void hub_function_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Start a BACnet hub function
+ * @param ca_cert_chain - pointer to the CA certificate chain
+ * @param ca_cert_chain_size - size of the CA certificate chain
+ * @param cert_chain - pointer to the certificate chain
+ * @param cert_chain_size - size of the certificate chain
+ * @param key - pointer to the private key
+ * @param key_size - size of the private key
+ * @param port - port number
+ * @param iface - pointer to the interface
+ * @param local_uuid - pointer to the local UUID
+ * @param local_vmac - pointer to the local VMAC address
+ * @param max_local_bvlc_len - maximum local BVLC length
+ * @param max_local_npdu_len - maximum local NPDU length
+ * @param connect_timeout_s - connection timeout in seconds
+ * @param heartbeat_timeout_s - heartbeat timeout in seconds
+ * @param disconnect_timeout_s - disconnect timeout in seconds
+ * @param event_func - pointer to the event function
+ * @param user_arg - pointer to the user argument
+ * @param h - pointer to the hub function handle
+ * @return BACnet/SC status
+ */
 BSC_SC_RET bsc_hub_function_start(
     uint8_t *ca_cert_chain,
     size_t ca_cert_chain_size,
@@ -402,6 +476,10 @@ BSC_SC_RET bsc_hub_function_start(
     return ret;
 }
 
+/**
+ * @brief Stop a BACnet hub function
+ * @param h - pointer to the hub function handle
+ */
 void bsc_hub_function_stop(BSC_HUB_FUNCTION_HANDLE h)
 {
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
@@ -416,6 +494,11 @@ void bsc_hub_function_stop(BSC_HUB_FUNCTION_HANDLE h)
     DEBUG_PRINTF("bsc_hub_function_stop() <<<\n");
 }
 
+/**
+ * @brief Check if the hub function is stopped
+ * @param h - pointer to the hub function handle
+ * @return true if the hub function is stopped, false otherwise
+ */
 bool bsc_hub_function_stopped(BSC_HUB_FUNCTION_HANDLE h)
 {
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
@@ -431,6 +514,11 @@ bool bsc_hub_function_stopped(BSC_HUB_FUNCTION_HANDLE h)
     return ret;
 }
 
+/**
+ * @brief Check if the hub function is started
+ * @param h - pointer to the hub function handle
+ * @return true if the hub function is started, false otherwise
+ */
 bool bsc_hub_function_started(BSC_HUB_FUNCTION_HANDLE h)
 {
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;

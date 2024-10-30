@@ -83,6 +83,10 @@ static BSC_NODE_CONF bsc_conf[BSC_CONF_NODES_NUM];
 
 static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state);
 
+/**
+ * @brief Initialize direct connection status
+ * @param s - pointer to the direct connection status
+ */
 static void bsc_node_init_direct_status(BACNET_SC_DIRECT_CONNECTION_STATUS *s)
 {
     int j;
@@ -96,6 +100,10 @@ static void bsc_node_init_direct_status(BACNET_SC_DIRECT_CONNECTION_STATUS *s)
     }
 }
 
+/**
+ * @brief Initialize hub connection status
+ * @param s - pointer to the hub connection status
+ */
 static void
 bsc_node_init_hub_status(BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *s)
 {
@@ -110,6 +118,10 @@ bsc_node_init_hub_status(BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *s)
     }
 }
 
+/**
+ * @brief Allocate a node
+ * @return pointer to the allocated node
+ */
 static BSC_NODE *bsc_alloc_node(void)
 {
     int i, j;
@@ -170,6 +182,11 @@ static BSC_NODE *bsc_alloc_node(void)
     return NULL;
 }
 
+/**
+ * @brief Check if the node is enabled or not
+ * @param conf - pointer to the node configuration
+ * @return true if the node is enabled, otherwise false
+ */
 static bool node_switch_enabled(BSC_NODE_CONF *conf)
 {
     if (conf->direct_connect_initiate_enable ||
@@ -179,6 +196,12 @@ static bool node_switch_enabled(BSC_NODE_CONF *conf)
     return false;
 }
 
+/**
+ * @brief Get the address resolution for the BACnet/SC node
+ * @param node - pointer to the BACnet/SC node
+ * @param vmac - pointer to the VMAC address
+ * @return pointer to the address resolution
+ */
 static BSC_ADDRESS_RESOLUTION *
 node_get_address_resolution(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
@@ -195,12 +218,22 @@ node_get_address_resolution(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
     return NULL;
 }
 
+/**
+ * @brief Free the address resolution
+ * @param r - pointer to the address resolution
+ */
 static void node_free_address_resolution(BSC_ADDRESS_RESOLUTION *r)
 {
     r->used = false;
     r->urls_num = false;
 }
 
+/**
+ * @brief Allocate the address resolution
+ * @param node - pointer to the BACnet/SC node
+ * @param vmac - pointer to the VMAC address
+ * @return pointer to the address resolution
+ */
 static BSC_ADDRESS_RESOLUTION *
 node_alloc_address_resolution(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
@@ -234,6 +267,10 @@ node_alloc_address_resolution(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
     return &node->resolution[max_index];
 }
 
+/**
+ * @brief Free the BACnet/SC node
+ * @param node - pointer to the BACnet/SC node
+ */
 static void bsc_free_node(BSC_NODE *node)
 {
     DEBUG_PRINTF(
@@ -242,6 +279,10 @@ static void bsc_free_node(BSC_NODE *node)
     DEBUG_PRINTF("bsc_free_node() <<<\n");
 }
 
+/**
+ * @brief Process a BACnet/SC node stop event
+ * @param node - pointer to the BACnet/SC node
+ */
 static void bsc_node_process_stop_event(BSC_NODE *node)
 {
     bool stopped = true;
@@ -293,6 +334,10 @@ static void bsc_node_process_stop_event(BSC_NODE *node)
     DEBUG_PRINTF("bsc_node_process_stop_event() <<<\n");
 }
 
+/**
+ * @brief Process a BACnet/SC node start event
+ * @param node - pointer to the BACnet/SC node
+ */
 static void bsc_node_process_start_event(BSC_NODE *node)
 {
     bool started = true;
@@ -324,6 +369,10 @@ static void bsc_node_process_start_event(BSC_NODE *node)
     DEBUG_PRINTF("bsc_node_process_start_event() <<<\n");
 }
 
+/**
+ * @brief Process a BACnet/SC node restart event
+ * @param node - pointer to the BACnet/SC node
+ */
 static void bsc_node_restart(BSC_NODE *node)
 {
     DEBUG_PRINTF(
@@ -343,6 +392,11 @@ static void bsc_node_restart(BSC_NODE *node)
     DEBUG_PRINTF("bsc_node_restart() <<<\n");
 }
 
+/**
+ * @brief Parse URLs for the BACnet/SC node
+ * @param r - pointer to the address resolution
+ * @param decoded_pdu - pointer to the decoded PDU
+ */
 static void bsc_node_parse_urls(
     BSC_ADDRESS_RESOLUTION *r, BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
@@ -378,6 +432,13 @@ static void bsc_node_parse_urls(
     r->urls_num = j;
 }
 
+/**
+ * @brief Process a BACnet/SC node received event
+ * @param node - pointer to the BACnet/SC node
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @param decoded_pdu - pointer to the decoded PDU
+ */
 static void bsc_node_process_received(
     BSC_NODE *node,
     uint8_t *pdu,
@@ -576,6 +637,15 @@ static void bsc_node_process_received(
     DEBUG_PRINTF("bsc_node_process_received() <<<\n");
 }
 
+/**
+ * @brief handle a BACnet/SC node connection event
+ * @param ev - connection event
+ * @param h - connection handle
+ * @param user_arg - user argument
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @param decoded_pdu - pointer to the decoded PDU
+ */
 static void bsc_hub_connector_event(
     BSC_HUB_CONNECTOR_EVENT ev,
     BSC_HUB_CONNECTOR_HANDLE h,
@@ -606,6 +676,12 @@ static void bsc_hub_connector_event(
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief handle a BACnet/SC hub function event
+ * @param ev - hub function event
+ * @param h - hub function handle
+ * @param user_arg - user argument
+ */
 static void bsc_hub_function_event(
     BSC_HUB_FUNCTION_EVENT ev, BSC_HUB_FUNCTION_HANDLE h, void *user_arg)
 {
@@ -632,6 +708,16 @@ static void bsc_hub_function_event(
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief handle a BACnet/SC node switch event
+ * @param ev - node switch event
+ * @param h - node switch handle
+ * @param user_arg - user argument
+ * @param dest - pointer to the destination VMAC address
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @param decoded_pdu - pointer to the decoded PDU
+ */
 static void bsc_node_switch_event(
     BSC_NODE_SWITCH_EVENT ev,
     BSC_NODE_SWITCH_HANDLE h,
@@ -672,6 +758,12 @@ static void bsc_node_switch_event(
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Initialize the BACnet/SC node
+ * @param conf - pointer to the node configuration
+ * @param node - pointer to the BACnet/SC node
+ * @return BACnet/SC status
+ */
 BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
 {
     DEBUG_PRINTF("bsc_node_init() >>> conf = %p, node = %p\n", conf, node);
@@ -707,6 +799,11 @@ BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
     return BSC_SC_SUCCESS;
 }
 
+/**
+ * @brief Deinitialize the BACnet/SC node
+ * @param node - pointer to the BACnet/SC node
+ * @return BACnet/SC status
+ */
 BSC_SC_RET bsc_node_deinit(BSC_NODE *node)
 {
     DEBUG_PRINTF("bsc_node_deinit() >>> node = %p\n", node);
@@ -722,6 +819,12 @@ BSC_SC_RET bsc_node_deinit(BSC_NODE *node)
     return BSC_SC_SUCCESS;
 }
 
+/**
+ * @brief Handle the BACnet/SC node start state
+ * @param node - pointer to the BACnet/SC node
+ * @param state - node state
+ * @return BACnet/SC status
+ */
 static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
 {
     BSC_SC_RET ret = BSC_SC_BAD_PARAM;
@@ -825,6 +928,11 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
     return ret;
 }
 
+/**
+ * @brief Start the BACnet/SC node
+ * @param node - pointer to the BACnet/SC node
+ * @return BACnet/SC status
+ */
 BSC_SC_RET bsc_node_start(BSC_NODE *node)
 {
     BSC_SC_RET ret;
@@ -849,6 +957,10 @@ BSC_SC_RET bsc_node_start(BSC_NODE *node)
     return ret;
 }
 
+/**
+ * @brief Stop the BACnet/SC node
+ * @param node - pointer to the BACnet/SC node
+ */
 void bsc_node_stop(BSC_NODE *node)
 {
     DEBUG_PRINTF("bsc_node_stop() >>> node = %p\n", node);
@@ -874,6 +986,13 @@ void bsc_node_stop(BSC_NODE *node)
     DEBUG_PRINTF("bsc_node_stop() <<<\n");
 }
 
+/**
+ * @brief Send a PDU to the BACnet/SC connected node
+ * @param p_node - pointer to the BACnet/SC node
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @return BACnet/SC status
+ */
 BSC_SC_RET
 bsc_node_hub_connector_send(void *p_node, uint8_t *pdu, size_t pdu_len)
 {
@@ -906,6 +1025,13 @@ bsc_node_hub_connector_send(void *p_node, uint8_t *pdu, size_t pdu_len)
     return ret;
 }
 
+/**
+ * @brief Send a PDU to the BACnet/SC connected node
+ * @param p_node - pointer to the BACnet/SC node
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @return BACnet/SC status
+ */
 BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, size_t pdu_len)
 {
     BSC_NODE *node = (BSC_NODE *)p_node;
@@ -942,6 +1068,12 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, size_t pdu_len)
     return ret;
 }
 
+/**
+ * @brief Get the BACnet/SC node address resolution
+ * @param p_node - pointer to the BACnet/SC node
+ * @param vmac - pointer to the VMAC address
+ * @return pointer to the address resolution, or NULL if not found
+ */
 BSC_ADDRESS_RESOLUTION *
 bsc_node_get_address_resolution(void *p_node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
@@ -972,6 +1104,12 @@ bsc_node_get_address_resolution(void *p_node, BACNET_SC_VMAC_ADDRESS *vmac)
     return NULL;
 }
 
+/**
+ * @brief Send an address resolution to the BACnet/SC node
+ * @param p_node - pointer to the BACnet/SC node
+ * @param dest - pointer to the destination VMAC address
+ * @return BACnet/SC status
+ */
 BSC_SC_RET
 bsc_node_send_address_resolution(void *p_node, BACNET_SC_VMAC_ADDRESS *dest)
 {
@@ -989,6 +1127,14 @@ bsc_node_send_address_resolution(void *p_node, BACNET_SC_VMAC_ADDRESS *dest)
     return ret;
 }
 
+/**
+ * @brief Connect to the BACnet/SC node directly
+ * @param node - pointer to the BACnet/SC node
+ * @param dest - pointer to the destination VMAC address
+ * @param urls - pointer to the URLs
+ * @param urls_cnt - URLs count
+ * @return BACnet/SC status
+ */
 BSC_SC_RET bsc_node_connect_direct(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
@@ -1007,6 +1153,11 @@ BSC_SC_RET bsc_node_connect_direct(
     return ret;
 }
 
+/**
+ * @brief Disconnect from the BACnet/SC node direct connection
+ * @param node - pointer to the BACnet/SC node
+ * @param dest - pointer to the destination VMAC address
+ */
 void bsc_node_disconnect_direct(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest)
 {
     DEBUG_PRINTF(
@@ -1020,6 +1171,15 @@ void bsc_node_disconnect_direct(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest)
     DEBUG_PRINTF("bsc_node_disconnect_direct() <<< \n");
 }
 
+/**
+ * @brief Determine if the direct connection to the BACnet/SC node is
+ * established
+ * @param node - pointer to the BACnet/SC node
+ * @param dest - pointer to the destination VMAC address
+ * @param urls - pointer to the URLs
+ * @param urls_cnt - URLs count
+ * @return true if the direct connection is established, false otherwise
+ */
 bool bsc_node_direct_connection_established(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
@@ -1035,6 +1195,11 @@ bool bsc_node_direct_connection_established(
     return ret;
 }
 
+/**
+ * @brief Get the BACnet/SC node state
+ * @param node - pointer to the BACnet/SC node
+ * @return BACnet/SC hub connector state
+ */
 BACNET_SC_HUB_CONNECTOR_STATE
 bsc_node_hub_connector_state(BSC_NODE *node)
 {
@@ -1048,6 +1213,12 @@ bsc_node_hub_connector_state(BSC_NODE *node)
     return ret;
 }
 
+/**
+ * @brief Get the BACnet/SC node hub connector status
+ * @param node - pointer to the BACnet/SC node
+ * @param primary - true if the primary hub connector status is requested
+ * @return pointer to the hub connector status
+ */
 BACNET_SC_HUB_CONNECTION_STATUS *
 bsc_node_hub_connector_status(BSC_NODE *node, bool primary)
 {
@@ -1060,6 +1231,12 @@ bsc_node_hub_connector_status(BSC_NODE *node, bool primary)
     return ret;
 }
 
+/**
+ * @brief Get the BACnet/SC node hub function status
+ * @param node - pointer to the BACnet/SC node
+ * @param cnt - pointer to the status count
+ * @return pointer to the hub function status
+ */
 BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *
 bsc_node_hub_function_status(BSC_NODE *node, size_t *cnt)
 {
@@ -1074,6 +1251,12 @@ bsc_node_hub_function_status(BSC_NODE *node, size_t *cnt)
     return ret;
 }
 
+/**
+ * @brief Get the BACnet/SC node direct connection status
+ * @param node - pointer to the BACnet/SC node
+ * @param cnt - pointer to the status count
+ * @return pointer to the direct connection status
+ */
 BACNET_SC_DIRECT_CONNECTION_STATUS *
 bsc_node_direct_connection_status(BSC_NODE *node, size_t *cnt)
 {
@@ -1089,6 +1272,10 @@ bsc_node_direct_connection_status(BSC_NODE *node, size_t *cnt)
     return ret;
 }
 
+/**
+ * @brief Maintenance timer for the BACnet/SC node
+ * @param seconds - number of seconds since the last call
+ */
 void bsc_node_maintenance_timer(uint16_t seconds)
 {
     (void)seconds;
@@ -1098,6 +1285,15 @@ void bsc_node_maintenance_timer(uint16_t seconds)
     bsc_node_switch_maintenance_timer(seconds);
 }
 
+/**
+ * @brief Add failed request information to the BACnet/SC node
+ * @param r - pointer to the failed request information
+ * @param peer - pointer to the peer address
+ * @param vmac - pointer to the VMAC address
+ * @param uuid - pointer to the UUID
+ * @param error - error code
+ * @param error_desc - error description
+ */
 static void bsc_node_add_failed_request_info(
     BACNET_SC_FAILED_CONNECTION_REQUEST *r,
     BACNET_HOST_N_PORT_DATA *peer,
@@ -1118,6 +1314,15 @@ static void bsc_node_add_failed_request_info(
     }
 }
 
+/**
+ * @brief Store failed request information to the BACnet/SC node
+ * @param node - pointer to the BACnet/SC node
+ * @param peer - pointer to the peer address
+ * @param vmac - pointer to the VMAC address
+ * @param uuid - pointer to the UUID
+ * @param error - error code
+ * @param error_desc - error description
+ */
 void bsc_node_store_failed_request_info(
     BSC_NODE *node,
     BACNET_HOST_N_PORT_DATA *peer,
@@ -1156,6 +1361,12 @@ void bsc_node_store_failed_request_info(
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Get the failed request status from the BACnet/SC node
+ * @param node - pointer to the BACnet/SC node
+ * @param cnt - pointer to the status count
+ * @return pointer to the failed request status
+ */
 BACNET_SC_FAILED_CONNECTION_REQUEST *
 bsc_node_failed_requests_status(BSC_NODE *node, size_t *cnt)
 {
@@ -1171,6 +1382,12 @@ bsc_node_failed_requests_status(BSC_NODE *node, size_t *cnt)
     return ret;
 }
 
+/**
+ * @brief Find the BACnet/SC node direct connection status for the VMAC address
+ * @param node - pointer to the BACnet/SC node
+ * @param vmac - pointer to the VMAC address
+ * @return pointer to the direct connection status
+ */
 BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
@@ -1237,6 +1454,12 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
     return &node->direct_status[index];
 }
 
+/**
+ * @brief Find the BACnet/SC node hub function status for the VMAC address
+ * @param node - pointer to the BACnet/SC node
+ * @param vmac - pointer to the VMAC address
+ * @return pointer to the hub function status
+ */
 BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *
 bsc_node_find_hub_status_for_vmac(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 {

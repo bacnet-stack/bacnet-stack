@@ -139,6 +139,10 @@ static BSC_SOCKET_CTX_FUNCS bsc_node_switch_initiator_ctx_funcs = {
 static int node_switch_acceptor_find_connection_index_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac, BSC_NODE_SWITCH_CTX *ctx);
 
+/**
+ * @brief Allocate a node switch context
+ * @return pointer to the allocated node switch context
+ */
 static BSC_NODE_SWITCH_CTX *node_switch_alloc(void)
 {
     int i;
@@ -158,11 +162,25 @@ static BSC_NODE_SWITCH_CTX *node_switch_alloc(void)
     return NULL;
 }
 
+/**
+ * @brief Free the node switch context
+ */
 static void node_switch_free(BSC_NODE_SWITCH_CTX *ctx)
 {
     ctx->used = false;
 }
 
+/**
+ * @brief Update the status of the node switch
+ * @param ctx - pointer to the node switch context
+ * @param initiator - true if the initiator, otherwise false
+ * @param failed_to_connect - true if failed to connect, otherwise false
+ * @param URI - pointer to the URI
+ * @param c - pointer to the socket
+ * @param ev - socket event
+ * @param reason - error code
+ * @param reason_desc - pointer to the reason description
+ */
 static void node_switch_update_status(
     BSC_NODE_SWITCH_CTX *ctx,
     bool initiator,
@@ -237,6 +255,12 @@ static void node_switch_update_status(
     DEBUG_PRINTF("node_switch_update_status() <<<\n");
 }
 
+/**
+ * @brief Copy URLs from the address resolution to the node switch context
+ * @param ctx - pointer to the node switch context
+ * @param index - index of the URL
+ * @param r - pointer to the address resolution
+ */
 static void
 copy_urls(BSC_NODE_SWITCH_CTX *ctx, int index, BSC_ADDRESS_RESOLUTION *r)
 {
@@ -250,6 +274,13 @@ copy_urls(BSC_NODE_SWITCH_CTX *ctx, int index, BSC_ADDRESS_RESOLUTION *r)
     ctx->initiator.urls[index].urls_cnt = r->urls_num;
 }
 
+/**
+ * @brief Copy URLs from the array to the node switch context
+ * @param ctx - pointer to the node switch context
+ * @param index - index of the URL
+ * @param urls - pointer to the array of URLs
+ * @param urls_cnt - number of URLs
+ */
 static void
 copy_urls2(BSC_NODE_SWITCH_CTX *ctx, int index, char **urls, size_t urls_cnt)
 {
@@ -261,6 +292,12 @@ copy_urls2(BSC_NODE_SWITCH_CTX *ctx, int index, char **urls, size_t urls_cnt)
     ctx->initiator.urls[index].urls_cnt = urls_cnt;
 }
 
+/**
+ * @brief Find the connection socket for a specific VMAC address
+ * @param vmac - pointer to the VMAC address
+ * @param user_arg - pointer to the user argument
+ * @return pointer to the socket, or NULL if not found
+ */
 static BSC_SOCKET *node_switch_acceptor_find_connection_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg)
 {
@@ -285,6 +322,12 @@ static BSC_SOCKET *node_switch_acceptor_find_connection_for_vmac(
     return NULL;
 }
 
+/**
+ * @brief Find the connection socket for a specific UUID
+ * @param uuid - pointer to the UUID
+ * @param user_arg - pointer to the user argument
+ * @return pointer to the socket, or NULL if not found
+ */
 static BSC_SOCKET *node_switch_acceptor_find_connection_for_uuid(
     BACNET_SC_UUID *uuid, void *user_arg)
 {
@@ -310,6 +353,15 @@ static BSC_SOCKET *node_switch_acceptor_find_connection_for_uuid(
     return NULL;
 }
 
+/**
+ * @brief Handle a node switch acceptor failed request
+ * @param ctx - pointer to the socket context
+ * @param c - pointer to the socket
+ * @param vmac - pointer to the VMAC address
+ * @param uuid - pointer to the UUID
+ * @param error - error code
+ * @param error_desc - pointer to the error description
+ */
 static void node_switch_acceptor_failed_request(
     BSC_SOCKET_CTX *ctx,
     BSC_SOCKET *c,
@@ -333,6 +385,16 @@ static void node_switch_acceptor_failed_request(
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Handle a node switch acceptor socket event
+ * @param c - pointer to the socket
+ * @param ev - event
+ * @param disconnect_reason - disconnect reason
+ * @param disconnect_reason_desc - disconnect reason description
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @param decoded_pdu - decoded PDU
+ */
 static void node_switch_acceptor_socket_event(
     BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
@@ -390,6 +452,10 @@ static void node_switch_acceptor_socket_event(
     DEBUG_PRINTF("node_switch_acceptor_socket_event() <<<\n");
 }
 
+/**
+ * @brief Deinialize the node switch context
+ * @param ns - pointer to the node switch context
+ */
 static void node_switch_context_deinitialized(BSC_NODE_SWITCH_CTX *ns)
 {
     if (ns->initiator.state == BSC_NODE_SWITCH_STATE_IDLE &&
@@ -401,6 +467,11 @@ static void node_switch_context_deinitialized(BSC_NODE_SWITCH_CTX *ns)
     }
 }
 
+/**
+ * @brief Handle a node switch acceptor context event
+ * @param ctx - pointer to the socket context
+ * @param ev - event
+ */
 static void
 node_switch_acceptor_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
@@ -427,6 +498,13 @@ node_switch_acceptor_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief find a node switch initiator connection index for a specific
+ *  VMAC address
+ * @param vmac - pointer to the VMAC address
+ * @param ctx - pointer to the node switch context
+ * @return connection index, or -1 if not found
+ */
 static int node_switch_initiator_find_connection_index_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac, BSC_NODE_SWITCH_CTX *ctx)
 {
@@ -444,6 +522,13 @@ static int node_switch_initiator_find_connection_index_for_vmac(
     return -1;
 }
 
+/**
+ * @brief find a node switch acceptor connection index for a specific VMAC
+ * address
+ * @param vmac - pointer to the VMAC address
+ * @param ctx - pointer to the node switch context
+ * @return connection index, or -1 if not found
+ */
 static int node_switch_acceptor_find_connection_index_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac, BSC_NODE_SWITCH_CTX *ctx)
 {
@@ -460,6 +545,12 @@ static int node_switch_acceptor_find_connection_index_for_vmac(
     return -1;
 }
 
+/**
+ * @brief find a node switch initiator connection index
+ * @param ctx - pointer to the node switch context
+ * @param c - pointer to the socket
+ * @return node switch initiator index, or -1 if not found
+ */
 static int
 node_switch_initiator_get_index(BSC_NODE_SWITCH_CTX *ctx, BSC_SOCKET *c)
 {
@@ -468,6 +559,11 @@ node_switch_initiator_get_index(BSC_NODE_SWITCH_CTX *ctx, BSC_SOCKET *c)
         : -1;
 }
 
+/**
+ * @brief allocate a socket for the node switch initiator
+ * @param ctx - pointer to the node switch context
+ * @return socket index, or -1 if not found
+ */
 static int node_switch_initiator_alloc_sock(BSC_NODE_SWITCH_CTX *ctx)
 {
     int i;
@@ -480,6 +576,11 @@ static int node_switch_initiator_alloc_sock(BSC_NODE_SWITCH_CTX *ctx)
     return -1;
 }
 
+/**
+ * @brief Connect to the next URL
+ * @param ctx - pointer to the node switch context
+ * @param index - index of the URL
+ */
 static void connect_next_url(BSC_NODE_SWITCH_CTX *ctx, int index)
 {
     BSC_SC_RET ret = BSC_SC_BAD_PARAM;
@@ -505,6 +606,12 @@ static void connect_next_url(BSC_NODE_SWITCH_CTX *ctx, int index)
     }
 }
 
+/**
+ * @brief Connect to the next URL or delay
+ * @param ns - pointer to the node switch context
+ * @param dest - pointer to the VMAC address
+ * @param sock_index - socket index
+ */
 static void node_switch_connect_or_delay(
     BSC_NODE_SWITCH_CTX *ns, BACNET_SC_VMAC_ADDRESS *dest, int sock_index)
 {
@@ -534,6 +641,10 @@ static void node_switch_connect_or_delay(
     }
 }
 
+/**
+ * @brief Process a node switch initiator runloop
+ * @param ns - pointer to the node switch context
+ */
 static void node_switch_initiator_runloop(BSC_NODE_SWITCH_CTX *ns)
 {
     int i;
@@ -564,10 +675,12 @@ static void node_switch_initiator_runloop(BSC_NODE_SWITCH_CTX *ns)
             }
         }
     }
-
-    /* DEBUG_PRINTF("node_switch_initiator_runloop() <<< ctx = %p\n", ctx); */
 }
 
+/**
+ * @brief Run the node switch maintenance timer
+ * @param seconds - number of seconds elapsed from the previous call
+ */
 void bsc_node_switch_maintenance_timer(uint16_t seconds)
 {
     int i;
@@ -582,6 +695,16 @@ void bsc_node_switch_maintenance_timer(uint16_t seconds)
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Handle a node switch initiator socket event
+ * @param c - pointer to the socket
+ * @param ev - event
+ * @param disconnect_reason - disconnect reason
+ * @param disconnect_reason_desc - disconnect reason description
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @param decoded_pdu - decoded PDU
+ */
 static void node_switch_initiator_socket_event(
     BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
@@ -706,6 +829,11 @@ static void node_switch_initiator_socket_event(
     DEBUG_PRINTF("node_switch_initiator_socket_event() <<<\n");
 }
 
+/**
+ * @brief Handle a node switch initiator context event
+ * @param ctx - pointer to the socket context
+ * @param ev - event
+ */
 static void
 node_switch_initiator_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
@@ -736,6 +864,34 @@ node_switch_initiator_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Start the node switch
+ * @param ca_cert_chain - pointer to the CA certificate chain
+ * @param ca_cert_chain_size - size of the CA certificate chain
+ * @param cert_chain - pointer to the certificate chain
+ * @param cert_chain_size - size of the certificate chain
+ * @param key - pointer to the key
+ * @param key_size - size of the key
+ * @param port - port number
+ * @param iface - pointer to the interface
+ * @param local_uuid - pointer to the local UUID
+ * @param local_vmac - pointer to the local VMAC address
+ * @param max_local_bvlc_len - maximum local BVLC length
+ * @param max_local_npdu_len - maximum local NPDU length
+ * @param connect_timeout_s - connection timeout in seconds
+ * @param heartbeat_timeout_s - heartbeat timeout in seconds
+ * @param disconnect_timeout_s - disconnect timeout in seconds
+ * @param reconnnect_timeout_s - reconnect timeout in seconds
+ * @param address_resolution_timeout_s - address resolution timeout in seconds
+ * @param direct_connect_accept_enable - true if direct connect accept is
+ * enabled
+ * @param direct_connect_initiate_enable - true if direct connect initiate is
+ * enabled
+ * @param event_func - pointer to the event function
+ * @param user_arg - pointer to the user argument
+ * @param h - pointer to the node switch handle
+ * @return BACnet/SC status
+ */
 BSC_SC_RET bsc_node_switch_start(
     uint8_t *ca_cert_chain,
     size_t ca_cert_chain_size,
@@ -846,6 +1002,10 @@ BSC_SC_RET bsc_node_switch_start(
     return ret;
 }
 
+/**
+ * @brief Stop the node switch
+ * @param h - pointer to the node switch handle
+ */
 void bsc_node_switch_stop(BSC_NODE_SWITCH_HANDLE h)
 {
     BSC_NODE_SWITCH_CTX *ns;
@@ -869,6 +1029,11 @@ void bsc_node_switch_stop(BSC_NODE_SWITCH_HANDLE h)
     DEBUG_PRINTF("bsc_node_switch_stop() <<<\n");
 }
 
+/**
+ * @brief Check if the node switch is stopped
+ * @param h - pointer to the node switch handle
+ * @return true if the node switch is stopped, false otherwise
+ */
 bool bsc_node_switch_stopped(BSC_NODE_SWITCH_HANDLE h)
 {
     BSC_NODE_SWITCH_CTX *ns = (BSC_NODE_SWITCH_CTX *)h;
@@ -885,6 +1050,11 @@ bool bsc_node_switch_stopped(BSC_NODE_SWITCH_HANDLE h)
     return ret;
 }
 
+/**
+ * @brief Check if the node switch is started
+ * @param h - pointer to the node switch handle
+ * @return true if the node switch is started, false otherwise
+ */
 bool bsc_node_switch_started(BSC_NODE_SWITCH_HANDLE h)
 {
     BSC_NODE_SWITCH_CTX *ns = (BSC_NODE_SWITCH_CTX *)h;
@@ -908,6 +1078,14 @@ bool bsc_node_switch_started(BSC_NODE_SWITCH_HANDLE h)
     return ret;
 }
 
+/**
+ * @brief Connect to a node switch
+ * @param h - pointer to the node switch handle
+ * @param dest - pointer to the VMAC address
+ * @param urls - pointer to the URLs
+ * @param urls_cnt - number of URLs
+ * @return BACnet/SC status
+ */
 BSC_SC_RET bsc_node_switch_connect(
     BSC_NODE_SWITCH_HANDLE h,
     BACNET_SC_VMAC_ADDRESS *dest,
@@ -976,6 +1154,11 @@ BSC_SC_RET bsc_node_switch_connect(
     return ret;
 }
 
+/**
+ * @brief Process an address resolution
+ * @param h - pointer to the node switch handle
+ * @param r - pointer to the address resolution
+ */
 void bsc_node_switch_process_address_resolution(
     BSC_NODE_SWITCH_HANDLE h, BSC_ADDRESS_RESOLUTION *r)
 {
@@ -1004,6 +1187,11 @@ void bsc_node_switch_process_address_resolution(
     DEBUG_PRINTF("bsc_node_switch_process_address_resolution() <<<\n");
 }
 
+/**
+ * @brief Disconnect from a node switch
+ * @param h - pointer to the node switch handle
+ * @param dest - pointer to the VMAC address
+ */
 void bsc_node_switch_disconnect(
     BSC_NODE_SWITCH_HANDLE h, BACNET_SC_VMAC_ADDRESS *dest)
 {
@@ -1045,6 +1233,13 @@ void bsc_node_switch_disconnect(
     DEBUG_PRINTF("bsc_node_switch_disconnect() <<<\n");
 }
 
+/**
+ * @brief Send a PDU to a node switch
+ * @param h - pointer to the node switch handle
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @return BACnet/SC status
+ */
 BSC_SC_RET
 bsc_node_switch_send(BSC_NODE_SWITCH_HANDLE h, uint8_t *pdu, size_t pdu_len)
 {
@@ -1088,6 +1283,13 @@ bsc_node_switch_send(BSC_NODE_SWITCH_HANDLE h, uint8_t *pdu, size_t pdu_len)
     return ret;
 }
 
+/**
+ * @brief Check if a node switch is connected
+ * @param h - pointer to the node switch handle
+ * @param dest - pointer to the VMAC address
+ * @param urls - pointer to the URLs
+ * @param urls_cnt - number of URLs
+ */
 BACNET_STACK_EXPORT
 bool bsc_node_switch_connected(
     BSC_NODE_SWITCH_HANDLE h,

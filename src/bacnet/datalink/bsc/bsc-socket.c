@@ -50,6 +50,11 @@ static BVLC_SC_DECODED_MESSAGE bsc_dm = { 0 };
             BSC_CONF_TX_PRE)                                        \
          : 0)
 
+/**
+ * @brief Add the socket context to the list
+ * @param ctx - pointer to the socket context
+ * @return true if the context was added, otherwise false
+ */
 static bool bsc_ctx_add(BSC_SOCKET_CTX *ctx)
 {
     int i;
@@ -62,6 +67,10 @@ static bool bsc_ctx_add(BSC_SOCKET_CTX *ctx)
     return false;
 }
 
+/**
+ * @brief Remove the socket context from the list
+ * @param ctx - pointer to the socket context
+ */
 static void bsc_ctx_remove(BSC_SOCKET_CTX *ctx)
 {
     int i;
@@ -73,6 +82,10 @@ static void bsc_ctx_remove(BSC_SOCKET_CTX *ctx)
     }
 }
 
+/**
+ * @brief Reset the BACnet Secure Connect
+ * @param c - pointer to the socket
+ */
 static void bsc_reset_socket(BSC_SOCKET *c)
 {
     memset(&c->vmac, 0, sizeof(c->vmac));
@@ -80,6 +93,27 @@ static void bsc_reset_socket(BSC_SOCKET *c)
     c->tx_buf_size = 0;
 }
 
+/**
+ * @brief Initialize the BACnet Secure Connect context
+ * @param type - type of the context
+ * @param cfg - pointer to the configuration
+ * @param proto - WebSocket protocol
+ * @param port - port number
+ * @param iface - interface name
+ * @param ca_cert_chain - pointer to the CA certificate chain
+ * @param ca_cert_chain_size - size of the CA certificate chain
+ * @param cert_chain - pointer to the certificate chain
+ * @param cert_chain_size - size of the certificate chain
+ * @param key - pointer to the private key
+ * @param key_size - size of the private key
+ * @param local_uuid - pointer to the local UUID
+ * @param local_vmac - pointer to the local VMAC address
+ * @param max_local_bvlc_len - maximum BVLC message size
+ * @param max_local_ndpu_len - maximum NPDU message size
+ * @param connect_timeout_s - connection timeout in seconds
+ * @param heartbeat_timeout_s - heartbeat timeout in seconds
+ * @param disconnect_timeout_s - disconnect timeout in seconds
+ */
 void bsc_init_ctx_cfg(
     BSC_SOCKET_CTX_TYPE type,
     BSC_CONTEXT_CFG *cfg,
@@ -123,6 +157,11 @@ void bsc_init_ctx_cfg(
     DEBUG_PRINTF("bsc_init_ctx_cfg() <<<\n");
 }
 
+/**
+ * @brief Find the socket context by the WebSocket handle
+ * @param ctx - pointer to the socket context
+ * @param h - pointer to the socket
+ */
 static BSC_SOCKET *
 bsc_find_conn_by_websocket(BSC_SOCKET_CTX *ctx, BSC_WEBSOCKET_HANDLE h)
 {
@@ -135,6 +174,11 @@ bsc_find_conn_by_websocket(BSC_SOCKET_CTX *ctx, BSC_WEBSOCKET_HANDLE h)
     return NULL;
 }
 
+/**
+ * @brief Find the free socket
+ * @param ctx - pointer to the socket context
+ * @return pointer to the free socket
+ */
 static BSC_SOCKET *bsc_find_free_socket(BSC_SOCKET_CTX *ctx)
 {
     size_t i;
@@ -147,6 +191,11 @@ static BSC_SOCKET *bsc_find_free_socket(BSC_SOCKET_CTX *ctx)
     return NULL;
 }
 
+/**
+ * @brief Process the socket error
+ * @param c - pointer to the socket
+ * @param reason - error code
+ */
 static void bsc_srv_process_error(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
 {
     DEBUG_PRINTF(
@@ -157,6 +206,11 @@ static void bsc_srv_process_error(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
     DEBUG_PRINTF("bsc_srv_process_error() <<<\n");
 }
 
+/**
+ * @brief Process the socket error
+ * @param c - pointer to the socket
+ * @param reason - error code
+ */
 static void bsc_cli_process_error(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
 {
     DEBUG_PRINTF("bsc_cli_process_error) >>> c = %p, reason = %d\n", c, reason);
@@ -166,6 +220,18 @@ static void bsc_cli_process_error(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
     DEBUG_PRINTF("bsc_cli_process_error) <<<\n");
 }
 
+/**
+ * @brief Prepare the error message
+ * @param c - pointer to the socket
+ * @param origin - pointer to the origin VMAC address
+ * @param dest - pointer to the destination VMAC address
+ * @param bvlc_function - BVLC function
+ * @param error_header_marker - pointer to the error header marker
+ * @param error_class - error class
+ * @param error_code - error code
+ * @param utf8_details_string - UTF-8 reason text
+ * @return true if the error was prepared, otherwise false
+ */
 static bool bsc_prepare_error_extended(
     BSC_SOCKET *c,
     BACNET_SC_VMAC_ADDRESS *origin,
@@ -232,6 +298,18 @@ static bool bsc_prepare_error_extended(
     return false;
 }
 
+/**
+ * @brief Prepare the protocol error extended message
+ * @param c - pointer to the socket
+ * @param dm - pointer to the decoded message
+ * @param origin - pointer to the origin VMAC address
+ * @param dest - pointer to the destination VMAC address
+ * @param error_header_marker - pointer to the error header marker
+ * @param error_class - error class
+ * @param error_code - error code
+ * @param utf8_details_string - UTF-8 reason text
+ * @return true if the error was prepared, otherwise false
+ */
 static bool bsc_prepare_protocol_error_extended(
     BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *dm,
@@ -250,6 +328,17 @@ static bool bsc_prepare_protocol_error_extended(
     return false;
 }
 
+/**
+ * @brief Prepare the protocol error message
+ * @param c - pointer to the socket
+ * @param dm - pointer to the decoded message
+ * @param origin - pointer to the origin VMAC address
+ * @param dest - pointer to the destination VMAC address
+ * @param error_class - error class
+ * @param error_code - error code
+ * @param utf8_details_string - UTF-8 reason text
+ * @return true if the error was prepared, otherwise false
+ */
 static bool bsc_prepare_protocol_error(
     BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *dm,
@@ -264,18 +353,34 @@ static bool bsc_prepare_protocol_error(
         utf8_details_string);
 }
 
+/**
+ * @brief Clear the VMAC and UUID for BACnet Secure Connect socket
+ * @param c - pointer to the socket
+ */
 static void bsc_clear_vmac_and_uuid(BSC_SOCKET *c)
 {
     memset(&c->vmac, 0, sizeof(c->vmac));
     memset(&c->uuid, 0, sizeof(c->uuid));
 }
 
+/**
+ * @brief Set the BACnet Secure Connect socket to the idle state
+ * @param c - pointer to the socket
+ */
 static void bsc_set_socket_idle(BSC_SOCKET *c)
 {
     c->state = BSC_SOCK_STATE_IDLE;
     c->wh = BSC_WEBSOCKET_INVALID_HANDLE;
 }
 
+/**
+ * @brief Set the BACnet Secure Connect socket to the disconnecting state
+ * @param c - pointer to the socket
+ * @param dm - pointer to the decoded message
+ * @param buf - pointer to the buffer
+ * @param buflen - buffer length
+ * @param need_disconnect - pointer to the flag
+ */
 static void bsc_process_socket_disconnecting(
     BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *dm,
@@ -326,6 +431,15 @@ static void bsc_process_socket_disconnecting(
     DEBUG_PRINTF("bsc_process_socket_disconnecting() <<<\n");
 }
 
+/**
+ * @brief Process the socket connected state
+ * @param c - pointer to the socket
+ * @param dm - pointer to the decoded message
+ * @param buf - pointer to the buffer
+ * @param buflen - buffer length
+ * @param need_disconnect - pointer to the flag
+ * @param need_send - pointer to the flag
+ */
 static void bsc_process_socket_connected_state(
     BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *dm,
@@ -433,6 +547,15 @@ static void bsc_process_socket_connected_state(
     DEBUG_PRINTF("bsc_process_socket_connected_state() <<<\n");
 }
 
+/**
+ * @brief Process the socket state
+ * @param c - pointer to the socket
+ * @param dm - pointer to the decoded message
+ * @param rx_buf - pointer to the buffer
+ * @param rx_buf_size - buffer size
+ * @param need_disconnect - pointer to the flag
+ * @param need_send - pointer to the flag
+ */
 static void bsc_process_socket_state(
     BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *dm,
@@ -619,6 +742,13 @@ static void bsc_process_socket_state(
     DEBUG_PRINTF("bsc_process_socket_state() <<<\n");
 }
 
+/**
+ * @brief Run the socket loop
+ * @param s - pointer to the socket
+ * @param dm - pointer to the decoded message
+ * @param rx_buf - pointer to the buffer
+ * @param rx_buf_size - buffer size
+ */
 static void bsc_runloop_socket(
     BSC_SOCKET *s,
     BVLC_SC_DECODED_MESSAGE *dm,
@@ -648,6 +778,10 @@ static void bsc_runloop_socket(
     }
 }
 
+/**
+ * @brief Run the socket maintenance timer process
+ * @param seconds - time in seconds
+ */
 void bsc_socket_maintenance_timer(uint16_t seconds)
 {
     int i, j;
@@ -670,6 +804,13 @@ void bsc_socket_maintenance_timer(uint16_t seconds)
     DEBUG_PRINTF("bsc_socket_maintenance_timer() <<<\n");
 }
 
+/**
+ * @brief Process the server awaiting request state
+ * @param c - pointer to the socket
+ * @param dm - pointer to the decoded message
+ * @param buf - pointer to the buffer
+ * @param bufsize - buffer size
+ */
 static void bsc_process_srv_awaiting_request(
     BSC_SOCKET *c, BVLC_SC_DECODED_MESSAGE *dm, uint8_t *buf, size_t bufsize)
 {
@@ -918,6 +1059,17 @@ static void bsc_process_srv_awaiting_request(
     DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
 }
 
+/**
+ * @brief Dispatch the server function
+ * @param sh - pointer to the server handle
+ * @param h - handle
+ * @param ev - event
+ * @param ws_reason - reason
+ * @param ws_reason_desc - reason description
+ * @param buf - pointer to the buffer
+ * @param bufsize - buffer size
+ * @param dispatch_func_user_param - pointer to the user parameter
+ */
 static void bsc_dispatch_srv_func(
     BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,
@@ -1065,6 +1217,13 @@ static void bsc_dispatch_srv_func(
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Process the client awaiting accept state
+ * @param c - pointer to the socket
+ * @param dm - pointer to the decoded message
+ * @param buf - pointer to the buffer
+ * @param bufsize - buffer size
+ */
 static void bsc_process_cli_awaiting_accept(
     BSC_SOCKET *c, BVLC_SC_DECODED_MESSAGE *dm, uint8_t *buf, size_t bufsize)
 {
@@ -1170,6 +1329,16 @@ static void bsc_process_cli_awaiting_accept(
     DEBUG_PRINTF("bsc_process_cli_awaiting_accept() <<<\n");
 }
 
+/**
+ * @brief Dispatch the client function
+ * @param h - handle
+ * @param ev - event
+ * @param ws_reason - reason
+ * @param ws_reason_desc - reason description
+ * @param buf - pointer to the buffer
+ * @param bufsize - buffer size
+ * @param dispatch_func_user_param - pointer to the user parameter
+ */
 static void bsc_dispatch_cli_func(
     BSC_WEBSOCKET_HANDLE h,
     BSC_WEBSOCKET_EVENT ev,
@@ -1326,6 +1495,16 @@ static void bsc_dispatch_cli_func(
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Initialize the context
+ * @param ctx - pointer to the context
+ * @param cfg - pointer to the configuration
+ * @param funcs - pointer to the functions
+ * @param sockets - pointer to the sockets
+ * @param sockets_num - number of sockets
+ * @param user_arg - pointer to the user argument
+ * @return BSC_SC_RET - status
+ */
 BSC_SC_RET bsc_init_ctx(
     BSC_SOCKET_CTX *ctx,
     BSC_CONTEXT_CFG *cfg,
@@ -1401,6 +1580,10 @@ BSC_SC_RET bsc_init_ctx(
     return sc_ret;
 }
 
+/**
+ * @brief Deinitialize the context
+ * @param ctx - pointer to the context
+ */
 void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
 {
     size_t i;
@@ -1444,6 +1627,13 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
     DEBUG_PRINTF("bsc_deinit_ctx() <<<\n");
 }
 
+/**
+ * @brief Connect the socket
+ * @param ctx - pointer to the context
+ * @param c - pointer to the socket
+ * @param url - pointer to the URL
+ * @return BSC_SC_RET - status
+ */
 BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
 {
     BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
@@ -1483,6 +1673,10 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
     return ret;
 }
 
+/**
+ * @brief Disconnect the socket
+ * @param c - pointer to the socket
+ */
 void bsc_disconnect(BSC_SOCKET *c)
 {
     size_t len;
@@ -1532,6 +1726,13 @@ void bsc_disconnect(BSC_SOCKET *c)
     DEBUG_PRINTF("bsc_disconnect() <<<\n");
 }
 
+/**
+ * @brief Send the BACnet Secure Connect PDU
+ * @param c - pointer to the socket
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @return BSC_SC_RET - status
+ */
 BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, size_t pdu_len)
 {
     BSC_SC_RET ret = BSC_SC_SUCCESS;
@@ -1568,6 +1769,10 @@ BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, size_t pdu_len)
     return ret;
 }
 
+/**
+ * @brief Get the next message ID
+ * @return uint16_t - message ID
+ */
 uint16_t bsc_get_next_message_id(void)
 {
     static uint16_t message_id;
@@ -1587,6 +1792,12 @@ uint16_t bsc_get_next_message_id(void)
     return ret;
 }
 
+/**
+ * @brief Get the socket peer address
+ * @param c - pointer to the socket
+ * @param data - pointer to the address data
+ * @return true on success, false on failure
+ */
 bool bsc_socket_get_peer_addr(BSC_SOCKET *c, BACNET_HOST_N_PORT_DATA *data)
 {
     bool ret = false;
@@ -1606,6 +1817,10 @@ bool bsc_socket_get_peer_addr(BSC_SOCKET *c, BACNET_HOST_N_PORT_DATA *data)
     return ret;
 }
 
+/**
+ * @brief Get the socket global buffer
+ * @return pointer to the buffer
+ */
 BACNET_STACK_EXPORT
 uint8_t *bsc_socket_get_global_buf(void)
 {
@@ -1613,6 +1828,10 @@ uint8_t *bsc_socket_get_global_buf(void)
     return &buf[BSC_PRE];
 }
 
+/**
+ * @brief Get the socket global buffer size
+ * @return buffer size
+ */
 BACNET_STACK_EXPORT
 size_t bsc_socket_get_global_buf_size(void)
 {

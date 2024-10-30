@@ -98,6 +98,19 @@ static const char *s_proprietary_data_options =
 static const char *s_proprietary_payload =
     "proprietary message must have payload";
 
+/**
+ * @brief Validate BVLC-SC header options
+ * @param validation_type - type of validation
+ * @param option_headers - pointer to the option headers
+ * @param option_headers_max_len - maximum length of the option headers
+ * @param out_option_headers_real_length - pointer to the real length of the
+ * option headers
+ * @param out_option_header_num - pointer to the number of the option headers
+ * @param error - pointer to the error code
+ * @param class - pointer to the error class
+ * @param error_desc_string - pointer to the error description string
+ * @return true if the option headers are valid, false otherwise
+ */
 static bool bvlc_sc_validate_options_headers(
     BACNET_OPTION_VALIDATION_TYPE validation_type,
     uint8_t *option_headers,
@@ -200,6 +213,19 @@ static bool bvlc_sc_validate_options_headers(
     return true;
 }
 
+/**
+ * @brief Function adds header option to data option list
+ *  into provided pdu and stores the result in out_pdu.
+ *  Note that last added option will be the first option in
+ *  the list.
+ * @param out_pdu - buffer where modified pdu will be stored in
+ * @param out_pdu_size - size of the out_pdu
+ * @param pdu - input pdu to which user wants to add option
+ * @param pdu_size - size of input pdu
+ * @param sc_option - pointer to encoded header option
+ * @param sc_option_len - length of encoded header option
+ * @return returns length (>0) in bytes of a pdu with added option
+ */
 static size_t bvlc_sc_add_option(
     bool to_data_option,
     uint8_t *pdu,
@@ -343,7 +369,6 @@ static size_t bvlc_sc_add_option(
  * @return returns length (>0) in bytes of a pdu with added option
            or 0 in a case of error (validation of pdu or sc_option fails)
  */
-
 size_t bvlc_sc_add_option_to_destination_options(
     uint8_t *out_pdu,
     size_t out_pdu_size,
@@ -370,7 +395,6 @@ size_t bvlc_sc_add_option_to_destination_options(
  * @return returns length (>0) in bytes of a pdu with added option
            or 0 in a case of error (validation of pdu or sc_option fails)
  */
-
 size_t bvlc_sc_add_option_to_data_options(
     uint8_t *out_pdu,
     size_t out_pdu_size,
@@ -413,9 +437,8 @@ size_t bvlc_sc_add_option_to_data_options(
  * @param proprietary_data - buffer with proprietary data
  * @param proprietary_data_len - size of buffer with proprietary data
  * @return value (>0) in bytes of a encoded options or 0 in a case of
-           an error
+ *  an error
  */
-
 size_t bvlc_sc_encode_proprietary_option(
     uint8_t *pdu,
     size_t pdu_size,
@@ -470,9 +493,8 @@ size_t bvlc_sc_encode_proprietary_option(
  * @param pdu_size - size of pdu
  * @param must_understand - value for 'Must Understand' flag.
  * @return value (>0) in bytes of a encoded options or 0 in a case of
-           an error
+ *  an error
  */
-
 size_t bvlc_sc_encode_secure_path_option(
     uint8_t *pdu, size_t pdu_size, bool must_understand)
 {
@@ -546,9 +568,20 @@ static void bvlc_sc_decode_option_hdr(
 
 /**
  * @brief Decodes BVLC header proprietary option
- *
+ *  Function assumes to be called iteratively until end of option list
+ *  will be reached. User must call this function on previously validated
+ *  options list only because sanity checks are omitted. That valided
+ *  option list can be get by some bvlc_sc_encode_ function calls.
+ * @param in_options_list - buffer containing list of header options.It must
+ *  point  to head list item to be decoded.
+ * @param out_vendor_id - pointer to store vendor id, must not be NULL
+ * @param out_proprietary_option_type - pointer to store proprietary option
+ *  type, must not be NULL
+ * @param out_proprietary_data - pointer to store proprietary data, can be NULL
+ * @param out_proprietary_data_len - pointer to store length of proprietary
+ *  data, can be NULL
+ * @return 0 in a case if decoding failed, otherwise return
  */
-
 static void bvlc_sc_decode_proprietary_option(
     uint8_t *in_options_list,
     uint16_t *out_vendor_id,
@@ -570,6 +603,25 @@ static void bvlc_sc_decode_proprietary_option(
     }
 }
 
+/**
+ * @brief encode BVLC-SC header
+ *
+ * BACNet standard AB.2.2 BVLC-SC Header Format:
+ * BVLC Function               1-octet        BVLC function code
+ * Control Flags               1-octet        Control flags
+ * Message ID                  2-octets       Message identifier
+ * Originating Virtual Address 0 or 6-octets  If absent, message is from
+ *                                           connection peer node
+ * Destination Virtual Address 0 or 6-octets  If absent, message is for
+ *
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param bvlc_function - BVLC function code, check BVLC_SC_MESSAGE_TYPE enum.
+ * @param message_id - The message identifier
+ * @param origin - Originating virtual address, can be NULL
+ * @param dest  - Destination virtual address, can be NULL
+ * @return number of bytes encoded, in a case of error returns 0.
+ */
 static size_t bvlc_sc_encode_common(
     uint8_t *pdu,
     size_t pdu_len,
@@ -674,9 +726,7 @@ static size_t bvlc_sc_encode_common(
  * @param utf8_details_string - can be NULL depending on result code.
  *                              UTF-8 reason text.
  * @return number of bytes encoded, in a case of error returns 0.
- *
  */
-
 size_t bvlc_sc_encode_result(
     uint8_t *pdu,
     size_t pdu_len,
@@ -761,6 +811,17 @@ size_t bvlc_sc_encode_result(
     return offs;
 }
 
+/**
+ * @brief Function decodes the BVLC-Result message according BACNet standard
+ *       AB.2.4.1 BVLC-Result Format.
+ * @param payload - pointer to the decoded data
+ * @param packed_payload - pointer to the packed data
+ * @param packed_payload_len - size of the packed data
+ * @param error - pointer to the error code
+ * @param class - pointer to the error class
+ * @param err_desc - pointer to the error description string
+ * @return true if the data is decoded successfully, false otherwise
+ */
 static bool bvlc_sc_decode_result(
     BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
@@ -871,7 +932,6 @@ static bool bvlc_sc_decode_result(
  * @param npdu - Buffer which contains BACnet NPDU
  * @param npdu_size - Size of buffer which contains BACnet NPDU
  * @return number of bytes encoded, in a case of error returns 0.
- *
  */
 size_t bvlc_sc_encode_encapsulated_npdu(
     uint8_t *pdu,
@@ -921,7 +981,6 @@ size_t bvlc_sc_encode_encapsulated_npdu(
  * @param origin - Originating virtual address, can be NULL
  * @param dest  - Destination virtual address, can be NULL
  * @return number of bytes encoded, in a case of error returns 0.
- *
  */
 size_t bvlc_sc_encode_address_resolution(
     uint8_t *pdu,
@@ -1073,6 +1132,17 @@ size_t bvlc_sc_encode_advertisiment(
     return offs;
 }
 
+/**
+ * @brief Function encodes the Advertisement-Solicitation message according
+ *       BACNet standard AB.2.9.1 Advertisement-Solicitation Format.
+ * @param payload - pointer to the decoded data
+ * @param packed_payload - pointer to packed data
+ * @param packed_payload_len - size of packed data
+ * @param error - pointer to the error code
+ * @param class - pointer to the error class
+ * @param err_desc - pointer to the error description string
+ * @return true if the data is decoded successfully, false otherwise
+ */
 static bool bvlc_sc_decode_advertisiment(
     BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
@@ -1141,7 +1211,6 @@ static bool bvlc_sc_decode_advertisiment(
  * @param dest  - Destination virtual address, can be NULL
  * @return number of bytes encoded, in a case of error returns 0.
  */
-
 size_t bvlc_sc_encode_advertisiment_solicitation(
     uint8_t *pdu,
     size_t pdu_len,
@@ -1195,7 +1264,6 @@ size_t bvlc_sc_encode_advertisiment_solicitation(
  * @param max_npdu_size - the maximum NPDU message size
  * @return number of bytes encoded, in a case of error returns 0.
  */
-
 size_t bvlc_sc_encode_connect_request(
     uint8_t *pdu,
     size_t pdu_len,
@@ -1233,6 +1301,17 @@ size_t bvlc_sc_encode_connect_request(
     return (unsigned int)offs;
 }
 
+/**
+ * @brief Function decodes the Connect-Request message according
+ *       BACNet standard AB.2.10.1 Connect-Request Format.
+ * @param payload - pointer to the decoded data
+ * @param packed_payload - pointer to the packed data
+ * @param packed_payload_len - size of the packed data
+ * @param error - pointer to the error code
+ * @param class - pointer to the error class
+ * @param err_desc - pointer to the error description string
+ * @return true if the data is decoded successfully, false otherwise
+ */
 static bool bvlc_sc_decode_connect_request(
     BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
@@ -1304,7 +1383,6 @@ static bool bvlc_sc_decode_connect_request(
  * @param max_npdu_size - the maximum NPDU message size
  * @return number of bytes encoded, in a case of error returns 0.
  */
-
 size_t bvlc_sc_encode_connect_accept(
     uint8_t *pdu,
     size_t pdu_len,
@@ -1342,6 +1420,17 @@ size_t bvlc_sc_encode_connect_accept(
     return (unsigned int)offs;
 }
 
+/**
+ * @brief Function decodes the Connect-Accept message according
+ *      BACNet standard AB.2.11.1 Connect-Accept Format.
+ * @param payload - pointer to the decoded data
+ * @param packed_payload - pointer to the packed data
+ * @param packed_payload_len - size of the packed data
+ * @param error - pointer to the error code
+ * @param class - pointer to the error class
+ * @param err_desc - pointer to the error description string
+ * @return true if the data is decoded successfully, false otherwise
+ */
 static bool bvlc_sc_decode_connect_accept(
     BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
@@ -1537,9 +1626,7 @@ bvlc_sc_encode_heartbeat_ack(uint8_t *pdu, size_t pdu_len, uint16_t message_id)
  *                           payload data.
  * @param proprietary_data_len - length of proprietary_data buffer.
  * @return number of bytes encoded, in a case of error returns 0.
- *
  */
-
 size_t bvlc_sc_encode_proprietary_message(
     uint8_t *pdu,
     size_t pdu_len,
@@ -1573,6 +1660,17 @@ size_t bvlc_sc_encode_proprietary_message(
     return (unsigned int)offs;
 }
 
+/**
+ * @brief Function decodes the Proprietary Message according BACNet standard
+ *       AB.2.16.1 Proprietary Message Format.
+ * @param payload - pointer to the decoded data
+ * @param packed_payload - pointer to the packed data
+ * @param packed_payload_len - size of the packed data
+ * @param error - pointer to the error code
+ * @param class - pointer to the error class
+ * @param err_desc - pointer to the error description string
+ * @return true if the data is decoded successfully, false otherwise
+ */
 static bool bvlc_sc_decode_proprietary(
     BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
@@ -1604,6 +1702,16 @@ static bool bvlc_sc_decode_proprietary(
     return true;
 }
 
+/**
+ * @brief Decode the BVLC-SC header
+ * @param message - buffer with the message
+ * @param message_len - length of the message
+ * @param hdr - pointer to the decoded header
+ * @param error - pointer to the error code
+ * @param class - pointer to the error class
+ * @param err_desc - pointer to the error description string
+ * @return true if the data is decoded successfully, false otherwise
+ */
 static bool bvlc_sc_decode_hdr(
     uint8_t *message,
     size_t message_len,
@@ -1705,6 +1813,12 @@ static bool bvlc_sc_decode_hdr(
     return true;
 }
 
+/**
+ * @brief Function decodes the BACnet SC header options.
+ * @param option_array - pointer to the array of decoded options
+ * @param options_list - pointer to the packed options list
+ * @return true if the data is decoded successfully, false otherwise
+ */
 static bool bvlc_sc_decode_header_options(
     BVLC_SC_DECODED_HDR_OPTION *option_array, uint8_t *options_list)
 {
@@ -1732,6 +1846,10 @@ static bool bvlc_sc_decode_header_options(
     return true;
 }
 
+/**
+ * @brief Function decodes the BACnet SC header options if they exist.
+ * @param message - pointer to the decoded message
+ */
 static void
 bvlc_sc_decode_dest_options_if_exists(BVLC_SC_DECODED_MESSAGE *message)
 {
@@ -1741,6 +1859,10 @@ bvlc_sc_decode_dest_options_if_exists(BVLC_SC_DECODED_MESSAGE *message)
     }
 }
 
+/**
+ * @brief Function decodes the BACnet SC header options if they exist.
+ * @param message - pointer to the decoded message
+ */
 static void
 bvlc_sc_decode_data_options_if_exists(BVLC_SC_DECODED_MESSAGE *message)
 {
@@ -1763,7 +1885,6 @@ bvlc_sc_decode_data_options_if_exists(BVLC_SC_DECODED_MESSAGE *message)
  * @return true if PDU was successfully decoded otherwise returns false,
  *         and error and class parameters are filled with corresponded codes.
  */
-
 bool bvlc_sc_decode_message(
     uint8_t *buf,
     size_t buf_len,
@@ -2047,7 +2168,6 @@ bool bvlc_sc_decode_message(
  * @param pdu_len - length of a buffer which holds BACNet/SC PDU.
  * @param orig- origination vmac.
  */
-
 void bvlc_sc_remove_dest_set_orig(
     uint8_t *pdu, size_t pdu_len, BACNET_SC_VMAC_ADDRESS *orig)
 {
@@ -2072,7 +2192,6 @@ void bvlc_sc_remove_dest_set_orig(
  * @return new pdu length if function succeeded and ppdu points to beginning of
  *         changed pdu, otherwise returns old pdu_len and ppdu is not changed.
  */
-
 size_t
 bvlc_sc_set_orig(uint8_t **ppdu, size_t pdu_len, BACNET_SC_VMAC_ADDRESS *orig)
 {
@@ -2101,7 +2220,6 @@ bvlc_sc_set_orig(uint8_t **ppdu, size_t pdu_len, BACNET_SC_VMAC_ADDRESS *orig)
  * @param vmac - pointer vmac address.
  * @return true if vmac is broadcast. otherwise returns false.
  */
-
 bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac)
 {
     int i;
@@ -2121,7 +2239,6 @@ bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac)
  * @param dm - pointer to decoded BACNet/SC message.
  * @return true if vmac is broadcast, otherwise returns false.
  */
-
 bool bvlc_sc_need_send_bvlc_result(BVLC_SC_DECODED_MESSAGE *dm)
 {
     if (dm->hdr.dest == NULL || !bvlc_sc_is_vmac_broadcast(dm->hdr.dest)) {
@@ -2146,7 +2263,6 @@ bool bvlc_sc_need_send_bvlc_result(BVLC_SC_DECODED_MESSAGE *dm)
  * @return true if destination address of input BACNet/SC
  *         is broadcast, otherwise returns false.
  */
-
 bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu, size_t pdu_len)
 {
     size_t offs = 4;
@@ -2172,7 +2288,6 @@ bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu, size_t pdu_len)
  * @return true if destination address is presented in
  *         input BACNet/SC message, otherwise returns false.
  */
-
 bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu, size_t pdu_len)
 {
     if (pdu_len >= 4) {
@@ -2192,7 +2307,6 @@ bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu, size_t pdu_len)
  * @return true if destination address is presented and was
  *         placed into vmac, otherwise returns false.
  */
-
 bool bvlc_sc_pdu_get_dest(
     uint8_t *pdu, size_t pdu_len, BACNET_SC_VMAC_ADDRESS *vmac)
 {
@@ -2221,7 +2335,6 @@ bool bvlc_sc_pdu_get_dest(
  *         pdu was not changed. If pdu was changed, ppdu contains
  *         updated pointer to buffer to modified BACNet/SC message.
  */
-
 size_t bvlc_sc_remove_orig_and_dest(uint8_t **ppdu, size_t pdu_len)
 {
     uint8_t *pdu = *ppdu;
