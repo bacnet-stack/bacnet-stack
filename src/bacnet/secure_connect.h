@@ -1,33 +1,12 @@
 /**
- * Copyright (c) 2022 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- *
  * @file
- * @author Mikhail Antropov
+ * @brief BACnet Secure Connect encode and decode functions.
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date 2023
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_SC_STATUS_H
-#define BACNET_SC_STATUS_H
+#ifndef BACNET_SECURE_CONNECT_H
+#define BACNET_SECURE_CONNECT_H
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
@@ -141,12 +120,6 @@ int bacapp_decode_SCHubConnection(
     const uint8_t *apdu,
     size_t apdu_size,
     BACNET_SC_HUB_CONNECTION_STATUS *value);
-BACNET_STACK_EXPORT
-int bacapp_decode_context_SCHubConnection(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_SC_HUB_CONNECTION_STATUS *value);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_SCHubFunctionConnection(
@@ -155,12 +128,6 @@ BACNET_STACK_EXPORT
 int bacapp_decode_SCHubFunctionConnection(
     const uint8_t *apdu,
     size_t apdu_size,
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value);
-BACNET_STACK_EXPORT
-int bacapp_decode_context_SCHubFunctionConnection(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value);
 
 BACNET_STACK_EXPORT
@@ -171,27 +138,12 @@ int bacapp_decode_SCFailedConnectionRequest(
     const uint8_t *apdu,
     size_t apdu_size,
     BACNET_SC_FAILED_CONNECTION_REQUEST *value);
-BACNET_STACK_EXPORT
-int bacapp_decode_context_SCFailedConnectionRequest(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_SC_FAILED_CONNECTION_REQUEST *value);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_RouterEntry(uint8_t *apdu, const BACNET_ROUTER_ENTRY *value);
 BACNET_STACK_EXPORT
 int bacapp_decode_RouterEntry(
     const uint8_t *apdu, size_t apdu_size, BACNET_ROUTER_ENTRY *value);
-BACNET_STACK_EXPORT
-int bacapp_encode_context_RouterEntry(
-    uint8_t *apdu, uint8_t tag_number, const BACNET_ROUTER_ENTRY *value);
-BACNET_STACK_EXPORT
-int bacapp_decode_context_RouterEntry(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_ROUTER_ENTRY *value);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_SCDirectConnection(
@@ -200,12 +152,6 @@ BACNET_STACK_EXPORT
 int bacapp_decode_SCDirectConnection(
     const uint8_t *apdu,
     size_t apdu_size,
-    BACNET_SC_DIRECT_CONNECTION_STATUS *value);
-BACNET_STACK_EXPORT
-int bacapp_decode_context_SCDirectConnection(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
     BACNET_SC_DIRECT_CONNECTION_STATUS *value);
 
 BACNET_STACK_EXPORT

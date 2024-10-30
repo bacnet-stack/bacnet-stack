@@ -1,30 +1,10 @@
 /**
- * Copyright (c) 2022 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
- *
  * @file
- * @author Mikhail Antropov
+ * @brief BACnet Secure Connect Encoding and Decoding
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2023
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -241,45 +221,6 @@ int bacapp_decode_SCHubConnection(
         } else {
             /* OPTIONAL - skip and do not increment apdu_len */
         }
-    }
-
-    return apdu_len;
-}
-
-/**
- * @brief Decode a context tagged SCHubConnection complex data type
- * @param apdu - the APDU buffer
- * @param apdu_size - the length of the APDU buffer
- * @param tag_number - the tag number
- * @param value - the structure to hold the decoded data
- * @return number of bytes decoded of the APDU buffer, or -1 on error
- */
-int bacapp_decode_context_SCHubConnection(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_SC_HUB_CONNECTION_STATUS *value)
-{
-    int apdu_len = 0, len = 0;
-
-    if (bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size, tag_number, &len)) {
-        apdu_len += len;
-    } else {
-        return BACNET_STATUS_ERROR;
-    }
-    len = bacapp_decode_SCHubConnection(
-        &apdu[apdu_len], apdu_size - apdu_len, value);
-    if (len > 0) {
-        apdu_len += len;
-    } else {
-        return BACNET_STATUS_ERROR;
-    }
-    if (bacnet_is_closing_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        apdu_len += len;
-    } else {
-        return BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -508,45 +449,6 @@ int bacapp_decode_SCHubFunctionConnection(
 }
 
 /**
- * @brief Decode a context tagged SCHubFunctionConnection complex data type
- * @param apdu - the APDU buffer
- * @param apdu_size - the length of the APDU buffer
- * @param tag_number - the tag number
- * @param value - the structure to hold the decoded data
- * @return number of bytes decoded of the APDU buffer, or -1 on error
- */
-int bacapp_decode_context_SCHubFunctionConnection(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
-{
-    int apdu_len = 0, len = 0;
-
-    if (bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size, tag_number, &len)) {
-        apdu_len += len;
-    } else {
-        return BACNET_STATUS_ERROR;
-    }
-    len = bacapp_decode_SCHubFunctionConnection(
-        &apdu[apdu_len], apdu_size - apdu_len, value);
-    if (len > 0) {
-        apdu_len += len;
-    } else {
-        return BACNET_STATUS_ERROR;
-    }
-    if (bacnet_is_closing_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        apdu_len += len;
-    } else {
-        return BACNET_STATUS_ERROR;
-    }
-
-    return apdu_len;
-}
-
-/**
  * @brief Encode a SCFailedConnectionRequest complex data type
  *
  *  BACnetSCFailedConnectionRequest ::= SEQUENCE {
@@ -714,45 +616,6 @@ int bacapp_decode_SCFailedConnectionRequest(
 }
 
 /**
- * @brief Decode a context tagged SCFailedConnectionRequest complex data type
- * @param apdu - the APDU buffer
- * @param apdu_size - the length of the APDU buffer
- * @param tag_number - the tag number
- * @param value - the structure to hold the decoded data
- * @return number of bytes decoded of the APDU buffer, or -1 on error
- */
-int bacapp_decode_context_SCFailedConnectionRequest(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_SC_FAILED_CONNECTION_REQUEST *value)
-{
-    int apdu_len = 0, len = 0;
-
-    if (bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        apdu_len += len;
-    } else {
-        return BACNET_STATUS_ERROR;
-    }
-    len = bacapp_decode_SCFailedConnectionRequest(
-        &apdu[apdu_len], apdu_size - apdu_len, value);
-    if (len > 0) {
-        apdu_len += len;
-    } else {
-        return BACNET_STATUS_ERROR;
-    }
-    if (bacnet_is_closing_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        apdu_len += len;
-    } else {
-        return BACNET_STATUS_ERROR;
-    }
-
-    return apdu_len;
-}
-
-/**
  * @brief Encode a SCFailedConnectionRequest complex data type
  *
  *  BACnetRouterEntry ::= SEQUENCE {
@@ -874,74 +737,6 @@ int bacapp_decode_RouterEntry(
             return BACNET_STATUS_ERROR;
         } else {
             /* OPTIONAL - skip and do not increment apdu_len */
-        }
-    }
-
-    return apdu_len;
-}
-
-/**
- * @brief Encode a context tagged BACnetRouterEntry complex data type
- * @param apdu - the APDU buffer, or NULL for length
- * @param tag_number - the tag number
- * @param value - the structure that holds the data to be encoded
- * @return length of the encoded APDU buffer
- */
-int bacapp_encode_context_RouterEntry(
-    uint8_t *apdu, uint8_t tag_number, const BACNET_ROUTER_ENTRY *value)
-{
-    int len = 0; /* length of each encoding */
-    int apdu_len = 0;
-
-    if (value) {
-        len = encode_opening_tag(apdu, tag_number);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = bacapp_encode_RouterEntry(apdu, value);
-        apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
-        len = encode_closing_tag(apdu, tag_number);
-        apdu_len += len;
-    }
-
-    return apdu_len;
-}
-
-/**
- * @brief Decode a context tagged BACnetRouterEntry complex data type
- * @param apdu - the APDU buffer
- * @param apdu_size - the length of the APDU buffer
- * @param value - the structure to hold the decoded data
- * @return number of bytes decoded of the APDU buffer, or -1 on error
- */
-int bacapp_decode_context_RouterEntry(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_ROUTER_ENTRY *value)
-{
-    int apdu_len = 0, len = 0;
-
-    if (bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        apdu_len += len;
-        len = bacapp_decode_RouterEntry(
-            &apdu[apdu_len], apdu_size - apdu_len, value);
-        if (len > 0) {
-            apdu_len += len;
-        } else {
-            return BACNET_STATUS_ERROR;
-        }
-        if (bacnet_is_closing_tag_number(
-                &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-            apdu_len += len;
-
-        } else {
-            return BACNET_STATUS_ERROR;
         }
     }
 
@@ -1171,41 +966,6 @@ int bacapp_decode_SCDirectConnection(
     }
 
     return apdu_len;
-}
-
-/**
- * @brief Decode a context tagged SCDirectConnection complex data type
- * @param apdu - the APDU buffer
- * @param apdu_size - the length of the APDU buffer
- * @param value - the structure to hold the decoded data
- * @return number of bytes decoded of the APDU buffer, or -1 on error
- */
-int bacapp_decode_context_SCDirectConnection(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    uint8_t tag_number,
-    BACNET_SC_DIRECT_CONNECTION_STATUS *value)
-{
-    int len = 0;
-    int tag_length;
-    int section_len;
-
-    if (bacnet_is_closing_tag_number(
-            &apdu[len], apdu_size - len, tag_number, &tag_length)) {
-        len += tag_length;
-        section_len = bacapp_decode_SCDirectConnection(
-            &apdu[len], apdu_size - len, value);
-        if (section_len > 0) {
-            len += section_len;
-            if (bacnet_is_closing_tag_number(
-                    &apdu[len], apdu_size - len, tag_number, &tag_length)) {
-                len += tag_length;
-            } else {
-                return BACNET_STATUS_ERROR;
-            }
-        }
-    }
-    return len;
 }
 
 /**

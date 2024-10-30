@@ -1,14 +1,9 @@
 /**
  * @file
  * @brief Sample BACnet/SC hub.
- * @author Mikhail Antropov
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date December 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Legrand North America, LLC
- * as an unpublished work.
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
@@ -33,7 +28,7 @@
 #include "bacnet/datalink/bsc/bsc-event.h"
 
 /* (Doxygen note: The next two lines pull all the following Javadoc
- *  into the ServerDemo module.) */
+ *  into the SCServerDemo module.) */
 /** @addtogroup SCServerDemo */
 /*@{*/
 
