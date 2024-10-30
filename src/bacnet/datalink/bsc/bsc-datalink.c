@@ -57,6 +57,16 @@ static BSC_DATALINK_STATE bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
 static BSC_EVENT *bsc_event = NULL;
 static BSC_EVENT *bsc_data_event = NULL;
 
+/**
+ * @brief bsc_node_event() is a callback function which is called by
+ *  BACnet/SC datalink when some event occurs.
+ *  The function is used to notify the upper layer about the events.
+ * @param node - pointer to the BACnet/SC node
+ * @param ev - event type
+ * @param dest - pointer to the destination address
+ * @param pdu - pointer to the received PDU
+ * @param pdu_len - length of the received PDU
+ */
 static void bsc_node_event(
     BSC_NODE *node,
     BSC_NODE_EVENT ev,
@@ -94,6 +104,10 @@ static void bsc_node_event(
     DEBUG_PRINTF("bsc_node_event() <<<\n");
 }
 
+/**
+ * @brief bsc_deinit_resources() is a function which is used to
+ *  deinitialize all resources allocated by BACnet/SC datalink.
+ */
 static void bsc_deinit_resources(void)
 {
     if (bsc_event) {
@@ -106,6 +120,11 @@ static void bsc_deinit_resources(void)
     }
 }
 
+/**
+ * @brief Initialize the BACnet/SC datalink layer
+ * @param ifname - name of the network interface
+ * @return true if the initialization was successful, otherwise false
+ */
 bool bsc_init(char *ifname)
 {
     BSC_SC_RET r;
@@ -170,6 +189,10 @@ bool bsc_init(char *ifname)
     return false;
 }
 
+/**
+ * @brief Blocking thread-safe bsc_cleanup() function
+ *  de-initializes BACNet/SC datalink.
+ */
 void bsc_cleanup(void)
 {
     DEBUG_PRINTF("bsc_cleanup() >>>\n");
@@ -200,6 +223,14 @@ void bsc_cleanup(void)
     DEBUG_PRINTF("bsc_cleanup() <<<\n");
 }
 
+/**
+ * @brief Send a BACnet/SC PDU to a remote node
+ * @param dest - destination address
+ * @param npdu_data - network layer data
+ * @param pdu - PDU to send
+ * @param pdu_len - length of the PDU
+ * @return number of bytes sent on success, negative number on failure
+ */
 int bsc_send_pdu(
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
@@ -246,6 +277,10 @@ int bsc_send_pdu(
     return len;
 }
 
+/**
+ * @brief Remove a BACnet/SC packet from the FIFO buffer
+ * @param packet_size - size of the packet to remove
+ */
 static void bsc_remove_packet(size_t packet_size)
 {
     size_t i;
@@ -254,6 +289,18 @@ static void bsc_remove_packet(size_t packet_size)
     }
 }
 
+/**
+ * @brief Blocking thread-safe bsc_receive() function
+ * receives NPDUs transferred over BACNet/SC
+ * from a node specified by it's virtual MAC address as
+ * defined in Clause AB.1.5.2.
+ * @param src - source VMAC address
+ * @param pdu - a buffer to hold the PDU portion of the received packet,
+ * after the BVLC portion has been stripped off.
+ * @param max_pdu - size of the pdu[] buffer
+ * @param timeout_ms - the number of milliseconds to wait for a packet
+ * @return the number of octets (remaining) in the PDU, or zero if no packet
+ */
 uint16_t bsc_receive(
     BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout_ms)
 {
@@ -326,6 +373,11 @@ uint16_t bsc_receive(
     return pdu_len;
 }
 
+/**
+ * @brief Function can be used to retrieve broadcast
+ * VMAC address for BACNet/SC node.
+ * @param dest - value of broadcast VMAC address
+ */
 void bsc_get_broadcast_address(BACNET_ADDRESS *dest)
 {
     if (dest) {
@@ -338,6 +390,11 @@ void bsc_get_broadcast_address(BACNET_ADDRESS *dest)
     }
 }
 
+/**
+ * @brief Function can be used to retrieve local
+ * VMAC address of initialized BACNet/SC datalink.
+ * @param my_address - value of local VMAC address
+ */
 void bsc_get_my_address(BACNET_ADDRESS *my_address)
 {
     if (my_address) {
@@ -354,6 +411,16 @@ void bsc_get_my_address(BACNET_ADDRESS *my_address)
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Determine if the BACnet/SC direct connection is established
+ * with a remote BACnet/SC node.
+ * @param dest - BACnet/SC VMAC address of the remote node to check direct
+ * connection status
+ * @param urls - array representing the possible URIs of a remote node for
+ * acceptance of direct connections. Can contain 1 element
+ * @param urls_cnt - number of elements in the urls array
+ * @return true if the connection is established, otherwise false
+ */
 bool bsc_direct_connection_established(
     BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
@@ -367,6 +434,22 @@ bool bsc_direct_connection_established(
     return ret;
 }
 
+/**
+ * @brief Start the process of establishing a direct BACnet/SC connection
+ * to a node identified by either urls or dest parameter. The user should
+ * note that if the dest parameter is used, the local node tries to resolve
+ * it (e.g. to get URIs related to dest VMAC from all existing BACnet/SC
+ * nodes in the network). As a result, the process of establishing a BACnet/SC
+ * connection by dest may take an unpredictable amount of time depending on
+ * the current network configuration.
+ * @param dest - BACnet/SC VMAC address of the remote node to check direct
+ * connection status
+ * @param urls - array representing the possible URIs of a remote node for
+ * acceptance of direct connections. Can contain 1 element
+ * @param urls_cnt - number of elements in the urls array
+ * @return BSC_SC_SUCCESS if the process of establishing a BACnet/SC
+ * connection was started successfully, otherwise an error code
+ */
 BSC_SC_RET
 bsc_connect_direct(BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
@@ -383,6 +466,12 @@ bsc_connect_direct(BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
     return ret;
 }
 
+/**
+ * @brief Disconnect a direct BACnet/SC connection with a remote node
+ * identified by its VMAC address.
+ * @param dest - BACnet/SC VMAC address of the remote node to disconnect
+ * the direct connection with
+ */
 void bsc_disconnect_direct(BACNET_SC_VMAC_ADDRESS *dest)
 {
     bws_dispatch_lock();
@@ -392,6 +481,9 @@ void bsc_disconnect_direct(BACNET_SC_VMAC_ADDRESS *dest)
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Process the hub connector state
+ */
 static void bsc_update_hub_connector_state(void)
 {
     BACNET_SC_HUB_CONNECTOR_STATE state;
@@ -402,6 +494,9 @@ static void bsc_update_hub_connector_state(void)
     Network_Port_SC_Hub_Connector_State_Set(instance, state);
 }
 
+/**
+ * @brief Process the hub connector status
+ */
 static void bsc_update_hub_connector_status(void)
 {
     BACNET_SC_HUB_CONNECTION_STATUS *status;
@@ -424,6 +519,9 @@ static void bsc_update_hub_connector_status(void)
     }
 }
 
+/**
+ * @brief Process the hub function status
+ */
 static void bsc_update_hub_function_status(void)
 {
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *s;
@@ -449,6 +547,11 @@ static void bsc_update_hub_function_status(void)
     }
 }
 
+/**
+ * @brief Add direct connection status to the network port
+ * @param s - direct connection status
+ * @param cnt - number of direct connection statuses
+ */
 static void bsc_add_direct_status_to_netport(
     BACNET_SC_DIRECT_CONNECTION_STATUS *s, size_t cnt)
 {
@@ -470,6 +573,9 @@ static void bsc_add_direct_status_to_netport(
     }
 }
 
+/**
+ * @brief Process the direct connection status
+ */
 static void bsc_update_direct_connection_status(void)
 {
     BACNET_SC_DIRECT_CONNECTION_STATUS *s = NULL;
@@ -485,6 +591,9 @@ static void bsc_update_direct_connection_status(void)
     }
 }
 
+/**
+ * @brief Process the failed requests
+ */
 static void bsc_update_failed_requests(void)
 {
     BACNET_SC_FAILED_CONNECTION_REQUEST *r;
@@ -517,6 +626,9 @@ static void bsc_update_failed_requests(void)
     }
 }
 
+/**
+ * @brief Update the network port properties
+ */
 static void bsc_update_netport_properties(void)
 {
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
@@ -528,6 +640,10 @@ static void bsc_update_netport_properties(void)
     }
 }
 
+/**
+ * @brief Manage the BACnet/SC datalink timer
+ * @param seconds - number of elapsed seconds
+ */
 void bsc_maintenance_timer(uint16_t seconds)
 {
     bws_dispatch_lock();

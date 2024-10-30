@@ -78,6 +78,10 @@ static BSC_SOCKET_CTX_FUNCS bsc_hub_connector_ctx_funcs = {
     NULL, NULL, hub_connector_socket_event, hub_connector_context_event, NULL
 };
 
+/**
+ * @brief Initialize the BACnet hub connector status
+ * @param s - pointer to the status structure
+ */
 static void hub_connector_reset_status(BACNET_SC_HUB_CONNECTION_STATUS *s)
 {
     /* set timestamps to unspecified values */
@@ -87,6 +91,10 @@ static void hub_connector_reset_status(BACNET_SC_HUB_CONNECTION_STATUS *s)
     s->Error_Details[0] = 0;
 }
 
+/**
+ * @brief Allocate a hub connector
+ * @return pointer to the allocated hub connector
+ */
 static BSC_HUB_CONNECTOR *hub_connector_alloc(void)
 {
     int i;
@@ -105,12 +113,23 @@ static BSC_HUB_CONNECTOR *hub_connector_alloc(void)
     return NULL;
 }
 
+/**
+ * @brief Free a hub connector
+ * @param c - pointer to the hub connector
+ */
 static void hub_connector_free(BSC_HUB_CONNECTOR *c)
 {
     DEBUG_PRINTF("hub_connector_free() c = %p\n", c);
     c->used = false;
 }
 
+/**
+ * @brief Update the BACnet hub connector status
+ * @param s - pointer to the status structure
+ * @param state - new state
+ * @param err - error code
+ * @param err_desc - error description
+ */
 static void hub_conector_update_status(
     BACNET_SC_HUB_CONNECTION_STATUS *s,
     BACNET_SC_CONNECTION_STATE state,
@@ -133,6 +152,11 @@ static void hub_conector_update_status(
     }
 }
 
+/**
+ * @brief Connect to a BACnet hub
+ * @param p - pointer to the hub connector
+ * @param type - connection type
+ */
 static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
 {
     BSC_SC_RET ret;
@@ -165,6 +189,10 @@ static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
 #endif
 }
 
+/**
+ * @brief Process the hub connector state
+ * @param c - pointer to the hub connector
+ */
 static void hub_connector_process_state(BSC_HUB_CONNECTOR *c)
 {
     if (c->state == BSC_HUB_CONNECTOR_STATE_WAIT_FOR_RECONNECT) {
@@ -174,6 +202,10 @@ static void hub_connector_process_state(BSC_HUB_CONNECTOR *c)
     }
 }
 
+/**
+ * @brief Hub connector maintenance timer
+ * @param seconds - number of elapsed seconds
+ */
 void bsc_hub_connector_maintenance_timer(uint16_t seconds)
 {
     int i;
@@ -188,6 +220,16 @@ void bsc_hub_connector_maintenance_timer(uint16_t seconds)
     bws_dispatch_unlock();
 }
 
+/**
+ * @brief Hub connector socket event
+ * @param c - pointer to the socket
+ * @param ev - event
+ * @param disconnect_reason - disconnect reason
+ * @param disconnect_reason_desc - disconnect reason description
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @param decoded_pdu - decoded PDU
+ */
 static void hub_connector_socket_event(
     BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
@@ -305,6 +347,11 @@ static void hub_connector_socket_event(
     DEBUG_PRINTF("hub_connector_socket_event() <<<\n");
 }
 
+/**
+ * @brief Hub connector context event
+ * @param ctx - pointer to the context
+ * @param ev - event
+ */
 static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
     BSC_HUB_CONNECTOR *c;
@@ -327,6 +374,29 @@ static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
     DEBUG_PRINTF("hub_connector_context_event() <<<\n");
 }
 
+/**
+ * @brief Start a BACnet hub connector
+ * @param ca_cert_chain - pointer to the CA certificate chain
+ * @param ca_cert_chain_size - size of the CA certificate chain
+ * @param cert_chain - pointer to the certificate chain
+ * @param cert_chain_size - size of the certificate chain
+ * @param key - pointer to the private key
+ * @param key_size - size of the private key
+ * @param local_uuid - pointer to the local UUID
+ * @param local_vmac - pointer to the local VMAC address
+ * @param max_local_bvlc_len - maximum BVLC message size
+ * @param max_local_npdu_len - maximum NPDU message size
+ * @param connect_timeout_s - connection timeout in seconds
+ * @param heartbeat_timeout_s - heartbeat timeout in seconds
+ * @param disconnect_timeout_s - disconnect timeout in seconds
+ * @param primaryURL - primary hub URL
+ * @param failoverURL - failover hub URL
+ * @param reconnect_timeout_s - reconnect timeout in seconds
+ * @param event_func - event function
+ * @param user_arg - user argument
+ * @param h - pointer to the hub connector handle
+ * @return status
+ */
 BSC_SC_RET bsc_hub_connector_start(
     uint8_t *ca_cert_chain,
     size_t ca_cert_chain_size,
@@ -443,6 +513,10 @@ BSC_SC_RET bsc_hub_connector_start(
     return ret;
 }
 
+/**
+ * @brief Stop a BACnet hub connector
+ * @param h - pointer to the hub connector
+ */
 void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
 {
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
@@ -465,6 +539,13 @@ void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
     DEBUG_PRINTF("bsc_hub_connector_stop() <<<\n");
 }
 
+/**
+ * @brief Send a BACnet hub connector PDU
+ * @param h - pointer to the hub connector
+ * @param pdu - pointer to the PDU
+ * @param pdu_len - PDU length
+ * @return status
+ */
 BSC_SC_RET
 bsc_hub_connector_send(BSC_HUB_CONNECTOR_HANDLE h, uint8_t *pdu, size_t pdu_len)
 {
@@ -503,6 +584,11 @@ bsc_hub_connector_send(BSC_HUB_CONNECTOR_HANDLE h, uint8_t *pdu, size_t pdu_len)
     return ret;
 }
 
+/**
+ * @brief Check if the hub connector is stopped
+ * @param h - pointer to the hub connector
+ * @return status
+ */
 bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h)
 {
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
@@ -518,6 +604,12 @@ bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h)
     return ret;
 }
 
+/**
+ * @brief Get the hub connector status
+ * @param h - pointer to the hub connector
+ * @param primary - primary or failover status
+ * @return pointer to the status
+ */
 BACNET_SC_HUB_CONNECTION_STATUS *
 bsc_hub_connector_status(BSC_HUB_CONNECTOR_HANDLE h, bool primary)
 {
@@ -535,6 +627,11 @@ bsc_hub_connector_status(BSC_HUB_CONNECTOR_HANDLE h, bool primary)
     return ret;
 }
 
+/**
+ * @brief Get the hub connector state
+ * @param h - pointer to the hub connector
+ * @return state
+ */
 BACNET_SC_HUB_CONNECTOR_STATE
 bsc_hub_connector_state(BSC_HUB_CONNECTOR_HANDLE h)
 {
