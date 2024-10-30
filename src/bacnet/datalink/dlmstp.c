@@ -612,6 +612,116 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS *dest)
 }
 
 /**
+ * @brief Get the MSTP port SoleMaster status
+ * @return true if the MSTP port is the SoleMaster
+ */
+bool dlmstp_sole_master(void)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    if (MSTP_Port->SoleMaster) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Get the MSTP port SlaveNodeEnabled status
+ * @return true if the MSTP port has SlaveNodeEnabled
+ */
+bool dlmstp_slave_mode_enabled(void)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    return MSTP_Port->SlaveNodeEnabled;
+}
+
+/**
+ * @brief Set the MSTP port SlaveNodeEnabled flag
+ * @param flag - true if the MSTP port has SlaveNodeEnabled
+ * @return true if the MSTP port SlaveNodeEnabled was set
+ * @note This flag is used to enable the Slave Node state machine
+ * for the MSTP port.  The Slave Node state machine is used to
+ * respond to requests from the Master Node.
+ */
+bool dlmstp_slave_mode_enabled_set(bool flag)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    MSTP_Port->SlaveNodeEnabled = flag;
+
+    return true;
+}
+
+/**
+ * @brief Get the MSTP port ZeroConfigEnabled status
+ * @return true if the MSTP port has ZeroConfigEnabled
+ */
+bool dlmstp_zero_config_enabled(void)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    return MSTP_Port->ZeroConfigEnabled;
+}
+
+/**
+ * @brief Set the MSTP port ZeroConfigEnabled flag
+ * @param flag - true if the MSTP port has ZeroConfigEnabled
+ * @return true if the MSTP port ZeroConfigEnabled was set
+ * @note This flag is used to enable the Zero Configuration state machine
+ * for the MSTP port.  The Zero Configuration state machine is used to
+ * automatically assign a MAC address to the MSTP port.
+ */
+bool dlmstp_zero_config_enabled_set(bool flag)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    MSTP_Port->ZeroConfigEnabled = flag;
+
+    return true;
+}
+
+/**
+ * @brief Get the MSTP port MAC address that this node prefers to use.
+ * @return ZeroConfigStation value
+ */
+uint8_t dlmstp_zero_config_preferred_station(void)
+{
+    if (!MSTP_Port) {
+        return Nmin_poll_station;
+    }
+    if ((MSTP_Port->Zero_Config_Preferred_Station < Nmin_poll_station) ||
+        (MSTP_Port->Zero_Config_Preferred_Station > Nmax_poll_station)) {
+        return Nmin_poll_station;
+    }
+
+    return MSTP_Port->Zero_Config_Preferred_Station;
+}
+
+/**
+ * @brief Set the MSTP port MAC address that this node prefers to use.
+ * @param station - Zero_Config_Preferred_Station value
+ * @return true if the MSTP port Zero_Config_Preferred_Station was set
+ */
+bool dlmstp_zero_config_preferred_station_set(uint8_t station)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    /* note: valid values are between Nmin_poll_station and Nmax_poll_station
+       but other values such as 0 or 255 could mean 'unconfigured' */
+    MSTP_Port->Zero_Config_Preferred_Station = station;
+
+    return true;
+}
+
+/**
  * @brief Determine if the send PDU queue is empty
  * @return true if the send PDU is empty
  */

@@ -180,6 +180,20 @@ void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address);
 BACNET_STACK_EXPORT
 bool dlmstp_sole_master(void);
 BACNET_STACK_EXPORT
+bool dlmstp_slave_mode_enabled(void);
+BACNET_STACK_EXPORT
+bool dlmstp_slave_mode_enabled_set(bool flag);
+
+BACNET_STACK_EXPORT
+bool dlmstp_zero_config_enabled(void);
+BACNET_STACK_EXPORT
+bool dlmstp_zero_config_enabled_set(bool flag);
+BACNET_STACK_EXPORT
+uint8_t dlmstp_zero_config_preferred_station(void);
+BACNET_STACK_EXPORT
+bool dlmstp_zero_config_preferred_station_set(uint8_t station);
+
+BACNET_STACK_EXPORT
 bool dlmstp_send_pdu_queue_empty(void);
 BACNET_STACK_EXPORT
 bool dlmstp_send_pdu_queue_full(void);
