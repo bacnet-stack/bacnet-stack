@@ -78,6 +78,7 @@ static int write_property_multiple_decode(
                             (long)wp_data->array_index);
                         if (device_write_property) {
                             if (device_write_property(wp_data) == false) {
+                                fprintf(stderr, "ERROR_CODE_INVALID_TAG");
                                 /* Workaround BTL Specified Test 9.23.2.X5 */
                                 if ((wp_data->error_class ==
                                      ERROR_CLASS_PROPERTY) &&
