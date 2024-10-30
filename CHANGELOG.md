@@ -32,18 +32,23 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
-* Added WriteGroup service and Channel object interfaces (#829)
-* Added common property test for BACnetARRAY (#828)
+* Added unit testing for FIFO peek feature. (#839)
+* Added IPv6 Zone Index function to return ASCII. (#838)
+* Added network port callbacks for pending changes activate and discard. (#836)
+* Added WriteProperty setter for BACnet Unsigned Integer values. (#834)
+* Added linker specific code for Darwin for compiling mstpcrc. (#833)
+* Added WriteGroup service and Channel object interfaces. (#829)
+* Added common property test for BACnetARRAY. (#828)
 * Added code to parse BACnetAccessRule from ASCII command line. (#827)
 * Added a common BACnetARRAY write property iterator function. (#826)
-* Added cmake build artificats to gitignore
+* Added cmake build artificats to gitignore.
 * Added some optional properties into the object property lists up to
   protocol-revision 22. (#789)
 * Added serial-number property to basic device object example. (#789)
 * Added optional description property to basic network port object
   example. (#788)
-* Added ucix_get_list and ucix_set_list function (#780)
-* Added uci include and lib for cmake (#779)
+* Added ucix_get_list and ucix_set_list function. (#780)
+* Added uci include and lib for cmake. (#779)
 * Added BACnet Ethernet support for MacOS X via pcap library. (#775)
 * Added local tool aptfile to use with apt based development
   installation. (#772)
@@ -66,6 +71,7 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the lint apt install in quality pipeline to be consistent (#837)
 * Changed apps/epics by enabling BACnetARRAY checking. (#823)
 * Changed  BACnet Ethernet and IPv6 on win32 by switching from
   WinPcap to npcap.  Included npcap SDK in cmake and libs for
@@ -104,6 +110,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed BACnet basic file object to have dynamic name, mime-type, path. (#835)
+* Fixed MS/TP Slave Node FSM to enable receiving DNER frames. (#832)
 * Fixed BACnetLightingCommand decode options by setting them. (#830)
 * Fixed jquery.js used for syntax highlighting in PERL documentation. (#817)
 * Fixed EXC_BAD_ACCESS in datalink_set() strcasecmp(). (#816)
