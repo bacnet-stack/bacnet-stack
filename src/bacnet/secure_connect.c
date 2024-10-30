@@ -4,7 +4,7 @@
  * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2023
- * @copyright SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdbool.h>
 #include <stdint.h>

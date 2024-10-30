@@ -1,16 +1,10 @@
 /**
  * @file
  * @brief tests for BACnet/SC encode/decode APIs
- * @author Kirill Neznamov
+ * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date May 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Legrand North America, LLC
- * as an unpublished work.
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdlib.h> /* For calloc() */
 #include <zephyr/ztest.h>
 #include <bacnet/datalink/bsc/bvlc-sc.h>

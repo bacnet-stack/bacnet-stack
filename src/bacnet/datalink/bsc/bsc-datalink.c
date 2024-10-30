@@ -1,16 +1,10 @@
 /**
  * @file
  * @brief BACnet secure connect hub function API.
- * @author Kirill Neznamov
+ * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date October 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Legrand North America, LLC
- * as an unpublished work.
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include "bacnet/basic/sys/debug.h"
 #include <bacnet/basic/sys/fifo.h>
 #include "bacnet/datalink/bsc/bsc-conf.h"

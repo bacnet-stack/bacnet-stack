@@ -1,14 +1,9 @@
 /**
  * @file
  * @brief module for common function for BACnet/SC implementation
- * @author Kirill Neznamov
+ * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date Jule 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Legrand North America, LLC
- * as an unpublished work.
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_DATALINK_BSC_UTIL_H
 #define BACNET_DATALINK_BSC_UTIL_H

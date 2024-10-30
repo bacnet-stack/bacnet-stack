@@ -3,14 +3,9 @@
  * @brief BACNet secure connect node API.
  *        In general, user should not use that API directly,
  *        BACNet/SC datalink API should be used.
- * @author Kirill Neznamov
+ * @author Kirill Neznamov <kirill\.neznamov@dsr-corporation\.com>
  * @date October 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Legrand North America, LLC
- * as an unpublished work.
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #ifndef BACNET_DATALINK_BSC_NODE_H
 #define BACNET_DATALINK_BSC_NODE_H

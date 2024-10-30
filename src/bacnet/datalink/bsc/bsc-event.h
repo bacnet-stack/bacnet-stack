@@ -1,14 +1,9 @@
 /**
  * @file
- * @brief crossplatform event abstraction used in BACNet secure connect.
- * @author Kirill Neznamov
+ * @brief crossplatform event abstraction used in BACnet secure connect.
+ * @author Kirill Neznamov <kirill.neznamov@dsr-corporation.com>
  * @date August 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Legrand North America, LLC
- * as an unpublished work.
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_DATALINK_BSC_EVENT_H
 #define BACNET_DATALINK_BSC_EVENT_H
