@@ -104,6 +104,8 @@ struct object_data {
     BACNET_PORT_QUALITY Quality;
     uint16_t APDU_Length;
     float Link_Speed;
+    bacnet_network_port_activate_changes Activate_Changes;
+    bacnet_network_port_discard_changes Discard_Changes;
     union {
         struct bacnet_ipv4_port IPv4;
         struct bacnet_ipv6_port IPv6;
@@ -956,6 +958,9 @@ bool Network_Port_Changes_Pending_Set(uint32_t object_instance, bool value)
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Changes_Pending = value;
+        if (value == false) {
+            Network_Port_Changes_Pending_Discard(object_instance);
+        }
         status = true;
     }
 
@@ -972,7 +977,25 @@ void Network_Port_Changes_Pending_Activate(uint32_t object_instance)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        /* callback? something else? */
+        if (Object_List[index].Activate_Changes) {
+            Object_List[index].Activate_Changes(object_instance);
+        }
+    }
+}
+
+/**
+ * @brief For a given object instance-number, sets the callback function
+ * to activate any pending changes
+ */
+void Network_Port_Changes_Pending_Activate_Callback_Set(
+    uint32_t object_instance, bacnet_network_port_activate_changes callback)
+
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Activate_Changes = callback;
     }
 }
 
@@ -986,7 +1009,25 @@ void Network_Port_Changes_Pending_Discard(uint32_t object_instance)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        /* callback? something else? */
+        if (Object_List[index].Discard_Changes) {
+            Object_List[index].Discard_Changes(object_instance);
+        }
+    }
+}
+
+/**
+ * @brief For a given object instance-number, sets the callback function
+ * to discard any pending changes
+ */
+void Network_Port_Changes_Pending_Discard_Callback_Set(
+    uint32_t object_instance, bacnet_network_port_discard_changes callback)
+
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        Object_List[index].Discard_Changes = callback;
     }
 }
 
@@ -2801,6 +2842,29 @@ bool Network_Port_IPv6_Zone_Index(
 }
 
 /**
+ * For a given object instance-number, returns the Zone index ASCII.
+ * The Zone index could be "eth0" or some other name.
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @return  Zone index ASCII string
+ */
+const char *Network_Port_IPv6_Zone_Index_ASCII(uint32_t object_instance)
+{
+    const char *p = NULL;
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            p = &Object_List[index].Network.IPv6.Zone_Index[0];
+        }
+    }
+
+    return p;
+}
+
+/**
  * For a given object instance-number, returns the BACnet IPv6 Auto Addressing
  * Enable property value
  *
@@ -2876,6 +2940,7 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
             snprintf(
                 &Object_List[index].Network.IPv6.Zone_Index[0], ZONE_INDEX_SIZE,
                 "%s", zone_index);
+            status = true;
         }
     }
 
@@ -3623,6 +3688,10 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
     }
+    if (!status && (wp_data->error_code == ERROR_CODE_OTHER)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+    }
 
     return status;
 }
@@ -3631,7 +3700,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * ReadRange service handler for the BACnet/IP BDT.
  *
  * @param  apdu - place to encode the data
- * @param  apdu - BACNET_READ_RANGE_DATA data
+ * @param  pRequest - BACNET_READ_RANGE_DATA data
  *
  * @return number of bytes encoded
  */

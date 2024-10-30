@@ -35,8 +35,8 @@ jobs:
     - uses: actions/checkout@v4
     - name: Create SPLint Workspace
       run: |
-        sudo apt-get update --quiet --assume-yes
-        sudo apt-get install --quiet --assume-yes splint
+        sudo apt-get update -qq
+        sudo apt-get install -qq splint
     - name: Static Defect Analysis using SPLint
       run: make splint
 
