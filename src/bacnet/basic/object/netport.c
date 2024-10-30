@@ -2929,21 +2929,6 @@ bool Network_Port_IPv6_Zone_Index(
     return status;
 }
 
-const char *Network_Port_IPv6_Zone_Index_char(uint32_t object_instance)
-{
-    const char *p = NULL;
-    unsigned index = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
-            p = &Object_List[index].Network.IPv6.Zone_Index[0];
-        }
-    }
-
-    return p;
-}
-
 /**
  * For a given object instance-number, returns the Zone index ASCII.
  * The Zone index could be "eth0" or some other name.
