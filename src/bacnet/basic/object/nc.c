@@ -308,7 +308,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     CurrentNotify = &NC_Info[Notification_Class_Instance_To_Index(
         wp_data->object_instance)];
-
+    fprintf(stderr, "CurrentNotify = %p\n", (void *)CurrentNotify);
     /* decode some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
