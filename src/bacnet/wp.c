@@ -7,6 +7,7 @@
  */
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
