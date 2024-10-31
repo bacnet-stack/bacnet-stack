@@ -60,7 +60,7 @@ jobs:
         make -C apps/piface/libpifacedigital
         make piface
   
-blinkt:
+  blinkt:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
