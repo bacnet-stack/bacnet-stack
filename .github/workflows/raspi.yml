@@ -58,9 +58,9 @@ jobs:
         arm-linux-gnueabihf-gcc --version
         make -C apps/piface/libmcp23s17
         make -C apps/piface/libpifacedigital
-        make LEGACY=true -C apps/piface
-
-  blinkt:
+        make CSTANDARD="-std=gnu11" LEGACY=true -s -C apps piface
+  
+blinkt:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
