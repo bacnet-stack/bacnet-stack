@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - '*'
-  
+
 jobs:
   raspi-bip-apps:
     runs-on: ubuntu-latest
@@ -39,7 +39,7 @@ jobs:
       with:
         repository: piface/libmcp23s17
         path: ./apps/piface/libmcp23s17
-    
+
     - name: Checkout libpifacedigital repo
       uses: actions/checkout@v4
       with:
@@ -50,16 +50,16 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq gcc-arm-linux-gnueabihf
-    
-    - name: Build libmcp23s17 library 
+
+    - name: Build libmcp23s17 library
       run: |
         arm-linux-gnueabihf-gcc --version
         cd apps/piface/libmcp23s17
         make CC=arm-linux-gnueabihf-gcc
         arm-linux-gnueabihf-ar rcs libmcp23s17.a src/mcp23s17.o
         cd ../../../
-    
-    - name: Build pifacedigital library 
+
+    - name: Build pifacedigital library
       run: |
         arm-linux-gnueabihf-gcc --version
         cd apps/piface/libpifacedigital
@@ -67,12 +67,11 @@ jobs:
         arm-linux-gnueabihf-ar rcs libpifacedigital.a src/pifacedigital.o
         cd ../../../
 
-    - name: Build Piface demo 
+    - name: Build Piface demo
       run: |
-        export CROSS_PREFIX=arm-linux-gnueabihf-
         arm-linux-gnueabihf-gcc --version
-        make piface
-  
+        make CROSS_PREFIX=arm-linux-gnueabihf- piface
+
   blinkt:
     runs-on: ubuntu-latest
     steps:
@@ -84,16 +83,18 @@ jobs:
       with:
         repository: joan2937/pigpio
         path: ./apps/blinkt/pigpio
-    
+
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq gcc-arm-linux-gnueabihf
 
+    - name: Build Blinkt! pigpio library
+      run: |
+        arm-linux-gnueabihf-gcc --version
+        make CROSS_PREFIX=arm-linux-gnueabihf- -C apps/blinkt/pigpio all install
+
     - name: Build Blinkt! demo
       run: |
-        export CROSS_PREFIX=arm-linux-gnueabihf-
         arm-linux-gnueabihf-gcc --version
-        make -C apps/blinkt/pigpio all install
-        make blinkt
-
+        make CROSS_PREFIX=arm-linux-gnueabihf- blinkt
