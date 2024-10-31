@@ -58,7 +58,7 @@ jobs:
         arm-linux-gnueabihf-gcc --version
         make -C apps/piface/libmcp23s17
         make -C apps/piface/libpifacedigital
-        make CSTANDARD="-std=gnu11" LEGACY=true -s -C apps piface
+        make piface
   
 blinkt:
     runs-on: ubuntu-latest
@@ -77,4 +77,5 @@ blinkt:
         export CC=arm-linux-gnueabihf-gcc
         export LD=arm-linux-gnueabihf-ld
         arm-linux-gnueabihf-gcc --version
-        make LEGACY=true blinkt
+        make blinkt
+
