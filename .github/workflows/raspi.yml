@@ -1,12 +1,6 @@
 name: Raspberry Pi
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - '*'
+on: workflow_dispatch
 
 jobs:
   raspi-bip-apps:
