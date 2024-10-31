@@ -43,7 +43,7 @@ jobs:
         make LEGACY=true piface
 
   blinkt:
-    runs-on: raspios/base:latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
