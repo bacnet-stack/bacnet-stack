@@ -70,6 +70,9 @@ jobs:
     - name: Build Piface demo
       run: |
         arm-linux-gnueabihf-gcc --version
+        : # BACnet library uses environment CC and LD variables
+        CC=arm-linux-gnueabihf-gcc
+        LD=arm-linux-gnueabihf-ld
         make CROSS_PREFIX=arm-linux-gnueabihf- piface
 
   blinkt:
@@ -97,4 +100,7 @@ jobs:
     - name: Build Blinkt! demo
       run: |
         arm-linux-gnueabihf-gcc --version
+        : # BACnet library uses environment CC and LD variables
+        CC=arm-linux-gnueabihf-gcc
+        LD=arm-linux-gnueabihf-ld
         make CROSS_PREFIX=arm-linux-gnueabihf- blinkt
