@@ -57,8 +57,8 @@ jobs:
         export CC=arm-linux-gnueabihf-gcc
         export LD=arm-linux-gnueabihf-ld
         arm-linux-gnueabihf-gcc --version
-        make CC=arm-linux-gnueabihf -C apps/piface/libmcp23s17
-        make CC=arm-linux-gnueabihf -C apps/piface/libpifacedigital
+        make CC=arm-linux-gnueabihf-gcc -C apps/piface/libmcp23s17
+        make CC=arm-linux-gnueabihf-gcc -C apps/piface/libpifacedigital
         make piface
   
   blinkt:
@@ -77,12 +77,11 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq gcc-arm-linux-gnueabihf
-        sudo apt-get install -qq libpigpio-dev libpigpiod-if-dev pigpiod
 
     - name: Build Blinkt! demo
       run: |
         export CROSS_PREFIX=arm-linux-gnueabihf-
         arm-linux-gnueabihf-gcc --version
-        make -C apps/blinkt/pigpio lib
+        make -C apps/blinkt/pigpio all install
         make blinkt
 
