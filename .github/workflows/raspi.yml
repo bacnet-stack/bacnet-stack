@@ -9,42 +9,36 @@ on:
       - '*'
   
 jobs:
-  log-the-inputs:
-    runs-on: raspios/base:latest
-    steps:
-      - run: |
-          echo "Log level: $LEVEL"
-          echo "Tags: $TAGS"
-          echo "Environment: $ENVIRONMENT"
-        env:
-          LEVEL: ${{ inputs.logLevel }}
-          TAGS: ${{ inputs.tags }}
-          ENVIRONMENT: ${{ inputs.environment }}  
-  
   raspi-bip-apps:
-    runs-on: raspios/base:latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq gcc-arm-linux-gnueabihf
     - name: Build Demo Apps
       run: |
-        gcc --version
+        export CC=arm-linux-gnueabihf-gcc
+        export LD=arm-linux-gnueabihf-ld
+        arm-linux-gnueabihf-gcc --version
         make clean
         make all
 
   piface:
-    runs-on: raspios/base:latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
+        sudo apt-get install -qq gcc-arm-linux-gnueabihf
     - name: Build Demo Apps
       run: |
-        gcc --version
+        export CC=arm-linux-gnueabihf-gcc
+        export LD=arm-linux-gnueabihf-ld
+        arm-linux-gnueabihf-gcc --version
         cd apps/piface && ./configure && cd ../../
         make piface
 
@@ -55,6 +49,7 @@ jobs:
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
+        sudo apt-get install -qq gcc-arm-linux-gnueabihf
         sudo apt-get install -qq libpigpio-dev libpigpiod-if-dev pigpiod
     - name: Build Demo Apps
       run: |
