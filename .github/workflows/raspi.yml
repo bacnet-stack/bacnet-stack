@@ -53,11 +53,12 @@ jobs:
     
     - name: Build Piface libraries and demo 
       run: |
+        export CROSS_PREFIX=arm-linux-gnueabihf-
         export CC=arm-linux-gnueabihf-gcc
         export LD=arm-linux-gnueabihf-ld
         arm-linux-gnueabihf-gcc --version
-        make -C apps/piface/libmcp23s17
-        make -C apps/piface/libpifacedigital
+        make CC=arm-linux-gnueabihf -C apps/piface/libmcp23s17
+        make CC=arm-linux-gnueabihf -C apps/piface/libpifacedigital
         make piface
   
   blinkt:
@@ -66,6 +67,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Checkout pigpio repo
+      uses: actions/checkout@v4
+      with:
+        repository: joan2937/pigpio
+        path: ./apps/blinkt/pigpio
+    
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -74,8 +81,8 @@ jobs:
 
     - name: Build Blinkt! demo
       run: |
-        export CC=arm-linux-gnueabihf-gcc
-        export LD=arm-linux-gnueabihf-ld
+        export CROSS_PREFIX=arm-linux-gnueabihf-
         arm-linux-gnueabihf-gcc --version
+        make -C apps/blinkt/pigpio lib
         make blinkt
 

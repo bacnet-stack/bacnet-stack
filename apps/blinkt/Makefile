@@ -22,8 +22,17 @@ CFLAGS += -DMAX_TSM_TRANSACTIONS=1
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
+#
+# Set CROSS_PREFIX to prepend to all compiler tools at once for easier
+# cross-compilation.
+CROSS_PREFIX =
+CC           = $(CROSS_PREFIX)gcc
+AR           = $(CROSS_PREFIX)ar
+RANLIB       = $(CROSS_PREFIX)ranlib
+SIZE         = $(CROSS_PREFIX)size
+
 # note: link to pigpio daemon so that our app can run without root
-# start pigio daemon with the command 'sudo pigpiod'
+# start pigpio daemon with the command 'sudo pigpiod'
 LD_PIGPIO = -Wl,-pthread,-lpigpiod_if2
 LFLAGS += $(LD_PIGPIO)
 
@@ -33,7 +42,7 @@ all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
 ${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
-	size $@
+	$(SIZE) $@
 	cp $@ ../../bin
 
 ${BACNET_LIB_TARGET}:
@@ -53,3 +62,4 @@ clean:
 
 .PHONY: include
 include: .depend
+
