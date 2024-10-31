@@ -39,7 +39,9 @@ jobs:
         export CC=arm-linux-gnueabihf-gcc
         export LD=arm-linux-gnueabihf-ld
         arm-linux-gnueabihf-gcc --version
-        cd apps/piface && ./configure && cd ../../
+        ls -al
+        pwd
+        cd apps/piface && ./configure.sh && cd ../../
         make LEGACY=true piface
 
   blinkt:
