@@ -30,6 +30,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        repository: piface/libmcp23s17
+        path: ./apps/piface/libmcp23s17
+      with:
+        repository: piface/libpifacedigital
+        path: ./apps/piface/libpifacedigital
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
@@ -39,10 +45,9 @@ jobs:
         export CC=arm-linux-gnueabihf-gcc
         export LD=arm-linux-gnueabihf-ld
         arm-linux-gnueabihf-gcc --version
-        ls -al
-        pwd
-        cd apps/piface && ./configure.sh && cd ../../
-        make LEGACY=true piface
+        make -C apps/piface/libmcp23s17
+        make -C apps/piface/libpifacedigital
+        make LEGACY=true -C apps/piface
 
   blinkt:
     runs-on: ubuntu-latest
@@ -55,5 +60,7 @@ jobs:
         sudo apt-get install -qq libpigpio-dev libpigpiod-if-dev pigpiod
     - name: Build Demo Apps
       run: |
-        gcc --version
+        export CC=arm-linux-gnueabihf-gcc
+        export LD=arm-linux-gnueabihf-ld
+        arm-linux-gnueabihf-gcc --version
         make LEGACY=true blinkt
