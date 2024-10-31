@@ -51,14 +51,26 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq gcc-arm-linux-gnueabihf
     
-    - name: Build Piface libraries and demo 
+    - name: Build libmcp23s17 library 
+      run: |
+        arm-linux-gnueabihf-gcc --version
+        cd apps/piface/libmcp23s17
+        make CC=arm-linux-gnueabihf-gcc
+        arm-linux-gnueabihf-ar rcs libmcp23s17.a src/mcp23s17.o
+        cd ../../../
+    
+    - name: Build pifacedigital library 
+      run: |
+        arm-linux-gnueabihf-gcc --version
+        cd apps/piface/libpifacedigital
+        make CC=arm-linux-gnueabihf-gcc
+        arm-linux-gnueabihf-ar rcs libpifacedigital.a src/pifacedigital.o
+        cd ../../../
+
+    - name: Build Piface demo 
       run: |
         export CROSS_PREFIX=arm-linux-gnueabihf-
-        export CC=arm-linux-gnueabihf-gcc
-        export LD=arm-linux-gnueabihf-ld
         arm-linux-gnueabihf-gcc --version
-        make CC=arm-linux-gnueabihf-gcc -C apps/piface/libmcp23s17
-        make CC=arm-linux-gnueabihf-gcc -C apps/piface/libpifacedigital
         make piface
   
   blinkt:
