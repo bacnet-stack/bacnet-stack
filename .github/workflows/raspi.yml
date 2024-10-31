@@ -24,7 +24,7 @@ jobs:
         export LD=arm-linux-gnueabihf-ld
         arm-linux-gnueabihf-gcc --version
         make clean
-        make all
+        make LEGACY=true all
 
   piface:
     runs-on: ubuntu-latest
@@ -40,7 +40,7 @@ jobs:
         export LD=arm-linux-gnueabihf-ld
         arm-linux-gnueabihf-gcc --version
         cd apps/piface && ./configure && cd ../../
-        make piface
+        make LEGACY=true piface
 
   blinkt:
     runs-on: raspios/base:latest
@@ -54,4 +54,4 @@ jobs:
     - name: Build Demo Apps
       run: |
         gcc --version
-        make blinkt
+        make LEGACY=true blinkt
