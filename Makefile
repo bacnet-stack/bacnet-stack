@@ -94,7 +94,11 @@ apdu:
 
 .PHONY: blinkt
 blinkt:
-	$(MAKE) -s -C apps $@
+	$(MAKE) LEGACY=true -C apps $@
+
+.PHONY: blinkt6
+blinkt6:
+	$(MAKE) LEGACY=true BACDL=bip6 -C apps blinkt
 
 .PHONY: create-object
 create-object:
@@ -139,6 +143,10 @@ gateway-win32:
 .PHONY: piface
 piface:
 	$(MAKE) CSTANDARD="-std=gnu11" LEGACY=true -s -C apps $@
+
+.PHONY: piface6
+piface6:
+	$(MAKE) CSTANDARD="-std=gnu11" BACDL=bip6 LEGACY=true -s -C apps piface
 
 .PHONY: readbdt
 readbdt:
