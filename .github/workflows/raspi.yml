@@ -29,18 +29,27 @@ jobs:
   piface:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
+    - uses: actions/checkout@v4
+
+    - name: Checkout libmcp23s17 repo
     - uses: actions/checkout@v4
       with:
         repository: piface/libmcp23s17
         path: ./apps/piface/libmcp23s17
+    
+    - name: Checkout libpifacedigital repo
+    - uses: actions/checkout@v4
       with:
         repository: piface/libpifacedigital
         path: ./apps/piface/libpifacedigital
+
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq gcc-arm-linux-gnueabihf
-    - name: Build Demo Apps
+    
+    - name: Build Piface libraries and demo 
       run: |
         export CC=arm-linux-gnueabihf-gcc
         export LD=arm-linux-gnueabihf-ld
@@ -52,13 +61,16 @@ jobs:
   blinkt:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
     - uses: actions/checkout@v4
+
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq gcc-arm-linux-gnueabihf
         sudo apt-get install -qq libpigpio-dev libpigpiod-if-dev pigpiod
-    - name: Build Demo Apps
+
+    - name: Build Blinkt! demo
       run: |
         export CC=arm-linux-gnueabihf-gcc
         export LD=arm-linux-gnueabihf-ld
