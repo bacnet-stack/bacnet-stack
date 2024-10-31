@@ -5,6 +5,7 @@
 
 ## General Flags
 TARGET = bacblinkt
+
 # BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
@@ -25,7 +26,7 @@ TARGET_BIN = ${TARGET}$(TARGET_EXT)
 #
 # Set CROSS_PREFIX to prepend to all compiler tools at once for easier
 # cross-compilation.
-CROSS_PREFIX =
+CROSS_PREFIX ?=
 CC           = $(CROSS_PREFIX)gcc
 AR           = $(CROSS_PREFIX)ar
 RANLIB       = $(CROSS_PREFIX)ranlib

@@ -15,7 +15,7 @@ SRC = main.c \
 
 # Set CROSS_PREFIX to prepend to all compiler tools at once for easier
 # cross-compilation.
-CROSS_PREFIX =
+CROSS_PREFIX ?=
 CC           = $(CROSS_PREFIX)gcc
 AR           = $(CROSS_PREFIX)ar
 RANLIB       = $(CROSS_PREFIX)ranlib
@@ -28,6 +28,9 @@ CFLAGS += -DMAX_BINARY_OUTPUTS=8
 
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
+
+# relies on the BACnet library
+BACNET_LIB_DIR = $(realpath ../lib)
 
 # Source locations
 PIFACE_INCLUDE = libpifacedigital/src

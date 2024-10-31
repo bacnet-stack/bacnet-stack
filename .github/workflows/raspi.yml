@@ -64,6 +64,7 @@ jobs:
         arm-linux-gnueabihf-gcc --version
         cd apps/piface/libpifacedigital
         make CC=arm-linux-gnueabihf-gcc
+        : # Use the arm-linux-gnueabihf-ar command to create a static library
         arm-linux-gnueabihf-ar rcs libpifacedigital.a src/pifacedigital.o
         cd ../../../
 
@@ -73,7 +74,8 @@ jobs:
         : # BACnet library uses environment CC and LD variables
         CC=arm-linux-gnueabihf-gcc
         LD=arm-linux-gnueabihf-ld
-        make CROSS_PREFIX=arm-linux-gnueabihf- piface
+        CROSS_PREFIX=arm-linux-gnueabihf-
+        make piface
 
   blinkt:
     runs-on: ubuntu-latest
@@ -95,12 +97,17 @@ jobs:
     - name: Build Blinkt! pigpio library
       run: |
         arm-linux-gnueabihf-gcc --version
-        make CROSS_PREFIX=arm-linux-gnueabihf- -C apps/blinkt/pigpio all install
+        CROSS_PREFIX=arm-linux-gnueabihf-
+        DESTDIR="${HOME}/.local/bin"
+        cd apps/binkt/pigpio
+        make CROSS_PREFIX="${CROSS_PREFIX}" DESTDIR="${DESTDIR}" all install
+        cd ../../../
 
     - name: Build Blinkt! demo
       run: |
         arm-linux-gnueabihf-gcc --version
         : # BACnet library uses environment CC and LD variables
-        CC=arm-linux-gnueabihf-gcc
-        LD=arm-linux-gnueabihf-ld
-        make CROSS_PREFIX=arm-linux-gnueabihf- blinkt
+        export CC=arm-linux-gnueabihf-gcc
+        export LD=arm-linux-gnueabihf-ld
+        export CROSS_PREFIX=arm-linux-gnueabihf-
+        make blinkt
