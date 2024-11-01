@@ -62,6 +62,8 @@ static struct mstimer BACnet_TSM_Timer;
 static struct mstimer BACnet_Address_Timer;
 /* task timer for object functionality */
 static struct mstimer BACnet_Object_Timer;
+/* observer for WriteGroup notifications */
+static BACNET_WRITE_GROUP_NOTIFICATION Write_Group_Notification;
 
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
@@ -99,6 +101,8 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_WRITE_GROUP, handler_write_group);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
@@ -291,6 +295,8 @@ static void bacnet_output_init(void)
         Color_Temperature_Write_Value_Handler);
     Lighting_Output_Write_Present_Value_Callback_Set(
         Lighting_Output_Write_Value_Handler);
+    Write_Group_Notification.callback = Channel_Write_Group;
+    handler_write_group_notification_add(&Write_Group_Notification);
 }
 
 /**
