@@ -273,3 +273,25 @@ jobs:
       run: make LEGACY=true BUILD=win32 router-mstp
     - name: Build Win32 Demo Gateway
       run: make LEGACY=true BUILD=win32 gateway
+
+  piface:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build PiFace Demo
+      run: |
+        gcc --version
+        make clean
+        make LEGACY=true BUILD=pipeline piface
+
+  blinkt:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build Blinkt! Demo
+      run: |
+        gcc --version
+        make clean
+        make LEGACY=true BUILD=pipeline blinkt
