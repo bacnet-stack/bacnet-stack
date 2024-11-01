@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <pigpiod_if2.h>
 #include "blinkt.h"
 
 #define BLINKT_DEFAULT_BRIGHTNESS 7
@@ -22,6 +21,16 @@
 static uint32_t Blinkt_LED[BLINKT_NUM_LEDS];
 /* handle to the pigpiod */
 static int Blinkt_Pi;
+
+#ifdef BUILD_PIPELINE
+#define PI_OUTPUT 1
+#define gpio_write(a, b, c) printf("gpio_write(%d, %d, %d)\n", a, b, c)
+#define set_mode(a, b, c) printf("set_mode(%d, %d, %d)\n", a, b, c)
+#define pigpio_start(a, b) printf("pigpio_start(%s, %s)\n", a, b)
+#define pigpio_stop(a) printf("pigpio_stop(%d)\n", a)
+#else
+#include <pigpiod_if2.h>
+#endif
 
 /**
  * @brief Get the number of LEDS

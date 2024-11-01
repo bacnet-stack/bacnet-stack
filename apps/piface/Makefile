@@ -39,8 +39,12 @@ MCP23S17_LIB = libmcp23s17
 
 CFLAGS += -I$(PIFACE_INCLUDE)
 
+ifeq (${BUILD},pipeline)
+CFLAGS += -DBUILD_PIPELINE
+else
 LDPIFACE = -Wl,-L$(PIFACE_LIB),-lpifacedigital,-L$(MCP23S17_LIB),-lmcp23s17
 LFLAGS += $(LDPIFACE)
+endif
 
 OBJS += ${SRC:.c=.o}
 
