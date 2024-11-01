@@ -8,9 +8,7 @@ TARGET = bacblinkt
 
 # BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
-SRC = main.c \
-	blinkt.c \
-	device.c \
+SRC = main.c blinkt.c device.c \
 	$(BACNET_OBJECT_DIR)/netport.c \
 	$(BACNET_OBJECT_DIR)/channel.c \
 	$(BACNET_OBJECT_DIR)/color_object.c \
@@ -34,8 +32,12 @@ SIZE         = $(CROSS_PREFIX)size
 
 # note: link to pigpio daemon so that our app can run without root
 # start pigpio daemon with the command 'sudo pigpiod'
+ifeq (${BUILD},pipeline)
+CFLAGS += -DBUILD_PIPELINE
+else
 LD_PIGPIO = -Wl,-pthread,-lpigpiod_if2
 LFLAGS += $(LD_PIGPIO)
+endif
 
 OBJS += ${SRC:.c=.o}
 
