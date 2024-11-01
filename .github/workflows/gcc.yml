@@ -252,7 +252,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-    - uses: actions/checkout@v4
+      uses: actions/checkout@v4
     - name: Build PiFace Demo
       run: |
         gcc --version
@@ -263,7 +263,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-    - uses: actions/checkout@v4
+      uses: actions/checkout@v4
     - name: Build Blinkt! Demo
       run: |
         gcc --version
