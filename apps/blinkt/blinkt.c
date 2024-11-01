@@ -26,7 +26,7 @@ static int Blinkt_Pi;
 #define PI_OUTPUT 1
 #define gpio_write(a, b, c) printf("gpio_write(%d, %d, %d)\n", a, b, c)
 #define set_mode(a, b, c) printf("set_mode(%d, %d, %d)\n", a, b, c)
-#define pigpio_start(a, b) printf("pigpio_start(%s, %s)\n", a, b)
+#define pigpio_start(a, b) printf("pigpio_start(%p, %p)\n", a, b)
 #define pigpio_stop(a) printf("pigpio_stop(%d)\n", a)
 #else
 #include <pigpiod_if2.h>

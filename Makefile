@@ -96,9 +96,17 @@ apdu:
 blinkt:
 	$(MAKE) LEGACY=true -C apps $@
 
+.PHONY: blinkt-pipeline
+blinkt-pipeline:
+	$(MAKE) LEGACY=true BUILD=pipeline -C apps blinkt
+
 .PHONY: blinkt6
 blinkt6:
 	$(MAKE) LEGACY=true BACDL=bip6 -C apps blinkt
+
+.PHONY: blinkt6-pipeline
+blinkt6-pipeline:
+	$(MAKE) LEGACY=true BACDL=bip6 BUILD=pipeline -C apps blinkt
 
 .PHONY: create-object
 create-object:
