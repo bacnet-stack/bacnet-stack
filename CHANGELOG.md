@@ -20,7 +20,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.4.0] - 2024-10-25
+## [1.4.0] - 2024-11-03
 
 ### Security
 
@@ -32,6 +32,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added WriteGroup service to blinkt app demo. (#843)
+* Added blinkt and piface build in gcc pipeline to prevent bit rot. (#842)
 * Added missing MS/TP zero configuration preferred address API and usage. (#840)
 * Added unit testing for FIFO peek feature. (#839)
 * Added IPv6 Zone Index function to return ASCII. (#838)
@@ -111,6 +113,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed MS/TP zero-config preferred-station setting to not filter getter. (#844)
+* Fixed MS/TP module flush stderr compile error from leftover. (#844)
+* Fixed device object compile errors and added IPv6 recipes for blinkt
+  and piface (#841)
 * Fixed BACnet basic file object to have dynamic name, mime-type, path. (#835)
 * Fixed MS/TP Slave Node FSM to enable receiving DNER frames. (#832)
 * Fixed BACnetLightingCommand decode options by setting them. (#830)
