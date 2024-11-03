@@ -608,7 +608,6 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
     if ((receive_state != MSTP_RECEIVE_STATE_IDLE) &&
         (mstp_port->receive_state == MSTP_RECEIVE_STATE_IDLE)) {
         printf_receive_data("\n");
-        fflush(stderr);
     }
     return;
 }
