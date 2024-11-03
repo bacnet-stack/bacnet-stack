@@ -289,7 +289,7 @@ apdu: $(BACNET_LIB_TARGET)
 
 .PHONY: blinkt
 blinkt:
-	$(MAKE) -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: create-object
 create-object: $(BACNET_LIB_TARGET)
