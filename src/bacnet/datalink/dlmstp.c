@@ -689,16 +689,14 @@ bool dlmstp_zero_config_enabled_set(bool flag)
 
 /**
  * @brief Get the MSTP port MAC address that this node prefers to use.
- * @return ZeroConfigStation value
+ * @return ZeroConfigStation value, or an out-of-range value if invalid
+ * @note valid values are between Nmin_poll_station and Nmax_poll_station
+ *  but other values such as 0 or 255 could mean 'unconfigured'
  */
 uint8_t dlmstp_zero_config_preferred_station(void)
 {
     if (!MSTP_Port) {
-        return Nmin_poll_station;
-    }
-    if ((MSTP_Port->Zero_Config_Preferred_Station < Nmin_poll_station) ||
-        (MSTP_Port->Zero_Config_Preferred_Station > Nmax_poll_station)) {
-        return Nmin_poll_station;
+        return 0;
     }
 
     return MSTP_Port->Zero_Config_Preferred_Station;
@@ -708,14 +706,14 @@ uint8_t dlmstp_zero_config_preferred_station(void)
  * @brief Set the MSTP port MAC address that this node prefers to use.
  * @param station - Zero_Config_Preferred_Station value
  * @return true if the MSTP port Zero_Config_Preferred_Station was set
+ * @note valid values are between Nmin_poll_station and Nmax_poll_station
+ *  but other values such as 0 or 255 could mean 'unconfigured'
  */
 bool dlmstp_zero_config_preferred_station_set(uint8_t station)
 {
     if (!MSTP_Port) {
         return false;
     }
-    /* note: valid values are between Nmin_poll_station and Nmax_poll_station
-       but other values such as 0 or 255 could mean 'unconfigured' */
     MSTP_Port->Zero_Config_Preferred_Station = station;
 
     return true;
