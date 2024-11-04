@@ -36,6 +36,8 @@ static void testBinaryLightingOutput(void)
     uint32_t test_instance = 0;
     bool status = false;
     unsigned index;
+    const char *test_name = NULL;
+    char *sample_name = "sample";
 
     Binary_Lighting_Output_Init();
     test_instance = Binary_Lighting_Output_Create(instance);
@@ -57,15 +59,17 @@ static void testBinaryLightingOutput(void)
         rpdata.object_property = *pRequired;
         rpdata.array_index = BACNET_ARRAY_ALL;
         len = Binary_Lighting_Output_Read_Property(&rpdata);
-        zassert_not_equal(len, BACNET_STATUS_ERROR,
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
             "property '%s': failed to ReadProperty!\n",
             bactext_property_name(rpdata.object_property));
         if (len >= 0) {
-            test_len = bacapp_decode_known_property(rpdata.application_data,
-                len, &value, rpdata.object_type, rpdata.object_property);
+            test_len = bacapp_decode_known_property(
+                rpdata.application_data, len, &value, rpdata.object_type,
+                rpdata.object_property);
             if (rpdata.object_property != PROP_PRIORITY_ARRAY) {
-                zassert_equal(len, test_len,
-                    "property '%s': failed to decode!\n",
+                zassert_equal(
+                    len, test_len, "property '%s': failed to decode!\n",
                     bactext_property_name(rpdata.object_property));
             }
             /* check WriteProperty properties */
@@ -79,8 +83,8 @@ static void testBinaryLightingOutput(void)
             status = Binary_Lighting_Output_Write_Property(&wpdata);
             if (!status) {
                 /* verify WriteProperty property is known */
-                zassert_not_equal(wpdata.error_code,
-                    ERROR_CODE_UNKNOWN_PROPERTY,
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
                     "property '%s': WriteProperty Unknown!\n",
                     bactext_property_name(rpdata.object_property));
             }
@@ -91,13 +95,16 @@ static void testBinaryLightingOutput(void)
         rpdata.object_property = *pOptional;
         rpdata.array_index = BACNET_ARRAY_ALL;
         len = Binary_Lighting_Output_Read_Property(&rpdata);
-        zassert_not_equal(len, BACNET_STATUS_ERROR,
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
             "property '%s': failed to ReadProperty!\n",
             bactext_property_name(rpdata.object_property));
         if (len > 0) {
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            zassert_equal(len, test_len, "property '%s': failed to decode!\n",
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
+            zassert_equal(
+                len, test_len, "property '%s': failed to decode!\n",
                 bactext_property_name(rpdata.object_property));
             /* check WriteProperty properties */
             wpdata.object_type = rpdata.object_type;
@@ -110,8 +117,8 @@ static void testBinaryLightingOutput(void)
             status = Binary_Lighting_Output_Write_Property(&wpdata);
             if (!status) {
                 /* verify WriteProperty property is known */
-                zassert_not_equal(wpdata.error_code,
-                    ERROR_CODE_UNKNOWN_PROPERTY,
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
                     "property '%s': WriteProperty Unknown!\n",
                     bactext_property_name(rpdata.object_property));
             }
@@ -124,6 +131,15 @@ static void testBinaryLightingOutput(void)
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     status = Binary_Lighting_Output_Write_Property(&wpdata);
     zassert_false(status, NULL);
+    /* test the ASCII name get/set */
+    status = Binary_Lighting_Output_Name_Set(instance, sample_name);
+    zassert_true(status, NULL);
+    test_name = Binary_Lighting_Output_Name_ASCII(instance);
+    zassert_equal(test_name, sample_name, NULL);
+    status = Binary_Lighting_Output_Name_Set(instance, NULL);
+    zassert_true(status, NULL);
+    test_name = Binary_Lighting_Output_Name_ASCII(instance);
+    zassert_equal(test_name, NULL, NULL);
     /* check the delete function */
     status = Binary_Lighting_Output_Delete(instance);
     zassert_true(status, NULL);
@@ -137,7 +153,8 @@ static struct {
     BACNET_BINARY_LIGHTING_PV pv;
     uint32_t count;
 } BLO_Value;
-static void Binary_Lighting_Output_Write_Value_Handler(uint32_t object_instance,
+static void Binary_Lighting_Output_Write_Value_Handler(
+    uint32_t object_instance,
     BACNET_BINARY_LIGHTING_PV old_value,
     BACNET_BINARY_LIGHTING_PV value)
 {
@@ -169,7 +186,6 @@ static void testBinaryLightingOutputBlink(void)
     BACNET_BINARY_LIGHTING_PV pv, test_pv, expect_pv;
     unsigned test_priority;
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     Binary_Lighting_Output_Init();
     Binary_Lighting_Output_Create(object_instance);
@@ -210,8 +226,9 @@ static void testBinaryLightingOutputBlink(void)
         zassert_equal(expect_pv, test_pv, NULL);
         test_priority =
             Binary_Lighting_Output_Present_Value_Priority(object_instance);
-        zassert_equal(wpdata.priority, test_priority,
-            "priority=%u test_priority=%u", wpdata.priority, test_priority);
+        zassert_equal(
+            wpdata.priority, test_priority, "priority=%u test_priority=%u",
+            wpdata.priority, test_priority);
         zassert_equal(BLO_Blink.count, 0, NULL);
         zassert_equal(BLO_Value.count, 1, "count=%u", BLO_Value.count);
         zassert_equal(BLO_Value.pv, expect_pv, NULL);
@@ -232,8 +249,9 @@ static void testBinaryLightingOutputBlink(void)
         zassert_equal(expect_pv, test_pv, NULL);
         test_priority =
             Binary_Lighting_Output_Present_Value_Priority(object_instance);
-        zassert_equal(wpdata.priority, test_priority,
-            "priority=%u test_priority=%u", wpdata.priority, test_priority);
+        zassert_equal(
+            wpdata.priority, test_priority, "priority=%u test_priority=%u",
+            wpdata.priority, test_priority);
         zassert_equal(BLO_Blink.count, 0, NULL);
         zassert_equal(BLO_Value.count, 2, "count=%u", BLO_Value.count);
         zassert_equal(BLO_Value.pv, expect_pv, NULL);
@@ -254,8 +272,9 @@ static void testBinaryLightingOutputBlink(void)
         zassert_equal(expect_pv, test_pv, "pv=%u", test_pv);
         test_priority =
             Binary_Lighting_Output_Present_Value_Priority(object_instance);
-        zassert_equal(wpdata.priority, test_priority,
-            "priority=%u test_priority=%u", wpdata.priority, test_priority);
+        zassert_equal(
+            wpdata.priority, test_priority, "priority=%u test_priority=%u",
+            wpdata.priority, test_priority);
         zassert_equal(BLO_Blink.count, 0, NULL);
         zassert_equal(BLO_Value.count, 2, "count=%u", BLO_Value.count);
         zassert_equal(BLO_Value.pv, expect_pv, NULL);
@@ -271,7 +290,8 @@ ZTEST_SUITE(blo_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(blo_tests, ztest_unit_test(testBinaryLightingOutput),
+    ztest_test_suite(
+        blo_tests, ztest_unit_test(testBinaryLightingOutput),
         ztest_unit_test(testBinaryLightingOutputBlink));
 
     ztest_run_test_suite(blo_tests);

@@ -138,6 +138,9 @@ ALWAYS_DETAILED_SEC    = NO
 # If the INLINE_INHERITED_MEMB tag is set to YES, doxygen will show all
 # inherited members of a class in the documentation of that class as if those
 # members were ordinary class members. Constructors, destructors and assignment
+# If the INLINE_INHERITED_MEMB tag is set to YES, doxygen will show all
+# inherited members of a class in the documentation of that class as if those
+# members were ordinary class members. Constructors, destructors and assignment
 # operators of the base classes will not be shown.
 # The default value is: NO.
 
@@ -918,6 +921,10 @@ EXCLUDE_SYMLINKS       = NO
 
 EXCLUDE_PATTERNS       =
 
+# The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
+# (namespaces, classes, functions, etc.) that should be excluded from the
+# output. The symbol name can be a fully qualified name, a word, or if the
+# wildcard * is used, a substring. Examples: ANamespace, AClass,
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
 # output. The symbol name can be a fully qualified name, a word, or if the
@@ -2144,8 +2151,10 @@ PERLMOD_PRETTY         = YES
 # This tag requires that the tag GENERATE_PERLMOD is set to YES.
 
 PERLMOD_MAKEVAR_PREFIX =
+PERLMOD_MAKEVAR_PREFIX =
 
 #---------------------------------------------------------------------------
+# Configuration options related to the preprocessor
 # Configuration options related to the preprocessor
 #---------------------------------------------------------------------------
 
@@ -2271,6 +2280,7 @@ EXTERNAL_GROUPS        = YES
 EXTERNAL_PAGES         = YES
 
 #---------------------------------------------------------------------------
+# Configuration options related to the dot tool
 # Configuration options related to the dot tool
 #---------------------------------------------------------------------------
 

@@ -30,7 +30,7 @@ static void test_object_access_door(void)
     int test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
     /* for decode value data */
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int *pRequired = NULL;
     const int *pOptional = NULL;
     const int *pProprietary = NULL;
@@ -52,8 +52,9 @@ static void test_object_access_door(void)
         len = Access_Door_Read_Property(&rpdata);
         zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
         if (len > 0) {
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
             zassert_true(test_len >= 0, NULL);
         }
         pRequired++;
@@ -64,8 +65,9 @@ static void test_object_access_door(void)
         len = Access_Door_Read_Property(&rpdata);
         zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
         if (len > 0) {
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
             zassert_true(test_len >= 0, NULL);
         }
         pOptional++;
@@ -76,7 +78,6 @@ static void test_object_access_door(void)
 /**
  * @}
  */
-
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(tests_object_access_door, NULL, NULL, NULL, NULL, NULL);

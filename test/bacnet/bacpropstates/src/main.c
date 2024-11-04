@@ -22,7 +22,7 @@
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacpropstates_tests, testPropStates)
 #else
-void testPropStates(void)
+static void testPropStates(void)
 #endif
 {
     BACNET_PROPERTY_STATE data = { 0 };

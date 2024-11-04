@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 
@@ -40,15 +23,22 @@
 #include "bacnet/version.h"
 #include "bacnet/basic/services.h"
 /* objects */
+#include "bacnet/basic/object/ai.h"
+#include "bacnet/basic/object/ao.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bi.h"
+#include "bacnet/basic/object/bo.h"
+#include "bacnet/basic/object/bv.h"
+#include "bacnet/basic/object/ms-input.h"
+#include "bacnet/basic/object/mso.h"
+#include "bacnet/basic/object/msv.h"
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
 #include "bacnet/basic/object/device.h"
 
-/* forward prototype */
-int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
-bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
+/* clang-format off */
 static struct my_object_functions {
     BACNET_OBJECT_TYPE Object_Type;
     object_init_function Object_Init;
@@ -64,6 +54,43 @@ static struct my_object_functions {
                          Device_Valid_Object_Instance_Number,
                          Device_Object_Name, Device_Read_Property_Local,
                          Device_Write_Property_Local, Device_Property_Lists },
+    { OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
+        Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
+        Analog_Input_Object_Name, Analog_Input_Read_Property,
+        Analog_Input_Write_Property, Analog_Input_Property_Lists},
+    { OBJECT_ANALOG_OUTPUT, Analog_Output_Init, Analog_Output_Count,
+        Analog_Output_Index_To_Instance, Analog_Output_Valid_Instance,
+        Analog_Output_Object_Name, Analog_Output_Read_Property,
+        Analog_Output_Write_Property, Analog_Output_Property_Lists},
+    { OBJECT_ANALOG_VALUE, Analog_Value_Init, Analog_Value_Count,
+        Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance,
+        Analog_Value_Object_Name, Analog_Value_Read_Property,
+        Analog_Value_Write_Property, Analog_Value_Property_Lists},
+    { OBJECT_BINARY_INPUT, Binary_Input_Init, Binary_Input_Count,
+        Binary_Input_Index_To_Instance, Binary_Input_Valid_Instance,
+        Binary_Input_Object_Name, Binary_Input_Read_Property,
+        Binary_Input_Write_Property, Binary_Input_Property_Lists},
+    { OBJECT_BINARY_OUTPUT, Binary_Output_Init, Binary_Output_Count,
+        Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
+        Binary_Output_Object_Name, Binary_Output_Read_Property,
+        Binary_Output_Write_Property, Binary_Output_Property_Lists},
+    { OBJECT_BINARY_VALUE, Binary_Value_Init, Binary_Value_Count,
+        Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance,
+        Binary_Value_Object_Name, Binary_Value_Read_Property,
+        Binary_Value_Write_Property, Binary_Value_Property_Lists},
+    { OBJECT_MULTI_STATE_INPUT, Multistate_Input_Init, Multistate_Input_Count,
+        Multistate_Input_Index_To_Instance, Multistate_Input_Valid_Instance,
+        Multistate_Input_Object_Name, Multistate_Input_Read_Property,
+        Multistate_Input_Write_Property, Multistate_Input_Property_Lists},
+    { OBJECT_MULTI_STATE_OUTPUT, Multistate_Output_Init,
+        Multistate_Output_Count, Multistate_Output_Index_To_Instance,
+        Multistate_Output_Valid_Instance, Multistate_Output_Object_Name,
+        Multistate_Output_Read_Property, Multistate_Output_Write_Property,
+        Multistate_Output_Property_Lists},
+    { OBJECT_MULTI_STATE_VALUE, Multistate_Value_Init, Multistate_Value_Count,
+        Multistate_Value_Index_To_Instance, Multistate_Value_Valid_Instance,
+        Multistate_Value_Object_Name, Multistate_Value_Read_Property,
+        Multistate_Value_Write_Property, Multistate_Value_Property_Lists},
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
@@ -72,6 +99,7 @@ static struct my_object_functions {
 #endif
     { MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
         NULL } };
+/* clang-format on */
 
 /* note: you really only need to define variables for
    properties that are writable or that may change.
@@ -85,6 +113,7 @@ static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static const char *Reinit_Password = "stm32f4xx";
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
+static uint8_t Device_UUID[16];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -98,7 +127,8 @@ static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_DATABASE_REVISION, -1 };
 
 static const int Device_Properties_Optional[] = { PROP_DESCRIPTION,
-    PROP_LOCATION, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, -1 };
+    PROP_LOCATION, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, PROP_DEVICE_UUID,
+    -1 };
 
 static const int Device_Properties_Proprietary[] = { -1 };
 
@@ -315,7 +345,7 @@ bool Device_Object_Name(
     return status;
 }
 
-bool Device_Set_Object_Name(BACNET_CHARACTER_STRING *object_name)
+bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false; /*return value */
 
@@ -400,6 +430,71 @@ uint32_t Device_Database_Revision(void)
 void Device_Inc_Database_Revision(void)
 {
     Database_Revision++;
+}
+
+/**
+ * @brief Initialize a UUID for storing the unique identifier of this device
+ * @note A Universally Unique IDentifier (UUID) - also called a
+ * Global Unique IDentifier (GUID) - is a 128-bit value, see RFC 4122.
+ *
+ * 4.4.  Algorithms for Creating a UUID from Truly Random or
+ *      Pseudo-Random Numbers
+ *
+ *   The version 4 UUID is meant for generating UUIDs from truly-random or
+ *   pseudo-random numbers.
+ *
+ *   The algorithm is as follows:
+ *
+ *   o  Set the two most significant bits (bits 6 and 7) of the
+ *      clock_seq_hi_and_reserved to zero and one, respectively.
+ *
+ *   o  Set the four most significant bits (bits 12 through 15) of the
+ *      time_hi_and_version field to the 4-bit version number from
+ *      Section 4.1.3.
+ *
+ *   o  Set all the other bits to randomly (or pseudo-randomly) chosen
+ *      values.
+ */
+void Device_UUID_Init(void)
+{
+    unsigned i = 0;
+
+    /* 1. Generate 16 random bytes = 128 bits */
+    for (i = 0; i < sizeof(Device_UUID); i++) {
+        Device_UUID[i] = rand() % 255;
+    }
+    /* 2. Adjust certain bits according to RFC 4122 section 4.4.
+       This just means do the following
+       (a) set the high nibble of the 7th byte equal to 4 and
+       (b) set the two most significant bits of the 9th byte to 10'B,
+       so the high nibble will be one of {8,9,A,B}.
+       From http://www.cryptosys.net/pki/Uuid.c.html */
+    Device_UUID[6] = 0x40 | (Device_UUID[6] & 0x0f);
+    Device_UUID[8] = 0x80 | (Device_UUID[8] & 0x3f);
+}
+
+/**
+ * @brief Set the UUID for this device
+ * @param new_uuid [in] The new UUID to set
+ * @param length [in] The length of the new UUID
+ */
+void Device_UUID_Set(const uint8_t *new_uuid, size_t length)
+{
+    if (new_uuid && (length == sizeof(Device_UUID))) {
+        memcpy(Device_UUID, new_uuid, sizeof(Device_UUID));
+    }
+}
+
+/**
+ * @brief Get the UUID for this device
+ * @param uuid [out] The UUID of this device
+ * @param length [in] The length of the UUID
+ */
+void Device_UUID_Get(uint8_t *uuid, size_t length)
+{
+    if (uuid && (length == sizeof(Device_UUID))) {
+        memcpy(uuid, Device_UUID, sizeof(Device_UUID));
+    }
 }
 
 /** Get the total count of objects supported by this Device Object.
@@ -508,7 +603,7 @@ int Device_Object_List_Element_Encode(
  * Object.
  * @return True on success or else False if not found.
  */
-bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
+bool Device_Valid_Object_Name(const BACNET_CHARACTER_STRING *object_name1,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {
@@ -590,6 +685,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_OCTET_STRING octet_string = { 0 };
     uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
@@ -717,6 +813,10 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_unsigned(&apdu[0], dlmstp_max_master());
             break;
+        case PROP_DEVICE_UUID:
+            octetstring_init(&octet_string, Device_UUID, sizeof(Device_UUID));
+            apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
+            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -742,7 +842,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
  * @return The length of the APDU on success, else BACNET_STATUS_ERROR
  */
 static int Read_Property_Common(
-    struct my_object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
+    const struct my_object_functions *pObject,
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     BACNET_CHARACTER_STRING char_string;
@@ -860,7 +961,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     uint8_t encoding = 0;
     size_t length = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(

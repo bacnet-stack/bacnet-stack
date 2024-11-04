@@ -3,21 +3,17 @@
  * @brief API for AddListElement and RemoveListElement service codec
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date December 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_LIST_ELEMENT_H
 #define BACNET_LIST_ELEMENT_H
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 
 /**
  *  AddListElement-Request ::= SEQUENCE {
@@ -65,23 +61,26 @@ extern "C" {
 
 BACNET_STACK_EXPORT
 int list_element_encode_service_request(
-    uint8_t *apdu, BACNET_LIST_ELEMENT_DATA *list_element);
+    uint8_t *apdu, const BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
 size_t list_element_service_request_encode(
-    uint8_t *apdu, size_t apdu_size, BACNET_LIST_ELEMENT_DATA *list_element);
+    uint8_t *apdu,
+    size_t apdu_size,
+    const BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
 int list_element_decode_service_request(
     uint8_t *apdu, unsigned apdu_len, BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
 int list_element_error_ack_encode(
-    uint8_t *apdu, BACNET_LIST_ELEMENT_DATA *list_element);
+    uint8_t *apdu, const BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
 int list_element_error_ack_decode(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_LIST_ELEMENT_DATA *list_element);
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_LIST_ELEMENT_DATA *list_element);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
 #endif
-

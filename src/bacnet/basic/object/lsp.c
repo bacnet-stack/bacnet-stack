@@ -1,39 +1,19 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* Life Safety Point Objects - customize for your use */
-
+/**
+ * @file
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @brief A basic BACnet Life Safety Point object implementation.
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/object/lsp.h"
@@ -58,10 +38,13 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_LIFE_SAFETY_POINT;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Life_Safety_Point_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE, PROP_TRACKING_VALUE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_RELIABILITY, PROP_MODE,
-    PROP_ACCEPTED_MODES, PROP_SILENCED, PROP_OPERATION_EXPECTED, -1
+    PROP_OBJECT_IDENTIFIER,  PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,        PROP_PRESENT_VALUE,
+    PROP_TRACKING_VALUE,     PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,        PROP_OUT_OF_SERVICE,
+    PROP_RELIABILITY,        PROP_MODE,
+    PROP_ACCEPTED_MODES,     PROP_SILENCED,
+    PROP_OPERATION_EXPECTED, -1
 };
 
 static const int Life_Safety_Point_Properties_Optional[] = { -1 };
@@ -156,8 +139,8 @@ unsigned Life_Safety_Point_Instance_To_Index(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return  present-value of the object
  */
-BACNET_LIFE_SAFETY_STATE Life_Safety_Point_Present_Value(
-    uint32_t object_instance)
+BACNET_LIFE_SAFETY_STATE
+Life_Safety_Point_Present_Value(uint32_t object_instance)
 {
     BACNET_LIFE_SAFETY_STATE value = LIFE_SAFETY_STATE_QUIET;
     struct object_data *pObject;
@@ -214,13 +197,52 @@ bool Life_Safety_Point_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "LIFE-SAFETY-POINT-%u",
+            snprintf(
+                name_text, sizeof(name_text), "LIFE-SAFETY-POINT-%u",
                 object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object-name
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ * @return  true if object-name was set
+ */
+bool Life_Safety_Point_Name_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = true;
+        pObject->Object_Name = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Life_Safety_Point_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -310,8 +332,8 @@ bool Life_Safety_Point_Mode_Set(
  * @param  object_instance - object-instance number of the object
  * @return property value
  */
-BACNET_LIFE_SAFETY_OPERATION Life_Safety_Point_Operation_Expected(
-    uint32_t object_instance)
+BACNET_LIFE_SAFETY_OPERATION
+Life_Safety_Point_Operation_Expected(uint32_t object_instance)
 {
     BACNET_LIFE_SAFETY_OPERATION value = LIFE_SAFETY_OP_NONE;
     struct object_data *pObject;
@@ -527,7 +549,8 @@ int Life_Safety_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], silenced_state);
             break;
         case PROP_OPERATION_EXPECTED:
-            operation = Life_Safety_Point_Operation_Expected(rpdata->object_instance);
+            operation =
+                Life_Safety_Point_Operation_Expected(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], operation);
             break;
         default:
@@ -551,7 +574,7 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -575,7 +598,8 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated <= MAX_LIFE_SAFETY_MODE) {
-                    Life_Safety_Point_Mode_Set(wp_data->object_instance,
+                    Life_Safety_Point_Mode_Set(
+                        wp_data->object_instance,
                         (BACNET_LIFE_SAFETY_MODE)value.type.Enumerated);
                 } else {
                     status = false;
@@ -612,7 +636,8 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated <= UINT16_MAX) {
-                    Life_Safety_Point_Silenced_Set(wp_data->object_instance,
+                    Life_Safety_Point_Silenced_Set(
+                        wp_data->object_instance,
                         (BACNET_SILENCED_STATE)value.type.Enumerated);
                 } else {
                     status = false;
@@ -745,5 +770,7 @@ void Life_Safety_Point_Cleanup(void)
  */
 void Life_Safety_Point_Init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

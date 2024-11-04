@@ -1,6 +1,0 @@
-tests:
-  bacnet.event:
-    tags: bacnet
-  bacnet.event.unit:
-    tags: bacnet
-    type: unit

@@ -49,25 +49,25 @@ static void testLSO(void)
     zassert_equal(data.operation, test_data.operation, NULL);
     zassert_equal(data.processId, test_data.processId, NULL);
     zassert_equal(data.use_target, test_data.use_target, NULL);
-    zassert_equal(data.targetObject.instance, test_data.targetObject.instance, NULL);
+    zassert_equal(
+        data.targetObject.instance, test_data.targetObject.instance, NULL);
     zassert_equal(data.targetObject.type, test_data.targetObject.type, NULL);
     zassert_equal(
-        memcmp(data.requestingSrc.value, test_data.requestingSrc.value,
-            test_data.requestingSrc.length), 0, NULL);
+        memcmp(
+            data.requestingSrc.value, test_data.requestingSrc.value,
+            test_data.requestingSrc.length),
+        0, NULL);
 }
 /**
  * @}
  */
-
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(lso_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(lso_tests,
-     ztest_unit_test(testLSO)
-     );
+    ztest_test_suite(lso_tests, ztest_unit_test(testLSO));
 
     ztest_run_test_suite(lso_tests);
 }

@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <pigpiod_if2.h>
 #include "blinkt.h"
 
 #define BLINKT_DEFAULT_BRIGHTNESS 7
@@ -22,6 +21,16 @@
 static uint32_t Blinkt_LED[BLINKT_NUM_LEDS];
 /* handle to the pigpiod */
 static int Blinkt_Pi;
+
+#ifdef BUILD_PIPELINE
+#define PI_OUTPUT 1
+#define gpio_write(a, b, c) printf("gpio_write(%d, %d, %d)\n", a, b, c)
+#define set_mode(a, b, c) printf("set_mode(%d, %d, %d)\n", a, b, c)
+#define pigpio_start(a, b) printf("pigpio_start(%p, %p)\n", a, b)
+#define pigpio_stop(a) printf("pigpio_stop(%d)\n", a)
+#else
+#include <pigpiod_if2.h>
+#endif
 
 /**
  * @brief Get the number of LEDS
@@ -52,8 +61,9 @@ void blinkt_clear(void)
  */
 void blinkt_set_pixel(uint8_t led, uint8_t r, uint8_t g, uint8_t b)
 {
-    if (led >= BLINKT_NUM_LEDS)
+    if (led >= BLINKT_NUM_LEDS) {
         return;
+    }
 
     Blinkt_LED[led] = blinkt_rgbb(r, g, b, Blinkt_LED[led] & 0x1F);
 }
@@ -65,8 +75,9 @@ void blinkt_set_pixel(uint8_t led, uint8_t r, uint8_t g, uint8_t b)
  */
 void blinkt_set_pixel_brightness(uint8_t led, uint8_t brightness)
 {
-    if (led >= BLINKT_NUM_LEDS)
+    if (led >= BLINKT_NUM_LEDS) {
         return;
+    }
 
     Blinkt_LED[led] = (Blinkt_LED[led] & 0xFFFFFF00) | (brightness & 0x1F);
 }
@@ -78,8 +89,9 @@ void blinkt_set_pixel_brightness(uint8_t led, uint8_t brightness)
  */
 void blinkt_set_pixel_uint32(uint8_t led, uint32_t color)
 {
-    if (led >= BLINKT_NUM_LEDS)
+    if (led >= BLINKT_NUM_LEDS) {
         return;
+    }
 
     Blinkt_LED[led] = color;
 }
@@ -206,8 +218,9 @@ void blinkt_test_task(void)
     }
     blinkt_show();
     test_y += 1;
-    if (test_y > 254)
+    if (test_y > 254) {
         test_column++;
+    }
     test_column %= 3;
     test_y %= 255;
 }

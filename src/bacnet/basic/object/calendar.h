@@ -3,20 +3,17 @@
  * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date June 2022
  * @brief API for a Calendar object used by a BACnet device object
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
-#ifndef BACNET_CALENDAR_OBJECT_H
-#define BACNET_CALENDAR_OBJECT_H
+#ifndef BACNET_BASIC_OBJECT_CALENDAR_H
+#define BACNET_BASIC_OBJECT_CALENDAR_H
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/calendar_entry.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -50,7 +47,9 @@ BACNET_STACK_EXPORT
 bool Calendar_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
-bool Calendar_Name_Set(uint32_t object_instance, char *new_name);
+bool Calendar_Name_Set(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
+const char *Calendar_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -65,11 +64,11 @@ void Calendar_Write_Present_Value_Callback_Set(
     calendar_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
-BACNET_CALENDAR_ENTRY *Calendar_Date_List_Get(
-    uint32_t object_instance, uint8_t index);
+BACNET_CALENDAR_ENTRY *
+Calendar_Date_List_Get(uint32_t object_instance, uint8_t index);
 BACNET_STACK_EXPORT
 bool Calendar_Date_List_Add(
-    uint32_t object_instance, BACNET_CALENDAR_ENTRY *value);
+    uint32_t object_instance, const BACNET_CALENDAR_ENTRY *value);
 BACNET_STACK_EXPORT
 bool Calendar_Date_List_Delete_All(uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -79,9 +78,9 @@ int Calendar_Date_List_Encode(
     uint32_t object_instance, uint8_t *apdu, int max_apdu);
 
 BACNET_STACK_EXPORT
-char *Calendar_Description(uint32_t object_instance);
+const char *Calendar_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Calendar_Description_Set(uint32_t object_instance, char *new_name);
+bool Calendar_Description_Set(uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 bool Calendar_Write_Enabled(uint32_t instance);

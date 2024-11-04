@@ -1,28 +1,13 @@
-/*************************************************************************
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that uses BACnet SubscribeCOV service
+ * message to subscribe to a BACnet object for Change-of-Value notifications
+ * in a BACnet device and print the Change-of-Value notifications values
+ * to the console.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -30,29 +15,26 @@
 #include <errno.h>
 #include <time.h> /* for time */
 #include <ctype.h> /* for toupper */
-
 #define PRINT_ENABLED 1
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/sys/filename.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 
 #if BACNET_SVC_SERVER
 #error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
@@ -77,14 +59,16 @@ BACNET_SUBSCRIBE_COV_DATA *COV_Subscribe_Data = NULL;
 static bool Simple_Ack_Detected = false;
 static bool Cancel_Requested = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\n",
+        printf(
+            "BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -97,18 +81,19 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\n",
-            bactext_abort_reason_name((int)abort_reason));
+        printf(
+            "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
+        printf(
+            "BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -120,7 +105,8 @@ static void My_Unconfirmed_COV_Notification_Handler(
     handler_ucov_notification(service_request, service_len, src);
 }
 
-static void My_Confirmed_COV_Notification_Handler(uint8_t *service_request,
+static void My_Confirmed_COV_Notification_Handler(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -128,8 +114,8 @@ static void My_Confirmed_COV_Notification_Handler(uint8_t *service_request,
     handler_ccov_notification(service_request, service_len, src, service_data);
 }
 
-static void MyWritePropertySimpleAckHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id)
+static void
+MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
@@ -153,9 +139,11 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the data coming back from COV subscriptions */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_COV_NOTIFICATION,
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_COV_NOTIFICATION,
         My_Confirmed_COV_Notification_Handler);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_COV_NOTIFICATION,
         My_Unconfirmed_COV_Notification_Handler);
     /* handle the Simple ack coming back from SubscribeCOV */
     apdu_set_confirmed_simple_ack_handler(
@@ -179,55 +167,64 @@ static void cleanup(void)
     }
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s device-id object-type object-instance "
-            "process-id <[un]confirmed lifetime|cancel>\n",
+    printf(
+        "Usage: %s device-id object-type object-instance "
+        "process-id <[un]confirmed lifetime|cancel>\n",
         filename);
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
+    printf("Subscribe to a BACnet object for Change-of-Value notifications\n"
+           "in a BACnet device and print the Change-of-Value notifications.\n");
     printf("\n");
     printf("device-id:\n"
-        "The subscriber BACnet Device Object Instance number.\n");
+           "The subscriber BACnet Device Object Instance number.\n");
     printf("\n");
     printf("object-type:\n"
-        "The object type is object that you are reading. It\n"
-        "can be defined either as the object-type name string\n"
-        "as defined in the BACnet specification, or as the\n"
-        "integer value of the enumeration BACNET_OBJECT_TYPE\n"
-        "in bacenum.h. For example if you were reading Analog\n"
-        "Output 2, the object-type would be analog-output or 1.\n");
+           "The object type is object that you are reading. It\n"
+           "can be defined either as the object-type name string\n"
+           "as defined in the BACnet specification, or as the\n"
+           "integer value of the enumeration BACNET_OBJECT_TYPE\n"
+           "in bacenum.h. For example if you were reading Analog\n"
+           "Output 2, the object-type would be analog-output or 1.\n");
     printf("\n");
     printf("object-instance:\n"
-        "The monitored object instance number.\n");
+           "The monitored object instance number.\n");
     printf("\n");
     printf("process-id:\n"
-        "Process Identifier for this COV subscription.\n");
+           "Process Identifier for this COV subscription.\n");
     printf("\n");
     printf("confirmed:\n"
-        "Optional flag to subscribe using Confirmed notifications.\n"
-        "Use the word \'confirmed\' or \'unconfirmed\'.\n");
+           "Optional flag to subscribe using Confirmed notifications.\n"
+           "Use the word \'confirmed\' or \'unconfirmed\'.\n");
     printf("\n");
     printf("lifetime:\n"
-        "Optional subscription lifetime is conveyed in seconds.\n");
+           "Optional subscription lifetime is conveyed in seconds.\n");
     printf("\n");
     printf("cancel:\n"
-        "Use the word \'cancel\' instead of confirm and lifetime.\n"
-        "This shall indicate a cancellation request.\n");
+           "Use the word \'cancel\' instead of confirm and lifetime.\n"
+           "This shall indicate a cancellation request.\n");
     printf("\n");
     printf("Examples:\n");
-    printf("If you want subscribe to Device 123 Analog Input 9 object\n"
+    printf(
+        "If you want subscribe to Device 123 Analog Input 9 object\n"
         "using confirmed COV notifications for 5 minutes,\n"
         "you could send the following command:\n"
-        "%s 123 0 9 1 confirmed 600\n", filename);
-    printf("To send the same COV subscription request for unconfirmed\n"
+        "%s 123 0 9 1 confirmed 600\n",
+        filename);
+    printf(
+        "To send the same COV subscription request for unconfirmed\n"
         "notifications, send the following command:\n"
-        "%s 123 0 9 1 unconfirmed 600\n", filename);
-    printf("To cancel the same COV subscription request,\n"
+        "%s 123 0 9 1 unconfirmed 600\n",
+        filename);
+    printf(
+        "To cancel the same COV subscription request,\n"
         "send the following command:\n"
-        "%s 123 0 9 1 cancel\n", filename);
+        "%s 123 0 9 1 cancel\n",
+        filename);
 }
 
 int main(int argc, char *argv[])
@@ -242,7 +239,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     time_t delta_seconds = 0;
     bool found = false;
-    char *filename = NULL;
+    const char *filename = NULL;
     bool print_usage_terse = false;
     bool print_usage_verbose = false;
     BACNET_SUBSCRIBE_COV_DATA *cov_data = NULL;
@@ -270,8 +267,9 @@ int main(int argc, char *argv[])
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
+    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+        fprintf(
+            stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -287,7 +285,8 @@ int main(int argc, char *argv[])
         cov_data->monitoredObjectIdentifier.type = (uint16_t)uint;
         if (cov_data->monitoredObjectIdentifier.type >=
             MAX_BACNET_OBJECT_TYPE) {
-            fprintf(stderr, "object-type=%u - it must be less than %u\n",
+            fprintf(
+                stderr, "object-type=%u - it must be less than %u\n",
                 cov_data->monitoredObjectIdentifier.type,
                 MAX_BACNET_OBJECT_TYPE);
             return 1;
@@ -297,9 +296,10 @@ int main(int argc, char *argv[])
             strtol(argv[argi], NULL, 0);
         if (cov_data->monitoredObjectIdentifier.instance >
             BACNET_MAX_INSTANCE) {
-            fprintf(stderr, "object-instance=%u - it must be less than %u\n",
+            fprintf(
+                stderr, "object-instance=%u - not greater than %u\n",
                 cov_data->monitoredObjectIdentifier.instance,
-                BACNET_MAX_INSTANCE + 1);
+                BACNET_MAX_INSTANCE);
             return 1;
         }
         argi++;
@@ -363,6 +363,7 @@ int main(int argc, char *argv[])
             delta_seconds = current_seconds - last_seconds;
             elapsed_seconds += delta_seconds;
             tsm_timer_milliseconds((delta_seconds * 1000));
+            datalink_maintenance_timer(delta_seconds);
             /* keep track of time for next check */
             last_seconds = current_seconds;
         }
@@ -391,8 +392,9 @@ int main(int argc, char *argv[])
                     /* increase the timeout to the longest lifetime */
                     timeout_seconds = cov_data->lifetime;
                 }
-                printf("Sent SubscribeCOV request. "
-                       " Waiting up to %u seconds....\n",
+                printf(
+                    "Sent SubscribeCOV request. "
+                    " Waiting up to %u seconds....\n",
                     (unsigned)(timeout_seconds - elapsed_seconds));
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 if (cov_data->next) {

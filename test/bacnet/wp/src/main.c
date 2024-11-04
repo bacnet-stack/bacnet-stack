@@ -20,7 +20,8 @@
  * @brief Decode stub for WriteProperty service
  * @return number of bytes decoded, or #BACNET_STATUS_ERROR
  */
-static int wp_decode_apdu(uint8_t *apdu,
+static int wp_decode_apdu(
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_WRITE_PROPERTY_DATA *wpdata)
@@ -48,8 +49,8 @@ static int wp_decode_apdu(uint8_t *apdu,
     len = 4;
     apdu_len += len;
     if (apdu_len < apdu_size) {
-        len =
-            wp_decode_service_request(&apdu[apdu_len], apdu_size - apdu_len, wpdata);
+        len = wp_decode_service_request(
+            &apdu[apdu_len], apdu_size - apdu_len, wpdata);
         if (len > 0) {
             apdu_len += len;
         } else {
@@ -62,11 +63,28 @@ static int wp_decode_apdu(uint8_t *apdu,
     return apdu_len;
 }
 
-static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
+static BACNET_UNSIGNED_INTEGER Test_Unsigned_Value;
+static uint32_t Test_Object_Instance;
+/**
+ * @brief API for setting a BACnet Unsigned Integer property value
+ * @param object_instance [in] Object instance number
+ * @param value [in] New value to set
+ * @return true if successful, else false
+ */
+static bool test_bacnet_property_unsigned_set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    Test_Object_Instance = object_instance;
+    Test_Unsigned_Value = value;
+    return true;
+}
+
+static void testWritePropertyTag(const BACNET_APPLICATION_DATA_VALUE *value)
 {
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     BACNET_WRITE_PROPERTY_DATA test_data = { 0 };
-    BACNET_APPLICATION_DATA_VALUE test_value;
+    BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
+    BACNET_UNSIGNED_INTEGER test_unsigned_value_max = 0;
     uint8_t apdu[480] = { 0 };
     int len = 0;
     int null_len = 0;
@@ -109,8 +127,9 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
     len = wp_encode_apdu(&apdu[0], invoke_id, &wpdata);
     apdu_len = wp_decode_apdu(&apdu[0], len, &test_invoke_id, &test_data);
     apdu_len = len;
-    len = bacapp_decode_application_data(test_data.application_data,
-        test_data.application_data_len, &test_value);
+    len = bacapp_decode_application_data(
+        test_data.application_data, test_data.application_data_len,
+        &test_value);
     zassert_equal(test_value.tag, value->tag, NULL);
     status = write_property_type_valid(&wpdata, value, test_value.tag);
     zassert_equal(status, true, NULL);
@@ -123,14 +142,29 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             zassert_equal(
                 test_value.type.Unsigned_Int, value->type.Unsigned_Int, NULL);
+            test_unsigned_value_max = test_value.type.Unsigned_Int;
+            status = write_property_unsigned_decode(
+                &test_data, &test_value, test_bacnet_property_unsigned_set,
+                test_unsigned_value_max);
+            zassert_equal(status, true, NULL);
+            zassert_equal(
+                Test_Object_Instance, test_data.object_instance, NULL);
+            zassert_equal(Test_Unsigned_Value, value->type.Unsigned_Int, NULL);
+            if (test_value.type.Unsigned_Int != 0) {
+                test_unsigned_value_max = 0;
+                status = write_property_unsigned_decode(
+                    &test_data, &test_value, test_bacnet_property_unsigned_set,
+                    test_unsigned_value_max);
+                zassert_equal(status, false, NULL);
+            }
             break;
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             zassert_equal(
                 test_value.type.Signed_Int, value->type.Signed_Int, NULL);
             break;
         case BACNET_APPLICATION_TAG_REAL:
-            zassert_false(islessgreater(test_value.type.Real, value->type.Real), 
-                NULL);
+            zassert_false(
+                islessgreater(test_value.type.Real, value->type.Real), NULL);
             break;
         case BACNET_APPLICATION_TAG_ENUMERATED:
             zassert_equal(
@@ -150,13 +184,16 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
                 test_value.type.Time.hour, value->type.Time.hour, NULL);
             zassert_equal(test_value.type.Time.min, value->type.Time.min, NULL);
             zassert_equal(test_value.type.Time.sec, value->type.Time.sec, NULL);
-            zassert_equal(test_value.type.Time.hundredths,
-                value->type.Time.hundredths, NULL);
+            zassert_equal(
+                test_value.type.Time.hundredths, value->type.Time.hundredths,
+                NULL);
             break;
         case BACNET_APPLICATION_TAG_OBJECT_ID:
-            zassert_equal(test_value.type.Object_Id.type,
-                value->type.Object_Id.type, NULL);
-            zassert_equal(test_value.type.Object_Id.instance,
+            zassert_equal(
+                test_value.type.Object_Id.type, value->type.Object_Id.type,
+                NULL);
+            zassert_equal(
+                test_value.type.Object_Id.instance,
                 value->type.Object_Id.instance, NULL);
             break;
         default:
@@ -176,7 +213,7 @@ ZTEST(wp_tests, testWriteProperty)
 static void testWriteProperty(void)
 #endif
 {
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     value.tag = BACNET_APPLICATION_TAG_NULL;
     testWritePropertyTag(&value);
@@ -212,9 +249,9 @@ static void testWriteProperty(void)
     testWritePropertyTag(&value);
     value.type.Real = 1.0;
     testWritePropertyTag(&value);
-    value.type.Real = 3.14159;
+    value.type.Real = 3.14159f;
     testWritePropertyTag(&value);
-    value.type.Real = -3.14159;
+    value.type.Real = -3.14159f;
     testWritePropertyTag(&value);
 
     value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
@@ -247,6 +284,7 @@ static void testWriteProperty(void)
     value.type.Object_Id.instance = BACNET_MAX_INSTANCE;
     testWritePropertyTag(&value);
 }
+
 /**
  * @}
  */

@@ -3,19 +3,17 @@
  * @brief API for CreateObject service encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date August 2023
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_CREATE_OBJECT_H
 #define BACNET_CREATE_OBJECT_H
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 
 /**
@@ -62,36 +60,30 @@ int create_object_encode_service_ack_encode(
     uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
 int create_object_decode_service_request(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
 
 BACNET_STACK_EXPORT
 int create_object_ack_service_encode(
-    uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data);
+    uint8_t *apdu, const BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
 int create_object_ack_service_decode(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
+    const uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
 int create_object_ack_encode(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data);
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_CREATE_OBJECT_DATA *data);
 
 BACNET_STACK_EXPORT
 int create_object_error_ack_service_encode(
-    uint8_t *apdu, BACNET_CREATE_OBJECT_DATA *data);
+    uint8_t *apdu, const BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
 int create_object_error_ack_service_decode(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
+    const uint8_t *apdu, uint16_t apdu_size, BACNET_CREATE_OBJECT_DATA *data);
 BACNET_STACK_EXPORT
 int create_object_error_ack_encode(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_CREATE_OBJECT_DATA *data);
-
-BACNET_STACK_EXPORT
-int create_object_ack_encode(
-    uint8_t *apdu, uint8_t invoke_id,
-    BACNET_CREATE_OBJECT_DATA *data);
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_CREATE_OBJECT_DATA *data);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
 #endif
-

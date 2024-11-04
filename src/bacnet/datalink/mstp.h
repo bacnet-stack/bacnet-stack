@@ -1,36 +1,22 @@
-/**************************************************************************
- *
- * Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-#ifndef MSTP_H
-#define MSTP_H
+/**
+ * @file
+ * @brief API for the BACnet MS/TP finite state machines and their data
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLMSTP BACnet MS/TP DataLink
+ * @ingroup DataLink
+ */
+#ifndef BACNET_MSTP_H
+#define BACNET_MSTP_H
 
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/datalink/mstpdef.h"
-#include "bacnet/config.h"
 
 /* Repeater turnoff delay. The duration of a continuous logical one state */
 /* at the active input port of an MS/TP repeater after which the repeater */
@@ -61,9 +47,9 @@ struct mstp_port_struct_t {
     /* A Boolean flag set to TRUE by the master machine if this node is the
        only known master node. */
     unsigned SoleMaster : 1;
-   /* A Boolean flag set to TRUE if this node is a slave node */
+    /* A Boolean flag set to TRUE if this node is a slave node */
     unsigned SlaveNodeEnabled : 1;
-   /* A Boolean flag set to TRUE if this node is using a ZeroConfig address */
+    /* A Boolean flag set to TRUE if this node is using a ZeroConfig address */
     unsigned ZeroConfigEnabled : 1;
     /* stores the latest received data */
     uint8_t DataRegister;
@@ -90,7 +76,7 @@ struct mstp_port_struct_t {
     uint8_t HeaderCRC;
     /* Used to store the actual CRC from the header. */
     uint8_t HeaderCRCActual;
-    /* Used as an index by the Receive State Machine, 
+    /* Used as an index by the Receive State Machine,
        up to a maximum value of InputBufferSize. */
     uint32_t Index;
     /* An array of octets, used to store octets as they are received.
@@ -101,9 +87,9 @@ struct mstp_port_struct_t {
        hold contiguous memory. */
     uint8_t *InputBuffer;
     uint16_t InputBufferSize;
-    /* "Next Station," the MAC address of the node to which 
+    /* "Next Station," the MAC address of the node to which
        This Station passes */
-    /* the token. If the Next_Station is unknown, Next_Station 
+    /* the token. If the Next_Station is unknown, Next_Station
        shall be equal to */
     /* This_Station. */
     uint8_t Next_Station;
@@ -113,10 +99,10 @@ struct mstp_port_struct_t {
     /* A counter of transmission retries used for Token and Poll For Master
        transmission. */
     unsigned RetryCount;
-    /* A timer with nominal 5 millisecond resolution used to measure 
-       and generate silence on the medium between octets. It is 
-       incremented by a timer process and is cleared by the Receive 
-       State Machine when activity is detected and by the SendFrame 
+    /* A timer with nominal 5 millisecond resolution used to measure
+       and generate silence on the medium between octets. It is
+       incremented by a timer process and is cleared by the Receive
+       State Machine when activity is detected and by the SendFrame
        procedure as each octet is transmitted. */
     /* Since the timer resolution is limited and the timer is not necessarily
        synchronized to other machine events, a timer value of N will actually
@@ -136,9 +122,9 @@ struct mstp_port_struct_t {
     /* Used to store the Source Address of a received frame. */
     uint8_t SourceAddress;
 
-    /* The number of tokens received by this node. When this counter 
+    /* The number of tokens received by this node. When this counter
        reaches the value Npoll, the node polls the address range between
-       TS and NS for additional master nodes. TokenCount is set to zero 
+       TS and NS for additional master nodes. TokenCount is set to zero
        at the end of the polling process. */
     unsigned TokenCount;
 
@@ -178,6 +164,8 @@ struct mstp_port_struct_t {
     /* the MAC address that this node is testing for MAC addresses
        that are not in-use.*/
     uint8_t Zero_Config_Station;
+    /* the MAC address that this node prefers to use.*/
+    uint8_t Zero_Config_Preferred_Station;
     /* Used to count the number of received poll-for-master frames
        This is used in the detection of addresses not in-use. */
     uint8_t Poll_Count;
@@ -200,8 +188,8 @@ struct mstp_port_struct_t {
        Tframe_abort = 1 + ((60*1000UL)/RS485_Baud); */
     uint8_t Tframe_abort;
 
-    /* The maximum time a node may wait after reception of a frame that 
-       expects a reply before sending the first octet of a reply or 
+    /* The maximum time a node may wait after reception of a frame that
+       expects a reply before sending the first octet of a reply or
        Reply Postponed frame: 250 milliseconds. */
     uint8_t Treply_delay;
 
@@ -211,18 +199,18 @@ struct mstp_port_struct_t {
        larger values for this timeout, not to exceed 300 milliseconds.) */
     uint16_t Treply_timeout;
 
-    /* The minimum time without a DataAvailable or ReceiveError event 
-       that a node must wait for a remote node to begin using a token 
-       or replying to a Poll For Master frame: 20 milliseconds. 
-       (Implementations may use larger values for this timeout, 
+    /* The minimum time without a DataAvailable or ReceiveError event
+       that a node must wait for a remote node to begin using a token
+       or replying to a Poll For Master frame: 20 milliseconds.
+       (Implementations may use larger values for this timeout,
        not to exceed 35 milliseconds.) */
     uint8_t Tusage_timeout;
 
-   /* The minimum time after the end of the stop bit of the final 
-      octet of a received frame before a node may enable its 
-      EIA-485 driver: 40 bit times.
-      40 bits is 4 octets including a start and stop bit with each octet.
-      turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
+    /* The minimum time after the end of the stop bit of the final
+       octet of a received frame before a node may enable its
+       EIA-485 driver: 40 bit times.
+       40 bits is 4 octets including a start and stop bit with each octet.
+       turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
     uint8_t Tturnaround_timeout;
 
     /*Platform-specific port data */
@@ -244,24 +232,25 @@ void MSTP_Slave_Node_FSM(struct mstp_port_struct_t *mstp_port);
 
 /* returns true if line is active */
 BACNET_STACK_EXPORT
-bool MSTP_Line_Active(struct mstp_port_struct_t *mstp_port);
+bool MSTP_Line_Active(const struct mstp_port_struct_t *mstp_port);
 
 BACNET_STACK_EXPORT
-uint16_t MSTP_Create_Frame(uint8_t *buffer, 
+uint16_t MSTP_Create_Frame(
+    uint8_t *buffer,
     uint16_t buffer_len,
     uint8_t frame_type,
     uint8_t destination,
     uint8_t source,
-    uint8_t *data,
+    const uint8_t *data,
     uint16_t data_len);
 
 BACNET_STACK_EXPORT
 void MSTP_Create_And_Send_Frame(
-    struct mstp_port_struct_t *mstp_port, 
+    struct mstp_port_struct_t *mstp_port,
     uint8_t frame_type,
     uint8_t destination,
     uint8_t source,
-    uint8_t *data,
+    const uint8_t *data,
     uint16_t data_len);
 
 BACNET_STACK_EXPORT
@@ -271,32 +260,36 @@ BACNET_STACK_EXPORT
 void MSTP_Zero_Config_UUID_Init(struct mstp_port_struct_t *mstp_port);
 
 BACNET_STACK_EXPORT
+unsigned MSTP_Zero_Config_Station_Increment(unsigned station);
+
+BACNET_STACK_EXPORT
 void MSTP_Zero_Config_FSM(struct mstp_port_struct_t *mstp_port);
 
 /* functions used by the MS/TP state machine to put or get data */
 /* FIXME: developer must implement these in their DLMSTP module */
 
 BACNET_STACK_EXPORT
-uint16_t MSTP_Put_Receive(
-   struct mstp_port_struct_t *mstp_port);
+uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port);
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 BACNET_STACK_EXPORT
-uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port,
+uint16_t MSTP_Get_Send(
+    struct mstp_port_struct_t *mstp_port,
     unsigned timeout); /* milliseconds to wait for a packet */
 /* for the MS/TP state machine to use for getting the reply for
    Data-Expecting-Reply Frame */
 /* Return: amount of PDU data */
 BACNET_STACK_EXPORT
-uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port,
+uint16_t MSTP_Get_Reply(
+    struct mstp_port_struct_t *mstp_port,
     unsigned timeout); /* milliseconds to wait for a packet */
 
 BACNET_STACK_EXPORT
 void MSTP_Send_Frame(
-   struct mstp_port_struct_t *mstp_port,
-   uint8_t * buffer,
-   uint16_t nbytes);
+    struct mstp_port_struct_t *mstp_port,
+    const uint8_t *buffer,
+    uint16_t nbytes);
 
 #ifdef __cplusplus
 }

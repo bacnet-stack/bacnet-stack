@@ -2,17 +2,18 @@
  * @file
  * @brief BACnet MSTP zero-config auto MAC address
  * @author Steve Karg <skarg@users.sourceforge.net>
- * @date 2010
- *
- * SPDX-License-Identifier: MIT
+ * @date 2011
+ * @copyright SPDX-License-Identifier: MIT
+ * @defgroup DLMSTP BACnet MS/TP DataLink Network Layer
+ * @ingroup DataLink
  */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/config.h"
 #include "bacnet/datalink/mstpdef.h"
 #include "bacnet/datalink/automac.h"
 

@@ -3,26 +3,19 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date June 2023
- * @brief Time Value objects used by a BACnet device object
- *
- * @section DESCRIPTION
- *
-  * The Time Value object is an object with a present-value that
+ * @brief Time Value object is an object with a present-value that
  * uses an bacnet time data type.
-*
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
@@ -30,6 +23,7 @@
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/datetime.h"
 #include "bacnet/proplist.h"
 #include "bacnet/reject.h"
 #include "bacnet/rp.h"
@@ -40,7 +34,7 @@
 #include "time_value.h"
 
 struct object_data {
-    bool Changed : 1;
+    bool Change_Of_Value : 1;
     bool Write_Enabled : 1;
     bool Out_Of_Service : 1;
     BACNET_TIME Present_Value;
@@ -51,24 +45,31 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 /* callback for present value writes */
-static time_value_write_present_value_callback Time_Value_Write_Present_Value_Callback;
+static time_value_write_present_value_callback
+    Time_Value_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Time_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
-    -1 };
+static const int Time_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1
+};
 
 static const int Time_Value_Properties_Optional[] = { PROP_DESCRIPTION,
-    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1 };
+                                                      PROP_EVENT_STATE,
+                                                      PROP_OUT_OF_SERVICE, -1 };
 
 static const int Time_Value_Properties_Proprietary[] = { -1 };
 
 /* standard properties that are arrays for this object,
    but not necessary supported in this object */
-static const int BACnetARRAY_Properties[] = { 
-    PROP_EVENT_TIME_STAMPS, PROP_EVENT_MESSAGE_TEXTS, 
-    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
-    PROP_VALUE_SOURCE_ARRAY, PROP_COMMAND_TIME_ARRAY, PROP_TAGS, -1 };
+static const int BACnetARRAY_Properties[] = { PROP_PRIORITY_ARRAY,
+                                              PROP_EVENT_TIME_STAMPS,
+                                              PROP_EVENT_MESSAGE_TEXTS,
+                                              PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+                                              PROP_VALUE_SOURCE_ARRAY,
+                                              PROP_COMMAND_TIME_ARRAY,
+                                              PROP_TAGS,
+                                              -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -168,19 +169,29 @@ bool Time_Value_Present_Value(uint32_t object_instance, BACNET_TIME *value)
 {
     bool status = false;
     struct object_data *pObject;
-    BACNET_DATE date;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Out_Of_Service) {
-            *value = pObject->Present_Value;
-            status = true;
-        } else {
-            status = datetime_local(&date, value, NULL, NULL);
-        }
+        datetime_copy_time(value, &pObject->Present_Value);
+        status = true;
     }
 
     return status;
+}
+
+/**
+ * @brief For a given object instance-number, checks the present-value for COV
+ * @param  pObject - specific object with valid data
+ * @param  value - floating point analog value
+ */
+static void Time_Value_Present_Value_COV_Detect(
+    struct object_data *pObject, const BACNET_TIME *value)
+{
+    if (pObject && value) {
+        if (datetime_compare_time(&pObject->Present_Value, value) != 0) {
+            pObject->Change_Of_Value = true;
+        }
+    }
 }
 
 /**
@@ -191,15 +202,21 @@ bool Time_Value_Present_Value(uint32_t object_instance, BACNET_TIME *value)
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Time_Value_Present_Value_Set(uint32_t object_instance, BACNET_TIME *value)
+bool Time_Value_Present_Value_Set(
+    uint32_t object_instance, const BACNET_TIME *value)
 {
     bool status = false;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Present_Value = *value;
-        status = true;
+        if (!pObject->Out_Of_Service) {
+            if (value) {
+                Time_Value_Present_Value_COV_Detect(pObject, value);
+                datetime_copy_time(&pObject->Present_Value, value);
+                status = true;
+            }
+        }
     }
 
     return status;
@@ -216,7 +233,8 @@ bool Time_Value_Present_Value_Set(uint32_t object_instance, BACNET_TIME *value)
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Time_Value_Present_Value_Write(uint32_t object_instance,
+static bool Time_Value_Present_Value_Write(
+    uint32_t object_instance,
     BACNET_TIME *value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
@@ -224,14 +242,15 @@ static bool Time_Value_Present_Value_Write(uint32_t object_instance,
 {
     bool status = false;
     struct object_data *pObject;
-    BACNET_TIME old_value = {0};
+    BACNET_TIME old_value = { 0 };
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
         if (pObject->Write_Enabled) {
-            old_value = pObject->Present_Value;
-            pObject->Present_Value = *value;
+            datetime_copy_time(&old_value, &pObject->Present_Value);
+            Time_Value_Present_Value_COV_Detect(pObject, value);
+            datetime_copy_time(&pObject->Present_Value, value);
             if (Time_Value_Write_Present_Value_Callback) {
                 Time_Value_Write_Present_Value_Callback(
                     object_instance, &old_value, value);
@@ -331,18 +350,36 @@ bool Time_Value_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Time_Value_Name_Set(uint32_t object_instance, char *new_name)
+bool Time_Value_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Object_Name = new_name;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Time_Value_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -352,15 +389,15 @@ bool Time_Value_Name_Set(uint32_t object_instance, char *new_name)
  *
  * @return description text or NULL if not found
  */
-char *Time_Value_Description(uint32_t object_instance)
+const char *Time_Value_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -377,7 +414,7 @@ char *Time_Value_Description(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Time_Value_Description_Set(uint32_t object_instance, char *new_name)
+bool Time_Value_Description_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -392,43 +429,93 @@ bool Time_Value_Description_Set(uint32_t object_instance, char *new_name)
 }
 
 /**
- * @brief Determine if the object property is a member of this object instance
- * @param object_instance - object-instance number of the object
- * @param object_property - object-property to be checked
- * @return true if the property is a member of this object instance
- */
-static bool Property_List_Member(
-    uint32_t object_instance, int object_property)
-{
-    bool found = false;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
-
-    (void)object_instance;
-    Time_Value_Property_Lists(
-        &pRequired, &pOptional, &pProprietary);
-    found = property_list_member(pRequired, object_property);
-    if (!found) {
-        found = property_list_member(pOptional, object_property);
-    }
-    if (!found) {
-        found = property_list_member(pProprietary, object_property);
-    }
-
-    return found;
-}
-
-/**
  * @brief Determine if the object property is a BACnetARRAY property
  * @param object_property - object-property to be checked
  * @return true if the property is a BACnetARRAY property
  */
-static bool BACnetARRAY_Property(
-    int object_property)
+static bool BACnetARRAY_Property(int object_property)
 {
-    return property_list_member(
-            BACnetARRAY_Properties, object_property);
+    return property_list_member(BACnetARRAY_Properties, object_property);
+}
+
+bool Time_Value_Change_Of_Value(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = pObject->Change_Of_Value;
+    }
+
+    return status;
+}
+
+void Time_Value_Change_Of_Value_Clear(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Change_Of_Value = false;
+    }
+
+    return;
+}
+
+/**
+ * For a given object instance-number, loads the value_list with the COV data.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value_list - list of COV data
+ *
+ * @return  true if the value list is encoded
+ */
+bool Time_Value_Encode_Value_List(
+    uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list)
+{
+    bool status = false;
+    BACNET_TIME btime = { 0 };
+
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+        value_list->value.next = NULL;
+        Time_Value_Present_Value(object_instance, &btime);
+        datetime_copy_time(&value_list->value.type.Time, &btime);
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list = value_list->next;
+    }
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        value_list->value.next = NULL;
+        bitstring_init(&value_list->value.type.Bit_String);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, false);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
+        bitstring_set_bit(
+            &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN, false);
+        if (Time_Value_Out_Of_Service(object_instance)) {
+            bitstring_set_bit(
+                &value_list->value.type.Bit_String, STATUS_FLAG_OUT_OF_SERVICE,
+                true);
+        } else {
+            bitstring_set_bit(
+                &value_list->value.type.Bit_String, STATUS_FLAG_OUT_OF_SERVICE,
+                false);
+        }
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list->next = NULL;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -480,13 +567,14 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+            bitstring_set_bit(
+                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
                 Time_Value_Out_Of_Service(rpdata->object_instance));
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_OUT_OF_SERVICE:
-            apdu_len = encode_application_boolean(&apdu[0],
-                Time_Value_Out_Of_Service(rpdata->object_instance));
+            apdu_len = encode_application_boolean(
+                &apdu[0], Time_Value_Out_Of_Service(rpdata->object_instance));
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
@@ -504,8 +592,7 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (!BACnetARRAY_Property(rpdata->object_property)) &&
+    if ((apdu_len >= 0) && (!BACnetARRAY_Property(rpdata->object_property)) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -527,7 +614,7 @@ int Time_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     int len = 0;
 
     /* decode the some of the request */
@@ -550,22 +637,33 @@ bool Time_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             if (Time_Value_Out_Of_Service(wp_data->object_instance)) {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_TIME);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_TIME);
                 if (status) {
                     status = Time_Value_Present_Value_Write(
-                        wp_data->object_instance,
-                        &value.type.Time, wp_data->priority,
-                        &wp_data->error_class, &wp_data->error_code);
+                        wp_data->object_instance, &value.type.Time,
+                        wp_data->priority, &wp_data->error_class,
+                        &wp_data->error_code);
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             }
             break;
+        case PROP_OUT_OF_SERVICE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
+            if (status) {
+                Time_Value_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
+            }
+            break;
         default:
-            if (Property_List_Member(
-                    wp_data->object_instance, wp_data->object_property)) {
+            if (property_lists_member(
+                    Time_Value_Properties_Required,
+                    Time_Value_Properties_Optional,
+                    Time_Value_Properties_Proprietary,
+                    wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
@@ -596,12 +694,13 @@ void Time_Value_Write_Present_Value_Callback_Set(
 uint8_t Time_Value_Status_Flags(uint32_t object_instance)
 {
     BACNET_BIT_STRING bit_string;
- 
+
     bitstring_init(&bit_string);
     bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
     bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
     bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-    bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+    bitstring_set_bit(
+        &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
         Time_Value_Out_Of_Service(object_instance));
 
     return bitstring_octet(&bit_string, 0);
@@ -681,8 +780,8 @@ uint32_t Time_Value_Create(uint32_t object_instance)
         }
         pObject->Object_Name = NULL;
         pObject->Description = NULL;
-        memset(&pObject->Present_Value, 0, sizeof(pObject->Present_Value));
-        pObject->Changed = false;
+        datetime_set_time(&pObject->Present_Value, 0, 0, 0, 0);
+        pObject->Change_Of_Value = false;
         pObject->Write_Enabled = false;
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
@@ -738,8 +837,7 @@ void Time_Value_Cleanup(void)
  */
 void Time_Value_Init(void)
 {
-    Object_List = Keylist_Create();
-    if (Object_List) {
-        atexit(Time_Value_Cleanup);
+    if (!Object_List) {
+        Object_List = Keylist_Create();
     }
 }

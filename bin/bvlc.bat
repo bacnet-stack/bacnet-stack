@@ -11,4 +11,3 @@ echo they register as a Foreign Device to it.
 @echo on
 set BACNET_BBMD_PORT=47808
 set BACNET_BBMD_ADDRESS=%1
-

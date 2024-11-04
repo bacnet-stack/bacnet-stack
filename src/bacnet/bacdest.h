@@ -3,19 +3,16 @@
  * @brief API for BACnetDestination complex data type encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date May 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @copyright SPDX-License-Identifier: MIT
  */
 #ifndef BACNET_DESTINATION_H
 #define BACNET_DESTINATION_H
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacenum.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
 
@@ -65,31 +62,34 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-int bacnet_destination_encode(uint8_t *apdu, BACNET_DESTINATION *destination);
+int bacnet_destination_encode(
+    uint8_t *apdu, const BACNET_DESTINATION *destination);
 BACNET_STACK_EXPORT
 int bacnet_destination_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_DESTINATION *destination);
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DESTINATION *destination);
 BACNET_STACK_EXPORT
 int bacnet_destination_decode(
-    uint8_t *apdu, int apdu_len, BACNET_DESTINATION *destination);
+    const uint8_t *apdu, int apdu_len, BACNET_DESTINATION *destination);
 BACNET_STACK_EXPORT
 void bacnet_destination_default_init(BACNET_DESTINATION *destination);
 BACNET_STACK_EXPORT
-bool bacnet_destination_default(BACNET_DESTINATION *destination);
+bool bacnet_destination_default(const BACNET_DESTINATION *destination);
 BACNET_STACK_EXPORT
 bool bacnet_destination_same(
-    BACNET_DESTINATION *dest1, BACNET_DESTINATION *dest2);
+    const BACNET_DESTINATION *dest1, const BACNET_DESTINATION *dest2);
 BACNET_STACK_EXPORT
-void bacnet_destination_copy(BACNET_DESTINATION *dest, BACNET_DESTINATION *src);
+void bacnet_destination_copy(
+    BACNET_DESTINATION *dest, const BACNET_DESTINATION *src);
 
 BACNET_STACK_EXPORT
-void bacnet_recipient_copy(BACNET_RECIPIENT *dest, BACNET_RECIPIENT *src);
+void bacnet_recipient_copy(BACNET_RECIPIENT *dest, const BACNET_RECIPIENT *src);
 BACNET_STACK_EXPORT
-bool bacnet_recipient_same(BACNET_RECIPIENT *r1, BACNET_RECIPIENT *r2);
+bool bacnet_recipient_same(
+    const BACNET_RECIPIENT *r1, const BACNET_RECIPIENT *r2);
 BACNET_STACK_EXPORT
-bool bacnet_recipient_device_wildcard(BACNET_RECIPIENT *recipient);
+bool bacnet_recipient_device_wildcard(const BACNET_RECIPIENT *recipient);
 BACNET_STACK_EXPORT
-bool bacnet_recipient_device_valid(BACNET_RECIPIENT *recipient);
+bool bacnet_recipient_device_valid(const BACNET_RECIPIENT *recipient);
 
 BACNET_STACK_EXPORT
 int bacnet_destination_to_ascii(

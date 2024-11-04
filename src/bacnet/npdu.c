@@ -1,53 +1,25 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief API for Network Protocol Data Unit (NPDU) encode and decode functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdbool.h>
 #include <stdint.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
-#include "bacnet/bacenum.h"
-#include "bacnet/bits.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-
-/** @file npdu.c  Encode/Decode NPDUs - Network Protocol Data Units */
 
 /** Copy the npdu_data structure information from src to dest.
  * @param dest [out] The 'to' structure
  * @param src   [in] The 'from' structure
  */
-void npdu_copy_data(BACNET_NPDU_DATA *dest, BACNET_NPDU_DATA *src)
+void npdu_copy_data(BACNET_NPDU_DATA *dest, const BACNET_NPDU_DATA *src)
 {
     if (dest && src) {
         dest->protocol_version = src->protocol_version;
@@ -107,7 +79,7 @@ ABORT.indication               Yes         Yes         Yes        No
  *  The Network Layer Protocol Control Information byte is described
  *  in section 6.2.2 of the BACnet standard.
  * @param npdu [out] Buffer which will hold the encoded NPDU header bytes.
- * 	The size isn't given, but it must be at least 2 bytes for the simplest
+ *  The size isn't given, but it must be at least 2 bytes for the simplest
  *  case, and should always be at least 24 bytes to accommodate the maximal
  *  case (all fields loaded). If the buffer is NULL, the number of bytes
  *  the buffer would have held is returned.
@@ -123,10 +95,11 @@ ABORT.indication               Yes         Yes         Yes        No
  * @return On success, returns the number of bytes which were encoded into
  *  the NPDU section, or 0 if there were problems with the data or encoding.
  */
-int npdu_encode_pdu(uint8_t *npdu,
+int npdu_encode_pdu(
+    uint8_t *npdu,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
-    BACNET_NPDU_DATA *npdu_data)
+    const BACNET_NPDU_DATA *npdu_data)
 {
     int len = 0; /* return value - number of octets loaded in this function */
     uint8_t i = 0; /* counter  */
@@ -272,7 +245,7 @@ int npdu_encode_pdu(uint8_t *npdu,
  * @param pdu_size Number of bytes in the buffer to hold the encoded data.
  *  If the size is zero, the number of bytes the buffer would have held
  *  is returned.
- * 	The size isn't given, but it must be at least 2 bytes for the simplest
+ *  The size isn't given, but it must be at least 2 bytes for the simplest
  *  case, and should always be at least 24 bytes to accommodate the maximal
  *  case (all fields loaded). Can be NULL to determine length of buffer.
  * @param dest [in] The routing destination information if the message must
@@ -287,11 +260,12 @@ int npdu_encode_pdu(uint8_t *npdu,
  * @return On success, returns the number of bytes which were encoded into
  *  the NPDU section, or 0 if there were problems with the data or encoding.
  */
-int bacnet_npdu_encode_pdu(uint8_t *pdu,
+int bacnet_npdu_encode_pdu(
+    uint8_t *pdu,
     uint16_t pdu_size,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
-    BACNET_NPDU_DATA *npdu_data)
+    const BACNET_NPDU_DATA *npdu_data)
 {
     int pdu_len = 0;
 
@@ -342,13 +316,14 @@ is expected for the service being issued.
  * @see npdu_encode_npdu_network if you need to set a network layer msg.
  *
  * @param npdu_data [out] Returns a filled-out structure with information
- * 					 provided by the other arguments and
+ *                   provided by the other arguments and
  * good defaults.
  * @param data_expecting_reply [in] True if message should have a reply.
  * @param priority [in] One of the 4 priorities defined in section 6.2.2,
  *                      like B'11' = Life Safety message
  */
-void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
+void npdu_encode_npdu_data(
+    BACNET_NPDU_DATA *npdu_data,
     bool data_expecting_reply,
     BACNET_MESSAGE_PRIORITY priority)
 {
@@ -371,14 +346,15 @@ void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
  *           APDU instead of a Network Layer Message.
  *
  * @param npdu_data [out] Returns a filled-out structure with information
- * 					 provided by the other arguments and
+ *                   provided by the other arguments and
  * good defaults.
  * @param network_message_type [in] The type of Network Layer Message.
  * @param data_expecting_reply [in] True if message should have a reply.
  * @param priority [in] One of the 4 priorities defined in section 6.2.2,
  *                      like B'11' = Life Safety message
  */
-void npdu_encode_npdu_network(BACNET_NPDU_DATA *npdu_data,
+void npdu_encode_npdu_network(
+    BACNET_NPDU_DATA *npdu_data,
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     bool data_expecting_reply,
     BACNET_MESSAGE_PRIORITY priority)
@@ -417,7 +393,8 @@ void npdu_encode_npdu_network(BACNET_NPDU_DATA *npdu_data,
  * be more bytes left in the NPDU; if not a network msg, the APDU follows. If 0
  * or negative, there were problems with the data or arguments.
  */
-int npdu_decode(uint8_t *npdu,
+int npdu_decode(
+    const uint8_t *npdu,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data)
@@ -442,14 +419,15 @@ int npdu_decode(uint8_t *npdu,
  *                   This src describes the original source of the message when
  *                   it had to be routed to reach this BACnet Device.
  * @param npdu_data [out] Returns a filled-out structure with information
- * 					 decoded from the NCPI and other NPDU
+ *                   decoded from the NCPI and other NPDU
  * bytes.
  * @return On success, returns the number of bytes which were decoded from the
- * 		   NPDU section; if this is a  network layer message, there may
+ *         NPDU section; if this is a  network layer message, there may
  * be more bytes left in the NPDU; if not a network msg, the APDU follows. If 0
  * or negative, there were problems with the data or arguments.
  */
-int bacnet_npdu_decode(uint8_t *npdu,
+int bacnet_npdu_decode(
+    const uint8_t *npdu,
     uint16_t pdu_len,
     BACNET_ADDRESS *dest,
     BACNET_ADDRESS *src,
@@ -615,7 +593,7 @@ int bacnet_npdu_decode(uint8_t *npdu,
  * @param pdu_len [in] The size of the received message in the pdu[] buffer.
  * @return true if the PDU is a confirmed APDU
  */
-bool npdu_confirmed_service(uint8_t *pdu, uint16_t pdu_len)
+bool npdu_confirmed_service(const uint8_t *pdu, uint16_t pdu_len)
 {
     bool status = false;
     int apdu_offset = 0;

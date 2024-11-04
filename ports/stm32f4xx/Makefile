@@ -9,9 +9,12 @@ BACNET_CORE := $(BACNET_SRC)/bacnet
 BACNET_BASIC := $(BACNET_CORE)/basic
 BACNET_INCLUDE := $(BACNET_SRC)
 PLATFORM_DIR = .
-LIBRARY_STM32 = ./STM32F4xx_StdPeriph_Driver/src
-LIBRARY_STM32_INCLUDES = ./STM32F4xx_StdPeriph_Driver/inc
-LIBRARY_CMSIS = ./CMSIS
+LIBRARY_STM32 = ./external/STM32F4xx_StdPeriph_Driver/src
+LIBRARY_STM32_INCLUDES = ./external/STM32F4xx_StdPeriph_Driver/inc
+LIBRARY_CMSIS = ./external/CMSIS
+
+CSTACK_TOOL := $(BACNET_DIR)/tools/avstack/avstack.pl
+MEMAP_TOOL := $(BACNET_DIR)/tools/memap/memap.py
 
 INCLUDES = -I$(PLATFORM_DIR)
 INCLUDES += -I$(LIBRARY_STM32_INCLUDES)
@@ -31,6 +34,15 @@ PLATFORM_SRC = \
 
 BASIC_SRC = \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/object/ai.c \
+	$(BACNET_BASIC)/object/ao.c \
+	$(BACNET_BASIC)/object/av.c \
+	$(BACNET_BASIC)/object/bi.c \
+	$(BACNET_BASIC)/object/bo.c \
+	$(BACNET_BASIC)/object/bv.c \
+	$(BACNET_BASIC)/object/ms-input.c \
+	$(BACNET_BASIC)/object/mso.c \
+	$(BACNET_BASIC)/object/msv.c \
 	$(BACNET_BASIC)/service/h_apdu.c \
 	$(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/h_rd.c \
@@ -45,11 +57,13 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/sys/fifo.c \
+	$(BACNET_BASIC)/sys/keylist.c \
 	$(BACNET_BASIC)/sys/mstimer.c \
 	$(BACNET_BASIC)/tsm/tsm.c
 
 BACNET_SRC = \
 	$(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/bacaction.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
@@ -59,17 +73,15 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
-	$(BACNET_CORE)/datalink/cobs.c \
-	$(BACNET_CORE)/datalink/crc.c \
-	$(BACNET_CORE)/datalink/dlmstp.c \
-	$(BACNET_CORE)/datalink/mstp.c \
-	$(BACNET_CORE)/datalink/mstptext.c \
+	$(BACNET_CORE)/bactimevalue.c \
+	$(BACNET_CORE)/calendar_entry.c \
+	$(BACNET_CORE)/dailyschedule.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \
-	$(BACNET_CORE)/indtext.c \
+	$(BACNET_CORE)/hostnport.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
-	$(BACNET_CORE)/hostnport.c \
+	$(BACNET_CORE)/indtext.c \
 	$(BACNET_CORE)/lighting.c \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/npdu.c \
@@ -78,15 +90,19 @@ BACNET_SRC = \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
+	$(BACNET_CORE)/special_event.c \
 	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/weeklyschedule.c \
-	$(BACNET_CORE)/dailyschedule.c \
-	$(BACNET_CORE)/calendar_entry.c \
-	$(BACNET_CORE)/special_event.c \
-	$(BACNET_CORE)/bactimevalue.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c
+
+DATALINK_SRC = \
+	$(BACNET_CORE)/datalink/cobs.c \
+	$(BACNET_CORE)/datalink/crc.c \
+	$(BACNET_CORE)/datalink/dlmstp.c \
+	$(BACNET_CORE)/datalink/mstp.c \
+	$(BACNET_CORE)/datalink/mstptext.c
 
 STM32_SRC = \
 	$(LIBRARY_STM32)/stm32f4xx_adc.c \
@@ -118,6 +134,7 @@ STM32_SRC = \
 CSRC = $(PLATFORM_SRC)
 CSRC += $(BASIC_SRC)
 CSRC += $(BACNET_SRC)
+CSRC += $(DATALINK_SRC)
 CSRC += $(STM32_SRC)
 
 ASRC = $(LIBRARY_CMSIS)/gcc_ride7/startup_stm32f4xx.s
@@ -143,16 +160,26 @@ MCU_FLAGS += -DUSE_STDPERIPH_DRIVER
 OPTIMIZE_FLAGS := -Os -ggdb
 OPTIMIZE_FLAGS += -DNDEBUG
 
-BACNET_FLAGS = -DBACDL_MSTP=1
-BACNET_FLAGS += -DBACAPP_ALL
-BACNET_FLAGS += -DMAX_APDU=1476
+BACNET_FLAGS = -DBACDL_MSTP=
+# note: MS/TP extended frames can be up to MAX_APDU=1476 bytes
+BACNET_FLAGS += -DMAX_APDU=480
 BACNET_FLAGS += -DBIG_ENDIAN=0
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
 BACNET_FLAGS += -DMAX_CHARACTER_STRING_BYTES=64
 BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
+BACNET_FLAGS += -DBACAPP_MINIMAL
 # if called from root Makefile, PRINT was already defined
 BACNET_FLAGS += -UPRINT_ENABLED
 BACNET_FLAGS += -DPRINT_ENABLED=0
+ifeq (${SHIELD},)
+BACNET_FLAGS += -DRS485_DFR0259_ENABLED=1
+endif
+ifeq (${SHIELD},dfr0259)
+BACNET_FLAGS += -DRS485_DFR0259_ENABLED=1
+endif
+ifeq (${SHIELD},linksprite)
+BACNET_FLAGS += -DRS485_LINKSPRITE_ENABLED=1
+endif
 ifeq (${LEGACY},true)
 # disable deprecated function warnings for legacy builds
 BACNET_FLAGS += -DBACNET_STACK_DEPRECATED_DISABLE
@@ -164,18 +191,31 @@ CFLAGS += $(BACNET_FLAGS)
 CFLAGS += $(INCLUDES)
 # enable garbage collection of unused functions and data to shrink binary
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
+# enable stack usage tracking
+CFLAGS += -fstack-usage
 # function calls will not use any special __builtin_xx to allow debug/linking
 CFLAGS += -fno-builtin
 # place uninitialized global variables in the data section of the object file.
 CFLAGS += -fno-common
-# enable all relevant warnings
-CFLAGS += -Wall
+# enable all relevant warnings that find bugs
+WARNING_ALL := -Wall -Wextra -Wfloat-equal -Wconversion
+WARNING_ALL += -Wredundant-decls -Wswitch-default -pedantic
+# don't warn about conversion, sign, compares, long long and attributes
+# since they are common in embedded
+WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+WARNING_ALL += -Wno-long-long -Wno-attributes
+# don't warn about implicit fallthrough since it's common in network protocols
+WARNING_ALL += -Wno-implicit-fallthrough
 # don't warn about missing braces since GCC is over-achiever for this
-CFLAGS += -Wno-missing-braces
+WARNING_ALL += -Wno-missing-braces
 # don't warn about missing prototypes since STM32 library doesn't have some
-CFLAGS += -Wno-missing-prototypes
+WARNING_ALL += -Wno-missing-prototypes
 # don't warn about array subscript being char
-CFLAGS += -Wno-char-subscripts
+WARNING_ALL += -Wno-char-subscripts
+# FIXME later
+WARNING_ALL += -Wno-unused-parameter
+#WARNING_ALL += -Werror
+CFLAGS += $(WARNING_ALL)
 
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
@@ -191,6 +231,7 @@ ODFLAGS	= -x --syms
 
 AOBJ = $(ASRC:.s=.o)
 COBJ = $(CSRC:.c=.o)
+CSTACK = $(CSRC:.c=.su)
 
 all: $(TARGET).bin $(TARGET).hex $(TARGET).elf
 	$(OBJDUMP) $(ODFLAGS) $(TARGET).elf > $(TARGET).dmp
@@ -205,9 +246,22 @@ $(TARGET).hex:  $(TARGET).elf
 $(TARGET).elf: $(COBJ) $(AOBJ) Makefile
 	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@
 
-: ram-usage
+.PHONY: ram-usage
 ram-usage:
-	$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
+	@$(NM) -t d -S --size-sort $(TARGET).elf 1> $(TARGET).nm
+	@echo "=ADDRESS= ==SIZE== = ==VARIABLE NAME=="
+	@tail $(TARGET).nm
+
+.PHONY: cstack
+cstack:
+	@$(CSTACK_TOOL) $(COBJ) 2> /dev/null 1> $(TARGET).su
+	@head -n 25 $(TARGET).su
+
+.PHONY: memap
+memap:
+	# memmap needs Python and PrettyPrint and IntelHex
+	# sudo apt install python3-prettytable python3-intelhex
+	$(MEMAP_TOOL) -t GCC_ARM $(TARGET).map
 
 # GDB using st-util (GDB server for ST Link)
 GDB_PORT = 3333
@@ -262,6 +316,7 @@ install: $(TARGET).bin
 .PHONY: clean
 clean:
 	-rm -rf $(COBJ) $(AOBJ) $(COREOBJ)
+	-rm -rf $(CSTACK) $(CEXPAND)
 	-rm -rf $(TARGET).elf $(TARGET).bin $(TARGET).dmp $(TARGET).map
 	-rm -rf $(TARGET).su $(TARGET).nm
 	-rm -rf *.lst

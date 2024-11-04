@@ -1,45 +1,14 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2003 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
-/** @file keylist.c  Keyed Linked List Library */
-
-/* */
-/* This is an enhanced array of pointers to data. */
-/* The list is sorted, indexed, and keyed. */
-/* The array is much faster than a linked list. */
-/* It stores a pointer to data, which you must */
-/* malloc and free on your own, or just use */
-/* static data */
-
+/**
+ * @file
+ * @brief Key List library
+ * @details This is an enhanced array of pointers to data.
+ * The list is sorted, indexed, and keyed. The array is much faster
+ * than a linked list.  It stores a pointer to data, which you must
+ * malloc and free on your own, or just use static data.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2003
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -190,7 +159,7 @@ static bool FindIndex(OS_Keylist list, KEY key, int *pIndex)
  * @param list  Pointer to the list
  * @param key  Key to be inserted
  * @param data  Pointer to the data hold by the key.
- *              This pointer needs to be poiting to static memory
+ *              This pointer needs to be pointing to static memory
  *              as it will be stored in the list and later used
  *              by retrieving the key again.
  * @return Index of the key, or -1 if not found.
@@ -299,6 +268,20 @@ void *Keylist_Data_Delete(OS_Keylist list, KEY key)
     }
 
     return data;
+}
+
+/**
+ * @brief Pops every node data, removing it from the list,
+ *  and frees the data memory
+ * @param list Pointer to the list
+ * */
+void Keylist_Data_Free(OS_Keylist list)
+{
+    void *data;
+    while (Keylist_Count(list) > 0) {
+        data = Keylist_Data_Pop(list);
+        free(data);
+    }
 }
 
 /** Returns the data from last node, and
@@ -411,7 +394,7 @@ KEY Keylist_Key(OS_Keylist list, int index)
     return key;
 }
 
-/** 
+/**
  * Determine if there is a node key at the given index.
  *
  * @param list  Pointer to the list

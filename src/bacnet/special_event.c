@@ -4,11 +4,8 @@
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date May 2022
- * @section LICENSE
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
-
 #include <stdint.h>
 #include "bacnet/special_event.h"
 #include "bacnet/bacdcode.h"
@@ -32,7 +29,7 @@
  * @return length of the APDU buffer, or BACNET_STATUS_ERROR if unable to decode
  */
 int bacnet_special_event_decode(
-    uint8_t *apdu, int apdu_size, BACNET_SPECIAL_EVENT *value)
+    const uint8_t *apdu, int apdu_size, BACNET_SPECIAL_EVENT *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -49,18 +46,20 @@ int bacnet_special_event_decode(
     if (tag.opening &&
         (tag.number == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY)) {
         value->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
-        len = bacnet_calendar_entry_context_decode(&apdu[apdu_len],
-            apdu_size - apdu_len, BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
+        len = bacnet_calendar_entry_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len,
+            BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
             &value->period.calendarEntry);
         if (len < 0) {
             return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
-    } else if (tag.context &&
+    } else if (
+        tag.context &&
         (tag.number == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE)) {
         value->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
-        len = bacnet_object_id_context_decode(&apdu[apdu_len],
-            apdu_size - apdu_len,
+        len = bacnet_object_id_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len,
             BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE,
             &value->period.calendarReference.type,
             &value->period.calendarReference.instance);
@@ -100,14 +99,15 @@ int bacnet_special_event_decode(
  * @param value - BACnetSpecialEvent structure
  * @return length of the APDU buffer, or 0 if not able to encode
  */
-int bacnet_special_event_encode(uint8_t *apdu, BACNET_SPECIAL_EVENT *value)
+int bacnet_special_event_encode(
+    uint8_t *apdu, const BACNET_SPECIAL_EVENT *value)
 {
     int apdu_len = 0;
     int len;
 
     if (value->periodTag == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY) {
-        len = bacnet_calendar_entry_context_encode(apdu,
-            BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
+        len = bacnet_calendar_entry_context_encode(
+            apdu, BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY,
             &value->period.calendarEntry);
         if (len < 0) {
             return -1;
@@ -117,8 +117,8 @@ int bacnet_special_event_encode(uint8_t *apdu, BACNET_SPECIAL_EVENT *value)
             apdu += len;
         }
     } else {
-        len = encode_context_object_id(apdu,
-            BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE,
+        len = encode_context_object_id(
+            apdu, BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE,
             value->period.calendarReference.type,
             value->period.calendarReference.instance);
         if (len < 0) {
@@ -156,7 +156,7 @@ int bacnet_special_event_encode(uint8_t *apdu, BACNET_SPECIAL_EVENT *value)
  * @return length of the APDU buffer, or 0 if not able to encode
  */
 int bacnet_special_event_context_encode(
-    uint8_t *apdu, uint8_t tag_number, BACNET_SPECIAL_EVENT *value)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_SPECIAL_EVENT *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -187,7 +187,8 @@ int bacnet_special_event_context_encode(
  * @param value - BACnetSpecialEvent structure
  * @return length of the APDU buffer, or BACNET_STATUS_ERROR if unable to decode
  */
-int bacnet_special_event_context_decode(uint8_t *apdu,
+int bacnet_special_event_context_decode(
+    const uint8_t *apdu,
     int apdu_size,
     uint8_t tag_number,
     BACNET_SPECIAL_EVENT *value)
@@ -225,10 +226,10 @@ int bacnet_special_event_context_decode(uint8_t *apdu,
  * @return true if the same
  */
 bool bacnet_special_event_same(
-    BACNET_SPECIAL_EVENT *value1, BACNET_SPECIAL_EVENT *value2)
+    const BACNET_SPECIAL_EVENT *value1, const BACNET_SPECIAL_EVENT *value2)
 {
-    BACNET_APPLICATION_DATA_VALUE adv1, adv2;
-    BACNET_TIME_VALUE *tv1, *tv2;
+    BACNET_APPLICATION_DATA_VALUE adv1 = { 0 }, adv2 = { 0 };
+    const BACNET_TIME_VALUE *tv1, *tv2;
     int ti;
 
     if (value1->periodTag != value2->periodTag ||

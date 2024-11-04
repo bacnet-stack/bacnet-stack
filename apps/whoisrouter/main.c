@@ -1,39 +1,23 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
-
-/* command line tool that sends a BACnet service, and displays the reply */
+/**
+ * @file
+ * @brief command line tool that sends a BACnet Who-Is-Router-To-Network
+ * message for one or more networks, and prints any I-Am-Router-To-Network
+ * responses received.  This is useful for finding routers on the network.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
 #include <errno.h>
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/config.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 /* some demo stuff needed */
@@ -66,8 +50,8 @@ static void MyAbortHandler(
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -76,7 +60,8 @@ static void MyRejectHandler(
     Error_Detected = true;
 }
 
-static void My_Router_Handler(BACNET_ADDRESS *src,
+static void My_Router_Handler(
+    BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *npdu, /* PDU data */
     uint16_t npdu_len)
@@ -124,7 +109,8 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
     }
 }
 
-static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
+static void My_NPDU_Handler(
+    BACNET_ADDRESS *src, /* source address */
     uint8_t *pdu, /* PDU data */
     uint16_t pdu_len)
 { /* length PDU  */
@@ -134,7 +120,8 @@ static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
 
     apdu_offset = bacnet_npdu_decode(pdu, pdu_len, &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
-        My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
+        My_Router_Handler(
+            src, &npdu_data, &pdu[apdu_offset],
             (uint16_t)(pdu_len - apdu_offset));
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&
@@ -148,7 +135,8 @@ static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
             if (dest.net) {
                 debug_printf("NPDU: DNET=%d.  Discarded!\n", dest.net);
             } else {
-                debug_printf("NPDU: BACnet Protocol Version=%d.  Discarded!\n",
+                debug_printf(
+                    "NPDU: BACnet Protocol Version=%d.  Discarded!\n",
                     npdu_data.protocol_version);
             }
         }
@@ -184,8 +172,9 @@ static void address_parse(BACNET_ADDRESS *dst, int argc, char *argv[])
     int index = 0;
 
     if (argc > 0) {
-        count = sscanf(argv[0], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1], &mac[2],
-            &mac[3], &mac[4], &mac[5]);
+        count = sscanf(
+            argv[0], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1], &mac[2], &mac[3],
+            &mac[4], &mac[5]);
         dst->mac_len = count;
         for (index = 0; index < MAX_MAC_LEN; index++) {
             if (index < count) {
@@ -201,8 +190,9 @@ static void address_parse(BACNET_ADDRESS *dst, int argc, char *argv[])
     }
     if (dnet) {
         if (argc > 2) {
-            count = sscanf(argv[2], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1],
-                &mac[2], &mac[3], &mac[4], &mac[5]);
+            count = sscanf(
+                argv[2], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1], &mac[2],
+                &mac[3], &mac[4], &mac[5]);
             dst->len = count;
             for (index = 0; index < MAX_MAC_LEN; index++) {
                 if (index < count) {
@@ -238,20 +228,21 @@ int main(int argc, char *argv[])
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("Send BACnet Who-Is-Router-To-Network message to a network.\r\n"
-               "\r\n"
-               "DNET:\r\n"
-               "BACnet destination network number 0-65535\r\n"
-               "To omit the BACnet destination network number, use -1.\r\n"
-               "MAC:\r\n"
-               "Optional MAC address of router for unicast message\r\n"
-               "Format: xx[:xx:xx:xx:xx:xx] [dnet xx[:xx:xx:xx:xx:xx]]\r\n"
-               "Use hexidecimal MAC addresses.\r\n"
-               "\r\n"
-               "To send a Who-Is-Router-To-Network request to DNET 86:\r\n"
-               "%s 86\r\n"
-               "To send a Who-Is-Router-To-Network request to all devices:\r\n"
-               "%s -1\r\n",
+        printf(
+            "Send BACnet Who-Is-Router-To-Network message to a network.\r\n"
+            "\r\n"
+            "DNET:\r\n"
+            "BACnet destination network number 0-65535\r\n"
+            "To omit the BACnet destination network number, use -1.\r\n"
+            "MAC:\r\n"
+            "Optional MAC address of router for unicast message\r\n"
+            "Format: xx[:xx:xx:xx:xx:xx] [dnet xx[:xx:xx:xx:xx:xx]]\r\n"
+            "Use hexidecimal MAC addresses.\r\n"
+            "\r\n"
+            "To send a Who-Is-Router-To-Network request to DNET 86:\r\n"
+            "%s 86\r\n"
+            "To send a Who-Is-Router-To-Network request to all devices:\r\n"
+            "%s -1\r\n",
             filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         return 0;
     }
@@ -259,7 +250,8 @@ int main(int argc, char *argv[])
     if (argc > 1) {
         Target_Router_Network = strtol(argv[1], NULL, 0);
         if (Target_Router_Network > 65535) {
-            fprintf(stderr, "DNET=%u - it must be 0 to 65535\r\n",
+            fprintf(
+                stderr, "DNET=%u - it must be 0 to 65535\r\n",
                 Target_Router_Network);
             return 1;
         }

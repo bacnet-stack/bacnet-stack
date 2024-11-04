@@ -3,29 +3,22 @@
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @date June 2022
- * @brief Calendar objects, customize for your use
- *
- * @section DESCRIPTION
- *
- * The Calendar object is an object with a present-value that
- * uses a BOOLEAN data type, and features a Date_List
- * that is a BACnetLIST of BACnetCalendarEntry.
- *
- * @section LICENSE
- *
- * SPDX-License-Identifier: MIT
+ * @brief The Calendar object is an object with a present-value that
+ * uses a BOOLEAN data type, and features a Date_List that is a
+ * BACnetLIST of BACnetCalendarEntry.
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/abort.h"
 #include "bacnet/apdu.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
@@ -51,12 +44,14 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 /* callback for present value writes */
-static calendar_write_present_value_callback Calendar_Write_Present_Value_Callback;
+static calendar_write_present_value_callback
+    Calendar_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Calendar_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_DATE_LIST,
-    -1 };
+static const int Calendar_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_DATE_LIST,   -1
+};
 
 static const int Calendar_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
@@ -64,8 +59,8 @@ static const int Calendar_Properties_Proprietary[] = { -1 };
 
 /* standard properties that are arrays for this object,
    but not necessary supported in this object */
-static const int BACnetARRAY_Properties[] = { 
-    PROP_PRIORITY_ARRAY, PROP_TAGS, -1 };
+static const int BACnetARRAY_Properties[] = { PROP_PRIORITY_ARRAY, PROP_TAGS,
+                                              -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -166,7 +161,8 @@ unsigned Calendar_Instance_To_Index(uint32_t object_instance)
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Calendar_Present_Value_Write(uint32_t object_instance,
+static bool Calendar_Present_Value_Write(
+    uint32_t object_instance,
     bool old_value,
     bool value,
     uint8_t priority,
@@ -220,8 +216,8 @@ static void Calendar_Date_List_Clean(OS_Keylist list)
  *
  * @return Calendar entity.
  */
-BACNET_CALENDAR_ENTRY *Calendar_Date_List_Get(
-    uint32_t object_instance, uint8_t index)
+BACNET_CALENDAR_ENTRY *
+Calendar_Date_List_Get(uint32_t object_instance, uint8_t index)
 {
     BACNET_CALENDAR_ENTRY *entry = NULL;
     struct object_data *pObject;
@@ -242,8 +238,8 @@ BACNET_CALENDAR_ENTRY *Calendar_Date_List_Get(
  *
  * @return  true if the entity is add successfully.
  */
-bool Calendar_Date_List_Add(uint32_t object_instance,
-    BACNET_CALENDAR_ENTRY *value)
+bool Calendar_Date_List_Add(
+    uint32_t object_instance, const BACNET_CALENDAR_ENTRY *value)
 {
     bool st = false;
     BACNET_CALENDAR_ENTRY *entry;
@@ -253,7 +249,7 @@ bool Calendar_Date_List_Add(uint32_t object_instance,
     if (!pObject) {
         return false;
     }
-     
+
     entry = calloc(1, sizeof(BACNET_CALENDAR_ENTRY));
     if (!entry) {
         return false;
@@ -381,7 +377,7 @@ bool Calendar_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[16] = "CALENDAR-4194303";
+    char name_text[32] = "CALENDAR-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -389,7 +385,8 @@ bool Calendar_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "CALENDAR-%u", object_instance);
+            snprintf(
+                name_text, sizeof(name_text), "CALENDAR-%u", object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }
@@ -406,18 +403,36 @@ bool Calendar_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Calendar_Name_Set(uint32_t object_instance, char *new_name)
+bool Calendar_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject && new_name) {
+    if (pObject) {
         status = true;
         pObject->Object_Name = new_name;
     }
 
     return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Calendar_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
 }
 
 /**
@@ -427,15 +442,15 @@ bool Calendar_Name_Set(uint32_t object_instance, char *new_name)
  *
  * @return description text or NULL if not found
  */
-char *Calendar_Description(uint32_t object_instance)
+const char *Calendar_Description(uint32_t object_instance)
 {
-    char *name = NULL;
-    struct object_data *pObject;
+    const char *name = NULL;
+    const struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Description) {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         } else {
             name = "";
         }
@@ -452,7 +467,7 @@ char *Calendar_Description(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Calendar_Description_Set(uint32_t object_instance, char *new_name)
+bool Calendar_Description_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -467,43 +482,13 @@ bool Calendar_Description_Set(uint32_t object_instance, char *new_name)
 }
 
 /**
- * @brief Determine if the object property is a member of this object instance
- * @param object_instance - object-instance number of the object
- * @param object_property - object-property to be checked
- * @return true if the property is a member of this object instance
- */
-static bool Property_List_Member(
-    uint32_t object_instance, int object_property)
-{
-    bool found = false;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
-
-    (void)object_instance;
-    Calendar_Property_Lists(
-        &pRequired, &pOptional, &pProprietary);
-    found = property_list_member(pRequired, object_property);
-    if (!found) {
-        found = property_list_member(pOptional, object_property);
-    }
-    if (!found) {
-        found = property_list_member(pProprietary, object_property);
-    }
-
-    return found;
-}
-
-/**
  * @brief Determine if the object property is a BACnetARRAY property
  * @param object_property - object-property to be checked
  * @return true if the property is a BACnetARRAY property
  */
-static bool BACnetARRAY_Property(
-    int object_property)
+static bool BACnetARRAY_Property(int object_property)
 {
-    return property_list_member(
-            BACnetARRAY_Properties, object_property);
+    return property_list_member(BACnetARRAY_Properties, object_property);
 }
 
 /**
@@ -565,8 +550,7 @@ int Calendar_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (!BACnetARRAY_Property(rpdata->object_property)) &&
+    if ((apdu_len >= 0) && (!BACnetARRAY_Property(rpdata->object_property)) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -589,7 +573,7 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     int iOffset;
     BACNET_CALENDAR_ENTRY entry;
     bool pv_old;
@@ -621,8 +605,7 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             while (iOffset < wp_data->application_data_len) {
                 len = bacnet_calendar_entry_decode(
                     &wp_data->application_data[iOffset],
-                    wp_data->application_data_len - iOffset,
-                    &entry);
+                    wp_data->application_data_len - iOffset, &entry);
                 if (len == BACNET_STATUS_REJECT) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -632,13 +615,15 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 Calendar_Date_List_Add(wp_data->object_instance, &entry);
             }
             pv = Calendar_Present_Value(wp_data->object_instance);
-            status = Calendar_Present_Value_Write(wp_data->object_instance,
-                pv_old, pv, wp_data->priority, &wp_data->error_class,
-                &wp_data->error_code);
+            status = Calendar_Present_Value_Write(
+                wp_data->object_instance, pv_old, pv, wp_data->priority,
+                &wp_data->error_class, &wp_data->error_code);
             break;
         default:
-            if (Property_List_Member(
-                    wp_data->object_instance, wp_data->object_property)) {
+            if (property_lists_member(
+                    Calendar_Properties_Required, Calendar_Properties_Optional,
+                    Calendar_Properties_Proprietary,
+                    wp_data->object_property)) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
@@ -735,7 +720,7 @@ uint32_t Calendar_Create(uint32_t object_instance)
         }
         pObject->Object_Name = NULL;
         pObject->Description = NULL;
-        pObject->Present_Value  = false;
+        pObject->Present_Value = false;
         pObject->Date_List = Keylist_Create();
         pObject->Changed = false;
         pObject->Write_Enabled = false;
@@ -797,8 +782,7 @@ void Calendar_Cleanup(void)
  */
 void Calendar_Init(void)
 {
-    Object_List = Keylist_Create();
-    if (Object_List) {
-        atexit(Calendar_Cleanup);
+    if (!Object_List) {
+        Object_List = Keylist_Create();
     }
 }

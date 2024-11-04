@@ -48,7 +48,12 @@ set(CMAKE_AR arm-none-eabi-ar)
 set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 set(CMAKE_OBJDUMP arm-none-eabi-objdump)
 set(SIZE arm-none-eabi-size)
+set(CMAKE_SIZE arm-none-eabi-size)
+set(CMAKE_NM arm-none-eabi-nm)
+set(CMAKE_CSTACK "${CMAKE_SOURCE_DIR}/../../tools/check-stack-usage/checkStackUsage.py")
+set(CMAKE_MEMAP "${CMAKE_SOURCE_DIR}/../../tools/memap/memap.py")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+set(EXECUTABLE ${PROJECT_NAME}.elf)
 
 project(bacnet-mstp)
 
@@ -65,6 +70,7 @@ add_link_options(-mno-thumb-interwork)
 # Code size reduction using garbage collection sections
 add_compile_options(-ffunction-sections -fdata-sections)
 add_compile_options(-fno-common -fmessage-length=0)
+add_compile_options(-fstack-usage -fdump-rtl-dfinish)
 add_link_options(-Wl,-gc-sections,--print-memory-usage)
 # Build types
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
@@ -133,6 +139,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/sys/mstimer.c
     # BACnet core modules
     ${LIBRARY_BACNET_CORE}/abort.c
+    ${LIBRARY_BACNET_CORE}/bacaction.c
     ${LIBRARY_BACNET_CORE}/bacaddr.c
     ${LIBRARY_BACNET_CORE}/bacapp.c
     ${LIBRARY_BACNET_CORE}/bacdcode.c
@@ -188,11 +195,23 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
     -DPRINT_ENABLED=0
     -DMAX_TSM_TRANSACTIONS=0
     -DCRC_USE_TABLE
+    -DBACAPP_MINIMAL
 )
 
-# inhibit pedantic warnings
 target_compile_options(${EXECUTABLE} PRIVATE
-    -Wall
+    -Wall -Wextra -pedantic
+    -Wfloat-equal -Wconversion -Wredundant-decls
+    -Wswitch-default
+    # don't warn about conversion, sign, compares, long long and attributes
+    # since they are common in embedded
+    -Wno-sign-conversion
+    -Wno-conversion
+    -Wno-sign-compare
+    -Wno-long-long
+    -Wno-attributes
+    # don't warn about implicit fallthrough since it is common in network protocols
+    -Wno-implicit-fallthrough
+    # the older Atmel SDK does not meet coding guidelines
     -Wno-comment
     -Wno-missing-braces
     -Wno-unused-variable
@@ -227,4 +246,31 @@ add_custom_command(TARGET ${EXECUTABLE}
     POST_BUILD
     COMMAND arm-none-eabi-objcopy -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
     COMMAND arm-none-eabi-objcopy -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin
+)
+
+# sort the RAM usage by size and place into a file
+add_custom_target(symbols
+    DEPENDS ${EXECUTABLE}
+    COMMENT "Print memory symbols by size"
+    COMMAND ${CMAKE_NM} -t d -S --size-sort ${EXECUTABLE} 1> ${PROJECT_NAME}.nm
+    COMMAND echo "RAM usage by size analysis in ${PROJECT_NAME}.nm"
+    COMMAND echo "=ADDRESS= ==RAM=== = ==VARIABLE-NAME=="
+    COMMAND tail ${PROJECT_NAME}.nm
+)
+
+# calculate the worst case CSTACK memory usage by size and place into a file
+add_custom_target(cstack
+    DEPENDS ${EXECUTABLE}
+    COMMENT "Print CSTACK memory depth by size"
+    COMMAND ${CMAKE_CSTACK} ${EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR} 1> ${PROJECT_NAME}.su
+    COMMAND echo "C-Stack maxium depth analysis in ${PROJECT_NAME}.su"
+    COMMAND echo "==DEPTH== : == Functions called =="
+    COMMAND tail ${PROJECT_NAME}.su
+)
+
+# Print file and library sizes
+add_custom_target(memmap
+    DEPENDS ${PROJECT_NAME}.map
+    COMMENT "Print file and library memory usage by size"
+    COMMAND ${CMAKE_MEMAP} -t GCC_ARM ${PROJECT_NAME}.map
 )

@@ -7,8 +7,8 @@
 
 !ifndef BORLAND_DIR
 BORLAND_DIR_Not_Defined:
-   @echo .
-   @echo You must define environment variable BORLAND_DIR to compile.
+	@echo .
+	@echo You must define environment variable BORLAND_DIR to compile.
 !endif
 
 PRODUCT = rs485
@@ -59,7 +59,7 @@ all : $(BCC_CFG) $(PRODUCT_EXE)
 $(PRODUCT_EXE) : $(OBJS)
 	@echo Running Linker for $(PRODUCT_EXE)
 	$(LINK)	-L$(C_LIB_DIR) -m -c -s -v @&&| # temp response file, starts with |
-	  $(BORLAND_DIR)\lib\c0x32.obj $**  # $** lists each dependency
+		$(BORLAND_DIR)\lib\c0x32.obj $**  # $** lists each dependency
 	$<
 	$*.map
 	$(LIBS)
@@ -91,9 +91,9 @@ clean :
 
 # Compiler configuration file
 $(BCC_CFG) :
-   Copy &&|
-$(CFLAGS) 
--c 
+	Copy &&|
+$(CFLAGS)
+-c
 -y     #include line numbers in OBJ's
 -v     #include debug info
 -w+    #turn on all warnings

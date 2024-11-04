@@ -1,43 +1,16 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief Encode/Decode Who-Is requests
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h>
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/whois.h"
-
-/** @file whois.c  Encode/Decode Who-Is requests  */
 
 /* encode I-Am service  - use -1 for limit if you want unlimited */
 int whois_encode_apdu(uint8_t *apdu, int32_t low_limit, int32_t high_limit)
@@ -64,7 +37,10 @@ int whois_encode_apdu(uint8_t *apdu, int32_t low_limit, int32_t high_limit)
 
 /* decode the service request only */
 int whois_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, int32_t *pLow_limit, int32_t *pHigh_limit)
+    const uint8_t *apdu,
+    unsigned apdu_len,
+    int32_t *pLow_limit,
+    int32_t *pHigh_limit)
 {
     unsigned int len = 0;
     uint8_t tag_number = 0;

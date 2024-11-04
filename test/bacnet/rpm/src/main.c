@@ -1,15 +1,13 @@
-/*
- * Copyright (c) 2020 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: MIT
+/**
+ * @file
+ * @brief BACnet ReadPropertyMultiple -Request and -Ack codec unit test
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @author Greg Shue <greg.shue@outlook.com>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
  */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
- */
-
 #include <zephyr/ztest.h>
-#include <bacnet/bacerror.h>  /* For bacerror_decode_error_class_and_code() */
+#include <bacnet/bacerror.h> /* For bacerror_decode_error_class_and_code() */
 #include <bacnet/bacdcode.h>
 #include <bacnet/rpm.h>
 
@@ -21,7 +19,8 @@
 /**
  * @brief Test
  */
-static int rpm_ack_decode_apdu(uint8_t *apdu,
+static int rpm_ack_decode_apdu(
+    uint8_t *apdu,
     int apdu_len, /* total length of the apdu */
     uint8_t *invoke_id,
     uint8_t **service_request,
@@ -29,26 +28,32 @@ static int rpm_ack_decode_apdu(uint8_t *apdu,
 {
     int offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_COMPLEX_ACK)
+    if (apdu[0] != PDU_TYPE_COMPLEX_ACK) {
         return -1;
+    }
     *invoke_id = apdu[1];
-    if (apdu[2] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE)
+    if (apdu[2] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE) {
         return -1;
+    }
     offset = 3;
     if (apdu_len > offset) {
-        if (service_request)
+        if (service_request) {
             *service_request = &apdu[offset];
-        if (service_request_len)
+        }
+        if (service_request_len) {
             *service_request_len = apdu_len - offset;
+        }
     }
 
     return offset;
 }
 
-static int rpm_decode_apdu(uint8_t *apdu,
+static int rpm_decode_apdu(
+    uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t **service_request,
@@ -56,22 +61,27 @@ static int rpm_decode_apdu(uint8_t *apdu,
 {
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
         return -1;
+    }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE)
+    if (apdu[3] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE) {
         return -1;
+    }
     offset = 4;
 
     if (apdu_len > offset) {
-        if (service_request)
+        if (service_request) {
             *service_request = &apdu[offset];
-        if (service_request_len)
+        }
+        if (service_request_len) {
             *service_request_len = apdu_len - offset;
+        }
     }
 
     return offset;
@@ -126,7 +136,8 @@ static void testReadPropertyMultiple(void)
 
     zassert_not_equal(apdu_len, 0, NULL);
 
-    test_len = rpm_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+    test_len = rpm_decode_apdu(
+        &apdu[0], apdu_len, &test_invoke_id,
         &service_request, /* will point to the service request in the apdu */
         &service_request_len);
     zassert_not_equal(test_len, -1, NULL);
@@ -242,8 +253,9 @@ static void testReadPropertyMultipleAck(void)
     application_data[0].type.Object_Id.instance = 123;
     application_data_buffer_len = bacapp_encode_application_data(
         &application_data_buffer[0], &application_data[0]);
-    apdu_len += rpm_ack_encode_apdu_object_property_value(&apdu[apdu_len],
-        &application_data_buffer[0], application_data_buffer_len);
+    apdu_len += rpm_ack_encode_apdu_object_property_value(
+        &apdu[apdu_len], &application_data_buffer[0],
+        application_data_buffer_len);
     /* reply property */
     apdu_len += rpm_ack_encode_apdu_object_property(
         &apdu[apdu_len], PROP_OBJECT_TYPE, BACNET_ARRAY_ALL);
@@ -252,8 +264,9 @@ static void testReadPropertyMultipleAck(void)
     application_data[1].type.Enumerated = OBJECT_DEVICE;
     application_data_buffer_len = bacapp_encode_application_data(
         &application_data_buffer[0], &application_data[1]);
-    apdu_len += rpm_ack_encode_apdu_object_property_value(&apdu[apdu_len],
-        &application_data_buffer[0], application_data_buffer_len);
+    apdu_len += rpm_ack_encode_apdu_object_property_value(
+        &apdu[apdu_len], &application_data_buffer[0],
+        application_data_buffer_len);
     /* object end */
     apdu_len += rpm_ack_encode_apdu_object_end(&apdu[apdu_len]);
 
@@ -269,8 +282,9 @@ static void testReadPropertyMultipleAck(void)
     application_data[2].type.Real = 0.0;
     application_data_buffer_len = bacapp_encode_application_data(
         &application_data_buffer[0], &application_data[2]);
-    apdu_len += rpm_ack_encode_apdu_object_property_value(&apdu[apdu_len],
-        &application_data_buffer[0], application_data_buffer_len);
+    apdu_len += rpm_ack_encode_apdu_object_property_value(
+        &apdu[apdu_len], &application_data_buffer[0],
+        application_data_buffer_len);
     /* reply property */
     apdu_len += rpm_ack_encode_apdu_object_property(
         &apdu[apdu_len], PROP_DEADBAND, BACNET_ARRAY_ALL);
@@ -282,7 +296,8 @@ static void testReadPropertyMultipleAck(void)
     zassert_not_equal(apdu_len, 0, NULL);
 
     /****** decode the packet ******/
-    test_len = rpm_ack_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+    test_len = rpm_ack_decode_apdu(
+        &apdu[0], apdu_len, &test_invoke_id,
         &service_request, /* will point to the service request in the apdu */
         &service_request_len);
     zassert_not_equal(test_len, -1, NULL);
@@ -297,8 +312,9 @@ static void testReadPropertyMultipleAck(void)
     zassert_equal(object_instance, 123, NULL);
     len = test_len;
     /* extract the property */
-    test_len = rpm_ack_decode_object_property(&service_request[len],
-        service_request_len - len, &object_property, &array_index);
+    test_len = rpm_ack_decode_object_property(
+        &service_request[len], service_request_len - len, &object_property,
+        &array_index);
     zassert_equal(object_property, PROP_OBJECT_IDENTIFIER, NULL);
     zassert_equal(array_index, BACNET_ARRAY_ALL, NULL);
     len += test_len;
@@ -308,16 +324,19 @@ static void testReadPropertyMultipleAck(void)
     /* decode the object property portion of the service request */
     /* note: if this was an array, there could have been
        more than one element to decode */
-    test_len = bacapp_decode_application_data(&service_request[len],
-        service_request_len - len, &test_application_data);
+    test_len = bacapp_decode_application_data(
+        &service_request[len], service_request_len - len,
+        &test_application_data);
     zassert_true(test_len > 0, NULL);
-    zassert_true(bacapp_same_value(&application_data[0], &test_application_data), NULL);
+    zassert_true(
+        bacapp_same_value(&application_data[0], &test_application_data), NULL);
     len += test_len;
     zassert_true(decode_is_closing_tag_number(&service_request[len], 4), NULL);
     len++;
     /* see if there is another property */
-    test_len = rpm_ack_decode_object_property(&service_request[len],
-        service_request_len - len, &object_property, &array_index);
+    test_len = rpm_ack_decode_object_property(
+        &service_request[len], service_request_len - len, &object_property,
+        &array_index);
     zassert_not_equal(test_len, -1, NULL);
     zassert_equal(object_property, PROP_OBJECT_TYPE, NULL);
     zassert_equal(array_index, BACNET_ARRAY_ALL, NULL);
@@ -326,17 +345,20 @@ static void testReadPropertyMultipleAck(void)
     zassert_true(decode_is_opening_tag_number(&service_request[len], 4), NULL);
     len++;
     /* decode the object property portion of the service request */
-    test_len = bacapp_decode_application_data(&service_request[len],
-        service_request_len - len, &test_application_data);
+    test_len = bacapp_decode_application_data(
+        &service_request[len], service_request_len - len,
+        &test_application_data);
     zassert_true(test_len > 0, NULL);
-    zassert_true(bacapp_same_value(&application_data[1], &test_application_data), NULL);
+    zassert_true(
+        bacapp_same_value(&application_data[1], &test_application_data), NULL);
     len += test_len;
     zassert_true(decode_is_closing_tag_number(&service_request[len], 4), NULL);
     len++;
     /* see if there is another property */
     /* this time we should fail */
-    test_len = rpm_ack_decode_object_property(&service_request[len],
-        service_request_len - len, &object_property, &array_index);
+    test_len = rpm_ack_decode_object_property(
+        &service_request[len], service_request_len - len, &object_property,
+        &array_index);
     zassert_equal(test_len, -1, NULL);
     /* see if it is the end of this object */
     test_len = rpm_ack_decode_object_end(
@@ -344,15 +366,17 @@ static void testReadPropertyMultipleAck(void)
     zassert_equal(test_len, 1, NULL);
     len += test_len;
     /* try to decode another object id */
-    test_len = rpm_ack_decode_object_id(&service_request[len],
-        service_request_len - len, &object_type, &object_instance);
+    test_len = rpm_ack_decode_object_id(
+        &service_request[len], service_request_len - len, &object_type,
+        &object_instance);
     zassert_not_equal(test_len, -1, NULL);
     zassert_equal(object_type, OBJECT_ANALOG_INPUT, NULL);
     zassert_equal(object_instance, 33, NULL);
     len += test_len;
     /* decode the object property portion of the service request only */
-    test_len = rpm_ack_decode_object_property(&service_request[len],
-        service_request_len - len, &object_property, &array_index);
+    test_len = rpm_ack_decode_object_property(
+        &service_request[len], service_request_len - len, &object_property,
+        &array_index);
     zassert_not_equal(test_len, -1, NULL);
     zassert_equal(object_property, PROP_PRESENT_VALUE, NULL);
     zassert_equal(array_index, BACNET_ARRAY_ALL, NULL);
@@ -361,16 +385,19 @@ static void testReadPropertyMultipleAck(void)
     zassert_true(decode_is_opening_tag_number(&service_request[len], 4), NULL);
     len++;
     /* decode the object property portion of the service request */
-    test_len = bacapp_decode_application_data(&service_request[len],
-        service_request_len - len, &test_application_data);
+    test_len = bacapp_decode_application_data(
+        &service_request[len], service_request_len - len,
+        &test_application_data);
     zassert_true(test_len > 0, NULL);
-    zassert_true(bacapp_same_value(&application_data[2], &test_application_data), NULL);
+    zassert_true(
+        bacapp_same_value(&application_data[2], &test_application_data), NULL);
     len += test_len;
     zassert_true(decode_is_closing_tag_number(&service_request[len], 4), NULL);
     len++;
     /* see if there is another property */
-    test_len = rpm_ack_decode_object_property(&service_request[len],
-        service_request_len - len, &object_property, &array_index);
+    test_len = rpm_ack_decode_object_property(
+        &service_request[len], service_request_len - len, &object_property,
+        &array_index);
     zassert_not_equal(test_len, -1, NULL);
     zassert_equal(object_property, PROP_DEADBAND, NULL);
     zassert_equal(array_index, BACNET_ARRAY_ALL, NULL);
@@ -379,8 +406,9 @@ static void testReadPropertyMultipleAck(void)
     zassert_true(decode_is_opening_tag_number(&service_request[len], 5), NULL);
     len++;
     /* it was an error reply */
-    test_len = bacerror_decode_error_class_and_code(&service_request[len],
-        service_request_len - len, &error_class, &error_code);
+    test_len = bacerror_decode_error_class_and_code(
+        &service_request[len], service_request_len - len, &error_class,
+        &error_code);
     zassert_not_equal(test_len, 0, NULL);
     zassert_equal(error_class, ERROR_CLASS_PROPERTY, NULL);
     zassert_equal(error_code, ERROR_CODE_UNKNOWN_PROPERTY, NULL);
@@ -388,8 +416,9 @@ static void testReadPropertyMultipleAck(void)
     zassert_true(decode_is_closing_tag_number(&service_request[len], 5), NULL);
     len++;
     /* is there another property? */
-    test_len = rpm_ack_decode_object_property(&service_request[len],
-        service_request_len - len, &object_property, &array_index);
+    test_len = rpm_ack_decode_object_property(
+        &service_request[len], service_request_len - len, &object_property,
+        &array_index);
     zassert_equal(test_len, -1, NULL);
     /* got an error -1, is it the end of this object? */
     test_len = rpm_ack_decode_object_end(
@@ -397,8 +426,9 @@ static void testReadPropertyMultipleAck(void)
     zassert_equal(test_len, 1, NULL);
     len += test_len;
     /* check for another object */
-    test_len = rpm_ack_decode_object_id(&service_request[len],
-        service_request_len - len, &object_type, &object_instance);
+    test_len = rpm_ack_decode_object_id(
+        &service_request[len], service_request_len - len, &object_type,
+        &object_instance);
     zassert_equal(test_len, 0, NULL);
     zassert_equal(len, service_request_len, NULL);
 }
@@ -406,16 +436,14 @@ static void testReadPropertyMultipleAck(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(rpm_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(rpm_tests,
-     ztest_unit_test(testReadPropertyMultiple),
-     ztest_unit_test(testReadPropertyMultipleAck)
-     );
+    ztest_test_suite(
+        rpm_tests, ztest_unit_test(testReadPropertyMultiple),
+        ztest_unit_test(testReadPropertyMultipleAck));
 
     ztest_run_test_suite(rpm_tests);
 }

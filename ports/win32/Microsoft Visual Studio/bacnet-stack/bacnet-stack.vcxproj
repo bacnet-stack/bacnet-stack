@@ -28,6 +28,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\authentication_factor_format.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\awf.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacaddr.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaction.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacapp.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacdcode.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\bacdest.c" />
@@ -76,6 +77,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\osv.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\piv.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\structured_view.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_alarm_ack.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_apdu.c" />
@@ -211,15 +213,14 @@
     <ClInclude Include="..\..\..\..\src\bacnet\authentication_factor_format.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\awf.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacaddr.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacaction.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacapp.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacdcode.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacdef.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacdest.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacdevobjpropref.h" />
-    <ClInclude Include="..\..\..\..\src\bacnet\bacenum.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacerror.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacint.h" />
-    <ClInclude Include="..\..\..\..\src\bacnet\bacnet_stack_exports.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacprop.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacpropstates.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\bacreal.h" />
@@ -339,9 +340,6 @@
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\sbuf.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\basic\tsm\tsm.h" />
-    <ClInclude Include="..\..\..\..\src\bacnet\bits.h" />
-    <ClInclude Include="..\..\..\..\src\bacnet\bytes.h" />
-    <ClInclude Include="..\..\..\..\src\bacnet\config.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\cov.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\create_object.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\credential_authentication_factor.h" />

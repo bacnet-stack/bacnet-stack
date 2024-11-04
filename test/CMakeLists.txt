@@ -10,21 +10,40 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
+# In tests allow newer C standard than in the library.
+set(CMAKE_C_STANDARD 99)
+
 # Set the compiler options
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
-    add_definitions(-fprofile-arcs -ftest-coverage)
-    add_compile_options(-g -O0 -W -fprofile-arcs -ftest-coverage)
+    add_compile_options(-g -O0 -fprofile-arcs -ftest-coverage)
+    # enable all relevant warnings that find bugs
     add_compile_options(-Wall -Wextra -pedantic)
-    add_compile_options(-Wfloat-equal -Wconversion -Wparentheses)
-    add_compile_options(-Wunused-value -Wreturn-type -Wswitch-default)
-    add_compile_options(-Wuninitialized -Winit-self)
+    add_compile_options(-Wfloat-equal -Wconversion)
+    add_compile_options(-Wfloat-conversion -Wdouble-promotion)
+    add_compile_options(-Wredundant-decls -Wmissing-declarations)
+    add_compile_options(-Wswitch-default)
+    add_compile_options(-Wunused-variable)
+    add_compile_options(-Wcast-qual)
+    add_compile_options(-Wwrite-strings)
+
+    # don't warn about conversion, sign, compares, long long and attributes
+    # since they are common in embedded
     add_compile_options(-Wno-sign-conversion -Wno-conversion)
-    add_compile_options(-Wno-sign-compare -Wno-long-long)
-    add_compile_options(-Wno-implicit-fallthrough -Wno-attributes)
-    add_compile_options(-Wno-missing-braces)
-    # ignore some warnings that occur during unit testing
-    add_compile_options(-Wno-unused-variable -Wno-unused-function)
-    add_compile_options(-Wno-unused-parameter)
+    add_compile_options(-Wno-sign-compare)
+
+    # Just noise from clang
+    if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang")
+      add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+    endif()
+
+    # Should be fixed in the future
+    add_compile_options(-Wno-cast-qual)
+    add_compile_options(-Wno-double-promotion)
+    add_compile_options(-Wno-float-conversion)
+    add_compile_options(-Wno-missing-declarations)
+    add_compile_options(-Wno-unused-but-set-variable)
+    add_compile_options(-Wno-write-strings)
+
     add_link_options(-fprofile-arcs -ftest-coverage)
 endif()
 
@@ -51,6 +70,7 @@ list(APPEND testdirs
 
 list(APPEND testdirs
   bacnet/abort
+  bacnet/access_rule
   bacnet/alarm_ack
   bacnet/arf
   bacnet/awf
@@ -65,6 +85,7 @@ list(APPEND testdirs
   bacnet/bacreal
   bacnet/bacstr
   bacnet/bactimevalue
+  bacnet/channel_value
   bacnet/cov
   bacnet/create_object
   bacnet/datetime
@@ -88,19 +109,22 @@ list(APPEND testdirs
   bacnet/reject
   bacnet/rp
   bacnet/rpm
+  bacnet/secure_connect
   bacnet/specialevent
   bacnet/timestamp
   bacnet/timesync
+  bacnet/weeklyschedule
   bacnet/whohas
   bacnet/whois
   bacnet/wp
   bacnet/wpm
-  bacnet/weeklyschedule
+  bacnet/write_group
   )
 
 # bacnet/basic/*
 list(APPEND testdirs
   bacnet/basic/binding/address
+  bacnet/basic/bbmd
   bacnet/basic/bbmd6
   # basic/object
   bacnet/basic/object/acc
@@ -115,6 +139,7 @@ list(APPEND testdirs
   bacnet/basic/object/av
   bacnet/basic/object/bacfile
   bacnet/basic/object/bi
+  bacnet/basic/object/bitstring_value
   bacnet/basic/object/blo
   bacnet/basic/object/bo
   bacnet/basic/object/bv
@@ -127,9 +152,10 @@ list(APPEND testdirs
   bacnet/basic/object/csv
   bacnet/basic/object/device
   bacnet/basic/object/iv
-  #bacnet/basic/object/lc		#Tests skipped, redesign to use only API
+  bacnet/basic/object/lc
   bacnet/basic/object/lo
   bacnet/basic/object/lsp
+  bacnet/basic/object/lsz
   bacnet/basic/object/ms-input
   bacnet/basic/object/mso
   bacnet/basic/object/msv
@@ -139,6 +165,7 @@ list(APPEND testdirs
   bacnet/basic/object/osv
   bacnet/basic/object/piv
   bacnet/basic/object/schedule
+  bacnet/basic/object/structured_view
   bacnet/basic/object/time_value
   bacnet/basic/object/trendlog
   # basic/sys
@@ -160,6 +187,30 @@ list(APPEND testdirs
   bacnet/datalink/bvlc
   bacnet/datalink/mstp
   )
+
+# ports tests
+if(ZEPHYR_BASE)
+  message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  message(STATUS "Added ports specific tests for linux")
+
+  list(APPEND testdirs
+  ports/linux/bsc_event
+  )
+
+elseif(WIN32)
+  message(STATUS "Added ports specific tests for win32")
+
+  list(APPEND testdirs
+  ports/win32/bsc_event
+  )
+
+elseif(APPLE)
+  message(STATUS "Added ports specific tests for APPLE")
+  list(APPEND testdirs
+  ports/bsd/bsc_event
+  )
+endif()
 
 enable_testing()
 foreach(testdir IN ITEMS ${testdirs})

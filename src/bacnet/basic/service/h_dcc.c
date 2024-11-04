@@ -1,33 +1,15 @@
-/**************************************************************************
- *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Handles Device Communication Control request.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
@@ -42,14 +24,18 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 
-/** @file h_dcc.c  Handles Device Communication Control request. */
-
-static char My_Password[32] = "filister";
+/* The byte length of a UTF-8 character can vary.
+ * In UTF-8, the number of bytes used to represent a character can range from 1
+ * to 4 bytes. Commonly used characters in the ASCII set are represented by 1
+ * byte,xi while other Unicode characters may require 2, 3, or 4 bytes. Let's
+ * add space for the null '\0' termination byte.
+ * */
+static char My_Password[20 * 4 + 1] = "filister";
 
 /** Sets (non-volatile hold) the password to be used for DCC requests.
  * @param new_password [in] The new DCC password, of up to 31 characters.
  */
-void handler_dcc_password_set(char *new_password)
+void handler_dcc_password_set(const char *new_password)
 {
     size_t i = 0; /* loop counter */
 
@@ -95,7 +81,8 @@ char *handler_dcc_password(void)
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_device_communication_control(uint8_t *service_request,
+void handler_device_communication_control(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -117,11 +104,12 @@ void handler_device_communication_control(uint8_t *service_request,
     fprintf(stderr, "DeviceCommunicationControl!\n");
 #endif
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "DeviceCommunicationControl: "
             "Sending Abort - segmented message.\n");
 #endif
@@ -131,25 +119,29 @@ void handler_device_communication_control(uint8_t *service_request,
     len = dcc_decode_service_request(
         service_request, service_len, &timeDuration, &state, &password);
 #if PRINT_ENABLED
-    if (len > 0)
-        fprintf(stderr,
+    if (len > 0) {
+        fprintf(
+            stderr,
             "DeviceCommunicationControl: "
             "timeout=%u state=%u password=%s\n",
             (unsigned)timeDuration, (unsigned)state,
             characterstring_value(&password));
+    }
 #endif
     /* bad decoding or invalid service parameter
        send an abort or reject */
     if (len < 0) {
         if (len == BACNET_STATUS_ABORT) {
-            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, ABORT_REASON_OTHER, true);
+            len = abort_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
             fprintf(stderr, "DCC: Sending Abort!\n");
 #endif
         } else if (len == BACNET_STATUS_REJECT) {
-            len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id, REJECT_REASON_PARAMETER_OUT_OF_RANGE);
+            len = reject_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                REJECT_REASON_PARAMETER_OUT_OF_RANGE);
 #if PRINT_ENABLED
             fprintf(stderr, "DCC: Sending Reject!\n");
 #endif
@@ -157,10 +149,12 @@ void handler_device_communication_control(uint8_t *service_request,
         goto DCC_ABORT;
     }
     if (state >= MAX_BACNET_COMMUNICATION_ENABLE_DISABLE) {
-        len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, REJECT_REASON_UNDEFINED_ENUMERATION);
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_UNDEFINED_ENUMERATION);
 #if PRINT_ENABLED
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "DeviceCommunicationControl: "
             "Sending Reject - undefined enumeration\n");
 #endif
@@ -170,27 +164,30 @@ void handler_device_communication_control(uint8_t *service_request,
         len = Routed_Device_Service_Approval(
             SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, (int)state,
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id);
-        if (len > 0)
+        if (len > 0) {
             goto DCC_ABORT;
+        }
 #endif
         if ((My_Password[0] == '\0') ||
             characterstring_ansi_same(&password, My_Password)) {
-            len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
+            len = encode_simple_ack(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL);
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "DeviceCommunicationControl: "
                 "Sending Simple Ack!\n");
 #endif
             dcc_set_status_duration(state, timeDuration);
         } else {
-            len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
+            len = bacerror_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
                 ERROR_CLASS_SECURITY, ERROR_CODE_PASSWORD_FAILURE);
 #if PRINT_ENABLED
-            fprintf(stderr,
+            fprintf(
+                stderr,
                 "DeviceCommunicationControl: "
                 "Sending Error - password failure.\n");
 #endif
@@ -202,7 +199,8 @@ DCC_ABORT:
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (len <= 0) {
 #if PRINT_ENABLED
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "DeviceCommunicationControl: "
             "Failed to send PDU (%s)!\n",
             strerror(errno));
