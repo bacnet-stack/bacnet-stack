@@ -77,6 +77,26 @@ jobs:
         make clean
         make LEGACY=true gateway
 
+  bacnet-sc-hub:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Create BACnet/SC Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libuv1-dev
+        git clone  --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
+    - name: Build BACnet/SC Hub Demo
+      run: |
+        gcc --version
+        make clean
+        make sc-hub
+
   router:
     runs-on: ubuntu-latest
     steps:
@@ -85,6 +105,12 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libuv1-dev
+        git clone  --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build Router Demo
       run: |
         gcc --version

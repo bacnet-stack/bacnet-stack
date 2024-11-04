@@ -31,6 +31,7 @@
 #define BACDL_MSTP
 #define BACDL_BIP
 #define BACDL_BIP6
+#define BACDL_BSC
 #endif
 
 #if defined(BACDL_ETHERNET)
@@ -59,6 +60,13 @@
 #endif
 
 #if defined(BACDL_BIP6)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_BSC)
 #if defined(BACDL_SOME_DATALINK_ENABLED)
 #define BACDL_MULTIPLE 1
 #endif
@@ -144,6 +152,27 @@
 #endif
 #endif
 
+#if defined(BACDL_BSC)
+#ifndef SC_NETPORT_BVLC_MAX
+#define SC_NETPORT_BVLC_MAX 1500
+#endif
+#ifndef SC_NETPORT_NPDU_MAX
+#define SC_NETPORT_NPDU_MAX 1500
+#endif
+#ifndef SC_NETPORT_CONNECT_TIMEOUT
+#define SC_NETPORT_CONNECT_TIMEOUT 5
+#endif
+#ifndef SC_NETPORT_HEARTBEAT_TIMEOUT
+#define SC_NETPORT_HEARTBEAT_TIMEOUT 60
+#endif
+#ifndef SC_NETPORT_DISCONNECT_TIMEOUT
+#define SC_NETPORT_DISCONNECT_TIMEOUT 150
+#endif
+#ifndef SC_NETPORT_RECONNECT_TIME
+#define SC_NETPORT_RECONNECT_TIME 2
+#endif
+#endif
+
 /* for confirmed messages, this is the number of transactions */
 /* that we hold in a queue waiting for timeout. */
 /* Configure to zero if you don't want any confirmed messages */
@@ -205,6 +234,7 @@
     defined(BACAPP_SHED_LEVEL) || \
     defined(BACAPP_ACCESS_RULE) || \
     defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
@@ -253,6 +283,7 @@
 #define BACAPP_SHED_LEVEL
 #define BACAPP_ACCESS_RULE
 #define BACAPP_CHANNEL_VALUE
+#define BACAPP_SECURE_CONNECT
 #endif
 
 /* clang-format off */
@@ -270,6 +301,7 @@
     defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
     defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
     defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_BDT_ENTRY) || \
     defined(BACAPP_FDT_ENTRY) || \
     defined(BACAPP_ACTION_COMMAND) || \
