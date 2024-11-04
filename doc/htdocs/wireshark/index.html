@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for HTML5 for Linux version 5.4.0">
+  <meta http-equiv="CONTENT-TYPE" content=
+  "text/html; charset=utf-8">
+  <title>BACnet MS/TP Wireshark Live Capture</title>
+</head>
+<body>
+  <p><a href="https://www.wireshark.org/">Wireshark</a> 2.0 brought
+  some new features, including <a href=
+  "https://www.wireshark.org/docs/man-pages/extcap.html">extcap</a>.
+  Extcap allows an external application to capture packets and move
+  them into Wireshark via a pipe. It is the perfect feature for
+  serial packets, such as BACnet MS/TP on RS-485, which don’t have
+  a network interface.</p>
+  <p>How does it work? After installing version Wireshark 2.0 or
+  later, find the Extcap folder on your computer. The folder is
+  listed under Wireshark Help About Folders menu option.</p>
+  <p><a href=
+  "http://steve.kargs.net/wp-content/uploads/2016/09/Help-About-Wireshark-Folders.png">
+  <img src="./images/Help-About-Wireshark-Folders-300x141.png" alt=
+  "help-about-wireshark-folders"></a></p>
+  <p>Copy <a href=
+  "https://sourceforge.net/projects/bacnet/files/bacnet-tools/">mstpcap.exe</a>
+  into the Extcap folder (create the folder if it doesn’t
+  exist).</p>
+  <p><a href=
+  "http://steve.kargs.net/wp-content/uploads/2016/09/Program-Files_Wireshark_extcap.png">
+  <img src="./images/Program-Files_Wireshark_extcap-300x131.png"
+  alt="program-files_wireshark_extcap"></a></p>
+  <p>Run Wireshark, and notice the new BACnet MS/TP Interfaces
+  associated with each serial port.</p>
+  <p><a href=
+  "http://steve.kargs.net/wp-content/uploads/2016/09/Wireshark-Interface-List.png">
+  <img src="./images/Wireshark-Interface-List-229x300.png" alt=
+  "wireshark-interface-list"></a></p>
+  <p>Adjust the MS/TP Baud Rate for the particular interface.</p>
+  <p><a href=
+  "http://steve.kargs.net/wp-content/uploads/2016/09/Wireshark-MSTP-Interface-Settings.png">
+  <img src="./images/Wireshark-MSTP-Interface-Settings-300x199.png"
+  alt="wireshark-mstp-interface-settings"></a></p>
+  <p>Start or Stop captures using the Capture Start or Capture Stop
+  options after selecting the Interface.</p>
+  <p><a href=
+  "http://steve.kargs.net/wp-content/uploads/2016/09/BACnet_MS_TP_on_COM6_Wireshark_Start_Capture.png">
+  <img src=
+  "./images/BACnet_MS_TP_on_COM6_Wireshark_Start_Capture-300x97.png"
+  alt="bacnet_ms_tp_on_com6_wireshark_start_capture"></a></p>
+</body>
+</html>
