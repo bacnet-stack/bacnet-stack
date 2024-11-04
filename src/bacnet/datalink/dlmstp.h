@@ -219,6 +219,9 @@ void dlmstp_silence_reset(void *arg);
 BACNET_STACK_EXPORT
 void dlmstp_set_frame_rx_complete_callback(
     dlmstp_hook_frame_rx_complete_cb cb_func);
+BACNET_STACK_EXPORT
+void dlmstp_set_invalid_frame_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func);
 
 /* Set the callback function to be called every time the start of a */
 /* frame is detected.  This is not necessary for normal usage, but is */

@@ -849,7 +849,29 @@ void dlmstp_set_frame_rx_complete_callback(
     if (!user) {
         return 0;
     }
-    user->Frame_Rx_Callback = cb_func;
+    user->Valid_Frame_Rx_Callback = cb_func;
+}
+
+/**
+ * @brief Set the MS/TP Frame Complete callback
+ * @param cb_func - callback function to be called when a frame is received
+ */
+void dlmstp_set_invalid_frame_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
+{
+    struct dlmstp_user_data_t *user;
+
+    if (!MSTP_Port) {
+        return 0;
+    }
+    if (!MSTP_Port->UserData) {
+        return 0;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return 0;
+    }
+    user->Invalid_Frame_Rx_Callback = cb_func;
 }
 
 /**
