@@ -82,20 +82,6 @@ struct dlmstp_rs485_driver {
     void (*silence_reset)(void);
 };
 
-/**
- * An example structure of user data for BACnet MS/TP
- */
-struct dlmstp_user_data_t {
-    struct dlmstp_statistics Statistics;
-    struct dlmstp_rs485_driver *RS485_Driver;
-    /* the PDU Queue is made of Nmax_info_frames x dlmstp_packet's */
-    RING_BUFFER PDU_Queue;
-    struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
-    bool Initialized;
-    bool ReceivePacketPending;
-    void *Context;
-};
-
 /* callback to signify the receipt of a preamble */
 typedef void (*dlmstp_hook_frame_rx_start_cb)(void);
 
@@ -106,6 +92,22 @@ typedef void (*dlmstp_hook_frame_rx_complete_cb)(
     uint8_t mstp_msg_type,
     uint8_t *pdu,
     uint16_t pdu_len);
+
+/**
+ * An example structure of user data for BACnet MS/TP
+ */
+struct dlmstp_user_data_t {
+    struct dlmstp_statistics Statistics;
+    struct dlmstp_rs485_driver *RS485_Driver;
+    dlmstp_hook_frame_rx_start_cb Preamble_Callback;
+    dlmstp_hook_frame_rx_complete_cb Frame_Rx_Callback;
+    /* the PDU Queue is made of Nmax_info_frames x dlmstp_packet's */
+    RING_BUFFER PDU_Queue;
+    struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
+    bool Initialized;
+    bool ReceivePacketPending;
+    void *Context;
+};
 
 #ifdef __cplusplus
 extern "C" {
