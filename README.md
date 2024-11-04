@@ -46,13 +46,21 @@ This BACnet protocol stack implementation is specifically designed for the
 embedded BACnet appliance, using a GPL with exception license (like eCos),
 which means that any changes to the core code that are distributed are shared,
 but the BACnet library can be linked to proprietary code without the proprietary
-code becoming GPL. Note that some of the source files are designed as
-skeleton or example or template files, and are not copyrighted as GPL.
+code becoming GPL. The text of the GPL exception included in each source
+file is as follows:
 
-The text of the GPL exception included in each source file is as follows:
+     * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
 
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
-                                             ^^^^^^^^^^^^^^^^^^^^^^
+Note that some of the source files are designed as skeleton or example
+or template files, and are not copyrighted as GPL. The text of the license
+for these files is designated in each source file as follows:
+
+     * SPDX-License-Identifier: MIT
+     * SPDX-License-Identifier: Apache-2.0
+
+A software bill-of-materials can be generated using grep:
+
+    $ grep -nrw SPDX --include=*.[c,h]
 
 The code is written in C for portability, and includes unit tests (PC based
 unit tests). Since the code is designed to be portable, it compiles with GCC as
