@@ -458,7 +458,7 @@ complexity:
 sloccount:
 	sloccount .
 
-# sudo apt install sloccount
+# sudo apt install doxygen
 .PHONY: doxygen
 doxygen:
 	doxygen BACnet-stack.doxyfile
