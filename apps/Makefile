@@ -35,6 +35,10 @@ endif
 ifeq (${BACDL},bip6)
 BACDL_DEFINE=-DBACDL_BIP6=1
 endif
+ifeq (${BACDL},bsc)
+BACDL_DEFINE=-DBACDL_BSC=1
+BACNET_DEFINE=-DBACFILE=1
+endif
 ifeq (${BACDL},none)
 BACDL_DEFINE=-DBACDL_NONE=1
 endif
@@ -108,11 +112,19 @@ ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lgcc,-lrt,-lm
+ifeq (${BACDL},bsc)
+# note: install libwebsockets libssl libcrypto and lcap to build for BACnet/SC
+SYSTEM_LIB += -lwebsockets -lssl -lcrypto -lcap
+endif
 endif
 ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lm
+ifeq (${BACDL},bsc)
+# note: install libwebsockets libssl and libcrypto to build for BACnet/SC
+SYSTEM_LIB += -lwebsockets -lssl -lcrypto
+endif
 CSTANDARD = -std=c99
 endif
 ifeq (${BACNET_PORT},win32)
@@ -174,7 +186,6 @@ endif
 
 BACNET_DEFINES += -DPRINT_ENABLED=1
 BACNET_DEFINES += -DBACAPP_ALL
-BACNET_DEFINES += -DBACFILE
 BACNET_DEFINES += -DINTRINSIC_REPORTING
 BACNET_DEFINES += -DBACNET_TIME_MASTER
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
@@ -461,4 +472,8 @@ writepropm: $(BACNET_LIB_TARGET)
 
 .PHONY: writegroup
 writegroup: $(BACNET_LIB_TARGET)
+	$(MAKE) -B -C $@
+
+.PHONY: sc-hub
+sc-hub: $(BACNET_LIB_TARGET)
 	$(MAKE) -B -C $@

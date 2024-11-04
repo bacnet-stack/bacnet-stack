@@ -1599,6 +1599,14 @@ typedef enum {
     BACNET_APPLICATION_TAG_XY_COLOR,
     /* BACnetColorCommand */
     BACNET_APPLICATION_TAG_COLOR_COMMAND,
+    /* BACNET_SC_FAILED_CONNECTION_REQUEST */
+    BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST,
+    /* BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS */
+    BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS,
+    /* BACNET_SC_DIRECT_CONNECTION_STATUS */
+    BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS,
+    /* BACNET_SC_HUB_CONNECTION_STATUS */
+    BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS,
     /* BACnetBDTEntry */
     BACNET_APPLICATION_TAG_BDT_ENTRY,
     /* BACnetFDTEntry */
@@ -2172,6 +2180,10 @@ typedef enum {
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
     ERROR_CODE_PROPRIETARY_FIRST = 256,
+    /* some error codes for internal stack usage */
+    ERROR_CODE_ = 65535,
+    ERROR_CODE_DISCARD = 65534,
+    ERROR_CODE_DEFAULT = 65535,
     ERROR_CODE_PROPRIETARY_LAST = 65535
 } BACNET_ERROR_CODE;
 
@@ -2592,6 +2604,10 @@ typedef enum {
     PORT_TYPE_NON_BACNET = 8,
     PORT_TYPE_BIP6 = 9,
     PORT_TYPE_SERIAL = 10,
+    /*  For BACnet/SC network port implementations with
+        a Protocol_Revision 24 and higher, BACnet/SC network ports shall be
+        represented by a Network Port object at the BACNET_APPLICATION
+        protocol level with network type of SECURE_CONNECT. */
     PORT_TYPE_BSC = 11,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to the
@@ -2992,5 +3008,21 @@ typedef enum BACnetAuditOperation {
     AUDIT_OPERATION_PROPRIETARY_MIN = 32,
     AUDIT_OPERATION_PROPRIETARY_MAX = 63
 } BACNET_AUDIT_OPERATION;
+
+typedef enum BACnetSCHubConnectorState {
+    /* FIXME: prefix with typedef name as much as possible */
+    BACNET_SC_HUB_CONNECTOR_STATE_NO_HUB_CONNECTION = 0,
+    BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_PRIMARY = 1,
+    BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_FAILOVER = 2,
+    BACNET_SC_HUB_CONNECTOR_STATE_MAX = 3
+} BACNET_SC_HUB_CONNECTOR_STATE;
+
+typedef enum BACnetSCConnectionState {
+    BACNET_SC_CONNECTION_STATE_NOT_CONNECTED = 0,
+    BACNET_SC_CONNECTION_STATE_CONNECTED = 1,
+    BACNET_SC_CONNECTION_STATE_DISCONNECTED_WITH_ERRORS = 2,
+    BACNET_SC_CONNECTION_STATE_FAILED_TO_CONNECT = 3,
+    BACNET_SC_CONNECTION_STATE_MAX = 4
+} BACNET_SC_CONNECTION_STATE;
 
 #endif /* end of BACENUM_H */

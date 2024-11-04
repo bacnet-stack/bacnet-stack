@@ -17,12 +17,13 @@
 #include <wchar.h>
 #include <wctype.h>
 #endif
+/* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/access_rule.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
-#include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
 #include "bacnet/datetime.h"
@@ -30,6 +31,7 @@
 #include "bacnet/bacaction.h"
 #include "bacnet/lighting.h"
 #include "bacnet/hostnport.h"
+#include "bacnet/secure_connect.h"
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/calendar_entry.h"
 #include "bacnet/special_event.h"
@@ -519,6 +521,24 @@ int bacapp_encode_application_data(
                     apdu, &value->type.Channel_Value);
                 break;
 #endif
+#if defined(BACAPP_SECURE_CONNECT)
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                apdu_len = bacapp_encode_SCFailedConnectionRequest(
+                    apdu, &value->type.SC_Failed_Req);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCHubFunctionConnection(
+                    apdu, &value->type.SC_Hub_Function_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCDirectConnection(
+                    apdu, &value->type.SC_Direct_Status);
+                break;
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                apdu_len = bacapp_encode_SCHubConnection(
+                    apdu, &value->type.SC_Hub_Status);
+                break;
+#endif
             default:
                 break;
         }
@@ -535,6 +555,7 @@ int bacapp_encode_application_data(
  * @param len_value_type  Count of bytes of given tag
  * @param value  Pointer to the application value structure,
  *               used to store the decoded value to.
+ * @note Decodes only the 13 primitive application data types!
  *
  * @return Number of octets consumed (could be zero).
  * Parameter value->tag set to MAX_BACNET_APPLICATION_TAG when
@@ -936,6 +957,10 @@ int bacapp_encode_context_data_value(
             case BACNET_APPLICATION_TAG_SCALE:
             case BACNET_APPLICATION_TAG_SHED_LEVEL:
             case BACNET_APPLICATION_TAG_ACCESS_RULE:
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
                 /* complex data is enclosed in open/close tags */
                 len = encode_opening_tag(apdu, context_tag_number);
                 apdu_len += len;
@@ -1316,6 +1341,19 @@ int bacapp_known_property_tag(
             /* BACnetAccessRule */
             return BACNET_APPLICATION_TAG_ACCESS_RULE;
 
+        case PROP_SC_FAILED_CONNECTION_REQUESTS:
+            return BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST;
+
+        case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS;
+
+        case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS;
+
+        case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
+        case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
+            return BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS;
+
         default:
             return -1;
     }
@@ -1624,6 +1662,24 @@ int bacapp_decode_application_tag_value(
             /* BACnetChannelValue */
             apdu_len = bacnet_channel_value_decode(
                 apdu, apdu_size, &value->type.Channel_Value);
+            break;
+#endif
+#if defined(BACAPP_SECURE_CONNECT)
+        case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+            apdu_len = bacapp_decode_SCFailedConnectionRequest(
+                apdu, apdu_size, &value->type.SC_Failed_Req);
+            break;
+        case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+            apdu_len = bacapp_decode_SCHubFunctionConnection(
+                apdu, apdu_size, &value->type.SC_Hub_Function_Status);
+            break;
+        case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+            apdu_len = bacapp_decode_SCDirectConnection(
+                apdu, apdu_size, &value->type.SC_Direct_Status);
+            break;
+        case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+            apdu_len = bacapp_decode_SCHubConnection(
+                apdu, apdu_size, &value->type.SC_Hub_Status);
             break;
 #endif
         default:
@@ -3538,6 +3594,28 @@ int bacapp_snprintf_value(
                 ret_val = bacapp_snprintf_object_property_reference(
                     str, str_len, &value->type.Object_Property_Reference);
                 break;
+#endif
+#if defined(BACAPP_SECURE_CONNECT)
+            case BACNET_APPLICATION_TAG_SC_FAILED_CONNECTION_REQUEST:
+                ret_val = bacapp_snprintf_SCFailedConnectionRequest(
+                    str, str_len, &value->type.SC_Failed_Req);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_HUB_FUNCTION_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCHubFunctionConnection(
+                    str, str_len, &value->type.SC_Hub_Function_Status);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_DIRECT_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCDirectConnection(
+                    str, str_len, &value->type.SC_Direct_Status);
+                break;
+
+            case BACNET_APPLICATION_TAG_SC_HUB_CONNECTION_STATUS:
+                ret_val = bacapp_snprintf_SCHubConnection(
+                    str, str_len, &value->type.SC_Hub_Status);
+                break;
+
 #endif
 #if defined(BACAPP_DESTINATION)
             case BACNET_APPLICATION_TAG_DESTINATION:
