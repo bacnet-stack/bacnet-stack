@@ -386,12 +386,6 @@ uint16_t dlmstp_receive(
         }
     }
     if (MSTP_Port->ReceivedValidFrame || MSTP_Port->ReceivedInvalidFrame) {
-        if (user->Frame_Rx_Callback) {
-            user->Frame_Rx_Callback(
-                MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
-                MSTP_Port->FrameType, MSTP_Port->InputBuffer,
-                MSTP_Port->DataLength);
-        }
         /* delay after reception before transmitting - per MS/TP spec */
         milliseconds = MSTP_Port->SilenceTimer(MSTP_Port);
         if (milliseconds < MSTP_Port->Tturnaround_timeout) {
@@ -401,9 +395,21 @@ uint16_t dlmstp_receive(
     }
     if (MSTP_Port->ReceivedValidFrame) {
         user->Statistics.receive_valid_frame_counter++;
+        if (user->Valid_Frame_Rx_Callback) {
+            user->Valid_Frame_Rx_Callback(
+                MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
+                MSTP_Port->FrameType, MSTP_Port->InputBuffer,
+                MSTP_Port->DataLength);
+        }
     }
     if (MSTP_Port->ReceivedInvalidFrame) {
         user->Statistics.receive_invalid_frame_counter++;
+        if (user->Invalid_Frame_Rx_Callback) {
+            user->Invalid_Frame_Rx_Callback(
+                MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
+                MSTP_Port->FrameType, MSTP_Port->InputBuffer,
+                MSTP_Port->DataLength);
+        }
     }
     if (MSTP_Port->receive_state == MSTP_RECEIVE_STATE_IDLE) {
         /* only node state machines while rx is idle */

@@ -100,7 +100,8 @@ struct dlmstp_user_data_t {
     struct dlmstp_statistics Statistics;
     struct dlmstp_rs485_driver *RS485_Driver;
     dlmstp_hook_frame_rx_start_cb Preamble_Callback;
-    dlmstp_hook_frame_rx_complete_cb Frame_Rx_Callback;
+    dlmstp_hook_frame_rx_complete_cb Valid_Frame_Rx_Callback;
+    dlmstp_hook_frame_rx_complete_cb Invalid_Frame_Rx_Callback;
     /* the PDU Queue is made of Nmax_info_frames x dlmstp_packet's */
     RING_BUFFER PDU_Queue;
     struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
