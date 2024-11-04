@@ -20,7 +20,7 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
-## [1.4.0] - 2024-11-03
+## [1.4.0] - 2024-11-04
 
 ### Security
 
@@ -32,6 +32,7 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added BACnet Secure Connect datalink. Added BACnet/SC hub application. (#818)
 * Added WriteGroup service to blinkt app demo. (#843)
 * Added blinkt and piface build in gcc pipeline to prevent bit rot. (#842)
 * Added missing MS/TP zero configuration preferred address API and usage. (#840)
