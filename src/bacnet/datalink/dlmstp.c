@@ -840,14 +840,14 @@ void dlmstp_set_frame_rx_complete_callback(
     struct dlmstp_user_data_t *user;
 
     if (!MSTP_Port) {
-        return 0;
+        return;
     }
     if (!MSTP_Port->UserData) {
-        return 0;
+        return;
     }
     user = MSTP_Port->UserData;
     if (!user) {
-        return 0;
+        return;
     }
     user->Valid_Frame_Rx_Callback = cb_func;
 }
@@ -862,14 +862,14 @@ void dlmstp_set_invalid_frame_rx_complete_callback(
     struct dlmstp_user_data_t *user;
 
     if (!MSTP_Port) {
-        return 0;
+        return;
     }
     if (!MSTP_Port->UserData) {
-        return 0;
+        return;
     }
     user = MSTP_Port->UserData;
     if (!user) {
-        return 0;
+        return;
     }
     user->Invalid_Frame_Rx_Callback = cb_func;
 }
@@ -883,14 +883,14 @@ void dlmstp_set_frame_rx_start_callback(dlmstp_hook_frame_rx_start_cb cb_func)
     struct dlmstp_user_data_t *user;
 
     if (!MSTP_Port) {
-        return 0;
+        return;
     }
     if (!MSTP_Port->UserData) {
-        return 0;
+        return;
     }
     user = MSTP_Port->UserData;
     if (!user) {
-        return 0;
+        return;
     }
     user->Preamble_Callback = cb_func;
 }
