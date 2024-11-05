@@ -24,9 +24,10 @@ and unit testing to produce robust C code and BACnet functionality.
 About this Project
 ------------------
 
-This BACnet protocol stack library provides a BACnet application layer, network layer and media access (MAC) layer communications services.
-It is an open source, royalty-free library for an embedded system, Windows,
-Linux, or other operating system.
+This BACnet protocol stack library provides a BACnet application layer,
+network layer and media access (MAC) layer communications services.
+It is an open source, royalty-free library for a RTOS or bare metal
+embedded system, or full OS such as Windows, Linux, MacOS, or BSD.
 
 BACnet - A Data Communication Protocol for Building Automation and Control
 Networks - see [bacnet.org](bacnet.org). BACnet is a standard data
