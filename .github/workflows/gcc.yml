@@ -80,7 +80,7 @@ jobs:
   bacnet-sc-hub:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Create BACnet/SC Build Environment
       run: |
         sudo apt-get update -qq
