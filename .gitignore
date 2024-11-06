@@ -82,6 +82,9 @@ CTestTestfile.cmake
 /cmake-build-*
 /.idea
 
+# doxygen artifacts
+doc/output/html/
+
 # exclude the bin folder, except for some files
 bin/*
 !bin/*.sh

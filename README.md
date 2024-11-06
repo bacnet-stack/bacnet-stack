@@ -24,16 +24,19 @@ and unit testing to produce robust C code and BACnet functionality.
 About this Project
 ------------------
 
-This BACnet library provides a BACnet application layer, network layer and
-media access (MAC) layer communications services for an embedded system.
+This BACnet protocol stack library provides a BACnet application layer,
+network layer and media access (MAC) layer communications services.
+It is an open source, royalty-free library for a RTOS or bare metal
+embedded system, or full OS such as Windows, Linux, MacOS, or BSD.
 
 BACnet - A Data Communication Protocol for Building Automation and Control
-Networks - see bacnet.org. BACnet is a standard data communication protocol for
-Building Automation and Control Networks. BACnet is an open protocol, which
-means anyone can contribute to the standard, and anyone may use it. The only
-caveat is that the BACnet standard document itself is copyrighted by ASHRAE,
-and they sell the document to help defray costs of developing and maintaining
-the standard (just like IEEE or ANSI or ISO).
+Networks - see [bacnet.org](bacnet.org). BACnet is a standard data
+communication protocol for Building Automation and Control Networks.
+BACnet is an open protocol, which means anyone can contribute to the
+standard, and anyone may use it. The only caveat is that the BACnet
+standard document itself is copyrighted by ASHRAE, and they sell the
+document to help defray costs of developing and maintaining
+the standard (similar to IEEE or ANSI or ISO).
 
 For software developers, the BACnet protocol is a standard way to send and
 receive messages containing data that are understood by other BACnet
