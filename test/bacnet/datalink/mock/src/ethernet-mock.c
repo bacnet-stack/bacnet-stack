@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2020 Legrand North America, LLC.
  *
  * SPDX-License-Identifier: MIT
@@ -24,8 +24,11 @@ bool ethernet_init(char *interface_name)
     return ztest_get_return_value();
 }
 
-int ethernet_send_pdu(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
-                      uint8_t *pdu, unsigned pdu_len)
+int ethernet_send_pdu(
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len)
 {
     ztest_check_expected_value(dest);
     ztest_check_expected_value(npdu_data);
@@ -33,8 +36,8 @@ int ethernet_send_pdu(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
     return ztest_get_return_value();
 }
 
-uint16_t ethernet_receive(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu,
-                         unsigned timeout)
+uint16_t ethernet_receive(
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout)
 {
     ztest_check_expected_value(src);
     ztest_check_expected_value(timeout);
@@ -42,8 +45,7 @@ uint16_t ethernet_receive(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu,
     return ztest_get_return_value();
 }
 
-
-void ethernet_set_my_address(BACNET_ADDRESS *my_address)
+void ethernet_set_my_address(const BACNET_ADDRESS *my_address)
 {
     ztest_check_expected_data(my_address, sizeof(BACNET_ADDRESS));
 }
@@ -58,7 +60,7 @@ void ethernet_get_broadcast_address(BACNET_ADDRESS *dest)
     ztest_copy_return_data(dest, sizeof(BACNET_ADDRESS));
 }
 
-void ethernet_debug_address(const char *info, BACNET_ADDRESS *dest)
+void ethernet_debug_address(const char *info, const BACNET_ADDRESS *dest)
 {
     ztest_check_expected_value(info);
     ztest_check_expected_value(dest);

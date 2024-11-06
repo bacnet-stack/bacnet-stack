@@ -19,7 +19,7 @@
 /**
  * @brief Test
  */
-static void testIHaveData(BACNET_I_HAVE_DATA *data)
+static void testIHaveData(const BACNET_I_HAVE_DATA *data)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -68,15 +68,12 @@ static void testIHave(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(ihave_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(ihave_tests,
-     ztest_unit_test(testIHave)
-     );
+    ztest_test_suite(ihave_tests, ztest_unit_test(testIHave));
 
     ztest_run_test_suite(ihave_tests);
 }

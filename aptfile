@@ -1,6 +1,11 @@
 #!/usr/bin/env aptfile
 # ^ note the above shebang
 # https://github.com/seatgeek/bash-aptfile
+# Copied locally into tools/bash-aptfile
+# This file is used to install packages on a development environment
+# using the apt-get package manager.
+# Run using the following command:
+#   sudo ./tools/bash-aptfile/bin/aptfile ./aptfile
 
 # trigger an apt-get update
 update
@@ -19,11 +24,14 @@ package "mingw-w64"
 package "git"
 package "gitk"
 package "gitg"
+package "pre-commit"
 
 # install source code format packages
 package "tofrodos"
 package "clang-format"
 package "sloccount"
+package "complexity"
+package "pmccabe"
 
 # install ARM compiler and debugging tools
 package "gcc-arm-none-eabi"
@@ -34,7 +42,7 @@ package "gdb-multiarch"
 # install AVR compiler and debugging tools
 package "gcc-avr"
 package "avarice"
-package "avr-libc" 
+package "avr-libc"
 package "avrdude"
 package "gdb-avr"
 package "avrdude-doc"
@@ -49,4 +57,3 @@ package "codespell"
 
 # you can also execute arbitrary bash
 echo "🚀  ALL GOOD TO GO"
-

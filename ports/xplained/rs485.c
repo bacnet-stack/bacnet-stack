@@ -1,30 +1,9 @@
 /**
  * @file
- *
  * @brief RS-485 Interface
- *
- * Copyright (C) 2013 Steve Karg <skarg@users.sourceforge.net>
- *
- * @page License
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2013
+ * @copyright SPDX-License-Identifier: MIT
  */
 #include <string.h>
 #include <stdio.h>
@@ -35,8 +14,9 @@
 #include "sysclk.h"
 #include "bacnet/basic/sys/fifo.h"
 #include "bacnet/basic/sys/mstimer.h"
-#include "led.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
+#include "led.h"
 /* me! */
 #include "rs485.h"
 
@@ -70,11 +50,14 @@ static FIFO_BUFFER Transmit_Queue;
 static uint32_t Baud_Rate;
 /* timer for measuring line silence */
 static struct mstimer Silence_Timer;
-/* flag to track RTS status */
-static volatile bool RTS_Status;
+/* flag to track transmit status */
+static volatile bool Transmitting;
+/* statistics */
+static volatile uint32_t RS485_Transmit_Bytes;
+static volatile uint32_t RS485_Receive_Bytes;
 
 /**
- *  Resets the silence timer
+ * @brief Reset the silence on the wire timer.
  */
 void rs485_silence_reset(void)
 {
@@ -82,15 +65,12 @@ void rs485_silence_reset(void)
 }
 
 /**
- * Determine the amount of silence on the wire from the timer.
- *
- * @param interval - amount of time in milliseconds that line could be silent
- *
- * @return true if the line has been silent for the interval
+ * @brief Return the RS-485 silence time in milliseconds
+ * @return silence time in milliseconds
  */
-bool rs485_silence_elapsed(uint32_t interval)
+uint32_t rs485_silence_milliseconds(void)
 {
-    return (mstimer_elapsed(&Silence_Timer) > interval);
+    return mstimer_elapsed(&Silence_Timer);
 }
 
 /**
@@ -105,13 +85,13 @@ void rs485_rts_enable(bool enable)
         ioport_set_value(RS485_RE, 1);
         ioport_set_value(RS485_DE, 1);
         led_on(LED_RS485_TX);
-        RTS_Status = true;
+        Transmitting = true;
     } else {
         /* Turn Tx enable off */
         ioport_set_value(RS485_RE, 0);
         ioport_set_value(RS485_DE, 0);
         led_off_delay(LED_RS485_TX, 10);
-        RTS_Status = false;
+        Transmitting = false;
     }
 }
 
@@ -122,39 +102,7 @@ void rs485_rts_enable(bool enable)
  */
 bool rs485_rts_enabled(void)
 {
-    return RTS_Status;
-}
-
-/**
- * Baud rate determines turnaround time.
- * The minimum time after the end of the stop bit of the final octet of a
- * received frame before a node may enable its EIA-485 driver: 40 bit times.
- * At 9600 baud, 40 bit times would be about 4.166 milliseconds
- * At 19200 baud, 40 bit times would be about 2.083 milliseconds
- * At 38400 baud, 40 bit times would be about 1.041 milliseconds
- * At 57600 baud, 40 bit times would be about 0.694 milliseconds
- * At 76800 baud, 40 bit times would be about 0.520 milliseconds
- * At 115200 baud, 40 bit times would be about 0.347 milliseconds
- * 40 bits is 4 octets including a start and stop bit with each octet
- *
- * @return: amount of milliseconds to wait
- */
-static uint16_t rs485_turnaround_time(void)
-{
-    /* delay after reception before transmitting - per MS/TP spec */
-    /* wait a minimum  40 bit times since reception */
-    /* at least 2 ms for errors: rounding, clock tick */
-    return (2 + ((Tturnaround * 1000) / Baud_Rate));
-}
-
-/**
- * Use the silence timer to determine turnaround time.
- *
- * @return true if the line has been silent for the turnaround interval
- */
-bool rs485_turnaround_elapsed(void)
-{
-    return (mstimer_elapsed(&Silence_Timer) > rs485_turnaround_time());
+    return Transmitting;
 }
 
 /**
@@ -174,6 +122,7 @@ bool rs485_byte_available(uint8_t *data_register)
         led_on(LED_RS485_RX);
         if (data_register) {
             *data_register = FIFO_Get(&Receive_Queue);
+            RS485_Receive_Bytes++;
         }
         data_available = true;
     }
@@ -192,23 +141,13 @@ bool rs485_receive_error(void)
 }
 
 /**
- * Determines if the entire frame is sent from USART FIFO
- *
- * @return true if the USART FIFO is empty
- */
-bool rs485_frame_sent(void)
-{
-    return usart_tx_is_complete(&RS485_USART);
-}
-
-/**
  *  Transmit one or more bytes on RS-485. Can be called while transmitting to
  * add additional bytes to transmit queue.
  *
  * @param buffer - array of one or more bytes to transmit
  * @param nbytes - number of bytes to transmit
  */
-bool rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
+void rs485_bytes_send(const uint8_t *buffer, uint16_t nbytes)
 {
     bool status = false;
     bool start_required = false;
@@ -226,10 +165,9 @@ bool rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
             usart_clear_tx_complete(&RS485_USART);
             usart_set_tx_interrupt_level(&RS485_USART, USART_INT_LVL_LO);
             usart_putchar(&RS485_USART, ch);
+            RS485_Transmit_Bytes++;
         }
     }
-
-    return status;
 }
 
 /**
@@ -273,6 +211,44 @@ uint32_t rs485_baud_rate(void)
 }
 
 /**
+ * @brief Set the baud in kili-baud
+ * @param baud_k baud rate in approximate kilobaud
+*/
+bool rs485_kbaud_rate_set(uint8_t baud_k)
+{
+    uint32_t baud = 38400;
+
+    if (baud_k == 255) {
+        baud = 38400;
+    } else if (baud_k >= 115) {
+        baud = 115200;
+    } else if (baud_k >= 76) {
+        baud = 76800;
+    } else if (baud_k >= 57) {
+        baud = 57600;
+    } else if (baud_k >= 38) {
+        baud = 38400;
+    } else if (baud_k >= 19) {
+        baud = 19200;
+    } else if (baud_k >= 9) {
+        baud = 9600;
+    }
+
+    return rs485_baud_rate_set(baud);
+}
+
+/**
+* Converts baud in bps to kili-baud
+*
+* @param baud - baud rate in bps
+* @return: baud rate in approximate kilo-baud
+*/
+uint8_t rs485_kbaud_rate(void)
+{
+    return Baud_Rate/1000;
+}
+
+/**
  * Initialize the RS-485 baud rate
  *
  * @param baud - RS-485 baud rate in bits per second (bps)
@@ -303,6 +279,24 @@ bool rs485_baud_rate_set(uint32_t baud)
     }
 
     return valid;
+}
+
+/**
+ * @brief Return the RS-485 statistics for transmit bytes
+ * @return number of bytes transmitted
+ */
+uint32_t rs485_bytes_transmitted(void)
+{
+    return RS485_Transmit_Bytes;
+}
+
+/**
+ * @brief Return the RS-485 statistics for receive bytes
+ * @return number of bytes received
+ */
+uint32_t rs485_bytes_received(void)
+{
+    return RS485_Receive_Bytes;
 }
 
 /**

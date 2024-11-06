@@ -1,31 +1,19 @@
-/**************************************************************************
-*
-* Copyright (C) 2004 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
-#ifndef CONFIG_H
-#define CONFIG_H
+/**
+ * @file
+ * @brief Default configuration for BACnet Stack library
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2004
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_CONFIG_H_
+#define BACNET_CONFIG_H_
 
-/* Include BACnet Specific conf */
+/**
+ * @note configurations are default to values used in the example apps build.
+ * Use a local copy named "bacnet-config.h" with settings configured for
+ * the product specific needs for code space reductions in your device.
+ * Alternately, use a compiler and linker to override these defines.
+ */
 #if defined(BACNET_CONFIG_H)
 #include "bacnet-config.h"
 #endif
@@ -33,19 +21,79 @@
 /* Note: these defines can be defined in your makefile or project
    or here or not defined and defaults will be used */
 
-/* declare a single physical layer using your compiler define.
-   see datalink.h for possible defines. */
-#if !(defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || \
-    defined(BACDL_MSTP) || defined(BACDL_BIP) || defined(BACDL_BIP6) || \
-    defined(BACDL_TEST) || defined(BACDL_ALL) || defined(BACDL_NONE) || \
-    defined(BACDL_CUSTOM))
+/* Declare a physical layers using your compiler define. See
+   datalink.h for possible defines. */
+
+/* For backward compatibility for old BACDL_ALL */
+#if defined(BACDL_ALL)
+#define BACDL_ETHERNET
+#define BACDL_ARCNET
+#define BACDL_MSTP
+#define BACDL_BIP
+#define BACDL_BIP6
+#define BACDL_BSC
+#endif
+
+#if defined(BACDL_ETHERNET)
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_ARCNET)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_MSTP)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_BIP)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_BIP6)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_BSC)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#define BACDL_SOME_DATALINK_ENABLED 1
+#endif
+
+#if defined(BACDL_CUSTOM)
+#if defined(BACDL_SOME_DATALINK_ENABLED)
+#define BACDL_MULTIPLE 1
+#endif
+#endif
+
+#if defined(BACDL_SOME_DATALINK_ENABLED) && defined(BACDL_NONE)
+#error "BACDL_NONE is not compatible with other BACDL_ defines"
+#elif !defined(BACDL_SOME_DATALINK_ENABLED) && !defined(BACDL_NONE) && \
+    !defined(BACDL_TEST)
+/* If none of the datalink is enabled let's default to BIP. */
 #define BACDL_BIP
 #endif
 
 /* optional configuration for BACnet/IP datalink layer */
-#if (defined(BACDL_BIP) || defined(BACDL_ALL))
+#if (defined(BACDL_BIP))
 #if !defined(BBMD_ENABLED)
 #define BBMD_ENABLED 1
+#endif
+#if !defined(BBMD_CLIENT_ENABLED)
+#define BBMD_CLIENT_ENABLED 1
 #endif
 #endif
 
@@ -59,9 +107,9 @@
 /* Enable the Gateway (Routing) functionality here, if desired. */
 #if !defined(MAX_NUM_DEVICES)
 #ifdef BAC_ROUTING
-#define MAX_NUM_DEVICES 32       /* Eg, Gateway + 31 remote devices */
+#define MAX_NUM_DEVICES 32 /* Eg, Gateway + 31 remote devices */
 #else
-#define MAX_NUM_DEVICES 1       /* Just the one normal BACnet Device Object */
+#define MAX_NUM_DEVICES 1 /* Just the one normal BACnet Device Object */
 #endif
 #endif
 
@@ -77,28 +125,51 @@
 /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
 /* This is used in constructing messages and to tell others our limits */
 /* 50 is the minimum; adjust to your memory and physical layer constraints */
-/* Lon=206, MS/TP=480, ARCNET=480, Ethernet=1476, BACnet/IP=1476 */
+/* Lon=206, MS/TP=480 or 1476, ARCNET=480, Ethernet=1476, BACnet/IP=1476 */
 #if !defined(MAX_APDU)
-    /* #define MAX_APDU 50 */
-    /* #define MAX_APDU 1476 */
+/* #define MAX_APDU 50 */
+/* #define MAX_APDU 1476 */
 #if defined(BACDL_BIP)
 #define MAX_APDU 1476
-/* #define MAX_APDU 128 enable this IP for testing
-   readrange so you get the More Follows flag set */
+/* Enable this IP for testing readrange so you get the More Follows flag set */
+/* #define MAX_APDU 128 */
 #elif defined(BACDL_BIP6)
 #define MAX_APDU 1476
-#elif defined (BACDL_ETHERNET)
-#if defined(BACNET_SECURITY)
-#define MAX_APDU 1420
-#else
+#elif defined(BACDL_MSTP) && !defined(BACNET_SECURITY)
+/* note: MS/TP extended frames can be up to 1476 bytes */
 #define MAX_APDU 1476
-#endif
-#else
-#if defined(BACNET_SECURITY)
+#elif defined(BACDL_ETHERNET) && !defined(BACNET_SECURITY)
+#define MAX_APDU 1476
+#elif defined(BACDL_ETHERNET) && defined(BACNET_SECURITY)
+#define MAX_APDU 1420
+#elif !defined(BACNET_SECURITY)
+#define MAX_APDU 480
+#elif defined(BACDL_MSTP) && defined(BACNET_SECURITY)
+/* TODO: Is this really 412 or should it be 480? */
 #define MAX_APDU 412
 #else
-#define MAX_APDU 480
+#define MAX_APDU 412
 #endif
+#endif
+
+#if defined(BACDL_BSC)
+#ifndef SC_NETPORT_BVLC_MAX
+#define SC_NETPORT_BVLC_MAX 1500
+#endif
+#ifndef SC_NETPORT_NPDU_MAX
+#define SC_NETPORT_NPDU_MAX 1500
+#endif
+#ifndef SC_NETPORT_CONNECT_TIMEOUT
+#define SC_NETPORT_CONNECT_TIMEOUT 5
+#endif
+#ifndef SC_NETPORT_HEARTBEAT_TIMEOUT
+#define SC_NETPORT_HEARTBEAT_TIMEOUT 60
+#endif
+#ifndef SC_NETPORT_DISCONNECT_TIMEOUT
+#define SC_NETPORT_DISCONNECT_TIMEOUT 150
+#endif
+#ifndef SC_NETPORT_RECONNECT_TIME
+#define SC_NETPORT_RECONNECT_TIME 2
 #endif
 #endif
 
@@ -126,7 +197,9 @@
 
 /* BACAPP decodes WriteProperty service requests
    Choose the datatypes that your application supports */
-#if !(defined(BACAPP_ALL) || \
+/* clang-format off */
+#if !( \
+    defined(BACAPP_ALL) || \
     defined(BACAPP_MINIMAL) || \
     defined(BACAPP_NULL) || \
     defined(BACAPP_BOOLEAN) || \
@@ -141,26 +214,38 @@
     defined(BACAPP_DATE) || \
     defined(BACAPP_TIME) || \
     defined(BACAPP_OBJECT_ID) || \
+    defined(BACAPP_DATETIME) || \
+    defined(BACAPP_DATERANGE) || \
+    defined(BACAPP_LIGHTING_COMMAND) || \
+    defined(BACAPP_XY_COLOR) || \
+    defined(BACAPP_COLOR_COMMAND) || \
+    defined(BACAPP_WEEKLY_SCHEDULE) || \
+    defined(BACAPP_CALENDAR_ENTRY) || \
+    defined(BACAPP_SPECIAL_EVENT) || \
+    defined(BACAPP_HOST_N_PORT) || \
+    defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE) || \
+    defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
+    defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
+    defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_BDT_ENTRY) || \
+    defined(BACAPP_FDT_ENTRY) || \
+    defined(BACAPP_ACTION_COMMAND) || \
+    defined(BACAPP_SCALE) || \
+    defined(BACAPP_SHED_LEVEL) || \
+    defined(BACAPP_ACCESS_RULE) || \
+    defined(BACAPP_CHANNEL_VALUE) || \
+    defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
+/* clang-format on */
 
-#if defined (BACAPP_ALL)
-#define BACAPP_NULL
-#define BACAPP_BOOLEAN
-#define BACAPP_UNSIGNED
-#define BACAPP_SIGNED
-#define BACAPP_REAL
-#define BACAPP_DOUBLE
-#define BACAPP_OCTET_STRING
-#define BACAPP_CHARACTER_STRING
-#define BACAPP_BIT_STRING
-#define BACAPP_ENUMERATED
-#define BACAPP_DATE
-#define BACAPP_TIME
-#define BACAPP_OBJECT_ID
+#if defined(BACAPP_ALL)
+#define BACAPP_MINIMAL
 #define BACAPP_TYPES_EXTRA
-#elif defined (BACAPP_MINIMAL)
+#endif
+
+#if defined(BACAPP_MINIMAL)
 #define BACAPP_NULL
 #define BACAPP_BOOLEAN
 #define BACAPP_UNSIGNED
@@ -174,6 +259,59 @@
 #define BACAPP_TIME
 #define BACAPP_OBJECT_ID
 #endif
+
+#if defined(BACAPP_TYPES_EXTRA)
+#define BACAPP_DOUBLE
+#define BACAPP_TIMESTAMP
+#define BACAPP_DATETIME
+#define BACAPP_DATERANGE
+#define BACAPP_LIGHTING_COMMAND
+#define BACAPP_XY_COLOR
+#define BACAPP_COLOR_COMMAND
+#define BACAPP_WEEKLY_SCHEDULE
+#define BACAPP_CALENDAR_ENTRY
+#define BACAPP_SPECIAL_EVENT
+#define BACAPP_HOST_N_PORT
+#define BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE
+#define BACAPP_DEVICE_OBJECT_REFERENCE
+#define BACAPP_OBJECT_PROPERTY_REFERENCE
+#define BACAPP_DESTINATION
+#define BACAPP_BDT_ENTRY
+#define BACAPP_FDT_ENTRY
+#define BACAPP_ACTION_COMMAND
+#define BACAPP_SCALE
+#define BACAPP_SHED_LEVEL
+#define BACAPP_ACCESS_RULE
+#define BACAPP_CHANNEL_VALUE
+#define BACAPP_SECURE_CONNECT
+#endif
+
+/* clang-format off */
+#if defined(BACAPP_DOUBLE) || \
+    defined(BACAPP_DATETIME) || \
+    defined(BACAPP_DATERANGE) || \
+    defined(BACAPP_LIGHTING_COMMAND) || \
+    defined(BACAPP_XY_COLOR) || \
+    defined(BACAPP_COLOR_COMMAND) || \
+    defined(BACAPP_WEEKLY_SCHEDULE) || \
+    defined(BACAPP_CALENDAR_ENTRY) || \
+    defined(BACAPP_SPECIAL_EVENT) || \
+    defined(BACAPP_HOST_N_PORT) || \
+    defined(BACAPP_DEVICE_OBJECT_PROPERTY_REFERENCE) || \
+    defined(BACAPP_DEVICE_OBJECT_REFERENCE) || \
+    defined(BACAPP_OBJECT_PROPERTY_REFERENCE) || \
+    defined(BACAPP_DESTINATION) || \
+    defined(BACAPP_SECURE_CONNECT) || \
+    defined(BACAPP_BDT_ENTRY) || \
+    defined(BACAPP_FDT_ENTRY) || \
+    defined(BACAPP_ACTION_COMMAND) || \
+    defined(BACAPP_SCALE) || \
+    defined(BACAPP_SHED_LEVEL) || \
+    defined(BACAPP_ACCESS_RULE) || \
+    defined(BACAPP_CHANNEL_VALUE)
+#define BACAPP_COMPLEX_TYPES
+#endif
+/* clang-format on */
 
 /*
 ** Set the maximum vector type sizes
@@ -183,42 +321,42 @@
 #endif
 
 #ifndef MAX_CHARACTER_STRING_BYTES
-#define MAX_CHARACTER_STRING_BYTES (MAX_APDU-6)
+#define MAX_CHARACTER_STRING_BYTES (MAX_APDU - 6)
 #endif
 
 #ifndef MAX_OCTET_STRING_BYTES
-#define MAX_OCTET_STRING_BYTES (MAX_APDU-6)
+#define MAX_OCTET_STRING_BYTES (MAX_APDU - 6)
 #endif
 
-/*
-** Control the selection of services etc to enable code size reduction for those
-** compiler suites which do not handle removing of unused functions in modules
-** so well.
-**
-** We will start with the A type services code first as these are least likely
-** to be required in embedded systems using the stack.
-*/
+/**
+ * @note Control the selection of services etc to enable code size reduction
+ * for those compiler suites which do not handle removing of unused functions
+ * in modules so well.
+ *
+ * We will start with the A type services code first as these are least likely
+ * to be required in embedded systems using the stack.
+ */
+#ifndef BACNET_SVC_SERVER
+/* default to client-server device for the example apps to build. */
+#define BACNET_SVC_SERVER 0
+#endif
 
-/*
-** Note: I've left everything enabled here in the default config.h. You should
-** use a local copy of config.h with settings configured for your needs to
-** make use of any code space reductions in your device.
-**/
-
-#define BACNET_SVC_I_HAVE_A    1
-#define BACNET_SVC_WP_A        1
-#define BACNET_SVC_RP_A        1
-#define BACNET_SVC_RPM_A       1
-#define BACNET_SVC_DCC_A       1
-#define BACNET_SVC_RD_A        1
-#define BACNET_SVC_TS_A        1
-#define BACNET_SVC_SERVER      0
+#if (BACNET_SVC_SERVER == 0)
+/* client-server device */
+#define BACNET_SVC_I_HAVE_A 1
+#define BACNET_SVC_WP_A 1
+#define BACNET_SVC_RP_A 1
+#define BACNET_SVC_RPM_A 1
+#define BACNET_SVC_DCC_A 1
+#define BACNET_SVC_RD_A 1
+#define BACNET_SVC_TS_A 1
 #define BACNET_USE_OCTETSTRING 1
-#define BACNET_USE_DOUBLE      1
-#define BACNET_USE_SIGNED      1
+#define BACNET_USE_DOUBLE 1
+#define BACNET_USE_SIGNED 1
+#endif
 
 /* Do them one by one */
-#ifndef BACNET_SVC_I_HAVE_A     /* Do we send I_Have requests? */
+#ifndef BACNET_SVC_I_HAVE_A /* Do we send I_Have requests? */
 #define BACNET_SVC_I_HAVE_A 0
 #endif
 
@@ -230,11 +368,11 @@
 #define BACNET_SVC_RP_A 0
 #endif
 
-#ifndef BACNET_SVC_RPM_A        /* Do we send ReadPropertyMultiple requests? */
+#ifndef BACNET_SVC_RPM_A /* Do we send ReadPropertyMultiple requests? */
 #define BACNET_SVC_RPM_A 0
 #endif
 
-#ifndef BACNET_SVC_DCC_A        /* Do we send DeviceCommunicationControl requests? */
+#ifndef BACNET_SVC_DCC_A /* Do we send DeviceCommunicationControl requests? */
 #define BACNET_SVC_DCC_A 0
 #endif
 
@@ -242,19 +380,15 @@
 #define BACNET_SVC_RD_A 0
 #endif
 
-#ifndef BACNET_SVC_SERVER       /* Are we a pure server type device? */
-#define BACNET_SVC_SERVER 1
-#endif
-
-#ifndef BACNET_USE_OCTETSTRING  /* Do we need any octet strings? */
+#ifndef BACNET_USE_OCTETSTRING /* Do we need any octet strings? */
 #define BACNET_USE_OCTETSTRING 0
 #endif
 
-#ifndef BACNET_USE_DOUBLE       /* Do we need any doubles? */
+#ifndef BACNET_USE_DOUBLE /* Do we need any doubles? */
 #define BACNET_USE_DOUBLE 0
 #endif
 
-#ifndef BACNET_USE_SIGNED       /* Do we need any signed integers */
+#ifndef BACNET_USE_SIGNED /* Do we need any signed integers */
 #define BACNET_USE_SIGNED 0
 #endif
 

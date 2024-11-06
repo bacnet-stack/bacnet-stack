@@ -20,18 +20,20 @@
 /**
  * @brief Test ReadProperty API
  */
-static void test_Device_ReadProperty(void)
+static void test_Device_Data_Sharing(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
     int test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata;
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     /* for decode value data */
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int *pRequired = NULL;
     const int *pOptional = NULL;
     const int *pProprietary = NULL;
     unsigned count = 0;
+    bool status = false;
 
     Device_Init(NULL);
     count = Device_Count();
@@ -39,28 +41,44 @@ static void test_Device_ReadProperty(void)
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_DEVICE;
-    rpdata.object_instance = Device_Index_To_Instance(0);;
+    rpdata.object_instance = Device_Index_To_Instance(0);
     Device_Property_Lists(&pRequired, &pOptional, &pProprietary);
     while ((*pRequired) != -1) {
         rpdata.object_property = *pRequired;
         rpdata.array_index = BACNET_ARRAY_ALL;
         len = Device_Read_Property(&rpdata);
-        zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
+            "property '%s': failed to ReadProperty!\n",
+            bactext_property_name(rpdata.object_property));
         if (len > 0) {
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            if (len != test_len) {
-                printf("property '%s': failed to decode!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-            if (rpdata.object_property == PROP_PRIORITY_ARRAY) {
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
+            if ((rpdata.object_property == PROP_PRIORITY_ARRAY) ||
+                (rpdata.object_property == PROP_OBJECT_LIST)) {
                 /* FIXME: known fail to decode */
                 len = test_len;
             }
-            zassert_true(test_len >= 0, NULL);
-        } else {
-            printf("property '%s': failed to read!\n",
+            zassert_equal(
+                test_len, len, "property '%s': failed to decode!\n",
                 bactext_property_name(rpdata.object_property));
+            /* check WriteProperty properties */
+            wpdata.object_type = rpdata.object_type;
+            wpdata.object_instance = rpdata.object_instance;
+            wpdata.object_property = rpdata.object_property;
+            wpdata.array_index = rpdata.array_index;
+            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
+            wpdata.application_data_len = len;
+            wpdata.error_code = ERROR_CODE_SUCCESS;
+            status = Device_Write_Property(&wpdata);
+            if (!status) {
+                /* verify WriteProperty property is known */
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
+                    "property '%s': WriteProperty Unknown!\n",
+                    bactext_property_name(rpdata.object_property));
+            }
         }
         pRequired++;
     }
@@ -68,18 +86,38 @@ static void test_Device_ReadProperty(void)
         rpdata.object_property = *pOptional;
         rpdata.array_index = BACNET_ARRAY_ALL;
         len = Device_Read_Property(&rpdata);
-        zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+        zassert_not_equal(
+            len, BACNET_STATUS_ERROR,
+            "property '%s': failed to ReadProperty!\n",
+            bactext_property_name(rpdata.object_property));
         if (len > 0) {
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, (uint8_t)rpdata.application_data_len,
+                &value);
             if (len != test_len) {
-                printf("property '%s': failed to decode!\n",
+                printf(
+                    "property '%s': failed to decode!\n",
                     bactext_property_name(rpdata.object_property));
             }
-            zassert_true(test_len >= 0, NULL);
-        } else {
-            printf("property '%s': failed to read!\n",
+            zassert_equal(
+                test_len, len, "property '%s': failed to decode!\n",
                 bactext_property_name(rpdata.object_property));
+            /* check WriteProperty properties */
+            wpdata.object_type = rpdata.object_type;
+            wpdata.object_instance = rpdata.object_instance;
+            wpdata.object_property = rpdata.object_property;
+            wpdata.array_index = rpdata.array_index;
+            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
+            wpdata.application_data_len = len;
+            wpdata.error_code = ERROR_CODE_SUCCESS;
+            status = Device_Write_Property(&wpdata);
+            if (!status) {
+                /* verify WriteProperty property is known */
+                zassert_not_equal(
+                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
+                    "property '%s': WriteProperty Unknown!\n",
+                    bactext_property_name(rpdata.object_property));
+            }
         }
         pOptional++;
     }
@@ -96,6 +134,7 @@ static void testDevice(void)
 {
     bool status = false;
     const char *name = "Patricia";
+    BACNET_REINITIALIZE_DEVICE_DATA rd_data;
 
     status = Device_Set_Object_Instance_Number(0);
     zassert_equal(Device_Object_Instance_Number(), 0, NULL);
@@ -120,22 +159,85 @@ static void testDevice(void)
     Device_Set_Model_Name(name, strlen(name));
     zassert_equal(strcmp(Device_Model_Name(), name), 0, NULL);
 
+    /* Reinitialize with no device password */
+    rd_data.error_class = ERROR_CLASS_DEVICE;
+    rd_data.error_code = ERROR_CODE_SUCCESS;
+    rd_data.state = BACNET_REINIT_COLDSTART;
+    characterstring_init_ansi(&rd_data.password, NULL);
+    status = Device_Reinitialize_Password_Set(NULL);
+    status = Device_Reinitialize(&rd_data);
+    zassert_true(status, NULL);
+    zassert_equal(
+        rd_data.error_class, ERROR_CLASS_DEVICE, "error-class=%s",
+        bactext_error_class_name(rd_data.error_class));
+    zassert_equal(
+        rd_data.error_code, ERROR_CODE_SUCCESS, "error-code=%s",
+        bactext_error_code_name(rd_data.error_code));
+    /* Reinitialize with device valid password, service no password */
+    status = Device_Reinitialize_Password_Set("valid");
+    zassert_true(status, NULL);
+    status = characterstring_init_ansi(&rd_data.password, NULL);
+    zassert_true(status, NULL);
+    status = Device_Reinitialize(&rd_data);
+    zassert_false(status, NULL);
+    zassert_equal(
+        rd_data.error_class, ERROR_CLASS_SECURITY, "error-class=%s",
+        bactext_error_class_name(rd_data.error_class));
+    zassert_equal(
+        rd_data.error_code, ERROR_CODE_PASSWORD_FAILURE, "error-code=%s",
+        bactext_error_code_name(rd_data.error_code));
+    /* Reinitialize with device valid password, service invalid password */
+    status = characterstring_init_ansi(&rd_data.password, "invalid");
+    zassert_true(status, NULL);
+    status = Device_Reinitialize(&rd_data);
+    zassert_false(status, NULL);
+    zassert_equal(
+        rd_data.error_class, ERROR_CLASS_SECURITY, "error-class=%s",
+        bactext_error_class_name(rd_data.error_class));
+    zassert_equal(
+        rd_data.error_code, ERROR_CODE_PASSWORD_FAILURE, "error-code=%s",
+        bactext_error_code_name(rd_data.error_code));
+    /* Reinitialize with device valid password, service valid password */
+    characterstring_init_ansi(&rd_data.password, "valid");
+    status = Device_Reinitialize(&rd_data);
+    zassert_true(status, NULL);
+    /* Reinitialize with device valid password, service too long password */
+    characterstring_init_ansi(&rd_data.password, "abcdefghijklmnopqrstuvwxyz");
+    status = Device_Reinitialize(&rd_data);
+    zassert_false(status, NULL);
+    zassert_equal(
+        rd_data.error_class, ERROR_CLASS_SERVICES, "error-class=%s",
+        bactext_error_class_name(rd_data.error_class));
+    zassert_equal(
+        rd_data.error_code, ERROR_CODE_PARAMETER_OUT_OF_RANGE, "error-code=%s",
+        bactext_error_code_name(rd_data.error_code));
+    /* Reinitialize with device no password, unsupported state */
+    status = Device_Reinitialize_Password_Set(NULL);
+    zassert_true(status, NULL);
+    rd_data.state = BACNET_REINIT_MAX;
+    status = Device_Reinitialize(&rd_data);
+    zassert_false(status, NULL);
+    zassert_equal(
+        rd_data.error_class, ERROR_CLASS_SERVICES, "error-class=%s",
+        bactext_error_class_name(rd_data.error_class));
+    zassert_equal(
+        rd_data.error_code, ERROR_CODE_PARAMETER_OUT_OF_RANGE, "error-code=%s",
+        bactext_error_code_name(rd_data.error_code));
+
     return;
 }
 /**
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(device_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(device_tests,
-     ztest_unit_test(testDevice),
-     ztest_unit_test(test_Device_ReadProperty)
-     );
+    ztest_test_suite(
+        device_tests, ztest_unit_test(testDevice),
+        ztest_unit_test(test_Device_Data_Sharing));
 
     ztest_run_test_suite(device_tests);
 }

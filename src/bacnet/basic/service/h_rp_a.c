@@ -1,36 +1,19 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @author Steve Karg
+ * @date 2006
+ * @brief A basic ReadProperty-Ack service handler
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/bactext.h"
 #include "bacnet/rp.h"
 /* some demo stuff needed */
@@ -39,11 +22,10 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/datalink/datalink.h"
 
 #define PRINTF debug_aprintf
 #define PRINTF_ERR debug_perror
-
-/** @file h_rp_a.c  Handles Read Property Acknowledgments. */
 
 /** For debugging...
  * @param [in] data portion of the ACK
@@ -53,7 +35,7 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
 #ifdef BACAPP_PRINT_ENABLED
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
 #endif
-    BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     int len = 0;
     uint8_t *application_data;
     int application_data_len;
@@ -68,12 +50,13 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
         /* FIXME: what if application_data_len is bigger than 255? */
         /* value? need to loop until all of the len is gone... */
         for (;;) {
-            len = bacapp_decode_known_property(application_data,
-                (unsigned)application_data_len, &value, data->object_type,
-                data->object_property);
+            len = bacapp_decode_known_property(
+                application_data, (unsigned)application_data_len, &value,
+                data->object_type, data->object_property);
 
             if (len < 0) {
-                PRINTF_ERR("RP Ack: unable to decode! %s:%s\n",
+                PRINTF_ERR(
+                    "RP Ack: unable to decode! %s:%s\n",
                     bactext_object_type_name(data->object_type),
                     bactext_property_name(data->object_property));
                 break;
@@ -110,8 +93,9 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
             }
         }
 #if PRINT_ENABLED
-        if (print_brace)
+        if (print_brace) {
             fprintf(stdout, "}");
+        }
         fprintf(stdout, "\r\n");
 #endif
     }
@@ -128,7 +112,8 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_read_property_ack(uint8_t *service_request,
+void handler_read_property_ack(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
@@ -157,9 +142,9 @@ void handler_read_property_ack(uint8_t *service_request,
  * @param apdu [in] The received apdu data.
  * @param apdu_len [in] Total length of the apdu.
  * @param read_access_data [out] Pointer to the head of the linked list
- * 			where the RP data is to be stored.
+ *          where the RP data is to be stored.
  * @return Number of decoded bytes (could be less than apdu_len),
- * 			or -1 on decoding error.
+ *          or -1 on decoding error.
  */
 int rp_ack_fully_decode_service_request(
     uint8_t *apdu, int apdu_len, BACNET_READ_ACCESS_DATA *read_access_data)

@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 
@@ -59,14 +42,17 @@
 #include "bacnet/basic/object/bacfile.h"
 #endif
 
-/** Static receive buffer, initialized with zeros by the C Library Startup Code. */
+/** Static receive buffer, initialized with zeros by the C Library Startup Code.
+ */
 
-static uint8_t Rx_Buf[MAX_MPDU + 16 /* Add a little safety margin to the buffer,
-                                     * so that in the rare case, the message
-                                     * would be filled up to MAX_MPDU and some
-                                     * decoding functions would overrun, these
-                                     * decoding functions will just end up in
-                                     * a safe field of static zeros. */] = { 0 };
+static uint8_t Rx_Buf
+    [MAX_MPDU + 16 /* Add a little safety margin to the buffer,
+                    * so that in the rare case, the message
+                    * would be filled up to MAX_MPDU and some
+                    * decoding functions would overrun, these
+                    * decoding functions will just end up in
+                    * a safe field of static zeros. */
+] = { 0 };
 
 /* send a whois to see who is on the network */
 static bool Who_Is_Request = true;
@@ -85,9 +71,10 @@ static void Read_Properties(void)
        Device Object
        note: you could just loop through
        all the properties in all the objects. */
-    const int object_props[] = { PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
-        PROP_OBJECT_TYPE, PROP_SYSTEM_STATUS, PROP_VENDOR_NAME,
-        PROP_VENDOR_IDENTIFIER, PROP_MODEL_NAME, PROP_FIRMWARE_REVISION,
+    const int object_props[] = {
+        PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+        PROP_SYSTEM_STATUS, PROP_VENDOR_NAME, PROP_VENDOR_IDENTIFIER,
+        PROP_MODEL_NAME, PROP_FIRMWARE_REVISION,
         PROP_APPLICATION_SOFTWARE_VERSION, PROP_PROTOCOL_VERSION,
         PROP_PROTOCOL_SERVICES_SUPPORTED, PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
         PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_SEGMENTATION_SUPPORTED,
@@ -102,27 +89,31 @@ static void Read_Properties(void)
         /* some proprietary properties */
         514, 515,
         /* end of list */
-        -1 };
+        -1
+    };
 
     if (address_count()) {
         if (address_get_by_index(index, &device_id, &max_apdu, &src)) {
-            if (object_props[property] < 0)
+            if (object_props[property] < 0) {
                 next_device = true;
-            else {
+            } else {
                 status = Send_Read_Property_Request(
                     device_id, /* destination device */
                     OBJECT_DEVICE, device_id, object_props[property],
                     BACNET_ARRAY_ALL);
-                if (status)
+                if (status) {
                     property++;
+                }
             }
-        } else
+        } else {
             next_device = true;
+        }
         if (next_device) {
             next_device = false;
             index++;
-            if (index >= MAX_ADDRESS_CACHE)
+            if (index >= MAX_ADDRESS_CACHE) {
                 index = 0;
+            }
             property = 0;
         }
     }
@@ -147,8 +138,9 @@ static void LocalIAmHandler(
     if (len != -1) {
         fprintf(stderr, " from %u!\n", device_id);
         address_add(device_id, max_apdu, src);
-    } else
+    } else {
         fprintf(stderr, "!\n");
+    }
 
     return;
 }
@@ -278,8 +270,9 @@ int main(int argc, char *argv[])
         /* blink LEDs, Turn on or off outputs, etc */
 
         /* wait for ESC from keyboard before quitting */
-        if (kbhit() && (getch() == 0x1B))
+        if (kbhit() && (getch() == 0x1B)) {
             break;
+        }
     }
 
     print_address_cache();

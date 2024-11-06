@@ -12,32 +12,33 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
-
 #define PRINT_ENABLED 1
-
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/config.h"
+/* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/list_element.h"
 #include "bacnet/whois.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/basic/object/device.h"
+
+#if BACNET_SVC_SERVER
+#error "App requires server-only features disabled! Set BACNET_SVC_SERVER=0"
+#endif
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -56,7 +57,8 @@ static bool Error_Detected = false;
 /* Used for verbose */
 static bool Verbose = false;
 
-static void MyAddListElementErrorHandler(BACNET_ADDRESS *src,
+static void MyAddListElementErrorHandler(
+    BACNET_ADDRESS *src,
     uint8_t invoke_id,
     uint8_t service_choice,
     uint8_t *service_request,
@@ -71,7 +73,8 @@ static void MyAddListElementErrorHandler(BACNET_ADDRESS *src,
         len = list_element_error_ack_decode(
             service_request, service_len, &list_element);
         if (len > 0) {
-            printf("BACnet Error: %s: %s [first-failed=%u]\n",
+            printf(
+                "BACnet Error: %s: %s [first-failed=%u]\n",
                 bactext_error_class_name((int)list_element.error_class),
                 bactext_error_code_name((int)list_element.error_code),
                 (unsigned)list_element.first_failed_element_number);
@@ -80,8 +83,8 @@ static void MyAddListElementErrorHandler(BACNET_ADDRESS *src,
     }
 }
 
-static void MyAddListElementSimpleAckHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id)
+static void
+MyAddListElementSimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
@@ -101,13 +104,14 @@ static void MyAbortHandler(
     }
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+static void
+MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\n",
+        printf(
+            "BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -136,16 +140,17 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static void print_usage(char *filename)
+static void print_usage(const char *filename)
 {
-    printf("Usage: %s device-instance object-type object-instance "
-           "property array-index tag value\n",
+    printf(
+        "Usage: %s device-instance object-type object-instance "
+        "property array-index tag value\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help][--verbose]\n");
 }
 
-static void print_help(char *filename)
+static void print_help(const char *filename)
 {
     printf("Add a BACnetLIST element to a property of an object\n"
            "in a BACnet device.\n");
@@ -210,10 +215,11 @@ static void print_help(char *filename)
         "the Any property type in the schedule object and the Present Value\n"
         "accepting REAL, BOOLEAN, NULL, etc.\n");
     printf("\n");
-    printf("Example:\n"
-           "If you want to AddListElement to the Recipient-List property in\n"
-           "Notification Class 1 of Device 123, send the following command:\n"
-           "%s 123 15 1 102 -1 4 100\n",
+    printf(
+        "Example:\n"
+        "If you want to AddListElement to the Recipient-List property in\n"
+        "Notification Class 1 of Device 123, send the following command:\n"
+        "%s 123 15 1 102 -1 4 100\n",
         filename);
 }
 
@@ -243,7 +249,7 @@ int main(int argc, char *argv[])
     bool specific_address = false;
     unsigned int target_args = 0;
     int argi = 0;
-    char *filename = NULL;
+    const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -285,9 +291,9 @@ int main(int argc, char *argv[])
         } else {
             if (target_args == 0) {
                 object_instance = strtoul(argv[argi], NULL, 0);
-                if (object_instance >= BACNET_MAX_INSTANCE) {
-                    fprintf(stderr,
-                        "device-instance=%u - it must be less than %u\n",
+                if (object_instance > BACNET_MAX_INSTANCE) {
+                    fprintf(
+                        stderr, "device-instance=%u - not greater than %u\n",
                         object_instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -303,9 +309,9 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 2) {
                 object_instance = strtoul(argv[argi], NULL, 0);
-                if (object_instance >= BACNET_MAX_INSTANCE) {
-                    fprintf(stderr,
-                        "device-instance=%u - it must be less than %u\n",
+                if (object_instance > BACNET_MAX_INSTANCE) {
+                    fprintf(
+                        stderr, "device-instance=%u - not greater than %u\n",
                         Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
                     return 1;
                 }
@@ -329,7 +335,8 @@ int main(int argc, char *argv[])
                 property_array_index = strtol(argv[argi], NULL, 0);
                 Target_Object_Array_Index = property_array_index;
                 if (Verbose) {
-                    printf("Array_Index=%i=%s\n", property_array_index,
+                    printf(
+                        "Array_Index=%i=%s\n", property_array_index,
                         argv[argi]);
                 }
                 target_args++;
@@ -356,14 +363,16 @@ int main(int argc, char *argv[])
                 } else if (tag_value_arg == 1) {
                     value_string = argv[argi];
                     if (Verbose) {
-                        printf("tag=%ld value=%s\n", property_tag, value_string);
+                        printf(
+                            "tag=%ld value=%s\n", property_tag, value_string);
                     }
                     if (property_tag < 0) {
                         /* find the application tag for internal properties */
                         property_tag = bacapp_known_property_tag(
                             Target_Object_Type, Target_Object_Property);
                     } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-                        fprintf(stderr,
+                        fprintf(
+                            stderr,
                             "Error: tag=%ld - it must be less than %u\n",
                             property_tag, MAX_BACNET_APPLICATION_TAG);
                         return 1;
@@ -373,13 +382,15 @@ int main(int argc, char *argv[])
                         status = bacapp_parse_application_data(
                             property_tag, value_string, application_value);
                         if (!status) {
-                            fprintf(stderr,
+                            fprintf(
+                                stderr,
                                 "Error: unable to parse the tag value\n");
                             return 1;
                         }
                     } else {
                         /* FIXME: show the expected entry format for the tag */
-                        fprintf(stderr,
+                        fprintf(
+                            stderr,
                             "Error: unable to parse the known property"
                             " \"%s\"\r\n",
                             value_string);
@@ -421,7 +432,8 @@ int main(int argc, char *argv[])
         Target_Device_Object_Instance, &max_apdu, &Target_Address);
     if (found) {
         if (Verbose) {
-            printf("Found Device %u in address_cache.\n",
+            printf(
+                "Found Device %u in address_cache.\n",
                 Target_Device_Object_Instance);
         }
     } else {
@@ -434,7 +446,8 @@ int main(int argc, char *argv[])
             /* device is bound! */
             if (Request_Invoke_ID == 0) {
                 if (Verbose) {
-                    printf("Sending AddListElement to Device %u.\n",
+                    printf(
+                        "Sending AddListElement to Device %u.\n",
                         Target_Device_Object_Instance);
                 }
                 Request_Invoke_ID = Send_Add_List_Element_Request(
@@ -463,6 +476,8 @@ int main(int argc, char *argv[])
         if (mstimer_expired(&maintenance_timer)) {
             mstimer_reset(&maintenance_timer);
             tsm_timer_milliseconds(mstimer_interval(&maintenance_timer));
+            datalink_maintenance_timer(
+                mstimer_interval(&maintenance_timer) / 1000L);
         }
         if (mstimer_expired(&apdu_timer)) {
             printf("\rError: APDU Timeout!\n");

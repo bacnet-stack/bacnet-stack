@@ -7,7 +7,7 @@
 /* @file
  * @brief test BACnet real value encode/decode APIs
  */
-
+#include <math.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacreal.h>
 #include <bacnet/bacdef.h>
@@ -34,7 +34,7 @@ static void testBACreal(void)
     zassert_equal(len, 4, NULL);
     test_len = decode_real(&apdu[0], &test_real_value);
     zassert_equal(test_len, len, NULL);
-    zassert_equal(test_real_value, real_value, NULL);
+    zassert_false(islessgreater(test_real_value, real_value), NULL);
 }
 
 /**
@@ -54,22 +54,20 @@ static void testBACdouble(void)
     zassert_equal(len, 8, NULL);
     test_len = decode_double(&apdu[0], &test_double_value);
     zassert_equal(test_len, len, NULL);
-    zassert_equal(test_double_value, double_value, NULL);
+    zassert_false(islessgreater(test_double_value, double_value), NULL);
 }
 /**
  * @}
  */
-
 
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(bacreal_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacreal_tests,
-     ztest_unit_test(testBACreal),
-     ztest_unit_test(testBACdouble)
-     );
+    ztest_test_suite(
+        bacreal_tests, ztest_unit_test(testBACreal),
+        ztest_unit_test(testBACdouble));
 
     ztest_run_test_suite(bacreal_tests);
 }

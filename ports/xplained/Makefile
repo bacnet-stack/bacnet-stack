@@ -33,7 +33,7 @@ STRIP = $(PREFIX)strip
 SIZE = $(PREFIX)size
 
 # Source locations
-SDK_DIR = ASF
+SDK_DIR = external/ASF
 BACNET_DIR = ../../src
 BACNET_CORE = $(BACNET_DIR)/bacnet
 BACNET_BASIC = $(BACNET_CORE)/basic
@@ -45,11 +45,9 @@ CSRC = main.c \
 	bacnet.c \
 	bname.c \
 	device.c \
-	dlmstp.c \
 	led.c \
 	mstimer-init.c \
 	netport.c \
-	nvmdata.c \
 	rs485.c \
 	stack.c
 
@@ -79,8 +77,8 @@ BASICSRC = $(BACNET_BASIC)/tsm/tsm.c \
 
 # core BACnet stack files
 CORESRC =  \
-	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/bacaction.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
@@ -90,9 +88,15 @@ CORESRC =  \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
 	$(BACNET_CORE)/datetime.c \
+	$(BACNET_CORE)/datalink/cobs.c \
+	$(BACNET_CORE)/datalink/crc.c \
+	$(BACNET_CORE)/datalink/dlmstp.c \
+	$(BACNET_CORE)/datalink/mstp.c \
+	$(BACNET_CORE)/datalink/mstptext.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
+	$(BACNET_CORE)/indtext.c \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/hostnport.c \
 	$(BACNET_CORE)/npdu.c \
@@ -157,7 +161,7 @@ SDK_INCLUDES += -I$(SDK_DIR)/common/services/serial
 SDK_INCLUDES += -I$(SDK_DIR)/common/utils/stdio/stdio_serial
 SDK_INCLUDES += -I$(SDK_DIR)/xmega/services/timeout
 
-INCLUDES = -I. -I./config -I$(BACNET_DIR) $(SDK_INCLUDES)
+INCLUDES = -I. -I./external/config -I$(BACNET_DIR) $(SDK_INCLUDES)
 
 # Source to Object conversion
 COBJ = $(CSRC:.c=.o)
@@ -196,12 +200,12 @@ CFLAGS += -fsigned-char -std=gnu99
 CFLAGS += -fno-strict-aliasing
 CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wmissing-prototypes
-CFLAGS += -Werror-implicit-function-declaration
 CFLAGS += -Wpointer-arith
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
 CFLAGS += -DIOPORT_XMEGA_COMPAT
 # silence some warnings
 CFLAGS += -Wno-switch
+CFLAGS += -std=gnu99
 
 ## Assembly specific flags
 AFLAGS = $(SDK_FLAGS)

@@ -2,24 +2,7 @@
  *
  * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
 
@@ -67,12 +50,11 @@ static struct my_object_functions {
     read_property_function Object_Read_Property;
     write_property_function Object_Write_Property;
     rpm_property_lists_function Object_RPM_List;
-} Object_Table[] = {
-    { OBJECT_DEVICE, NULL, /* don't init - recursive! */
-        Device_Count, Device_Index_To_Instance,
-        Device_Valid_Object_Instance_Number,
-        Device_Object_Name, Device_Read_Property_Local,
-        Device_Write_Property_Local, Device_Property_Lists },
+} Object_Table[] = { { OBJECT_DEVICE, NULL, /* don't init - recursive! */
+                         Device_Count, Device_Index_To_Instance,
+                         Device_Valid_Object_Instance_Number,
+                         Device_Object_Name, Device_Read_Property_Local,
+                         Device_Write_Property_Local, Device_Property_Lists },
     { OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
         Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
         Analog_Input_Object_Name, Analog_Input_Read_Property, NULL,
@@ -144,7 +126,8 @@ static struct my_object_functions *Device_Objects_Find_Functions(
 }
 
 static int Read_Property_Common(
-    struct my_object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
+    const struct my_object_functions *pObject,
+    BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     BACNET_CHARACTER_STRING char_string;
@@ -159,8 +142,7 @@ static int Read_Property_Common(
     }
     apdu = rpdata->application_data;
     if (property_list_common(rpdata->object_property)) {
-        apdu_len = property_list_common_encode(rpdata,
-            Object_Instance_Number);
+        apdu_len = property_list_common_encode(rpdata, Object_Instance_Number);
     } else if (rpdata->object_property == PROP_OBJECT_NAME) {
         /*  only array properties can have array options */
         if (rpdata->array_index != BACNET_ARRAY_ALL) {
@@ -180,9 +162,8 @@ static int Read_Property_Common(
     } else if (rpdata->object_property == PROP_PROPERTY_LIST) {
         Device_Objects_Property_List(
             rpdata->object_type, rpdata->object_instance, &property_list);
-        apdu_len = property_list_encode(rpdata,
-            property_list.Required.pList, property_list.Optional.pList,
-            property_list.Proprietary.pList);
+        apdu_len = property_list_encode(rpdata, property_list.Required.pList,
+            property_list.Optional.pList, property_list.Proprietary.pList);
 #endif
     } else if (pObject->Object_Read_Property) {
         apdu_len = pObject->Object_Read_Property(rpdata);
@@ -319,7 +300,7 @@ bool Device_Object_Name(
     return status;
 }
 
-bool Device_Set_Object_Name(BACNET_CHARACTER_STRING *object_name)
+bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false; /*return value */
 
@@ -332,12 +313,64 @@ bool Device_Set_Object_Name(BACNET_CHARACTER_STRING *object_name)
     return status;
 }
 
+/**
+ * @brief Sets the ReinitializeDevice password
+ *
+ * The password shall be a null terminated C string of up to
+ * 20 ASCII characters for those devices that require the password.
+ *
+ * For those devices that do not require a password, set to NULL or
+ * point to a zero length C string (null terminated).
+ *
+ * @param the ReinitializeDevice password; can be NULL or empty string
+ */
+bool Device_Reinitialize_Password_Set(const char *password)
+{
+    Reinit_Password = password;
+
+    return true;
+}
+
+/**
+ * @brief Commands a Device re-initialization, to a given state.
+ *  The request's password must match for the operation to succeed.
+ *  This implementation provides a framework, but doesn't
+ *  actually *DO* anything.
+ * @note You could use a mix of states and passwords to multiple outcomes.
+ * @note You probably want to restart *after* the simple ack has been sent
+ *       from the return handler, so just set a local flag here.
+ * @ingroup ObjIntf
+ *
+ * @param rd_data [in,out] The information from the RD request.
+ *                         On failure, the error class and code will be set.
+ * @return True if succeeds (password is correct), else False.
+ */
 bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
+    bool password_success = false;
 
-    /* Note: you could use a mix of state and password to multiple things */
-    if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
+    /* From 16.4.1.1.2 Password
+        This optional parameter shall be a CharacterString of up to
+        20 characters. For those devices that require the password as a
+        protection, the service request shall be denied if the parameter
+        is absent or if the password is incorrect. For those devices that
+        do not require a password, this parameter shall be ignored.*/
+    if (Reinit_Password && strlen(Reinit_Password) > 0) {
+        if (characterstring_length(&rd_data->password) > 20) {
+            rd_data->error_class = ERROR_CLASS_SERVICES;
+            rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+        } else if (characterstring_ansi_same(
+                       &rd_data->password, Reinit_Password)) {
+            password_success = true;
+        } else {
+            rd_data->error_class = ERROR_CLASS_SECURITY;
+            rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
+        }
+    } else {
+        password_success = true;
+    }
+    if (password_success) {
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
             case BACNET_REINIT_WARMSTART:
@@ -367,9 +400,6 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                 rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
                 break;
         }
-    } else {
-        rd_data->error_class = ERROR_CLASS_SECURITY;
-        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
     }
 
     return status;
@@ -545,7 +575,7 @@ int Device_Object_List_Element_Encode(
     return apdu_len;
 }
 
-bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
+bool Device_Valid_Object_Name(const BACNET_CHARACTER_STRING *object_name1,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {
@@ -705,9 +735,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
             apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
-                Device_Object_List_Element_Encode,
-                count, apdu, apdu_max);
+                rpdata->array_index, Device_Object_List_Element_Encode, count,
+                apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -745,8 +774,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_unsigned(&apdu[0], dlmstp_max_master());
             break;
         case 9600:
-            apdu_len =
-                encode_application_unsigned(&apdu[0], rs485_baud_rate());
+            apdu_len = encode_application_unsigned(&apdu[0], rs485_baud_rate());
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -771,7 +799,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     uint8_t encoding = 0;
     size_t length = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(

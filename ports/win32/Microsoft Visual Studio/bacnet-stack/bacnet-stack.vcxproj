@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\src\bacnet\abort.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\access_rule.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\alarm_ack.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\arf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\assigned_access_rights.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\authentication_factor.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\authentication_factor_format.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\awf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaddr.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaction.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacapp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacdcode.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacdest.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacdevobjpropref.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacerror.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacint.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacprop.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacpropstates.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacreal.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacstr.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bactext.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bactimevalue.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\bbmd\h_bbmd.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\binding\address.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\acc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_credential.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_door.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_point.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_rights.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_user.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\access_zone.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ai.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ao.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\av.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bacfile.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bi.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bo.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\channel.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\color_object.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\color_temperature.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\command.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\credential_data_input.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\csv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\device.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\iv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lo.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\lsp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ms-input.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\mso.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\msv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\nc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\netport.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\objects.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\osv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\piv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\schedule.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\structured_view.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\trendlog.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_alarm_ack.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_apdu.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_arf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_arf_a.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_awf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_ccov.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_cov.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_create_object.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_dcc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_delete_object.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_gas_a.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_getevent.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_getevent_a.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_get_alarm_sum.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_iam.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_ihave.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_list_element.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_lso.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_noserv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rd.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rpm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rpm_a.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rp_a.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rr.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_rr_a.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_ts.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_ucov.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_upt.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_whohas.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_whois.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_wp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_wpm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_abort.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_ack_alarm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_arfs.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_awfs.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_cevent.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_cov.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_create_object.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_dcc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_delete_object.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_error.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_getevent.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_get_alarm_sum.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_get_event.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_iam.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_ihave.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_list_element.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_lso.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_rd.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_readrange.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_rp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_rpm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_ts.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_uevent.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_upt.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_whohas.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_whois.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_wp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\s_wpm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\bigend.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\color_rgb.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\days.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\debug.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\fifo.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\filename.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\keylist.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\linear.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\mstimer.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\sbuf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\tsm\tsm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\cov.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\create_object.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\credential_authentication_factor.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\dailyschedule.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\bacsec.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\bvlc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\bvlc6.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\cobs.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\crc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\datalink.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\dlenv.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstptext.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datetime.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\dcc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\delete_object.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\event.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\getevent.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\get_alarm_sum.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\hostnport.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\iam.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\ihave.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\indtext.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\lighting.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\list_element.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\lso.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\memcopy.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\npdu.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\property.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\proplist.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\ptransfer.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\rd.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\readrange.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\reject.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\rp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\rpm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\timesync.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\weeklyschedule.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\calendar_entry.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\special_event.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\whohas.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\whois.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\wp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\wpm.c" />
+    <ClCompile Include="..\..\bip-init.c" />
+    <ClCompile Include="..\..\datetime-init.c" />
+    <ClCompile Include="..\..\mstimer-init.c" />
+    <ClCompile Include="..\..\rs485.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\src\bacnet\abort.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\access_rule.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\alarm_ack.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\apdu.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\arf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\assigned_access_rights.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\authentication_factor.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\authentication_factor_format.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\awf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacaddr.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacaction.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacapp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdcode.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdef.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdest.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdevobjpropref.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacerror.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacint.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacprop.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacpropstates.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacreal.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacstr.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bactext.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bactimevalue.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\bbmd\h_bbmd.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\binding\address.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\acc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_credential.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_door.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_point.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_rights.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_user.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\access_zone.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ai.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ao.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\av.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bacfile.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bi.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bo.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\bv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\channel.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\color_object.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\color_temperature.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\command.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\credential_data_input.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\csv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\device.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\iv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\lc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\lo.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\lsp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\ms-input.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\mso.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\msv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\nc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\netport.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\objects.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\osv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\piv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\schedule.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\object\trendlog.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\services.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_alarm_ack.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_apdu.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_arf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_arf_a.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_awf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_ccov.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_cov.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_create_object.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_dcc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_delete_object.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_gas_a.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_getevent.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_getevent_a.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_get_alarm_sum.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_iam.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_ihave.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_list_element.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_lso.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_noserv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rd.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rpm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rpm_a.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rp_a.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rr.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_rr_a.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_ts.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_ucov.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_upt.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_whohas.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_whois.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_wp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\h_wpm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_abort.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_ack_alarm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_arfs.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_awfs.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_cevent.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_cov.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_create_object.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_dcc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_delete_object.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_error.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_getevent.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_get_alarm_sum.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_get_event.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_iam.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_ihave.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_list_element.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_lso.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_rd.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_readrange.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_rp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_rpm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_ts.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_uevent.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_upt.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_whohas.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_whois.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_wp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\service\s_wpm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\bigend.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\color_rgb.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\days.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\debug.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\fifo.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\filename.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\key.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\keylist.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\linear.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\mstimer.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\platform.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\sys\sbuf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\basic\tsm\tsm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\cov.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\create_object.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\credential_authentication_factor.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\dailyschedule.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\arcnet.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\bacsec.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\bip.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\bip6.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\bvlc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\bvlc6.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\cobs.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\crc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\datalink.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\dlenv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\dlmstp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\ethernet.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\mstp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\mstpdef.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink\mstptext.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datetime.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\dcc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\delete_object.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\event.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\getevent.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\get_alarm_sum.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\hostnport.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\iam.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\ihave.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\indtext.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\lighting.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\list_element.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\lso.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\memcopy.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\npdu.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\property.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\proplist.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\ptransfer.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\rd.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\readrange.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\reject.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\rp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\rpm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\timestamp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\timesync.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\version.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\weeklyschedule.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\whohas.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\whois.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\wp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\wpm.h" />
+    <ClInclude Include="..\..\bacport.h" />
+    <ClInclude Include="..\..\rs485.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\readme.MD" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{2b0dd90a-c096-401b-97d0-81d3bc4f7eb7}</ProjectGuid>
+    <RootNamespace>bacnetstack</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\bacnet-stack.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\bacnet-stack.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\bacnet-stack.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\bacnet-stack.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

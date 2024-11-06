@@ -11,24 +11,7 @@
  *
  * @section LICENSE
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -67,9 +50,9 @@ struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 #define BACNET_NETWORK_PORT_INSTANCE 1
 #endif
 
-/* BACnetARRAY of REAL, is an array of the link speeds 
+/* BACnetARRAY of REAL, is an array of the link speeds
    supported by this network port */
-static uint32_t Link_Speeds[] = {9600, 19200, 38400, 57600, 76800, 115200 };
+static uint32_t Link_Speeds[] = { 9600, 19200, 38400, 57600, 76800, 115200 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Network_Port_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -79,10 +62,15 @@ static const int Network_Port_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_APDU_LENGTH, PROP_LINK_SPEED, -1 };
 
 static const int Network_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
-    PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, PROP_LINK_SPEEDS,
-    -1 };
+    PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, PROP_LINK_SPEEDS, -1 };
 
 static const int Network_Port_Properties_Proprietary[] = { -1 };
+
+/* standard properties that are arrays for this object,
+   but not necessary supported in this object */
+static const int Network_Port_Properties_Array[] = { PROP_LINK_SPEEDS,
+    PROP_IP_DNS_SERVER, PROP_IPV6_DNS_SERVER, PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG, PROP_TAGS, -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -311,7 +299,7 @@ bool Network_Port_MAC_Address(
  * @return  true if object-name was set
  */
 bool Network_Port_MAC_Address_Set(
-    uint32_t object_instance, uint8_t *mac_src, uint8_t mac_len)
+    uint32_t object_instance, const uint8_t *mac_src, uint8_t mac_len)
 {
     if (mac_len == 1) {
         Object_List[0].MAC_Address[0] = mac_src[0];
@@ -389,8 +377,8 @@ static int Network_Port_Link_Speeds_Encode(
 
 /**
  * @brief Set the device link speed (baud rate)
- * @param object_instance	The object instance number of the object
- * @param value				The new link speed value
+ * @param object_instance   The object instance number of the object
+ * @param value             The new link speed value
  * @return  true if value was set
  */
 bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)
@@ -401,12 +389,12 @@ bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)
 
     (void)object_instance;
     for (i = 0; i < ARRAY_SIZE(Link_Speeds); i++) {
-       if (Link_Speeds[i] == baud) {
+        if (Link_Speeds[i] == baud) {
             Object_List[0].Link_Speed = value;
             Object_List[0].Changes_Pending = true;
             status = true;
             break;
-       }
+        }
     }
 
     return status;
@@ -523,6 +511,33 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 }
 
 /**
+ * @brief Determine if the object property is a member of this object instance
+ * @param object_instance - object-instance number of the object
+ * @param object_property - object-property to be checked
+ * @return true if the property is a member of this object instance
+ */
+static bool Network_Port_Property_List_Member(
+    uint32_t object_instance, int object_property)
+{
+    bool found = false;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+
+    Network_Port_Property_List(
+        object_instance, &pRequired, &pOptional, &pProprietary);
+    found = property_list_member(pRequired, object_property);
+    if (!found) {
+        found = property_list_member(pOptional, object_property);
+    }
+    if (!found) {
+        found = property_list_member(pProprietary, object_property);
+    }
+
+    return found;
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -619,9 +634,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_LINK_SPEEDS:
             count = Network_Port_Link_Speeds_Count(rpdata->object_instance);
             apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
-                Network_Port_Link_Speeds_Encode,
-                count, apdu, apdu_max);
+                rpdata->array_index, Network_Port_Link_Speeds_Encode, count,
+                apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -669,7 +683,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     if (!Network_Port_Valid_Instance(wp_data->object_instance)) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
@@ -685,12 +699,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_LINK_SPEEDS) &&
-        (wp_data->object_property != PROP_IP_DNS_SERVER) &&
-        (wp_data->object_property != PROP_IPV6_DNS_SERVER) &&
-        (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS) &&
-        (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS_CONFIG) &&
-        (wp_data->object_property != PROP_TAGS) &&
+    if (!property_list_member(
+            Network_Port_Properties_Array, wp_data->object_property) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -763,26 +773,15 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
-        case PROP_OBJECT_IDENTIFIER:
-        case PROP_OBJECT_NAME:
-        case PROP_OBJECT_TYPE:
-        case PROP_STATUS_FLAGS:
-        case PROP_RELIABILITY:
-        case PROP_OUT_OF_SERVICE:
-        case PROP_NETWORK_TYPE:
-        case PROP_PROTOCOL_LEVEL:
-        case PROP_NETWORK_NUMBER:
-        case PROP_NETWORK_NUMBER_QUALITY:
-        case PROP_MAX_APDU_LENGTH_ACCEPTED:
-        case PROP_CHANGES_PENDING:
-        case PROP_APDU_LENGTH:
-        case PROP_LINK_SPEEDS:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            break;
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            if (Network_Port_Property_List_Member(
+                    wp_data->object_instance, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 

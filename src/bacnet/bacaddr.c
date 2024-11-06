@@ -1,56 +1,29 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2007 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet Address structure utilities
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2007
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
-#include "bacnet/config.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/bacaddr.h"
-
-/** @file bacaddr.c  BACnet Address structure utilities */
 
 /**
  * @brief Copy a #BACNET_ADDRESS value to another
  * @param dest - #BACNET_ADDRESS to be copied into
  * @param src -  #BACNET_ADDRESS to be copied from
  */
-void bacnet_address_copy(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
+void bacnet_address_copy(BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
 {
     int i = 0;
 
@@ -73,7 +46,7 @@ void bacnet_address_copy(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
  * @param src -  #BACNET_ADDRESS to be compared
  * @return true if the same values
  */
-bool bacnet_address_same(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
+bool bacnet_address_same(const BACNET_ADDRESS *dest, const BACNET_ADDRESS *src)
 {
     uint8_t i = 0; /* loop counter */
 
@@ -122,10 +95,11 @@ bool bacnet_address_same(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
  * @param adr - #BACNET_MAC_ADDRESS behind the remote network
  * @return true if configured
  */
-bool bacnet_address_init(BACNET_ADDRESS *dest,
-    BACNET_MAC_ADDRESS *mac,
+bool bacnet_address_init(
+    BACNET_ADDRESS *dest,
+    const BACNET_MAC_ADDRESS *mac,
     uint16_t dnet,
-    BACNET_MAC_ADDRESS *adr)
+    const BACNET_MAC_ADDRESS *adr)
 {
     uint8_t i = 0; /* loop counter */
 
@@ -156,7 +130,7 @@ bool bacnet_address_init(BACNET_ADDRESS *dest,
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->mac[i] = 0;
         }
-        dest->mac_len = mac->len;
+        dest->mac_len = 0;
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = 0;
         }
@@ -173,7 +147,8 @@ bool bacnet_address_init(BACNET_ADDRESS *dest,
  * @param src -  #BACNET_MAC_ADDRESS to be compared
  * @return true if the same values
  */
-bool bacnet_address_mac_same(BACNET_MAC_ADDRESS *dest, BACNET_MAC_ADDRESS *src)
+bool bacnet_address_mac_same(
+    const BACNET_MAC_ADDRESS *dest, const BACNET_MAC_ADDRESS *src)
 {
     uint8_t i = 0; /* loop counter */
 
@@ -200,7 +175,8 @@ bool bacnet_address_mac_same(BACNET_MAC_ADDRESS *dest, BACNET_MAC_ADDRESS *src)
  * @param adr [in] address to initialize, null if empty
  * @param len [in] length of address in bytes
  */
-void bacnet_address_mac_init(BACNET_MAC_ADDRESS *mac, uint8_t *adr, uint8_t len)
+void bacnet_address_mac_init(
+    BACNET_MAC_ADDRESS *mac, const uint8_t *adr, uint8_t len)
 {
     uint8_t i = 0;
 
@@ -247,8 +223,9 @@ bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
         mac->len = 6;
         status = true;
     } else {
-        c = sscanf(arg, "%2x:%2x:%2x:%2x:%2x:%2x", &a[0], &a[1], &a[2], &a[3],
-            &a[4], &a[5]);
+        c = sscanf(
+            arg, "%2x:%2x:%2x:%2x:%2x:%2x", &a[0], &a[1], &a[2], &a[3], &a[4],
+            &a[5]);
 
         if (c > 0) {
             for (i = 0; i < c; i++) {
@@ -278,7 +255,7 @@ bool bacnet_address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
  * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
  */
 int bacnet_address_decode(
-    uint8_t *apdu, uint32_t apdu_size, BACNET_ADDRESS *value)
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_ADDRESS *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -331,7 +308,8 @@ int bacnet_address_decode(
  * @param value - parameter to store the value after decoding
  * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
  */
-int bacnet_address_context_decode(uint8_t *apdu,
+int bacnet_address_context_decode(
+    const uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_ADDRESS *value)
@@ -366,7 +344,7 @@ int bacnet_address_context_decode(uint8_t *apdu,
  *
  * @return number of apdu bytes created
  */
-int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
+int encode_bacnet_address(uint8_t *apdu, const BACNET_ADDRESS *destination)
 {
     int apdu_len = 0;
     BACNET_OCTET_STRING mac_addr;
@@ -395,7 +373,7 @@ int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
  * @return length of the APDU buffer decoded, or BACNET_STATUS_ERROR
  * @deprecated use bacnet_address_decode() instead
  */
-int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *value)
+int decode_bacnet_address(const uint8_t *apdu, BACNET_ADDRESS *value)
 {
     return bacnet_address_decode(apdu, MAX_APDU, value);
 }
@@ -407,7 +385,7 @@ int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *value)
  * @return number of apdu bytes created
  */
 int encode_context_bacnet_address(
-    uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *destination)
+    uint8_t *apdu, uint8_t tag_number, const BACNET_ADDRESS *destination)
 {
     int len = 0;
     uint8_t *apdu_offset = NULL;
@@ -433,7 +411,7 @@ int encode_context_bacnet_address(
  * @deprecated use bacnet_address_context_decode() instead
  */
 int decode_context_bacnet_address(
-    uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *value)
+    const uint8_t *apdu, uint8_t tag_number, BACNET_ADDRESS *value)
 {
     return bacnet_address_context_decode(apdu, MAX_APDU, tag_number, value);
 }

@@ -19,8 +19,7 @@
 /**
  * @brief Test
  */
-static void testAtomicReadFileAckAccess(
-    BACNET_ATOMIC_READ_FILE_DATA *data)
+static void testAtomicReadFileAckAccess(BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     BACNET_ATOMIC_READ_FILE_DATA test_data = { 0 };
     uint8_t apdu[480] = { 0 };
@@ -31,7 +30,7 @@ static void testAtomicReadFileAckAccess(
     uint8_t test_invoke_id = 0;
     unsigned int i = 0;
 
-    null_len = arf_ack_encode_apdu(NULL, invoke_id, data); 
+    null_len = arf_ack_encode_apdu(NULL, invoke_id, data);
     len = arf_ack_encode_apdu(&apdu[0], invoke_id, data);
     zassert_not_equal(len, 0, NULL);
     zassert_equal(null_len, len, NULL);
@@ -46,28 +45,33 @@ static void testAtomicReadFileAckAccess(
     if (test_data.access == FILE_STREAM_ACCESS) {
         zassert_equal(
             test_data.type.stream.fileStartPosition,
-                data->type.stream.fileStartPosition, NULL);
+            data->type.stream.fileStartPosition, NULL);
         zassert_equal(
             octetstring_length(&test_data.fileData[0]),
-                octetstring_length(&data->fileData[0]), NULL);
+            octetstring_length(&data->fileData[0]), NULL);
         zassert_equal(
-            memcmp(octetstring_value(&test_data.fileData[0]),
+            memcmp(
+                octetstring_value(&test_data.fileData[0]),
                 octetstring_value(&data->fileData[0]),
-                octetstring_length(&test_data.fileData[0])), 0, NULL);
+                octetstring_length(&test_data.fileData[0])),
+            0, NULL);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
         zassert_equal(
             test_data.type.record.fileStartRecord,
-                data->type.record.fileStartRecord, NULL);
+            data->type.record.fileStartRecord, NULL);
         zassert_equal(
-            test_data.type.record.RecordCount, data->type.record.RecordCount, NULL);
+            test_data.type.record.RecordCount, data->type.record.RecordCount,
+            NULL);
         for (i = 0; i < data->type.record.RecordCount; i++) {
             zassert_equal(
                 octetstring_length(&test_data.fileData[i]),
-                    octetstring_length(&data->fileData[i]), NULL);
+                octetstring_length(&data->fileData[i]), NULL);
             zassert_equal(
-                memcmp(octetstring_value(&test_data.fileData[i]),
+                memcmp(
+                    octetstring_value(&test_data.fileData[i]),
                     octetstring_value(&data->fileData[i]),
-                    octetstring_length(&test_data.fileData[i])), 0, NULL);
+                    octetstring_length(&test_data.fileData[i])),
+                0, NULL);
         }
     }
     /* test APDU too short */
@@ -108,7 +112,7 @@ static void testAtomicReadFileAck(void)
     return;
 }
 
-static void testAtomicReadFileAccess(BACNET_ATOMIC_READ_FILE_DATA *data)
+static void testAtomicReadFileAccess(const BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     BACNET_ATOMIC_READ_FILE_DATA test_data = { 0 };
     uint8_t apdu[480] = { 0 };
@@ -134,16 +138,17 @@ static void testAtomicReadFileAccess(BACNET_ATOMIC_READ_FILE_DATA *data)
     if (test_data.access == FILE_STREAM_ACCESS) {
         zassert_equal(
             test_data.type.stream.fileStartPosition,
-                data->type.stream.fileStartPosition, NULL);
+            data->type.stream.fileStartPosition, NULL);
         zassert_equal(
             test_data.type.stream.requestedOctetCount,
-                data->type.stream.requestedOctetCount, NULL);
+            data->type.stream.requestedOctetCount, NULL);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
         zassert_equal(
             test_data.type.record.fileStartRecord,
-                data->type.record.fileStartRecord, NULL);
+            data->type.record.fileStartRecord, NULL);
         zassert_equal(
-            test_data.type.record.RecordCount, data->type.record.RecordCount, NULL);
+            test_data.type.record.RecordCount, data->type.record.RecordCount,
+            NULL);
     }
     /* test APDU too short */
     while (apdu_len) {
@@ -186,10 +191,11 @@ static void testAtomicReadFileMalformed(void)
 {
     uint8_t apdu[480] = { 0 };
     /* payloads with malformation */
-    uint8_t payload_1[] = { 0xc4, 0x02, 0x80, 0x00, 0x00, 0x0e, 0x35, 0xff,
-        0xdf, 0x62, 0xee, 0x00, 0x00, 0x22, 0x05, 0x84, 0x0f };
+    uint8_t payload_1[] = { 0xc4, 0x02, 0x80, 0x00, 0x00, 0x0e,
+                            0x35, 0xff, 0xdf, 0x62, 0xee, 0x00,
+                            0x00, 0x22, 0x05, 0x84, 0x0f };
     uint8_t payload_2[] = { 0xc4, 0x02, 0x80, 0x00, 0x00, 0x0e, 0x31, 0x00,
-        0x25, 0xff, 0xd4, 0x9e, 0xbf, 0x79, 0x05, 0x84 };
+                            0x25, 0xff, 0xd4, 0x9e, 0xbf, 0x79, 0x05, 0x84 };
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     int len = 0;
     uint8_t test_invoke_id = 0;
@@ -216,17 +222,15 @@ static void testAtomicReadFileMalformed(void)
  * @}
  */
 
-
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(arf_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(arf_tests,
-     ztest_unit_test(testAtomicReadFile),
-     ztest_unit_test(testAtomicReadFileAck),
-     ztest_unit_test(testAtomicReadFileMalformed)
-     );
+    ztest_test_suite(
+        arf_tests, ztest_unit_test(testAtomicReadFile),
+        ztest_unit_test(testAtomicReadFileAck),
+        ztest_unit_test(testAtomicReadFileMalformed));
 
     ztest_run_test_suite(arf_tests);
 }

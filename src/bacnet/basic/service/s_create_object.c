@@ -12,8 +12,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
@@ -97,19 +98,22 @@ uint8_t Send_Create_Object_Request_Data(
             len = create_object_encode_service_request(
                 &Handler_Transmit_Buffer[pdu_len], &data);
             pdu_len += len;
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                debug_perror("%s service: Failed to Send %i/%i (%s)!\n",
+                debug_perror(
+                    "%s service: Failed to Send %i/%i (%s)!\n",
                     bactext_confirmed_service_name(service), bytes_sent,
                     pdu_len, strerror(errno));
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            debug_perror("%s service: Failed to Send "
+            debug_perror(
+                "%s service: Failed to Send "
                 "(exceeds destination maximum APDU)!\n",
                 bactext_confirmed_service_name(service));
         }
@@ -131,5 +135,6 @@ uint8_t Send_Create_Object_Request(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance)
 {
-    return Send_Create_Object_Request_Data(device_id, object_type, object_instance, NULL);
+    return Send_Create_Object_Request_Data(
+        device_id, object_type, object_instance, NULL);
 }

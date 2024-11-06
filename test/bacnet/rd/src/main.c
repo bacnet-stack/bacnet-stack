@@ -20,7 +20,8 @@
 /**
  * @brief Test
  */
-static int rd_decode_apdu(uint8_t *apdu,
+static int rd_decode_apdu(
+    const uint8_t *apdu,
     unsigned apdu_size,
     uint8_t *invoke_id,
     BACNET_REINITIALIZED_STATE *state,
@@ -30,21 +31,21 @@ static int rd_decode_apdu(uint8_t *apdu,
     int apdu_len = 0;
 
     if (!apdu) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     if (apdu_size <= 4) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     if (invoke_id) {
         *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
     }
     if (apdu[3] != SERVICE_CONFIRMED_REINITIALIZE_DEVICE) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     apdu_len = 4;
     if (apdu_len < apdu_size) {
@@ -96,7 +97,8 @@ static void Test_ReinitializeDevice_Service(
             continue;
         }
         len = rd_decode_apdu(apdu, apdu_len, NULL, NULL, NULL);
-        zassert_true(len < 0, "len=%d apdu_len=%d password='%s'", len, apdu_len,
+        zassert_true(
+            len < 0, "len=%d apdu_len=%d password='%s'", len, apdu_len,
             password_string);
     }
 }

@@ -6,25 +6,7 @@
  *
  * @section LICENSE
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,27 +14,18 @@
 #include <sys/ipc.h>
 #include "mstpmodule.h"
 #include "bacnet/bacint.h"
-#include "dlmstp_linux.h"
+#include "dlmstp_port.h"
 #include <termios.h>
-
-#define MSTP_THREAD_PRINT_ENABLED
-#ifdef MSTP_THREAD_PRINT_ENABLED
-#define mstp_thread_debug(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define mstp_thread_debug(...)
-#endif
 
 void *dl_mstp_thread(void *pArgs)
 {
     ROUTER_PORT *port = (ROUTER_PORT *)pArgs;
-    struct mstp_port_struct_t mstp_port = { (MSTP_RECEIVE_STATE)0 };
+    struct mstp_port_struct_t mstp_port = { 0 };
     volatile SHARED_MSTP_DATA shared_port_data = { 0 };
     uint16_t pdu_len;
     uint8_t shutdown = 0;
 
-    shared_port_data.Treply_timeout = 260;
     shared_port_data.MSTP_Packets = 0;
-    shared_port_data.Tusage_timeout = 30;
     shared_port_data.RS485_Handle = -1;
     shared_port_data.RS485_Baud = B38400;
     shared_port_data.RS485MOD = 0;
@@ -95,6 +68,8 @@ void *dl_mstp_thread(void *pArgs)
     if (!dlmstp_init(&mstp_port, port->iface)) {
         printf("MSTP %s init failed. Stop.\n", port->iface);
     }
+    mstp_port.Treply_timeout = 260;
+    mstp_port.Tusage_timeout = 30;
 
     port->port_id = create_msgbox();
     if (port->port_id == INVALID_MSGBOX_ID) {
@@ -123,8 +98,9 @@ void *dl_mstp_thread(void *pArgs)
                         msg_data->dest.mac_len = 1;
                     }
 
-                    dlmstp_send_pdu(&mstp_port, &(msg_data->dest),
-                        msg_data->pdu, msg_data->pdu_len);
+                    dlmstp_send_pdu(
+                        &mstp_port, &(msg_data->dest), msg_data->pdu,
+                        msg_data->pdu_len);
 
                     check_data(msg_data);
 
@@ -147,13 +123,15 @@ void *dl_mstp_thread(void *pArgs)
 
             if (pdu_len > 0) {
                 msg_data = (MSG_DATA *)malloc(sizeof(MSG_DATA));
-                memmove(&(msg_data->src),
+                memmove(
+                    &(msg_data->src),
                     (const void *)&(shared_port_data.Receive_Packet.address),
                     sizeof(shared_port_data.Receive_Packet.address));
                 msg_data->src.adr[0] = msg_data->src.mac[0];
                 msg_data->src.len = 1;
                 msg_data->pdu = (uint8_t *)malloc(pdu_len);
-                memmove(msg_data->pdu,
+                memmove(
+                    msg_data->pdu,
                     (const void *)&(shared_port_data.Receive_Packet.pdu),
                     pdu_len);
                 msg_data->pdu_len = pdu_len;

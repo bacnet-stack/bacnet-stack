@@ -1,34 +1,17 @@
-/**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
-#ifndef READPROPERTY_H
-#define READPROPERTY_H
+/**
+ * @file
+ * @brief BACnet ReadProperty-Request encode and decode helper functions
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: MIT
+ */
+#ifndef BACNET_READ_PROPERTY_H
+#define BACNET_READ_PROPERTY_H
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
-#include "bacnet/bacenum.h"
 
 typedef struct BACnet_Read_Property_Data {
     BACNET_OBJECT_TYPE object_type;
@@ -53,58 +36,70 @@ struct BACnet_Read_Access_Data;
  * @return The length of the apdu encoded or -1 for error or
  *         -2 for abort message.
  */
-typedef int (
-    *read_property_function) (
-    BACNET_READ_PROPERTY_DATA * rp_data);
+typedef int (*read_property_function)(BACNET_READ_PROPERTY_DATA *rp_data);
+
+/**
+ * @brief Process a ReadProperty-ACK message
+ * @param device_id [in] The device ID of the source of the message
+ * @param rp_data [in] The contents of the ReadProperty-ACK message
+ */
+typedef void (*read_property_ack_process)(
+    uint32_t device_id, BACNET_READ_PROPERTY_DATA *rp_data);
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-/* encode service */
-    BACNET_STACK_EXPORT
-    int rp_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+BACNET_STACK_EXPORT
+int read_property_request_encode(
+    uint8_t *apdu, const BACNET_READ_PROPERTY_DATA *data);
+
+BACNET_STACK_EXPORT
+size_t read_property_request_service_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_READ_PROPERTY_DATA *data);
+
+BACNET_STACK_EXPORT
+int read_property_ack_encode(
+    uint8_t *apdu, const BACNET_READ_PROPERTY_DATA *data);
+
+BACNET_STACK_EXPORT
+size_t read_property_ack_service_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_READ_PROPERTY_DATA *data);
+
+BACNET_STACK_EXPORT
+int rp_encode_apdu(
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_PROPERTY_DATA *rpdata);
 
 /* decode the service request only */
-    BACNET_STACK_EXPORT
-    int rp_decode_service_request(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+BACNET_STACK_EXPORT
+int rp_decode_service_request(
+    const uint8_t *apdu, unsigned apdu_len, BACNET_READ_PROPERTY_DATA *rpdata);
 
-    /* method to encode the ack without extra buffer */
-    BACNET_STACK_EXPORT
-    int rp_ack_encode_apdu_init(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+/* method to encode the ack without extra buffer */
+BACNET_STACK_EXPORT
+int rp_ack_encode_apdu_init(
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_PROPERTY_DATA *rpdata);
 
-    BACNET_STACK_EXPORT
-    int rp_ack_encode_apdu_object_property_end(
-        uint8_t * apdu);
+BACNET_STACK_EXPORT
+int rp_ack_encode_apdu_object_property_end(uint8_t *apdu);
 
-    /* method to encode the ack using extra buffer */
-    BACNET_STACK_EXPORT
-    int rp_ack_encode_apdu(
-        uint8_t * apdu,
-        uint8_t invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
+/* method to encode the ack using extra buffer */
+BACNET_STACK_EXPORT
+int rp_ack_encode_apdu(
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_READ_PROPERTY_DATA *rpdata);
 
-    BACNET_STACK_EXPORT
-    int rp_ack_decode_service_request(
-        uint8_t * apdu,
-        int apdu_len,   /* total length of the apdu */
-        BACNET_READ_PROPERTY_DATA * rpdata);
+BACNET_STACK_EXPORT
+int rp_ack_decode_service_request(
+    uint8_t *apdu,
+    int apdu_len, /* total length of the apdu */
+    BACNET_READ_PROPERTY_DATA *rpdata);
 
-    /* Decode instead to RPM-style data structure. */
-    BACNET_STACK_EXPORT
-    int rp_ack_fully_decode_service_request(
-        uint8_t * apdu,
-        int apdu_len,
-        struct BACnet_Read_Access_Data *read_access_data);
+/* Decode instead to RPM-style data structure. */
+BACNET_STACK_EXPORT
+int rp_ack_fully_decode_service_request(
+    uint8_t *apdu,
+    int apdu_len,
+    struct BACnet_Read_Access_Data *read_access_data);
 
 #ifdef __cplusplus
 }
@@ -112,8 +107,8 @@ extern "C" {
 /** @defgroup DataShare Data Sharing BIBBs
  * These BIBBs prescribe the BACnet capabilities required to interoperably
  * perform the data sharing functions enumerated in 22.2.1.1 for the BACnet
-     * devices defined therein.
-*/
+ * devices defined therein.
+ */
 
 /** @defgroup DSRP Data Sharing -Read Property Service (DS-RP)
  * @ingroup DataShare

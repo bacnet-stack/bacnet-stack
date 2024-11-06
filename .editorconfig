@@ -1,0 +1,33 @@
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+# Currently project use git "* text=auto".
+end_of_line = unset
+
+[CMakelists.txt]
+indent_size = 2
+
+[Dockerfile]
+indent_size = 2
+
+# Makefiles needs tabs.
+[{Makefile,*.{mgw,mak,MAK}}]
+indent_style = tab
+
+# Some project files. Saving might change files.
+[*.{sln,atsln,layout}]
+indent_style = tab
+insert_final_newline = unset
+[*.{,vcxproj*,props,cproj,tpi}]
+insert_final_newline = unset
+
+[*.{yaml,yml}]
+indent_size = 2
+
+[*.{html,htm}]
+indent_size = 2

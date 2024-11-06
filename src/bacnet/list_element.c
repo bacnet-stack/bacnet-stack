@@ -3,22 +3,19 @@
  * @brief AddListElement and RemoveListElement service encode and decode
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date December 2022
- * @section LICENSE
- *
- * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/list_element.h"
 
 /**
- * @brief Encode the Add/Remove ListElement service request only
+ * @brief Encode the Add/Remove ListElement service request APDU
  *
  *  AddListElement-Request ::= SEQUENCE {
  *      object-identifier       [0] BACnetObjectIdentifier,
@@ -41,7 +38,7 @@
  * @return Bytes encoded or zero on error.
  */
 int list_element_encode_service_request(
-    uint8_t *apdu, BACNET_LIST_ELEMENT_DATA *list_element)
+    uint8_t *apdu, const BACNET_LIST_ELEMENT_DATA *list_element)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -86,6 +83,28 @@ int list_element_encode_service_request(
 }
 
 /**
+ * @brief Encode the Add/Remove ListElement service request only
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t list_element_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_LIST_ELEMENT_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = list_element_encode_service_request(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = list_element_encode_service_request(apdu, data);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode the Add/Remove ListElement service request only
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_len  Count of valid bytes in the buffer.
@@ -103,7 +122,6 @@ int list_element_decode_service_request(
     uint32_t object_instance = 0;
     uint32_t property = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
-
 
     /* Must have at least 2 tags, an object id and a property identifier
      * of at least 1 byte in length to have any chance of parsing */
@@ -241,7 +259,7 @@ int list_element_decode_service_request(
  * @return Bytes encoded or zero on error.
  */
 int list_element_error_ack_encode(
-    uint8_t *apdu, BACNET_LIST_ELEMENT_DATA *list_element)
+    uint8_t *apdu, const BACNET_LIST_ELEMENT_DATA *list_element)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -290,7 +308,9 @@ int list_element_error_ack_encode(
  * @return Bytes encoded or zero on error.
  */
 int list_element_error_ack_decode(
-    uint8_t *apdu, uint16_t apdu_size, BACNET_LIST_ELEMENT_DATA *list_element)
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_LIST_ELEMENT_DATA *list_element)
 {
     int len = 0, apdu_len = 0;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;

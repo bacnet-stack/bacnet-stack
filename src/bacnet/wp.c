@@ -1,120 +1,194 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
+/**
+ * @file
+ * @brief BACnet WriteProperty service encoder and decoder
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
+#include <stdbool.h>
 #include <stdint.h>
-#include "bacnet/bacenum.h"
-#include "bacnet/bacdcode.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
+#include "bacnet/bacdcode.h"
 #include "bacnet/wp.h"
 
 /** @file wp.c  Encode/Decode BACnet Write Property APDUs  */
 
 #if BACNET_SVC_WP_A
-/** Initialize the APDU for encode service.
+/**
+ * @brief Encode the WriteProperty service request
  *
- * @param apdu  Pointer to the buffer.
+ *  WriteProperty-Request ::= SEQUENCE {
+ *      object-identifier [0] BACnetObjectIdentifier,
+ *      property-identifier [1] BACnetPropertyIdentifier,
+ *      property-array-index [2] Unsigned OPTIONAL,
+ *          -- used only with array datatype
+ *          -- if omitted with an array the entire
+ *          -- array is referenced
+ *      property-value [3] ABSTRACT-SYNTAX.&Type,
+ *      priority [4] Unsigned (1..16) OPTIONAL
+ *          -– used only when property is commandable
+ *  }
+ *
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param invoke_id  ID of service invoked.
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode
+ */
+size_t
+writeproperty_apdu_encode(uint8_t *apdu, const BACNET_WRITE_PROPERTY_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+    size_t len = 0; /* total length of the apdu, return value */
+
+    if (!data) {
+        return 0;
+    }
+    len = encode_context_object_id(
+        apdu, 0, data->object_type, data->object_instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_context_enumerated(apdu, 1, data->object_property);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* optional array index; ALL is -1 which is assumed when missing */
+    if (data->array_index != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(apdu, 2, data->array_index);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    /* propertyValue */
+    len = encode_opening_tag(apdu, 3);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    for (len = 0; len < data->application_data_len; len++) {
+        if (apdu) {
+            *apdu = data->application_data[len];
+            apdu += 1;
+        }
+        apdu_len++;
+    }
+    len = encode_closing_tag(apdu, 3);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    /* optional priority - 0 if not set, 1..16 if set */
+    if (data->priority != BACNET_NO_PRIORITY) {
+        len = encode_context_unsigned(apdu, 4, data->priority);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Initialize the APDU for encode service.
+ * @param apdu  Pointer to the buffer, or NULL for length
+ * @param apdu  Pointer to the buffer for encoding into
+ * @param apdu_size number of bytes available in the buffer
+ * @param data  Pointer to the service data used for encoding values
+ * @return number of bytes encoded, or zero if unable to encode or too large
+ */
+size_t writeproperty_service_request_encode(
+    uint8_t *apdu, size_t apdu_size, const BACNET_WRITE_PROPERTY_DATA *data)
+{
+    size_t apdu_len = 0; /* total length of the apdu, return value */
+
+    apdu_len = writeproperty_apdu_encode(NULL, data);
+    if (apdu_len > apdu_size) {
+        apdu_len = 0;
+    } else {
+        apdu_len = writeproperty_apdu_encode(apdu, data);
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Initialize the APDU for encode service.
+ *
+ *  WriteProperty-Request ::= SEQUENCE {
+ *      object-identifier [0] BACnetObjectIdentifier,
+ *      property-identifier [1] BACnetPropertyIdentifier,
+ *      property-array-index [2] Unsigned OPTIONAL,
+ *          -- used only with array datatype
+ *          -- if omitted with an array the entire
+ *          -- array is referenced
+ *      property-value [3] ABSTRACT-SYNTAX.&Type,
+ *      priority [4] Unsigned (1..16) OPTIONAL
+ *          -– used only when property is commandable
+ *  }
+ *
+ * @param apdu  Pointer to the buffer, or NULL for length
  * @param invoke_id  ID of service invoked.
  * @param wpdata  Pointer to the write property data.
  *
  * @return Bytes encoded
  */
 int wp_encode_apdu(
-    uint8_t *apdu, uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA *wpdata)
+    uint8_t *apdu, uint8_t invoke_id, const BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0; /* total length of the apdu, return value */
-    int imax = 0; /* maximum application data length */
 
+    if (!wpdata) {
+        return BACNET_STATUS_ERROR;
+    }
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_WRITE_PROPERTY; /* service choice */
-        apdu_len = 4;
-        len = encode_context_object_id(
-            &apdu[apdu_len], 0, wpdata->object_type, wpdata->object_instance);
-        apdu_len += len;
-        len = encode_context_enumerated(
-            &apdu[apdu_len], 1, wpdata->object_property);
-        apdu_len += len;
-        /* optional array index; ALL is -1 which is assumed when missing */
-        if (wpdata->array_index != BACNET_ARRAY_ALL) {
-            len = encode_context_unsigned(
-                &apdu[apdu_len], 2, wpdata->array_index);
-            apdu_len += len;
-        }
-        /* propertyValue */
-        len = encode_opening_tag(&apdu[apdu_len], 3);
-        apdu_len += len;
-        imax = wpdata->application_data_len;
-        if (imax > (MAX_APDU - 2 /*closing*/ - apdu_len)) {
-            imax = MAX_APDU - 2 - apdu_len;
-        }
-        for (len = 0; len < imax; len++) {
-            apdu[apdu_len + len] = wpdata->application_data[len];
-        }
-        apdu_len += imax;
-        len = encode_closing_tag(&apdu[apdu_len], 3);
-        apdu_len += len;
-        /* optional priority - 0 if not set, 1..16 if set */
-        if (wpdata->priority != BACNET_NO_PRIORITY) {
-            len = encode_context_unsigned(&apdu[apdu_len], 4, wpdata->priority);
-            apdu_len += len;
-        }
     }
+    len = 4;
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = writeproperty_apdu_encode(apdu, wpdata);
+    apdu_len += len;
 
     return apdu_len;
 }
 #endif
 
-/** Decode the service request only
+/**
+ * @brief Decode the service request only
  *
- * FIXME: there could be various error messages returned
- * using unique values less than zero.
+ *  WriteProperty-Request ::= SEQUENCE {
+ *      object-identifier [0] BACnetObjectIdentifier,
+ *      property-identifier [1] BACnetPropertyIdentifier,
+ *      property-array-index [2] Unsigned OPTIONAL,
+ *          -- used only with array datatype
+ *          -- if omitted with an array the entire
+ *          -- array is referenced
+ *      property-value [3] ABSTRACT-SYNTAX.&Type,
+ *      priority [4] Unsigned (1..16) OPTIONAL
+ *          -– used only when property is commandable
+ *  }
  *
  * @param apdu  Pointer to the buffer.
- * @param apdu_len  Valid bytes in the buffer
+ * @param apdu_size  Valid bytes in the buffer
  * @param wpdata  Pointer to the write property data.
  *
- * @return Bytes encoded or a negative value as error.
+ * @return number of bytes decoded, or #BACNET_STATUS_ERROR
  */
 int wp_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_WRITE_PROPERTY_DATA *wpdata)
+    const uint8_t *apdu, unsigned apdu_size, BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int len = 0;
-    int tag_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
+    int apdu_len = 0;
+    uint32_t instance = 0;
     BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
     uint32_t property = 0; /* for decoding */
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
@@ -122,80 +196,103 @@ int wp_decode_service_request(
     int imax = 0; /* max application data length */
 
     /* check for value pointers */
-    if (apdu_len && wpdata) {
-        /* Tag 0: Object ID          */
-        if (!decode_is_context_tag(&apdu[len++], 0)) {
-            return -1;
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    /* object-identifier [0] BACnetObjectIdentifier */
+    len = bacnet_object_id_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &type, &instance);
+    if (len > 0) {
+        if (instance > BACNET_MAX_INSTANCE) {
+            return BACNET_STATUS_ERROR;
         }
-        len += decode_object_id(&apdu[len], &type, &wpdata->object_instance);
-        wpdata->object_type = type;
-        /* Tag 1: Property ID */
-        len += decode_tag_number_and_value(
-            &apdu[len], &tag_number, &len_value_type);
-        if (tag_number != 1) {
-            return -1;
+        apdu_len += len;
+        if (wpdata) {
+            wpdata->object_type = type;
+            wpdata->object_instance = instance;
         }
-        len += decode_enumerated(&apdu[len], len_value_type, &property);
-        wpdata->object_property = (BACNET_PROPERTY_ID)property;
-        /* Tag 2: Optional Array Index */
-        /* note: decode without incrementing len so we can check for opening tag
-         */
-        tag_len = decode_tag_number_and_value(
-            &apdu[len], &tag_number, &len_value_type);
-        if (tag_number == 2) {
-            len += tag_len;
-            len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    /* property-identifier [1] BACnetPropertyIdentifier */
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &property);
+    if (len > 0) {
+        apdu_len += len;
+        if (wpdata) {
+            wpdata->object_property = (BACNET_PROPERTY_ID)property;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    /* property-array-index [2] Unsigned OPTIONAL */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &unsigned_value);
+    if (len > 0) {
+        apdu_len += len;
+        if (wpdata) {
             wpdata->array_index = unsigned_value;
-        } else {
+        }
+    } else {
+        /* wrong tag - skip apdu_len increment and go to next field */
+        if (wpdata) {
             wpdata->array_index = BACNET_ARRAY_ALL;
         }
-        /* Tag 3: opening context tag */
-        if (!decode_is_opening_tag_number(&apdu[len], 3)) {
-            return -1;
-        }
-        /* determine the length of the data blob */
-        imax = bacapp_data_len(
-            &apdu[len], apdu_len - len, (BACNET_PROPERTY_ID)property);
-        if (imax == BACNET_STATUS_ERROR) {
-            return -2;
-        }
-        /* a tag number of 3 is not extended so only one octet */
-        len++;
-        /* copy the data from the APDU */
-        if (imax > (MAX_APDU - len - 1 /*closing*/)) {
-            imax = (MAX_APDU - len - 1);
-        }
+    }
+    /* property-value [3] ABSTRACT-SYNTAX.&Type */
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 3, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    /* determine the length of the data blob */
+    imax = bacnet_enclosed_data_length(&apdu[apdu_len], apdu_size - apdu_len);
+    if (imax == BACNET_STATUS_ERROR) {
+        return BACNET_STATUS_ERROR;
+    }
+    /* count the opening tag number length */
+    apdu_len += len;
+    /* copy the data from the APDU */
+    if (imax > MAX_APDU) {
+        /* not enough size in application_data to store the data chunk */
+        return BACNET_STATUS_ERROR;
+    } else if (wpdata) {
         for (i = 0; i < imax; i++) {
-            wpdata->application_data[i] = apdu[len + i];
+            wpdata->application_data[i] = apdu[apdu_len + i];
         }
         wpdata->application_data_len = imax;
-        /* add on the data length */
-        len += imax;
-        if (!decode_is_closing_tag_number(&apdu[len], 3)) {
-            return -2;
-        }
-        /* a tag number of 3 is not extended so only one octet */
-        len++;
-        /* Tag 4: optional Priority - assumed MAX if not explicitly set */
+    }
+    /* add on the data length */
+    apdu_len += imax;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 3, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    /* count the closing tag number length */
+    apdu_len += len;
+    /* priority [4] Unsigned (1..16) OPTIONAL */
+    /* assumed MAX priority if not explicitly set */
+    if (wpdata) {
         wpdata->priority = BACNET_MAX_PRIORITY;
-        if ((unsigned)len < apdu_len) {
-            tag_len = decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            if (tag_number == 4) {
-                len += tag_len;
-                len = decode_unsigned(
-                    &apdu[len], len_value_type, &unsigned_value);
-                if ((unsigned_value >= BACNET_MIN_PRIORITY) &&
-                    (unsigned_value <= BACNET_MAX_PRIORITY)) {
+    }
+    if ((unsigned)apdu_len < apdu_size) {
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_len - apdu_size, 4, &unsigned_value);
+        if (len > 0) {
+            apdu_len += len;
+            if ((unsigned_value >= BACNET_MIN_PRIORITY) &&
+                (unsigned_value <= BACNET_MAX_PRIORITY)) {
+                if (wpdata) {
                     wpdata->priority = (uint8_t)unsigned_value;
-                } else {
-                    return -5;
                 }
+            } else {
+                return BACNET_STATUS_ERROR;
             }
+        } else {
+            return BACNET_STATUS_ERROR;
         }
     }
 
-    return len;
+    return apdu_len;
 }
 
 /**
@@ -204,9 +301,11 @@ int wp_decode_service_request(
  *  requested data and space for the reply, or error response.
  * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
  * @param expected_tag - the tag that is expected for this property value
+ * @return true if the expected tag matches the value tag
  */
-bool write_property_type_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
+bool write_property_type_valid(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value,
     uint8_t expected_tag)
 {
     /* assume success */
@@ -228,11 +327,13 @@ bool write_property_type_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
  * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data, including
  *  requested data and space for the reply, or error response.
  * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
- * @param expected_tag - the tag that is expected for this property value
+ * @param len_max - max length accepted for a character string, or 0=unchecked
+ * @return true if the character string value is valid
  */
-bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
-    int len_max)
+bool write_property_string_valid(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value,
+    size_t len_max)
 {
     bool valid = false;
 
@@ -251,8 +352,10 @@ bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else if (characterstring_length(&value->type.Character_String) >
-                (uint16_t)len_max) {
+            } else if (
+                (len_max > 0) &&
+                (characterstring_length(&value->type.Character_String) >
+                 len_max)) {
                 if (wp_data) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
@@ -283,19 +386,22 @@ bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
  * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data, including
  *  requested data and space for the reply, or error response.
  * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
- * @param expected_tag - the tag that is expected for this property value
+ * @param len_max - max length accepted for a character string, or 0=unchecked
+ * @return true if the character string value is valid
  */
-bool write_property_empty_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
-    int len_max)
+bool write_property_empty_string_valid(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    const BACNET_APPLICATION_DATA_VALUE *value,
+    size_t len_max)
 {
     bool valid = false;
 
     if (value && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         if (characterstring_encoding(&value->type.Character_String) ==
             CHARACTER_ANSI_X34) {
-            if (characterstring_length(&value->type.Character_String) >
-                (uint16_t)len_max) {
+            if ((len_max > 0) &&
+                (characterstring_length(&value->type.Character_String) >
+                 len_max)) {
                 if (wp_data) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
@@ -318,4 +424,42 @@ bool write_property_empty_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
     }
 
     return (valid);
+}
+
+/**
+ * @brief Helper to decode a WriteProperty unsigned integer and set a property
+ * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data including any
+ *  error response.
+ * @param value - #BACNET_APPLICATION_DATA_VALUE data
+ * @param setter - function to set the property
+ * @param maximum - maximum value allowed for the property
+ * @return true if the value was decoded and set, else false
+ */
+bool write_property_unsigned_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    bacnet_property_unsigned_setter setter,
+    BACNET_UNSIGNED_INTEGER maximum)
+{
+    bool status = write_property_type_valid(
+        wp_data, value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+    if (status) {
+        if (value->type.Unsigned_Int <= maximum) {
+            status =
+                (setter)(wp_data->object_instance, value->type.Unsigned_Int);
+            if (status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_SUCCESS;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = false;
+        }
+    }
+
+    return status;
 }

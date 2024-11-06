@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2005 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 
@@ -44,8 +17,9 @@
  * BACnet/Ethernet. */
 
 /* commonly used comparison address for ethernet */
-uint8_t Ethernet_Broadcast[MAX_MAC_LEN] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF };
+uint8_t Ethernet_Broadcast[MAX_MAC_LEN] = {
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+};
 /* commonly used empty address for ethernet quick compare */
 uint8_t Ethernet_Empty_MAC[MAX_MAC_LEN] = { 0, 0, 0, 0, 0, 0 };
 
@@ -62,8 +36,9 @@ bool ethernet_valid(void)
 
 void ethernet_cleanup(void)
 {
-    if (ethernet_valid())
+    if (ethernet_valid()) {
         close(eth802_sockfd);
+    }
     eth802_sockfd = -1;
 
     return;
@@ -91,7 +66,7 @@ int setNonblocking(
 #endif
 
 /* opens an 802.2 socket to receive and send packets */
-static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
+static int ethernet_bind(struct sockaddr *eth_addr, const char *interface_name)
 {
     int sock_fd = -1; /* return value */
 #if 0
@@ -103,7 +78,8 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
     /* check to see if we are being run as root */
     uid = getuid();
     if (uid != 0) {
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "ethernet: Unable to open an 802.2 socket.  "
             "Try running with root priveleges.\n");
         return sock_fd;
@@ -120,7 +96,8 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
         /* Error occured */
         fprintf(
             stderr, "ethernet: Error opening socket: %s\n", strerror(errno));
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "You might need to add the following to modules.conf\n"
             "(or in /etc/modutils/alias on Debian with update-modules):\n"
             "alias net-pf-17 af_packet\n"
@@ -148,9 +125,11 @@ static int ethernet_bind(struct sockaddr *eth_addr, char *interface_name)
     /* Attempt to bind the socket to the interface */
     if (bind(sock_fd, eth_addr, sizeof(struct sockaddr)) != 0) {
         /* Bind problem, close socket and return */
-        fprintf(stderr, "ethernet: Unable to bind 802.2 socket : %s\n",
+        fprintf(
+            stderr, "ethernet: Unable to bind 802.2 socket : %s\n",
             strerror(errno));
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "You might need to add the following to modules.conf\n"
             "(or in /etc/modutils/alias on Debian with update-modules):\n"
             "alias net-pf-17 af_packet\n"
@@ -177,12 +156,13 @@ static int get_local_hwaddr(const char *ifname, unsigned char *mac)
     /* determine the local MAC address */
     strcpy(ifr.ifr_name, ifname);
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-    if (fd < 0)
+    if (fd < 0) {
         rv = fd;
-    else {
+    } else {
         rv = ioctl(fd, SIOCGIFHWADDR, &ifr);
-        if (rv >= 0) /* worked okay */
+        if (rv >= 0) { /* worked okay */
             memcpy(mac, ifr.ifr_hwaddr.sa_data, IFHWADDRLEN);
+        }
     }
 
     return rv;
@@ -206,19 +186,22 @@ int ethernet_send(uint8_t *mtu, int mtu_len)
     int bytes = 0;
 
     /* Send the packet */
-    bytes = sendto(eth802_sockfd, &mtu, mtu_len, 0,
-        (struct sockaddr *)&eth_addr, sizeof(struct sockaddr));
+    bytes = sendto(
+        eth802_sockfd, &mtu, mtu_len, 0, (struct sockaddr *)&eth_addr,
+        sizeof(struct sockaddr));
     /* did it get sent? */
-    if (bytes < 0)
+    if (bytes < 0) {
         fprintf(
             stderr, "ethernet: Error sending packet: %s\n", strerror(errno));
+    }
 
     return bytes;
 }
 
 /* function to send a packet out the 802.2 socket */
 /* returns number of bytes sent on success, negative on failure */
-int ethernet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+int ethernet_send_pdu(
+    BACNET_ADDRESS *dest, /* destination address */
     BACNET_NPDU_DATA *npdu_data, /* network information */
     uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len)
@@ -275,19 +258,22 @@ int ethernet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     encode_unsigned16(&mtu[12], 3 + pdu_len);
 
     /* Send the packet */
-    bytes = sendto(eth802_sockfd, &mtu, mtu_len, 0,
-        (struct sockaddr *)&eth_addr, sizeof(struct sockaddr));
+    bytes = sendto(
+        eth802_sockfd, &mtu, mtu_len, 0, (struct sockaddr *)&eth_addr,
+        sizeof(struct sockaddr));
     /* did it get sent? */
-    if (bytes < 0)
+    if (bytes < 0) {
         fprintf(
             stderr, "ethernet: Error sending packet: %s\n", strerror(errno));
+    }
 
     return bytes;
 }
 
 /* receives an 802.2 framed packet */
 /* returns the number of octets in the PDU, or zero on failure */
-uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
+uint16_t ethernet_receive(
+    BACNET_ADDRESS *src, /* source address */
     uint8_t *pdu, /* PDU data */
     uint16_t max_pdu, /* amount of space available in the PDU  */
     unsigned timeout)
@@ -300,8 +286,9 @@ uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
     struct timeval select_timeout;
 
     /* Make sure the socket is open */
-    if (eth802_sockfd <= 0)
+    if (eth802_sockfd <= 0) {
         return 0;
+    }
 
     /* we could just use a non-blocking socket, but that consumes all
        the CPU time.  We can use a timeout; it is only supported as
@@ -318,24 +305,28 @@ uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
     FD_SET(eth802_sockfd, &read_fds);
     max = eth802_sockfd;
 
-    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
+    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
         received_bytes = read(eth802_sockfd, &buf[0], sizeof(buf));
-    else
+    } else {
         return 0;
+    }
 
     /* See if there is a problem */
     if (received_bytes < 0) {
         /* EAGAIN Non-blocking I/O has been selected  */
         /* using O_NONBLOCK and no data */
         /* was immediately available for reading. */
-        if (errno != EAGAIN)
-            fprintf(stderr, "ethernet: Read error in receiving packet: %s\n",
+        if (errno != EAGAIN) {
+            fprintf(
+                stderr, "ethernet: Read error in receiving packet: %s\n",
                 strerror(errno));
+        }
         return 0;
     }
 
-    if (received_bytes == 0)
+    if (received_bytes == 0) {
         return 0;
+    }
 
     /* the signature of an 802.2 BACnet packet */
     if ((buf[14] != 0x82) && (buf[15] != 0x82)) {
@@ -357,16 +348,18 @@ uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
     (void)decode_unsigned16(&buf[12], &pdu_len);
     pdu_len -= 3 /* DSAP, SSAP, LLC Control */;
     /* copy the buffer into the PDU */
-    if (pdu_len < max_pdu)
+    if (pdu_len < max_pdu) {
         memmove(&pdu[0], &buf[17], pdu_len);
+    }
     /* ignore packets that are too large */
-    else
+    else {
         pdu_len = 0;
+    }
 
     return pdu_len;
 }
 
-void ethernet_set_my_address(BACNET_ADDRESS *my_address)
+void ethernet_set_my_address(const BACNET_ADDRESS *my_address)
 {
     int i = 0;
 
@@ -414,12 +407,13 @@ void ethernet_get_broadcast_address(BACNET_ADDRESS *dest)
     return;
 }
 
-void ethernet_debug_address(const char *info, BACNET_ADDRESS *dest)
+void ethernet_debug_address(const char *info, const BACNET_ADDRESS *dest)
 {
     int i = 0; /* counter */
 
-    if (info)
+    if (info) {
         fprintf(stderr, "%s", info);
+    }
     if (dest) {
         fprintf(stderr, "Address:\n");
         fprintf(stderr, "  MAC Length=%d\n", dest->mac_len);

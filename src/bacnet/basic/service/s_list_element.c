@@ -14,8 +14,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/apdu.h"
@@ -106,19 +107,22 @@ uint8_t Send_List_Element_Request_Data(
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
+                (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                debug_perror("%s service: Failed to Send %i/%i (%s)!\n",
+                debug_perror(
+                    "%s service: Failed to Send %i/%i (%s)!\n",
                     bactext_confirmed_service_name(service), bytes_sent,
                     pdu_len, strerror(errno));
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-            debug_perror("%s service: Failed to Send "
+            debug_perror(
+                "%s service: Failed to Send "
                 "(exceeds destination maximum APDU)!\n",
                 bactext_confirmed_service_name(service));
         }
@@ -141,7 +145,8 @@ uint8_t Send_List_Element_Request_Data(
  * @return invoke id of outgoing message, or 0 on failure.
  * @return the invoke ID for confirmed request, or zero on failure
  */
-uint8_t Send_Add_List_Element_Request_Data(uint32_t device_id,
+uint8_t Send_Add_List_Element_Request_Data(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
@@ -150,15 +155,9 @@ uint8_t Send_Add_List_Element_Request_Data(uint32_t device_id,
     uint32_t array_index)
 {
     return Send_List_Element_Request_Data(
-        SERVICE_CONFIRMED_ADD_LIST_ELEMENT,
-        device_id,
-        object_type,
-        object_instance,
-        object_property,
-        application_data,
-        application_data_len,
-        array_index);
-
+        SERVICE_CONFIRMED_ADD_LIST_ELEMENT, device_id, object_type,
+        object_instance, object_property, application_data,
+        application_data_len, array_index);
 }
 
 /**
@@ -175,7 +174,8 @@ uint8_t Send_Add_List_Element_Request_Data(uint32_t device_id,
  * @return invoke id of outgoing message, or 0 on failure.
  * @return the invoke ID for confirmed request, or zero on failure
  */
-uint8_t Send_Remove_List_Element_Request_Data(uint32_t device_id,
+uint8_t Send_Remove_List_Element_Request_Data(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
@@ -184,15 +184,9 @@ uint8_t Send_Remove_List_Element_Request_Data(uint32_t device_id,
     uint32_t array_index)
 {
     return Send_List_Element_Request_Data(
-        SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT,
-        device_id,
-        object_type,
-        object_instance,
-        object_property,
-        application_data,
-        application_data_len,
-        array_index);
-
+        SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT, device_id, object_type,
+        object_instance, object_property, application_data,
+        application_data_len, array_index);
 }
 
 /**
@@ -208,7 +202,8 @@ uint8_t Send_Remove_List_Element_Request_Data(uint32_t device_id,
  *   - BACNET_ARRAY_ALL (~0) for the array value to be ignored (not sent)
  * @return invoke id of outgoing message, or 0 on failure.
  */
-uint8_t Send_Add_List_Element_Request(uint32_t device_id,
+uint8_t Send_Add_List_Element_Request(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
@@ -219,8 +214,9 @@ uint8_t Send_Add_List_Element_Request(uint32_t device_id,
     int apdu_len = 0, len = 0;
 
     while (object_value) {
-        debug_printf("AddListElement service: "
-                     "%s tag=%d\n",
+        debug_printf(
+            "AddListElement service: "
+            "%s tag=%d\n",
             (object_value->context_specific ? "context" : "application"),
             (int)(object_value->context_specific ? object_value->context_tag
                                                  : object_value->tag));
@@ -233,9 +229,9 @@ uint8_t Send_Add_List_Element_Request(uint32_t device_id,
         object_value = object_value->next;
     }
 
-    return Send_Add_List_Element_Request_Data(device_id, object_type,
-        object_instance, object_property, &application_data[0], apdu_len,
-        array_index);
+    return Send_Add_List_Element_Request_Data(
+        device_id, object_type, object_instance, object_property,
+        &application_data[0], apdu_len, array_index);
 }
 
 /**
@@ -251,7 +247,8 @@ uint8_t Send_Add_List_Element_Request(uint32_t device_id,
  *   - BACNET_ARRAY_ALL (~0) for the array value to be ignored (not sent)
  * @return invoke id of outgoing message, or 0 on failure.
  */
-uint8_t Send_Remove_List_Element_Request(uint32_t device_id,
+uint8_t Send_Remove_List_Element_Request(
+    uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_PROPERTY_ID object_property,
@@ -262,8 +259,9 @@ uint8_t Send_Remove_List_Element_Request(uint32_t device_id,
     int apdu_len = 0, len = 0;
 
     while (object_value) {
-        debug_perror("RemoveListElement service: "
-                     "%s tag=%d\n",
+        debug_perror(
+            "RemoveListElement service: "
+            "%s tag=%d\n",
             (object_value->context_specific ? "context" : "application"),
             (int)(object_value->context_specific ? object_value->context_tag
                                                  : object_value->tag));
@@ -276,7 +274,7 @@ uint8_t Send_Remove_List_Element_Request(uint32_t device_id,
         object_value = object_value->next;
     }
 
-    return Send_Remove_List_Element_Request_Data(device_id, object_type,
-        object_instance, object_property, &application_data[0], apdu_len,
-        array_index);
+    return Send_Remove_List_Element_Request_Data(
+        device_id, object_type, object_instance, object_property,
+        &application_data[0], apdu_len, array_index);
 }

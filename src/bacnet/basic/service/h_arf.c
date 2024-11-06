@@ -1,34 +1,18 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Handles AtomicReadFile-Request service.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2006
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "bacnet/config.h"
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacerror.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/apdu.h"
@@ -42,8 +26,6 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
-
-/** @file h_arf.c  Handles Atomic Read File request. */
 
 /*
 from BACnet SSPC-135-2004
@@ -97,7 +79,8 @@ shall be TRUE, otherwise FALSE.
 */
 
 #if defined(BACFILE)
-void handler_atomic_read_file(uint8_t *service_request,
+void handler_atomic_read_file(
+    uint8_t *service_request,
     uint16_t service_len,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
@@ -121,9 +104,9 @@ void handler_atomic_read_file(uint8_t *service_request,
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_data->segmented_message) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
         fprintf(stderr, "ARF: Segmented Message. Sending Abort!\n");
 #endif
@@ -132,8 +115,9 @@ void handler_atomic_read_file(uint8_t *service_request,
     len = arf_decode_service_request(service_request, service_len, &data);
     /* bad decoding - send an abort */
     if (len < 0) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
+        len = abort_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "Bad Encoding. Sending Abort!\n");
 #endif
@@ -147,18 +131,21 @@ void handler_atomic_read_file(uint8_t *service_request,
                 octetstring_capacity(&data.fileData[0])) {
                 bacfile_read_stream_data(&data);
 #if PRINT_ENABLED
-                fprintf(stderr, "ARF: Stream offset %d, %d octets.\n",
+                fprintf(
+                    stderr, "ARF: Stream offset %d, %d octets.\n",
                     (int)data.type.stream.fileStartPosition,
                     (int)data.type.stream.requestedOctetCount);
 #endif
-                len = arf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, &data);
+                len = arf_ack_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    &data);
             } else {
-                len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id,
+                len = abort_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
-                fprintf(stderr, "Too Big To Send (%d >= %d). Sending Abort!\n",
+                fprintf(
+                    stderr, "Too Big To Send (%d >= %d). Sending Abort!\n",
                     (int)data.type.stream.requestedOctetCount,
                     (int)octetstring_capacity(&data.fileData[0]));
 #endif
@@ -171,12 +158,14 @@ void handler_atomic_read_file(uint8_t *service_request,
                 error = true;
             } else if (bacfile_read_stream_data(&data)) {
 #if PRINT_ENABLED
-                fprintf(stderr, "ARF: fileStartRecord %d, %u RecordCount.\n",
+                fprintf(
+                    stderr, "ARF: fileStartRecord %d, %u RecordCount.\n",
                     (int)data.type.record.fileStartRecord,
                     (unsigned)data.type.record.RecordCount);
 #endif
-                len = arf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                    service_data->invoke_id, &data);
+                len = arf_ack_encode_apdu(
+                    &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+                    &data);
             } else {
                 error = true;
                 error_class = ERROR_CLASS_OBJECT;
@@ -196,9 +185,9 @@ void handler_atomic_read_file(uint8_t *service_request,
         error_code = ERROR_CODE_INCONSISTENT_OBJECT_TYPE;
     }
     if (error) {
-        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-            error_class, error_code);
+        len = bacerror_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            SERVICE_CONFIRMED_ATOMIC_READ_FILE, error_class, error_code);
     }
 ARF_ABORT:
     pdu_len += len;

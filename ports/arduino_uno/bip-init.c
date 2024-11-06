@@ -1,37 +1,10 @@
-/*####COPYRIGHTBEGIN####
- -------------------------------------------
- Copyright (C) 2005 Steve Karg
-
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to:
- The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330
- Boston, MA  02111-1307, USA.
-
- As a special exception, if other files instantiate templates or
- use macros or inline functions from this file, or you compile
- this file and link it with other works to produce a work based
- on this file, this file does not by itself cause the resulting
- work to be covered by the GNU General Public License. However
- the source code for this file must still be made available in
- accordance with section (3) of the GNU General Public License.
-
- This exception does not invalidate any other reasons why a work
- based on this file might be covered by the GNU General Public
- License.
- -------------------------------------------
-####COPYRIGHTEND####*/
-
+/**************************************************************************
+ *
+ * Copyright (C) 2005 Steve Karg
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ *
+ *********************************************************************/
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <stdio.h>
@@ -39,7 +12,7 @@
 #include "bacnet/datalink/bip.h"
 #include "socketWrapper.h"
 #include "w5100Wrapper.h"
-//#include "bacport.h"
+// #include "bacport.h"
 
 /** @file linux/bip-init.c  Initializes BACnet/IP interface (Linux). */
 
@@ -77,7 +50,7 @@ long bip_getaddrbyname(const char *host_name)
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for Linux, ifname is eth0, ath0, arc0, and others.
  */
-void bip_set_interface(char *ifname)
+void bip_set_interface(const char *ifname)
 {
     uint8_t local_address[] = { 0, 0, 0, 0 };
     uint8_t broadcast_address[] = { 0, 0, 0, 0 };
@@ -88,7 +61,8 @@ void bip_set_interface(char *ifname)
     bip_set_addr(local_address);
     if (BIP_Debug) {
         fprintf(stderr, "Interface: %s\n", ifname);
-        fprintf(stderr, "IP Address: %d.%d.%d.%d\n", local_address[0],
+        fprintf(
+            stderr, "IP Address: %d.%d.%d.%d\n", local_address[0],
             local_address[1], local_address[2], local_address[3]);
     }
 
@@ -101,9 +75,9 @@ void bip_set_interface(char *ifname)
 
     bip_set_broadcast_addr(broadcast_address);
     if (BIP_Debug) {
-        fprintf(stderr, "IP Broadcast Address: %d.%d.%d.%d\n",
-            broadcast_address[0], broadcast_address[1], broadcast_address[2],
-            broadcast_address[3]);
+        fprintf(
+            stderr, "IP Broadcast Address: %d.%d.%d.%d\n", broadcast_address[0],
+            broadcast_address[1], broadcast_address[2], broadcast_address[3]);
     }
 }
 
@@ -129,10 +103,11 @@ bool bip_init(char *ifname)
     uint8_t sock_fd = 0;
     bool isOpen = false;
 
-    if (ifname)
+    if (ifname) {
         bip_set_interface(ifname);
-    else
+    } else {
         bip_set_interface("eth0");
+    }
 
     /* assumes that the driver has already been initialized */
     for (sock_fd = 0; sock_fd < MAX_SOCK_NUM; sock_fd++) {
