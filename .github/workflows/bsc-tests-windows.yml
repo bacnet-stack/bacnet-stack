@@ -36,7 +36,7 @@ jobs:
         Copy-Item -Path .\pkg\share -Destination c:\vcpkg\installed\x64-windows-custom -Recurse -Force
         cd ../../
     - name: Setup MSBuild 
-      uses: microsoft/setup-msbuild@v1.3
+      uses: microsoft/setup-msbuild@v2
       with:
         msbuild-architecture: x64
     - name: Build and run bsc_event test
