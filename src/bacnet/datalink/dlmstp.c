@@ -48,10 +48,10 @@ int dlmstp_send_pdu(
     if (!MSTP_Port) {
         return 0;
     }
-    if (!MSTP_Port->UserData) {
+    user = MSTP_Port->UserData;
+    if (!user) {
         return 0;
     }
-    user = MSTP_Port->UserData;
     pkt = (struct dlmstp_packet *)(void *)Ringbuf_Data_Peek(&user->PDU_Queue);
     if (pkt && (pdu_len <= DLMSTP_MPDU_MAX)) {
         if (npdu_data->data_expecting_reply) {
@@ -349,9 +349,6 @@ uint16_t dlmstp_receive(
     if (!MSTP_Port) {
         return 0;
     }
-    if (!MSTP_Port->UserData) {
-        return 0;
-    }
     user = MSTP_Port->UserData;
     if (!user) {
         return 0;
@@ -620,11 +617,7 @@ bool dlmstp_sole_master(void)
     if (!MSTP_Port) {
         return false;
     }
-    if (MSTP_Port->SoleMaster) {
-        return true;
-    }
-
-    return false;
+    return MSTP_Port->SoleMaster;
 }
 
 /**
@@ -698,7 +691,6 @@ uint8_t dlmstp_zero_config_preferred_station(void)
     if (!MSTP_Port) {
         return 0;
     }
-
     return MSTP_Port->Zero_Config_Preferred_Station;
 }
 
@@ -770,10 +762,10 @@ void dlmstp_set_baud_rate(uint32_t baud)
     if (!MSTP_Port) {
         return;
     }
-    if (!MSTP_Port->UserData) {
+    user = MSTP_Port->UserData;
+    if (!user) {
         return;
     }
-    user = MSTP_Port->UserData;
     driver = user->RS485_Driver;
     if (!driver) {
         return;
@@ -801,10 +793,10 @@ uint32_t dlmstp_baud_rate(void)
     if (!MSTP_Port) {
         return 0;
     }
-    if (!MSTP_Port->UserData) {
+    user = MSTP_Port->UserData;
+    if (!user) {
         return 0;
     }
-    user = MSTP_Port->UserData;
     driver = user->RS485_Driver;
     if (!driver) {
         return 0;
@@ -822,9 +814,6 @@ void dlmstp_fill_statistics(struct dlmstp_statistics *statistics)
     struct dlmstp_user_data_t *user;
 
     if (!MSTP_Port) {
-        return;
-    }
-    if (!MSTP_Port->UserData) {
         return;
     }
     user = MSTP_Port->UserData;
