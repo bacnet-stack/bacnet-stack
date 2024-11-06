@@ -372,6 +372,11 @@ uint16_t dlmstp_receive(
             MSTP_Port->DataRegister = data_register;
         }
         MSTP_Receive_Frame_FSM(MSTP_Port);
+        if (MSTP_Port->receive_state == MSTP_RECEIVE_STATE_PREAMBLE) {
+            if (user->Preamble_Callback) {
+                user->Preamble_Callback();
+            }
+        }
         /* process another byte, if available */
         if (!driver->read(NULL)) {
             break;
@@ -387,9 +392,21 @@ uint16_t dlmstp_receive(
     }
     if (MSTP_Port->ReceivedValidFrame) {
         user->Statistics.receive_valid_frame_counter++;
+        if (user->Valid_Frame_Rx_Callback) {
+            user->Valid_Frame_Rx_Callback(
+                MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
+                MSTP_Port->FrameType, MSTP_Port->InputBuffer,
+                MSTP_Port->DataLength);
+        }
     }
     if (MSTP_Port->ReceivedInvalidFrame) {
         user->Statistics.receive_invalid_frame_counter++;
+        if (user->Invalid_Frame_Rx_Callback) {
+            user->Invalid_Frame_Rx_Callback(
+                MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
+                MSTP_Port->FrameType, MSTP_Port->InputBuffer,
+                MSTP_Port->DataLength);
+        }
     }
     if (MSTP_Port->receive_state == MSTP_RECEIVE_STATE_IDLE) {
         /* only node state machines while rx is idle */
@@ -803,6 +820,80 @@ uint32_t dlmstp_baud_rate(void)
     }
 
     return driver->baud_rate();
+}
+
+/**
+ * @brief Set the MS/TP Frame Complete callback
+ * @param cb_func - callback function to be called when a frame is received
+ */
+void dlmstp_set_frame_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
+{
+    struct dlmstp_user_data_t *user;
+
+    if (!MSTP_Port) {
+        return;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return;
+    }
+    user->Valid_Frame_Rx_Callback = cb_func;
+}
+
+/**
+ * @brief Set the MS/TP Frame Complete callback
+ * @param cb_func - callback function to be called when a frame is received
+ */
+void dlmstp_set_invalid_frame_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
+{
+    struct dlmstp_user_data_t *user;
+
+    if (!MSTP_Port) {
+        return;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return;
+    }
+    user->Invalid_Frame_Rx_Callback = cb_func;
+}
+
+/**
+ * @brief Set the MS/TP Preamble callback
+ * @param cb_func - callback function to be called when a preamble is received
+ */
+void dlmstp_set_frame_rx_start_callback(dlmstp_hook_frame_rx_start_cb cb_func)
+{
+    struct dlmstp_user_data_t *user;
+
+    if (!MSTP_Port) {
+        return;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return;
+    }
+    user->Preamble_Callback = cb_func;
+}
+
+/**
+ * @brief Reset the MS/TP statistics
+ */
+void dlmstp_reset_statistics(void)
+{
+    struct dlmstp_user_data_t *user;
+    struct dlmstp_statistics *stats;
+
+    if (!MSTP_Port) {
+        return;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return;
+    }
+    memset(&user->Statistics, 0, sizeof(struct dlmstp_statistics));
 }
 
 /**
