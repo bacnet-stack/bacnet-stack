@@ -834,9 +834,6 @@ void dlmstp_set_frame_rx_complete_callback(
     if (!MSTP_Port) {
         return;
     }
-    if (!MSTP_Port->UserData) {
-        return;
-    }
     user = MSTP_Port->UserData;
     if (!user) {
         return;
@@ -854,9 +851,6 @@ void dlmstp_set_invalid_frame_rx_complete_callback(
     struct dlmstp_user_data_t *user;
 
     if (!MSTP_Port) {
-        return;
-    }
-    if (!MSTP_Port->UserData) {
         return;
     }
     user = MSTP_Port->UserData;
@@ -877,9 +871,6 @@ void dlmstp_set_frame_rx_start_callback(dlmstp_hook_frame_rx_start_cb cb_func)
     if (!MSTP_Port) {
         return;
     }
-    if (!MSTP_Port->UserData) {
-        return;
-    }
     user = MSTP_Port->UserData;
     if (!user) {
         return;
@@ -896,9 +887,6 @@ void dlmstp_reset_statistics(void)
     struct dlmstp_statistics *stats;
 
     if (!MSTP_Port) {
-        return;
-    }
-    if (!MSTP_Port->UserData) {
         return;
     }
     user = MSTP_Port->UserData;
