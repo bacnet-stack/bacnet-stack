@@ -486,7 +486,8 @@ int bacnet_recipient_context_encode(
  *
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  Count of valid bytes in the buffer.
- * @param recipient  Pointer to the property data to be decoded.
+ * @param recipient  Pointer to the property data to be decoded, or NULL for
+ * decoding to determine the length.
  *
  * @return bytes encoded or #BACNET_STATUS_REJECT on error.
  */
@@ -494,54 +495,81 @@ int bacnet_recipient_decode(
     const uint8_t *apdu, int apdu_size, BACNET_RECIPIENT *recipient)
 {
     int len = 0, apdu_len = 0;
-
-    (void)apdu_size;
+    BACNET_OBJECT_TYPE object_type = OBJECT_DEVICE;
+    uint32_t instance = 0;
+    BACNET_ADDRESS address;
 
     if (!apdu) {
         return BACNET_STATUS_REJECT;
     }
-    if (!recipient) {
+    /* device [0] BACnetObjectIdentifier */
+    len = bacnet_object_id_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, BACNET_RECIPIENT_TAG_DEVICE,
+        &object_type, &instance);
+    if (len > 0) {
+        if (object_type != OBJECT_DEVICE) {
+            return BACNET_STATUS_REJECT;
+        }
+        if (recipient) {
+            recipient->tag = BACNET_RECIPIENT_TAG_DEVICE;
+            recipient->type.device.type = object_type;
+            recipient->type.device.instance = instance;
+        }
+        apdu_len += len;
+    } else if (len < 0) {
         return BACNET_STATUS_REJECT;
-    }
-
-    if (decode_is_context_tag(apdu, BACNET_RECIPIENT_TAG_DEVICE)) {
-        /* device [0] BACnetObjectIdentifier */
-        recipient->tag = BACNET_RECIPIENT_TAG_DEVICE;
-        len = decode_context_object_id(
-            apdu, BACNET_RECIPIENT_TAG_DEVICE, &recipient->type.device.type,
-            &recipient->type.device.instance);
-        if (len == BACNET_STATUS_ERROR) {
-            return BACNET_STATUS_REJECT;
-        }
-        if (recipient->type.device.type != OBJECT_DEVICE) {
-            return BACNET_STATUS_REJECT;
-        }
-        apdu_len += len;
-    } else if (decode_is_opening_tag_number(
-                   apdu, BACNET_RECIPIENT_TAG_ADDRESS)) {
-        /* address [1] BACnetAddress */
-        recipient->tag = BACNET_RECIPIENT_TAG_ADDRESS;
-        /* opening tag [1] is len 1 */
-        len = 1;
-        apdu_len += len;
-        apdu += len;
-        len = decode_bacnet_address(apdu, &recipient->type.address);
-        if ((len == 0) || (len == BACNET_STATUS_ERROR)) {
-            return BACNET_STATUS_REJECT;
-        }
-        apdu_len += len;
-        apdu += len;
-        /* closing tag [1] */
-        if (decode_is_closing_tag_number(apdu, BACNET_RECIPIENT_TAG_ADDRESS)) {
-            /* closing tag [1] is len 1 */
-            len = 1;
+    } else {
+        len = bacnet_address_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, BACNET_RECIPIENT_TAG_ADDRESS,
+            &address);
+        if (len > 0) {
+            if (recipient) {
+                recipient->tag = BACNET_RECIPIENT_TAG_ADDRESS;
+                bacnet_address_copy(&recipient->type.address, &address);
+            }
             apdu_len += len;
         } else {
             return BACNET_STATUS_REJECT;
         }
-    } else {
-        return BACNET_STATUS_REJECT;
     }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a time stamp and check for opening and closing tags.
+ * @param apdu  Pointer to the APDU buffer.
+ * @param apdu_size - the APDU buffer length
+ * @param tag_number  The tag number that shall
+ *                    hold the time stamp.
+ * @param value  Pointer to the variable that shall
+ *               take the time stamp values.
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
+ */
+int bacnet_recipient_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_RECIPIENT *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len = bacnet_recipient_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (!bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
 
     return apdu_len;
 }

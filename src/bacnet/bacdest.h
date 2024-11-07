@@ -99,6 +99,12 @@ int bacnet_recipient_context_encode(
 BACNET_STACK_EXPORT
 int bacnet_recipient_decode(
     const uint8_t *apdu, int apdu_size, BACNET_RECIPIENT *recipient);
+BACNET_STACK_EXPORT
+int bacnet_recipient_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_RECIPIENT *value);
 
 BACNET_STACK_EXPORT
 int bacnet_destination_to_ascii(
