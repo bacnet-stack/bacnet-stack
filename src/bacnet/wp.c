@@ -7,7 +7,6 @@
  */
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -337,7 +336,7 @@ bool write_property_string_valid(
     size_t len_max)
 {
     bool valid = false;
-    fprintf(stderr, "write_property_string_valid *wp_data = %p\n", (void *)wp_data);
+
     if (value && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         if (characterstring_encoding(&value->type.Character_String) ==
             CHARACTER_ANSI_X34) {
@@ -350,7 +349,6 @@ bool write_property_string_valid(
                            &value->type.Character_String)) {
                 /* assumption: non-empty also means must be "printable" */
                 if (wp_data) {
-                     fprintf(stderr, " wp ERROR_CODE_INVALID_TAG");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
@@ -374,7 +372,6 @@ bool write_property_string_valid(
         }
     } else {
         if (wp_data) {
-            fprintf(stderr, "final wp ERROR_CODE_INVALID_DATA_TYPE");
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
         }

@@ -308,7 +308,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     CurrentNotify = &NC_Info[Notification_Class_Instance_To_Index(
         wp_data->object_instance)];
-    fprintf(stderr, "CurrentNotify = %p\n", (void *)CurrentNotify);
+
     /* decode some of the request */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
@@ -325,20 +325,16 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-    fprintf(stderr, "##### len = %d\n", len);
     switch (wp_data->object_property) {
         case PROP_PRIORITY:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            fprintf(stderr, "status = %d\n", status);
             if (status) {
                 if (wp_data->array_index == 0) {
-                    fprintf(stderr, "ERROR_CODE_VALUE_OUT_OF_RANGE ==0\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                     status = false;
                 } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
-                    fprintf(stderr, "ERROR_CODE_INVALID_DATA_TYPE #2\n");
                     iOffset = 0;
                     for (idx = 0; idx < MAX_BACNET_EVENT_TRANSITION; idx++) {
                         len = bacapp_decode_application_data(
@@ -371,7 +367,6 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     }
                 } else if (wp_data->array_index <= 3) {
                     if (value.type.Unsigned_Int > 255) {
-                        fprintf(stderr, "ERROR_CODE_VALUE_OUT_OF_RANGE <=3\n");
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                         status = false;
@@ -380,7 +375,6 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                             value.type.Unsigned_Int;
                     }
                 } else {
-                    fprintf(stderr, "## ERROR_CODE_INVALID_ARRAY_INDEX\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                     status = false;
