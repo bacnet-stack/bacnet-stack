@@ -248,33 +248,10 @@ int bacnet_destination_encode(
         if (apdu) {
             apdu += len;
         }
-        if (destination->Recipient.tag == BACNET_RECIPIENT_TAG_DEVICE) {
-            len = encode_context_object_id(
-                apdu, 0, OBJECT_DEVICE,
-                destination->Recipient.type.device.instance);
-            apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
-        } else if (destination->Recipient.tag == BACNET_RECIPIENT_TAG_ADDRESS) {
-            /* opening tag 1 */
-            len = encode_opening_tag(apdu, 1);
-            apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
-            len = encode_bacnet_address(
-                apdu, &destination->Recipient.type.address);
-            apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
-            /* closing tag 1 */
-            len = encode_closing_tag(apdu, 1);
-            apdu_len += len;
-            if (apdu) {
-                apdu += len;
-            }
+        len = bacnet_recipient_encode(apdu, &destination->Recipient);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
         }
         /* Process Identifier - Unsigned32 */
         len = encode_application_unsigned(apdu, destination->ProcessIdentifier);
@@ -387,50 +364,13 @@ int bacnet_destination_decode(
     datetime_copy_time(&destination->ToTime, &value.type.Time);
     apdu_len += len;
     apdu += len;
-    if (decode_is_context_tag(apdu, BACNET_RECIPIENT_TAG_DEVICE)) {
-        /* device [0] BACnetObjectIdentifier */
-        destination->Recipient.tag = BACNET_RECIPIENT_TAG_DEVICE;
-        len = decode_context_object_id(
-            apdu, BACNET_RECIPIENT_TAG_DEVICE,
-            &destination->Recipient.type.device.type,
-            &destination->Recipient.type.device.instance);
-        if (len == BACNET_STATUS_ERROR) {
-            return BACNET_STATUS_REJECT;
-        }
-        if (destination->Recipient.type.device.type != OBJECT_DEVICE) {
-            return BACNET_STATUS_REJECT;
-        }
-        apdu_len += len;
-        apdu += len;
-    } else if (decode_is_opening_tag_number(
-                   apdu, BACNET_RECIPIENT_TAG_ADDRESS)) {
-        /* address [1] BACnetAddress */
-        destination->Recipient.tag = BACNET_RECIPIENT_TAG_ADDRESS;
-        /* opening tag [1] is len 1 */
-        len = 1;
-        apdu_len += len;
-        apdu += len;
-        len = decode_bacnet_address(apdu, &destination->Recipient.type.address);
-        if ((len == 0) || (len == BACNET_STATUS_ERROR)) {
-            return BACNET_STATUS_REJECT;
-        }
-        apdu_len += len;
-        apdu += len;
-        /* closing tag [1] */
-        if (decode_is_closing_tag_number(apdu, BACNET_RECIPIENT_TAG_ADDRESS)) {
-            /* closing tag [1] is len 1 */
-            len = 1;
-            apdu_len += len;
-            apdu += len;
-        } else {
-            return BACNET_STATUS_REJECT;
-        }
-    } else {
+    /* Recipient */
+    len = bacnet_recipient_decode(apdu, apdu_size, &destination->Recipient);
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
     }
     apdu_len += len;
     apdu += len;
-
     /* Process Identifier */
     len = bacapp_decode_application_data(apdu, apdu_size, &value);
     if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
@@ -460,6 +400,148 @@ int bacnet_destination_decode(
     /* store value */
     bitstring_copy(&destination->Transitions, &value.type.Bit_String);
     apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the BACnetRecipient complex data
+ *
+ * BACnetRecipient ::= CHOICE {
+ *      device [0] BACnetObjectIdentifier,
+ *      address [1] BACnetAddress
+ * }
+ *
+ * @param apdu  Pointer to the buffer for encoding.
+ * @param recipient  Pointer to the property data to be encoded.
+ *
+ * @return bytes encoded or zero on error.
+ */
+int bacnet_recipient_encode(uint8_t *apdu, const BACNET_RECIPIENT *recipient)
+{
+    int apdu_len = 0, len = 0;
+
+    if (recipient->tag == BACNET_RECIPIENT_TAG_DEVICE) {
+        len = encode_context_object_id(
+            apdu, 0, OBJECT_DEVICE, recipient->type.device.instance);
+        apdu_len += len;
+    } else if (recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) {
+        /* opening tag 1 */
+        len = encode_opening_tag(apdu, 1);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_bacnet_address(apdu, &recipient->type.address);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        /* closing tag 1 */
+        len = encode_closing_tag(apdu, 1);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a BACnetRecipient complex data type
+ * @param apdu - the APDU buffer
+ * @param tag_number - context tag number
+ * @param recipient  Pointer to the property data to be encoded.
+ * @return length of the APDU buffer, or 0 if not able to encode
+ */
+int bacnet_recipient_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_RECIPIENT *recipient)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (recipient) {
+        len = encode_opening_tag(apdu, tag_number);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = bacnet_recipient_encode(apdu, recipient);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+        len = encode_closing_tag(apdu, tag_number);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode the BACnetRecipient complex data
+ *
+ * BACnetRecipient ::= CHOICE {
+ *      device [0] BACnetObjectIdentifier,
+ *      address [1] BACnetAddress
+ * }
+ *
+ * @param apdu  Pointer to the buffer for decoding.
+ * @param apdu_size  Count of valid bytes in the buffer.
+ * @param recipient  Pointer to the property data to be decoded.
+ *
+ * @return bytes encoded or #BACNET_STATUS_REJECT on error.
+ */
+int bacnet_recipient_decode(
+    const uint8_t *apdu, int apdu_size, BACNET_RECIPIENT *recipient)
+{
+    int len = 0, apdu_len = 0;
+
+    (void)apdu_size;
+
+    if (!apdu) {
+        return BACNET_STATUS_REJECT;
+    }
+    if (!recipient) {
+        return BACNET_STATUS_REJECT;
+    }
+
+    if (decode_is_context_tag(apdu, BACNET_RECIPIENT_TAG_DEVICE)) {
+        /* device [0] BACnetObjectIdentifier */
+        recipient->tag = BACNET_RECIPIENT_TAG_DEVICE;
+        len = decode_context_object_id(
+            apdu, BACNET_RECIPIENT_TAG_DEVICE, &recipient->type.device.type,
+            &recipient->type.device.instance);
+        if (len == BACNET_STATUS_ERROR) {
+            return BACNET_STATUS_REJECT;
+        }
+        if (recipient->type.device.type != OBJECT_DEVICE) {
+            return BACNET_STATUS_REJECT;
+        }
+        apdu_len += len;
+    } else if (decode_is_opening_tag_number(
+                   apdu, BACNET_RECIPIENT_TAG_ADDRESS)) {
+        /* address [1] BACnetAddress */
+        recipient->tag = BACNET_RECIPIENT_TAG_ADDRESS;
+        /* opening tag [1] is len 1 */
+        len = 1;
+        apdu_len += len;
+        apdu += len;
+        len = decode_bacnet_address(apdu, &recipient->type.address);
+        if ((len == 0) || (len == BACNET_STATUS_ERROR)) {
+            return BACNET_STATUS_REJECT;
+        }
+        apdu_len += len;
+        apdu += len;
+        /* closing tag [1] */
+        if (decode_is_closing_tag_number(apdu, BACNET_RECIPIENT_TAG_ADDRESS)) {
+            /* closing tag [1] is len 1 */
+            len = 1;
+            apdu_len += len;
+        } else {
+            return BACNET_STATUS_REJECT;
+        }
+    } else {
+        return BACNET_STATUS_REJECT;
+    }
 
     return apdu_len;
 }
