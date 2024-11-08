@@ -1507,7 +1507,7 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         return;
     }
 
-        /* check whether Intrinsic reporting is enabled */
+    /* check whether Intrinsic reporting is enabled */
     if (!CurrentAI->Event_Detection_Enable) {
         return; /* limits are not configured */
     }
