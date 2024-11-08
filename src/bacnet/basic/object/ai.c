@@ -45,6 +45,7 @@ static const int Properties_Optional[] = {
     PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT,
     PROP_LOW_LIMIT, PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE,
     PROP_ACKED_TRANSITIONS, PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_DETECTION_ENABLE,
 #endif
     -1
 };
@@ -408,6 +409,63 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
 
     return state;
 }
+
+
+#if defined(INTRINSIC_REPORTING)
+/**
+ * For a given object instance-number, gets the event-detection-enable property
+ * value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event-detection-enable property value
+ */
+bool Analog_Input_Event_Detection_Enable(uint32_t object_instance)
+{
+    bool retval = false;
+#if !defined(INTRINSIC_REPORTING)
+    (void)object_instance;
+#else
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        retval = pObject->Event_Detection_Enable;
+    }
+#endif
+
+    return retval;
+}
+
+
+/**
+ * For a given object instance-number, sets the event-detection-enable property
+ * value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event-detection-enable property value
+ */
+bool Analog_Input_Event_Detection_Enable_Set(
+    uint32_t object_instance, bool value)
+{
+    bool retval = false;
+#if !defined(INTRINSIC_REPORTING)
+    (void)object_instance;
+    (void)value;
+#else
+    struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
+
+    if (pObject) {
+        pObject->Event_Detection_Enable = value;
+        retval = true;
+    }
+#endif
+
+    return retval;
+}
+
+#endif
+
 
 /**
  * @brief For a given object instance-number, returns the description
@@ -1190,6 +1248,10 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                                                                  : false);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
+        case PROP_EVENT_DETECTION_ENABLE:
+            apdu_len = encode_application_boolean(
+                &apdu[0], pObject->Event_Detection_Enable);
+            break;
         case PROP_ACKED_TRANSITIONS:
             bitstring_init(&bit_string);
             bitstring_set_bit(
@@ -1444,6 +1506,13 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     if (!CurrentAI) {
         return;
     }
+
+        /* check whether Intrinsic reporting is enabled */
+    if (!CurrentAI->Event_Detection_Enable) {
+        return; /* limits are not configured */
+    }
+
+
     if (CurrentAI->Ack_notify_data.bSendAckNotify) {
         /* clean bSendAckNotify flag */
         CurrentAI->Ack_notify_data.bSendAckNotify = false;
@@ -2031,6 +2100,7 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
             pObject->Out_Of_Service = false;
             pObject->Changed = false;
             pObject->Event_State = EVENT_STATE_NORMAL;
+            pObject->Event_Detection_Enable = true;
 #if defined(INTRINSIC_REPORTING)
             pObject->Time_Delay = 0;
             /* notification class not connected */
