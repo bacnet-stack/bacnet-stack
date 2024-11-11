@@ -20,6 +20,17 @@ The git repositories are hosted at the following sites:
 ### Fixed
 ### Removed
 
+## [1.4.1] - Unreleased
+
+### Fixed
+
+* Fixed Systick Interrupt in ports that should never be activated using
+  NVIC_EnableIRQ because it's an system exception. (#850)
+* Fixed missing DLMSTP start, valid, and invalid frame complete callbacks
+  accidentally removed in common DLMSTP module. (#848)
+* Fixed compiler warnings by removing extraneous structure dereferences.
+* Fixed doxygen build for newer doxygen. (#845)
+
 ## [1.4.0] - 2024-11-04
 
 ### Security
