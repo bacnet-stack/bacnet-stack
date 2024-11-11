@@ -442,7 +442,6 @@ bool Analog_Value_Event_Detection_Enable(uint32_t object_instance)
     return retval;
 }
 
-
 /**
  * For a given object instance-number, sets the event-detection-enable property
  * value
