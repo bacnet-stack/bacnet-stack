@@ -396,10 +396,11 @@ const char *Analog_Input_Name_ASCII(uint32_t object_instance)
 unsigned Analog_Input_Event_State(uint32_t object_instance)
 {
     unsigned state = EVENT_STATE_NORMAL;
-#if defined(INTRINSIC_REPORTING)
+#if !defined(INTRINSIC_REPORTING)
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
+
     if (pObject) {
         state = pObject->Event_State;
     }
@@ -420,8 +421,7 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
  *
  * @return  event-detection-enable property value
  */
-bool Analog_Input_Event_Detection_Enable(uint32_t object_instance)
-{
+bool Analog_Input_Event_Detection_Enable(uint32_t object_instance){
     bool retval = false;
 #if !defined(INTRINSIC_REPORTING)
     (void)object_instance;
@@ -445,9 +445,8 @@ bool Analog_Input_Event_Detection_Enable(uint32_t object_instance)
  *
  * @return  event-detection-enable property value
  */
-bool Analog_Input_Event_Detection_Enable_Set(
-    uint32_t object_instance, bool value)
-{
+bool Analog_Input_Event_Detection_Enable_Set(uint32_t object_instance,
+                                             bool value){
     bool retval = false;
 #if !defined(INTRINSIC_REPORTING)
     (void)object_instance;
@@ -472,8 +471,7 @@ bool Analog_Input_Event_Detection_Enable_Set(
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
  */
-BACNET_CHARACTER_STRING *Analog_Input_Description(uint32_t object_instance)
-{
+BACNET_CHARACTER_STRING *Analog_Input_Description(uint32_t object_instance){
     BACNET_CHARACTER_STRING *name = NULL;
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
@@ -1511,7 +1509,6 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
     if (!CurrentAI->Event_Detection_Enable) {
         return; /* limits are not configured */
     }
-
 
     if (CurrentAI->Ack_notify_data.bSendAckNotify) {
         /* clean bSendAckNotify flag */
