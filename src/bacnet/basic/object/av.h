@@ -45,6 +45,7 @@ typedef struct analog_value_descr {
     float Deadband;
     unsigned Limit_Enable : 2;
     unsigned Event_Enable : 3;
+    unsigned Event_Detection_Enable : 1;
     unsigned Notify_Type : 1;
     ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
     BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
@@ -182,6 +183,13 @@ BACNET_EVENT_ENABLE Analog_Value_Event_Enable(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Analog_Value_Event_Enable_Set(
     uint32_t object_instance, BACNET_EVENT_ENABLE event_enable);
+
+BACNET_STACK_EXPORT
+bool Analog_Value_Event_Detection_Enable(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Value_Event_Detection_Enable_Set(
+    uint32_t object_instance, bool value);
 
 BACNET_STACK_EXPORT
 BACNET_NOTIFY_TYPE Analog_Value_Notify_Type(uint32_t object_instance);

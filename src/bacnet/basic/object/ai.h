@@ -43,6 +43,7 @@ typedef struct analog_input_descr {
     float Deadband;
     unsigned Limit_Enable : 2;
     unsigned Event_Enable : 3;
+    unsigned Event_Detection_Enable : 1;
     unsigned Notify_Type : 1;
     ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
     BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
@@ -178,6 +179,13 @@ bool Analog_Input_Limit_Enable_Set(
 
 BACNET_STACK_EXPORT
 BACNET_EVENT_ENABLE Analog_Input_Event_Enable(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Event_Detection_Enable(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+bool Analog_Input_Event_Detection_Enable_Set(
+    uint32_t object_instance, bool value);
 
 BACNET_STACK_EXPORT
 bool Analog_Input_Event_Enable_Set(
