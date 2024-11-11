@@ -2159,8 +2159,8 @@ uint32_t Analog_Value_Create(uint32_t object_instance)
             pObject->Out_Of_Service = false;
             pObject->Changed = false;
             pObject->Event_State = EVENT_STATE_NORMAL;
-            pObject->Event_Detection_Enable = true;
 #if defined(INTRINSIC_REPORTING)
+            pObject->Event_Detection_Enable = true;
             /* notification class not connected */
             pObject->Notification_Class = BACNET_MAX_INSTANCE;
             /* initialize Event time stamps using wildcards
