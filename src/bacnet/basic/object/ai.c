@@ -396,7 +396,7 @@ const char *Analog_Input_Name_ASCII(uint32_t object_instance)
 unsigned Analog_Input_Event_State(uint32_t object_instance)
 {
     unsigned state = EVENT_STATE_NORMAL;
-#if defined(INTRINSIC_REPORTING)
+#if !defined(INTRINSIC_REPORTING)
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
@@ -423,15 +423,12 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
 bool Analog_Input_Event_Detection_Enable(uint32_t object_instance)
 {
     bool retval = false;
-#if !defined(INTRINSIC_REPORTING)
-    (void)object_instance;
-#else
+
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
     if (pObject) {
         retval = pObject->Event_Detection_Enable;
     }
-#endif
 
     return retval;
 }
@@ -448,17 +445,13 @@ bool Analog_Input_Event_Detection_Enable_Set(
     uint32_t object_instance, bool value)
 {
     bool retval = false;
-#if !defined(INTRINSIC_REPORTING)
-    (void)object_instance;
-    (void)value;
-#else
+
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
     if (pObject) {
         pObject->Event_Detection_Enable = value;
         retval = true;
     }
-#endif
 
     return retval;
 }
