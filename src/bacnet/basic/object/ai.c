@@ -436,7 +436,6 @@ bool Analog_Input_Event_Detection_Enable(uint32_t object_instance)
     return retval;
 }
 
-
 /**
  * For a given object instance-number, sets the event-detection-enable property
  * value
@@ -446,7 +445,8 @@ bool Analog_Input_Event_Detection_Enable(uint32_t object_instance)
  * @return  event-detection-enable property value
  */
 bool Analog_Input_Event_Detection_Enable_Set(
-    uint32_t object_instance, bool value){
+    uint32_t object_instance, bool value)
+{
     bool retval = false;
 #if !defined(INTRINSIC_REPORTING)
     (void)object_instance;
@@ -469,7 +469,8 @@ bool Analog_Input_Event_Detection_Enable_Set(
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
  */
-BACNET_CHARACTER_STRING *Analog_Input_Description(uint32_t object_instance){
+BACNET_CHARACTER_STRING *Analog_Input_Description(uint32_t object_instance)
+{
     BACNET_CHARACTER_STRING *name = NULL;
     struct analog_input_descr *pObject = Analog_Input_Object(object_instance);
 
