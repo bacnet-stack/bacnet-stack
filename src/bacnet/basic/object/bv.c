@@ -956,9 +956,8 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                        Binary_Value_Event_State(rpdata->object_instance));
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Binary_Value_Event_State(rpdata->object_instance));
             break;
         case PROP_OUT_OF_SERVICE:
             state = Binary_Value_Out_Of_Service(rpdata->object_instance);
