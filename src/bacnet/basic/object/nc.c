@@ -418,7 +418,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
                 iOffset += len;
                 /* Increasing element of list */
-                if ((++idx >= NC_MAX_RECIPIENTS) && (iOffset < wp_data->application_data_len)) {
+                if ((++idx >= NC_MAX_RECIPIENTS) &&
+                    (iOffset < wp_data->application_data_len)) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     return false;
