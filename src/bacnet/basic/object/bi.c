@@ -938,7 +938,9 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_STATUS_FLAGS:
             /* note: see the details in the standard on how to use these */
             bitstring_init(&bit_string);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
+            bitstring_set_bit(
+                &bit_string, STATUS_FLAG_IN_ALARM,
+                pObject->Event_State != EVENT_STATE_NORMAL);
             state = Binary_Input_Fault(rpdata->object_instance);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, state);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
@@ -947,8 +949,8 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Binary_Input_Event_State(rpdata->object_instance));
             break;
         case PROP_OUT_OF_SERVICE:
             state = Binary_Input_Out_Of_Service(rpdata->object_instance);
