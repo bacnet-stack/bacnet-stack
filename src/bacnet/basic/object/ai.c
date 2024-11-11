@@ -411,7 +411,6 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
     return state;
 }
 
-
 #if defined(INTRINSIC_REPORTING)
 /**
  * For a given object instance-number, gets the event-detection-enable property
@@ -421,7 +420,7 @@ unsigned Analog_Input_Event_State(uint32_t object_instance)
  *
  * @return  event-detection-enable property value
  */
-bool Analog_Input_Event_Detection_Enable(uint32_t object_instance) 
+bool Analog_Input_Event_Detection_Enable(uint32_t object_instance)
 {
     bool retval = false;
 #if !defined(INTRINSIC_REPORTING)
@@ -447,8 +446,7 @@ bool Analog_Input_Event_Detection_Enable(uint32_t object_instance)
  * @return  event-detection-enable property value
  */
 bool Analog_Input_Event_Detection_Enable_Set(
-    uint32_t object_instance, bool value)
-{
+    uint32_t object_instance, bool value){
     bool retval = false;
 #if !defined(INTRINSIC_REPORTING)
     (void)object_instance;
@@ -464,9 +462,7 @@ bool Analog_Input_Event_Detection_Enable_Set(
 
     return retval;
 }
-
 #endif
-
 
 /**
  * @brief For a given object instance-number, returns the description
