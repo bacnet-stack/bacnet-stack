@@ -613,10 +613,15 @@ IsRecipientActive(BACNET_DESTINATION *pBacDest, uint8_t EventToState)
     if (!(bitstring_bit(&pBacDest->ValidDays, (DateTime.date.wday - 1)))) {
         return false;
     }
+    fprintf(stderr, "IsRecipientActive: &DateTime=%p\n", &DateTime.time);
+    fprintf(stderr, "IsRecipientActive: &pBacDest->FromTime=%p\n", &pBacDest->FromTime);
     /* valid FromTime */
     if (datetime_compare_time(&DateTime.time, &pBacDest->FromTime) < 0) {
         return false;
     }
+
+    fprintf(stderr, "IsRecipientActive: &DateTime=%p\n", &DateTime.time);
+    fprintf(stderr, "IsRecipientActive: &pBacDest->ToTime=%p\n", &pBacDest->ToTime);
 
     /* valid ToTime */
     if (datetime_compare_time(&pBacDest->ToTime, &DateTime.time) < 0) {
