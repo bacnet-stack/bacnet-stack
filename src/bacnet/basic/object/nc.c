@@ -162,7 +162,7 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int idx;
     int apdu_len = 0; /* return value */
     uint16_t apdu_max = 0;
-
+    fprintf(stderr, "Notification_Class_Read_Property\n");
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
@@ -244,7 +244,7 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_RECIPIENT_LIST: {
             /* get the size of all entry of Recipient_List */
             int apdu_test_len = apdu_len;
-
+            fprintf(stderr, "PROP_RECIPIENT_LIST\n");
             for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *Destination;
                 BACNET_RECIPIENT *Recipient;
@@ -305,7 +305,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int iOffset;
     uint8_t idx;
     int len = 0;
-
+    fprintf(stderr, "Notification class write property\n");
     CurrentNotify = &NC_Info[Notification_Class_Instance_To_Index(
         wp_data->object_instance)];
 
@@ -397,6 +397,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_RECIPIENT_LIST:
+            fprintf(stderr, "Notification_Class_Write_Property: PROP_RECIPIENT_LIST\n");
             for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *destination;
                 destination = &TmpNotify.Recipient_List[idx];
@@ -579,6 +580,7 @@ IsRecipientActive(BACNET_DESTINATION *pBacDest, uint8_t EventToState)
 {
     BACNET_DATE_TIME DateTime;
 
+    fprintf(stderr, "IsRecipientActive called\n");
     /* valid Transitions */
     switch (EventToState) {
         case EVENT_STATE_OFFNORMAL:
