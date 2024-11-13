@@ -438,12 +438,14 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 destination = &CurrentNotify->Recipient_List[idx];
 
                 if((destination->FromTime.hour > 23) && (destination->FromTime.min > 59) && (destination->FromTime.sec > 59)) {
+                    fprintf(stderr, "From Time out of range\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     return false;
                 }
 
                 if((destination->ToTime.hour > 23) && (destination->ToTime.min > 59) && (destination->ToTime.sec > 59)) {
+                    fprintf(stderr, "To Time out of range\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     return false;
