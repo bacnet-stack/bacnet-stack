@@ -69,7 +69,7 @@ void Notification_Class_Init(void)
 {
     uint8_t NotifyIdx = 0;
     unsigned i;
-
+    fprintf(stderr, "Notification_Class_Init\n");
     for (NotifyIdx = 0; NotifyIdx < MAX_NOTIFICATION_CLASSES; NotifyIdx++) {
         /* init with zeros */
         memset(&NC_Info[NotifyIdx], 0x00, sizeof(NOTIFICATION_CLASS_INFO));
@@ -244,7 +244,7 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_RECIPIENT_LIST: {
             /* get the size of all entry of Recipient_List */
             int apdu_test_len = apdu_len;
-            fprintf(stderr, "PROP_RECIPIENT_LIST\n");
+            fprintf(stderr, "## PROP_RECIPIENT_LIST BS\n");
             for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *Destination;
                 BACNET_RECIPIENT *Recipient;
@@ -397,7 +397,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_RECIPIENT_LIST:
-            fprintf(stderr, "Notification_Class_Write_Property: PROP_RECIPIENT_LIST\n");
+            fprintf(stderr, "Notification_Class_Write_Property: PROP_RECIPIENT_LIST\n"); //DC
             for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *destination;
                 destination = &TmpNotify.Recipient_List[idx];
