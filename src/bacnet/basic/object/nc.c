@@ -434,7 +434,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 uint32_t device_id;
                 BACNET_DESTINATION *destination;
                 BACNET_RECIPIENT *recipient;
-                uint8_t *ft_hour = &TmpNotify.Recipient_List[idx].FromTime.hour;
+                uint8_t *ft_hour = &TmpNotify.Recipient_List[idx].FromTime.hour;  // tmp is incoming
                 fprintf(stderr, "ft_hour: %d\n", *ft_hour);
                 fprintf(stderr, "CurrentNotify->Recipient_List[idx].FromTime.hour: %d\n", CurrentNotify->Recipient_List[idx].FromTime.hour);
                 uint8_t *ft_min = &TmpNotify.Recipient_List[idx].FromTime.min;
@@ -447,14 +447,14 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 uint8_t *tt_min = &TmpNotify.Recipient_List[idx].ToTime.min;
                 uint8_t *tt_sec = &TmpNotify.Recipient_List[idx].ToTime.sec;
 
-                if(ft_hour > 23 || ft_min > 59 || ft_sec > 59) {
+                if(*ft_hour > 23 || *ft_min > 59 || *ft_sec > 59) {
                     fprintf(stderr, "Notification_Class_Write_Property: Invalid FromTime\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     return false;
                 }
 
-                if(tt_hour > 23 || tt_min > 59 || tt_sec > 59) {
+                if(*tt_hour > 23 || *tt_min > 59 || *tt_sec > 59) {
                     fprintf(stderr, "Notification_Class_Write_Property: Invalid Totime\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
