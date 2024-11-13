@@ -435,6 +435,18 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 BACNET_DESTINATION *destination;
                 BACNET_RECIPIENT *recipient;
 
+                if((destination->FromTime.hour > 23) && (destination->FromTime.min > 59) && (destination->FromTime.sec > 59)) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    return false;
+                }
+
+                if((destination->ToTime.hour > 23) && (destination->ToTime.min > 59) && (destination->ToTime.sec > 59)) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    return false;
+                }
+
                 destination = &CurrentNotify->Recipient_List[idx];
                 bacnet_destination_copy(
                     destination, &TmpNotify.Recipient_List[idx]);
