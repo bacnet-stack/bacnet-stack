@@ -244,6 +244,7 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_RECIPIENT_LIST: {
             /* get the size of all entry of Recipient_List */
             int apdu_test_len = apdu_len;
+
             for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *Destination;
                 BACNET_RECIPIENT *Recipient;
@@ -452,10 +453,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
 
                 destination = &CurrentNotify->Recipient_List[idx];
-
                 bacnet_destination_copy(
                     destination, &TmpNotify.Recipient_List[idx]);
-
                 recipient = &destination->Recipient;
                 if (bacnet_recipient_device_valid(recipient)) {
                     device_id = recipient->type.device.instance;
