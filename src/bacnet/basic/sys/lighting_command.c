@@ -11,6 +11,7 @@
 #include <string.h>
 #include <math.h>
 #include "linear.h"
+#include "debug.h"
 /* me! */
 #include "lighting_command.h"
 
@@ -35,7 +36,11 @@ static void lighting_command_tracking_value_notify(
                 value = data->Low_Trim_Value;
             }
             data->Tracking_Value_Callback(data->Key, old_value, value);
-        }
+        } else {
+            debug_printf("Lighting-Command[%lu]-Out-of-Service\n", data->Key);
+	}
+    } else {
+        debug_printf("Lighting-Command[%lu]-Tracking-Value=%f\n", data->Key, value);
     }
 }
 

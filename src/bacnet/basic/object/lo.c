@@ -2337,6 +2337,19 @@ void Lighting_Output_Timer(uint32_t object_instance, uint16_t milliseconds)
     }
 }
 
+static void Lighting_Output_Tracking_Value_Callback(
+    uint32_t object_instance, float old_value, float value)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (Lighting_Command_Tracking_Value_Callback) {
+            Lighting_Command_Tracking_Value_Callback(object_instance, old_value, value);
+        }
+    }
+}    
+
 /**
  * @brief Sets a callback used when present-value is written from BACnet
  * @param cb - callback used to provide indications
@@ -2381,7 +2394,7 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         lighting_command_init(&pObject->Lighting_Command);
         pObject->Lighting_Command.Key = object_instance;
         pObject->Lighting_Command.Tracking_Value_Callback =
-            Lighting_Command_Tracking_Value_Callback;
+            Lighting_Output_Tracking_Value_Callback;
         pObject->Last_Lighting_Command.operation = BACNET_LIGHTS_NONE;
         pObject->Last_Lighting_Command.use_target_level = false;
         pObject->Last_Lighting_Command.use_ramp_rate = false;
