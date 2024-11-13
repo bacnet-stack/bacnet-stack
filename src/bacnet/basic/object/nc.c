@@ -441,7 +441,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 uint8_t *tt_min = &TmpNotify.Recipient_List[idx].ToTime.min;
                 uint8_t *tt_sec = &TmpNotify.Recipient_List[idx].ToTime.sec;
 
-                if(fr_hour > 23 || ft_min > 59 || ft_sec > 59) {
+                if(ft_hour > 23 || ft_min > 59 || ft_sec > 59) {
                     fprintf(stderr, "Notification_Class_Write_Property: Invalid FromTime\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
