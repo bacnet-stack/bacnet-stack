@@ -2345,10 +2345,11 @@ static void Lighting_Output_Tracking_Value_Callback(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (Lighting_Command_Tracking_Value_Callback) {
-            Lighting_Command_Tracking_Value_Callback(object_instance, old_value, value);
+            Lighting_Command_Tracking_Value_Callback(
+                object_instance, old_value, value);
         }
     }
-}    
+}
 
 /**
  * @brief Sets a callback used when present-value is written from BACnet

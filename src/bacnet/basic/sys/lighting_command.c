@@ -38,9 +38,10 @@ static void lighting_command_tracking_value_notify(
             data->Tracking_Value_Callback(data->Key, old_value, value);
         } else {
             debug_printf("Lighting-Command[%lu]-Out-of-Service\n", data->Key);
-	}
+        }
     } else {
-        debug_printf("Lighting-Command[%lu]-Tracking-Value=%f\n", data->Key, value);
+        debug_printf(
+            "Lighting-Command[%lu]-Tracking-Value=%f\n", data->Key, value);
     }
 }
 
