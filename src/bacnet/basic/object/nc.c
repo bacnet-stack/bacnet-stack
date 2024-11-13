@@ -434,25 +434,32 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 uint32_t device_id;
                 BACNET_DESTINATION *destination;
                 BACNET_RECIPIENT *recipient;
+                uint8_t *ft_hour = &TmpNotify.Recipient_List[idx].FromTime.hour;
+                uint8_t *ft_min = &TmpNotify.Recipient_List[idx].FromTime.min;
+                uint8_t *ft_sec = &TmpNotify.Recipient_List[idx].FromTime.sec;
+                uint8_t *tt_hour = &TmpNotify.Recipient_List[idx].ToTime.hour;
+                uint8_t *tt_min = &TmpNotify.Recipient_List[idx].ToTime.min;
+                uint8_t *tt_sec = &TmpNotify.Recipient_List[idx].ToTime.sec;
+
+                if(fr_hour > 23 || ft_min > 59 || ft_sec > 59) {
+                    fprintf(stderr, "Notification_Class_Write_Property: Invalid FromTime\n");
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    return false;
+                }
+
+                if(tt_hour > 23 || tt_min > 59 || tt_sec > 59) {
+                    fprintf(stderr, "Notification_Class_Write_Property: Invalid Totime\n");
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    return false;
+                }
 
                 destination = &CurrentNotify->Recipient_List[idx];
 
                 bacnet_destination_copy(
                     destination, &TmpNotify.Recipient_List[idx]);
 
-                if((destination->FromTime.hour > 23) && (destination->FromTime.min > 59) && (destination->FromTime.sec > 59)) {
-                    fprintf(stderr, "From Time out of range\n");
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    return false;
-                }
-
-                if((destination->ToTime.hour > 23) && (destination->ToTime.min > 59) && (destination->ToTime.sec > 59)) {
-                    fprintf(stderr, "To Time out of range\n");
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    return false;
-                }
                 recipient = &destination->Recipient;
                 if (bacnet_recipient_device_valid(recipient)) {
                     device_id = recipient->type.device.instance;
