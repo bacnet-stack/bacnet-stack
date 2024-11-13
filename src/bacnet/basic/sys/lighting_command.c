@@ -12,7 +12,7 @@
 #include <math.h>
 #include "linear.h"
 /* me! */
-#include "dimmer.h"
+#include "lighting_command.h"
 
 /**
  * @brief Callback for tracking value updates
@@ -20,8 +20,8 @@
  * @param  old_value - value prior to write
  * @param  value - value of the write
  */
-static void dimmer_tracking_value_notify(
-    struct bacnet_dimmer_data *data, float old_value, float value)
+static void lighting_command_tracking_value_notify(
+    struct bacnet_lighting_command_data *data, float old_value, float value)
 {
     if (data->Tracking_Value_Callback) {
         if (!data->Out_Of_Service) {
@@ -46,8 +46,8 @@ static void dimmer_tracking_value_notify(
  * @param milliseconds - number of milliseconds elapsed since previously
  * called.  Works best when called about every 10 milliseconds.
  */
-static void
-dimmer_fade_handler(struct bacnet_dimmer_data *data, uint16_t milliseconds)
+static void lighting_command_fade_handler(
+    struct bacnet_lighting_command_data *data, uint16_t milliseconds)
 {
     float old_value;
     float x1, x2, x3, y1, y3;
@@ -91,7 +91,8 @@ dimmer_fade_handler(struct bacnet_dimmer_data *data, uint16_t milliseconds)
         data->Fade_Time -= milliseconds;
         data->In_Progress = BACNET_LIGHTING_FADE_ACTIVE;
     }
-    dimmer_tracking_value_notify(data, old_value, data->Tracking_Value);
+    lighting_command_tracking_value_notify(
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -109,8 +110,8 @@ dimmer_fade_handler(struct bacnet_dimmer_data *data, uint16_t milliseconds)
  * @param data [in] dimmer data
  * @param milliseconds - number of milliseconds elapsed
  */
-static void
-dimmer_ramp_handler(struct bacnet_dimmer_data *data, uint16_t milliseconds)
+static void lighting_command_ramp_handler(
+    struct bacnet_lighting_command_data *data, uint16_t milliseconds)
 {
     float old_value, target_value, min_value, max_value, step_value, steps;
 
@@ -185,7 +186,8 @@ dimmer_ramp_handler(struct bacnet_dimmer_data *data, uint16_t milliseconds)
             data->In_Progress = BACNET_LIGHTING_RAMP_ACTIVE;
         }
     }
-    dimmer_tracking_value_notify(data, old_value, data->Tracking_Value);
+    lighting_command_tracking_value_notify(
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -194,7 +196,7 @@ dimmer_ramp_handler(struct bacnet_dimmer_data *data, uint16_t milliseconds)
  * @param step_increment [in] step increment value
  * @return clamped step increment value
  */
-static float dimmer_step_increment_clamp(float step_increment)
+static float lighting_command_step_increment_clamp(float step_increment)
 {
     if (isless(step_increment, 0.1f)) {
         step_increment = 0.1f;
@@ -215,14 +217,15 @@ static float dimmer_step_increment_clamp(float step_increment)
  *
  * @param data [in] dimmer data
  */
-static void dimmer_step_up_handler(struct bacnet_dimmer_data *data)
+static void
+lighting_command_step_up_handler(struct bacnet_lighting_command_data *data)
 {
     float old_value, target_value, min_value, max_value, step_value;
 
     old_value = data->Tracking_Value;
     min_value = data->Min_Actual_Value;
     max_value = data->Max_Actual_Value;
-    step_value = dimmer_step_increment_clamp(data->Step_Increment);
+    step_value = lighting_command_step_increment_clamp(data->Step_Increment);
     /* inhibit ON if the value is already OFF */
     if (isgreaterequal(old_value, min_value)) {
         target_value = old_value + step_value;
@@ -236,7 +239,8 @@ static void dimmer_step_up_handler(struct bacnet_dimmer_data *data)
         data->Tracking_Value = target_value;
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
-        dimmer_tracking_value_notify(data, old_value, data->Tracking_Value);
+        lighting_command_tracking_value_notify(
+            data, old_value, data->Tracking_Value);
     }
 }
 
@@ -248,7 +252,7 @@ static void dimmer_step_up_handler(struct bacnet_dimmer_data *data)
  * @return normalized value
  */
 static float
-dimmer_normalize_value(float value, float min_value, float max_value)
+lighting_command_normalize_value(float value, float min_value, float max_value)
 {
     float normalized_value;
     /* clamp target within min/max, if needed */
@@ -277,14 +281,15 @@ dimmer_normalize_value(float value, float min_value, float max_value)
  *
  * @param data [in] dimmer data
  */
-static void dimmer_step_down_handler(struct bacnet_dimmer_data *data)
+static void
+lighting_command_step_down_handler(struct bacnet_lighting_command_data *data)
 {
     float old_value, target_value, min_value, max_value, step_value;
 
     old_value = target_value = data->Tracking_Value;
     min_value = data->Min_Actual_Value;
     max_value = data->Max_Actual_Value;
-    step_value = dimmer_step_increment_clamp(data->Step_Increment);
+    step_value = lighting_command_step_increment_clamp(data->Step_Increment);
     if (isgreaterequal(target_value, step_value)) {
         target_value -= step_value;
     } else {
@@ -302,7 +307,8 @@ static void dimmer_step_down_handler(struct bacnet_dimmer_data *data)
     data->Tracking_Value = target_value;
     data->In_Progress = BACNET_LIGHTING_IDLE;
     data->Lighting_Operation = BACNET_LIGHTS_STOP;
-    dimmer_tracking_value_notify(data, old_value, data->Tracking_Value);
+    lighting_command_tracking_value_notify(
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -314,20 +320,22 @@ static void dimmer_step_down_handler(struct bacnet_dimmer_data *data)
  *
  * @param data [in] dimmer data
  */
-static void dimmer_step_on_handler(struct bacnet_dimmer_data *data)
+static void
+lighting_command_step_on_handler(struct bacnet_lighting_command_data *data)
 {
     float old_value, target_value, min_value, max_value, step_value;
 
     old_value = target_value = data->Tracking_Value;
     min_value = data->Min_Actual_Value;
     max_value = data->Max_Actual_Value;
-    step_value = dimmer_step_increment_clamp(data->Step_Increment);
+    step_value = lighting_command_step_increment_clamp(data->Step_Increment);
     target_value += step_value;
     data->Tracking_Value =
-        dimmer_normalize_value(target_value, min_value, max_value);
+        lighting_command_normalize_value(target_value, min_value, max_value);
     data->In_Progress = BACNET_LIGHTING_IDLE;
     data->Lighting_Operation = BACNET_LIGHTS_STOP;
-    dimmer_tracking_value_notify(data, old_value, data->Tracking_Value);
+    lighting_command_tracking_value_notify(
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -339,24 +347,26 @@ static void dimmer_step_on_handler(struct bacnet_dimmer_data *data)
  *
  * @param data [in] dimmer data
  */
-static void dimmer_step_off_handler(struct bacnet_dimmer_data *data)
+static void
+lighting_command_step_off_handler(struct bacnet_lighting_command_data *data)
 {
     float old_value, target_value, min_value, max_value, step_value;
 
     old_value = target_value = data->Tracking_Value;
     min_value = data->Min_Actual_Value;
     max_value = data->Max_Actual_Value;
-    step_value = dimmer_step_increment_clamp(data->Step_Increment);
+    step_value = lighting_command_step_increment_clamp(data->Step_Increment);
     if (isgreaterequal(target_value, step_value)) {
         target_value -= step_value;
     } else {
         target_value = 0.0f;
     }
     data->Tracking_Value =
-        dimmer_normalize_value(target_value, min_value, max_value);
+        lighting_command_normalize_value(target_value, min_value, max_value);
     data->In_Progress = BACNET_LIGHTING_IDLE;
     data->Lighting_Operation = BACNET_LIGHTS_STOP;
-    dimmer_tracking_value_notify(data, old_value, data->Tracking_Value);
+    lighting_command_tracking_value_notify(
+        data, old_value, data->Tracking_Value);
 }
 
 /**
@@ -384,8 +394,8 @@ static void dimmer_step_off_handler(struct bacnet_dimmer_data *data)
  * @param data [in] dimmer data
  * @param milliseconds - number of milliseconds elapsed
  */
-static void
-dimmer_blink_handler(struct bacnet_dimmer_data *data, uint16_t milliseconds)
+static void lighting_command_blink_handler(
+    struct bacnet_lighting_command_data *data, uint16_t milliseconds)
 {
     float old_value, target_value, min_value, max_value;
 
@@ -438,13 +448,14 @@ dimmer_blink_handler(struct bacnet_dimmer_data *data, uint16_t milliseconds)
             }
         }
     }
-    target_value = dimmer_normalize_value(target_value, min_value, max_value);
+    target_value =
+        lighting_command_normalize_value(target_value, min_value, max_value);
     /* note: The blink-warn notifications shall not be reflected
        in the tracking value. */
     if (data->In_Progress == BACNET_LIGHTING_IDLE) {
         data->Tracking_Value = target_value;
     }
-    dimmer_tracking_value_notify(data, old_value, target_value);
+    lighting_command_tracking_value_notify(data, old_value, target_value);
 }
 
 /**
@@ -453,7 +464,8 @@ dimmer_blink_handler(struct bacnet_dimmer_data *data, uint16_t milliseconds)
  * @param milliseconds - number of milliseconds elapsed since previously
  * called.  Suggest that this is called every 10 milliseconds.
  */
-void dimmer_timer(struct bacnet_dimmer_data *data, uint16_t milliseconds)
+void lighting_command_timer(
+    struct bacnet_lighting_command_data *data, uint16_t milliseconds)
 {
     if (!data) {
         return;
@@ -463,27 +475,27 @@ void dimmer_timer(struct bacnet_dimmer_data *data, uint16_t milliseconds)
             data->In_Progress = BACNET_LIGHTING_IDLE;
             break;
         case BACNET_LIGHTS_FADE_TO:
-            dimmer_fade_handler(data, milliseconds);
+            lighting_command_fade_handler(data, milliseconds);
             break;
         case BACNET_LIGHTS_RAMP_TO:
-            dimmer_ramp_handler(data, milliseconds);
+            lighting_command_ramp_handler(data, milliseconds);
             break;
         case BACNET_LIGHTS_STEP_UP:
-            dimmer_step_up_handler(data);
+            lighting_command_step_up_handler(data);
             break;
         case BACNET_LIGHTS_STEP_DOWN:
-            dimmer_step_down_handler(data);
+            lighting_command_step_down_handler(data);
             break;
         case BACNET_LIGHTS_STEP_ON:
-            dimmer_step_on_handler(data);
+            lighting_command_step_on_handler(data);
             break;
         case BACNET_LIGHTS_STEP_OFF:
-            dimmer_step_off_handler(data);
+            lighting_command_step_off_handler(data);
             break;
         case BACNET_LIGHTS_WARN:
         case BACNET_LIGHTS_WARN_OFF:
         case BACNET_LIGHTS_WARN_RELINQUISH:
-            dimmer_blink_handler(data, milliseconds);
+            lighting_command_blink_handler(data, milliseconds);
             break;
         case BACNET_LIGHTS_STOP:
             data->In_Progress = BACNET_LIGHTING_IDLE;
@@ -499,8 +511,8 @@ void dimmer_timer(struct bacnet_dimmer_data *data, uint16_t milliseconds)
  * @param value [in] BACnet lighting value
  * @param fade_time [in] BACnet lighting fade time
  */
-void dimmer_command_fade_to(
-    struct bacnet_dimmer_data *data, float value, uint32_t fade_time)
+void lighting_command_fade_to(
+    struct bacnet_lighting_command_data *data, float value, uint32_t fade_time)
 {
     if (!data) {
         return;
@@ -516,8 +528,8 @@ void dimmer_command_fade_to(
  * @param value [in] target lighting value
  * @param ramp_rate [in] target ramp rate in percent per second 0.1 to 100.0
  */
-void dimmer_command_ramp_to(
-    struct bacnet_dimmer_data *data, float value, float ramp_rate)
+void lighting_command_ramp_to(
+    struct bacnet_lighting_command_data *data, float value, float ramp_rate)
 {
     if (!data) {
         return;
@@ -533,8 +545,8 @@ void dimmer_command_ramp_to(
  * @param operation [in] BACnet lighting operation
  * @param step_increment [in] BACnet lighting step increment value
  */
-void dimmer_command_step(
-    struct bacnet_dimmer_data *data,
+void lighting_command_step(
+    struct bacnet_lighting_command_data *data,
     BACNET_LIGHTING_OPERATION operation,
     float step_increment)
 {
@@ -553,10 +565,10 @@ void dimmer_command_step(
  * @param operation [in] BACnet lighting operation for blink warn
  * @param blink [in] BACnet blink data
  */
-void dimmer_command_blink_warn(
-    struct bacnet_dimmer_data *data,
+void lighting_command_blink_warn(
+    struct bacnet_lighting_command_data *data,
     BACNET_LIGHTING_OPERATION operation,
-    BACNET_BLINK_DATA *blink)
+    struct bacnet_lighting_command_warn_data *blink)
 {
     if (!data) {
         return;
@@ -580,7 +592,7 @@ void dimmer_command_blink_warn(
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
  */
-void dimmer_command_stop(struct bacnet_dimmer_data *data)
+void lighting_command_stop(struct bacnet_lighting_command_data *data)
 {
     if (!data) {
         return;
@@ -593,7 +605,7 @@ void dimmer_command_stop(struct bacnet_dimmer_data *data)
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
  */
-void dimmer_command_none(struct bacnet_dimmer_data *data)
+void lighting_command_none(struct bacnet_lighting_command_data *data)
 {
     if (!data) {
         return;
@@ -601,7 +613,7 @@ void dimmer_command_none(struct bacnet_dimmer_data *data)
     data->Lighting_Operation = BACNET_LIGHTS_NONE;
 }
 
-void dimmer_init(struct bacnet_dimmer_data *data)
+void lighting_command_init(struct bacnet_lighting_command_data *data)
 {
     if (!data) {
         return;

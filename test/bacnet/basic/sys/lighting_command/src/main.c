@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <zephyr/ztest.h>
-#include <bacnet/basic/sys/dimmer.h>
+#include <bacnet/basic/sys/lighting_command.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -26,8 +26,9 @@ static float Tracking_Value;
  * @param  old_value - value prior to write
  * @param  value - value of the write
  */
-static void dimmer_tracking_value(float old_value, float value)
+static void dimmer_tracking_value(uint32_t key, float old_value, float value)
 {
+    (void)key;
     (void)old_value;
     Tracking_Value = value;
 }
@@ -50,31 +51,31 @@ static bool is_float_equal(float x1, float x2)
  * @param blink - blink data
  * @param milliseconds - number of milliseconds per timer call
  */
-static void test_dimmer_blink_unit(BACNET_DIMMER_DATA *data)
+static void test_lighting_command_blink_unit(BACNET_LIGHTING_COMMAND_DATA *data)
 {
     uint16_t milliseconds = 10;
     uint32_t duration = 0;
-    BACNET_BLINK_DATA *blink = &data->Blink;
+    BACNET_LIGHTING_COMMAND_WARN_DATA *blink = &data->Blink;
 
-    dimmer_command_fade_to(data, data->Max_Actual_Value, 0);
-    dimmer_timer(data, milliseconds);
+    lighting_command_fade_to(data, data->Max_Actual_Value, 0);
+    lighting_command_timer(data, milliseconds);
     zassert_true(data->In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, data->Max_Actual_Value), NULL);
     if (blink->Duration == 0) {
         /* immediate */
-        dimmer_command_blink_warn(data, BACNET_LIGHTS_WARN, blink);
-        dimmer_timer(data, milliseconds);
+        lighting_command_blink_warn(data, BACNET_LIGHTS_WARN, blink);
+        lighting_command_timer(data, milliseconds);
         zassert_true(data->In_Progress == BACNET_LIGHTING_IDLE, NULL);
         zassert_true(is_float_equal(Tracking_Value, blink->End_Value), NULL);
     } else if (blink->Interval == 0) {
         /* no blink, just egress timing */
-        dimmer_command_blink_warn(data, BACNET_LIGHTS_WARN, blink);
-        dimmer_timer(data, milliseconds);
+        lighting_command_blink_warn(data, BACNET_LIGHTS_WARN, blink);
+        lighting_command_timer(data, milliseconds);
         zassert_true(data->In_Progress == BACNET_LIGHTING_OTHER, NULL);
         zassert_true(is_float_equal(Tracking_Value, blink->On_Value), NULL);
         milliseconds = blink->Duration;
-        dimmer_command_blink_warn(data, BACNET_LIGHTS_WARN, blink);
-        dimmer_timer(data, milliseconds);
+        lighting_command_blink_warn(data, BACNET_LIGHTS_WARN, blink);
+        lighting_command_timer(data, milliseconds);
         zassert_true(data->In_Progress == BACNET_LIGHTING_IDLE, NULL);
         zassert_true(is_float_equal(Tracking_Value, blink->End_Value), NULL);
     } else {
@@ -89,8 +90,8 @@ static void test_dimmer_blink_unit(BACNET_DIMMER_DATA *data)
         }
         milliseconds = blink->Interval;
         do {
-            dimmer_command_blink_warn(data, BACNET_LIGHTS_WARN, blink);
-            dimmer_timer(data, milliseconds);
+            lighting_command_blink_warn(data, BACNET_LIGHTS_WARN, blink);
+            lighting_command_timer(data, milliseconds);
             if (blink->Duration) {
                 zassert_true(
                     data->In_Progress == BACNET_LIGHTING_OTHER,
@@ -120,60 +121,60 @@ static void test_dimmer_blink_unit(BACNET_DIMMER_DATA *data)
  * Tests for Dimmer Command
  */
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(dimmer_command_tests, test_dimmer_command_unit)
+ZTEST(lighting_command_tests, test_lighting_command_command_unit)
 #else
-static void test_dimmer_command_unit(void)
+static void test_lighting_command_command_unit(void)
 #endif
 {
-    BACNET_DIMMER_DATA data = { 0 };
+    BACNET_LIGHTING_COMMAND_DATA data = { 0 };
     uint16_t milliseconds = 10;
     uint32_t fade_time = 1000;
     float target_level = 100.0f;
     float target_step = 1.0f;
 
-    dimmer_init(&data);
+    lighting_command_init(&data);
     data.Tracking_Value_Callback = dimmer_tracking_value;
-    dimmer_command_stop(&data);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_stop(&data);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
-    dimmer_command_none(&data);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_none(&data);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     /* fade up */
-    dimmer_command_fade_to(&data, 100.0f, fade_time);
+    lighting_command_fade_to(&data, 100.0f, fade_time);
     milliseconds = fade_time / 2;
-    dimmer_timer(&data, milliseconds);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_FADE_ACTIVE, NULL);
     zassert_true(
         is_float_equal(Tracking_Value, 50.5f), "Tracking_Value=%f",
         Tracking_Value);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
     /* fade down */
     target_level = 0.0f;
-    dimmer_command_fade_to(&data, target_level, fade_time);
+    lighting_command_fade_to(&data, target_level, fade_time);
     milliseconds = fade_time / 2;
-    dimmer_timer(&data, milliseconds);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_FADE_ACTIVE, NULL);
     zassert_true(
         is_float_equal(Tracking_Value, 50.5f), "Tracking_Value=%f",
         Tracking_Value);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
     /* low trim */
     data.Low_Trim_Value = 10.0f;
     target_level = 1.0f;
     milliseconds = 10;
-    dimmer_command_fade_to(&data, target_level, 0);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, data.Low_Trim_Value), NULL);
     target_level = 0.0f;
     milliseconds = 10;
-    dimmer_command_fade_to(&data, target_level, 0);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
     data.Low_Trim_Value = data.Min_Actual_Value;
@@ -181,8 +182,8 @@ static void test_dimmer_command_unit(void)
     data.High_Trim_Value = 90.0f;
     target_level = 100.0f;
     milliseconds = 10;
-    dimmer_command_fade_to(&data, target_level, 0);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, data.High_Trim_Value), NULL);
     data.High_Trim_Value = data.Max_Actual_Value;
@@ -191,79 +192,79 @@ static void test_dimmer_command_unit(void)
     target_step = 1.0f;
     target_level = 0.0f;
     milliseconds = 10;
-    dimmer_command_fade_to(&data, target_level, 0);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
-    dimmer_command_step(&data, BACNET_LIGHTS_STEP_UP, target_step);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_step(&data, BACNET_LIGHTS_STEP_UP, target_step);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
     /* step UP while ON */
     target_step = 1.0f;
     target_level = 1.0f;
     milliseconds = 10;
-    dimmer_command_fade_to(&data, target_level, 0);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
-    dimmer_command_step(&data, BACNET_LIGHTS_STEP_UP, target_step);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_step(&data, BACNET_LIGHTS_STEP_UP, target_step);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(
         is_float_equal(Tracking_Value, target_step + target_level), NULL);
     /* clamp to max */
     target_step = 100.0f;
-    dimmer_command_step(&data, BACNET_LIGHTS_STEP_UP, target_step);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_step(&data, BACNET_LIGHTS_STEP_UP, target_step);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, data.Max_Actual_Value), NULL);
     /* turn ON, then step UP */
     target_step = 1.0f;
     target_level = 0.0f;
     milliseconds = 10;
-    dimmer_command_fade_to(&data, target_level, 0);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
-    dimmer_command_step(&data, BACNET_LIGHTS_STEP_ON, target_step);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_step(&data, BACNET_LIGHTS_STEP_ON, target_step);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, 1.0f), NULL);
     /* clamp to max */
     target_step = 100.0f;
-    dimmer_command_step(&data, BACNET_LIGHTS_STEP_ON, target_step);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_step(&data, BACNET_LIGHTS_STEP_ON, target_step);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, data.Max_Actual_Value), NULL);
     /* step DOWN, not off */
     target_step = 1.0f;
     target_level = data.Min_Actual_Value + target_step;
     milliseconds = 10;
-    dimmer_command_fade_to(&data, target_level, 0);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
-    dimmer_command_step(&data, BACNET_LIGHTS_STEP_DOWN, target_step);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_step(&data, BACNET_LIGHTS_STEP_DOWN, target_step);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, data.Min_Actual_Value), NULL);
     /* clamp to min */
     target_step = 100.0f;
-    dimmer_command_step(&data, BACNET_LIGHTS_STEP_DOWN, target_step);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_step(&data, BACNET_LIGHTS_STEP_DOWN, target_step);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, data.Min_Actual_Value), NULL);
     /* step DOWN and off */
     target_step = 100.0f;
     target_level = data.Min_Actual_Value;
     milliseconds = 10;
-    dimmer_command_fade_to(&data, target_level, 0);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
-    dimmer_command_step(&data, BACNET_LIGHTS_STEP_OFF, target_step);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_step(&data, BACNET_LIGHTS_STEP_OFF, target_step);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
     /* blink warn - immediate off */
@@ -274,7 +275,7 @@ static void test_dimmer_command_unit(void)
     data.Blink.Off_Value = 0.0f;
     data.Blink.End_Value = 0.0f;
     data.Blink.Count = UINT16_MAX;
-    test_dimmer_blink_unit(&data);
+    test_lighting_command_blink_unit(&data);
     /* blink warn - off after duration */
     data.Blink.Interval = 0;
     data.Blink.Duration = 1000;
@@ -283,7 +284,7 @@ static void test_dimmer_command_unit(void)
     data.Blink.Off_Value = 0.0f;
     data.Blink.End_Value = 0.0f;
     data.Blink.Count = UINT16_MAX;
-    test_dimmer_blink_unit(&data);
+    test_lighting_command_blink_unit(&data);
     /* blink warn - on/off for duration */
     data.Blink.Interval = 500;
     data.Blink.Duration = 2000;
@@ -292,23 +293,23 @@ static void test_dimmer_command_unit(void)
     data.Blink.Off_Value = 0.0f;
     data.Blink.End_Value = 0.0f;
     data.Blink.Count = UINT16_MAX;
-    test_dimmer_blink_unit(&data);
+    test_lighting_command_blink_unit(&data);
 
     /* quick ramp */
     target_level = 0.0f;
     milliseconds = 1000;
-    dimmer_command_fade_to(&data, target_level, 0);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_fade_to(&data, target_level, 0);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(data.In_Progress == BACNET_LIGHTING_IDLE, NULL);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
     target_level = 100.0f;
-    dimmer_command_ramp_to(&data, target_level, 100.0f);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_ramp_to(&data, target_level, 100.0f);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(
         data.In_Progress == BACNET_LIGHTING_RAMP_ACTIVE, "In_Progress=%d",
         data.In_Progress);
     zassert_true(is_float_equal(Tracking_Value, target_level), NULL);
-    dimmer_timer(&data, milliseconds);
+    lighting_command_timer(&data, milliseconds);
     zassert_true(
         data.In_Progress == BACNET_LIGHTING_IDLE, "In_Progress=%d",
         data.In_Progress);
@@ -316,8 +317,8 @@ static void test_dimmer_command_unit(void)
     target_level = 100.0f;
     milliseconds = 100;
     do {
-        dimmer_command_ramp_to(&data, target_level, 1.0f);
-        dimmer_timer(&data, milliseconds);
+        lighting_command_ramp_to(&data, target_level, 1.0f);
+        lighting_command_timer(&data, milliseconds);
         if (data.Lighting_Operation == BACNET_LIGHTS_RAMP_TO) {
             zassert_true(
                 data.In_Progress == BACNET_LIGHTING_RAMP_ACTIVE,
@@ -335,8 +336,8 @@ static void test_dimmer_command_unit(void)
     target_level = data.Min_Actual_Value;
     milliseconds = 33;
     do {
-        dimmer_command_ramp_to(&data, target_level, 0.1f);
-        dimmer_timer(&data, milliseconds);
+        lighting_command_ramp_to(&data, target_level, 0.1f);
+        lighting_command_timer(&data, milliseconds);
         if (data.Lighting_Operation == BACNET_LIGHTS_RAMP_TO) {
             zassert_true(
                 data.In_Progress == BACNET_LIGHTING_RAMP_ACTIVE,
@@ -351,14 +352,14 @@ static void test_dimmer_command_unit(void)
     } while (data.Lighting_Operation != BACNET_LIGHTS_STOP);
 
     /* null check code coverage */
-    dimmer_command_fade_to(NULL, 0.0f, 0);
-    dimmer_command_ramp_to(NULL, 0.0f, 0.0f);
-    dimmer_command_step(NULL, BACNET_LIGHTS_STEP_OFF, 0.0f);
-    dimmer_command_blink_warn(NULL, BACNET_LIGHTS_WARN, NULL);
-    dimmer_command_stop(NULL);
-    dimmer_command_none(NULL);
-    dimmer_timer(NULL, 0);
-    dimmer_init(NULL);
+    lighting_command_fade_to(NULL, 0.0f, 0);
+    lighting_command_ramp_to(NULL, 0.0f, 0.0f);
+    lighting_command_step(NULL, BACNET_LIGHTS_STEP_OFF, 0.0f);
+    lighting_command_blink_warn(NULL, BACNET_LIGHTS_WARN, NULL);
+    lighting_command_stop(NULL);
+    lighting_command_none(NULL);
+    lighting_command_timer(NULL, 0);
+    lighting_command_init(NULL);
 }
 
 /**
@@ -366,13 +367,14 @@ static void test_dimmer_command_unit(void)
  */
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST_SUITE(dimmer_command_tests, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(lighting_command_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
     ztest_test_suite(
-        dimmer_command_tests, ztest_unit_test(test_dimmer_command_unit));
+        lighting_command_tests,
+        ztest_unit_test(test_lighting_command_command_unit));
 
-    ztest_run_test_suite(dimmer_command_tests);
+    ztest_run_test_suite(lighting_command_tests);
 }
 #endif

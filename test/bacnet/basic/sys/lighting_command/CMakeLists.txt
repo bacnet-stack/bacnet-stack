@@ -32,7 +32,7 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
-    ${SRC_DIR}/bacnet/basic/sys/dimmer.c
+    ${SRC_DIR}/bacnet/basic/sys/lighting_command.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/basic/sys/linear.c
     # Test and test library files

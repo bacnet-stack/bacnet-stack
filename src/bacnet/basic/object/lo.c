@@ -23,7 +23,7 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/sys/linear.h"
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/basic/sys/dimmer.h"
+#include "bacnet/basic/sys/lighting_command.h"
 #include "bacnet/bactext.h"
 #include "bacnet/proplist.h"
 /* me! */
@@ -31,8 +31,8 @@
 
 struct object_data {
     float Present_Value;
-    BACNET_DIMMER_DATA Dimmer;
-    BACNET_LIGHTING_COMMAND Lighting_Command;
+    BACNET_LIGHTING_COMMAND_DATA Lighting_Command;
+    BACNET_LIGHTING_COMMAND Last_Lighting_Command;
     float Physical_Value;
     uint32_t Egress_Time;
     uint32_t Default_Fade_Time;
@@ -58,8 +58,8 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 /* callback for present value writes */
-static lighting_output_write_present_value_callback
-    Lighting_Output_Write_Present_Value_Callback;
+static lighting_command_tracking_value_callback
+    Lighting_Command_Tracking_Value_Callback;
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
@@ -452,9 +452,9 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
                 active priority, or
             (b) The value at the specified priority is 0.0%, or
             (c) Blink_Warn_Enable is FALSE. */
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_WARN;
-        dimmer_command_blink_warn(
-            &pObject->Dimmer, BACNET_LIGHTS_WARN, &pObject->Dimmer.Blink);
+        lighting_command_blink_warn(
+            &pObject->Lighting_Command, BACNET_LIGHTS_WARN,
+            &pObject->Lighting_Command.Blink);
     }
 }
 
@@ -484,9 +484,9 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
                 active priority, or
             (b) The Present_Value is 0.0%, or
             (c) Blink_Warn_Enable is FALSE. */
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_WARN_OFF;
-        dimmer_command_blink_warn(
-            &pObject->Dimmer, BACNET_LIGHTS_WARN_OFF, &pObject->Dimmer.Blink);
+        lighting_command_blink_warn(
+            &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF,
+            &pObject->Lighting_Command.Blink);
     } else {
         Present_Value_Set(pObject, 0.0, priority);
     }
@@ -522,10 +522,9 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
                 priority, including Relinquish_Default,
                 is greater than 0.0%, or
             (d) Blink_Warn_Enable is FALSE. */
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_WARN_RELINQUISH;
-        dimmer_command_blink_warn(
-            &pObject->Dimmer, BACNET_LIGHTS_WARN_RELINQUISH,
-            &pObject->Dimmer.Blink);
+        lighting_command_blink_warn(
+            &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
+            &pObject->Lighting_Command.Blink);
     } else {
         Present_Value_Relinquish(pObject, priority);
     }
@@ -553,10 +552,7 @@ static void Lighting_Command_Fade_To(
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
-        pObject->Lighting_Command.fade_time = fade_time;
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_FADE_TO;
-        pObject->Lighting_Command.target_level = value;
-        dimmer_command_fade_to(&pObject->Dimmer, value, fade_time);
+        lighting_command_fade_to(&pObject->Lighting_Command, value, fade_time);
     }
 }
 
@@ -582,10 +578,7 @@ static void Lighting_Command_Ramp_To(
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
-        pObject->Lighting_Command.ramp_rate = ramp_rate;
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_RAMP_TO;
-        pObject->Lighting_Command.target_level = value;
-        dimmer_command_ramp_to(&pObject->Dimmer, value, ramp_rate);
+        lighting_command_ramp_to(&pObject->Lighting_Command, value, ramp_rate);
     }
 }
 
@@ -610,11 +603,8 @@ static void Lighting_Command_Step(
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
-        pObject->Lighting_Command.operation = operation;
-        pObject->Lighting_Command.fade_time = 0;
-        pObject->Lighting_Command.ramp_rate = 0.0f;
-        pObject->Lighting_Command.step_increment = step_increment;
-        dimmer_command_step(&pObject->Dimmer, operation, step_increment);
+        lighting_command_step(
+            &pObject->Lighting_Command, operation, step_increment);
     }
 }
 
@@ -936,8 +926,7 @@ Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         /* we have priority - configure the Lighting Command */
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_STOP;
-        dimmer_command_stop(&pObject->Dimmer);
+        lighting_command_stop(&pObject->Lighting_Command);
     }
 }
 
@@ -1080,7 +1069,7 @@ bool Lighting_Output_Lighting_Command(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = lighting_command_copy(value, &pObject->Lighting_Command);
+        status = lighting_command_copy(value, &pObject->Last_Lighting_Command);
     }
 
     return status;
@@ -1152,6 +1141,9 @@ bool Lighting_Output_Lighting_Command_Set(
             default:
                 break;
         }
+        if (status) {
+            lighting_command_copy(&pObject->Last_Lighting_Command, value);
+        }
     }
 
     return status;
@@ -1172,7 +1164,7 @@ Lighting_Output_In_Progress(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Dimmer.In_Progress;
+        value = pObject->Lighting_Command.In_Progress;
     }
 
     return value;
@@ -1195,7 +1187,7 @@ bool Lighting_Output_In_Progress_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Dimmer.In_Progress = in_progress;
+        pObject->Lighting_Command.In_Progress = in_progress;
     }
 
     return status;
@@ -1215,7 +1207,7 @@ float Lighting_Output_Tracking_Value(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Dimmer.Tracking_Value;
+        value = pObject->Lighting_Command.Tracking_Value;
     }
 
     return value;
@@ -1237,7 +1229,7 @@ bool Lighting_Output_Tracking_Value_Set(uint32_t object_instance, float value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Dimmer.Tracking_Value = value;
+        pObject->Lighting_Command.Tracking_Value = value;
         status = true;
     }
 
@@ -1680,7 +1672,7 @@ bool Lighting_Output_Out_Of_Service(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        value = pObject->Dimmer.Out_Of_Service;
+        value = pObject->Lighting_Command.Out_Of_Service;
     }
 
     return value;
@@ -1700,7 +1692,7 @@ void Lighting_Output_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Dimmer.Out_Of_Service = value;
+        pObject->Lighting_Command.Out_Of_Service = value;
     }
 }
 
@@ -2341,7 +2333,7 @@ void Lighting_Output_Timer(uint32_t object_instance, uint16_t milliseconds)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        dimmer_timer(&pObject->Dimmer, milliseconds);
+        lighting_command_timer(&pObject->Lighting_Command, milliseconds);
     }
 }
 
@@ -2350,9 +2342,9 @@ void Lighting_Output_Timer(uint32_t object_instance, uint16_t milliseconds)
  * @param cb - callback used to provide indications
  */
 void Lighting_Output_Write_Present_Value_Callback_Set(
-    lighting_output_write_present_value_callback cb)
+    lighting_command_tracking_value_callback cb)
 {
-    Lighting_Output_Write_Present_Value_Callback = cb;
+    Lighting_Command_Tracking_Value_Callback = cb;
 }
 
 /**
@@ -2386,16 +2378,16 @@ uint32_t Lighting_Output_Create(uint32_t object_instance)
         pObject->Description = NULL;
         pObject->Present_Value = 0.0f;
         pObject->Physical_Value = 0.0f;
-        dimmer_init(&pObject->Dimmer);
-        pObject->Dimmer.Key = object_instance;
-        pObject->Dimmer.Tracking_Value_Callback =
-            Lighting_Output_Write_Present_Value_Callback;
-        pObject->Lighting_Command.operation = BACNET_LIGHTS_NONE;
-        pObject->Lighting_Command.use_target_level = false;
-        pObject->Lighting_Command.use_ramp_rate = false;
-        pObject->Lighting_Command.use_step_increment = false;
-        pObject->Lighting_Command.use_fade_time = false;
-        pObject->Lighting_Command.use_priority = false;
+        lighting_command_init(&pObject->Lighting_Command);
+        pObject->Lighting_Command.Key = object_instance;
+        pObject->Lighting_Command.Tracking_Value_Callback =
+            Lighting_Command_Tracking_Value_Callback;
+        pObject->Last_Lighting_Command.operation = BACNET_LIGHTS_NONE;
+        pObject->Last_Lighting_Command.use_target_level = false;
+        pObject->Last_Lighting_Command.use_ramp_rate = false;
+        pObject->Last_Lighting_Command.use_step_increment = false;
+        pObject->Last_Lighting_Command.use_fade_time = false;
+        pObject->Last_Lighting_Command.use_priority = false;
         pObject->Blink_Warn_Enable = false;
         pObject->Egress_Active = false;
         pObject->Egress_Time = 0;
