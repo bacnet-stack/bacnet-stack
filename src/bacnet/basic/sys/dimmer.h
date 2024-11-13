@@ -17,7 +17,8 @@
  * @param  old_value - value prior to write
  * @param  value - value of the write
  */
-typedef void (*dimmer_tracking_value_callback)(float old_value, float value);
+typedef void (*dimmer_tracking_value_callback)(
+    uint32_t key, float old_value, float value);
 
 typedef struct bacnet_blink_data {
     /* warn */
@@ -48,6 +49,8 @@ typedef struct bacnet_dimmer_data {
     BACNET_BLINK_DATA Blink;
     /* bits - in common area of structure */
     bool Out_Of_Service : 1;
+    /* key used with callback */
+    uint32_t Key;
     dimmer_tracking_value_callback Tracking_Value_Callback;
 } BACNET_DIMMER_DATA;
 

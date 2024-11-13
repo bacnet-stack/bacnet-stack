@@ -34,7 +34,7 @@ static void dimmer_tracking_value_notify(
             } else if (isless(value, data->Low_Trim_Value)) {
                 value = data->Low_Trim_Value;
             }
-            data->Tracking_Value_Callback(old_value, value);
+            data->Tracking_Value_Callback(data->Key, old_value, value);
         }
     }
 }
