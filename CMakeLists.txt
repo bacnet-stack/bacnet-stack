@@ -536,6 +536,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/sys/keylist.h
   src/bacnet/basic/sys/linear.c
   src/bacnet/basic/sys/linear.h
+  src/bacnet/basic/sys/lighting_command.c
+  src/bacnet/basic/sys/lighting_command.h
   src/bacnet/basic/sys/mstimer.c
   src/bacnet/basic/sys/mstimer.h
   src/bacnet/basic/sys/ringbuf.c

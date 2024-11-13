@@ -225,10 +225,17 @@ static void bacnet_output_init(void)
 
     Channel_Create(light_channel_instance);
     Channel_Name_Set(light_channel_instance, "Lights");
+    Channel_Number_Set(light_channel_instance, 1);
+    Channel_Control_Groups_Element_Set(light_channel_instance, 1, 1);
     Channel_Create(color_channel_instance);
     Channel_Name_Set(color_channel_instance, "Colors");
+    Channel_Number_Set(color_channel_instance, 2);
+    Channel_Control_Groups_Element_Set(color_channel_instance, 1, 2);
     Channel_Create(temp_channel_instance);
     Channel_Name_Set(temp_channel_instance, "Color-Temperatures");
+    Channel_Number_Set(temp_channel_instance, 3);
+    Channel_Control_Groups_Element_Set(temp_channel_instance, 1, 3);
+    /* configure outputs and bindings */
     led_max = blinkt_led_count();
     for (i = 0; i < led_max; i++) {
         /* color */

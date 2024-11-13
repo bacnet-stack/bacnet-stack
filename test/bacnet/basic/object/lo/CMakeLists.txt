@@ -51,6 +51,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/color_rgb.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/basic/sys/lighting_command.c
     ${SRC_DIR}/bacnet/basic/sys/linear.c
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/indtext.c
