@@ -435,8 +435,14 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 BACNET_DESTINATION *destination;
                 BACNET_RECIPIENT *recipient;
                 uint8_t *ft_hour = &TmpNotify.Recipient_List[idx].FromTime.hour;
+                fprintf(stderr, "ft_hour: %d\n", *ft_hour);
+                fprintf(stderr, "CurrentNotify->Recipient_List[idx].FromTime.hour: %d\n", CurrentNotify->Recipient_List[idx].FromTime.hour);
                 uint8_t *ft_min = &TmpNotify.Recipient_List[idx].FromTime.min;
+                fprintf(stderr, "ft_min: %d\n", *ft_min);
+                fprintf(stderr, "CurrentNotify->Recipient_List[idx].FromTime.min: %d\n", CurrentNotify->Recipient_List[idx].FromTime.min);
                 uint8_t *ft_sec = &TmpNotify.Recipient_List[idx].FromTime.sec;
+                fprintf(stderr, "ft_sec: %d\n", *ft_sec);
+                fprintf(stderr, "CurrentNotify->Recipient_List[idx].FromTime.sec: %d\n", CurrentNotify->Recipient_List[idx].FromTime.sec);
                 uint8_t *tt_hour = &TmpNotify.Recipient_List[idx].ToTime.hour;
                 uint8_t *tt_min = &TmpNotify.Recipient_List[idx].ToTime.min;
                 uint8_t *tt_sec = &TmpNotify.Recipient_List[idx].ToTime.sec;
