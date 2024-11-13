@@ -69,7 +69,7 @@ void Notification_Class_Init(void)
 {
     uint8_t NotifyIdx = 0;
     unsigned i;
-    fprintf(stderr, "Notification_Class_Init\n");
+
     for (NotifyIdx = 0; NotifyIdx < MAX_NOTIFICATION_CLASSES; NotifyIdx++) {
         /* init with zeros */
         memset(&NC_Info[NotifyIdx], 0x00, sizeof(NOTIFICATION_CLASS_INFO));
@@ -162,7 +162,7 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int idx;
     int apdu_len = 0; /* return value */
     uint16_t apdu_max = 0;
-    fprintf(stderr, "Notification_Class_Read_Property\n");
+
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
@@ -244,7 +244,6 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_RECIPIENT_LIST: {
             /* get the size of all entry of Recipient_List */
             int apdu_test_len = apdu_len;
-            fprintf(stderr, "## PROP_RECIPIENT_LIST BS\n");
             for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *Destination;
                 BACNET_RECIPIENT *Recipient;
@@ -305,7 +304,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int iOffset;
     uint8_t idx;
     int len = 0;
-    fprintf(stderr, "Notification class write property\n");
+
     CurrentNotify = &NC_Info[Notification_Class_Instance_To_Index(
         wp_data->object_instance)];
 
@@ -397,7 +396,6 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_RECIPIENT_LIST:
-            fprintf(stderr, "Notification_Class_Write_Property: PROP_RECIPIENT_LIST\n"); //DC
             for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
                 BACNET_DESTINATION *destination;
                 destination = &TmpNotify.Recipient_List[idx];
@@ -434,28 +432,20 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 uint32_t device_id;
                 BACNET_DESTINATION *destination;
                 BACNET_RECIPIENT *recipient;
-                uint8_t *ft_hour = &TmpNotify.Recipient_List[idx].FromTime.hour;  // tmp is incoming
-                fprintf(stderr, "ft_hour: %d\n", *ft_hour);
-                fprintf(stderr, "CurrentNotify->Recipient_List[idx].FromTime.hour: %d\n", CurrentNotify->Recipient_List[idx].FromTime.hour);
+                uint8_t *ft_hour = &TmpNotify.Recipient_List[idx].FromTime.hour;
                 uint8_t *ft_min = &TmpNotify.Recipient_List[idx].FromTime.min;
-                fprintf(stderr, "ft_min: %d\n", *ft_min);
-                fprintf(stderr, "CurrentNotify->Recipient_List[idx].FromTime.min: %d\n", CurrentNotify->Recipient_List[idx].FromTime.min);
                 uint8_t *ft_sec = &TmpNotify.Recipient_List[idx].FromTime.sec;
-                fprintf(stderr, "ft_sec: %d\n", *ft_sec);
-                fprintf(stderr, "CurrentNotify->Recipient_List[idx].FromTime.sec: %d\n", CurrentNotify->Recipient_List[idx].FromTime.sec);
                 uint8_t *tt_hour = &TmpNotify.Recipient_List[idx].ToTime.hour;
                 uint8_t *tt_min = &TmpNotify.Recipient_List[idx].ToTime.min;
                 uint8_t *tt_sec = &TmpNotify.Recipient_List[idx].ToTime.sec;
 
                 if(*ft_hour > 23 || *ft_min > 59 || *ft_sec > 59) {
-                    fprintf(stderr, "Notification_Class_Write_Property: Invalid FromTime\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     return false;
                 }
 
                 if(*tt_hour > 23 || *tt_min > 59 || *tt_sec > 59) {
-                    fprintf(stderr, "Notification_Class_Write_Property: Invalid Totime\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     return false;
@@ -608,7 +598,6 @@ IsRecipientActive(BACNET_DESTINATION *pBacDest, uint8_t EventToState)
 {
     BACNET_DATE_TIME DateTime;
 
-    fprintf(stderr, "IsRecipientActive called\n");
     /* valid Transitions */
     switch (EventToState) {
         case EVENT_STATE_OFFNORMAL:
