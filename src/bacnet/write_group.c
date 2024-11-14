@@ -114,13 +114,13 @@ static int write_group_service_group_number_decode(
     len = bacnet_unsigned_context_decode(apdu, apdu_size, 0, &unsigned_value);
     if (len > 0) {
         /* This parameter is an unsigned integer in the
-           range 1 – 4294967295 that represents the control
+           range 1 - 4294967295 that represents the control
            group to be affected by this request.
            Control group zero shall never be used
            and shall be reserved. WriteGroup service
            requests containing a zero value for
            'Group Number' shall be ignored.*/
-        if ((unsigned_value > 4294967295) || (unsigned_value < 1)) {
+        if ((unsigned_value > 4294967295UL) || (unsigned_value < 1UL)) {
             return BACNET_STATUS_ERROR;
         }
         if (data) {
