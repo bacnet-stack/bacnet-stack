@@ -440,16 +440,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 uint8_t tt_min = TmpNotify.Recipient_List[idx].ToTime.min;
                 uint8_t tt_sec = TmpNotify.Recipient_List[idx].ToTime.sec;
 
-                fprintf(stderr, "TmpNotify.Recipient_List[%d].FromTime: %02d:%02d:%02d\n", idx, ft_hour, ft_min, ft_sec);
-                fprintf(stderr, "TmpNotify.Recipient_List[%d].ToTime: %02d:%02d:%02d\n", idx, tt_hour, tt_min, tt_sec);
-
-                fprintf(stderr, "From Time: %02d:%02d:%02d\n", ft_hour, ft_min, ft_sec);
-                fprintf(stderr, "To Time: %02d:%02d:%02d\n", tt_hour, tt_min, tt_sec);
-
-
                 if ((ft_hour > 23 || ft_min > 59 || ft_sec > 59) ||
                     (tt_hour > 23 || tt_min > 59 || tt_sec > 59)) {
-                    fprintf(stderr, "Invalid time\n");
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     break;
