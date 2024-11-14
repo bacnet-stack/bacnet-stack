@@ -120,7 +120,7 @@ static int write_group_service_group_number_decode(
            and shall be reserved. WriteGroup service
            requests containing a zero value for
            'Group Number' shall be ignored.*/
-        if ((unsigned_value > UINT32_MAX) || (unsigned_value < 1UL)) {
+        if ((unsigned_value > 4294967295UL) || (unsigned_value < 1UL)) {
             return BACNET_STATUS_ERROR;
         }
         if (data) {
