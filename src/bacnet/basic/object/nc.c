@@ -414,7 +414,6 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if (len == BACNET_STATUS_REJECT) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                    status = false;
                     break;
                 }
                 iOffset += len;
@@ -423,7 +422,6 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     (iOffset < wp_data->application_data_len)) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                    status = false;
                     break;
                 }
             }
@@ -443,10 +441,9 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 uint8_t tt_sec = TmpNotify.Recipient_List[idx].ToTime.sec;
 
                 if ((ft_hour > 23 || ft_min > 59 || ft_sec > 59) ||
-                (tt_hour > 23 || tt_min > 59 || tt_sec > 59)) {
+                    (tt_hour > 23 || tt_min > 59 || tt_sec > 59)) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    status = false;
                     break;
                 }
 
