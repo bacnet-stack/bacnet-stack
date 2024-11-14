@@ -414,7 +414,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if (len == BACNET_STATUS_REJECT) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                    return false;
+                    status = false;
+                    break;
                 }
                 iOffset += len;
                 /* Increasing element of list */
@@ -422,7 +423,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     (iOffset < wp_data->application_data_len)) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
                     wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                    return false;
+                    status = false;
+                    break;
                 }
             }
             /* Decoded all recipient list */
@@ -444,7 +446,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 (tt_hour > 23 || tt_min > 59 || tt_sec > 59)) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    return false;
+                    status = false;
+                    break;
                 }
 
                 destination = &CurrentNotify->Recipient_List[idx];
