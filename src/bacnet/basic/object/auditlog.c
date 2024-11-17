@@ -1,61 +1,87 @@
 /**
  * @file
- * @author Mikhail Antropov
- * @date Jul 2023
- * @brief Auditlog object, customize for your use
- *
- * @section DESCRIPTION
- *
- * An Audit Log object combines audit notifications from operation sources and
- * operation targets and stores the combined record in an internal buffer for
- * subsequent retrieval. Each timestamped buffer entry is called an audit log
- * "record."
- * 
- * @section LICENSE
- *
- * Copyright (C) 2023 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
+ * @brief Audit Log object, customize for your use
+ * @details  An Audit Log object combines audit notifications
+ *  from operation sources and operation targets and stores the
+ *  combined record in an internal buffer for subsequent retrieval.
+ *  Each timestamped buffer entry is called an audit log "record."
+ * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date July 2023
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h> /* for memmove */
+#include <stdlib.h>
+#include <string.h>
+/* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
+/* BACnet Stack API */
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h" /* the custom stuff */
+#include "bacnet/bacaudit.h"
 #include "bacnet/apdu.h"
-#include "bacnet/wp.h" /* write property handling */
-#include "bacnet/version.h"
-#include "bacnet/basic/object/device.h" /* me */
-#include "bacnet/basic/services.h"
-#include "bacnet/datalink/datalink.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/bacdevobjpropref.h"
-#include "bacnet/basic/object/auditlog.h"
 #include "bacnet/datetime.h"
-#if defined(BACFILE)
-#include "bacnet/basic/object/bacfile.h" /* object list dependency */
+#include "bacnet/rp.h"
+#include "bacnet/wp.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/keylist.h"
+/* me! */
+#include "auditlog.h"
+
+#ifndef BACNET_AUDIT_LOG_RECORDS_MAX
+#define BACNET_AUDIT_LOG_RECORDS_MAX 128
 #endif
 
-/* number of demo objects */
-#ifndef MAX_AUDIT_LOGS
-#define MAX_AUDIT_LOGS 8
-#endif
+struct object_data {
+    bool Enable;
+    bool Out_Of_Service;
+    OS_Keylist Records;
+    int Record_Index;
+    int Record_Count_Max;
+    int Record_Count_Total;
+    const char *Object_Name;
+    const char *Description;
+};
+/* Key List for storing the object data sorted by instance number  */
+static OS_Keylist Object_List;
 
-static AL_LOG_REC Logs[MAX_AUDIT_LOGS][AL_MAX_ENTRIES];
-static AL_LOG_INFO LogInfo[MAX_AUDIT_LOGS];
+static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+                                           PROP_OBJECT_NAME,
+                                           PROP_OBJECT_TYPE,
+                                           PROP_STATUS_FLAGS,
+                                           PROP_EVENT_STATE,
+                                           PROP_ENABLE,
+                                           PROP_BUFFER_SIZE,
+                                           PROP_LOG_BUFFER,
+                                           PROP_RECORD_COUNT,
+                                           PROP_TOTAL_RECORD_COUNT,
+                                           -1 };
 
-static const int Audit_Log_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-    PROP_STATUS_FLAGS, PROP_EVENT_STATE, PROP_ENABLE, PROP_BUFFER_SIZE,
-    PROP_LOG_BUFFER, PROP_RECORD_COUNT, PROP_TOTAL_RECORD_COUNT, -1 };
+static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Audit_Log_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int Properties_Proprietary[] = { -1 };
 
-static const int Audit_Log_Properties_Proprietary[] = { -1 };
+static const int BACnetARRAY_Properties[] = {
+    /* standard properties that are arrays for this object */
+    PROP_LOG_BUFFER,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+    PROP_TAGS,
+    -1
+};
+
+/**
+ * @brief Determine if the object property is a BACnetARRAY property
+ * @param object_property - object-property to be checked
+ * @return true if the property is a BACnetARRAY property
+ */
+static bool BACnetARRAY_Property(int object_property)
+{
+    return property_list_member(BACnetARRAY_Properties, object_property);
+}
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -72,28 +98,39 @@ void Audit_Log_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired) {
-        *pRequired = Audit_Log_Properties_Required;
+        *pRequired = Properties_Required;
     }
     if (pOptional) {
-        *pOptional = Audit_Log_Properties_Optional;
+        *pOptional = Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = Audit_Log_Properties_Proprietary;
+        *pProprietary = Properties_Proprietary;
     }
 
     return;
 }
 
 /**
- * Determines if a given Auditlog instance is valid
- *
+ * @brief Gets an object from the list using an instance number as the key
  * @param  object_instance - object-instance number of the object
- *
+ * @return object found in the list, or NULL if not found
+ */
+static struct object_data *Object_Data(uint32_t object_instance)
+{
+    return Keylist_Data(Object_List, object_instance);
+}
+
+/**
+ * @brief Determines if a given object instance is valid
+ * @param  object_instance - object-instance number of the object
  * @return  true if the instance is valid, and false if not
  */
 bool Audit_Log_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_AUDIT_LOGS) {
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
         return true;
     }
 
@@ -101,46 +138,38 @@ bool Audit_Log_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * Determines the number of Auditlog objects
- *
- * @return  Number of Auditlog objects
+ * @brief Determines the number of objects
+ * @return  Number of objects
  */
 unsigned Audit_Log_Count(void)
 {
-    return MAX_AUDIT_LOGS;
+    return Keylist_Count(Object_List);
 }
 
 /**
- * Determines the object instance-number for a given 0..N index
- * of Auditlog objects where N is Audit_Log_Count().
- *
- * @param  index - 0..N where N is Audit_Log_Count()
- *
- * @return  object instance-number for the given index
+ * @brief Determines the object instance-number for a given 0..N index
+ * of objects where N is the count.
+ * @param  index - 0..N value
+ * @return  object instance-number for a valid given index, or UINT32_MAX
  */
 uint32_t Audit_Log_Index_To_Instance(unsigned index)
 {
-    return index;
+    uint32_t instance = UINT32_MAX;
+
+    (void)Keylist_Index_Key(Object_List, index, &instance);
+
+    return instance;
 }
 
 /**
- * For a given object instance-number, determines a 0..N index
- * of Auditlog objects where N is Audit_Log_Count().
- *
+ * @brief For a given object instance-number, determines a 0..N index
+ * of objects where N is the count.
  * @param  object_instance - object-instance number of the object
- *
- * @return  index for the given instance-number, or Audit_Log_Count()
- * if not valid.
+ * @return  index for the given instance-number, or count if not valid.
  */
 unsigned Audit_Log_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_AUDIT_LOGS;
-
-    if (object_instance < MAX_AUDIT_LOGS) {
-        index = object_instance;
-    }
-
-    return index;
+    return Keylist_Index(Object_List, object_instance);
 }
 
 /**
@@ -150,53 +179,256 @@ unsigned Audit_Log_Instance_To_Index(uint32_t object_instance)
  */
 static bacnet_time_t Audit_Log_Epoch_Seconds_Now(void)
 {
-    BACNET_DATE_TIME bdatetime;
+    bacnet_time_t now = 0;
+    BACNET_DATE_TIME bdatetime = { 0 };
 
-    Device_getCurrentDateTime(&bdatetime);
-    return datetime_seconds_since_epoch(&bdatetime);
+    if (datetime_local(&bdatetime.date, &bdatetime.time, NULL, NULL)) {
+        now = datetime_seconds_since_epoch(&bdatetime);
+    }
+
+    return now;
 }
 
 /**
- * Things to do when starting up the stack for Audit Logs.
- * Should be called whenever we reset the device or power it up
+ * For a given date-list, deletes the entire data-list.
+ * @param  list - the list to be deleted
  */
-void Audit_Log_Init(void)
+static void Audit_Log_Records_Clean(OS_Keylist list)
 {
-    static bool initialized = false;
-    int iLog;
-    int iEntry;
+    void *data;
+    while (Keylist_Count(list) > 0) {
+        data = Keylist_Data_Pop(list);
+        free(data);
+    }
+}
 
-    if (!initialized) {
-        initialized = true;
+/**
+ * For a given object instance-number, returns the Audit Log entity by index.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  index - index of entity
+ *
+ * @return Audit Log entity.
+ */
+BACNET_AUDIT_LOG_RECORD *
+Audit_Log_Records_Get(uint32_t object_instance, uint8_t index)
+{
+    BACNET_AUDIT_LOG_RECORD *entry = NULL;
+    struct object_data *pObject;
 
-        /* initialize all the values */
-
-        for (iLog = 0; iLog < MAX_AUDIT_LOGS; iLog++) {
-            /*
-             * Do we need to do anything here?
-             * Audit logs are usually assumed to survive over resets
-             * and are frequently implemented using Battery Backed RAM
-             * If they are implemented using Flash or SD cards or some
-             * such mechanism there may be some RAM based setup needed
-             * for log management purposes.
-             * We probably need to look at inserting LOG_INTERRUPTED
-             * entries into any active logs if the power down or reset
-             * may have caused us to miss readings.
-             */
-
-            for (iEntry = 0; iEntry < AL_MAX_ENTRIES; iEntry++) {
-                memset(&Logs[iLog][iEntry], 0, sizeof(Logs[iLog][iEntry]));
-            }
-
-            LogInfo[iLog].bEnable = false;
-            LogInfo[iLog].out_of_service = false;
-            LogInfo[iLog].ulRecordCount = AL_MAX_ENTRIES;
-            LogInfo[iLog].ulTotalRecordCount = 0;
-            LogInfo[iLog].iIndex = 0;
-        }
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        entry = Keylist_Data_Index(pObject->Records, index);
     }
 
-    return;
+    return entry;
+}
+
+/**
+ * For a given object, checks that Audit Log Records are available for adding.
+ * @param  pObject - object data
+ * @return  true if records are available for adding, false if not.
+ */
+static bool Audit_Log_Records_Available(struct object_data *pObject)
+{
+    int count;
+
+    if (!pObject) {
+        return false;
+    }
+    count = Keylist_Count(pObject->Records);
+    if (count >= pObject->Record_Count_Max) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * For a given object instance-number, adds a Audit Log entity to entities list.
+ *
+ * @note If the log buffer becomes full, the least recent log records are
+ *  overwritten when new log records are added.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  entity - Audit Log entity
+ *
+ * @return  true if the entity is add successfully.
+ */
+bool Audit_Log_Records_Add(
+    uint32_t object_instance, const BACNET_AUDIT_LOG_RECORD *value)
+{
+    bool status = false;
+    BACNET_AUDIT_LOG_RECORD *entry;
+    struct object_data *pObject;
+    int count;
+
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
+        return false;
+    }
+    if (Audit_Log_Records_Available(pObject)) {
+        entry = calloc(1, sizeof(BACNET_AUDIT_LOG_RECORD));
+        if (!entry) {
+            return false;
+        }
+        *entry = *value;
+        status = Keylist_Data_Add(pObject->Records, count, entry);
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, clears to entities list.
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  true if entities list is clear successfully.
+ */
+bool Audit_Log_Records_Delete_All(uint32_t object_instance)
+{
+    struct object_data *pObject;
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
+        return false;
+    }
+    Audit_Log_Records_Clean(pObject->Records);
+
+    return true;
+}
+
+/**
+ * For a given object instance-number, returns the entities list length.
+ *
+ * This read-only property shall represent the number of log records currently
+ * resident in the log buffer. Unlike other log object types, this property
+ * is not writable as audit logs are never expected to be reset.
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  size of entities list.
+ */
+int Audit_Log_Records_Count(uint32_t object_instance)
+{
+    struct object_data *pObject;
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
+        return 0;
+    }
+
+    return Keylist_Count(pObject->Records);
+}
+
+/**
+ * @brief Get the log record maximum length for this object instance
+ * @param  object_instance - object-instance number of the object
+ * @return  maximum number of log records
+ */
+int Audit_Log_Records_Count_Max(uint32_t object_instance)
+{
+    struct object_data *pObject;
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
+        return 0;
+    }
+
+    return pObject->Record_Count_Max;
+}
+
+/**
+ * @brief Set the log record maximum length for this object instance
+ * @param  object_instance - object-instance number of the object
+ * @param  max_records - maximum number of log records
+ * @return true if the maximum number of log records is set
+ */
+bool Audit_Log_Records_Count_Max_Set(uint32_t object_instance, int max_records)
+{
+    struct object_data *pObject;
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
+        return false;
+    }
+    pObject->Record_Count_Max = max_records;
+
+    return true;
+}
+
+/**
+ * @brief Get the log record maximum length for this object instance
+ *
+ * This property, of type Unsigned64, shall represent the total number
+ * of log records collected by the Audit Log object since creation.
+ * When the value of Total_Record_Count reaches its maximum possible
+ * value of 2^64 - 1, the next value it takes shall be one.
+ * Once this value has wrapped to one, its semantic value (the total
+ * number of log records collected) has been lost.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @return  maximum number of log records
+ */
+int Audit_Log_Records_Count_Total(uint32_t object_instance)
+{
+    struct object_data *pObject;
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
+        return 0;
+    }
+
+    return pObject->Record_Count_Total;
+}
+
+/**
+ * @brief Set the log record maximum length for this object instance
+ * @param  object_instance - object-instance number of the object
+ * @param  max_records - maximum number of log records
+ * @return true if the maximum number of log records is set
+ */
+bool Audit_Log_Records_Count_Total_Set(
+    uint32_t object_instance, int total_records)
+{
+    struct object_data *pObject;
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
+        return false;
+    }
+    pObject->Record_Count_Total = total_records;
+
+    return true;
+}
+
+/**
+ * @brief Encode a Audit Log entity list complex data type
+ *
+ * @param object_instance - object-instance number of the object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - size of the apdu buffer.
+ *
+ * @return bytes encoded or zero on error.
+ */
+static int
+Audit_Log_Records_Encode(uint32_t object_instance, uint8_t *apdu, int max_apdu)
+{
+    BACNET_AUDIT_LOG_RECORD *entry = NULL;
+    int apdu_len = 0;
+    unsigned index = 0;
+    unsigned size = 0;
+
+    size = Audit_Log_Records_Count(object_instance);
+    for (index = 0; index < size; index++) {
+        entry = Audit_Log_Records_Get(object_instance, index);
+        apdu_len += bacnet_audit_log_record_encode(NULL, entry);
+    }
+    if (apdu_len > max_apdu) {
+        return BACNET_STATUS_ABORT;
+    }
+    apdu_len = 0;
+    for (index = 0; index < size; index++) {
+        entry = Audit_Log_Records_Get(object_instance, index);
+        apdu_len += bacnet_audit_log_record_encode(&apdu[apdu_len], entry);
+    }
+
+    return apdu_len;
 }
 
 /**
@@ -212,25 +444,263 @@ void Audit_Log_Init(void)
 bool Audit_Log_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
+    struct object_data *pObject;
+    char name_text[32] = "AUDIT-LOG-4194303";
 
-    if (object_instance < MAX_AUDIT_LOGS) {
-        sprintf(text_string, "Audit Log %u", object_instance);
-        status = characterstring_init_ansi(object_name, text_string);
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        if (pObject->Object_Name) {
+            status =
+                characterstring_init_ansi(object_name, pObject->Object_Name);
+        } else {
+            snprintf(
+                name_text, sizeof(name_text), "AUDIT-LOG-%lu",
+                (unsigned long)object_instance);
+            status = characterstring_init_ansi(object_name, name_text);
+        }
     }
 
     return status;
 }
 
-static bool Audit_Log_BACnetARRAY_Property(BACNET_PROPERTY_ID object_property)
+/**
+ * For a given object instance-number, sets the object-name
+ * Note that the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Audit_Log_Name_Set(uint32_t object_instance, const char *new_name)
 {
-    return
-        (object_property == PROP_LOG_BUFFER) ||
-        (object_property == PROP_EVENT_TIME_STAMPS) ||
-        (object_property == PROP_EVENT_MESSAGE_TEXTS) ||
-        (object_property == PROP_EVENT_MESSAGE_TEXTS_CONFIG) ||
-        (object_property == PROP_TAGS);
+    bool status = false; /* return value */
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        status = true;
+        pObject->Object_Name = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string
+ * @param object_instance [in] BACnet object instance number
+ * @return object name or NULL if not found
+ */
+const char *Audit_Log_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        name = pObject->Object_Name;
+    }
+
+    return name;
+}
+
+/**
+ * For a given object instance-number, returns the description
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return description text or NULL if not found
+ */
+const char *Audit_Log_Description(uint32_t object_instance)
+{
+    const char *name = NULL;
+    const struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        if (pObject->Description) {
+            name = pObject->Description;
+        } else {
+            name = "";
+        }
+    }
+
+    return name;
+}
+
+/**
+ * For a given object instance-number, sets the description
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the description to be set
+ *
+ * @return  true if object-name was set
+ */
+bool Audit_Log_Description_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false; /* return value */
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        status = true;
+        pObject->Description = new_name;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Determines a object enabled flag state
+ *
+ * @note Logging occurs if and only if Enable is TRUE.
+ * Log_Buffer records of type log-status are recorded
+ * without regard to the value of the Enable property.
+ *
+ * @param object_instance - object-instance number of the object
+ * @return  enabled status flag
+ */
+bool Audit_Log_Enable(uint32_t object_instance)
+{
+    bool value = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->Enable;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Apply the log enabled algormithm
+ * @param pObject - object data
+ * @param enable log enable flag
+ * @return true if the log enable flag is applied
+ */
+static bool Audit_Log_Enable_Apply(struct object_data *pObject, bool enable)
+{
+    bool status = false;
+    struct object_data *pObject;
+    bool previous_enable;
+
+    if (pObject) {
+        /* Section 12.25.5 can't enable a full log with stop when full
+         * set */
+        if ((pObject->Enable == false) &&
+            (!Audit_Log_Records_Available(pObject) && (enable == true))) {
+            status = false;
+        } else if (pObject->Enable != enable) {
+            /* Only trigger this validation on a potential change of state */
+            previous_enable = pObject->Enable;
+            pObject->Enable = enable;
+            /* To do: what actions do we need to take on writing ? */
+            if (enable == false) {
+                if (previous_enable == true) {
+                    /* Only insert record if we really were
+                        enabled i.e. times and enable flags */
+                    Audit_Log_Record_Status_Insert(
+                        object_instance, LOG_STATUS_LOG_DISABLED, true);
+                }
+            } else {
+                if (previous_enable == false) {
+                    /* Have really gone from disabled to enabled as
+                     * enable flag and times were correct */
+                    Audit_Log_Record_Status_Insert(
+                        object_instance, LOG_STATUS_LOG_DISABLED, false);
+                }
+            }
+            pObject->Enable = enable;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Determines a object enabled flag state
+ * @param object_instance - object-instance number of the object
+ * @return  enabled status flag
+ */
+bool Audit_Log_Enable_Set(uint32_t object_instance, bool value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    status = Audit_Log_Enable_Apply(pObject, value);
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object enabled flag
+ * @param object_instance - object-instance number of the object
+ * @param enable - holds the value to be set
+ * @param error_class - BACnet error class
+ * @param error_code - BACnet error code
+ * @return true if set
+ */
+static bool Audit_Log_Enable_Write(
+    uint32_t object_instance,
+    bool enable,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+    bool previous_enable;
+
+    pObject = Object_Data(object_instance);
+    status = Audit_Log_Enable_Apply(pObject, enable);
+    if (!status) {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_LOG_BUFFER_FULL;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Determines a object out-of-service flag state
+ * @param object_instance - object-instance number of the object
+ * @return out-of-service status flag
+ */
+bool Audit_Log_Out_Of_Service(uint32_t object_instance)
+{
+    bool value = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        value = pObject->Out_Of_Service;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object out-of-service
+ * flag
+ * @param object_instance - object-instance number of the object
+ * @param value - holds the value to be set
+ * @return true if set
+ */
+bool Audit_Log_Out_Of_Service_Set(uint32_t object_instance, bool value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->Out_Of_Service = value;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -246,47 +716,40 @@ static bool Audit_Log_BACnetARRAY_Property(BACNET_PROPERTY_ID object_property)
 int Audit_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    AL_LOG_INFO *CurrentLog;
     uint8_t *apdu = NULL;
-    int log_index;
+    int apdu_max = 0;
+    bool value = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
-    apdu = rpdata->application_data;
 
-    log_index = Audit_Log_Instance_To_Index(rpdata->object_instance);
-    if (log_index == MAX_AUDIT_LOGS) {
-        return 0;
-    }
-    CurrentLog = &LogInfo[log_index];
+    apdu = rpdata->application_data;
+    apdu_max = rpdata->application_data_len;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
-                &apdu[0], OBJECT_AUDIT_LOG, rpdata->object_instance);
+                &apdu[0], rpdata->object_type, rpdata->object_instance);
             break;
-
-        case PROP_DESCRIPTION:
         case PROP_OBJECT_NAME:
             Audit_Log_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
-
         case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(&apdu[0], OBJECT_AUDIT_LOG);
-            break;
-
-        case PROP_ENABLE:
             apdu_len =
-                encode_application_boolean(&apdu[0], CurrentLog->bEnable);
+                encode_application_enumerated(&apdu[0], rpdata->object_type);
+            break;
+        case PROP_ENABLE:
+            apdu_len = encode_application_boolean(
+                &apdu[0], Audit_Log_Enable(rpdata->object_instance));
             break;
 
         case PROP_BUFFER_SIZE:
-            apdu_len = encode_application_unsigned(&apdu[0], AL_MAX_ENTRIES);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Audit_Log_Records_Count_Max(rpdata->object_instance));
             break;
 
         case PROP_LOG_BUFFER:
@@ -297,13 +760,14 @@ int Audit_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_RECORD_COUNT:
-            apdu_len += encode_application_unsigned(
-                &apdu[0], CurrentLog->ulRecordCount);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Audit_Log_Records_Count(rpdata->object_instance));
             break;
 
         case PROP_TOTAL_RECORD_COUNT:
-            apdu_len += encode_application_unsigned(
-                &apdu[0], CurrentLog->ulTotalRecordCount);
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
+                Audit_Log_Records_Count_Total(rpdata->object_instance));
             break;
 
         case PROP_EVENT_STATE:
@@ -318,8 +782,9 @@ int Audit_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                CurrentLog->out_of_service);
+            bitstring_set_bit(
+                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
+                Audit_Log_Out_Of_Service(rpdata->object_instance));
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
 
@@ -330,8 +795,7 @@ int Audit_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
-        (!Audit_Log_BACnetARRAY_Property(rpdata->object_property)) &&
+    if ((apdu_len >= 0) && (!BACnetARRAY_Property(rpdata->object_property)) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -355,16 +819,6 @@ bool Audit_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
-    AL_LOG_INFO *CurrentLog;
-    bool bEffectiveEnable;
-    int log_index;
-
-    /* Pin down which log to look at */
-    log_index = Audit_Log_Instance_To_Index(wp_data->object_instance);
-    if (log_index == MAX_AUDIT_LOGS) {
-        return 0;
-    }
-    CurrentLog = &LogInfo[log_index];
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -376,82 +830,54 @@ bool Audit_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((!Audit_Log_BACnetARRAY_Property(wp_data->object_property)) &&
+    if ((!BACnetARRAY_Property(wp_data->object_property)) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-
     switch (wp_data->object_property) {
         case PROP_ENABLE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                /* Section 12.25.5 can't enable a full log with stop when full
-                 * set */
-                if ((CurrentLog->bEnable == false) &&
-                    (CurrentLog->ulRecordCount == AL_MAX_ENTRIES) &&
-                    (value.type.Boolean == true)) {
-                    status = false;
-                    wp_data->error_class = ERROR_CLASS_OBJECT;
-                    wp_data->error_code = ERROR_CODE_LOG_BUFFER_FULL;
-                    break;
-                }
-
-                /* Only trigger this validation on a potential change of state
-                 */
-                if (CurrentLog->bEnable != value.type.Boolean) {
-                    bEffectiveEnable = AL_Enable(wp_data->object_instance);
-                    CurrentLog->bEnable = value.type.Boolean;
-                    /* To do: what actions do we need to take on writing ? */
-                    if (value.type.Boolean == false) {
-                        if (bEffectiveEnable == true) {
-                            /* Only insert record if we really were
-                               enabled i.e. times and enable flags */
-                            AL_Insert_Status_Rec(wp_data->object_instance,
-                                LOG_STATUS_LOG_DISABLED, true);
-                        }
-                    } else {
-                        if (AL_Enable(wp_data->object_instance)) {
-                            /* Have really gone from disabled to enabled as
-                             * enable flag and times were correct
-                             */
-                            AL_Insert_Status_Rec(wp_data->object_instance,
-                                LOG_STATUS_LOG_DISABLED, false);
-                        }
-                    }
-                }
+                status = Audit_Log_Enable_Write(
+                    wp_data->object_instance, value.type.Boolean,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
 
         case PROP_BUFFER_SIZE:
-            /* Fixed size buffer so deny write. If buffer size was writable
-             * we would probably erase the current log, resize, re-initalise
-             * and carry on - however write is not allowed if enable is true.
-             */
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                status = Audit_Log_Buffer_Size_Write(
+                    wp_data->object_instance, value.type.Unsigned_Int,
+                    &wp_data->error_class, &wp_data->error_code);
+            }
             break;
 
         case PROP_RECORD_COUNT:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                if (value.type.Unsigned_Int == 0) {
-                    /* Time to clear down the log */
-                    CurrentLog->ulRecordCount = 0;
-                    CurrentLog->iIndex = 0;
-                    AL_Insert_Status_Rec(wp_data->object_instance,
-                        LOG_STATUS_BUFFER_PURGED, true);
-                }
+                status = Audit_Log_Record_Count_Write(
+                    wp_data->object_instance, value.type.Unsigned_Int,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
 
         default:
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            if (property_lists_member(
+                    Properties_Required, Properties_Optional,
+                    Properties_Proprietary, wp_data->object_property)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            }
             break;
     }
 
@@ -462,46 +888,47 @@ bool Audit_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * Inserts a status notification into a audit log
  *
  * @param  instance - object-instance number of the object
- * @param  eStatus - notificate status
- * @param  bState - notificate state
+ * @param  log_status - log status
+ * @param  state - notificate state
  */
-void AL_Insert_Status_Rec(
-    uint32_t instance, BACNET_LOG_STATUS eStatus, bool bState)
+void Audit_Log_Record_Status_Insert(
+    uint32_t object_instance, BACNET_LOG_STATUS log_status, bool state)
 {
-    AL_LOG_INFO *CurrentLog;
-    AL_LOG_REC TempRec;
-    int log_index;
+    BACNET_AUDIT_LOG_RECORD record;
+    struct object_data *pObject;
+    bool effective_enable;
 
-    log_index = Audit_Log_Instance_To_Index(instance);
-    if (log_index == MAX_AUDIT_LOGS) {
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
         return;
     }
-    CurrentLog = &LogInfo[log_index];
-
-    TempRec.tTimeStamp = Audit_Log_Epoch_Seconds_Now();
-    TempRec.ucRecType = AL_TYPE_STATUS;
-    TempRec.Datum.ucLogStatus = 0;
+    record.time_stamp = Audit_Log_Epoch_Seconds_Now();
+    record.tag = AUDIT_LOG_DATUM_TAG_STATUS;
+    record.datum.log_status = 0;
     /* Note we set the bits in correct order so that we can place them directly
      * into the bitstring structure later on when we have to encode them */
-    switch (eStatus) {
+    switch (log_status) {
         case LOG_STATUS_LOG_DISABLED:
-            if (bState) {
-                TempRec.Datum.ucLogStatus = 1 << LOG_STATUS_LOG_DISABLED;
+            if (state) {
+                record.datum.log_status = 1 << LOG_STATUS_LOG_DISABLED;
             }
             break;
         case LOG_STATUS_BUFFER_PURGED:
-            if (bState) {
-                TempRec.Datum.ucLogStatus = 1 << LOG_STATUS_BUFFER_PURGED;
+            if (state) {
+                record.datum.log_status = 1 << LOG_STATUS_BUFFER_PURGED;
             }
             break;
         case LOG_STATUS_LOG_INTERRUPTED:
-            TempRec.Datum.ucLogStatus = 1 << LOG_STATUS_LOG_INTERRUPTED;
+            if (state) {
+                record.datum.log_status = 1 << LOG_STATUS_LOG_INTERRUPTED;
+            }
             break;
         default:
             break;
     }
+    Audit_Log_Records_Add(object_instance, &record);
 
-    Logs[log_index][CurrentLog->iIndex++] = TempRec;
+    Logs[log_index][CurrentLog->iIndex++] = record;
     if (CurrentLog->iIndex >= AL_MAX_ENTRIES) {
         CurrentLog->iIndex = 0;
     }
@@ -513,9 +940,9 @@ void AL_Insert_Status_Rec(
     }
 }
 
-static bool AL_Notif_compare(AL_NOTIFICATION *a, AL_NOTIFICATION *b)
+static bool Audit_Log_Notification_Same(AL_NOTIFICATION *a, AL_NOTIFICATION *b)
 {
-    return (a->operation == b->operation) && 
+    return (a->operation == b->operation) &&
         bacnet_recipient_same(&a->source_device, &b->source_device) &&
         bacnet_recipient_same(&a->target_device, &b->target_device);
 }
@@ -529,7 +956,8 @@ static int AL_Rec_Search(int iLog, AL_LOG_REC *rec)
     for (i = 0; i < CurrentLog->iIndex; i++) {
         r = &Logs[iLog][i];
         if ((r->ucRecType == AL_TYPE_NOTIFICATION) &&
-            AL_Notif_compare(&r->Datum.notification, &rec->Datum.notification)){
+            Audit_Log_Notification_Same(
+                &r->Datum.notification, &rec->Datum.notification)) {
             return i;
         }
     }
@@ -1185,13 +1613,13 @@ int AL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
             iLen += encode_opening_tag(&apdu[iLen], pSource->ucRecType);
 
             /* Now we support tags 2, 4, 10 only */
-            iLen += bacnet_recipient_context_encode(&apdu[iLen], 2,
-                &pSource->Datum.notification.source_device);
+            iLen += bacnet_recipient_context_encode(
+                &apdu[iLen], 2, &pSource->Datum.notification.source_device);
             iLen += encode_context_unsigned(
                 &apdu[iLen], 4, pSource->Datum.notification.operation);
-            iLen += bacnet_recipient_context_encode(&apdu[iLen], 10,
-                &pSource->Datum.notification.target_device);
-                       
+            iLen += bacnet_recipient_context_encode(
+                &apdu[iLen], 10, &pSource->Datum.notification.target_device);
+
             iLen += encode_closing_tag(&apdu[iLen], pSource->ucRecType);
             break;
 
@@ -1208,4 +1636,100 @@ int AL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
     iLen += encode_closing_tag(&apdu[iLen], 1);
 
     return (iLen);
+}
+
+/**
+ * @brief Creates a Audit Log object
+ * @param object_instance - object-instance number of the object
+ * @return object_instance if the object is created, else BACNET_MAX_INSTANCE
+ */
+uint32_t Audit_Log_Create(uint32_t object_instance)
+{
+    struct object_data *pObject = NULL;
+    int index = 0;
+
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        /* wildcard instance */
+        /* the Object_Identifier property of the newly created object
+            shall be initialized to a value that is unique within the
+            responding BACnet-user device. The method used to generate
+            the object identifier is a local matter.*/
+        object_instance = Keylist_Next_Empty_Key(Object_List, 1);
+    }
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (!pObject) {
+        pObject = calloc(1, sizeof(struct object_data));
+        if (!pObject) {
+            return BACNET_MAX_INSTANCE;
+        }
+        pObject->Object_Name = NULL;
+        pObject->Description = NULL;
+        pObject->Records = Keylist_Create();
+        pObject->Record_Index = 0;
+        pObject->Record_Count_Max = BACNET_AUDIT_LOG_RECORDS_MAX;
+        pObject->Enable = false;
+        pObject->Out_Of_Service = false;
+        /* add to list */
+        index = Keylist_Data_Add(Object_List, object_instance, pObject);
+        if (index < 0) {
+            free(pObject);
+            return BACNET_MAX_INSTANCE;
+        }
+    }
+
+    return object_instance;
+}
+
+/**
+ * @brief Deletes an Audit Log object
+ * @param object_instance - object-instance number of the object
+ * @return true if the object is deleted
+ */
+bool Audit_Log_Delete(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject = NULL;
+
+    pObject = Keylist_Data_Delete(Object_List, object_instance);
+    if (pObject) {
+        Audit_Log_Records_Clean(pObject->Records);
+        Keylist_Delete(pObject->Records);
+        free(pObject);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Deletes all the Audit Logs and their data
+ */
+void Audit_Log_Cleanup(void)
+{
+    struct object_data *pObject;
+
+    if (Object_List) {
+        do {
+            pObject = Keylist_Data_Pop(Object_List);
+            if (pObject) {
+                Audit_Log_Records_Clean(pObject->Records);
+                Keylist_Delete(pObject->Records);
+                free(pObject);
+            }
+        } while (pObject);
+        Keylist_Delete(Object_List);
+        Object_List = NULL;
+    }
+}
+
+/**
+ * @brief Initializes the Audit Log object data
+ */
+void Audit_Log_Init(void)
+{
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }

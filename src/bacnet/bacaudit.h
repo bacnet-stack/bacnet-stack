@@ -140,7 +140,7 @@ typedef struct BACnetAuditNotification {
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_PROPERTY_ENABLE
     /* target-property [12] BACnetPropertyReference OPTIONAL */
-    struct BACnetPropertyReference target_property;
+    BACNET_PROPERTY_REFERENCE target_property;
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_PRIORITY_ENABLE
     /* target-priority [13] Unsigned (1..16) OPTIONAL */
@@ -194,18 +194,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-int bacnet_audit_value_encode(uint8_t *apdu, const BACNET_AUDIT_VALUE *value);
-BACNET_STACK_EXPORT
-int bacnet_audit_value_context_encode(
-    uint8_t *apdu, uint8_t tag_number, const BACNET_AUDIT_VALUE *value);
-BACNET_STACK_EXPORT
-int bacnet_audit_value_decode(
-    const uint8_t *apdu, uint32_t apdu_size, BACNET_AUDIT_VALUE *value);
-BACNET_STACK_EXPORT
-bool bacnet_audit_value_same(
-    const BACNET_AUDIT_VALUE *value1, const BACNET_AUDIT_VALUE *value2);
-
-BACNET_STACK_EXPORT
 int bacnet_audit_log_record_encode(
     uint8_t *apdu, const BACNET_AUDIT_LOG_RECORD *value);
 BACNET_STACK_EXPORT
@@ -223,9 +211,24 @@ BACNET_STACK_EXPORT
 int bacnet_audit_log_notification_decode(
     const uint8_t *apdu, uint32_t apdu_size, BACNET_AUDIT_NOTIFICATION *value);
 BACNET_STACK_EXPORT
+int bacnet_audit_log_notification_context_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    uint8_t tag_number,
+    BACNET_AUDIT_NOTIFICATION *value);
+BACNET_STACK_EXPORT
 bool bacnet_audit_log_notification_same(
     const BACNET_AUDIT_NOTIFICATION *value1,
     const BACNET_AUDIT_NOTIFICATION *value2);
+
+BACNET_STACK_EXPORT
+int bacnet_audit_value_encode(uint8_t *apdu, const BACNET_AUDIT_VALUE *value);
+BACNET_STACK_EXPORT
+int bacnet_audit_value_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_AUDIT_VALUE *value);
+BACNET_STACK_EXPORT
+int bacnet_audit_value_decode(
+    uint8_t *apdu, uint32_t apdu_size, const BACNET_AUDIT_VALUE *value);
 
 #ifdef __cplusplus
 }
