@@ -58,7 +58,7 @@ void handler_write_property(
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
-    fprintf(stderr, "h_wpc handler_write_property\n");
+
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
@@ -169,17 +169,14 @@ bool WPValidateString(
     *pErrorClass = ERROR_CLASS_PROPERTY;
 
     if (pValue->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-        fprintf(stderr, "WP: Validating string\n");
         if (characterstring_encoding(&pValue->type.Character_String) ==
             CHARACTER_ANSI_X34) {
             if ((bEmptyAllowed == false) &&
                 (characterstring_length(&pValue->type.Character_String) == 0)) {
-                fprintf(stderr, "ERROR_CODE_VALUE_OUT_OF_RANGE\n");
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
             } else if (
                 (bEmptyAllowed == false) &&
                 (!characterstring_printable(&pValue->type.Character_String))) {
-                fprintf(stderr, "ERROR_CODE_VALUE_OUT_OF_RANGE\n");
                 /* assumption: non-empty also means must be "printable" */
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
             } else if (
@@ -187,16 +184,13 @@ bool WPValidateString(
                 (uint16_t)iMaxLen) {
                 *pErrorClass = ERROR_CLASS_RESOURCES;
                 *pErrorCode = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                fprintf(stderr, "ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY\n");
             } else {
                 bResult = true; /* It's all good! */
-                fprintf(stderr, "WP: String is valid\n");
             }
         } else {
             *pErrorCode = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
         }
     } else {
-        fprintf(stderr, "WP: Invalid data type!\n");
         *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
     }
 
@@ -215,7 +209,7 @@ bool WPValidateArgType(
     BACNET_ERROR_CODE *pErrorCode)
 {
     bool bResult;
-    fprintf(stderr, "WP: Validating argument type\n");
+
     /*
      * start out assuming success and only set up error
      * response if validation fails.
@@ -225,7 +219,6 @@ bool WPValidateArgType(
         bResult = false;
         *pErrorClass = ERROR_CLASS_PROPERTY;
         *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
-        fprintf(stderr, "WP: ERROR_CODE_INVALID_DATA_TYPE\n");
     }
 
     return (bResult);

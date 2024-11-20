@@ -218,7 +218,6 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    fprintf(stderr, "NC ERROR_CODE_INVALID_ARRAY_INDEX\n");
                     apdu_len = -1;
                 }
             }
@@ -334,7 +333,6 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 if (wp_data->array_index == 0) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    fprintf(stderr, "W NC ERROR_CODE_INVALID_ARRAY_INDEX\n");
                     status = false;
                 } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
                     iOffset = 0;
@@ -347,7 +345,6 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                              BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
                             /* Bad decode, wrong tag or following required
                              * parameter missing */
-                            fprintf(stderr, "NC ERROR_CODE_INVALID_DATA_TYPE\n");
                             wp_data->error_class = ERROR_CLASS_PROPERTY;
                             wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                             status = false;
@@ -380,7 +377,6 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    fprintf(stderr, "NC ERROR_CODE_INVALID_ARRAY_INDEX end\n");
                     status = false;
                 }
             }
