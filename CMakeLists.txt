@@ -889,8 +889,6 @@ if(BACNET_STACK_BUILD_APPS)
       # NOTE: Might be that this example currently doesn't work on Windows because
       # of the following warning:
 
-      # 'strncasecmp': macro redefinition
-      $<$<C_COMPILER_ID:MSVC>:/wd4005>
       # 'gettimeofday' undefined; assuming extern returning int
       $<$<C_COMPILER_ID:MSVC>:/wd4013>
     )

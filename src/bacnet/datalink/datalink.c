@@ -32,9 +32,6 @@
 #if defined(BACDL_BSC)
 #include "bacnet/datalink/bsc/bsc-datalink.h"
 #endif
-#ifdef HAVE_STRINGS_H
-#include <strings.h> /* for strcasecmp() */
-#endif
 
 static enum {
     DATALINK_NONE = 0,
@@ -48,36 +45,36 @@ static enum {
 
 void datalink_set(char *datalink_string)
 {
-    if (strcasecmp("none", datalink_string) == 0) {
+    if (bacnet_stricmp("none", datalink_string) == 0) {
         Datalink_Transport = DATALINK_NONE;
     }
 #if defined(BACDL_BIP)
-    else if (strcasecmp("bip", datalink_string) == 0) {
+    else if (bacnet_stricmp("bip", datalink_string) == 0) {
         Datalink_Transport = DATALINK_BIP;
     }
 #endif
 #if defined(BACDL_BIP6)
-    else if (strcasecmp("bip6", datalink_string) == 0) {
+    else if (bacnet_stricmp("bip6", datalink_string) == 0) {
         Datalink_Transport = DATALINK_BIP6;
     }
 #endif
 #if defined(BACDL_ETHERNET)
-    else if (strcasecmp("ethernet", datalink_string) == 0) {
+    else if (bacnet_stricmp("ethernet", datalink_string) == 0) {
         Datalink_Transport = DATALINK_ETHERNET;
     }
 #endif
 #if defined(BACDL_ARCNET)
-    else if (strcasecmp("arcnet", datalink_string) == 0) {
+    else if (bacnet_stricmp("arcnet", datalink_string) == 0) {
         Datalink_Transport = DATALINK_ARCNET;
     }
 #endif
 #if defined(BACDL_MSTP)
-    else if (strcasecmp("mstp", datalink_string) == 0) {
+    else if (bacnet_stricmp("mstp", datalink_string) == 0) {
         Datalink_Transport = DATALINK_MSTP;
     }
 #endif
 #if defined(BACDL_BSC)
-    else if (strcasecmp("bsc", datalink_string) == 0) {
+    else if (bacnet_stricmp("bsc", datalink_string) == 0) {
         Datalink_Transport = DATALINK_BSC;
     }
 #endif

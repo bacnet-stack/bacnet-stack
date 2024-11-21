@@ -159,9 +159,9 @@ int main(int argc, char *argv[])
     /* decode the command line parameters */
     data->group_number = strtol(argv[1], NULL, 0);
     data->write_priority = strtol(argv[2], NULL, 0);
-    if (strcasecmp(argv[3], "inhibit") == 0) {
+    if (bacnet_stricmp(argv[3], "inhibit") == 0) {
         data->inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_TRUE;
-    } else if (strcasecmp(argv[3], "delay") == 0) {
+    } else if (bacnet_stricmp(argv[3], "delay") == 0) {
         data->inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_FALSE;
     } else {
         data->inhibit_delay = WRITE_GROUP_INHIBIT_DELAY_FALSE;
