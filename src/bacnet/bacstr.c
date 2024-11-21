@@ -1227,12 +1227,18 @@ bool octetstring_value_same(
  * @param a - first string
  * @param b - second string
  * @return 0 if the strings are equal, non-zero if not
- * @note The stricmp() function is not included C standard.
+ * @note The stricmp() function is not included in the C standard.
  */
 int bacnet_stricmp(const char *a, const char *b)
 {
     int twin_a, twin_b;
 
+    if (a == NULL) {
+        return -1;
+    }
+    if (b == NULL) {
+        return 1;
+    }
     do {
         twin_a = *(const unsigned char *)a;
         twin_b = *(const unsigned char *)b;
@@ -1241,6 +1247,47 @@ int bacnet_stricmp(const char *a, const char *b)
         a++;
         b++;
     } while ((twin_a == twin_b) && (twin_a != '\0'));
+
+    return twin_a - twin_b;
+}
+
+/**
+ * @brief Compare two strings, case insensitive, with length limit
+ * @details The strnicmp() function compares, at most, the first n characters
+ *  of string1 and string2 without sensitivity to case.
+ *
+ *  The function operates on null terminated strings.
+ *  The string arguments to the function are expected to contain
+ *  a null character (\0) marking the end of the string.
+ *
+ * @param a - first string
+ * @param b - second string
+ * @param length - maximum length to compare
+ * @return 0 if the strings are equal, non-zero if not
+ * @note The strnicmp() function is not included in the C standard.
+ */
+int bacnet_strnicmp(const char *a, const char *b, size_t length)
+{
+    int twin_a, twin_b;
+
+    if (length == 0) {
+        return 0;
+    }
+    if (a == NULL) {
+        return -1;
+    }
+    if (b == NULL) {
+        return 1;
+    }
+    do {
+        twin_a = *(const unsigned char *)a;
+        twin_b = *(const unsigned char *)b;
+        twin_a = tolower(toupper(twin_a));
+        twin_b = tolower(toupper(twin_b));
+        a++;
+        b++;
+        length--;
+    } while ((twin_a == twin_b) && (twin_a != '\0') && (length > 0));
 
     return twin_a - twin_b;
 }

@@ -18,6 +18,7 @@
 #include "bacnet/iam.h"
 #include "bacnet/version.h"
 #include "bacnet/datetime.h"
+#include "bacnet/bacstr.h"
 /* basic datalink, timer, and filename */
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -27,10 +28,6 @@
 /* OS specific includes */
 #include "bacport.h"
 #include "rs485.h"
-
-#ifdef _WIN32
-#define strncasecmp(x, y, z) _strnicmp(x, y, z)
-#endif
 
 /* define our Data Link Type for libPCAP */
 #define DLT_BACNET_MS_TP (165)
@@ -1100,7 +1097,7 @@ int main(int argc, char *argv[])
             RS485_Set_Interface(argv[argi]);
         }
 #if defined(_WIN32)
-        if (strncasecmp(argv[argi], "com", 3) == 0) {
+        if (bacnet_strnicmp(argv[argi], "com", 3) == 0) {
             /* legacy command line options */
             RS485_Set_Interface(argv[argi]);
             if ((argi + 1) < argc) {
@@ -1110,7 +1107,7 @@ int main(int argc, char *argv[])
             }
         }
 #else
-        if (strncasecmp(argv[argi], "/dev/", 5) == 0) {
+        if (bacnet_strnicmp(argv[argi], "/dev/", 5) == 0) {
             /* legacy command line options */
             RS485_Set_Interface(argv[argi]);
             if ((argi + 1) < argc) {
