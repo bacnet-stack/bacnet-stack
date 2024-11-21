@@ -8,7 +8,7 @@
  * @ingroup DataLink
  */
 #include "bacnet/datalink/datalink.h"
-
+#include "bacnet/bacstr.h"
 #if defined(BACDL_MULTIPLE) || defined FOR_DOXYGEN
 #if defined(BACDL_ETHERNET)
 #include "bacnet/datalink/ethernet.h"
