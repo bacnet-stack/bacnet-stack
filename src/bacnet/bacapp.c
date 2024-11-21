@@ -4200,12 +4200,12 @@ bool bacapp_parse_application_data(
         switch (tag_number) {
 #if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
-                if (strcasecmp(argv, "true") == 0 ||
-                    strcasecmp(argv, "active") == 0) {
+                if (bacnet_stricmp(argv, "true") == 0 ||
+                    bacnet_stricmp(argv, "active") == 0) {
                     value->type.Boolean = true;
                 } else if (
-                    strcasecmp(argv, "false") == 0 ||
-                    strcasecmp(argv, "inactive") == 0) {
+                    bacnet_stricmp(argv, "false") == 0 ||
+                    bacnet_stricmp(argv, "inactive") == 0) {
                     value->type.Boolean = false;
                 } else {
                     status = strtol_checked(argv, &long_value);

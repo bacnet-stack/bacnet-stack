@@ -170,6 +170,8 @@ bool octetstring_value_same(
 BACNET_STACK_EXPORT
 int bacnet_stricmp(const char *a, const char *b);
 BACNET_STACK_EXPORT
+int bacnet_strnicmp(const char *a, const char *b, size_t length);
+BACNET_STACK_EXPORT
 size_t bacnet_strnlen(const char *str, size_t maxlen);
 
 #ifdef __cplusplus
