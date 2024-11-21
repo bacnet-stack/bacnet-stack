@@ -311,17 +311,25 @@ int bacnet_daterange_context_decode(
     uint8_t tag_number,
     BACNET_DATE_RANGE *value);
 
-/* implementation agnostic functions - create your own! */
+/* implementation agnostic functions for clocks - create your own! */
 BACNET_STACK_EXPORT
 bool datetime_local(
     BACNET_DATE *bdate,
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active);
-
+BACNET_STACK_EXPORT
+int16_t datetime_utc_offset_minutes(void);
+BACNET_STACK_EXPORT
+bool datetime_utc_offset_minutes_set(int16_t minutes);
+BACNET_STACK_EXPORT
+bool datetime_dst_active(void);
+BACNET_STACK_EXPORT
+bool datetime_dst_range(BACNET_DATE_RANGE *dst_range);
+BACNET_STACK_EXPORT
+bool datetime_dst_range_set(BACNET_DATE_RANGE *dst_range);
 BACNET_STACK_EXPORT
 void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc);
-
 BACNET_STACK_EXPORT
 void datetime_init(void);
 
