@@ -402,6 +402,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 destination = &TmpNotify.Recipient_List[idx];
                 bacnet_destination_default_init(destination);
             }
+            status = true;
             idx = 0;
             iOffset = 0;
             /* decode all packed */
@@ -444,7 +445,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     (tt_hour > 23 || tt_min > 59 || tt_sec > 59)) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    return false;
+                    status = false;
+                    break;
                 }
 
                 destination = &CurrentNotify->Recipient_List[idx];
@@ -458,7 +460,6 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     /* nothing to do - we have the address */
                 }
             }
-            status = true;
             break;
 
         case PROP_OBJECT_IDENTIFIER:
