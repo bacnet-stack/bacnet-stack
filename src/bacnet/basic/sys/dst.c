@@ -29,14 +29,14 @@ time_to_seconds(uint32_t hours, uint32_t minutes, uint32_t seconds)
 /**
  * This function returns the day of the month for starting the Nth week
  *
- * @param year - Year of our Lord A.D. (2000,2001,..2099)
+ * @param year - Year of our Lord A.D. (1900..9999)
  * @param month - months of the year (1=Jan,...,12=Dec)
  * @param ordinal - Ordinal Day of the Month
  *  1=1st, 2=2nd, 3=3rd, 4=4th, or 5=LAST
  * @return day of the month (1..31)
  */
 static inline uint8_t
-dst_week_month_day(uint16_t year, uint8_t month, uint8_t ordinal)
+ordinal_week_month_day(uint16_t year, uint8_t month, uint8_t ordinal)
 {
     uint8_t day = 0;
 
@@ -88,7 +88,7 @@ bool dst_active(
         if ((month >= data->Begin_Month) && (month <= data->End_Month)) {
             if (month == data->Begin_Month) {
                 days = days_per_month(year, month);
-                i = dst_week_month_day(year, month, data->Begin_Which_Day);
+                i = ordinal_week_month_day(year, month, data->Begin_Which_Day);
                 for (; i <= days; i++) {
                     day_of_week = days_of_week(
                         data->Epoch_Day,
@@ -109,7 +109,7 @@ bool dst_active(
                 }
             } else if (month == data->End_Month) {
                 days = days_per_month(year, month);
-                i = dst_week_month_day(year, month, data->End_Which_Day);
+                i = ordinal_week_month_day(year, month, data->End_Which_Day);
                 for (; i <= days; i++) {
                     day_of_week = days_of_week(
                         data->Epoch_Day,
