@@ -325,7 +325,9 @@ BACNET_STACK_EXPORT
 bool datetime_utc_offset_minutes_set(int16_t minutes);
 /* Daylight Savings Time API */
 BACNET_STACK_EXPORT
-bool datetime_dst_active(void);
+bool datetime_dst_enabled(void);
+BACNET_STACK_EXPORT
+void datetime_dst_enabled_set(bool flag);
 BACNET_STACK_EXPORT
 bool datetime_dst_ordinal_range(
     uint8_t *start_month,
@@ -343,9 +345,14 @@ bool datetime_dst_ordinal_range_set(
     uint8_t end_week,
     BACNET_WEEKDAY end_day);
 BACNET_STACK_EXPORT
-bool datetime_dst_date_range(BACNET_DATE_RANGE *dst_range);
+bool datetime_dst_date_range(
+    uint8_t *start_month,
+    uint8_t *start_day,
+    uint8_t *end_month,
+    uint8_t *end_day);
 BACNET_STACK_EXPORT
-bool datetime_dst_date_range_set(BACNET_DATE_RANGE *dst_range);
+bool datetime_dst_date_range_set(
+    uint8_t start_month, uint8_t start_day, uint8_t end_month, uint8_t end_day);
 /* BACnet TimeSynchronization service handler API */
 BACNET_STACK_EXPORT
 void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc);

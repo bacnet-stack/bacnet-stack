@@ -88,7 +88,7 @@ bool dst_active(
         if ((month >= data->Begin_Month) && (month <= data->End_Month)) {
             if (month == data->Begin_Month) {
                 days = days_per_month(year, month);
-                i = ordinal_week_month_day(year, month, data->Begin_Which_Day);
+                i = ordinal_week_month_day(year, month, data->Begin_Week);
                 for (; i <= days; i++) {
                     day_of_week = days_of_week(
                         data->Epoch_Day,
@@ -109,7 +109,7 @@ bool dst_active(
                 }
             } else if (month == data->End_Month) {
                 days = days_per_month(year, month);
-                i = ordinal_week_month_day(year, month, data->End_Which_Day);
+                i = ordinal_week_month_day(year, month, data->End_Week);
                 for (; i <= days; i++) {
                     day_of_week = days_of_week(
                         data->Epoch_Day,
@@ -198,10 +198,10 @@ void dst_init(
         data->Ordinal = ordinal;
         data->Begin_Month = begin_month;
         data->Begin_Day = begin_day;
-        data->Begin_Which_Day = begin_which_day;
+        data->Begin_Week = begin_which_day;
         data->End_Month = end_month;
         data->End_Day = end_day;
-        data->End_Which_Day = end_which_day;
+        data->End_Week = end_which_day;
         data->Epoch_Day = epoch_day;
         data->Epoch_Year = epoch_year;
     }
@@ -218,10 +218,10 @@ void dst_init_defaults(struct daylight_savings_data *data)
         data->Ordinal = true;
         data->Begin_Month = 3;
         data->Begin_Day = 7;
-        data->Begin_Which_Day = 2;
+        data->Begin_Week = 2;
         data->End_Month = 11;
         data->End_Day = 7;
-        data->End_Which_Day = 1;
+        data->End_Week = 1;
         /* BACnet Epoch */
         data->Epoch_Day = 1 /* Monday=1 */;
         data->Epoch_Year = 1900;

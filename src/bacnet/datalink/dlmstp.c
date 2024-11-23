@@ -884,7 +884,6 @@ void dlmstp_set_frame_rx_start_callback(dlmstp_hook_frame_rx_start_cb cb_func)
 void dlmstp_reset_statistics(void)
 {
     struct dlmstp_user_data_t *user;
-    struct dlmstp_statistics *stats;
 
     if (!MSTP_Port) {
         return;

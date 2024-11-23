@@ -17,10 +17,10 @@ struct daylight_savings_data {
     bool Ordinal : 1;
     uint8_t Begin_Month;
     uint8_t Begin_Day;
-    uint8_t Begin_Which_Day;
+    uint8_t Begin_Week;
     uint8_t End_Month;
     uint8_t End_Day;
-    uint8_t End_Which_Day;
+    uint8_t End_Week;
     uint16_t Epoch_Year;
     uint8_t Epoch_Day;
 };
