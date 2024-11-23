@@ -234,29 +234,37 @@ int main(int argc, char *argv[])
     unsigned max_apdu = 0;
     unsigned object_type = 0;
     unsigned object_property = 0;
+    unsigned property_value_count = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     bool found = false;
+    long dnet = -1;
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+    bool specific_address = false;
     char *value_string;
     bool status = false;
-    int args_remaining = 0, tag_value_arg = 0, i = 0;
     long property_tag;
     long priority;
     uint8_t context_tag = 0;
     int argi = 0;
+    unsigned int target_args = 0;
+    bool debug_enabled = false;
+    const char *filename = NULL;
 
-    /* print help if requested */
+    filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--help") == 0) {
-            print_usage(filename_remove_path(argv[0]));
-            print_help(filename_remove_path(argv[0]));
+            /* print help if requested */
+            print_usage(filename);
+            print_help(filename);
             return 0;
         }
         if (strcmp(argv[argi], "--version") == 0) {
-            printf(
-                "%s %s\n", filename_remove_path(argv[0]), BACNET_VERSION_TEXT);
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
             printf("Copyright (C) 2014 by Steve Karg\n"
                    "This is free software; see the source for copying "
                    "conditions.\n"
@@ -264,141 +272,195 @@ int main(int argc, char *argv[])
                    "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
+        if (strcmp(argv[argi], "--mac") == 0) {
+            if (++argi < argc) {
+                if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dnet") == 0) {
+            if (++argi < argc) {
+                dnet = strtol(argv[argi], NULL, 0);
+                if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dadr") == 0) {
+            if (++argi < argc) {
+                if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--debug") == 0) {
+            debug_enabled = true;
+        } else {
+            if (target_args == 0) {
+                Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
+                if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
+                    fprintf(
+                        stderr, "device-instance=%u - not greater than %u\n",
+                        Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+                    return 1;
+                }
+                target_args++;
+            } else if (target_args == 1) {
+                if (bactext_object_type_strtol(argv[argi], &object_type) ==
+                    false) {
+                    fprintf(stderr, "object-type=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                Target_Object_Type = object_type;
+                if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
+                    fprintf(
+                        stderr, "object-type=%u - it must be less than %u\n",
+                        Target_Object_Type, MAX_BACNET_OBJECT_TYPE + 1);
+                    return 1;
+                }
+                target_args++;
+            } else if (target_args == 2) {
+                Target_Object_Instance = strtol(argv[argi], NULL, 0);
+                if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
+                    fprintf(
+                        stderr, "object-instance=%u - not greater than %u\n",
+                        Target_Object_Instance, BACNET_MAX_INSTANCE);
+                    return 1;
+                }
+                target_args++;
+            } else if (target_args == 3) {
+                if (bactext_property_strtol(argv[argi], &object_property) ==
+                    false) {
+                    fprintf(stderr, "property=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                Target_Object_Property = object_property;
+                if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
+                    fprintf(
+                        stderr, "property=%u - it must be less than %u\n",
+                        Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
+                    return 1;
+                }
+                target_args++;
+            } else if (target_args == 4) {
+                priority = strtol(argv[argi], NULL, 0);
+                if ((priority < BACNET_MIN_PRIORITY) ||
+                    (priority > BACNET_MAX_PRIORITY)) {
+                    priority = BACNET_NO_PRIORITY;
+                }
+                Target_Object_Property_Priority = priority;
+                target_args++;
+            } else if (target_args == 5) {
+                Target_Object_Property_Index = strtol(argv[argi], NULL, 0);
+                if (Target_Object_Property_Index == -1) {
+                    Target_Object_Property_Index = BACNET_ARRAY_ALL;
+                }
+                target_args++;
+            } else {
+                unsigned i;
+                for (i = 0; i < MAX_PROPERTY_VALUES; i++) {
+                    /* special case for context tagged values */
+                    if (toupper(argv[argi][0]) == 'C') {
+                        context_tag = (uint8_t)strtol(&argv[argi][1], NULL, 0);
+                        argi++;
+                        Target_Object_Property_Value[i].context_tag =
+                            context_tag;
+                        Target_Object_Property_Value[i].context_specific = true;
+                    } else {
+                        Target_Object_Property_Value[i].context_specific =
+                            false;
+                    }
+                    if (argi >= argc) {
+                        fprintf(stderr, "Error: not enough tag-value pairs\n");
+                        return 1;
+                    }
+                    property_tag = strtol(argv[argi], NULL, 0);
+                    argi++;
+                    if (argi >= argc) {
+                        fprintf(stderr, "Error: not enough tag-value pairs\n");
+                        return 1;
+                    }
+                    value_string = argv[argi];
+                    argi++;
+                    if (property_tag < 0) {
+                        property_tag = bacapp_known_property_tag(
+                            Target_Object_Type, Target_Object_Property);
+                    } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
+                        fprintf(
+                            stderr,
+                            "Error: tag=%ld - it must be less than %u\n",
+                            property_tag, MAX_BACNET_APPLICATION_TAG);
+                        return 1;
+                    }
+                    if (property_tag >= 0) {
+                        status = bacapp_parse_application_data(
+                            property_tag, value_string,
+                            &Target_Object_Property_Value[i]);
+                        if (!status) {
+                            /* FIXME: show the expected entry format for the tag
+                             */
+                            fprintf(
+                                stderr,
+                                "Error: unable to parse the tag value\n");
+                            return 1;
+                        }
+                    } else {
+                        fprintf(
+                            stderr,
+                            "Error: parser for property %s is not "
+                            "implemented\n",
+                            bactext_property_name(Target_Object_Property));
+                        return 1;
+                    }
+                    if (debug_enabled) {
+                        BACNET_OBJECT_PROPERTY_VALUE debug_property;
+                        uint8_t debug_apdu[MAX_APDU];
+                        int debug_i, debug_len;
+                        fprintf(
+                            stderr, "Writing: %s=",
+                            bactext_application_tag_name(property_tag));
+                        debug_property.value = &Target_Object_Property_Value[i];
+                        debug_property.array_index =
+                            Target_Object_Property_Index;
+                        bacapp_print_value(stderr, &debug_property);
+                        fprintf(stderr, "\n");
+                        debug_len = bacapp_encode_application_data(
+                            debug_apdu, &Target_Object_Property_Value[i]);
+                        fprintf(stderr, "APDU[%d]=", debug_len);
+                        for (debug_i = 0; debug_i < debug_len; debug_i++) {
+                            fprintf(stderr, "%02x ", debug_apdu[debug_i]);
+                        }
+                        fprintf(stderr, "\n");
+                    }
+                    Target_Object_Property_Value[i].next = NULL;
+                    property_value_count++;
+                    if (i > 0) {
+                        /* more value pairs - link another value */
+                        Target_Object_Property_Value[i - 1].next =
+                            &Target_Object_Property_Value[i];
+                    }
+                    if (argi >= argc) {
+                        break;
+                    }
+                }
+                if (argi < argc) {
+                    fprintf(
+                        stderr, "Error: Exceeded %d tag-value pairs.\n",
+                        MAX_PROPERTY_VALUES);
+                    return 1;
+                }
+            }
+        }
     }
-    if (argc < 9) {
-        print_usage(filename_remove_path(argv[0]));
+    if (property_value_count == 0) {
+        print_usage(filename);
         return 0;
     }
-    /* decode the command line parameters */
-    Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    if (bactext_object_type_strtol(argv[2], &object_type) == false) {
-        fprintf(stderr, "object-type=%s invalid\n", argv[2]);
-        return 1;
-    }
-    Target_Object_Type = object_type;
-    Target_Object_Instance = strtol(argv[3], NULL, 0);
-    if (bactext_property_strtol(argv[4], &object_property) == false) {
-        fprintf(stderr, "property=%s invalid\n", argv[4]);
-        return 1;
-    }
-    Target_Object_Property = object_property;
-    priority = strtol(argv[5], NULL, 0);
-    if ((priority < BACNET_MIN_PRIORITY) || (priority > BACNET_MAX_PRIORITY)) {
-        priority = BACNET_NO_PRIORITY;
-    }
-    Target_Object_Property_Priority = priority;
-    Target_Object_Property_Index = strtol(argv[6], NULL, 0);
-    if (Target_Object_Property_Index == -1) {
-        Target_Object_Property_Index = BACNET_ARRAY_ALL;
-    }
-    if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(
-            stderr, "device-instance=%u - not greater than %u\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
-        return 1;
-    }
-    if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
-        fprintf(
-            stderr, "object-type=%u - it must be less than %u\n",
-            Target_Object_Type, MAX_BACNET_OBJECT_TYPE + 1);
-        return 1;
-    }
-    if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(
-            stderr, "object-instance=%u - not greater than %u\n",
-            Target_Object_Instance, BACNET_MAX_INSTANCE);
-        return 1;
-    }
-    if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
-        fprintf(
-            stderr, "property=%u - it must be less than %u\n",
-            Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
-        return 1;
-    }
-    args_remaining = (argc - 7);
-    /* location of next arg in arg array */
-    tag_value_arg = 7;
-    for (i = 0; i < MAX_PROPERTY_VALUES; i++) {
-        /* special case for context tagged values */
-        if (toupper(argv[tag_value_arg][0]) == 'C') {
-            context_tag = (uint8_t)strtol(&argv[tag_value_arg][1], NULL, 0);
-            tag_value_arg++;
-            args_remaining--;
-            Target_Object_Property_Value[i].context_tag = context_tag;
-            Target_Object_Property_Value[i].context_specific = true;
-        } else {
-            Target_Object_Property_Value[i].context_specific = false;
-        }
-        property_tag = strtol(argv[tag_value_arg], NULL, 0);
-        tag_value_arg++;
-        args_remaining--;
-        if (args_remaining <= 0) {
-            fprintf(stderr, "Error: not enough tag-value pairs\n");
-            return 1;
-        }
-        value_string = argv[tag_value_arg];
-        tag_value_arg++;
-        args_remaining--;
-        if (property_tag < 0) {
-            property_tag = bacapp_known_property_tag(
-                Target_Object_Type, Target_Object_Property);
-        } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-            fprintf(
-                stderr, "Error: tag=%ld - it must be less than %u\n",
-                property_tag, MAX_BACNET_APPLICATION_TAG);
-            return 1;
-        }
-        if (property_tag >= 0) {
-            status = bacapp_parse_application_data(
-                property_tag, value_string, &Target_Object_Property_Value[i]);
-            if (!status) {
-                /* FIXME: show the expected entry format for the tag */
-                fprintf(stderr, "Error: unable to parse the tag value\n");
-                return 1;
-            }
-        } else {
-            fprintf(
-                stderr, "Error: parser for property %s is not implemented\n",
-                bactext_property_name(Target_Object_Property));
-            return 1;
-        }
-
-        /* Print the written value (for debug) */
-#if 0
-        fprintf(stderr, "Writing: ");
-        BACNET_OBJECT_PROPERTY_VALUE dummy_opv = {
-            .value = &Target_Object_Property_Value[i],
-            .array_index = Target_Object_Property_Index,
-        };
-        bacapp_print_value(stderr, &dummy_opv);
-        fprintf(stderr, "\n");
-
-        uint8_t apdu[1000];
-        int len = bacapp_encode_application_data(apdu, &Target_Object_Property_Value[i]);
-        for(int q=0;q<len;q++) {
-            printf("%02x ", apdu[q]);
-        }
-        printf("\n");
-#endif
-
-        Target_Object_Property_Value[i].next = NULL;
-        if (i > 0) {
-            Target_Object_Property_Value[i - 1].next =
-                &Target_Object_Property_Value[i];
-        }
-        if (args_remaining <= 0) {
-            break;
-        }
-    }
-    if (args_remaining > 0) {
-        fprintf(
-            stderr, "Error: Exceeded %d tag-value pairs.\n",
-            MAX_PROPERTY_VALUES);
-        return 1;
-    }
     /* setup my info */
-    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
+    if (specific_address) {
+        bacnet_address_init(&dest, &mac, dnet, &adr);
+        address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
+    }
+    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
     atexit(datalink_cleanup);

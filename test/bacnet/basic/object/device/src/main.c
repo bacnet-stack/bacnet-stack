@@ -52,16 +52,15 @@ static void test_Device_Data_Sharing(void)
             "property '%s': failed to ReadProperty!\n",
             bactext_property_name(rpdata.object_property));
         if (len > 0) {
-            test_len = bacapp_decode_application_data(
+            test_len = bacapp_decode_known_property(
                 rpdata.application_data, (uint8_t)rpdata.application_data_len,
-                &value);
-            if ((rpdata.object_property == PROP_PRIORITY_ARRAY) ||
-                (rpdata.object_property == PROP_OBJECT_LIST)) {
-                /* FIXME: known fail to decode */
+                &value, rpdata.object_type, rpdata.object_property);
+            if ((test_len < len) && (rpdata.array_index == BACNET_ARRAY_ALL)) {
+                /* this is one element of an array - assume it is accurate */
                 len = test_len;
             }
             zassert_equal(
-                test_len, len, "property '%s': failed to decode!\n",
+                test_len, len, "property '%s': ReadProperty decode failure!\n",
                 bactext_property_name(rpdata.object_property));
             /* check WriteProperty properties */
             wpdata.object_type = rpdata.object_type;
@@ -91,16 +90,11 @@ static void test_Device_Data_Sharing(void)
             "property '%s': failed to ReadProperty!\n",
             bactext_property_name(rpdata.object_property));
         if (len > 0) {
-            test_len = bacapp_decode_application_data(
+            test_len = bacapp_decode_known_property(
                 rpdata.application_data, (uint8_t)rpdata.application_data_len,
-                &value);
-            if (len != test_len) {
-                printf(
-                    "property '%s': failed to decode!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
+                &value, rpdata.object_type, rpdata.object_property);
             zassert_equal(
-                test_len, len, "property '%s': failed to decode!\n",
+                test_len, len, "property '%s': ReadProperty decode failure!\n",
                 bactext_property_name(rpdata.object_property));
             /* check WriteProperty properties */
             wpdata.object_type = rpdata.object_type;

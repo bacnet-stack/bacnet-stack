@@ -511,7 +511,7 @@ static const int Device_Properties_Optional[] = {
 #endif
     PROP_DESCRIPTION, PROP_LOCAL_TIME, PROP_UTC_OFFSET, PROP_LOCAL_DATE,
     PROP_DAYLIGHT_SAVINGS_STATUS, PROP_LOCATION, PROP_ACTIVE_COV_SUBSCRIPTIONS,
-    PROP_SERIAL_NUMBER,
+    PROP_SERIAL_NUMBER, PROP_TIME_OF_DEVICE_RESTART,
 #if defined(BACNET_TIME_MASTER)
     PROP_TIME_SYNCHRONIZATION_RECIPIENTS, PROP_TIME_SYNCHRONIZATION_INTERVAL,
     PROP_ALIGN_INTERVALS, PROP_INTERVAL_OFFSET,
@@ -595,6 +595,7 @@ static char Serial_Number[MAX_DEV_DESC_LEN + 1] =
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
 /* Active_VT_Sessions */
+static BACNET_TIMESTAMP Time_Of_Device_Restart;
 static BACNET_TIME Local_Time; /* rely on OS, if there is one */
 static BACNET_DATE Local_Date; /* rely on OS, if there is one */
 /* NOTE: BACnet UTC Offset is inverse of common practice.
@@ -1565,6 +1566,10 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
+        case PROP_TIME_OF_DEVICE_RESTART:
+            apdu_len =
+                bacapp_encode_timestamp(&apdu[0], &Time_Of_Device_Restart);
+            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1684,8 +1689,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #endif
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
+    len = bacapp_decode_known_property(
+        wp_data->application_data, wp_data->application_data_len, &value,
+        wp_data->object_type, wp_data->object_property);
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1892,6 +1898,14 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
 #endif
+        case PROP_TIME_OF_DEVICE_RESTART:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_TIMESTAMP);
+            if (status) {
+                bacapp_timestamp_copy(
+                    &Time_Of_Device_Restart, &value.type.Time_Stamp);
+            }
+            break;
         default:
             if (property_lists_member(
                     Device_Properties_Required, Device_Properties_Optional,
