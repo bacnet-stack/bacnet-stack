@@ -387,6 +387,12 @@ int bacapp_encode_application_data(
                 /* Empty data list */
                 apdu_len = 0; /* EMPTY */
                 break;
+#if defined(BACAPP_TIMESTAMP)
+            case BACNET_APPLICATION_TAG_TIMESTAMP:
+                apdu_len =
+                    bacapp_encode_timestamp(apdu, &value->type.Time_Stamp);
+                break;
+#endif
 #if defined(BACAPP_DATETIME)
             case BACNET_APPLICATION_TAG_DATETIME:
                 apdu_len = bacapp_encode_datetime(apdu, &value->type.Date_Time);
@@ -1522,16 +1528,16 @@ int bacapp_decode_application_tag_value(
         case BACNET_APPLICATION_TAG_EMPTYLIST:
             apdu_len = 0;
             break;
-#if defined(BACAPP_DATETIME)
-        case BACNET_APPLICATION_TAG_DATETIME:
-            apdu_len =
-                bacnet_datetime_decode(apdu, apdu_size, &value->type.Date_Time);
-            break;
-#endif
 #if defined(BACAPP_TIMESTAMP)
         case BACNET_APPLICATION_TAG_TIMESTAMP:
             apdu_len = bacnet_timestamp_decode(
                 apdu, apdu_size, &value->type.Time_Stamp);
+            break;
+#endif
+#if defined(BACAPP_DATETIME)
+        case BACNET_APPLICATION_TAG_DATETIME:
+            apdu_len =
+                bacnet_datetime_decode(apdu, apdu_size, &value->type.Date_Time);
             break;
 #endif
 #if defined(BACAPP_DATERANGE)
@@ -4337,6 +4343,13 @@ bool bacapp_parse_application_data(
                 } else {
                     status = false;
                 }
+                break;
+#endif
+#if defined(BACAPP_TIMESTAMP)
+            case BACNET_APPLICATION_TAG_TIMESTAMP:
+                /* BACnetTimeStamp */
+                status =
+                    bacapp_timestamp_init_ascii(&value->type.Time_Stamp, argv);
                 break;
 #endif
 #if defined(BACAPP_DATETIME)
