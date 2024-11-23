@@ -20,7 +20,7 @@
  *
  * @return true if date-time falls in DST.  false if not.
  */
-static inline uint32_t
+static uint32_t
 time_to_seconds(uint32_t hours, uint32_t minutes, uint32_t seconds)
 {
     return (((hours) * 60 * 60) + ((minutes) * 60) + (seconds));
@@ -35,7 +35,7 @@ time_to_seconds(uint32_t hours, uint32_t minutes, uint32_t seconds)
  *  1=1st, 2=2nd, 3=3rd, 4=4th, or 5=LAST
  * @return day of the month (1..31)
  */
-static inline uint8_t
+static uint8_t
 ordinal_week_month_day(uint16_t year, uint8_t month, uint8_t ordinal)
 {
     uint8_t day = 0;
