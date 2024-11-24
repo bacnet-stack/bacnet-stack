@@ -171,6 +171,7 @@ list(APPEND testdirs
   # basic/sys
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
+  bacnet/basic/sys/dst
   bacnet/basic/sys/lighting_command
   bacnet/basic/sys/fifo
   bacnet/basic/sys/filename
