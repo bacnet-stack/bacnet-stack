@@ -1008,4 +1008,3 @@ void Multistate_Value_Init(void)
         Object_List = Keylist_Create();
     }
 }
-

@@ -2228,4 +2228,3 @@ void Binary_Value_Intrinsic_Reporting(uint32_t object_instance)
 #endif /* defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING) \
         */
 }
-
