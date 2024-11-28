@@ -25,6 +25,8 @@ void CharacterString_Value_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary);
 
 BACNET_STACK_EXPORT
+uint32_t CharacterString_Value_Create(uint32_t object_instance);
+BACNET_STACK_EXPORT
 bool CharacterString_Value_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
 unsigned CharacterString_Value_Count(void);
@@ -61,7 +63,7 @@ bool CharacterString_Value_Present_Value_Backup_Set(
     uint32_t object_instance, BACNET_CHARACTER_STRING *present_value);
 BACNET_STACK_EXPORT
 bool CharacterString_Value_Description_Set(
-    uint32_t object_instance, BACNET_CHARACTER_STRING *text_string);
+    uint32_t object_instance, const char *new_descr);
 BACNET_STACK_EXPORT
 bool CharacterString_Value_Out_Of_Service(uint32_t object_instance);
 
@@ -73,8 +75,6 @@ BACNET_STACK_EXPORT
 bool CharacterString_Value_Encode_Value_List(
     uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list);
 
-BACNET_STACK_EXPORT
-bool CharacterString_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 BACNET_STACK_EXPORT
 void CharacterString_Value_Init(void);
 
