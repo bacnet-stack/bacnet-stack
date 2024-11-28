@@ -35,7 +35,7 @@ static void testCharacterString_Value(void)
     CharacterString_Value_Init();
     object_instance = CharacterString_Value_Create(object_instance);
     count = CharacterString_Value_Count();
-    zassert_true(count  ==  1, NULL);
+    zassert_true(count == 1, NULL);
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_CHARACTERSTRING_VALUE;
