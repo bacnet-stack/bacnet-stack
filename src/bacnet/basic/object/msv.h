@@ -122,9 +122,6 @@ void Multistate_Value_Cleanup(void);
 BACNET_STACK_EXPORT
 void Multistate_Value_Init(void);
 
-BACNET_STACK_EXPORT
-bool Multistate_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

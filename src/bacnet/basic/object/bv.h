@@ -193,8 +193,6 @@ bool Binary_Value_Notify_Type_Set(
 BACNET_STACK_EXPORT
 void Binary_Value_Intrinsic_Reporting(uint32_t object_instance);
 
-BACNET_STACK_EXPORT
-bool Binary_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
