@@ -87,9 +87,6 @@ BACNET_STACK_EXPORT
 void Integer_Value_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
 
 BACNET_STACK_EXPORT
-bool Integer_Value_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
-
-BACNET_STACK_EXPORT
 void Integer_Value_Init(void);
 
 BACNET_STACK_EXPORT

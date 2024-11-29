@@ -212,9 +212,6 @@ int Analog_Input_Alarm_Summary(
 #endif
 
 BACNET_STACK_EXPORT
-bool Analog_Input_Set(BACNET_OBJECT_LIST_INIT_T *pInit_data);
-
-BACNET_STACK_EXPORT
 uint32_t Analog_Input_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Analog_Input_Delete(uint32_t object_instance);
