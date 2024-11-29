@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -19,19 +20,12 @@
 #include "bacnet/wp.h"
 #include "bacnet/basic/object/csv.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/keylist.h"
 
-/* number of demo objects */
-#ifndef MAX_CHARACTERSTRING_VALUES
-#define MAX_CHARACTERSTRING_VALUES 1
-#endif
-
-/* Here is our Present Value */
-static BACNET_CHARACTER_STRING Present_Value[MAX_CHARACTERSTRING_VALUES];
-/* Writable out-of-service allows others to manipulate our Present Value */
-static bool Out_Of_Service[MAX_CHARACTERSTRING_VALUES];
-static char Object_Name[MAX_CHARACTERSTRING_VALUES][64];
-static char Object_Description[MAX_CHARACTERSTRING_VALUES][64];
-static bool Changed[MAX_CHARACTERSTRING_VALUES];
+/* Key List for storing the object data sorted by instance number  */
+static OS_Keylist Object_List = NULL;
+/* common object type */
+static const BACNET_OBJECT_TYPE Object_Type = OBJECT_CHARACTERSTRING_VALUE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
@@ -44,6 +38,18 @@ static const int Properties_Optional[] = { PROP_EVENT_STATE,
                                            PROP_DESCRIPTION, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
+
+typedef struct characterstring_object {
+    /* Writable out-of-service allows others to manipulate our Present Value */
+    bool Out_Of_Service : 1;
+    bool Changed : 1;
+    uint32_t Instance;
+    /* Here is our Present Value */
+    BACNET_CHARACTER_STRING Present_Value_Backup;
+    BACNET_CHARACTER_STRING Present_Value;
+    BACNET_CHARACTER_STRING Name;
+    BACNET_CHARACTER_STRING Description;
+} CHARACTERSTRING_VALUE_DESCR;
 
 /**
  * Initialize the pointers for the required, the optional and the properitary
@@ -70,25 +76,69 @@ void CharacterString_Value_Property_Lists(
 }
 
 /**
+ * @brief Creates a CharacterString Value object
+ * @param object_instance - object-instance number of the object
+ * @return the object-instance that was created, or BACNET_MAX_INSTANCE
+ */
+uint32_t CharacterString_Value_Create(uint32_t object_instance)
+{
+    struct characterstring_object *pObject = NULL;
+
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        /* wildcard instance */
+        /* the Object_Identifier property of the newly created object
+            shall be initialized to a value that is unique within the
+            responding BACnet-user device. The method used to generate
+            the object identifier is a local matter.*/
+        object_instance = Keylist_Next_Empty_Key(Object_List, 1);
+    }
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (!pObject) {
+        pObject = calloc(1, sizeof(struct characterstring_object));
+        if (pObject) {
+            /* add to list */
+            int index = Keylist_Data_Add(Object_List, object_instance, pObject);
+
+            if (index < 0) {
+                free(pObject);
+                return BACNET_MAX_INSTANCE;
+            }
+
+            characterstring_init_ansi(&pObject->Name, "");
+            characterstring_init_ansi(&pObject->Description, "");
+            characterstring_init_ansi(&pObject->Present_Value, "");
+            characterstring_init_ansi(&pObject->Present_Value_Backup, "");
+            pObject->Out_Of_Service = false;
+            pObject->Changed = false;
+        } else {
+            return BACNET_MAX_INSTANCE;
+        }
+    }
+
+    return object_instance;
+}
+
+/**
+ * @brief Gets an object from the list using an instance number as the key
+ * @param  object_instance - object-instance number of the object
+ * @return object found in the list, or NULL if not found
+ */
+static struct characterstring_object *
+CharacterString_Value_Object(uint32_t object_instance)
+{
+    return Keylist_Data(Object_List, object_instance);
+}
+
+/**
  * Initialize the character string values.
  */
 void CharacterString_Value_Init(void)
 {
-    unsigned i;
-
-    /* initialize all Present Values */
-    for (i = 0; i < MAX_CHARACTERSTRING_VALUES; i++) {
-        snprintf(
-            &Object_Name[i][0], sizeof(Object_Name[i]),
-            "CHARACTER STRING VALUE %u", i + 1);
-        snprintf(
-            &Object_Description[i][0], sizeof(Object_Description[i]),
-            "A Character String Value Example");
-        characterstring_init_ansi(&Present_Value[i], "");
-        Changed[i] = false;
+    if (!Object_List) {
+        Object_List = Keylist_Create();
     }
-
-    return;
 }
 
 /**
@@ -102,13 +152,7 @@ void CharacterString_Value_Init(void)
  */
 unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_CHARACTERSTRING_VALUES;
-
-    if (object_instance < MAX_CHARACTERSTRING_VALUES) {
-        index = object_instance;
-    }
-
-    return index;
+    return Keylist_Index(Object_List, object_instance);
 }
 
 /**
@@ -122,7 +166,11 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
  */
 uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
 {
-    return index;
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(Object_List, index, &key);
+
+    return key;
 }
 
 /**
@@ -132,7 +180,7 @@ uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
  */
 unsigned CharacterString_Value_Count(void)
 {
-    return MAX_CHARACTERSTRING_VALUES;
+    return Keylist_Count(Object_List);
 }
 
 /**
@@ -146,14 +194,10 @@ unsigned CharacterString_Value_Count(void)
  */
 bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
 {
-    unsigned index = 0; /* offset from instance lookup */
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        return true;
-    }
-
-    return false;
+    return (pObject != NULL);
 }
 
 /**
@@ -170,11 +214,11 @@ bool CharacterString_Value_Present_Value(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
-    unsigned index = 0; /* offset from instance lookup */
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (object_name && (index < MAX_CHARACTERSTRING_VALUES)) {
-        status = characterstring_copy(object_name, &Present_Value[index]);
+    if (pObject) {
+        status = characterstring_copy(present_value, &pObject->Present_Value);
     }
 
     return status;
@@ -193,14 +237,39 @@ bool CharacterString_Value_Present_Value_Set(
     uint32_t object_instance, const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
-    unsigned index = 0; /* offset from instance lookup */
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        if (!characterstring_same(&Present_Value[index], object_name)) {
-            Changed[index] = true;
-        }
-        status = characterstring_copy(&Present_Value[index], object_name);
+    if (pObject) {
+        pObject->Changed =
+            !characterstring_same(&pObject->Present_Value, present_value);
+
+        status = characterstring_copy(&pObject->Present_Value, present_value);
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the backed up present-value,
+ * taken from another BACnet string.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  present_value - Pointer to the new BACnet string value.
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+
+bool CharacterString_Value_Present_Value_Backup_Set(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *present_value)
+{
+    bool status = false;
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
+
+    if (pObject) {
+        status =
+            characterstring_copy(&pObject->Present_Value_Backup, present_value);
     }
 
     return status;
@@ -216,11 +285,11 @@ bool CharacterString_Value_Present_Value_Set(
 bool CharacterString_Value_Out_Of_Service(uint32_t object_instance)
 {
     bool value = false;
-    unsigned index = 0;
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        value = Out_Of_Service[index];
+    if (pObject) {
+        value = pObject->Out_Of_Service;
     }
 
     return value;
@@ -235,12 +304,21 @@ bool CharacterString_Value_Out_Of_Service(uint32_t object_instance)
 static void
 CharacterString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
-    unsigned index = 0;
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        if (Out_Of_Service[index] != value) {
-            Changed[index] = true;
+    if (pObject) {
+        if (pObject->Out_Of_Service != value) {
+            pObject->Changed = true;
+            /* Lets backup Present_Value when going Out_Of_Service  or restore
+             * when going out of Out_Of_Service */
+            if ((pObject->Out_Of_Service = value)) {
+                characterstring_copy(
+                    &pObject->Present_Value_Backup, &pObject->Present_Value);
+            } else {
+                characterstring_copy(
+                    &pObject->Present_Value, &pObject->Present_Value_Backup);
+            }
         }
         Out_Of_Service[index] = value;
     }
@@ -256,11 +334,11 @@ CharacterString_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 bool CharacterString_Value_Change_Of_Value(uint32_t object_instance)
 {
     bool changed = false;
-    unsigned index = 0; /* offset from instance lookup */
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        changed = Changed[index];
+    if (pObject) {
+        changed = pObject->Changed;
     }
 
     return changed;
@@ -272,11 +350,11 @@ bool CharacterString_Value_Change_Of_Value(uint32_t object_instance)
  */
 void CharacterString_Value_Change_Of_Value_Clear(uint32_t object_instance)
 {
-    unsigned index = 0; /* offset from instance lookup */
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        Changed[index] = false;
+    if (pObject) {
+        pObject->Changed = false;
     }
 }
 
@@ -294,13 +372,13 @@ bool CharacterString_Value_Encode_Value_List(
     const bool in_alarm = false;
     const bool fault = false;
     const bool overridden = false;
-    unsigned index = 0; /* offset from instance lookup */
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
+    if (pObject) {
         status = cov_value_list_encode_character_string(
-            value_list, &Present_Value[index], in_alarm, fault, overridden,
-            Out_Of_Service[index]);
+            value_list, &pObject->Present_Value, in_alarm, fault, overridden,
+            pObject->Out_Of_Service);
     }
 
     return status;
@@ -313,17 +391,23 @@ bool CharacterString_Value_Encode_Value_List(
  *
  * @return  C-string pointer to the description.
  */
-static char *CharacterString_Value_Description(uint32_t object_instance)
+bool CharacterString_Value_Description(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *description)
 {
-    unsigned index = 0; /* offset from instance lookup */
-    char *pName = NULL; /* return value */
+    bool status = false;
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        pName = Object_Description[index];
+    if (!description) {
+        return false;
     }
 
-    return pName;
+    if (pObject) {
+        *description = pObject->Description;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -338,24 +422,16 @@ static char *CharacterString_Value_Description(uint32_t object_instance)
 bool CharacterString_Value_Description_Set(
     uint32_t object_instance, const char *new_descr)
 {
-    unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        status = true;
+    if (pObject) {
         if (new_descr) {
-            for (i = 0; i < sizeof(Object_Description[index]); i++) {
-                Object_Description[index][i] = new_descr[i];
-                if (new_descr[i] == 0) {
-                    break;
-                }
-            }
+            status =
+                characterstring_init_ansi(&pObject->Description, new_descr);
         } else {
-            memset(
-                &Object_Description[index][0], 0,
-                sizeof(Object_Description[index]));
+            status = characterstring_init_ansi(&pObject->Description, "");
         }
     }
 
@@ -374,12 +450,17 @@ bool CharacterString_Value_Description_Set(
 bool CharacterString_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    unsigned index = 0; /* offset from instance lookup */
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
     bool status = false;
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        status = characterstring_init_ansi(object_name, Object_Name[index]);
+    if (!object_name) {
+        return false;
+    }
+
+    if (pObject) {
+        *object_name = pObject->Name;
+        status = true;
     }
 
     return status;
@@ -398,23 +479,15 @@ bool CharacterString_Value_Object_Name(
 bool CharacterString_Value_Name_Set(
     uint32_t object_instance, const char *new_name)
 {
-    unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
+    struct characterstring_object *pObject =
+        CharacterString_Value_Object(object_instance);
 
-    index = CharacterString_Value_Instance_To_Index(object_instance);
-    if (index < MAX_CHARACTERSTRING_VALUES) {
-        status = true;
-        /* FIXME: check to see if there is a matching name */
+    if (pObject) {
         if (new_name) {
-            for (i = 0; i < sizeof(Object_Name[index]); i++) {
-                Object_Name[index][i] = new_name[i];
-                if (new_name[i] == 0) {
-                    break;
-                }
-            }
+            status = characterstring_init_ansi(&pObject->Name, new_name);
         } else {
-            memset(&Object_Name[index][0], 0, sizeof(Object_Name[index]));
+            status = characterstring_init_ansi(&pObject->Name, "");
         }
     }
 
@@ -433,9 +506,9 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    unsigned object_index = 0;
     bool state = false;
     uint8_t *apdu = NULL;
+    struct characterstring_object *pObject = NULL;
 
     /* Valid data? */
     if (rpdata == NULL) {
@@ -446,10 +519,9 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return 0;
     }
 
+    pObject = CharacterString_Value_Object(rpdata->object_instance);
     /* Valid object? */
-    object_index =
-        CharacterString_Value_Instance_To_Index(rpdata->object_instance);
-    if (object_index >= MAX_CHARACTERSTRING_VALUES) {
+    if (!pObject) {
         rpdata->error_class = ERROR_CLASS_OBJECT;
         rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return BACNET_STATUS_ERROR;
@@ -460,8 +532,7 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
-                &apdu[0], OBJECT_CHARACTERSTRING_VALUE,
-                rpdata->object_instance);
+                &apdu[0], Object_Type, rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
@@ -473,10 +544,8 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_DESCRIPTION:
-            if (characterstring_init_ansi(
-                    &char_string,
-                    CharacterString_Value_Description(
-                        rpdata->object_instance))) {
+            if (CharacterString_Value_Description(
+                    rpdata->object_instance, &char_string)) {
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
             }
@@ -512,7 +581,7 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            state = Out_Of_Service[object_index];
+            state = pObject->Out_Of_Service;
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         default:
@@ -544,7 +613,7 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    unsigned object_index = 0;
+    struct characterstring_object *pObject = NULL;
     BACNET_APPLICATION_DATA_VALUE value;
 
     if (wp_data == NULL) {
@@ -565,10 +634,9 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
 
+    pObject = CharacterString_Value_Object(wp_data->object_instance);
     /* Valid object? */
-    object_index =
-        CharacterString_Value_Instance_To_Index(wp_data->object_instance);
-    if (object_index >= MAX_CHARACTERSTRING_VALUES) {
+    if (!pObject) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
