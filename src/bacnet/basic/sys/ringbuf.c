@@ -375,6 +375,23 @@ bool Ringbuf_Data_Put(RING_BUFFER *b, const volatile uint8_t *data_element)
 }
 
 /**
+ * Gets the data size of each element in the ring buffer
+ *
+ * @param  b - pointer to RING_BUFFER structure
+ * @return size of each element in the ring buffer
+ */
+unsigned Ringbuf_Data_Size(RING_BUFFER const *b)
+{
+    unsigned size = 0;
+
+    if (b) {
+        size = b->element_size;
+    }
+
+    return size;
+}
+
+/**
  * Test that the parameter is a power of two.
  *
  * @param x unsigned integer value to be tested

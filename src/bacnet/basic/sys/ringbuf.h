@@ -89,6 +89,8 @@ volatile void *
 Ringbuf_Peek_Next(RING_BUFFER const *b, const uint8_t *data_element);
 BACNET_STACK_EXPORT
 bool Ringbuf_Data_Put(RING_BUFFER *b, const volatile uint8_t *data_element);
+BACNET_STACK_EXPORT
+unsigned Ringbuf_Data_Size(RING_BUFFER const *b);
 /* Note: element_count must be a power of two */
 BACNET_STACK_EXPORT
 bool Ringbuf_Init(
