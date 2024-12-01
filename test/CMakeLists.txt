@@ -188,6 +188,7 @@ list(APPEND testdirs
   bacnet/datalink/crc
   bacnet/datalink/bvlc
   bacnet/datalink/mstp
+  bacnet/datalink/dlmstp
   )
 
 # ports tests
