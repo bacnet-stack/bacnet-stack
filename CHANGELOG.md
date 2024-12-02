@@ -18,6 +18,32 @@ The git repositories are hosted at the following sites:
 ### Added
 ### Changed
 ### Fixed
+
+* Fixed basic Multistate-Value object default Object_Name value. (#864)
+* Fixed missing BitString Value object Create/Delete API in basic device
+  Object_Table (#863)
+* Fixed ability to compile with BACNET_PROTOCOL_REVISION<17 (#862)
+* Fixed Notification Class object ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY
+  condition. (#852)
+* Fixed Systick Interrupt hard fault when using NVIC_EnableIRQ. (#850)
+* Fixed MS/TP this-station filterning and establish 0xff address for
+  this station as promiscuous mode. (#803)
+* Fixed MS/TP Slave Node FSM to enable receiving DNER frames. (#832)
+* Fixed missing MS/TP zero configuration preferred address API and usage. (#840)
+* Fixed MS/TP module flush stderr compile error from leftover. (#844)
+* Fixed missing DLMSTP start, valid, and invalid frame complete callbacks
+  in common DLMSTP module. (#848)
+* Fixed dlmstp ringbuffer initialization corruption (#865)
+* Fixed IP_DHCP_Enable property for BTL testing by adding a define to control
+  IP_DHCP_Enable property being present in Network Port object. (#796)
+* Fixed return values and comments in basic Network Port object. (#792)
+* Fixed compiler warning emitted from arm-none-eabi-gcc in hostnport.c (#785)
+* Fixed "types-limits" compiler warnings. (#766)
+* Fixed some typos in function header comments. (#762)
+* Fixed order of operations in COV handler so that dest_index gets
+  written to the right slot. (#761)
+* Fixed COV detection in the basic Binary Output object example. (#751)
+
 ### Removed
 
 ## [1.3.8] - 2024-08-26
