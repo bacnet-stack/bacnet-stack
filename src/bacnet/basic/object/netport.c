@@ -148,10 +148,9 @@ static const int BIP_Port_Properties_Optional[] = {
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
     PROP_BBMD_FOREIGN_DEVICE_TABLE,
 #endif
-#if (BBMD_CLIENT_ENABLED)
+#if defined(BACDL_BIP) && (BBMD_CLIENT_ENABLED)
     PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
-#endif
 #endif
     -1
 };

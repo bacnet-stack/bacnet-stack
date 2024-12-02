@@ -34,7 +34,8 @@ static struct mstp_port_struct_t *MSTP_Port;
  * @param pdu_len - number of bytes of PDU data to send
  * @return number of bytes sent on success, zero on failure
  */
-int dlmstp_send_pdu(BACNET_ADDRESS *dest,
+int dlmstp_send_pdu(
+    BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
@@ -47,10 +48,10 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest,
     if (!MSTP_Port) {
         return 0;
     }
-    if (!MSTP_Port->UserData) {
+    user = MSTP_Port->UserData;
+    if (!user) {
         return 0;
     }
-    user = MSTP_Port->UserData;
     pkt = (struct dlmstp_packet *)(void *)Ringbuf_Data_Peek(&user->PDU_Queue);
     if (pkt && (pdu_len <= DLMSTP_MPDU_MAX)) {
         if (npdu_data->data_expecting_reply) {
@@ -85,13 +86,13 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest,
  * @param timeout - number of milliseconds to wait for the data
  * @return amount of PDU data
  */
-uint16_t MSTP_Get_Send(
-    struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 {
     uint16_t pdu_len = 0;
     struct dlmstp_packet *pkt;
     struct dlmstp_user_data_t *user;
 
+    (void)timeout;
     if (!mstp_port) {
         return 0;
     }
@@ -105,9 +106,10 @@ uint16_t MSTP_Get_Send(
     /* look at next PDU in queue without removing it */
     pkt = (struct dlmstp_packet *)(void *)Ringbuf_Peek(&user->PDU_Queue);
     /* convert the PDU into the MSTP Frame */
-    pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
-        mstp_port->OutputBufferSize, pkt->frame_type, pkt->address.mac[0],
-        mstp_port->This_Station, &pkt->pdu[0], pkt->pdu_len);
+    pdu_len = MSTP_Create_Frame(
+        &mstp_port->OutputBuffer[0], mstp_port->OutputBufferSize,
+        pkt->frame_type, pkt->address.mac[0], mstp_port->This_Station,
+        &pkt->pdu[0], pkt->pdu_len);
     user->Statistics.transmit_pdu_counter++;
     (void)Ringbuf_Pop(&user->PDU_Queue, NULL);
 
@@ -163,15 +165,15 @@ static bool MSTP_Compare_Data_Expecting_Reply(
     }
     request.invoke_id = request_pdu[offset + 2];
     /* segmented message? */
-    if (request_pdu[offset] & BIT(3))
+    if (request_pdu[offset] & BIT(3)) {
         request.service_choice = request_pdu[offset + 5];
-    else
+    } else {
         request.service_choice = request_pdu[offset + 3];
+    }
     /* decode the reply data */
     bacnet_address_copy(&reply.address, dest_address);
     offset = bacnet_npdu_decode(
-        &reply_pdu[0], reply_pdu_len, &reply.address, NULL,
-        &reply.npdu_data);
+        &reply_pdu[0], reply_pdu_len, &reply.address, NULL, &reply.npdu_data);
     if (reply.npdu_data.network_layer_message) {
         return false;
     }
@@ -186,10 +188,11 @@ static bool MSTP_Compare_Data_Expecting_Reply(
         case PDU_TYPE_COMPLEX_ACK:
             reply.invoke_id = reply_pdu[offset + 1];
             /* segmented message? */
-            if (reply_pdu[offset] & BIT(3))
+            if (reply_pdu[offset] & BIT(3)) {
                 reply.service_choice = reply_pdu[offset + 4];
-            else
+            } else {
                 reply.service_choice = reply_pdu[offset + 2];
+            }
             break;
         case PDU_TYPE_ERROR:
             reply.invoke_id = reply_pdu[offset + 1];
@@ -241,14 +244,14 @@ static bool MSTP_Compare_Data_Expecting_Reply(
  * @param timeout number of milliseconds to wait for a packet
  * @return number of bytes, or 0 if no reply is available
  */
-uint16_t MSTP_Get_Reply(
-    struct mstp_port_struct_t *mstp_port, unsigned timeout)
+uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
 {
     uint16_t pdu_len = 0;
     bool matched = false;
     struct dlmstp_user_data_t *user = NULL;
     struct dlmstp_packet *pkt;
 
+    (void)timeout;
     if (!mstp_port) {
         return 0;
     }
@@ -268,9 +271,10 @@ uint16_t MSTP_Get_Reply(
         return 0;
     }
     /* convert the PDU into the MSTP Frame */
-    pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],
-        mstp_port->OutputBufferSize, pkt->frame_type, pkt->address.mac[0],
-        mstp_port->This_Station, &pkt->pdu[0], pkt->pdu_len);
+    pdu_len = MSTP_Create_Frame(
+        &mstp_port->OutputBuffer[0], mstp_port->OutputBufferSize,
+        pkt->frame_type, pkt->address.mac[0], mstp_port->This_Station,
+        &pkt->pdu[0], pkt->pdu_len);
     user->Statistics.transmit_pdu_counter++;
     (void)Ringbuf_Pop(&user->PDU_Queue, NULL);
 
@@ -343,10 +347,8 @@ uint16_t dlmstp_receive(
     uint16_t i;
     uint32_t milliseconds;
 
+    (void)timeout;
     if (!MSTP_Port) {
-        return 0;
-    }
-    if (!MSTP_Port->UserData) {
         return 0;
     }
     user = MSTP_Port->UserData;
@@ -366,12 +368,17 @@ uint16_t dlmstp_receive(
     }
     /* only do receive state machine while we don't have a frame */
     while ((MSTP_Port->ReceivedValidFrame == false) &&
-        (MSTP_Port->ReceivedInvalidFrame == false)) {
+           (MSTP_Port->ReceivedInvalidFrame == false)) {
         MSTP_Port->DataAvailable = driver->read(&data_register);
         if (MSTP_Port->DataAvailable) {
             MSTP_Port->DataRegister = data_register;
         }
         MSTP_Receive_Frame_FSM(MSTP_Port);
+        if (MSTP_Port->receive_state == MSTP_RECEIVE_STATE_PREAMBLE) {
+            if (user->Preamble_Callback) {
+                user->Preamble_Callback();
+            }
+        }
         /* process another byte, if available */
         if (!driver->read(NULL)) {
             break;
@@ -387,15 +394,28 @@ uint16_t dlmstp_receive(
     }
     if (MSTP_Port->ReceivedValidFrame) {
         user->Statistics.receive_valid_frame_counter++;
+        if (user->Valid_Frame_Rx_Callback) {
+            user->Valid_Frame_Rx_Callback(
+                MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
+                MSTP_Port->FrameType, MSTP_Port->InputBuffer,
+                MSTP_Port->DataLength);
+        }
     }
     if (MSTP_Port->ReceivedInvalidFrame) {
         user->Statistics.receive_invalid_frame_counter++;
+        if (user->Invalid_Frame_Rx_Callback) {
+            user->Invalid_Frame_Rx_Callback(
+                MSTP_Port->SourceAddress, MSTP_Port->DestinationAddress,
+                MSTP_Port->FrameType, MSTP_Port->InputBuffer,
+                MSTP_Port->DataLength);
+        }
     }
     if (MSTP_Port->receive_state == MSTP_RECEIVE_STATE_IDLE) {
         /* only node state machines while rx is idle */
         if (MSTP_Port->SlaveNodeEnabled) {
             MSTP_Slave_Node_FSM(MSTP_Port);
-        } else if ((MSTP_Port->This_Station <= DEFAULT_MAX_MASTER) ||
+        } else if (
+            (MSTP_Port->This_Station <= DEFAULT_MAX_MASTER) ||
             MSTP_Port->ZeroConfigEnabled) {
             while (MSTP_Master_Node_FSM(MSTP_Port)) {
                 /* do nothing while some states fast transition */
@@ -608,6 +628,109 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS *dest)
 }
 
 /**
+ * @brief Get the MSTP port SoleMaster status
+ * @return true if the MSTP port is the SoleMaster
+ */
+bool dlmstp_sole_master(void)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    return MSTP_Port->SoleMaster;
+}
+
+/**
+ * @brief Get the MSTP port SlaveNodeEnabled status
+ * @return true if the MSTP port has SlaveNodeEnabled
+ */
+bool dlmstp_slave_mode_enabled(void)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    return MSTP_Port->SlaveNodeEnabled;
+}
+
+/**
+ * @brief Set the MSTP port SlaveNodeEnabled flag
+ * @param flag - true if the MSTP port has SlaveNodeEnabled
+ * @return true if the MSTP port SlaveNodeEnabled was set
+ * @note This flag is used to enable the Slave Node state machine
+ * for the MSTP port.  The Slave Node state machine is used to
+ * respond to requests from the Master Node.
+ */
+bool dlmstp_slave_mode_enabled_set(bool flag)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    MSTP_Port->SlaveNodeEnabled = flag;
+
+    return true;
+}
+
+/**
+ * @brief Get the MSTP port ZeroConfigEnabled status
+ * @return true if the MSTP port has ZeroConfigEnabled
+ */
+bool dlmstp_zero_config_enabled(void)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    return MSTP_Port->ZeroConfigEnabled;
+}
+
+/**
+ * @brief Set the MSTP port ZeroConfigEnabled flag
+ * @param flag - true if the MSTP port has ZeroConfigEnabled
+ * @return true if the MSTP port ZeroConfigEnabled was set
+ * @note This flag is used to enable the Zero Configuration state machine
+ * for the MSTP port.  The Zero Configuration state machine is used to
+ * automatically assign a MAC address to the MSTP port.
+ */
+bool dlmstp_zero_config_enabled_set(bool flag)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    MSTP_Port->ZeroConfigEnabled = flag;
+
+    return true;
+}
+
+/**
+ * @brief Get the MSTP port MAC address that this node prefers to use.
+ * @return ZeroConfigStation value, or an out-of-range value if invalid
+ * @note valid values are between Nmin_poll_station and Nmax_poll_station
+ *  but other values such as 0 or 255 could mean 'unconfigured'
+ */
+uint8_t dlmstp_zero_config_preferred_station(void)
+{
+    if (!MSTP_Port) {
+        return 0;
+    }
+    return MSTP_Port->Zero_Config_Preferred_Station;
+}
+
+/**
+ * @brief Set the MSTP port MAC address that this node prefers to use.
+ * @param station - Zero_Config_Preferred_Station value
+ * @return true if the MSTP port Zero_Config_Preferred_Station was set
+ * @note valid values are between Nmin_poll_station and Nmax_poll_station
+ *  but other values such as 0 or 255 could mean 'unconfigured'
+ */
+bool dlmstp_zero_config_preferred_station_set(uint8_t station)
+{
+    if (!MSTP_Port) {
+        return false;
+    }
+    MSTP_Port->Zero_Config_Preferred_Station = station;
+
+    return true;
+}
+
+/**
  * @brief Determine if the send PDU queue is empty
  * @return true if the send PDU is empty
  */
@@ -658,10 +781,10 @@ void dlmstp_set_baud_rate(uint32_t baud)
     if (!MSTP_Port) {
         return;
     }
-    if (!MSTP_Port->UserData) {
+    user = MSTP_Port->UserData;
+    if (!user) {
         return;
     }
-    user = MSTP_Port->UserData;
     driver = user->RS485_Driver;
     if (!driver) {
         return;
@@ -670,7 +793,7 @@ void dlmstp_set_baud_rate(uint32_t baud)
         /* Tframe_abort=60 bit times, not to exceed 100 milliseconds.*/
         if (MSTP_Port->Tframe_abort <= 7) {
             /* within baud range, so auto-calculate range based on baud */
-            MSTP_Port->Tframe_abort = 1+((60*1000UL)/baud);
+            MSTP_Port->Tframe_abort = 1 + ((60 * 1000UL) / baud);
         }
         /* Tturnaround=40 bit times */
         MSTP_Port->Tturnaround_timeout = 1 + ((Tturnaround * 1000) / baud);
@@ -689,16 +812,89 @@ uint32_t dlmstp_baud_rate(void)
     if (!MSTP_Port) {
         return 0;
     }
-    if (!MSTP_Port->UserData) {
+    user = MSTP_Port->UserData;
+    if (!user) {
         return 0;
     }
-    user = MSTP_Port->UserData;
     driver = user->RS485_Driver;
     if (!driver) {
         return 0;
     }
 
     return driver->baud_rate();
+}
+
+/**
+ * @brief Set the MS/TP Frame Complete callback
+ * @param cb_func - callback function to be called when a frame is received
+ */
+void dlmstp_set_frame_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
+{
+    struct dlmstp_user_data_t *user;
+
+    if (!MSTP_Port) {
+        return;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return;
+    }
+    user->Valid_Frame_Rx_Callback = cb_func;
+}
+
+/**
+ * @brief Set the MS/TP Frame Complete callback
+ * @param cb_func - callback function to be called when a frame is received
+ */
+void dlmstp_set_invalid_frame_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
+{
+    struct dlmstp_user_data_t *user;
+
+    if (!MSTP_Port) {
+        return;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return;
+    }
+    user->Invalid_Frame_Rx_Callback = cb_func;
+}
+
+/**
+ * @brief Set the MS/TP Preamble callback
+ * @param cb_func - callback function to be called when a preamble is received
+ */
+void dlmstp_set_frame_rx_start_callback(dlmstp_hook_frame_rx_start_cb cb_func)
+{
+    struct dlmstp_user_data_t *user;
+
+    if (!MSTP_Port) {
+        return;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return;
+    }
+    user->Preamble_Callback = cb_func;
+}
+
+/**
+ * @brief Reset the MS/TP statistics
+ */
+void dlmstp_reset_statistics(void)
+{
+    struct dlmstp_user_data_t *user;
+
+    if (!MSTP_Port) {
+        return;
+    }
+    user = MSTP_Port->UserData;
+    if (!user) {
+        return;
+    }
+    memset(&user->Statistics, 0, sizeof(struct dlmstp_statistics));
 }
 
 /**
@@ -710,9 +906,6 @@ void dlmstp_fill_statistics(struct dlmstp_statistics *statistics)
     struct dlmstp_user_data_t *user;
 
     if (!MSTP_Port) {
-        return;
-    }
-    if (!MSTP_Port->UserData) {
         return;
     }
     user = MSTP_Port->UserData;
@@ -804,7 +997,7 @@ bool dlmstp_init(char *ifname)
         if (user && !user->Initialized) {
             Ringbuf_Init(&user->PDU_Queue,
                 (volatile uint8_t *)user->PDU_Buffer,
-                sizeof(user->PDU_Buffer), DLMSTP_MAX_INFO_FRAMES);
+                sizeof(struct dlmstp_packet), DLMSTP_MAX_INFO_FRAMES);
             MSTP_Init(MSTP_Port);
             user->Initialized = true;
         }
