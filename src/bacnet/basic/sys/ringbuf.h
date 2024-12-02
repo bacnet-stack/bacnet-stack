@@ -98,6 +98,13 @@ bool Ringbuf_Init(
     volatile uint8_t *buffer,
     unsigned element_size,
     unsigned element_count);
+BACNET_STACK_EXPORT
+bool Ringbuf_Initialize(
+    RING_BUFFER *b,
+    volatile uint8_t *buffer,
+    unsigned buffer_size,
+    unsigned element_size,
+    unsigned element_count);
 
 #ifdef __cplusplus
 }
