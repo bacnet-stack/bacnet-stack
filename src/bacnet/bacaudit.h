@@ -228,7 +228,10 @@ int bacnet_audit_value_context_encode(
     uint8_t *apdu, uint8_t tag_number, const BACNET_AUDIT_VALUE *value);
 BACNET_STACK_EXPORT
 int bacnet_audit_value_decode(
-    uint8_t *apdu, uint32_t apdu_size, const BACNET_AUDIT_VALUE *value);
+    const uint8_t *apdu, uint32_t apdu_size, BACNET_AUDIT_VALUE *value);
+BACNET_STACK_EXPORT
+bool bacnet_audit_value_same(
+    const BACNET_AUDIT_VALUE *value1, const BACNET_AUDIT_VALUE *value2);
 
 #ifdef __cplusplus
 }

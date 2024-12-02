@@ -790,7 +790,7 @@ int bacnet_audit_log_record_encode(
             if (apdu) {
                 apdu += len;
             }
-            len = encode_opening_tag(apdu, value->tag);
+            len = encode_closing_tag(apdu, value->tag);
             apdu_len += len;
             if (apdu) {
                 apdu += len;
@@ -830,10 +830,9 @@ int bacnet_audit_log_record_decode(
     BACNET_TAG tag = { 0 };
     BACNET_DATE_TIME bdatetime = { 0 };
     BACNET_BIT_STRING log_status = { 0 };
+    BACNET_AUDIT_NOTIFICATION notification = { 0 };
+    float real_value = 0.0f;
 
-    if (!value) {
-        return BACNET_STATUS_ERROR;
-    }
     if (!apdu) {
         return BACNET_STATUS_ERROR;
     }
@@ -841,7 +840,9 @@ int bacnet_audit_log_record_decode(
     len = bacnet_datetime_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &bdatetime);
     if (len > 0) {
-        value->time_stamp = datetime_seconds_since_epoch(&bdatetime);
+        if (value) {
+            value->time_stamp = datetime_seconds_since_epoch(&bdatetime);
+        }
         apdu_len += len;
     } else {
         return BACNET_STATUS_ERROR;
@@ -857,13 +858,19 @@ int bacnet_audit_log_record_decode(
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
+    if (value) {
+        value->tag = tag.number;
+    }
+    /* ignore the len. len is included in context decoder below. */
     switch (tag.number) {
         case AUDIT_LOG_DATUM_TAG_STATUS:
             /* log-status [0] BACnetLogStatus */
             len = bacnet_bitstring_context_decode(
                 &apdu[apdu_len], apdu_size - apdu_len, tag.number, &log_status);
             if (len > 0) {
-                value->datum.log_status = bitstring_octet(&log_status, 0);
+                if (value) {
+                    value->datum.log_status = bitstring_octet(&log_status, 0);
+                }
                 apdu_len += len;
             } else {
                 return BACNET_STATUS_ERROR;
@@ -872,9 +879,13 @@ int bacnet_audit_log_record_decode(
         case AUDIT_LOG_DATUM_TAG_NOTIFICATION:
             /* audit-notification [1] BACnetAuditNotification */
             len = bacnet_audit_log_notification_context_decode(
-                &apdu[apdu_len], apdu_size - apdu_len, 1,
-                &value->datum.notification);
+                &apdu[apdu_len], apdu_size - apdu_len, tag.number,
+                &notification);
             if (len > 0) {
+                if (value) {
+                    memmove(&value->datum.notification, &notification,
+                    sizeof(BACNET_AUDIT_NOTIFICATION));
+                }
                 apdu_len += len;
             } else {
                 return BACNET_STATUS_ERROR;
@@ -883,9 +894,11 @@ int bacnet_audit_log_record_decode(
         case AUDIT_LOG_DATUM_TAG_TIME_CHANGE:
             /* time-change [2] REAL */
             len = bacnet_real_context_decode(
-                &apdu[apdu_len], apdu_size - apdu_len, tag.number,
-                &value->datum.time_change);
+                &apdu[apdu_len], apdu_size - apdu_len, tag.number, &real_value);
             if (len > 0) {
+                if (value) {
+                    value->datum.time_change = real_value;
+                }
                 apdu_len += len;
             } else {
                 return BACNET_STATUS_ERROR;
