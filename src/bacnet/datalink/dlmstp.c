@@ -996,9 +996,10 @@ bool dlmstp_init(char *ifname)
         MSTP_Port->SilenceTimerReset = dlmstp_silence_reset;
         user = (struct dlmstp_user_data_t *)MSTP_Port->UserData;
         if (user && !user->Initialized) {
-            Ringbuf_Init(
+            Ringbuf_Initialize(
                 &user->PDU_Queue, (volatile uint8_t *)user->PDU_Buffer,
-                sizeof(struct dlmstp_packet), DLMSTP_MAX_INFO_FRAMES);
+                sizeof(user->PDU_Buffer), sizeof(struct dlmstp_packet),
+                DLMSTP_MAX_INFO_FRAMES);
             MSTP_Init(MSTP_Port);
             user->Initialized = true;
         }
