@@ -838,3 +838,198 @@ bool bacnet_object_property_reference_same(
 
     return status;
 }
+
+/**
+ * @brief Encode a BACnetPropertyReference into a buffer
+ *
+ *  BACnetPropertyReference ::= SEQUENCE {
+ *      propertyIdentifier      [0] BACnetPropertyIdentifier,
+ *      propertyArrayIndex      [1] Unsigned OPTIONAL
+ *      -- used only with array datatype
+ *      -- if omitted with an array the entire array is referenced
+ *  }
+ *
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param reference - BACnetPropertyReference
+ * @return length of the APDU buffer
+ */
+int bacnet_property_reference_encode(
+    uint8_t *apdu, struct BACnetPropertyReference *reference)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!reference) {
+        return 0;
+    }
+    len = encode_context_enumerated(apdu, 0, reference->property_identifier);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    if (reference->property_array_index != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(apdu, 1, reference->property_array_index);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode a BACnetPropertyReference into a buffer
+ * BACnetPropertyReference ::= SEQUENCE {
+ *      propertyIdentifier      [0] BACnetPropertyIdentifier,
+ *      propertyArrayIndex      [1] Unsigned OPTIONAL
+ *      -- used only with array datatype
+ *      -- if omitted with an array the entire array is referenced
+ * }
+ *
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param tag_number - context tag number to be encoded
+ * @param reference - BACnetPropertyReference
+ * @return length of the APDU buffer
+ */
+int bacnet_property_reference_context_encode(
+    uint8_t *apdu,
+    uint8_t tag_number,
+    struct BACnetPropertyReference *reference)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    len = encode_opening_tag(apdu, tag_number);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+
+    len = bacnet_property_reference_encode(apdu, reference);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_closing_tag(apdu, tag_number);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Compare the complex data of value1 and value2
+ * @param value1 - value 1 structure
+ * @param value2 - value 2 structure
+ * @return true if the values are the same
+ */
+bool bacnet_property_reference_same(
+    const struct BACnetPropertyReference *value1,
+    const struct BACnetPropertyReference *value2)
+{
+    bool status = false;
+
+    if (value1 && value2) {
+        if ((value1->property_identifier == value2->property_identifier) &&
+            (value1->property_array_index == value2->property_array_index)) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Decode a BACnetPropertyReference from a buffer
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the size of the APDU buffer
+ * @param reference - BACnetPropertyReference to decode into
+ * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ */
+int bacnet_property_reference_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    struct BACnetPropertyReference *value)
+{
+    int apdu_len = 0;
+    int len = 0;
+    uint32_t property_identifier = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    /* propertyIdentifier [0] BACnetPropertyIdentifier */
+    len = bacnet_enumerated_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &property_identifier);
+    if (len > 0) {
+        apdu_len += len;
+        if (value) {
+            value->property_identifier = property_identifier;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    /* propertyArrayIndex [1] Unsigned OPTIONAL */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &unsigned_value);
+    if (len > 0) {
+        apdu_len += len;
+        if (value) {
+            value->property_array_index = unsigned_value;
+        }
+    } else {
+        /* OPTIONAL - skip apdu_len increment */
+        if (value) {
+            value->property_array_index = BACNET_ARRAY_ALL;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode the context property reference. Check for
+ * an opening tag and a closing tag as well.
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the size of the APDU buffer
+ * @param tag_number - the tag number
+ * @param value - BACnetPropertyReference to decode into
+ * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ */
+int bacnet_property_reference_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    struct BACnetPropertyReference *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len = bacnet_property_reference_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len > 0) {
+        apdu_len += len;
+        if (bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+            apdu_len += len;
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}

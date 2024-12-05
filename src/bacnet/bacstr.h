@@ -45,6 +45,8 @@ BACNET_STACK_EXPORT
 bool bitstring_bit(const BACNET_BIT_STRING *bit_string, uint8_t bit_number);
 BACNET_STACK_EXPORT
 uint8_t bitstring_bits_used(const BACNET_BIT_STRING *bit_string);
+BACNET_STACK_EXPORT
+bool bitstring_bits_used_set(BACNET_BIT_STRING *bit_string, uint8_t bits_used);
 /* returns the number of bytes that a bit string is using */
 BACNET_STACK_EXPORT
 uint8_t bitstring_bytes_used(const BACNET_BIT_STRING *bit_string);
