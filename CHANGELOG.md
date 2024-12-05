@@ -24,6 +24,19 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed missing Time-Of-Device-Restart property in the basic device
+  object. (#860)
+* Fixed compiler workarounds by removing non-standand C functions
+  strcasecmp and strncasecmp. (#858)
+* Fixed libc compiler differences by adding bacnet_strnlen and
+  bacnet_stricmp functions. (#857)
+* Fixed hardcoded NORMAL event state with the actual object event. (#853)
+* Fixed compiler warning in write-group module constant. (#856)
+* Fixed lighting command operations by refactoring from the lighting
+  output object and adding unit testing. (#855)
+* Fixed Analog Input and Value object Event_Detection_Enable. (#854)
+* Fixed ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY condition in basic
+  Notification Class object WriteProperty handler. (#852)
 * Fixed Systick Interrupt in ports that should never be activated using
   NVIC_EnableIRQ because it's an system exception. (#850)
 * Fixed missing DLMSTP start, valid, and invalid frame complete callbacks
