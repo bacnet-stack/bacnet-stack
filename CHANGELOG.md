@@ -30,14 +30,13 @@ The git repositories are hosted at the following sites:
 * Fixed Notification Class object ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY
   condition. (#852)
 * Fixed Systick Interrupt hard fault when using NVIC_EnableIRQ. (#850)
-* Fixed MS/TP this-station filterning and establish 0xff address for
-  this station as promiscuous mode. (#803)
-* Fixed MS/TP Slave Node FSM to enable receiving DNER frames. (#832)
-* Fixed missing MS/TP zero configuration preferred address API and usage. (#840)
-* Fixed MS/TP module flush stderr compile error from leftover. (#844)
 * Fixed missing DLMSTP start, valid, and invalid frame complete callbacks
   in common DLMSTP module. (#848)
-* Fixed dlmstp ringbuffer initialization corruption (#865)
+* Fixed MS/TP module flush stderr compile error from leftover. (#844)
+* Fixed missing MS/TP zero configuration preferred address API and usage. (#840)
+* Fixed MS/TP Slave Node FSM to enable receiving DNER frames. (#832)
+* Fixed MS/TP this-station filterning and establish 0xff address for
+  this station as promiscuous mode. (#803)
 * Fixed IP_DHCP_Enable property for BTL testing by adding a define to control
   IP_DHCP_Enable property being present in Network Port object. (#796)
 * Fixed return values and comments in basic Network Port object. (#792)
