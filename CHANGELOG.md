@@ -19,6 +19,10 @@ The git repositories are hosted at the following sites:
 ### Changed
 ### Fixed
 
+* Fixed DeviceCommunicationControl service handler to return
+  Service Request Denied when the DISABLE parameter is given
+  in protocol-revision 20 or higher builds. (#867)
+* Fixed dlmstp ringbuffer initialization corruption (#865)
 * Fixed basic Multistate-Value object default Object_Name value. (#864)
 * Fixed missing BitString Value object Create/Delete API in basic device
   Object_Table (#863)
