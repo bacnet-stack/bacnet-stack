@@ -136,6 +136,24 @@ void handler_device_communication_control(uint8_t *service_request,
         }
         goto DCC_ABORT;
     }
+#if (BACNET_PROTOCOL_REVISION >= 20)
+    if (state == COMMUNICATION_DISABLE) {
+        /*  If the request is valid and the 'Enable/Disable'
+            parameter is the deprecated value DISABLE, return the error
+            SERVICES, SERVICE_REQUEST_DENIED */
+        len = bacerror_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
+            ERROR_CLASS_SERVICES, ERROR_CODE_SERVICE_REQUEST_DENIED);
+#if PRINT_ENABLED
+        fprintf(
+            stderr,
+            "DeviceCommunicationControl: "
+            "Sending Error - DISABLE has been deprecated.\n");
+#endif
+        goto DCC_ABORT;
+    }
+#endif
     if (state >= MAX_BACNET_COMMUNICATION_ENABLE_DISABLE) {
         len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, REJECT_REASON_UNDEFINED_ENUMERATION);
