@@ -496,8 +496,10 @@ void apdu_retries_set(uint8_t value)
    only DeviceCommunicationControl and ReinitializeDevice APDUs
    shall be processed and no messages shall be initiated.
    When the initiation of communications is disabled,
-   all APDUs shall be processed and responses returned as
-   required... */
+   only DeviceCommunicationControl, ReinitializeDevice,
+   ConfirmedAuditNotification, UnconfirmedAuditNotification,
+   WhoIs APDUs shall be processed and I-Am initiated and
+   responses returned as required... */
 static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
 {
     bool status = false;
@@ -506,6 +508,20 @@ static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
         switch (service_choice) {
             case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
             case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
+                break;
+            default:
+                status = true;
+                break;
+        }
+    } else if (dcc_communication_initiation_disabled()) {
+        switch (service_choice) {
+            case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
+            case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
+            /* WhoIs will be processed and I-Am initiated as response. */
+            case SERVICE_UNCONFIRMED_WHO_IS:
+            case SERVICE_UNCONFIRMED_WHO_HAS:
+            case SERVICE_CONFIRMED_AUDIT_NOTIFICATION:
+            case SERVICE_UNCONFIRMED_AUDIT_NOTIFICATION:
                 break;
             default:
                 status = true;
