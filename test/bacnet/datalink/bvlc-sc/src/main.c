@@ -2189,8 +2189,7 @@ static void test_BVLC_RESULT(void)
     /* nak , details string */
     len = bvlc_sc_encode_result(
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 1,
-        &error_header_marker, &error_class, &error_code,
-        (uint8_t *)error_details_string);
+        &error_header_marker, &error_class, &error_code, error_details_string);
     zassert_not_equal(len, 0, NULL);
     ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
     zassert_equal(ret, true, NULL);
@@ -2224,8 +2223,7 @@ static void test_BVLC_RESULT(void)
     /* dest and origin, nak , details string */
     len = bvlc_sc_encode_result(
         buf, buf_len, message_id, &origin, &dest, result_bvlc_function, 1,
-        &error_header_marker, &error_class, &error_code,
-        (uint8_t *)error_details_string);
+        &error_header_marker, &error_class, &error_code, error_details_string);
     zassert_not_equal(len, 0, NULL);
     ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
     zassert_equal(ret, true, NULL);
@@ -2259,8 +2257,7 @@ static void test_BVLC_RESULT(void)
     /* truncated message, case 1 */
     len = bvlc_sc_encode_result(
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 1,
-        &error_header_marker, &error_class, &error_code,
-        (uint8_t *)error_details_string);
+        &error_header_marker, &error_class, &error_code, error_details_string);
     zassert_not_equal(len, 0, NULL);
     ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
     zassert_equal(ret, false, NULL);
@@ -2330,8 +2327,7 @@ static void test_BVLC_RESULT(void)
     /* utf-8 string with zero symbol inside */
     len = bvlc_sc_encode_result(
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 1,
-        &error_header_marker, &error_class, &error_code,
-        (uint8_t *)error_details_string);
+        &error_header_marker, &error_class, &error_code, error_details_string);
     zassert_not_equal(len, 0, NULL);
     buf[13] = 0;
     ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
@@ -4180,12 +4176,12 @@ static void test_BAD_ENCODE_PARAMS(void)
     /* case 13  */
     len = bvlc_sc_encode_result(
         buf, 7, message_id, NULL, NULL, 1, 1, &error_header_marker, &error_code,
-        &error_class, (uint8_t *)error_details_string);
+        &error_class, error_details_string);
     zassert_equal(len, 0, NULL);
     /* case 13  */
     len = bvlc_sc_encode_result(
         buf, 12, message_id, NULL, NULL, 1, 1, &error_header_marker,
-        &error_code, &error_class, (uint8_t *)error_details_string);
+        &error_code, &error_class, error_details_string);
     zassert_equal(len, 0, NULL);
     /* case 14  */
     len = bvlc_sc_encode_encapsulated_npdu(

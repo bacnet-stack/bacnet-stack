@@ -1997,16 +1997,12 @@ void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
 void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
 {
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    uint16_t port;
-    char *ifname;
+    uint16_t port = 0;
+    char *ifname = NULL;
 
     if (!params) {
         return;
     }
-
-    (void)port;
-    (void)ifname;
-
     params->Max_BVLC_Length_Accepted_dirty = params->Max_BVLC_Length_Accepted;
     params->Max_NPDU_Length_Accepted_dirty = params->Max_NPDU_Length_Accepted;
     params->SC_Minimum_Reconnect_Time_dirty = params->SC_Minimum_Reconnect_Time;
@@ -2015,7 +2011,6 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
     params->SC_Disconnect_Wait_Timeout_dirty =
         params->SC_Disconnect_Wait_Timeout;
     params->SC_Heartbeat_Timeout_dirty = params->SC_Heartbeat_Timeout;
-
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
     memcpy(
         params->SC_Primary_Hub_URI_dirty, params->SC_Primary_Hub_URI,
@@ -2035,6 +2030,9 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
     snprintf(
         params->SC_Hub_Function_Binding_dirty,
         sizeof(params->SC_Hub_Function_Binding_dirty), "%s:%d", ifname, port);
+#else
+    (void)port;
+    (void)ifname;
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
