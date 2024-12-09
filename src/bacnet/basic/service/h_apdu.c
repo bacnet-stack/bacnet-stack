@@ -535,7 +535,7 @@ static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
  * DISABLE_INITIATION, the responding BACnet-user shall
  * discontinue the initiation of messages except for I-Am
  * requests issued in accordance with the Who-Is service procedure
- * UnconfirmedAuditNotification.
+ * and UnconfirmedAuditNotification requests.
  *
  * @param service_choice  Service, like SERVICE_UNCONFIRMED_WHO_IS
  *
