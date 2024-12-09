@@ -1955,11 +1955,9 @@ static void test_BVLC_RESULT(void)
     uint8_t error_header_marker = 0xcc;
     uint16_t error_class = 0xaa;
     uint16_t error_code = 0xdd;
-    char error_details_string[100];
+    const uint8_t *error_details_string = "something bad has happened";
     const char *err_desc = NULL;
     uint8_t *pdu;
-
-    sprintf(error_details_string, "%s", "something bad has happend");
 
     memset(origin.address, 0x23, BVLC_SC_VMAC_SIZE);
     memset(dest.address, 0x44, BVLC_SC_VMAC_SIZE);
