@@ -240,7 +240,7 @@ static bool bsc_prepare_error_extended(
     uint8_t *error_header_marker,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code,
-    uint8_t *utf8_details_string)
+    const uint8_t *utf8_details_string)
 {
     uint16_t eclass = (uint16_t)error_class;
     uint16_t ecode = (uint16_t)error_code;
@@ -318,7 +318,7 @@ static bool bsc_prepare_protocol_error_extended(
     uint8_t *error_header_marker,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code,
-    uint8_t *utf8_details_string)
+    const uint8_t *utf8_details_string)
 {
     if (bvlc_sc_need_send_bvlc_result(dm)) {
         return bsc_prepare_error_extended(
@@ -346,7 +346,7 @@ static bool bsc_prepare_protocol_error(
     BACNET_SC_VMAC_ADDRESS *dest,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code,
-    uint8_t *utf8_details_string)
+    const uint8_t *utf8_details_string)
 {
     return bsc_prepare_protocol_error_extended(
         c, dm, origin, dest, NULL, error_class, error_code,
@@ -588,8 +588,7 @@ static void bsc_process_socket_state(
             if ((code != ERROR_CODE_DISCARD) &&
                 (class != ERROR_CLASS_COMMUNICATION)) {
                 *need_send = bsc_prepare_protocol_error(
-                    c, dm, dm->hdr.origin, dm->hdr.dest, class, code,
-                    (uint8_t *)err_desc);
+                    c, dm, dm->hdr.origin, dm->hdr.dest, class, code, err_desc);
             }
 #if DEBUG_BSC_SOCKET == 1
             else {
@@ -620,7 +619,7 @@ static void bsc_process_socket_state(
 
                         *need_send = bsc_prepare_protocol_error(
                             c, dm, NULL, &c->vmac, class, code,
-                            (uint8_t *)s_error_no_origin);
+                            s_error_no_origin);
                         valid = false;
                     } else if (
                         dm->hdr.dest != NULL &&
@@ -629,7 +628,7 @@ static void bsc_process_socket_state(
                         code = ERROR_CODE_HEADER_ENCODING_ERROR;
                         *need_send = bsc_prepare_protocol_error(
                             c, dm, NULL, &c->vmac, class, code,
-                            (uint8_t *)s_error_dest_presented);
+                            s_error_dest_presented);
                         valid = false;
                     }
                 } else if (
@@ -642,15 +641,14 @@ static void bsc_process_socket_state(
                         code = ERROR_CODE_HEADER_ENCODING_ERROR;
 
                         *need_send = bsc_prepare_protocol_error(
-                            c, dm, NULL, NULL, class, code,
-                            (uint8_t *)s_error_no_dest);
+                            c, dm, NULL, NULL, class, code, s_error_no_dest);
                         valid = false;
                     } else if (dm->hdr.origin != NULL) {
                         class = ERROR_CLASS_COMMUNICATION;
                         code = ERROR_CODE_HEADER_ENCODING_ERROR;
                         *need_send = bsc_prepare_protocol_error(
                             c, dm, NULL, NULL, class, code,
-                            (uint8_t *)s_error_origin_presented);
+                            s_error_origin_presented);
                         valid = false;
                     }
                 }
