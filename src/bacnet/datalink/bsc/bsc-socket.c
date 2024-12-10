@@ -240,7 +240,7 @@ static bool bsc_prepare_error_extended(
     uint8_t *error_header_marker,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code,
-    const uint8_t *utf8_details_string)
+    const char *utf8_details_string)
 {
     uint16_t eclass = (uint16_t)error_class;
     uint16_t ecode = (uint16_t)error_code;
@@ -318,7 +318,7 @@ static bool bsc_prepare_protocol_error_extended(
     uint8_t *error_header_marker,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code,
-    const uint8_t *utf8_details_string)
+    const char *utf8_details_string)
 {
     if (bvlc_sc_need_send_bvlc_result(dm)) {
         return bsc_prepare_error_extended(
@@ -346,7 +346,7 @@ static bool bsc_prepare_protocol_error(
     BACNET_SC_VMAC_ADDRESS *dest,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code,
-    const uint8_t *utf8_details_string)
+    const char *utf8_details_string)
 {
     return bsc_prepare_protocol_error_extended(
         c, dm, origin, dest, NULL, error_class, error_code,
@@ -565,8 +565,8 @@ static void bsc_process_socket_state(
     bool *need_send)
 {
     bool expired;
-    BACNET_ERROR_CODE code;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_class;
+    uint16_t error_code;
     const char *err_desc = NULL;
     bool valid = true;
     size_t len;
@@ -578,17 +578,19 @@ static void bsc_process_socket_state(
 
     if (rx_buf) {
         if (!bvlc_sc_decode_message(
-                rx_buf, rx_buf_size, dm, &code, &class, &err_desc)) {
+                rx_buf, rx_buf_size, dm, &error_code, &error_class,
+                &err_desc)) {
             /* we use this error code+class to indicate that the received bvlc
                message has length less than 4 octets.
                According EA-001-4 'Clarifying BVLC-Result in BACnet/SC
                'If a BVLC message is received that has fewer than four octets,
                a BVLC-Result NAK shall not be returned. The message shall be
                discarded and not be processed.' */
-            if ((code != ERROR_CODE_DISCARD) &&
-                (class != ERROR_CLASS_COMMUNICATION)) {
+            if ((error_code != ERROR_CODE_DISCARD) &&
+                (error_class != ERROR_CLASS_COMMUNICATION)) {
                 *need_send = bsc_prepare_protocol_error(
-                    c, dm, dm->hdr.origin, dm->hdr.dest, class, code, err_desc);
+                    c, dm, dm->hdr.origin, dm->hdr.dest, error_class,
+                    error_code, err_desc);
             }
 #if DEBUG_BSC_SOCKET == 1
             else {
@@ -614,20 +616,20 @@ static void bsc_process_socket_state(
                     /* from hub */
                     if (dm->hdr.origin == NULL &&
                         dm->hdr.bvlc_function != BVLC_SC_RESULT) {
-                        class = ERROR_CLASS_COMMUNICATION;
-                        code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                        error_class = ERROR_CLASS_COMMUNICATION;
+                        error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
 
                         *need_send = bsc_prepare_protocol_error(
-                            c, dm, NULL, &c->vmac, class, code,
+                            c, dm, NULL, &c->vmac, error_class, error_code,
                             s_error_no_origin);
                         valid = false;
                     } else if (
                         dm->hdr.dest != NULL &&
                         !bvlc_sc_is_vmac_broadcast(dm->hdr.dest)) {
-                        class = ERROR_CLASS_COMMUNICATION;
-                        code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                        error_class = ERROR_CLASS_COMMUNICATION;
+                        error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
                         *need_send = bsc_prepare_protocol_error(
-                            c, dm, NULL, &c->vmac, class, code,
+                            c, dm, NULL, &c->vmac, error_class, error_code,
                             s_error_dest_presented);
                         valid = false;
                     }
@@ -637,17 +639,17 @@ static void bsc_process_socket_state(
                     /*  this is a case when socket is hub  function receiving */
                     /*  from node */
                     if (dm->hdr.dest == NULL) {
-                        class = ERROR_CLASS_COMMUNICATION;
-                        code = ERROR_CODE_HEADER_ENCODING_ERROR;
-
+                        error_class = ERROR_CLASS_COMMUNICATION;
+                        error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
                         *need_send = bsc_prepare_protocol_error(
-                            c, dm, NULL, NULL, class, code, s_error_no_dest);
+                            c, dm, NULL, NULL, error_class, error_code,
+                            s_error_no_dest);
                         valid = false;
                     } else if (dm->hdr.origin != NULL) {
-                        class = ERROR_CLASS_COMMUNICATION;
-                        code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                        error_class = ERROR_CLASS_COMMUNICATION;
+                        error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
                         *need_send = bsc_prepare_protocol_error(
-                            c, dm, NULL, NULL, class, code,
+                            c, dm, NULL, NULL, error_class, error_code,
                             s_error_origin_presented);
                         valid = false;
                     }
@@ -812,8 +814,8 @@ void bsc_socket_maintenance_timer(uint16_t seconds)
 static void bsc_process_srv_awaiting_request(
     BSC_SOCKET *c, BVLC_SC_DECODED_MESSAGE *dm, uint8_t *buf, size_t bufsize)
 {
-    BACNET_ERROR_CODE code;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_class;
+    uint16_t error_code;
     BSC_SOCKET *existing = NULL;
     uint16_t message_id;
     size_t len;
@@ -826,14 +828,15 @@ static void bsc_process_srv_awaiting_request(
         "bufsize = %d\n",
         c, dm, buf, bufsize);
 
-    if (!bvlc_sc_decode_message(buf, bufsize, dm, &code, &class, &err_desc)) {
+    if (!bvlc_sc_decode_message(
+            buf, bufsize, dm, &error_code, &error_class, &err_desc)) {
         DEBUG_PRINTF(
             "bsc_process_srv_awaiting_request() decoding of received message "
             "failed, error code = %d, class = %d\n",
-            code, class);
+            error_code, error_class);
         if (c->ctx->funcs->failed_request) {
             c->ctx->funcs->failed_request(
-                c->ctx, c, NULL, NULL, code, err_desc);
+                c->ctx, c, NULL, NULL, error_code, err_desc);
         }
     } else if (dm->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST) {
         existing = c->ctx->funcs->find_connection_for_uuid(
@@ -1225,8 +1228,8 @@ static void bsc_dispatch_srv_func(
 static void bsc_process_cli_awaiting_accept(
     BSC_SOCKET *c, BVLC_SC_DECODED_MESSAGE *dm, uint8_t *buf, size_t bufsize)
 {
-    BACNET_ERROR_CODE code;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_class;
+    uint16_t error_code;
     const char *err_desc = NULL;
 
     DEBUG_PRINTF(
@@ -1234,11 +1237,12 @@ static void bsc_process_cli_awaiting_accept(
         "%p, bufsize = %d\n",
         c, dm, buf, bufsize);
 
-    if (!bvlc_sc_decode_message(buf, bufsize, dm, &code, &class, &err_desc)) {
+    if (!bvlc_sc_decode_message(
+            buf, bufsize, dm, &error_code, &error_class, &err_desc)) {
         DEBUG_PRINTF(
             "bsc_process_cli_awaiting_accept() <<< decoding failed "
             "code = %d, class = %d\n",
-            code, class);
+            error_code, error_class);
         return;
     }
 

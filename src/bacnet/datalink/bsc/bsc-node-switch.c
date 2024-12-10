@@ -409,8 +409,8 @@ static void node_switch_acceptor_socket_event(
 {
     uint8_t *p_pdu;
     BSC_NODE_SWITCH_CTX *ctx;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_class;
+    uint16_t error_code;
     const char *err_desc;
     bool res = true;
 
@@ -430,7 +430,8 @@ static void node_switch_acceptor_socket_event(
                 memcpy(p_pdu, pdu, pdu_len);
                 pdu_len = bvlc_sc_set_orig(&p_pdu, pdu_len, &c->vmac);
                 res = bvlc_sc_decode_message(
-                    p_pdu, pdu_len, decoded_pdu, &error, &class, &err_desc);
+                    p_pdu, pdu_len, decoded_pdu, &error_code, &error_class,
+                    &err_desc);
                 if (res) {
                     ctx->event_func(
                         BSC_NODE_SWITCH_EVENT_RECEIVED, ctx, ctx->user_arg,
@@ -721,8 +722,8 @@ static void node_switch_initiator_socket_event(
     uint8_t *p_pdu = NULL;
     BSC_NODE_SWITCH_CTX *ns;
     int elem;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_class;
+    uint16_t error_code;
     const char *err_desc;
     bool res;
 
@@ -745,7 +746,8 @@ static void node_switch_initiator_socket_event(
                 memcpy(p_pdu, pdu, pdu_len);
                 pdu_len = bvlc_sc_set_orig(&p_pdu, pdu_len, &c->vmac);
                 res = bvlc_sc_decode_message(
-                    p_pdu, pdu_len, decoded_pdu, &error, &class, &err_desc);
+                    p_pdu, pdu_len, decoded_pdu, &error_code, &error_class,
+                    &err_desc);
                 if (res) {
                     ns->event_func(
                         BSC_NODE_SWITCH_EVENT_RECEIVED, ns, ns->user_arg, NULL,
