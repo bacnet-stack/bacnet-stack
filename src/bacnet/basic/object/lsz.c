@@ -370,9 +370,7 @@ void Life_Safety_Zone_Out_Of_Service_Set(uint32_t object_instance, bool value)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Out_Of_Service != value) {
-            pObject->Out_Of_Service = value;
-        }
+        pObject->Out_Of_Service = value;
     }
 }
 
@@ -573,9 +571,7 @@ void Life_Safety_Zone_Maintenance_Required_Set(uint32_t object_instance, bool va
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Maintenance_Required != value) {
-            pObject->Maintenance_Required = value;
-        }
+        pObject->Maintenance_Required = value;
     }
 }
 

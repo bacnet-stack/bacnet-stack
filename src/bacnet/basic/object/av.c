@@ -1378,9 +1378,9 @@ int Analog_Value_Event_Information(
            (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE. */
         IsNotAckedTransitions =
             (pObject->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked ==
-             false) |
+             false) ||
             (pObject->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
-             false) |
+             false) ||
             (pObject->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
              false);
     } else {

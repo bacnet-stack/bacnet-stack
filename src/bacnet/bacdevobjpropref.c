@@ -701,7 +701,7 @@ int bacapp_decode_obj_property_ref(uint8_t *apdu,
         0, &object_identifier.type, &object_identifier.instance);
     if (len > 0) {
         apdu_len += len;
-    } else if (len <= 0) {
+    } else {
         return BACNET_STATUS_ERROR;
     }
     /* property-identifier  [1] BACnetPropertyIdentifier */
@@ -709,7 +709,7 @@ int bacapp_decode_obj_property_ref(uint8_t *apdu,
         &apdu[apdu_len], apdu_size - apdu_len, 1, &property_identifier);
     if (len > 0) {
         apdu_len += len;
-    } else if (len <= 0) {
+    } else {
         return BACNET_STATUS_ERROR;
     }
     if (reference) {
