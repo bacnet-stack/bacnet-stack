@@ -512,6 +512,7 @@ static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
                 status = true;
                 break;
         }
+#if (BACNET_PROTOCOL_REVISION >= 20)
     } else if (dcc_communication_initiation_disabled()) {
         switch (service_choice) {
             case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
@@ -522,6 +523,7 @@ static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
                 status = true;
                 break;
         }
+#endif
     }
 
     return status;
@@ -554,7 +556,9 @@ static bool apdu_unconfirmed_dcc_disabled(uint8_t service_choice)
         switch (service_choice) {
             case SERVICE_UNCONFIRMED_WHO_IS:
             case SERVICE_UNCONFIRMED_WHO_HAS:
+#if (BACNET_PROTOCOL_REVISION >= 20)
             case SERVICE_UNCONFIRMED_AUDIT_NOTIFICATION:
+#endif
                 break;
             default:
                 status = true;
