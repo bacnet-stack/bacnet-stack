@@ -1803,7 +1803,7 @@ static bool bvlc_sc_decode_hdr(
         offs += hdr_opt_len;
     }
 
-    if (message_len >= offs) {
+    if (offs >= message_len) {
         /* no payload */
         return true;
     }
