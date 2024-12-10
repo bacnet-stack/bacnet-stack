@@ -307,8 +307,8 @@ uint16_t bsc_receive(
     uint16_t pdu_len = 0;
     uint16_t npdu16_len = 0;
     BVLC_SC_DECODED_MESSAGE dm;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     const char *err_desc = NULL;
     static uint8_t buf[BVLC_SC_NPDU_SIZE_CONF];
 
@@ -334,11 +334,12 @@ uint16_t bsc_receive(
             } else {
                 FIFO_Pull(&bsc_fifo, buf, npdu16_len);
                 if (!bvlc_sc_decode_message(
-                        buf, npdu16_len, &dm, &error, &class, &err_desc)) {
+                        buf, npdu16_len, &dm, &error_code, &error_class,
+                        &err_desc)) {
                     PRINTF(
                         "bsc_receive() pdu of size %d is dropped because "
                         "of err = %d, class %d, desc = %s\n",
-                        npdu16_len, error, class, err_desc);
+                        npdu16_len, error_code, error_class, err_desc);
                     bsc_remove_packet(npdu16_len);
                 } else {
                     if (dm.hdr.origin &&

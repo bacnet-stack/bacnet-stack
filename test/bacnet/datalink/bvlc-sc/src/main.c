@@ -114,8 +114,8 @@ static void test_header_modifications(
     uint8_t sbuf[BSC_PRE + 256];
     uint8_t *buf = &sbuf[BSC_PRE];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     const char *err_desc = NULL;
     size_t len;
     bool ret;
@@ -130,7 +130,7 @@ static void test_header_modifications(
     if (dest && !origin) {
         bvlc_sc_remove_dest_set_orig(buf, pdu_size, &test);
         ret = bvlc_sc_decode_message(
-            buf, pdu_size, &message, &error, &class, &err_desc);
+            buf, pdu_size, &message, &error_code, &error_class, &err_desc);
         zassert_equal(ret, true, NULL);
         ret = verify_bsc_bvll_header(
             &message.hdr, bvlc_function, message_id, &test, NULL,
@@ -146,7 +146,7 @@ static void test_header_modifications(
     } else {
         bvlc_sc_remove_dest_set_orig(buf, pdu_size, &test);
         ret = bvlc_sc_decode_message(
-            buf, pdu_size, &message, &error, &class, &err_desc);
+            buf, pdu_size, &message, &error_code, &error_class, &err_desc);
         zassert_equal(ret, true, NULL);
         ret = verify_bsc_bvll_header(
             &message.hdr, bvlc_function, message_id, origin, dest,
@@ -198,7 +198,7 @@ static void test_header_modifications(
         bvlc_function != BVLC_SC_HEARTBEAT_ACK) {
         len = bvlc_sc_set_orig(&ppdu, pdu_size, &test);
         ret = bvlc_sc_decode_message(
-            ppdu, len, &message, &error, &class, &err_desc);
+            ppdu, len, &message, &error_code, &error_class, &err_desc);
         zassert_equal(ret, true, NULL);
         ret = verify_bsc_bvll_header(
             &message.hdr, bvlc_function, message_id, &test, dest,
@@ -217,8 +217,8 @@ static void test_header_modifications(
     memcpy(buf, pdu, pdu_size);
     ppdu = buf;
     len = bvlc_sc_remove_orig_and_dest(&ppdu, pdu_size);
-    ret =
-        bvlc_sc_decode_message(ppdu, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        ppdu, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(message.hdr.origin, NULL, NULL);
     zassert_equal(message.hdr.dest, NULL, NULL);
@@ -244,8 +244,8 @@ static void test_1_option_data(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     const char *err_desc = NULL;
     size_t optlen;
     size_t len;
@@ -260,7 +260,8 @@ static void test_1_option_data(
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, pdu_size, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, bvlc_function, message_id, origin, dest, true, false,
@@ -294,8 +295,8 @@ static void test_3_options_different_buffer_data(
     uint8_t buf1[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len;
     bool ret;
@@ -338,8 +339,8 @@ static void test_3_options_different_buffer_data(
     len = bvlc_sc_add_option_to_data_options(
         buf1, sizeof(buf1), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret =
-        bvlc_sc_decode_message(buf1, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf1, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, bvlc_function, message_id, origin, dest, true, false,
@@ -407,8 +408,8 @@ static void test_3_options_data(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -452,7 +453,8 @@ static void test_3_options_data(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
 
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, bvlc_function, message_id, origin, dest, true, false,
@@ -520,8 +522,8 @@ static void test_5_options_data(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len;
     bool ret;
@@ -554,10 +556,11 @@ static void test_5_options_data(
             buf, sizeof(buf), buf, len, optbuf, optlen);
         zassert_not_equal(len, 0, NULL);
     }
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_OUT_OF_MEMORY, NULL);
-    zassert_equal(class, ERROR_CLASS_RESOURCES, NULL);
+    zassert_equal(error_code, ERROR_CODE_OUT_OF_MEMORY, NULL);
+    zassert_equal(error_class, ERROR_CLASS_RESOURCES, NULL);
 }
 
 /* check message decoding when header option has incorrect more bit flag */
@@ -575,8 +578,8 @@ static void test_options_incorrect_more_bit_data(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -626,10 +629,11 @@ static void test_options_incorrect_more_bit_data(
     }
 
     buf[offs] &= ~(BVLC_SC_HEADER_MORE);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_UNEXPECTED_DATA, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_UNEXPECTED_DATA, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 /* check message decoding when header option has incorrect more bit flag */
@@ -647,8 +651,8 @@ static void test_options_incorrect_data_bit_data(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -687,10 +691,11 @@ static void test_options_incorrect_data_bit_data(
     }
 
     buf[offs] &= ~(BVLC_SC_HEADER_DATA);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 /* secure path option must not be in dest option headers. this test
@@ -709,8 +714,8 @@ static void test_1_option_dest_incorrect(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len;
     bool ret;
@@ -735,10 +740,11 @@ static void test_1_option_dest_incorrect(
     zassert_not_equal(len, 0, NULL);
     buf[1] &= ~(BVLC_SC_CONTROL_DATA_OPTIONS);
     buf[1] |= BVLC_SC_CONTROL_DEST_OPTIONS;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 static void test_1_option_dest(
@@ -754,8 +760,8 @@ static void test_1_option_dest(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len;
     bool ret;
@@ -779,7 +785,8 @@ static void test_1_option_dest(
     len = bvlc_sc_add_option_to_destination_options(
         buf, sizeof(buf), buf, pdu_size, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, bvlc_function, message_id, origin, dest, false, true,
@@ -825,8 +832,8 @@ static void test_3_options_dest(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -879,7 +886,8 @@ static void test_3_options_dest(
     len = bvlc_sc_add_option_to_destination_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, bvlc_function, message_id, origin, dest, false, true,
@@ -974,8 +982,8 @@ static void test_3_options_dest_different_buffer(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -1028,8 +1036,8 @@ static void test_3_options_dest_different_buffer(
     len = bvlc_sc_add_option_to_destination_options(
         buf1, sizeof(buf1), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret =
-        bvlc_sc_decode_message(buf1, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf1, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, bvlc_function, message_id, origin, dest, false, true,
@@ -1123,8 +1131,8 @@ static void test_5_options_dest(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -1157,10 +1165,11 @@ static void test_5_options_dest(
             buf, sizeof(buf), buf, len, optbuf, optlen);
         zassert_not_equal(len, 0, NULL);
     }
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_OUT_OF_MEMORY, NULL);
-    zassert_equal(class, ERROR_CLASS_RESOURCES, NULL);
+    zassert_equal(error_code, ERROR_CODE_OUT_OF_MEMORY, NULL);
+    zassert_equal(error_class, ERROR_CLASS_RESOURCES, NULL);
 }
 
 static void test_options_incorrect_data_bit_dest(
@@ -1176,8 +1185,8 @@ static void test_options_incorrect_data_bit_dest(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -1216,10 +1225,11 @@ static void test_options_incorrect_data_bit_dest(
     }
 
     buf[offs] &= ~(BVLC_SC_HEADER_DATA);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 static void test_options_incorrect_more_bit_dest(
@@ -1235,8 +1245,8 @@ static void test_options_incorrect_more_bit_dest(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -1289,13 +1299,14 @@ static void test_options_incorrect_more_bit_dest(
     }
 
     buf[offs] &= ~(BVLC_SC_HEADER_MORE);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    if (error != ERROR_CODE_UNEXPECTED_DATA &&
-        error != ERROR_CODE_PARAMETER_OUT_OF_RANGE) {
+    if (error_code != ERROR_CODE_UNEXPECTED_DATA &&
+        error_code != ERROR_CODE_PARAMETER_OUT_OF_RANGE) {
         zassert_equal(1, 2, NULL);
     }
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 static void test_options_mixed_case1(
@@ -1311,8 +1322,8 @@ static void test_options_mixed_case1(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -1379,7 +1390,8 @@ static void test_options_mixed_case1(
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, bvlc_function, message_id, origin, dest, false, false,
@@ -1498,8 +1510,8 @@ static void test_options_mixed_case2(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -1566,7 +1578,8 @@ static void test_options_mixed_case2(
     len = bvlc_sc_add_option_to_destination_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, bvlc_function, message_id, origin, dest, false, false,
@@ -1685,8 +1698,8 @@ static void test_options_mixed_case3(
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     size_t optlen;
     size_t len = pdu_size;
     bool ret;
@@ -1753,7 +1766,8 @@ static void test_options_mixed_case3(
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, bvlc_function, message_id, origin, dest, false, false,
@@ -1950,12 +1964,12 @@ static void test_BVLC_RESULT(void)
     uint8_t result_bvlc_function = 3;
     bool ret;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint8_t error_header_marker = 0xcc;
-    uint16_t error_class = 0xaa;
-    uint16_t error_code = 0xdd;
-    const uint8_t *error_details_string = "something bad has happened";
+    uint16_t test_error_class = 0xaa;
+    uint16_t test_error_code = 0xdd;
+    const char *error_details_string = "something bad has happened";
     const char *err_desc = NULL;
     uint8_t *pdu;
 
@@ -1968,7 +1982,8 @@ static void test_BVLC_RESULT(void)
         buf, buf_len, message_id, &origin, &dest, result_bvlc_function, 0, NULL,
         NULL, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, &origin, &dest, true, true,
@@ -1991,7 +2006,8 @@ static void test_BVLC_RESULT(void)
 
     pdu = buf;
     len = bvlc_sc_set_orig(&pdu, len, &new_origin);
-    ret = bvlc_sc_decode_message(pdu, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        pdu, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, &new_origin, &dest, true,
@@ -2005,7 +2021,8 @@ static void test_BVLC_RESULT(void)
         message.hdr.payload, message.hdr.payload_len, false);
     pdu = buf;
     len = bvlc_sc_remove_orig_and_dest(&pdu, len);
-    ret = bvlc_sc_decode_message(pdu, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        pdu, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, NULL, NULL, true, true, 2);
@@ -2027,7 +2044,8 @@ static void test_BVLC_RESULT(void)
     zassert_not_equal(len, 0, NULL);
     ret = bvlc_sc_pdu_has_no_dest(buf, len);
     zassert_equal(ret, true, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, &origin, NULL, true, true, 2);
@@ -2040,7 +2058,8 @@ static void test_BVLC_RESULT(void)
         message.hdr.payload, message.hdr.payload_len, false);
     pdu = buf;
     len = bvlc_sc_remove_orig_and_dest(&pdu, len);
-    ret = bvlc_sc_decode_message(pdu, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        pdu, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, NULL, NULL, true, true, 2);
@@ -2060,7 +2079,8 @@ static void test_BVLC_RESULT(void)
         buf, buf_len, message_id, NULL, &dest, result_bvlc_function, 0, NULL,
         NULL, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, NULL, &dest, true, true, 2);
@@ -2081,7 +2101,8 @@ static void test_BVLC_RESULT(void)
         NULL);
     pdu = buf;
     len = bvlc_sc_set_orig(&pdu, len, &new_origin);
-    ret = bvlc_sc_decode_message(pdu, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        pdu, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, &new_origin, &dest, true,
@@ -2099,7 +2120,8 @@ static void test_BVLC_RESULT(void)
         NULL, NULL, NULL);
     pdu = buf;
     len = bvlc_sc_remove_orig_and_dest(&pdu, len);
-    ret = bvlc_sc_decode_message(pdu, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        pdu, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, NULL, NULL, true, true, 2);
@@ -2117,7 +2139,8 @@ static void test_BVLC_RESULT(void)
 
     bvlc_sc_remove_dest_set_orig(buf, len, &new_origin);
 
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, &new_origin, NULL, true, true,
@@ -2143,7 +2166,8 @@ static void test_BVLC_RESULT(void)
     memset(&test_dest, 0, sizeof(test_dest));
     ret = bvlc_sc_pdu_get_dest(buf, len, &test_dest);
     zassert_equal(ret, false, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, NULL, NULL, true, true, 2);
@@ -2161,9 +2185,10 @@ static void test_BVLC_RESULT(void)
     /* nak, no details string */
     len = bvlc_sc_encode_result(
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 1,
-        &error_header_marker, &error_class, &error_code, NULL);
+        &error_header_marker, &test_error_class, &test_error_code, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, NULL, NULL, true, true, 7);
@@ -2173,8 +2198,8 @@ static void test_BVLC_RESULT(void)
     zassert_equal(message.payload.result.result, 1, NULL);
     zassert_equal(
         message.payload.result.error_header_marker, error_header_marker, NULL);
-    zassert_equal(message.payload.result.error_class, error_class, NULL);
-    zassert_equal(message.payload.result.error_code, error_code, NULL);
+    zassert_equal(message.payload.result.error_class, test_error_class, NULL);
+    zassert_equal(message.payload.result.error_code, test_error_code, NULL);
     zassert_equal(message.payload.result.utf8_details_string, NULL, NULL);
     zassert_equal(message.payload.result.utf8_details_string_len, 0, NULL);
     test_options(
@@ -2187,9 +2212,11 @@ static void test_BVLC_RESULT(void)
     /* nak , details string */
     len = bvlc_sc_encode_result(
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 1,
-        &error_header_marker, &error_class, &error_code, error_details_string);
+        &error_header_marker, &test_error_class, &test_error_code,
+        error_details_string);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, NULL, NULL, true, true,
@@ -2200,8 +2227,8 @@ static void test_BVLC_RESULT(void)
     zassert_equal(message.payload.result.result, 1, NULL);
     zassert_equal(
         message.payload.result.error_header_marker, error_header_marker, NULL);
-    zassert_equal(message.payload.result.error_class, error_class, NULL);
-    zassert_equal(message.payload.result.error_code, error_code, NULL);
+    zassert_equal(message.payload.result.error_class, test_error_class, NULL);
+    zassert_equal(message.payload.result.error_code, test_error_code, NULL);
     zassert_equal(
         message.payload.result.utf8_details_string_len,
         strlen(error_details_string), NULL);
@@ -2221,9 +2248,11 @@ static void test_BVLC_RESULT(void)
     /* dest and origin, nak , details string */
     len = bvlc_sc_encode_result(
         buf, buf_len, message_id, &origin, &dest, result_bvlc_function, 1,
-        &error_header_marker, &error_class, &error_code, error_details_string);
+        &error_header_marker, &test_error_class, &test_error_code,
+        error_details_string);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_RESULT, message_id, &origin, &dest, true, true,
@@ -2234,8 +2263,8 @@ static void test_BVLC_RESULT(void)
     zassert_equal(message.payload.result.result, 1, NULL);
     zassert_equal(
         message.payload.result.error_header_marker, error_header_marker, NULL);
-    zassert_equal(message.payload.result.error_class, error_class, NULL);
-    zassert_equal(message.payload.result.error_code, error_code, NULL);
+    zassert_equal(message.payload.result.error_class, test_error_class, NULL);
+    zassert_equal(message.payload.result.error_code, test_error_code, NULL);
     zassert_equal(
         message.payload.result.utf8_details_string_len,
         strlen(error_details_string), NULL);
@@ -2255,18 +2284,21 @@ static void test_BVLC_RESULT(void)
     /* truncated message, case 1 */
     len = bvlc_sc_encode_result(
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 1,
-        &error_header_marker, &error_class, &error_code, error_details_string);
+        &error_header_marker, &test_error_class, &test_error_code,
+        error_details_string);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 2 */
 
-    ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 6, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     memset(buf, 0, buf_len);
     memset(&message, 0, sizeof(message));
@@ -2276,7 +2308,8 @@ static void test_BVLC_RESULT(void)
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 0, NULL,
         NULL, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     test_options(
         buf, len, BVLC_SC_RESULT, message_id, NULL, NULL, true, false,
@@ -2294,10 +2327,11 @@ static void test_BVLC_RESULT(void)
     len = bvlc_sc_add_option_to_data_options(
         buf, buf_len, buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* zero payload test */
     memset(buf, 0, buf_len);
     memset(&message, 0, sizeof(message));
@@ -2305,10 +2339,11 @@ static void test_BVLC_RESULT(void)
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 0, NULL,
         NULL, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* bad result code */
     memset(buf, 0, buf_len);
     memset(&message, 0, sizeof(message));
@@ -2317,32 +2352,36 @@ static void test_BVLC_RESULT(void)
         NULL, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
     buf[5] = 4;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_PARAMETER_OUT_OF_RANGE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_PARAMETER_OUT_OF_RANGE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* utf-8 string with zero symbol inside */
     len = bvlc_sc_encode_result(
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 1,
-        &error_header_marker, &error_class, &error_code, error_details_string);
+        &error_header_marker, &test_error_class, &test_error_code,
+        error_details_string);
     zassert_not_equal(len, 0, NULL);
     buf[13] = 0;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* bad payload case 1 */
     memset(buf, 0, buf_len);
     memset(&message, 0, sizeof(message));
     len = bvlc_sc_encode_result(
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 1,
-        &error_header_marker, &error_class, &error_code, NULL);
+        &error_header_marker, &test_error_class, &test_error_code, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 10, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 10, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* bad payload case 2 */
     memset(buf, 0, buf_len);
     memset(&message, 0, sizeof(message));
@@ -2350,10 +2389,11 @@ static void test_BVLC_RESULT(void)
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 0, NULL,
         NULL, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* bad payload case 3 */
     memset(buf, 0, buf_len);
     memset(&message, 0, sizeof(message));
@@ -2361,10 +2401,11 @@ static void test_BVLC_RESULT(void)
         buf, buf_len, message_id, NULL, NULL, result_bvlc_function, 0, NULL,
         NULL, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 7, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 7, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_UNEXPECTED_DATA, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_UNEXPECTED_DATA, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -2378,8 +2419,8 @@ static void test_ENCAPSULATED_NPDU(void)
     uint8_t npdu[256];
     size_t npdulen;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x1789;
     int res;
     BACNET_SC_VMAC_ADDRESS origin;
@@ -2399,7 +2440,8 @@ static void test_ENCAPSULATED_NPDU(void)
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), message_id, NULL, NULL, npdu, npdulen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ENCAPSULATED_NPDU, message_id, NULL, NULL, true,
@@ -2424,7 +2466,8 @@ static void test_ENCAPSULATED_NPDU(void)
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), message_id, &origin, NULL, npdu, npdulen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ENCAPSULATED_NPDU, message_id, &origin, NULL,
@@ -2449,7 +2492,8 @@ static void test_ENCAPSULATED_NPDU(void)
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), message_id, NULL, &dest, npdu, npdulen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ENCAPSULATED_NPDU, message_id, NULL, &dest, true,
@@ -2474,7 +2518,8 @@ static void test_ENCAPSULATED_NPDU(void)
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), message_id, &origin, &dest, npdu, npdulen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ENCAPSULATED_NPDU, message_id, &origin, &dest,
@@ -2499,35 +2544,40 @@ static void test_ENCAPSULATED_NPDU(void)
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), message_id, &origin, &dest, npdu, npdulen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 2 */
 
-    ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 6, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* truncated message, case 3 */
 
-    ret = bvlc_sc_decode_message(buf, 13, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 13, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 4 */
 
-    ret = bvlc_sc_decode_message(buf, 16, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 16, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 5 */
 
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* zero payload test */
     memset(buf, 0, sizeof(buf));
@@ -2535,17 +2585,19 @@ static void test_ENCAPSULATED_NPDU(void)
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), message_id, &origin, &dest, npdu, 0);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* 1 byte payload test */
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), message_id, &origin, &dest, npdu, 1);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ENCAPSULATED_NPDU, message_id, &origin, &dest,
@@ -2564,8 +2616,8 @@ static void test_ADDRESS_RESOLUTION(void)
     uint8_t optbuf[256];
     size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x514a;
     BACNET_SC_VMAC_ADDRESS origin;
     BACNET_SC_VMAC_ADDRESS dest;
@@ -2582,7 +2634,8 @@ static void test_ADDRESS_RESOLUTION(void)
     len = bvlc_sc_encode_address_resolution(
         buf, sizeof(buf), message_id, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADDRESS_RESOLUTION, message_id, NULL, NULL, true,
@@ -2601,7 +2654,8 @@ static void test_ADDRESS_RESOLUTION(void)
     len = bvlc_sc_encode_address_resolution(
         buf, sizeof(buf), message_id, &origin, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADDRESS_RESOLUTION, message_id, &origin, NULL,
@@ -2618,7 +2672,8 @@ static void test_ADDRESS_RESOLUTION(void)
     len = bvlc_sc_encode_address_resolution(
         buf, sizeof(buf), message_id, NULL, &dest);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADDRESS_RESOLUTION, message_id, NULL, &dest, true,
@@ -2635,7 +2690,8 @@ static void test_ADDRESS_RESOLUTION(void)
     len = bvlc_sc_encode_address_resolution(
         buf, sizeof(buf), message_id, &origin, &dest);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADDRESS_RESOLUTION, message_id, &origin, &dest,
@@ -2652,39 +2708,44 @@ static void test_ADDRESS_RESOLUTION(void)
     len = bvlc_sc_encode_address_resolution(
         buf, sizeof(buf), message_id, &origin, &dest);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 2 */
 
-    ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 6, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* truncated message, case 3 */
 
-    ret = bvlc_sc_decode_message(buf, 13, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 13, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 5 */
 
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* data options test */
     optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true);
     zassert_not_equal(optlen, 0, NULL);
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -2698,8 +2759,8 @@ static void test_ADDRESS_RESOLUTION_ACK(void)
     uint8_t optbuf[256];
     size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0xf1d3;
     int res;
     BACNET_SC_VMAC_ADDRESS origin;
@@ -2721,7 +2782,8 @@ static void test_ADDRESS_RESOLUTION_ACK(void)
         buf, sizeof(buf), message_id, NULL, NULL, (uint8_t *)web_socket_uris,
         strlen(web_socket_uris));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id, NULL, NULL,
@@ -2747,7 +2809,8 @@ static void test_ADDRESS_RESOLUTION_ACK(void)
         buf, sizeof(buf), message_id, &origin, NULL, (uint8_t *)web_socket_uris,
         strlen(web_socket_uris));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id, &origin, NULL,
@@ -2773,7 +2836,8 @@ static void test_ADDRESS_RESOLUTION_ACK(void)
         buf, sizeof(buf), message_id, NULL, &dest, (uint8_t *)web_socket_uris,
         strlen(web_socket_uris));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id, NULL, &dest,
@@ -2799,7 +2863,8 @@ static void test_ADDRESS_RESOLUTION_ACK(void)
         buf, sizeof(buf), message_id, &origin, &dest,
         (uint8_t *)web_socket_uris, strlen(web_socket_uris));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id, &origin,
@@ -2824,7 +2889,8 @@ static void test_ADDRESS_RESOLUTION_ACK(void)
     len = bvlc_sc_encode_address_resolution_ack(
         buf, sizeof(buf), message_id, &origin, &dest, NULL, 0);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id, &origin,
@@ -2850,45 +2916,51 @@ static void test_ADDRESS_RESOLUTION_ACK(void)
         buf, sizeof(buf), message_id, &origin, &dest,
         (uint8_t *)web_socket_uris, strlen(web_socket_uris));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 2 */
 
-    ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 6, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* truncated message, case 3 */
 
-    ret = bvlc_sc_decode_message(buf, 13, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 13, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 4 */
 
-    ret = bvlc_sc_decode_message(buf, 15, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 15, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 5 */
 
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* data options test */
     optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true);
     zassert_not_equal(optlen, 0, NULL);
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -2902,8 +2974,8 @@ static void test_ADVERTISIMENT(void)
     uint8_t optbuf[256];
     size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0xe2ad;
     BACNET_SC_VMAC_ADDRESS origin;
     BACNET_SC_VMAC_ADDRESS dest;
@@ -2927,7 +2999,8 @@ static void test_ADVERTISIMENT(void)
         buf, sizeof(buf), message_id, NULL, NULL, hub_status, support,
         max_bvlc_len, max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADVERTISIMENT, message_id, NULL, NULL, true, true,
@@ -2950,7 +3023,8 @@ static void test_ADVERTISIMENT(void)
         buf, sizeof(buf), message_id, &origin, NULL, hub_status, support,
         max_bvlc_len, max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADVERTISIMENT, message_id, &origin, NULL, true,
@@ -2974,7 +3048,8 @@ static void test_ADVERTISIMENT(void)
         buf, sizeof(buf), message_id, NULL, &dest, hub_status, support,
         max_bvlc_len, max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADVERTISIMENT, message_id, NULL, &dest, true,
@@ -2999,7 +3074,8 @@ static void test_ADVERTISIMENT(void)
         buf, sizeof(buf), message_id, &origin, &dest, hub_status, support,
         max_bvlc_len, max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADVERTISIMENT, message_id, &origin, &dest, true,
@@ -3024,35 +3100,40 @@ static void test_ADVERTISIMENT(void)
         buf, sizeof(buf), message_id, &origin, &dest, hub_status, support,
         max_bvlc_len, max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 2 */
 
-    ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 6, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* truncated message, case 3 */
 
-    ret = bvlc_sc_decode_message(buf, 13, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 13, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 4 */
 
-    ret = bvlc_sc_decode_message(buf, 15, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 15, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 5 */
 
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* bad hub connection param */
     memset(buf, 0, sizeof(buf));
@@ -3062,10 +3143,11 @@ static void test_ADVERTISIMENT(void)
         buf, sizeof(buf), message_id, NULL, NULL, 5, support, max_bvlc_len,
         max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_PARAMETER_OUT_OF_RANGE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_PARAMETER_OUT_OF_RANGE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* bad support param */
     memset(buf, 0, sizeof(buf));
@@ -3075,10 +3157,11 @@ static void test_ADVERTISIMENT(void)
         buf, sizeof(buf), message_id, NULL, NULL, hub_status, 4, max_bvlc_len,
         max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_PARAMETER_OUT_OF_RANGE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_PARAMETER_OUT_OF_RANGE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* payload len < 6 */
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
@@ -3087,10 +3170,11 @@ static void test_ADVERTISIMENT(void)
         buf, sizeof(buf), message_id, NULL, NULL, hub_status, support,
         max_bvlc_len, max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* zero payload test  */
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
@@ -3099,10 +3183,11 @@ static void test_ADVERTISIMENT(void)
         buf, sizeof(buf), message_id, NULL, NULL, hub_status, support,
         max_bvlc_len, max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* data options presented */
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
@@ -3115,10 +3200,11 @@ static void test_ADVERTISIMENT(void)
     zassert_not_equal(optlen, 0, NULL);
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -3132,8 +3218,8 @@ static void test_ADVERTISIMENT_SOLICITATION(void)
     uint8_t optbuf[256];
     size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0xaf4a;
     BACNET_SC_VMAC_ADDRESS origin;
     BACNET_SC_VMAC_ADDRESS dest;
@@ -3150,7 +3236,8 @@ static void test_ADVERTISIMENT_SOLICITATION(void)
     len = bvlc_sc_encode_advertisiment_solicitation(
         buf, sizeof(buf), message_id, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADVERTISIMENT_SOLICITATION, message_id, NULL,
@@ -3169,7 +3256,8 @@ static void test_ADVERTISIMENT_SOLICITATION(void)
     len = bvlc_sc_encode_advertisiment_solicitation(
         buf, sizeof(buf), message_id, &origin, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADVERTISIMENT_SOLICITATION, message_id, &origin,
@@ -3186,7 +3274,8 @@ static void test_ADVERTISIMENT_SOLICITATION(void)
     len = bvlc_sc_encode_advertisiment_solicitation(
         buf, sizeof(buf), message_id, NULL, &dest);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADVERTISIMENT_SOLICITATION, message_id, NULL,
@@ -3203,7 +3292,8 @@ static void test_ADVERTISIMENT_SOLICITATION(void)
     len = bvlc_sc_encode_advertisiment_solicitation(
         buf, sizeof(buf), message_id, &origin, &dest);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_ADVERTISIMENT_SOLICITATION, message_id, &origin,
@@ -3220,39 +3310,44 @@ static void test_ADVERTISIMENT_SOLICITATION(void)
     len = bvlc_sc_encode_advertisiment_solicitation(
         buf, sizeof(buf), message_id, &origin, &dest);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 2 */
 
-    ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 6, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* truncated message, case 3 */
 
-    ret = bvlc_sc_decode_message(buf, 13, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 13, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 5 */
 
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* data options test */
     optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true);
     zassert_not_equal(optlen, 0, NULL);
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -3264,8 +3359,8 @@ static void test_CONNECT_REQUEST(void)
     uint8_t buf[256];
     size_t len;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x41af;
     int res;
     bool ret;
@@ -3285,7 +3380,8 @@ static void test_CONNECT_REQUEST(void)
         buf, sizeof(buf), message_id, &local_vmac, &local_uuid, max_bvlc_len,
         max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_CONNECT_REQUEST, message_id, NULL, NULL, true,
@@ -3312,49 +3408,56 @@ static void test_CONNECT_REQUEST(void)
         buf, sizeof(buf), message_id, &local_vmac, &local_uuid, max_bvlc_len,
         max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 2 */
 
-    ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 6, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* truncated message, case 3 */
 
-    ret = bvlc_sc_decode_message(buf, 13, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 13, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 5 */
 
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* message has dest */
     buf[1] |= BVLC_SC_CONTROL_DEST_VADDR;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* message has origin */
     buf[1] |= BVLC_SC_CONTROL_ORIG_VADDR;
     buf[1] &= ~BVLC_SC_CONTROL_DEST_VADDR;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* message has both dest and orign */
     buf[1] |= BVLC_SC_CONTROL_ORIG_VADDR;
     buf[1] |= BVLC_SC_CONTROL_DEST_VADDR;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -3366,8 +3469,8 @@ static void test_CONNECT_ACCEPT(void)
     uint8_t buf[256];
     size_t len;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x0203;
     int res;
     bool ret;
@@ -3387,7 +3490,8 @@ static void test_CONNECT_ACCEPT(void)
         buf, sizeof(buf), message_id, &local_vmac, &local_uuid, max_bvlc_len,
         max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_CONNECT_ACCEPT, message_id, NULL, NULL, true,
@@ -3414,49 +3518,56 @@ static void test_CONNECT_ACCEPT(void)
         buf, sizeof(buf), message_id, &local_vmac, &local_uuid, max_bvlc_len,
         max_npdu_len);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 2 */
 
-    ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 6, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* truncated message, case 3 */
 
-    ret = bvlc_sc_decode_message(buf, 13, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 13, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 5 */
 
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* message has dest */
     buf[1] |= BVLC_SC_CONTROL_DEST_VADDR;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* message has origin */
     buf[1] |= BVLC_SC_CONTROL_ORIG_VADDR;
     buf[1] &= ~BVLC_SC_CONTROL_DEST_VADDR;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* message has both dest and orign */
     buf[1] |= BVLC_SC_CONTROL_ORIG_VADDR;
     buf[1] |= BVLC_SC_CONTROL_DEST_VADDR;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -3468,8 +3579,8 @@ static void test_DISCONNECT_REQUEST(void)
     uint8_t buf[256];
     size_t len;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x0203;
     bool ret;
     const char *err_desc = NULL;
@@ -3479,7 +3590,8 @@ static void test_DISCONNECT_REQUEST(void)
 
     len = bvlc_sc_encode_disconnect_request(buf, sizeof(buf), message_id);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_DISCONNECT_REQUEST, message_id, NULL, NULL, true,
@@ -3495,14 +3607,16 @@ static void test_DISCONNECT_REQUEST(void)
     /* truncated message, case 1 */
     len = bvlc_sc_encode_disconnect_request(buf, sizeof(buf), message_id);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_UNEXPECTED_DATA, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
-    ret = bvlc_sc_decode_message(buf, 3, &message, &error, &class, &err_desc);
+    zassert_equal(error_code, ERROR_CODE_UNEXPECTED_DATA, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    ret = bvlc_sc_decode_message(
+        buf, 3, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_DISCARD, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_DISCARD, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -3514,8 +3628,8 @@ static void test_DISCONNECT_ACK(void)
     uint8_t buf[256];
     size_t len;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x0203;
     bool ret;
     const char *err_desc = NULL;
@@ -3525,7 +3639,8 @@ static void test_DISCONNECT_ACK(void)
 
     len = bvlc_sc_encode_disconnect_ack(buf, sizeof(buf), message_id);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_DISCONNECT_ACK, message_id, NULL, NULL, true,
@@ -3541,14 +3656,16 @@ static void test_DISCONNECT_ACK(void)
     /* truncated message, case 1 */
     len = bvlc_sc_encode_disconnect_request(buf, sizeof(buf), message_id);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_UNEXPECTED_DATA, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
-    ret = bvlc_sc_decode_message(buf, 3, &message, &error, &class, &err_desc);
+    zassert_equal(error_code, ERROR_CODE_UNEXPECTED_DATA, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    ret = bvlc_sc_decode_message(
+        buf, 3, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_DISCARD, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_DISCARD, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -3560,8 +3677,8 @@ static void test_HEARTBEAT_REQUEST(void)
     uint8_t buf[256];
     size_t len;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x0203;
     bool ret;
     const char *err_desc = NULL;
@@ -3571,7 +3688,8 @@ static void test_HEARTBEAT_REQUEST(void)
 
     len = bvlc_sc_encode_heartbeat_request(buf, sizeof(buf), message_id);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_HEARTBEAT_REQUEST, message_id, NULL, NULL, true,
@@ -3587,14 +3705,16 @@ static void test_HEARTBEAT_REQUEST(void)
     /* truncated message, case 1 */
     len = bvlc_sc_encode_disconnect_request(buf, sizeof(buf), message_id);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_UNEXPECTED_DATA, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
-    ret = bvlc_sc_decode_message(buf, 3, &message, &error, &class, &err_desc);
+    zassert_equal(error_code, ERROR_CODE_UNEXPECTED_DATA, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    ret = bvlc_sc_decode_message(
+        buf, 3, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_DISCARD, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_DISCARD, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -3608,8 +3728,8 @@ static void test_HEARTBEAT_ACK(void)
     uint8_t optbuf[256];
     size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x0203;
     bool ret;
     const char *err_desc = NULL;
@@ -3619,7 +3739,8 @@ static void test_HEARTBEAT_ACK(void)
 
     len = bvlc_sc_encode_heartbeat_ack(buf, sizeof(buf), message_id);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_HEARTBEAT_ACK, message_id, NULL, NULL, true, true,
@@ -3635,24 +3756,27 @@ static void test_HEARTBEAT_ACK(void)
     /* truncated message, case 1 */
     len = bvlc_sc_encode_heartbeat_ack(buf, sizeof(buf), message_id);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_UNEXPECTED_DATA, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
-    ret = bvlc_sc_decode_message(buf, 3, &message, &error, &class, &err_desc);
+    zassert_equal(error_code, ERROR_CODE_UNEXPECTED_DATA, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    ret = bvlc_sc_decode_message(
+        buf, 3, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_DISCARD, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_DISCARD, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* data options test */
     optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true);
     zassert_not_equal(optlen, 0, NULL);
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -3666,8 +3790,8 @@ static void test_PROPRIETARY_MESSAGE(void)
     uint8_t optbuf[256];
     size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x4455;
     int res;
     bool ret;
@@ -3690,7 +3814,8 @@ static void test_PROPRIETARY_MESSAGE(void)
         buf, sizeof(buf), message_id, NULL, NULL, vendor_id,
         proprietary_function, data, sizeof(data));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_PROPRIETARY_MESSAGE, message_id, NULL, NULL, true,
@@ -3716,7 +3841,8 @@ static void test_PROPRIETARY_MESSAGE(void)
         buf, sizeof(buf), message_id, &origin, NULL, vendor_id,
         proprietary_function, data, sizeof(data));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_PROPRIETARY_MESSAGE, message_id, &origin, NULL,
@@ -3742,7 +3868,8 @@ static void test_PROPRIETARY_MESSAGE(void)
         buf, sizeof(buf), message_id, NULL, &dest, vendor_id,
         proprietary_function, data, sizeof(data));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_PROPRIETARY_MESSAGE, message_id, NULL, &dest,
@@ -3768,7 +3895,8 @@ static void test_PROPRIETARY_MESSAGE(void)
         buf, sizeof(buf), message_id, &origin, &dest, vendor_id,
         proprietary_function, data, sizeof(data));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = verify_bsc_bvll_header(
         &message.hdr, BVLC_SC_PROPRIETARY_MESSAGE, message_id, &origin, &dest,
@@ -3794,29 +3922,33 @@ static void test_PROPRIETARY_MESSAGE(void)
         buf, sizeof(buf), message_id, &origin, &dest, vendor_id,
         proprietary_function, data, sizeof(data));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 5, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 2 */
 
-    ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 6, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* truncated message, case 3 */
 
-    ret = bvlc_sc_decode_message(buf, 13, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 13, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     /* truncated message, case 5 */
 
-    ret = bvlc_sc_decode_message(buf, 18, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 18, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* data options test */
     optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true);
@@ -3824,10 +3956,11 @@ static void test_PROPRIETARY_MESSAGE(void)
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* zero payload test */
     memset(buf, 0, sizeof(buf));
@@ -3838,13 +3971,15 @@ static void test_PROPRIETARY_MESSAGE(void)
         buf, sizeof(buf), message_id, NULL, NULL, vendor_id,
         proprietary_function, data, sizeof(data));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_PAYLOAD_EXPECTED, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* zero payload test */
-    ret = bvlc_sc_decode_message(buf, 7, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 7, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(message.payload.proprietary.vendor_id, vendor_id, NULL);
     zassert_equal(
@@ -3866,8 +4001,8 @@ static void test_BAD_HEADER_OPTIONS(void)
     size_t len;
     size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x0203;
     bool ret;
     uint16_t vendor_id1;
@@ -3889,10 +4024,11 @@ static void test_BAD_HEADER_OPTIONS(void)
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     buf[4] |= BVLC_SC_HEADER_DATA;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     /* form unknown header option */
 
@@ -3904,10 +4040,11 @@ static void test_BAD_HEADER_OPTIONS(void)
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     buf[4] |= 2;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
@@ -3922,10 +4059,11 @@ static void test_BAD_HEADER_OPTIONS(void)
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     buf[4] |= 2;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
 
@@ -3942,10 +4080,11 @@ static void test_BAD_HEADER_OPTIONS(void)
     zassert_not_equal(optlen, 0, NULL);
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
-    ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 6, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
 
@@ -3964,10 +4103,11 @@ static void test_BAD_HEADER_OPTIONS(void)
 
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
-    ret = bvlc_sc_decode_message(buf, 9, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 9, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
 
@@ -3984,10 +4124,11 @@ static void test_BAD_HEADER_OPTIONS(void)
     len = bvlc_sc_add_option_to_destination_options(
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, 4, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
 
@@ -4097,7 +4238,7 @@ static void test_BAD_ENCODE_PARAMS(void)
     uint8_t error_header_marker = 0xcc;
     uint16_t error_class = 0xaa;
     uint16_t error_code = 0xdd;
-    char *error_details_string = "something bad has happend";
+    const char *error_details_string = "something bad has happend";
     BACNET_SC_VMAC_ADDRESS local_vmac;
     BACNET_SC_UUID local_uuid;
     uint8_t data[34];
@@ -4173,13 +4314,13 @@ static void test_BAD_ENCODE_PARAMS(void)
     zassert_equal(len, 0, NULL);
     /* case 13  */
     len = bvlc_sc_encode_result(
-        buf, 7, message_id, NULL, NULL, 1, 1, &error_header_marker, &error_code,
-        &error_class, error_details_string);
+        buf, 7, message_id, NULL, NULL, 1, 1, &error_header_marker,
+        &error_class, &error_code, error_details_string);
     zassert_equal(len, 0, NULL);
     /* case 13  */
     len = bvlc_sc_encode_result(
         buf, 12, message_id, NULL, NULL, 1, 1, &error_header_marker,
-        &error_code, &error_class, error_details_string);
+        &error_class, &error_code, error_details_string);
     zassert_equal(len, 0, NULL);
     /* case 14  */
     len = bvlc_sc_encode_encapsulated_npdu(
@@ -4244,8 +4385,8 @@ static void test_BAD_DECODE_PARAMS(void)
     uint16_t npdulen = 50;
     size_t len;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     uint16_t message_id = 0x0203;
     bool ret;
     const char *err_desc = NULL;
@@ -4258,15 +4399,17 @@ static void test_BAD_DECODE_PARAMS(void)
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), message_id, NULL, NULL, npdu, npdulen);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, NULL, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, NULL, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
 
     /* case 2 */
     buf[0] = 99;
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error, ERROR_CODE_BVLC_FUNCTION_UNKNOWN, NULL);
-    zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(error_code, ERROR_CODE_BVLC_FUNCTION_UNKNOWN, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
 }
@@ -4284,8 +4427,8 @@ static void test_BROADCAST(void)
     bool ret;
     uint8_t *pdu;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     const char *err_desc = NULL;
     BACNET_SC_UUID uuid = { { 0x34 } };
 
@@ -4329,68 +4472,78 @@ static void test_BROADCAST(void)
     zassert_equal(len, 4, NULL);
     len = bvlc_sc_remove_orig_and_dest(&pdu, len);
     zassert_equal(len, 4, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = bvlc_sc_need_send_bvlc_result(&message);
     zassert_equal(ret, true, NULL);
     len = bvlc_sc_encode_advertisiment_solicitation(
         buf, sizeof(buf), 0xF00D, NULL, &dest);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = bvlc_sc_need_send_bvlc_result(&message);
     zassert_equal(ret, false, NULL);
     len = bvlc_sc_encode_connect_request(
         buf, sizeof(buf), 0xF00D, &orig, &uuid, 1000, 1000);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = bvlc_sc_need_send_bvlc_result(&message);
     zassert_equal(ret, true, NULL);
     len = bvlc_sc_encode_connect_accept(
         buf, sizeof(buf), 0xF00D, &orig, &uuid, 1000, 1000);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = bvlc_sc_need_send_bvlc_result(&message);
     zassert_equal(ret, false, NULL);
     len = bvlc_sc_encode_disconnect_request(buf, sizeof(buf), 0xF00D);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = bvlc_sc_need_send_bvlc_result(&message);
     zassert_equal(ret, true, NULL);
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 0xF00D, NULL, NULL, (uint8_t *)&orig, sizeof(orig));
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = bvlc_sc_need_send_bvlc_result(&message);
     zassert_equal(ret, true, NULL);
     len = bvlc_sc_encode_proprietary_message(
         buf, sizeof(buf), 0xF00D, NULL, NULL, 123, 123, NULL, 0);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = bvlc_sc_need_send_bvlc_result(&message);
     zassert_equal(ret, false, NULL);
     len = bvlc_sc_encode_heartbeat_request(buf, sizeof(buf), 0xF00D);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = bvlc_sc_need_send_bvlc_result(&message);
     zassert_equal(ret, true, NULL);
     len =
         bvlc_sc_encode_address_resolution(buf, sizeof(buf), 0xF00D, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = bvlc_sc_need_send_bvlc_result(&message);
     zassert_equal(ret, true, NULL);
     len = bvlc_sc_encode_advertisiment_solicitation(
         buf, sizeof(buf), 0xF00D, NULL, NULL);
     zassert_not_equal(len, 0, NULL);
-    ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, true, NULL);
     ret = bvlc_sc_need_send_bvlc_result(&message);
     zassert_equal(ret, true, NULL);

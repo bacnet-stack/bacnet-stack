@@ -27,12 +27,6 @@
 #define DEBUG_PRINTF debug_printf_disabled
 #endif
 
-#define ERROR_STR_OPTION_NOT_UNDERSTOOD \
-    "'must understand' option not understood "
-
-#define ERROR_STR_DIRECT_CONNECTIONS_NOT_SUPPORTED \
-    "direct connections are not supported"
-
 typedef enum {
     BSC_NODE_STATE_IDLE = 0,
     BSC_NODE_STATE_STARTING = 1,
@@ -452,6 +446,10 @@ static void bsc_node_process_received(
     uint16_t error_class;
     uint16_t error_code;
     BSC_ADDRESS_RESOLUTION *r;
+    const char *error_must_understand_option_string =
+        "'must understand' option not understood ";
+    const char *error_direct_connections_unsupported_string =
+        "direct connections are not supported";
 
     (void)ret;
     DEBUG_PRINTF(
@@ -470,7 +468,8 @@ static void bsc_node_process_received(
                     buf, sizeof(buf), decoded_pdu->hdr.message_id, NULL,
                     decoded_pdu->hdr.origin, decoded_pdu->hdr.bvlc_function, 1,
                     &decoded_pdu->dest_options[i].packed_header_marker,
-                    &error_class, &error_code, ERROR_STR_OPTION_NOT_UNDERSTOOD);
+                    &error_class, &error_code,
+                    error_must_understand_option_string);
                 if (bufsize) {
                     ret = bsc_node_send(node, buf, bufsize);
 #if DEBUG_ENABLED == 1
@@ -586,7 +585,7 @@ static void bsc_node_process_received(
                     buf, sizeof(buf), decoded_pdu->hdr.message_id, NULL,
                     decoded_pdu->hdr.origin, decoded_pdu->hdr.bvlc_function, 1,
                     NULL, &error_class, &error_code,
-                    ERROR_STR_DIRECT_CONNECTIONS_NOT_SUPPORTED);
+                    error_direct_connections_unsupported_string);
                 if (bufsize) {
                     ret = bsc_node_send(node, buf, bufsize);
 #if DEBUG_ENABLED == 1
