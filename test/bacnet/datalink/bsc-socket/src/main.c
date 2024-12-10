@@ -10510,10 +10510,12 @@ static void test_error_case1(void)
     uint8_t buf[2048];
     uint8_t npdu[1200];
     size_t len;
-    // BVLC_SC_DECODED_MESSAGE dpdu;
-    // BACNET_ERROR_CODE error;
-    // BACNET_ERROR_CLASS class;
-    // const char *err_desc;
+#if 0
+    BVLC_SC_DECODED_MESSAGE dpdu;
+    BACNET_ERROR_CODE error_code;
+    BACNET_ERROR_CLASS error_class;
+    const char *err_desc;
+#endif
 
     init_sock_ev(&cli_ev);
     init_sock_ev(&srv_ev);
@@ -10564,57 +10566,59 @@ static void test_error_case1(void)
     ret = bsc_send(srv_sock, buf, len);
     zassert_equal(
         ret, BSC_SC_NO_RESOURCES, 0); /* BUG? should be BSC_SC_SUCCESS*/
-    // zassert_equal(ret, BSC_SC_SUCCESS, 0);
-    // zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
-    // ret = bvlc_sc_decode_message(
-    //     recv_buf, recv_buf_len, &dpdu, &error, &class, &err_desc);
-    // zassert_equal(ret, true, NULL);
-    // zassert_equal(
-    //     dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR,
-    //     NULL);
-    // zassert_equal(
-    //     dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
-    // len = bvlc_sc_encode_encapsulated_npdu(
-    //     buf, sizeof(buf), 505, NULL, NULL, npdu, sizeof(npdu));
-    // ret = bsc_send(&cli_socks[0], buf, len);
-    // zassert_equal(ret, BSC_SC_SUCCESS, 0);
-    // zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
-    // ret = bvlc_sc_decode_message(
-    //     recv_buf, recv_buf_len, &dpdu, &error, &class, &err_desc);
-    // zassert_equal(ret, true, NULL);
-    // zassert_equal(
-    //     dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR,
-    //     NULL);
-    // zassert_equal(
-    //     dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
-    // len = bvlc_sc_encode_encapsulated_npdu(
-    //     buf, sizeof(buf), 506, &server_vmac, &client_vmac, npdu,
-    //     sizeof(npdu));
-    // ret = bsc_send(srv_sock, buf, len);
-    // zassert_equal(ret, BSC_SC_SUCCESS, 0);
-    // zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
-    // ret = bvlc_sc_decode_message(
-    //     recv_buf, recv_buf_len, &dpdu, &error, &class, &err_desc);
-    // zassert_equal(ret, true, NULL);
-    // zassert_equal(
-    //     dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR,
-    //     NULL);
-    // zassert_equal(
-    //     dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
-    // len = bvlc_sc_encode_encapsulated_npdu(
-    //     buf, sizeof(buf), 506, &server_vmac, &client_vmac, npdu,
-    //     sizeof(npdu));
-    // ret = bsc_send(&cli_socks[0], buf, len);
-    // zassert_equal(ret, BSC_SC_SUCCESS, 0);
-    // zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
-    // ret = bvlc_sc_decode_message(
-    //     recv_buf, recv_buf_len, &dpdu, &error, &class, &err_desc);
-    // zassert_equal(ret, true, NULL);
-    // zassert_equal(
-    //     dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR,
-    //     NULL);
-    // zassert_equal(
-    //     dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
+#if 0
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
+    ret = bvlc_sc_decode_message(
+        recv_buf, recv_buf_len, &dpdu, &error_code, &error_class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR,
+        NULL);
+    zassert_equal(
+        dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 505, NULL, NULL, npdu, sizeof(npdu));
+    ret = bsc_send(&cli_socks[0], buf, len);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
+    ret = bvlc_sc_decode_message(
+        recv_buf, recv_buf_len, &dpdu, &error_code, &error_class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR,
+        NULL);
+    zassert_equal(
+        dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 506, &server_vmac, &client_vmac, npdu,
+        sizeof(npdu));
+    ret = bsc_send(srv_sock, buf, len);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
+    ret = bvlc_sc_decode_message(
+        recv_buf, recv_buf_len, &dpdu, &error_code, &error_class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR,
+        NULL);
+    zassert_equal(
+        dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 506, &server_vmac, &client_vmac, npdu,
+        sizeof(npdu));
+    ret = bsc_send(&cli_socks[0], buf, len);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
+    ret = bvlc_sc_decode_message(
+        recv_buf, recv_buf_len, &dpdu, &error_code, &error_class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR,
+        NULL);
+    zassert_equal(
+        dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
+#endif
     bsc_disconnect(srv_sock);
     zassert_equal(
         wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);

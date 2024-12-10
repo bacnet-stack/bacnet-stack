@@ -285,7 +285,7 @@ size_t bvlc_sc_encode_result(
     uint8_t *error_header_marker,
     uint16_t *error_class,
     uint16_t *error_code,
-    uint8_t *utf8_details_string);
+    const char *utf8_details_string);
 
 BACNET_STACK_EXPORT
 size_t bvlc_sc_encode_encapsulated_npdu(
@@ -388,8 +388,8 @@ bool bvlc_sc_decode_message(
     uint8_t *buf,
     size_t buf_len,
     BVLC_SC_DECODED_MESSAGE *message,
-    BACNET_ERROR_CODE *error,
-    BACNET_ERROR_CLASS *class,
+    uint16_t *error_code,
+    uint16_t *error_class,
     const char **err_desc);
 
 BACNET_STACK_EXPORT

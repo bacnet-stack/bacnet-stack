@@ -37,9 +37,8 @@ uint8_t days_per_month(uint16_t year, uint8_t month)
 {
     /* note: start with a zero in the first element to save us from a
        month - 1 calculation in the lookup */
-    uint8_t month_days[13] = {
-        0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-    };
+    const uint8_t month_days[13] = { 0,  31, 28, 31, 30, 31, 30,
+                                     31, 31, 30, 31, 30, 31 };
 
     if ((month == 2) && days_is_leap_year(year)) {
         return (29);
@@ -221,6 +220,8 @@ days_since_epoch(uint16_t epoch_year, uint16_t year, uint8_t month, uint8_t day)
             days += days_per_month(year, mm);
         }
         days += day;
+        /* 'days since' is one less */
+        days -= 1;
     }
 
     return (days);
@@ -243,15 +244,15 @@ void days_since_epoch_to_date(
     uint8_t *pDay)
 {
     uint8_t month = 1;
-    uint8_t day = 0;
+    uint8_t day = 1;
     uint16_t year;
 
     year = epoch_year;
-    while (days > days_per_year(year)) {
+    while (days >= days_per_year(year)) {
         days -= days_per_year(year);
         year++;
     }
-    while (days > days_per_month(year, month)) {
+    while (days >= days_per_month(year, month)) {
         days -= days_per_month(year, month);
         month++;
     }
@@ -290,4 +291,20 @@ bool days_date_is_valid(uint16_t year, uint8_t month, uint8_t day)
     }
 
     return (valid);
+}
+
+/**
+ * Returns the day of the week value
+ *
+ * @param epoch_day - day of week for epoch day
+ * @param days - number of days since epoch
+ * @return day of week 1..7 offset by epoch day
+ */
+uint8_t days_of_week(uint8_t epoch_day, uint32_t days)
+{
+    uint8_t dow = epoch_day;
+
+    dow += (days % 7);
+
+    return dow;
 }

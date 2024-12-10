@@ -171,6 +171,7 @@ list(APPEND testdirs
   # basic/sys
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
+  bacnet/basic/sys/dst
   bacnet/basic/sys/lighting_command
   bacnet/basic/sys/fifo
   bacnet/basic/sys/filename
@@ -187,11 +188,24 @@ list(APPEND testdirs
   bacnet/datalink/crc
   bacnet/datalink/bvlc
   bacnet/datalink/mstp
+  bacnet/datalink/dlmstp
+  bacnet/datalink/bvlc-sc
   )
+
+if(BACDL_BSC)
+message(STATUS "Added BACnet/SC websocket dependent tests")
+list(APPEND testdirs
+  bacnet/datalink/bsc-datalink
+  bacnet/datalink/bsc-node
+  bacnet/datalink/bsc-socket
+  bacnet/datalink/hub-sc
+  bacnet/datalink/websockets
+)
+endif()
 
 # ports tests
 if(ZEPHYR_BASE)
-  message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
+  message(FATAL_ERROR "ZEPHYR_BASE env variable defined.")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "Added ports specific tests for linux")
 

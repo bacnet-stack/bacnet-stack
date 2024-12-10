@@ -10113,8 +10113,8 @@ static void test_sc_datalink(void)
     uint8_t npdu[128];
     BACNET_ADDRESS from;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_class;
+    uint16_t error_code;
     const char *err_desc;
     BACNET_ADDRESS dest;
     uint8_t big_npdu[BVLC_SC_NPDU_SIZE_CONF + 100];
@@ -10268,7 +10268,8 @@ static void test_sc_datalink(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(len, message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, len);
@@ -10284,7 +10285,8 @@ static void test_sc_datalink(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(len, message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, len);

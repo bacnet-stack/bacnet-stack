@@ -70,7 +70,7 @@ bool Integer_Value_Description(
 BACNET_STACK_EXPORT
 bool Integer_Value_Description_Set(uint32_t instance, const char *new_name);
 BACNET_STACK_EXPORT
-char *Integer_Value_Description_ANSI(uint32_t object_instance);
+const char *Integer_Value_Description_ANSI(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 uint16_t Integer_Value_Units(uint32_t instance);
