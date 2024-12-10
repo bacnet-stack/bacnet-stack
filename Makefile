@@ -395,11 +395,26 @@ SPLINT_FIND_OPTIONS := ./src -path ./src/bacnet/basic/ucix -prune -o -name "*.c"
 splint:
 	find $(SPLINT_FIND_OPTIONS) -exec splint $(SPLINT_OPTIONS) {} \;
 
-CPPCHECK_OPTIONS = --enable=warning,portability
+CPPCHECK_OPTIONS = --enable=warning,portability,style
 CPPCHECK_OPTIONS += --template=gcc
 CPPCHECK_OPTIONS += --inline-suppr
+CPPCHECK_OPTIONS += --inconclusive
 CPPCHECK_OPTIONS += --suppress=selfAssignment
 CPPCHECK_OPTIONS += --suppress=integerOverflow
+CPPCHECK_OPTIONS += --suppress=variableScope
+CPPCHECK_OPTIONS += --suppress=unreadVariable
+CPPCHECK_OPTIONS += --suppress=knownConditionTrueFalse
+CPPCHECK_OPTIONS += --suppress=constParameter
+CPPCHECK_OPTIONS += --suppress=redundantAssignment
+CPPCHECK_OPTIONS += --suppress=duplicateCondition
+CPPCHECK_OPTIONS += --suppress=funcArgNamesDifferent
+CPPCHECK_OPTIONS += --suppress=unusedStructMember
+CPPCHECK_OPTIONS += --addon=cert.py
+CPPCHECK_OPTIONS += --suppress=cert-MSC30-c
+CPPCHECK_OPTIONS += --suppress=cert-STR05-C
+CPPCHECK_OPTIONS += --suppress=cert-API01-C
+CPPCHECK_OPTIONS += --suppress=cert-MSC24-C
+CPPCHECK_OPTIONS += --suppress=cert-INT31-c
 CPPCHECK_OPTIONS += -DBACNET_STACK_DEPRECATED
 #CPPCHECK_OPTIONS += -I./src
 #CPPCHECK_OPTIONS += --enable=information --check-config

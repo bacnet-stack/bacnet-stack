@@ -470,8 +470,7 @@ static void bsc_node_process_received(
                     buf, sizeof(buf), decoded_pdu->hdr.message_id, NULL,
                     decoded_pdu->hdr.origin, decoded_pdu->hdr.bvlc_function, 1,
                     &decoded_pdu->dest_options[i].packed_header_marker,
-                    &error_class, &error_code,
-                    (uint8_t *)ERROR_STR_OPTION_NOT_UNDERSTOOD);
+                    &error_class, &error_code, ERROR_STR_OPTION_NOT_UNDERSTOOD);
                 if (bufsize) {
                     ret = bsc_node_send(node, buf, bufsize);
 #if DEBUG_ENABLED == 1
@@ -587,7 +586,7 @@ static void bsc_node_process_received(
                     buf, sizeof(buf), decoded_pdu->hdr.message_id, NULL,
                     decoded_pdu->hdr.origin, decoded_pdu->hdr.bvlc_function, 1,
                     NULL, &error_class, &error_code,
-                    (uint8_t *)ERROR_STR_DIRECT_CONNECTIONS_NOT_SUPPORTED);
+                    ERROR_STR_DIRECT_CONNECTIONS_NOT_SUPPORTED);
                 if (bufsize) {
                     ret = bsc_node_send(node, buf, bufsize);
 #if DEBUG_ENABLED == 1

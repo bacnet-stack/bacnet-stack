@@ -348,9 +348,9 @@ bool Integer_Value_Description_Set(
  * @param  object_instance - object-instance number of the object
  * @return description text or NULL if not found
  */
-char *Integer_Value_Description_ANSI(uint32_t object_instance)
+const char *Integer_Value_Description_ANSI(uint32_t object_instance)
 {
-    char *name = NULL;
+    const char *name = NULL;
     struct integer_object *pObject;
 
     pObject = Integer_Value_Object(object_instance);
@@ -358,7 +358,7 @@ char *Integer_Value_Description_ANSI(uint32_t object_instance)
         if (pObject->Description == NULL) {
             name = "";
         } else {
-            name = (char *)pObject->Description;
+            name = pObject->Description;
         }
     }
 

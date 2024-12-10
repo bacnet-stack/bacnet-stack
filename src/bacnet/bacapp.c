@@ -3367,7 +3367,9 @@ int bacapp_snprintf_value(
     char *str, size_t str_len, const BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
     size_t len = 0, i = 0;
+#if defined(BACAPP_CHARACTER_STRING)
     const char *char_str;
+#endif
     const BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
@@ -4190,8 +4192,12 @@ bool bacapp_parse_application_data(
     char *argv,
     BACNET_APPLICATION_DATA_VALUE *value)
 {
+#if defined(BACAPP_TIME)
     int hour, min, sec, hundredths;
+#endif
+#if defined(BACAPP_DATE)
     int year, month, day, wday;
+#endif
     int object_type = 0;
     uint32_t instance = 0;
     bool status = false;

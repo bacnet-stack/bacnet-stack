@@ -3286,7 +3286,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_OCTET_STRING octet_string;
     BACNET_CHARACTER_STRING char_string;
 #if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
-    BACNET_IP_ADDRESS ip_address;
+    BACNET_IP_ADDRESS ip_address = { 0 };
 #endif
 #if defined(BACDL_BIP6) && (BBMD_CLIENT_ENABLED)
     BACNET_IP6_ADDRESS ip6_address;
@@ -3919,8 +3919,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
 #endif
-#endif
             break;
+#endif
         case PROP_FD_SUBSCRIPTION_LIFETIME:
 #if (BBMD_CLIENT_ENABLED)
             if (write_property_type_valid(
