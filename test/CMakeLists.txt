@@ -190,12 +190,18 @@ list(APPEND testdirs
   bacnet/datalink/mstp
   bacnet/datalink/dlmstp
   bacnet/datalink/bvlc-sc
+  )
+
+if(BACDL_BSC)
+message(STATUS "Added BACnet/SC websocket dependent tests")
+list(APPEND testdirs
   bacnet/datalink/bsc-datalink
   bacnet/datalink/bsc-node
   bacnet/datalink/bsc-socket
   bacnet/datalink/hub-sc
   bacnet/datalink/websockets
-  )
+)
+endif()
 
 # ports tests
 if(ZEPHYR_BASE)
