@@ -24,6 +24,23 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed DCC initiation disabled for protocol-revision 20 or higher builds where
+  only allowed services are processed. (#868)
+* Fixed use of 'class' keyword as a variable in BACnet/SC by removing. (#872)
+* Fixed bacdcode.c to allow writing an empty CharacterString (#871)
+* Fixed defects found when enabling style and CERT-C addon for CPPCHECK
+  with some suppressions. (#869)
+* Fixed DeviceCommunicationControl service handler to return Service
+  Request Denied when the DISABLE parameter is given in protocol-revision 20
+  or higher builds. (#867)
+* Fixed dlmstp ringbuffer initialization corruption. (#865)
+* Fixed typo in msv.c Object_Name. (#864)
+* Fixed missing BitString_Value_Create and BitString_Value_Delete in
+  device.c Object_Table. (#863)
+* Fixed ability to compile with BACNET_PROTOCOL_REVISION<17. (#862)
+* Fixed days.c module epoch functions and added datetime module fed
+  by mstimer clock which includes daylight savings time and clock API
+  with TimeSynchronization integration.
 * Fixed missing Time-Of-Device-Restart property in the basic device
   object. (#860)
 * Fixed compiler workarounds by removing non-standand C functions
