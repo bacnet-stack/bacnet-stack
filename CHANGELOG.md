@@ -24,8 +24,6 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
-* Fixed DCC initiation disabled for protocol-revision 20 or higher builds where
-  only allowed services are processed. (#868)
 * Fixed use of 'class' keyword as a variable in BACnet/SC by removing. (#872)
 * Fixed bacdcode.c to allow writing an empty CharacterString (#871)
 * Fixed defects found when enabling style and CERT-C addon for CPPCHECK
