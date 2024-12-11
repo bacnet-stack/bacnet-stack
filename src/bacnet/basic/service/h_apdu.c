@@ -496,9 +496,8 @@ void apdu_retries_set(uint8_t value)
    only DeviceCommunicationControl and ReinitializeDevice APDUs
    shall be processed and no messages shall be initiated.
    When the initiation of communications is disabled,
-   only DeviceCommunicationControl, ReinitializeDevice,
-   ConfirmedAuditNotification APDUs shall be processed
-   and responses returned as required... */
+   all APDUs shall be processed and responses returned as
+   required... */
 static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
 {
     bool status = false;
@@ -512,18 +511,6 @@ static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
                 status = true;
                 break;
         }
-#if (BACNET_PROTOCOL_REVISION >= 20)
-    } else if (dcc_communication_initiation_disabled()) {
-        switch (service_choice) {
-            case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
-            case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
-            case SERVICE_CONFIRMED_AUDIT_NOTIFICATION:
-                break;
-            default:
-                status = true;
-                break;
-        }
-#endif
     }
 
     return status;
@@ -536,8 +523,7 @@ static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
  * If the request is valid and the 'Enable/Disable' parameter is
  * DISABLE_INITIATION, the responding BACnet-user shall
  * discontinue the initiation of messages except for I-Am
- * requests issued in accordance with the Who-Is service procedure
- * and UnconfirmedAuditNotification requests.
+ * requests issued in accordance with the Who-Is service procedure.
  *
  * @param service_choice  Service, like SERVICE_UNCONFIRMED_WHO_IS
  *
@@ -556,9 +542,6 @@ static bool apdu_unconfirmed_dcc_disabled(uint8_t service_choice)
         switch (service_choice) {
             case SERVICE_UNCONFIRMED_WHO_IS:
             case SERVICE_UNCONFIRMED_WHO_HAS:
-#if (BACNET_PROTOCOL_REVISION >= 20)
-            case SERVICE_UNCONFIRMED_AUDIT_NOTIFICATION:
-#endif
                 break;
             default:
                 status = true;
