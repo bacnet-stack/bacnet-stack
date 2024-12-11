@@ -179,8 +179,10 @@ void datalink_maintenance_timer(uint16_t seconds);
  * - BACDL_MSTP     -- for Clause 9 MASTER-SLAVE/TOKEN PASSING (MS/TP) LAN
  * - BACDL_BIP      -- for ANNEX J - BACnet/IPv4
  * - BACDL_BIP6     -- for ANNEX U - BACnet/IPv6
+ * - BACDL_BSC      -- for ANNEX AB - BACnet Secure Connect (BACnet/SC)
  * - BACDL_ALL      -- Unspecified for the build, so the transport can be
  *                     chosen at runtime from among these choices.
+ * - BACDL_MULTIPLE  -- For multiple transports enabled in the same application
  * - BACDL_NONE      -- Unspecified for the build for unit testing
  * - BACDL_CUSTOM    -- For externally linked datalink_xxx functions
  * - Clause 10 POINT-TO-POINT (PTP) and Clause 11 EIA/CEA-709.1 ("LonTalk") LAN

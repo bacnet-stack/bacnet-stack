@@ -106,8 +106,8 @@ static const char *s_proprietary_payload =
  * @param out_option_headers_real_length - pointer to the real length of the
  * option headers
  * @param out_option_header_num - pointer to the number of the option headers
- * @param error - pointer to the error code
- * @param class - pointer to the error class
+ * @param error_code - pointer to the error code
+ * @param error_class - pointer to the error class
  * @param error_desc_string - pointer to the error description string
  * @return true if the option headers are valid, false otherwise
  */
@@ -117,8 +117,8 @@ static bool bvlc_sc_validate_options_headers(
     size_t option_headers_max_len,
     size_t *out_option_headers_real_length,
     size_t *out_option_header_num,
-    BACNET_ERROR_CODE *error,
-    BACNET_ERROR_CLASS *class,
+    uint16_t *error_code,
+    uint16_t *error_class,
     const char **error_desc_string)
 {
     int options_len = 0;
@@ -127,8 +127,8 @@ static bool bvlc_sc_validate_options_headers(
     uint16_t hdr_len;
 
     if (!option_headers_max_len || !out_option_headers_real_length) {
-        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *error_desc_string = s_message_is_incompleted;
         return false;
     }
@@ -144,8 +144,8 @@ static bool bvlc_sc_validate_options_headers(
 
         if (option != BVLC_SC_OPTION_TYPE_SECURE_PATH &&
             option != BVLC_SC_OPTION_TYPE_PROPRIETARY) {
-            *error = ERROR_CODE_HEADER_ENCODING_ERROR;
-            *class = ERROR_CLASS_COMMUNICATION;
+            *error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
+            *error_class = ERROR_CLASS_COMMUNICATION;
             *error_desc_string = s_invalid_header_option_type;
             return false;
         }
@@ -155,16 +155,16 @@ static bool bvlc_sc_validate_options_headers(
                 /* According BACNet standard secure path header option can be
                   added only to data options. (AB.2.3.1 Secure Path Header
                   Option) */
-                *error = ERROR_CODE_HEADER_ENCODING_ERROR;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *error_desc_string = s_invalid_header_1;
                 return false;
             }
             if (flags & BVLC_SC_HEADER_DATA) {
                 /* securepath option header does not have data header
                    according bacnet stadard */
-                *error = ERROR_CODE_HEADER_ENCODING_ERROR;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *error_desc_string = s_invalid_header_2;
                 return false;
             }
@@ -172,8 +172,8 @@ static bool bvlc_sc_validate_options_headers(
         } else if (option == BVLC_SC_OPTION_TYPE_PROPRIETARY) {
             if (!(flags & BVLC_SC_HEADER_DATA)) {
                 /* proprietary option must have header data */
-                *error = ERROR_CODE_HEADER_ENCODING_ERROR;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *error_desc_string = s_invalid_header_3;
                 return false;
             }
@@ -181,8 +181,8 @@ static bool bvlc_sc_validate_options_headers(
             if (options_len + 2 > option_headers_max_len) {
                 /* not enough data to process header that means
                    that probably message is incomplete */
-                *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *error_desc_string = s_message_is_incompleted;
                 return false;
             }
@@ -194,8 +194,8 @@ static bool bvlc_sc_validate_options_headers(
         if (options_len > option_headers_max_len) {
             /* not enough data to process header that means
                that probably message is incomplete */
-            *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-            *class = ERROR_CLASS_COMMUNICATION;
+            *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+            *error_class = ERROR_CLASS_COMMUNICATION;
             *error_desc_string = s_message_is_incompleted;
             return false;
         }
@@ -239,8 +239,8 @@ static size_t bvlc_sc_add_option(
     uint8_t flags = 0;
     size_t options_len = 0;
     uint8_t mask;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     BACNET_OPTION_VALIDATION_TYPE vt;
     const char *err_desc;
 
@@ -282,7 +282,7 @@ static size_t bvlc_sc_add_option(
     /* ensure that user wants to add valid option */
     if (!bvlc_sc_validate_options_headers(
             BACNET_USER_OPTION_VALIDATION, sc_option, sc_option_len,
-            &options_len, NULL, &error, &class, &err_desc)) {
+            &options_len, NULL, &error_code, &error_class, &err_desc)) {
         return 0;
     }
 
@@ -311,8 +311,8 @@ static size_t bvlc_sc_add_option(
                Validate them at first. */
             if (!bvlc_sc_validate_options_headers(
                     BACNET_PDU_DEST_OPTION_VALIDATION, &in_pdu[offs],
-                    in_pdu_len - offs, &options_len, NULL, &error, &class,
-                    &err_desc)) {
+                    in_pdu_len - offs, &options_len, NULL, &error_code,
+                    &error_class, &err_desc)) {
                 return 0;
             }
             offs += options_len;
@@ -325,10 +325,9 @@ static size_t bvlc_sc_add_option(
     if ((flags & mask)) {
         /* some options are already presented in message.
            Validate them at first. */
-
         if (!bvlc_sc_validate_options_headers(
                 vt, &in_pdu[offs], in_pdu_len - offs, &options_len, NULL,
-                &error, &class, &err_desc)) {
+                &error_code, &error_class, &err_desc)) {
             return 0;
         }
     }
@@ -738,7 +737,7 @@ size_t bvlc_sc_encode_result(
     uint8_t *error_header_marker,
     uint16_t *error_class,
     uint16_t *error_code,
-    uint8_t *utf8_details_string)
+    const char *utf8_details_string)
 {
     size_t offs;
 
@@ -817,8 +816,8 @@ size_t bvlc_sc_encode_result(
  * @param payload - pointer to the decoded data
  * @param packed_payload - pointer to the packed data
  * @param packed_payload_len - size of the packed data
- * @param error - pointer to the error code
- * @param class - pointer to the error class
+ * @param error_code - pointer to the error code
+ * @param error_class - pointer to the error class
  * @param err_desc - pointer to the error description string
  * @return true if the data is decoded successfully, false otherwise
  */
@@ -826,15 +825,15 @@ static bool bvlc_sc_decode_result(
     BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
     size_t packed_payload_len,
-    BACNET_ERROR_CODE *error,
-    BACNET_ERROR_CLASS *class,
+    uint16_t *error_code,
+    uint16_t *error_class,
     const char **err_desc)
 {
     size_t i;
 
     if (packed_payload_len < 2) {
-        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_result_incomplete;
         return false;
     }
@@ -843,8 +842,8 @@ static bool bvlc_sc_decode_result(
 
     if (packed_payload[0] > (uint8_t)BVLC_SC_PROPRIETARY_MESSAGE) {
         /* unknown BVLC function */
-        *error = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_result_incorrect_bvlc_function;
         return false;
     }
@@ -852,8 +851,8 @@ static bool bvlc_sc_decode_result(
     payload->result.bvlc_function = packed_payload[0];
     if (packed_payload[1] != 0 && packed_payload[1] != 1) {
         /* result code must be 1 or 0 */
-        *error = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_result_incorrect_result_code;
         return false;
     }
@@ -862,8 +861,8 @@ static bool bvlc_sc_decode_result(
 
     if (packed_payload[1] == 1) {
         if (packed_payload_len < 7) {
-            *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-            *class = ERROR_CLASS_COMMUNICATION;
+            *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+            *error_class = ERROR_CLASS_COMMUNICATION;
             *err_desc = s_result_incomplete;
             return false;
         }
@@ -885,8 +884,8 @@ static bool bvlc_sc_decode_result(
                 }
             }
             if (i != packed_payload_len - 7) {
-                *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_result_inconsistent;
                 return false;
             }
@@ -898,8 +897,8 @@ static bool bvlc_sc_decode_result(
         /* indicating an 'Error Class' of COMMUNICATION and 'Error Code' of */
         /* UNEXPECTED_DATA. The message shall be discarded and not be processed.
          */
-        *error = ERROR_CODE_UNEXPECTED_DATA;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_UNEXPECTED_DATA;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_result_unexpected_data;
         return false;
     }
@@ -1138,8 +1137,8 @@ size_t bvlc_sc_encode_advertisiment(
  * @param payload - pointer to the decoded data
  * @param packed_payload - pointer to packed data
  * @param packed_payload_len - size of packed data
- * @param error - pointer to the error code
- * @param class - pointer to the error class
+ * @param error_code - pointer to the error code
+ * @param error_class - pointer to the error class
  * @param err_desc - pointer to the error description string
  * @return true if the data is decoded successfully, false otherwise
  */
@@ -1147,32 +1146,32 @@ static bool bvlc_sc_decode_advertisiment(
     BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
     size_t packed_payload_len,
-    BACNET_ERROR_CODE *error,
-    BACNET_ERROR_CLASS *class,
+    uint16_t *error_code,
+    uint16_t *error_class,
     const char **err_desc)
 {
     if (packed_payload_len < 6) {
-        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_advertisiment_incomplete;
         return false;
     }
     if (packed_payload_len > 6) {
-        *error = ERROR_CODE_UNEXPECTED_DATA;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_UNEXPECTED_DATA;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_advertisiment_unexpected;
         return false;
     }
     if (packed_payload[0] > BACNET_SC_HUB_CONNECTOR_STATE_MAX) {
-        *error = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_advertisiment_param1_error;
         return false;
     }
 
     if (packed_payload[1] > BVLC_SC_DIRECT_CONNECTION_SUPPORT_MAX) {
-        *error = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_advertisiment_param2_error;
         return false;
     }
@@ -1307,8 +1306,8 @@ size_t bvlc_sc_encode_connect_request(
  * @param payload - pointer to the decoded data
  * @param packed_payload - pointer to the packed data
  * @param packed_payload_len - size of the packed data
- * @param error - pointer to the error code
- * @param class - pointer to the error class
+ * @param error_code - pointer to the error code
+ * @param error_class - pointer to the error class
  * @param err_desc - pointer to the error description string
  * @return true if the data is decoded successfully, false otherwise
  */
@@ -1316,18 +1315,18 @@ static bool bvlc_sc_decode_connect_request(
     BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
     size_t packed_payload_len,
-    BACNET_ERROR_CODE *error,
-    BACNET_ERROR_CLASS *class,
+    uint16_t *error_code,
+    uint16_t *error_class,
     const char **err_desc)
 {
     if (packed_payload_len < 26) {
-        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_connect_request_incomplete;
         return false;
     } else if (packed_payload_len > 26) {
-        *error = ERROR_CODE_UNEXPECTED_DATA;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_UNEXPECTED_DATA;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_connect_request_unexpected;
         return false;
     }
@@ -1426,8 +1425,8 @@ size_t bvlc_sc_encode_connect_accept(
  * @param payload - pointer to the decoded data
  * @param packed_payload - pointer to the packed data
  * @param packed_payload_len - size of the packed data
- * @param error - pointer to the error code
- * @param class - pointer to the error class
+ * @param error_code - pointer to the error code
+ * @param error_class - pointer to the error class
  * @param err_desc - pointer to the error description string
  * @return true if the data is decoded successfully, false otherwise
  */
@@ -1435,18 +1434,18 @@ static bool bvlc_sc_decode_connect_accept(
     BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
     size_t packed_payload_len,
-    BACNET_ERROR_CODE *error,
-    BACNET_ERROR_CLASS *class,
+    uint16_t *error_code,
+    uint16_t *error_class,
     const char **err_desc)
 {
     if (packed_payload_len < 26) {
-        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_connect_accept_incomplete;
         return false;
     } else if (packed_payload_len > 26) {
-        *error = ERROR_CODE_UNEXPECTED_DATA;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_UNEXPECTED_DATA;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_connect_accept_unexpected;
         return false;
     }
@@ -1666,8 +1665,8 @@ size_t bvlc_sc_encode_proprietary_message(
  * @param payload - pointer to the decoded data
  * @param packed_payload - pointer to the packed data
  * @param packed_payload_len - size of the packed data
- * @param error - pointer to the error code
- * @param class - pointer to the error class
+ * @param error_code - pointer to the error code
+ * @param error_class - pointer to the error class
  * @param err_desc - pointer to the error description string
  * @return true if the data is decoded successfully, false otherwise
  */
@@ -1675,13 +1674,13 @@ static bool bvlc_sc_decode_proprietary(
     BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
     size_t packed_payload_len,
-    BACNET_ERROR_CODE *error,
-    BACNET_ERROR_CLASS *class,
+    uint16_t *error_code,
+    uint16_t *error_class,
     const char **err_desc)
 {
     if (packed_payload_len < 3) {
-        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_proprietary_incomplete;
         return false;
     }
@@ -1707,8 +1706,8 @@ static bool bvlc_sc_decode_proprietary(
  * @param message - buffer with the message
  * @param message_len - length of the message
  * @param hdr - pointer to the decoded header
- * @param error - pointer to the error code
- * @param class - pointer to the error class
+ * @param error_code - pointer to the error code
+ * @param error_class - pointer to the error class
  * @param err_desc - pointer to the error description string
  * @return true if the data is decoded successfully, false otherwise
  */
@@ -1716,8 +1715,8 @@ static bool bvlc_sc_decode_hdr(
     uint8_t *message,
     size_t message_len,
     BVLC_SC_DECODED_HDR *hdr,
-    BACNET_ERROR_CODE *error,
-    BACNET_ERROR_CLASS *class,
+    uint16_t *error_code,
+    uint16_t *error_class,
     const char **err_desc)
 {
     size_t offs = 4;
@@ -1731,8 +1730,8 @@ static bool bvlc_sc_decode_hdr(
         /* If a BVLC message is received that has fewer than four octets, a */
         /* BVLC-Result NAK shall not be returned. */
         /* The message shall be discarded and not be processed. */
-        *error = ERROR_CODE_DISCARD;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_DISCARD;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = NULL;
         return ret;
     }
@@ -1745,8 +1744,8 @@ static bool bvlc_sc_decode_hdr(
         offs += BVLC_SC_VMAC_SIZE;
         if (offs > message_len) {
             hdr->origin = NULL;
-            *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-            *class = ERROR_CLASS_COMMUNICATION;
+            *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+            *error_class = ERROR_CLASS_COMMUNICATION;
             *err_desc = s_hdr_incomplete1;
             return false;
         }
@@ -1757,8 +1756,8 @@ static bool bvlc_sc_decode_hdr(
         offs += BVLC_SC_VMAC_SIZE;
         if (offs > message_len) {
             hdr->dest = NULL;
-            *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-            *class = ERROR_CLASS_COMMUNICATION;
+            *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+            *error_class = ERROR_CLASS_COMMUNICATION;
             *err_desc = s_hdr_incomplete2;
             return false;
         }
@@ -1770,8 +1769,8 @@ static bool bvlc_sc_decode_hdr(
     /* That's why that error handling is put after filling of address fields. */
 
     if (message[0] > BVLC_SC_PROPRIETARY_MESSAGE) {
-        *error = ERROR_CODE_BVLC_FUNCTION_UNKNOWN;
-        *class = ERROR_CLASS_COMMUNICATION;
+        *error_code = ERROR_CODE_BVLC_FUNCTION_UNKNOWN;
+        *error_class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_unknown_bvlc_function;
         return ret;
     }
@@ -1779,8 +1778,8 @@ static bool bvlc_sc_decode_hdr(
     if (message[1] & BVLC_SC_CONTROL_DEST_OPTIONS) {
         ret = bvlc_sc_validate_options_headers(
             BACNET_PDU_DEST_OPTION_VALIDATION, &message[offs],
-            message_len - offs, &hdr_opt_len, &hdr->dest_options_num, error,
-            class, err_desc);
+            message_len - offs, &hdr_opt_len, &hdr->dest_options_num,
+            error_code, error_class, err_desc);
 
         if (!ret) {
             return false;
@@ -1793,8 +1792,8 @@ static bool bvlc_sc_decode_hdr(
     if (message[1] & BVLC_SC_CONTROL_DATA_OPTIONS) {
         ret = bvlc_sc_validate_options_headers(
             BACNET_PDU_DATA_OPTION_VALIDATION, &message[offs],
-            message_len - offs, &hdr_opt_len, &hdr->data_options_num, error,
-            class, err_desc);
+            message_len - offs, &hdr_opt_len, &hdr->data_options_num,
+            error_code, error_class, err_desc);
         if (!ret) {
             return false;
         }
@@ -1803,7 +1802,7 @@ static bool bvlc_sc_decode_hdr(
         offs += hdr_opt_len;
     }
 
-    if (message_len - offs <= 0) {
+    if (offs >= message_len) {
         /* no payload */
         return true;
     }
@@ -1878,22 +1877,23 @@ bvlc_sc_decode_data_options_if_exists(BVLC_SC_DECODED_MESSAGE *message)
  * @param buf - A buffer which holds BACNet/SC PDU.
  * @param buf_len - length of a buffer which holds BACNet/SC PDU.
  * @param message- pointer to structure for decoded data.
- * @param error - the value of parameter is filled if function returns false.
- *                Check BACNET_ERROR_CLASS enum.
- * @param class - the value of parameter is filled if function returns false.
- *                heck BACNET_ERROR_CODE enum.
+ * @param error-code - the value of parameter is filled if function returns
+ *  false. Check BACNET_ERROR_CLASS enum.
+ * @param error_class - the value of parameter is filled if function returns
+ *  false. Check BACNET_ERROR_CODE enum.
  * @return true if PDU was successfully decoded otherwise returns false,
- *         and error and class parameters are filled with corresponded codes.
+ *  and error and class parameters are filled with corresponded codes.
  */
 bool bvlc_sc_decode_message(
     uint8_t *buf,
     size_t buf_len,
     BVLC_SC_DECODED_MESSAGE *message,
-    BACNET_ERROR_CODE *error,
-    BACNET_ERROR_CLASS *class,
+    uint16_t *error_code,
+    uint16_t *error_class,
     const char **err_desc)
 {
-    if (!message || !buf_len || !error || !class || !buf || !err_desc) {
+    if (!message || !buf_len || !error_code || !error_class || !buf ||
+        !err_desc) {
         return false;
     }
 
@@ -1902,15 +1902,15 @@ bool bvlc_sc_decode_message(
     memset(&message->payload, 0, sizeof(message->payload));
 
     if (!bvlc_sc_decode_hdr(
-            buf, buf_len, &message->hdr, error, class, err_desc)) {
+            buf, buf_len, &message->hdr, error_code, error_class, err_desc)) {
         return false;
     }
 
     if (message->hdr.dest_options) {
         if (message->hdr.dest_options_num > BVLC_SC_HEADER_OPTION_MAX) {
             /* dest header options list is too long */
-            *error = ERROR_CODE_OUT_OF_MEMORY;
-            *class = ERROR_CLASS_RESOURCES;
+            *error_code = ERROR_CODE_OUT_OF_MEMORY;
+            *error_class = ERROR_CLASS_RESOURCES;
             *err_desc = s_dest_options_list_too_long;
             return false;
         }
@@ -1919,8 +1919,8 @@ bool bvlc_sc_decode_message(
     if (message->hdr.data_options) {
         if (message->hdr.data_options_num > BVLC_SC_HEADER_OPTION_MAX) {
             /* data header options list is too long */
-            *error = ERROR_CODE_OUT_OF_MEMORY;
-            *class = ERROR_CLASS_RESOURCES;
+            *error_code = ERROR_CODE_OUT_OF_MEMORY;
+            *error_class = ERROR_CLASS_RESOURCES;
             *err_desc = s_data_options_list_too_long;
             return false;
         }
@@ -1930,15 +1930,15 @@ bool bvlc_sc_decode_message(
         case BVLC_SC_RESULT: {
             if (message->hdr.data_options) {
                 /* The BVLC-Result message must not have data options */
-                *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_result_unexpected_data_options;
                 return false;
             }
 
             if (!message->hdr.payload || !message->hdr.payload_len) {
-                *error = ERROR_CODE_PAYLOAD_EXPECTED;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_PAYLOAD_EXPECTED;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_result_payload_expected;
                 return false;
             }
@@ -1947,15 +1947,16 @@ bool bvlc_sc_decode_message(
 
             if (!bvlc_sc_decode_result(
                     &message->payload, message->hdr.payload,
-                    message->hdr.payload_len, error, class, err_desc)) {
+                    message->hdr.payload_len, error_code, error_class,
+                    err_desc)) {
                 return false;
             }
             break;
         }
         case BVLC_SC_ENCAPSULATED_NPDU: {
             if (!message->hdr.payload || !message->hdr.payload_len) {
-                *error = ERROR_CODE_PAYLOAD_EXPECTED;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_PAYLOAD_EXPECTED;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_encapsulated_npdu_payload_expected;
                 return false;
             }
@@ -1971,8 +1972,8 @@ bool bvlc_sc_decode_message(
         case BVLC_SC_ADDRESS_RESOLUTION: {
             if (message->hdr.data_options) {
                 /* The Address-Resolution message must not have data options */
-                *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_address_resolution_data_options;
                 return false;
             }
@@ -1986,8 +1987,8 @@ bool bvlc_sc_decode_message(
                 /* 'Error Code' of UNEXPECTED_DATA. The message shall be */
                 /* discarded and not be processed. */
 
-                *error = ERROR_CODE_UNEXPECTED_DATA;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_UNEXPECTED_DATA;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_address_resolution_unexpected;
                 return false;
             }
@@ -1999,8 +2000,8 @@ bool bvlc_sc_decode_message(
             if (message->hdr.data_options) {
                 /* The Address-Resolution Ack message must not have data options
                  */
-                *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_address_resolution_ack_data_options;
                 return false;
             }
@@ -2021,15 +2022,15 @@ bool bvlc_sc_decode_message(
         case BVLC_SC_ADVERTISIMENT: {
             if (message->hdr.data_options) {
                 /* The advertisiment message must not have data options */
-                *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_advertisiment_data_options;
                 return false;
             }
 
             if (!message->hdr.payload || !message->hdr.payload_len) {
-                *error = ERROR_CODE_PAYLOAD_EXPECTED;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_PAYLOAD_EXPECTED;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_advertisiment_payload_expected;
                 return false;
             }
@@ -2038,7 +2039,8 @@ bool bvlc_sc_decode_message(
 
             if (!bvlc_sc_decode_advertisiment(
                     &message->payload, message->hdr.payload,
-                    message->hdr.payload_len, error, class, err_desc)) {
+                    message->hdr.payload_len, error_code, error_class,
+                    err_desc)) {
                 return false;
             }
             break;
@@ -2047,15 +2049,15 @@ bool bvlc_sc_decode_message(
             if (message->hdr.data_options) {
                 /* The advertisiment solicitation message must not have data
                  * options */
-                *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_advertisiment_solicitation_data_options;
                 return false;
             }
 
             if (message->hdr.payload || message->hdr.payload_len) {
-                *error = ERROR_CODE_UNEXPECTED_DATA;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_UNEXPECTED_DATA;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_advertisiment_solicitation_payload_expected;
                 return false;
             }
@@ -2070,22 +2072,22 @@ bool bvlc_sc_decode_message(
         case BVLC_SC_HEARTBEAT_REQUEST:
         case BVLC_SC_HEARTBEAT_ACK: {
             if (message->hdr.origin != 0) {
-                *error = ERROR_CODE_HEADER_ENCODING_ERROR;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_origin_unexpected;
                 return false;
             }
 
             if (message->hdr.dest != 0) {
-                *error = ERROR_CODE_HEADER_ENCODING_ERROR;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_dest_unexpected;
                 return false;
             }
 
             if (message->hdr.data_options) {
-                *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_data_option_unexpected;
                 return false;
             }
@@ -2093,15 +2095,15 @@ bool bvlc_sc_decode_message(
             if (message->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST ||
                 message->hdr.bvlc_function == BVLC_SC_CONNECT_ACCEPT) {
                 if (!message->hdr.payload || !message->hdr.payload_len) {
-                    *error = ERROR_CODE_PAYLOAD_EXPECTED;
-                    *class = ERROR_CLASS_COMMUNICATION;
+                    *error_code = ERROR_CODE_PAYLOAD_EXPECTED;
+                    *error_class = ERROR_CLASS_COMMUNICATION;
                     *err_desc = s_absent_payload;
                     return false;
                 }
             } else {
                 if (message->hdr.payload || message->hdr.payload_len) {
-                    *error = ERROR_CODE_UNEXPECTED_DATA;
-                    *class = ERROR_CLASS_COMMUNICATION;
+                    *error_code = ERROR_CODE_UNEXPECTED_DATA;
+                    *error_class = ERROR_CLASS_COMMUNICATION;
                     *err_desc = s_message_too_long;
                     return false;
                 }
@@ -2112,13 +2114,15 @@ bool bvlc_sc_decode_message(
             if (message->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST) {
                 if (!bvlc_sc_decode_connect_request(
                         &message->payload, message->hdr.payload,
-                        message->hdr.payload_len, error, class, err_desc)) {
+                        message->hdr.payload_len, error_code, error_class,
+                        err_desc)) {
                     return false;
                 }
             } else if (message->hdr.bvlc_function == BVLC_SC_CONNECT_ACCEPT) {
                 if (!bvlc_sc_decode_connect_accept(
                         &message->payload, message->hdr.payload,
-                        message->hdr.payload_len, error, class, err_desc)) {
+                        message->hdr.payload_len, error_code, error_class,
+                        err_desc)) {
                     return false;
                 }
             }
@@ -2127,15 +2131,15 @@ bool bvlc_sc_decode_message(
         case BVLC_SC_PROPRIETARY_MESSAGE: {
             if (message->hdr.data_options) {
                 /* The proprietary message must not have data options */
-                *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_proprietary_data_options;
                 return false;
             }
 
             if (!message->hdr.payload || !message->hdr.payload_len) {
-                *error = ERROR_CODE_PAYLOAD_EXPECTED;
-                *class = ERROR_CLASS_COMMUNICATION;
+                *error_code = ERROR_CODE_PAYLOAD_EXPECTED;
+                *error_class = ERROR_CLASS_COMMUNICATION;
                 *err_desc = s_proprietary_payload;
                 return false;
             }
@@ -2144,14 +2148,15 @@ bool bvlc_sc_decode_message(
 
             if (!bvlc_sc_decode_proprietary(
                     &message->payload, message->hdr.payload,
-                    message->hdr.payload_len, error, class, err_desc)) {
+                    message->hdr.payload_len, error_code, error_class,
+                    err_desc)) {
                 return false;
             }
             break;
         }
         default:
-            *error = ERROR_CODE_BVLC_FUNCTION_UNKNOWN;
-            *class = ERROR_CLASS_COMMUNICATION;
+            *error_code = ERROR_CODE_BVLC_FUNCTION_UNKNOWN;
+            *error_class = ERROR_CLASS_COMMUNICATION;
             *err_desc = s_unknown_bvlc_function;
             return false;
     }

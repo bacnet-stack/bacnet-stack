@@ -527,6 +527,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/sys/days.h
   src/bacnet/basic/sys/debug.c
   src/bacnet/basic/sys/debug.h
+  src/bacnet/basic/sys/dst.c
+  src/bacnet/basic/sys/dst.h
   src/bacnet/basic/sys/fifo.c
   src/bacnet/basic/sys/fifo.h
   src/bacnet/basic/sys/filename.c
@@ -536,6 +538,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/sys/keylist.h
   src/bacnet/basic/sys/linear.c
   src/bacnet/basic/sys/linear.h
+  src/bacnet/basic/sys/lighting_command.c
+  src/bacnet/basic/sys/lighting_command.h
   src/bacnet/basic/sys/mstimer.c
   src/bacnet/basic/sys/mstimer.h
   src/bacnet/basic/sys/ringbuf.c
@@ -887,8 +891,6 @@ if(BACNET_STACK_BUILD_APPS)
       # NOTE: Might be that this example currently doesn't work on Windows because
       # of the following warning:
 
-      # 'strncasecmp': macro redefinition
-      $<$<C_COMPILER_ID:MSVC>:/wd4005>
       # 'gettimeofday' undefined; assuming extern returning int
       $<$<C_COMPILER_ID:MSVC>:/wd4013>
     )

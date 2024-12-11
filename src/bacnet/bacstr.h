@@ -83,8 +83,6 @@ BACNET_STACK_EXPORT
 bool characterstring_init_ansi(
     BACNET_CHARACTER_STRING *char_string, const char *value);
 BACNET_STACK_EXPORT
-size_t characterstring_strnlen(const char *str, size_t maxlen);
-BACNET_STACK_EXPORT
 bool characterstring_init_ansi_safe(
     BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax);
 BACNET_STACK_EXPORT
@@ -170,6 +168,13 @@ BACNET_STACK_EXPORT
 bool octetstring_value_same(
     const BACNET_OCTET_STRING *octet_string1,
     const BACNET_OCTET_STRING *octet_string2);
+
+BACNET_STACK_EXPORT
+int bacnet_stricmp(const char *a, const char *b);
+BACNET_STACK_EXPORT
+int bacnet_strnicmp(const char *a, const char *b, size_t length);
+BACNET_STACK_EXPORT
+size_t bacnet_strnlen(const char *str, size_t maxlen);
 
 #ifdef __cplusplus
 }

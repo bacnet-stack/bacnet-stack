@@ -36,10 +36,6 @@
 #include <poll.h>        /* for convenience */
 #endif
 
-#ifdef HAVE_STRINGS_H
-#include <strings.h>     /* for convenience */
-#endif
-
 /* Three headers are normally needed for socket/file ioctl's:
  * <sys/ioctl.h>, <sys/filio.h>, and <sys/sockio.h>.
  */

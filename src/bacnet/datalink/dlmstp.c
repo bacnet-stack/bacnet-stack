@@ -92,6 +92,7 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     struct dlmstp_packet *pkt;
     struct dlmstp_user_data_t *user;
 
+    (void)timeout;
     if (!mstp_port) {
         return 0;
     }
@@ -250,6 +251,7 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     struct dlmstp_user_data_t *user = NULL;
     struct dlmstp_packet *pkt;
 
+    (void)timeout;
     if (!mstp_port) {
         return 0;
     }
@@ -346,6 +348,7 @@ uint16_t dlmstp_receive(
     uint16_t i;
     uint32_t milliseconds;
 
+    (void)timeout;
     if (!MSTP_Port) {
         return 0;
     }
@@ -884,7 +887,6 @@ void dlmstp_set_frame_rx_start_callback(dlmstp_hook_frame_rx_start_cb cb_func)
 void dlmstp_reset_statistics(void)
 {
     struct dlmstp_user_data_t *user;
-    struct dlmstp_statistics *stats;
 
     if (!MSTP_Port) {
         return;
@@ -994,9 +996,10 @@ bool dlmstp_init(char *ifname)
         MSTP_Port->SilenceTimerReset = dlmstp_silence_reset;
         user = (struct dlmstp_user_data_t *)MSTP_Port->UserData;
         if (user && !user->Initialized) {
-            Ringbuf_Init(
+            Ringbuf_Initialize(
                 &user->PDU_Queue, (volatile uint8_t *)user->PDU_Buffer,
-                sizeof(user->PDU_Buffer), DLMSTP_MAX_INFO_FRAMES);
+                sizeof(user->PDU_Buffer), sizeof(struct dlmstp_packet),
+                DLMSTP_MAX_INFO_FRAMES);
             MSTP_Init(MSTP_Port);
             user->Initialized = true;
         }

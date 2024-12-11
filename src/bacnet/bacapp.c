@@ -387,6 +387,12 @@ int bacapp_encode_application_data(
                 /* Empty data list */
                 apdu_len = 0; /* EMPTY */
                 break;
+#if defined(BACAPP_TIMESTAMP)
+            case BACNET_APPLICATION_TAG_TIMESTAMP:
+                apdu_len =
+                    bacapp_encode_timestamp(apdu, &value->type.Time_Stamp);
+                break;
+#endif
 #if defined(BACAPP_DATETIME)
             case BACNET_APPLICATION_TAG_DATETIME:
                 apdu_len = bacapp_encode_datetime(apdu, &value->type.Date_Time);
@@ -1522,16 +1528,16 @@ int bacapp_decode_application_tag_value(
         case BACNET_APPLICATION_TAG_EMPTYLIST:
             apdu_len = 0;
             break;
-#if defined(BACAPP_DATETIME)
-        case BACNET_APPLICATION_TAG_DATETIME:
-            apdu_len =
-                bacnet_datetime_decode(apdu, apdu_size, &value->type.Date_Time);
-            break;
-#endif
 #if defined(BACAPP_TIMESTAMP)
         case BACNET_APPLICATION_TAG_TIMESTAMP:
             apdu_len = bacnet_timestamp_decode(
                 apdu, apdu_size, &value->type.Time_Stamp);
+            break;
+#endif
+#if defined(BACAPP_DATETIME)
+        case BACNET_APPLICATION_TAG_DATETIME:
+            apdu_len =
+                bacnet_datetime_decode(apdu, apdu_size, &value->type.Date_Time);
             break;
 #endif
 #if defined(BACAPP_DATERANGE)
@@ -3361,7 +3367,9 @@ int bacapp_snprintf_value(
     char *str, size_t str_len, const BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
     size_t len = 0, i = 0;
+#if defined(BACAPP_CHARACTER_STRING)
     const char *char_str;
+#endif
     const BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
@@ -4184,8 +4192,12 @@ bool bacapp_parse_application_data(
     char *argv,
     BACNET_APPLICATION_DATA_VALUE *value)
 {
+#if defined(BACAPP_TIME)
     int hour, min, sec, hundredths;
+#endif
+#if defined(BACAPP_DATE)
     int year, month, day, wday;
+#endif
     int object_type = 0;
     uint32_t instance = 0;
     bool status = false;
@@ -4200,12 +4212,12 @@ bool bacapp_parse_application_data(
         switch (tag_number) {
 #if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
-                if (strcasecmp(argv, "true") == 0 ||
-                    strcasecmp(argv, "active") == 0) {
+                if (bacnet_stricmp(argv, "true") == 0 ||
+                    bacnet_stricmp(argv, "active") == 0) {
                     value->type.Boolean = true;
                 } else if (
-                    strcasecmp(argv, "false") == 0 ||
-                    strcasecmp(argv, "inactive") == 0) {
+                    bacnet_stricmp(argv, "false") == 0 ||
+                    bacnet_stricmp(argv, "inactive") == 0) {
                     value->type.Boolean = false;
                 } else {
                     status = strtol_checked(argv, &long_value);
@@ -4337,6 +4349,13 @@ bool bacapp_parse_application_data(
                 } else {
                     status = false;
                 }
+                break;
+#endif
+#if defined(BACAPP_TIMESTAMP)
+            case BACNET_APPLICATION_TAG_TIMESTAMP:
+                /* BACnetTimeStamp */
+                status =
+                    bacapp_timestamp_init_ascii(&value->type.Time_Stamp, argv);
                 break;
 #endif
 #if defined(BACAPP_DATETIME)

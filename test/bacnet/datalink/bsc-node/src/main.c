@@ -11546,8 +11546,8 @@ static void test_node_send(void)
     size_t len;
     uint8_t npdu[128];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     const char *err_desc;
     uint8_t optbuf[128];
     size_t optlen;
@@ -11671,7 +11671,8 @@ static void test_node_send(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -11695,7 +11696,8 @@ static void test_node_send(void)
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_RESULT, node3), true,
         0);
     ret = bvlc_sc_decode_message(
-        node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
+        node_ev3.pdu, node_ev3.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(message.hdr.bvlc_function, BVLC_SC_RESULT, NULL);
     zassert_equal(
@@ -11718,7 +11720,8 @@ static void test_node_send(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -11736,7 +11739,8 @@ static void test_node_send(void)
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_ADVERTISIMENT, node3),
         true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
+        node_ev3.pdu, node_ev3.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(message.hdr.bvlc_function, BVLC_SC_ADVERTISIMENT, NULL);
     zassert_equal(
@@ -11788,8 +11792,8 @@ static void test_node_local_hub_function(void)
     size_t len;
     uint8_t npdu[128];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     const char *err_desc;
     BACNET_SC_VMAC_ADDRESS broadcast;
 
@@ -11908,7 +11912,8 @@ static void test_node_local_hub_function(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -11918,7 +11923,8 @@ static void test_node_local_hub_function(void)
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_RECEIVED_NPDU, node), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev.pdu, node_ev.pdu_len, &message, &error, &class, &err_desc);
+        node_ev.pdu, node_ev.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -11974,8 +11980,8 @@ static void test_node_direct_connection(void)
     size_t len;
     uint8_t npdu[128];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     const char *err_desc;
     char uris[256];
     char url1[256];
@@ -12179,7 +12185,8 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -12193,7 +12200,8 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -12221,7 +12229,8 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -12273,7 +12282,8 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -12344,7 +12354,8 @@ static void test_node_direct_connection(void)
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
 
     ret = bvlc_sc_decode_message(
-        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -12359,7 +12370,8 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_NPDU, node3), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
+        node_ev3.pdu, node_ev3.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -12392,7 +12404,8 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_NPDU, node3), true, 0);
     ret = bvlc_sc_decode_message(
-        node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
+        node_ev3.pdu, node_ev3.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
@@ -12669,8 +12682,8 @@ static void test_node_direct_connection_unsupported(void)
     char node_secondary_url3[128];
     uint8_t npdu[128];
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
+    uint16_t error_code;
+    uint16_t error_class;
     const char *err_desc;
     char uris[256];
     // test configuration
@@ -12830,7 +12843,8 @@ static void test_node_direct_connection_unsupported(void)
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_RESULT, node3), true,
         0);
     ret = bvlc_sc_decode_message(
-        node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
+        node_ev3.pdu, node_ev3.pdu_len, &message, &error_code, &error_class,
+        &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(message.hdr.bvlc_function, BVLC_SC_RESULT, NULL);
     zassert_equal(

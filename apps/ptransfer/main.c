@@ -21,6 +21,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bactext.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
@@ -35,11 +36,6 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
-
-#if defined(__BORLANDC__)
-#define _kbhit kbhit
-#define _stricmp stricmp
-#endif
 
 #define MY_MAX_STR 32
 #define MY_MAX_BLOCK 8
@@ -215,7 +211,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     /* decode the command line parameters */
-    if (_stricmp(argv[1], "server") == 0) {
+    if (bacnet_stricmp(argv[1], "server") == 0) {
         Target_Mode = 1;
     } else {
         Target_Mode = 0;

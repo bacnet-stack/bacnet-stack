@@ -170,6 +170,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/service/h_rd.c
     ${LIBRARY_BACNET_BASIC}/service/h_rp.c
     ${LIBRARY_BACNET_BASIC}/service/h_rpm.c
+    ${LIBRARY_BACNET_BASIC}/service/h_ts.c
     ${LIBRARY_BACNET_BASIC}/service/h_whohas.c
     ${LIBRARY_BACNET_BASIC}/service/h_whois.c
     ${LIBRARY_BACNET_BASIC}/service/h_wp.c
@@ -178,6 +179,9 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_BASIC}/service/s_ihave.c
     ${LIBRARY_BACNET_BASIC}/tsm/tsm.c
     ${LIBRARY_BACNET_BASIC}/sys/debug.c
+    ${LIBRARY_BACNET_BASIC}/sys/datetime_mstimer.c
+    ${LIBRARY_BACNET_BASIC}/sys/days.c
+    ${LIBRARY_BACNET_BASIC}/sys/dst.c
     ${LIBRARY_BACNET_BASIC}/sys/ringbuf.c
     ${LIBRARY_BACNET_BASIC}/sys/fifo.c
     ${LIBRARY_BACNET_BASIC}/sys/keylist.c
@@ -214,6 +218,7 @@ set(BACNET_PROJECT_SOURCE
     ${LIBRARY_BACNET_CORE}/rp.c
     ${LIBRARY_BACNET_CORE}/rpm.c
     ${LIBRARY_BACNET_CORE}/timestamp.c
+    ${LIBRARY_BACNET_CORE}/timesync.c
     ${LIBRARY_BACNET_CORE}/weeklyschedule.c
     ${LIBRARY_BACNET_CORE}/dailyschedule.c
     ${LIBRARY_BACNET_CORE}/calendar_entry.c
