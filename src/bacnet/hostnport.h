@@ -14,7 +14,6 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacstr.h"
-#include "bacnet/datalink/bvlc.h"
 
 /**
  *  BACnetHostNPort ::= SEQUENCE {
