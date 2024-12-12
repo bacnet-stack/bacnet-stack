@@ -92,6 +92,21 @@ BACNET_STACK_EXPORT
 bool bacnet_recipient_device_valid(const BACNET_RECIPIENT *recipient);
 
 BACNET_STACK_EXPORT
+int bacnet_recipient_encode(uint8_t *apdu, const BACNET_RECIPIENT *recipient);
+BACNET_STACK_EXPORT
+int bacnet_recipient_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_RECIPIENT *recipient);
+BACNET_STACK_EXPORT
+int bacnet_recipient_decode(
+    const uint8_t *apdu, int apdu_size, BACNET_RECIPIENT *recipient);
+BACNET_STACK_EXPORT
+int bacnet_recipient_context_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_number,
+    BACNET_RECIPIENT *value);
+
+BACNET_STACK_EXPORT
 int bacnet_destination_to_ascii(
     const BACNET_DESTINATION *bacdest, char *buf, size_t buf_size);
 BACNET_STACK_EXPORT
