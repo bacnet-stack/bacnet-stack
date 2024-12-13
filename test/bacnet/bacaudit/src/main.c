@@ -173,10 +173,12 @@ static void test_bacnet_audit_log_record(void)
     bool status = false;
 
     value.tag = AUDIT_LOG_DATUM_TAG_STATUS;
+    datetime_date_init_ascii(&value.time_stamp.date, "2024/11/30");
+    datetime_time_init_ascii(&value.time_stamp.time, "23:59:59.99");
     null_len = bacnet_audit_log_record_encode(NULL, &value);
     apdu_len = bacnet_audit_log_record_encode(apdu, &value);
     zassert_equal(apdu_len, null_len, NULL);
-    test_len = bacnet_audit_log_record_decode(apdu, apdu_len, &value);
+    test_len = bacnet_audit_log_record_decode(apdu, apdu_len, &test_value);
     zassert_equal(apdu_len, test_len, NULL);
     zassert_true(bacnet_audit_log_record_same(&value, &test_value), NULL);
 
