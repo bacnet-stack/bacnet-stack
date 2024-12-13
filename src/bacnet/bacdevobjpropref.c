@@ -854,7 +854,7 @@ bool bacnet_object_property_reference_same(
  * @return length of the APDU buffer
  */
 int bacnet_property_reference_encode(
-    uint8_t *apdu, struct BACnetPropertyReference *reference)
+    uint8_t *apdu, const struct BACnetPropertyReference *reference)
 {
     int len = 0;
     int apdu_len = 0;
@@ -892,7 +892,7 @@ int bacnet_property_reference_encode(
 int bacnet_property_reference_context_encode(
     uint8_t *apdu,
     uint8_t tag_number,
-    struct BACnetPropertyReference *reference)
+    const struct BACnetPropertyReference *reference)
 {
     int len = 0;
     int apdu_len = 0;

@@ -1930,6 +1930,27 @@ int bacnet_object_id_context_decode(
 }
 
 /**
+ * @brief Compare two object identifiers for equality.
+ * @param value1 - first object identifier
+ * @param value2 - second object identifier
+ * @return true if the object identifiers are the same, false otherwise
+ */
+bool bacnet_object_id_same(
+    BACNET_OBJECT_TYPE object_type1,
+    uint32_t instance1,
+    BACNET_OBJECT_TYPE object_type2,
+    uint32_t instance2)
+{
+    bool status = false;
+
+    if ((object_type1 == object_type2) && (instance1 == instance2)) {
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * @brief Decode the BACnet Object Identifier Value when context encoded
  * as defined in clause 20.2.14 Encoding of an Object Identifier Value
  * and 20.2.1 General Rules for Encoding BACnet Tags

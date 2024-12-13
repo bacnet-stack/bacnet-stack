@@ -187,6 +187,48 @@ int bacnet_audit_value_decode(
 }
 
 /**
+ * @brief Decode a context encoded BACnetAuditValue from a buffer
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the size of the APDU buffer
+ * @param tag_number - the tag number
+ * @param value - BACnetAuditValue to decode into
+ * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ */
+int bacnet_audit_value_context_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    uint8_t tag_number,
+    BACNET_AUDIT_VALUE *value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    len =
+        bacnet_audit_value_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
+    if (len > 0) {
+        apdu_len += len;
+        if (bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+            apdu_len += len;
+        } else {
+            return BACNET_STATUS_ERROR;
+        }
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Compare two BACnetActionPropertyValue complex datatypes
  * @param value1 [in] The first structure to compare
  * @param value2 [in] The second structure to compare
@@ -284,7 +326,8 @@ int bacnet_audit_log_notification_encode(
     }
 #ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_OBJECT_ENABLE
     /* source-object    [3] BACnetObjectIdentifier OPTIONAL */
-    len = encode_context_object_id(apdu, 3, &value->source_object);
+    len = encode_context_object_id(
+        apdu, 3, value->source_object.type, value->source_object.instance);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -346,7 +389,8 @@ int bacnet_audit_log_notification_encode(
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_OBJECT_ENABLE
     /* target-object   [11] BACnetObjectIdentifier OPTIONAL */
-    len = encode_context_object_id(apdu, 11, &value->target_object);
+    len = encode_context_object_id(
+        apdu, 11, value->target_object.type, value->target_object.instance);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -462,7 +506,7 @@ int bacnet_audit_log_notification_decode(
     }
 #ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_COMMENT_ENABLE
     /* source-comment   [5] CharacterString OPTIONAL */
-    len = encode_context_character_string(
+    len = bacnet_character_string_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 5, &value->source_comment);
     if (len > 0) {
         apdu_len += len;
@@ -568,7 +612,7 @@ int bacnet_audit_log_notification_decode(
 #ifdef BACNET_AUDIT_NOTIFICATION_RESULT_ENABLE
     /* result          [16] Error OPTIONAL */
     len = bacnet_enumerated_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 16, value->result);
+        &apdu[apdu_len], apdu_size - apdu_len, 16, &value->result);
     if (len > 0) {
         apdu_len += len;
     }
@@ -647,31 +691,32 @@ bool bacnet_audit_log_notification_same(
         return false;
     }
 #ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_TIMESTAMP_ENABLE
-    if (!bacnet_timestamp_same(
+    if (!bacapp_timestamp_same(
             &value1->source_timestamp, &value2->source_timestamp)) {
         return false;
     }
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_TIMESTAMP_ENABLE
-    if (!bacnet_timestamp_same(
+    if (!bacapp_timestamp_same(
             &value1->target_timestamp, &value2->target_timestamp)) {
         return false;
     }
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_OBJECT_ENABLE
     if (!bacnet_object_id_same(
-            &value1->source_object, &value2->source_object)) {
+            value1->source_object.type, value1->source_object.instance,
+            value2->source_object.type, value2->source_object.instance)) {
         return false;
     }
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_COMMENT_ENABLE
-    if (!bacnet_character_string_same(
+    if (!characterstring_same(
             &value1->source_comment, &value2->source_comment)) {
         return false;
     }
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_COMMENT_ENABLE
-    if (!bacnet_character_string_same(
+    if (!characterstring_same(
             &value1->target_comment, &value2->target_comment)) {
         return false;
     }
@@ -693,7 +738,8 @@ bool bacnet_audit_log_notification_same(
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_OBJECT_ENABLE
     if (!bacnet_object_id_same(
-            &value1->target_object, &value2->target_object)) {
+            value1->target_object.type, value1->target_object.instance,
+            value2->target_object.type, value2->target_object.instance)) {
         return false;
     }
 #endif

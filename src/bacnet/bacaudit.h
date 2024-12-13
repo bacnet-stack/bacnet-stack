@@ -12,10 +12,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 /* BACnet Stack defines - first */
+#include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdest.h"
 #include "bacnet/cov.h"
 #include "bacnet/datetime.h"
+#include "bacnet/bacdevobjpropref.h"
 
 /**
  * @brief Smaller version of BACnet_Application_Data_Value
@@ -57,6 +59,26 @@ typedef struct BACnet_Audit_Value {
  * but if you have limited memory and need to squeeze as much
  * logging capacity as possible every little byte counts!
  */
+#if !(                                                            \
+    defined(BACNET_AUDIT_NOTIFICATION_MINIMAL_ENABLE) ||          \
+    defined(BACNET_AUDIT_NOTIFICATION_OPTIONAL_ENABLE) ||         \
+    defined(BACNET_AUDIT_NOTIFICATION_SOURCE_TIMESTAMP_ENABLE) || \
+    defined(BACNET_AUDIT_NOTIFICATION_TARGET_TIMESTAMP_ENABLE) || \
+    defined(BACNET_AUDIT_NOTIFICATION_SOURCE_OBJECT_ENABLE) ||    \
+    defined(BACNET_AUDIT_NOTIFICATION_SOURCE_COMMENT_ENABLE) ||   \
+    defined(BACNET_AUDIT_NOTIFICATION_TARGET_COMMENT_ENABLE) ||   \
+    defined(BACNET_AUDIT_NOTIFICATION_INVOKE_ID_ENABLE) ||        \
+    defined(BACNET_AUDIT_NOTIFICATION_SOURCE_USER_ID_ENABLE) ||   \
+    defined(BACNET_AUDIT_NOTIFICATION_SOURCE_USER_ROLE_ENABLE) || \
+    defined(BACNET_AUDIT_NOTIFICATION_TARGET_OBJECT_ENABLE) ||    \
+    defined(BACNET_AUDIT_NOTIFICATION_TARGET_PROPERTY_ENABLE) ||  \
+    defined(BACNET_AUDIT_NOTIFICATION_TARGET_PRIORITY_ENABLE) ||  \
+    defined(BACNET_AUDIT_NOTIFICATION_TARGET_VALUE_ENABLE) ||     \
+    defined(BACNET_AUDIT_NOTIFICATION_CURRENT_VALUE_ENABLE) ||    \
+    defined(BACNET_AUDIT_NOTIFICATION_RESULT_ENABLE))
+#define BACNET_AUDIT_NOTIFICATION_OPTIONAL_ENABLE
+#endif
+
 #ifdef BACNET_AUDIT_NOTIFICATION_OPTIONAL_ENABLE
 #define BACNET_AUDIT_NOTIFICATION_SOURCE_TIMESTAMP_ENABLE
 #define BACNET_AUDIT_NOTIFICATION_TARGET_TIMESTAMP_ENABLE
@@ -72,24 +94,6 @@ typedef struct BACnet_Audit_Value {
 #define BACNET_AUDIT_NOTIFICATION_TARGET_VALUE_ENABLE
 #define BACNET_AUDIT_NOTIFICATION_CURRENT_VALUE_ENABLE
 #define BACNET_AUDIT_NOTIFICATION_RESULT_ENABLE
-#endif
-
-/* track that any of the optional are enabled */
-#if defined(BACNET_AUDIT_NOTIFICATION_SOURCE_TIMESTAMP_ENABLE) || \
-    defined(BACNET_AUDIT_NOTIFICATION_TARGET_TIMESTAMP_ENABLE) || \
-    defined(BACNET_AUDIT_NOTIFICATION_SOURCE_OBJECT_ENABLE) ||    \
-    defined(BACNET_AUDIT_NOTIFICATION_SOURCE_COMMENT_ENABLE) ||   \
-    defined(BACNET_AUDIT_NOTIFICATION_TARGET_COMMENT_ENABLE) ||   \
-    defined(BACNET_AUDIT_NOTIFICATION_INVOKE_ID_ENABLE) ||        \
-    defined(BACNET_AUDIT_NOTIFICATION_SOURCE_USER_ID_ENABLE) ||   \
-    defined(BACNET_AUDIT_NOTIFICATION_SOURCE_USER_ROLE_ENABLE) || \
-    defined(BACNET_AUDIT_NOTIFICATION_TARGET_OBJECT_ENABLE) ||    \
-    defined(BACNET_AUDIT_NOTIFICATION_TARGET_PROPERTY_ENABLE) ||  \
-    defined(BACNET_AUDIT_NOTIFICATION_TARGET_PRIORITY_ENABLE) ||  \
-    defined(BACNET_AUDIT_NOTIFICATION_TARGET_VALUE_ENABLE) ||     \
-    defined(BACNET_AUDIT_NOTIFICATION_CURRENT_VALUE_ENABLE) ||    \
-    defined(BACNET_AUDIT_NOTIFICATION_RESULT_ENABLE)
-#define BACNET_AUDIT_NOTIFICATION_OPTIONAL_ENABLED
 #endif
 
 /*
@@ -158,7 +162,7 @@ typedef struct BACnetAuditNotification {
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_PROPERTY_ENABLE
     /* target-property [12] BACnetPropertyReference OPTIONAL */
-    BACNET_PROPERTY_REFERENCE target_property;
+    struct BACnetPropertyReference target_property;
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_PRIORITY_ENABLE
     /* target-priority [13] Unsigned (1..16) OPTIONAL */
@@ -174,7 +178,7 @@ typedef struct BACnetAuditNotification {
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_RESULT_ENABLE
     /* result          [16] Error OPTIONAL */
-    ERROR_CODE result;
+    BACNET_ERROR_CODE result;
 #endif
 } BACNET_AUDIT_NOTIFICATION;
 
@@ -247,6 +251,12 @@ int bacnet_audit_value_context_encode(
 BACNET_STACK_EXPORT
 int bacnet_audit_value_decode(
     const uint8_t *apdu, uint32_t apdu_size, BACNET_AUDIT_VALUE *value);
+BACNET_STACK_EXPORT
+int bacnet_audit_value_context_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    uint8_t tag_number,
+    BACNET_AUDIT_VALUE *value);
 BACNET_STACK_EXPORT
 bool bacnet_audit_value_same(
     const BACNET_AUDIT_VALUE *value1, const BACNET_AUDIT_VALUE *value2);
