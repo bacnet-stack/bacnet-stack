@@ -339,9 +339,11 @@ int bacnet_audit_log_notification_encode(
     /* target-device   [10] BACnetRecipient */
     len = bacnet_recipient_context_encode(apdu, 10, &value->target_device);
     apdu_len += len;
+#ifdef BACNET_AUDIT_NOTIFICATION_OPTIONAL_ENABLED
     if (apdu) {
         apdu += len;
     }
+#endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_OBJECT_ENABLE
     /* target-object   [11] BACnetObjectIdentifier OPTIONAL */
     len = encode_context_object_id(apdu, 11, &value->target_object);

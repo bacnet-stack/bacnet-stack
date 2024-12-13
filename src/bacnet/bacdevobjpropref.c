@@ -870,9 +870,6 @@ int bacnet_property_reference_encode(
     if (reference->property_array_index != BACNET_ARRAY_ALL) {
         len = encode_context_unsigned(apdu, 1, reference->property_array_index);
         apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
     }
 
     return apdu_len;
@@ -913,9 +910,6 @@ int bacnet_property_reference_context_encode(
     }
     len = encode_closing_tag(apdu, tag_number);
     apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
 
     return apdu_len;
 }
