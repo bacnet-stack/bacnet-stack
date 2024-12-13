@@ -231,7 +231,8 @@ int bacnet_device_object_property_reference_decode(
  * @param tag_number  Tag number
  * @param value Pointer to the structure which contains the decoded value
  *
- * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ * @return  number of bytes decoded, zero if wrong tag number,
+ * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_device_object_property_reference_context_decode(
     const uint8_t *apdu,
@@ -261,8 +262,6 @@ int bacnet_device_object_property_reference_context_decode(
         } else {
             return BACNET_STATUS_ERROR;
         }
-    } else {
-        return BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -504,7 +503,8 @@ int bacnet_device_object_reference_decode(
  * @param tag_number Tag number
  * @param value Pointer to the structure containing the decoded value
  *
- * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ * @return  number of bytes decoded, zero if wrong tag number,
+ * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_device_object_reference_context_decode(
     const uint8_t *apdu,
@@ -534,8 +534,6 @@ int bacnet_device_object_reference_context_decode(
         } else {
             return BACNET_STATUS_ERROR;
         }
-    } else {
-        return BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -744,21 +742,18 @@ int bacapp_decode_obj_property_ref(
             (BACNET_PROPERTY_ID)property_identifier;
     }
     /* property-array-index [2] Unsigned OPTIONAL */
-    if (bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, 2, NULL)) {
-        len = bacnet_unsigned_context_decode(
-            &apdu[apdu_len], apdu_size - apdu_len, 2, &unsigned_value);
-        if (len > 0) {
-            apdu_len += len;
-            if (unsigned_value > UINT32_MAX) {
-                return BACNET_STATUS_ERROR;
-            }
-            if (reference) {
-                reference->property_array_index = unsigned_value;
-            }
-        } else {
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &unsigned_value);
+    if (len > 0) {
+        apdu_len += len;
+        if (unsigned_value > UINT32_MAX) {
             return BACNET_STATUS_ERROR;
         }
+        if (reference) {
+            reference->property_array_index = unsigned_value;
+        }
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
     } else {
         /* OPTIONAL - skip apdu_len increment */
         if (reference) {
@@ -778,7 +773,8 @@ int bacapp_decode_obj_property_ref(
  * @param tag_number  Tag number
  * @param value  Pointer to the structure that shall be decoded into.
  *
- * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ * @return  number of bytes decoded, zero if wrong tag number,
+ * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacapp_decode_context_obj_property_ref(
     const uint8_t *apdu,
@@ -794,7 +790,7 @@ int bacapp_decode_context_obj_property_ref(
     }
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
+        return 0;
     }
     apdu_len += len;
     len = bacapp_decode_obj_property_ref(
@@ -992,7 +988,8 @@ int bacnet_property_reference_decode(
  * @param apdu_size - the size of the APDU buffer
  * @param tag_number - the tag number
  * @param value - BACnetPropertyReference to decode into
- * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ * @return  number of bytes decoded, zero if wrong tag number,
+ * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_property_reference_context_decode(
     const uint8_t *apdu,
@@ -1008,7 +1005,7 @@ int bacnet_property_reference_context_decode(
     }
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
+        return 0;
     }
     apdu_len += len;
     len = bacnet_property_reference_decode(

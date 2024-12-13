@@ -158,19 +158,21 @@ static void test_bacnet_audit_log_notification(void)
     test_len = bacnet_audit_log_notification_decode(apdu, 0, &test_value);
     zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     test_len = bacnet_audit_log_notification_decode(apdu, apdu_len, NULL);
-    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(test_len, apdu_len, NULL);
 }
 
+uint8_t Test_APDU[MAX_APDU];
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacnet_audit_tests, test_bacnet_audit_log_record)
 #else
 static void test_bacnet_audit_log_record(void)
 #endif
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t *apdu = Test_APDU;
     BACNET_AUDIT_LOG_RECORD value = { 0 }, test_value = { 0 };
     int apdu_len = 0, null_len = 0, test_len = 0;
     bool status = false;
+    BACNET_AUDIT_NOTIFICATION *notification = NULL;
 
     value.tag = AUDIT_LOG_DATUM_TAG_STATUS;
     datetime_date_init_ascii(&value.time_stamp.date, "2024/11/30");
@@ -200,13 +202,34 @@ static void test_bacnet_audit_log_record(void)
 
     /* record type = notification */
     value.tag = AUDIT_LOG_DATUM_TAG_NOTIFICATION;
-    value.datum.notification.operation = AUDIT_OPERATION_DEVICE_RESET;
-    value.datum.notification.source_device.tag = BACNET_RECIPIENT_TAG_DEVICE;
-    value.datum.notification.source_device.type.device.instance = 1234;
-    value.datum.notification.source_device.type.device.type = OBJECT_DEVICE;
-    value.datum.notification.target_device.tag = BACNET_RECIPIENT_TAG_DEVICE;
-    value.datum.notification.target_device.type.device.instance = 5678;
-    value.datum.notification.target_device.type.device.type = OBJECT_DEVICE;
+    notification = &value.datum.notification;
+
+    bacapp_timestamp_sequence_set(&notification->source_timestamp, 1234);
+    bacapp_timestamp_sequence_set(&notification->target_timestamp, 5678);
+    notification->source_device.tag = BACNET_RECIPIENT_TAG_DEVICE;
+    notification->source_device.type.device.instance = 1234;
+    notification->source_device.type.device.type = OBJECT_DEVICE;
+    notification->source_object.type = OBJECT_ANALOG_INPUT;
+    notification->source_object.instance = 5678;
+    notification->operation = AUDIT_OPERATION_DEVICE_RESET;
+    characterstring_init_ansi(&notification->source_comment, "Hello, World!");
+    characterstring_init_ansi(&notification->target_comment, "Goodbye, World!");
+    notification->invoke_id = 123;
+    notification->source_user_id = 456;
+    notification->source_user_role = 7;
+    notification->target_device.tag = BACNET_RECIPIENT_TAG_DEVICE;
+    notification->target_device.type.device.instance = 5678;
+    notification->target_device.type.device.type = OBJECT_DEVICE;
+    notification->target_object.type = OBJECT_ANALOG_INPUT;
+    notification->target_object.instance = 1234;
+    notification->target_property.property_identifier = PROP_PRESENT_VALUE;
+    notification->target_property.property_array_index = BACNET_ARRAY_ALL;
+    notification->target_priority = 8;
+    notification->target_value.tag = BACNET_APPLICATION_TAG_REAL;
+    notification->target_value.type.Real = 3.14159;
+    notification->current_value.tag = BACNET_APPLICATION_TAG_REAL;
+    notification->current_value.type.Real = 2.71828;
+    notification->result = ERROR_CODE_OTHER;
     null_len = bacnet_audit_log_record_encode(NULL, &value);
     apdu_len = bacnet_audit_log_record_encode(apdu, &value);
     zassert_equal(apdu_len, null_len, NULL);

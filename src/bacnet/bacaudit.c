@@ -192,7 +192,8 @@ int bacnet_audit_value_decode(
  * @param apdu_size - the size of the APDU buffer
  * @param tag_number - the tag number
  * @param value - BACnetAuditValue to decode into
- * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ * @return number of bytes decoded, zero if tag mismatch, or
+ * BACNET_STATUS_ERROR on failure.
  */
 int bacnet_audit_value_context_decode(
     const uint8_t *apdu,
@@ -208,7 +209,7 @@ int bacnet_audit_value_context_decode(
     }
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
+        return 0;
     }
     apdu_len += len;
     len =
@@ -312,7 +313,7 @@ int bacnet_audit_log_notification_encode(
 #endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_TIMESTAMP_ENABLE
     /* target-timestamp [1] BACnetTimeStamp OPTIONAL */
-    len = bacapp_encode_context_timestamp(apdu, 0, &value->target_timestamp);
+    len = bacapp_encode_context_timestamp(apdu, 1, &value->target_timestamp);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -382,11 +383,9 @@ int bacnet_audit_log_notification_encode(
     /* target-device   [10] BACnetRecipient */
     len = bacnet_recipient_context_encode(apdu, 10, &value->target_device);
     apdu_len += len;
-#ifdef BACNET_AUDIT_NOTIFICATION_OPTIONAL_ENABLED
     if (apdu) {
         apdu += len;
     }
-#endif
 #ifdef BACNET_AUDIT_NOTIFICATION_TARGET_OBJECT_ENABLE
     /* target-object   [11] BACnetObjectIdentifier OPTIONAL */
     len = encode_context_object_id(
@@ -451,52 +450,78 @@ int bacnet_audit_log_notification_decode(
     int len = 0;
     int apdu_len = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value;
+    BACNET_TIMESTAMP timestamp;
+    BACNET_OBJECT_TYPE object_type;
+    uint32_t object_instance;
+    BACNET_CHARACTER_STRING char_string;
+    BACNET_RECIPIENT recipient;
+    struct BACnetPropertyReference property_reference;
+    BACNET_AUDIT_VALUE audit_value;
+    uint32_t enumerated_value;
 
-    if (!value) {
-        return BACNET_STATUS_ERROR;
-    }
     if (!apdu) {
         return BACNET_STATUS_ERROR;
     }
-#ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_TIMESTAMP_ENABLE
     /* source-timestamp [0] BACnetTimeStamp OPTIONAL */
     len = bacnet_timestamp_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 0, &value->source_timestamp);
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &timestamp);
     if (len > 0) {
         apdu_len += len;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_TIMESTAMP_ENABLE
+        if (value) {
+            bacapp_timestamp_copy(&value->source_timestamp, &timestamp);
+        }
 #endif
-#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_TIMESTAMP_ENABLE
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* target-timestamp [1] BACnetTimeStamp OPTIONAL */
     len = bacnet_timestamp_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 1, &value->target_timestamp);
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &timestamp);
     if (len > 0) {
         apdu_len += len;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_TIMESTAMP_ENABLE
+        if (value) {
+            bacapp_timestamp_copy(&value->target_timestamp, &timestamp);
+        }
 #endif
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* source-device    [2] BACnetRecipient */
     len = bacnet_recipient_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 2, &value->source_device);
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &recipient);
     if (len > 0) {
         apdu_len += len;
+        if (value) {
+            bacnet_recipient_copy(&value->source_device, &recipient);
+        }
     } else {
         return BACNET_STATUS_ERROR;
     }
-#ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_OBJECT_ENABLE
     /* source-object    [3] BACnetObjectIdentifier OPTIONAL */
     len = bacnet_object_id_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 3, &value->source_object.type,
-        &value->source_object.instance);
+        &apdu[apdu_len], apdu_size - apdu_len, 3, &object_type,
+        &object_instance);
     if (len > 0) {
         apdu_len += len;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_OBJECT_ENABLE
+        if (value) {
+            value->source_object.type = object_type;
+            value->source_object.instance = object_instance;
+        }
 #endif
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* operation        [4] BACnetAuditOperation */
     len = bacnet_unsigned_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 4, &unsigned_value);
     if (len > 0) {
         if (unsigned_value < AUDIT_OPERATION_MAX) {
-            value->operation = (BACNET_AUDIT_OPERATION)unsigned_value;
+            if (value) {
+                value->operation = (BACNET_AUDIT_OPERATION)unsigned_value;
+            }
         } else {
             return BACNET_STATUS_ERROR;
         }
@@ -504,23 +529,32 @@ int bacnet_audit_log_notification_decode(
     } else {
         return BACNET_STATUS_ERROR;
     }
-#ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_COMMENT_ENABLE
     /* source-comment   [5] CharacterString OPTIONAL */
     len = bacnet_character_string_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 5, &value->source_comment);
+        &apdu[apdu_len], apdu_size - apdu_len, 5, &char_string);
     if (len > 0) {
         apdu_len += len;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_COMMENT_ENABLE
+        if (value) {
+            characterstring_copy(&value->source_comment, &char_string);
+        }
 #endif
-#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_COMMENT_ENABLE
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* target-comment   [6] CharacterString OPTIONAL */
     len = bacnet_character_string_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 6, &value->target_comment);
+        &apdu[apdu_len], apdu_size - apdu_len, 6, &char_string);
     if (len > 0) {
         apdu_len += len;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_COMMENT_ENABLE
+        if (value) {
+            characterstring_copy(&value->target_comment, &char_string);
+        }
 #endif
-#ifdef BACNET_AUDIT_NOTIFICATION_INVOKE_ID_ENABLE
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* invoke-id        [7] Unsigned8 OPTIONAL */
     len = bacnet_unsigned_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 7, &unsigned_value);
@@ -529,22 +563,33 @@ int bacnet_audit_log_notification_decode(
         if (unsigned_value > UINT8_MAX) {
             return BACNET_STATUS_ERROR;
         }
-        value->invoke_id = (uint8_t)unsigned_value;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_INVOKE_ID_ENABLE
+        if (value) {
+            value->invoke_id = (uint8_t)unsigned_value;
+        }
 #endif
-#ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_USER_ID_ENABLE
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* source-user-id   [8] Unsigned16 OPTIONAL */
-    len = bacnet_unsigned_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 8, &unsigned_value);
-    if (len > 0) {
-        apdu_len += len;
-        if (unsigned_value > UINT16_MAX) {
+    if (bacnet_is_context_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 8, NULL, NULL)) {
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, 8, &unsigned_value);
+        if (len > 0) {
+            apdu_len += len;
+            if (unsigned_value > UINT16_MAX) {
+                return BACNET_STATUS_ERROR;
+            }
+#ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_USER_ID_ENABLE
+            if (value) {
+                value->source_user_id = (uint16_t)unsigned_value;
+            }
+#endif
+        } else {
             return BACNET_STATUS_ERROR;
         }
-        value->source_user_id = (uint16_t)unsigned_value;
     }
-#endif
-#ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_USER_ROLE_ENABLE
     /* source-user-role [9] Unsigned8 OPTIONAL */
     len = bacnet_unsigned_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 9, &unsigned_value);
@@ -553,35 +598,55 @@ int bacnet_audit_log_notification_decode(
         if (unsigned_value > UINT8_MAX) {
             return BACNET_STATUS_ERROR;
         }
-        value->source_user_role = (uint8_t)unsigned_value;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_SOURCE_USER_ROLE_ENABLE
+        if (value) {
+            value->source_user_role = (uint8_t)unsigned_value;
+        }
 #endif
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* target-device   [10] BACnetRecipient */
     len = bacnet_recipient_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 10, &value->target_device);
+        &apdu[apdu_len], apdu_size - apdu_len, 10, &recipient);
     if (len > 0) {
         apdu_len += len;
+        if (value) {
+            bacnet_recipient_copy(&value->target_device, &recipient);
+        }
     } else {
         return BACNET_STATUS_ERROR;
     }
-#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_OBJECT_ENABLE
     /* target-object   [11] BACnetObjectIdentifier OPTIONAL */
     len = bacnet_object_id_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 11, &value->target_object.type,
-        &value->target_object.instance);
+        &apdu[apdu_len], apdu_size - apdu_len, 11, &object_type,
+        &object_instance);
     if (len > 0) {
         apdu_len += len;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_OBJECT_ENABLE
+        if (value) {
+            value->target_object.type = object_type;
+            value->target_object.instance = object_instance;
+        }
 #endif
-#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_PROPERTY_ENABLE
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* target-property [12] BACnetPropertyReference OPTIONAL */
     len = bacnet_property_reference_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 12, &value->target_property);
+        &apdu[apdu_len], apdu_size - apdu_len, 12, &property_reference);
     if (len > 0) {
         apdu_len += len;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_PROPERTY_ENABLE
+        if (value) {
+            memcpy(
+                &value->target_property, &property_reference,
+                sizeof(property_reference));
+        }
 #endif
-#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_PRIORITY_ENABLE
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* target-priority [13] Unsigned (1..16) OPTIONAL */
     len = bacnet_unsigned_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 13, &unsigned_value);
@@ -590,33 +655,54 @@ int bacnet_audit_log_notification_decode(
         if (unsigned_value > UINT8_MAX) {
             return BACNET_STATUS_ERROR;
         }
-        value->target_priority = (uint8_t)unsigned_value;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_PRIORITY_ENABLE
+        if (value) {
+            value->target_priority = (uint8_t)unsigned_value;
+        }
 #endif
-#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_VALUE_ENABLE
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* target-value    [14] ABSTRACT-SYNTAX.&Type OPTIONAL */
     len = bacnet_audit_value_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 14, &value->target_value);
+        &apdu[apdu_len], apdu_size - apdu_len, 14, &audit_value);
     if (len > 0) {
         apdu_len += len;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_TARGET_VALUE_ENABLE
+        if (value) {
+            memcpy(&value->target_value, &audit_value, sizeof(audit_value));
+        }
 #endif
-#ifdef BACNET_AUDIT_NOTIFICATION_CURRENT_VALUE_ENABLE
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
     /* current-value   [15] ABSTRACT-SYNTAX.&Type OPTIONAL */
     len = bacnet_audit_value_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 15, &value->current_value);
+        &apdu[apdu_len], apdu_size - apdu_len, 15, &audit_value);
     if (len > 0) {
         apdu_len += len;
-    }
+#ifdef BACNET_AUDIT_NOTIFICATION_CURRENT_VALUE_ENABLE
+        if (value) {
+            memcpy(&value->current_value, &audit_value, sizeof(audit_value));
+        }
 #endif
-#ifdef BACNET_AUDIT_NOTIFICATION_RESULT_ENABLE
+    }
     /* result          [16] Error OPTIONAL */
     len = bacnet_enumerated_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 16, &value->result);
+        &apdu[apdu_len], apdu_size - apdu_len, 16, &enumerated_value);
     if (len > 0) {
         apdu_len += len;
-    }
+        if (enumerated_value > UINT16_MAX) {
+            return BACNET_STATUS_ERROR;
+        }
+#ifdef BACNET_AUDIT_NOTIFICATION_RESULT_ENABLE
+        if (value) {
+            value->result = (BACNET_ERROR_CODE)enumerated_value;
+        }
 #endif
+    } else if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
 
     return apdu_len;
 }
@@ -630,7 +716,8 @@ int bacnet_audit_log_notification_decode(
  * @param tag_number  Tag number
  * @param value  Pointer to the structure that shall be decoded into.
  *
- * @return number of bytes decoded or BACNET_STATUS_ERROR on failure.
+ * @return number of bytes decoded, zero if tag mismatch,
+ * or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_audit_log_notification_context_decode(
     const uint8_t *apdu,
@@ -646,7 +733,7 @@ int bacnet_audit_log_notification_context_decode(
     }
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
+        return 0;
     }
     apdu_len += len;
     len = bacnet_audit_log_notification_decode(
@@ -866,7 +953,8 @@ int bacnet_audit_log_record_encode(
  * @param apdu - Pointer to the buffer to decode from
  * @param apdu_size Size of the buffer to decode from
  * @param value - Pointer to the property value to decode to
- * @return number of bytes encoded, or BACNET_STATUS_ERROR if an error occurs
+ * @return number of bytes encoded, or BACNET_STATUS_ERROR if an error
+ * occurs
  */
 int bacnet_audit_log_record_decode(
     const uint8_t *apdu, uint32_t apdu_size, BACNET_AUDIT_LOG_RECORD *value)
