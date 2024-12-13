@@ -327,78 +327,84 @@ int bacnet_destination_decode(
     const uint8_t *apdu, int apdu_size, BACNET_DESTINATION *destination)
 {
     int len = 0, apdu_len = 0;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_BIT_STRING bitstring = { 0 };
+    BACNET_TIME btime = { 0 };
+    BACNET_RECIPIENT recipient = { 0 };
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    bool boolean_value = false;
 
     if (!apdu) {
         return BACNET_STATUS_REJECT;
     }
-    if (!destination) {
-        return BACNET_STATUS_REJECT;
-    }
     /* Decode Valid Days */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_BIT_STRING)) {
+    len = bacnet_bitstring_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &bitstring);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    bitstring_copy(&destination->ValidDays, &value.type.Bit_String);
+    if (destination) {
+        bitstring_copy(&destination->ValidDays, &bitstring);
+    }
     apdu_len += len;
-    apdu += len;
     /* Decode From Time */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_TIME)) {
+    len = bacnet_time_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &btime);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    /* store value */
-    datetime_copy_time(&destination->FromTime, &value.type.Time);
+    if (destination) {
+        datetime_copy_time(&destination->FromTime, &btime);
+    }
     apdu_len += len;
-    apdu += len;
     /* Decode To Time */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_TIME)) {
+    len = bacnet_time_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &btime);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    /* store value */
-    datetime_copy_time(&destination->ToTime, &value.type.Time);
+    if (destination) {
+        datetime_copy_time(&destination->ToTime, &btime);
+    }
     apdu_len += len;
-    apdu += len;
     /* Recipient */
-    len = bacnet_recipient_decode(apdu, apdu_size, &destination->Recipient);
+    len = bacnet_recipient_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &recipient);
     if (len < 0) {
         return BACNET_STATUS_REJECT;
     }
+    if (destination) {
+        bacnet_recipient_copy(&destination->Recipient, &recipient);
+    }
     apdu_len += len;
-    apdu += len;
     /* Process Identifier */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
+    len = bacnet_unsigned_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &unsigned_value);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    /* store value */
-    destination->ProcessIdentifier = value.type.Unsigned_Int;
+    if (destination) {
+        destination->ProcessIdentifier = unsigned_value;
+    }
     apdu_len += len;
-    apdu += len;
     /* Issue Confirmed Notifications */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_BOOLEAN)) {
+    len = bacnet_boolean_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &boolean_value);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    /* store value */
-    destination->ConfirmedNotify = value.type.Boolean;
+    if (destination) {
+        destination->ConfirmedNotify = boolean_value;
+    }
     apdu_len += len;
-    apdu += len;
     /* Transitions */
-    len = bacapp_decode_application_data(apdu, apdu_size, &value);
-    if ((len == 0) || (len == BACNET_STATUS_ERROR) ||
-        (value.tag != BACNET_APPLICATION_TAG_BIT_STRING)) {
+    len = bacnet_bitstring_application_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, &bitstring);
+    if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    /* store value */
-    bitstring_copy(&destination->Transitions, &value.type.Bit_String);
+    if (destination) {
+        bitstring_copy(&destination->Transitions, &bitstring);
+    }
     apdu_len += len;
 
     return apdu_len;
@@ -516,8 +522,6 @@ int bacnet_recipient_decode(
             recipient->type.device.instance = instance;
         }
         apdu_len += len;
-    } else if (len < 0) {
-        return BACNET_STATUS_REJECT;
     } else {
         len = bacnet_address_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len, BACNET_RECIPIENT_TAG_ADDRESS,

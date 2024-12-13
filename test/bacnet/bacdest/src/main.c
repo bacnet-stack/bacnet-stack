@@ -106,13 +106,13 @@ static void testBACnetDestination(void)
     zassert_equal(apdu_len, null_len, NULL);
     test_len = bacnet_destination_decode(apdu, apdu_len, &test_destination);
     zassert_equal(test_len, apdu_len, NULL);
+    test_len = bacnet_destination_decode(apdu, apdu_len, NULL);
+    zassert_equal(test_len, apdu_len, NULL);
 
     /* decoding, some negative tests */
     test_len = bacnet_destination_decode(NULL, apdu_len, &test_destination);
     zassert_equal(test_len, BACNET_STATUS_REJECT, NULL);
     test_len = bacnet_destination_decode(apdu, 0, &test_destination);
-    zassert_equal(test_len, BACNET_STATUS_REJECT, NULL);
-    test_len = bacnet_destination_decode(apdu, apdu_len, NULL);
     zassert_equal(test_len, BACNET_STATUS_REJECT, NULL);
 }
 /**
