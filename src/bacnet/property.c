@@ -2673,19 +2673,23 @@ static const int Trend_Log_Multiple_Properties_Optional[] = {
     -1
 };
 
-static const int Audit_Log_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                                     PROP_OBJECT_NAME,
-                                                     PROP_OBJECT_TYPE,
-                                                     PROP_STATUS_FLAGS,
-                                                     PROP_EVENT_STATE,
-                                                     PROP_ENABLE,
-                                                     PROP_BUFFER_SIZE,
-                                                     PROP_LOG_BUFFER,
-                                                     PROP_RECORD_COUNT,
-                                                     PROP_TOTAL_RECORD_COUNT,
-                                                     -1 };
+static const int Audit_Log_Properties_Required[] = {
+    /* unordered list of properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_ENABLE,
+    PROP_BUFFER_SIZE,
+    PROP_LOG_BUFFER,
+    PROP_RECORD_COUNT,
+    PROP_TOTAL_RECORD_COUNT,
+    -1
+};
 
 static const int Audit_Log_Properties_Optional[] = {
+    /* unordered list of properties */
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
     PROP_MEMBER_OF,
