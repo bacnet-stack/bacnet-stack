@@ -1108,6 +1108,7 @@ int Audit_Log_Read_Range_By_Sequence(BACNET_READ_RANGE_DATA *pRequest)
         false; /* Has log sequence range spanned the max for uint32_t? */
 
     /* See how much space we have */
+    apdu = pRequest->application_data;
     apdu_size = pRequest->application_data_len - pRequest->Overhead;
     record_count = Audit_Log_Record_Count(pRequest->object_instance);
     total_record_count =
@@ -1261,6 +1262,7 @@ int Audit_Log_Read_Range_By_Time(BACNET_READ_RANGE_DATA *pRequest)
     uint32_t uiFirstSeq = 0; /* Sequence number for 1st record in log */
 
     /* See how much space we have */
+    apdu = pRequest->application_data;
     apdu_size = pRequest->application_data_len - pRequest->Overhead;
     record_count = Audit_Log_Record_Count(pRequest->object_instance);
     total_record_count =
