@@ -748,14 +748,12 @@ int bacnet_audit_log_record_encode(
 {
     int len, apdu_len = 0; /* total length of the apdu, return value */
     BACNET_BIT_STRING log_status = { 0 };
-    BACNET_DATE_TIME bdatetime = { 0 };
 
     if (!value) {
         return 0;
     }
     /* timestamp [0] BACnetDateTime */
-    datetime_since_epoch_seconds(&bdatetime, value->time_stamp);
-    len = bacapp_encode_context_datetime(apdu, 0, &bdatetime);
+    len = bacapp_encode_context_datetime(apdu, 0, &value->time_stamp);
     apdu_len += len;
     if (apdu) {
         apdu += len;
@@ -841,7 +839,7 @@ int bacnet_audit_log_record_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 0, &bdatetime);
     if (len > 0) {
         if (value) {
-            value->time_stamp = datetime_seconds_since_epoch(&bdatetime);
+            datetime_copy(&value->time_stamp, &bdatetime);
         }
         apdu_len += len;
     } else {
@@ -883,8 +881,9 @@ int bacnet_audit_log_record_decode(
                 &notification);
             if (len > 0) {
                 if (value) {
-                    memmove(&value->datum.notification, &notification,
-                    sizeof(BACNET_AUDIT_NOTIFICATION));
+                    memmove(
+                        &value->datum.notification, &notification,
+                        sizeof(BACNET_AUDIT_NOTIFICATION));
                 }
                 apdu_len += len;
             } else {
@@ -940,7 +939,7 @@ bool bacnet_audit_log_record_same(
     if (status) {
         status = false;
         /* does the timestamp match? */
-        if (value1->time_stamp == value2->time_stamp) {
+        if (datetime_compare(&value1->time_stamp, &value2->time_stamp) == 0) {
             status = true;
         }
     }

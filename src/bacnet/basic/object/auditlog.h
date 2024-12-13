@@ -25,6 +25,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/bacaudit.h"
 #include "bacnet/bacdest.h"
 #include "bacnet/cov.h"
 #include "bacnet/datetime.h"
@@ -65,11 +66,6 @@ BACNET_STACK_EXPORT
 bool Audit_Log_Description_Set(uint32_t instance, const char *new_name);
 
 BACNET_STACK_EXPORT
-bool Audit_Log_Out_Of_Service(uint32_t instance);
-BACNET_STACK_EXPORT
-void Audit_Log_Out_Of_Service_Set(uint32_t instance, bool oos_flag);
-
-BACNET_STACK_EXPORT
 int Audit_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 bool Audit_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
@@ -84,64 +80,43 @@ BACNET_STACK_EXPORT
 void Audit_Log_Init(void);
 
 BACNET_STACK_EXPORT
-BACNET_AUDIT_LOG_RECORD *
-Audit_Log_Records_Get(uint32_t object_instance, uint8_t index);
+uint32_t Audit_Log_Buffer_Size(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Audit_Log_Records_Add(
-    uint32_t object_instance, const BACNET_AUDIT_LOG_RECORD *value);
-BACNET_STACK_EXPORT
-bool Audit_Log_Records_Delete_All(uint32_t object_instance);
-BACNET_STACK_EXPORT
-int Audit_Log_Records_Count(uint32_t object_instance);
-BACNET_STACK_EXPORT
-int Audit_Log_Records_Count_Max(uint32_t object_instance);
-BACNET_STACK_EXPORT
-bool Audit_Log_Records_Count_Max_Set(uint32_t object_instance, int max_records);
-BACNET_STACK_EXPORT
-int Audit_Log_Records_Count_Total(uint32_t object_instance);
-BACNET_STACK_EXPORT
-bool Audit_Log_Records_Count_Total_Set(
-    uint32_t object_instance, int total_records);
+bool Audit_Log_Buffer_Size_Set(uint32_t object_instance, uint32_t buffer_size);
 
 BACNET_STACK_EXPORT
-void AL_Insert_Status_Rec(
+uint32_t Audit_Log_Record_Count(uint32_t object_instance);
+BACNET_STACK_EXPORT
+uint32_t Audit_Log_Total_Record_Count(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+void Audit_Log_Record_Status_Insert(
     uint32_t instance, BACNET_LOG_STATUS eStatus, bool bState);
+BACNET_STACK_EXPORT
+void Audit_Log_Record_Notification_Insert(
+    uint32_t instance, BACNET_AUDIT_NOTIFICATION *notification);
+BACNET_STACK_EXPORT
+BACNET_AUDIT_LOG_RECORD *
+Audit_Log_Record_Entry(uint32_t object_instance, uint32_t index);
+BACNET_STACK_EXPORT
+void Audit_Log_Record_Entry_Delete(uint32_t object_instance, uint32_t index);
+BACNET_STACK_EXPORT
+bool Audit_Log_Record_Entry_Add(
+    uint32_t object_instance, const BACNET_AUDIT_LOG_RECORD *value);
 
 BACNET_STACK_EXPORT
-void AL_Insert_Notification_Rec(uint32_t instance, AL_NOTIFICATION *notif);
+bool Audit_Log_Enable(uint32_t instance);
+BACNET_STACK_EXPORT
+bool Audit_Log_Enable_Set(uint32_t object_instance, bool enable);
 
 BACNET_STACK_EXPORT
-bool AL_Enable(uint32_t instance);
-
+int Audit_Log_Read_Range_By_Position(BACNET_READ_RANGE_DATA *pRequest);
 BACNET_STACK_EXPORT
-void AL_Enable_Set(uint32_t instance, bool bEnable);
-
+int Audit_Log_Read_Range_By_Sequence(BACNET_READ_RANGE_DATA *pRequest);
 BACNET_STACK_EXPORT
-bool AL_Out_Of_Service(uint32_t instance);
-
+int Audit_Log_Read_Range_By_Time(BACNET_READ_RANGE_DATA *pRequest);
 BACNET_STACK_EXPORT
-void AL_Out_Of_Service_Set(uint32_t instance, bool b);
-
-BACNET_STACK_EXPORT
-bacnet_time_t AL_BAC_Time_To_Local(BACNET_DATE_TIME *SourceTime);
-
-BACNET_STACK_EXPORT
-void AL_Local_Time_To_BAC(BACNET_DATE_TIME *DestTime, bacnet_time_t SourceTime);
-
-BACNET_STACK_EXPORT
-int AL_encode_entry(uint8_t *apdu, int iLog, int iEntry);
-
-BACNET_STACK_EXPORT
-int AL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest);
-
-BACNET_STACK_EXPORT
-int AL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest);
-
-BACNET_STACK_EXPORT
-int AL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest);
-
-BACNET_STACK_EXPORT
-int AL_log_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest);
+int Audit_Log_Read_Range(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest);
 
 #ifdef __cplusplus
 }

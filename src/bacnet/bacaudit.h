@@ -180,7 +180,7 @@ typedef struct BACnetAuditNotification {
  * }
  */
 typedef struct BACnetAuditLogRecord {
-    bacnet_time_t time_stamp;
+    BACNET_DATE_TIME time_stamp;
     uint8_t tag;
     union {
         uint8_t log_status;

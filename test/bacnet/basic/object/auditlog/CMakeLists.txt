@@ -38,6 +38,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/auditlog.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/bacaddr.c
+    ${SRC_DIR}/bacnet/bacaudit.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacdcode.c
     ${SRC_DIR}/bacnet/bacdest.c
@@ -64,6 +65,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/proplist.c
     # Test and test library files
     ./src/main.c
+    ${TST_DIR}/bacnet/basic/object/test/property_test.c
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ${TST_DIR}/bacnet/basic/object/test/datetime_local.c
     ${ZTST_DIR}/ztest_mock.c

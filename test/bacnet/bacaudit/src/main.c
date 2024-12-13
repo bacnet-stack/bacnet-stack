@@ -124,9 +124,11 @@ static void test_bacnet_audit_value(void)
     status = bacnet_is_opening_tag_number(apdu, apdu_len, tag_number, &tag_len);
     zassert_true(status, NULL);
     test_len += tag_len;
-    value_len = bacnet_audit_value_decode(&apdu[test_len], apdu_len-test_len, &test_value);
+    value_len = bacnet_audit_value_decode(
+        &apdu[test_len], apdu_len - test_len, &test_value);
     test_len += value_len;
-    status = bacnet_is_closing_tag_number(&apdu[test_len], apdu_len-test_len, tag_number, &tag_len);
+    status = bacnet_is_closing_tag_number(
+        &apdu[test_len], apdu_len - test_len, tag_number, &tag_len);
     zassert_true(status, NULL);
     test_len += tag_len;
     zassert_equal(apdu_len, test_len, NULL);

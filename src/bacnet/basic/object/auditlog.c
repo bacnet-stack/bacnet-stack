@@ -1,10 +1,71 @@
 /**
  * @file
  * @brief Audit Log object, customize for your use
- * @details  An Audit Log object combines audit notifications
+ * @details An Audit Log object combines audit notifications
  *  from operation sources and operation targets and stores the
  *  combined record in an internal buffer for subsequent retrieval.
  *  Each timestamped buffer entry is called an audit log "record."
+ *
+ *  Each Audit Log object maintains an internal, persistent, optionally
+ *  fixed-size log buffer. This log buffer fills or grows as audit
+ *  log records are added. If the log buffer becomes full, the least recent
+ *  log records are overwritten when new log records are added.
+ *  Log buffers are transferred as a list of BACnetAuditLogRecord values
+ *  using the ReadRange and AuditLogQuery services. Each log record in the
+ *  log buffer has an implied sequence number that is equal to the value
+ *  of the Total_Record_Count property immediately after the record is added.
+ *  See Clause 19.6 for a full description of how audit notifications are
+ *  added to audit logs.
+ *
+ *  As records are added into the log, the Audit Log object will scan
+ *  existing entries for a matching record. A record is a match if:
+ *      (a) the record contains the timestamp for the opposite actor (the
+ *      record contains the operation source timestamp when merging
+ *      in an operation target notification and vice-versa);
+ *      (b) the operation-source, operation, invoke-id, target-device,
+ *      target-property, are all equal;
+ *      (c) if the user-id, user-role, target-value fields are provided
+ *      in both notifications then they are equal; and
+ *      (d) if the source-timestamp and target-timestamp values are
+ *      approximately equal (+/- APDU_Timeout * 2).
+ *
+ *  If a match is found, the existing log record is updated.
+ *  Otherwise, a new record is created. If a match is found,
+ *  and it already contains both an operation source and an
+ *  operation target portion, then the notification is dropped.
+ *  When creating a new record, those fields which are not supplied
+ *  in the notification (such as the 'Source Timestamp' when a
+ *  server notification is received) shall be absent from the record.
+ *  When updating an existing record, those fields not supplied in the
+ *  original notification are updated from the new notification, if present.
+ *  For the 'Current Value' field, a value provided by the operation target
+ *  device shall always take precedence over a value provided by an operation
+ *  source device. As such, if the values provided in the peer notifications
+ *  differ, the operation target value shall be the one used in the record.
+ *
+ *  Logging may be enabled and disabled through the Enable property.
+ *  Audit Log enabling and disabling is recorded in the audit log buffer.
+ *
+ *  Unlike other log objects, Audit Log objects do not use the BUFFER_READY
+ *  event algorithm.
+ *
+ *  The acquisition of log records by remote devices has
+ *  no effect upon the state of the Audit Log object itself. This allows
+ *  completely independent, but properly sequential, access to its log records
+ *  by all remote devices. Any remote device can independently update its
+ *  log records at any time.
+ *
+ *  Audit Log objects may optionally support forwarding of audit notifications
+ *  to “parent” audit logs. This functionality improves the reliability of the
+ *  audit system by allowing intermediaries to buffer audit notifications
+ *  in the case where the ultimate audit logger is offline for a short period
+ *  of time. It is expected that intermediaries be capable of storing a larger
+ *  number of records than devices which report auditable actions. It is also
+ *  useful for buffering of audit notifications so they can be sent in bulk to
+ *  the parent audit log. When operating in this mode, with the
+ *  Delete_On_Forward property set to TRUE, the object is not required
+ *  to perform audit notification matching and combining.
+ *
  * @author Mikhail Antropov <michail.antropov@dsr-corporation.com>
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date July 2023
@@ -37,9 +98,8 @@
 struct object_data {
     bool Enable;
     bool Out_Of_Service;
+    int Buffer_Size;
     OS_Keylist Records;
-    int Record_Index;
-    int Record_Count_Max;
     int Record_Count_Total;
     const char *Object_Name;
     const char *Description;
@@ -47,17 +107,20 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 
-static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                           PROP_OBJECT_NAME,
-                                           PROP_OBJECT_TYPE,
-                                           PROP_STATUS_FLAGS,
-                                           PROP_EVENT_STATE,
-                                           PROP_ENABLE,
-                                           PROP_BUFFER_SIZE,
-                                           PROP_LOG_BUFFER,
-                                           PROP_RECORD_COUNT,
-                                           PROP_TOTAL_RECORD_COUNT,
-                                           -1 };
+static const int Properties_Required[] = {
+    /* required properties that are supported for this object */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_ENABLE,
+    PROP_BUFFER_SIZE,
+    PROP_LOG_BUFFER,
+    PROP_RECORD_COUNT,
+    PROP_TOTAL_RECORD_COUNT,
+    -1
+};
 
 static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
@@ -173,45 +236,15 @@ unsigned Audit_Log_Instance_To_Index(uint32_t object_instance)
 }
 
 /**
- * Get the current time from the Device object
- *
- * @return current time in epoch seconds
- */
-static bacnet_time_t Audit_Log_Epoch_Seconds_Now(void)
-{
-    bacnet_time_t now = 0;
-    BACNET_DATE_TIME bdatetime = { 0 };
-
-    if (datetime_local(&bdatetime.date, &bdatetime.time, NULL, NULL)) {
-        now = datetime_seconds_since_epoch(&bdatetime);
-    }
-
-    return now;
-}
-
-/**
- * For a given date-list, deletes the entire data-list.
- * @param  list - the list to be deleted
- */
-static void Audit_Log_Records_Clean(OS_Keylist list)
-{
-    void *data;
-    while (Keylist_Count(list) > 0) {
-        data = Keylist_Data_Pop(list);
-        free(data);
-    }
-}
-
-/**
  * For a given object instance-number, returns the Audit Log entity by index.
  *
  * @param  object_instance - object-instance number of the object
  * @param  index - index of entity
  *
- * @return Audit Log entity.
+ * @return Audit Log entity, or NULL if not found.
  */
 BACNET_AUDIT_LOG_RECORD *
-Audit_Log_Records_Get(uint32_t object_instance, uint8_t index)
+Audit_Log_Record_Entry(uint32_t object_instance, uint32_t index)
 {
     BACNET_AUDIT_LOG_RECORD *entry = NULL;
     struct object_data *pObject;
@@ -225,23 +258,20 @@ Audit_Log_Records_Get(uint32_t object_instance, uint8_t index)
 }
 
 /**
- * For a given object, checks that Audit Log Records are available for adding.
- * @param  pObject - object data
- * @return  true if records are available for adding, false if not.
+ * @brief Delete a record entry from the log buffer
+ * @param  object_instance - object-instance number of the object
+ * @param  index - record index of entity
  */
-static bool Audit_Log_Records_Available(struct object_data *pObject)
+void Audit_Log_Record_Entry_Delete(uint32_t object_instance, uint32_t index)
 {
-    int count;
+    BACNET_AUDIT_LOG_RECORD *entry = NULL;
+    struct object_data *pObject;
 
-    if (!pObject) {
-        return false;
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        entry = Keylist_Data_Delete(pObject->Records, index);
+        free(entry);
     }
-    count = Keylist_Count(pObject->Records);
-    if (count >= pObject->Record_Count_Max) {
-        return false;
-    }
-
-    return true;
 }
 
 /**
@@ -255,119 +285,48 @@ static bool Audit_Log_Records_Available(struct object_data *pObject)
  *
  * @return  true if the entity is add successfully.
  */
-bool Audit_Log_Records_Add(
+bool Audit_Log_Record_Entry_Add(
     uint32_t object_instance, const BACNET_AUDIT_LOG_RECORD *value)
 {
-    bool status = false;
-    BACNET_AUDIT_LOG_RECORD *entry;
+    BACNET_AUDIT_LOG_RECORD *entry = NULL;
     struct object_data *pObject;
-    int count;
+    int index;
 
     pObject = Object_Data(object_instance);
     if (!pObject) {
         return false;
     }
-    if (Audit_Log_Records_Available(pObject)) {
+    if (Keylist_Count(pObject->Records) >= pObject->Buffer_Size) {
+        /* log is full, so delete oldest record before adding a new record */
+        entry = Keylist_Data_Delete_By_Index(pObject->Records, 0);
+    }
+    if (!entry) {
         entry = calloc(1, sizeof(BACNET_AUDIT_LOG_RECORD));
         if (!entry) {
             return false;
         }
-        *entry = *value;
-        status = Keylist_Data_Add(pObject->Records, count, entry);
     }
-
-    return status;
-}
-
-/**
- * For a given object instance-number, clears to entities list.
- *
- * @param  object_instance - object-instance number of the object
- *
- * @return  true if entities list is clear successfully.
- */
-bool Audit_Log_Records_Delete_All(uint32_t object_instance)
-{
-    struct object_data *pObject;
-    pObject = Object_Data(object_instance);
-    if (!pObject) {
+    memcpy(entry, value, sizeof(BACNET_AUDIT_LOG_RECORD));
+    index =
+        Keylist_Data_Add(pObject->Records, pObject->Record_Count_Total, entry);
+    if (index < 0) {
+        free(entry);
         return false;
     }
-    Audit_Log_Records_Clean(pObject->Records);
-
-    return true;
-}
-
-/**
- * For a given object instance-number, returns the entities list length.
- *
- * This read-only property shall represent the number of log records currently
- * resident in the log buffer. Unlike other log object types, this property
- * is not writable as audit logs are never expected to be reset.
- *
- * @param  object_instance - object-instance number of the object
- *
- * @return  size of entities list.
- */
-int Audit_Log_Records_Count(uint32_t object_instance)
-{
-    struct object_data *pObject;
-    pObject = Object_Data(object_instance);
-    if (!pObject) {
-        return 0;
-    }
-
-    return Keylist_Count(pObject->Records);
-}
-
-/**
- * @brief Get the log record maximum length for this object instance
- * @param  object_instance - object-instance number of the object
- * @return  maximum number of log records
- */
-int Audit_Log_Records_Count_Max(uint32_t object_instance)
-{
-    struct object_data *pObject;
-    pObject = Object_Data(object_instance);
-    if (!pObject) {
-        return 0;
-    }
-
-    return pObject->Record_Count_Max;
-}
-
-/**
- * @brief Set the log record maximum length for this object instance
- * @param  object_instance - object-instance number of the object
- * @param  max_records - maximum number of log records
- * @return true if the maximum number of log records is set
- */
-bool Audit_Log_Records_Count_Max_Set(uint32_t object_instance, int max_records)
-{
-    struct object_data *pObject;
-    pObject = Object_Data(object_instance);
-    if (!pObject) {
-        return false;
-    }
-    pObject->Record_Count_Max = max_records;
+    pObject->Record_Count_Total++;
 
     return true;
 }
 
 /**
  * @brief Get the log record maximum length for this object instance
- *
- * This property, of type Unsigned64, shall represent the total number
- * of log records collected by the Audit Log object since creation.
- * When the value of Total_Record_Count reaches its maximum possible
- * value of 2^64 - 1, the next value it takes shall be one.
- * Once this value has wrapped to one, its semantic value (the total
- * number of log records collected) has been lost.
- *
  * @param  object_instance - object-instance number of the object
  * @return  maximum number of log records
+ * @note For products that support very large log objects,
+ *  the value 2^32-1 is reserved to indicate that the buffer size is
+ *  unknown and is constrained solely by currently available resources.
  */
-int Audit_Log_Records_Count_Total(uint32_t object_instance)
+uint32_t Audit_Log_Buffer_Size(uint32_t object_instance)
 {
     struct object_data *pObject;
     pObject = Object_Data(object_instance);
@@ -375,60 +334,39 @@ int Audit_Log_Records_Count_Total(uint32_t object_instance)
         return 0;
     }
 
-    return pObject->Record_Count_Total;
+    return pObject->Buffer_Size;
 }
 
 /**
  * @brief Set the log record maximum length for this object instance
  * @param  object_instance - object-instance number of the object
- * @param  max_records - maximum number of log records
+ * @param  buffer_size - maximum number of log records
  * @return true if the maximum number of log records is set
  */
-bool Audit_Log_Records_Count_Total_Set(
-    uint32_t object_instance, int total_records)
+bool Audit_Log_Buffer_Size_Set(uint32_t object_instance, uint32_t buffer_size)
 {
     struct object_data *pObject;
-    pObject = Object_Data(object_instance);
-    if (!pObject) {
-        return false;
-    }
-    pObject->Record_Count_Total = total_records;
-
-    return true;
-}
-
-/**
- * @brief Encode a Audit Log entity list complex data type
- *
- * @param object_instance - object-instance number of the object
- * @param apdu - the APDU buffer
- * @param apdu_size - size of the apdu buffer.
- *
- * @return bytes encoded or zero on error.
- */
-static int
-Audit_Log_Records_Encode(uint32_t object_instance, uint8_t *apdu, int max_apdu)
-{
     BACNET_AUDIT_LOG_RECORD *entry = NULL;
-    int apdu_len = 0;
-    unsigned index = 0;
-    unsigned size = 0;
+    int i;
 
-    size = Audit_Log_Records_Count(object_instance);
-    for (index = 0; index < size; index++) {
-        entry = Audit_Log_Records_Get(object_instance, index);
-        apdu_len += bacnet_audit_log_record_encode(NULL, entry);
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
+        return false;
     }
-    if (apdu_len > max_apdu) {
-        return BACNET_STATUS_ABORT;
+    if (buffer_size > INT_MAX) {
+        return false;
     }
-    apdu_len = 0;
-    for (index = 0; index < size; index++) {
-        entry = Audit_Log_Records_Get(object_instance, index);
-        apdu_len += bacnet_audit_log_record_encode(&apdu[apdu_len], entry);
+    if (buffer_size < pObject->Buffer_Size) {
+        /* The disposition of existing log records when Buffer_Size is written
+            is a local matter. We can shrink the log buffer. */
+        for (i = buffer_size; i < pObject->Buffer_Size; i++) {
+            entry = Keylist_Data_Delete_By_Index(pObject->Records, i);
+            free(entry);
+        }
     }
+    pObject->Buffer_Size = buffer_size;
 
-    return apdu_len;
+    return true;
 }
 
 /**
@@ -521,8 +459,6 @@ const char *Audit_Log_Description(uint32_t object_instance)
     if (pObject) {
         if (pObject->Description) {
             name = pObject->Description;
-        } else {
-            name = "";
         }
     }
 
@@ -580,58 +516,26 @@ bool Audit_Log_Enable(uint32_t object_instance)
  * @param enable log enable flag
  * @return true if the log enable flag is applied
  */
-static bool Audit_Log_Enable_Apply(struct object_data *pObject, bool enable)
-{
-    bool status = false;
-    struct object_data *pObject;
-    bool previous_enable;
-
-    if (pObject) {
-        /* Section 12.25.5 can't enable a full log with stop when full
-         * set */
-        if ((pObject->Enable == false) &&
-            (!Audit_Log_Records_Available(pObject) && (enable == true))) {
-            status = false;
-        } else if (pObject->Enable != enable) {
-            /* Only trigger this validation on a potential change of state */
-            previous_enable = pObject->Enable;
-            pObject->Enable = enable;
-            /* To do: what actions do we need to take on writing ? */
-            if (enable == false) {
-                if (previous_enable == true) {
-                    /* Only insert record if we really were
-                        enabled i.e. times and enable flags */
-                    Audit_Log_Record_Status_Insert(
-                        object_instance, LOG_STATUS_LOG_DISABLED, true);
-                }
-            } else {
-                if (previous_enable == false) {
-                    /* Have really gone from disabled to enabled as
-                     * enable flag and times were correct */
-                    Audit_Log_Record_Status_Insert(
-                        object_instance, LOG_STATUS_LOG_DISABLED, false);
-                }
-            }
-            pObject->Enable = enable;
-            status = true;
-        }
-    }
-
-    return status;
-}
-
-/**
- * @brief Determines a object enabled flag state
- * @param object_instance - object-instance number of the object
- * @return  enabled status flag
- */
-bool Audit_Log_Enable_Set(uint32_t object_instance, bool value)
+bool Audit_Log_Enable_Set(uint32_t object_instance, bool enable)
 {
     bool status = false;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
-    status = Audit_Log_Enable_Apply(pObject, value);
+    if (pObject) {
+        if (pObject->Enable != enable) {
+            /* Only trigger this validation on a potential change of state */
+            pObject->Enable = enable;
+            if (enable == false) {
+                Audit_Log_Record_Status_Insert(
+                    object_instance, LOG_STATUS_LOG_DISABLED, true);
+            } else {
+                Audit_Log_Record_Status_Insert(
+                    object_instance, LOG_STATUS_LOG_DISABLED, false);
+            }
+        }
+        status = true;
+    }
 
     return status;
 }
@@ -651,11 +555,8 @@ static bool Audit_Log_Enable_Write(
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false;
-    struct object_data *pObject;
-    bool previous_enable;
 
-    pObject = Object_Data(object_instance);
-    status = Audit_Log_Enable_Apply(pObject, enable);
+    status = Audit_Log_Enable_Set(object_instance, enable);
     if (!status) {
         *error_class = ERROR_CLASS_OBJECT;
         *error_code = ERROR_CODE_LOG_BUFFER_FULL;
@@ -665,39 +566,71 @@ static bool Audit_Log_Enable_Write(
 }
 
 /**
- * @brief Determines a object out-of-service flag state
- * @param object_instance - object-instance number of the object
- * @return out-of-service status flag
+ * @brief For a given object instance-number, determines the property value
+ * @param  object_instance - object-instance number of the object
+ * @return the property value
  */
-bool Audit_Log_Out_Of_Service(uint32_t object_instance)
+uint32_t Audit_Log_Record_Count(uint32_t object_instance)
 {
-    bool value = false;
+    uint32_t record_count = 0;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        value = pObject->Out_Of_Service;
+        record_count = Keylist_Count(pObject->Records);
     }
 
-    return value;
+    return record_count;
 }
 
 /**
- * @brief For a given object instance-number, sets the object out-of-service
- * flag
- * @param object_instance - object-instance number of the object
- * @param value - holds the value to be set
+ * @brief For a given object instance-number, determines the property value
+ * @param  object_instance - object-instance number of the object
+ * @return the property value
+ */
+uint32_t Audit_Log_Total_Record_Count(uint32_t object_instance)
+{
+    uint32_t total_count = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        total_count = pObject->Record_Count_Total;
+    }
+
+    return total_count;
+}
+
+/**
+ * @brief For a given object instance-number, writes the property value
+ * @details If writable, it may not be written when Enable is TRUE.
+ * @param  object_instance - object-instance number of the object
+ * @param  buffer_size - holds the value to be set
+ * @param  error_class - BACnet error class
+ * @param  error_code - BACnet error code
  * @return true if set
  */
-bool Audit_Log_Out_Of_Service_Set(uint32_t object_instance, bool value)
+bool Audit_Log_Buffer_Size_Write(
+    uint32_t object_instance,
+    uint32_t buffer_size,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
 {
     bool status = false;
     struct object_data *pObject;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        pObject->Out_Of_Service = value;
-        status = true;
+        if (pObject->Enable) {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        } else if (buffer_size > INT_MAX) {
+            /* keylist library uses 'int' so that is our limit */
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        } else {
+            status = Audit_Log_Buffer_Size_Set(object_instance, buffer_size);
+        }
     }
 
     return status;
@@ -716,16 +649,15 @@ bool Audit_Log_Out_Of_Service_Set(uint32_t object_instance, bool value)
 int Audit_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    BACNET_CHARACTER_STRING char_string;
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_BIT_STRING bit_string = { 0 };
     uint8_t *apdu = NULL;
     int apdu_max = 0;
-    bool value = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
-
     apdu = rpdata->application_data;
     apdu_max = rpdata->application_data_len;
     switch (rpdata->object_property) {
@@ -746,48 +678,47 @@ int Audit_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_boolean(
                 &apdu[0], Audit_Log_Enable(rpdata->object_instance));
             break;
-
         case PROP_BUFFER_SIZE:
             apdu_len = encode_application_unsigned(
-                &apdu[0], Audit_Log_Records_Count_Max(rpdata->object_instance));
+                &apdu[0], Audit_Log_Buffer_Size(rpdata->object_instance));
             break;
-
         case PROP_LOG_BUFFER:
             /* You can only read the buffer via the ReadRange service */
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_READ_ACCESS_DENIED;
             apdu_len = BACNET_STATUS_ERROR;
             break;
-
         case PROP_RECORD_COUNT:
             apdu_len = encode_application_unsigned(
-                &apdu[0], Audit_Log_Records_Count(rpdata->object_instance));
+                &apdu[0], Audit_Log_Record_Count(rpdata->object_instance));
             break;
-
         case PROP_TOTAL_RECORD_COUNT:
             apdu_len = encode_application_unsigned(
                 &apdu[0],
-                Audit_Log_Records_Count_Total(rpdata->object_instance));
+                Audit_Log_Total_Record_Count(rpdata->object_instance));
             break;
-
         case PROP_EVENT_STATE:
             /* note: see the details in the standard on how to use this */
             apdu_len =
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
-
         case PROP_STATUS_FLAGS:
             /* note: see the details in the standard on how to use these */
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
+            /* OVERRIDDEN The value of this flag shall be Logical FALSE */
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(
-                &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                Audit_Log_Out_Of_Service(rpdata->object_instance));
+            /* OUT_OF_SERVICE The value of this flag shall be Logical FALSE */
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
-
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string, Audit_Log_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -847,7 +778,6 @@ bool Audit_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     &wp_data->error_class, &wp_data->error_code);
             }
             break;
-
         case PROP_BUFFER_SIZE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
@@ -857,17 +787,6 @@ bool Audit_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     &wp_data->error_class, &wp_data->error_code);
             }
             break;
-
-        case PROP_RECORD_COUNT:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (status) {
-                status = Audit_Log_Record_Count_Write(
-                    wp_data->object_instance, value.type.Unsigned_Int,
-                    &wp_data->error_class, &wp_data->error_code);
-            }
-            break;
-
         default:
             if (property_lists_member(
                     Properties_Required, Properties_Optional,
@@ -896,13 +815,13 @@ void Audit_Log_Record_Status_Insert(
 {
     BACNET_AUDIT_LOG_RECORD record;
     struct object_data *pObject;
-    bool effective_enable;
 
     pObject = Object_Data(object_instance);
     if (!pObject) {
         return;
     }
-    record.time_stamp = Audit_Log_Epoch_Seconds_Now();
+    datetime_local(
+        &record.time_stamp.date, &record.time_stamp.time, NULL, NULL);
     record.tag = AUDIT_LOG_DATUM_TAG_STATUS;
     record.datum.log_status = 0;
     /* Note we set the bits in correct order so that we can place them directly
@@ -926,39 +845,46 @@ void Audit_Log_Record_Status_Insert(
         default:
             break;
     }
-    Audit_Log_Records_Add(object_instance, &record);
-
-    Logs[log_index][CurrentLog->iIndex++] = record;
-    if (CurrentLog->iIndex >= AL_MAX_ENTRIES) {
-        CurrentLog->iIndex = 0;
-    }
-
-    CurrentLog->ulTotalRecordCount++;
-
-    if (CurrentLog->ulRecordCount < AL_MAX_ENTRIES) {
-        CurrentLog->ulRecordCount++;
-    }
+    Audit_Log_Record_Entry_Add(object_instance, &record);
 }
 
-static bool Audit_Log_Notification_Same(AL_NOTIFICATION *a, AL_NOTIFICATION *b)
-{
-    return (a->operation == b->operation) &&
-        bacnet_recipient_same(&a->source_device, &b->source_device) &&
-        bacnet_recipient_same(&a->target_device, &b->target_device);
-}
-
-static int AL_Rec_Search(int iLog, AL_LOG_REC *rec)
+/**
+ * @brief Determines if a given log notification is the same as another
+ * @param object_instance - object-instance number of the object
+ * @param record - log record
+ * @return the index of the found log record, or -1 if not found
+ */
+static int Audit_Log_Record_Search(
+    uint32_t object_instance, BACNET_AUDIT_LOG_RECORD *record)
 {
     int i;
-    AL_LOG_INFO *CurrentLog = &LogInfo[iLog];
-    AL_LOG_REC *r;
+    BACNET_AUDIT_LOG_RECORD *entry;
+    struct object_data *pObject;
 
-    for (i = 0; i < CurrentLog->iIndex; i++) {
-        r = &Logs[iLog][i];
-        if ((r->ucRecType == AL_TYPE_NOTIFICATION) &&
-            Audit_Log_Notification_Same(
-                &r->Datum.notification, &rec->Datum.notification)) {
-            return i;
+    if (!record) {
+        return -1;
+    }
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
+        return -1;
+    }
+    for (i = 0; i < pObject->Buffer_Size; i++) {
+        entry = Audit_Log_Record_Entry(object_instance, i);
+        if (!entry) {
+            break;
+        }
+        if (entry->tag == record->tag) {
+            if (entry->tag == AUDIT_LOG_DATUM_TAG_STATUS) {
+                if (entry->datum.log_status == record->datum.log_status) {
+                    return i;
+                }
+            } else if (entry->tag == AUDIT_LOG_DATUM_TAG_NOTIFICATION) {
+                if (bacnet_audit_log_notification_same(
+                        &entry->datum.notification,
+                        &record->datum.notification)) {
+                    return i;
+                }
+            }
         }
     }
 
@@ -968,153 +894,40 @@ static int AL_Rec_Search(int iLog, AL_LOG_REC *rec)
 /**
  * Insert a notification record into a audit log.
  *
- * @param  instance - object-instance number of the object
+ * @param  object_instance - object-instance number of the object
  * @param  notif - notificatione
  */
-void AL_Insert_Notification_Rec(uint32_t instance, AL_NOTIFICATION *notif)
+void Audit_Log_Record_Notification_Insert(
+    uint32_t object_instance, BACNET_AUDIT_NOTIFICATION *notification)
 {
-    AL_LOG_INFO *CurrentLog;
-    AL_LOG_REC TempRec;
-    int iLog;
+    BACNET_AUDIT_LOG_RECORD seek_entry = { 0 };
+    struct object_data *pObject;
     int index;
 
-    iLog = Audit_Log_Instance_To_Index(instance);
-    if (iLog == MAX_AUDIT_LOGS) {
+    pObject = Object_Data(object_instance);
+    if (!pObject) {
         return;
     }
-    CurrentLog = &LogInfo[iLog];
-
-    if (!AL_Enable(instance)) {
+    if (!Audit_Log_Enable(object_instance)) {
         return;
     }
-
-    TempRec.tTimeStamp = Audit_Log_Epoch_Seconds_Now();
-    TempRec.ucRecType = AL_TYPE_NOTIFICATION;
-    TempRec.Datum.notification = *notif;
-
-    index = AL_Rec_Search(iLog, &TempRec);
+    /*  As records are added into the log, the Audit Log object will scan
+        existing entries for a matching record. */
+    datetime_local(
+        &seek_entry.time_stamp.date, &seek_entry.time_stamp.time, NULL, NULL);
+    seek_entry.tag = AUDIT_LOG_DATUM_TAG_NOTIFICATION;
+    memcpy(
+        &seek_entry.datum.notification, notification,
+        sizeof(BACNET_AUDIT_NOTIFICATION));
+    index = Audit_Log_Record_Search(object_instance, &seek_entry);
     if (index >= 0) {
-        Logs[iLog][index] = TempRec;
-    } else {
-        Logs[iLog][CurrentLog->iIndex++] = TempRec;
-        if (CurrentLog->iIndex >= AL_MAX_ENTRIES) {
-            CurrentLog->iIndex = 0;
-        }
+        /*  If a match is found, the existing record is updated with the new
+            time stamp and the record is moved to the end of the list.
+            i.e. delete the old entry and add the new entry */
+        Audit_Log_Record_Entry_Delete(object_instance, index);
     }
-
-    CurrentLog->ulTotalRecordCount++;
-
-    if (CurrentLog->ulRecordCount < AL_MAX_ENTRIES) {
-        CurrentLog->ulRecordCount++;
-    }
+    Audit_Log_Record_Entry_Add(object_instance, &seek_entry);
 }
-
-/**
- * For a given object instance-number, determines the enable flag
- *
- * @param  instance - object-instance number of the object
- *
- * @return  enable status of the object
- */
-bool AL_Enable(uint32_t instance)
-{
-    int log_index;
-
-    log_index = Audit_Log_Instance_To_Index(instance);
-    if (log_index == MAX_AUDIT_LOGS) {
-        return false;
-    }
-    return LogInfo[log_index].bEnable;
-}
-
-/**
- * For a given object instance-number, sets the enable status
- *
- * @param  instance - object-instance number of the object
- * @param  bEnable - new status
- */
-void AL_Enable_Set(uint32_t instance, bool bEnable)
-{
-    int log_index;
-
-    log_index = Audit_Log_Instance_To_Index(instance);
-    if (log_index < MAX_AUDIT_LOGS) {
-        LogInfo[log_index].bEnable = bEnable;
-    }
-}
-
-/**
- * For a given object instance-number, determines the Out-Of-Service status
- *
- * @param  instance - object-instance number of the object
- *
- * @return Out-Of-Service status of the object
- */
-bool AL_Out_Of_Service(uint32_t instance)
-{
-    int log_index;
-
-    log_index = Audit_Log_Instance_To_Index(instance);
-    if (log_index == MAX_AUDIT_LOGS) {
-        return false;
-    }
-    return LogInfo[log_index].out_of_service;
-}
-
-/**
- * For a given object instance-number, sets the Out-Of-Service status
- *
- * @param  instance - object-instance number of the object
- * @param  b - new status
- */
-void AL_Out_Of_Service_Set(uint32_t instance, bool b)
-{
-    int log_index;
-
-    log_index = Audit_Log_Instance_To_Index(instance);
-    if (log_index < MAX_AUDIT_LOGS) {
-        LogInfo[log_index].out_of_service = b;
-    }
-}
-
-/*****************************************************************************
- * Convert a BACnet time into a local time in seconds since the local epoch  *
- *****************************************************************************/
-
-bacnet_time_t AL_BAC_Time_To_Local(BACNET_DATE_TIME *bdatetime)
-{
-    return datetime_seconds_since_epoch(bdatetime);
-}
-
-/*****************************************************************************
- * Convert a local time in seconds since the local epoch into a BACnet time  *
- *****************************************************************************/
-
-void AL_Local_Time_To_BAC(BACNET_DATE_TIME *bdatetime, bacnet_time_t seconds)
-{
-    datetime_since_epoch_seconds(bdatetime, seconds);
-}
-
-/****************************************************************************
- * Build a list of Audit Log entries from the Log Buffer property as        *
- * required for the ReadsRange functionality.                               *
- *                                                                          *
- * We have to support By Position, By Sequence and By Time requests.        *
- *                                                                          *
- * We do assume the list cannot change whilst we are accessing it so would  *
- * not be multithread safe if there are other tasks that write to the log.  *
- *                                                                          *
- * We take the simple approach here to filling the buffer by taking a max   *
- * size for a single entry and then stopping if there is less than that     *
- * left in the buffer. You could build each entry in a separate buffer and  *
- * determine the exact length before copying but this is time consuming,    *
- * requires more memory and would probably only let you sqeeeze one more    *
- * entry in on occasion. The value is calculated as 10 bytes for the time   *
- * stamp + 27 bytes for our largest data item + 4 for the context tags to   *
- * give 41.                                                                 *
- ****************************************************************************/
-
-#define AL_MAX_ENC 41 /* Maximum size of encoded log entry, see above */
 
 /**
  * For a given read range request, encodes log records
@@ -1124,71 +937,69 @@ void AL_Local_Time_To_BAC(BACNET_DATE_TIME *bdatetime, bacnet_time_t seconds)
  *
  * @return  number of bytes encoded, or 0 if unable to encode.
  */
-int AL_log_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
+int Audit_Log_Read_Range(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 {
+    int apdu_len = 0;
+
+    /* buffer and buffer size is passed in BACNET_READ_RANGE_DATA */
+    (void)apdu;
     /* Initialise result flags to all false */
     bitstring_init(&pRequest->ResultFlags);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, false);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, false);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, false);
     pRequest->ItemCount = 0; /* Start out with nothing */
-
-    /* Bail out now if nowt - should never happen for a Audit Log but ... */
-    if (LogInfo[Audit_Log_Instance_To_Index(pRequest->object_instance)]
-            .ulRecordCount == 0) {
-        return (0);
-    }
-
     if ((pRequest->RequestType == RR_BY_POSITION) ||
         (pRequest->RequestType == RR_READ_ALL)) {
-        return (AL_encode_by_position(apdu, pRequest));
+        apdu_len = Audit_Log_Read_Range_By_Position(pRequest);
     } else if (pRequest->RequestType == RR_BY_SEQUENCE) {
-        return (AL_encode_by_sequence(apdu, pRequest));
+        apdu_len = Audit_Log_Read_Range_By_Sequence(pRequest);
+    } else {
+        apdu_len = Audit_Log_Read_Range_By_Time(pRequest);
     }
 
-    return (AL_encode_by_time(apdu, pRequest));
+    return apdu_len;
 }
 
 /**
- * Handle encoding for the By Position and All options.
- * Does All option by converting to a By Position request starting at index
- * 1 and of maximum log size length.
- *
- * @param apdu - buffer to hold the bytes
+ * @brief Handle encoding for the By Position and All options.
+ *  Does All option by converting to a By Position request starting at index
+ *  1 and of maximum log size length.
  * @param pRequest - the read range request
- *
  * @return  number of bytes encoded, or 0 if unable to encode.
  */
-int AL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
+int Audit_Log_Read_Range_By_Position(BACNET_READ_RANGE_DATA *pRequest)
 {
     int log_index = 0;
-    int iLen = 0;
+    int apdu_len = 0;
+    size_t apdu_size;
+    int len;
+    uint8_t *apdu;
+    uint32_t record_count = 0;
+    BACNET_AUDIT_LOG_RECORD *entry = NULL;
     int32_t iTemp = 0;
-    AL_LOG_INFO *CurrentLog = NULL;
-
     uint32_t uiIndex = 0; /* Current entry number */
     uint32_t uiFirst = 0; /* Entry number we started encoding from */
     uint32_t uiLast = 0; /* Entry number we finished encoding on */
     uint32_t uiTarget = 0; /* Last entry we are required to encode */
-    uint32_t uiRemaining = 0; /* Amount of unused space in packet */
 
+    record_count = Audit_Log_Record_Count(pRequest->object_instance);
     /* See how much space we have */
-    uiRemaining = MAX_APDU - pRequest->Overhead;
-    log_index = Audit_Log_Instance_To_Index(pRequest->object_instance);
-    CurrentLog = &LogInfo[log_index];
+    apdu_size = pRequest->application_data_len - pRequest->Overhead;
     if (pRequest->RequestType == RR_READ_ALL) {
         /*
          * Read all the list or as much as will fit in the buffer by selecting
          * a range that covers the whole list and falling through to the next
          * section of code
          */
-        pRequest->Count = CurrentLog->ulRecordCount; /* Full list */
-        pRequest->Range.RefIndex = 1; /* Starting at the beginning */
+        pRequest->Count = record_count;
+        /* Starting at the beginning */
+        pRequest->Range.RefIndex = 1;
     }
-
-    if (pRequest->Count <
-        0) { /* negative count means work from index backwards */
+    if (pRequest->Count < 0) {
         /*
+         * negative count means work from index backwards
+         *
          * Convert from end index/negative count to
          * start index/positive count and then process as
          * normal. This assumes that the order to return items
@@ -1200,39 +1011,40 @@ int AL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
          * try to optimise the code unless you understand all the
          * implications of the data type conversions!
          */
-
-        iTemp = pRequest->Range.RefIndex; /* pull out and convert to signed */
-        iTemp +=
-            pRequest->Count + 1; /* Adjust backwards, remember count is -ve */
-        if (iTemp <
-            1) { /* if count is too much, return from 1 to start index */
+        /* pull out and convert to signed */
+        iTemp = pRequest->Range.RefIndex;
+        /* Adjust backwards, remember count is -ve */
+        iTemp += pRequest->Count + 1;
+        if (iTemp < 1) {
+            /* if count is too much, return from 1 to start index */
             pRequest->Count = pRequest->Range.RefIndex;
             pRequest->Range.RefIndex = 1;
-        } else { /* Otherwise adjust the start index and make count +ve */
+        } else {
+            /* Otherwise adjust the start index and make count +ve */
             pRequest->Range.RefIndex = iTemp;
             pRequest->Count = -pRequest->Count;
         }
     }
-
     /* From here on in we only have a starting point and a positive count */
-
-    if (pRequest->Range.RefIndex >
-        CurrentLog->ulRecordCount) { /* Nothing to return as we are past the end
-                                      of the list */
-        return (0);
+    if (pRequest->Range.RefIndex > record_count) {
+        /* Nothing to return as we are past the end of the list */
+        return 0;
     }
-
-    uiTarget = pRequest->Range.RefIndex + pRequest->Count -
-        1; /* Index of last required entry */
-    if (uiTarget >
-        CurrentLog->ulRecordCount) { /* Capped at end of list if necessary */
-        uiTarget = CurrentLog->ulRecordCount;
+    /* Index of last required entry */
+    uiTarget = pRequest->Range.RefIndex + pRequest->Count - 1;
+    if (uiTarget > record_count) {
+        /* Capped at end of list if necessary */
+        uiTarget = record_count;
     }
-
     uiIndex = pRequest->Range.RefIndex;
-    uiFirst = uiIndex; /* Record where we started from */
+    /* Record where we started from */
+    uiFirst = uiIndex;
+    apdu = pRequest->application_data;
     while (uiIndex <= uiTarget) {
-        if (uiRemaining < AL_MAX_ENC) {
+        log_index = uiIndex - 1;
+        entry = Audit_Log_Record_Entry(pRequest->object_instance, log_index);
+        len = bacnet_audit_log_record_encode(NULL, entry);
+        if (len > (apdu_size - apdu_len)) {
             /*
              * Can't fit any more in! We just set the result flag to say there
              * was more and drop out of the loop early
@@ -1241,26 +1053,25 @@ int AL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
                 &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
             break;
         }
-
-        iTemp = AL_encode_entry(&apdu[iLen], log_index, uiIndex);
-
-        uiRemaining -= iTemp; /* Reduce the remaining space */
-        iLen += iTemp; /* and increase the length consumed */
-        uiLast = uiIndex; /* Record the last entry encoded */
-        uiIndex++; /* and get ready for next one */
-        pRequest->ItemCount++; /* Chalk up another one for the response count */
+        len = bacnet_audit_log_record_encode(apdu, entry);
+        apdu += len;
+        apdu_len += len;
+        /* Record the last entry encoded */
+        uiLast = uiIndex;
+        /* and get ready for next one */
+        uiIndex++;
+        /* Chalk up another one for the response count */
+        pRequest->ItemCount++;
     }
-
     /* Set remaining result flags if necessary */
     if (uiFirst == 1) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
     }
-
-    if (uiLast == CurrentLog->ulRecordCount) {
+    if (uiLast == record_count) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
     }
 
-    return (iLen);
+    return apdu_len;
 }
 
 /**
@@ -1274,20 +1085,21 @@ int AL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  *
  * @return  number of bytes encoded, or 0 if unable to encode.
  */
-int AL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
+int Audit_Log_Read_Range_By_Sequence(BACNET_READ_RANGE_DATA *pRequest)
 {
-    int log_index = 0;
-    int iLen = 0;
-    int32_t iTemp = 0;
-    AL_LOG_INFO *CurrentLog = NULL;
-
+    int apdu_len = 0;
+    size_t apdu_size;
+    int len;
+    uint8_t *apdu;
+    int record_index = 0;
+    uint32_t record_count;
+    uint32_t total_record_count;
+    BACNET_AUDIT_LOG_RECORD *entry = NULL;
     uint32_t uiIndex = 0; /* Current entry number */
     uint32_t uiFirst = 0; /* Entry number we started encoding from */
     uint32_t uiLast = 0; /* Entry number we finished encoding on */
     uint32_t uiSequence = 0; /* Tracking sequenc number when encoding */
-    uint32_t uiRemaining = 0; /* Amount of unused space in packet */
     uint32_t uiFirstSeq = 0; /* Sequence number for 1st record in log */
-
     uint32_t uiBegin = 0; /* Starting Sequence number for request */
     uint32_t uiEnd = 0; /* Ending Sequence number for request */
     bool bWrapReq =
@@ -1296,14 +1108,13 @@ int AL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         false; /* Has log sequence range spanned the max for uint32_t? */
 
     /* See how much space we have */
-    uiRemaining = MAX_APDU - pRequest->Overhead;
-    log_index = Audit_Log_Instance_To_Index(pRequest->object_instance);
-    CurrentLog = &LogInfo[log_index];
+    apdu_size = pRequest->application_data_len - pRequest->Overhead;
+    record_count = Audit_Log_Record_Count(pRequest->object_instance);
+    total_record_count =
+        Audit_Log_Total_Record_Count(pRequest->object_instance);
     /* Figure out the sequence number for the first record, last is
      * ulTotalRecordCount */
-    uiFirstSeq =
-        CurrentLog->ulTotalRecordCount - (CurrentLog->ulRecordCount - 1);
-
+    uiFirstSeq = total_record_count - record_count - 1;
     /* Calculate start and end sequence numbers from request */
     if (pRequest->Count < 0) {
         uiBegin = pRequest->Range.RefSeqNum + pRequest->Count + 1;
@@ -1316,17 +1127,16 @@ int AL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     if (uiBegin > uiEnd) {
         bWrapReq = true;
     }
-    if (uiFirstSeq > CurrentLog->ulTotalRecordCount) {
+    if (uiFirstSeq > total_record_count) {
         bWrapLog = true;
     }
 
-    if ((bWrapReq == false) && (bWrapLog == false)) { /* Simple case no wraps */
+    if ((bWrapReq == false) && (bWrapLog == false)) {
+        /* Simple case no wraps */
         /* If no overlap between request range and buffer contents bail out */
-        if ((uiEnd < uiFirstSeq) ||
-            (uiBegin > CurrentLog->ulTotalRecordCount)) {
+        if ((uiEnd < uiFirstSeq) || (uiBegin > total_record_count)) {
             return (0);
         }
-
         /* Truncate range if necessary so it is guaranteed to lie
          * between the first and last sequence numbers in the buffer
          * inclusive.
@@ -1335,36 +1145,38 @@ int AL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             uiBegin = uiFirstSeq;
         }
 
-        if (uiEnd > CurrentLog->ulTotalRecordCount) {
-            uiEnd = CurrentLog->ulTotalRecordCount;
+        if (uiEnd > total_record_count) {
+            uiEnd = total_record_count;
         }
-    } else { /* There are wrap arounds to contend with */
+    } else {
+        /* There are wrap arounds to contend with */
         /* First check for non overlap condition as it is common to all */
-        if ((uiBegin > CurrentLog->ulTotalRecordCount) &&
-            (uiEnd < uiFirstSeq)) {
+        if ((uiBegin > total_record_count) && (uiEnd < uiFirstSeq)) {
             return (0);
         }
 
-        if (bWrapLog == false) { /* Only request range wraps */
+        if (bWrapLog == false) {
+            /* Only request range wraps */
             if (uiEnd < uiFirstSeq) {
-                uiEnd = CurrentLog->ulTotalRecordCount;
+                uiEnd = total_record_count;
                 if (uiBegin < uiFirstSeq) {
                     uiBegin = uiFirstSeq;
                 }
             } else {
                 uiBegin = uiFirstSeq;
-                if (uiEnd > CurrentLog->ulTotalRecordCount) {
-                    uiEnd = CurrentLog->ulTotalRecordCount;
+                if (uiEnd > total_record_count) {
+                    uiEnd = total_record_count;
                 }
             }
-        } else if (bWrapReq == false) { /* Only log wraps */
-            if (uiBegin > CurrentLog->ulTotalRecordCount) {
+        } else if (bWrapReq == false) {
+            /* Only log wraps */
+            if (uiBegin > total_record_count) {
                 if (uiBegin > uiFirstSeq) {
                     uiBegin = uiFirstSeq;
                 }
             } else {
-                if (uiEnd > CurrentLog->ulTotalRecordCount) {
-                    uiEnd = CurrentLog->ulTotalRecordCount;
+                if (uiEnd > total_record_count) {
+                    uiEnd = total_record_count;
                 }
             }
         } else { /* Both wrap */
@@ -1372,12 +1184,11 @@ int AL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
                 uiBegin = uiFirstSeq;
             }
 
-            if (uiEnd > CurrentLog->ulTotalRecordCount) {
-                uiEnd = CurrentLog->ulTotalRecordCount;
+            if (uiEnd > total_record_count) {
+                uiEnd = total_record_count;
             }
         }
     }
-
     /* We now have a range that lies completely within the log buffer
      * and we need to figure out where that starts in the buffer.
      */
@@ -1385,7 +1196,10 @@ int AL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     uiSequence = uiBegin;
     uiFirst = uiIndex; /* Record where we started from */
     while (uiSequence != uiEnd + 1) {
-        if (uiRemaining < AL_MAX_ENC) {
+        record_index = uiIndex - 1;
+        entry = Audit_Log_Record_Entry(pRequest->object_instance, record_index);
+        len = bacnet_audit_log_record_encode(NULL, entry);
+        if (len > (apdu_size - apdu_len)) {
             /*
              * Can't fit any more in! We just set the result flag to say there
              * was more and drop out of the loop early
@@ -1394,11 +1208,9 @@ int AL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
                 &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
             break;
         }
-
-        iTemp = AL_encode_entry(&apdu[iLen], log_index, uiIndex);
-
-        uiRemaining -= iTemp; /* Reduce the remaining space */
-        iLen += iTemp; /* and increase the length consumed */
+        len = bacnet_audit_log_record_encode(apdu, entry);
+        apdu += len;
+        apdu_len += len;
         uiLast = uiIndex; /* Record the last entry encoded */
         uiIndex++; /* and get ready for next one */
         uiSequence++;
@@ -1410,13 +1222,12 @@ int AL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
     }
 
-    if (uiLast == CurrentLog->ulRecordCount) {
+    if (uiLast == record_count) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
     }
-
     pRequest->FirstSequence = uiBegin;
 
-    return (iLen);
+    return apdu_len;
 }
 
 /**
@@ -1430,60 +1241,59 @@ int AL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  *
  * @return  number of bytes encoded, or 0 if unable to encode.
  */
-int AL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
+int Audit_Log_Read_Range_By_Time(BACNET_READ_RANGE_DATA *pRequest)
 {
-    int log_index = 0;
-    int iLen = 0;
+    int apdu_len = 0;
+    size_t apdu_size;
+    int len;
+    uint8_t *apdu;
+    int record_index = 0;
+    uint32_t record_count;
+    uint32_t total_record_count;
+    BACNET_AUDIT_LOG_RECORD *entry = NULL;
+    int diff;
+
     int32_t iTemp = 0;
     int iCount = 0;
-    AL_LOG_INFO *CurrentLog = NULL;
-
     uint32_t uiIndex = 0; /* Current entry number */
     uint32_t uiFirst = 0; /* Entry number we started encoding from */
     uint32_t uiLast = 0; /* Entry number we finished encoding on */
-    uint32_t uiRemaining = 0; /* Amount of unused space in packet */
     uint32_t uiFirstSeq = 0; /* Sequence number for 1st record in log */
-    bacnet_time_t tRefTime = 0; /* The time from the request in local format */
 
     /* See how much space we have */
-    uiRemaining = MAX_APDU - pRequest->Overhead;
-    log_index = Audit_Log_Instance_To_Index(pRequest->object_instance);
-    CurrentLog = &LogInfo[log_index];
-
-    tRefTime = AL_BAC_Time_To_Local(&pRequest->Range.RefTime);
-    /* Find correct position for oldest entry in log */
-    if (CurrentLog->ulRecordCount < AL_MAX_ENTRIES) {
-        uiIndex = 0;
-    } else {
-        uiIndex = CurrentLog->iIndex;
-    }
-
+    apdu_size = pRequest->application_data_len - pRequest->Overhead;
+    record_count = Audit_Log_Record_Count(pRequest->object_instance);
+    total_record_count =
+        Audit_Log_Total_Record_Count(pRequest->object_instance);
     if (pRequest->Count < 0) {
         /* Start at end of log and look for record which has
          * timestamp greater than or equal to the reference.
          */
-        iCount = CurrentLog->ulRecordCount - 1;
+        iCount = record_count - 1;
         /* Start out with the sequence number for the last record */
-        uiFirstSeq = CurrentLog->ulTotalRecordCount;
+        uiFirstSeq = total_record_count;
         for (;;) {
-            if (Logs[pRequest->object_instance]
-                    [(uiIndex + iCount) % AL_MAX_ENTRIES]
-                        .tTimeStamp < tRefTime) {
+            record_index = iCount;
+            entry =
+                Audit_Log_Record_Entry(pRequest->object_instance, record_index);
+            diff =
+                datetime_compare(&entry->time_stamp, &pRequest->Range.RefTime);
+            if (diff < 0) {
+                /* If datetime1 is before datetime2, returns negative.*/
                 break;
             }
-
             uiFirstSeq--;
-            iCount--;
-            if (iCount < 0) {
-                return (0);
+            if (iCount) {
+                iCount--;
+            } else {
+                /* end of records, not found */
+                return 0;
             }
         }
-
         /* We have an and point for our request,
          * now work backwards to find where we should start from
          */
-
-        pRequest->Count = -pRequest->Count; /* Conveert to +ve count */
+        pRequest->Count = -pRequest->Count; /* Convert to +ve count */
         /* If count would bring us back beyond the limits
          * Of the buffer then pin it to the start of the buffer
          * otherwise adjust starting point and sequence number
@@ -1505,30 +1315,34 @@ int AL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         iCount = 0;
         /* Figure out the sequence number for the first record, last is
          * ulTotalRecordCount */
-        uiFirstSeq =
-            CurrentLog->ulTotalRecordCount - (CurrentLog->ulRecordCount - 1);
+        uiFirstSeq = total_record_count - record_count - 1;
         for (;;) {
-            if (Logs[pRequest->object_instance]
-                    [(uiIndex + iCount) % AL_MAX_ENTRIES]
-                        .tTimeStamp > tRefTime) {
+            record_index = iCount;
+            entry =
+                Audit_Log_Record_Entry(pRequest->object_instance, record_index);
+            diff =
+                datetime_compare(&entry->time_stamp, &pRequest->Range.RefTime);
+            if (diff > 0) {
+                /* If datetime1 is after datetime2, returns positive.*/
                 break;
             }
-
             uiFirstSeq++;
             iCount++;
-            if ((uint32_t)iCount == CurrentLog->ulRecordCount) {
+            if ((uint32_t)iCount == record_count) {
                 return (0);
             }
         }
     }
 
     /* We now have a starting point for the operation and a +ve count */
-
     uiIndex = iCount + 1; /* Convert to BACnet 1 based reference */
     uiFirst = uiIndex; /* Record where we started from */
     iCount = pRequest->Count;
     while (iCount != 0) {
-        if (uiRemaining < AL_MAX_ENC) {
+        record_index = uiIndex - 1;
+        entry = Audit_Log_Record_Entry(pRequest->object_instance, record_index);
+        len = bacnet_audit_log_record_encode(NULL, entry);
+        if (len > (apdu_size - apdu_len)) {
             /*
              * Can't fit any more in! We just set the result flag to say there
              * was more and drop out of the loop early
@@ -1537,105 +1351,29 @@ int AL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
                 &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
             break;
         }
-
-        iTemp = AL_encode_entry(&apdu[iLen], log_index, uiIndex);
-
-        uiRemaining -= iTemp; /* Reduce the remaining space */
-        iLen += iTemp; /* and increase the length consumed */
+        len = bacnet_audit_log_record_encode(apdu, entry);
+        apdu += len;
+        apdu_len += len;
         uiLast = uiIndex; /* Record the last entry encoded */
         uiIndex++; /* and get ready for next one */
         pRequest->ItemCount++; /* Chalk up another one for the response count */
         iCount--; /* And finally cross another one off the requested count */
 
-        if (uiIndex >
-            CurrentLog
-                ->ulRecordCount) { /* Finish up if we hit the end of the log */
+        if (uiIndex > record_count) {
+            /* Finish up if we hit the end of the log */
             break;
         }
     }
-
     /* Set remaining result flags if necessary */
     if (uiFirst == 1) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
     }
-
-    if (uiLast == CurrentLog->ulRecordCount) {
+    if (uiLast == record_count) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
     }
-
     pRequest->FirstSequence = uiFirstSeq;
 
-    return (iLen);
-}
-
-/**
- * Encodes a log record
- *
- * @param apdu - Pointer to the buffer for encoding.
- * @param iLog - log index
- * @param iEntry - record index
- *
- * @return  number of bytes encoded, or 0 if unable to encode.
- */
-int AL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
-{
-    int iLen = 0;
-    AL_LOG_REC *pSource = NULL;
-    BACNET_BIT_STRING TempBits;
-    uint8_t ucCount = 0;
-    BACNET_DATE_TIME TempTime;
-
-    /* Convert from BACnet 1 based to 0 based array index and then
-     * handle wrap around of the circular buffer */
-
-    pSource = &Logs[iLog][(iEntry - 1) % AL_MAX_ENTRIES];
-
-    iLen = 0;
-    /* First stick the time stamp in with tag [0] */
-    AL_Local_Time_To_BAC(&TempTime, pSource->tTimeStamp);
-    iLen += bacapp_encode_context_datetime(apdu, 0, &TempTime);
-
-    /* Next comes the actual entry with tag [1] */
-    iLen += encode_opening_tag(&apdu[iLen], 1);
-    /* The data entry is tagged individually [0] - [10] to indicate which type
-     */
-    switch (pSource->ucRecType) {
-        case AL_TYPE_STATUS:
-            /* Build bit string directly from the stored octet */
-            bitstring_init(&TempBits);
-            bitstring_set_bits_used(&TempBits, 1, 5);
-            bitstring_set_octet(&TempBits, 0, pSource->Datum.ucLogStatus);
-            iLen += encode_context_bitstring(
-                &apdu[iLen], pSource->ucRecType, &TempBits);
-            break;
-
-        case AL_TYPE_NOTIFICATION:
-            iLen += encode_opening_tag(&apdu[iLen], pSource->ucRecType);
-
-            /* Now we support tags 2, 4, 10 only */
-            iLen += bacnet_recipient_context_encode(
-                &apdu[iLen], 2, &pSource->Datum.notification.source_device);
-            iLen += encode_context_unsigned(
-                &apdu[iLen], 4, pSource->Datum.notification.operation);
-            iLen += bacnet_recipient_context_encode(
-                &apdu[iLen], 10, &pSource->Datum.notification.target_device);
-
-            iLen += encode_closing_tag(&apdu[iLen], pSource->ucRecType);
-            break;
-
-        case AL_TYPE_TIME_CHANGE:
-            iLen += encode_context_real(
-                &apdu[iLen], pSource->ucRecType, pSource->Datum.time_change);
-            break;
-
-        default:
-            /* Should never happen as we don't support this at the moment */
-            break;
-    }
-
-    iLen += encode_closing_tag(&apdu[iLen], 1);
-
-    return (iLen);
+    return apdu_len;
 }
 
 /**
@@ -1667,8 +1405,7 @@ uint32_t Audit_Log_Create(uint32_t object_instance)
         pObject->Object_Name = NULL;
         pObject->Description = NULL;
         pObject->Records = Keylist_Create();
-        pObject->Record_Index = 0;
-        pObject->Record_Count_Max = BACNET_AUDIT_LOG_RECORDS_MAX;
+        pObject->Buffer_Size = BACNET_AUDIT_LOG_RECORDS_MAX;
         pObject->Enable = false;
         pObject->Out_Of_Service = false;
         /* add to list */
@@ -1683,6 +1420,20 @@ uint32_t Audit_Log_Create(uint32_t object_instance)
 }
 
 /**
+ * @brief Deletes all the Audit Logs and their data
+ */
+static void Audit_Log_Records_Cleanup(OS_Keylist list)
+{
+    BACNET_AUDIT_LOG_RECORD *entry;
+
+    while (Keylist_Count(list) > 0) {
+        entry = Keylist_Data_Pop(list);
+        free(entry);
+    }
+    Keylist_Delete(list);
+}
+
+/**
  * @brief Deletes an Audit Log object
  * @param object_instance - object-instance number of the object
  * @return true if the object is deleted
@@ -1694,8 +1445,7 @@ bool Audit_Log_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        Audit_Log_Records_Clean(pObject->Records);
-        Keylist_Delete(pObject->Records);
+        Audit_Log_Records_Cleanup(pObject->Records);
         free(pObject);
         status = true;
     }
@@ -1714,8 +1464,7 @@ void Audit_Log_Cleanup(void)
         do {
             pObject = Keylist_Data_Pop(Object_List);
             if (pObject) {
-                Audit_Log_Records_Clean(pObject->Records);
-                Keylist_Delete(pObject->Records);
+                Audit_Log_Records_Cleanup(pObject->Records);
                 free(pObject);
             }
         } while (pObject);
