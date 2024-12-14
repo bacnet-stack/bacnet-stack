@@ -137,7 +137,7 @@ static void testTimestampTimeDate(void)
         len--;
         test_len = bacnet_timestamp_context_decode(
             buffer, len, tag_number, &testTimestampOut);
-        zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+        zassert_true(test_len <= 0, "len=%d test_len=%d", len, test_len);
     }
     /* test for valid values */
     zassert_equal(testTimestampIn.tag, testTimestampOut.tag, NULL);

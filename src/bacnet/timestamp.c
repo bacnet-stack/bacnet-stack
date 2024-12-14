@@ -317,6 +317,9 @@ int bacnet_timestamp_context_decode(
     int len = 0;
     int apdu_len = 0;
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
     if (!bacnet_is_opening_tag_number(
             &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
         return 0;

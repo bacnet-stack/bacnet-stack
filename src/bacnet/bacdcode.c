@@ -1256,6 +1256,9 @@ int bacnet_boolean_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application && (tag.number == BACNET_APPLICATION_TAG_BOOLEAN)) {
@@ -1304,6 +1307,9 @@ int bacnet_boolean_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -1531,6 +1537,9 @@ int bacnet_bitstring_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application &&
@@ -1575,6 +1584,9 @@ int bacnet_bitstring_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -1865,6 +1877,9 @@ int bacnet_object_id_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application &&
@@ -1911,6 +1926,9 @@ int bacnet_object_id_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -2291,6 +2309,9 @@ int bacnet_octet_string_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application &&
@@ -2334,6 +2355,9 @@ int bacnet_octet_string_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -2587,6 +2611,9 @@ int bacnet_character_string_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application &&
@@ -2630,6 +2657,9 @@ int bacnet_character_string_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -2796,6 +2826,9 @@ int bacnet_unsigned_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -2863,6 +2896,9 @@ int bacnet_unsigned_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application &&
@@ -3129,6 +3165,9 @@ int bacnet_enumerated_application_decode(
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application &&
@@ -3178,6 +3217,9 @@ int bacnet_enumerated_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -3355,6 +3397,9 @@ int bacnet_signed_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -3421,6 +3466,9 @@ int bacnet_signed_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application &&
@@ -3667,6 +3715,9 @@ int bacnet_real_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -3733,6 +3784,9 @@ int bacnet_real_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application && (tag.number == BACNET_APPLICATION_TAG_REAL)) {
@@ -3878,6 +3932,9 @@ int bacnet_double_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -3944,6 +4001,9 @@ int bacnet_double_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application && (tag.number == BACNET_APPLICATION_TAG_DOUBLE)) {
@@ -4124,6 +4184,9 @@ int bacnet_time_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -4190,6 +4253,9 @@ int bacnet_time_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application && (tag.number == BACNET_APPLICATION_TAG_TIME)) {
@@ -4505,6 +4571,9 @@ int bacnet_date_context_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.context && (tag.number == tag_value)) {
@@ -4571,6 +4640,9 @@ int bacnet_date_application_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
 
+    if (apdu_size == 0) {
+        return 0;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if (len > 0) {
         if (tag.application && (tag.number == BACNET_APPLICATION_TAG_DATE)) {
