@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "bacnet/config.h"
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -2706,6 +2707,7 @@ static bool is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
 {
     const int len = characterstring_length(hostname);
     const char *val = characterstring_value(hostname);
+    int dot_count = 0;
 
     /* Check length */
     if (len == 0 || len > MAX_CHARACTER_STRING_BYTES) {
@@ -2713,7 +2715,6 @@ static bool is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
     }
 
     /* Check if it looks like an IP address (basic check) */
-    int dot_count = 0;
     for (int i = 0; i < len; i++) {
         if (val[i] == '.') {
             dot_count++;
