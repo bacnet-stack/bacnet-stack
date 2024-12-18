@@ -1687,7 +1687,7 @@ bool Analog_Value_Deadband_Set(uint32_t object_instance, float deadband)
  *
  * @return  limit_enable property value
  */
-uint32_t Analog_Value_Limit_Enable(uint32_t object_instance)
+BACNET_LIMIT_ENABLE Analog_Value_Limit_Enable(uint32_t object_instance)
 {
     BACNET_LIMIT_ENABLE limit_enable = 0;
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
