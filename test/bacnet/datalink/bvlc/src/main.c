@@ -859,7 +859,7 @@ static void test_BVLC_BBMD_Address(void)
     int apdu_len = 0;
     int test_apdu_len = 0;
     BACNET_HOST_N_PORT bbmd_address;
-    BACNET_HOST_N_PORT test_bbmd_address;
+    BACNET_IP_ADDRESS  test_bbmd_address;
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
 #if 0
     bool status = false;
