@@ -340,6 +340,12 @@ int bacnet_object_id_context_decode(
     uint8_t tag_value,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *instance);
+BACNET_STACK_EXPORT
+bool bacnet_object_id_same(
+    BACNET_OBJECT_TYPE object_type1,
+    uint32_t instance1,
+    BACNET_OBJECT_TYPE object_type2,
+    uint32_t instance2);
 
 BACNET_STACK_EXPORT
 int encode_octet_string(uint8_t *apdu, const BACNET_OCTET_STRING *octet_string);
