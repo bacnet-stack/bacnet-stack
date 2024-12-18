@@ -204,7 +204,6 @@ BACNET_STACK_EXPORT
 bool Network_Port_Remote_BBMD_Address_Set(
     uint32_t object_instance, const BACNET_HOST_N_PORT *const bbmd_address);
 BACNET_STACK_EXPORT
-BACNET_STACK_EXPORT
 uint16_t Network_Port_Remote_BBMD_BIP_Lifetime(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(
