@@ -2754,9 +2754,10 @@ static bool is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
     /* check for each label length not exceeding 63 characters */
     {
         char fqdn_copy[MAX_CHARACTER_STRING_BYTES + 1];
+        char *label = NULL;
         strcpy(fqdn_copy, val); /* Make a copy to manipulate */
 
-        char *label = strtok(fqdn_copy, "."); /* Split FQDN by '.' */
+        label = strtok(fqdn_copy, "."); /* Split FQDN by '.' */
 
         while (label != NULL) {
             if (strlen(label) > MAX_LABEL_LENGTH) {
