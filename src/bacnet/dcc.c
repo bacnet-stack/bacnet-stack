@@ -246,7 +246,7 @@ int dcc_encode_apdu(uint8_t *apdu,
  * @param apdu  Pointer to the received request.
  * @param apdu_len_max  Valid count of bytes in the buffer.
  * @param timeDuration  Pointer to the duration given in minutes [optional]
- * @param enable_disable  Pointer to the variable takingthe communication
+ * @param enable_disable  Pointer to the variable taking the communication
  * enable/disable.
  * @param password  Pointer to the password [optional]
  *

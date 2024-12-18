@@ -17,8 +17,14 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Added
 ### Changed
+### Removed
+
 ### Fixed
 
+* Fixed error code for Analog Value present-value write property invalid
+  datatype. (#881)
+* Fixed missing RELIABILITY optional property in MSI and MSV objects (#880)
+* Fixed the DeviceCommunicationControl error code when no service request (#877)
 * Fixed ability to write empty CharacterString. (#871)
 * Fixed the defects found after enabling style and CERT-C addon for
   CPPCHECK. (#869)
@@ -49,8 +55,6 @@ The git repositories are hosted at the following sites:
 * Fixed order of operations in COV handler so that dest_index gets
   written to the right slot. (#761)
 * Fixed COV detection in the basic Binary Output object example. (#751)
-
-### Removed
 
 ## [1.3.8] - 2024-08-26
 
