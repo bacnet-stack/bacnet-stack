@@ -3015,7 +3015,9 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
 #if (defined(BACDL_BIP) || (BACDL_BIP6)) && \
     (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
-    BACNET_HOST_N_PORT bbmd_address = NULL;
+    BACNET_HOST_N_PORT bbmd_address = {
+        0,
+    };
 #endif
     uint8_t *apdu = NULL;
     const int *pRequired = NULL;
