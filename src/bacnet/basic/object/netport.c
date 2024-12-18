@@ -1677,7 +1677,8 @@ bool Network_Port_Remote_BBMD_Address(
     uint32_t object_instance, BACNET_HOST_N_PORT *bbmd_address)
 {
     bool status = false;
-    const unsigned index = Network_Port_Instance_To_Index(object_instance); /* offset from instance lookup */
+    const unsigned index = Network_Port_Instance_To_Index(
+        object_instance); /* offset from instance lookup */
 
     if (index < BACNET_NETWORK_PORTS_MAX) {
         BACNET_HOST_N_PORT *BBMD_Address = NULL;
@@ -2701,10 +2702,10 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
 
 #if (BBMD_CLIENT_ENABLED) && defined(BACAPP_HOST_N_PORT)
 #define MAX_LABEL_LENGTH 63
-static bool is_valid_hostname(const BACNET_CHARACTER_STRING * const hostname)
+static bool is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
 {
-     const int len = characterstring_length(hostname);
-     const char *val = characterstring_value(hostname);
+    const int len = characterstring_length(hostname);
+    const char *val = characterstring_value(hostname);
 
     /* Check length */
     if (len == 0 || len > MAX_CHARACTER_STRING_BYTES) {
@@ -2741,8 +2742,9 @@ static bool is_valid_hostname(const BACNET_CHARACTER_STRING * const hostname)
         }
 
         /* Check for consecutive periods or hyphens */
-        if (i > 0 && ((val[i] == '-' && val[i - 1] == '-') ||
-            (val[i] == '.' && val[i - 1] == '.'))) {
+        if (i > 0 &&
+            ((val[i] == '-' && val[i - 1] == '-') ||
+             (val[i] == '.' && val[i - 1] == '.'))) {
             return false; /* Invalid consecutive characters */
         }
     }
@@ -2798,9 +2800,13 @@ static bool Network_Port_FD_BBMD_Address_Write(
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 break;
-            } else if ( ((value->host_ip_address) && (value->host.ip_address.length == 4)) ||
-                      ((value->host_name) && (is_valid_hostname(&value->host.name))) ) {
-                status = Network_Port_Remote_BBMD_Address_Set(object_instance, value);
+            } else if (
+                ((value->host_ip_address) &&
+                 (value->host.ip_address.length == 4)) ||
+                ((value->host_name) &&
+                 (is_valid_hostname(&value->host.name)))) {
+                status = Network_Port_Remote_BBMD_Address_Set(
+                    object_instance, value);
             }
             if (!status) {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -2815,9 +2821,13 @@ static bool Network_Port_FD_BBMD_Address_Write(
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 break;
-            } else if ( ((value->host_ip_address) && (value->host.ip_address.length == 16)) ||
-                      ((value->host_name) && (is_valid_hostname(&value->host.name))) ) {
-                status = Network_Port_Remote_BBMD_Address_Set(object_instance, value);
+            } else if (
+                ((value->host_ip_address) &&
+                 (value->host.ip_address.length == 16)) ||
+                ((value->host_name) &&
+                 (is_valid_hostname(&value->host.name)))) {
+                status = Network_Port_Remote_BBMD_Address_Set(
+                    object_instance, value);
             }
             if (!status) {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -3003,7 +3013,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_OCTET_STRING octet_string;
     BACNET_CHARACTER_STRING char_string;
-#if (defined(BACDL_BIP) || (BACDL_BIP6)) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
+#if (defined(BACDL_BIP) || (BACDL_BIP6)) && \
+    (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
     BACNET_HOST_N_PORT *bbmd_address = NULL;
 #endif
     uint8_t *apdu = NULL;
