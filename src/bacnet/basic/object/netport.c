@@ -2708,6 +2708,7 @@ static bool is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
     const int len = characterstring_length(hostname);
     const char *val = characterstring_value(hostname);
     int dot_count = 0;
+    int i = 0;
 
     /* Check length */
     if (len == 0 || len > MAX_CHARACTER_STRING_BYTES) {
@@ -2715,7 +2716,7 @@ static bool is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
     }
 
     /* Check if it looks like an IP address (basic check) */
-    for (int i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         if (val[i] == '.') {
             dot_count++;
         }
@@ -2727,7 +2728,7 @@ static bool is_valid_hostname(const BACNET_CHARACTER_STRING *const hostname)
     }
 
     /* Check each character */
-    for (int i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         char c = val[i];
 
         if (!isalnum(c) && c != '-' && c != '.') {
