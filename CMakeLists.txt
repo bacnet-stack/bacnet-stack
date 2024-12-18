@@ -865,12 +865,14 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(error apps/error/main.c)
   target_link_libraries(error PRIVATE ${PROJECT_NAME})
 
-  add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
-  target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
-  target_compile_options(gateway PRIVATE
-    # Unreachable code because we have endless loop.
-    $<$<C_COMPILER_ID:MSVC>:/wd4702>
-  )
+  if(BAC_ROUTING)
+    add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
+    target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
+    target_compile_options(gateway PRIVATE
+      # Unreachable code because we have endless loop.
+      $<$<C_COMPILER_ID:MSVC>:/wd4702>
+    )
+  endif()
 
   add_executable(getevent apps/getevent/main.c)
   target_link_libraries(getevent PRIVATE ${PROJECT_NAME})
