@@ -27,6 +27,10 @@ void CharacterString_Value_Property_Lists(
 BACNET_STACK_EXPORT
 uint32_t CharacterString_Value_Create(uint32_t object_instance);
 BACNET_STACK_EXPORT
+bool Characterstring_Value_Delete(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Characterstring_Value_Cleanup(void);
+BACNET_STACK_EXPORT
 bool CharacterString_Value_Valid_Instance(uint32_t object_instance);
 BACNET_STACK_EXPORT
 unsigned CharacterString_Value_Count(void);

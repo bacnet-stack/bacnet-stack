@@ -124,6 +124,44 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
 }
 
 /**
+ * @brief Delete an object and its data from the object list
+ * @param  object_instance - object-instance number of the object
+ * @return true if the object is deleted
+ */
+bool Characterstring_Value_Delete(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject = NULL;
+
+    pObject = Keylist_Data_Delete(Object_List, object_instance);
+    if (pObject) {
+        free(pObject);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Cleans up the object list and its data
+ */
+void Characterstring_Value_Cleanup(void)
+{
+    struct object_data *pObject = NULL;
+
+    if (Object_List) {
+        do {
+            pObject = Keylist_Data_Pop(Object_List);
+            if (pObject) {
+                free(pObject);
+            }
+        } while (pObject);
+        Keylist_Delete(Object_List);
+        Object_List = NULL;
+    }
+}
+
+/**
  * @brief Gets an object from the list using an instance number as the key
  * @param  object_instance - object-instance number of the object
  * @return object found in the list, or NULL if not found
