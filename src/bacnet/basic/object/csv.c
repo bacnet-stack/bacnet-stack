@@ -147,7 +147,7 @@ bool Characterstring_Value_Delete(uint32_t object_instance)
  */
 void Characterstring_Value_Cleanup(void)
 {
-    struct object_data *pObject;
+    struct object_data *pObject = NULL;
 
     if (Object_List) {
         do {
