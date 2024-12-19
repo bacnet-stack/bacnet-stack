@@ -1589,20 +1589,26 @@ int bvlc6_decode_distribute_broadcast_to_network(
  * @brief Encode a BBMD Address for Network Port object
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer size
- * @param ip6_address - IPv6 address and port number
+ * @param bbmd_address - HostNPort type FD BBMD Address
  * @return length of the APDU buffer
  */
 int bvlc6_foreign_device_bbmd_host_address_encode(
-    uint8_t *apdu, uint16_t apdu_size, const BACNET_IP6_ADDRESS *ip6_address)
+    uint8_t *apdu,
+    uint16_t apdu_size,
+    const BACNET_HOST_N_PORT *const bbmd_address)
 {
+#if (__STDC__) && (__STDC_VERSION__ >= 199901L)
+    BACNET_HOST_N_PORT address = { .host_ip_address = false,
+                                   .host_name = false };
+#else
     BACNET_HOST_N_PORT address = { 0 };
+#endif
     int apdu_len = 0;
 
-    address.host_ip_address = true;
-    address.host_name = false;
-    octetstring_init(
-        &address.host.ip_address, &ip6_address->address[0], IP6_ADDRESS_MAX);
-    address.port = ip6_address->port;
+    if (bbmd_address) {
+        address = *bbmd_address;
+    }
+
     apdu_len = host_n_port_encode(NULL, &address);
     if (apdu_len <= apdu_size) {
         apdu_len = host_n_port_encode(apdu, &address);

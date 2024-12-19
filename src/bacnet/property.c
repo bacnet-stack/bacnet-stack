@@ -3048,8 +3048,6 @@ bool property_list_writable_member(
                 (object_property == PROP_PACKET_REORDER_TIME) ||
                 (object_property == PROP_LAST_KEY_SERVER) ||
                 (object_property == PROP_SECURITY_PDU_TIMEOUT) ||
-                (object_property == PROP_LAST_KEY_SERVER) ||
-                (object_property == PROP_SECURITY_PDU_TIMEOUT) ||
                 (object_property == PROP_DO_NOT_HIDE)) {
                 writable = true;
             }

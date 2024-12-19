@@ -1687,7 +1687,7 @@ bool Analog_Value_Deadband_Set(uint32_t object_instance, float deadband)
  *
  * @return  limit_enable property value
  */
-uint32_t Analog_Value_Limit_Enable(uint32_t object_instance)
+BACNET_LIMIT_ENABLE Analog_Value_Limit_Enable(uint32_t object_instance)
 {
     BACNET_LIMIT_ENABLE limit_enable = 0;
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
@@ -1731,7 +1731,7 @@ bool Analog_Value_Limit_Enable_Set(
  *
  * @return  event_enable property value
  */
-uint32_t Analog_Value_Event_Enable(uint32_t object_instance)
+BACNET_EVENT_ENABLE Analog_Value_Event_Enable(uint32_t object_instance)
 {
     uint32_t event_enable = 0;
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
@@ -1752,7 +1752,7 @@ uint32_t Analog_Value_Event_Enable(uint32_t object_instance)
  * @return true if the event_enable property value was set
  */
 bool Analog_Value_Event_Enable_Set(
-    uint32_t object_instance, uint32_t event_enable)
+    uint32_t object_instance, BACNET_EVENT_ENABLE event_enable)
 {
     bool status = false;
     struct analog_value_descr *pObject = Analog_Value_Object(object_instance);
