@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.4.0
+  VERSION 1.4.0.7
   LANGUAGES C)
 
 message(STATUS "Minimal optimization, debug info included")
@@ -135,7 +135,7 @@ if(BACNET_STACK_DEPRECATED_DISABLE)
   add_definitions(-DBACNET_STACK_DEPRECATED_DISABLE)
 endif()
 
-set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_STANDARD 99)
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
   add_compile_options(-Wall -Wextra -pedantic)
@@ -681,7 +681,7 @@ target_compile_definitions(
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
   BACDL_MULTIPLE=1
-  CSTANDARD=-std=c17
+  DEBUG_ENABLED=0
   PRINT_ENABLED=0)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
