@@ -359,6 +359,9 @@ void dlenv_network_port_init(void)
     uint8_t prefix = 0;
 #if BBMD_ENABLED
     uint8_t addr0, addr1, addr2, addr3;
+    BACNET_HOST_N_PORT bbmd_address = {
+        0,
+    };
 #endif
 
     Network_Port_Object_Instance_Number_Set(0, instance);
@@ -383,10 +386,16 @@ void dlenv_network_port_init(void)
     Network_Port_BBMD_BD_Table_Set(instance, bvlc_bdt_list());
     Network_Port_BBMD_FD_Table_Set(instance, bvlc_fdt_list());
     /* foreign device registration */
-    bvlc_address_get(&BBMD_Address, &addr0, &addr1, &addr2, &addr3);
-    Network_Port_Remote_BBMD_IP_Address_Set(
-        instance, addr0, addr1, addr2, addr3);
-    Network_Port_Remote_BBMD_BIP_Port_Set(instance, BBMD_Address.port);
+    bbmd_address.host_ip_address = true;
+    bbmd_address.host_name = false;
+    bvlc_address_get(
+        &BBMD_Address, &bbmd_address.host.ip_address.value[0],
+        &bbmd_address.host.ip_address.value[1],
+        &bbmd_address.host.ip_address.value[2],
+        &bbmd_address.host.ip_address.value[3]);
+    bbmd_address.host.ip_address.length = 4;
+    bbmd_address.port = BBMD_Address.port;
+    Network_Port_Remote_BBMD_Address_Set(instance, &bbmd_address);
     Network_Port_Remote_BBMD_BIP_Lifetime_Set(instance, BBMD_TTL_Seconds);
 #endif
     /* common NP data */
