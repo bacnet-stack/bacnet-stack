@@ -117,6 +117,24 @@ uint8_t bitstring_bits_used(const BACNET_BIT_STRING *bit_string)
 }
 
 /**
+ * @brief Write the amount of bits used in the bit string structure.
+ * @param bit_string  Pointer to the bit string structure.
+ * @param bits_used Number of bits in this bitstring
+ * @return true on success or false on error.
+ */
+bool bitstring_bits_used_set(BACNET_BIT_STRING *bit_string, uint8_t bits_used)
+{
+    bool status = false;
+
+    if (bit_string) {
+        bit_string->bits_used = bits_used;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * Returns the number of bytes that a bit string is using.
  *
  * @param bit_string  Pointer to the bit string structure.
