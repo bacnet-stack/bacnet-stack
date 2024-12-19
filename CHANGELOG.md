@@ -22,8 +22,22 @@ The git repositories are hosted at the following sites:
 
 ## [1.4.1] - Unreleased
 
+### Added
+
+* Added check for zero length buffer size in primitive decoders
+  that returns zero to enable simpler complex value optional
+  element decoding. (#876)
+* Added bitstring-bits-used-set API to use in audit-log status bits (#879)
+
 ### Fixed
 
+* Fixed basic Multistate Value and Input objects that were missing RELIABILITY
+  in the optional list of properties. (#880)
+* Fixed write present value in basic Analog Value object when the type
+  is not valid, don't overwrite error code. (#881)
+* Fixed DeviceCommunicationControl error code when no service request. (#877)
+* Fixed CMakeLists routing option. If BAC_ROUTING was turned off,
+  the gateway app wasn't deselected. (#874)
 * Fixed use of 'class' keyword as a variable in BACnet/SC by removing. (#872)
 * Fixed bacdcode.c to allow writing an empty CharacterString (#871)
 * Fixed defects found when enabling style and CERT-C addon for CPPCHECK
