@@ -53,8 +53,8 @@ static const int Properties_Required[] = {
     PROP_OUT_OF_SERVICE,    PROP_NUMBER_OF_STATES, -1
 };
 
-static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
-                                           -1 };
+static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
+                                           PROP_STATE_TEXT, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
