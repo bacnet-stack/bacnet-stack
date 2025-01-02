@@ -236,7 +236,7 @@ void handler_read_property_multiple(
             debug_fprintf(stderr, "RPM: Segmented message. Sending Abort!\r\n");
         } else {
             /* decode apdu request & encode apdu reply
-                encode complex ack, invoke id, service choice */
+               encode complex ack, invoke id, service choice */
             apdu_len = rpm_ack_encode_apdu_init(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id);
 
@@ -265,14 +265,14 @@ void handler_read_property_multiple(
                 }
 #if (BACNET_PROTOCOL_REVISION >= 17)
                 /* When the object-type in the Object Identifier parameter
-                    contains the value NETWORK_PORT and the instance in the
-                    'Object Identifier' parameter contains the value 4194303,
-                    the responding BACnet-user shall treat the Object Identifier
-                    as if it correctly matched the local Network Port object
-                    representing the network port through which the request was
-                    received. This allows the network port instance of the
-                    network port that was used to receive the request to be
-                    determined. */
+                   contains the value NETWORK_PORT and the instance in the
+                   'Object Identifier' parameter contains the value 4194303,
+                   the responding BACnet-user shall treat the Object Identifier
+                   as if it correctly matched the local Network Port object
+                   representing the network port through which the request was
+                   received. This allows the network port instance of the
+                   network port that was used to receive the request to be
+                   determined. */
                 if ((rpmdata.object_type == OBJECT_NETWORK_PORT) &&
                     (rpmdata.object_instance == BACNET_MAX_INSTANCE)) {
                     rpmdata.object_instance = Network_Port_Index_To_Instance(0);
@@ -329,14 +329,13 @@ void handler_read_property_multiple(
                                     stderr, "RPM: Too full for property!\r\n");
                                 error = len;
                                 /* The berror flag ensures that
-                                    both loops will be broken! */
+                                   both loops will be broken! */
                                 berror = true;
                                 break;
                             }
                         } else if (rpmdata.array_index != BACNET_ARRAY_ALL) {
                             /* No array index options for this special property.
-                                Encode error for this object property response
-                             */
+                               Encode error for this object property response */
                             len = rpm_ack_encode_apdu_object_property(
                                 &Temp_Buf[0], rpmdata.object_property,
                                 rpmdata.array_index);
@@ -353,7 +352,7 @@ void handler_read_property_multiple(
                                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                                 error = BACNET_STATUS_ABORT;
                                 /* The berror flag ensures that
-                                both loops will be broken! */
+                                   both loops will be broken! */
                                 berror = true;
                                 break;
                             }
@@ -375,7 +374,7 @@ void handler_read_property_multiple(
                                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                                 error = BACNET_STATUS_ABORT;
                                 /* The berror flag ensures that
-                                both loops will be broken! */
+                                   both loops will be broken! */
                                 berror = true;
                                 break;
                             }
@@ -389,14 +388,13 @@ void handler_read_property_multiple(
                                 &property_list, special_object_property);
 
                             if (property_count == 0) {
-                                /* This only happens with the OPTIONAL property
-                                 */
+                                /* Only happens with the OPTIONAL property */
                                 /* 135-2016bl-2. Clarify ReadPropertyMultiple
-                                    response on OPTIONAL when empty. */
+                                   response on OPTIONAL when empty. */
                                 /* If no optional properties are supported then
-                                    an empty 'List of Results' shall be returned
-                                    for the specified property, except if the
-                                    object does not exist. */
+                                   an empty 'List of Results' shall be returned
+                                   for the specified property, except if the
+                                   object does not exist. */
                                 if (!Device_Valid_Object_Id(
                                         rpmdata.object_type,
                                         rpmdata.object_instance)) {
@@ -411,7 +409,7 @@ void handler_read_property_multiple(
                                             "RPM: Too full for property!\r\n");
                                         error = len;
                                         /* The berror flag ensures that
-                                            both loops will be broken! */
+                                           both loops will be broken! */
                                         berror = true;
                                         break;
                                     }
@@ -434,7 +432,7 @@ void handler_read_property_multiple(
                                             "RPM: Too full for property!\r\n");
                                         error = len;
                                         /* The berror flag ensures that
-                                        both loops will be broken! */
+                                           both loops will be broken! */
                                         berror = true;
                                         break;
                                     }
@@ -454,7 +452,7 @@ void handler_read_property_multiple(
                                 "RPM: Too full for individual property!\r\n");
                             error = len;
                             /* The berror flag ensures that
-                                both loops will be broken! */
+                               both loops will be broken! */
                             berror = true;
                             break;
                         }
@@ -477,7 +475,7 @@ void handler_read_property_multiple(
                                 ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             error = BACNET_STATUS_ABORT;
                             /* The berror flag ensures that
-                            both loops will be broken! */
+                               both loops will be broken! */
                             berror = true;
                             break;
                         } else {
@@ -486,7 +484,7 @@ void handler_read_property_multiple(
                         /* finished with this property list */
                         break;
                     }
-                } /* for(;;) */
+                }
                 if (berror) {
                     break;
                 }
