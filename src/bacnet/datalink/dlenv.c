@@ -348,7 +348,7 @@ int dlenv_register_as_foreign_device(void)
 {
 #if defined(BACDL_BIP) && BBMD_ENABLED
     return bbmd_register_as_foreign_device();
-#elif defined(BACDL_BIP) && BBMD_ENABLED
+#elif defined(BACDL_BIP6) && BBMD6_ENABLED
     return bbmd6_register_as_foreign_device();
 #else
     return 0;
