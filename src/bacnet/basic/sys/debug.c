@@ -7,9 +7,12 @@
  */
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
+#include <stdarg.h>
+#if PRINT_ENABLED || DEBUG_ENABLED
 #include <stdio.h> /* Standard I/O */
 #include <stdlib.h> /* Standard Library */
-#include <stdarg.h>
+#include <errno.h>
+#endif
 #if DEBUG_ENABLED
 #include <string.h>
 #include <ctype.h>
@@ -189,7 +192,7 @@ int debug_fprintf(FILE *stream, const char *format, ...)
  * @note This function is only available if
  * PRINT_ENABLED is non-zero
  */
-void debug_perror(const char *format, ...)
+void debug_printf_stderr(const char *format, ...)
 {
 #if PRINT_ENABLED
     va_list ap;
@@ -200,6 +203,22 @@ void debug_perror(const char *format, ...)
     fflush(stderr);
 #else
     (void)format;
+#endif
+}
+
+/**
+ * @brief Prints a textual description of the error code currently
+ *  stored in the system variable errno to stderr.
+ * @param s - pointer to a null-terminated string with explanatory message
+ * @note This function is only available if PRINT_ENABLED is non-zero
+ */
+void debug_perror(const char *message)
+{
+#if PRINT_ENABLED
+    perror(message);
+    fflush(stderr);
+#else
+    (void)message;
 #endif
 }
 

@@ -27,7 +27,7 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
-#define PRINTF debug_perror
+#define PRINTF debug_printf_stderr
 
 #ifndef MAX_NOTIFICATION_CLASSES
 #define MAX_NOTIFICATION_CLASSES 2

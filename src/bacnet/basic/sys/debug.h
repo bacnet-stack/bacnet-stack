@@ -32,7 +32,9 @@ int debug_aprintf(const char *format, ...);
 BACNET_STACK_EXPORT
 int debug_fprintf(FILE *stream, const char *format, ...);
 BACNET_STACK_EXPORT
-void debug_perror(const char *format, ...);
+void debug_printf_stderr(const char *format, ...);
+BACNET_STACK_EXPORT
+void debug_perror(const char *message);
 BACNET_STACK_EXPORT
 void debug_printf_hex(
     uint32_t offset,

@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -18,12 +17,14 @@
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/reject.h"
 #include "bacnet/event.h"
 #include "bacnet/getevent.h"
 /* basic objects, services, TSM, and datalink */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
 static get_event_info_function Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
@@ -68,9 +69,7 @@ void handler_get_event_information(
     BACNET_NPDU_DATA npdu_data;
     bool error = false;
     bool more_events = false;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
@@ -84,23 +83,29 @@ void handler_get_event_information(
 
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_data->segmented_message) {
+    if (service_len == 0) {
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        debug_fprintf(
+            stderr,
+            "GetAlarmSummary: Missing Required Parameter. "
+            "Sending Reject!\n");
+        goto GET_EVENT_ABORT;
+    } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-        fprintf(
+        debug_fprintf(
             stderr,
             "GetEventInformation: "
             "Segmented message. Sending Abort!\n");
-#endif
         goto GET_EVENT_ABORT;
     }
-
     len = getevent_decode_service_request(
         service_request, service_len, &object_id);
     if (len < 0) {
@@ -108,9 +113,10 @@ void handler_get_event_information(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "GetEventInformation: Bad Encoding.  Sending Abort!\n");
-#endif
+        debug_fprintf(
+            stderr,
+            "GetEventInformation: Bad Encoding. "
+            "Sending Abort!\n");
         goto GET_EVENT_ABORT;
     }
     len = getevent_ack_encode_apdu_init(
@@ -182,9 +188,7 @@ void handler_get_event_information(
         error = true;
         goto GET_EVENT_ERROR;
     }
-#if PRINT_ENABLED
-    fprintf(stderr, "Got a GetEventInformation request: Sending Ack!\n");
-#endif
+    debug_fprintf(stderr, "Got a GetEventInformation request: Sending Ack!\n");
 GET_EVENT_ERROR:
     if (error) {
         pdu_len = npdu_encode_pdu(
@@ -195,33 +199,24 @@ GET_EVENT_ERROR:
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "GetEventInformation: "
                 "Reply too big to fit into APDU!\n");
-#endif
         } else {
             len = bacerror_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
-#if PRINT_ENABLED
-            fprintf(stderr, "GetEventInformation: Sending Error!\n");
-#endif
+            debug_fprintf(stderr, "GetEventInformation: Sending Error!\n");
         }
     }
 GET_EVENT_ABORT:
     pdu_len += len;
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
+    bytes_sent = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
+        debug_perror("GetEventInformation: Failed to send PDU");
     }
-#endif
 
     return;
 }

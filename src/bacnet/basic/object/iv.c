@@ -27,7 +27,7 @@
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/sys/debug.h"
 
-#define PRINTF debug_perror
+#define PRINTF debug_printf_stderr
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List = NULL;

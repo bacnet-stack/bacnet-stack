@@ -1,15 +1,14 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Handles Unconfirmed COV Notifications.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date December 2010
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -23,8 +22,7 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 
-/** @file h_ucov.c  Handles Unconfirmed COV Notifications. */
-#define PRINTF debug_perror
+#define PRINTF debug_printf_stderr
 
 #ifndef MAX_COV_PROPERTIES
 #define MAX_COV_PROPERTIES 2

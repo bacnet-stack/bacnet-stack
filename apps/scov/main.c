@@ -12,7 +12,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <time.h> /* for time */
 #include <ctype.h> /* for toupper */
 #define PRINT_ENABLED 1

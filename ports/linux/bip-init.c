@@ -273,7 +273,7 @@ uint8_t bip_get_subnet_prefix(void)
  * @param mtu_len - the number of bytes of data to send
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip_send_mpdu(
     const BACNET_IP_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
@@ -425,7 +425,7 @@ uint16_t bip_receive(
  * @param mtu - the bytes of data to send
  * @param mtu_len - the number of bytes of data to send
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip_send_pdu(
     BACNET_ADDRESS *dest,

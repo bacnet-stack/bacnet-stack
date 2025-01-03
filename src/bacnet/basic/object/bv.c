@@ -29,7 +29,7 @@
 
 #include "bacnet/basic/sys/debug.h"
 #if !defined(PRINT)
-#define PRINT debug_perror
+#define PRINT debug_printf_stderr
 #endif
 
 static const char *Default_Active_Text = "Active";

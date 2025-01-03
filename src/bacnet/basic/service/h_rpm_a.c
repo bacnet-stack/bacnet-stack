@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief A basic ReadPropertyMultile-Ack service handler
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -25,9 +25,7 @@
 #include "bacnet/datalink/datalink.h"
 
 #define PRINTF debug_aprintf
-#define PERROR debug_perror
-
-/** @file h_rpm_a.c  Handles Read Property Multiple Acknowledgments. */
+#define PERROR debug_printf_stderr
 
 /** Decode the received RPM data and make a linked list of the results.
  * @ingroup DSRPM

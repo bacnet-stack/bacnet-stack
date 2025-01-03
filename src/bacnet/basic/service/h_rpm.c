@@ -12,7 +12,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -529,8 +528,7 @@ void handler_read_property_multiple(
         bytes_sent = datalink_send_pdu(
             src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
         if (bytes_sent <= 0) {
-            debug_fprintf(
-                stderr, "RPM: Failed to send PDU (errno=%d)!\n", errno);
+            debug_perror("RPM: Failed to send PDU");
         }
     }
 }

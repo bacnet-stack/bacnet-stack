@@ -11,7 +11,6 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <errno.h>
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 

@@ -17,9 +17,11 @@
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/reject.h"
 /* basic services, TSM, and datalink */
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
 static get_alarm_summary_function Get_Alarm_Summary[MAX_BACNET_OBJECT_TYPE];
@@ -54,20 +56,29 @@ void handler_get_alarm_summary(
     (void)service_len;
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_data->segmented_message) {
+    if (service_len == 0) {
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        debug_fprintf(
+            stderr,
+            "GetAlarmSummary: Missing Required Parameter. "
+            "Sending Reject!\n");
+        goto GET_ALARM_SUMMARY_ABORT;
+    } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         apdu_len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "GetAlarmSummary: Segmented message. Sending Abort!\n");
-#endif
+        debug_fprintf(
+            stderr,
+            "GetAlarmSummary: Segmented message. "
+            "Sending Abort!\n");
         goto GET_ALARM_SUMMARY_ABORT;
     }
-
     /* init header */
     apdu_len = get_alarm_summary_ack_encode_apdu_init(
         &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id);
@@ -92,11 +103,7 @@ void handler_get_alarm_summary(
             }
         }
     }
-
-#if PRINT_ENABLED
-    fprintf(stderr, "GetAlarmSummary: Sending response!\n");
-#endif
-
+    debug_fprintf(stderr, "GetAlarmSummary: Sending response!\n");
 GET_ALARM_SUMMARY_ERROR:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
@@ -104,32 +111,23 @@ GET_ALARM_SUMMARY_ERROR:
             apdu_len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr, "GetAlarmSummary: Reply too big to fit into APDU!\n");
-#endif
         } else {
             apdu_len = bacerror_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_GET_ALARM_SUMMARY, ERROR_CLASS_PROPERTY,
                 ERROR_CODE_OTHER);
-#if PRINT_ENABLED
-            fprintf(stderr, "GetAlarmSummary: Sending Error!\n");
-#endif
+            debug_fprintf(stderr, "GetAlarmSummary: Sending Error!\n");
         }
     }
-
 GET_ALARM_SUMMARY_ABORT:
     pdu_len += apdu_len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
     if (bytes_sent <= 0) {
-        /*fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno)); */
+        debug_perror("GetAlarmSummary: Failed to send PDU");
     }
-#else
-    (void)bytes_sent;
-#endif
 
     return;
 }

@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -17,8 +16,10 @@
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/reject.h"
 #include "bacnet/ptransfer.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 
 #define MYMAXSTR 32
@@ -185,24 +186,25 @@ void handler_conf_private_trans(
     error_class = ERROR_CLASS_OBJECT;
     error_code = ERROR_CODE_UNKNOWN_OBJECT;
 
-#if PRINT_ENABLED
-    fprintf(stderr, "Received Confirmed Private Transfer Request!\n");
-#endif
+    debug_fprintf(stderr, "Received Confirmed Private Transfer Request!\n");
     /* encode the NPDU portion of the response packet as it will be needed */
     /* no matter what the outcome. */
-
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-
-    if (service_data->segmented_message) {
+    if (service_len == 0) {
+        len = reject_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
+        debug_fprintf(
+            stderr, "CPT: Missing Required Parameter. Sending Reject!\n");
+        goto CPT_ABORT;
+    } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "CPT: Segmented Message. Sending Abort!\n");
-#endif
+        debug_fprintf(stderr, "CPT: Segmented Message. Sending Abort!\n");
         goto CPT_ABORT;
     }
 
@@ -212,9 +214,7 @@ void handler_conf_private_trans(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "CPT: Bad Encoding. Sending Abort!\n");
-#endif
+        debug_fprintf(stderr, "CPT: Bad Encoding. Sending Abort!\n");
         goto CPT_ABORT;
     }
 
@@ -234,9 +234,7 @@ void handler_conf_private_trans(
             error = true;
             error_class = ERROR_CLASS_SERVICES;
             error_code = ERROR_CODE_OTHER;
-#if PRINT_ENABLED
-            fprintf(stderr, "CPT: Error servicing request!\n");
-#endif
+            debug_fprintf(stderr, "CPT: Error servicing request!\n");
         }
         len = ptransfer_ack_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
@@ -245,9 +243,8 @@ void handler_conf_private_trans(
         error = true;
         error_class = ERROR_CLASS_SERVICES;
         error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
-#if PRINT_ENABLED
-        fprintf(stderr, "CPT: Not our Vendor ID or invalid service code!\n");
-#endif
+        debug_fprintf(
+            stderr, "CPT: Not our Vendor ID or invalid service code!\n");
     }
 
     if (error) {
@@ -259,12 +256,7 @@ CPT_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-
-#if PRINT_ENABLED
-    if (bytes_sent <= 0) {
-        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
-    }
-#endif
+    debug_perror("CPT: Failed to send PDU");
 
     return;
 }

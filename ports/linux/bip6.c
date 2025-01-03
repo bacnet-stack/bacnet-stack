@@ -234,7 +234,7 @@ bool bip6_get_broadcast_addr(BACNET_IP6_ADDRESS *addr)
  * @param mtu_len - the number of bytes of data to send
  *
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip6_send_mpdu(
     const BACNET_IP6_ADDRESS *dest, const uint8_t *mtu, uint16_t mtu_len)
@@ -278,7 +278,7 @@ int bip6_send_mpdu(
  * @param pdu - the bytes of data to send
  * @param pdu_len - the number of bytes of data to send
  * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ *  Otherwise, -1 shall be returned to indicate the error.
  */
 int bip6_send_pdu(
     BACNET_ADDRESS *dest,

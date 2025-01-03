@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -21,6 +20,7 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
 /** Handler to be invoked when a Service request is received for which no
@@ -63,12 +63,8 @@ void handler_unrecognized_service(
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent > 0) {
-#if PRINT_ENABLED
-        fprintf(stderr, "Sent Reject!\n");
-#endif
+        debug_fprintf(stderr, "Sent Reject!\n");
     } else {
-#if PRINT_ENABLED
-        fprintf(stderr, "Failed to Send Reject (%s)!\n", strerror(errno));
-#endif
+        debug_perror("Failed to Send Reject");
     }
 }

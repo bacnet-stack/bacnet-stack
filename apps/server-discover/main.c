@@ -257,8 +257,8 @@ int main(int argc, char *argv[])
         }
     }
     if (device_id > BACNET_MAX_INSTANCE) {
-        debug_perror(
-            "device-instance=%u - not greater than %u\n", device_id,
+        debug_fprintf(
+            stderr, "device-instance=%u - not greater than %u\n", device_id,
             BACNET_MAX_INSTANCE);
         return 1;
     }
