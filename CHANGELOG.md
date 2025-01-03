@@ -31,6 +31,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed datalink environment for BIP6 foreign device registration for
+  the example apps. (#884)
 * Fixed basic Multistate Value and Input objects that were missing RELIABILITY
   in the optional list of properties. (#880)
 * Fixed write present value in basic Analog Value object when the type
