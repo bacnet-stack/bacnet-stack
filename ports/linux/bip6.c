@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
+#include <errno.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/config.h"
 #include "bacnet/datalink/bip6.h"

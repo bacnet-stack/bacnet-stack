@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <errno.h>
 /* BSD includes */
 #include <IOKit/serial/ioss.h>
 /* BACnet Stack defines - first */

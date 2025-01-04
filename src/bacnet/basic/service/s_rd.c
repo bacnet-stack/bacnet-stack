@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send BACnet ReinitializeDevice-Request.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -23,12 +22,11 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 
-/** @file s_rd.c  Send a Reinitialize Device request. */
-
-/** Sends a Reinitialize Device (RD) request.
- * @ingroup DMRD
- *
+/**
+ * @brief Sends a Reinitialize Device (RD) request.
+ * @ingroup BIBB-DM-RD-A
  * @param device_id [in] The index to the device address in our address cache.
  * @param state [in] Specifies the desired state of the device after
  * reinitialization.
@@ -45,9 +43,7 @@ uint8_t Send_Reinitialize_Device_Request(
     bool status = false;
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_CHARACTER_STRING password_string;
     BACNET_NPDU_DATA npdu_data;
 
@@ -55,7 +51,6 @@ uint8_t Send_Reinitialize_Device_Request(
     if (!dcc_communication_enabled()) {
         return 0;
     }
-
     /* is the device bound? */
     status = address_get_by_device(device_id, &max_apdu, &dest);
     /* is there a tsm available? */
@@ -83,27 +78,18 @@ uint8_t Send_Reinitialize_Device_Request(
             tsm_set_confirmed_unsegmented_transaction(
                 invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
                 (uint16_t)pdu_len);
-#if PRINT_ENABLED
-            bytes_sent =
-#endif
-                datalink_send_pdu(
-                    &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
+            bytes_sent = datalink_send_pdu(
+                &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-                fprintf(
-                    stderr, "Failed to Send ReinitializeDevice Request (%s)!\n",
-                    strerror(errno));
+                debug_perror("Failed to Send ReinitializeDevice Request");
             }
-#endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "Failed to Send ReinitializeDevice Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 

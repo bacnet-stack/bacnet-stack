@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 /* BACnet specific */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"

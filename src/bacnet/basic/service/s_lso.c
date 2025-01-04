@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief Send BACnet Life Safety Operation message.
- * @author John Minack <minack@users.sourceforge.net>
+ * @author Steve Karg <skarg@users.sourceforge.net>
  * @date 2009
  * @copyright SPDX-License-Identifier: MIT
  */
@@ -27,6 +27,7 @@
 
 /**
  * @brief Send a Life Safety Operation service message
+ * @ingroup BIBB-AE-LS-A
  * @param device_id [in] ID of the destination device
  * @param data [in] The data representing the Life Safety Operation
  * @return invoke id of outgoing message, or 0 on failure.
