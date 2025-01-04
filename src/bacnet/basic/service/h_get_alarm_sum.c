@@ -60,7 +60,7 @@ void handler_get_alarm_summary(
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_len == 0) {
-        len = reject_encode_apdu(
+        apdu_len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
         debug_fprintf(

@@ -143,8 +143,8 @@ void handler_write_property_multiple(
     int bytes_sent = 0;
 
     if (service_len == 0) {
-        len = BACNET_STATUS_REJECT;
         wp_data.error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        len = BACNET_STATUS_REJECT;
         debug_printf_stderr("WPM: Missing Required Parameter. "
                             "Sending Reject!\n");
     } else if (service_data->segmented_message) {
