@@ -231,6 +231,20 @@ void debug_printf_stderr(const char *format, ...)
 
 #if PRINT_ENABLED
 /**
+ * @brief debug printf to stderr when PRINT_ENABLED is non-zero
+ * @param format - printf format string
+ * @param ... - variable arguments
+ * @note This function is only available if PRINT_ENABLED is non-zero
+ */
+void debug_print(const char *message)
+{
+    fprintf(stderr, "%s", message);
+    fflush(stderr);
+}
+#endif
+
+#if PRINT_ENABLED
+/**
  * @brief Prints a textual description of the error code currently
  *  stored in the system variable errno to stderr.
  * @param s - pointer to a null-terminated string with explanatory message

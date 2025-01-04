@@ -81,29 +81,27 @@ void handler_alarm_ack(
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr, "Alarm Ack: Missing Required Parameter. Sending Reject!\n");
+        debug_print("Alarm Ack: Missing Required Parameter. Sending Reject!\n");
         goto AA_ABORT;
     } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(
-            stderr, "Alarm Ack: Segmented message.  Sending Abort!\n");
+        debug_print("Alarm Ack: Segmented message.  Sending Abort!\n");
         goto AA_ABORT;
     }
 
     len = alarm_ack_decode_service_request(service_request, service_len, &data);
     if (len <= 0) {
-        debug_fprintf(stderr, "Alarm Ack: Unable to decode Request!\n");
+        debug_print("Alarm Ack: Unable to decode Request!\n");
     }
     if (len < 0) {
         /* bad decoding - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-        debug_fprintf(stderr, "Alarm Ack: Bad Encoding.  Sending Abort!\n");
+        debug_print("Alarm Ack: Bad Encoding.  Sending Abort!\n");
         goto AA_ABORT;
     }
     debug_fprintf(
@@ -113,11 +111,6 @@ void handler_alarm_ack(
         data.eventObjectIdentifier.type,
         (unsigned long)data.eventObjectIdentifier.instance,
         data.ackSource.value, (unsigned long)data.ackProcessIdentifier);
-    /*  BACnet Testing Observed Incident oi00105
-            ACK of a non-existent object returned the incorrect error code
-            Revealed by BACnet Test Client v1.8.16 (
-       www.bac-test.com/bacnet-test-client-download ) BC 135.1: 9.1.3.3-A Any
-       discussions can be directed to edward@bac-test.com */
     if (!Device_Valid_Object_Id(
             data.eventObjectIdentifier.type,
             data.eventObjectIdentifier.instance)) {
@@ -128,16 +121,12 @@ void handler_alarm_ack(
     } else if (Alarm_Ack[data.eventObjectIdentifier.type]) {
         ack_result =
             Alarm_Ack[data.eventObjectIdentifier.type](&data, &error_code);
-
         switch (ack_result) {
             case 1:
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM);
-                debug_fprintf(
-                    stderr,
-                    "Alarm Acknowledge: "
-                    "Sending Simple Ack!\n");
+                debug_print("Alarm Acknowledge: Sending Simple Ack!\n");
                 break;
 
             case -1:
@@ -154,7 +143,7 @@ void handler_alarm_ack(
                 len = abort_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     ABORT_REASON_OTHER, true);
-                debug_fprintf(stderr, "Alarm Acknowledge: abort other!\n");
+                debug_print("Alarm Acknowledge: abort other!\n");
                 break;
         }
     } else {
@@ -162,18 +151,13 @@ void handler_alarm_ack(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, ERROR_CLASS_OBJECT,
             ERROR_CODE_NO_ALARM_CONFIGURED);
-        debug_fprintf(
-            stderr, "Alarm Acknowledge: error %s!\n",
-            bactext_error_code_name(ERROR_CODE_NO_ALARM_CONFIGURED));
+        debug_print("Alarm Acknowledge: No Alarm Configured!\n");
     }
 
 AA_ABORT:
     pdu_len += len;
-#if PRINT_ENABLED
-    bytes_sent =
-#endif
-        datalink_send_pdu(
-            src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
         debug_perror("Alarm Acknowledge: Failed to send PDU");
     }

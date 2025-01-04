@@ -72,6 +72,41 @@ void handler_ccov_notification_add(BACNET_COV_NOTIFICATION *cb)
     } while (head);
 }
 
+/**
+ * @brief Print ConfirmedCOVNotification data
+ * @param cov_data - data decoded from the COV notification
+ */
+void handler_ccov_data_print(BACNET_COV_DATA *cov_data)
+{
+    BACNET_PROPERTY_VALUE *pProperty_value = NULL;
+
+    debug_printf_stderr("CCOV: PID=%u ", cov_data->subscriberProcessIdentifier);
+    debug_printf_stderr("instance=%u ", cov_data->initiatingDeviceIdentifier);
+    debug_printf_stderr(
+        "%s %u ",
+        bactext_object_type_name(cov_data->monitoredObjectIdentifier.type),
+        cov_data->monitoredObjectIdentifier.instance);
+    debug_printf_stderr("time remaining=%u seconds ", cov_data->timeRemaining);
+    debug_printf_stderr("\n");
+    pProperty_value = cov_data->listOfValues;
+    while (pProperty_value) {
+        debug_printf_stderr("CCOV: ");
+        if (pProperty_value->propertyIdentifier < 512) {
+            debug_printf_stderr(
+                "%s ",
+                bactext_property_name(pProperty_value->propertyIdentifier));
+        } else {
+            debug_printf_stderr(
+                "proprietary %u ", pProperty_value->propertyIdentifier);
+        }
+        if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
+            debug_printf_stderr("%u ", pProperty_value->propertyArrayIndex);
+        }
+        debug_printf_stderr("\n");
+        pProperty_value = pProperty_value->next;
+    }
+}
+
 /*  */
 /** Handler for an Confirmed COV Notification.
  * @ingroup DSCOV
@@ -95,7 +130,6 @@ void handler_ccov_notification(
     BACNET_NPDU_DATA npdu_data;
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
-    BACNET_PROPERTY_VALUE *pProperty_value = NULL;
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
@@ -110,19 +144,18 @@ void handler_ccov_notification(
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    debug_printf_stderr("CCOV: Received Notification!\n");
+    debug_print("CCOV: Received Notification!\n");
     if (service_len == 0) {
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr, "CCOV: Missing Required Parameter. Sending Reject!\n");
+        debug_print("CCOV: Missing Required Parameter. Sending Reject!\n");
         goto CCOV_ABORT;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_printf_stderr("CCOV: Segmented message.  Sending Abort!\n");
+        debug_print("CCOV: Segmented message.  Sending Abort!\n");
         goto CCOV_ABORT;
     }
     /* decode the service request only */
@@ -130,47 +163,19 @@ void handler_ccov_notification(
         service_request, service_len, &cov_data);
     if (len > 0) {
         handler_ccov_notification_callback(&cov_data);
-        debug_printf_stderr(
-            "CCOV: PID=%u ", cov_data.subscriberProcessIdentifier);
-        debug_printf_stderr(
-            "instance=%u ", cov_data.initiatingDeviceIdentifier);
-        debug_printf_stderr(
-            "%s %u ",
-            bactext_object_type_name(cov_data.monitoredObjectIdentifier.type),
-            cov_data.monitoredObjectIdentifier.instance);
-        debug_printf_stderr(
-            "time remaining=%u seconds ", cov_data.timeRemaining);
-        debug_printf_stderr("\n");
-        pProperty_value = &property_value[0];
-        while (pProperty_value) {
-            debug_printf_stderr("CCOV: ");
-            if (pProperty_value->propertyIdentifier < 512) {
-                debug_printf_stderr(
-                    "%s ",
-                    bactext_property_name(pProperty_value->propertyIdentifier));
-            } else {
-                debug_printf_stderr(
-                    "proprietary %u ", pProperty_value->propertyIdentifier);
-            }
-            if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
-                debug_printf_stderr("%u ", pProperty_value->propertyArrayIndex);
-            }
-            debug_printf_stderr("\n");
-            pProperty_value = pProperty_value->next;
-        }
     }
     /* bad decoding or something we didn't understand - send an abort */
     if (len <= 0) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-        debug_printf_stderr("CCOV: Bad Encoding. Sending Abort!\n");
+        debug_print("CCOV: Bad Encoding. Sending Abort!\n");
         goto CCOV_ABORT;
     } else {
         len = encode_simple_ack(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             SERVICE_CONFIRMED_COV_NOTIFICATION);
-        debug_printf_stderr("CCOV: Sending Simple Ack!\n");
+        debug_print("CCOV: Sending Simple Ack!\n");
     }
 CCOV_ABORT:
     pdu_len += len;

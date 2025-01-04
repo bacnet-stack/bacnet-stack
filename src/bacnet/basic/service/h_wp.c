@@ -65,19 +65,18 @@ void handler_write_property(
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    debug_fprintf(stderr, "WP: Received Request!\n");
+    debug_print("WP: Received Request!\n");
     if (service_len == 0) {
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr, "WP: Missing Required Parameter. Sending Reject!\n");
+        debug_print("WP: Missing Required Parameter. Sending Reject!\n");
         bcontinue = false;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(stderr, "WP: Segmented message.  Sending Abort!\n");
+        debug_print("WP: Segmented message.  Sending Abort!\n");
         bcontinue = false;
     }
     if (bcontinue) {
@@ -93,14 +92,14 @@ void handler_write_property(
                 (unsigned long)wp_data.object_property,
                 (unsigned long)wp_data.priority, (long)wp_data.array_index);
         } else {
-            debug_fprintf(stderr, "WP: Unable to decode Request!\n");
+            debug_print("WP: Unable to decode Request!\n");
         }
         /* bad decoding or something we didn't understand - send an abort */
         if (len <= 0) {
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_OTHER, true);
-            debug_fprintf(stderr, "WP: Bad Encoding. Sending Abort!\n");
+            debug_print("WP: Bad Encoding. Sending Abort!\n");
             bcontinue = false;
         }
         if (bcontinue) {
@@ -108,13 +107,13 @@ void handler_write_property(
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY);
-                debug_fprintf(stderr, "WP: Sending Simple Ack!\n");
+                debug_print("WP: Sending Simple Ack!\n");
             } else {
                 len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
                     wp_data.error_code);
-                debug_fprintf(stderr, "WP: Sending Error!\n");
+                debug_print("WP: Sending Error!\n");
             }
         }
     }

@@ -63,7 +63,7 @@ void handler_unrecognized_service(
     bytes_sent = datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent > 0) {
-        debug_fprintf(stderr, "Sent Reject!\n");
+        debug_print("Sent Reject!\n");
     } else {
         debug_perror("Failed to Send Reject");
     }

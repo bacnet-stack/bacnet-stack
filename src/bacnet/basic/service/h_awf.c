@@ -76,7 +76,7 @@ void handler_atomic_write_file(
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
 
-    debug_fprintf(stderr, "Received AtomicWriteFile Request!\n");
+    debug_print("Received AtomicWriteFile Request!\n");
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
@@ -86,14 +86,13 @@ void handler_atomic_write_file(
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr, "AWF: Missing Required Parameter. Sending Reject!\n");
+        debug_print("AWF: Missing Required Parameter. Sending Reject!\n");
         goto AWF_ABORT;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(stderr, "AWF:Segmented Message. Sending Abort!\n");
+        debug_print("AWF:Segmented Message. Sending Abort!\n");
         goto AWF_ABORT;
     }
     len = awf_decode_service_request(service_request, service_len, &data);
@@ -102,7 +101,7 @@ void handler_atomic_write_file(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-        debug_fprintf(stderr, "AWF: Bad Encoding. Sending Abort!\n");
+        debug_print("AWF: Bad Encoding. Sending Abort!\n");
         goto AWF_ABORT;
     }
     if (data.object_type == OBJECT_FILE) {
@@ -140,10 +139,7 @@ void handler_atomic_write_file(
             error = true;
             error_class = ERROR_CLASS_SERVICES;
             error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
-            debug_fprintf(
-                stderr,
-                "AWF: Record Access Requested. "
-                "Sending Error!\n");
+            debug_print("AWF: Record Access Requested. Sending Error!\n");
         }
     } else {
         error = true;

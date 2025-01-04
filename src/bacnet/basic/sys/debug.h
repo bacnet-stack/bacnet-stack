@@ -51,6 +51,13 @@ void debug_printf_hex(
 
 #if PRINT_ENABLED
 BACNET_STACK_EXPORT
+void debug_print(const char *message);
+#else
+#define debug_print(message) ((void)0)
+#endif
+
+#if PRINT_ENABLED
+BACNET_STACK_EXPORT
 void debug_perror(const char *message);
 #else
 #define debug_perror(message) ((void)0)

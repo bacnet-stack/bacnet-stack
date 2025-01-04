@@ -47,28 +47,27 @@ void handler_lso(
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr, "LSO: Missing Required Parameter. Sending Reject!\n");
+        debug_print("LSO: Missing Required Parameter. Sending Reject!\n");
         goto LSO_ABORT;
     } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(stderr, "LSO: Segmented message.  Sending Abort!\n");
+        debug_print("LSO: Segmented message.  Sending Abort!\n");
         goto LSO_ABORT;
     }
 
     len = lso_decode_service_request(service_request, service_len, &data);
     if (len <= 0) {
-        debug_fprintf(stderr, "LSO: Unable to decode Request!\n");
+        debug_print("LSO: Unable to decode Request!\n");
     }
     if (len < 0) {
         /* bad decoding - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-        debug_fprintf(stderr, "LSO: Bad Encoding.  Sending Abort!\n");
+        debug_print("LSO: Bad Encoding.  Sending Abort!\n");
         goto LSO_ABORT;
     }
 
@@ -84,10 +83,8 @@ void handler_lso(
     len = encode_simple_ack(
         &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
         SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION);
-    debug_fprintf(
-        stderr,
-        "Life Safety Operation: "
-        "Sending Simple Ack!\n");
+    debug_print("Life Safety Operation: "
+                "Sending Simple Ack!\n");
 LSO_ABORT:
     pdu_len += len;
     bytes_sent = datalink_send_pdu(

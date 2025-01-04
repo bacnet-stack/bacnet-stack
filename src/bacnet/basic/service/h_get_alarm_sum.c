@@ -63,20 +63,16 @@ void handler_get_alarm_summary(
         apdu_len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr,
-            "GetAlarmSummary: Missing Required Parameter. "
-            "Sending Reject!\n");
+        debug_print("GetAlarmSummary: Missing Required Parameter. "
+                    "Sending Reject!\n");
         goto GET_ALARM_SUMMARY_ABORT;
     } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         apdu_len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(
-            stderr,
-            "GetAlarmSummary: Segmented message. "
-            "Sending Abort!\n");
+        debug_print("GetAlarmSummary: Segmented message. "
+                    "Sending Abort!\n");
         goto GET_ALARM_SUMMARY_ABORT;
     }
     /* init header */
@@ -103,7 +99,7 @@ void handler_get_alarm_summary(
             }
         }
     }
-    debug_fprintf(stderr, "GetAlarmSummary: Sending response!\n");
+    debug_print("GetAlarmSummary: Sending response!\n");
 GET_ALARM_SUMMARY_ERROR:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
@@ -111,14 +107,13 @@ GET_ALARM_SUMMARY_ERROR:
             apdu_len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-            debug_fprintf(
-                stderr, "GetAlarmSummary: Reply too big to fit into APDU!\n");
+            debug_print("GetAlarmSummary: Reply too big to fit into APDU!\n");
         } else {
             apdu_len = bacerror_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_GET_ALARM_SUMMARY, ERROR_CLASS_PROPERTY,
                 ERROR_CODE_OTHER);
-            debug_fprintf(stderr, "GetAlarmSummary: Sending Error!\n");
+            debug_print("GetAlarmSummary: Sending Error!\n");
         }
     }
 GET_ALARM_SUMMARY_ABORT:

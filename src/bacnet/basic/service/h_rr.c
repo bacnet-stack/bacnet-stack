@@ -129,26 +129,25 @@ void handler_read_range(
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr, "RR: Missing Required Parameter. Sending Reject!\n");
+        debug_print("RR: Missing Required Parameter. Sending Reject!\n");
     } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(stderr, "RR: Segmented message.  Sending Abort!\n");
+        debug_print("RR: Segmented message.  Sending Abort!\n");
     } else {
         memset(&data, 0, sizeof(data)); /* start with blank canvas */
         len = rr_decode_service_request(service_request, service_len, &data);
         if (len <= 0) {
-            debug_fprintf(stderr, "RR: Unable to decode Request!\n");
+            debug_print("RR: Unable to decode Request!\n");
         }
         if (len < 0) {
             /* bad decoding - send an abort */
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_OTHER, true);
-            debug_fprintf(stderr, "RR: Bad Encoding.  Sending Abort!\n");
+            debug_print("RR: Bad Encoding.  Sending Abort!\n");
         } else {
             /* assume that there is an error */
             error = true;
@@ -161,7 +160,7 @@ void handler_read_range(
                 len = rr_ack_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     &data);
-                debug_fprintf(stderr, "RR: Sending Ack!\n");
+                debug_print("RR: Sending Ack!\n");
                 error = false;
             }
             if (error) {
@@ -172,14 +171,13 @@ void handler_read_range(
                         &Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id,
                         ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-                    debug_fprintf(
-                        stderr, "RR: Reply too big to fit into APDU!\n");
+                    debug_print("RR: Reply too big to fit into APDU!\n");
                 } else {
                     len = bacerror_encode_apdu(
                         &Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id, SERVICE_CONFIRMED_READ_RANGE,
                         data.error_class, data.error_code);
-                    debug_fprintf(stderr, "RR: Sending Error!\n");
+                    debug_print("RR: Sending Error!\n");
                 }
             }
         }

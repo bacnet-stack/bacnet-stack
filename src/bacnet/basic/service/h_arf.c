@@ -108,14 +108,13 @@ void handler_atomic_read_file(
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr, "ARF: Missing Required Parameter. Sending Reject!\n");
+        debug_print("ARF: Missing Required Parameter. Sending Reject!\n");
         goto ARF_ABORT;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(stderr, "ARF: Segmented Message. Sending Abort!\n");
+        debug_print("ARF: Segmented Message. Sending Abort!\n");
         goto ARF_ABORT;
     }
     len = arf_decode_service_request(service_request, service_len, &data);
@@ -124,7 +123,7 @@ void handler_atomic_read_file(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-        debug_fprintf(stderr, "ARF: Bad Encoding. Sending Abort!\n");
+        debug_print("ARF: Bad Encoding. Sending Abort!\n");
         goto ARF_ABORT;
     }
     if (data.object_type == OBJECT_FILE) {
@@ -175,10 +174,7 @@ void handler_atomic_read_file(
             error = true;
             error_class = ERROR_CLASS_SERVICES;
             error_code = ERROR_CODE_INVALID_FILE_ACCESS_METHOD;
-            debug_fprintf(
-                stderr,
-                "ARF: Record Access Requested. "
-                "Sending Error!\n");
+            debug_print("ARF: Record Access Requested. Sending Error!\n");
         }
     } else {
         error = true;

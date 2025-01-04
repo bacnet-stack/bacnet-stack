@@ -62,20 +62,20 @@ void handler_delete_object(
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    debug_printf_stderr("DeleteObject: Received Request!\n");
+    debug_print("DeleteObject: Received Request!\n");
     if (service_len == 0) {
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_printf_stderr("DeleteObject: Missing Required Parameter. "
-                            "Sending Reject!\n");
+        debug_print("DeleteObject: Missing Required Parameter. "
+                    "Sending Reject!\n");
         status = false;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_printf_stderr("DeleteObject: Segmented message. "
-                            "Sending Abort!\n");
+        debug_print("DeleteObject: Segmented message. "
+                    "Sending Abort!\n");
         status = false;
     }
     if (status) {
@@ -88,14 +88,14 @@ void handler_delete_object(
                 (unsigned long)data.object_type,
                 (unsigned long)data.object_instance);
         } else {
-            debug_printf_stderr("DeleteObject: Unable to decode request!\n");
+            debug_print("DeleteObject: Unable to decode request!\n");
         }
         /* bad decoding or something we didn't understand - send an abort */
         if (len <= 0) {
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_OTHER, true);
-            debug_printf_stderr("DeleteObject: Bad Encoding. Sending Abort!\n");
+            debug_print("DeleteObject: Bad Encoding. Sending Abort!\n");
             status = false;
         }
         if (status) {
@@ -103,13 +103,13 @@ void handler_delete_object(
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_DELETE_OBJECT);
-                debug_printf_stderr("DeleteObject: Sending Simple Ack!\n");
+                debug_print("DeleteObject: Sending Simple Ack!\n");
             } else {
                 len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_DELETE_OBJECT, data.error_class,
                     data.error_code);
-                debug_printf_stderr("DeleteObject: Sending Error!\n");
+                debug_print("DeleteObject: Sending Error!\n");
             }
         }
     }

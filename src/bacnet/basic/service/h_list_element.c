@@ -62,22 +62,20 @@ void handler_add_list_element(
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    debug_printf_stderr("AddListElement: Received Request!\n");
+    debug_print("AddListElement: Received Request!\n");
     if (service_len == 0) {
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr,
-            "AddListElement: Missing Required Parameter. "
-            "Sending Reject!\n");
+        debug_print("AddListElement: Missing Required Parameter. "
+                    "Sending Reject!\n");
         status = false;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_printf_stderr("AddListElement: Segmented message. "
-                            "Sending Abort!\n");
+        debug_print("AddListElement: Segmented message. "
+                    "Sending Abort!\n");
         status = false;
     }
     if (status) {
@@ -93,15 +91,14 @@ void handler_add_list_element(
                 (unsigned long)list_element.object_property,
                 (long)list_element.array_index);
         } else {
-            debug_printf_stderr("AddListElement: Unable to decode request!\n");
+            debug_print("AddListElement: Unable to decode request!\n");
         }
         /* bad decoding or something we didn't understand - send an abort */
         if (len <= 0) {
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_OTHER, true);
-            debug_printf_stderr(
-                "AddListElement: Bad Encoding. Sending Abort!\n");
+            debug_print("AddListElement: Bad Encoding. Sending Abort!\n");
             status = false;
         }
         if (status) {
@@ -109,13 +106,13 @@ void handler_add_list_element(
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_ADD_LIST_ELEMENT);
-                debug_printf_stderr("AddListElement: Sending Simple Ack!\n");
+                debug_print("AddListElement: Sending Simple Ack!\n");
             } else {
                 len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_ADD_LIST_ELEMENT,
                     list_element.error_class, list_element.error_code);
-                debug_printf_stderr("AddListElement: Sending Error!\n");
+                debug_print("AddListElement: Sending Error!\n");
             }
         }
     }
@@ -166,22 +163,19 @@ void handler_remove_list_element(
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    debug_printf_stderr("RemoveListElement: Received Request!\n");
+    debug_print("RemoveListElement: Received Request!\n");
     if (service_len == 0) {
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr,
-            "AddListElement: Missing Required Parameter. "
-            "Sending Reject!\n");
+        debug_print("AddListElement: Missing Required Parameter. "
+                    "Sending Reject!\n");
         status = false;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_printf_stderr(
-            "RemoveListElement: Segmented message.  Sending Abort!\n");
+        debug_print("RemoveListElement: Segmented message.  Sending Abort!\n");
         status = false;
     }
     if (status) {
@@ -197,16 +191,14 @@ void handler_remove_list_element(
                 (unsigned long)list_element.object_property,
                 (long)list_element.array_index);
         } else {
-            debug_printf_stderr(
-                "RemoveListElement: Unable to decode request!\n");
+            debug_print("RemoveListElement: Unable to decode request!\n");
         }
         /* bad decoding or something we didn't understand - send an abort */
         if (len <= 0) {
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_OTHER, true);
-            debug_printf_stderr(
-                "RemoveListElement: Bad Encoding. Sending Abort!\n");
+            debug_print("RemoveListElement: Bad Encoding. Sending Abort!\n");
             status = false;
         }
         if (status) {
@@ -214,13 +206,13 @@ void handler_remove_list_element(
                 len = encode_simple_ack(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT);
-                debug_printf_stderr("RemoveListElement: Sending Simple Ack!\n");
+                debug_print("RemoveListElement: Sending Simple Ack!\n");
             } else {
                 len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT,
                     list_element.error_class, list_element.error_code);
-                debug_printf_stderr("RemoveListElement: Sending Error!\n");
+                debug_print("RemoveListElement: Sending Error!\n");
             }
         }
     }

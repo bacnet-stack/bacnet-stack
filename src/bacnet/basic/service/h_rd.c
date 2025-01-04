@@ -63,22 +63,19 @@ void handler_reinitialize_device(
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    debug_fprintf(stderr, "ReinitializeDevice!\n");
+    debug_print("ReinitializeDevice!\n");
     if (service_len == 0) {
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr,
-            "ReinitializeDevice: Missing Required Parameter. "
-            "Sending Reject!\n");
+        debug_print("ReinitializeDevice: Missing Required Parameter. "
+                    "Sending Reject!\n");
         goto RD_ABORT;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(
-            stderr, "ReinitializeDevice: Sending Abort - segmented message.\n");
+        debug_print("ReinitializeDevice: Sending Abort - segmented message.\n");
         goto RD_ABORT;
     }
     /* decode the service request only */
@@ -91,16 +88,14 @@ void handler_reinitialize_device(
             (int)characterstring_length(&rd_data.password),
             characterstring_value(&rd_data.password));
     } else {
-        debug_fprintf(
-            stderr, "ReinitializeDevice: Unable to decode request!\n");
+        debug_print("ReinitializeDevice: Unable to decode request!\n");
     }
     /* bad decoding or something we didn't understand - send an abort */
     if (len < 0) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-        debug_fprintf(
-            stderr, "ReinitializeDevice: Sending Abort - could not decode.\n");
+        debug_print("ReinitializeDevice: Sending Abort - could not decode.\n");
         goto RD_ABORT;
     }
     /* check the data from the request */
@@ -108,8 +103,7 @@ void handler_reinitialize_device(
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_UNDEFINED_ENUMERATION);
-        debug_fprintf(
-            stderr,
+        debug_print(
             "ReinitializeDevice: Sending Reject - undefined enumeration\n");
     } else {
 #ifdef BAC_ROUTING
@@ -125,13 +119,13 @@ void handler_reinitialize_device(
             len = encode_simple_ack(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_REINITIALIZE_DEVICE);
-            debug_fprintf(stderr, "ReinitializeDevice: Sending Simple Ack!\n");
+            debug_print("ReinitializeDevice: Sending Simple Ack!\n");
         } else {
             len = bacerror_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_REINITIALIZE_DEVICE, rd_data.error_class,
                 rd_data.error_code);
-            debug_fprintf(stderr, "ReinitializeDevice: Sending Error.\n");
+            debug_print("ReinitializeDevice: Sending Error.\n");
         }
     }
 RD_ABORT:

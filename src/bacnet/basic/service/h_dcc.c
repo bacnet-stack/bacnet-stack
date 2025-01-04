@@ -100,24 +100,20 @@ void handler_device_communication_control(
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    debug_fprintf(stderr, "DeviceCommunicationControl!\n");
+    debug_print("DeviceCommunicationControl!\n");
     if (service_len == 0) {
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr,
-            "DeviceCommunicationControl: "
-            "Missing Required Parameter. Sending Reject!\n");
+        debug_print("DeviceCommunicationControl: "
+                    "Missing Required Parameter. Sending Reject!\n");
         goto DCC_FAILURE;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(
-            stderr,
-            "DeviceCommunicationControl: "
-            "Sending Abort - segmented message.\n");
+        debug_print("DeviceCommunicationControl: "
+                    "Sending Abort - segmented message.\n");
         goto DCC_FAILURE;
     }
     /* decode the service request only */
@@ -138,12 +134,12 @@ void handler_device_communication_control(
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_OTHER, true);
-            debug_fprintf(stderr, "DCC: Sending Abort!\n");
+            debug_print("DCC: Sending Abort!\n");
         } else if (len == BACNET_STATUS_REJECT) {
             len = reject_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 REJECT_REASON_PARAMETER_OUT_OF_RANGE);
-            debug_fprintf(stderr, "DCC: Sending Reject!\n");
+            debug_print("DCC: Sending Reject!\n");
         }
         goto DCC_FAILURE;
     }
@@ -156,10 +152,8 @@ void handler_device_communication_control(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
             ERROR_CLASS_SERVICES, ERROR_CODE_SERVICE_REQUEST_DENIED);
-        debug_fprintf(
-            stderr,
-            "DeviceCommunicationControl: "
-            "Sending Error - DISABLE has been deprecated.\n");
+        debug_print("DeviceCommunicationControl: "
+                    "Sending Error - DISABLE has been deprecated.\n");
         goto DCC_FAILURE;
     }
 #endif
@@ -167,10 +161,8 @@ void handler_device_communication_control(
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_UNDEFINED_ENUMERATION);
-        debug_fprintf(
-            stderr,
-            "DeviceCommunicationControl: "
-            "Sending Reject - undefined enumeration\n");
+        debug_print("DeviceCommunicationControl: "
+                    "Sending Reject - undefined enumeration\n");
     } else {
 #ifdef BAC_ROUTING
         /* Check to see if the current Device supports this service. */
@@ -186,20 +178,16 @@ void handler_device_communication_control(
             len = encode_simple_ack(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL);
-            debug_fprintf(
-                stderr,
-                "DeviceCommunicationControl: "
-                "Sending Simple Ack!\n");
+            debug_print("DeviceCommunicationControl: "
+                        "Sending Simple Ack!\n");
             dcc_set_status_duration(state, timeDuration);
         } else {
             len = bacerror_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
                 ERROR_CLASS_SECURITY, ERROR_CODE_PASSWORD_FAILURE);
-            debug_fprintf(
-                stderr,
-                "DeviceCommunicationControl: "
-                "Sending Error - password failure.\n");
+            debug_print("DeviceCommunicationControl: "
+                        "Sending Error - password failure.\n");
         }
     }
 DCC_FAILURE:

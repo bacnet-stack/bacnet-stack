@@ -145,13 +145,13 @@ void handler_write_property_multiple(
     if (service_len == 0) {
         wp_data.error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
         len = BACNET_STATUS_REJECT;
-        debug_printf_stderr("WPM: Missing Required Parameter. "
-                            "Sending Reject!\n");
+        debug_print("WPM: Missing Required Parameter. "
+                    "Sending Reject!\n");
     } else if (service_data->segmented_message) {
         wp_data.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
         len = BACNET_STATUS_ABORT;
-        debug_printf_stderr("WPM: Segmented message. "
-                            "Sending Abort!\n");
+        debug_print("WPM: Segmented message. "
+                    "Sending Abort!\n");
     } else {
         /* first time - detect malformed request before writing any data */
         len = write_property_multiple_decode(
@@ -169,24 +169,24 @@ void handler_write_property_multiple(
     if (len > 0) {
         apdu_len = wpm_ack_encode_apdu_init(
             &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id);
-        debug_printf_stderr("WPM: Sending Ack!\n");
+        debug_print("WPM: Sending Ack!\n");
     } else {
         /* handle any errors */
         if (len == BACNET_STATUS_ABORT) {
             apdu_len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 abort_convert_error_code(wp_data.error_code), true);
-            debug_printf_stderr("WPM: Sending Abort!\n");
+            debug_print("WPM: Sending Abort!\n");
         } else if (len == BACNET_STATUS_ERROR) {
             apdu_len = wpm_error_ack_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 &wp_data);
-            debug_printf_stderr("WPM: Sending Error!\n");
+            debug_print("WPM: Sending Error!\n");
         } else if (len == BACNET_STATUS_REJECT) {
             apdu_len = reject_encode_apdu(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 reject_convert_error_code(wp_data.error_code));
-            debug_printf_stderr("WPM: Sending Reject!\n");
+            debug_print("WPM: Sending Reject!\n");
         }
     }
     pdu_len = npdu_len + apdu_len;

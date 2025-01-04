@@ -57,6 +57,9 @@ BACNET_SUBSCRIBE_COV_DATA *COV_Subscribe_Data = NULL;
 /* flags to signal early termination */
 static bool Simple_Ack_Detected = false;
 static bool Cancel_Requested = false;
+/* callback for printing the notifications */
+static BACNET_COV_NOTIFICATION Confirmed_COV_Notification_Callback;
+static BACNET_COV_NOTIFICATION Unconfirmed_COV_Notification_Callback;
 
 static void MyErrorHandler(
     BACNET_ADDRESS *src,
@@ -98,21 +101,6 @@ MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
     }
 }
 
-static void My_Unconfirmed_COV_Notification_Handler(
-    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
-{
-    handler_ucov_notification(service_request, service_len, src);
-}
-
-static void My_Confirmed_COV_Notification_Handler(
-    uint8_t *service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS *src,
-    BACNET_CONFIRMED_SERVICE_DATA *service_data)
-{
-    handler_ccov_notification(service_request, service_len, src, service_data);
-}
-
 static void
 MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
@@ -137,13 +125,17 @@ static void Init_Service_Handlers(void)
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
-    /* handle the data coming back from COV subscriptions */
+    /* handle the data coming back from confirmed COV subscriptions */
     apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_COV_NOTIFICATION,
-        My_Confirmed_COV_Notification_Handler);
+        SERVICE_CONFIRMED_COV_NOTIFICATION, handler_ccov_notification);
+    /* add a callback for printing the data */
+    Confirmed_COV_Notification_Callback.callback = handler_ccov_data_print;
+    handler_ccov_notification_add(&Confirmed_COV_Notification_Callback);
+    Unconfirmed_COV_Notification_Callback.callback = handler_ucov_data_print;
+    handler_ucov_notification_add(&Unconfirmed_COV_Notification_Callback);
+    /* handle the data coming back from unconfirmed COV subscriptions */
     apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_COV_NOTIFICATION,
-        My_Unconfirmed_COV_Notification_Handler);
+        SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
     /* handle the Simple ack coming back from SubscribeCOV */
     apdu_set_confirmed_simple_ack_handler(
         SERVICE_CONFIRMED_SUBSCRIBE_COV, MyWritePropertySimpleAckHandler);

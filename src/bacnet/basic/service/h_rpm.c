@@ -227,12 +227,11 @@ void handler_read_property_multiple(
         if (service_len == 0) {
             rpmdata.error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
             error = BACNET_STATUS_REJECT;
-            debug_fprintf(
-                stderr, "RPM: Missing Required Parameter. Sending Reject!\n");
+            debug_print("RPM: Missing Required Parameter. Sending Reject!\n");
         } else if (service_data->segmented_message) {
             rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
             error = BACNET_STATUS_ABORT;
-            debug_fprintf(stderr, "RPM: Segmented message. Sending Abort!\r\n");
+            debug_print("RPM: Segmented message. Sending Abort!\r\n");
         } else {
             /* decode apdu request & encode apdu reply
                encode complex ack, invoke id, service choice */
@@ -249,7 +248,7 @@ void handler_read_property_multiple(
                     decode_len += len;
                 } else {
                     /* bad encoding - skip to error/reject/abort handling */
-                    debug_fprintf(stderr, "RPM: Bad Encoding.\n");
+                    debug_print("RPM: Bad Encoding.\n");
                     error = len;
                     /* The berror flag ensures that
                         both loops will be broken! */
@@ -283,7 +282,7 @@ void handler_read_property_multiple(
                     &Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0], apdu_len,
                     len, MAX_APDU);
                 if (copy_len == 0) {
-                    debug_fprintf(stderr, "RPM: Response too big!\r\n");
+                    debug_print("RPM: Response too big!\n");
                     rpmdata.error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     error = BACNET_STATUS_ABORT;
@@ -299,7 +298,7 @@ void handler_read_property_multiple(
                         &rpmdata);
                     if (len < 0) {
                         /* bad encoding - skip to error/reject/abort handling */
-                        debug_fprintf(stderr, "RPM: Bad Encoding.\n");
+                        debug_print("RPM: Bad Encoding.\n");
                         error = len;
                         /* The berror flag ensures that
                             both loops will be broken! */
@@ -324,8 +323,7 @@ void handler_read_property_multiple(
                             if (len > 0) {
                                 apdu_len += len;
                             } else {
-                                debug_fprintf(
-                                    stderr, "RPM: Too full for property!\r\n");
+                                debug_print("RPM: Too full for property!\n");
                                 error = len;
                                 /* The berror flag ensures that
                                    both loops will be broken! */
@@ -344,9 +342,8 @@ void handler_read_property_multiple(
                                 &Temp_Buf[0], apdu_len, len, MAX_APDU);
 
                             if (copy_len == 0) {
-                                debug_fprintf(
-                                    stderr,
-                                    "RPM: Too full to encode property!\r\n");
+                                debug_print(
+                                    "RPM: Too full to encode property!\n");
                                 rpmdata.error_code =
                                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                                 error = BACNET_STATUS_ABORT;
@@ -366,9 +363,7 @@ void handler_read_property_multiple(
                                 &Temp_Buf[0], apdu_len, len, MAX_APDU);
 
                             if (copy_len == 0) {
-                                debug_fprintf(
-                                    stderr,
-                                    "RPM: Too full to encode error!\r\n");
+                                debug_print("RPM: Too full to encode error!\n");
                                 rpmdata.error_code =
                                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                                 error = BACNET_STATUS_ABORT;
@@ -403,9 +398,8 @@ void handler_read_property_multiple(
                                     if (len > 0) {
                                         apdu_len += len;
                                     } else {
-                                        debug_fprintf(
-                                            stderr,
-                                            "RPM: Too full for property!\r\n");
+                                        debug_print(
+                                            "RPM: Too full for property!\n");
                                         error = len;
                                         /* The berror flag ensures that
                                            both loops will be broken! */
@@ -426,9 +420,8 @@ void handler_read_property_multiple(
                                     if (len > 0) {
                                         apdu_len += len;
                                     } else {
-                                        debug_fprintf(
-                                            stderr,
-                                            "RPM: Too full for property!\r\n");
+                                        debug_print(
+                                            "RPM: Too full for property!\n");
                                         error = len;
                                         /* The berror flag ensures that
                                            both loops will be broken! */
@@ -446,9 +439,8 @@ void handler_read_property_multiple(
                         if (len > 0) {
                             apdu_len += len;
                         } else {
-                            debug_fprintf(
-                                stderr,
-                                "RPM: Too full for individual property!\r\n");
+                            debug_print(
+                                "RPM: Too full for individual property!\n");
                             error = len;
                             /* The berror flag ensures that
                                both loops will be broken! */
@@ -467,9 +459,8 @@ void handler_read_property_multiple(
                             &Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
                             apdu_len, len, MAX_APDU);
                         if (copy_len == 0) {
-                            debug_fprintf(
-                                stderr,
-                                "RPM: Too full to encode object end!\r\n");
+                            debug_print(
+                                "RPM: Too full to encode object end!\n");
                             rpmdata.error_code =
                                 ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             error = BACNET_STATUS_ABORT;
@@ -499,8 +490,7 @@ void handler_read_property_multiple(
                     rpmdata.error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     error = BACNET_STATUS_ABORT;
-                    debug_fprintf(
-                        stderr, "RPM: Message too large.  Sending Abort!\n");
+                    debug_print("RPM: Message too large.  Sending Abort!\n");
                 }
             }
         }
@@ -510,18 +500,18 @@ void handler_read_property_multiple(
                 apdu_len = abort_encode_apdu(
                     &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                     abort_convert_error_code(rpmdata.error_code), true);
-                debug_fprintf(stderr, "RPM: Sending Abort!\n");
+                debug_print("RPM: Sending Abort!\n");
             } else if (error == BACNET_STATUS_ERROR) {
                 apdu_len = bacerror_encode_apdu(
                     &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                     SERVICE_CONFIRMED_READ_PROP_MULTIPLE, rpmdata.error_class,
                     rpmdata.error_code);
-                debug_fprintf(stderr, "RPM: Sending Error!\n");
+                debug_print("RPM: Sending Error!\n");
             } else if (error == BACNET_STATUS_REJECT) {
                 apdu_len = reject_encode_apdu(
                     &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                     reject_convert_error_code(rpmdata.error_code));
-                debug_fprintf(stderr, "RPM: Sending Reject!\n");
+                debug_print("RPM: Sending Reject!\n");
             }
         }
         pdu_len = apdu_len + npdu_len;

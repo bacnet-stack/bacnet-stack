@@ -186,7 +186,7 @@ void handler_conf_private_trans(
     error_class = ERROR_CLASS_OBJECT;
     error_code = ERROR_CODE_UNKNOWN_OBJECT;
 
-    debug_fprintf(stderr, "Received Confirmed Private Transfer Request!\n");
+    debug_print("Received Confirmed Private Transfer Request!\n");
     /* encode the NPDU portion of the response packet as it will be needed */
     /* no matter what the outcome. */
     datalink_get_my_address(&my_address);
@@ -197,14 +197,13 @@ void handler_conf_private_trans(
         len = reject_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr, "CPT: Missing Required Parameter. Sending Reject!\n");
+        debug_print("CPT: Missing Required Parameter. Sending Reject!\n");
         goto CPT_ABORT;
     } else if (service_data->segmented_message) {
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(stderr, "CPT: Segmented Message. Sending Abort!\n");
+        debug_print("CPT: Segmented Message. Sending Abort!\n");
         goto CPT_ABORT;
     }
 
@@ -214,7 +213,7 @@ void handler_conf_private_trans(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-        debug_fprintf(stderr, "CPT: Bad Encoding. Sending Abort!\n");
+        debug_print("CPT: Bad Encoding. Sending Abort!\n");
         goto CPT_ABORT;
     }
 
@@ -234,7 +233,7 @@ void handler_conf_private_trans(
             error = true;
             error_class = ERROR_CLASS_SERVICES;
             error_code = ERROR_CODE_OTHER;
-            debug_fprintf(stderr, "CPT: Error servicing request!\n");
+            debug_print("CPT: Error servicing request!\n");
         }
         len = ptransfer_ack_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id, &data);
@@ -243,8 +242,7 @@ void handler_conf_private_trans(
         error = true;
         error_class = ERROR_CLASS_SERVICES;
         error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
-        debug_fprintf(
-            stderr, "CPT: Not our Vendor ID or invalid service code!\n");
+        debug_print("CPT: Not our Vendor ID or invalid service code!\n");
     }
 
     if (error) {

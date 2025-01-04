@@ -112,10 +112,8 @@ void handler_get_event_information(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-        debug_fprintf(
-            stderr,
-            "GetEventInformation: "
-            "Segmented message. Sending Abort!\n");
+        debug_print("GetEventInformation: "
+                    "Segmented message. Sending Abort!\n");
         goto GET_EVENT_ABORT;
     }
     len = getevent_decode_service_request(
@@ -125,10 +123,8 @@ void handler_get_event_information(
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             ABORT_REASON_OTHER, true);
-        debug_fprintf(
-            stderr,
-            "GetEventInformation: Bad Encoding. "
-            "Sending Abort!\n");
+        debug_print("GetEventInformation: Bad Encoding. "
+                    "Sending Abort!\n");
         goto GET_EVENT_ABORT;
     }
     len = getevent_ack_encode_apdu_init(
@@ -200,7 +196,7 @@ void handler_get_event_information(
         error = true;
         goto GET_EVENT_ERROR;
     }
-    debug_fprintf(stderr, "Got a GetEventInformation request: Sending Ack!\n");
+    debug_print("Got a GetEventInformation request: Sending Ack!\n");
 GET_EVENT_ERROR:
     if (error) {
         pdu_len = npdu_encode_pdu(
@@ -211,15 +207,13 @@ GET_EVENT_ERROR:
             len = abort_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
-            debug_fprintf(
-                stderr,
-                "GetEventInformation: "
-                "Reply too big to fit into APDU!\n");
+            debug_print("GetEventInformation: "
+                        "Reply too big to fit into APDU!\n");
         } else {
             len = bacerror_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
-            debug_fprintf(stderr, "GetEventInformation: Sending Error!\n");
+            debug_print("GetEventInformation: Sending Error!\n");
         }
     }
 GET_EVENT_ABORT:
