@@ -1,11 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
-/* linux Ethernet/IP specific */
+/**
+ * @file
+ * @brief Initializes BACnet/IP interface (Linux).
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <asm/types.h>
 #include <netinet/ether.h>
 #include <netinet/in.h>
@@ -31,8 +30,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacport.h"
-
-/** @file linux/bip-init.c  Initializes BACnet/IP interface (Linux). */
 
 /* unix sockets */
 static int BIP_Socket = -1;

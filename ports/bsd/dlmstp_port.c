@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Provides BSD-specific DataLink functions for MS/TP.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -29,9 +29,6 @@
 #include "rs485.h"
 /* OS Specific include */
 #include "bacport.h"
-
-/** @file bsd/dlmstp_port.c  Provides BSD-specific DataLink functions for MS/TP.
- */
 
 #define BACNET_PDU_CONTROL_BYTE_OFFSET 1
 #define BACNET_DATA_EXPECTING_REPLY_BIT 2

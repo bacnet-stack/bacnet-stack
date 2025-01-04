@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Initializes BACnet/IP interface (BSD/MAC OS X)
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <ifaddrs.h>
@@ -14,8 +14,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacport.h"
-
-/** @file bsd/bip-init.c @brief Initializes BACnet/IP interface (BSD/MAC OS X). */
 
 /* unix sockets */
 static int BIP_Socket = -1;

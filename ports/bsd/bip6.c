@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2016 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Initializes BACnet/IPv6 interface (BSD/MAC OS X)
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2016
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <ifaddrs.h>
 #include <stdio.h>
 #include <stdlib.h>
