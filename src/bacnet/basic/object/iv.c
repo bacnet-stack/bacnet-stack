@@ -20,14 +20,13 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/bactext.h"
 #include "bacnet/proplist.h"
+/* basic objects and services */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/sys/keylist.h"
 /* me! */
 #include "bacnet/basic/object/iv.h"
-#include "bacnet/basic/sys/keylist.h"
-#include "bacnet/basic/sys/debug.h"
-
-#define PRINTF debug_printf_stderr
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List = NULL;

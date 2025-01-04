@@ -24,7 +24,7 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
-#define PRINTF debug_aprintf
+#define PRINTF debug_printf_stdout
 #define PERROR debug_printf_stderr
 
 /** Decode the received RPM data and make a linked list of the results.

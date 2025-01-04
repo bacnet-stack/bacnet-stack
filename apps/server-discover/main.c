@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     Device_Set_Object_Instance_Number(device_id);
-    debug_aprintf(
+    debug_printf_stdout(
         "BACnet Server-Discovery Demo\n"
         "BACnet Stack Version %s\n"
         "BACnet Device ID: %u\n"

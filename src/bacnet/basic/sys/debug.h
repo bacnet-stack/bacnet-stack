@@ -28,13 +28,19 @@ extern "C" {
 BACNET_STACK_EXPORT
 void debug_printf(const char *format, ...);
 BACNET_STACK_EXPORT
-int debug_aprintf(const char *format, ...);
+void debug_printf_disabled(const char *format, ...);
+
+BACNET_STACK_EXPORT
+int debug_printf_stdout(const char *format, ...);
+
 BACNET_STACK_EXPORT
 int debug_fprintf(FILE *stream, const char *format, ...);
 BACNET_STACK_EXPORT
-void debug_printf_stderr(const char *format, ...);
+int debug_fprintf_disabled(FILE *stream, const char *format, ...);
+
 BACNET_STACK_EXPORT
-void debug_perror(const char *message);
+void debug_printf_stderr(const char *format, ...);
+
 BACNET_STACK_EXPORT
 void debug_printf_hex(
     uint32_t offset,
@@ -43,8 +49,24 @@ void debug_printf_hex(
     const char *format,
     ...);
 
+#if PRINT_ENABLED
 BACNET_STACK_EXPORT
-void debug_printf_disabled(const char *format, ...);
+void debug_perror(const char *message);
+#else
+#define debug_perror(message) ((void)0)
+#endif
+
+#if PRINT_ENABLED
+#define DEBUG_FPRINTF debug_fprintf
+#else
+#define DEBUG_FPRINTF debug_fprintf_disabled
+#endif
+
+#if DEBUG_ENABLED
+#define DEBUG_PRINTF debug_printf
+#else
+#define DEBUG_PRINTF debug_printf_disabled
+#endif
 
 #ifdef __cplusplus
 }

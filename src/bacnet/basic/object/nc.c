@@ -19,6 +19,7 @@
 #include "bacnet/datetime.h"
 #include "bacnet/event.h"
 #include "bacnet/wp.h"
+/* basic objects and services */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/nc.h"
 #include "bacnet/basic/binding/address.h"
@@ -26,8 +27,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
-
-#define PRINTF debug_printf_stderr
 
 #ifndef MAX_NOTIFICATION_CLASSES
 #define MAX_NOTIFICATION_CLASSES 2
@@ -682,7 +681,7 @@ void Notification_Class_common_reporting_function(
     }
 
     /* send notifications for active recipients */
-    PRINTF(
+    debug_printf_stderr(
         "Notification Class[%u]: send notifications\n",
         event_data->notificationClass);
     /* pointer to first recipient */
@@ -703,7 +702,7 @@ void Notification_Class_common_reporting_function(
             if (pBacDest->Recipient.tag == BACNET_RECIPIENT_TAG_DEVICE) {
                 /* send notification to the specified device */
                 device_id = pBacDest->Recipient.type.device.instance;
-                PRINTF(
+                debug_printf_stderr(
                     "Notification Class[%u]: send notification to %u\n",
                     event_data->notificationClass, (unsigned)device_id);
                 if (pBacDest->ConfirmedNotify == true) {
@@ -713,7 +712,7 @@ void Notification_Class_common_reporting_function(
                 }
             } else if (
                 pBacDest->Recipient.tag == BACNET_RECIPIENT_TAG_ADDRESS) {
-                PRINTF(
+                debug_printf_stderr(
                     "Notification Class[%u]: send notification to ADDR\n",
                     event_data->notificationClass);
                 /* send notification to the address indicated */

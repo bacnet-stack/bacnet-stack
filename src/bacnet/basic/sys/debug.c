@@ -76,6 +76,17 @@ void debug_printf(const char *format, ...)
 #endif
 
 /**
+ * @brief Print with a printf string that does nothing
+ * @param format - printf format string
+ * @param ... - variable arguments
+ * @note useful when used with defines such as DEBUG_PRINTF
+ */
+void debug_printf_disabled(const char *format, ...)
+{
+    (void)format;
+}
+
+/**
  * @brief print format with HEX dump of a buffer
  * @param offset - starting address to print to the left side
  * @param buffer - buffer from which to print hex from
@@ -143,7 +154,7 @@ void debug_printf_hex(
  * PRINT_ENABLED is non-zero
  * @return number of characters printed
  */
-int debug_aprintf(const char *format, ...)
+int debug_printf_stdout(const char *format, ...)
 {
     int length = 0;
 #if PRINT_ENABLED
@@ -186,11 +197,23 @@ int debug_fprintf(FILE *stream, const char *format, ...)
 }
 
 /**
- * @brief Print with a perror string
+ * @brief Print with a fprintf string that does nothing
  * @param format - printf format string
  * @param ... - variable arguments
- * @note This function is only available if
- * PRINT_ENABLED is non-zero
+ * @note useful when used with defines such as DEBUG_PRINTF
+ */
+int debug_fprintf_disabled(FILE *stream, const char *format, ...)
+{
+    (void)stream;
+    (void)format;
+    return 0;
+}
+
+/**
+ * @brief debug printf to stderr when PRINT_ENABLED is non-zero
+ * @param format - printf format string
+ * @param ... - variable arguments
+ * @note This function is only available if PRINT_ENABLED is non-zero
  */
 void debug_printf_stderr(const char *format, ...)
 {
@@ -206,6 +229,7 @@ void debug_printf_stderr(const char *format, ...)
 #endif
 }
 
+#if PRINT_ENABLED
 /**
  * @brief Prints a textual description of the error code currently
  *  stored in the system variable errno to stderr.
@@ -214,21 +238,7 @@ void debug_printf_stderr(const char *format, ...)
  */
 void debug_perror(const char *message)
 {
-#if PRINT_ENABLED
     perror(message);
     fflush(stderr);
-#else
-    (void)message;
+}
 #endif
-}
-
-/**
- * @brief Print with a printf string that does nothing
- * @param format - printf format string
- * @param ... - variable arguments
- * @note useful when used with defines such as PRINTF
- */
-void debug_printf_disabled(const char *format, ...)
-{
-    (void)format;
-}
