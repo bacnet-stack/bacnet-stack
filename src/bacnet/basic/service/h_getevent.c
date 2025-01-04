@@ -29,7 +29,10 @@
 
 static get_event_info_function Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
 
-/** print eventState
+/**
+ * @brief print the data for a GetEventInformation service request
+ * @param data [in]  The data to print
+ * @param device_id [in] The device id to print
  */
 void ge_ack_print_data(
     BACNET_GET_EVENT_INFORMATION_DATA *data, uint32_t device_id)
@@ -49,6 +52,11 @@ void ge_ack_print_data(
     printf("\n%u\t Total\n", count);
 }
 
+/**
+ * @brief Set the handler for the GetEventInformation service.
+ * @param object_type [in] The BACNET_OBJECT_TYPE to set the handler for.
+ * @param pFunction [in] The handler function to set.
+ */
 void handler_get_event_information_set(
     BACNET_OBJECT_TYPE object_type, get_event_info_function pFunction)
 {
@@ -57,6 +65,19 @@ void handler_get_event_information_set(
     }
 }
 
+/**
+ * @brief Handle a GetEventInformation service request.
+ * @details The GetEventInformation service is used by a client BACnet-user to
+ * obtain a summary of all "active event states". The term "active event states"
+ * refers to all event-initiating objects that have an Event_State property
+ * whose value is not equal to NORMAL,
+ * or have an Acked_Transitions property, which has at least one of the bits
+ * (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE.
+ * @param service_request [in] The contents of the service request.
+ * @param service_len [in] The length of the service_request.
+ * @param src [in] BACNET_ADDRESS of the source of the message
+ * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
+ */
 void handler_get_event_information(
     uint8_t *service_request,
     uint16_t service_len,
@@ -86,16 +107,7 @@ void handler_get_event_information(
     npdu_encode_npdu_data(&npdu_data, false, service_data->priority);
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_len == 0) {
-        len = reject_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-            REJECT_REASON_MISSING_REQUIRED_PARAMETER);
-        debug_fprintf(
-            stderr,
-            "GetAlarmSummary: Missing Required Parameter. "
-            "Sending Reject!\n");
-        goto GET_EVENT_ABORT;
-    } else if (service_data->segmented_message) {
+    if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = abort_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
