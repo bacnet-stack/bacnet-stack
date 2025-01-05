@@ -7,9 +7,12 @@
  */
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
+#include <stdarg.h>
+#if PRINT_ENABLED || DEBUG_ENABLED
 #include <stdio.h> /* Standard I/O */
 #include <stdlib.h> /* Standard Library */
-#include <stdarg.h>
+#include <errno.h>
+#endif
 #if DEBUG_ENABLED
 #include <string.h>
 #include <ctype.h>
@@ -71,6 +74,17 @@ void debug_printf(const char *format, ...)
 #endif
 }
 #endif
+
+/**
+ * @brief Print with a printf string that does nothing
+ * @param format - printf format string
+ * @param ... - variable arguments
+ * @note useful when used with defines such as DEBUG_PRINTF
+ */
+void debug_printf_disabled(const char *format, ...)
+{
+    (void)format;
+}
 
 /**
  * @brief print format with HEX dump of a buffer
@@ -140,7 +154,7 @@ void debug_printf_hex(
  * PRINT_ENABLED is non-zero
  * @return number of characters printed
  */
-int debug_aprintf(const char *format, ...)
+int debug_printf_stdout(const char *format, ...)
 {
     int length = 0;
 #if PRINT_ENABLED
@@ -183,13 +197,25 @@ int debug_fprintf(FILE *stream, const char *format, ...)
 }
 
 /**
- * @brief Print with a perror string
+ * @brief Print with a fprintf string that does nothing
  * @param format - printf format string
  * @param ... - variable arguments
- * @note This function is only available if
- * PRINT_ENABLED is non-zero
+ * @note useful when used with defines such as DEBUG_PRINTF
  */
-void debug_perror(const char *format, ...)
+int debug_fprintf_disabled(FILE *stream, const char *format, ...)
+{
+    (void)stream;
+    (void)format;
+    return 0;
+}
+
+/**
+ * @brief debug printf to stderr when PRINT_ENABLED is non-zero
+ * @param format - printf format string
+ * @param ... - variable arguments
+ * @note This function is only available if PRINT_ENABLED is non-zero
+ */
+void debug_printf_stderr(const char *format, ...)
 {
 #if PRINT_ENABLED
     va_list ap;
@@ -203,13 +229,30 @@ void debug_perror(const char *format, ...)
 #endif
 }
 
+#if PRINT_ENABLED
 /**
- * @brief Print with a printf string that does nothing
+ * @brief debug printf to stderr when PRINT_ENABLED is non-zero
  * @param format - printf format string
  * @param ... - variable arguments
- * @note useful when used with defines such as PRINTF
+ * @note This function is only available if PRINT_ENABLED is non-zero
  */
-void debug_printf_disabled(const char *format, ...)
+void debug_print(const char *message)
 {
-    (void)format;
+    fprintf(stderr, "%s", message);
+    fflush(stderr);
 }
+#endif
+
+#if PRINT_ENABLED
+/**
+ * @brief Prints a textual description of the error code currently
+ *  stored in the system variable errno to stderr.
+ * @param s - pointer to a null-terminated string with explanatory message
+ * @note This function is only available if PRINT_ENABLED is non-zero
+ */
+void debug_perror(const char *message)
+{
+    perror(message);
+    fflush(stderr);
+}
+#endif

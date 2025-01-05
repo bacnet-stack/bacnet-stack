@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send BACnet WriteProperty-Request
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2005
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -21,12 +20,17 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
-/** @file s_wp.c  Send a Write Property request. */
-
-/** returns the invoke ID for confirmed request, or zero on failure */
+/**
+ * @brief Send a WriteProperty-Request service message
+ * @ingroup BIBB-DS-WP-A
+ * @param device_id [in] ID of the destination device
+ * @param data [in] The data representing the Life Safety Operation
+ * @return invoke id of outgoing message, or zero on failure.
+ */
 uint8_t Send_Write_Property_Request_Data(
     uint32_t device_id,
     BACNET_OBJECT_TYPE object_type,
@@ -51,7 +55,6 @@ uint8_t Send_Write_Property_Request_Data(
     if (!dcc_communication_enabled()) {
         return 0;
     }
-
     /* is the device bound? */
     status = address_get_by_device(device_id, &max_apdu, &dest);
     /* is there a tsm available? */
@@ -89,30 +92,24 @@ uint8_t Send_Write_Property_Request_Data(
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
-#if PRINT_ENABLED
-                fprintf(
-                    stderr, "Failed to Send WriteProperty Request (%s)!\n",
-                    strerror(errno));
-#endif
+                debug_perror("Failed to Send WriteProperty Request");
             }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(
+            debug_fprintf(
                 stderr,
                 "Failed to Send WriteProperty Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
     }
 
     return invoke_id;
 }
 
-/** Sends a Write Property request.
- * @ingroup DSWP
- *
+/**
+ * @brief Sends a Write Property request.
+ * @ingroup BIBB-DS-WP-A
  * @param device_id [in] ID of the destination device
  * @param object_type [in]  Type of the object whose property is to be written.
  * @param object_instance [in] Instance # of the object to be written.
@@ -138,15 +135,12 @@ uint8_t Send_Write_Property_Request(
     int apdu_len = 0, len = 0;
 
     while (object_value) {
-#if PRINT_ENABLED_DEBUG
-        fprintf(
-            stderr,
+        debug_printf(
             "WriteProperty service: "
             "%s tag=%d\n",
             (object_value->context_specific ? "context" : "application"),
             (int)(object_value->context_specific ? object_value->context_tag
                                                  : object_value->tag));
-#endif
         len = bacapp_encode_data(&application_data[apdu_len], object_value);
         if ((len + apdu_len) < MAX_APDU) {
             apdu_len += len;

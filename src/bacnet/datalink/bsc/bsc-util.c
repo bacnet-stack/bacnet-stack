@@ -13,8 +13,8 @@
 #include "bacnet/basic/sys/debug.h"
 #include <stdlib.h>
 
-#define PRINTF debug_aprintf
-#define PRINTF_ERR debug_perror
+#define PRINTF debug_printf_stdout
+#define PRINTF_ERR debug_printf_stderr
 
 /**
  * @brief Map websocket return code to BACnet/SC return code

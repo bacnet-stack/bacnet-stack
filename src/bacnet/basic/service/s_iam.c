@@ -1,13 +1,12 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
- *
- * SPDX-License-Identifier: MIT
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Send an I-Am message.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: MIT
+ */
 #include <stddef.h>
 #include <stdint.h>
-#include <errno.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -23,8 +22,7 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
-
-/** @file s_iam.c  Send an I-Am message. */
+#include "bacnet/basic/sys/debug.h"
 
 /** Send a I-Am request to a remote network for a specific device.
  * @param target_address [in] BACnet address of target router
@@ -61,9 +59,7 @@ void Send_I_Am_To_Network(
     bytes_sent = datalink_send_pdu(
         target_address, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
-#if PRINT_ENABLED
-        fprintf(stderr, "Failed to Send I-Am Request (%s)!\n", strerror(errno));
-#endif
+        debug_perror("Failed to Send I-Am Request");
     }
 }
 
@@ -118,16 +114,12 @@ void Send_I_Am(uint8_t *buffer)
     if (!dcc_communication_enabled())
         return 0;
 #endif
-
     /* encode the data */
     pdu_len = iam_encode_pdu(buffer, &dest, &npdu_data);
     /* send data */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
-
     if (bytes_sent <= 0) {
-#if PRINT_ENABLED
-        fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n", strerror(errno));
-#endif
+        debug_perror("Failed to Send I-Am Reply");
     }
 }
 
@@ -196,15 +188,12 @@ void Send_I_Am_Unicast(uint8_t *buffer, const BACNET_ADDRESS *src)
     if (!dcc_communication_enabled())
         return 0;
 #endif
-
     /* encode the data */
     pdu_len = iam_unicast_encode_pdu(buffer, src, &dest, &npdu_data);
     /* send data */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 
     if (bytes_sent <= 0) {
-#if PRINT_ENABLED
-        fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n", strerror(errno));
-#endif
+        debug_perror("Failed to Send I-Am Reply");
     }
 }

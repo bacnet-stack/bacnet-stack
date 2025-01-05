@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h> /* for time */
-#include <errno.h>
 #include <assert.h>
 #include <fcntl.h>
 #include <libconfig.h> /* read config files */

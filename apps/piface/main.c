@@ -170,8 +170,6 @@ static void Init_Service_Handlers(void)
         SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
-    apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,

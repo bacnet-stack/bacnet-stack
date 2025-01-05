@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <errno.h>
 #include "bacnet/datalink/bsc/bsc-event.h"
 
 #define DEBUG_BSC_EVENT 0
